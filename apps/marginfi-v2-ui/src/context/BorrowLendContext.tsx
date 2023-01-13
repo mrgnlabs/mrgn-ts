@@ -62,7 +62,6 @@ const BorrowLendStateProvider: FC<{
       );
       setMfiReadonlyClient(roClient);
 
-      console.log(anchorWallet);
       if (!anchorWallet) return;
 
       const client = await MarginfiClient.fetch(
@@ -71,8 +70,6 @@ const BorrowLendStateProvider: FC<{
         anchorWallet,
         connection
       );
-      console.log("huh", client);
-
       setMfiClient(client);
     })();
   }, [anchorWallet, mfiConfig, connection]);

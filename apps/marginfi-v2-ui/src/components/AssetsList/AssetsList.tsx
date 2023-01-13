@@ -11,6 +11,8 @@ const AssetsList: FC = () => {
     useBorrowLendState();
   const wallet = useWallet();
 
+  if (banks.length === 0) return null;
+
   return (
     <>
       <div className="col-span-full">

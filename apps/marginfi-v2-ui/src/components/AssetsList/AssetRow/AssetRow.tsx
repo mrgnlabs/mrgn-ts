@@ -95,32 +95,30 @@ const AssetRow: FC<{
           apy={apy}
           icon={bankMetadata.icon}
         />
-        {
-          <TableCell className="py-1 px-0 h-10 border-hidden flex justify-end items-center w-full max-w-[600px]">
+        <TableCell className="py-1 px-0 h-10 border-hidden flex justify-end items-center w-full max-w-[600px]">
+          <AssetRowMetric
+            longLabel="Current Price"
+            shortLabel="Price"
+            value="$0"
+            borderRadius={
+              isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"
+            }
+          />
+          <AssetRowMetric
+            longLabel="Total Pool Deposits"
+            shortLabel="Deposits"
+            value="$0"
+            borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
+          />
+          {isConnected && (
             <AssetRowMetric
-              longLabel="Current Price"
-              shortLabel="Price"
+              longLabel="Wallet Balance"
+              shortLabel="Balance"
               value="$0"
-              borderRadius={
-                isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"
-              }
+              borderRadius="0px 10px 10px 0px"
             />
-            <AssetRowMetric
-              longLabel="Total Pool Deposits"
-              shortLabel="Deposits"
-              value="$0"
-              borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
-            />
-            {isConnected && (
-              <AssetRowMetric
-                longLabel="Wallet Balance"
-                shortLabel="Balance"
-                value="$0"
-                borderRadius="0px 10px 10px 0px"
-              />
-            )}
-          </TableCell>
-        }
+          )}
+        </TableCell>
 
         {isConnected && (
           <>
