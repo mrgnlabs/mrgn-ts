@@ -30,7 +30,7 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
-require("~/globals.css");
+require("~/styles/globals.css");
 
 // Matomo
 const MATOMO_URL = "https://mrgn.matomo.cloud";
@@ -70,7 +70,10 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
             <Head>
               <title>marginfi</title>
               <meta name="description" content="marginfi v2 UI" />
-              <meta name="viewport" content="width=device-width, initial-scale=1" />
+              <meta
+                name="viewport"
+                content="width=device-width, initial-scale=1"
+              />
               <link rel="icon" href="/favicon.ico" />
             </Head>
             <Navbar />
