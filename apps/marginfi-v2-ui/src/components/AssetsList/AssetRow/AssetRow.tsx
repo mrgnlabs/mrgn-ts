@@ -146,10 +146,3 @@ const AssetRow: FC<{
 };
 
 export { AssetRow };
-function borrow(
-  borrowOrLendAmount: number,
-  bank: Bank,
-  marginfiAccount: MarginfiAccount | null
-) {
-  throw new Error("Function not implemented.");
-}
