@@ -1,10 +1,10 @@
 import { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Button from "@mui/material/Button";
-import LockIcon from "@mui/icons-material/Lock";
 import dynamic from "next/dynamic";
 import styles from "./Navbar.module.css";
+import { NavbarCenterItem } from "./NavbarCenterItem";
+import AirdropZone from "./AirdropZone";
 
 // ================================
 // ================================
@@ -37,6 +37,7 @@ const Navbar: FC = () => (
             <NavbarCenterItem text="Markets" disabled />
             <NavbarCenterItem text="Strategies" disabled />
             <NavbarCenterItem text="Trade" disabled />
+            <AirdropZone />
           </div>
         </div>
         <div className="h-full flex justify-center items-center gap-[10px] z-10">
@@ -46,43 +47,6 @@ const Navbar: FC = () => (
     </nav>
   </header>
 );
-
-// ================================
-// 1a. Navbar
-
-interface NavbarCenterItemProps {
-  text: string;
-  // icon?: any;
-  textFormat?: string;
-  disabled?: boolean;
-}
-
-const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
-  text,
-  // icon,
-  textFormat,
-  disabled,
-}) => (
-  <Button
-    className={`h-full w-1/4 max-w-1/4 text-xs flex justify-center items-center ${
-      textFormat || "normal-case"
-    }`}
-    variant="text"
-    disabled={disabled}
-    style={{
-      color: disabled ? "rgba(255, 255, 255, 0.2)" : "#fff",
-      // @todo clean UI change on click
-      backgroundColor: "transparent",
-      fontFamily: "Aeonik Pro Light",
-    }}
-  >
-    {text}
-    {disabled ? <LockIcon className="h-[14px] w-[14px] ml-2" /> : <></>}
-  </Button>
-);
-
-// 1a. Navbar
-// ================================
 
 // ================================
 // 1b. Dynamic wallet
