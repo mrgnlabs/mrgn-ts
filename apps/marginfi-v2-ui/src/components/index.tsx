@@ -1,7 +1,7 @@
-import { Navbar } from "./navbar/Navbar";
-import { AccountSummary } from "./AccountSummary/AccountSummary";
-import { AssetsList } from "./AssetsList/AssetsList";
-import { UserPositions } from "./UserPositions/UserPositions";
+import { Navbar } from "./Navbar";
+import { AccountSummary } from "./AccountSummary";
+import { AssetsList } from "./AssetsList";
+import { UserPositions } from "./UserPositions";
 import { MultipleAccountsFoundWarning } from "./MultipleAccountsFoundWarning";
 
 export {

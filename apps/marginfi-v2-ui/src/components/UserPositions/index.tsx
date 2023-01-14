@@ -1,3 +1,3 @@
 import { UserPositions } from "./UserPositions";
 
-export default UserPositions;
+export { UserPositions };
