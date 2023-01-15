@@ -103,7 +103,10 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
           borderBottom: "solid rgba(0,0,0,0) 2px",
         }}
       >
-        <UserPositionRowAction onClick={withdrawOrRepay}>
+        <UserPositionRowAction
+          onClick={withdrawOrRepay}
+          disabled={withdrawOrRepayAmount === 0}
+        >
           {position.isLending ? "Withdraw" : "Repay"}
         </UserPositionRowAction>
       </TableCell>

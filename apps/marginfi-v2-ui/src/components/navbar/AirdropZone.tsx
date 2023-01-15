@@ -1,6 +1,5 @@
 import { Button, Modal } from "@mui/material";
-import { FC, useCallback, useMemo, useState } from "react";
-import { toast } from "react-toastify";
+import { FC, useCallback, useState } from "react";
 import { NavbarCenterItem } from "./NavbarCenterItem";
 import styles from "./AirdropZone.module.css";
 import { PublicKey, Transaction } from "@solana/web3.js";
@@ -10,12 +9,14 @@ import {
   getAssociatedTokenAddressSync,
 } from "~/utils/spl";
 import { makeAirdropCollateralIx } from "~/utils";
+import { toast } from "react-toastify";
+import { shortenAddress } from "@mrgnlabs/marginfi-client-v2";
 
 const SOL_AMOUNT = 10 * 10 ** 9;
 const SOL_MINT = new PublicKey("4Bn9Wn1sgaD5KfMRZjxwKFcrUy6NKdyqLPtzddazYc4x");
 const SOL_FAUCET = new PublicKey("tRqMXrkJysM78qhriPH8GmKza75e2ikqWSDwa3soxuB");
 
-const USDC_AMOUNT = 10 * 10 * 6;
+const USDC_AMOUNT = 10 * 10 ** 6;
 const USDC_MINT = new PublicKey("F9jRT1xL7PCRepBuey5cQG5vWHFSbnvdWxJWKqtzMDsd");
 const USDC_FAUCET = new PublicKey(
   "3ThaREisq3etoy9cvdzRgKypHsa8iTjMxj19AjETA1Fy"
@@ -33,10 +34,9 @@ const AirdropZone: FC = () => {
     async (amount: number, mint: PublicKey, faucet: PublicKey) => {
       if (faucet && wallet.publicKey) {
         const ataAddress = getAssociatedTokenAddressSync(
-          mint,
-          wallet.publicKey
+          USDC_MINT,
+          wallet.publicKey!
         );
-
         const ixs = [];
         const solBalance = await connection.getBalance(wallet.publicKey);
         if (solBalance < 0.05) {
@@ -58,12 +58,9 @@ const AirdropZone: FC = () => {
         const tx = new Transaction();
         tx.add(...ixs);
 
-        const sig = await wallet.sendTransaction(tx, connection, {
+        await wallet.sendTransaction(tx, connection, {
           skipPreflight: true,
         });
-        toast(
-          `Airdropped ${amount} USDC to ${shortenPubkey(wallet.publicKey)}`
-        );
       }
     },
     [connection, wallet]
@@ -83,11 +80,28 @@ const AirdropZone: FC = () => {
             <p id={styles["title"]}>💰 Airdrop Zone 💰</p>
             <Button
               onClick={async () => {
+                const toastId = toast.loading(
+                  `Airdropping ${USDC_AMOUNT} USDC`
+                );
                 try {
-                  toast.success(`Airdropping ${USDC_AMOUNT} USDC`);
                   await airdropToken(USDC_AMOUNT, USDC_MINT, USDC_FAUCET);
+                  toast.update(toastId, {
+                    render: `Airdropped ${USDC_AMOUNT} USDC to ${shortenAddress(
+                      wallet.publicKey!
+                    )}`,
+                    type: toast.TYPE.SUCCESS,
+                    autoClose: 5000,
+                    toastId,
+                    isLoading: false,
+                  });
                 } catch (error: any) {
-                  toast.error("Error during USDC airdrop:", error.message);
+                  toast.update(toastId, {
+                    render: `Error during USDC airdrop: ${error.message}`,
+                    type: toast.TYPE.ERROR,
+                    autoClose: 5000,
+                    toastId,
+                    isLoading: false,
+                  });
                 }
               }}
             >
@@ -95,11 +109,26 @@ const AirdropZone: FC = () => {
             </Button>
             <Button
               onClick={async () => {
+                const toastId = toast.loading(`Airdropping ${SOL_AMOUNT} SOL`);
                 try {
-                  toast.success(`Airdropping ${SOL_AMOUNT} SOL`);
                   await airdropToken(SOL_AMOUNT, SOL_MINT, SOL_FAUCET);
+                  toast.update(toastId, {
+                    render: `Airdropped ${SOL_AMOUNT} SOL to ${shortenAddress(
+                      wallet.publicKey!
+                    )}`,
+                    type: toast.TYPE.SUCCESS,
+                    autoClose: 5000,
+                    toastId,
+                    isLoading: false,
+                  });
                 } catch (error: any) {
-                  toast.error("Error during SOL airdrop:", error.message);
+                  toast.update(toastId, {
+                    render: `Error during SOL airdrop: ${error.message}`,
+                    type: toast.TYPE.ERROR,
+                    autoClose: 5000,
+                    toastId,
+                    isLoading: false,
+                  });
                 }
               }}
             >
@@ -113,6 +142,3 @@ const AirdropZone: FC = () => {
 };
 
 export default AirdropZone;
-function shortenPubkey(publicKey: PublicKey) {
-  throw new Error("Function not implemented.");
-}

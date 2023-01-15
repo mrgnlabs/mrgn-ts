@@ -1,6 +1,6 @@
 import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
 import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
-import { TableRow, TableCell } from "@mui/material";
+import { TableRow, TableCell, Tooltip } from "@mui/material";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { BankMetadata } from "~/types";
@@ -58,7 +58,7 @@ const AssetRow: FC<{
         if (_marginfiAccount === null)
           throw Error("Marginfi account not ready");
         toast.info(`Borrowing ${borrowOrLendAmount}`);
-        await _marginfiAccount.deposit(borrowOrLendAmount, bank);
+        await _marginfiAccount.withdraw(borrowOrLendAmount, bank);
       }
     } catch (error: any) {
       toast.error(
@@ -126,15 +126,33 @@ const AssetRow: FC<{
               <AssetRowInputBox
                 value={borrowOrLendAmount}
                 setValue={setBorrowOrLendAmount}
-                disabled={!isConnected}
               />
             </TableCell>
             <TableCell className="p-1 h-10 border-hidden flex justify-center items-center hidden md:table-cell">
-              <div className="h-full w-full flex justify-center items-center">
-                <AssetRowAction onClick={borrowOrLend}>
-                  {isInLendingMode ? "Lend" : "Borrow"}
-                </AssetRowAction>
-              </div>
+              {marginfiAccount === null ? (
+                <Tooltip
+                  title="User account while be automatically created"
+                  placement="top"
+                >
+                  <div className="h-full w-full flex justify-center items-center">
+                    <AssetRowAction
+                      onClick={borrowOrLend}
+                      disabled={borrowOrLendAmount === 0}
+                    >
+                      {isInLendingMode ? "Lend" : "Borrow"}
+                    </AssetRowAction>
+                  </div>
+                </Tooltip>
+              ) : (
+                <div className="h-full w-full flex justify-center items-center">
+                  <AssetRowAction
+                    onClick={borrowOrLend}
+                    disabled={borrowOrLendAmount === 0}
+                  >
+                    {isInLendingMode ? "Lend" : "Borrow"}
+                  </AssetRowAction>
+                </div>
+              )}
             </TableCell>
           </>
         )}
