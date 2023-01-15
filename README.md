@@ -1,13 +1,3 @@
-# Typescript SDK
+# mrgn-ts
 
-## Develop
-
-- Install deps: `yarn`
-
-## Version
-
-- Prepare packages to bump / bump levels / changelog message: `yarn changeset`
-
-## Release packages
-
-- Release packages: `yarn publish-packages`
+mrgn's (eventually open source) typescript monorepo.
