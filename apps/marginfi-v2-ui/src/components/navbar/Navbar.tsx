@@ -1,14 +1,9 @@
 import { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import dynamic from "next/dynamic";
-import styles from "./Navbar.module.css";
 import { NavbarCenterItem } from "./NavbarCenterItem";
 import AirdropZone from "./AirdropZone";
-
-// ================================
-// ================================
-// 1. Navbar
+import { WalletButton } from "./WalletButton";
 
 // @todo implement second pretty navbar row
 const Navbar: FC = () => (
@@ -47,36 +42,5 @@ const Navbar: FC = () => (
     </nav>
   </header>
 );
-
-// ================================
-// 1b. Dynamic wallet
-
-const WalletMultiButtonDynamic = dynamic(
-  async () =>
-    (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
-  { ssr: false }
-);
-
-const WalletButton: FC = () => (
-  <WalletMultiButtonDynamic
-    className={styles["wallet-button"]}
-    // @todo height / width doesn't seem to be making a difference here
-    startIcon={
-      <Image
-        src="/wallet_icon.svg"
-        alt="wallet icon"
-        width={18.9}
-        height={18.9}
-      />
-    }
-  />
-);
-
-// 1b. Dynamic wallet
-// ================================
-
-// 1. Navbar
-// ================================
-// ================================
 
 export { Navbar };
