@@ -48,32 +48,56 @@ const AssetRow: FC<{
       if (isInLendingMode) {
         if (marginfiClient === null) throw Error("Marginfi client not ready");
         if (_marginfiAccount === null) {
-          toast.info("Creating account");
+          toast.loading("Creating account", { toastId: "borrow-or-lend" });
           _marginfiAccount = await marginfiClient.createMarginfiAccount();
+          toast.update("borrow-or-lend", {
+            render: `Lending ${borrowOrLendAmount} ${bank.label}`,
+          });
+        } else {
+          toast.loading(`Lending ${borrowOrLendAmount} ${bank.label}`, {
+            toastId: "borrow-or-lend",
+          });
         }
 
-        toast.info(`Lending ${borrowOrLendAmount}`);
         await _marginfiAccount.deposit(borrowOrLendAmount, bank);
       } else {
+        toast.loading(`Borrowing ${borrowOrLendAmount} ${bank.label}`, {
+          toastId: "borrow-or-lend",
+        });
         if (_marginfiAccount === null)
           throw Error("Marginfi account not ready");
-        toast.info(`Borrowing ${borrowOrLendAmount}`);
         await _marginfiAccount.withdraw(borrowOrLendAmount, bank);
       }
+      toast.update("borrow-or-lend", {
+        render: "Action successful",
+        type: toast.TYPE.SUCCESS,
+        autoClose: 2000,
+        isLoading: false,
+      });
     } catch (error: any) {
-      toast.error(
-        `Error while ${isInLendingMode ? "lending" : "borrowing"}: ${
+      toast.update("borrow-or-lend", {
+        render: `Error while ${isInLendingMode ? "lending" : "borrowing"}: ${
           error.message
-        }`
-      );
+        }`,
+        type: toast.TYPE.ERROR,
+        autoClose: 5000,
+        isLoading: false,
+      });
+    }
 
-      setBorrowOrLendAmount(0);
+    setBorrowOrLendAmount(0);
 
-      try {
-        await reloadUserData();
-      } catch (error: any) {
-        toast.error(`Error while reloading user data: ${error.message}`);
-      }
+    toast.loading("Refreshing account", { toastId: "refresh-account" });
+    try {
+      await reloadUserData();
+      toast.update("refresh-account", {
+        render: "Action successful",
+        type: toast.TYPE.SUCCESS,
+        autoClose: 2000,
+        isLoading: false,
+      });
+    } catch (error: any) {
+      toast.error(`Error while reloading user data: ${error.message}`);
     }
   }, [
     marginfiAccount,

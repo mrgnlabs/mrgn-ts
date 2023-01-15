@@ -34,7 +34,7 @@ const AirdropZone: FC = () => {
     async (amount: number, mint: PublicKey, faucet: PublicKey) => {
       if (faucet && wallet.publicKey) {
         const ataAddress = getAssociatedTokenAddressSync(
-          USDC_MINT,
+          mint,
           wallet.publicKey!
         );
         const ixs = [];
@@ -91,7 +91,6 @@ const AirdropZone: FC = () => {
                     )}`,
                     type: toast.TYPE.SUCCESS,
                     autoClose: 5000,
-                    toastId,
                     isLoading: false,
                   });
                 } catch (error: any) {
@@ -99,7 +98,6 @@ const AirdropZone: FC = () => {
                     render: `Error during USDC airdrop: ${error.message}`,
                     type: toast.TYPE.ERROR,
                     autoClose: 5000,
-                    toastId,
                     isLoading: false,
                   });
                 }
