@@ -1,4 +1,4 @@
-import { Navbar } from "./Navbar";
+import Navbar from "./Navbar";
 import { AccountSummary } from "./AccountSummary";
 import { AssetsList } from "./AssetsList";
 import { UserPositions } from "./UserPositions";
