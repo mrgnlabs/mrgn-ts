@@ -4,14 +4,23 @@ import { Card, TableContainer, Table, TableBody } from "@mui/material";
 import { useBorrowLendState } from "../../context/BorrowLendContext";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
+import { useTokenBalances } from "~/context/TokenAccountsContext";
 
 const AssetsList: FC = () => {
   const [isInLendingMode, setIsInLendingMode] = useState(true);
   const { banks, selectedAccount, reloadUserData, mfiClient } =
     useBorrowLendState();
+  const { tokenBalances } = useTokenBalances();
   const wallet = useWallet();
 
   if (banks.length === 0) return null;
+
+  const assetInfos = banks.map((bank) => {
+    return {
+      bank,
+      walletBalance: tokenBalances.get(bank.mint.toBase58())?.balance || 0,
+    };
+  });
 
   return (
     <>
@@ -29,9 +38,10 @@ const AssetsList: FC = () => {
             <Table className="table-fixed">
               <TableBody>
                 <div className="flex flex-col gap-4">
-                  {banks.map((bank) => (
+                  {assetInfos.map(({ bank, walletBalance }) => (
                     <AssetRow
                       key={bank.publicKey.toBase58()}
+                      walletBalance={walletBalance}
                       isInLendingMode={isInLendingMode}
                       isConnected={wallet.connected}
                       bank={bank}

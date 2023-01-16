@@ -6,16 +6,22 @@ import { toast } from "react-toastify";
 interface AssetRowInputBox {
   value: number;
   setValue: (value: number) => void;
+  maxValue?: number;
   disabled?: boolean;
 }
 
 const AssetRowInputBox: FC<AssetRowInputBox> = ({
   value,
   setValue,
+  maxValue,
   disabled,
 }) => {
-  const onClick = (event: MouseEvent<HTMLButtonElement>) => {
-    toast.error("not implemented");
+  const onMaxClick = () => {
+    if (maxValue !== undefined) {
+      setValue(maxValue);
+    } else {
+      toast.error("Not implemented");
+    }
   };
 
   const onChange = (event: NumberFormatValues) => {
@@ -37,6 +43,7 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
       thousandSeparator=","
       customInput={TextField}
       size="small"
+      max={maxValue}
       InputProps={{
         className:
           "bg-[#1C2125] text-[#515151] text-sm rounded-lg pr-0 w-50 h-12 font-light",
@@ -44,7 +51,7 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
           fontFamily: "Aeonik Pro",
         },
         endAdornment: (
-          <MaxInputAdornment onClick={onClick} disabled={disabled} />
+          <MaxInputAdornment onClick={onMaxClick} disabled={disabled} />
         ),
       }}
     />

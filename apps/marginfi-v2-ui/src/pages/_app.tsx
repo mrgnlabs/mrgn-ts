@@ -22,6 +22,7 @@ import { BorrowLendStateProvider } from "../context/BorrowLendContext";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import Script from "next/dist/client/script";
+import { TokenBalancesProvider } from "~/context/TokenAccountsContext";
 
 // Vivid
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
@@ -64,23 +65,25 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <BorrowLendStateProvider>
-            <div
-              // @todo `absolute` here may break ux when there are so many assets you have to scroll
-              className="absolute h-[200vh] w-[200vw] bg-gradient-radial from-[#171C1F] to-[#010101] translate-x-[-45%] translate-y-[-50%]"
-            />
-            <Script src="https://cdn.tailwindcss.com"></Script>
-            <Head>
-              <title>marginfi</title>
-              <meta name="description" content="marginfi v2 UI" />
-              <meta
-                name="viewport"
-                content="width=device-width, initial-scale=1"
+            <TokenBalancesProvider>
+              <div
+                // @todo `absolute` here may break ux when there are so many assets you have to scroll
+                className="absolute h-[200vh] w-[200vw] bg-gradient-radial from-[#171C1F] to-[#010101] translate-x-[-45%] translate-y-[-50%]"
               />
-              <link rel="icon" href="/favicon.ico" />
-            </Head>
-            <Navbar />
-            <Component {...pageProps} />
-            <ToastContainer position="bottom-left" theme="dark" />
+              <Script src="https://cdn.tailwindcss.com"></Script>
+              <Head>
+                <title>marginfi</title>
+                <meta name="description" content="marginfi v2 UI" />
+                <meta
+                  name="viewport"
+                  content="width=device-width, initial-scale=1"
+                />
+                <link rel="icon" href="/favicon.ico" />
+              </Head>
+              <Navbar />
+              <Component {...pageProps} />
+              <ToastContainer position="bottom-left" theme="dark" />
+            </TokenBalancesProvider>
           </BorrowLendStateProvider>
         </WalletModalProvider>
       </WalletProvider>
