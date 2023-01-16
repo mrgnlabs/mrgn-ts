@@ -132,7 +132,7 @@ const AssetRow: FC<{
           <AssetRowMetric
             longLabel="Current Price"
             shortLabel="Price"
-            value="$0"
+            value={usdFormatter.format(0)}
             borderRadius={
               isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"
             }
@@ -140,7 +140,7 @@ const AssetRow: FC<{
           <AssetRowMetric
             longLabel="Total Pool Deposits"
             shortLabel="Deposits"
-            value="$0"
+            value={usdFormatter.format(0)}
             borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
           />
           {isConnected && (
