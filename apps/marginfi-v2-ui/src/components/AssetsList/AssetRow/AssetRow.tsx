@@ -171,7 +171,6 @@ const AssetRow: FC<{
                   <div className="h-full w-full flex justify-center items-center">
                     <AssetRowAction
                       onClick={borrowOrLend}
-                      disabled={borrowOrLendAmount === 0}
                     >
                       {isInLendingMode ? "Lend" : "Borrow"}
                     </AssetRowAction>
@@ -181,7 +180,6 @@ const AssetRow: FC<{
                 <div className="h-full w-full flex justify-center items-center">
                   <AssetRowAction
                     onClick={borrowOrLend}
-                    disabled={borrowOrLendAmount === 0}
                   >
                     {isInLendingMode ? "Lend" : "Borrow"}
                   </AssetRowAction>
