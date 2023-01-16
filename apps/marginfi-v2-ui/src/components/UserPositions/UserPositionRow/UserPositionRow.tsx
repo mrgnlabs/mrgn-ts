@@ -10,7 +10,7 @@ import { groupedNumberFormatter } from '~/utils';
 
 interface UserPositionRowProps {
   position: UserPosition;
-  marginfiAccount?: MarginfiAccount;
+  marginfiAccount?: MarginfiAccount | null;
   reloadUserData: () => Promise<void>;
 }
 
