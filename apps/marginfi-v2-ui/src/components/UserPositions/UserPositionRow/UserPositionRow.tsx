@@ -70,9 +70,9 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
       />
 
       <TableCell
-        className="text-white text-xs m-0 py-1 px-0"
+        className="text-white text-xs m-0 py-1 px-0 font-light"
         style={{
-          fontFamily: "Aeonik Pro Light",
+          fontFamily: "Aeonik Pro",
           borderBottom: "solid rgba(0,0,0,0) 2px",
         }}
       >
@@ -93,6 +93,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
+          maxValue={position.amount}
         />
       </TableCell>
 

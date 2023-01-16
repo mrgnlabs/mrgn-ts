@@ -1,7 +1,7 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC } from "react";
 import { percentFormatter, usdFormatter } from "~/utils";
-import { useBorrowLendState } from "../../context/BorrowLendContext";
+import { useBorrowLendState } from "../../context/BorrowLend";
 import { AccountBalance } from "./AccountBalance";
 import { AccountMetric } from "./AccountMetric";
 
@@ -12,9 +12,9 @@ const AccountSummary: FC = () => {
   return (
     <div className="col-span-full">
       <div
-        className="flex flex-row flex-wrap justify-between w-3/5 min-w-[400px] p-0 items-center gap-2 xl:gap-0"
+        className="flex flex-row flex-wrap justify-between w-3/5 min-w-[400px] p-0 items-center gap-2 xl:gap-0 font-light"
         style={{
-          fontFamily: "Aeonik Pro Light",
+          fontFamily: "Aeonik Pro",
         }}
       >
         <AccountBalance

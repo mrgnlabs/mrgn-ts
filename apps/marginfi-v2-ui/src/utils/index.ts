@@ -21,6 +21,8 @@ export const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
+// ================ development utils ================
+
 export const FAUCET_PROGRAM_ID = new PublicKey(
   "4bXpkKSV8swHSnwqtzuboGPaPDeEgAn4Vt8GfarV5rZt"
 );

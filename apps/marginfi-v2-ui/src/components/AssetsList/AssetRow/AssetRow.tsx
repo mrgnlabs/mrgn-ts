@@ -9,8 +9,10 @@ import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
 import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { usdFormatter } from "~/utils";
 
 const AssetRow: FC<{
+  walletBalance: number;
   isInLendingMode: boolean;
   isConnected: boolean;
   bank: Bank;
@@ -19,6 +21,7 @@ const AssetRow: FC<{
   marginfiClient: MarginfiClient | null;
   reloadUserData: () => Promise<void>;
 }> = ({
+  walletBalance,
   isInLendingMode,
   isConnected,
   bank,
@@ -40,6 +43,11 @@ const AssetRow: FC<{
         ? bank.getInterestRates().lendingRate.toNumber()
         : bank.getInterestRates().borrowingRate.toNumber(),
     [isInLendingMode, bank]
+  );
+
+  const maxWithdraw = useMemo(
+    () => marginfiAccount?.getMaxWithdrawForBank(bank).toNumber() ?? 0,
+    [marginfiAccount, bank]
   );
 
   const borrowOrLend = useCallback(async () => {
@@ -138,7 +146,7 @@ const AssetRow: FC<{
             <AssetRowMetric
               longLabel="Wallet Balance"
               shortLabel="Balance"
-              value="$0"
+              value={usdFormatter.format(walletBalance)}
               borderRadius="0px 10px 10px 0px"
             />
           )}
@@ -150,6 +158,7 @@ const AssetRow: FC<{
               <AssetRowInputBox
                 value={borrowOrLendAmount}
                 setValue={setBorrowOrLendAmount}
+                maxValue={isInLendingMode ? walletBalance : maxWithdraw}
               />
             </TableCell>
             <TableCell className="p-1 h-10 border-hidden flex justify-center items-center hidden md:table-cell">
