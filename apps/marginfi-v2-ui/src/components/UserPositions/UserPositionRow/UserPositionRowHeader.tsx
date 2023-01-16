@@ -41,7 +41,8 @@ const UserPositionRowHeader: FC<UserPositionRowHeaderProps> = ({
       <div>
         <div
           style={{
-            fontFamily: textBold ? "Aeonik Pro" : "Aeonik Pro Light",
+            fontFamily: 'Aeonik Pro',
+            fontWeight: textBold ? 400 : 300,
           }}
         >
           {assetName}

@@ -12,9 +12,9 @@ const AccountSummary: FC = () => {
   return (
     <div className="col-span-full">
       <div
-        className="flex flex-row flex-wrap justify-between w-3/5 min-w-[400px] p-0 items-center gap-2 xl:gap-0"
+        className="flex flex-row flex-wrap justify-between w-3/5 min-w-[400px] p-0 items-center gap-2 xl:gap-0 font-light"
         style={{
-          fontFamily: "Aeonik Pro Light",
+          fontFamily: "Aeonik Pro",
         }}
       >
         <AccountBalance

@@ -18,7 +18,7 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
   onClick,
 }) => (
   <Button
-    className={`h-full w-1/4 max-w-1/4 text-xs flex justify-center items-center ${
+    className={`h-full w-1/4 max-w-1/4 text-xs flex justify-center items-center font-light ${
       textFormat || "normal-case"
     }`}
     variant="text"
@@ -27,7 +27,7 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
       color: disabled ? "rgba(255, 255, 255, 0.2)" : "#fff",
       // @todo clean UI change on click
       backgroundColor: "transparent",
-      fontFamily: "Aeonik Pro Light",
+      fontFamily: "Aeonik Pro",
     }}
     onClick={onClick}
   >
