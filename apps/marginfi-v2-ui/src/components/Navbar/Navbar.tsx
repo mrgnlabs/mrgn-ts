@@ -36,7 +36,9 @@ const Navbar: FC = () => {
               <NavbarCenterItem text="Markets" disabled />
               <NavbarCenterItem text="Strategies" disabled />
               <NavbarCenterItem text="Trade" disabled />
-              <AirdropZone />
+              {wallet.connected && (
+                /* process.env.NODE_ENV !== "production" && */ <AirdropZone />
+              )}
             </div>
           </div>
           <div className="h-full flex justify-center items-center gap-[10px] z-10">
