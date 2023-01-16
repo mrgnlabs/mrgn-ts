@@ -16,12 +16,13 @@ const UserPositions: FC = () => {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2">
-      {isLending && selectedAccount && (
+      {/* {isLending && selectedAccount && ( */}
+      {(
         <Card
           elevation={0}
           className="bg-transparent w-full p-0 grid min-w-[500px]"
         >
-          <div className="text-2xl my-8 text-white">Supplying</div>
+          <div className="text-2xl my-8 text-white" style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>Supplying</div>
           <TableContainer>
             <Table className="table-fixed">
               <TableBody>
@@ -41,12 +42,13 @@ const UserPositions: FC = () => {
         </Card>
       )}
       <div>
-        {isBorrowing && selectedAccount && (
+        {/* {isBorrowing && selectedAccount && ( */}
+        {(
           <Card
             elevation={0}
             className="bg-transparent w-full p-0 grid min-w-[500px]"
           >
-            <div className="text-2xl my-8 text-white">Borrowing</div>
+            <div className="text-2xl my-8 text-white" style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>Borrowing</div>
             <TableContainer>
               <Table className="table-fixed">
                 <TableBody>
