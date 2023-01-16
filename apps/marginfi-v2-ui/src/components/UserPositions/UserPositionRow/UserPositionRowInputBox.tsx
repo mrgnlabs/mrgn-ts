@@ -6,14 +6,18 @@ import { toast } from "react-toastify";
 interface UserPositionRowInputBoxProps {
   value: number;
   setValue: (value: number) => void;
+  maxValue?: number;
 }
 
 const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
   value,
   setValue,
+  maxValue,
 }) => {
-  const onClick = (_event: MouseEvent<HTMLButtonElement>) => {
-    toast.error("not implemented");
+  const onClick = () => {
+    if (maxValue !== undefined) {
+      setValue(maxValue);
+    }
   };
 
   const onChange = (event: NumberFormatValues) => {
@@ -34,6 +38,7 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
       thousandSeparator=","
       customInput={TextField}
       size="small"
+      max={maxValue}
       InputProps={{
         className:
           "bg-[#1C2125] text-[#515151] text-sm rounded-lg pr-0 w-full h-10 font-light",

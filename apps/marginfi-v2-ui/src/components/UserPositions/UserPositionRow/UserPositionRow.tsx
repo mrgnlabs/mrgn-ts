@@ -93,6 +93,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
+          maxValue={position.amount}
         />
       </TableCell>
 
