@@ -23,7 +23,8 @@ const AccountMetric: FC<AccountMetricProps> = ({
       <div
         className="text-lg"
         style={{
-          fontFamily: valueBold ? "Aeonik Pro" : "Aeonik Pro Light",
+          fontFamily: 'Aeonik Pro',
+          fontWeight: valueBold ? 400 : 300,
         }}
       >
         {value}

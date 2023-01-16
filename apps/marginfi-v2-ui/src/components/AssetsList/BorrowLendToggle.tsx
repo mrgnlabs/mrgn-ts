@@ -42,13 +42,15 @@ const BorrowLendToggle = styled(
     content: "'Borrow'",
     zIndex: 10,
     pointerEvents: "none",
-    fontFamily: "Aeonik Pro Medium",
+    fontFamily: "Aeonik Pro",
+    fontWeight: 500,
   },
   "&:before": {
     content: "'Lend'",
     zIndex: 10,
     pointerEvents: "none",
-    fontFamily: "Aeonik Pro Medium",
+    fontFamily: "Aeonik Pro",
+    fontWeight: 500,
   },
   "& .MuiSwitch-switchBase": {
     padding: 0,

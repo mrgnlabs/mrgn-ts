@@ -37,7 +37,8 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
       <div>
         <div
           style={{
-            fontFamily: textBold ? "Aeonik Pro" : "Aeonik Pro Light",
+            fontFamily: 'Aeonik Pro',
+            fontWeight: textBold ? 400 : 300,
           }}
         >
           {assetName}
@@ -49,7 +50,8 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
         // resolve with design.
         className="px-1 text-xs text-[#868E95] hidden lg:flex"
         style={{
-          fontFamily: textBold ? "Aeonik Pro" : "Aeonik Pro Light",
+          fontFamily: 'Aeonik Pro',
+          fontWeight: textBold ? 400 : 300,
         }}
       >
         Current APY
@@ -60,7 +62,8 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
         // resolve with design.
         className="flex justify-center items-center px-1 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-xs"
         style={{
-          fontFamily: textBold ? "Aeonik Pro" : "Aeonik Pro Light",
+          fontFamily: 'Aeonik Pro',
+          fontWeight: textBold ? 400 : 300,
         }}
       >
         {percentFormatter.format(apy)}

@@ -39,9 +39,9 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
       size="small"
       InputProps={{
         className:
-          "bg-[#1C2125] text-[#515151] text-sm rounded-lg pr-0 w-50 h-12",
+          "bg-[#1C2125] text-[#515151] text-sm rounded-lg pr-0 w-50 h-12 font-light",
         style: {
-          fontFamily: "Aeonik Pro Light",
+          fontFamily: "Aeonik Pro",
         },
         endAdornment: (
           <MaxInputAdornment onClick={onClick} disabled={disabled} />
@@ -59,10 +59,10 @@ const MaxInputAdornment: FC<{
   <InputAdornment position="end">
     <Button
       classes={{
-        root: "p-0 text-[#868E95] text-xs lowercase h-9",
+        root: "p-0 text-[#868E95] text-xs lowercase h-9 font-light",
       }}
       style={{
-        fontFamily: "Aeonik Pro Light",
+        fontFamily: "Aeonik Pro",
       }}
       sx={{ "&:hover": { backgroundColor: "transparent" } }}
       onClick={onClick}
