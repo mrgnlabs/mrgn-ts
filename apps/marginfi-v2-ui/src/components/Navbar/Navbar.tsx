@@ -36,8 +36,8 @@ const Navbar: FC = () => {
               <NavbarCenterItem text="Markets" disabled />
               <NavbarCenterItem text="Strategies" disabled />
               <NavbarCenterItem text="Trade" disabled />
-              {wallet.connected && process.env.NODE_ENV !== "production" && (
-                <AirdropZone />
+              {wallet.connected && (
+                /* process.env.NODE_ENV !== "production" && */ <AirdropZone />
               )}
             </div>
           </div>
