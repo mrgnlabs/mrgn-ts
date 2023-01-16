@@ -46,7 +46,7 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
       max={maxValue}
       InputProps={{
         className:
-          "bg-[#1C2125] text-[#515151] text-sm rounded-lg pr-0 w-50 h-12 font-light",
+          "bg-[#1C2125] text-[#e1e1e1] text-sm rounded-lg pr-0 w-50 h-12 font-light",
         style: {
           fontFamily: "Aeonik Pro",
         },
