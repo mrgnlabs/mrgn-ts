@@ -16,8 +16,7 @@ const UserPositions: FC = () => {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2">
-      {/* {isLending && selectedAccount && ( */}
-      {(
+      {isLending && selectedAccount && (
         <Card
           elevation={0}
           className="bg-transparent w-full p-0 grid min-w-[500px]"
@@ -42,8 +41,7 @@ const UserPositions: FC = () => {
         </Card>
       )}
       <div>
-        {/* {isBorrowing && selectedAccount && ( */}
-        {(
+        {isBorrowing && selectedAccount && (
           <Card
             elevation={0}
             className="bg-transparent w-full p-0 grid min-w-[500px]"
