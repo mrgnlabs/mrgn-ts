@@ -6,6 +6,7 @@ import { UserPosition } from "~/types";
 import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowHeader } from "./UserPositionRowHeader";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
+import { groupedNumberFormatter } from '~/utils';
 
 interface UserPositionRowProps {
   position: UserPosition;
@@ -80,7 +81,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
           <div className="text-xs text-[#868E95]">
             {position.isLending ? "Amount Supplying" : "Amount Borrowing"}
           </div>
-          <div className="text-xs text-white">{position.amount}</div>
+          <div className="text-xs text-white">{groupedNumberFormatter.format(position.amount)}</div>
         </div>
       </TableCell>
 
