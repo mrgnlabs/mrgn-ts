@@ -7,8 +7,7 @@ import {
   UserPositions,
   MultipleAccountsFoundWarning,
 } from "~/components";
-import { useBorrowLendState } from "~/context/BorrowLendContext";
-
+import { useBorrowLendState } from "~/context/BorrowLend";
 
 const Home = () => {
   const wallet = useWallet();

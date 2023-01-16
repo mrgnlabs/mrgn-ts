@@ -18,11 +18,11 @@ import { init, push } from "@socialgouv/matomo-next";
 import config from "../config";
 
 import { Navbar } from "../components";
-import { BorrowLendStateProvider } from "../context/BorrowLendContext";
+import { BorrowLendStateProvider } from "../context/BorrowLend";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import Script from "next/dist/client/script";
-import { TokenBalancesProvider } from "~/context/TokenAccountsContext";
+import { TokenBalancesProvider } from "~/context/TokenAccounts";
 
 // Vivid
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {

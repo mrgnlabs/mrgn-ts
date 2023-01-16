@@ -1,6 +1,6 @@
 import React, { FC, useMemo } from "react";
 import { Card, TableContainer, Table, TableBody } from "@mui/material";
-import { useBorrowLendState } from "../../context/BorrowLendContext";
+import { useBorrowLendState } from "../../context/BorrowLend";
 import UserPositionRow from "./UserPositionRow";
 
 const UserPositions: FC = () => {

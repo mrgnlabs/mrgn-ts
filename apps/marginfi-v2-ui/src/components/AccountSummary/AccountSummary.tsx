@@ -1,7 +1,7 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC } from "react";
 import { percentFormatter, usdFormatter } from "~/utils";
-import { useBorrowLendState } from "../../context/BorrowLendContext";
+import { useBorrowLendState } from "../../context/BorrowLend";
 import { AccountBalance } from "./AccountBalance";
 import { AccountMetric } from "./AccountMetric";
 

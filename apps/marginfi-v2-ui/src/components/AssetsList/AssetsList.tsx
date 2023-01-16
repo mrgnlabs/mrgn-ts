@@ -1,10 +1,10 @@
 import React, { FC, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Card, TableContainer, Table, TableBody } from "@mui/material";
-import { useBorrowLendState } from "../../context/BorrowLendContext";
+import { useBorrowLendState } from "../../context/BorrowLend";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
-import { useTokenBalances } from "~/context/TokenAccountsContext";
+import { useTokenBalances } from "~/context/TokenAccounts";
 
 const AssetsList: FC = () => {
   const [isInLendingMode, setIsInLendingMode] = useState(true);

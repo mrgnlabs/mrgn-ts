@@ -10,7 +10,7 @@ import {
   useCallback,
 } from "react";
 import { getAssociatedTokenAddressSync, unpackAccount } from "~/utils/spl";
-import { useBorrowLendState } from "./BorrowLendContext";
+import { useBorrowLendState } from "./BorrowLend";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 
