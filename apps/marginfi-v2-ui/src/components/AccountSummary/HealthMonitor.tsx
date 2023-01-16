@@ -88,7 +88,6 @@ const HealthFactor: FC<HealthMonitorProps> = ({ initialValue }) => {
             className="h-2 rounded-lg"
             marks={marks}
             disabled
-            // defaultValue={value}
             value={value}
         />
         </div>
