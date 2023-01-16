@@ -45,6 +45,11 @@ const AssetRow: FC<{
     [isInLendingMode, bank]
   );
 
+  const maxWithdraw = useMemo(
+    () => marginfiAccount?.getMaxWithdrawForBank(bank).toNumber() ?? 0,
+    [marginfiAccount, bank]
+  );
+
   const borrowOrLend = useCallback(async () => {
     let _marginfiAccount = marginfiAccount;
     try {
@@ -153,7 +158,7 @@ const AssetRow: FC<{
               <AssetRowInputBox
                 value={borrowOrLendAmount}
                 setValue={setBorrowOrLendAmount}
-                maxValue={isInLendingMode ? walletBalance : undefined} // TODO: Add max borrow amount
+                maxValue={isInLendingMode ? walletBalance : maxWithdraw}
               />
             </TableCell>
             <TableCell className="p-1 h-10 border-hidden flex justify-center items-center hidden md:table-cell">
