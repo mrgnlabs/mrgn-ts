@@ -8,6 +8,7 @@ interface AssetRowHeader {
   apy: number;
   icon?: string;
   textBold?: boolean;
+  isInLendingMode: boolean;
 }
 
 const AssetRowHeader: FC<AssetRowHeader> = ({
@@ -15,6 +16,7 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
   apy,
   icon,
   textBold,
+  isInLendingMode,
 }) => (
   <TableCell className="text-white h-full w-full border-hidden max-w-fit pr-0 lg:pr-20">
     <div
@@ -60,7 +62,10 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
         // @todo font size here should technically be smaller, but tailwind doesn't offer smaller sizing
         // pointing to a likely readibility problem.
         // resolve with design.
-        className="flex justify-center items-center px-1 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-xs"
+        className={
+          `flex justify-center items-center px-1 text-[${isInLendingMode ? '#3AFF6C' : '#EEB9BA'}] bg-[${
+            isInLendingMode ? '#3aff6c1f' : '#db383e4d'}] rounded-xl text-xs`
+        }
         style={{
           fontFamily: 'Aeonik Pro',
           fontWeight: textBold ? 400 : 300,

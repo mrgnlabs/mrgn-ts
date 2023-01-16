@@ -126,6 +126,7 @@ const AssetRow: FC<{
           assetName={bank.label}
           apy={apy}
           icon={bankMetadata.icon}
+          isInLendingMode={isInLendingMode}
         />
         <TableCell className="py-1 px-0 h-10 border-hidden flex justify-end items-center w-full max-w-[600px]">
           <AssetRowMetric
