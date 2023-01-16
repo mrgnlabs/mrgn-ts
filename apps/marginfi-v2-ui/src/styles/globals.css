@@ -92,8 +92,8 @@ body {
 body {
   color: rgb(var(--foreground-rgb));
   background-color: #010101;
-  font-family: "Aeonik Pro Light";
-  font-weight: 300;
+  font-family: "Aeonik Pro";
+  /* font-weight: 300; */
 }
 
 a {
@@ -147,7 +147,7 @@ a {
 
 /* IBM Plex Sans */
 
-@font-face {
+/* @font-face {
   font-family: "IBM Plex Sans";
   src: url(../assets/IBM_Plex_Sans/IBMPlexSans-Thin.ttf);
   font-weight: 100;
@@ -194,11 +194,11 @@ a {
   src: url(../assets/IBM_Plex_Mono/IBMPlexMono-Bold.ttf);
   font-weight: 700;
   font-style: normal;
-}
+} */
 
 /* IBM Plex Mono */
 
-@font-face {
+/* @font-face {
   font-family: "IBM Plex Mono";
   src: url(../assets/IBM_Plex_Mono/IBMPlexMono-Thin.ttf);
   font-weight: 100;
@@ -245,4 +245,4 @@ a {
   src: url(../assets/IBM_Plex_Mono/IBMPlexMono-Bold.ttf);
   font-weight: 700;
   font-style: normal;
-}
+} */
