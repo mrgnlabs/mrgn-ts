@@ -28,7 +28,7 @@ const AssetsList: FC = () => {
         <BorrowLendToggle
           isInLendingMode={isInLendingMode}
           setIsInLendingMode={setIsInLendingMode}
-          disabled={selectedAccount === null}
+          // disabled={selectedAccount === null}
         />
       </div>
 
