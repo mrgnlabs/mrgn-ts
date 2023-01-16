@@ -18,15 +18,8 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
   textBold,
   isInLendingMode,
 }) => (
-  <TableCell className="text-white h-full w-full border-hidden max-w-fit pr-0 lg:pr-20">
-    <div
-      className="h-full w-full flex justify-center p-0 text-white"
-      style={{
-        flexDirection: icon ? "row" : "column",
-        alignItems: icon ? "center" : "flex-start",
-        justifyContent: icon ? "flex-start" : "center",
-      }}
-    >
+  <TableCell className="text-white h-full w-full border-hidden pr-0 lg:pr-0 flex justify-start items-center max-w-[250px] gap-1">
+    <div className="flex justify-start items-center">
       {icon && (
         <Image
           src={`/${icon}`}
@@ -46,6 +39,7 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
           {assetName}
         </div>
       </div>
+    </div>
       <div
         // @todo font size here should technically be smaller, but tailwind doesn't offer smaller sizing
         // pointing to a likely readibility problem.
@@ -73,7 +67,6 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
       >
         {percentFormatter.format(apy)}
       </div>
-    </div>
   </TableCell>
 );
 
