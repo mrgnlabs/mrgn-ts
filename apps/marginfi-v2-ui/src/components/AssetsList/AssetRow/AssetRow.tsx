@@ -9,7 +9,7 @@ import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
 import { MarginfiClient, nativeToUi } from "@mrgnlabs/marginfi-client-v2";
-import { groupedNumberFormatter, usdFormatter } from "~/utils";
+import { apyToApr, groupedNumberFormatter, usdFormatter } from "~/utils";
 
 const AssetRow: FC<{
   walletBalance: number;
@@ -39,9 +39,11 @@ const AssetRow: FC<{
 
   const apy = useMemo(
     () =>
-      isInLendingMode
-        ? bank.getInterestRates().lendingRate.toNumber()
-        : bank.getInterestRates().borrowingRate.toNumber(),
+      apyToApr(
+        isInLendingMode
+          ? bank.getInterestRates().lendingRate.toNumber()
+          : bank.getInterestRates().borrowingRate.toNumber()
+      ),
     [isInLendingMode, bank]
   );
 

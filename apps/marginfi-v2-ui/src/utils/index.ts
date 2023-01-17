@@ -76,26 +76,22 @@ const HOURS_PER_YEAR = 365.25 * 24;
 /**
  * Formula source: http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies
  *
- * @param interest {Number} APY as percentage (ie. 6)
- * @param frequency {Number} Compounding frequency (times a year)
- * @returns {Number} APR as percentage (ie. 5.82 for APY of 6%)
+ * @param interest {Number} APY (ie. 0.06 for 6%)
+ * @param compoundingFrequency {Number} Compounding frequency (times a year)
+ * @returns {Number} APR (ie. 0.0582 for APY of 0.06)
  */
-export const apyToAprFormatter = (
-  interest: number,
-  frequency = HOURS_PER_YEAR
-) => ((1 + interest / 100) ** (1 / frequency) - 1) * frequency * 100;
+export const apyToApr = (apr: number, compoundingFrequency = HOURS_PER_YEAR) =>
+  ((1 + apr) ** (1 / compoundingFrequency) - 1) * compoundingFrequency;
 
 /**
  * Formula source: http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies
  *
- * @param interest {Number} APR as percentage (ie. 5.82)
- * @param frequency {Number} Compounding frequency (times a year)
- * @returns {Number} APY as percentage (ie. 6 for APR of 5.82%)
+ * @param apr {Number} APR (ie. 0.0582 for 5.82%)
+ * @param compoundingFrequency {Number} Compounding frequency (times a year)
+ * @returns {Number} APY (ie. 0.06 for APR of 0.0582)
  */
-export const aprToApyFormatter = (
-  interest: number,
-  frequency = HOURS_PER_YEAR
-) => ((1 + interest / 100 / frequency) ** frequency - 1) * 100;
+export const aprToApy = (apr: number, compoundingFrequency = HOURS_PER_YEAR) =>
+  (1 + apr / compoundingFrequency) ** compoundingFrequency - 1;
 
 // ================ development utils ================
 
