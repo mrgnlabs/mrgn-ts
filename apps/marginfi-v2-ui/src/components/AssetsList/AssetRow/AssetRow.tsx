@@ -1,5 +1,5 @@
 import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
-import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
+import Bank, { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
 import { TableRow, TableCell, Tooltip } from "@mui/material";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
@@ -8,8 +8,8 @@ import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
-import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { usdFormatter } from "~/utils";
+import { MarginfiClient, nativeToUi } from "@mrgnlabs/marginfi-client-v2";
+import { groupedNumberFormatter, usdFormatter } from "~/utils";
 
 const AssetRow: FC<{
   walletBalance: number;
@@ -48,6 +48,17 @@ const AssetRow: FC<{
   const maxWithdraw = useMemo(
     () => marginfiAccount?.getMaxWithdrawForBank(bank).toNumber() ?? 0,
     [marginfiAccount, bank]
+  );
+
+  const { assetPrice, totalPoolDeposits } = useMemo(
+    () => ({
+      assetPrice: bank.getPrice(PriceBias.None).toNumber(),
+      totalPoolDeposits: nativeToUi(
+        bank.getAssetQuantity(bank.totalDepositShares),
+        bank.mintDecimals
+      ),
+    }),
+    [bank]
   );
 
   const borrowOrLend = useCallback(async () => {
@@ -132,7 +143,7 @@ const AssetRow: FC<{
           <AssetRowMetric
             longLabel="Current Price"
             shortLabel="Price"
-            value={usdFormatter.format(0)}
+            value={usdFormatter.format(assetPrice)}
             borderRadius={
               isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"
             }
@@ -140,14 +151,14 @@ const AssetRow: FC<{
           <AssetRowMetric
             longLabel="Total Pool Deposits"
             shortLabel="Deposits"
-            value={usdFormatter.format(0)}
+            value={groupedNumberFormatter.format(totalPoolDeposits)}
             borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
           />
           {isConnected && (
             <AssetRowMetric
               longLabel="Wallet Balance"
               shortLabel="Balance"
-              value={usdFormatter.format(walletBalance)}
+              value={groupedNumberFormatter.format(walletBalance)}
               borderRadius="0px 10px 10px 0px"
             />
           )}
@@ -169,18 +180,14 @@ const AssetRow: FC<{
                   placement="top"
                 >
                   <div className="h-full w-full flex justify-center items-center">
-                    <AssetRowAction
-                      onClick={borrowOrLend}
-                    >
+                    <AssetRowAction onClick={borrowOrLend}>
                       {isInLendingMode ? "Lend" : "Borrow"}
                     </AssetRowAction>
                   </div>
                 </Tooltip>
               ) : (
                 <div className="h-full w-full flex justify-center items-center">
-                  <AssetRowAction
-                    onClick={borrowOrLend}
-                  >
+                  <AssetRowAction onClick={borrowOrLend}>
                     {isInLendingMode ? "Lend" : "Borrow"}
                   </AssetRowAction>
                 </div>
