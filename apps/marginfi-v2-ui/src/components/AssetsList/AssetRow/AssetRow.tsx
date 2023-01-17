@@ -62,6 +62,12 @@ const AssetRow: FC<{
   );
 
   const borrowOrLend = useCallback(async () => {
+
+    if (borrowOrLendAmount <= 0) {
+      toast.error("Please enter an amount over 0.");
+      return;
+    }
+
     let _marginfiAccount = marginfiAccount;
     try {
       if (isInLendingMode) {
