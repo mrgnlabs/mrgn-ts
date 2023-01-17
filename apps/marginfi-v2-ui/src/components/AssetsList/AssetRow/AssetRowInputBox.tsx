@@ -29,6 +29,10 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
     if (updatedAmountStr !== "" && !/^\d*\.?\d*$/.test(updatedAmountStr))
       return;
     const updatedAmount = Number(updatedAmountStr);
+    if (maxValue !== undefined && updatedAmount > maxValue) {
+      setValue(maxValue);
+      return;
+    }
     setValue(updatedAmount);
   };
 
