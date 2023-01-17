@@ -3,6 +3,7 @@ import { TableCell, TableRow } from "@mui/material";
 import { FC, useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { UserPosition } from "~/types";
+import { groupedNumberFormatter } from "~/utils";
 import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowHeader } from "./UserPositionRowHeader";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
@@ -81,7 +82,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
             {position.isLending ? "Amount Supplying" : "Amount Borrowing"}
           </div>
           <div className="text-xs text-white">
-            {position.amount.toFixed(position.bank.mintDecimals)}
+            {groupedNumberFormatter.format(position.amount)}
           </div>
         </div>
       </TableCell>
