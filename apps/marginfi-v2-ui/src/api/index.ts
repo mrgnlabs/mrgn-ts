@@ -1,10 +1,8 @@
-import { MarginfiClient, nativeToUi } from "@mrgnlabs/marginfi-client-v2";
+import { nativeToUi } from "@mrgnlabs/marginfi-client-v2";
 import MarginfiAccount, {
   MarginRequirementType,
 } from "@mrgnlabs/marginfi-client-v2/src/account";
-import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
-import { toast } from "react-toastify";
-import { AccountSummary } from "~/types";
+import { AccountSummary, TokenMetadataMap } from "~/types";
 
 const DEFAULT_ACCOUNT_SUMMARY = {
   balance: 0,
@@ -15,7 +13,8 @@ const DEFAULT_ACCOUNT_SUMMARY = {
 };
 
 function computeAccountSummary(
-  marginfiAccount: MarginfiAccount
+  marginfiAccount: MarginfiAccount,
+  tokenMetadata: TokenMetadataMap
 ): AccountSummary {
   const equityComponents = marginfiAccount.getHealthComponents(
     MarginRequirementType.Equity
@@ -48,7 +47,7 @@ function computeAccountSummary(
           ? bank.getInterestRates().lendingRate.toNumber()
           : bank.getInterestRates().borrowingRate.toNumber(),
         bank,
-        bankMetadata: { icon: "solana_logo.png" },
+        tokenMetadata: tokenMetadata[bank.label],
       };
     }),
   };

@@ -66,7 +66,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
     >
       <UserPositionRowHeader
         assetName={position.assetName}
-        icon={position.bankMetadata.icon} // @todo this needs to be dynamic
+        icon={position.tokenMetadata.icon}
       />
 
       <TableCell

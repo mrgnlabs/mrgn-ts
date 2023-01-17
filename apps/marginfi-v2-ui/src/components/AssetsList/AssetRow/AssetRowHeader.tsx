@@ -22,17 +22,17 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
     <div className="flex justify-start items-center">
       {icon && (
         <Image
-          src={`/${icon}`}
-          alt={icon}
-          height={"15"}
-          width={"15"}
+          src={icon}
+          alt={assetName}
+          height={25}
+          width={25}
           className="mr-2"
         />
       )}
       <div>
         <div
           style={{
-            fontFamily: 'Aeonik Pro',
+            fontFamily: "Aeonik Pro",
             fontWeight: textBold ? 400 : 300,
           }}
         >
@@ -40,33 +40,34 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
         </div>
       </div>
     </div>
-      <div
-        // @todo font size here should technically be smaller, but tailwind doesn't offer smaller sizing
-        // pointing to a likely readibility problem.
-        // resolve with design.
-        className="px-1 text-xs text-[#868E95] hidden lg:flex"
-        style={{
-          fontFamily: 'Aeonik Pro',
-          fontWeight: textBold ? 400 : 300,
-        }}
-      >
-        Current APY
-      </div>
-      <div
-        // @todo font size here should technically be smaller, but tailwind doesn't offer smaller sizing
-        // pointing to a likely readibility problem.
-        // resolve with design.
-        className={
-          `flex justify-center items-center px-1 text-[${isInLendingMode ? '#3AFF6C' : '#EEB9BA'}] bg-[${
-            isInLendingMode ? '#3aff6c1f' : '#db383e4d'}] rounded-xl text-xs`
-        }
-        style={{
-          fontFamily: 'Aeonik Pro',
-          fontWeight: textBold ? 400 : 300,
-        }}
-      >
-        {percentFormatter.format(apy)}
-      </div>
+    <div
+      // @todo font size here should technically be smaller, but tailwind doesn't offer smaller sizing
+      // pointing to a likely readibility problem.
+      // resolve with design.
+      className="px-1 text-xs text-[#868E95] hidden lg:flex"
+      style={{
+        fontFamily: "Aeonik Pro",
+        fontWeight: textBold ? 400 : 300,
+      }}
+    >
+      Current APY
+    </div>
+    <div
+      // @todo font size here should technically be smaller, but tailwind doesn't offer smaller sizing
+      // pointing to a likely readibility problem.
+      // resolve with design.
+      className={`flex justify-center items-center px-1 text-[${
+        isInLendingMode ? "#3AFF6C" : "#EEB9BA"
+      }] bg-[${
+        isInLendingMode ? "#3aff6c1f" : "#db383e4d"
+      }] rounded-xl text-xs`}
+      style={{
+        fontFamily: "Aeonik Pro",
+        fontWeight: textBold ? 400 : 300,
+      }}
+    >
+      {percentFormatter.format(apy)}
+    </div>
   </TableCell>
 );
 

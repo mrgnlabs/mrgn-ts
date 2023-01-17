@@ -5,12 +5,14 @@ import { useBorrowLendState } from "../../context/BorrowLend";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
 import { useTokenBalances } from "~/context/TokenAccounts";
+import { useTokenMetadata } from "~/context/TokenMetadata";
 
 const AssetsList: FC = () => {
   const [isInLendingMode, setIsInLendingMode] = useState(true);
   const { banks, selectedAccount, reloadUserData, mfiClient } =
     useBorrowLendState();
   const { tokenBalances } = useTokenBalances();
+  const { tokenMetadataMap } = useTokenMetadata();
   const wallet = useWallet();
 
   if (banks.length === 0) return null;
@@ -44,9 +46,7 @@ const AssetsList: FC = () => {
                       isInLendingMode={isInLendingMode}
                       isConnected={wallet.connected}
                       bank={bank}
-                      bankMetadata={{
-                        icon: "solana_logo.png",
-                      }}
+                      tokenMetadata={tokenMetadataMap[bank.label]}
                       marginfiAccount={selectedAccount}
                       marginfiClient={mfiClient}
                       reloadUserData={reloadUserData}

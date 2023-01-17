@@ -3,7 +3,7 @@ import Bank, { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
 import { TableRow, TableCell, Tooltip } from "@mui/material";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { BankMetadata } from "~/types";
+import { TokenMetadata } from "~/types";
 import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
@@ -16,7 +16,7 @@ const AssetRow: FC<{
   isInLendingMode: boolean;
   isConnected: boolean;
   bank: Bank;
-  bankMetadata: BankMetadata;
+  tokenMetadata: TokenMetadata;
   marginfiAccount: MarginfiAccount | null;
   marginfiClient: MarginfiClient | null;
   reloadUserData: () => Promise<void>;
@@ -25,7 +25,7 @@ const AssetRow: FC<{
   isInLendingMode,
   isConnected,
   bank,
-  bankMetadata,
+  tokenMetadata,
   marginfiAccount,
   marginfiClient,
   reloadUserData,
@@ -141,7 +141,7 @@ const AssetRow: FC<{
         <AssetRowHeader
           assetName={bank.label}
           apy={apy}
-          icon={bankMetadata.icon}
+          icon={tokenMetadata.icon}
           isInLendingMode={isInLendingMode}
         />
         <TableCell className="py-1 px-0 h-10 border-hidden flex justify-end items-center w-full max-w-[600px]">

@@ -24,13 +24,14 @@ module.exports = withTM({
     config.resolve.fallback = { fs: false, path: false };
     return config;
   },
-  // async redirects() {
-  //   return [
-  //     {
-  //       source: "/vault",
-  //       destination: "/waiting-room",
-  //       permanent: false,
-  //     },
-  //   ];
-  // },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "raw.githubusercontent.com",
+        port: "",
+        pathname: "/solana-labs/token-list/main/assets/mainnet/**",
+      },
+    ],
+  },
 });

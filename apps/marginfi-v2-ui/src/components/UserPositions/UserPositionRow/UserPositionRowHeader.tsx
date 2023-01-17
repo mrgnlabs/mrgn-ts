@@ -31,17 +31,17 @@ const UserPositionRowHeader: FC<UserPositionRowHeaderProps> = ({
     >
       {icon && (
         <Image
-          src={`/${icon}`}
-          alt={icon}
-          height={"15"}
-          width={"15"}
+          src={icon}
+          alt={assetName}
+          height={25}
+          width={25}
           className="mr-2"
         />
       )}
       <div>
         <div
           style={{
-            fontFamily: 'Aeonik Pro',
+            fontFamily: "Aeonik Pro",
             fontWeight: textBold ? 400 : 300,
           }}
         >

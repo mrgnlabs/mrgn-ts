@@ -17,11 +17,13 @@ interface UserPosition {
   isLending: boolean;
   apy: number;
   bank: Bank;
-  bankMetadata: BankMetadata;
+  tokenMetadata: TokenMetadata;
 }
 
-interface BankMetadata {
+interface TokenMetadata {
   icon?: string;
 }
 
-export type { AccountSummary, UserPosition, BankMetadata };
+type TokenMetadataMap = { [symbol: string]: TokenMetadata };
+
+export type { AccountSummary, UserPosition, TokenMetadata, TokenMetadataMap };

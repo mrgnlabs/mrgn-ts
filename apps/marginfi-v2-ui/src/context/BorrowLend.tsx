@@ -18,6 +18,7 @@ import {
 } from "react";
 import { computeAccountSummary, DEFAULT_ACCOUNT_SUMMARY } from "../api";
 import { AccountSummary } from "~/types";
+import { useTokenMetadata } from "./TokenMetadata";
 
 // @ts-ignore - Safe because context hook checks for null
 const BorrowLendContext = createContext<BorrowLendState>();
@@ -37,6 +38,8 @@ const BorrowLendStateProvider: FC<{
 }> = ({ children }) => {
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
+  const { tokenMetadataMap } = useTokenMetadata();
+
   const mfiConfig = useMemo(() => getConfig("devnet1"), []);
 
   // User-agnostic state
@@ -99,8 +102,8 @@ const BorrowLendStateProvider: FC<{
 
   useEffect(() => {
     if (selectedAccount === null) return;
-    setAccountSummary(computeAccountSummary(selectedAccount));
-  }, [selectedAccount]);
+    setAccountSummary(computeAccountSummary(selectedAccount, tokenMetadataMap));
+  }, [selectedAccount, tokenMetadataMap]);
 
   return (
     <BorrowLendContext.Provider
