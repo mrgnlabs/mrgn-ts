@@ -126,12 +126,13 @@ const AssetRow: FC<{
           assetName={bank.label}
           apy={apy}
           icon={bankMetadata.icon}
+          isInLendingMode={isInLendingMode}
         />
         <TableCell className="py-1 px-0 h-10 border-hidden flex justify-end items-center w-full max-w-[600px]">
           <AssetRowMetric
             longLabel="Current Price"
             shortLabel="Price"
-            value="$0"
+            value={usdFormatter.format(0)}
             borderRadius={
               isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"
             }
@@ -139,7 +140,7 @@ const AssetRow: FC<{
           <AssetRowMetric
             longLabel="Total Pool Deposits"
             shortLabel="Deposits"
-            value="$0"
+            value={usdFormatter.format(0)}
             borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
           />
           {isConnected && (
@@ -170,7 +171,6 @@ const AssetRow: FC<{
                   <div className="h-full w-full flex justify-center items-center">
                     <AssetRowAction
                       onClick={borrowOrLend}
-                      disabled={borrowOrLendAmount === 0}
                     >
                       {isInLendingMode ? "Lend" : "Borrow"}
                     </AssetRowAction>
@@ -180,7 +180,6 @@ const AssetRow: FC<{
                 <div className="h-full w-full flex justify-center items-center">
                   <AssetRowAction
                     onClick={borrowOrLend}
-                    disabled={borrowOrLendAmount === 0}
                   >
                     {isInLendingMode ? "Lend" : "Borrow"}
                   </AssetRowAction>
