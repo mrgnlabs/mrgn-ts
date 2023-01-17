@@ -1,14 +1,26 @@
+import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
 import { useWallet } from "@solana/wallet-adapter-react";
-import React, { FC } from "react";
+import React, { FC, useMemo } from "react";
 import { percentFormatter, usdFormatter } from "~/utils";
 import { useBorrowLendState } from "../../context/BorrowLend";
 import { AccountBalance } from "./AccountBalance";
 import { AccountMetric } from "./AccountMetric";
-import { HealthFactor } from './HealthMonitor';
+import { HealthFactor } from "./HealthMonitor";
 
 const AccountSummary: FC = () => {
-  const { accountSummary } = useBorrowLendState();
+  const { accountSummary, selectedAccount } = useBorrowLendState();
   const wallet = useWallet();
+
+  const healthFactor = useMemo(() => {
+    if (selectedAccount) {
+      const { assets, liabilities } = selectedAccount.getHealthComponents(
+        MarginRequirementType.Maint
+      );
+      return assets.minus(liabilities).dividedBy(assets).toNumber();
+    } else {
+      return 0;
+    }
+  }, [selectedAccount]);
 
   return (
     <div className="col-span-full">
@@ -49,10 +61,9 @@ const AccountSummary: FC = () => {
             valueBold
             extraBorder={true}
           />
-          
         </div>
 
-        <HealthFactor initialValue={0}/>
+        <HealthFactor healthFactor={healthFactor} />
       </div>
     </div>
   );

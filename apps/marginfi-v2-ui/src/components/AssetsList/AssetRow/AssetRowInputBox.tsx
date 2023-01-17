@@ -7,6 +7,7 @@ interface AssetRowInputBox {
   value: number;
   setValue: (value: number) => void;
   maxValue?: number;
+  maxDecimals?: number;
   disabled?: boolean;
 }
 
@@ -14,6 +15,7 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
   value,
   setValue,
   maxValue,
+  maxDecimals,
   disabled,
 }) => {
   const onMaxClick = () => {
@@ -41,7 +43,7 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
       value={value}
       placeholder="0"
       allowNegative={false}
-      decimalScale={6}
+      decimalScale={maxDecimals}
       disabled={disabled}
       onValueChange={onChange}
       thousandSeparator=","

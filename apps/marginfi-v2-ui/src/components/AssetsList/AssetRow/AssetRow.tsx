@@ -62,7 +62,6 @@ const AssetRow: FC<{
   );
 
   const borrowOrLend = useCallback(async () => {
-
     if (borrowOrLendAmount <= 0) {
       toast.error("Please enter an amount over 0.");
       return;
@@ -176,7 +175,8 @@ const AssetRow: FC<{
               <AssetRowInputBox
                 value={borrowOrLendAmount}
                 setValue={setBorrowOrLendAmount}
-                maxValue={isInLendingMode ? walletBalance : (maxWithdraw * 0.9) }
+                maxValue={isInLendingMode ? walletBalance : maxWithdraw * 0.9}
+                maxDecimals={bank.mintDecimals}
               />
             </TableCell>
             <TableCell className="p-1 h-10 border-hidden flex justify-center items-center hidden md:table-cell">

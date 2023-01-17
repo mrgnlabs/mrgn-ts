@@ -7,12 +7,14 @@ interface UserPositionRowInputBoxProps {
   value: number;
   setValue: (value: number) => void;
   maxValue?: number;
+  maxDecimals?: number;
 }
 
 const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
   value,
   setValue,
   maxValue,
+  maxDecimals,
 }) => {
   const onClick = () => {
     if (maxValue !== undefined) {
@@ -37,7 +39,7 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
       value={value}
       placeholder="0"
       allowNegative={false}
-      decimalScale={6}
+      decimalScale={maxDecimals}
       onValueChange={onChange}
       thousandSeparator=","
       customInput={TextField}
