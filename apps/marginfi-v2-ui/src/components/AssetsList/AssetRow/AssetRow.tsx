@@ -176,7 +176,7 @@ const AssetRow: FC<{
               <AssetRowInputBox
                 value={borrowOrLendAmount}
                 setValue={setBorrowOrLendAmount}
-                maxValue={isInLendingMode ? walletBalance : maxWithdraw}
+                maxValue={isInLendingMode ? walletBalance : (maxWithdraw * 0.9) }
               />
             </TableCell>
             <TableCell className="p-1 h-10 border-hidden flex justify-center items-center hidden md:table-cell">
