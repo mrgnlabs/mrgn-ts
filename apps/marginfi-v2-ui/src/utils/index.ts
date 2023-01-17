@@ -21,6 +21,29 @@ export const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
+
+// ================ apr/apy formatters ================
+
+const SECONDS_PER_YEAR = 365.25 * 24 * 60 * 60;
+
+/**
+ * Formula source: http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies
+ *
+ * @param interest {Number} APY as percentage (ie. 6)
+ * @param frequency {Number} Compounding frequency (times a year)
+ * @returns {Number} APR as percentage (ie. 5.82 for APY of 6%)
+ */
+export const apyToAprFormatter = (interest: number, frequency = SECONDS_PER_YEAR) => ((1 + (interest / 100)) ** (1 / frequency) - 1) * frequency * 100;
+
+/**
+ * Formula source: http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies
+ *
+ * @param interest {Number} APR as percentage (ie. 5.82)
+ * @param frequency {Number} Compounding frequency (times a year)
+ * @returns {Number} APY as percentage (ie. 6 for APR of 5.82%)
+ */
+export const aprToApyFormatter = (interest: number, frequency = SECONDS_PER_YEAR) => ((1 + (interest / 100) / frequency) ** frequency - 1) * 100;
+
 // ================ development utils ================
 
 export const FAUCET_PROGRAM_ID = new PublicKey(
