@@ -1,4 +1,4 @@
-import { nativeToUi } from "@mrgnlabs/marginfi-client-v2";
+import { aprToApy, nativeToUi } from "@mrgnlabs/marginfi-client-v2";
 import MarginfiAccount, {
   MarginRequirementType,
 } from "@mrgnlabs/marginfi-client-v2/src/account";
@@ -26,7 +26,7 @@ function computeAccountSummary(
       .toNumber(),
     lendingAmount: equityComponents.assets.toNumber(),
     borrowingAmount: equityComponents.liabilities.toNumber(),
-    apy: marginfiAccount.computeApy(), // TODO: prob pff, wrote something quick for this
+    apy: marginfiAccount.computeNetApy(), // TODO: prob pff, wrote something quick for this
     positions: marginfiAccount.getActiveBalances().map((balance) => {
       const bank = marginfiAccount.group.getBankByPk(balance.bankPk);
       if (!bank) throw new Error(`Bank ${balance.bankPk} not found`);
@@ -43,9 +43,11 @@ function computeAccountSummary(
         assetName: bank.label,
         assetMint: bank.mint,
         isLending,
-        apy: isLending
-          ? bank.getInterestRates().lendingRate.toNumber()
-          : bank.getInterestRates().borrowingRate.toNumber(),
+        apy: aprToApy(
+          isLending
+            ? bank.getInterestRates().lendingRate.toNumber()
+            : bank.getInterestRates().borrowingRate.toNumber()
+        ),
         bank,
         tokenMetadata: tokenMetadata[bank.label],
       };

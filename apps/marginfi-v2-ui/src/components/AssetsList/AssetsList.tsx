@@ -9,7 +9,7 @@ import { useTokenMetadata } from "~/context/TokenMetadata";
 
 const AssetsList: FC = () => {
   const [isInLendingMode, setIsInLendingMode] = useState(true);
-  const { banks, selectedAccount, reloadUserData, mfiClient } =
+  const { banks, selectedAccount, refreshData, mfiClient } =
     useBorrowLendState();
   const { tokenBalances } = useTokenBalances();
   const { tokenMetadataMap } = useTokenMetadata();
@@ -49,7 +49,7 @@ const AssetsList: FC = () => {
                       tokenMetadata={tokenMetadataMap[bank.label]}
                       marginfiAccount={selectedAccount}
                       marginfiClient={mfiClient}
-                      reloadUserData={reloadUserData}
+                      refreshBorrowLendState={refreshData}
                     />
                   ))}
                 </div>

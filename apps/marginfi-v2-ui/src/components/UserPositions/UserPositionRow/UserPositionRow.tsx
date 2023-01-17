@@ -11,23 +11,29 @@ import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
 interface UserPositionRowProps {
   position: UserPosition;
   marginfiAccount?: MarginfiAccount | null;
-  reloadUserData: () => Promise<void>;
+  refreshBorrowLendState: () => Promise<void>;
 }
 
 const UserPositionRow: FC<UserPositionRowProps> = ({
   position,
   marginfiAccount,
-  reloadUserData,
+  refreshBorrowLendState,
 }) => {
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
 
   const withdrawOrRepay = useCallback(async () => {
     if (!marginfiAccount) return;
+    if (withdrawOrRepayAmount <= 0) {
+      toast.error("Please enter an amount over 0.");
+      return;
+    }
+
     if (marginfiAccount === null) throw Error("Marginfi account not ready");
-    toast.info(
+    toast.loading(
       `${
         position.isLending ? "Withdrawing" : "Repaying"
-      } ${withdrawOrRepayAmount}`
+      } ${withdrawOrRepayAmount}`,
+      { toastId: "withdraw-or-repay" }
     );
 
     try {
@@ -36,22 +42,48 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
       } else {
         await marginfiAccount.deposit(withdrawOrRepayAmount, position.bank);
       }
+      toast.update("withdraw-or-repay", {
+        render: "Action successful",
+        type: toast.TYPE.SUCCESS,
+        autoClose: 2000,
+        isLoading: false,
+      });
     } catch (error: any) {
-      toast.error(
-        `Error while ${position.isLending ? "withdrawing" : "repaying"}: ${
-          error.message
-        }`
-      );
+      toast.update("borrow-or-lend", {
+        render: `Error while ${
+          position.isLending ? "withdrawing" : "repaying"
+        }: ${error.message}`,
+        type: toast.TYPE.ERROR,
+        autoClose: 5000,
+        isLoading: false,
+      });
     }
 
     setWithdrawOrRepayAmount(0);
 
+    toast.loading("Refreshing state", { toastId: "refresh-state" });
     try {
-      await reloadUserData();
+      await refreshBorrowLendState();
+      toast.update("refresh-state", {
+        render: "Action successful",
+        type: toast.TYPE.SUCCESS,
+        autoClose: 2000,
+        isLoading: false,
+      });
     } catch (error: any) {
-      toast.error(`Error while reloading user data: ${error.message}`);
+      toast.update("refresh-state", {
+        render: `Error while reloading state: ${error.message}`,
+        type: toast.TYPE.ERROR,
+        autoClose: 2000,
+        isLoading: false,
+      });
     }
-  }, [marginfiAccount, withdrawOrRepayAmount, reloadUserData, position]);
+  }, [
+    marginfiAccount,
+    withdrawOrRepayAmount,
+    refreshBorrowLendState,
+    position,
+  ]);
 
   return (
     <TableRow
@@ -108,10 +140,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
           borderBottom: "solid rgba(0,0,0,0) 2px",
         }}
       >
-        <UserPositionRowAction
-          onClick={withdrawOrRepay}
-          disabled={withdrawOrRepayAmount === 0}
-        >
+        <UserPositionRowAction onClick={withdrawOrRepay}>
           {position.isLending ? "Withdraw" : "Repay"}
         </UserPositionRowAction>
       </TableCell>

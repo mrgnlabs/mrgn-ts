@@ -9,7 +9,7 @@ import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
 import { MarginfiClient, nativeToUi } from "@mrgnlabs/marginfi-client-v2";
-import { apyToApr, groupedNumberFormatter, usdFormatter } from "~/utils";
+import { groupedNumberFormatter, usdFormatter } from "~/utils";
 
 const AssetRow: FC<{
   walletBalance: number;
@@ -19,7 +19,7 @@ const AssetRow: FC<{
   tokenMetadata: TokenMetadata;
   marginfiAccount: MarginfiAccount | null;
   marginfiClient: MarginfiClient | null;
-  reloadUserData: () => Promise<void>;
+  refreshBorrowLendState: () => Promise<void>;
 }> = ({
   walletBalance,
   isInLendingMode,
@@ -28,7 +28,7 @@ const AssetRow: FC<{
   tokenMetadata,
   marginfiAccount,
   marginfiClient,
-  reloadUserData,
+  refreshBorrowLendState,
 }) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
 
@@ -39,11 +39,9 @@ const AssetRow: FC<{
 
   const apy = useMemo(
     () =>
-      apyToApr(
-        isInLendingMode
-          ? bank.getInterestRates().lendingRate.toNumber()
-          : bank.getInterestRates().borrowingRate.toNumber()
-      ),
+      isInLendingMode
+        ? bank.getInterestRates().lendingRate.toNumber()
+        : bank.getInterestRates().borrowingRate.toNumber(),
     [isInLendingMode, bank]
   );
 
@@ -113,17 +111,22 @@ const AssetRow: FC<{
 
     setBorrowOrLendAmount(0);
 
-    toast.loading("Refreshing account", { toastId: "refresh-account" });
+    toast.loading("Refreshing state", { toastId: "refresh-state" });
     try {
-      await reloadUserData();
-      toast.update("refresh-account", {
+      await refreshBorrowLendState();
+      toast.update("refresh-state", {
         render: "Action successful",
         type: toast.TYPE.SUCCESS,
         autoClose: 2000,
         isLoading: false,
       });
     } catch (error: any) {
-      toast.error(`Error while reloading user data: ${error.message}`);
+      toast.update("refresh-state", {
+        render: `Error while reloading state: ${error.message}`,
+        type: toast.TYPE.ERROR,
+        autoClose: 2000,
+        isLoading: false,
+      });
     }
   }, [
     marginfiAccount,
@@ -131,7 +134,7 @@ const AssetRow: FC<{
     isInLendingMode,
     borrowOrLendAmount,
     bank,
-    reloadUserData,
+    refreshBorrowLendState,
   ]);
 
   return (

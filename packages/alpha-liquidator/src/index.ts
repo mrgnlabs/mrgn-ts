@@ -1,10 +1,9 @@
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import {
   NodeWallet,
   getConfig,
   MarginfiClient,
-  AccountType,
   loadKeypair,
   MarginfiGroup,
   uiToNative,
@@ -15,17 +14,13 @@ import MarginfiAccount, {
   MarginRequirementType,
 } from "@mrgnlabs/marginfi-client-v2/src/account";
 import Bank, { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
-import bs58 from "bs58";
-import fetch from "node-fetch";
 import JSBI from "jsbi";
-import { Jupiter, RouteInfo, TOKEN_LIST_URL } from "@jup-ag/core";
-import { Token } from "@jup-ag/core/dist/lib/amms/marcoPolo/type";
+import { Jupiter } from "@jup-ag/core";
 import { associatedAddress } from "@project-serum/anchor/dist/esm/utils/token";
 
 const LIQUIDATOR_PK = new PublicKey(process.env.LIQUIDATOR_PK);
 const connection = new Connection(process.env.RPC_ENDPOINT, "confirmed");
 const wallet = new NodeWallet(loadKeypair(process.env.KEYPAIR_PATH));
-const MARGINFI_GROUP_PK = new PublicKey(process.env.MARGINFI_GROUP_PK);
 
 const USCD_MINT = new PublicKey("");
 
@@ -42,11 +37,11 @@ async function processAccount(
   );
   const usdcBank = group.getBankByLabel("USDC")!;
   if (marginfiAccount.canBeLiquidated()) {
-    const [assets, liabs] = marginfiAccount.getHealthComponents(
+    const { assets, liabilities } = marginfiAccount.getHealthComponents(
       MarginRequirementType.Maint
     );
 
-    const maxLiabilityPaydown = liabs.minus(assets);
+    const maxLiabilityPaydown = liabilities.minus(assets);
     console.log(
       "Account can be liquidated, max liability paydown: %d",
       maxLiabilityPaydown
@@ -72,7 +67,7 @@ async function processAccount(
       maxLiabCoverage,
       PriceBias.None
     );
-    const [_, liquidateeLiabUsdValue] = balance.getUsdValue(
+    const { liabilities: liquidateeLiabUsdValue } = balance.getUsdValue(
       bank,
       MarginRequirementType.Equity
     );
@@ -96,7 +91,7 @@ async function processAccount(
     const balance = marginfiAccount.lendingAccount[i];
     const bank = group.getBankByPk(balance.bankPk)!;
 
-    const [collateralUsdValue, _] = balance.getUsdValue(
+    const { assets: collateralUsdValue } = balance.getUsdValue(
       bank,
       MarginRequirementType.Equity
     );
@@ -161,7 +156,7 @@ async function buyLiab(
   const liabBalance = marginfiAccount.lendingAccount.find(
     (balance) => balance.bankPk == liabBank.publicKey
   )!;
-  const [_, liabUsdValue] = liabBalance.getUsdValue(
+  const { liabilities: liabUsdValue } = liabBalance.getUsdValue(
     liabBank,
     MarginRequirementType.Equity
   );
@@ -238,7 +233,7 @@ async function withdrawNonUsdcCollateral(
   marginfiAccount: MarginfiAccount,
   group: MarginfiGroup
 ): Promise<PublicKey[]> {
-  const mintsWithdrawn = [];
+  const mintsWithdrawn: PublicKey[] = [];
   for (let i = 0; i < marginfiAccount.lendingAccount.length; i++) {
     const balance = marginfiAccount.lendingAccount[i];
     const bank = group.getBankByPk(balance.bankPk)!;
@@ -247,7 +242,7 @@ async function withdrawNonUsdcCollateral(
       continue;
     }
 
-    const [collateralQuantity, _] = balance.getQuantity(bank);
+    const { assets: collateralQuantity } = balance.getQuantity(bank);
 
     if (collateralQuantity.lte(1)) {
       continue;

@@ -4,8 +4,7 @@ import { useBorrowLendState } from "../../context/BorrowLend";
 import UserPositionRow from "./UserPositionRow";
 
 const UserPositions: FC = () => {
-  const { accountSummary, selectedAccount, reloadUserData } =
-    useBorrowLendState();
+  const { accountSummary, selectedAccount, refreshData } = useBorrowLendState();
   const { isLending, isBorrowing } = useMemo(
     () => ({
       isLending: accountSummary.lendingAmount > 0,
@@ -21,7 +20,12 @@ const UserPositions: FC = () => {
           elevation={0}
           className="bg-transparent w-full p-0 grid min-w-[500px]"
         >
-          <div className="text-2xl my-8 text-white" style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>Supplying</div>
+          <div
+            className="text-2xl my-8 text-white"
+            style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}
+          >
+            Supplying
+          </div>
           <TableContainer>
             <Table className="table-fixed">
               <TableBody>
@@ -32,7 +36,7 @@ const UserPositions: FC = () => {
                       key={index}
                       position={position}
                       marginfiAccount={selectedAccount}
-                      reloadUserData={reloadUserData}
+                      refreshBorrowLendState={refreshData}
                     />
                   ))}
               </TableBody>
@@ -46,7 +50,12 @@ const UserPositions: FC = () => {
             elevation={0}
             className="bg-transparent w-full p-0 grid min-w-[500px]"
           >
-            <div className="text-2xl my-8 text-white" style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>Borrowing</div>
+            <div
+              className="text-2xl my-8 text-white"
+              style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}
+            >
+              Borrowing
+            </div>
             <TableContainer>
               <Table className="table-fixed">
                 <TableBody>
@@ -57,7 +66,7 @@ const UserPositions: FC = () => {
                         key={index}
                         position={position}
                         marginfiAccount={selectedAccount}
-                        reloadUserData={reloadUserData}
+                        refreshBorrowLendState={refreshData}
                       />
                     ))}
                 </TableBody>

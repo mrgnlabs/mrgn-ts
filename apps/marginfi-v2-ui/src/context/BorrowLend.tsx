@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  aprToApy,
   getConfig,
   MarginfiClient,
   MarginfiReadonlyClient,
@@ -25,7 +26,7 @@ const BorrowLendContext = createContext<BorrowLendState>();
 
 interface BorrowLendState {
   fetching: boolean;
-  reloadUserData: () => Promise<void>;
+  refreshData: () => Promise<void>;
   mfiClient: MarginfiClient | null;
   userAccounts: MarginfiAccount[];
   selectedAccount: MarginfiAccount | null;
@@ -77,28 +78,44 @@ const BorrowLendStateProvider: FC<{
     })();
   }, [anchorWallet, mfiConfig, connection]);
 
-  const reloadUserData = useCallback(async () => {
+  const refreshUserData = useCallback(async () => {
     if (!mfiClient) return;
-    setFetching(true);
     const userAccounts = await mfiClient.getMarginfiAccountsForAuthority();
     setUserAccounts(userAccounts);
 
     if (userAccounts.length > 0) {
       setSelectedAccount(userAccounts[0]);
     }
-    setFetching(false);
   }, [mfiClient]);
 
-  // Update account-agnostic state
-  useEffect(() => {
+  const refreshGroupData = useCallback(async () => {
     if (!mfiReadonlyClient) return;
+    await mfiReadonlyClient.group.reload();
     setBanks([...mfiReadonlyClient.group.banks.values()]);
   }, [mfiReadonlyClient]);
 
-  // Update account-specific state
+  const refreshData = useCallback(async () => {
+    setFetching(true);
+    await Promise.all([await refreshGroupData(), await refreshUserData()]);
+    setFetching(false);
+  }, [refreshGroupData, refreshUserData]);
+
+  // Update group state
   useEffect(() => {
-    reloadUserData();
-  }, [reloadUserData]);
+    refreshGroupData();
+  }, [refreshGroupData]);
+
+  // Update user state
+  useEffect(() => {
+    refreshUserData();
+  }, [refreshUserData]);
+
+  // Periodically update all data
+  useEffect(() => {
+    refreshData();
+    const id = setInterval(refreshData, 60_000);
+    return () => clearInterval(id);
+  }, [refreshData]);
 
   useEffect(() => {
     if (selectedAccount === null) return;
@@ -109,7 +126,7 @@ const BorrowLendStateProvider: FC<{
     <BorrowLendContext.Provider
       value={{
         fetching,
-        reloadUserData,
+        refreshData,
         mfiClient,
         accountSummary,
         banks,

@@ -15,6 +15,7 @@ import {
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import {
+  aprToApy,
   DEFAULT_COMMITMENT,
   getBankVaultAuthority,
   MarginfiClient,
@@ -602,13 +603,12 @@ class MarginfiAccount {
     return { assets, liabilities };
   }
 
-  public computeApy(): number {
+  public computeNetApy(): number {
     const { assets, liabilities } = this._getHealthComponentsWithoutBias(
       MarginRequirementType.Equity
     );
     const totalUsdValue = assets.minus(liabilities);
-
-    return this.getActiveBalances()
+    const apr = this.getActiveBalances()
       .reduce((weightedApy, balance) => {
         const bank = this._group.getBankByPk(balance.bankPk);
         if (!bank) throw Error(`Bank ${balance.bankPk.toBase58()} not found`);
@@ -632,6 +632,8 @@ class MarginfiAccount {
           );
       }, new BigNumber(0))
       .toNumber();
+
+    return aprToApy(apr);
   }
 
   /**

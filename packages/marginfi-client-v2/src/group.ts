@@ -207,11 +207,46 @@ class MarginfiGroup {
    * Update instance data by fetching and storing the latest on-chain state.
    */
   async reload(commitment?: Commitment) {
-    const data = await MarginfiGroup._fetchAccountData(
+    const rawData = await MarginfiGroup._fetchAccountData(
       this._config,
       this._program,
       commitment
     );
+
+    const bankAddresses = this._config.banks.map((b) => b.address);
+    let bankAccountsData = await this._program.account.bank.fetchMultiple(
+      bankAddresses,
+      commitment
+    );
+
+    let nullAccounts = [];
+    for (let i = 0; i < bankAccountsData.length; i++) {
+      if (bankAccountsData[i] === null) nullAccounts.push(bankAddresses[i]);
+    }
+    if (nullAccounts.length > 0) {
+      throw Error(`Failed to fetch banks ${nullAccounts}`);
+    }
+
+    const pythAccounts =
+      await this._program.provider.connection.getMultipleAccountsInfo(
+        bankAccountsData.map((b) => (b as BankData).config.pythOracle)
+      );
+
+    const banks = bankAccountsData.map(
+      (bd, index) =>
+        new Bank(
+          this._config.banks[index].label,
+          bankAddresses[index],
+          bd as BankData,
+          parsePriceData(pythAccounts[index]!.data)
+        )
+    );
+
+    this._admin = rawData.admin;
+    this._banks = banks.reduce((acc, current) => {
+      acc.set(current.publicKey.toBase58(), current);
+      return acc;
+    }, new Map<string, Bank>());
   }
 
   /**
