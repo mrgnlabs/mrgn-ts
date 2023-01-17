@@ -620,7 +620,7 @@ class MarginfiAccount {
                 balance.getUsdValue(bank, MarginRequirementType.Equity)
                   .liabilities
               )
-              .div(liabilities)
+              .div(totalUsdValue)
           )
           .plus(
             bank
@@ -628,7 +628,7 @@ class MarginfiAccount {
               .lendingRate.times(
                 balance.getUsdValue(bank, MarginRequirementType.Equity).assets
               )
-              .div(assets)
+              .div(totalUsdValue)
           );
       }, new BigNumber(0))
       .toNumber();
