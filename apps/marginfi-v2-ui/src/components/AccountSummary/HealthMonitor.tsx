@@ -1,10 +1,7 @@
-import { FC, JSXElementConstructor, ReactElement, ReactFragment, useState } from 'react';
-import Slider, { SliderThumb, SliderValueLabelProps } from '@mui/material/Slider';
+import { FC, useState } from 'react';
+import Slider from '@mui/material/Slider';
 import { styled } from '@mui/material/styles';
-
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
+import { groupedNumberFormatter } from '~/utils';
 
 const HealthSlider = styled(Slider)(({ theme }) => ({
     height: 2,
@@ -65,21 +62,36 @@ const HealthFactor: FC<HealthMonitorProps> = ({ initialValue }) => {
   
     return (
       <div
-        className="w-[28%] min-w-[320px] h-[112px] rounded-lg bg-black-800 shadow-md p-2 px-4 flex flex-col justify-between"
+        className="w-[28%] min-w-[320px] h-[112px] rounded-lg bg-black-800 shadow-md p-2 pl-4 pr-3 flex flex-col justify-between"
         style={{ 
             backgroundImage: 'url("https://i.imgur.com/DVnMT9l.png")', 
             backgroundSize: 'cover', 
         }}
     >
-        <label
-            className="block mb-6 text-lg font-bold text-gray-900 dark:text-white"
-            style={{
-                fontFamily: 'Aeonik Pro',
-                fontWeight: 400,
-            }}
+        <div
+            className="flex w-full justify-between"
         >
-            Health factor
-        </label>
+            <label
+                className="block mb-6 text-lg font-bold text-gray-900 dark:text-white"
+                style={{
+                    fontFamily: 'Aeonik Pro',
+                    fontWeight: 400,
+                    fontSize: 16,
+                }}
+            >
+                Health factor
+            </label>
+            <label
+                className="w-[40px] flex justify-center items-center mb-6 bg-[#0A0A0A] rounded-md text-[#ffffffcc]"
+                style={{
+                    fontFamily: 'Aeonik Pro',
+                    fontWeight: 600,
+                    fontSize: 16,
+                }}
+            >
+                {groupedNumberFormatter.format(value)}
+            </label>
+        </div>
         
         <div
             className="h-9 px-5"
