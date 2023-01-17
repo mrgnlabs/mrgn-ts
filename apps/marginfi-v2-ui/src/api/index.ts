@@ -26,7 +26,7 @@ function computeAccountSummary(
       .toNumber(),
     lendingAmount: equityComponents.assets.toNumber(),
     borrowingAmount: equityComponents.liabilities.toNumber(),
-    apy: marginfiAccount.computeNetApy(), // TODO: prob pff, wrote something quick for this
+    apy: marginfiAccount.computeNetApy(),
     positions: marginfiAccount.getActiveBalances().map((balance) => {
       const bank = marginfiAccount.group.getBankByPk(balance.bankPk);
       if (!bank) throw new Error(`Bank ${balance.bankPk} not found`);

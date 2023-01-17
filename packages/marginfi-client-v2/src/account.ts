@@ -609,10 +609,10 @@ class MarginfiAccount {
     );
     const totalUsdValue = assets.minus(liabilities);
     const apr = this.getActiveBalances()
-      .reduce((weightedApy, balance) => {
+      .reduce((weightedApr, balance) => {
         const bank = this._group.getBankByPk(balance.bankPk);
         if (!bank) throw Error(`Bank ${balance.bankPk.toBase58()} not found`);
-        return weightedApy
+        return weightedApr
           .minus(
             bank
               .getInterestRates()
@@ -620,15 +620,16 @@ class MarginfiAccount {
                 balance.getUsdValue(bank, MarginRequirementType.Equity)
                   .liabilities
               )
-              .div(totalUsdValue)
+              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
           )
+
           .plus(
             bank
               .getInterestRates()
               .lendingRate.times(
                 balance.getUsdValue(bank, MarginRequirementType.Equity).assets
               )
-              .div(totalUsdValue)
+              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
           );
       }, new BigNumber(0))
       .toNumber();
