@@ -1,7 +1,7 @@
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo } from "react";
-import { percentFormatter, usdFormatter } from "~/utils";
+import { signedPercentFormatter, usdFormatter } from "~/utils";
 import { useBorrowLendState } from "../../context/BorrowLend";
 import { AccountBalance } from "./AccountBalance";
 import { AccountMetric } from "./AccountMetric";
@@ -55,10 +55,11 @@ const AccountSummary: FC = () => {
             label={"Net APY"}
             value={
               wallet.connected
-                ? percentFormatter.format(accountSummary.apy)
+                ? signedPercentFormatter.format(Math.round(accountSummary.apy))
                 : "-"
             }
             valueBold
+            boldValue={accountSummary.apy >= 0 ? "#75ba80" : "#bd4d4d"}
           />
         </div>
 

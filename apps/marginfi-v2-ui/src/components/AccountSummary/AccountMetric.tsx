@@ -5,16 +5,20 @@ interface AccountMetricProps {
   value: string;
   valueBold?: boolean;
   extraBorder?: boolean;
+  boldValue?: string;
 }
 
 const AccountMetric: FC<AccountMetricProps> = ({
   label,
   value,
   valueBold,
+  boldValue = "#75ba80",
 }) => {
   return (
     <div
-      className={"h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl"}
+      className={
+        "h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl"
+      }
     >
       <div
         className="text-base text-[#868E95]"
@@ -22,13 +26,15 @@ const AccountMetric: FC<AccountMetricProps> = ({
           fontFamily: "Aeonik Pro",
           fontWeight: valueBold ? 400 : 300,
         }}
-      >{label}</div>
+      >
+        {label}
+      </div>
       <div
         className="text-lg"
         style={{
-          fontFamily: 'Aeonik Pro',
+          fontFamily: "Aeonik Pro",
           fontWeight: valueBold ? 500 : 300,
-          color: valueBold ? '#75ba80' : '#fff',
+          color: valueBold ? boldValue : "#fff",
         }}
       >
         {value}
