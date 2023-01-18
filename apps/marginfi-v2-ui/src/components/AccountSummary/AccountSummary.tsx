@@ -59,7 +59,6 @@ const AccountSummary: FC = () => {
                 : "-"
             }
             valueBold
-            extraBorder={true}
           />
         </div>
 

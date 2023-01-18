@@ -163,6 +163,8 @@ const AssetRow: FC<{
             shortLabel="Deposits"
             value={groupedNumberFormatter.format(totalPoolDeposits)}
             borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
+            usdEquivalentValue={"$0"}
+            showUSDEquivalent
           />
           {isConnected && (
             <AssetRowMetric
@@ -170,6 +172,8 @@ const AssetRow: FC<{
               shortLabel="Balance"
               value={groupedNumberFormatter.format(walletBalance)}
               borderRadius="0px 10px 10px 0px"
+              usdEquivalentValue={"$0"}
+              showUSDEquivalent
             />
           )}
         </TableCell>
