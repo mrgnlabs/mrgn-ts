@@ -1,12 +1,12 @@
 import { FC } from "react";
+import { groupedNumberFormatter, usdFormatter } from "~/utils";
 
 interface AssetRowMetricProps {
   shortLabel: string;
   longLabel: string;
-  value: string; // @todo make correct format type
+  value: string;
   borderRadius: string;
   usdEquivalentValue?: string;
-  showUSDEquivalent?: boolean;
 }
 
 const AssetRowMetric: FC<AssetRowMetricProps> = ({
@@ -15,7 +15,6 @@ const AssetRowMetric: FC<AssetRowMetricProps> = ({
   value,
   borderRadius,
   usdEquivalentValue,
-  showUSDEquivalent,
 }) => {
   return (
     <div
@@ -27,22 +26,23 @@ const AssetRowMetric: FC<AssetRowMetricProps> = ({
       <div className="text-xs text-[#868E95] hidden lg:block">{longLabel}</div>
       <div className="text-xs text-[#868E95] block lg:hidden">{shortLabel}</div>
       <div
-        className={`text-xs text-white ${showUSDEquivalent ? "flex flex-row gap-1" : ""}`}
+        className={`text-xs text-white ${
+          usdEquivalentValue !== undefined ? "flex flex-row gap-1" : ""
+        }`}
       >
-        {value} 
-        {
-          showUSDEquivalent &&
+        {value}
+        {usdEquivalentValue !== undefined && (
           <div
             className="text-[#868E95] px-1 hidden lg:block"
             style={{
               fontSize: 10,
-              backgroundColor: 'rgba(113, 119, 126, 0.3)',
-              borderRadius: '4px',
+              backgroundColor: "rgba(113, 119, 126, 0.3)",
+              borderRadius: "4px",
             }}
           >
             {usdEquivalentValue}
           </div>
-        }
+        )}
       </div>
     </div>
   );
