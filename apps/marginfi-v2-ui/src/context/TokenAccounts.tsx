@@ -29,6 +29,7 @@ interface TokenBalancesState {
   fetching: boolean;
   refresh: () => Promise<void>;
   tokenBalances: TokenBalanceMap;
+  nativeSol: number;
 }
 
 const TokenBalancesProvider: FC<{
@@ -39,6 +40,7 @@ const TokenBalancesProvider: FC<{
   const { banks } = useBorrowLendState();
 
   const [fetching, setFetching] = useState<boolean>(false);
+  const [nativeSol, setNativeSol] = useState<number>(0);
   const [tokenBalances, setTokenBalances] = useState<TokenBalanceMap>(
     new Map<string, TokenBalance>()
   );
@@ -58,20 +60,31 @@ const TokenBalancesProvider: FC<{
     );
 
     // Fetch relevant accounts
-    const ataAiList = await connection.getMultipleAccountsInfo(ataAddresses);
+    const accountsAiList = await connection.getMultipleAccountsInfo([
+      wallet.publicKey,
+      ...ataAddresses,
+    ]);
 
     // Decode account buffers
+    const [walletAi, ...ataAiList] = accountsAiList;
+    setNativeSol(walletAi?.lamports ? walletAi.lamports / 1e9 : 0);
+
     const ataList: TokenBalance[] = ataAiList.map((ai, index) => {
+      if (!ai) {
+        return {
+          created: false,
+          mint: mintList[index].address,
+          balance: 0,
+        };
+      }
       const decoded = unpackAccount(ataAddresses[index], ai);
       return {
-        created: !!ai,
+        created: true,
         mint: decoded.mint,
-        balance: !ai
-          ? 0
-          : nativeToUi(
-              new BN(decoded.amount.toString()),
-              mintList[index].decimals
-            ),
+        balance: nativeToUi(
+          new BN(decoded.amount.toString()),
+          mintList[index].decimals
+        ),
       };
     });
 
@@ -96,7 +109,9 @@ const TokenBalancesProvider: FC<{
   }, [refresh]);
 
   return (
-    <TokenBalancesContext.Provider value={{ fetching, refresh, tokenBalances }}>
+    <TokenBalancesContext.Provider
+      value={{ fetching, refresh, tokenBalances, nativeSol }}
+    >
       {children}
     </TokenBalancesContext.Provider>
   );

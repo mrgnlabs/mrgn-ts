@@ -11,7 +11,7 @@ const AssetsList: FC = () => {
   const [isInLendingMode, setIsInLendingMode] = useState(true);
   const { banks, selectedAccount, refreshData, mfiClient } =
     useBorrowLendState();
-  const { tokenBalances } = useTokenBalances();
+  const { tokenBalances, nativeSol } = useTokenBalances();
   const { tokenMetadataMap } = useTokenMetadata();
   const wallet = useWallet();
 
@@ -42,7 +42,8 @@ const AssetsList: FC = () => {
                   {assetInfos.map(({ bank, walletBalance }) => (
                     <AssetRow
                       key={bank.publicKey.toBase58()}
-                      walletBalance={walletBalance}
+                      tokenBalance={walletBalance}
+                      nativeSol={nativeSol}
                       isInLendingMode={isInLendingMode}
                       isConnected={wallet.connected}
                       bank={bank}

@@ -11,6 +11,17 @@
         }
     },
     {
+        "address": "notSo11111111111111111111111111111111111112",
+        "chainId": 101,
+        "decimals": 9,
+        "name": "Not SOL",
+        "symbol": "notSOL",
+        "logoURI": "/not_solana_logo.png",
+        "extensions": {
+            "coingeckoId": "not-solana"
+        }
+    },
+    {
         "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
         "chainId": 101,
         "decimals": 6,

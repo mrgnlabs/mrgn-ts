@@ -10,8 +10,12 @@
                 "address": "32oZpZpT2Ri81Q1BSADetr9M6KE5ghyQdBsMZfw3hAAL"
             },
             {
-                "label": "SOL",
+                "label": "notSOL",
                 "address": "BA21UfRov9MTNQGna4a5X28VqQSYsBpZYMYht8UtMjYf"
+            },
+            {
+                "label": "SOL",
+                "address": "9CTKadqjMs556BRBUQf9U1Ryoi9rEtmdmZMpPvFvW7iv"
             }
         ]
     }

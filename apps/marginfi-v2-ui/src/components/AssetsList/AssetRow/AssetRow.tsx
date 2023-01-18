@@ -10,9 +10,22 @@ import { AssetRowHeader } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
 import { MarginfiClient, nativeToUi } from "@mrgnlabs/marginfi-client-v2";
 import { groupedNumberFormatter, usdFormatter } from "~/utils";
+import {
+  createAssociatedTokenAccountIdempotentInstruction,
+  createSyncNativeInstruction,
+  getAssociatedTokenAddressSync,
+} from "~/utils/spl";
+import { WSOL_MINT } from "~/config";
+import {
+  Keypair,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+} from "@solana/web3.js";
 
 const AssetRow: FC<{
-  walletBalance: number;
+  tokenBalance: number;
+  nativeSol: number;
   isInLendingMode: boolean;
   isConnected: boolean;
   bank: Bank;
@@ -21,7 +34,8 @@ const AssetRow: FC<{
   marginfiClient: MarginfiClient | null;
   refreshBorrowLendState: () => Promise<void>;
 }> = ({
-  walletBalance,
+  tokenBalance,
+  nativeSol,
   isInLendingMode,
   isConnected,
   bank,
@@ -50,6 +64,12 @@ const AssetRow: FC<{
     [marginfiAccount, bank]
   );
 
+  const walletBalance = useMemo(
+    () =>
+      bank.mint.equals(WSOL_MINT) ? tokenBalance + nativeSol : tokenBalance,
+    [bank.mint, nativeSol, tokenBalance]
+  );
+
   const { assetPrice, totalPoolDeposits } = useMemo(
     () => ({
       assetPrice: bank.getPrice(PriceBias.None).toNumber(),
@@ -62,6 +82,7 @@ const AssetRow: FC<{
   );
 
   const borrowOrLend = useCallback(async () => {
+    if (marginfiClient === null) throw Error("Marginfi client not ready");
     if (borrowOrLendAmount <= 0) {
       toast.error("Please enter an amount over 0.");
       return;
@@ -70,7 +91,6 @@ const AssetRow: FC<{
     let _marginfiAccount = marginfiAccount;
     try {
       if (isInLendingMode) {
-        if (marginfiClient === null) throw Error("Marginfi client not ready");
         if (_marginfiAccount === null) {
           toast.loading("Creating account", { toastId: "borrow-or-lend" });
           _marginfiAccount = await marginfiClient.createMarginfiAccount();
@@ -83,7 +103,47 @@ const AssetRow: FC<{
           });
         }
 
-        await _marginfiAccount.deposit(borrowOrLendAmount, bank);
+        if (bank.mint.equals(WSOL_MINT)) {
+          const ata = getAssociatedTokenAddressSync(
+            bank.mint,
+            _marginfiAccount.authority,
+            false
+          );
+
+          let ixs: TransactionInstruction[] = [];
+          let signers: Keypair[] = [];
+
+          ixs.push(
+            createAssociatedTokenAccountIdempotentInstruction(
+              _marginfiAccount.authority,
+              ata,
+              _marginfiAccount.authority,
+              bank.mint
+            )
+          );
+          ixs.push(
+            SystemProgram.transfer({
+              fromPubkey: _marginfiAccount.authority,
+              toPubkey: ata,
+              lamports: (borrowOrLendAmount - tokenBalance) * 10 ** 9,
+            })
+          );
+          ixs.push(createSyncNativeInstruction(ata));
+
+          const depositIxs = await _marginfiAccount.makeDepositIx(
+            borrowOrLendAmount,
+            bank
+          );
+          ixs = ixs.concat(depositIxs.instructions);
+          signers = signers.concat(depositIxs.keys);
+
+          await marginfiClient.processTransaction(
+            new Transaction().add(...ixs),
+            signers
+          );
+        } else {
+          await _marginfiAccount.deposit(borrowOrLendAmount, bank);
+        }
       } else {
         toast.loading(`Borrowing ${borrowOrLendAmount} ${bank.label}`, {
           toastId: "borrow-or-lend",
@@ -135,6 +195,7 @@ const AssetRow: FC<{
     borrowOrLendAmount,
     bank,
     refreshBorrowLendState,
+    tokenBalance,
   ]);
 
   return (

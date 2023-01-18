@@ -1,5 +1,5 @@
 import { TextField, InputAdornment, Button } from "@mui/material";
-import { FC, MouseEvent } from "react";
+import { FC, useCallback } from "react";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import { toast } from "react-toastify";
 
@@ -18,27 +18,33 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
   maxDecimals,
   disabled,
 }) => {
-  const onMaxClick = () => {
+  const onMaxClick = useCallback(() => {
     if (maxValue !== undefined) {
       setValue(maxValue);
     } else {
       toast.error("Not implemented");
     }
-  };
+  }, [maxValue, setValue]);
 
-  const onChange = (event: NumberFormatValues) => {
-    const updatedAmountStr = event.value;
-    if (updatedAmountStr !== "" && !/^\d*\.?\d*$/.test(updatedAmountStr))
-      return;
-    const updatedAmount = Number(updatedAmountStr);
-    if (maxValue !== undefined && updatedAmount > maxValue) {
-      setValue(maxValue);
-      return;
-    }
-    setValue(updatedAmount);
-  };
+  const onChange = useCallback(
+    (event: NumberFormatValues) => {
+      const updatedAmountStr = event.value;
+      if (updatedAmountStr !== "" && !/^\d*\.?\d*$/.test(updatedAmountStr))
+        return;
+
+      const updatedAmount = Number(updatedAmountStr);
+      if (maxValue !== undefined && updatedAmount > maxValue) {
+        setValue(maxValue);
+        return;
+      }
+
+      setValue(updatedAmount);
+    },
+    [maxValue, setValue]
+  );
 
   return (
+    // TODO: re-rendering after initial amount capping is messed up and lets anything you type through
     <NumericFormat
       value={value}
       placeholder="0"

@@ -45,3 +45,6 @@ const config = {
 
 export default config;
 export const BLOCKED_COUNTRY = "US";
+export const WSOL_MINT = new PublicKey(
+  "So11111111111111111111111111111111111111112"
+);

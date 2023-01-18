@@ -2,9 +2,11 @@ import { struct, u32, u8 } from "@solana/buffer-layout";
 import { bool, publicKey, u64 } from "@solana/buffer-layout-utils";
 import {
   AccountInfo,
+  AccountMeta,
   Commitment,
   Connection,
   PublicKey,
+  Signer,
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
@@ -436,10 +438,165 @@ export function createAssociatedTokenAccountInstruction(
     data: Buffer.alloc(0),
   });
 }
+
+/**
+ * Construct a CreateAssociatedTokenAccountIdempotent instruction
+ *
+ * @param payer                    Payer of the initialization fees
+ * @param associatedToken          New associated token account
+ * @param owner                    Owner of the new account
+ * @param mint                     Token mint account
+ * @param programId                SPL Token program account
+ * @param associatedTokenProgramId SPL Associated Token program account
+ *
+ * @return Instruction to add to a transaction
+ */
+export function createAssociatedTokenAccountIdempotentInstruction(
+  payer: PublicKey,
+  associatedToken: PublicKey,
+  owner: PublicKey,
+  mint: PublicKey,
+  programId = TOKEN_PROGRAM_ID,
+  associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID
+): TransactionInstruction {
+  return buildAssociatedTokenAccountInstruction(
+    payer,
+    associatedToken,
+    owner,
+    mint,
+    Buffer.from([1]),
+    programId,
+    associatedTokenProgramId
+  );
+}
+
+/** TODO: docs */
+export interface SyncNativeInstructionData {
+  instruction: TokenInstruction.SyncNative;
+}
+
+/** TODO: docs */
+export const syncNativeInstructionData = struct<SyncNativeInstructionData>([
+  u8("instruction"),
+]);
+
+/**
+ * Construct a SyncNative instruction
+ *
+ * @param account   Native account to sync lamports from
+ * @param programId SPL Token program account
+ *
+ * @return Instruction to add to a transaction
+ */
+export function createSyncNativeInstruction(
+  account: PublicKey,
+  programId = TOKEN_PROGRAM_ID
+): TransactionInstruction {
+  const keys = [{ pubkey: account, isSigner: false, isWritable: true }];
+
+  const data = Buffer.alloc(syncNativeInstructionData.span);
+  syncNativeInstructionData.encode(
+    { instruction: TokenInstruction.SyncNative },
+    data
+  );
+
+  return new TransactionInstruction({ keys, programId, data });
+}
+
+function buildAssociatedTokenAccountInstruction(
+  payer: PublicKey,
+  associatedToken: PublicKey,
+  owner: PublicKey,
+  mint: PublicKey,
+  instructionData: Buffer,
+  programId = TOKEN_PROGRAM_ID,
+  associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID
+): TransactionInstruction {
+  const keys = [
+    { pubkey: payer, isSigner: true, isWritable: true },
+    { pubkey: associatedToken, isSigner: false, isWritable: true },
+    { pubkey: owner, isSigner: false, isWritable: false },
+    { pubkey: mint, isSigner: false, isWritable: false },
+    { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    { pubkey: programId, isSigner: false, isWritable: false },
+  ];
+
+  return new TransactionInstruction({
+    keys,
+    programId: associatedTokenProgramId,
+    data: instructionData,
+  });
+}
+
+/** TODO: docs */
+export interface TransferCheckedInstructionData {
+  instruction: TokenInstruction.TransferChecked;
+  amount: bigint;
+  decimals: number;
+}
+
+/** TODO: docs */
+export const transferCheckedInstructionData =
+  struct<TransferCheckedInstructionData>([
+    u8("instruction"),
+    u64("amount"),
+    u8("decimals"),
+  ]);
+
+/**
+ * Construct a TransferChecked instruction
+ *
+ * @param source       Source account
+ * @param mint         Mint account
+ * @param destination  Destination account
+ * @param owner        Owner of the source account
+ * @param amount       Number of tokens to transfer
+ * @param decimals     Number of decimals in transfer amount
+ * @param multiSigners Signing accounts if `owner` is a multisig
+ * @param programId    SPL Token program account
+ *
+ * @return Instruction to add to a transaction
+ */
+export function createTransferCheckedInstruction(
+  source: PublicKey,
+  mint: PublicKey,
+  destination: PublicKey,
+  owner: PublicKey,
+  amount: number | bigint,
+  decimals: number,
+  multiSigners: Signer[] = [],
+  programId = TOKEN_PROGRAM_ID
+): TransactionInstruction {
+  const keys = addSigners(
+    [
+      { pubkey: source, isSigner: false, isWritable: true },
+      { pubkey: mint, isSigner: false, isWritable: false },
+      { pubkey: destination, isSigner: false, isWritable: true },
+    ],
+    owner,
+    multiSigners
+  );
+
+  const data = Buffer.alloc(transferCheckedInstructionData.span);
+  transferCheckedInstructionData.encode(
+    {
+      instruction: TokenInstruction.TransferChecked,
+      amount: BigInt(amount),
+      decimals,
+    },
+    data
+  );
+
+  return new TransactionInstruction({ keys, programId, data });
+}
+
 /** Instructions defined by the program */
 export enum TokenInstruction {
   InitializeAccount = 1,
+  TransferChecked = 12,
+  SyncNative = 17,
 }
+
 /** TODO: docs */
 export interface InitializeAccountInstructionData {
   instruction: TokenInstruction.InitializeAccount;
@@ -478,4 +635,25 @@ export function createInitializeAccountInstruction(
   );
 
   return new TransactionInstruction({ keys, programId, data });
+}
+
+/** @internal */
+export function addSigners(
+  keys: AccountMeta[],
+  ownerOrAuthority: PublicKey,
+  multiSigners: Signer[]
+): AccountMeta[] {
+  if (multiSigners.length) {
+    keys.push({ pubkey: ownerOrAuthority, isSigner: false, isWritable: false });
+    for (const signer of multiSigners) {
+      keys.push({
+        pubkey: signer.publicKey,
+        isSigner: true,
+        isWritable: false,
+      });
+    }
+  } else {
+    keys.push({ pubkey: ownerOrAuthority, isSigner: true, isWritable: false });
+  }
+  return keys;
 }
