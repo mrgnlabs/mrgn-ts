@@ -12,9 +12,15 @@ import { makeAirdropCollateralIx } from "~/utils";
 import { toast } from "react-toastify";
 import { shortenAddress } from "@mrgnlabs/marginfi-client-v2";
 
-const SOL_AMOUNT = 10 * 10 ** 9;
-const SOL_MINT = new PublicKey("4Bn9Wn1sgaD5KfMRZjxwKFcrUy6NKdyqLPtzddazYc4x");
-const SOL_FAUCET = new PublicKey("tRqMXrkJysM78qhriPH8GmKza75e2ikqWSDwa3soxuB");
+const SOL_AMOUNT = 2 * 10 ** 9;
+
+const NOTSOL_AMOUNT = 10 * 10 ** 9;
+const NOTSOL_MINT = new PublicKey(
+  "4Bn9Wn1sgaD5KfMRZjxwKFcrUy6NKdyqLPtzddazYc4x"
+);
+const NOTSOL_FAUCET = new PublicKey(
+  "tRqMXrkJysM78qhriPH8GmKza75e2ikqWSDwa3soxuB"
+);
 
 const USDC_AMOUNT = 10 * 10 ** 6;
 const USDC_MINT = new PublicKey("F9jRT1xL7PCRepBuey5cQG5vWHFSbnvdWxJWKqtzMDsd");
@@ -66,6 +72,8 @@ const AirdropZone: FC = () => {
     [connection, wallet]
   );
 
+  if (!wallet?.publicKey) return null;
+
   return (
     <div>
       <NavbarCenterItem text="Airdrop" onClick={open} />
@@ -107,9 +115,41 @@ const AirdropZone: FC = () => {
             </Button>
             <Button
               onClick={async () => {
+                const toastId = toast.loading(
+                  `Airdropping ${NOTSOL_AMOUNT} SOL`
+                );
+                try {
+                  await airdropToken(NOTSOL_AMOUNT, NOTSOL_MINT, NOTSOL_FAUCET);
+                  toast.update(toastId, {
+                    render: `Airdropped ${NOTSOL_AMOUNT} notSOL to ${shortenAddress(
+                      wallet.publicKey!
+                    )}`,
+                    type: toast.TYPE.SUCCESS,
+                    autoClose: 5000,
+                    toastId,
+                    isLoading: false,
+                  });
+                } catch (error: any) {
+                  toast.update(toastId, {
+                    render: `Error during notSOL airdrop: ${error.message}`,
+                    type: toast.TYPE.ERROR,
+                    autoClose: 5000,
+                    toastId,
+                    isLoading: false,
+                  });
+                }
+              }}
+            >
+              Airdrop notSOL
+            </Button>
+            <Button
+              onClick={async () => {
                 const toastId = toast.loading(`Airdropping ${SOL_AMOUNT} SOL`);
                 try {
-                  await airdropToken(SOL_AMOUNT, SOL_MINT, SOL_FAUCET);
+                  await connection.requestAirdrop(
+                    wallet.publicKey!,
+                    SOL_AMOUNT
+                  );
                   toast.update(toastId, {
                     render: `Airdropped ${SOL_AMOUNT} SOL to ${shortenAddress(
                       wallet.publicKey!
