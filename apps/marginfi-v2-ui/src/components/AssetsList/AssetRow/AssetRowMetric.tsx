@@ -29,11 +29,11 @@ const AssetRowMetric: FC<AssetRowMetricProps> = ({
       <div
         className={`text-xs text-white ${showUSDEquivalent ? "flex flex-row gap-1" : ""}`}
       >
-        {value}
+        {value} 
         {
           showUSDEquivalent &&
           <div
-            className="text-[#868E95] px-1"
+            className="text-[#868E95] px-1 hidden lg:block"
             style={{
               fontSize: 10,
               backgroundColor: 'rgba(113, 119, 126, 0.3)',
