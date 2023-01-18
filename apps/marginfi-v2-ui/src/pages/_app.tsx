@@ -25,12 +25,6 @@ import Script from "next/dist/client/script";
 import { TokenBalancesProvider } from "~/context/TokenAccounts";
 import { TokenMetadataProvider } from "~/context/TokenMetadata";
 
-// Vivid
-if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-  import("vivid-studio").then((v) => v.run());
-  import("vivid-studio/style.css");
-}
-
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
 require("~/styles/globals.css");
