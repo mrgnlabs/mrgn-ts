@@ -339,7 +339,7 @@ class MarginfiAccount {
           isWritable: false,
         },
         {
-          pubkey: bank.config.pythOracle,
+          pubkey: bank.config.oracleKeys[0],
           isSigner: false,
           isWritable: false,
         },
@@ -363,7 +363,7 @@ class MarginfiAccount {
             isWritable: false,
           },
           {
-            pubkey: bank.config.pythOracle,
+            pubkey: bank.config.oracleKeys[0],
             isSigner: false,
             isWritable: false,
           },
@@ -459,7 +459,7 @@ class MarginfiAccount {
 
     const pythAccounts =
       await this._program.provider.connection.getMultipleAccountsInfo(
-        bankAccountsData.map((b) => (b as BankData).config.pythOracle)
+        bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
       );
 
     const banks = bankAccountsData.map(
@@ -622,7 +622,6 @@ class MarginfiAccount {
               )
               .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
           )
-
           .plus(
             bank
               .getInterestRates()
@@ -690,9 +689,7 @@ class MarginfiAccount {
         marginfiGroup: this._config.groupPk,
         signer: this.client.provider.wallet.publicKey,
         assetBank: assetBank.publicKey,
-        assetPriceFeed: assetBank.config.pythOracle,
         liabBank: liabBank.publicKey,
-        liabPriceFeed: liabBank.config.pythOracle,
         liquidatorMarginfiAccount: this.publicKey,
         liquidateeMarginfiAccount: liquidateeMarginfiAccount.publicKey,
         bankLiquidityVaultAuthority: getBankVaultAuthority(

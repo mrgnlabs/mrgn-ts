@@ -103,11 +103,6 @@ export type Marginfi = {
           isSigner: false;
         },
         {
-          name: "pythOracle";
-          isMut: false;
-          isSigner: false;
-        },
-        {
           name: "rent";
           isMut: false;
           isSigner: false;
@@ -150,14 +145,6 @@ export type Marginfi = {
           name: "bank";
           isMut: true;
           isSigner: false;
-        },
-        {
-          name: "pythOracle";
-          isMut: false;
-          isSigner: false;
-          docs: [
-            "Set only if pyth oracle is being changed otherwise can be a random account."
-          ];
         }
       ];
       args: [
@@ -276,7 +263,6 @@ export type Marginfi = {
           name: "signerTokenAccount";
           isMut: true;
           isSigner: false;
-          docs: ["Token mint/authority are checked at transfer"];
         },
         {
           name: "bankLiquidityVault";
@@ -369,18 +355,8 @@ export type Marginfi = {
           isSigner: false;
         },
         {
-          name: "assetPriceFeed";
-          isMut: false;
-          isSigner: false;
-        },
-        {
           name: "liabBank";
           isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "liabPriceFeed";
-          isMut: false;
           isSigner: false;
         },
         {
@@ -563,6 +539,18 @@ export type Marginfi = {
             type: "u8";
           },
           {
+            name: "ignore2";
+            type: {
+              array: ["u8", 4];
+            };
+          },
+          {
+            name: "insuranceTransferRemainder";
+            type: {
+              defined: "WrappedI80F48";
+            };
+          },
+          {
             name: "feeVault";
             type: "publicKey";
           },
@@ -575,15 +563,15 @@ export type Marginfi = {
             type: "u8";
           },
           {
-            name: "ignore2";
+            name: "ignore3";
             type: {
-              array: ["u8", 2];
+              array: ["u8", 6];
             };
           },
           {
-            name: "config";
+            name: "feeTransferRemainder";
             type: {
-              defined: "BankConfig";
+              defined: "WrappedI80F48";
             };
           },
           {
@@ -601,6 +589,12 @@ export type Marginfi = {
           {
             name: "lastUpdate";
             type: "i64";
+          },
+          {
+            name: "config";
+            type: {
+              defined: "BankConfig";
+            };
           }
         ];
       };
@@ -761,13 +755,33 @@ export type Marginfi = {
             type: "u64";
           },
           {
-            name: "pythOracle";
-            type: "publicKey";
-          },
-          {
             name: "interestRateConfig";
             type: {
               defined: "InterestRateConfig";
+            };
+          },
+          {
+            name: "operationalState";
+            type: {
+              defined: "BankOperationalState";
+            };
+          },
+          {
+            name: "oracleSetup";
+            type: {
+              defined: "OracleSetup";
+            };
+          },
+          {
+            name: "oracleKeys";
+            type: {
+              array: ["publicKey", 5];
+            };
+          },
+          {
+            name: "ignore";
+            type: {
+              array: ["u8", 6];
             };
           }
         ];
@@ -829,9 +843,45 @@ export type Marginfi = {
             };
           },
           {
-            name: "pythOracle";
+            name: "operationalState";
             type: {
-              option: "publicKey";
+              option: {
+                defined: "BankOperationalState";
+              };
+            };
+          },
+          {
+            name: "oracle";
+            type: {
+              option: {
+                defined: "OracleConfig";
+              };
+            };
+          },
+          {
+            name: "ignore";
+            type: {
+              array: ["u8", 6];
+            };
+          }
+        ];
+      };
+    },
+    {
+      name: "OracleConfig";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "setup";
+            type: {
+              defined: "OracleSetup";
+            };
+          },
+          {
+            name: "keys";
+            type: {
+              array: ["publicKey", 5];
             };
           }
         ];
@@ -861,6 +911,49 @@ export type Marginfi = {
           },
           {
             name: "Maintenance";
+          }
+        ];
+      };
+    },
+    {
+      name: "BankOperationalState";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Paused";
+          },
+          {
+            name: "Operational";
+          },
+          {
+            name: "ReduceOnly";
+          }
+        ];
+      };
+    },
+    {
+      name: "OracleSetup";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "None";
+          },
+          {
+            name: "Pyth";
+          }
+        ];
+      };
+    },
+    {
+      name: "OracleKey";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Pyth";
+            fields: ["publicKey"];
           }
         ];
       };
@@ -921,7 +1014,7 @@ export type Marginfi = {
     },
     {
       code: 6007;
-      name: "InvalidPythAccount";
+      name: "InvalidOracleAccount";
       msg: "Invalid Pyth account";
     },
     {
@@ -978,6 +1071,21 @@ export type Marginfi = {
       code: 6018;
       name: "StaleOracle";
       msg: "Stale oracle data";
+    },
+    {
+      code: 6019;
+      name: "BankPaused";
+      msg: "Bank paused";
+    },
+    {
+      code: 6020;
+      name: "BankReduceOnly";
+      msg: "Bank is ReduceOnly mode";
+    },
+    {
+      code: 6021;
+      name: "InvalidOracleSetup";
+      msg: "Invalid oracle setup";
     }
   ];
 };
@@ -1087,11 +1195,6 @@ export const IDL: Marginfi = {
           isSigner: false,
         },
         {
-          name: "pythOracle",
-          isMut: false,
-          isSigner: false,
-        },
-        {
           name: "rent",
           isMut: false,
           isSigner: false,
@@ -1134,14 +1237,6 @@ export const IDL: Marginfi = {
           name: "bank",
           isMut: true,
           isSigner: false,
-        },
-        {
-          name: "pythOracle",
-          isMut: false,
-          isSigner: false,
-          docs: [
-            "Set only if pyth oracle is being changed otherwise can be a random account.",
-          ],
         },
       ],
       args: [
@@ -1260,7 +1355,6 @@ export const IDL: Marginfi = {
           name: "signerTokenAccount",
           isMut: true,
           isSigner: false,
-          docs: ["Token mint/authority are checked at transfer"],
         },
         {
           name: "bankLiquidityVault",
@@ -1353,18 +1447,8 @@ export const IDL: Marginfi = {
           isSigner: false,
         },
         {
-          name: "assetPriceFeed",
-          isMut: false,
-          isSigner: false,
-        },
-        {
           name: "liabBank",
           isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "liabPriceFeed",
-          isMut: false,
           isSigner: false,
         },
         {
@@ -1547,6 +1631,18 @@ export const IDL: Marginfi = {
             type: "u8",
           },
           {
+            name: "ignore2",
+            type: {
+              array: ["u8", 4],
+            },
+          },
+          {
+            name: "insuranceTransferRemainder",
+            type: {
+              defined: "WrappedI80F48",
+            },
+          },
+          {
             name: "feeVault",
             type: "publicKey",
           },
@@ -1559,15 +1655,15 @@ export const IDL: Marginfi = {
             type: "u8",
           },
           {
-            name: "ignore2",
+            name: "ignore3",
             type: {
-              array: ["u8", 2],
+              array: ["u8", 6],
             },
           },
           {
-            name: "config",
+            name: "feeTransferRemainder",
             type: {
-              defined: "BankConfig",
+              defined: "WrappedI80F48",
             },
           },
           {
@@ -1585,6 +1681,12 @@ export const IDL: Marginfi = {
           {
             name: "lastUpdate",
             type: "i64",
+          },
+          {
+            name: "config",
+            type: {
+              defined: "BankConfig",
+            },
           },
         ],
       },
@@ -1745,13 +1847,33 @@ export const IDL: Marginfi = {
             type: "u64",
           },
           {
-            name: "pythOracle",
-            type: "publicKey",
-          },
-          {
             name: "interestRateConfig",
             type: {
               defined: "InterestRateConfig",
+            },
+          },
+          {
+            name: "operationalState",
+            type: {
+              defined: "BankOperationalState",
+            },
+          },
+          {
+            name: "oracleSetup",
+            type: {
+              defined: "OracleSetup",
+            },
+          },
+          {
+            name: "oracleKeys",
+            type: {
+              array: ["publicKey", 5],
+            },
+          },
+          {
+            name: "ignore",
+            type: {
+              array: ["u8", 6],
             },
           },
         ],
@@ -1813,9 +1935,45 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "pythOracle",
+            name: "operationalState",
             type: {
-              option: "publicKey",
+              option: {
+                defined: "BankOperationalState",
+              },
+            },
+          },
+          {
+            name: "oracle",
+            type: {
+              option: {
+                defined: "OracleConfig",
+              },
+            },
+          },
+          {
+            name: "ignore",
+            type: {
+              array: ["u8", 6],
+            },
+          },
+        ],
+      },
+    },
+    {
+      name: "OracleConfig",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "setup",
+            type: {
+              defined: "OracleSetup",
+            },
+          },
+          {
+            name: "keys",
+            type: {
+              array: ["publicKey", 5],
             },
           },
         ],
@@ -1845,6 +2003,49 @@ export const IDL: Marginfi = {
           },
           {
             name: "Maintenance",
+          },
+        ],
+      },
+    },
+    {
+      name: "BankOperationalState",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Paused",
+          },
+          {
+            name: "Operational",
+          },
+          {
+            name: "ReduceOnly",
+          },
+        ],
+      },
+    },
+    {
+      name: "OracleSetup",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "None",
+          },
+          {
+            name: "Pyth",
+          },
+        ],
+      },
+    },
+    {
+      name: "OracleKey",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Pyth",
+            fields: ["publicKey"],
           },
         ],
       },
@@ -1905,7 +2106,7 @@ export const IDL: Marginfi = {
     },
     {
       code: 6007,
-      name: "InvalidPythAccount",
+      name: "InvalidOracleAccount",
       msg: "Invalid Pyth account",
     },
     {
@@ -1962,6 +2163,21 @@ export const IDL: Marginfi = {
       code: 6018,
       name: "StaleOracle",
       msg: "Stale oracle data",
+    },
+    {
+      code: 6019,
+      name: "BankPaused",
+      msg: "Bank paused",
+    },
+    {
+      code: 6020,
+      name: "BankReduceOnly",
+      msg: "Bank is ReduceOnly mode",
+    },
+    {
+      code: 6021,
+      name: "InvalidOracleSetup",
+      msg: "Invalid oracle setup",
     },
   ],
 };

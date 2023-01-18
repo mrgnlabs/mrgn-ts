@@ -266,7 +266,7 @@ class MarginfiAccountReadonly {
 
     const pythAccounts =
       await this._program.provider.connection.getMultipleAccountsInfo(
-        bankAccountsData.map((b) => (b as BankData).config.pythOracle)
+        bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
       );
 
     const banks = bankAccountsData.map(
