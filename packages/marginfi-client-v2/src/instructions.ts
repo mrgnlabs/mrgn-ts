@@ -90,9 +90,7 @@ function makeLendingAccountLiquidateIx(
     marginfiGroup: PublicKey;
     signer: PublicKey;
     assetBank: PublicKey;
-    assetPriceFeed: PublicKey;
     liabBank: PublicKey;
-    liabPriceFeed: PublicKey;
     liquidatorMarginfiAccount: PublicKey;
     liquidateeMarginfiAccount: PublicKey;
     bankLiquidityVaultAuthority: PublicKey;
@@ -110,9 +108,7 @@ function makeLendingAccountLiquidateIx(
       marginfiGroup: accounts.marginfiGroup,
       signer: accounts.signer,
       assetBank: accounts.assetBank,
-      assetPriceFeed: accounts.assetPriceFeed,
       liabBank: accounts.liabBank,
-      liabPriceFeed: accounts.liabPriceFeed,
       liquidatorMarginfiAccount: accounts.liquidatorMarginfiAccount,
       liquidateeMarginfiAccount: accounts.liquidateeMarginfiAccount,
       bankLiquidityVaultAuthority: accounts.bankLiquidityVaultAuthority,

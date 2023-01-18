@@ -22,10 +22,12 @@ async function main() {
   );
   console.log(programAddresses.map((key) => key.toBase58()));
 
-  const marginfiAccount = await MarginfiAccount.fetch(
-    "H9rVGRzqZJC2gJ9ysgVDq1AnwLurdipVz94f4yy9igan",
-    client
-  );
+  // const marginfiAccount = await MarginfiAccount.fetch(
+  //   "H9rVGRzqZJC2gJ9ysgVDq1AnwLurdipVz94f4yy9igan",
+  //   client
+  // );
+
+  const marginfiAccount = await client.createMarginfiAccount();
 
   const group = marginfiAccount.group;
 
@@ -36,6 +38,10 @@ async function main() {
   const bankLabel2 = "USDC";
   const bank2 = group.getBankByLabel(bankLabel2);
   if (!bank2) throw Error(`${bankLabel2} bank not found`);
+
+  await marginfiAccount.deposit(1, bank1);
+  await marginfiAccount.deposit(2, bank2);
+  await marginfiAccount.reload();
 
   marginfiAccount.lendingAccount.forEach((balance) => {
     const bank = group.banks.get(balance.bankPk.toString())!;
