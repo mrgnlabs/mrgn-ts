@@ -5,6 +5,8 @@ interface AssetRowMetricProps {
   longLabel: string;
   value: string; // @todo make correct format type
   borderRadius: string;
+  usdEquivalentValue?: string;
+  showUSDEquivalent?: boolean;
 }
 
 const AssetRowMetric: FC<AssetRowMetricProps> = ({
@@ -12,6 +14,8 @@ const AssetRowMetric: FC<AssetRowMetricProps> = ({
   longLabel,
   value,
   borderRadius,
+  usdEquivalentValue,
+  showUSDEquivalent,
 }) => {
   return (
     <div
@@ -22,7 +26,24 @@ const AssetRowMetric: FC<AssetRowMetricProps> = ({
     >
       <div className="text-xs text-[#868E95] hidden lg:block">{longLabel}</div>
       <div className="text-xs text-[#868E95] block lg:hidden">{shortLabel}</div>
-      <div className="text-xs text-white">{value}</div>
+      <div
+        className={`text-xs text-white ${showUSDEquivalent ? "flex flex-row gap-1" : ""}`}
+      >
+        {value}
+        {
+          showUSDEquivalent &&
+          <div
+            className="text-[#868E95] px-1"
+            style={{
+              fontSize: 10,
+              backgroundColor: 'rgba(113, 119, 126, 0.3)',
+              borderRadius: '4px',
+            }}
+          >
+            {usdEquivalentValue}
+          </div>
+        }
+      </div>
     </div>
   );
 };
