@@ -18,7 +18,7 @@ const AssetRowAction: FC<AssetRowActionProps> = ({
       style={{
         // @todo why the fuck is tailwind broken
         backgroundColor:
-          otherProps.disabled || !wallet.connected ? "gray" : "#fff",
+          otherProps.disabled || !wallet.connected ? "gray" : "rgb(227, 227, 227)",
         color: "black",
       }}
       {...otherProps}
