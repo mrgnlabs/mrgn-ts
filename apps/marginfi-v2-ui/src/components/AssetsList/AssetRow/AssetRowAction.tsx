@@ -20,6 +20,7 @@ const AssetRowAction: FC<AssetRowActionProps> = ({
         backgroundColor:
           otherProps.disabled || !wallet.connected ? "gray" : "rgb(227, 227, 227)",
         color: "black",
+        fontFamily: 'Aeonik Pro',
       }}
       {...otherProps}
       disabled={otherProps.disabled || !wallet.connected}

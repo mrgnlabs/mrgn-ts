@@ -21,6 +21,8 @@ const AssetRowMetric: FC<AssetRowMetricProps> = ({
       className="bg-[#00000033] border-solid border border-[#171C1F] h-12 w-full max-w-[200px] flex flex-col justify-evenly p-1 px-3"
       style={{
         borderRadius: borderRadius,
+        fontFamily: 'Aeonik Pro',
+        fontWeight: 400,
       }}
     >
       <div className="text-xs text-[#868E95] hidden lg:block">{longLabel}</div>

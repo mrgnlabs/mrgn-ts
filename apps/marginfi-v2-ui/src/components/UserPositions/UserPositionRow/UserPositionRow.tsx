@@ -95,6 +95,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
       }}
       style={{
         border: "solid rgba(0,0,0,0) 2px",
+        fontFamily: "Aeonik Pro",
       }}
     >
       <UserPositionRowHeader

@@ -16,6 +16,7 @@ const UserPositionRowAction: FC<UserPositionRowActionProps> = ({
         // @todo why the fuck is tailwind broken
         backgroundColor: otherProps.disabled ? "gray" : "rgb(227, 227, 227)",
         color: "black",
+        fontFamily: "Aeonik Pro",
       }}
       {...otherProps}
     >
