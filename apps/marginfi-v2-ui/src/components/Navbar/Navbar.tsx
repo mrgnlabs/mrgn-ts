@@ -14,7 +14,7 @@ const Navbar: FC = () => {
     <header>
       <nav className="fixed w-full top-0 h-[56px] z-10">
         <div
-          className="w-full top-0 flex justify-between items-center h-[56px] text-2xl z-10"
+          className="w-full top-0 flex justify-between items-center h-[56px] text-4xl z-10"
           style={{
             border: "solid #1C2125 1px",
             padding: "0 15px",

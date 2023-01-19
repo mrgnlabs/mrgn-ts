@@ -21,7 +21,7 @@ const AccountMetric: FC<AccountMetricProps> = ({
       }
     >
       <div
-        className="text-base text-[#868E95]"
+        className="text-xl text-[#868E95]"
         style={{
           fontFamily: "Aeonik Pro",
           fontWeight: valueBold ? 400 : 300,

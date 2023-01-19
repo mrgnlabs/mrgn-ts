@@ -11,7 +11,7 @@ const UserPositionRowAction: FC<UserPositionRowActionProps> = ({
 }) => {
   return (
     <Button
-      className="bg-white text-black normal-case text-xs mx-2 sm:mx-0 w-28 sm:w-30 h-10 max-w-1 rounded-[100px]"
+      className="bg-white text-black normal-case text-base mx-2 sm:mx-0 w-28 sm:w-30 h-10 max-w-1 rounded-[100px]"
       style={{
         // @todo why the fuck is tailwind broken
         backgroundColor: otherProps.disabled ? "gray" : "rgb(227, 227, 227)",
