@@ -206,6 +206,10 @@ const AssetRow: FC<{
         icon={tokenMetadata.icon}
         isInLendingMode={isInLendingMode}
       />
+
+      <div
+        className="h-full w-full flex gap-2 lg:gap-4 justify-end items-center"
+      >
       <TableCell className="py-1 px-0 h-10 border-hidden flex justify-end items-center w-full max-w-[600px]">
         <AssetRowMetric
           longLabel="Current Price"
@@ -242,37 +246,44 @@ const AssetRow: FC<{
       </TableCell>
 
       {isConnected && (
-        <>
-          <TableCell className="py-1 px-0 h-10 min-w-[120px] border-hidden flex justify-center items-center hidden md:flex">
-            <AssetRowInputBox
-              value={borrowOrLendAmount}
-              setValue={setBorrowOrLendAmount}
-              maxValue={isInLendingMode ? walletBalance : maxWithdraw * 0.9}
-              maxDecimals={bank.mintDecimals}
-            />
-          </TableCell>
-          <TableCell className="p-1 h-10 border-hidden flex justify-center items-center hidden md:table-cell">
-            {marginfiAccount === null ? (
-              <Tooltip
-                title="User account while be automatically created"
-                placement="top"
-              >
-                <div className="h-full w-full flex justify-center items-center">
-                  <AssetRowAction onClick={borrowOrLend}>
-                    {isInLendingMode ? "Lend" : "Borrow"}
-                  </AssetRowAction>
-                </div>
-              </Tooltip>
-            ) : (
-              <div className="h-full w-full flex justify-center items-center">
-                <AssetRowAction onClick={borrowOrLend}>
-                  {isInLendingMode ? "Lend" : "Borrow"}
-                </AssetRowAction>
-              </div>
-            )}
-          </TableCell>
-        </>
+        <TableCell className="py-1 px-0 h-10 min-w-[120px] border-hidden flex justify-center items-center hidden md:flex">
+          <AssetRowInputBox
+            value={borrowOrLendAmount}
+            setValue={setBorrowOrLendAmount}
+            maxValue={isInLendingMode ? walletBalance : maxWithdraw * 0.9}
+            maxDecimals={bank.mintDecimals}
+          />
+        </TableCell>
       )}
+      
+      <TableCell
+        className="p-1 h-10 border-hidden flex justify-center items-center hidden md:flex"
+      >
+        <div
+          className="h-full w-full"
+        >
+        {marginfiAccount === null ? (
+          <Tooltip
+            title="User account while be automatically created on first lend"
+            placement="top"
+          >
+            <div className="h-full w-full flex justify-center items-center">
+              <AssetRowAction onClick={borrowOrLend}>
+                {isInLendingMode ? "Lend" : "Borrow"}
+              </AssetRowAction>
+            </div>
+          </Tooltip>
+        ) : (
+          <div className="h-full w-full flex justify-center items-center">
+            <AssetRowAction onClick={borrowOrLend}>
+              {isInLendingMode ? "Lend" : "Borrow"}
+            </AssetRowAction>
+          </div>
+        )}
+        </div>
+      </TableCell>
+      </div>
+      
     </TableRow>
   );
 };
