@@ -14,9 +14,11 @@ const Home = () => {
   const { userAccounts } = useBorrowLendState();
 
   return (
-    <div className="min-h-screen w-full flex justify-center fixed top-[56px] xl:top-0">
+    <div
+      className="min-h-screen w-full flex justify-center fixed top-[56px] xl:top-0"
+    >
       <div
-        className="grid w-4/5 max-w-7xl p-0 self-center gap-4 grid-cols-1 xl:grid-cols-2"
+        className="grid w-[85%] xl:w-4/5 max-w-7xl p-0 self-center gap-4 grid-cols-1 xl:grid-cols-2"
         style={{
           display: "flex",
           flexDirection: "column",

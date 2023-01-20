@@ -26,7 +26,9 @@ const AssetsList: FC = () => {
 
   return (
     <>
-      <div className="col-span-full">
+      <div
+        className="col-span-full"
+      >
         <BorrowLendToggle
           isInLendingMode={isInLendingMode}
           setIsInLendingMode={setIsInLendingMode}
@@ -34,7 +36,10 @@ const AssetsList: FC = () => {
       </div>
 
       <div className="col-span-full">
-        <Card elevation={0} className="bg-[rgba(0,0,0,0)] w-full">
+        <Card
+          elevation={0} 
+          className="bg-[rgba(0,0,0,0)] w-full"
+        >
           <TableContainer>
             <Table className="table-fixed">
               <TableBody>
