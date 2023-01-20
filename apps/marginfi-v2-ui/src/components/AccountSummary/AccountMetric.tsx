@@ -17,7 +17,7 @@ const AccountMetric: FC<AccountMetricProps> = ({
   return (
     <div
       className={
-        "h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl"
+        "h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl text-lg"
       }
     >
       <div
@@ -30,7 +30,7 @@ const AccountMetric: FC<AccountMetricProps> = ({
         {label}
       </div>
       <div
-        className="text-lg"
+        className="text-xl"
         style={{
           fontFamily: "Aeonik Pro",
           fontWeight: valueBold ? 500 : 300,
