@@ -70,13 +70,11 @@ const AssetRow: FC<{
     [bank.mint, nativeSol, tokenBalance]
   );
 
-  const { assetPrice, totalPoolDeposits } = useMemo(
+  const { assetPrice, totalPoolDeposits, totalPoolBorrows } = useMemo(
     () => ({
       assetPrice: bank.getPrice(PriceBias.None).toNumber(),
-      totalPoolDeposits: nativeToUi(
-        bank.getAssetQuantity(bank.totalDepositShares),
-        bank.mintDecimals
-      ),
+      totalPoolDeposits: nativeToUi(bank.totalDeposits, bank.mintDecimals),
+      totalPoolBorrows: nativeToUi(bank.totalLiabilities, bank.mintDecimals),
     }),
     [bank]
   );
@@ -220,9 +218,13 @@ const AssetRow: FC<{
             }
           />
           <AssetRowMetric
-            longLabel="Total Pool Deposits"
-            shortLabel="Deposits"
-            value={groupedNumberFormatter.format(totalPoolDeposits)}
+            longLabel={
+              isInLendingMode ? "Total Pool Deposits" : "Total Pool Borrows"
+            }
+            shortLabel={isInLendingMode ? "Deposits" : "Borrows"}
+            value={groupedNumberFormatter.format(
+              isInLendingMode ? totalPoolDeposits : totalPoolBorrows
+            )}
             borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
             usdEquivalentValue={usdFormatter.format(
               totalPoolDeposits * bank.getPrice(PriceBias.None).toNumber()
@@ -230,7 +232,9 @@ const AssetRow: FC<{
           />
           {isConnected && (
             <AssetRowMetric
-              longLabel="Wallet Balance"
+              longLabel={
+                isInLendingMode ? "Available To Deposit" : "Available To Borrow"
+              }
               shortLabel="Balance"
               value={groupedNumberFormatter.format(walletBalance)}
               borderRadius="0px 10px 10px 0px"
