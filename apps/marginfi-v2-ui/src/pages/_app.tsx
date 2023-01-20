@@ -76,7 +76,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                   <link rel="icon" href="/favicon.ico" />
                 </Head>
                 <Navbar />
-                <div className="flex flex-row justify-center pt-[56px]">
+                <div className="flex flex-row justify-center pt-[64px]">
                   <Component {...pageProps} />
                 </div>
                 <ToastContainer position="bottom-left" theme="dark" />
