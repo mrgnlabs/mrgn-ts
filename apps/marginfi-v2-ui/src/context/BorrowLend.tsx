@@ -1,7 +1,5 @@
 import React from "react";
 import {
-  aprToApy,
-  getConfig,
   MarginfiClient,
   MarginfiReadonlyClient,
 } from "@mrgnlabs/marginfi-client-v2";
@@ -14,12 +12,12 @@ import {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   useCallback,
 } from "react";
 import { computeAccountSummary, DEFAULT_ACCOUNT_SUMMARY } from "../api";
 import { AccountSummary } from "~/types";
 import { useTokenMetadata } from "./TokenMetadata";
+import config from "~/config";
 
 // @ts-ignore - Safe because context hook checks for null
 const BorrowLendContext = createContext<BorrowLendState>();
@@ -41,8 +39,6 @@ const BorrowLendStateProvider: FC<{
   const anchorWallet = useAnchorWallet();
   const { tokenMetadataMap } = useTokenMetadata();
 
-  const mfiConfig = useMemo(() => getConfig("devnet1"), []);
-
   // User-agnostic state
   const [fetching, setFetching] = useState<boolean>(true);
   const [mfiReadonlyClient, setMfiReadonlyClient] =
@@ -61,7 +57,7 @@ const BorrowLendStateProvider: FC<{
   useEffect(() => {
     (async function () {
       const roClient = await MarginfiReadonlyClient.fetch(
-        mfiConfig,
+        config.mfiConfig,
         connection
       );
       setMfiReadonlyClient(roClient);
@@ -69,14 +65,14 @@ const BorrowLendStateProvider: FC<{
       if (!anchorWallet) return;
 
       const client = await MarginfiClient.fetch(
-        mfiConfig,
+        config.mfiConfig,
         //@ts-ignore
         anchorWallet,
         connection
       );
       setMfiClient(client);
     })();
-  }, [anchorWallet, mfiConfig, connection]);
+  }, [anchorWallet, connection]);
 
   const refreshUserData = useCallback(async () => {
     if (!mfiClient) return;

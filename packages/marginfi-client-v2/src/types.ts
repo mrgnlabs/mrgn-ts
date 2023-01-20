@@ -30,7 +30,7 @@ export interface TransactionOptions extends ConfirmOptions {
 /**
  * Supported config environments.
  */
-export type Environment = "devnet1";
+export type Environment = "mainnet1" | "devnet1";
 
 export interface InstructionsWrapper {
   instructions: TransactionInstruction[];

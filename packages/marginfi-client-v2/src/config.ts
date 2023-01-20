@@ -1,6 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import { BankAddress, Environment, MarginfiConfig } from "./types";
-import { array, assert, Infer, literal, object, string } from "superstruct";
+import { array, assert, enums, Infer, object, string } from "superstruct";
 import configs from "./configs.json";
 
 const BankConfigRaw = object({
@@ -8,7 +8,7 @@ const BankConfigRaw = object({
   address: string(),
 });
 const MarginfiConfigRaw = object({
-  label: literal("devnet1"),
+  label: enums(["mainnet1", "devnet1"]),
   cluster: string(),
   program: string(),
   group: string(),

@@ -12,13 +12,11 @@ const rpcEndpointOverride =
   process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE;
 
 switch (process.env.NEXT_PUBLIC_ENVIRONMENT) {
-  // case "mainnet":
-  //   mfiConfig = getConfig("devnet1");
-  //   // mfiEnvironment = mfiConfig.environment;
-  //   rpcEndpoint =
-  //     rpcEndpointOverride || "https://mrgnlab-main-fc47.mainnet.rpcpool.com/";
-  //   // mfiProgramId = mfiConfig.programId;
-  //   break;
+  case "mainnet":
+    mfiConfig = getConfig("mainnet1");
+    rpcEndpoint =
+      rpcEndpointOverride || "https://mrgnlab-main-fc47.mainnet.rpcpool.com/";
+    break;
   case "devnet":
     mfiConfig = getConfig("devnet1");
     rpcEndpoint = rpcEndpointOverride || "https://devnet.rpcpool.com/";
@@ -28,7 +26,6 @@ switch (process.env.NEXT_PUBLIC_ENVIRONMENT) {
     break;
   default:
     mfiConfig = getConfig("devnet1");
-
     rpcEndpoint = rpcEndpointOverride || "https://devnet.rpcpool.com/";
     devFaucetAddress = new PublicKey(
       "57hG7dDLXUg6GYDzAw892V4qLm6FhKxd86vMLazyFL98"
