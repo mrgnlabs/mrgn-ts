@@ -62,10 +62,6 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
           <TokenMetadataProvider>
             <BorrowLendStateProvider>
               <TokenBalancesProvider>
-                <div
-                  // @todo `absolute` here may break ux when there are so many assets you have to scroll
-                  className="-z-50 absolute h-[200vh] w-[200vw] bg-gradient-radial from-[#171C1F] to-[#010101] translate-x-[-45%] translate-y-[-50%]"
-                />
                 <Head>
                   <title>marginfi</title>
                   <meta name="description" content="marginfi v2 UI" />

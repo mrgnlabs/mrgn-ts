@@ -7,14 +7,14 @@ import tokenInfos from "../assets/token_info.json";
 
 export const groupedNumberFormatter = new Intl.NumberFormat("en-US", {
   useGrouping: true,
-  minimumFractionDigits: 0,
+  minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
 export const usdFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
-  minimumFractionDigits: 0,
+  minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 

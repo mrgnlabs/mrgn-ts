@@ -18,17 +18,17 @@ const UserPositions: FC = () => {
       {isLending && selectedAccount && (
         <Card
           elevation={0}
-          className="bg-transparent w-full p-0 grid min-w-[500px]"
+          className="bg-transparent w-full p-0 grid"
         >
           <div
-            className="text-2xl my-8 text-white"
+            className="text-2xl my-8 text-white pl-1"
             style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}
           >
-            Supplying
+            Lending
           </div>
           <TableContainer>
             <Table className="table-fixed">
-              <TableBody>
+              <TableBody className="flex flex-col gap-4">
                 {accountSummary.positions
                   .filter((p) => p.isLending)
                   .map((position, index) => (
@@ -48,10 +48,10 @@ const UserPositions: FC = () => {
         {isBorrowing && selectedAccount && (
           <Card
             elevation={0}
-            className="bg-transparent w-full p-0 grid min-w-[500px]"
+            className="bg-transparent w-full p-0 grid"
           >
             <div
-              className="text-2xl my-8 text-white"
+              className="text-2xl my-8 text-white pl-1"
               style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}
             >
               Borrowing

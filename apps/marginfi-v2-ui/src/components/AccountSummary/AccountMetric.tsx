@@ -2,8 +2,9 @@ import React, { FC } from "react";
 
 interface AccountMetricProps {
   label: string;
-  value: string;
+  value?: string;
   valueBold?: boolean;
+  preview?: boolean;
   extraBorder?: boolean;
   boldValue?: string;
 }
@@ -12,7 +13,8 @@ const AccountMetric: FC<AccountMetricProps> = ({
   label,
   value,
   valueBold,
-  boldValue = "#75ba80",
+  preview,
+  boldValue,
 }) => {
   return (
     <div
@@ -29,16 +31,30 @@ const AccountMetric: FC<AccountMetricProps> = ({
       >
         {label}
       </div>
-      <div
-        className="text-xl"
-        style={{
-          fontFamily: "Aeonik Pro",
-          fontWeight: valueBold ? 500 : 300,
-          color: valueBold ? boldValue : "#fff",
-        }}
-      >
-        {value}
-      </div>
+      {
+        preview
+        ?
+        <div
+        className="text-sm text-[#868E95]"
+          style={{
+            fontFamily: "Aeonik Pro",
+            fontWeight: 500,
+          }}
+        >
+          Coming soon™️
+        </div>
+        :
+        <div
+          className="text-xl"
+          style={{
+            fontFamily: "Aeonik Pro",
+            fontWeight: valueBold ? 500 : 300,
+            color: valueBold ? boldValue : "#fff",
+          }}
+        >
+          {value}
+        </div>
+      }
     </div>
   );
 };
