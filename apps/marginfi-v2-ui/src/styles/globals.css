@@ -19,9 +19,9 @@ Let's leave for now - it's clean and provides ample room to scale the experience
 }
 
 :root {
-  --max-width: 1100px;
+  --max-width: 1152px; /* aligns with tailwind width for main content */
 
-  --foreground-rgb: 0, 0, 0;
+  /* --foreground-rgb: 255, 255, 255; */
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
 
@@ -58,7 +58,7 @@ Let's leave for now - it's clean and provides ample room to scale the experience
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
+    /* --foreground-rgb: 255, 255, 255; */
     --background-start-rgb: 0, 0, 0;
     --background-end-rgb: 0, 0, 0;
 
@@ -102,7 +102,7 @@ body {
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
+  color: rgb(255, 255, 255);
   background-color: #010101;
   font-family: "Aeonik Pro";
   font-weight: 300;
