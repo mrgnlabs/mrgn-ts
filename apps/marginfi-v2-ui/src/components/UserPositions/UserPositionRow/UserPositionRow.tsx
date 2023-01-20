@@ -115,7 +115,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
       >
         <div className="bg-transparent w-full max-w-[200px] flex flex-col justify-evenly p-1 px-3 min-w-fit">
           <div className="text-sm text-[#868E95] min-w-[125px]">
-            {position.isLending ? "Amount Supplying" : "Amount Borrowing"}
+            {position.isLending ? "Amount Lending" : "Amount Borrowing"}
           </div>
           <div className="text-sm text-white flex flex-row gap-1">
             {groupedNumberFormatter.format(position.amount)}

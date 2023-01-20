@@ -24,7 +24,7 @@ const UserPositions: FC = () => {
             className="text-2xl my-8 text-white pl-1"
             style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}
           >
-            Supplying
+            Lending
           </div>
           <TableContainer>
             <Table className="table-fixed">
