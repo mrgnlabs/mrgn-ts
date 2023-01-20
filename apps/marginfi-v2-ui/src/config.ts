@@ -1,6 +1,5 @@
-// import { Environment, getConfig } from "marginfi-client-v2";
 import { PublicKey } from "@solana/web3.js";
-import { Environment, getConfig } from "@mrgnlabs/marginfi-client-v2";
+import { getConfig } from "@mrgnlabs/marginfi-client-v2";
 
 // ================
 // MAIN APP CONFIG
@@ -11,14 +10,15 @@ let mfiConfig, mfiEnvironment, rpcEndpoint, mfiProgramId, devFaucetAddress;
 const rpcEndpointOverride =
   process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE;
 
-switch (process.env.NEXT_PUBLIC_ENVIRONMENT) {
-  case "mainnet":
-    mfiConfig = getConfig("mainnet1");
+const environment = process.env.NEXT_PUBLIC_ENVIRONMENT;
+switch (environment) {
+  case "mainnet1":
+    mfiConfig = getConfig(environment);
     rpcEndpoint =
       rpcEndpointOverride || "https://mrgnlab-main-fc47.mainnet.rpcpool.com/";
     break;
-  case "devnet":
-    mfiConfig = getConfig("devnet1");
+  case "devnet1":
+    mfiConfig = getConfig(environment);
     rpcEndpoint = rpcEndpointOverride || "https://devnet.rpcpool.com/";
     devFaucetAddress = new PublicKey(
       "B87AhxX6BkBsj3hnyHzcerX2WxPoACC7ZyDr8E7H9geN"
