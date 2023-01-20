@@ -7,7 +7,6 @@ interface AssetRowHeader {
   assetName: string;
   apy: number;
   icon?: string;
-  textBold?: boolean;
   isInLendingMode: boolean;
 }
 
@@ -15,12 +14,9 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
   assetName,
   apy,
   icon,
-  textBold,
   isInLendingMode,
 }) => (
-  <TableCell
-    className="text-white h-full w-full border-hidden px-0.5 lg:pr-0 flex justify-start items-center max-w-[250px] gap-1 min-w-fit"
-  >
+  <TableCell className="text-white h-full w-full border-hidden px-0.5 lg:pr-0 flex justify-start items-center max-w-[250px] gap-1 min-w-fit">
     <div className="flex justify-start items-center min-w-fit">
       {icon && (
         <Image
@@ -32,25 +28,14 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
         />
       )}
       <div>
-        <div
-          style={{
-            fontFamily: "Aeonik Pro",
-            fontWeight: textBold ? 400 : 300,
-          }}
-        >
-          {assetName}
-        </div>
+        <div className="font-aeonik">{assetName}</div>
       </div>
     </div>
     <div
       // @todo font size here should technically be smaller, but tailwind doesn't offer smaller sizing
       // pointing to a likely readibility problem.
       // resolve with design.
-      className="px-1 text-sm text-[#868E95] hidden lg:flex"
-      style={{
-        fontFamily: "Aeonik Pro",
-        fontWeight: textBold ? 400 : 300,
-      }}
+      className="font-aeonik px-1 text-sm text-[#868E95] hidden lg:flex"
     >
       Current APY
     </div>
@@ -58,15 +43,11 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
       // @todo font size here should technically be smaller, but tailwind doesn't offer smaller sizing
       // pointing to a likely readibility problem.
       // resolve with design.
-      className={`flex justify-center items-center px-2 text-[${
-        isInLendingMode ? "#3AFF6C" : "#EEB9BA"
-      }] bg-[${
-        isInLendingMode ? "#3aff6c1f" : "#db383e4d"
-      }] rounded-xl text-sm`}
-      style={{
-        fontFamily: "Aeonik Pro",
-        fontWeight: textBold ? 400 : 300,
-      }}
+      className={`font-aeonik flex justify-center items-center px-2 ${
+        isInLendingMode ? "text-[#3AFF6C]" : "text-[#EEB9BA]"
+      } ${
+        isInLendingMode ? "bg-[#3aff6c1f]" : "bg-[#db383e4d]"
+      } rounded-xl text-sm`}
     >
       {percentFormatter.format(apy)}
     </div>

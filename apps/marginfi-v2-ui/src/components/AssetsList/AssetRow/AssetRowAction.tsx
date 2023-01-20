@@ -8,6 +8,7 @@ interface AssetRowActionProps extends ButtonProps {
 
 const AssetRowAction: FC<AssetRowActionProps> = ({
   children,
+  disabled,
   ...otherProps
 }) => {
   const wallet = useWallet();
@@ -18,12 +19,12 @@ const AssetRowAction: FC<AssetRowActionProps> = ({
       style={{
         // @todo why the fuck is tailwind broken
         backgroundColor:
-          otherProps.disabled || !wallet.connected ? "gray" : "rgb(227, 227, 227)",
+          disabled || !wallet.connected ? "gray" : "rgb(227, 227, 227)",
         color: "black",
-        fontFamily: 'Aeonik Pro',
+        fontFamily: "Aeonik Pro",
       }}
       {...otherProps}
-      disabled={otherProps.disabled || !wallet.connected}
+      disabled={disabled || !wallet.connected}
     >
       {children}
     </Button>

@@ -14,6 +14,9 @@ module.exports = {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
       },
     },
+    fontFamily: {
+      aeonik: ['"Aeonik Pro"'],
+    },
   },
   plugins: [
     plugin(function ({ addUtilities }) {
