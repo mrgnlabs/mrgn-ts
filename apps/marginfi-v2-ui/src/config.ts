@@ -11,14 +11,21 @@ const rpcEndpointOverride =
   process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE;
 
 const environment = process.env.NEXT_PUBLIC_ENVIRONMENT;
+const groupOverride = process.env.NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE;
 switch (environment) {
   case "mainnet1":
     mfiConfig = getConfig(environment);
+    if (groupOverride) {
+      mfiConfig.groupPk = new PublicKey(groupOverride);
+    }
     rpcEndpoint =
       rpcEndpointOverride || "https://mrgnlab-main-fc47.mainnet.rpcpool.com/";
     break;
   case "devnet1":
     mfiConfig = getConfig(environment);
+    if (groupOverride) {
+      mfiConfig.groupPk = new PublicKey(groupOverride);
+    }
     rpcEndpoint = rpcEndpointOverride || "https://devnet.rpcpool.com/";
     devFaucetAddress = new PublicKey(
       "B87AhxX6BkBsj3hnyHzcerX2WxPoACC7ZyDr8E7H9geN"
