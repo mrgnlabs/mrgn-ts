@@ -55,7 +55,9 @@ const AccountSummary: FC = () => {
             label={"Net APY"}
             value={
               wallet.connected
-                ? signedPercentFormatter.format(Math.round(accountSummary.apy))
+                ? signedPercentFormatter.format(
+                    Math.round(accountSummary.apy * 1_000_000) / 1_000_000
+                  )
                 : "-"
             }
             valueBold
