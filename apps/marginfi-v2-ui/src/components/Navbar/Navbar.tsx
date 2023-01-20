@@ -31,12 +31,16 @@ const Navbar: FC = () => {
 
           {/* // @todo spacing between items looks weird at lg breakpoint */}
           <div className="absolute fixed left-0 right-0 flex justify-center items-center w-full h-full invisible lg:visible">
-            <div className="h-full w-[28%] flex">
+            <div className="h-full w-[28%] flex min-w-fit max-w-[600px]">
               <NavbarCenterItem text="mrgnlend" textFormat="lowercase" />
               <NavbarCenterItem text="Markets" disabled />
               <NavbarCenterItem text="Strategies" disabled />
               <NavbarCenterItem text="Trade" disabled />
-              {wallet.connected && <AirdropZone />}
+              {
+                wallet.connected && 
+                process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT !== "mainnet1" &&
+                <AirdropZone />
+              }
             </div>
           </div>
           <div className="h-full flex justify-center items-center gap-[10px] z-10">

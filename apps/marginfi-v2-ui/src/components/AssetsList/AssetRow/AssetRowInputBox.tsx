@@ -75,10 +75,16 @@ const MaxInputAdornment: FC<{
   onClick: React.MouseEventHandler<HTMLButtonElement>;
   disabled?: boolean;
 }> = ({ onClick, disabled }) => (
-  <InputAdornment position="end">
+  <InputAdornment
+    position="end"
+    className="h-full"
+    style={{
+      width: '45px',
+    }}
+  >
     <Button
       classes={{
-        root: "p-0 text-[#868E95] text-sm lowercase h-9 font-light",
+        root: "p-0 text-[#868E95] text-sm lowercase h-9 font-light flex justify-start pl-1",
       }}
       style={{
         fontFamily: "Aeonik Pro",

@@ -17,6 +17,7 @@ const UserPositionRowAction: FC<UserPositionRowActionProps> = ({
         backgroundColor: otherProps.disabled ? "gray" : "rgb(227, 227, 227)",
         color: "black",
         fontFamily: "Aeonik Pro",
+        zIndex: 10,
       }}
       {...otherProps}
     >

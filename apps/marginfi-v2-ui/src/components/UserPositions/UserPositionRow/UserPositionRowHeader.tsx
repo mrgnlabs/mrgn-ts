@@ -15,14 +15,9 @@ const UserPositionRowHeader: FC<UserPositionRowHeaderProps> = ({
   icon,
   textBold,
 }) => (
-  <TableCell
-    className="text-white h-full border-hidden max-w-fit px-0"
-    style={{
-      borderBottom: "solid rgba(0,0,0,0) 2px",
-    }}
-  >
+  <TableCell className="text-white h-full border-hidden max-w-fit min-w-fit px-0">
     <div
-      className="h-full w-full flex justify-center p-0 text-white"
+      className="h-full w-full flex justify-start items-center p-0 text-white"
       style={{
         flexDirection: icon ? "row" : "column",
         alignItems: icon ? "center" : "flex-start",

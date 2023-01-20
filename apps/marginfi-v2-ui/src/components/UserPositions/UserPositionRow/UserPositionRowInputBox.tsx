@@ -47,7 +47,7 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
       max={maxValue}
       InputProps={{
         className:
-          "bg-[#1C2125] text-[#e1e1e1] text-sm rounded-lg pr-0 w-full h-10 font-light",
+          "bg-[#1C2125] text-[#e1e1e1] text-sm rounded-lg pr-0 w-50 h-12 font-light",
         style: {
           fontFamily: "Aeonik Pro",
         },
@@ -61,10 +61,16 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
 const MaxInputAdornment: FC<{
   onClick: React.MouseEventHandler<HTMLButtonElement>;
 }> = ({ onClick }) => (
-  <InputAdornment position="end">
+  <InputAdornment
+    position="end"
+    className="h-full"
+    style={{
+      width: '45px',
+    }}
+  >
     <Button
       classes={{
-        root: "p-0 text-[#868E95] text-sm lowercase h-9 font-light",
+        root: "p-0 text-[#868E95] text-sm lowercase h-9 font-light flex justify-start pl-1",
       }}
       style={{
         fontFamily: "Aeonik Pro",
