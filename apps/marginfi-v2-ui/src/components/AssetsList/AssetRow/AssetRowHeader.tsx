@@ -18,7 +18,9 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
   textBold,
   isInLendingMode,
 }) => (
-  <TableCell className="text-white h-full w-full border-hidden pr-0 lg:pr-0 flex justify-start items-center max-w-[250px] gap-1">
+  <TableCell
+    className="text-white h-full w-full border-hidden pr-0 lg:pr-0 flex justify-start items-center max-w-[275px] gap-1"
+  >
     <div className="flex justify-start items-center">
       {icon && (
         <Image

@@ -25,16 +25,17 @@ const HealthSlider = styled(Slider)(() => ({
   "& .MuiSlider-mark": {
     backgroundColor: "#fff",
     top: "6px",
-    height: 5,
-    width: 1,
+    height: 7,
+    width: 2,
   },
   "& .MuiSlider-markLabel": {
     color: "#fff",
-    fontSize: 10,
+    fontSize: 14,
     fontFamily: "Aeonik Pro",
     fontWeight: 400,
     position: "absolute",
-    top: "-15px",
+    top: "-25px",
+    marginLeft: "15px",
   },
 }));
 
@@ -49,7 +50,7 @@ const marks = [
   { value: 70 },
   { value: 80 },
   { value: 90 },
-  { value: 100 },
+  { value: 99 }, // 99 instead of 100 for formatting, should not change anything but placement of mark
 ];
 
 interface HealthMonitorProps {
@@ -66,7 +67,7 @@ const HealthFactor: FC<HealthMonitorProps> = ({ healthFactor }) => {
 
   return (
     <div
-      className="w-[28%] min-w-[320px] h-[112px] rounded-lg bg-black-800 shadow-md p-2 pl-4 pr-3 flex flex-col justify-between"
+      className="w-[31%] min-w-[320px] h-[130px] rounded-lg bg-black-800 shadow-md p-2 pl-4 pr-3 flex flex-col justify-between"
       style={{
         backgroundImage: 'url("https://i.imgur.com/DVnMT9l.png")',
         backgroundSize: "cover",
@@ -78,7 +79,6 @@ const HealthFactor: FC<HealthMonitorProps> = ({ healthFactor }) => {
           style={{
             fontFamily: "Aeonik Pro",
             fontWeight: 400,
-            fontSize: 16,
           }}
         >
           Health factor

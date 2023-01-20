@@ -203,7 +203,9 @@ const AssetRow: FC<{
       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
       className="border-hidden" // @todo uncomment
     >
-      <div className="flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+      <div
+        className="flex justify-between items-center h-24 p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4"
+      >
         <AssetRowHeader
           assetName={bank.label}
           apy={apy}
@@ -243,7 +245,7 @@ const AssetRow: FC<{
 
         {isConnected && (
           <>
-            <TableCell className="py-1 px-0 h-10 min-w-[120px] border-hidden flex justify-center items-center hidden md:flex">
+            <TableCell className="py-1 px-0 h-10 min-w-[160px] border-hidden flex justify-center items-center hidden md:flex">
               <AssetRowInputBox
                 value={borrowOrLendAmount}
                 setValue={setBorrowOrLendAmount}

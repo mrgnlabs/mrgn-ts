@@ -47,7 +47,7 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
       max={maxValue}
       InputProps={{
         className:
-          "bg-[#1C2125] text-[#e1e1e1] text-sm rounded-lg pr-0 w-full h-10 font-light",
+          "bg-[#1C2125] text-[#e1e1e1] text-base rounded-lg pr-0 w-full h-14 font-light",
         style: {
           fontFamily: "Aeonik Pro",
         },
