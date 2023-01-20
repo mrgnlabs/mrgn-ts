@@ -64,7 +64,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
               <TokenBalancesProvider>
                 <div
                   // @todo `absolute` here may break ux when there are so many assets you have to scroll
-                  className="absolute h-[200vh] w-[200vw] bg-gradient-radial from-[#171C1F] to-[#010101] translate-x-[-45%] translate-y-[-50%]"
+                  className="-z-50 absolute h-[200vh] w-[200vw] bg-gradient-radial from-[#171C1F] to-[#010101] translate-x-[-45%] translate-y-[-50%]"
                 />
                 <Script src="https://cdn.tailwindcss.com"></Script>
                 <Head>
@@ -77,7 +77,9 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                   <link rel="icon" href="/favicon.ico" />
                 </Head>
                 <Navbar />
-                <Component {...pageProps} />
+                <div className="flex flex-row justify-center pt-[56px]">
+                  <Component {...pageProps} />
+                </div>
                 <ToastContainer position="bottom-left" theme="dark" />
               </TokenBalancesProvider>
             </BorrowLendStateProvider>

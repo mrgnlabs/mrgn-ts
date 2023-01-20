@@ -14,7 +14,7 @@ const UserPositions: FC = () => {
   );
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2">
+    <>
       {isLending && selectedAccount && (
         <Card
           elevation={0}
@@ -75,7 +75,7 @@ const UserPositions: FC = () => {
           </Card>
         )}
       </div>
-    </div>
+    </>
   );
 };
 
