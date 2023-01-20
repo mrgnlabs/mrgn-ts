@@ -53,27 +53,25 @@ const AssetsList: FC = () => {
         <Card elevation={0} className="bg-[rgba(0,0,0,0)] w-full">
           <TableContainer>
             <Table className="table-fixed">
-              <TableBody>
-                <div className="flex flex-col gap-4">
-                  {assetInfos.length > 0 ? (
-                    assetInfos.map(({ bank, walletBalance }) => (
-                      <AssetRow
-                        key={bank.publicKey.toBase58()}
-                        tokenBalance={walletBalance}
-                        nativeSol={nativeSol}
-                        isInLendingMode={isInLendingMode}
-                        isConnected={wallet.connected}
-                        bank={bank}
-                        tokenMetadata={tokenMetadataMap[bank.label]}
-                        marginfiAccount={selectedAccount}
-                        marginfiClient={mfiClient}
-                        refreshBorrowLendState={refreshData}
-                      />
-                    ))
-                  ) : (
-                    <LoadingAssets />
-                  )}
-                </div>
+              <TableBody className="flex flex-col gap-4">
+                {assetInfos.length > 0 ? (
+                  assetInfos.map(({ bank, walletBalance }) => (
+                    <AssetRow
+                      key={bank.publicKey.toBase58()}
+                      tokenBalance={walletBalance}
+                      nativeSol={nativeSol}
+                      isInLendingMode={isInLendingMode}
+                      isConnected={wallet.connected}
+                      bank={bank}
+                      tokenMetadata={tokenMetadataMap[bank.label]}
+                      marginfiAccount={selectedAccount}
+                      marginfiClient={mfiClient}
+                      refreshBorrowLendState={refreshData}
+                    />
+                  ))
+                ) : (
+                  <LoadingAssets />
+                )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -88,15 +86,13 @@ const LOADING_ASSETS = 3;
 const LoadingAssets = () => (
   <>
     {[...new Array(LOADING_ASSETS)].map((_, index) => (
-      <TableRow
-        key={index}
-        sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-      >
+      <TableRow key={index}>
         <Skeleton
+          component="td"
           sx={{ bgcolor: "grey.900" }}
           variant="rectangular"
           animation="wave"
-          className="wflex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4"
+          className="flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4"
         />
       </TableRow>
     ))}

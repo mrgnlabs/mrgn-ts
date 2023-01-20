@@ -197,88 +197,80 @@ const AssetRow: FC<{
   ]);
 
   return (
-    <TableRow
-      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-    >
-      <div
-        className="flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4"
-      >
-        <AssetRowHeader
-          assetName={bank.label}
-          apy={apy}
-          icon={tokenMetadata.icon}
-          isInLendingMode={isInLendingMode}
+    <TableRow className="flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+      <AssetRowHeader
+        assetName={bank.label}
+        apy={apy}
+        icon={tokenMetadata.icon}
+        isInLendingMode={isInLendingMode}
+      />
+      <TableCell className="py-1 px-0 h-10 border-hidden flex justify-end items-center w-full max-w-[600px]">
+        <AssetRowMetric
+          longLabel="Current Price"
+          shortLabel="Price"
+          value={usdFormatter.format(assetPrice)}
+          borderRadius={isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"}
         />
-        <TableCell className="py-1 px-0 h-10 border-hidden flex justify-end items-center w-full max-w-[600px]">
-          <AssetRowMetric
-            longLabel="Current Price"
-            shortLabel="Price"
-            value={usdFormatter.format(assetPrice)}
-            borderRadius={
-              isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"
-            }
-          />
+        <AssetRowMetric
+          longLabel={
+            isInLendingMode ? "Total Pool Deposits" : "Total Pool Borrows"
+          }
+          shortLabel={isInLendingMode ? "Deposits" : "Borrows"}
+          value={groupedNumberFormatter.format(
+            isInLendingMode ? totalPoolDeposits : totalPoolBorrows
+          )}
+          borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
+          usdEquivalentValue={usdFormatter.format(
+            totalPoolDeposits * bank.getPrice(PriceBias.None).toNumber()
+          )}
+        />
+        {isConnected && (
           <AssetRowMetric
             longLabel={
-              isInLendingMode ? "Total Pool Deposits" : "Total Pool Borrows"
+              isInLendingMode ? "Available To Deposit" : "Available To Borrow"
             }
-            shortLabel={isInLendingMode ? "Deposits" : "Borrows"}
-            value={groupedNumberFormatter.format(
-              isInLendingMode ? totalPoolDeposits : totalPoolBorrows
-            )}
-            borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
+            shortLabel="Balance"
+            value={groupedNumberFormatter.format(walletBalance)}
+            borderRadius="0px 10px 10px 0px"
             usdEquivalentValue={usdFormatter.format(
-              totalPoolDeposits * bank.getPrice(PriceBias.None).toNumber()
+              walletBalance * bank.getPrice(PriceBias.None).toNumber()
             )}
           />
-          {isConnected && (
-            <AssetRowMetric
-              longLabel={
-                isInLendingMode ? "Available To Deposit" : "Available To Borrow"
-              }
-              shortLabel="Balance"
-              value={groupedNumberFormatter.format(walletBalance)}
-              borderRadius="0px 10px 10px 0px"
-              usdEquivalentValue={usdFormatter.format(
-                walletBalance * bank.getPrice(PriceBias.None).toNumber()
-              )}
-            />
-          )}
-        </TableCell>
+        )}
+      </TableCell>
 
-        {isConnected && (
-          <>
-            <TableCell className="py-1 px-0 h-10 min-w-[120px] border-hidden flex justify-center items-center hidden md:flex">
-              <AssetRowInputBox
-                value={borrowOrLendAmount}
-                setValue={setBorrowOrLendAmount}
-                maxValue={isInLendingMode ? walletBalance : maxWithdraw * 0.9}
-                maxDecimals={bank.mintDecimals}
-              />
-            </TableCell>
-            <TableCell className="p-1 h-10 border-hidden flex justify-center items-center hidden md:table-cell">
-              {marginfiAccount === null ? (
-                <Tooltip
-                  title="User account while be automatically created"
-                  placement="top"
-                >
-                  <div className="h-full w-full flex justify-center items-center">
-                    <AssetRowAction onClick={borrowOrLend}>
-                      {isInLendingMode ? "Lend" : "Borrow"}
-                    </AssetRowAction>
-                  </div>
-                </Tooltip>
-              ) : (
+      {isConnected && (
+        <>
+          <TableCell className="py-1 px-0 h-10 min-w-[120px] border-hidden flex justify-center items-center hidden md:flex">
+            <AssetRowInputBox
+              value={borrowOrLendAmount}
+              setValue={setBorrowOrLendAmount}
+              maxValue={isInLendingMode ? walletBalance : maxWithdraw * 0.9}
+              maxDecimals={bank.mintDecimals}
+            />
+          </TableCell>
+          <TableCell className="p-1 h-10 border-hidden flex justify-center items-center hidden md:table-cell">
+            {marginfiAccount === null ? (
+              <Tooltip
+                title="User account while be automatically created"
+                placement="top"
+              >
                 <div className="h-full w-full flex justify-center items-center">
                   <AssetRowAction onClick={borrowOrLend}>
                     {isInLendingMode ? "Lend" : "Borrow"}
                   </AssetRowAction>
                 </div>
-              )}
-            </TableCell>
-          </>
-        )}
-      </div>
+              </Tooltip>
+            ) : (
+              <div className="h-full w-full flex justify-center items-center">
+                <AssetRowAction onClick={borrowOrLend}>
+                  {isInLendingMode ? "Lend" : "Borrow"}
+                </AssetRowAction>
+              </div>
+            )}
+          </TableCell>
+        </>
+      )}
     </TableRow>
   );
 };
