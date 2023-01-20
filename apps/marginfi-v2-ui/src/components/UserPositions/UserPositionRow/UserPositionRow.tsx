@@ -104,17 +104,17 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
       />
 
       <TableCell
-        className="text-white text-xs m-0 py-1 px-0 font-light"
+        className="text-white text-sm m-0 py-1 px-0 font-light"
         style={{
           fontFamily: "Aeonik Pro",
           borderBottom: "solid rgba(0,0,0,0) 2px",
         }}
       >
         <div className="bg-transparent w-full max-w-[200px] flex flex-col justify-evenly p-1 px-3">
-          <div className="text-xs text-[#868E95]">
+          <div className="text-sm text-[#868E95]">
             {position.isLending ? "Amount Supplying" : "Amount Borrowing"}
           </div>
-          <div className="text-xs text-white">
+          <div className="text-sm text-white">
             {groupedNumberFormatter.format(position.amount)}
           </div>
         </div>

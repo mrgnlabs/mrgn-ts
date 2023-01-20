@@ -14,7 +14,7 @@ const AssetRowAction: FC<AssetRowActionProps> = ({
 
   return (
     <Button
-      className="bg-white text-black normal-case text-xs mx-2 sm:mx-0 w-28 sm:w-32 h-10 max-w-1 rounded-[100px]"
+      className="bg-white text-black normal-case text-sm mx-2 sm:mx-0 w-28 sm:w-32 h-10 max-w-1 rounded-[100px]"
       style={{
         // @todo why the fuck is tailwind broken
         backgroundColor:

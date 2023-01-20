@@ -25,10 +25,10 @@ const AssetRowMetric: FC<AssetRowMetricProps> = ({
         fontWeight: 400,
       }}
     >
-      <div className="text-xs text-[#868E95] hidden lg:block">{longLabel}</div>
-      <div className="text-xs text-[#868E95] block lg:hidden">{shortLabel}</div>
+      <div className="text-sm text-[#868E95] hidden lg:block">{longLabel}</div>
+      <div className="text-sm text-[#868E95] block lg:hidden">{shortLabel}</div>
       <div
-        className={`text-xs text-white ${
+        className={`text-sm text-white ${
           usdEquivalentValue !== undefined ? "flex flex-row gap-1" : ""
         }`}
       >
