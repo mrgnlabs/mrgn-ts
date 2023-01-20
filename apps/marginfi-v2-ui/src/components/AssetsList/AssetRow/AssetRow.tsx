@@ -197,7 +197,9 @@ const AssetRow: FC<{
   ]);
 
   return (
-    <TableRow className="flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+    <TableRow
+      className="flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4"
+    >
       <AssetRowHeader
         assetName={bank.label}
         apy={apy}

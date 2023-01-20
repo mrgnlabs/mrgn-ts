@@ -94,14 +94,17 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
         },
       }}
       style={{
-        border: "solid rgba(0,0,0,0) 2px",
         fontFamily: "Aeonik Pro",
       }}
     >
-      <UserPositionRowHeader
-        assetName={position.assetName}
-        icon={position.tokenMetadata.icon}
-      />
+      <div
+        // Matching style of row to Assets List row
+        className="w-full h-full flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 rounded-xl gap-2 lg:gap-4 border-solid border-[#1C2125] border rounded-xl"
+      >
+        <UserPositionRowHeader
+          assetName={position.assetName}
+          icon={position.tokenMetadata.icon}
+        />
 
       <TableCell
         className="text-white text-sm m-0 py-1 px-0 font-light"
@@ -110,8 +113,8 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
           borderBottom: "solid rgba(0,0,0,0) 2px",
         }}
       >
-        <div className="bg-transparent w-full max-w-[200px] flex flex-col justify-evenly p-1 px-3">
-          <div className="text-sm text-[#868E95]">
+        <div className="bg-transparent w-full max-w-[200px] flex flex-col justify-evenly p-1 px-3 min-w-fit">
+          <div className="text-sm text-[#868E95] min-w-[125px]">
             {position.isLending ? "Amount Supplying" : "Amount Borrowing"}
           </div>
           <div className="text-sm text-white flex flex-row gap-1">
@@ -130,7 +133,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
       </TableCell>
 
       <TableCell
-        className="py-1 px-0 border-hidden hidden sm:table-cell"
+        className="py-1 px-0 h-10 min-w-[120px] border-hidden flex justify-center items-center hidden sm:flex"
         style={{
           borderBottom: "solid rgba(0,0,0,0) 2px",
         }}
@@ -154,6 +157,8 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
           {position.isLending ? "Withdraw" : "Repay"}
         </UserPositionRowAction>
       </TableCell>
+
+      </div>
     </TableRow>
   );
 };
