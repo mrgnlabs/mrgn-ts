@@ -18,15 +18,19 @@ const AssetRowMetric: FC<AssetRowMetricProps> = ({
 }) => {
   return (
     <div
-      className="bg-[#00000033] border-solid border border-[#171C1F] h-12 w-full max-w-[200px] flex flex-col justify-evenly p-1 px-3"
+      className="bg-[#00000033] border-solid border border-[#171C1F] h-12 w-full max-w-[200px] flex flex-col justify-evenly p-1 px-2"
       style={{
         borderRadius: borderRadius,
         fontFamily: 'Aeonik Pro',
         fontWeight: 400,
       }}
     >
-      <div className="text-sm text-[#868E95] hidden lg:block">{longLabel}</div>
-      <div className="text-sm text-[#868E95] block lg:hidden">{shortLabel}</div>
+      <div
+        className="text-sm text-[#868E95] hidden xl:block"
+      >{longLabel}</div>
+      <div
+        className="text-sm text-[#868E95] block xl:hidden"
+      >{shortLabel}</div>
       <div
         className={`text-sm text-white ${
           usdEquivalentValue !== undefined ? "flex flex-row gap-1" : ""
