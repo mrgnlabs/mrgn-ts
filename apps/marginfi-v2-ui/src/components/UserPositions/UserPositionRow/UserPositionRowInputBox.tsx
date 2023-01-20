@@ -64,7 +64,7 @@ const MaxInputAdornment: FC<{
   <InputAdornment position="end">
     <Button
       classes={{
-        root: "p-0 text-[#868E95] text-xs lowercase h-9 font-light",
+        root: "p-0 text-[#868E95] text-sm lowercase h-9 font-light",
       }}
       style={{
         fontFamily: "Aeonik Pro",

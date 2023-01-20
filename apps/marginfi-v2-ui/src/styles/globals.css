@@ -92,7 +92,7 @@ body {
 body {
   color: rgb(var(--foreground-rgb));
   background-color: #010101;
-  font-family: "Aeonik Pro Light";
+  font-family: "Aeonik Pro";
   font-weight: 300;
 }
 

@@ -12,9 +12,9 @@ const Navbar: FC = () => {
 
   return (
     <header>
-      <nav className="fixed w-full top-0 h-[56px] z-10">
+      <nav className="fixed w-full top-0 h-[64px] z-10">
         <div
-          className="w-full top-0 flex justify-between items-center h-[56px] text-2xl z-10"
+          className="w-full top-0 flex justify-between items-center h-[64px] text-2xl z-10"
           style={{
             border: "solid #1C2125 1px",
             padding: "0 15px",
@@ -23,7 +23,7 @@ const Navbar: FC = () => {
           <div className="h-full relative flex justify-start items-center z-10">
             <Link
               href={"/"}
-              className="relative w-[18.68px] h-[16.54px] mr-4 z-10"
+              className="relative w-[28.02px] h-[24.81px] mr-4 z-10"
             >
               <Image src="/marginfi_logo.png" alt="marginfi logo" fill />
             </Link>

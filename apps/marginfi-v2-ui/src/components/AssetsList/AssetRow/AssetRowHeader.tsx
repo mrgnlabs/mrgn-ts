@@ -18,8 +18,10 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
   textBold,
   isInLendingMode,
 }) => (
-  <TableCell className="text-white h-full w-full border-hidden pr-0 lg:pr-0 flex justify-start items-center max-w-[250px] gap-1">
-    <div className="flex justify-start items-center">
+  <TableCell
+    className="text-white h-full w-full border-hidden px-0.5 lg:pr-0 flex justify-start items-center max-w-[250px] gap-1 min-w-fit"
+  >
+    <div className="flex justify-start items-center min-w-fit">
       {icon && (
         <Image
           src={icon}
@@ -44,7 +46,7 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
       // @todo font size here should technically be smaller, but tailwind doesn't offer smaller sizing
       // pointing to a likely readibility problem.
       // resolve with design.
-      className="px-1 text-xs text-[#868E95] hidden lg:flex"
+      className="px-1 text-sm text-[#868E95] hidden lg:flex"
       style={{
         fontFamily: "Aeonik Pro",
         fontWeight: textBold ? 400 : 300,
@@ -56,11 +58,11 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
       // @todo font size here should technically be smaller, but tailwind doesn't offer smaller sizing
       // pointing to a likely readibility problem.
       // resolve with design.
-      className={`flex justify-center items-center px-1 text-[${
+      className={`flex justify-center items-center px-2 text-[${
         isInLendingMode ? "#3AFF6C" : "#EEB9BA"
       }] bg-[${
         isInLendingMode ? "#3aff6c1f" : "#db383e4d"
-      }] rounded-xl text-xs`}
+      }] rounded-xl text-sm`}
       style={{
         fontFamily: "Aeonik Pro",
         fontWeight: textBold ? 400 : 300,

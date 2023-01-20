@@ -25,7 +25,7 @@ const AccountSummary: FC = () => {
   return (
     <div className="col-span-full">
       <div
-        className="flex flex-row flex-wrap justify-start xl:justify-between w-full min-w-[400px] p-0 items-center gap-2 xl:gap-0 font-light"
+        className="flex flex-row flex-wrap justify-start xl:justify-between w-full min-w-[400px] p-0 items-center gap-3 xl:gap-0 font-light"
         style={{
           fontFamily: "Aeonik Pro",
         }}

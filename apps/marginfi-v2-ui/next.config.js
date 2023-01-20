@@ -32,6 +32,12 @@ module.exports = withTM({
         port: "",
         pathname: "/solana-labs/token-list/main/assets/mainnet/**",
       },
+      {
+        protocol: "https",
+        hostname: "cryptologos.cc",
+        port: "",
+        pathname: "/logos/**",
+      },
     ],
   },
 });

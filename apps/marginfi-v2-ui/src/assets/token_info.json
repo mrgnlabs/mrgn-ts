@@ -5,7 +5,7 @@
         "decimals": 9,
         "name": "Wrapped SOL",
         "symbol": "SOL",
-        "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+        "logoURI": "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
         "extensions": {
             "coingeckoId": "wrapped-solana"
         }
@@ -27,7 +27,7 @@
         "decimals": 6,
         "name": "USD Coin",
         "symbol": "USDC",
-        "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
+        "logoURI": "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
         "extensions": {
             "coingeckoId": "usd-coin"
         }
