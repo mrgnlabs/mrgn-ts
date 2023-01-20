@@ -21,7 +21,7 @@ const UserPositions: FC = () => {
           className="bg-transparent w-full p-0 grid"
         >
           <div
-            className="text-2xl my-8 text-white"
+            className="text-2xl my-8 text-white pl-1"
             style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}
           >
             Supplying
@@ -51,7 +51,7 @@ const UserPositions: FC = () => {
             className="bg-transparent w-full p-0 grid"
           >
             <div
-              className="text-2xl my-8 text-white"
+              className="text-2xl my-8 text-white pl-1"
               style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}
             >
               Borrowing
