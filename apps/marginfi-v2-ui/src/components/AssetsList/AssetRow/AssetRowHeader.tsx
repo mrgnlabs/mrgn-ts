@@ -19,7 +19,7 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
   isInLendingMode,
 }) => (
   <TableCell
-    className="text-white h-full w-full border-hidden pr-0 lg:pr-0 flex justify-start items-center max-w-[275px] gap-1"
+    className="text-white h-full w-full border-hidden pr-0 lg:pr-0 flex justify-start items-center max-w-[275px] gap-1 text-base"
   >
     <div className="flex justify-start items-center">
       {icon && (
@@ -58,7 +58,7 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
       // @todo font size here should technically be smaller, but tailwind doesn't offer smaller sizing
       // pointing to a likely readibility problem.
       // resolve with design.
-      className={`flex justify-center items-center px-1 text-[${
+      className={`flex justify-center items-center px-2 py-1 text-[${
         isInLendingMode ? "#3AFF6C" : "#EEB9BA"
       }] bg-[${
         isInLendingMode ? "#3aff6c1f" : "#db383e4d"

@@ -30,7 +30,7 @@ const AccountMetric: FC<AccountMetricProps> = ({
         {label}
       </div>
       <div
-        className="text-lg"
+        className="text-2xl"
         style={{
           fontFamily: "Aeonik Pro",
           fontWeight: valueBold ? 500 : 300,

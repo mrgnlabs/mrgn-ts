@@ -75,7 +75,7 @@ const HealthFactor: FC<HealthMonitorProps> = ({ healthFactor }) => {
     >
       <div className="flex w-full justify-between">
         <label
-          className="block mb-6 text-2xl font-bold text-gray-900 dark:text-white"
+          className="block mb-6 text-xl font-bold text-gray-900 dark:text-white"
           style={{
             fontFamily: "Aeonik Pro",
             fontWeight: 400,

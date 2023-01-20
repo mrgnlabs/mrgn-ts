@@ -18,7 +18,7 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
   onClick,
 }) => (
   <Button
-    className={`h-full w-1/4 max-w-1/4 text-sm flex justify-center items-center font-light ${
+    className={`h-full w-1/4 max-w-1/4 text-base flex justify-center items-center font-light ${
       textFormat || "normal-case"
     }`}
     variant="text"
@@ -32,7 +32,7 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
     onClick={onClick}
   >
     {text}
-    {disabled ? <LockIcon className="h-[14px] w-[14px] ml-2" /> : <></>}
+    {disabled ? <LockIcon className="h-[14px] w-[14px] ml-1" /> : <></>}
   </Button>
 );
 

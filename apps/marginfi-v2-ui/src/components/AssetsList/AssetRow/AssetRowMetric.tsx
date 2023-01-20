@@ -18,7 +18,7 @@ const AssetRowMetric: FC<AssetRowMetricProps> = ({
 }) => {
   return (
     <div
-      className="bg-[#00000033] border-solid border border-[#171C1F] h-14 w-full max-w-[200px] flex flex-col justify-evenly p-1 px-3"
+      className="bg-[#00000033] border-solid border border-[#171C1F] h-16 w-full max-w-[200px] flex flex-col justify-between py-1.5 px-3"
       style={{
         borderRadius: borderRadius,
         fontFamily: 'Aeonik Pro',
