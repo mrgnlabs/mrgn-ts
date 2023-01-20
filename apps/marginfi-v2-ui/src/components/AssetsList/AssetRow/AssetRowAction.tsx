@@ -22,6 +22,7 @@ const AssetRowAction: FC<AssetRowActionProps> = ({
           disabled || !wallet.connected ? "gray" : "rgb(227, 227, 227)",
         color: "black",
         fontFamily: "Aeonik Pro",
+        zIndex: 10,
       }}
       {...otherProps}
       disabled={disabled || !wallet.connected}
