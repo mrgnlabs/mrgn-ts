@@ -3,7 +3,7 @@ import { TableCell, TableRow } from "@mui/material";
 import { FC, useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { UserPosition } from "~/types";
-import { groupedNumberFormatter } from "~/utils";
+import { groupedNumberFormatter, usdFormatter } from "~/utils";
 import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowHeader } from "./UserPositionRowHeader";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
@@ -114,8 +114,17 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
           <div className="text-sm text-[#868E95]">
             {position.isLending ? "Amount Supplying" : "Amount Borrowing"}
           </div>
-          <div className="text-sm text-white">
+          <div className="text-sm text-white flex flex-row gap-1">
             {groupedNumberFormatter.format(position.amount)}
+            <div
+              className="text-[#868E95] px-1 hidden lg:flex justify-center items-center text-xs"
+              style={{
+                backgroundColor: "rgba(113, 119, 126, 0.3)",
+                borderRadius: "4px",
+              }}
+            >
+              {usdFormatter.format(position.usdValue)}
+            </div>
           </div>
         </div>
       </TableCell>
