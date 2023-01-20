@@ -70,6 +70,7 @@ function getMarginfiConfig(
   const defaultConfigs = loadDefaultConfig();
 
   switch (environment) {
+    case "mainnet1":
     case "devnet1":
       const defaultConfig = defaultConfigs[environment];
       return {
