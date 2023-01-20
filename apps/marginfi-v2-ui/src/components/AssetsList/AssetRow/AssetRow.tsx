@@ -227,19 +227,32 @@ const AssetRow: FC<{
           )}
           borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
           usdEquivalentValue={usdFormatter.format(
-            totalPoolDeposits * bank.getPrice(PriceBias.None).toNumber()
+            (isInLendingMode ? totalPoolDeposits : totalPoolBorrows)
+            * bank.getPrice(PriceBias.None).toNumber()
           )}
         />
         {isConnected && (
           <AssetRowMetric
             longLabel={
-              isInLendingMode ? "Available To Deposit" : "Available To Borrow"
+              isInLendingMode ? "Wallet Balance" : "Available Liquidity"
             }
-            shortLabel="Balance"
-            value={groupedNumberFormatter.format(walletBalance)}
+            shortLabel={ isInLendingMode ? "Wallet Balance" : "Available" }
+            value={
+              groupedNumberFormatter.format(
+                isInLendingMode ? 
+                walletBalance
+                :
+                ( totalPoolDeposits - totalPoolBorrows )
+              )
+            }
             borderRadius="0px 10px 10px 0px"
             usdEquivalentValue={usdFormatter.format(
-              walletBalance * bank.getPrice(PriceBias.None).toNumber()
+              (
+                isInLendingMode ?
+                walletBalance
+                :
+                ( totalPoolDeposits - totalPoolBorrows )
+              ) * bank.getPrice(PriceBias.None).toNumber()
             )}
           />
         )}
