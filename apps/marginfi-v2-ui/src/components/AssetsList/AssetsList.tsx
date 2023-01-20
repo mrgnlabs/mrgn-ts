@@ -1,6 +1,13 @@
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Card, TableContainer, Table, TableBody } from "@mui/material";
+import {
+  Card,
+  TableContainer,
+  Table,
+  TableBody,
+  TableRow,
+  Skeleton,
+} from "@mui/material";
 import { useBorrowLendState } from "../../context/BorrowLend";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
@@ -15,20 +22,27 @@ const AssetsList: FC = () => {
   const { tokenMetadataMap } = useTokenMetadata();
   const wallet = useWallet();
 
-  if (banks.length === 0) return null;
+  const assetInfos = useMemo(
+    () =>
+      banks.map((bank) => ({
+        bank,
+        walletBalance: tokenBalances.get(bank.mint.toBase58())?.balance || 0,
+      })),
+    [banks, tokenBalances]
+  );
 
-  const assetInfos = banks.map((bank) => {
-    return {
-      bank,
-      walletBalance: tokenBalances.get(bank.mint.toBase58())?.balance || 0,
-    };
-  });
+  // Hack required to circumvent rehydration error
+  const [hasMounted, setHasMounted] = React.useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+  if (!hasMounted) {
+    return null;
+  }
 
   return (
     <>
-      <div
-        className="col-span-full"
-      >
+      <div className="col-span-full">
         <BorrowLendToggle
           isInLendingMode={isInLendingMode}
           setIsInLendingMode={setIsInLendingMode}
@@ -36,28 +50,29 @@ const AssetsList: FC = () => {
       </div>
 
       <div className="col-span-full">
-        <Card
-          elevation={0} 
-          className="bg-[rgba(0,0,0,0)] w-full"
-        >
+        <Card elevation={0} className="bg-[rgba(0,0,0,0)] w-full">
           <TableContainer>
             <Table className="table-fixed">
               <TableBody>
                 <div className="flex flex-col gap-4">
-                  {assetInfos.map(({ bank, walletBalance }) => (
-                    <AssetRow
-                      key={bank.publicKey.toBase58()}
-                      tokenBalance={walletBalance}
-                      nativeSol={nativeSol}
-                      isInLendingMode={isInLendingMode}
-                      isConnected={wallet.connected}
-                      bank={bank}
-                      tokenMetadata={tokenMetadataMap[bank.label]}
-                      marginfiAccount={selectedAccount}
-                      marginfiClient={mfiClient}
-                      refreshBorrowLendState={refreshData}
-                    />
-                  ))}
+                  {assetInfos.length > 0 ? (
+                    assetInfos.map(({ bank, walletBalance }) => (
+                      <AssetRow
+                        key={bank.publicKey.toBase58()}
+                        tokenBalance={walletBalance}
+                        nativeSol={nativeSol}
+                        isInLendingMode={isInLendingMode}
+                        isConnected={wallet.connected}
+                        bank={bank}
+                        tokenMetadata={tokenMetadataMap[bank.label]}
+                        marginfiAccount={selectedAccount}
+                        marginfiClient={mfiClient}
+                        refreshBorrowLendState={refreshData}
+                      />
+                    ))
+                  ) : (
+                    <LoadingAssets />
+                  )}
                 </div>
               </TableBody>
             </Table>
@@ -67,5 +82,25 @@ const AssetsList: FC = () => {
     </>
   );
 };
+
+const LOADING_ASSETS = 3;
+
+const LoadingAssets = () => (
+  <>
+    {[...new Array(LOADING_ASSETS)].map((_, index) => (
+      <TableRow
+        key={index}
+        sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+      >
+        <Skeleton
+          sx={{ bgcolor: "grey.900" }}
+          variant="rectangular"
+          animation="wave"
+          className="wflex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4"
+        />
+      </TableRow>
+    ))}
+  </>
+);
 
 export { AssetsList };
