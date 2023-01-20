@@ -28,7 +28,7 @@ const UserPositions: FC = () => {
           </div>
           <TableContainer>
             <Table className="table-fixed">
-              <TableBody>
+              <TableBody className="flex flex-col gap-4">
                 {accountSummary.positions
                   .filter((p) => p.isLending)
                   .map((position, index) => (
