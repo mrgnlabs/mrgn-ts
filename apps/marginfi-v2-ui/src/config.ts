@@ -7,11 +7,11 @@ import { getConfig } from "@mrgnlabs/marginfi-client-v2";
 
 let mfiConfig, mfiEnvironment, rpcEndpoint, mfiProgramId, devFaucetAddress;
 
+const environment = process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT;
 const rpcEndpointOverride =
   process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE;
-
-const environment = process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT;
 const groupOverride = process.env.NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE;
+
 switch (environment) {
   case "mainnet1":
     mfiConfig = getConfig(environment);

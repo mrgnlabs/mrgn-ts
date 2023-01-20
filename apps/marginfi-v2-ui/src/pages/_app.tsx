@@ -36,7 +36,7 @@ const MATOMO_SITE_ID = "2"; // @todo this SITE_ID hasn't been updated in matomo 
 const MyApp = ({ Component, pageProps }: AppProps) => {
   // enable matomo heartbeat
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_ENVIRONMENT === "production") {
+    if (process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT === "mainnet1") {
       init({ url: MATOMO_URL, siteId: MATOMO_SITE_ID });
       // accurately measure the time spent in the visit
       push(["enableHeartBeatTimer"]);
