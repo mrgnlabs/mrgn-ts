@@ -8,7 +8,7 @@ export function middleware(req: NextRequest) {
   const basicAuth = req.headers.get("authorization");
   const url = req.nextUrl;
 
-  if (process.env.PASSWORD_DISABLED) {
+  if (process.env.PASSWORD_DISABLED === "true") {
     return NextResponse.next();
   }
 
