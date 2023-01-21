@@ -58,6 +58,7 @@ Let's leave for now - it's clean and provides ample room to scale the experience
 html,
 body {
   max-width: 100vw;
+  height: 100vh;
   overflow-x: hidden;
 }
 
