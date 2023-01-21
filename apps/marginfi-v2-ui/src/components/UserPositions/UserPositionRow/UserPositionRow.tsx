@@ -96,68 +96,64 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
       style={{
         fontFamily: "Aeonik Pro",
       }}
+      className="w-full h-full flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 rounded-xl gap-2 lg:gap-4 border-solid border-[#1C2125] border rounded-xl"
     >
-      <div
-        // Matching style of row to Assets List row
-        className="w-full h-full flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 rounded-xl gap-2 lg:gap-4 border-solid border-[#1C2125] border rounded-xl"
-      >
-        <UserPositionRowHeader
-          assetName={position.assetName}
-          icon={position.tokenMetadata.icon}
-        />
+      <UserPositionRowHeader
+        assetName={position.assetName}
+        icon={position.tokenMetadata.icon}
+      />
 
-        <TableCell
-          className="text-white text-sm m-0 py-1 px-0 font-light"
-          style={{
-            fontFamily: "Aeonik Pro",
-            borderBottom: "solid rgba(0,0,0,0) 2px",
-          }}
-        >
-          <div className="bg-transparent w-full max-w-[200px] flex flex-col justify-evenly p-1 px-3 min-w-fit">
-            <div className="text-sm text-[#868E95] min-w-[125px]">
-              {position.isLending ? "Amount Lending" : "Amount Borrowing"}
-            </div>
-            <div className="text-sm text-white flex flex-row gap-1">
-              {groupedNumberFormatter.format(position.amount)}
-              <div
-                className="text-[#868E95] px-1 hidden lg:flex justify-center items-center text-xs"
-                style={{
-                  backgroundColor: "rgba(113, 119, 126, 0.3)",
-                  borderRadius: "4px",
-                }}
-              >
-                {usdFormatter.format(position.usdValue)}
-              </div>
+      <TableCell
+        className="text-white text-sm m-0 py-1 px-0 font-light"
+        style={{
+          fontFamily: "Aeonik Pro",
+          borderBottom: "solid rgba(0,0,0,0) 2px",
+        }}
+      >
+        <div className="bg-transparent w-full max-w-[200px] flex flex-col justify-evenly p-1 px-3 min-w-fit">
+          <div className="text-sm text-[#868E95] min-w-[125px]">
+            {position.isLending ? "Amount Lending" : "Amount Borrowing"}
+          </div>
+          <div className="text-sm text-white flex flex-row gap-1">
+            {groupedNumberFormatter.format(position.amount)}
+            <div
+              className="text-[#868E95] px-1 hidden lg:flex justify-center items-center text-xs"
+              style={{
+                backgroundColor: "rgba(113, 119, 126, 0.3)",
+                borderRadius: "4px",
+              }}
+            >
+              {usdFormatter.format(position.usdValue)}
             </div>
           </div>
-        </TableCell>
+        </div>
+      </TableCell>
 
-        <TableCell
-          className="py-1 px-0 h-10 min-w-[120px] border-hidden flex justify-center items-center hidden sm:flex"
-          style={{
-            borderBottom: "solid rgba(0,0,0,0) 2px",
-          }}
-        >
-          <UserPositionRowInputBox
-            value={withdrawOrRepayAmount}
-            setValue={setWithdrawOrRepayAmount}
-            maxValue={position.amount}
-            maxDecimals={position.bank.mintDecimals}
-          />
-        </TableCell>
+      <TableCell
+        className="py-1 px-0 h-10 min-w-[120px] border-hidden flex justify-center items-center hidden sm:flex"
+        style={{
+          borderBottom: "solid rgba(0,0,0,0) 2px",
+        }}
+      >
+        <UserPositionRowInputBox
+          value={withdrawOrRepayAmount}
+          setValue={setWithdrawOrRepayAmount}
+          maxValue={position.amount}
+          maxDecimals={position.bank.mintDecimals}
+        />
+      </TableCell>
 
-        <TableCell
-          className="flex p-0 h-full justify-end items-center hidden sm:flex"
-          style={{
-            paddingRight: 10,
-            borderBottom: "solid rgba(0,0,0,0) 2px",
-          }}
-        >
-          <UserPositionRowAction onClick={withdrawOrRepay}>
-            {position.isLending ? "Withdraw" : "Repay"}
-          </UserPositionRowAction>
-        </TableCell>
-      </div>
+      <TableCell
+        className="flex p-0 h-full justify-end items-center hidden sm:flex"
+        style={{
+          paddingRight: 10,
+          borderBottom: "solid rgba(0,0,0,0) 2px",
+        }}
+      >
+        <UserPositionRowAction onClick={withdrawOrRepay}>
+          {position.isLending ? "Withdraw" : "Repay"}
+        </UserPositionRowAction>
+      </TableCell>
     </TableRow>
   );
 };
