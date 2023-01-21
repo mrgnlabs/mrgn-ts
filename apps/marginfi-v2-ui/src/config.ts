@@ -18,8 +18,7 @@ switch (environment) {
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
-    rpcEndpoint =
-      rpcEndpointOverride || "https://mrgnlab-main-fc47.mainnet.rpcpool.com/";
+    rpcEndpoint = rpcEndpointOverride || "https://mrgn.rpcpool.com/";
     break;
   case "devnet1":
     mfiConfig = getConfig(environment);
