@@ -7,9 +7,8 @@ export const config = {
 export function middleware(req: NextRequest) {
   const basicAuth = req.headers.get("authorization");
   const url = req.nextUrl;
-  const passwordEnabled = (process.env.PASSWORD_ENABLED || "true") === "true";
 
-  if (!passwordEnabled) {
+  if (process.env.PASSWORD_DISABLED) {
     return NextResponse.next();
   }
 
@@ -18,9 +17,12 @@ export function middleware(req: NextRequest) {
     const [providedUser, providedPassword] = atob(authValue).split(":");
 
     const expextedUser = process.env.PASSWORD_USERNAME || "admin";
-    const expectedPwd = process.env.PASSWORD_PASSWORD || "admin";
+    const expectedPassword = process.env.PASSWORD_PASSWORD || "admin";
 
-    if (providedUser === expextedUser && providedPassword === expectedPwd) {
+    if (
+      providedUser === expextedUser &&
+      providedPassword === expectedPassword
+    ) {
       return NextResponse.next();
     }
   }
