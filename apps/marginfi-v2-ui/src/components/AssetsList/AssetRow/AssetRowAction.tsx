@@ -2,8 +2,6 @@ import { Button, ButtonProps } from "@mui/material";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { FC } from "react";
 import dynamic from "next/dynamic";
-import Image from "next/image";
-import styles from "./AssetRowAction.module.css";
 
 const WalletMultiButtonDynamic = dynamic(
   async () =>
@@ -22,8 +20,7 @@ const AssetRowAction: FC<AssetRowActionProps> = ({
 }) => {
   const wallet = useWallet();
 
-  return (
-    wallet.connected ?
+  return wallet.connected ? (
     <Button
       className="bg-white text-black normal-case text-sm mx-2 sm:mx-0 w-28 sm:w-32 h-10 max-w-1 rounded-[100px]"
       style={{
@@ -39,7 +36,7 @@ const AssetRowAction: FC<AssetRowActionProps> = ({
     >
       {children}
     </Button>
-    :
+  ) : (
     <WalletMultiButtonDynamic
       className="bg-white text-black normal-case text-sm mx-2 sm:mx-0 w-28 sm:w-32 h-10 max-w-1 rounded-[100px] flex justify-center items-center"
       startIcon={undefined}

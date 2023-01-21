@@ -1,7 +1,6 @@
 import { TextField, InputAdornment, Button } from "@mui/material";
-import { FC, MouseEvent } from "react";
+import { FC } from "react";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
-import { toast } from "react-toastify";
 
 interface UserPositionRowInputBoxProps {
   value: number;
@@ -65,7 +64,7 @@ const MaxInputAdornment: FC<{
     position="end"
     className="h-full"
     style={{
-      width: '45px',
+      width: "45px",
     }}
   >
     <Button
