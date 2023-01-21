@@ -8,7 +8,7 @@ export function middleware(req: NextRequest) {
   const basicAuth = req.headers.get("authorization");
   const url = req.nextUrl;
 
-  if (process.env.PASSWORD_DISABLED === "true") {
+  if (process.env.AUTHENTICATION_DISABLED === "true") {
     return NextResponse.next();
   }
 
@@ -16,8 +16,8 @@ export function middleware(req: NextRequest) {
     const authValue = basicAuth.split(" ")[1];
     const [providedUser, providedPassword] = atob(authValue).split(":");
 
-    const expextedUser = process.env.PASSWORD_USERNAME || "admin";
-    const expectedPassword = process.env.PASSWORD_PASSWORD || "admin";
+    const expextedUser = process.env.AUTHENTICATION_USERNAME || "admin";
+    const expectedPassword = process.env.AUTHENTICATION_PASSWORD || "admin";
 
     if (
       providedUser === expextedUser &&
