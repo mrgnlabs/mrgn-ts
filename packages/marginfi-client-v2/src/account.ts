@@ -650,7 +650,7 @@ class MarginfiAccount {
    * NOTE FOR LIQUIDATORS
    * This function doesn't take into account the collateral received when liquidating an account.
    */
-  public getMaxWithdrawForBank(bank: Bank): BigNumber {
+  public getMaxBorrowForBank(bank: Bank): BigNumber {
     const balance = this.getBalance(bank.publicKey);
 
     const freeCollateral = this.getFreeCollateral();
@@ -675,6 +675,29 @@ class MarginfiAccount {
           .minus(untiedCollateralForBank)
           .div(priceHighestBias.times(liabWeight))
       );
+  } 
+ 
+  /**
+   * Calculate the maximum amount that can be withdrawn form an bank without borrowing.
+   */
+  public getMaxWithdrawForBank(bank: Bank): BigNumber {
+    const balance = this.getBalance(bank.publicKey);
+
+    const freeCollateral = this.getFreeCollateral();
+    const untiedCollateralForBank = BigNumber.min(
+      bank.getAssetUsdValue(
+        balance.depositShares,
+        MarginRequirementType.Init,
+        PriceBias.Lowest
+      ),
+      freeCollateral
+    );
+
+    const priceLowestBias = bank.getPrice(PriceBias.Lowest);
+    const depositWeight = bank.getAssetWeight(MarginRequirementType.Init);
+
+    return untiedCollateralForBank
+      .div(priceLowestBias.times(depositWeight))
   }
 
   public async makeLendingAccountLiquidateIx(
