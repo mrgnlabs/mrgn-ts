@@ -5,7 +5,7 @@ import { MarginRequirementType } from "./account";
 import { WrappedI80F48 } from "./types";
 import { nativeToUi, wrappedI80F48toBigNumber } from "./utils";
 import { Connection } from "@solana/web3.js";
-import { PYTH_PRICE_CONF_INTERVALS, USDC_DECIMALS } from "./constants";
+import { PYTH_PRICE_CONF_INTERVALS } from "./constants";
 import { PriceData, parsePriceData } from "@pythnetwork/client";
 
 /**

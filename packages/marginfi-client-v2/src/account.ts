@@ -15,7 +15,6 @@ import {
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import {
-  aprToApy,
   DEFAULT_COMMITMENT,
   getBankVaultAuthority,
   MarginfiClient,
@@ -37,6 +36,7 @@ import {
   UiAmount,
   WrappedI80F48,
 } from "./types";
+import { aprToApy, computeNetApr } from "./utils/accounting";
 
 /**
  * Wrapper class around a specific marginfi marginfi account.
@@ -574,65 +574,8 @@ class MarginfiAccount {
     return BigNumber.max(0, assets.minus(liabilities));
   }
 
-  private _getHealthComponentsWithoutBias(
-    marginReqType: MarginRequirementType
-  ): {
-    assets: BigNumber;
-    liabilities: BigNumber;
-  } {
-    const [assets, liabilities] = this._lendingAccount
-      .map((accountBalance) => {
-        const bank = this._group.banks.get(accountBalance.bankPk.toBase58());
-        if (!bank)
-          throw Error(
-            `Bank ${shortenAddress(accountBalance.bankPk)} not found`
-          );
-        const { assets, liabilities } = accountBalance.getUsdValue(
-          bank,
-          marginReqType
-        );
-        return [assets, liabilities];
-      })
-      .reduce(
-        ([asset, liability], [d, l]) => {
-          return [asset.plus(d), liability.plus(l)];
-        },
-        [new BigNumber(0), new BigNumber(0)]
-      );
-
-    return { assets, liabilities };
-  }
-
   public computeNetApy(): number {
-    const { assets, liabilities } = this._getHealthComponentsWithoutBias(
-      MarginRequirementType.Equity
-    );
-    const totalUsdValue = assets.minus(liabilities);
-    const apr = this.getActiveBalances()
-      .reduce((weightedApr, balance) => {
-        const bank = this._group.getBankByPk(balance.bankPk);
-        if (!bank) throw Error(`Bank ${balance.bankPk.toBase58()} not found`);
-        return weightedApr
-          .minus(
-            bank
-              .getInterestRates()
-              .borrowingRate.times(
-                balance.getUsdValue(bank, MarginRequirementType.Equity)
-                  .liabilities
-              )
-              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
-          )
-          .plus(
-            bank
-              .getInterestRates()
-              .lendingRate.times(
-                balance.getUsdValue(bank, MarginRequirementType.Equity).assets
-              )
-              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
-          );
-      }, new BigNumber(0))
-      .toNumber();
-
+    const apr = computeNetApr(this.getActiveBalances(), this._group.banks);
     return aprToApy(apr);
   }
 

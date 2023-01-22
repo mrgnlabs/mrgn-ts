@@ -4,7 +4,7 @@ import {
   BorshCoder,
   translateAddress,
 } from "@project-serum/anchor";
-import { parseBaseData, parsePriceData } from "@pythnetwork/client";
+import { parsePriceData } from "@pythnetwork/client";
 import { Commitment, PublicKey } from "@solana/web3.js";
 import Bank, { BankData } from "./bank";
 import { DEFAULT_COMMITMENT } from "./constants";
