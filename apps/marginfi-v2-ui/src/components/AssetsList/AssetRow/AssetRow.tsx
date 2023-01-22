@@ -205,7 +205,7 @@ const AssetRow: FC<{
         isInLendingMode={isInLendingMode}
       />
 
-      <TableCell className="h-full w-full flex gap-2 lg:gap-4 py-1 px-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px]">
+      <TableCell className="h-full w-full flex py-1 px-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
         <AssetRowMetric
           longLabel="Current Price"
           shortLabel="Price"
