@@ -27,6 +27,10 @@ const wallet = new NodeWallet(
   loadKeypair(process.env.KEYPAIR_PATH ?? "~/.config/solana/id.json")
 );
 
+const GROUP = process.env.GROUP_PK
+  ? new PublicKey(process.env.GROUP_PK!)
+  : undefined;
+
 const USCD_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const SLEEP_INTERVAL = Number.parseInt(process.env.SLEEP_INTERVAL ?? "5000");
 
@@ -573,7 +577,7 @@ async function swapNonUsdcInTokenAccounts(
 
 async function main() {
   console.log("Starting liquidator");
-  const config = await getConfig("mainnet1");
+  const config = await getConfig("mainnet1", { groupPk: GROUP });
   const client = await MarginfiClient.fetch(config, wallet, connection);
   const group = await MarginfiGroup.fetch(config, client.program);
   const liquidatorAccount = await MarginfiAccount.fetch(LIQUIDATOR_PK, client);
