@@ -11,13 +11,15 @@ import {
   nativeToUi,
   sleep,
 } from "@mrgnlabs/marginfi-client-v2";
+import { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
+import JSBI from "jsbi";
+import { Jupiter } from "@jup-ag/core";
+import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import MarginfiAccount, {
   MarginRequirementType,
 } from "@mrgnlabs/marginfi-client-v2/src/account";
-import Bank, { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
-import JSBI from "jsbi";
-import { Jupiter } from "@jup-ag/core";
-import { associatedAddress } from "@project-serum/anchor/dist/esm/utils/token";
+
+const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 
 const LIQUIDATOR_PK = new PublicKey(process.env.LIQUIDATOR_PK!);
 const connection = new Connection(process.env.RPC_ENDPOINT!, "confirmed");
@@ -26,7 +28,7 @@ const wallet = new NodeWallet(
 );
 
 const USCD_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-const SLEEP_INTERVAL = Number.parseInt(process.env.SLEEP_INTERVAL ?? "10000");
+const SLEEP_INTERVAL = Number.parseInt(process.env.SLEEP_INTERVAL ?? "5000");
 
 async function mainLoop(
   group: MarginfiGroup,
@@ -34,13 +36,21 @@ async function mainLoop(
   client: MarginfiClient,
   jupiter: Jupiter
 ) {
-  while (true) {
-    console.log("Started main loop iteration");
-    if (await needsToBeRebalanced(liquidatorAccount, group)) {
-      await rebalancingStage(liquidatorAccount, group, jupiter);
-    }
+  try {
+    await swapNonUsdcInTokenAccounts(liquidatorAccount, group, jupiter);
+    while (true) {
+      console.log("Started main loop iteration");
+      if (await needsToBeRebalanced(liquidatorAccount, group)) {
+        await rebalancingStage(liquidatorAccount, group, jupiter);
+        continue;
+      }
 
-    await liquidationStage(liquidatorAccount, group, client);
+      await liquidationStage(liquidatorAccount, group, client);
+    }
+  } catch (e) {
+    console.error(e);
+    await sleep(SLEEP_INTERVAL);
+    await mainLoop(group, liquidatorAccount, client, jupiter);
   }
 }
 
@@ -85,7 +95,10 @@ async function needsToBeRebalanced(
       return { bank, assets, liabilities };
     })
     .filter(({ bank, assets, liabilities }) => {
-      return (assets.gt(0) && bank.mint != USCD_MINT) || liabilities.gt(0);
+      return (
+        (assets.gt(DUST_THRESHOLD) && !bank.mint.equals(USCD_MINT)) ||
+        liabilities.gt(DUST_THRESHOLD)
+      );
     });
 
   const lendingAccountToRebalanceExists = lendingAccountToRebalance.length > 0;
@@ -148,20 +161,33 @@ async function processAccount(
     const maxLiabCoverage = liquidatorAccount.getMaxBorrowForBank(bank);
     const liquidatorLiabPayoffCapacityUsd = bank.getUsdValue(
       maxLiabCoverage,
-      PriceBias.None
+      PriceBias.None,
+      undefined,
+      false
+    );
+    console.log(
+      "Max borrow for bank: %d ($%d)",
+      maxLiabCoverage,
+      liquidatorLiabPayoffCapacityUsd
     );
     const { liabilities: liquidateeLiabUsdValue } = balance.getUsdValue(
       bank,
       MarginRequirementType.Equity
     );
 
-    const liabUsdValue = BigNumber.max(
+    console.log(
+      "Balance: liab: $%d, max coverage: %d",
+      liquidateeLiabUsdValue,
+      liquidatorLiabPayoffCapacityUsd
+    );
+
+    const liabUsdValue = BigNumber.min(
       liquidateeLiabUsdValue,
       liquidatorLiabPayoffCapacityUsd
     );
 
     if (liabUsdValue.gt(maxLiabilityPaydownUsdValue)) {
-      maxLiabilityPaydownUsdValue = liquidatorLiabPayoffCapacityUsd;
+      maxLiabilityPaydownUsdValue = liabUsdValue;
       bestLiabAccountIndex = i;
     }
   }
@@ -220,7 +246,8 @@ async function processAccount(
     PriceBias.None
   );
 
-  const liabBankPk = marginfiAccount.lendingAccount[bestCollateralIndex].bankPk;
+  const liabBankPk =
+    marginfiAccount.lendingAccount[bestLiabAccountIndex].bankPk;
   const liabBank = group.getBankByPk(liabBankPk)!;
 
   console.log(
@@ -272,11 +299,18 @@ async function sellNonUsdcDeposits(
       return { assets, bank };
     })
     .filter(
-      ({ assets, bank }) => bank.publicKey.equals(USCD_MINT) && assets.gt(0)
+      ({ assets, bank }) =>
+        !bank.mint.equals(USCD_MINT) && assets.gt(DUST_THRESHOLD)
     );
 
   for (let { bank } of balancesWithNonUsdcDeposits) {
     let maxWithdrawAmount = mfiAccount.getMaxWithdrawForBank(bank);
+
+    if (maxWithdrawAmount.eq(0)) {
+      console.log("No untied %s to withdraw", bank.label);
+      continue;
+    }
+
     console.log("Withdrawing %d %s", maxWithdrawAmount, bank.label);
     let withdrawSig = await mfiAccount.withdraw(maxWithdrawAmount, bank);
 
@@ -304,6 +338,11 @@ async function sellNonUsdcDeposits(
 
     const trade = await jupiter.exchange({ routeInfo: bestRoute });
     const res = await trade.execute();
+    // @ts-ignore
+    if (res.error) {
+      // @ts-ignore
+      throw new Error(res.error);
+    }
     console.log("Tx signature: %s", res);
   }
 }
@@ -337,7 +376,7 @@ async function repayAllDebt(
     })
     .filter(
       ({ liabilities, bank }) =>
-        liabilities.gt(0) && !bank.publicKey.equals(USCD_MINT)
+        liabilities.gt(DUST_THRESHOLD) && !bank.mint.equals(USCD_MINT)
     );
 
   let usdcAta = await associatedAddress({
@@ -346,7 +385,11 @@ async function repayAllDebt(
   });
 
   for (let { liabilities, bank } of balancesWithNonUsdcLiabilities) {
-    console.log("Repaying %d %s", liabilities, bank.label);
+    console.log(
+      "Repaying %d %s",
+      nativeToUi(liabilities, bank.mintDecimals),
+      bank.label
+    );
     let availableUsdcInTokenAccount = new BigNumber(
       (await connection.getTokenAccountBalance(usdcAta)).value.uiAmount!
     );
@@ -365,7 +408,7 @@ async function repayAllDebt(
     );
 
     // We can possibly withdraw some usdc from the lending account if we are short.
-    const usdcBuyingPower = BigNumber.min(
+    let usdcBuyingPower = BigNumber.min(
       availableUsdcInTokenAccount,
       liabUsdcValue
     );
@@ -383,6 +426,8 @@ async function repayAllDebt(
       (await connection.getTokenAccountBalance(usdcAta)).value.uiAmount!
     );
 
+    usdcBuyingPower = BigNumber.min(availableUsdcInTokenAccount, liabUsdcValue);
+
     const usdcAmount = uiToNative(usdcBuyingPower, USDC_DECIMALS);
     console.log("Swapping %d USDC to %s", usdcBuyingPower, bank.label);
     const routes = await jupiter.computeRoutes({
@@ -393,9 +438,18 @@ async function repayAllDebt(
     });
 
     const bestRoute = routes.routesInfos[0];
-    const trade = await jupiter.exchange({ routeInfo: bestRoute });
-    const tradeSig = await trade.execute();
-    console.log("Tx signature: %s", tradeSig);
+    const trade = await jupiter.exchange({
+      routeInfo: bestRoute,
+      wrapUnwrapSOL: false,
+    });
+
+    const res = await trade.execute();
+    // @ts-ignore
+    if (res.error) {
+      // @ts-ignore
+      throw new Error(res.error);
+    }
+    console.log("Tx signature: %s", res);
 
     const liabTokenAccountAta = await associatedAddress({
       mint: bank.mint,
@@ -404,7 +458,7 @@ async function repayAllDebt(
     const liabBalance = new BigNumber(
       (
         await connection.getTokenAccountBalance(liabTokenAccountAta)
-      ).value.amount!
+      ).value.uiAmount!
     );
     const depositSig = await mfiAccount.deposit(liabBalance, bank);
     console.log("Deposit tx: %s", depositSig);
@@ -438,6 +492,83 @@ async function depositRemainingUsdc(
   const usdcBank = group.getBankByMint(USCD_MINT)!;
   const depositTx = await mfiAccount.deposit(usdcBalance, usdcBank);
   console.log("Deposit tx: %s", depositTx);
+}
+
+async function getTokenAccountBalance(tokenAccount: PublicKey) {
+  try {
+    return new BigNumber(
+      (await connection.getTokenAccountBalance(tokenAccount)).value.uiAmount!
+    );
+  } catch (e) {
+    return new BigNumber(0);
+  }
+}
+
+async function swapNonUsdcInTokenAccounts(
+  mfiAccount: MarginfiAccount,
+  group: MarginfiGroup,
+  jupiter: Jupiter
+) {
+  console.log("Swapping any remaining non-usdc to usdc");
+  const banks = group.banks.values();
+  for (
+    let bankInterEntry = banks.next();
+    !bankInterEntry.done;
+    bankInterEntry = banks.next()
+  ) {
+    const bank = bankInterEntry.value;
+    if (bank.mint.equals(USCD_MINT)) {
+      continue;
+    }
+
+    const tokenAccountAta = await associatedAddress({
+      mint: bank.mint,
+      owner: wallet.publicKey,
+    });
+
+    console.log("Checking %s", tokenAccountAta);
+
+    //@ts-ignore
+    const amount = await getTokenAccountBalance(tokenAccountAta);
+
+    if (amount.eq(0)) {
+      continue;
+    }
+
+    console.log("Swapping %d %s to USDC", amount, bank.label);
+
+    const routes = await jupiter.computeRoutes({
+      inputMint: bank.mint,
+      outputMint: USCD_MINT,
+      amount: JSBI.BigInt(uiToNative(amount, bank.mintDecimals)),
+      slippageBps: 10,
+    });
+
+    const bestRoute = routes.routesInfos[0];
+    const trade = await jupiter.exchange({ routeInfo: bestRoute });
+    const tradeSig = await trade.execute();
+    console.log("Tx signature: %s", tradeSig);
+  }
+
+  const usdcAta = await associatedAddress({
+    mint: USCD_MINT,
+    owner: wallet.publicKey,
+  });
+  const usdcBalance = await connection.getTokenAccountBalance(usdcAta);
+
+  if (usdcBalance.value.uiAmount === 0) {
+    console.log("No USDC to deposit");
+    return;
+  }
+
+  console.log("Depositing %d USDC", usdcBalance.value.uiAmount);
+
+  const tx = await mfiAccount.deposit(
+    usdcBalance.value.uiAmount!,
+    group.getBankByMint(USCD_MINT)!
+  );
+
+  console.log("Deposit tx: %s", tx);
 }
 
 async function main() {

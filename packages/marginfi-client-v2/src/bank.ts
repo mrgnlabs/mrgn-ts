@@ -193,13 +193,14 @@ class Bank {
   public getUsdValue(
     quantity: BigNumber,
     priceBias: PriceBias,
-    weight?: BigNumber
+    weight?: BigNumber,
+    scaleToBase = true
   ): BigNumber {
     const price = this.getPrice(priceBias);
     return quantity
       .times(price)
       .times(weight ?? 1)
-      .dividedBy(10 ** this.mintDecimals);
+      .dividedBy(scaleToBase ? 10 ** this.mintDecimals : 1);
   }
 
   public getPrice(priceBias: PriceBias): BigNumber {
