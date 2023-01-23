@@ -1,5 +1,5 @@
-import { PublicKey } from "@solana/web3.js";
-import { getConfig } from "@mrgnlabs/marginfi-client-v2";
+import { PublicKey } from '@solana/web3.js';
+import { getConfig } from '@mrgnlabs/marginfi-client-v2';
 
 // ================
 // MAIN APP CONFIG
@@ -13,14 +13,21 @@ const rpcEndpointOverride =
 const groupOverride = process.env.NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE;
 
 switch (environment) {
-  case "mainnet1":
+  case "alpha":
     mfiConfig = getConfig(environment);
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
     rpcEndpoint = rpcEndpointOverride || "https://mrgn.rpcpool.com/";
     break;
-  case "devnet1":
+  case "staging":
+    mfiConfig = getConfig(environment);
+    if (groupOverride) {
+      mfiConfig.groupPk = new PublicKey(groupOverride);
+    }
+    rpcEndpoint = rpcEndpointOverride || "https://mrgn.rpcpool.com/";
+    break;
+  case "dev":
     mfiConfig = getConfig(environment);
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
@@ -31,7 +38,7 @@ switch (environment) {
     );
     break;
   default:
-    mfiConfig = getConfig("devnet1");
+    mfiConfig = getConfig("dev");
     rpcEndpoint = rpcEndpointOverride || "https://devnet.rpcpool.com/";
     devFaucetAddress = new PublicKey(
       "57hG7dDLXUg6GYDzAw892V4qLm6FhKxd86vMLazyFL98"
@@ -47,7 +54,6 @@ const config = {
 };
 
 export default config;
-export const BLOCKED_COUNTRY = "US";
 export const WSOL_MINT = new PublicKey(
   "So11111111111111111111111111111111111111112"
 );
