@@ -8,7 +8,7 @@ const BankConfigRaw = object({
   address: string(),
 });
 const MarginfiConfigRaw = object({
-  label: enums(["mainnet1", "devnet1"]),
+  label: enums(["mainnet1", "mainnet2", "devnet1"]),
   cluster: string(),
   program: string(),
   group: string(),
@@ -71,6 +71,7 @@ function getMarginfiConfig(
 
   switch (environment) {
     case "mainnet1":
+    case "mainnet2":
     case "devnet1":
       const defaultConfig = defaultConfigs[environment];
       return {
