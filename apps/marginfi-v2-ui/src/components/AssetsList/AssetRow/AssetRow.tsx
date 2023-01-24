@@ -1,6 +1,6 @@
 import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
 import Bank, { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
-import { TableRow, TableCell, Tooltip } from "@mui/material";
+import { TableCell, TableRow, Tooltip } from "@mui/material";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { TokenMetadata } from "~/types";
@@ -15,13 +15,11 @@ import {
   getAssociatedTokenAddressSync,
 } from "~/utils/spl";
 import { WSOL_MINT } from "~/config";
-import {
-  Keypair,
-  SystemProgram,
-  Transaction,
-  TransactionInstruction,
-} from "@solana/web3.js";
+import { Keypair, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
+
+const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
+const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 
 const AssetRow: FC<{
   tokenBalance: number;
@@ -65,8 +63,7 @@ const AssetRow: FC<{
   );
 
   const walletBalance = useMemo(
-    () =>
-      bank.mint.equals(WSOL_MINT) ? tokenBalance + nativeSol : tokenBalance,
+    () => (bank.mint.equals(WSOL_MINT) ? tokenBalance + nativeSol : tokenBalance),
     [bank.mint, nativeSol, tokenBalance]
   );
 
@@ -90,23 +87,21 @@ const AssetRow: FC<{
     try {
       if (isInLendingMode) {
         if (_marginfiAccount === null) {
-          toast.loading("Creating account", { toastId: "borrow-or-lend" });
+          toast.loading("Creating account", {
+            toastId: BORROW_OR_LEND_TOAST_ID,
+          });
           _marginfiAccount = await marginfiClient.createMarginfiAccount();
-          toast.update("borrow-or-lend", {
+          toast.update(BORROW_OR_LEND_TOAST_ID, {
             render: `Lending ${borrowOrLendAmount} ${bank.label}`,
           });
         } else {
           toast.loading(`Lending ${borrowOrLendAmount} ${bank.label}`, {
-            toastId: "borrow-or-lend",
+            toastId: BORROW_OR_LEND_TOAST_ID,
           });
         }
 
         if (bank.mint.equals(WSOL_MINT)) {
-          const ata = getAssociatedTokenAddressSync(
-            bank.mint,
-            _marginfiAccount.authority,
-            false
-          );
+          const ata = getAssociatedTokenAddressSync(bank.mint, _marginfiAccount.authority, false);
 
           let ixs: TransactionInstruction[] = [];
           let signers: Keypair[] = [];
@@ -128,39 +123,33 @@ const AssetRow: FC<{
           );
           ixs.push(createSyncNativeInstruction(ata));
 
-          const depositIxs = await _marginfiAccount.makeDepositIx(
-            borrowOrLendAmount,
-            bank
-          );
+          const depositIxs = await _marginfiAccount.makeDepositIx(borrowOrLendAmount, bank);
           ixs = ixs.concat(depositIxs.instructions);
           signers = signers.concat(depositIxs.keys);
 
-          await marginfiClient.processTransaction(
-            new Transaction().add(...ixs),
-            signers
-          );
+          await marginfiClient.processTransaction(new Transaction().add(...ixs), signers);
         } else {
           await _marginfiAccount.deposit(borrowOrLendAmount, bank);
         }
       } else {
         toast.loading(`Borrowing ${borrowOrLendAmount} ${bank.label}`, {
-          toastId: "borrow-or-lend",
+          toastId: BORROW_OR_LEND_TOAST_ID,
         });
-        if (_marginfiAccount === null)
+        if (_marginfiAccount === null) {
+          // noinspection ExceptionCaughtLocallyJS
           throw Error("Marginfi account not ready");
+        }
         await _marginfiAccount.withdraw(borrowOrLendAmount, bank);
       }
-      toast.update("borrow-or-lend", {
+      toast.update(BORROW_OR_LEND_TOAST_ID, {
         render: "Action successful",
         type: toast.TYPE.SUCCESS,
         autoClose: 2000,
         isLoading: false,
       });
     } catch (error: any) {
-      toast.update("borrow-or-lend", {
-        render: `Error while ${isInLendingMode ? "lending" : "borrowing"}: ${
-          error.message
-        }`,
+      toast.update(BORROW_OR_LEND_TOAST_ID, {
+        render: `Error while ${isInLendingMode ? "lending" : "borrowing"}: ${error.message}`,
         type: toast.TYPE.ERROR,
         autoClose: 5000,
         isLoading: false,
@@ -169,20 +158,20 @@ const AssetRow: FC<{
 
     setBorrowOrLendAmount(0);
 
-    toast.loading("Refreshing state", { toastId: "refresh-state" });
+    toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
       await refreshBorrowLendState();
-      toast.update("refresh-state", {
+      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
         render: "Action successful",
         type: toast.TYPE.SUCCESS,
         autoClose: 2000,
         isLoading: false,
       });
     } catch (error: any) {
-      toast.update("refresh-state", {
+      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
         render: `Error while reloading state: ${error.message}`,
         type: toast.TYPE.ERROR,
-        autoClose: 2000,
+        autoClose: 5000,
         isLoading: false,
       });
     }
@@ -198,12 +187,7 @@ const AssetRow: FC<{
 
   return (
     <TableRow className="flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
-      <AssetRowHeader
-        assetName={bank.label}
-        apy={apy}
-        icon={tokenMetadata.icon}
-        isInLendingMode={isInLendingMode}
-      />
+      <AssetRowHeader assetName={bank.label} apy={apy} icon={tokenMetadata.icon} isInLendingMode={isInLendingMode} />
 
       <TableCell className="h-full w-full flex py-1 px-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
         <AssetRowMetric
@@ -213,35 +197,24 @@ const AssetRow: FC<{
           borderRadius={isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"}
         />
         <AssetRowMetric
-          longLabel={
-            isInLendingMode ? "Total Pool Deposits" : "Total Pool Borrows"
-          }
+          longLabel={isInLendingMode ? "Total Pool Deposits" : "Total Pool Borrows"}
           shortLabel={isInLendingMode ? "Deposits" : "Borrows"}
-          value={groupedNumberFormatter.format(
-            isInLendingMode ? totalPoolDeposits : totalPoolBorrows
-          )}
+          value={groupedNumberFormatter.format(isInLendingMode ? totalPoolDeposits : totalPoolBorrows)}
           borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
           usdEquivalentValue={usdFormatter.format(
-            (isInLendingMode ? totalPoolDeposits : totalPoolBorrows) *
-              bank.getPrice(PriceBias.None).toNumber()
+            (isInLendingMode ? totalPoolDeposits : totalPoolBorrows) * bank.getPrice(PriceBias.None).toNumber()
           )}
         />
         {isConnected && (
           <AssetRowMetric
-            longLabel={
-              isInLendingMode ? "Wallet Balance" : "Available Liquidity"
-            }
+            longLabel={isInLendingMode ? "Wallet Balance" : "Available Liquidity"}
             shortLabel={isInLendingMode ? "Wallet Balance" : "Available"}
             value={groupedNumberFormatter.format(
-              isInLendingMode
-                ? walletBalance
-                : totalPoolDeposits - totalPoolBorrows
+              isInLendingMode ? walletBalance : totalPoolDeposits - totalPoolBorrows
             )}
             borderRadius="0px 10px 10px 0px"
             usdEquivalentValue={usdFormatter.format(
-              (isInLendingMode
-                ? walletBalance
-                : totalPoolDeposits - totalPoolBorrows) *
+              (isInLendingMode ? walletBalance : totalPoolDeposits - totalPoolBorrows) *
                 bank.getPrice(PriceBias.None).toNumber()
             )}
           />
@@ -262,21 +235,14 @@ const AssetRow: FC<{
       <TableCell className="p-1 h-10 border-hidden flex justify-center items-center hidden md:flex">
         <div className="h-full w-full">
           {marginfiAccount === null ? (
-            <Tooltip
-              title="User account while be automatically created on first lend"
-              placement="top"
-            >
+            <Tooltip title="User account while be automatically created on first lend" placement="top">
               <div className="h-full w-full flex justify-center items-center">
-                <AssetRowAction onClick={borrowOrLend}>
-                  {isInLendingMode ? "Lend" : "Borrow"}
-                </AssetRowAction>
+                <AssetRowAction onClick={borrowOrLend}>{isInLendingMode ? "Lend" : "Borrow"}</AssetRowAction>
               </div>
             </Tooltip>
           ) : (
             <div className="h-full w-full flex justify-center items-center">
-              <AssetRowAction onClick={borrowOrLend}>
-                {isInLendingMode ? "Lend" : "Borrow"}
-              </AssetRowAction>
+              <AssetRowAction onClick={borrowOrLend}>{isInLendingMode ? "Lend" : "Borrow"}</AssetRowAction>
             </div>
           )}
         </div>

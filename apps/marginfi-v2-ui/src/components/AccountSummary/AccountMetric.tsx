@@ -9,19 +9,9 @@ interface AccountMetricProps {
   boldValue?: string;
 }
 
-const AccountMetric: FC<AccountMetricProps> = ({
-  label,
-  value,
-  valueBold,
-  preview,
-  boldValue,
-}) => {
+const AccountMetric: FC<AccountMetricProps> = ({ label, value, valueBold, preview, boldValue }) => {
   return (
-    <div
-      className={
-        "h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl text-lg"
-      }
-    >
+    <div className={"h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl text-lg"}>
       <div
         className="text-base text-[#868E95]"
         style={{
@@ -31,11 +21,9 @@ const AccountMetric: FC<AccountMetricProps> = ({
       >
         {label}
       </div>
-      {
-        preview
-        ?
+      {preview ? (
         <div
-        className="text-sm text-[#868E95]"
+          className="text-sm text-[#868E95]"
           style={{
             fontFamily: "Aeonik Pro",
             fontWeight: 500,
@@ -43,7 +31,7 @@ const AccountMetric: FC<AccountMetricProps> = ({
         >
           Coming soon™️
         </div>
-        :
+      ) : (
         <div
           className="text-xl"
           style={{
@@ -54,7 +42,7 @@ const AccountMetric: FC<AccountMetricProps> = ({
         >
           {value}
         </div>
-      }
+      )}
     </div>
   );
 };

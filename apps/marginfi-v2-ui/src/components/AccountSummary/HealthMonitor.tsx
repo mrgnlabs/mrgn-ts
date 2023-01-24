@@ -96,12 +96,7 @@ const HealthFactor: FC<HealthMonitorProps> = ({ healthFactor }) => {
       </div>
 
       <div className="h-9 px-5">
-        <HealthSlider
-          className="h-2 rounded-lg"
-          marks={marks}
-          disabled
-          value={healthFactorPercent}
-        />
+        <HealthSlider className="h-2 rounded-lg" marks={marks} disabled value={healthFactorPercent} />
       </div>
     </div>
   );

@@ -10,23 +10,10 @@ interface AssetRowHeader {
   isInLendingMode: boolean;
 }
 
-const AssetRowHeader: FC<AssetRowHeader> = ({
-  assetName,
-  apy,
-  icon,
-  isInLendingMode,
-}) => (
+const AssetRowHeader: FC<AssetRowHeader> = ({ assetName, apy, icon, isInLendingMode }) => (
   <TableCell className="text-white h-full w-full border-hidden px-0.5 lg:pr-0 flex justify-start items-center max-w-[250px] gap-1 min-w-fit">
     <div className="flex justify-start items-center min-w-fit">
-      {icon && (
-        <Image
-          src={icon}
-          alt={assetName}
-          height={25}
-          width={25}
-          className="mr-2"
-        />
-      )}
+      {icon && <Image src={icon} alt={assetName} height={25} width={25} className="mr-2" />}
       <div>
         <div className="font-aeonik">{assetName}</div>
       </div>
@@ -45,9 +32,7 @@ const AssetRowHeader: FC<AssetRowHeader> = ({
       // resolve with design.
       className={`font-aeonik flex justify-center items-center px-2 ${
         isInLendingMode ? "text-[#3AFF6C]" : "text-[#EEB9BA]"
-      } ${
-        isInLendingMode ? "bg-[#3aff6c1f]" : "bg-[#db383e4d]"
-      } rounded-xl text-sm`}
+      } ${isInLendingMode ? "bg-[#3aff6c1f]" : "bg-[#db383e4d]"} rounded-xl text-sm`}
     >
       {percentFormatter.format(apy)}
     </div>

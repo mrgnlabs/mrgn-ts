@@ -1,6 +1,6 @@
 import React, { FC, useMemo } from "react";
-import { Card, TableContainer, Table, TableBody } from "@mui/material";
-import { useBorrowLendState } from "../../context/BorrowLend";
+import { Card, Table, TableBody, TableContainer } from "@mui/material";
+import { useBorrowLendState } from "~/context";
 import UserPositionRow from "./UserPositionRow";
 
 const UserPositions: FC = () => {
@@ -16,14 +16,8 @@ const UserPositions: FC = () => {
   return (
     <>
       {isLending && selectedAccount && (
-        <Card
-          elevation={0}
-          className="bg-transparent w-full p-0 grid"
-        >
-          <div
-            className="text-2xl my-8 text-white pl-1"
-            style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}
-          >
+        <Card elevation={0} className="bg-transparent w-full p-0 grid">
+          <div className="text-2xl my-8 text-white pl-1" style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
             Lending
           </div>
           <TableContainer>
@@ -46,14 +40,8 @@ const UserPositions: FC = () => {
       )}
       <div>
         {isBorrowing && selectedAccount && (
-          <Card
-            elevation={0}
-            className="bg-transparent w-full p-0 grid"
-          >
-            <div
-              className="text-2xl my-8 text-white pl-1"
-              style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}
-            >
+          <Card elevation={0} className="bg-transparent w-full p-0 grid">
+            <div className="text-2xl my-8 text-white pl-1" style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
               Borrowing
             </div>
             <TableContainer>

@@ -11,13 +11,7 @@ interface AssetRowInputBox {
   disabled?: boolean;
 }
 
-const AssetRowInputBox: FC<AssetRowInputBox> = ({
-  value,
-  setValue,
-  maxValue,
-  maxDecimals,
-  disabled,
-}) => {
+const AssetRowInputBox: FC<AssetRowInputBox> = ({ value, setValue, maxValue, maxDecimals, disabled }) => {
   const onMaxClick = useCallback(() => {
     if (maxValue !== undefined) {
       setValue(maxValue);
@@ -29,8 +23,7 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
   const onChange = useCallback(
     (event: NumberFormatValues) => {
       const updatedAmountStr = event.value;
-      if (updatedAmountStr !== "" && !/^\d*\.?\d*$/.test(updatedAmountStr))
-        return;
+      if (updatedAmountStr !== "" && !/^\d*\.?\d*$/.test(updatedAmountStr)) return;
 
       const updatedAmount = Number(updatedAmountStr);
       if (maxValue !== undefined && updatedAmount > maxValue) {
@@ -57,14 +50,11 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
       size="small"
       max={maxValue}
       InputProps={{
-        className:
-          "bg-[#1C2125] text-[#e1e1e1] text-sm rounded-lg pr-0 w-50 h-12 font-light",
+        className: "bg-[#1C2125] text-[#e1e1e1] text-sm rounded-lg pr-0 w-50 h-12 font-light",
         style: {
           fontFamily: "Aeonik Pro",
         },
-        endAdornment: (
-          <MaxInputAdornment onClick={onMaxClick} disabled={disabled} />
-        ),
+        endAdornment: <MaxInputAdornment onClick={onMaxClick} disabled={disabled} />,
       }}
     />
   );
@@ -79,7 +69,7 @@ const MaxInputAdornment: FC<{
     position="end"
     className="h-full"
     style={{
-      width: '45px',
+      width: "45px",
     }}
   >
     <Button

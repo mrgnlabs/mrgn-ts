@@ -52,9 +52,7 @@ export function loadTokenMetadatas(): {
 
 // ================ development utils ================
 
-export const FAUCET_PROGRAM_ID = new PublicKey(
-  "4bXpkKSV8swHSnwqtzuboGPaPDeEgAn4Vt8GfarV5rZt"
-);
+export const FAUCET_PROGRAM_ID = new PublicKey("4bXpkKSV8swHSnwqtzuboGPaPDeEgAn4Vt8GfarV5rZt");
 
 export function makeAirdropCollateralIx(
   amount: number,
@@ -62,10 +60,7 @@ export function makeAirdropCollateralIx(
   tokenAccount: PublicKey,
   faucet: PublicKey
 ): TransactionInstruction {
-  const [faucetPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("faucet")],
-    FAUCET_PROGRAM_ID
-  );
+  const [faucetPda] = PublicKey.findProgramAddressSync([Buffer.from("faucet")], FAUCET_PROGRAM_ID);
 
   const keys = [
     { pubkey: faucetPda, isSigner: false, isWritable: false },

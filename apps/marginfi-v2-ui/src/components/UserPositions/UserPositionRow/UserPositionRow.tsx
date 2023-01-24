@@ -8,33 +8,31 @@ import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowHeader } from "./UserPositionRowHeader";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
 
+const WITHDRAW_OR_REPAY_TOAST_ID = "withdraw-or-repay";
+const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
+
 interface UserPositionRowProps {
   position: UserPosition;
   marginfiAccount?: MarginfiAccount | null;
   refreshBorrowLendState: () => Promise<void>;
 }
 
-const UserPositionRow: FC<UserPositionRowProps> = ({
-  position,
-  marginfiAccount,
-  refreshBorrowLendState,
-}) => {
+const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, refreshBorrowLendState }) => {
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
 
   const withdrawOrRepay = useCallback(async () => {
-    if (!marginfiAccount) return;
+    if (!marginfiAccount) {
+      toast.error("marginfi account not ready.");
+      return;
+    }
     if (withdrawOrRepayAmount <= 0) {
       toast.error("Please enter an amount over 0.");
       return;
     }
 
-    if (marginfiAccount === null) throw Error("Marginfi account not ready");
-    toast.loading(
-      `${
-        position.isLending ? "Withdrawing" : "Repaying"
-      } ${withdrawOrRepayAmount}`,
-      { toastId: "withdraw-or-repay" }
-    );
+    toast.loading(`${position.isLending ? "Withdrawing" : "Repaying"} ${withdrawOrRepayAmount}`, {
+      toastId: WITHDRAW_OR_REPAY_TOAST_ID,
+    });
 
     try {
       if (position.isLending) {
@@ -42,17 +40,15 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
       } else {
         await marginfiAccount.deposit(withdrawOrRepayAmount, position.bank);
       }
-      toast.update("withdraw-or-repay", {
+      toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
         render: "Action successful",
         type: toast.TYPE.SUCCESS,
         autoClose: 2000,
         isLoading: false,
       });
     } catch (error: any) {
-      toast.update("borrow-or-lend", {
-        render: `Error while ${
-          position.isLending ? "withdrawing" : "repaying"
-        }: ${error.message}`,
+      toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
+        render: `Error while ${position.isLending ? "withdrawing" : "repaying"}: ${error.message}`,
         type: toast.TYPE.ERROR,
         autoClose: 5000,
         isLoading: false,
@@ -61,29 +57,24 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
 
     setWithdrawOrRepayAmount(0);
 
-    toast.loading("Refreshing state", { toastId: "refresh-state" });
+    toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
       await refreshBorrowLendState();
-      toast.update("refresh-state", {
+      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
         render: "Action successful",
         type: toast.TYPE.SUCCESS,
         autoClose: 2000,
         isLoading: false,
       });
     } catch (error: any) {
-      toast.update("refresh-state", {
+      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
         render: `Error while reloading state: ${error.message}`,
         type: toast.TYPE.ERROR,
-        autoClose: 2000,
+        autoClose: 5000,
         isLoading: false,
       });
     }
-  }, [
-    marginfiAccount,
-    withdrawOrRepayAmount,
-    refreshBorrowLendState,
-    position,
-  ]);
+  }, [marginfiAccount, withdrawOrRepayAmount, refreshBorrowLendState, position]);
 
   return (
     <TableRow
@@ -98,10 +89,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
       }}
       className="w-full h-full flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 rounded-xl gap-2 lg:gap-4 border-solid border-[#1C2125] border rounded-xl"
     >
-      <UserPositionRowHeader
-        assetName={position.assetName}
-        icon={position.tokenMetadata.icon}
-      />
+      <UserPositionRowHeader assetName={position.assetName} icon={position.tokenMetadata.icon} />
 
       <TableCell
         className="text-white text-sm m-0 py-1 px-0 font-light"

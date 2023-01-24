@@ -26,11 +26,7 @@ const AssetRowMetric: FC<AssetRowMetricProps> = ({
     >
       <div className="text-sm text-[#868E95] hidden xl:block">{longLabel}</div>
       <div className="text-sm text-[#868E95] block xl:hidden">{shortLabel}</div>
-      <div
-        className={`text-sm text-white ${
-          usdEquivalentValue !== undefined ? "flex flex-row gap-1" : ""
-        }`}
-      >
+      <div className={`text-sm text-white ${usdEquivalentValue !== undefined ? "flex flex-row gap-1" : ""}`}>
         {value}
         {usdEquivalentValue !== undefined && (
           <div

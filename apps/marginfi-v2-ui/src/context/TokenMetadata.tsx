@@ -15,19 +15,13 @@ const TokenMetadataProvider: FC<{
 }> = ({ children }) => {
   const tokenMetadataMap = useMemo(() => loadTokenMetadatas(), []);
 
-  return (
-    <TokenMetadataContext.Provider value={{ tokenMetadataMap }}>
-      {children}
-    </TokenMetadataContext.Provider>
-  );
+  return <TokenMetadataContext.Provider value={{ tokenMetadataMap }}>{children}</TokenMetadataContext.Provider>;
 };
 
 const useTokenMetadata = () => {
   const context = useContext(TokenMetadataContext);
   if (!context) {
-    throw new Error(
-      "useTokenMetadata must be used within a TokenMetadataProvider"
-    );
+    throw new Error("useTokenMetadata must be used within a TokenMetadataProvider");
   }
 
   return context;

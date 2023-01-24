@@ -1,23 +1,13 @@
 import React, { FC, useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import {
-  Card,
-  TableContainer,
-  Table,
-  TableBody,
-  TableRow,
-  Skeleton,
-} from "@mui/material";
-import { useBorrowLendState } from "../../context/BorrowLend";
+import { Card, Skeleton, Table, TableBody, TableContainer, TableRow } from "@mui/material";
+import { useBorrowLendState, useTokenBalances, useTokenMetadata } from "~/context";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
-import { useTokenBalances } from "~/context/TokenAccounts";
-import { useTokenMetadata } from "~/context/TokenMetadata";
 
 const AssetsList: FC = () => {
   const [isInLendingMode, setIsInLendingMode] = useState(true);
-  const { banks, selectedAccount, refreshData, mfiClient } =
-    useBorrowLendState();
+  const { banks, selectedAccount, refreshData, mfiClient } = useBorrowLendState();
   const { tokenBalances, nativeSol } = useTokenBalances();
   const { tokenMetadataMap } = useTokenMetadata();
   const wallet = useWallet();
@@ -43,10 +33,7 @@ const AssetsList: FC = () => {
   return (
     <>
       <div className="col-span-full">
-        <BorrowLendToggle
-          isInLendingMode={isInLendingMode}
-          setIsInLendingMode={setIsInLendingMode}
-        />
+        <BorrowLendToggle isInLendingMode={isInLendingMode} setIsInLendingMode={setIsInLendingMode} />
       </div>
 
       <div className="col-span-full">

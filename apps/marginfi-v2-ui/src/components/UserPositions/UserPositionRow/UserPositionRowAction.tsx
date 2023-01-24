@@ -5,10 +5,7 @@ interface UserPositionRowActionProps extends ButtonProps {
   children: React.ReactNode;
 }
 
-const UserPositionRowAction: FC<UserPositionRowActionProps> = ({
-  children,
-  ...otherProps
-}) => {
+const UserPositionRowAction: FC<UserPositionRowActionProps> = ({ children, ...otherProps }) => {
   return (
     <Button
       className="bg-white text-black normal-case text-sm mx-2 sm:mx-0 w-28 sm:w-30 h-10 max-w-1 rounded-[100px]"

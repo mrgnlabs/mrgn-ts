@@ -1,7 +1,5 @@
 import { aprToApy, nativeToUi } from "@mrgnlabs/marginfi-client-v2";
-import MarginfiAccount, {
-  MarginRequirementType,
-} from "@mrgnlabs/marginfi-client-v2/src/account";
+import MarginfiAccount, { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
 import { AccountSummary, TokenMetadataMap } from "~/types";
 
 const DEFAULT_ACCOUNT_SUMMARY = {
@@ -12,18 +10,11 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   positions: [],
 };
 
-function computeAccountSummary(
-  marginfiAccount: MarginfiAccount,
-  tokenMetadata: TokenMetadataMap
-): AccountSummary {
-  const equityComponents = marginfiAccount.getHealthComponents(
-    MarginRequirementType.Equity
-  );
+function computeAccountSummary(marginfiAccount: MarginfiAccount, tokenMetadata: TokenMetadataMap): AccountSummary {
+  const equityComponents = marginfiAccount.getHealthComponents(MarginRequirementType.Equity);
 
   return {
-    balance: equityComponents.assets
-      .minus(equityComponents.liabilities)
-      .toNumber(),
+    balance: equityComponents.assets.minus(equityComponents.liabilities).toNumber(),
     lendingAmount: equityComponents.assets.toNumber(),
     borrowingAmount: equityComponents.liabilities.toNumber(),
     apy: marginfiAccount.computeNetApy(),
@@ -37,16 +28,12 @@ function computeAccountSummary(
         amount: isLending
           ? nativeToUi(amounts.assets.toNumber(), bank.mintDecimals)
           : nativeToUi(amounts.liabilities.toNumber(), bank.mintDecimals),
-        usdValue: isLending
-          ? usdValues.assets.toNumber()
-          : usdValues.liabilities.toNumber(),
+        usdValue: isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber(),
         assetName: bank.label,
         assetMint: bank.mint,
         isLending,
         apy: aprToApy(
-          isLending
-            ? bank.getInterestRates().lendingRate.toNumber()
-            : bank.getInterestRates().borrowingRate.toNumber()
+          isLending ? bank.getInterestRates().lendingRate.toNumber() : bank.getInterestRates().borrowingRate.toNumber()
         ),
         bank,
         tokenMetadata: tokenMetadata[bank.label],

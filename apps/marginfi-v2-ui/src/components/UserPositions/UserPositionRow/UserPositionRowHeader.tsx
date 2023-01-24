@@ -24,15 +24,7 @@ const UserPositionRowHeader: FC<UserPositionRowHeaderProps> = ({
         justifyContent: icon ? "flex-start" : "center",
       }}
     >
-      {icon && (
-        <Image
-          src={icon}
-          alt={assetName}
-          height={25}
-          width={25}
-          className="mr-2"
-        />
-      )}
+      {icon && <Image src={icon} alt={assetName} height={25} width={25} className="mr-2" />}
       <div>
         <div
           style={{

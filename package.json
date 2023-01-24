@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@mrgnlabs/eslint-config-custom": "*",
-    "prettier": "latest",
+    "prettier": "^2.8.1",
     "turbo": "latest"
   },
   "engines": {

@@ -65,6 +65,7 @@ export enum AccountType {
   Mint,
   Account,
 }
+
 export const ACCOUNT_TYPE_SIZE = 1;
 
 /** Base class for errors */
@@ -224,9 +225,7 @@ export async function getAccount(
   return unpackAccount(address, info, programId);
 }
 
-export const TOKEN_PROGRAM_ID = new PublicKey(
-  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-);
+export const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 
 /**
  * Retrieve information about multiple token accounts in a single RPC call
@@ -262,11 +261,7 @@ export async function getMinimumBalanceForRentExemptAccount(
   connection: Connection,
   commitment?: Commitment
 ): Promise<number> {
-  return await getMinimumBalanceForRentExemptAccountWithExtensions(
-    connection,
-    [],
-    commitment
-  );
+  return await getMinimumBalanceForRentExemptAccountWithExtensions(connection, [], commitment);
 }
 
 export enum ExtensionType {
@@ -306,6 +301,7 @@ function getLen(extensionTypes: ExtensionType[], baseSize: number): number {
 /** Get the minimum lamport balance for a rent-exempt token account with extensions
  *
  * @param connection Connection to use
+ * @param extensions
  * @param commitment Desired level of commitment for querying the state
  *
  * @return Amount of lamports required
@@ -316,10 +312,7 @@ export async function getMinimumBalanceForRentExemptAccountWithExtensions(
   commitment?: Commitment
 ): Promise<number> {
   const accountLen = getAccountLen(extensions);
-  return await connection.getMinimumBalanceForRentExemption(
-    accountLen,
-    commitment
-  );
+  return await connection.getMinimumBalanceForRentExemption(accountLen, commitment);
 }
 
 /**
@@ -343,10 +336,8 @@ export function unpackAccount(
   const rawAccount = AccountLayout.decode(info.data.slice(0, ACCOUNT_SIZE));
   let tlvData = Buffer.alloc(0);
   if (info.data.length > ACCOUNT_SIZE) {
-    if (info.data.length === MULTISIG_SIZE)
-      throw new TokenInvalidAccountSizeError();
-    if (info.data[ACCOUNT_SIZE] != AccountType.Account)
-      throw new TokenInvalidAccountError();
+    if (info.data.length === MULTISIG_SIZE) throw new TokenInvalidAccountSizeError();
+    if (info.data[ACCOUNT_SIZE] != AccountType.Account) throw new TokenInvalidAccountError();
     tlvData = info.data.slice(ACCOUNT_SIZE + ACCOUNT_TYPE_SIZE);
   }
 
@@ -361,17 +352,13 @@ export function unpackAccount(
     isFrozen: rawAccount.state === AccountState.Frozen,
     isNative: !!rawAccount.isNativeOption,
     rentExemptReserve: rawAccount.isNativeOption ? rawAccount.isNative : null,
-    closeAuthority: rawAccount.closeAuthorityOption
-      ? rawAccount.closeAuthority
-      : null,
+    closeAuthority: rawAccount.closeAuthorityOption ? rawAccount.closeAuthority : null,
     tlvData,
   };
 }
 
 /** Address of the SPL Associated Token Account program */
-export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey(
-  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-);
+export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 
 /**
  * Get the address of the associated token account for a given mint and owner
@@ -391,8 +378,7 @@ export function getAssociatedTokenAddressSync(
   programId = TOKEN_PROGRAM_ID,
   associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID
 ): PublicKey {
-  if (!allowOwnerOffCurve && !PublicKey.isOnCurve(owner.toBuffer()))
-    throw new TokenOwnerOffCurveError();
+  if (!allowOwnerOffCurve && !PublicKey.isOnCurve(owner.toBuffer())) throw new TokenOwnerOffCurveError();
 
   const [address] = PublicKey.findProgramAddressSync(
     [owner.toBuffer(), programId.toBuffer(), mint.toBuffer()],
@@ -476,9 +462,7 @@ export interface SyncNativeInstructionData {
 }
 
 /** TODO: docs */
-export const syncNativeInstructionData = struct<SyncNativeInstructionData>([
-  u8("instruction"),
-]);
+export const syncNativeInstructionData = struct<SyncNativeInstructionData>([u8("instruction")]);
 
 /**
  * Construct a SyncNative instruction
@@ -488,17 +472,11 @@ export const syncNativeInstructionData = struct<SyncNativeInstructionData>([
  *
  * @return Instruction to add to a transaction
  */
-export function createSyncNativeInstruction(
-  account: PublicKey,
-  programId = TOKEN_PROGRAM_ID
-): TransactionInstruction {
+export function createSyncNativeInstruction(account: PublicKey, programId = TOKEN_PROGRAM_ID): TransactionInstruction {
   const keys = [{ pubkey: account, isSigner: false, isWritable: true }];
 
   const data = Buffer.alloc(syncNativeInstructionData.span);
-  syncNativeInstructionData.encode(
-    { instruction: TokenInstruction.SyncNative },
-    data
-  );
+  syncNativeInstructionData.encode({ instruction: TokenInstruction.SyncNative }, data);
 
   return new TransactionInstruction({ keys, programId, data });
 }
@@ -536,12 +514,11 @@ export interface TransferCheckedInstructionData {
 }
 
 /** TODO: docs */
-export const transferCheckedInstructionData =
-  struct<TransferCheckedInstructionData>([
-    u8("instruction"),
-    u64("amount"),
-    u8("decimals"),
-  ]);
+export const transferCheckedInstructionData = struct<TransferCheckedInstructionData>([
+  u8("instruction"),
+  u64("amount"),
+  u8("decimals"),
+]);
 
 /**
  * Construct a TransferChecked instruction
@@ -602,8 +579,7 @@ export interface InitializeAccountInstructionData {
   instruction: TokenInstruction.InitializeAccount;
 }
 
-export const initializeAccountInstructionData =
-  struct<InitializeAccountInstructionData>([u8("instruction")]);
+export const initializeAccountInstructionData = struct<InitializeAccountInstructionData>([u8("instruction")]);
 
 /**
  * Construct an InitializeAccount instruction
@@ -629,20 +605,13 @@ export function createInitializeAccountInstruction(
   ];
 
   const data = Buffer.alloc(initializeAccountInstructionData.span);
-  initializeAccountInstructionData.encode(
-    { instruction: TokenInstruction.InitializeAccount },
-    data
-  );
+  initializeAccountInstructionData.encode({ instruction: TokenInstruction.InitializeAccount }, data);
 
   return new TransactionInstruction({ keys, programId, data });
 }
 
 /** @internal */
-export function addSigners(
-  keys: AccountMeta[],
-  ownerOrAuthority: PublicKey,
-  multiSigners: Signer[]
-): AccountMeta[] {
+export function addSigners(keys: AccountMeta[], ownerOrAuthority: PublicKey, multiSigners: Signer[]): AccountMeta[] {
   if (multiSigners.length) {
     keys.push({ pubkey: ownerOrAuthority, isSigner: false, isWritable: false });
     for (const signer of multiSigners) {

@@ -1,14 +1,7 @@
 import React from "react";
 import { nativeToUi } from "@mrgnlabs/marginfi-client-v2";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import {
-  FC,
-  useState,
-  createContext,
-  useContext,
-  useEffect,
-  useCallback,
-} from "react";
+import { FC, useState, createContext, useContext, useEffect, useCallback } from "react";
 import { getAssociatedTokenAddressSync, unpackAccount } from "~/utils/spl";
 import { useBorrowLendState } from "./BorrowLend";
 import { PublicKey } from "@solana/web3.js";
@@ -41,9 +34,7 @@ const TokenBalancesProvider: FC<{
 
   const [fetching, setFetching] = useState<boolean>(false);
   const [nativeSol, setNativeSol] = useState<number>(0);
-  const [tokenBalances, setTokenBalances] = useState<TokenBalanceMap>(
-    new Map<string, TokenBalance>()
-  );
+  const [tokenBalances, setTokenBalances] = useState<TokenBalanceMap>(new Map<string, TokenBalance>());
 
   const fetchTokenBalances = useCallback(async (): Promise<TokenBalanceMap> => {
     if (!wallet.publicKey) {
@@ -55,15 +46,10 @@ const TokenBalancesProvider: FC<{
       address: bank.mint,
       decimals: bank.mintDecimals,
     }));
-    const ataAddresses = mintList.map((mint) =>
-      getAssociatedTokenAddressSync(mint.address, wallet.publicKey!)
-    );
+    const ataAddresses = mintList.map((mint) => getAssociatedTokenAddressSync(mint.address, wallet.publicKey!));
 
     // Fetch relevant accounts
-    const accountsAiList = await connection.getMultipleAccountsInfo([
-      wallet.publicKey,
-      ...ataAddresses,
-    ]);
+    const accountsAiList = await connection.getMultipleAccountsInfo([wallet.publicKey, ...ataAddresses]);
 
     // Decode account buffers
     const [walletAi, ...ataAiList] = accountsAiList;
@@ -81,10 +67,7 @@ const TokenBalancesProvider: FC<{
       return {
         created: true,
         mint: decoded.mint,
-        balance: nativeToUi(
-          new BN(decoded.amount.toString()),
-          mintList[index].decimals
-        ),
+        balance: nativeToUi(new BN(decoded.amount.toString()), mintList[index].decimals),
       };
     });
 
@@ -109,9 +92,7 @@ const TokenBalancesProvider: FC<{
   }, [refresh]);
 
   return (
-    <TokenBalancesContext.Provider
-      value={{ fetching, refresh, tokenBalances, nativeSol }}
-    >
+    <TokenBalancesContext.Provider value={{ fetching, refresh, tokenBalances, nativeSol }}>
       {children}
     </TokenBalancesContext.Provider>
   );
@@ -120,9 +101,7 @@ const TokenBalancesProvider: FC<{
 const useTokenBalances = () => {
   const context = useContext(TokenBalancesContext);
   if (!context) {
-    throw new Error(
-      "useTokenBalances must be used within a TokenBalancesProvider"
-    );
+    throw new Error("useTokenBalances must be used within a TokenBalancesProvider");
   }
 
   return context;

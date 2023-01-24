@@ -9,12 +9,7 @@ interface UserPositionRowInputBoxProps {
   maxDecimals?: number;
 }
 
-const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
-  value,
-  setValue,
-  maxValue,
-  maxDecimals,
-}) => {
+const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({ value, setValue, maxValue, maxDecimals }) => {
   const onClick = () => {
     if (maxValue !== undefined) {
       setValue(maxValue);
@@ -23,8 +18,7 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
 
   const onChange = (event: NumberFormatValues) => {
     const updatedAmountStr = event.value;
-    if (updatedAmountStr !== "" && !/^\d*\.?\d*$/.test(updatedAmountStr))
-      return;
+    if (updatedAmountStr !== "" && !/^\d*\.?\d*$/.test(updatedAmountStr)) return;
     const updatedAmount = Number(updatedAmountStr);
     if (maxValue !== undefined && updatedAmount > maxValue) {
       setValue(maxValue);
@@ -45,8 +39,7 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
       size="small"
       max={maxValue}
       InputProps={{
-        className:
-          "bg-[#1C2125] text-[#e1e1e1] text-sm rounded-lg pr-0 w-50 h-12 font-light",
+        className: "bg-[#1C2125] text-[#e1e1e1] text-sm rounded-lg pr-0 w-50 h-12 font-light",
         style: {
           fontFamily: "Aeonik Pro",
         },

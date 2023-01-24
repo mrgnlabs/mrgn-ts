@@ -16,13 +16,10 @@ export function middleware(req: NextRequest) {
     const authValue = basicAuth.split(" ")[1];
     const [providedUser, providedPassword] = atob(authValue).split(":");
 
-    const expextedUser = process.env.AUTHENTICATION_USERNAME || "admin";
+    const expectedUser = process.env.AUTHENTICATION_USERNAME || "admin";
     const expectedPassword = process.env.AUTHENTICATION_PASSWORD || "admin";
 
-    if (
-      providedUser === expextedUser &&
-      providedPassword === expectedPassword
-    ) {
+    if (providedUser === expectedUser && providedPassword === expectedPassword) {
       return NextResponse.next();
     }
   }

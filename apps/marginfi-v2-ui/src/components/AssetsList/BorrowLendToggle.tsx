@@ -5,27 +5,21 @@ interface BorrowLendToggleProps extends SwitchProps {
   setIsInLendingMode: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const BorrowLendToggle = styled(
-  ({
-    isInLendingMode,
-    setIsInLendingMode,
-    ...switchProps
-  }: BorrowLendToggleProps) => {
-    const handleChange = () => {
-      setIsInLendingMode((prev) => !prev);
-    };
+const BorrowLendToggle = styled(({ isInLendingMode, setIsInLendingMode, ...switchProps }: BorrowLendToggleProps) => {
+  const handleChange = () => {
+    setIsInLendingMode((prev) => !prev);
+  };
 
-    return (
-      <Switch
-        focusVisibleClassName=".Mui-focusVisible"
-        disableRipple
-        {...switchProps}
-        checked={!isInLendingMode}
-        onChange={handleChange}
-      />
-    );
-  }
-)(({ disabled }) => ({
+  return (
+    <Switch
+      focusVisibleClassName=".Mui-focusVisible"
+      disableRipple
+      {...switchProps}
+      checked={!isInLendingMode}
+      onChange={handleChange}
+    />
+  );
+})(({ disabled }) => ({
   width: 166.34, //
   height: 52.04,
   ...(disabled ? { cursor: "not-allowed" } : {}),

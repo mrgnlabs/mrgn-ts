@@ -21,10 +21,7 @@ const Navbar: FC = () => {
           }}
         >
           <div className="h-full relative flex justify-start items-center z-10">
-            <Link
-              href={"/"}
-              className="relative w-[28.02px] h-[24.81px] mr-4 z-10"
-            >
+            <Link href={"/"} className="relative w-[28.02px] h-[24.81px] mr-4 z-10">
               <Image src="/marginfi_logo.png" alt="marginfi logo" fill />
             </Link>
           </div>
@@ -36,9 +33,7 @@ const Navbar: FC = () => {
               <NavbarCenterItem text="Markets" disabled />
               <NavbarCenterItem text="Strategies" disabled />
               <NavbarCenterItem text="Trade" disabled />
-              {wallet.connected &&
-                process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP ===
-                  "true" && <AirdropZone />}
+              {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && <AirdropZone />}
             </div>
           </div>
           <div className="h-full flex justify-center items-center gap-[10px] z-10">
