@@ -265,6 +265,12 @@ class MarginfiGroup {
     let _publicKey = translateAddress(publicKey);
     return this._banks.get(_publicKey.toString()) ?? null;
   }
+
+  getBankByMint(mint: PublicKey): Bank | null {
+    return (
+      [...this._banks.values()].find((bank) => bank.mint.equals(mint)) ?? null
+    );
+  }
 }
 
 export default MarginfiGroup;

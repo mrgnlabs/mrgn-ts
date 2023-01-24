@@ -8,7 +8,7 @@ const BankConfigRaw = object({
   address: string(),
 });
 const MarginfiConfigRaw = object({
-  label: enums(["alpha", "staging", "dev"]),
+  label: enums(["mainnet1", "mainnet2", "devnet1"]),
   cluster: string(),
   program: string(),
   group: string(),
@@ -68,14 +68,22 @@ function getMarginfiConfig(
   overrides?: Partial<Omit<MarginfiConfig, "environment">>
 ): MarginfiConfig {
   const defaultConfigs = loadDefaultConfig();
-  const defaultConfig = defaultConfigs[environment];
-  return {
-    environment,
-    programId: overrides?.programId || defaultConfig.programId,
-    groupPk: overrides?.groupPk || defaultConfig.groupPk,
-    cluster: overrides?.cluster || defaultConfig.cluster,
-    banks: overrides?.banks || defaultConfig.banks,
-  };
+
+  switch (environment) {
+    case "mainnet1":
+    case "mainnet2":
+    case "devnet1":
+      const defaultConfig = defaultConfigs[environment];
+      return {
+        environment,
+        programId: overrides?.programId || defaultConfig.programId,
+        groupPk: overrides?.groupPk || defaultConfig.groupPk,
+        cluster: overrides?.cluster || defaultConfig.cluster,
+        banks: overrides?.banks || defaultConfig.banks,
+      };
+    default:
+      throw Error(`Unknown environment ${environment}`);
+  }
 }
 
 /**

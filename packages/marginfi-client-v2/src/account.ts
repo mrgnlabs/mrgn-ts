@@ -4,12 +4,18 @@ import {
   BorshCoder,
   translateAddress,
 } from "@project-serum/anchor";
-import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
+import {
+  associatedAddress,
+  ASSOCIATED_PROGRAM_ID,
+} from "@project-serum/anchor/dist/cjs/utils/token";
 import { parsePriceData } from "@pythnetwork/client";
+import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
   AccountInfo,
   AccountMeta,
   Commitment,
+  ComputeBudgetInstruction,
+  ComputeBudgetProgram,
   PublicKey,
   Transaction,
 } from "@solana/web3.js";
@@ -304,13 +310,40 @@ class MarginfiAccount {
    * @param bank Bank to withdraw from
    * @returns Transaction signature
    */
-  async withdraw(amount: UiAmount, bank: Bank): Promise<string> {
+  async withdraw(
+    amount: UiAmount,
+    bank: Bank,
+    skipTokenAccountCheck: boolean = false
+  ): Promise<string> {
     const debug = require("debug")(
       `mfi:margin-account:${this.publicKey.toString()}:withdraw`
     );
     debug("Withdrawing %s from marginfi account", amount);
+    const tx = new Transaction();
+
+    const userAta = await associatedAddress({
+      mint: bank.mint,
+      owner: this.client.provider.wallet.publicKey,
+    });
+    const account = await this.client.provider.connection.getAccountInfo(
+      userAta
+    );
+    console.log("User Ata: ", userAta.toString());
+    if (account === null && !skipTokenAccountCheck) {
+      const createAtaIx = Token.createAssociatedTokenAccountInstruction(
+        ASSOCIATED_PROGRAM_ID,
+        TOKEN_PROGRAM_ID,
+        bank.mint,
+        userAta,
+        this.client.provider.wallet.publicKey,
+        this.client.provider.wallet.publicKey
+      );
+      tx.add(createAtaIx);
+    }
+
     const ixs = await this.makeWithdrawIx(amount, bank);
-    const tx = new Transaction().add(...ixs.instructions);
+    tx.add(...ixs.instructions);
+
     const sig = await processTransaction(this.client.provider, tx);
     debug("Withdrawing successful %s", sig);
     await this.reload();
@@ -650,7 +683,7 @@ class MarginfiAccount {
    * NOTE FOR LIQUIDATORS
    * This function doesn't take into account the collateral received when liquidating an account.
    */
-  public getMaxWithdrawForBank(bank: Bank): BigNumber {
+  public getMaxBorrowForBank(bank: Bank): BigNumber {
     const balance = this.getBalance(bank.publicKey);
 
     const freeCollateral = this.getFreeCollateral();
@@ -675,6 +708,30 @@ class MarginfiAccount {
           .minus(untiedCollateralForBank)
           .div(priceHighestBias.times(liabWeight))
       );
+  }
+
+  /**
+   * Calculate the maximum amount that can be withdrawn form an bank without borrowing.
+   */
+  public getMaxWithdrawForBank(bank: Bank): BigNumber {
+    const balance = this.getBalance(bank.publicKey);
+
+    const freeCollateral = this.getFreeCollateral();
+    const untiedCollateralForBank = BigNumber.min(
+      bank.getAssetUsdValue(
+        balance.depositShares,
+        MarginRequirementType.Init,
+        PriceBias.Lowest
+      ),
+      freeCollateral
+    );
+
+    const priceLowestBias = bank.getPrice(PriceBias.Lowest);
+    const depositWeight = bank.getAssetWeight(MarginRequirementType.Init);
+
+    console.log("balance: %s\nfreeCollateral: %s\nuntiedCollateralForBank: %s\npriceLowestBias: %s\ndepositWeight: %s", balance.depositShares.toString(), freeCollateral.toString(), untiedCollateralForBank.toString(), priceLowestBias.toString(), depositWeight);
+
+    return untiedCollateralForBank.div(priceLowestBias.times(depositWeight));
   }
 
   public async makeLendingAccountLiquidateIx(
@@ -702,6 +759,16 @@ class MarginfiAccount {
       },
       { assetAmount: uiToNative(assetQuantityUi, assetBank.mintDecimals) },
       [
+        {
+          pubkey: assetBank.config.oracleKeys[0],
+          isSigner: false,
+          isWritable: false,
+        },
+        {
+          pubkey: liabBank.config.oracleKeys[0],
+          isSigner: false,
+          isWritable: false,
+        },
         ...this.getHealthCheckAccounts([assetBank, liabBank]),
         ...liquidateeMarginfiAccount.getHealthCheckAccounts(),
       ]
@@ -722,7 +789,10 @@ class MarginfiAccount {
       assetQuantityUi,
       liabBank
     );
-    const tx = new Transaction().add(...ixw.instructions);
+    const tx = new Transaction().add(
+      ...ixw.instructions,
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 })
+    );
     return processTransaction(this.client.provider, tx);
   }
 
