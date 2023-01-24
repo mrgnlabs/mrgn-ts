@@ -154,6 +154,8 @@ const AssetRow: FC<{
         autoClose: 5000,
         isLoading: false,
       });
+      console.log(`Error while ${isInLendingMode ? "lending" : "borrowing"}`);
+      console.log(error);
     }
 
     setBorrowOrLendAmount(0);
@@ -174,6 +176,8 @@ const AssetRow: FC<{
         autoClose: 5000,
         isLoading: false,
       });
+      console.log("Error while reloading state");
+      console.log(error);
     }
   }, [
     marginfiAccount,

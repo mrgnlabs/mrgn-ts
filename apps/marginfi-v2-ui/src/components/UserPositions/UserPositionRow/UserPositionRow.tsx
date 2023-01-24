@@ -53,6 +53,8 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
         autoClose: 5000,
         isLoading: false,
       });
+      console.log(`Error while ${position.isLending ? "withdrawing" : "repaying"}`);
+      console.log(error);
     }
 
     setWithdrawOrRepayAmount(0);
@@ -73,6 +75,8 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
         autoClose: 5000,
         isLoading: false,
       });
+      console.log("Error while reloading state");
+      console.log(error);
     }
   }, [marginfiAccount, withdrawOrRepayAmount, refreshBorrowLendState, position]);
 
