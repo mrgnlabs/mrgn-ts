@@ -5,7 +5,7 @@ import MarginfiAccount from "../src/account";
 async function main() {
   const connection = new Connection("https://devnet.genesysgo.net/", "confirmed");
   const wallet = NodeWallet.local();
-  const config = await getConfig("devnet1");
+  const config = await getConfig("dev");
   const client = await MarginfiClient.fetch(config, wallet, connection);
 
   const programAddresses = await client.getAllProgramAccountAddresses(AccountType.MarginfiGroup);
