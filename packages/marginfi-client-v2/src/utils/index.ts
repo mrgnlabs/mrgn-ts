@@ -6,7 +6,7 @@ import {
   PublicKey,
   Signer,
   Transaction,
-  TransactionSignature,
+  TransactionSignature
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import {
@@ -15,7 +15,7 @@ import {
   PDA_BANK_INSURANCE_VAULT_AUTH_SEED,
   PDA_BANK_INSURANCE_VAULT_SEED,
   PDA_BANK_LIQUIDITY_VAULT_AUTH_SEED,
-  PDA_BANK_LIQUIDITY_VAULT_SEED,
+  PDA_BANK_LIQUIDITY_VAULT_SEED
 } from "../constants";
 import { BankVaultType, UiAmount } from "../types";
 import { Decimal } from "decimal.js";
@@ -157,7 +157,7 @@ export function nativeToUi(amount: UiAmount | BN, decimals: number): number {
   return amt.div(10 ** decimals).toNumber();
 }
 
-function getBankVaultSeeds(type: BankVaultType): Buffer {
+export function getBankVaultSeeds(type: BankVaultType): Buffer {
   switch (type) {
     case BankVaultType.LiquidityVault:
       return PDA_BANK_LIQUIDITY_VAULT_SEED;
@@ -207,19 +207,19 @@ const HOURS_PER_YEAR = 365.25 * 24;
 /**
  * Formula source: http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies
  *
- * @param interest {Number} APY (ie. 0.06 for 6%)
+ * @param apy {Number} APY (i.e. 0.06 for 6%)
  * @param compoundingFrequency {Number} Compounding frequency (times a year)
- * @returns {Number} APR (ie. 0.0582 for APY of 0.06)
+ * @returns {Number} APR (i.e. 0.0582 for APY of 0.06)
  */
-export const apyToApr = (apr: number, compoundingFrequency = HOURS_PER_YEAR) =>
-  ((1 + apr) ** (1 / compoundingFrequency) - 1) * compoundingFrequency;
+export const apyToApr = (apy: number, compoundingFrequency = HOURS_PER_YEAR) =>
+  ((1 + apy) ** (1 / compoundingFrequency) - 1) * compoundingFrequency;
 
 /**
  * Formula source: http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies
  *
- * @param apr {Number} APR (ie. 0.0582 for 5.82%)
+ * @param apr {Number} APR (i.e. 0.0582 for 5.82%)
  * @param compoundingFrequency {Number} Compounding frequency (times a year)
- * @returns {Number} APY (ie. 0.06 for APR of 0.0582)
+ * @returns {Number} APY (i.e. 0.06 for APR of 0.0582)
  */
 export const aprToApy = (apr: number, compoundingFrequency = HOURS_PER_YEAR) =>
   (1 + apr / compoundingFrequency) ** compoundingFrequency - 1;

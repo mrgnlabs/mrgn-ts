@@ -11,10 +11,17 @@ import {
   TransactionSignature,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { InstructionsWrapper, Wallet } from "./types";
+import {
+  AccountType,
+  Environment,
+  InstructionsWrapper,
+  MarginfiConfig,
+  MarginfiProgram,
+  TransactionOptions,
+  Wallet,
+} from "./types";
 import { MARGINFI_IDL } from "./idl";
 import { NodeWallet } from "./nodeWallet";
-import { AccountType, Environment, MarginfiConfig, MarginfiProgram, TransactionOptions } from "./types";
 import { loadKeypair } from "./utils";
 import { getConfig } from "./config";
 import MarginfiGroup from "./group";
@@ -279,9 +286,10 @@ class MarginfiClient {
         payerKey: this.provider.publicKey,
         recentBlockhash: blockhash,
       });
-      const versionedTransaction = new VersionedTransaction(versionedMessage.compileToV0Message([]));
 
-      await this.wallet.signTransaction(versionedTransaction);
+      let versionedTransaction = new VersionedTransaction(versionedMessage.compileToV0Message([]));
+
+      versionedTransaction = await this.wallet.signTransaction(versionedTransaction);
       if (signers) versionedTransaction.sign(signers);
 
       if (opts?.dryRun) {
