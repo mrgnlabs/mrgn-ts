@@ -1,11 +1,6 @@
 import { AnchorProvider, BN, Program } from "@project-serum/anchor";
 import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
-import {
-  ConfirmOptions,
-  Keypair,
-  PublicKey,
-  TransactionInstruction,
-} from "@solana/web3.js";
+import { ConfirmOptions, Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { Marginfi } from "./idl/marginfi-types";
 
@@ -16,10 +11,7 @@ export type MarginfiReadonlyProgram = Program<Marginfi>;
 
 export type UiAmount = BigNumber | number | string;
 
-export type Wallet = Pick<
-  SignerWalletAdapter,
-  "signAllTransactions" | "signTransaction"
-> & {
+export type Wallet = Pick<SignerWalletAdapter, "signAllTransactions" | "signTransaction"> & {
   publicKey: PublicKey;
 };
 

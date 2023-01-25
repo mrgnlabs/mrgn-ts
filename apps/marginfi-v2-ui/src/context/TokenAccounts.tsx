@@ -1,11 +1,10 @@
-import React from "react";
+import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
 import { nativeToUi } from "@mrgnlabs/marginfi-client-v2";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { FC, useState, createContext, useContext, useEffect, useCallback } from "react";
-import { getAssociatedTokenAddressSync, unpackAccount } from "~/utils/spl";
 import { useBorrowLendState } from "./BorrowLend";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
+import { getAssociatedTokenAddressSync, unpackAccount } from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
 
 // @ts-ignore - Safe because context hook checks for null
 const TokenBalancesContext = createContext<TokenBalancesState>();

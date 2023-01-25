@@ -4,9 +4,7 @@
   "instructions": [
     {
       "name": "initializeMarginfiGroup",
-      "docs": [
-        "Initialize a new Marginfi Group with initial config"
-      ],
+      "docs": ["Initialize a new Marginfi Group with initial config"],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -28,9 +26,7 @@
     },
     {
       "name": "configureMarginfiGroup",
-      "docs": [
-        "Configure a Marginfi Group"
-      ],
+      "docs": ["Configure a Marginfi Group"],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -54,9 +50,7 @@
     },
     {
       "name": "lendingPoolAddBank",
-      "docs": [
-        "Add a new bank to the Marginfi Group"
-      ],
+      "docs": ["Add a new bank to the Marginfi Group"],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -135,9 +129,7 @@
     },
     {
       "name": "lendingPoolConfigureBank",
-      "docs": [
-        "Configure a bank in the Marginfi Group"
-      ],
+      "docs": ["Configure a bank in the Marginfi Group"],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -166,9 +158,7 @@
     },
     {
       "name": "lendingPoolHandleBankruptcy",
-      "docs": [
-        "Handle bad debt of a bankrupt marginfi account for a given bank."
-      ],
+      "docs": ["Handle bad debt of a bankrupt marginfi account for a given bank."],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -215,9 +205,7 @@
     },
     {
       "name": "initializeMarginfiAccount",
-      "docs": [
-        "Initialize a marginfi account for a given group"
-      ],
+      "docs": ["Initialize a marginfi account for a given group"],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -244,10 +232,7 @@
     },
     {
       "name": "bankDeposit",
-      "docs": [
-        "Deposit assets into a lending account",
-        "Repay borrowed assets, if any exist."
-      ],
+      "docs": ["Deposit assets into a lending account", "Repay borrowed assets, if any exist."],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -350,9 +335,7 @@
     },
     {
       "name": "lendingAccountLiquidate",
-      "docs": [
-        "Liquidate a lending account balance of an unhealthy marginfi account"
-      ],
+      "docs": ["Liquidate a lending account balance of an unhealthy marginfi account"],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -509,10 +492,7 @@
           {
             "name": "ignore1",
             "type": {
-              "array": [
-                "u8",
-                7
-              ]
+              "array": ["u8", 7]
             }
           },
           {
@@ -542,10 +522,7 @@
           {
             "name": "ignore2",
             "type": {
-              "array": [
-                "u8",
-                4
-              ]
+              "array": ["u8", 4]
             }
           },
           {
@@ -581,10 +558,7 @@
           {
             "name": "ignore3",
             "type": {
-              "array": [
-                "u8",
-                6
-              ]
+              "array": ["u8", 6]
             }
           },
           {
@@ -655,10 +629,7 @@
           {
             "name": "ignore",
             "type": {
-              "array": [
-                "u8",
-                7
-              ]
+              "array": ["u8", 7]
             }
           },
           {
@@ -742,9 +713,7 @@
     },
     {
       "name": "BankConfig",
-      "docs": [
-        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
-      ],
+      "docs": ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
       "type": {
         "kind": "struct",
         "fields": [
@@ -797,19 +766,13 @@
           {
             "name": "oracleKeys",
             "type": {
-              "array": [
-                "publicKey",
-                5
-              ]
+              "array": ["publicKey", 5]
             }
           },
           {
             "name": "ignore",
             "type": {
-              "array": [
-                "u8",
-                6
-              ]
+              "array": ["u8", 6]
             }
           }
         ]
@@ -889,10 +852,7 @@
           {
             "name": "ignore",
             "type": {
-              "array": [
-                "u8",
-                6
-              ]
+              "array": ["u8", 6]
             }
           }
         ]
@@ -912,10 +872,7 @@
           {
             "name": "keys",
             "type": {
-              "array": [
-                "publicKey",
-                5
-              ]
+              "array": ["publicKey", 5]
             }
           }
         ]
@@ -987,9 +944,7 @@
         "variants": [
           {
             "name": "Pyth",
-            "fields": [
-              "publicKey"
-            ]
+            "fields": ["publicKey"]
           }
         ]
       }

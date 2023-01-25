@@ -158,9 +158,7 @@ export type Marginfi = {
     },
     {
       name: "lendingPoolHandleBankruptcy";
-      docs: [
-        "Handle bad debt of a bankrupt marginfi account for a given bank."
-      ];
+      docs: ["Handle bad debt of a bankrupt marginfi account for a given bank."];
       accounts: [
         {
           name: "marginfiGroup";
@@ -234,10 +232,7 @@ export type Marginfi = {
     },
     {
       name: "bankDeposit";
-      docs: [
-        "Deposit assets into a lending account",
-        "Repay borrowed assets, if any exist."
-      ];
+      docs: ["Deposit assets into a lending account", "Repay borrowed assets, if any exist."];
       accounts: [
         {
           name: "marginfiGroup";
@@ -340,9 +335,7 @@ export type Marginfi = {
     },
     {
       name: "lendingAccountLiquidate";
-      docs: [
-        "Liquidate a lending account balance of an unhealthy marginfi account"
-      ];
+      docs: ["Liquidate a lending account balance of an unhealthy marginfi account"];
       accounts: [
         {
           name: "marginfiGroup";
@@ -720,9 +713,7 @@ export type Marginfi = {
     },
     {
       name: "BankConfig";
-      docs: [
-        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
-      ];
+      docs: ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"];
       type: {
         kind: "struct";
         fields: [
@@ -1250,9 +1241,7 @@ export const IDL: Marginfi = {
     },
     {
       name: "lendingPoolHandleBankruptcy",
-      docs: [
-        "Handle bad debt of a bankrupt marginfi account for a given bank.",
-      ],
+      docs: ["Handle bad debt of a bankrupt marginfi account for a given bank."],
       accounts: [
         {
           name: "marginfiGroup",
@@ -1326,10 +1315,7 @@ export const IDL: Marginfi = {
     },
     {
       name: "bankDeposit",
-      docs: [
-        "Deposit assets into a lending account",
-        "Repay borrowed assets, if any exist.",
-      ],
+      docs: ["Deposit assets into a lending account", "Repay borrowed assets, if any exist."],
       accounts: [
         {
           name: "marginfiGroup",
@@ -1432,9 +1418,7 @@ export const IDL: Marginfi = {
     },
     {
       name: "lendingAccountLiquidate",
-      docs: [
-        "Liquidate a lending account balance of an unhealthy marginfi account",
-      ],
+      docs: ["Liquidate a lending account balance of an unhealthy marginfi account"],
       accounts: [
         {
           name: "marginfiGroup",
@@ -1812,9 +1796,7 @@ export const IDL: Marginfi = {
     },
     {
       name: "BankConfig",
-      docs: [
-        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)",
-      ],
+      docs: ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
       type: {
         kind: "struct",
         fields: [

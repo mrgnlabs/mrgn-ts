@@ -1,10 +1,10 @@
 import { FC, useState } from "react";
-import { Slider } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
+import { Slider } from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
 import { styled } from "@mui/material/styles";
 import BigNumber from "bignumber.js";
-import 'katex/dist/katex.min.css';
-import { BlockMath } from 'react-katex';
+import "katex/dist/katex.min.css";
+import { BlockMath } from "react-katex";
 
 const HealthSlider = styled(Slider)(() => ({
   height: 2,
@@ -69,15 +69,15 @@ const HealthFactor: FC<HealthMonitorProps> = ({ healthFactor }) => {
     .multipliedBy(100)
     .toNumber();
 
-  const openTooltip = (event: any) => {
-    console.log('open');
+  const openTooltip = () => {
+    console.log("open");
     setShowTooltip(true);
-  }
+  };
 
   const closeTooltip = () => {
-    console.log('close');
+    console.log("close");
     setShowTooltip(false);
-  }
+  };
 
   return (
     <div
@@ -88,9 +88,8 @@ const HealthFactor: FC<HealthMonitorProps> = ({ healthFactor }) => {
       }}
       onMouseLeave={closeTooltip}
     >
-      {
-        showTooltip && (
-          <>
+      {showTooltip && (
+        <>
           <div className="flex w-full h-full justify-between">
             <label
               className="block text-lg font-bold"
@@ -98,27 +97,22 @@ const HealthFactor: FC<HealthMonitorProps> = ({ healthFactor }) => {
                 fontFamily: "Aeonik Pro",
                 fontWeight: 300,
                 fontSize: 16,
-                color: '#c4c6bf',
+                color: "#c4c6bf",
               }}
             >
               Health factor
-              <InfoIcon
-                className="ml-2" 
-                onMouseEnter={openTooltip}
-              />
+              <InfoIcon className="ml-2" onMouseEnter={openTooltip} />
             </label>
           </div>
 
-          <div
-            className="h-full w-full flex"
-          >
+          <div className="h-full w-full flex">
             <div
               className="h-full w-2/3"
               style={{
                 fontFamily: "Aeonik Pro",
                 fontWeight: 300,
                 fontSize: 12,
-                color: '#c4c6bf',
+                color: "#c4c6bf",
               }}
             >
               Calculates portfolio risk and ranges from 0% (liquidation) to 100% (no debt). The formula is:
@@ -129,56 +123,48 @@ const HealthFactor: FC<HealthMonitorProps> = ({ healthFactor }) => {
                 fontFamily: "Aeonik Pro",
                 fontWeight: 300,
                 fontSize: 11,
-                color: '#c4c6bf',
+                color: "#c4c6bf",
               }}
             >
-              <BlockMath
-                math={'\\frac{assets-liabilities}{assets}'}
-              />
+              <BlockMath math={"\\frac{assets-liabilities}{assets}"} />
             </div>
           </div>
         </>
-        )
-      }
+      )}
 
-      {
-        (!(showTooltip)) && (
-          <>
-            <div className="flex w-full justify-between">
-              <label
-                className="block mb-6 text-lg font-bold"
-                style={{
-                  fontFamily: "Aeonik Pro",
-                  fontWeight: 300,
-                  fontSize: 16,
-                  color: '#c4c6bf',
-                }}
-              >
-                Health factor
-                <InfoIcon
-                  className="ml-2" 
-                  onMouseEnter={openTooltip}
-                />
-              </label>
-              
-              <label
-                className="w-[40px] flex justify-center items-center mb-6 bg-[#0A0A0A] rounded-md text-[#c4c6bf]"
-                style={{
-                  fontFamily: "Aeonik Pro",
-                  fontWeight: 600,
-                  fontSize: 16,
-                }}
-              >
-                {`${Math.floor(healthFactorPercent)}%`}
-              </label>
-            </div>
+      {!showTooltip && (
+        <>
+          <div className="flex w-full justify-between">
+            <label
+              className="block mb-6 text-lg font-bold"
+              style={{
+                fontFamily: "Aeonik Pro",
+                fontWeight: 300,
+                fontSize: 16,
+                color: "#c4c6bf",
+              }}
+            >
+              Health factor
+              <InfoIcon className="ml-2" onMouseEnter={openTooltip} />
+            </label>
 
-            <div className="h-9 px-5">
-              <HealthSlider className="h-2 rounded-lg" marks={marks} disabled value={healthFactorPercent} />
-            </div>
-          </>
-        )
-      }
+            <label
+              className="w-[40px] flex justify-center items-center mb-6 bg-[#0A0A0A] rounded-md text-[#c4c6bf]"
+              style={{
+                fontFamily: "Aeonik Pro",
+                fontWeight: 600,
+                fontSize: 16,
+              }}
+            >
+              {`${Math.floor(healthFactorPercent)}%`}
+            </label>
+          </div>
+
+          <div className="h-9 px-5">
+            <HealthSlider className="h-2 rounded-lg" marks={marks} disabled value={healthFactorPercent} />
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -10,14 +10,14 @@ import {
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import {
-  PDA_BANK_LIQUIDITY_VAULT_AUTH_SEED,
-  PDA_BANK_INSURANCE_VAULT_AUTH_SEED,
   PDA_BANK_FEE_VAULT_AUTH_SEED,
-  PDA_BANK_LIQUIDITY_VAULT_SEED,
-  PDA_BANK_INSURANCE_VAULT_SEED,
   PDA_BANK_FEE_VAULT_SEED,
-} from "./constants";
-import { BankVaultType, UiAmount } from "./types";
+  PDA_BANK_INSURANCE_VAULT_AUTH_SEED,
+  PDA_BANK_INSURANCE_VAULT_SEED,
+  PDA_BANK_LIQUIDITY_VAULT_AUTH_SEED,
+  PDA_BANK_LIQUIDITY_VAULT_SEED,
+} from "../constants";
+import { BankVaultType, UiAmount } from "../types";
 import { Decimal } from "decimal.js";
 
 /**
@@ -32,10 +32,7 @@ export function loadKeypair(keypairPath: string): Keypair {
     keypairPath = path.join(require("os").homedir(), keypairPath.slice(1));
   }
   const keyPath = path.normalize(keypairPath);
-  const loaded = Keypair.fromSecretKey(
-    new Uint8Array(JSON.parse(require("fs").readFileSync(keyPath).toString()))
-  );
-  return loaded;
+  return Keypair.fromSecretKey(new Uint8Array(JSON.parse(require("fs").readFileSync(keyPath).toString())));
 }
 
 // /**
@@ -61,10 +58,7 @@ export async function processTransaction(
   signers?: Array<Signer>,
   opts?: ConfirmOptions
 ): Promise<TransactionSignature> {
-  const connection = new Connection(
-    provider.connection.rpcEndpoint,
-    provider.opts
-  );
+  const connection = new Connection(provider.connection.rpcEndpoint, provider.opts);
   const {
     context: { slot: minContextSlot },
     value: { blockhash, lastValidBlockHeight },
@@ -112,13 +106,10 @@ export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function wrappedI80F48toBigNumber(
-  { value }: { value: BN },
-  scaleDecimal: number = 0
-): BigNumber {
-  let numbers = new Decimal(
-    `${value.isNeg() ? "-" : ""}0b${value.abs().toString(2)}p-48`
-  ).dividedBy(10 ** scaleDecimal);
+export function wrappedI80F48toBigNumber({ value }: { value: BN }, scaleDecimal: number = 0): BigNumber {
+  let numbers = new Decimal(`${value.isNeg() ? "-" : ""}0b${value.abs().toString(2)}p-48`).dividedBy(
+    10 ** scaleDecimal
+  );
   return new BigNumber(numbers.toString());
 }
 
@@ -200,10 +191,7 @@ export function getBankVaultAuthority(
   bankPk: PublicKey,
   programId: PublicKey
 ): [PublicKey, number] {
-  return PublicKey.findProgramAddressSync(
-    [getBankVaultAuthoritySeeds(bankVaultType), bankPk.toBuffer()],
-    programId
-  );
+  return PublicKey.findProgramAddressSync([getBankVaultAuthoritySeeds(bankVaultType), bankPk.toBuffer()], programId);
 }
 
 // shorten the checksummed version of the input address to have 4 characters at start and end

@@ -34,9 +34,7 @@ class MarginfiAccountReadonly {
     this._group = group;
     this._authority = rawData.authority;
 
-    this._lendingAccount = rawData.lendingAccount.balances
-      .filter((la) => la.active)
-      .map((la) => new Balance(la));
+    this._lendingAccount = rawData.lendingAccount.balances.filter((la) => la.active).map((la) => new Balance(la));
   }
 
   // --- Getters / Setters
@@ -81,6 +79,7 @@ class MarginfiAccountReadonly {
    *
    * @param marginfiAccountPk Address of the target account
    * @param client marginfi client
+   * @param commitment Commitment level override
    * @returns MarginfiAccount instance
    */
   static async fetch(
@@ -105,10 +104,7 @@ class MarginfiAccountReadonly {
       accountData
     );
 
-    require("debug")("mfi:margin-account")(
-      "Loaded marginfi account %s",
-      _marginfiAccountPk
-    );
+    require("debug")("mfi:margin-account")("Loaded marginfi account %s", _marginfiAccountPk);
 
     return marginfiAccount;
   }
@@ -138,12 +134,7 @@ class MarginfiAccountReadonly {
 
     const _marginfiAccountPk = translateAddress(marginfiAccountPk);
 
-    return new MarginfiAccountReadonly(
-      _marginfiAccountPk,
-      client,
-      marginfiGroup,
-      accountData
-    );
+    return new MarginfiAccountReadonly(_marginfiAccountPk, client, marginfiGroup, accountData);
   }
 
   /**
@@ -153,8 +144,7 @@ class MarginfiAccountReadonly {
    * Check sanity against provided config.
    *
    * @param marginfiAccountPk Address of the target account
-   * @param config marginfi config
-   * @param program marginfi Anchor program
+   * @param client marginfi client
    * @param marginfiAccountRawData Encoded marginfi marginfi account data
    * @param marginfiGroup MarginfiGroup instance
    * @returns MarginfiAccount instance
@@ -165,16 +155,9 @@ class MarginfiAccountReadonly {
     marginfiAccountRawData: Buffer,
     marginfiGroup: MarginfiGroup
   ) {
-    const marginfiAccountData = MarginfiAccountReadonly.decode(
-      marginfiAccountRawData
-    );
+    const marginfiAccountData = MarginfiAccountReadonly.decode(marginfiAccountRawData);
 
-    return MarginfiAccountReadonly.fromAccountData(
-      marginfiAccountPk,
-      client,
-      marginfiAccountData,
-      marginfiGroup
-    );
+    return MarginfiAccountReadonly.fromAccountData(marginfiAccountPk, client, marginfiAccountData, marginfiGroup);
   }
 
   // --- Others
@@ -183,8 +166,10 @@ class MarginfiAccountReadonly {
    * Fetch marginfi account data.
    * Check sanity against provided config.
    *
+   * @param accountAddress accountAddress Address of the target account
    * @param config marginfi config
    * @param program marginfi Anchor program
+   * @param commitment Commitment level override
    * @returns Decoded marginfi account data struct
    */
   private static async _fetchAccountData(
@@ -193,21 +178,15 @@ class MarginfiAccountReadonly {
     program: MarginfiProgram,
     commitment?: Commitment
   ): Promise<MarginfiAccountData> {
-    const mergedCommitment =
-      commitment ??
-      program.provider.connection.commitment ??
-      DEFAULT_COMMITMENT;
+    const mergedCommitment = commitment ?? program.provider.connection.commitment ?? DEFAULT_COMMITMENT;
 
-    const data: MarginfiAccountData =
-      (await program.account.marginfiAccount.fetch(
-        accountAddress,
-        mergedCommitment
-      )) as any;
+    const data: MarginfiAccountData = (await program.account.marginfiAccount.fetch(
+      accountAddress,
+      mergedCommitment
+    )) as any;
 
     if (!data.group.equals(config.groupPk))
-      throw Error(
-        `Marginfi account tied to group ${data.group.toBase58()}. Expected: ${config.groupPk.toBase58()}`
-      );
+      throw Error(`Marginfi account tied to group ${data.group.toBase58()}. Expected: ${config.groupPk.toBase58()}`);
 
     return data;
   }
@@ -238,23 +217,16 @@ class MarginfiAccountReadonly {
    * Update instance data by fetching and storing the latest on-chain state.
    */
   async reload() {
-    require("debug")(`mfi:margin-account:${this.publicKey.toString()}:loader`)(
-      "Reloading account data"
-    );
-    const [marginfiGroupAi, marginfiAccountAi] =
-      await this.loadGroupAndAccountAi();
-    const marginfiAccountData = MarginfiAccountReadonly.decode(
-      marginfiAccountAi.data
-    );
+    require("debug")(`mfi:margin-account:${this.publicKey.toString()}:loader`)("Reloading account data");
+    const [marginfiGroupAi, marginfiAccountAi] = await this.loadGroupAndAccountAi();
+    const marginfiAccountData = MarginfiAccountReadonly.decode(marginfiAccountAi.data);
     if (!marginfiAccountData.group.equals(this._config.groupPk))
       throw Error(
         `Marginfi account tied to group ${marginfiAccountData.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`
       );
 
     const bankAddresses = this._config.banks.map((b) => b.address);
-    let bankAccountsData = await this._program.account.bank.fetchMultiple(
-      bankAddresses
-    );
+    let bankAccountsData = await this._program.account.bank.fetchMultiple(bankAddresses);
 
     let nullAccounts = [];
     for (let i = 0; i < bankAccountsData.length; i++) {
@@ -264,10 +236,9 @@ class MarginfiAccountReadonly {
       throw Error(`Failed to fetch banks ${nullAccounts}`);
     }
 
-    const pythAccounts =
-      await this._program.provider.connection.getMultipleAccountsInfo(
-        bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
-      );
+    const pythAccounts = await this._program.provider.connection.getMultipleAccountsInfo(
+      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
+    );
 
     const banks = bankAccountsData.map(
       (bd, index) =>
@@ -279,12 +250,7 @@ class MarginfiAccountReadonly {
         )
     );
 
-    this._group = MarginfiGroup.fromAccountDataRaw(
-      this._config,
-      this._program,
-      marginfiGroupAi.data,
-      banks
-    );
+    this._group = MarginfiGroup.fromAccountDataRaw(this._config, this._program, marginfiGroupAi.data, banks);
     this._updateFromAccountData(marginfiAccountData);
   }
 
@@ -296,26 +262,17 @@ class MarginfiAccountReadonly {
   private _updateFromAccountData(data: MarginfiAccountData) {
     this._authority = data.authority;
 
-    this._lendingAccount = data.lendingAccount.balances
-      .filter((la) => la.active)
-      .map((la) => new Balance(la));
+    this._lendingAccount = data.lendingAccount.balances.filter((la) => la.active).map((la) => new Balance(la));
   }
 
   private async loadGroupAndAccountAi(): Promise<AccountInfo<Buffer>[]> {
-    const debug = require("debug")(
-      `mfi:margin-account:${this.publicKey.toString()}:loader`
-    );
-    debug(
-      "Loading marginfi account %s, and group %s",
-      this.publicKey,
-      this._config.groupPk
-    );
+    const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:loader`);
+    debug("Loading marginfi account %s, and group %s", this.publicKey, this._config.groupPk);
 
-    let [marginfiGroupAi, marginfiAccountAi] =
-      await this.client.provider.connection.getMultipleAccountsInfo(
-        [this._config.groupPk, this.publicKey],
-        DEFAULT_COMMITMENT
-      );
+    let [marginfiGroupAi, marginfiAccountAi] = await this.client.provider.connection.getMultipleAccountsInfo(
+      [this._config.groupPk, this.publicKey],
+      DEFAULT_COMMITMENT
+    );
 
     if (!marginfiAccountAi) {
       throw Error("Marginfi account no found");
@@ -334,14 +291,8 @@ class MarginfiAccountReadonly {
     const [assets, liabilities] = this._lendingAccount
       .map((accountBalance) => {
         const bank = this._group.banks.get(accountBalance.bankPk.toBase58());
-        if (!bank)
-          throw Error(
-            `Bank ${shortenAddress(accountBalance.bankPk)} not found`
-          );
-        const { assets, liabilities } = accountBalance.getUsdValueWithPriceBias(
-          bank,
-          marginReqType
-        );
+        if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
+        const { assets, liabilities } = accountBalance.getUsdValueWithPriceBias(bank, marginReqType);
         return [assets, liabilities];
       })
       .reduce(
@@ -355,16 +306,14 @@ class MarginfiAccountReadonly {
   }
 
   public canBeLiquidated(): boolean {
-    const { assets, liabilities } = this.getHealthComponents(
-      MarginRequirementType.Maint
-    );
+    const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Maint);
 
     return assets < liabilities;
   }
 
   // Calculate the max withdraw of a lending account balance.
   // max_withdraw = max(free_collateral, balance_deposit) + max(free_collateral - balance_deposit, 0) / balance_liab_weight
-  public getMaxWithdrawForBank(bank: Bank): BigNumber {
+  public getMaxWithdrawForBank(_bank: Bank): BigNumber {
     // TODO
 
     return new BigNumber(0);
