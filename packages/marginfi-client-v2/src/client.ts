@@ -57,7 +57,7 @@ class MarginfiClient {
    * Fetch account data according to the config and instantiate the corresponding MarginfiAccount.
    *
    * @param config marginfi config
-   * @param wallet User wallet (used to pay fees and sign transations)
+   * @param wallet User wallet (used to pay fees and sign transactions)
    * @param connection Solana web.js Connection object
    * @param opts Solana web.js ConfirmOptions object
    * @returns MarginfiClient instance
@@ -184,7 +184,7 @@ class MarginfiClient {
   }
 
   /**
-   * Retrieves the addresses of all marginfi accounts in the udnerlying group.
+   * Retrieves the addresses of all marginfi accounts in the underlying group.
    *
    * @returns Account addresses
    */

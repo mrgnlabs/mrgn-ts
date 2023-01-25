@@ -6,7 +6,7 @@ import {
   PublicKey,
   Signer,
   Transaction,
-  TransactionSignature
+  TransactionSignature,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import {
@@ -15,7 +15,7 @@ import {
   PDA_BANK_INSURANCE_VAULT_AUTH_SEED,
   PDA_BANK_INSURANCE_VAULT_SEED,
   PDA_BANK_LIQUIDITY_VAULT_AUTH_SEED,
-  PDA_BANK_LIQUIDITY_VAULT_SEED
+  PDA_BANK_LIQUIDITY_VAULT_SEED,
 } from "../constants";
 import { BankVaultType, UiAmount } from "../types";
 import { Decimal } from "decimal.js";
