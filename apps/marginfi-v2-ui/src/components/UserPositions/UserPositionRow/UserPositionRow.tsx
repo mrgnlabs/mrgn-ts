@@ -103,16 +103,27 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
         }}
       >
         <div className="bg-transparent w-full max-w-[200px] flex flex-col justify-evenly p-1 px-3 min-w-fit">
-          <div className="text-sm text-[#868E95] min-w-[125px]">
+          <div
+            className="text-sm text-[#868E95] min-w-[125px]"
+            style={{
+              fontWeight: 400,
+            }}
+          >
             {position.isLending ? "Amount Lending" : "Amount Borrowing"}
           </div>
-          <div className="text-sm text-white flex flex-row gap-1">
+          <div
+            className="text-sm text-white flex flex-row gap-1"
+            style={{
+              fontWeight: 400,
+            }}
+          >
             {groupedNumberFormatter.format(position.amount)}
             <div
               className="text-[#868E95] px-1 hidden lg:flex justify-center items-center text-xs"
               style={{
                 backgroundColor: "rgba(113, 119, 126, 0.3)",
                 borderRadius: "4px",
+                fontWeight: 300,
               }}
             >
               {usdFormatter.format(position.usdValue)}
