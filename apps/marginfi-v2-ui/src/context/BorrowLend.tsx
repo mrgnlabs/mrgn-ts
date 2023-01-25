@@ -60,7 +60,10 @@ const BorrowLendStateProvider: FC<{
     if (!mfiClient) return;
     const userAccounts = await mfiClient.getMarginfiAccountsForAuthority();
     setUserAccounts(userAccounts);
-
+    console.log(
+      "Found accounts",
+      userAccounts.map((a) => a.publicKey.toBase58())
+    );
     if (userAccounts.length > 0) {
       setSelectedAccount(userAccounts[0]);
     }
