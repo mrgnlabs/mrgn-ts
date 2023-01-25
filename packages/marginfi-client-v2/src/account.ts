@@ -11,7 +11,7 @@ import {
   processTransaction,
   shortenAddress,
   uiToNative,
-  wrappedI80F48toBigNumber,
+  wrappedI80F48toBigNumber
 } from ".";
 import Bank, { BankData, PriceBias } from "./bank";
 import MarginfiGroup from "./group";
@@ -24,9 +24,9 @@ import {
   MarginfiConfig,
   MarginfiProgram,
   UiAmount,
-  WrappedI80F48,
+  WrappedI80F48
 } from "./types";
-import { createAssociatedTokenAccountInstruction } from "./utils/spl";
+import { createAssociatedTokenAccountIdempotentInstruction } from "./utils/spl";
 
 /**
  * Wrapper class around a specific marginfi account.
@@ -275,7 +275,7 @@ class MarginfiAccount {
       mint: bank.mint,
       owner: this.client.provider.wallet.publicKey,
     });
-    const createAtaIdempotentIx = createAssociatedTokenAccountInstruction(
+    const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
       this.client.provider.wallet.publicKey,
       userAta,
       this.client.provider.wallet.publicKey,
@@ -602,15 +602,6 @@ class MarginfiAccount {
 
     const priceLowestBias = bank.getPrice(PriceBias.Lowest);
     const depositWeight = bank.getAssetWeight(MarginRequirementType.Init);
-
-    console.log(
-      "balance: %s\nfreeCollateral: %s\nuntiedCollateralForBank: %s\npriceLowestBias: %s\ndepositWeight: %s",
-      balance.depositShares.toString(),
-      freeCollateral.toString(),
-      untiedCollateralForBank.toString(),
-      priceLowestBias.toString(),
-      depositWeight
-    );
 
     return untiedCollateralForBank.div(priceLowestBias.times(depositWeight));
   }
