@@ -91,7 +91,7 @@ const HealthFactor: FC<HealthMonitorProps> = ({ healthFactor }) => {
             fontSize: 16,
           }}
         >
-          {Math.floor(healthFactorPercent)}
+          {`${Math.floor(healthFactorPercent)}%`}
         </label>
       </div>
 
