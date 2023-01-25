@@ -4,16 +4,12 @@ import { FC } from "react";
 
 interface UserPositionRowHeaderProps {
   assetName: string;
-  // apy: number;
   icon?: string;
-  textBold?: boolean;
 }
 
 const UserPositionRowHeader: FC<UserPositionRowHeaderProps> = ({
   assetName,
-  // apy,
   icon,
-  textBold,
 }) => (
   <TableCell className="text-white h-full border-hidden max-w-fit min-w-fit px-0">
     <div
@@ -29,7 +25,7 @@ const UserPositionRowHeader: FC<UserPositionRowHeaderProps> = ({
         <div
           style={{
             fontFamily: "Aeonik Pro",
-            fontWeight: textBold ? 400 : 300,
+            fontWeight: 400,
           }}
         >
           {assetName}

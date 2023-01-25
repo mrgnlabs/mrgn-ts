@@ -32,7 +32,6 @@ const AssetRowMetric: FC<AssetRowMetricProps> = ({
           <div
             className="text-[#868E95] px-1 hidden lg:flex justify-center items-center text-xs"
             style={{
-              // fontSize: 10,
               backgroundColor: "rgba(113, 119, 126, 0.3)",
               borderRadius: "4px",
             }}

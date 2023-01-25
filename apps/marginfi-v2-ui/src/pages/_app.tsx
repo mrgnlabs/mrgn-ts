@@ -29,7 +29,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   // enable matomo heartbeat
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT === "alpha") {
-      init({ url: MATOMO_URL, siteId: "2" }); // NOTE: this SITE_ID hasn't been updated in matomo yet
+      init({ url: MATOMO_URL, siteId: "1" });
       // accurately measure the time spent in the visit
       push(["enableHeartBeatTimer"]);
     }
@@ -54,17 +54,17 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
           <TokenMetadataProvider>
             <BorrowLendStateProvider>
               <TokenBalancesProvider>
-                <Head>
-                  <title>marginfi</title>
-                  <meta name="description" content="marginfi v2 UI" />
-                  <meta name="viewport" content="width=device-width, initial-scale=1" />
-                  <link rel="icon" href="/favicon.ico" />
-                </Head>
-                <Navbar />
-                <div className="w-full flex flex-col justify-center items-center pt-[64px]">
-                  <Component {...pageProps} />
-                </div>
-                <ToastContainer position="bottom-left" theme="dark" />
+                  <Head>
+                    <title>marginfi</title>
+                    <meta name="description" content="marginfi v2 UI" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1" />
+                    <link rel="icon" href="/favicon.ico" />
+                  </Head>
+                  <Navbar />
+                  <div className="w-full flex flex-col justify-center items-center pt-[64px]">
+                    <Component {...pageProps} />
+                  </div>
+                  <ToastContainer position="bottom-left" theme="dark" />
               </TokenBalancesProvider>
             </BorrowLendStateProvider>
           </TokenMetadataProvider>
