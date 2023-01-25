@@ -5,6 +5,7 @@ import { NavbarCenterItem } from "./NavbarCenterItem";
 import AirdropZone from "./AirdropZone";
 import { WalletButton } from "./WalletButton";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { Button } from "@mui/material";
 
 // @todo implement second pretty navbar row
 const Navbar: FC = () => {
@@ -36,7 +37,22 @@ const Navbar: FC = () => {
               {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && <AirdropZone />}
             </div>
           </div>
-          <div className="h-full flex justify-center items-center gap-[10px] z-10">
+          <div className="h-full flex justify-center items-center gap-4 z-10">
+            <Link
+              href={"https://marginfi.canny.io/mrgnlend"}
+              className=""
+              // style={{
+              //   // border: 'solid red 1px',
+              //   color: '#FFF3D0'
+              // }}
+            >
+              <Button
+                className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
+                variant="text"
+              >
+                Submit Feedback
+              </Button>
+            </Link>
             <WalletButton />
           </div>
         </div>
