@@ -1,9 +1,9 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID } from "./spl";
 import BN from "bn.js";
 import { array, assert, Infer, number, object, string } from "superstruct";
 import { TokenMetadata } from "~/types";
 import tokenInfos from "../assets/token_info.json";
+import { TOKEN_PROGRAM_ID } from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
 
 // ================ token metadata ================
 

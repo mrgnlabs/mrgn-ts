@@ -9,14 +9,14 @@ import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
 import { MarginfiClient, nativeToUi } from "@mrgnlabs/marginfi-client-v2";
+import { WSOL_MINT } from "~/config";
+import { Keypair, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
   getAssociatedTokenAddressSync,
-} from "~/utils/spl";
-import { WSOL_MINT } from "~/config";
-import { Keypair, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
-import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
+} from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";

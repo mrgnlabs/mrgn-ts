@@ -1,10 +1,5 @@
-import {
-  Address,
-  BN,
-  BorshCoder,
-  translateAddress,
-} from "@project-serum/anchor";
-import { parseBaseData, parsePriceData } from "@pythnetwork/client";
+import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
+import { parsePriceData } from "@pythnetwork/client";
 import { Commitment, PublicKey } from "@solana/web3.js";
 import Bank, { BankData } from "./bank";
 import { DEFAULT_COMMITMENT } from "./constants";
@@ -26,12 +21,7 @@ class MarginfiGroup {
   /**
    * @internal
    */
-  private constructor(
-    config: MarginfiConfig,
-    program: MarginfiProgram,
-    rawData: MarginfiGroupData,
-    banks: Bank[]
-  ) {
+  private constructor(config: MarginfiConfig, program: MarginfiProgram, rawData: MarginfiGroupData, banks: Bank[]) {
     this.publicKey = config.groupPk;
     this._config = config;
     this._program = program;
@@ -55,6 +45,7 @@ class MarginfiGroup {
   get banks(): Map<string, Bank> {
     return this._banks;
   }
+
   // --- Factories
 
   /**
@@ -64,27 +55,17 @@ class MarginfiGroup {
    *
    * @param config marginfi config
    * @param program marginfi Anchor program
+   * @param commitment Commitment level override
    * @return MarginfiGroup instance
    */
-  static async fetch(
-    config: MarginfiConfig,
-    program: MarginfiProgram,
-    commitment?: Commitment
-  ) {
+  static async fetch(config: MarginfiConfig, program: MarginfiProgram, commitment?: Commitment) {
     const debug = require("debug")(`mfi:margin-group`);
     debug("Loading Marginfi Group %s", config.groupPk);
 
-    const accountData = await MarginfiGroup._fetchAccountData(
-      config,
-      program,
-      commitment
-    );
+    const accountData = await MarginfiGroup._fetchAccountData(config, program, commitment);
 
     const bankAddresses = config.banks.map((b) => b.address);
-    let bankAccountsData = await program.account.bank.fetchMultiple(
-      bankAddresses,
-      commitment
-    );
+    let bankAccountsData = await program.account.bank.fetchMultiple(bankAddresses, commitment);
 
     let nullAccounts = [];
     for (let i = 0; i < bankAccountsData.length; i++) {
@@ -94,10 +75,9 @@ class MarginfiGroup {
       throw Error(`Failed to fetch banks ${nullAccounts}`);
     }
 
-    const pythAccounts =
-      await program.provider.connection.getMultipleAccountsInfo(
-        bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
-      );
+    const pythAccounts = await program.provider.connection.getMultipleAccountsInfo(
+      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
+    );
 
     const banks = bankAccountsData.map(
       (bd, index) =>
@@ -121,6 +101,7 @@ class MarginfiGroup {
    * @param config marginfi config
    * @param program marginfi Anchor program
    * @param accountData Decoded marginfi group data
+   * @param banks Asset banks
    * @return MarginfiGroup instance
    */
   static fromAccountData(
@@ -140,15 +121,11 @@ class MarginfiGroup {
    *
    * @param config marginfi config
    * @param program marginfi Anchor program
-   * @param data Encoded marginfi group data
+   * @param rawData Encoded marginfi group data
+   * @param banks Asset banks
    * @return MarginfiGroup instance
    */
-  static fromAccountDataRaw(
-    config: MarginfiConfig,
-    program: MarginfiProgram,
-    rawData: Buffer,
-    banks: Bank[]
-  ) {
+  static fromAccountDataRaw(config: MarginfiConfig, program: MarginfiProgram, rawData: Buffer, banks: Bank[]) {
     const data = MarginfiGroup.decode(rawData);
     return MarginfiGroup.fromAccountData(config, program, data, banks);
   }
@@ -161,6 +138,7 @@ class MarginfiGroup {
    *
    * @param config marginfi config
    * @param program marginfi Anchor program
+   * @param commitment Commitment level override
    * @return Decoded marginfi group account data struct
    */
   private static async _fetchAccountData(
@@ -168,17 +146,9 @@ class MarginfiGroup {
     program: MarginfiProgram,
     commitment?: Commitment
   ): Promise<MarginfiGroupData> {
-    const mergedCommitment =
-      commitment ??
-      program.provider.connection.commitment ??
-      DEFAULT_COMMITMENT;
+    const mergedCommitment = commitment ?? program.provider.connection.commitment ?? DEFAULT_COMMITMENT;
 
-    const data: MarginfiGroupData = (await program.account.marginfiGroup.fetch(
-      config.groupPk,
-      mergedCommitment
-    )) as any;
-
-    return data;
+    return (await program.account.marginfiGroup.fetch(config.groupPk, mergedCommitment)) as any;
   }
 
   /**
@@ -207,17 +177,10 @@ class MarginfiGroup {
    * Update instance data by fetching and storing the latest on-chain state.
    */
   async reload(commitment?: Commitment) {
-    const rawData = await MarginfiGroup._fetchAccountData(
-      this._config,
-      this._program,
-      commitment
-    );
+    const rawData = await MarginfiGroup._fetchAccountData(this._config, this._program, commitment);
 
     const bankAddresses = this._config.banks.map((b) => b.address);
-    let bankAccountsData = await this._program.account.bank.fetchMultiple(
-      bankAddresses,
-      commitment
-    );
+    let bankAccountsData = await this._program.account.bank.fetchMultiple(bankAddresses, commitment);
 
     let nullAccounts = [];
     for (let i = 0; i < bankAccountsData.length; i++) {
@@ -227,10 +190,9 @@ class MarginfiGroup {
       throw Error(`Failed to fetch banks ${nullAccounts}`);
     }
 
-    const pythAccounts =
-      await this._program.provider.connection.getMultipleAccountsInfo(
-        bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
-      );
+    const pythAccounts = await this._program.provider.connection.getMultipleAccountsInfo(
+      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
+    );
 
     const banks = bankAccountsData.map(
       (bd, index) =>
@@ -253,9 +215,7 @@ class MarginfiGroup {
    * Get bank by label.
    */
   getBankByLabel(label: string): Bank | null {
-    return (
-      [...this._banks.values()].find((bank) => bank.label === label) ?? null
-    );
+    return [...this._banks.values()].find((bank) => bank.label === label) ?? null;
   }
 
   /**
@@ -267,9 +227,7 @@ class MarginfiGroup {
   }
 
   getBankByMint(mint: PublicKey): Bank | null {
-    return (
-      [...this._banks.values()].find((bank) => bank.mint.equals(mint)) ?? null
-    );
+    return [...this._banks.values()].find((bank) => bank.mint.equals(mint)) ?? null;
   }
 }
 

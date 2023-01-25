@@ -1,9 +1,4 @@
-import {
-  Keypair,
-  PublicKey,
-  Transaction,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import { Keypair, PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { Wallet } from "./types";
 
 /**
@@ -27,11 +22,7 @@ export class NodeWallet implements Wallet {
       Buffer.from(
         JSON.parse(
           require("fs").readFileSync(
-            process.env.MARGINFI_WALLET ||
-              require("path").join(
-                require("os").homedir(),
-                ".config/solana/id.json"
-              ),
+            process.env.MARGINFI_WALLET || require("path").join(require("os").homedir(), ".config/solana/id.json"),
             {
               encoding: "utf-8",
             }
@@ -48,9 +39,7 @@ export class NodeWallet implements Wallet {
   static anchor(): NodeWallet {
     const process = require("process");
     if (!process.env.ANCHOR_WALLET || process.env.ANCHOR_WALLET === "") {
-      throw new Error(
-        "expected environment variable `ANCHOR_WALLET` is not set."
-      );
+      throw new Error("expected environment variable `ANCHOR_WALLET` is not set.");
     }
     const payer = Keypair.fromSecretKey(
       Buffer.from(
@@ -64,9 +53,7 @@ export class NodeWallet implements Wallet {
     return new NodeWallet(payer);
   }
 
-  async signTransaction<T extends Transaction | VersionedTransaction>(
-    tx: T
-  ): Promise<T> {
+  async signTransaction<T extends Transaction | VersionedTransaction>(tx: T): Promise<T> {
     if ("version" in tx) {
       tx.sign([this.payer]);
     } else {
@@ -75,9 +62,7 @@ export class NodeWallet implements Wallet {
     return tx;
   }
 
-  async signAllTransactions<T extends Transaction | VersionedTransaction>(
-    txs: T[]
-  ): Promise<T[]> {
+  async signAllTransactions<T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]> {
     return txs.map((tx) => {
       if ("version" in tx) {
         tx.sign([this.payer]);

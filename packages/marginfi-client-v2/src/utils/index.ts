@@ -10,14 +10,14 @@ import {
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import {
-  PDA_BANK_LIQUIDITY_VAULT_AUTH_SEED,
-  PDA_BANK_INSURANCE_VAULT_AUTH_SEED,
   PDA_BANK_FEE_VAULT_AUTH_SEED,
-  PDA_BANK_LIQUIDITY_VAULT_SEED,
-  PDA_BANK_INSURANCE_VAULT_SEED,
   PDA_BANK_FEE_VAULT_SEED,
-} from "./constants";
-import { BankVaultType, UiAmount } from "./types";
+  PDA_BANK_INSURANCE_VAULT_AUTH_SEED,
+  PDA_BANK_INSURANCE_VAULT_SEED,
+  PDA_BANK_LIQUIDITY_VAULT_AUTH_SEED,
+  PDA_BANK_LIQUIDITY_VAULT_SEED,
+} from "../constants";
+import { BankVaultType, UiAmount } from "../types";
 import { Decimal } from "decimal.js";
 
 /**
@@ -32,10 +32,7 @@ export function loadKeypair(keypairPath: string): Keypair {
     keypairPath = path.join(require("os").homedir(), keypairPath.slice(1));
   }
   const keyPath = path.normalize(keypairPath);
-  const loaded = Keypair.fromSecretKey(
-    new Uint8Array(JSON.parse(require("fs").readFileSync(keyPath).toString()))
-  );
-  return loaded;
+  return Keypair.fromSecretKey(new Uint8Array(JSON.parse(require("fs").readFileSync(keyPath).toString())));
 }
 
 // /**
@@ -61,10 +58,7 @@ export async function processTransaction(
   signers?: Array<Signer>,
   opts?: ConfirmOptions
 ): Promise<TransactionSignature> {
-  const connection = new Connection(
-    provider.connection.rpcEndpoint,
-    provider.opts
-  );
+  const connection = new Connection(provider.connection.rpcEndpoint, provider.opts);
   const {
     context: { slot: minContextSlot },
     value: { blockhash, lastValidBlockHeight },
@@ -112,13 +106,10 @@ export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function wrappedI80F48toBigNumber(
-  { value }: { value: BN },
-  scaleDecimal: number = 0
-): BigNumber {
-  let numbers = new Decimal(
-    `${value.isNeg() ? "-" : ""}0b${value.abs().toString(2)}p-48`
-  ).dividedBy(10 ** scaleDecimal);
+export function wrappedI80F48toBigNumber({ value }: { value: BN }, scaleDecimal: number = 0): BigNumber {
+  let numbers = new Decimal(`${value.isNeg() ? "-" : ""}0b${value.abs().toString(2)}p-48`).dividedBy(
+    10 ** scaleDecimal
+  );
   return new BigNumber(numbers.toString());
 }
 
@@ -166,7 +157,7 @@ export function nativeToUi(amount: UiAmount | BN, decimals: number): number {
   return amt.div(10 ** decimals).toNumber();
 }
 
-function getBankVaultSeeds(type: BankVaultType): Buffer {
+export function getBankVaultSeeds(type: BankVaultType): Buffer {
   switch (type) {
     case BankVaultType.LiquidityVault:
       return PDA_BANK_LIQUIDITY_VAULT_SEED;
@@ -200,10 +191,7 @@ export function getBankVaultAuthority(
   bankPk: PublicKey,
   programId: PublicKey
 ): [PublicKey, number] {
-  return PublicKey.findProgramAddressSync(
-    [getBankVaultAuthoritySeeds(bankVaultType), bankPk.toBuffer()],
-    programId
-  );
+  return PublicKey.findProgramAddressSync([getBankVaultAuthoritySeeds(bankVaultType), bankPk.toBuffer()], programId);
 }
 
 // shorten the checksummed version of the input address to have 4 characters at start and end
@@ -219,19 +207,19 @@ const HOURS_PER_YEAR = 365.25 * 24;
 /**
  * Formula source: http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies
  *
- * @param interest {Number} APY (ie. 0.06 for 6%)
+ * @param apy {Number} APY (i.e. 0.06 for 6%)
  * @param compoundingFrequency {Number} Compounding frequency (times a year)
- * @returns {Number} APR (ie. 0.0582 for APY of 0.06)
+ * @returns {Number} APR (i.e. 0.0582 for APY of 0.06)
  */
-export const apyToApr = (apr: number, compoundingFrequency = HOURS_PER_YEAR) =>
-  ((1 + apr) ** (1 / compoundingFrequency) - 1) * compoundingFrequency;
+export const apyToApr = (apy: number, compoundingFrequency = HOURS_PER_YEAR) =>
+  ((1 + apy) ** (1 / compoundingFrequency) - 1) * compoundingFrequency;
 
 /**
  * Formula source: http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies
  *
- * @param apr {Number} APR (ie. 0.0582 for 5.82%)
+ * @param apr {Number} APR (i.e. 0.0582 for 5.82%)
  * @param compoundingFrequency {Number} Compounding frequency (times a year)
- * @returns {Number} APY (ie. 0.06 for APR of 0.0582)
+ * @returns {Number} APY (i.e. 0.06 for APR of 0.0582)
  */
 export const aprToApy = (apr: number, compoundingFrequency = HOURS_PER_YEAR) =>
   (1 + apr / compoundingFrequency) ** compoundingFrequency - 1;

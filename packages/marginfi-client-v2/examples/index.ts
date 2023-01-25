@@ -3,27 +3,19 @@ import { AccountType, getConfig, MarginfiClient, NodeWallet } from "../src";
 import MarginfiAccount from "../src/account";
 
 async function main() {
-  const connection = new Connection(
-    "https://devnet.genesysgo.net/",
-    "confirmed"
-  );
+  const connection = new Connection("https://devnet.genesysgo.net/", "confirmed");
   const wallet = NodeWallet.local();
   const config = await getConfig("devnet1");
   const client = await MarginfiClient.fetch(config, wallet, connection);
 
-  const programAddresses = await client.getAllProgramAccountAddresses(
-    AccountType.MarginfiGroup
-  );
+  const programAddresses = await client.getAllProgramAccountAddresses(AccountType.MarginfiGroup);
   console.log(programAddresses.map((key) => key.toBase58()));
 
   // const marginfiAccount = await client.createMarginfiAccount({
   //   dryRun: false,
   // });
 
-  const marginfiAccount = await MarginfiAccount.fetch(
-    "6tgsmyfNHVzZaDJ6bjSVrKBGVsrgpqHNzr7WDz3BeT7t",
-    client
-  );
+  const marginfiAccount = await MarginfiAccount.fetch("6tgsmyfNHVzZaDJ6bjSVrKBGVsrgpqHNzr7WDz3BeT7t", client);
 
   const group = marginfiAccount.group;
 

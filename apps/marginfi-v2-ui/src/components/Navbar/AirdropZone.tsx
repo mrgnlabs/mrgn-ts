@@ -4,10 +4,13 @@ import { NavbarCenterItem } from "./NavbarCenterItem";
 import styles from "./AirdropZone.module.css";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync } from "~/utils/spl";
 import { makeAirdropCollateralIx } from "~/utils";
 import { toast } from "react-toastify";
 import { shortenAddress } from "@mrgnlabs/marginfi-client-v2";
+import {
+  createAssociatedTokenAccountInstruction,
+  getAssociatedTokenAddressSync,
+} from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
 
 const SOL_AMOUNT = 2 * 10 ** 9;
 

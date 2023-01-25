@@ -1,25 +1,14 @@
 import { Connection } from "@solana/web3.js";
-import {
-  AccountType,
-  getConfig,
-  MarginfiClient,
-  NodeWallet,
-  shortenAddress,
-} from "../src";
-import MarginfiAccount, { MarginRequirementType } from "../src/account";
+import { AccountType, getConfig, MarginfiClient, NodeWallet, shortenAddress } from "../src";
+import { MarginRequirementType } from "../src/account";
 
 async function main() {
-  const connection = new Connection(
-    "https://devnet.genesysgo.net/",
-    "confirmed"
-  );
+  const connection = new Connection("https://devnet.genesysgo.net/", "confirmed");
   const wallet = NodeWallet.local();
-  const config = await getConfig("devnet1");
+  const config = await getConfig("dev");
   const client = await MarginfiClient.fetch(config, wallet, connection);
 
-  const programAddresses = await client.getAllProgramAccountAddresses(
-    AccountType.MarginfiGroup
-  );
+  const programAddresses = await client.getAllProgramAccountAddresses(AccountType.MarginfiGroup);
   console.log(programAddresses.map((key) => key.toBase58()));
 
   // const marginfiAccount = await MarginfiAccount.fetch(
@@ -45,10 +34,7 @@ async function main() {
 
   marginfiAccount.lendingAccount.forEach((balance) => {
     const bank = group.banks.get(balance.bankPk.toString())!;
-    const { assets, liabilities } = balance.getUsdValue(
-      bank,
-      MarginRequirementType.Equity
-    );
+    const { assets, liabilities } = balance.getUsdValue(bank, MarginRequirementType.Equity);
 
     console.log(
       "Balance for %s (%s) deposits: %s, borrows: %s",
