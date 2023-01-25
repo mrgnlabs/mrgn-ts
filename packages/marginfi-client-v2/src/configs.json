@@ -1,6 +1,6 @@
 [
     {
-        "label": "mainnet1",
+        "label": "alpha",
         "cluster": "mainnet",
         "program": "yyyxaNHJP5FiDhmQW8RkBkp1jTL2cyxJmhMdWpJfsiy",
         "group": "HEPD1vwbC6AoC5LvYp5zQ5ya58BDaMhNshficvSsU7xY",
@@ -16,7 +16,7 @@
         ]
     },
     {
-        "label": "mainnet2",
+        "label": "staging",
         "cluster": "mainnet",
         "program": "yyyxaNHJP5FiDhmQW8RkBkp1jTL2cyxJmhMdWpJfsiy",
         "group": "7xNRPf4qqgDAkvDEgkRuC4SevR1RUxzosoRb7GsaVsqa",
@@ -32,7 +32,7 @@
         ]
     },
     {
-        "label": "devnet1",
+        "label": "dev",
         "cluster": "devnet",
         "program": "uwuyG6VmYrDk8Q3FfQ7wZhuhbi8ExweW74BrmT3vM1i",
         "group": "F8hrHpeAwGZVNYD4Nf24iw4VHJXLuFQp7uZt5hTitYx8",
