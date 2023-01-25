@@ -70,12 +70,10 @@ const HealthFactor: FC<HealthMonitorProps> = ({ healthFactor }) => {
     .toNumber();
 
   const openTooltip = () => {
-    console.log("open");
     setShowTooltip(true);
   };
 
   const closeTooltip = () => {
-    console.log("close");
     setShowTooltip(false);
   };
 

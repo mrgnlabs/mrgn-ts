@@ -57,8 +57,8 @@ const AssetRow: FC<{
     [isInLendingMode, bank]
   );
 
-  const maxWithdraw = useMemo(
-    () => marginfiAccount?.getMaxWithdrawForBank(bank).toNumber() ?? 0,
+  const maxBorrow = useMemo(
+    () => (marginfiAccount?.getMaxBorrowForBank(bank).toNumber() ?? 0) * 0.95,
     [marginfiAccount, bank]
   );
 
@@ -230,7 +230,7 @@ const AssetRow: FC<{
           <AssetRowInputBox
             value={borrowOrLendAmount}
             setValue={setBorrowOrLendAmount}
-            maxValue={isInLendingMode ? walletBalance : maxWithdraw * 0.9}
+            maxValue={isInLendingMode ? walletBalance : maxBorrow * 0.9}
             maxDecimals={bank.mintDecimals}
           />
         </TableCell>
