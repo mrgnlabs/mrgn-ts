@@ -29,7 +29,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   // enable matomo heartbeat
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT === "alpha") {
-      init({ url: MATOMO_URL, siteId: "2" }); // NOTE: this SITE_ID hasn't been updated in matomo yet
+      init({ url: MATOMO_URL, siteId: "1" });
       // accurately measure the time spent in the visit
       push(["enableHeartBeatTimer"]);
     }
