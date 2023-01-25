@@ -47,7 +47,7 @@ const Navbar: FC = () => {
               // }}
             >
               <Button
-                className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black"
+                className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
                 variant="text"
               >
                 Submit Feedback
