@@ -20,6 +20,7 @@ import {
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
+const WALLET_BALANCE_MARGIN_SOL = 0.1;
 
 const AssetRow: FC<{
   tokenBalance: number;
@@ -57,14 +58,19 @@ const AssetRow: FC<{
     [isInLendingMode, bank]
   );
 
-  const maxBorrow = useMemo(
-    () => (marginfiAccount?.getMaxBorrowForBank(bank).toNumber() ?? 0) * 0.95,
-    [marginfiAccount, bank]
-  );
-
   const walletBalance = useMemo(
     () => (bank.mint.equals(WSOL_MINT) ? tokenBalance + nativeSol : tokenBalance),
     [bank.mint, nativeSol, tokenBalance]
+  );
+
+  const maxDeposit = useMemo(
+    () => (bank.mint.equals(WSOL_MINT) ? walletBalance - WALLET_BALANCE_MARGIN_SOL : walletBalance),
+    [marginfiAccount, bank]
+  );
+
+  const maxBorrow = useMemo(
+    () => (marginfiAccount?.getMaxBorrowForBank(bank).toNumber() ?? 0) * 0.95,
+    [marginfiAccount, bank]
   );
 
   const { assetPrice, totalPoolDeposits, totalPoolBorrows } = useMemo(
@@ -230,7 +236,7 @@ const AssetRow: FC<{
           <AssetRowInputBox
             value={borrowOrLendAmount}
             setValue={setBorrowOrLendAmount}
-            maxValue={isInLendingMode ? walletBalance : maxBorrow * 0.9}
+            maxValue={isInLendingMode ? maxDeposit : maxBorrow}
             maxDecimals={bank.mintDecimals}
           />
         </TableCell>
