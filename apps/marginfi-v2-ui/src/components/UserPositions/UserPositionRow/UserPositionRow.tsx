@@ -82,63 +82,20 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
   }, [marginfiAccount, withdrawOrRepayAmount, refreshBorrowLendState, position]);
 
   return (
-    <TableRow
-      sx={{
-        "&:last-child td, &:last-child th": {
-          border: 0,
-          padding: 0,
-        },
-      }}
-      style={{
-        fontFamily: "Aeonik Pro",
-      }}
-      className="w-full h-full flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 rounded-xl gap-2 lg:gap-4 border-solid border-[#1C2125] border rounded-xl"
-    >
-      <UserPositionRowHeader assetName={position.assetName} icon={position.tokenMetadata.icon} />
-
-      <TableCell
-        className="text-white text-sm m-0 py-1 px-0 font-light"
-        style={{
-          fontFamily: "Aeonik Pro",
-          borderBottom: "solid rgba(0,0,0,0) 2px",
-        }}
-      >
-        <div className="bg-transparent w-full max-w-[200px] flex flex-col justify-evenly p-1 px-3 min-w-fit">
-          <div
-            className="text-sm text-[#868E95] min-w-[125px]"
-            style={{
-              fontWeight: 400,
-            }}
-          >
+    <TableRow className="font-aeonik w-full h-full flex justify-between items-center h-[78px] py-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+      <TableCell className="font-aeonik font-light w-full h-10 flex flex-row justify-between items-center m-0 py-1 px-0 text-white text-sm border-solid border-b-black border-b-[#00000000]">
+        <UserPositionRowHeader assetName={position.assetName} icon={position.tokenMetadata.icon} />
+        <div className="bg-transparent max-w-[200px] min-w-fit flex flex-col justify-evenly p-1 px-3">
+          <div className=" text-sm text-[#868E95] min-w-[118px]">
             {position.isLending ? "Amount Lending" : "Amount Borrowing"}
           </div>
-          <div
-            className="text-sm text-white flex flex-row gap-1"
-            style={{
-              fontWeight: 400,
-            }}
-          >
+          <div className="font-normal text-sm text-white flex flex-row gap-1">
             {groupedNumberFormatter.format(position.amount)}
-            <div
-              className="text-[#868E95] px-1 hidden lg:flex justify-center items-center text-xs"
-              style={{
-                backgroundColor: "rgba(113, 119, 126, 0.3)",
-                borderRadius: "4px",
-                fontWeight: 300,
-              }}
-            >
+            <div className="text-[#868E95] font-light px-1 hidden lg:flex justify-center items-center text-xs rounded bg-usd-equiv">
               {usdFormatter.format(position.usdValue)}
             </div>
           </div>
         </div>
-      </TableCell>
-
-      <TableCell
-        className="py-1 px-0 h-10 min-w-[120px] border-hidden flex justify-center items-center hidden sm:flex"
-        style={{
-          borderBottom: "solid rgba(0,0,0,0) 2px",
-        }}
-      >
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
@@ -147,13 +104,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
         />
       </TableCell>
 
-      <TableCell
-        className="flex p-0 h-full justify-end items-center hidden sm:flex"
-        style={{
-          paddingRight: 10,
-          borderBottom: "solid rgba(0,0,0,0) 2px",
-        }}
-      >
+      <TableCell className="flex p-0 pr-[10px] h-full justify-end items-center sm:flex border-solid border-b-black border-b-[#00000000]">
         <UserPositionRowAction onClick={withdrawOrRepay}>
           {position.isLending ? "Withdraw" : "Repay"}
         </UserPositionRowAction>

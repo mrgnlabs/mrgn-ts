@@ -212,7 +212,7 @@ const AssetRow: FC<{
   ]);
 
   return (
-    <TableRow className="flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+    <TableRow className="h-full flex justify-between items-center h-[78px] p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
       <AssetRowHeader assetName={bank.label} apy={apy} icon={tokenMetadata.icon} isInLendingMode={isInLendingMode} />
 
       <TableCell className="h-full w-full flex py-1 px-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
@@ -248,7 +248,7 @@ const AssetRow: FC<{
       </TableCell>
 
       {isConnected && (
-        <TableCell className="py-1 px-0 h-10 min-w-[120px] border-hidden flex justify-center items-center hidden md:flex">
+        <TableCell className="py-1 px-0 h-10 border-hidden flex justify-center items-center">
           <AssetRowInputBox
             value={borrowOrLendAmount}
             setValue={setBorrowOrLendAmount}
@@ -258,7 +258,7 @@ const AssetRow: FC<{
         </TableCell>
       )}
 
-      <TableCell className="p-1 h-10 border-hidden flex justify-center items-center hidden md:flex">
+      <TableCell className="p-1 h-10 border-hidden flex justify-center items-center">
         <div className="h-full w-full">
           {marginfiAccount === null ? (
             <Tooltip title="User account while be automatically created on first lend" placement="top">

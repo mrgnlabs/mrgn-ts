@@ -13,7 +13,7 @@ const Navbar: FC = () => {
 
   return (
     <header>
-      <nav className="fixed w-full top-0 h-[64px] z-20 backdrop-blur-md">
+      <nav className="fixed w-full top-0 h-[64px] z-10 backdrop-blur-md">
         <div
           className="w-full top-0 flex justify-between items-center h-[64px] text-2xl z-10"
           style={{

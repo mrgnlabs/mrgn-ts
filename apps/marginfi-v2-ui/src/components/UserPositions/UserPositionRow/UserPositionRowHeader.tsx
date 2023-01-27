@@ -8,7 +8,7 @@ interface UserPositionRowHeaderProps {
 }
 
 const UserPositionRowHeader: FC<UserPositionRowHeaderProps> = ({ assetName, icon }) => (
-  <TableCell className="text-white h-full border-hidden max-w-fit min-w-fit px-0">
+  <TableCell className="text-white h-full min-w-[90px] flex justify-start items-center px-0.5 lg:pr-0 gap-1 border-hidden">
     <div
       className="h-full w-full flex justify-start items-center p-0 text-white"
       style={{

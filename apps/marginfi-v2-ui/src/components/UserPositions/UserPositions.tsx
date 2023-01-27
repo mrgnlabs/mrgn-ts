@@ -18,12 +18,10 @@ const UserPositions: FC = () => {
     <>
       {isLending && selectedAccount && (
         <Card elevation={0} className="bg-transparent w-full p-0 grid">
-          <div className="text-2xl my-8 text-white pl-1" style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
-            Lending
-          </div>
+          <div className="font-aeonik font-normal text-2xl my-8 text-white pl-1">Lending</div>
           <TableContainer>
-            <Table className="table-fixed">
-              <TableBody className="flex flex-col gap-4">
+            <Table className="w-full table-fixed">
+              <TableBody className="w-full flex flex-col gap-4">
                 {accountSummary.positions
                   .filter((p) => p.isLending && roundToDecimalPlace(p.amount, p.bank.mintDecimals) > 0)
                   .map((position, index) => (
