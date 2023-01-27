@@ -47,7 +47,7 @@ const UserPositions: FC = () => {
               <Table className="table-fixed">
                 <TableBody>
                   {accountSummary.positions
-                    .filter((p) => !p.isLending)
+                    .filter((p) => !p.isLending && roundToDecimalPlace(p.amount, p.bank.mintDecimals) > 0)
                     .map((position, index) => (
                       <UserPositionRow
                         key={index}
