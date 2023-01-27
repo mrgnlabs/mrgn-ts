@@ -64,7 +64,7 @@ const AssetRow: FC<{
   );
 
   const maxDeposit = useMemo(
-    () => (bank.mint.equals(WSOL_MINT) ? walletBalance - WALLET_BALANCE_MARGIN_SOL : walletBalance),
+    () => (bank.mint.equals(WSOL_MINT) ? Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0) : walletBalance),
     [marginfiAccount, bank]
   );
 
@@ -84,6 +84,17 @@ const AssetRow: FC<{
 
   const borrowOrLend = useCallback(async () => {
     if (marginfiClient === null) throw Error("Marginfi client not ready");
+
+    if (isInLendingMode && maxDeposit === 0) {
+      toast.error(`You don't have any ${bank.label} to lend in your wallet.`);
+      return;
+    }
+
+    if ((!isInLendingMode) && maxBorrow === 0) {
+      toast.error(`You cannot borrow any ${bank.label} right now.`);
+      return;
+    }
+
     if (borrowOrLendAmount <= 0) {
       toast.error("Please enter an amount over 0.");
       return;
