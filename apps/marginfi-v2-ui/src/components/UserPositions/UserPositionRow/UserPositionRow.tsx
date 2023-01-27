@@ -7,6 +7,7 @@ import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
 import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowHeader } from "./UserPositionRowHeader";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
+import { roundToDecimalPlace } from "~/utils";
 
 const WITHDRAW_OR_REPAY_TOAST_ID = "withdraw-or-repay";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
@@ -141,7 +142,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
-          maxValue={position.amount}
+          maxValue={roundToDecimalPlace(position.amount, position.bank.mintDecimals)}
           maxDecimals={position.bank.mintDecimals}
         />
       </TableCell>
