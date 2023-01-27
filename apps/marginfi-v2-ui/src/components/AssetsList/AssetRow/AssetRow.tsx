@@ -8,7 +8,7 @@ import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
-import { MarginfiClient, nativeToUi } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiClient, nativeToUi, uiToNative } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT } from "~/config";
 import { Keypair, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
@@ -17,6 +17,7 @@ import {
   createSyncNativeInstruction,
   getAssociatedTokenAddressSync,
 } from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
+import { roundToDecimalPlace } from "~/utils";
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
@@ -64,12 +65,16 @@ const AssetRow: FC<{
   );
 
   const maxDeposit = useMemo(
-    () => (bank.mint.equals(WSOL_MINT) ? Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0) : walletBalance),
+    () =>
+      roundToDecimalPlace(
+        bank.mint.equals(WSOL_MINT) ? Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0) : walletBalance,
+        bank.mintDecimals
+      ),
     [marginfiAccount, bank]
   );
 
   const maxBorrow = useMemo(
-    () => (marginfiAccount?.getMaxBorrowForBank(bank).toNumber() ?? 0) * 0.95,
+    () => roundToDecimalPlace((marginfiAccount?.getMaxBorrowForBank(bank).toNumber() ?? 0) * 0.95, bank.mintDecimals),
     [marginfiAccount, bank]
   );
 
@@ -90,7 +95,7 @@ const AssetRow: FC<{
       return;
     }
 
-    if ((!isInLendingMode) && maxBorrow === 0) {
+    if (!isInLendingMode && maxBorrow === 0) {
       toast.error(`You cannot borrow any ${bank.label} right now.`);
       return;
     }
@@ -135,7 +140,7 @@ const AssetRow: FC<{
             SystemProgram.transfer({
               fromPubkey: _marginfiAccount.authority,
               toPubkey: ata,
-              lamports: (borrowOrLendAmount - tokenBalance) * 10 ** 9,
+              lamports: uiToNative(borrowOrLendAmount - tokenBalance, bank.mintDecimals).toNumber(),
             })
           );
           ixs.push(createSyncNativeInstruction(ata));
