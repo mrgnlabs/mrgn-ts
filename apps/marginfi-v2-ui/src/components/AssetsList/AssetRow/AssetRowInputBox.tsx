@@ -1,5 +1,5 @@
-import { TextField, InputAdornment, Button } from "@mui/material";
-import { FC, useCallback } from "react";
+import { InputAdornment, TextField } from "@mui/material";
+import { FC, MouseEventHandler, useCallback } from "react";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import { toast } from "react-toastify";
 
@@ -50,11 +50,8 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({ value, setValue, maxValue, max
       size="small"
       max={maxValue}
       InputProps={{
-        className: "bg-[#1C2125] text-[#e1e1e1] text-sm rounded-lg pr-0 w-50 h-12 font-light",
-        style: {
-          fontFamily: "Aeonik Pro",
-        },
-        endAdornment: <MaxInputAdornment onClick={onMaxClick} disabled={disabled} />,
+        className: "font-aeonik min-w-[150px] h-12 mx-3 px-0 bg-[#1C2125] text-[#e1e1e1] text-sm font-light rounded-lg",
+        endAdornment: <MaxInputAdornment onClick={onMaxClick} />,
       }}
     />
   );
@@ -62,31 +59,18 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({ value, setValue, maxValue, max
 
 // @todo not happy with how this looks on small screens
 const MaxInputAdornment: FC<{
-  onClick: React.MouseEventHandler<HTMLButtonElement>;
+  onClick: MouseEventHandler<HTMLDivElement>;
   disabled?: boolean;
 }> = ({ onClick, disabled }) => (
-  <InputAdornment
-    position="end"
-    className="h-full"
-    style={{
-      width: "45px",
-    }}
-  >
-    <Button
-      classes={{
-        root: "p-0 text-[#868E95] text-sm lowercase h-9 font-light flex justify-start pl-1",
-      }}
-      style={{
-        fontFamily: "Aeonik Pro",
-      }}
-      sx={{ "&:hover": { backgroundColor: "transparent" } }}
+  <InputAdornment position="end" classes={{ root: "max-w-[40px] h-full" }}>
+    <div
+      className={`font-aeonik p-0 pr-4 text-[#868E95] text-sm lowercase h-9 font-light flex justify-center items-center hover:bg-transparent ${
+        disabled ? "cursor-default" : "cursor-pointer"
+      }`}
       onClick={onClick}
-      variant="text"
-      disableRipple
-      disabled={disabled}
     >
       max
-    </Button>
+    </div>
   </InputAdornment>
 );
 

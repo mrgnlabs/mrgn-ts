@@ -1,6 +1,6 @@
 import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { AccountSummary, AssetsList, UserPositions, MultipleAccountsFoundWarning } from "~/components";
+import { AccountSummary, AssetsList, MultipleAccountsFoundWarning, UserPositions } from "~/components";
 import { useBorrowLendState } from "~/context/BorrowLend";
 import { PageHeader } from "~/components/PageHeader";
 

@@ -8,7 +8,7 @@ import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
-import { MarginfiClient, nativeToUi } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiClient, nativeToUi, uiToNative } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT } from "~/config";
 import { Keypair, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
@@ -17,6 +17,7 @@ import {
   createSyncNativeInstruction,
   getAssociatedTokenAddressSync,
 } from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
+import { roundToDecimalPlace } from "~/utils";
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
@@ -64,12 +65,16 @@ const AssetRow: FC<{
   );
 
   const maxDeposit = useMemo(
-    () => (bank.mint.equals(WSOL_MINT) ? walletBalance - WALLET_BALANCE_MARGIN_SOL : walletBalance),
+    () =>
+      roundToDecimalPlace(
+        bank.mint.equals(WSOL_MINT) ? Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0) : walletBalance,
+        bank.mintDecimals
+      ),
     [marginfiAccount, bank]
   );
 
   const maxBorrow = useMemo(
-    () => (marginfiAccount?.getMaxBorrowForBank(bank).toNumber() ?? 0) * 0.95,
+    () => roundToDecimalPlace((marginfiAccount?.getMaxBorrowForBank(bank).toNumber() ?? 0) * 0.95, bank.mintDecimals),
     [marginfiAccount, bank]
   );
 
@@ -84,6 +89,17 @@ const AssetRow: FC<{
 
   const borrowOrLend = useCallback(async () => {
     if (marginfiClient === null) throw Error("Marginfi client not ready");
+
+    if (isInLendingMode && maxDeposit === 0) {
+      toast.error(`You don't have any ${bank.label} to lend in your wallet.`);
+      return;
+    }
+
+    if (!isInLendingMode && maxBorrow === 0) {
+      toast.error(`You cannot borrow any ${bank.label} right now.`);
+      return;
+    }
+
     if (borrowOrLendAmount <= 0) {
       toast.error("Please enter an amount over 0.");
       return;
@@ -124,7 +140,7 @@ const AssetRow: FC<{
             SystemProgram.transfer({
               fromPubkey: _marginfiAccount.authority,
               toPubkey: ata,
-              lamports: (borrowOrLendAmount - tokenBalance) * 10 ** 9,
+              lamports: uiToNative(borrowOrLendAmount - tokenBalance, bank.mintDecimals).toNumber(),
             })
           );
           ixs.push(createSyncNativeInstruction(ata));
@@ -196,7 +212,7 @@ const AssetRow: FC<{
   ]);
 
   return (
-    <TableRow className="flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+    <TableRow className="h-full flex justify-between items-center h-[78px] p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
       <AssetRowHeader assetName={bank.label} apy={apy} icon={tokenMetadata.icon} isInLendingMode={isInLendingMode} />
 
       <TableCell className="h-full w-full flex py-1 px-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
@@ -232,7 +248,7 @@ const AssetRow: FC<{
       </TableCell>
 
       {isConnected && (
-        <TableCell className="py-1 px-0 h-10 min-w-[120px] border-hidden flex justify-center items-center hidden md:flex">
+        <TableCell className="py-1 px-0 h-10 border-hidden flex justify-center items-center">
           <AssetRowInputBox
             value={borrowOrLendAmount}
             setValue={setBorrowOrLendAmount}
@@ -242,7 +258,7 @@ const AssetRow: FC<{
         </TableCell>
       )}
 
-      <TableCell className="p-1 h-10 border-hidden flex justify-center items-center hidden md:flex">
+      <TableCell className="p-1 h-10 border-hidden flex justify-center items-center">
         <div className="h-full w-full">
           {marginfiAccount === null ? (
             <Tooltip title="User account while be automatically created on first lend" placement="top">

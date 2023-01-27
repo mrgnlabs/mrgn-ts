@@ -1,5 +1,5 @@
-import { TextField, InputAdornment, Button } from "@mui/material";
-import { FC } from "react";
+import { InputAdornment, TextField } from "@mui/material";
+import { FC, MouseEventHandler } from "react";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 
 interface UserPositionRowInputBoxProps {
@@ -39,10 +39,7 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({ value, setV
       size="small"
       max={maxValue}
       InputProps={{
-        className: "bg-[#1C2125] text-[#e1e1e1] text-sm rounded-lg pr-0 w-50 h-12 font-light",
-        style: {
-          fontFamily: "Aeonik Pro",
-        },
+        className: "font-aeonik min-w-[150px] h-12 mx-3 px-0 bg-[#1C2125] text-[#e1e1e1] text-sm font-light rounded-lg",
         endAdornment: <MaxInputAdornment onClick={onClick} />,
       }}
     />
@@ -51,29 +48,15 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({ value, setV
 
 // @todo not happy with how this looks on small screens
 const MaxInputAdornment: FC<{
-  onClick: React.MouseEventHandler<HTMLButtonElement>;
+  onClick: MouseEventHandler<HTMLDivElement>;
 }> = ({ onClick }) => (
-  <InputAdornment
-    position="end"
-    className="h-full"
-    style={{
-      width: "45px",
-    }}
-  >
-    <Button
-      classes={{
-        root: "p-0 text-[#868E95] text-sm lowercase h-9 font-light flex justify-start pl-1",
-      }}
-      style={{
-        fontFamily: "Aeonik Pro",
-      }}
-      sx={{ "&:hover": { backgroundColor: "transparent" } }}
+  <InputAdornment position="end" classes={{ root: "max-w-[40px] h-full" }}>
+    <div
+      className="font-aeonik p-0 pr-4 text-[#868E95] text-sm lowercase h-9 font-light flex justify-center items-center hover:bg-transparent cursor-pointer"
       onClick={onClick}
-      variant="text"
-      disableRipple
     >
       max
-    </Button>
+    </div>
   </InputAdornment>
 );
 
