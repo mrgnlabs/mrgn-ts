@@ -2,6 +2,7 @@ import React, { FC, useMemo } from "react";
 import { Card, Table, TableBody, TableContainer } from "@mui/material";
 import { useBorrowLendState } from "~/context";
 import UserPositionRow from "./UserPositionRow";
+import { roundToDecimalPlace } from "~/utils";
 
 const UserPositions: FC = () => {
   const { accountSummary, selectedAccount, refreshData } = useBorrowLendState();
@@ -24,7 +25,7 @@ const UserPositions: FC = () => {
             <Table className="table-fixed">
               <TableBody className="flex flex-col gap-4">
                 {accountSummary.positions
-                  .filter((p) => p.isLending)
+                  .filter((p) => p.isLending && roundToDecimalPlace(p.amount, p.bank.mintDecimals) > 0)
                   .map((position, index) => (
                     <UserPositionRow
                       key={index}
