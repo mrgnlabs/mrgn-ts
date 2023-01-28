@@ -44,7 +44,10 @@ const BorrowLendStateProvider: FC<{
       const roClient = await MarginfiReadonlyClient.fetch(config.mfiConfig, connection);
       setMfiReadonlyClient(roClient);
 
-      if (!anchorWallet) return;
+      if (!anchorWallet) {
+        setMfiClient(null);
+        return;
+      }
 
       const client = await MarginfiClient.fetch(
         config.mfiConfig,
@@ -57,14 +60,21 @@ const BorrowLendStateProvider: FC<{
   }, [anchorWallet, connection]);
 
   const refreshUserData = useCallback(async () => {
-    if (!mfiClient) return;
+    if (!mfiClient) {
+      setUserAccounts([]);
+      setSelectedAccount(null);
+      return;
+    }
+
     const userAccounts = await mfiClient.getMarginfiAccountsForAuthority();
     setUserAccounts(userAccounts);
     console.log(
       "Found accounts",
       userAccounts.map((a) => a.publicKey.toBase58())
     );
-    if (userAccounts.length > 0) {
+    if (userAccounts.length === 0) {
+      setSelectedAccount(null);
+    } else {
       setSelectedAccount(userAccounts[0]);
     }
   }, [mfiClient]);
@@ -99,7 +109,10 @@ const BorrowLendStateProvider: FC<{
   }, [refreshData]);
 
   useEffect(() => {
-    if (selectedAccount === null) return;
+    if (selectedAccount === null) {
+      setAccountSummary(DEFAULT_ACCOUNT_SUMMARY);
+      return;
+    }
     setAccountSummary(computeAccountSummary(selectedAccount, tokenMetadataMap));
   }, [selectedAccount, tokenMetadataMap]);
 

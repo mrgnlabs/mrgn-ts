@@ -21,11 +21,12 @@ import { roundToDecimalPlace } from "~/utils";
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
+const ACCOUNT_DETECTION_ERROR_TOAST_ID = "account-detection-error";
 const WALLET_BALANCE_MARGIN_SOL = 0.1;
 
 const AssetRow: FC<{
   tokenBalance: number;
-  nativeSol: number;
+  nativeSolBalance: number;
   isInLendingMode: boolean;
   isConnected: boolean;
   bank: Bank;
@@ -35,7 +36,7 @@ const AssetRow: FC<{
   refreshBorrowLendState: () => Promise<void>;
 }> = ({
   tokenBalance,
-  nativeSol,
+  nativeSolBalance,
   isInLendingMode,
   isConnected,
   bank,
@@ -60,18 +61,17 @@ const AssetRow: FC<{
   );
 
   const walletBalance = useMemo(
-    () => (bank.mint.equals(WSOL_MINT) ? tokenBalance + nativeSol : tokenBalance),
-    [bank.mint, nativeSol, tokenBalance]
+    () => (bank.mint.equals(WSOL_MINT) ? tokenBalance + nativeSolBalance : tokenBalance),
+    [bank.mint, nativeSolBalance, tokenBalance]
   );
 
-  const maxDeposit = useMemo(
-    () =>
-      roundToDecimalPlace(
-        bank.mint.equals(WSOL_MINT) ? Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0) : walletBalance,
-        bank.mintDecimals
-      ),
-    [marginfiAccount, bank]
-  );
+  const maxDeposit = useMemo(() => {
+    if (bank.mint.equals(WSOL_MINT)) {
+      return roundToDecimalPlace(Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0), bank.mintDecimals);
+    } else {
+      return roundToDecimalPlace(walletBalance, bank.mintDecimals);
+    }
+  }, [marginfiAccount, bank]);
 
   const maxBorrow = useMemo(
     () => roundToDecimalPlace((marginfiAccount?.getMaxBorrowForBank(bank).toNumber() ?? 0) * 0.95, bank.mintDecimals),
@@ -112,6 +112,38 @@ const AssetRow: FC<{
           toast.loading("Creating account", {
             toastId: BORROW_OR_LEND_TOAST_ID,
           });
+
+          const userAccounts = await marginfiClient.getMarginfiAccountsForAuthority();
+          if (userAccounts.length > 0) {
+            toast.update(BORROW_OR_LEND_TOAST_ID, {
+              render: "Uh oh, data seems out-of-sync",
+              toastId: BORROW_OR_LEND_TOAST_ID,
+              type: toast.TYPE.WARNING,
+              autoClose: 3000,
+              isLoading: false,
+            });
+            toast.loading("Refreshing data...", { toastId: ACCOUNT_DETECTION_ERROR_TOAST_ID });
+            try {
+              await refreshBorrowLendState();
+              toast.update(ACCOUNT_DETECTION_ERROR_TOAST_ID, {
+                render: "Refreshing data... Done. Please try again",
+                type: toast.TYPE.SUCCESS,
+                autoClose: 3000,
+                isLoading: false,
+              });
+            } catch (error: any) {
+              toast.update(ACCOUNT_DETECTION_ERROR_TOAST_ID, {
+                render: `Error while reloading state: ${error.message}`,
+                type: toast.TYPE.ERROR,
+                autoClose: 5000,
+                isLoading: false,
+              });
+              console.log("Error while reloading state");
+              console.log(error);
+            }
+            return;
+          }
+
           _marginfiAccount = await marginfiClient.createMarginfiAccount();
           toast.update(BORROW_OR_LEND_TOAST_ID, {
             render: `Lending ${borrowOrLendAmount} ${bank.label}`,
@@ -153,6 +185,12 @@ const AssetRow: FC<{
         } else {
           await _marginfiAccount.deposit(borrowOrLendAmount, bank);
         }
+        toast.update(BORROW_OR_LEND_TOAST_ID, {
+          render: `Lending ${borrowOrLendAmount} ${bank.label} 👍`,
+          type: toast.TYPE.SUCCESS,
+          autoClose: 2000,
+          isLoading: false,
+        });
       } else {
         toast.loading(`Borrowing ${borrowOrLendAmount} ${bank.label}`, {
           toastId: BORROW_OR_LEND_TOAST_ID,
@@ -162,13 +200,13 @@ const AssetRow: FC<{
           throw Error("Marginfi account not ready");
         }
         await _marginfiAccount.withdraw(borrowOrLendAmount, bank);
+        toast.update(BORROW_OR_LEND_TOAST_ID, {
+          render: `Borrowing ${borrowOrLendAmount} ${bank.label} 👍`,
+          type: toast.TYPE.SUCCESS,
+          autoClose: 2000,
+          isLoading: false,
+        });
       }
-      toast.update(BORROW_OR_LEND_TOAST_ID, {
-        render: "Action successful",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
     } catch (error: any) {
       toast.update(BORROW_OR_LEND_TOAST_ID, {
         render: `Error while ${isInLendingMode ? "lending" : "borrowing"}: ${error.message}`,
@@ -186,7 +224,7 @@ const AssetRow: FC<{
     try {
       await refreshBorrowLendState();
       toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: "Action successful",
+        render: "Refreshing state 👍",
         type: toast.TYPE.SUCCESS,
         autoClose: 2000,
         isLoading: false,

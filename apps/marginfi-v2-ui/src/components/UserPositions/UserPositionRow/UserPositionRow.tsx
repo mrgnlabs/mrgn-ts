@@ -42,7 +42,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
         await marginfiAccount.deposit(withdrawOrRepayAmount, position.bank);
       }
       toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
-        render: "Action successful",
+        render: position.isLending ? "Withdrawing 👍" : "Repaying 👍",
         type: toast.TYPE.SUCCESS,
         autoClose: 2000,
         isLoading: false,
@@ -64,7 +64,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
     try {
       await refreshBorrowLendState();
       toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: "Action successful",
+        render: "Refreshing state 👍",
         type: toast.TYPE.SUCCESS,
         autoClose: 2000,
         isLoading: false,
