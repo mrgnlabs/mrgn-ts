@@ -25,7 +25,7 @@ const WALLET_BALANCE_MARGIN_SOL = 0.1;
 
 const AssetRow: FC<{
   tokenBalance: number;
-  nativeSol: number;
+  nativeSolBalance: number;
   isInLendingMode: boolean;
   isConnected: boolean;
   bank: Bank;
@@ -35,7 +35,7 @@ const AssetRow: FC<{
   refreshBorrowLendState: () => Promise<void>;
 }> = ({
   tokenBalance,
-  nativeSol,
+  nativeSolBalance,
   isInLendingMode,
   isConnected,
   bank,
@@ -60,18 +60,17 @@ const AssetRow: FC<{
   );
 
   const walletBalance = useMemo(
-    () => (bank.mint.equals(WSOL_MINT) ? tokenBalance + nativeSol : tokenBalance),
-    [bank.mint, nativeSol, tokenBalance]
+    () => (bank.mint.equals(WSOL_MINT) ? tokenBalance + nativeSolBalance : tokenBalance),
+    [bank.mint, nativeSolBalance, tokenBalance]
   );
 
-  const maxDeposit = useMemo(
-    () =>
-      roundToDecimalPlace(
-        bank.mint.equals(WSOL_MINT) ? Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0) : walletBalance,
-        bank.mintDecimals
-      ),
-    [marginfiAccount, bank]
-  );
+  const maxDeposit = useMemo(() => {
+    if (bank.mint.equals(WSOL_MINT)) {
+      return roundToDecimalPlace(Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0), bank.mintDecimals);
+    } else {
+      return roundToDecimalPlace(walletBalance, bank.mintDecimals);
+    }
+  }, [marginfiAccount, bank]);
 
   const maxBorrow = useMemo(
     () => roundToDecimalPlace((marginfiAccount?.getMaxBorrowForBank(bank).toNumber() ?? 0) * 0.95, bank.mintDecimals),
