@@ -46,7 +46,7 @@ const AssetsList: FC = () => {
                     <AssetRow
                       key={bank.publicKey.toBase58()}
                       tokenBalance={walletBalance}
-                      nativeSol={nativeSol}
+                      nativeSolBalance={nativeSol}
                       isInLendingMode={isInLendingMode}
                       isConnected={wallet.connected}
                       bank={bank}
