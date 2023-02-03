@@ -353,7 +353,7 @@
       "args": []
     },
     {
-      "name": "lendingPoolDeposit",
+      "name": "lendingAccountDeposit",
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -413,7 +413,7 @@
       ]
     },
     {
-      "name": "lendingPoolRepay",
+      "name": "lendingAccountRepay",
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -479,7 +479,7 @@
       ]
     },
     {
-      "name": "lendingPoolWithdraw",
+      "name": "lendingAccountWithdraw",
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -564,7 +564,7 @@
       ]
     },
     {
-      "name": "lendingPoolBorrow",
+      "name": "lendingAccountBorrow",
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -643,7 +643,7 @@
       ]
     },
     {
-      "name": "marginfiAccountLiquidate",
+      "name": "lendingAccountLiquidate",
       "docs": ["Liquidate a lending account balance of an unhealthy marginfi account"],
       "accounts": [
         {

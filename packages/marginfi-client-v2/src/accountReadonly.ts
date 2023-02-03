@@ -34,7 +34,7 @@ class MarginfiAccountReadonly {
     this._group = group;
     this._authority = rawData.authority;
 
-    this._lendingAccount = rawData.lendingAccount.balances.filter((la) => la.active).map((la) => new Balance(la));
+    this._lendingAccount = rawData.lendingAccount.balances.map((la) => new Balance(la));
   }
 
   // --- Getters / Setters
@@ -49,6 +49,10 @@ class MarginfiAccountReadonly {
   /**
    * Marginfi group address
    */
+  get activeBalances(): Balance[] {
+    return this._lendingAccount.filter((la) => la.active);
+  }
+
   get group(): MarginfiGroup {
     return this._group;
   }
@@ -56,10 +60,6 @@ class MarginfiAccountReadonly {
   /**
    * Marginfi group address
    */
-  get lendingAccount(): Balance[] {
-    return this._lendingAccount;
-  }
-
   /** @internal */
   private get _program() {
     return this.client.program;
@@ -262,7 +262,7 @@ class MarginfiAccountReadonly {
   private _updateFromAccountData(data: MarginfiAccountData) {
     this._authority = data.authority;
 
-    this._lendingAccount = data.lendingAccount.balances.filter((la) => la.active).map((la) => new Balance(la));
+    this._lendingAccount = data.lendingAccount.balances.map((la) => new Balance(la));
   }
 
   private async loadGroupAndAccountAi(): Promise<AccountInfo<Buffer>[]> {
@@ -288,7 +288,7 @@ class MarginfiAccountReadonly {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    const [assets, liabilities] = this._lendingAccount
+    const [assets, liabilities] = this.activeBalances
       .map((accountBalance) => {
         const bank = this._group.banks.get(accountBalance.bankPk.toBase58());
         if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);

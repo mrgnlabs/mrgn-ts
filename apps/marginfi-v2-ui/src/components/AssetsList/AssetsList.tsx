@@ -7,7 +7,7 @@ import AssetRow from "./AssetRow";
 
 const AssetsList: FC = () => {
   const [isInLendingMode, setIsInLendingMode] = useState(true);
-  const { banks, selectedAccount, refreshData, mfiClient } = useBorrowLendState();
+  const { banks, selectedAccount, refreshData, mfiClient, accountSummary } = useBorrowLendState();
   const { tokenBalances, nativeSol } = useTokenBalances();
   const { tokenMetadataMap } = useTokenMetadata();
   const wallet = useWallet();
@@ -54,6 +54,9 @@ const AssetsList: FC = () => {
                       marginfiAccount={selectedAccount}
                       marginfiClient={mfiClient}
                       refreshBorrowLendState={refreshData}
+                      position={accountSummary?.positions.find((position) =>
+                        position.bank.publicKey.equals(bank.publicKey)
+                      )}
                     />
                   ))
                 ) : (

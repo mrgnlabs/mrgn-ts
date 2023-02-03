@@ -32,7 +32,7 @@ async function main() {
   await marginfiAccount.deposit(2, bank2);
   await marginfiAccount.reload();
 
-  marginfiAccount.lendingAccount.forEach((balance) => {
+  marginfiAccount.activeBalances.forEach((balance) => {
     const bank = group.banks.get(balance.bankPk.toString())!;
     const { assets, liabilities } = balance.getUsdValue(bank, MarginRequirementType.Equity);
 

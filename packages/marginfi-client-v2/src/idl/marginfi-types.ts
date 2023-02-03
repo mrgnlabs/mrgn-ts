@@ -353,7 +353,7 @@ export type Marginfi = {
       args: [];
     },
     {
-      name: "lendingPoolDeposit";
+      name: "lendingAccountDeposit";
       accounts: [
         {
           name: "marginfiGroup";
@@ -413,7 +413,7 @@ export type Marginfi = {
       ];
     },
     {
-      name: "lendingPoolRepay";
+      name: "lendingAccountRepay";
       accounts: [
         {
           name: "marginfiGroup";
@@ -479,7 +479,7 @@ export type Marginfi = {
       ];
     },
     {
-      name: "lendingPoolWithdraw";
+      name: "lendingAccountWithdraw";
       accounts: [
         {
           name: "marginfiGroup";
@@ -564,7 +564,7 @@ export type Marginfi = {
       ];
     },
     {
-      name: "lendingPoolBorrow";
+      name: "lendingAccountBorrow";
       accounts: [
         {
           name: "marginfiGroup";
@@ -643,7 +643,7 @@ export type Marginfi = {
       ];
     },
     {
-      name: "marginfiAccountLiquidate";
+      name: "lendingAccountLiquidate";
       docs: ["Liquidate a lending account balance of an unhealthy marginfi account"];
       accounts: [
         {
@@ -1942,7 +1942,7 @@ export const IDL: Marginfi = {
       args: [],
     },
     {
-      name: "lendingPoolDeposit",
+      name: "lendingAccountDeposit",
       accounts: [
         {
           name: "marginfiGroup",
@@ -2002,7 +2002,7 @@ export const IDL: Marginfi = {
       ],
     },
     {
-      name: "lendingPoolRepay",
+      name: "lendingAccountRepay",
       accounts: [
         {
           name: "marginfiGroup",
@@ -2068,7 +2068,7 @@ export const IDL: Marginfi = {
       ],
     },
     {
-      name: "lendingPoolWithdraw",
+      name: "lendingAccountWithdraw",
       accounts: [
         {
           name: "marginfiGroup",
@@ -2153,7 +2153,7 @@ export const IDL: Marginfi = {
       ],
     },
     {
-      name: "lendingPoolBorrow",
+      name: "lendingAccountBorrow",
       accounts: [
         {
           name: "marginfiGroup",
@@ -2232,7 +2232,7 @@ export const IDL: Marginfi = {
       ],
     },
     {
-      name: "marginfiAccountLiquidate",
+      name: "lendingAccountLiquidate",
       docs: ["Liquidate a lending account balance of an unhealthy marginfi account"],
       accounts: [
         {

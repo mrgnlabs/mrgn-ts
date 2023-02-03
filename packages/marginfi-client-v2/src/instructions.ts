@@ -1,4 +1,3 @@
-import { TOKEN_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
 import { AccountMeta, PublicKey, SystemProgram } from "@solana/web3.js";
 import BN from "bn.js";
 import { MarginfiProgram } from "./types";
@@ -30,7 +29,6 @@ async function makeDepositIx(
     authorityPk: PublicKey;
     signerTokenAccountPk: PublicKey;
     bankPk: PublicKey;
-    bankLiquidityVaultPk: PublicKey;
   },
   args: {
     amount: BN;
@@ -38,15 +36,41 @@ async function makeDepositIx(
   remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
-    .lendingPoolDeposit(args.amount)
+    .lendingAccountDeposit(args.amount)
     .accounts({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       signer: accounts.authorityPk,
       signerTokenAccount: accounts.signerTokenAccountPk,
       bank: accounts.bankPk,
-      bankLiquidityVault: accounts.bankLiquidityVaultPk,
-      tokenProgram: TOKEN_PROGRAM_ID,
+    })
+    .remainingAccounts(remainingAccounts)
+    .instruction();
+}
+
+async function makeRepayIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    marginfiGroupPk: PublicKey;
+    marginfiAccountPk: PublicKey;
+    authorityPk: PublicKey;
+    signerTokenAccountPk: PublicKey;
+    bankPk: PublicKey;
+  },
+  args: {
+    amount: BN;
+    repayAll?: boolean;
+  },
+  remainingAccounts: AccountMeta[] = []
+) {
+  return mfProgram.methods
+    .lendingAccountRepay(args.amount, args.repayAll ?? null)
+    .accounts({
+      marginfiGroup: accounts.marginfiGroupPk,
+      marginfiAccount: accounts.marginfiAccountPk,
+      signer: accounts.authorityPk,
+      signerTokenAccount: accounts.signerTokenAccountPk,
+      bank: accounts.bankPk,
     })
     .remainingAccounts(remainingAccounts)
     .instruction();
@@ -59,8 +83,6 @@ async function makeWithdrawIx(
     marginfiAccountPk: PublicKey;
     signerPk: PublicKey;
     bankPk: PublicKey;
-    bankLiquidityVaultAuthorityPk: PublicKey;
-    bankLiquidityVaultPk: PublicKey;
     destinationTokenAccountPk: PublicKey;
   },
   args: {
@@ -70,16 +92,40 @@ async function makeWithdrawIx(
   remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
-    .lendingPoolWithdraw(args.amount, args.withdrawAll ?? null)
+    .lendingAccountWithdraw(args.amount, args.withdrawAll ?? null)
     .accounts({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
       signer: accounts.signerPk,
-      bankLiquidityVault: accounts.bankLiquidityVaultPk,
-      bankLiquidityVaultAuthority: accounts.bankLiquidityVaultAuthorityPk,
       destinationTokenAccount: accounts.destinationTokenAccountPk,
       bank: accounts.bankPk,
-      tokenProgram: TOKEN_PROGRAM_ID,
+    })
+    .remainingAccounts(remainingAccounts)
+    .instruction();
+}
+
+async function makeBorrowIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    marginfiGroupPk: PublicKey;
+    marginfiAccountPk: PublicKey;
+    signerPk: PublicKey;
+    bankPk: PublicKey;
+    destinationTokenAccountPk: PublicKey;
+  },
+  args: {
+    amount: BN;
+  },
+  remainingAccounts: AccountMeta[] = []
+) {
+  return mfProgram.methods
+    .lendingAccountBorrow(args.amount)
+    .accounts({
+      marginfiGroup: accounts.marginfiGroupPk,
+      marginfiAccount: accounts.marginfiAccountPk,
+      signer: accounts.signerPk,
+      destinationTokenAccount: accounts.destinationTokenAccountPk,
+      bank: accounts.bankPk,
     })
     .remainingAccounts(remainingAccounts)
     .instruction();
@@ -94,9 +140,6 @@ function makeLendingAccountLiquidateIx(
     liabBank: PublicKey;
     liquidatorMarginfiAccount: PublicKey;
     liquidateeMarginfiAccount: PublicKey;
-    bankLiquidityVaultAuthority: PublicKey;
-    bankLiquidityVault: PublicKey;
-    bankInsuranceVault: PublicKey;
   },
   args: {
     assetAmount: BN;
@@ -104,18 +147,14 @@ function makeLendingAccountLiquidateIx(
   remainingAccounts: AccountMeta[] = []
 ) {
   return mfiProgram.methods
-    .marginfiAccountLiquidate(args.assetAmount)
-    .accountsStrict({
+    .lendingAccountLiquidate(args.assetAmount)
+    .accounts({
       marginfiGroup: accounts.marginfiGroup,
       signer: accounts.signer,
       assetBank: accounts.assetBank,
       liabBank: accounts.liabBank,
       liquidatorMarginfiAccount: accounts.liquidatorMarginfiAccount,
       liquidateeMarginfiAccount: accounts.liquidateeMarginfiAccount,
-      bankLiquidityVaultAuthority: accounts.bankLiquidityVaultAuthority,
-      bankLiquidityVault: accounts.bankLiquidityVault,
-      bankInsuranceVault: accounts.bankInsuranceVault,
-      tokenProgram: TOKEN_PROGRAM_ID,
     })
     .remainingAccounts(remainingAccounts)
     .instruction();
@@ -123,7 +162,9 @@ function makeLendingAccountLiquidateIx(
 
 const instructions = {
   makeDepositIx,
+  makeRepayIx,
   makeWithdrawIx,
+  makeBorrowIx,
   makeInitMarginfiAccountIx,
   makeLendingAccountLiquidateIx,
 };

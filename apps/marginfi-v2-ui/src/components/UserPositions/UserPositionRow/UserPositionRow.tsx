@@ -39,7 +39,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
       if (position.isLending) {
         await marginfiAccount.withdraw(withdrawOrRepayAmount, position.bank);
       } else {
-        await marginfiAccount.deposit(withdrawOrRepayAmount, position.bank);
+        await marginfiAccount.repay(withdrawOrRepayAmount, position.bank);
       }
       toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
         render: position.isLending ? "Withdrawing 👍" : "Repaying 👍",

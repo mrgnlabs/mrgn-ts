@@ -26,4 +26,13 @@ interface TokenMetadata {
 
 type TokenMetadataMap = { [symbol: string]: TokenMetadata };
 
+enum ActionType {
+  Deposit = "Deposit",
+  Borrow = "Borrow",
+  Repay = "Repay",
+  Withdraw = "Withdraw",
+}
+
 export type { AccountSummary, UserPosition, TokenMetadata, TokenMetadataMap };
+
+export { ActionType };

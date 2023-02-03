@@ -3,7 +3,7 @@ import Bank, { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
 import { TableCell, TableRow, Tooltip } from "@mui/material";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { TokenMetadata } from "~/types";
+import { ActionType, TokenMetadata, UserPosition } from "~/types";
 import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
@@ -34,17 +34,19 @@ const AssetRow: FC<{
   marginfiAccount: MarginfiAccount | null;
   marginfiClient: MarginfiClient | null;
   refreshBorrowLendState: () => Promise<void>;
+  position?: UserPosition;
 }> = ({
-  tokenBalance,
-  nativeSolBalance,
-  isInLendingMode,
-  isConnected,
-  bank,
-  tokenMetadata,
-  marginfiAccount,
-  marginfiClient,
-  refreshBorrowLendState,
-}) => {
+        tokenBalance,
+        nativeSolBalance,
+        isInLendingMode,
+        isConnected,
+        bank,
+        tokenMetadata,
+        marginfiAccount,
+        marginfiClient,
+        refreshBorrowLendState,
+        position,
+      }) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
 
   // Reset b/l amounts on toggle
@@ -57,12 +59,21 @@ const AssetRow: FC<{
       isInLendingMode
         ? bank.getInterestRates().lendingRate.toNumber()
         : bank.getInterestRates().borrowingRate.toNumber(),
-    [isInLendingMode, bank]
+    [isInLendingMode, bank],
+  );
+
+  const { assetPrice, totalPoolDeposits, totalPoolBorrows } = useMemo(
+    () => ({
+      assetPrice: bank.getPrice(PriceBias.None).toNumber(),
+      totalPoolDeposits: nativeToUi(bank.totalAssets, bank.mintDecimals),
+      totalPoolBorrows: nativeToUi(bank.totalLiabilities, bank.mintDecimals),
+    }),
+    [bank],
   );
 
   const walletBalance = useMemo(
     () => (bank.mint.equals(WSOL_MINT) ? tokenBalance + nativeSolBalance : tokenBalance),
-    [bank.mint, nativeSolBalance, tokenBalance]
+    [bank.mint, nativeSolBalance, tokenBalance],
   );
 
   const maxDeposit = useMemo(() => {
@@ -74,28 +85,41 @@ const AssetRow: FC<{
   }, [bank.mint, bank.mintDecimals, walletBalance]);
 
   const maxBorrow = useMemo(
-    () => roundToDecimalPlace((marginfiAccount?.getMaxBorrowForBank(bank).toNumber() ?? 0) * 0.95, bank.mintDecimals),
-    [marginfiAccount, bank]
+    () =>
+      roundToDecimalPlace(
+        Math.min(
+          (marginfiAccount?.getMaxBorrowForBank(bank).toNumber() ?? 0) * 0.95,
+          totalPoolDeposits - totalPoolBorrows,
+        ),
+        bank.mintDecimals,
+      ),
+    [marginfiAccount, bank, totalPoolDeposits, totalPoolBorrows],
   );
 
-  const { assetPrice, totalPoolDeposits, totalPoolBorrows } = useMemo(
-    () => ({
-      assetPrice: bank.getPrice(PriceBias.None).toNumber(),
-      totalPoolDeposits: nativeToUi(bank.totalAssets, bank.mintDecimals),
-      totalPoolBorrows: nativeToUi(bank.totalLiabilities, bank.mintDecimals),
-    }),
-    [bank]
-  );
+  const currentAction = useMemo(() => getCurrentAction(isInLendingMode, position), [isInLendingMode, position]);
+
+  const maxBorrowOrLendAmount = useMemo(() => {
+    switch (currentAction) {
+      case ActionType.Deposit:
+        return maxDeposit;
+      case ActionType.Withdraw:
+        return position?.amount ?? 0;
+      case ActionType.Borrow:
+        return maxBorrow;
+      case ActionType.Repay:
+        return position?.amount ?? 0;
+    }
+  }, [currentAction, maxBorrow, maxDeposit, position?.amount]);
 
   const borrowOrLend = useCallback(async () => {
     if (marginfiClient === null) throw Error("Marginfi client not ready");
 
-    if (isInLendingMode && maxDeposit === 0) {
+    if (currentAction === ActionType.Deposit && maxDeposit === 0) {
       toast.error(`You don't have any ${bank.label} to lend in your wallet.`);
       return;
     }
 
-    if (!isInLendingMode && maxBorrow === 0) {
+    if (currentAction === ActionType.Borrow && maxBorrow === 0) {
       toast.error(`You cannot borrow any ${bank.label} right now.`);
       return;
     }
@@ -106,74 +130,90 @@ const AssetRow: FC<{
     }
 
     let _marginfiAccount = marginfiAccount;
-    try {
-      if (isInLendingMode) {
-        if (_marginfiAccount === null) {
-          toast.loading("Creating account", {
-            toastId: BORROW_OR_LEND_TOAST_ID,
-          });
 
-          const userAccounts = await marginfiClient.getMarginfiAccountsForAuthority();
-          if (userAccounts.length > 0) {
-            toast.update(BORROW_OR_LEND_TOAST_ID, {
-              render: "Uh oh, data seems out-of-sync",
-              toastId: BORROW_OR_LEND_TOAST_ID,
-              type: toast.TYPE.WARNING,
+    // -------- Create marginfi account if needed
+    try {
+      if (_marginfiAccount === null) {
+        if (currentAction !== ActionType.Deposit) {
+          toast.error("An account is required for anything operation except deposit.");
+          return;
+        }
+
+        toast.loading("Creating account", {
+          toastId: BORROW_OR_LEND_TOAST_ID,
+        });
+
+        const userAccounts = await marginfiClient.getMarginfiAccountsForAuthority();
+        if (userAccounts.length > 0) {
+          toast.update(BORROW_OR_LEND_TOAST_ID, {
+            render: "Uh oh, data seems out-of-sync",
+            toastId: BORROW_OR_LEND_TOAST_ID,
+            type: toast.TYPE.WARNING,
+            autoClose: 3000,
+            isLoading: false,
+          });
+          toast.loading("Refreshing data...", { toastId: ACCOUNT_DETECTION_ERROR_TOAST_ID });
+          try {
+            await refreshBorrowLendState();
+            toast.update(ACCOUNT_DETECTION_ERROR_TOAST_ID, {
+              render: "Refreshing data... Done. Please try again",
+              type: toast.TYPE.SUCCESS,
               autoClose: 3000,
               isLoading: false,
             });
-            toast.loading("Refreshing data...", { toastId: ACCOUNT_DETECTION_ERROR_TOAST_ID });
-            try {
-              await refreshBorrowLendState();
-              toast.update(ACCOUNT_DETECTION_ERROR_TOAST_ID, {
-                render: "Refreshing data... Done. Please try again",
-                type: toast.TYPE.SUCCESS,
-                autoClose: 3000,
-                isLoading: false,
-              });
-            } catch (error: any) {
-              toast.update(ACCOUNT_DETECTION_ERROR_TOAST_ID, {
-                render: `Error while reloading state: ${error.message}`,
-                type: toast.TYPE.ERROR,
-                autoClose: 5000,
-                isLoading: false,
-              });
-              console.log("Error while reloading state");
-              console.log(error);
-            }
-            return;
+          } catch (error: any) {
+            toast.update(ACCOUNT_DETECTION_ERROR_TOAST_ID, {
+              render: `Error while reloading state: ${error.message}`,
+              type: toast.TYPE.ERROR,
+              autoClose: 5000,
+              isLoading: false,
+            });
+            console.log("Error while reloading state");
+            console.log(error);
           }
-
-          _marginfiAccount = await marginfiClient.createMarginfiAccount();
-          toast.update(BORROW_OR_LEND_TOAST_ID, {
-            render: `Lending ${borrowOrLendAmount} ${bank.label}`,
-          });
-        } else {
-          toast.loading(`Lending ${borrowOrLendAmount} ${bank.label}`, {
-            toastId: BORROW_OR_LEND_TOAST_ID,
-          });
+          return;
         }
 
+        _marginfiAccount = await marginfiClient.createMarginfiAccount();
+        toast.update(BORROW_OR_LEND_TOAST_ID, {
+          render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.label}`,
+        });
+      }
+    } catch (error: any) {
+      toast.update(BORROW_OR_LEND_TOAST_ID, {
+        render: `Error while ${currentAction + "ing"}: ${error.message}`,
+        type: toast.TYPE.ERROR,
+        autoClose: 5000,
+        isLoading: false,
+      });
+      console.log(`Error while ${currentAction + "ing"}`);
+      console.log(error);
+      return;
+    }
+
+    // -------- Perform relevant operation
+    try {
+      let ixs: TransactionInstruction[] = [];
+      let signers: Keypair[] = [];
+
+      if (currentAction === ActionType.Deposit) {
         if (bank.mint.equals(WSOL_MINT)) {
           const ata = getAssociatedTokenAddressSync(bank.mint, _marginfiAccount.authority, false);
-
-          let ixs: TransactionInstruction[] = [];
-          let signers: Keypair[] = [];
 
           ixs.push(
             createAssociatedTokenAccountIdempotentInstruction(
               _marginfiAccount.authority,
               ata,
               _marginfiAccount.authority,
-              bank.mint
-            )
+              bank.mint,
+            ),
           );
           ixs.push(
             SystemProgram.transfer({
               fromPubkey: _marginfiAccount.authority,
               toPubkey: ata,
               lamports: uiToNative(borrowOrLendAmount - tokenBalance, bank.mintDecimals).toNumber(),
-            })
+            }),
           );
           ixs.push(createSyncNativeInstruction(ata));
 
@@ -186,40 +226,49 @@ const AssetRow: FC<{
           await _marginfiAccount.deposit(borrowOrLendAmount, bank);
         }
         toast.update(BORROW_OR_LEND_TOAST_ID, {
-          render: `Lending ${borrowOrLendAmount} ${bank.label} 👍`,
-          type: toast.TYPE.SUCCESS,
-          autoClose: 2000,
-          isLoading: false,
-        });
-      } else {
-        toast.loading(`Borrowing ${borrowOrLendAmount} ${bank.label}`, {
-          toastId: BORROW_OR_LEND_TOAST_ID,
-        });
-        if (_marginfiAccount === null) {
-          // noinspection ExceptionCaughtLocallyJS
-          throw Error("Marginfi account not ready");
-        }
-        await _marginfiAccount.withdraw(borrowOrLendAmount, bank);
-        toast.update(BORROW_OR_LEND_TOAST_ID, {
-          render: `Borrowing ${borrowOrLendAmount} ${bank.label} 👍`,
+          render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.label} 👍`,
           type: toast.TYPE.SUCCESS,
           autoClose: 2000,
           isLoading: false,
         });
       }
+
+      toast.loading(`${currentAction + "ing"} ${borrowOrLendAmount} ${bank.label}`, {
+        toastId: BORROW_OR_LEND_TOAST_ID,
+      });
+      if (_marginfiAccount === null) {
+        // noinspection ExceptionCaughtLocallyJS
+        throw Error("Marginfi account not ready");
+      }
+
+      if (currentAction === ActionType.Borrow) {
+        await _marginfiAccount.borrow(borrowOrLendAmount, bank);
+      } else if (currentAction === ActionType.Repay) {
+        await _marginfiAccount.repay(borrowOrLendAmount, bank, position && borrowOrLendAmount === position.amount);
+      } else if (currentAction === ActionType.Withdraw) {
+        await _marginfiAccount.withdraw(borrowOrLendAmount, bank, position && borrowOrLendAmount === position.amount);
+      }
+
+      toast.update(BORROW_OR_LEND_TOAST_ID, {
+        render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.label} 👍`,
+        type: toast.TYPE.SUCCESS,
+        autoClose: 2000,
+        isLoading: false,
+      });
     } catch (error: any) {
       toast.update(BORROW_OR_LEND_TOAST_ID, {
-        render: `Error while ${isInLendingMode ? "lending" : "borrowing"}: ${error.message}`,
+        render: `Error while ${currentAction + "ing"}: ${error.message}`,
         type: toast.TYPE.ERROR,
         autoClose: 5000,
         isLoading: false,
       });
-      console.log(`Error while ${isInLendingMode ? "lending" : "borrowing"}`);
+      console.log(`Error while ${currentAction + "ing"}`);
       console.log(error);
     }
 
     setBorrowOrLendAmount(0);
 
+    // -------- Refresh state
     toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
       await refreshBorrowLendState();
@@ -241,7 +290,7 @@ const AssetRow: FC<{
     }
   }, [
     marginfiClient,
-    isInLendingMode,
+    currentAction,
     maxDeposit,
     maxBorrow,
     borrowOrLendAmount,
@@ -249,13 +298,16 @@ const AssetRow: FC<{
     bank,
     refreshBorrowLendState,
     tokenBalance,
+    position,
   ]);
 
   return (
-    <TableRow className="h-full flex justify-between items-center h-[78px] p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+    <TableRow
+      className="h-full flex justify-between items-center h-[78px] p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
       <AssetRowHeader assetName={bank.label} apy={apy} icon={tokenMetadata.icon} isInLendingMode={isInLendingMode} />
 
-      <TableCell className="h-full w-full flex py-1 px-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
+      <TableCell
+        className="h-full w-full flex py-1 px-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
         <AssetRowMetric
           longLabel="Current Price"
           shortLabel="Price"
@@ -268,7 +320,7 @@ const AssetRow: FC<{
           value={groupedNumberFormatter.format(isInLendingMode ? totalPoolDeposits : totalPoolBorrows)}
           borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
           usdEquivalentValue={usdFormatter.format(
-            (isInLendingMode ? totalPoolDeposits : totalPoolBorrows) * bank.getPrice(PriceBias.None).toNumber()
+            (isInLendingMode ? totalPoolDeposits : totalPoolBorrows) * bank.getPrice(PriceBias.None).toNumber(),
           )}
         />
         {isConnected && (
@@ -276,12 +328,12 @@ const AssetRow: FC<{
             longLabel={isInLendingMode ? "Wallet Balance" : "Available Liquidity"}
             shortLabel={isInLendingMode ? "Wallet Balance" : "Available"}
             value={groupedNumberFormatter.format(
-              isInLendingMode ? walletBalance : totalPoolDeposits - totalPoolBorrows
+              isInLendingMode ? walletBalance : totalPoolDeposits - totalPoolBorrows,
             )}
             borderRadius="0px 10px 10px 0px"
             usdEquivalentValue={usdFormatter.format(
               (isInLendingMode ? walletBalance : totalPoolDeposits - totalPoolBorrows) *
-                bank.getPrice(PriceBias.None).toNumber()
+              bank.getPrice(PriceBias.None).toNumber(),
             )}
           />
         )}
@@ -292,7 +344,7 @@ const AssetRow: FC<{
           <AssetRowInputBox
             value={borrowOrLendAmount}
             setValue={setBorrowOrLendAmount}
-            maxValue={isInLendingMode ? maxDeposit : maxBorrow}
+            maxValue={maxBorrowOrLendAmount}
             maxDecimals={bank.mintDecimals}
           />
         </TableCell>
@@ -300,21 +352,38 @@ const AssetRow: FC<{
 
       <TableCell className="p-1 h-10 border-hidden flex justify-center items-center">
         <div className="h-full w-full">
-          {marginfiAccount === null ? (
-            <Tooltip title="User account while be automatically created on first lend" placement="top">
-              <div className="h-full w-full flex justify-center items-center">
-                <AssetRowAction onClick={borrowOrLend}>{isInLendingMode ? "Lend" : "Borrow"}</AssetRowAction>
-              </div>
-            </Tooltip>
-          ) : (
+          <Tooltip
+            title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
+            placement="top"
+          >
             <div className="h-full w-full flex justify-center items-center">
-              <AssetRowAction onClick={borrowOrLend}>{isInLendingMode ? "Lend" : "Borrow"}</AssetRowAction>
+              <AssetRowAction onClick={borrowOrLend}>{currentAction}</AssetRowAction>
             </div>
-          )}
+          </Tooltip>
         </div>
       </TableCell>
     </TableRow>
   );
 };
+
+function getCurrentAction(isLendingMode: boolean, position: UserPosition | undefined): ActionType {
+  if (position === undefined) {
+    return isLendingMode ? ActionType.Deposit : ActionType.Borrow;
+  } else {
+    if (position.isLending) {
+      if (isLendingMode) {
+        return ActionType.Deposit;
+      } else {
+        return ActionType.Withdraw;
+      }
+    } else {
+      if (isLendingMode) {
+        return ActionType.Repay;
+      } else {
+        return ActionType.Borrow;
+      }
+    }
+  }
+}
 
 export { AssetRow };

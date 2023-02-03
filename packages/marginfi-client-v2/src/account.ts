@@ -3,29 +3,12 @@ import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { parsePriceData } from "@pythnetwork/client";
 import { AccountInfo, AccountMeta, Commitment, ComputeBudgetProgram, PublicKey, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import {
-  aprToApy,
-  DEFAULT_COMMITMENT,
-  getBankVaultAuthority,
-  MarginfiClient,
-  processTransaction,
-  shortenAddress,
-  uiToNative,
-  wrappedI80F48toBigNumber,
-} from ".";
+import { aprToApy, DEFAULT_COMMITMENT, MarginfiClient, shortenAddress, uiToNative, wrappedI80F48toBigNumber } from ".";
 import Bank, { BankData, PriceBias } from "./bank";
 import MarginfiGroup from "./group";
 import { MARGINFI_IDL } from "./idl";
 import instructions from "./instructions";
-import {
-  AccountType,
-  BankVaultType,
-  InstructionsWrapper,
-  MarginfiConfig,
-  MarginfiProgram,
-  UiAmount,
-  WrappedI80F48,
-} from "./types";
+import { AccountType, InstructionsWrapper, MarginfiConfig, MarginfiProgram, UiAmount, WrappedI80F48 } from "./types";
 import { createAssociatedTokenAccountIdempotentInstruction } from "./utils/spl";
 
 /**
@@ -36,7 +19,7 @@ class MarginfiAccount {
 
   private _group: MarginfiGroup;
   private _authority: PublicKey;
-  private _lendingAccount: Balance[];
+  private _lendingBalances: Balance[];
 
   /**
    * @internal
@@ -45,14 +28,14 @@ class MarginfiAccount {
     marginfiAccountPk: PublicKey,
     readonly client: MarginfiClient,
     group: MarginfiGroup,
-    rawData: MarginfiAccountData
+    rawData: MarginfiAccountData,
   ) {
     this.publicKey = marginfiAccountPk;
 
     this._group = group;
     this._authority = rawData.authority;
 
-    this._lendingAccount = rawData.lendingAccount.balances.filter((la) => la.active).map((la) => new Balance(la));
+    this._lendingBalances = rawData.lendingAccount.balances.map((la) => new Balance(la));
   }
 
   // --- Getters / Setters
@@ -74,8 +57,8 @@ class MarginfiAccount {
   /**
    * Marginfi group address
    */
-  get lendingAccount(): Balance[] {
-    return this._lendingAccount;
+  get activeBalances(): Balance[] {
+    return this._lendingBalances.filter((la) => la.active);
   }
 
   /** @internal */
@@ -103,7 +86,7 @@ class MarginfiAccount {
   static async fetch(
     marginfiAccountPk: Address,
     client: MarginfiClient,
-    commitment?: Commitment
+    commitment?: Commitment,
   ): Promise<MarginfiAccount> {
     const { config, program } = client;
     const _marginfiAccountPk = translateAddress(marginfiAccountPk);
@@ -114,7 +97,7 @@ class MarginfiAccount {
       _marginfiAccountPk,
       client,
       await MarginfiGroup.fetch(config, program, commitment),
-      accountData
+      accountData,
     );
 
     require("debug")("mfi:margin-account")("Loaded marginfi account %s", _marginfiAccountPk);
@@ -138,11 +121,11 @@ class MarginfiAccount {
     marginfiAccountPk: Address,
     client: MarginfiClient,
     accountData: MarginfiAccountData,
-    marginfiGroup: MarginfiGroup
+    marginfiGroup: MarginfiGroup,
   ) {
     if (!accountData.group.equals(client.config.groupPk))
       throw Error(
-        `Marginfi account tied to group ${accountData.group.toBase58()}. Expected: ${client.config.groupPk.toBase58()}`
+        `Marginfi account tied to group ${accountData.group.toBase58()}. Expected: ${client.config.groupPk.toBase58()}`,
       );
 
     const _marginfiAccountPk = translateAddress(marginfiAccountPk);
@@ -166,7 +149,7 @@ class MarginfiAccount {
     marginfiAccountPk: PublicKey,
     client: MarginfiClient,
     marginfiAccountRawData: Buffer,
-    marginfiGroup: MarginfiGroup
+    marginfiGroup: MarginfiGroup,
   ) {
     const marginfiAccountData = MarginfiAccount.decode(marginfiAccountRawData);
 
@@ -186,6 +169,8 @@ class MarginfiAccount {
       owner: this.client.provider.wallet.publicKey,
     });
 
+    const remainingAccounts = this.getHealthCheckAccounts([bank]);
+
     const ix = await instructions.makeDepositIx(
       this._program,
       {
@@ -193,10 +178,10 @@ class MarginfiAccount {
         marginfiAccountPk: this.publicKey,
         authorityPk: this.client.provider.wallet.publicKey,
         signerTokenAccountPk: userTokenAtaPk,
-        bankLiquidityVaultPk: bank.liquidityVault,
         bankPk: bank.publicKey,
       },
-      { amount: uiToNative(amount, bank.mintDecimals) }
+      { amount: uiToNative(amount, bank.mintDecimals) },
+      remainingAccounts,
     );
 
     return { instructions: [ix], keys: [] };
@@ -215,7 +200,61 @@ class MarginfiAccount {
     debug("Depositing %s %s into marginfi account", amount, bank.mint);
     const ixs = await this.makeDepositIx(amount, bank);
     const tx = new Transaction().add(...ixs.instructions);
-    const sig = await processTransaction(this.client.provider, tx);
+    const sig = await this.client.processTransaction(tx);
+    debug("Depositing successful %s", sig);
+    await this.reload();
+    return sig;
+  }
+
+  /**
+   * Create transaction instruction to deposit collateral into the marginfi account.
+   *
+   * @param amount Amount to deposit (UI unit)
+   * @param bank Bank to deposit to
+   * @param repayAll (optional) Repay all the liability
+   * @returns `LendingPool` transaction instruction
+   */
+  async makeRepayIx(amount: UiAmount, bank: Bank, repayAll: boolean = false): Promise<InstructionsWrapper> {
+    const userTokenAtaPk = await associatedAddress({
+      mint: bank.mint,
+      owner: this.client.provider.wallet.publicKey,
+    });
+
+    const remainingAccounts = repayAll
+      ? this.getHealthCheckAccounts([], [bank])
+      : this.getHealthCheckAccounts([bank], []);
+
+    const ix = await instructions.makeRepayIx(
+      this._program,
+      {
+        marginfiGroupPk: this.group.publicKey,
+        marginfiAccountPk: this.publicKey,
+        authorityPk: this.client.provider.wallet.publicKey,
+        signerTokenAccountPk: userTokenAtaPk,
+        bankPk: bank.publicKey,
+      },
+      { amount: uiToNative(amount, bank.mintDecimals), repayAll },
+      remainingAccounts,
+    );
+
+    return { instructions: [ix], keys: [] };
+  }
+
+  /**
+   * Deposit collateral into the marginfi account.
+   *
+   * @param amount Amount to deposit (UI unit)
+   * @param bank Bank to deposit to
+   * @param repayAll (optional) Repay all the liability
+   * @returns Transaction signature
+   */
+  async repay(amount: UiAmount, bank: Bank, repayAll: boolean = false): Promise<string> {
+    const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:repay`);
+
+    debug("Repaying %s %s into marginfi account", amount, bank.mint);
+    const ixs = await this.makeRepayIx(amount, bank, repayAll);
+    const tx = new Transaction().add(...ixs.instructions);
+    const sig = await this.client.processTransaction(tx, [], { skipPreflight: true });
     debug("Depositing successful %s", sig);
     await this.reload();
     return sig;
@@ -226,20 +265,18 @@ class MarginfiAccount {
    *
    * @param amount Amount to withdraw (mint native unit)
    * @param bank Bank to withdraw from
+   * @param withdrawAll (optional) Withdraw all the asset
    * @returns `MarginWithdrawCollateral` transaction instruction
    */
-  async makeWithdrawIx(amount: UiAmount, bank: Bank): Promise<InstructionsWrapper> {
+  async makeWithdrawIx(amount: UiAmount, bank: Bank, withdrawAll: boolean = false): Promise<InstructionsWrapper> {
     const userTokenAtaPk = await associatedAddress({
       mint: bank.mint,
       owner: this.client.provider.wallet.publicKey,
     });
-    const [bankLiquidityVaultAuthorityPk] = getBankVaultAuthority(
-      BankVaultType.LiquidityVault,
-      bank.publicKey,
-      this._program.programId
-    );
 
-    const remainingAccounts = this.getHealthCheckAccounts([bank]);
+    const remainingAccounts = withdrawAll
+      ? this.getHealthCheckAccounts([], [bank])
+      : this.getHealthCheckAccounts([bank], []);
 
     const ix = await instructions.makeWithdrawIx(
       this._program,
@@ -249,11 +286,9 @@ class MarginfiAccount {
         signerPk: this.client.provider.wallet.publicKey,
         bankPk: bank.publicKey,
         destinationTokenAccountPk: userTokenAtaPk,
-        bankLiquidityVaultPk: bank.liquidityVault,
-        bankLiquidityVaultAuthorityPk,
       },
-      { amount: uiToNative(amount, bank.mintDecimals) },
-      remainingAccounts
+      { amount: uiToNative(amount, bank.mintDecimals), withdrawAll },
+      remainingAccounts,
     );
 
     return { instructions: [ix], keys: [] };
@@ -264,9 +299,10 @@ class MarginfiAccount {
    *
    * @param amount Amount to withdraw (UI unit)
    * @param bank Bank to withdraw from
+   * @param withdrawAll (optional) Withdraw all the asset
    * @returns Transaction signature
    */
-  async withdraw(amount: UiAmount, bank: Bank): Promise<string> {
+  async withdraw(amount: UiAmount, bank: Bank, withdrawAll: boolean = false): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
     const tx = new Transaction();
@@ -279,14 +315,77 @@ class MarginfiAccount {
       this.client.provider.wallet.publicKey,
       userAta,
       this.client.provider.wallet.publicKey,
-      bank.mint
+      bank.mint,
     );
     tx.add(createAtaIdempotentIx);
 
-    const ixs = await this.makeWithdrawIx(amount, bank);
+    const ixs = await this.makeWithdrawIx(amount, bank, withdrawAll);
     tx.add(...ixs.instructions);
 
-    const sig = await processTransaction(this.client.provider, tx);
+    const sig = await this.client.processTransaction(tx);
+    debug("Withdrawing successful %s", sig);
+    await this.reload();
+    return sig;
+  }
+
+  /**
+   * Create transaction instruction to withdraw collateral from the marginfi account.
+   *
+   * @param amount Amount to withdraw (mint native unit)
+   * @param bank Bank to withdraw from
+   * @returns `MarginWithdrawCollateral` transaction instruction
+   */
+  async makeBorrowIx(amount: UiAmount, bank: Bank): Promise<InstructionsWrapper> {
+    const userTokenAtaPk = await associatedAddress({
+      mint: bank.mint,
+      owner: this.client.provider.wallet.publicKey,
+    });
+
+    const remainingAccounts = this.getHealthCheckAccounts([bank]);
+
+    const ix = await instructions.makeBorrowIx(
+      this._program,
+      {
+        marginfiGroupPk: this.group.publicKey,
+        marginfiAccountPk: this.publicKey,
+        signerPk: this.client.provider.wallet.publicKey,
+        bankPk: bank.publicKey,
+        destinationTokenAccountPk: userTokenAtaPk,
+      },
+      { amount: uiToNative(amount, bank.mintDecimals) },
+      remainingAccounts,
+    );
+
+    return { instructions: [ix], keys: [] };
+  }
+
+  /**
+   * Withdraw collateral from the marginfi account.
+   *
+   * @param amount Amount to withdraw (UI unit)
+   * @param bank Bank to withdraw from
+   * @returns Transaction signature
+   */
+  async borrow(amount: UiAmount, bank: Bank): Promise<string> {
+    const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:borrow`);
+    debug("Borrowing %s from marginfi account", amount);
+    const tx = new Transaction();
+
+    const userAta = await associatedAddress({
+      mint: bank.mint,
+      owner: this.client.provider.wallet.publicKey,
+    });
+    const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
+      this.client.provider.wallet.publicKey,
+      userAta,
+      this.client.provider.wallet.publicKey,
+      bank.mint,
+    );
+    tx.add(createAtaIdempotentIx);
+
+    const ixs = await this.makeBorrowIx(amount, bank);
+    tx.add(...ixs.instructions);
+    const sig = await this.client.processTransaction(tx);
     debug("Withdrawing successful %s", sig);
     await this.reload();
     return sig;
@@ -294,42 +393,38 @@ class MarginfiAccount {
 
   // --- Others
 
-  getHealthCheckAccounts(mandatoryBanks: Bank[] = []): AccountMeta[] {
-    let mandatoryBanksSet = new Set(mandatoryBanks.map((b) => b.publicKey));
-    let mandatoryBanksAdded = new Set<PublicKey>();
+  getHealthCheckAccounts(mandatoryBanks: Bank[] = [], excludedBanks: Bank[] = []): AccountMeta[] {
+    const mandatoryBanksSet = new Set(mandatoryBanks.map((b) => b.publicKey.toBase58()));
+    const excludedBanksSet = new Set(excludedBanks.map((b) => b.publicKey.toBase58()));
+    const activeBanks = new Set(this.activeBalances.map((b) => b.bankPk.toBase58()));
+    const banksToAdd = new Set([...mandatoryBanksSet].filter((x) => !activeBanks.has(x)));
 
-    let remainingAccounts = this.lendingAccount.flatMap((balance) => {
-      const bank = this._group.getBankByPk(balance.bankPk);
-      if (bank === null) throw Error(`Could not find bank ${balance.bankPk.toBase58()}`);
-
-      if (mandatoryBanksSet.has(bank.publicKey)) {
-        mandatoryBanksAdded.add(bank.publicKey);
-      }
-
-      return [
-        {
-          pubkey: bank.publicKey,
-          isSigner: false,
-          isWritable: false,
-        },
-        {
-          pubkey: bank.config.oracleKeys[0],
-          isSigner: false,
-          isWritable: false,
-        },
-      ];
-    });
-
-    const remainingBanksSet = new Set([...mandatoryBanksSet].filter((x) => !mandatoryBanksAdded.has(x)));
-
-    if (remainingBanksSet.size > 0) {
-      remainingBanksSet.forEach((bankPk) => {
+    let slotsToKeep = banksToAdd.size;
+    return this._lendingBalances
+      .filter((balance) => {
+        if (balance.active) {
+          return !excludedBanksSet.has(balance.bankPk.toBase58());
+        } else if (slotsToKeep > 0) {
+          slotsToKeep--;
+          return true;
+        } else {
+          return false;
+        }
+      })
+      .map((balance) => {
+        if (balance.active) {
+          return balance.bankPk.toBase58();
+        }
+        const newBank = [...banksToAdd.values()][0];
+        banksToAdd.delete(newBank);
+        return newBank;
+      })
+      .flatMap((bankPk) => {
         const bank = this._group.getBankByPk(bankPk);
-        if (bank === null) throw Error(`Could not find bank ${bankPk.toBase58()}`);
-
-        remainingAccounts = remainingAccounts.concat([
+        if (bank === null) throw Error(`Could not find bank ${bankPk}`);
+        return [
           {
-            pubkey: bankPk,
+            pubkey: new PublicKey(bankPk),
             isSigner: false,
             isWritable: false,
           },
@@ -338,11 +433,8 @@ class MarginfiAccount {
             isSigner: false,
             isWritable: false,
           },
-        ]);
+        ];
       });
-    }
-
-    return remainingAccounts;
   }
 
   /**
@@ -359,13 +451,13 @@ class MarginfiAccount {
     accountAddress: Address,
     config: MarginfiConfig,
     program: MarginfiProgram,
-    commitment?: Commitment
+    commitment?: Commitment,
   ): Promise<MarginfiAccountData> {
     const mergedCommitment = commitment ?? program.provider.connection.commitment ?? DEFAULT_COMMITMENT;
 
     const data: MarginfiAccountData = (await program.account.marginfiAccount.fetch(
       accountAddress,
-      mergedCommitment
+      mergedCommitment,
     )) as any;
 
     if (!data.group.equals(config.groupPk))
@@ -400,12 +492,12 @@ class MarginfiAccount {
    * Update instance data by fetching and storing the latest on-chain state.
    */
   async reload() {
-    require("debug")(`mfi:margin-account:${this.publicKey.toString()}:loader`)("Reloading account data");
+    require("debug")(`mfi:margin-account:${this.publicKey.toBase58().toString()}:loader`)("Reloading account data");
     const [marginfiGroupAi, marginfiAccountAi] = await this._loadGroupAndAccountAi();
     const marginfiAccountData = MarginfiAccount.decode(marginfiAccountAi.data);
     if (!marginfiAccountData.group.equals(this._config.groupPk))
       throw Error(
-        `Marginfi account tied to group ${marginfiAccountData.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`
+        `Marginfi account tied to group ${marginfiAccountData.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`,
       );
 
     const bankAddresses = this._config.banks.map((b) => b.address);
@@ -420,7 +512,7 @@ class MarginfiAccount {
     }
 
     const pythAccounts = await this._program.provider.connection.getMultipleAccountsInfo(
-      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
+      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0]),
     );
 
     const banks = bankAccountsData.map(
@@ -429,8 +521,8 @@ class MarginfiAccount {
           this._config.banks[index].label,
           bankAddresses[index],
           bd as BankData,
-          parsePriceData(pythAccounts[index]!.data)
-        )
+          parsePriceData(pythAccounts[index]!.data),
+        ),
     );
 
     this._group = MarginfiGroup.fromAccountDataRaw(this._config, this._program, marginfiGroupAi.data, banks);
@@ -445,7 +537,7 @@ class MarginfiAccount {
   private _updateFromAccountData(data: MarginfiAccountData) {
     this._authority = data.authority;
 
-    this._lendingAccount = data.lendingAccount.balances.filter((la) => la.active).map((la) => new Balance(la));
+    this._lendingBalances = data.lendingAccount.balances.map((la) => new Balance(la));
   }
 
   private async _loadGroupAndAccountAi(): Promise<AccountInfo<Buffer>[]> {
@@ -454,7 +546,7 @@ class MarginfiAccount {
 
     let [marginfiGroupAi, marginfiAccountAi] = await this.client.provider.connection.getMultipleAccountsInfo(
       [this._config.groupPk, this.publicKey],
-      DEFAULT_COMMITMENT
+      DEFAULT_COMMITMENT,
     );
 
     if (!marginfiAccountAi) {
@@ -471,7 +563,7 @@ class MarginfiAccount {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    const [assets, liabilities] = this._lendingAccount
+    const [assets, liabilities] = this.activeBalances
       .map((accountBalance) => {
         const bank = this._group.banks.get(accountBalance.bankPk.toBase58());
         if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
@@ -482,14 +574,10 @@ class MarginfiAccount {
         ([asset, liability], [d, l]) => {
           return [asset.plus(d), liability.plus(l)];
         },
-        [new BigNumber(0), new BigNumber(0)]
+        [new BigNumber(0), new BigNumber(0)],
       );
 
     return { assets, liabilities };
-  }
-
-  public getActiveBalances(): Balance[] {
-    return this._lendingAccount.filter((b) => b.active);
   }
 
   public canBeLiquidated(): boolean {
@@ -499,7 +587,7 @@ class MarginfiAccount {
   }
 
   public getBalance(bankPk: PublicKey): Balance {
-    return this._lendingAccount.find((b) => b.bankPk.equals(bankPk)) ?? Balance.newEmpty(bankPk);
+    return this.activeBalances.find((b) => b.bankPk.equals(bankPk)) ?? Balance.newEmpty(bankPk);
   }
 
   public getFreeCollateral(): BigNumber {
@@ -512,7 +600,7 @@ class MarginfiAccount {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    const [assets, liabilities] = this._lendingAccount
+    const [assets, liabilities] = this.activeBalances
       .map((accountBalance) => {
         const bank = this._group.banks.get(accountBalance.bankPk.toBase58());
         if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
@@ -523,7 +611,7 @@ class MarginfiAccount {
         ([asset, liability], [d, l]) => {
           return [asset.plus(d), liability.plus(l)];
         },
-        [new BigNumber(0), new BigNumber(0)]
+        [new BigNumber(0), new BigNumber(0)],
       );
 
     return { assets, liabilities };
@@ -532,7 +620,7 @@ class MarginfiAccount {
   public computeNetApy(): number {
     const { assets, liabilities } = this._getHealthComponentsWithoutBias(MarginRequirementType.Equity);
     const totalUsdValue = assets.minus(liabilities);
-    const apr = this.getActiveBalances()
+    const apr = this.activeBalances
       .reduce((weightedApr, balance) => {
         const bank = this._group.getBankByPk(balance.bankPk);
         if (!bank) throw Error(`Bank ${balance.bankPk.toBase58()} not found`);
@@ -541,13 +629,13 @@ class MarginfiAccount {
             bank
               .getInterestRates()
               .borrowingRate.times(balance.getUsdValue(bank, MarginRequirementType.Equity).liabilities)
-              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
+              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue),
           )
           .plus(
             bank
               .getInterestRates()
               .lendingRate.times(balance.getUsdValue(bank, MarginRequirementType.Equity).assets)
-              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
+              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue),
           );
       }, new BigNumber(0))
       .toNumber();
@@ -575,7 +663,7 @@ class MarginfiAccount {
     const freeCollateral = this.getFreeCollateral();
     const untiedCollateralForBank = BigNumber.min(
       bank.getAssetUsdValue(balance.assetShares, MarginRequirementType.Init, PriceBias.Lowest),
-      freeCollateral
+      freeCollateral,
     );
 
     const priceLowestBias = bank.getPrice(PriceBias.Lowest);
@@ -597,7 +685,7 @@ class MarginfiAccount {
     const freeCollateral = this.getFreeCollateral();
     const untiedCollateralForBank = BigNumber.min(
       bank.getAssetUsdValue(balance.assetShares, MarginRequirementType.Init, PriceBias.Lowest),
-      freeCollateral
+      freeCollateral,
     );
 
     const priceLowestBias = bank.getPrice(PriceBias.Lowest);
@@ -610,7 +698,7 @@ class MarginfiAccount {
     liquidateeMarginfiAccount: MarginfiAccount,
     assetBank: Bank,
     assetQuantityUi: UiAmount,
-    liabBank: Bank
+    liabBank: Bank,
   ): Promise<InstructionsWrapper> {
     const ix = await instructions.makeLendingAccountLiquidateIx(
       this._program,
@@ -621,13 +709,6 @@ class MarginfiAccount {
         liabBank: liabBank.publicKey,
         liquidatorMarginfiAccount: this.publicKey,
         liquidateeMarginfiAccount: liquidateeMarginfiAccount.publicKey,
-        bankLiquidityVaultAuthority: getBankVaultAuthority(
-          BankVaultType.LiquidityVault,
-          liabBank.publicKey,
-          this._program.programId
-        )[0],
-        bankLiquidityVault: liabBank.liquidityVault,
-        bankInsuranceVault: liabBank.insuranceVault,
       },
       { assetAmount: uiToNative(assetQuantityUi, assetBank.mintDecimals) },
       [
@@ -643,7 +724,7 @@ class MarginfiAccount {
         },
         ...this.getHealthCheckAccounts([assetBank, liabBank]),
         ...liquidateeMarginfiAccount.getHealthCheckAccounts(),
-      ]
+      ],
     );
 
     return { instructions: [ix], keys: [] };
@@ -653,16 +734,16 @@ class MarginfiAccount {
     liquidateeMarginfiAccount: MarginfiAccount,
     assetBank: Bank,
     assetQuantityUi: UiAmount,
-    liabBank: Bank
+    liabBank: Bank,
   ): Promise<string> {
     const ixw = await this.makeLendingAccountLiquidateIx(
       liquidateeMarginfiAccount,
       assetBank,
       assetQuantityUi,
-      liabBank
+      liabBank,
     );
     const tx = new Transaction().add(...ixw.instructions, ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
-    return processTransaction(this.client.provider, tx);
+    return this.client.processTransaction(tx);
   }
 
   public toString() {
@@ -678,7 +759,7 @@ class MarginfiAccount {
     Assets: ${assets.toFixed(6)},
     Liabilities: ${liabilities.toFixed(6)}`;
 
-    const activeLendingAccounts = this.lendingAccount.filter((la) => la.active);
+    const activeLendingAccounts = this.activeBalances.filter((la) => la.active);
     if (activeLendingAccounts.length > 0) {
       str = str.concat("\n-----------------\nBalances:");
     }
@@ -734,7 +815,7 @@ export class Balance {
 
   public getUsdValueWithPriceBias(
     bank: Bank,
-    marginReqType: MarginRequirementType
+    marginReqType: MarginRequirementType,
   ): { assets: BigNumber; liabilities: BigNumber } {
     return {
       assets: bank.getAssetUsdValue(this.assetShares, marginReqType, PriceBias.Lowest),
