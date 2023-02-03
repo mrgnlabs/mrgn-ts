@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "lint-fix": "yarn lint --fix",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "lint-fix": "yarn lint --fix"
   },
   "dependencies": {
     "@coral-xyz/borsh": "^0.26.0",
