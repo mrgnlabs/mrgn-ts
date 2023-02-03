@@ -12,7 +12,7 @@ async function makeInitMarginfiAccountIx(
   }
 ) {
   return mfProgram.methods
-    .initializeMarginfiAccount()
+    .marginfiAccountInitialize()
     .accounts({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
@@ -38,7 +38,7 @@ async function makeDepositIx(
   remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
-    .bankDeposit(args.amount)
+    .lendingPoolDeposit(args.amount)
     .accounts({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
@@ -65,11 +65,12 @@ async function makeWithdrawIx(
   },
   args: {
     amount: BN;
+    withdrawAll?: boolean;
   },
   remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
-    .bankWithdraw(args.amount)
+    .lendingPoolWithdraw(args.amount, args.withdrawAll ?? null)
     .accounts({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
@@ -103,7 +104,7 @@ function makeLendingAccountLiquidateIx(
   remainingAccounts: AccountMeta[] = []
 ) {
   return mfiProgram.methods
-    .lendingAccountLiquidate(args.assetAmount)
+    .marginfiAccountLiquidate(args.assetAmount)
     .accountsStrict({
       marginfiGroup: accounts.marginfiGroup,
       signer: accounts.signer,

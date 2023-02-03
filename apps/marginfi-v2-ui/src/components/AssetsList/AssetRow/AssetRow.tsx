@@ -71,7 +71,7 @@ const AssetRow: FC<{
     } else {
       return roundToDecimalPlace(walletBalance, bank.mintDecimals);
     }
-  }, [marginfiAccount, bank]);
+  }, [bank.mint, bank.mintDecimals, walletBalance]);
 
   const maxBorrow = useMemo(
     () => roundToDecimalPlace((marginfiAccount?.getMaxBorrowForBank(bank).toNumber() ?? 0) * 0.95, bank.mintDecimals),
@@ -81,7 +81,7 @@ const AssetRow: FC<{
   const { assetPrice, totalPoolDeposits, totalPoolBorrows } = useMemo(
     () => ({
       assetPrice: bank.getPrice(PriceBias.None).toNumber(),
-      totalPoolDeposits: nativeToUi(bank.totalDeposits, bank.mintDecimals),
+      totalPoolDeposits: nativeToUi(bank.totalAssets, bank.mintDecimals),
       totalPoolBorrows: nativeToUi(bank.totalLiabilities, bank.mintDecimals),
     }),
     [bank]
@@ -240,10 +240,12 @@ const AssetRow: FC<{
       console.log(error);
     }
   }, [
-    marginfiAccount,
     marginfiClient,
     isInLendingMode,
+    maxDeposit,
+    maxBorrow,
     borrowOrLendAmount,
+    marginfiAccount,
     bank,
     refreshBorrowLendState,
     tokenBalance,

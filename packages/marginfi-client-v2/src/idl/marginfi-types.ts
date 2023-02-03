@@ -3,8 +3,7 @@ export type Marginfi = {
   name: "marginfi";
   instructions: [
     {
-      name: "initializeMarginfiGroup";
-      docs: ["Initialize a new Marginfi Group with initial config"];
+      name: "marginfiGroupInitialize";
       accounts: [
         {
           name: "marginfiGroup";
@@ -25,8 +24,7 @@ export type Marginfi = {
       args: [];
     },
     {
-      name: "configureMarginfiGroup";
-      docs: ["Configure a Marginfi Group"];
+      name: "marginfiGroupConfigure";
       accounts: [
         {
           name: "marginfiGroup";
@@ -50,7 +48,6 @@ export type Marginfi = {
     },
     {
       name: "lendingPoolAddBank";
-      docs: ["Add a new bank to the Marginfi Group"];
       accounts: [
         {
           name: "marginfiGroup";
@@ -76,31 +73,115 @@ export type Marginfi = {
           name: "liquidityVaultAuthority";
           isMut: false;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault_auth";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "liquidityVault";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "insuranceVaultAuthority";
           isMut: false;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "insurance_vault_auth";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "insuranceVault";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "insurance_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "feeVaultAuthority";
           isMut: false;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "fee_vault_auth";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "feeVault";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "fee_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "rent";
@@ -129,7 +210,6 @@ export type Marginfi = {
     },
     {
       name: "lendingPoolConfigureBank";
-      docs: ["Configure a bank in the Marginfi Group"];
       accounts: [
         {
           name: "marginfiGroup";
@@ -184,16 +264,58 @@ export type Marginfi = {
           name: "liquidityVault";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "insuranceVault";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "insurance_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "insuranceVaultAuthority";
           isMut: false;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "insurance_vault_auth";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "tokenProgram";
@@ -204,7 +326,7 @@ export type Marginfi = {
       args: [];
     },
     {
-      name: "initializeMarginfiAccount";
+      name: "marginfiAccountInitialize";
       docs: ["Initialize a marginfi account for a given group"];
       accounts: [
         {
@@ -231,8 +353,7 @@ export type Marginfi = {
       args: [];
     },
     {
-      name: "bankDeposit";
-      docs: ["Deposit assets into a lending account", "Repay borrowed assets, if any exist."];
+      name: "lendingPoolDeposit";
       accounts: [
         {
           name: "marginfiGroup";
@@ -263,6 +384,20 @@ export type Marginfi = {
           name: "bankLiquidityVault";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "tokenProgram";
@@ -278,12 +413,73 @@ export type Marginfi = {
       ];
     },
     {
-      name: "bankWithdraw";
-      docs: [
-        "Withdraw assets from a lending account",
-        "Withdraw deposited assets, if any exist, otherwise borrow assets.",
-        "Account health checked."
+      name: "lendingPoolRepay";
+      accounts: [
+        {
+          name: "marginfiGroup";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "marginfiAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "bank";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "signerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "bankLiquidityVault";
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
       ];
+      args: [
+        {
+          name: "amount";
+          type: "u64";
+        },
+        {
+          name: "repayAll";
+          type: {
+            option: "bool";
+          };
+        }
+      ];
+    },
+    {
+      name: "lendingPoolWithdraw";
       accounts: [
         {
           name: "marginfiGroup";
@@ -314,11 +510,124 @@ export type Marginfi = {
           name: "bankLiquidityVaultAuthority";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault_auth";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "bankLiquidityVault";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "amount";
+          type: "u64";
+        },
+        {
+          name: "withdrawAll";
+          type: {
+            option: "bool";
+          };
+        }
+      ];
+    },
+    {
+      name: "lendingPoolBorrow";
+      accounts: [
+        {
+          name: "marginfiGroup";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "marginfiAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "bank";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "destinationTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "bankLiquidityVaultAuthority";
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault_auth";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
+        },
+        {
+          name: "bankLiquidityVault";
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "tokenProgram";
@@ -334,7 +643,7 @@ export type Marginfi = {
       ];
     },
     {
-      name: "lendingAccountLiquidate";
+      name: "marginfiAccountLiquidate";
       docs: ["Liquidate a lending account balance of an unhealthy marginfi account"];
       accounts: [
         {
@@ -371,16 +680,58 @@ export type Marginfi = {
           name: "bankLiquidityVaultAuthority";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault_auth";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "liab_bank";
+              }
+            ];
+          };
         },
         {
           name: "bankLiquidityVault";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "liab_bank";
+              }
+            ];
+          };
         },
         {
           name: "bankInsuranceVault";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "insurance_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "liab_bank";
+              }
+            ];
+          };
         },
         {
           name: "tokenProgram";
@@ -396,7 +747,23 @@ export type Marginfi = {
       ];
     },
     {
-      name: "bankAccrueInterest";
+      name: "lendingPoolAccrueBankInterest";
+      accounts: [
+        {
+          name: "marginfiGroup";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "bank";
+          isMut: true;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "lendingPoolCollectBankFees";
       accounts: [
         {
           name: "marginfiGroup";
@@ -412,21 +779,77 @@ export type Marginfi = {
           name: "liquidityVaultAuthority";
           isMut: false;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault_auth";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "liquidityVault";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "liquidity_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "insuranceVault";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "insurance_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "feeVault";
           isMut: true;
           isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "fee_vault";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              }
+            ];
+          };
         },
         {
           name: "tokenProgram";
@@ -496,7 +919,7 @@ export type Marginfi = {
             };
           },
           {
-            name: "depositShareValue";
+            name: "assetShareValue";
             type: {
               defined: "WrappedI80F48";
             };
@@ -538,7 +961,7 @@ export type Marginfi = {
             };
           },
           {
-            name: "insuranceTransferRemainder";
+            name: "collectedInsuranceFeesOutstanding";
             type: {
               defined: "WrappedI80F48";
             };
@@ -562,7 +985,7 @@ export type Marginfi = {
             };
           },
           {
-            name: "feeTransferRemainder";
+            name: "collectedGroupFeesOutstanding";
             type: {
               defined: "WrappedI80F48";
             };
@@ -574,7 +997,7 @@ export type Marginfi = {
             };
           },
           {
-            name: "totalDepositShares";
+            name: "totalAssetShares";
             type: {
               defined: "WrappedI80F48";
             };
@@ -633,7 +1056,7 @@ export type Marginfi = {
             };
           },
           {
-            name: "depositShares";
+            name: "assetShares";
             type: {
               defined: "WrappedI80F48";
             };
@@ -718,13 +1141,13 @@ export type Marginfi = {
         kind: "struct";
         fields: [
           {
-            name: "depositWeightInit";
+            name: "assetWeightInit";
             type: {
               defined: "WrappedI80F48";
             };
           },
           {
-            name: "depositWeightMaint";
+            name: "assetWeightMaint";
             type: {
               defined: "WrappedI80F48";
             };
@@ -796,7 +1219,7 @@ export type Marginfi = {
         kind: "struct";
         fields: [
           {
-            name: "depositWeightInit";
+            name: "assetWeightInit";
             type: {
               option: {
                 defined: "WrappedI80F48";
@@ -804,7 +1227,7 @@ export type Marginfi = {
             };
           },
           {
-            name: "depositWeightMaint";
+            name: "assetWeightMaint";
             type: {
               option: {
                 defined: "WrappedI80F48";
@@ -879,6 +1302,40 @@ export type Marginfi = {
       };
     },
     {
+      name: "BalanceIncreaseType";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Any";
+          },
+          {
+            name: "RepayOnly";
+          },
+          {
+            name: "DepositOnly";
+          }
+        ];
+      };
+    },
+    {
+      name: "BalanceDecreaseType";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Any";
+          },
+          {
+            name: "WithdrawOnly";
+          },
+          {
+            name: "BorrowOnly";
+          }
+        ];
+      };
+    },
+    {
       name: "WeightType";
       type: {
         kind: "enum";
@@ -888,6 +1345,20 @@ export type Marginfi = {
           },
           {
             name: "Maintenance";
+          }
+        ];
+      };
+    },
+    {
+      name: "BalanceSide";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Assets";
+          },
+          {
+            name: "Liabilities";
           }
         ];
       };
@@ -985,7 +1456,7 @@ export type Marginfi = {
     },
     {
       code: 6003;
-      name: "BankDepositCapacityExceeded";
+      name: "BankAssetCapacityExceeded";
       msg: "Bank deposit capacity exceeded";
     },
     {
@@ -1035,48 +1506,83 @@ export type Marginfi = {
     },
     {
       code: 6013;
-      name: "BorrowingNotAllowed";
-      msg: "Borrowing not allowed";
-    },
-    {
-      code: 6014;
-      name: "AccountIllegalPostLiquidationState";
+      name: "IllegalLiquidation";
       msg: "Illegal post liquidation state, account is either not unhealthy or liquidation was too big";
     },
     {
-      code: 6015;
+      code: 6014;
       name: "AccountNotBankrupt";
       msg: "Account is not bankrupt";
     },
     {
-      code: 6016;
+      code: 6015;
       name: "BalanceNotBadDebt";
       msg: "Account balance is not bad debt";
     },
     {
-      code: 6017;
+      code: 6016;
       name: "InvalidConfig";
       msg: "Invalid group config";
     },
     {
-      code: 6018;
+      code: 6017;
       name: "StaleOracle";
       msg: "Stale oracle data";
     },
     {
-      code: 6019;
+      code: 6018;
       name: "BankPaused";
       msg: "Bank paused";
     },
     {
-      code: 6020;
+      code: 6019;
       name: "BankReduceOnly";
       msg: "Bank is ReduceOnly mode";
     },
     {
+      code: 6020;
+      name: "BankAccoutNotFound";
+      msg: "Bank is missing";
+    },
+    {
       code: 6021;
+      name: "OperationDepositOnly";
+      msg: "Operation is deposit-only";
+    },
+    {
+      code: 6022;
+      name: "OperationWithdrawOnly";
+      msg: "Operation is withdraw-only";
+    },
+    {
+      code: 6023;
+      name: "OperationBorrowOnly";
+      msg: "Operation is borrow-only";
+    },
+    {
+      code: 6024;
+      name: "OperationRepayOnly";
+      msg: "Operation is repay-only";
+    },
+    {
+      code: 6025;
+      name: "NoAssetFound";
+      msg: "No asset found";
+    },
+    {
+      code: 6026;
+      name: "NoLiabilityFound";
+      msg: "No liability found";
+    },
+    {
+      code: 6027;
       name: "InvalidOracleSetup";
       msg: "Invalid oracle setup";
+    },
+    {
+      code: 6028;
+      name: "IllegalUtilizationRatio";
+      msg: "Invalid bank utilization ratio";
     }
   ];
 };
@@ -1086,8 +1592,7 @@ export const IDL: Marginfi = {
   name: "marginfi",
   instructions: [
     {
-      name: "initializeMarginfiGroup",
-      docs: ["Initialize a new Marginfi Group with initial config"],
+      name: "marginfiGroupInitialize",
       accounts: [
         {
           name: "marginfiGroup",
@@ -1108,8 +1613,7 @@ export const IDL: Marginfi = {
       args: [],
     },
     {
-      name: "configureMarginfiGroup",
-      docs: ["Configure a Marginfi Group"],
+      name: "marginfiGroupConfigure",
       accounts: [
         {
           name: "marginfiGroup",
@@ -1133,7 +1637,6 @@ export const IDL: Marginfi = {
     },
     {
       name: "lendingPoolAddBank",
-      docs: ["Add a new bank to the Marginfi Group"],
       accounts: [
         {
           name: "marginfiGroup",
@@ -1159,31 +1662,115 @@ export const IDL: Marginfi = {
           name: "liquidityVaultAuthority",
           isMut: false,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault_auth",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "liquidityVault",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "insuranceVaultAuthority",
           isMut: false,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "insurance_vault_auth",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "insuranceVault",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "insurance_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "feeVaultAuthority",
           isMut: false,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "fee_vault_auth",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "feeVault",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "fee_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "rent",
@@ -1212,7 +1799,6 @@ export const IDL: Marginfi = {
     },
     {
       name: "lendingPoolConfigureBank",
-      docs: ["Configure a bank in the Marginfi Group"],
       accounts: [
         {
           name: "marginfiGroup",
@@ -1267,16 +1853,58 @@ export const IDL: Marginfi = {
           name: "liquidityVault",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "insuranceVault",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "insurance_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "insuranceVaultAuthority",
           isMut: false,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "insurance_vault_auth",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "tokenProgram",
@@ -1287,7 +1915,7 @@ export const IDL: Marginfi = {
       args: [],
     },
     {
-      name: "initializeMarginfiAccount",
+      name: "marginfiAccountInitialize",
       docs: ["Initialize a marginfi account for a given group"],
       accounts: [
         {
@@ -1314,8 +1942,7 @@ export const IDL: Marginfi = {
       args: [],
     },
     {
-      name: "bankDeposit",
-      docs: ["Deposit assets into a lending account", "Repay borrowed assets, if any exist."],
+      name: "lendingPoolDeposit",
       accounts: [
         {
           name: "marginfiGroup",
@@ -1346,6 +1973,20 @@ export const IDL: Marginfi = {
           name: "bankLiquidityVault",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "tokenProgram",
@@ -1361,12 +2002,73 @@ export const IDL: Marginfi = {
       ],
     },
     {
-      name: "bankWithdraw",
-      docs: [
-        "Withdraw assets from a lending account",
-        "Withdraw deposited assets, if any exist, otherwise borrow assets.",
-        "Account health checked.",
+      name: "lendingPoolRepay",
+      accounts: [
+        {
+          name: "marginfiGroup",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "marginfiAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "bank",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "signerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "bankLiquidityVault",
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
       ],
+      args: [
+        {
+          name: "amount",
+          type: "u64",
+        },
+        {
+          name: "repayAll",
+          type: {
+            option: "bool",
+          },
+        },
+      ],
+    },
+    {
+      name: "lendingPoolWithdraw",
       accounts: [
         {
           name: "marginfiGroup",
@@ -1397,11 +2099,124 @@ export const IDL: Marginfi = {
           name: "bankLiquidityVaultAuthority",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault_auth",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "bankLiquidityVault",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "amount",
+          type: "u64",
+        },
+        {
+          name: "withdrawAll",
+          type: {
+            option: "bool",
+          },
+        },
+      ],
+    },
+    {
+      name: "lendingPoolBorrow",
+      accounts: [
+        {
+          name: "marginfiGroup",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "marginfiAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "bank",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "destinationTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "bankLiquidityVaultAuthority",
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault_auth",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
+        },
+        {
+          name: "bankLiquidityVault",
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "tokenProgram",
@@ -1417,7 +2232,7 @@ export const IDL: Marginfi = {
       ],
     },
     {
-      name: "lendingAccountLiquidate",
+      name: "marginfiAccountLiquidate",
       docs: ["Liquidate a lending account balance of an unhealthy marginfi account"],
       accounts: [
         {
@@ -1454,16 +2269,58 @@ export const IDL: Marginfi = {
           name: "bankLiquidityVaultAuthority",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault_auth",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "liab_bank",
+              },
+            ],
+          },
         },
         {
           name: "bankLiquidityVault",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "liab_bank",
+              },
+            ],
+          },
         },
         {
           name: "bankInsuranceVault",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "insurance_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "liab_bank",
+              },
+            ],
+          },
         },
         {
           name: "tokenProgram",
@@ -1479,7 +2336,23 @@ export const IDL: Marginfi = {
       ],
     },
     {
-      name: "bankAccrueInterest",
+      name: "lendingPoolAccrueBankInterest",
+      accounts: [
+        {
+          name: "marginfiGroup",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "bank",
+          isMut: true,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "lendingPoolCollectBankFees",
       accounts: [
         {
           name: "marginfiGroup",
@@ -1495,21 +2368,77 @@ export const IDL: Marginfi = {
           name: "liquidityVaultAuthority",
           isMut: false,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault_auth",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "liquidityVault",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "liquidity_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "insuranceVault",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "insurance_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "feeVault",
           isMut: true,
           isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "fee_vault",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+            ],
+          },
         },
         {
           name: "tokenProgram",
@@ -1579,7 +2508,7 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "depositShareValue",
+            name: "assetShareValue",
             type: {
               defined: "WrappedI80F48",
             },
@@ -1621,7 +2550,7 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "insuranceTransferRemainder",
+            name: "collectedInsuranceFeesOutstanding",
             type: {
               defined: "WrappedI80F48",
             },
@@ -1645,7 +2574,7 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "feeTransferRemainder",
+            name: "collectedGroupFeesOutstanding",
             type: {
               defined: "WrappedI80F48",
             },
@@ -1657,7 +2586,7 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "totalDepositShares",
+            name: "totalAssetShares",
             type: {
               defined: "WrappedI80F48",
             },
@@ -1716,7 +2645,7 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "depositShares",
+            name: "assetShares",
             type: {
               defined: "WrappedI80F48",
             },
@@ -1801,13 +2730,13 @@ export const IDL: Marginfi = {
         kind: "struct",
         fields: [
           {
-            name: "depositWeightInit",
+            name: "assetWeightInit",
             type: {
               defined: "WrappedI80F48",
             },
           },
           {
-            name: "depositWeightMaint",
+            name: "assetWeightMaint",
             type: {
               defined: "WrappedI80F48",
             },
@@ -1879,7 +2808,7 @@ export const IDL: Marginfi = {
         kind: "struct",
         fields: [
           {
-            name: "depositWeightInit",
+            name: "assetWeightInit",
             type: {
               option: {
                 defined: "WrappedI80F48",
@@ -1887,7 +2816,7 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "depositWeightMaint",
+            name: "assetWeightMaint",
             type: {
               option: {
                 defined: "WrappedI80F48",
@@ -1962,6 +2891,40 @@ export const IDL: Marginfi = {
       },
     },
     {
+      name: "BalanceIncreaseType",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Any",
+          },
+          {
+            name: "RepayOnly",
+          },
+          {
+            name: "DepositOnly",
+          },
+        ],
+      },
+    },
+    {
+      name: "BalanceDecreaseType",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Any",
+          },
+          {
+            name: "WithdrawOnly",
+          },
+          {
+            name: "BorrowOnly",
+          },
+        ],
+      },
+    },
+    {
       name: "WeightType",
       type: {
         kind: "enum",
@@ -1971,6 +2934,20 @@ export const IDL: Marginfi = {
           },
           {
             name: "Maintenance",
+          },
+        ],
+      },
+    },
+    {
+      name: "BalanceSide",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Assets",
+          },
+          {
+            name: "Liabilities",
           },
         ],
       },
@@ -2068,7 +3045,7 @@ export const IDL: Marginfi = {
     },
     {
       code: 6003,
-      name: "BankDepositCapacityExceeded",
+      name: "BankAssetCapacityExceeded",
       msg: "Bank deposit capacity exceeded",
     },
     {
@@ -2118,48 +3095,83 @@ export const IDL: Marginfi = {
     },
     {
       code: 6013,
-      name: "BorrowingNotAllowed",
-      msg: "Borrowing not allowed",
-    },
-    {
-      code: 6014,
-      name: "AccountIllegalPostLiquidationState",
+      name: "IllegalLiquidation",
       msg: "Illegal post liquidation state, account is either not unhealthy or liquidation was too big",
     },
     {
-      code: 6015,
+      code: 6014,
       name: "AccountNotBankrupt",
       msg: "Account is not bankrupt",
     },
     {
-      code: 6016,
+      code: 6015,
       name: "BalanceNotBadDebt",
       msg: "Account balance is not bad debt",
     },
     {
-      code: 6017,
+      code: 6016,
       name: "InvalidConfig",
       msg: "Invalid group config",
     },
     {
-      code: 6018,
+      code: 6017,
       name: "StaleOracle",
       msg: "Stale oracle data",
     },
     {
-      code: 6019,
+      code: 6018,
       name: "BankPaused",
       msg: "Bank paused",
     },
     {
-      code: 6020,
+      code: 6019,
       name: "BankReduceOnly",
       msg: "Bank is ReduceOnly mode",
     },
     {
+      code: 6020,
+      name: "BankAccoutNotFound",
+      msg: "Bank is missing",
+    },
+    {
       code: 6021,
+      name: "OperationDepositOnly",
+      msg: "Operation is deposit-only",
+    },
+    {
+      code: 6022,
+      name: "OperationWithdrawOnly",
+      msg: "Operation is withdraw-only",
+    },
+    {
+      code: 6023,
+      name: "OperationBorrowOnly",
+      msg: "Operation is borrow-only",
+    },
+    {
+      code: 6024,
+      name: "OperationRepayOnly",
+      msg: "Operation is repay-only",
+    },
+    {
+      code: 6025,
+      name: "NoAssetFound",
+      msg: "No asset found",
+    },
+    {
+      code: 6026,
+      name: "NoLiabilityFound",
+      msg: "No liability found",
+    },
+    {
+      code: 6027,
       name: "InvalidOracleSetup",
       msg: "Invalid oracle setup",
+    },
+    {
+      code: 6028,
+      name: "IllegalUtilizationRatio",
+      msg: "Invalid bank utilization ratio",
     },
   ],
 };

@@ -574,7 +574,7 @@ class MarginfiAccount {
 
     const freeCollateral = this.getFreeCollateral();
     const untiedCollateralForBank = BigNumber.min(
-      bank.getAssetUsdValue(balance.depositShares, MarginRequirementType.Init, PriceBias.Lowest),
+      bank.getAssetUsdValue(balance.assetShares, MarginRequirementType.Init, PriceBias.Lowest),
       freeCollateral
     );
 
@@ -596,14 +596,14 @@ class MarginfiAccount {
 
     const freeCollateral = this.getFreeCollateral();
     const untiedCollateralForBank = BigNumber.min(
-      bank.getAssetUsdValue(balance.depositShares, MarginRequirementType.Init, PriceBias.Lowest),
+      bank.getAssetUsdValue(balance.assetShares, MarginRequirementType.Init, PriceBias.Lowest),
       freeCollateral
     );
 
     const priceLowestBias = bank.getPrice(PriceBias.Lowest);
-    const depositWeight = bank.getAssetWeight(MarginRequirementType.Init);
+    const assetWeight = bank.getAssetWeight(MarginRequirementType.Init);
 
-    return untiedCollateralForBank.div(priceLowestBias.times(depositWeight));
+    return untiedCollateralForBank.div(priceLowestBias.times(assetWeight));
   }
 
   public async makeLendingAccountLiquidateIx(
@@ -706,13 +706,13 @@ export default MarginfiAccount;
 export class Balance {
   active: boolean;
   bankPk: PublicKey;
-  depositShares: BigNumber;
+  assetShares: BigNumber;
   liabilityShares: BigNumber;
 
   constructor(data: BalanceData) {
     this.active = data.active;
     this.bankPk = data.bankPk;
-    this.depositShares = wrappedI80F48toBigNumber(data.depositShares);
+    this.assetShares = wrappedI80F48toBigNumber(data.assetShares);
     this.liabilityShares = wrappedI80F48toBigNumber(data.liabilityShares);
   }
 
@@ -720,14 +720,14 @@ export class Balance {
     return new Balance({
       active: false,
       bankPk,
-      depositShares: { value: new BN(0) },
+      assetShares: { value: new BN(0) },
       liabilityShares: { value: new BN(0) },
     });
   }
 
   public getUsdValue(bank: Bank, marginReqType: MarginRequirementType): { assets: BigNumber; liabilities: BigNumber } {
     return {
-      assets: bank.getAssetUsdValue(this.depositShares, marginReqType, PriceBias.None),
+      assets: bank.getAssetUsdValue(this.assetShares, marginReqType, PriceBias.None),
       liabilities: bank.getLiabilityUsdValue(this.liabilityShares, marginReqType, PriceBias.None),
     };
   }
@@ -737,7 +737,7 @@ export class Balance {
     marginReqType: MarginRequirementType
   ): { assets: BigNumber; liabilities: BigNumber } {
     return {
-      assets: bank.getAssetUsdValue(this.depositShares, marginReqType, PriceBias.Lowest),
+      assets: bank.getAssetUsdValue(this.assetShares, marginReqType, PriceBias.Lowest),
       liabilities: bank.getLiabilityUsdValue(this.liabilityShares, marginReqType, PriceBias.Highest),
     };
   }
@@ -747,7 +747,7 @@ export class Balance {
     liabilities: BigNumber;
   } {
     return {
-      assets: bank.getAssetQuantity(this.depositShares),
+      assets: bank.getAssetQuantity(this.assetShares),
       liabilities: bank.getLiabilityQuantity(this.liabilityShares),
     };
   }
@@ -764,7 +764,7 @@ export interface MarginfiAccountData {
 export interface BalanceData {
   active: boolean;
   bankPk: PublicKey;
-  depositShares: WrappedI80F48;
+  assetShares: WrappedI80F48;
   liabilityShares: WrappedI80F48;
 }
 

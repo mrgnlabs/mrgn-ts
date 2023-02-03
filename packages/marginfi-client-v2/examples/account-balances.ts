@@ -37,13 +37,11 @@ async function main() {
     const { assets, liabilities } = balance.getUsdValue(bank, MarginRequirementType.Equity);
 
     console.log(
-      "Balance for %s (%s) deposits: %s, borrows: %s",
-      shortenAddress(bank.mint),
-      shortenAddress(balance.bankPk),
-      assets,
-      liabilities
+      `Balance for ${shortenAddress(bank.mint)} (${shortenAddress(
+        balance.bankPk
+      )}) deposits: ${assets}, borrows: ${liabilities}`
     );
   });
 }
 
-main();
+main().catch((e) => console.log(e));

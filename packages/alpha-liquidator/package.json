@@ -1,10 +1,9 @@
 {
-  "name": "alpha-liquidator",
+  "name": "@mrgnlabs/alpha-liquidator",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node src/index.ts",
     "build": "tsup"
   },
