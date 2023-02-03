@@ -1,16 +1,13 @@
 {
-  "extends": "@tsconfig/node16/tsconfig.json",
+  "extends": "@mrgnlabs/tsconfig/node16.json",
   "compilerOptions": {
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "target": "es6",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "allowJs": true,
-    "esModuleInterop": true,
-    "outDir": "./build",
-    "rootDir": "src"
+    "resolveJsonModule": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules"]
+  "include": [
+    "**/*.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
 }
