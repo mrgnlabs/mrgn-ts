@@ -1,6 +1,9 @@
-import { aprToApy, nativeToUi } from "@mrgnlabs/marginfi-client-v2";
-import MarginfiAccount, { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
-import { AccountSummary, TokenMetadataMap } from "~/types";
+import { nativeToUi } from "@mrgnlabs/marginfi-client-v2";
+import MarginfiAccount, { Balance, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
+import { AccountSummary, BankInfo, ExtendedBankInfo, TokenAccount, TokenMetadata, UserPosition } from "~/types";
+import Bank, { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
+import { WALLET_BALANCE_MARGIN_SOL, WSOL_MINT } from "~/config";
+import { floor } from "~/utils";
 
 const DEFAULT_ACCOUNT_SUMMARY = {
   balance: 0,
@@ -10,7 +13,7 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   positions: [],
 };
 
-function computeAccountSummary(marginfiAccount: MarginfiAccount, tokenMetadata: TokenMetadataMap): AccountSummary {
+function computeAccountSummary(marginfiAccount: MarginfiAccount): AccountSummary {
   const equityComponents = marginfiAccount.getHealthComponents(MarginRequirementType.Equity);
 
   return {
@@ -18,28 +21,98 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, tokenMetadata: 
     lendingAmount: equityComponents.assets.toNumber(),
     borrowingAmount: equityComponents.liabilities.toNumber(),
     apy: marginfiAccount.computeNetApy(),
-    positions: marginfiAccount.activeBalances.map((balance) => {
-      const bank = marginfiAccount.group.getBankByPk(balance.bankPk);
-      if (!bank) throw new Error(`Bank ${balance.bankPk} not found`);
-      const amounts = balance.getQuantity(bank);
-      const usdValues = balance.getUsdValue(bank, MarginRequirementType.Equity);
-      const isLending = usdValues.liabilities.isZero();
-      return {
-        amount: isLending
-          ? nativeToUi(amounts.assets.toNumber(), bank.mintDecimals)
-          : nativeToUi(amounts.liabilities.toNumber(), bank.mintDecimals),
-        usdValue: isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber(),
-        assetName: bank.label,
-        assetMint: bank.mint,
-        isLending,
-        apy: aprToApy(
-          isLending ? bank.getInterestRates().lendingRate.toNumber() : bank.getInterestRates().borrowingRate.toNumber()
-        ),
-        bank,
-        tokenMetadata: tokenMetadata[bank.label],
-      };
-    }),
   };
 }
 
-export { DEFAULT_ACCOUNT_SUMMARY, computeAccountSummary };
+function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata): BankInfo {
+  const { lendingRate, borrowingRate } = bank.getInterestRates();
+  const totalPoolDeposits = nativeToUi(bank.totalAssets, bank.mintDecimals);
+  const totalPoolBorrows = nativeToUi(bank.totalLiabilities, bank.mintDecimals);
+  const liquidity = totalPoolDeposits - totalPoolBorrows;
+  const utilizationRate = totalPoolDeposits > 0 ? (totalPoolBorrows / totalPoolDeposits) * 100 : 0;
+
+  return {
+    address: bank.publicKey,
+    tokenIcon: tokenMetadata.icon,
+    tokenName: bank.label,
+    tokenPrice: bank.getPrice(PriceBias.None).toNumber(),
+    tokenMint: bank.mint,
+    tokenMintDecimals: bank.mintDecimals,
+    lendingRate: lendingRate.toNumber(),
+    borrowingRate: borrowingRate.toNumber(),
+    totalPoolDeposits,
+    totalPoolBorrows,
+    availableLiquidity: liquidity,
+    utilizationRate,
+    bank,
+  };
+}
+
+function makeBankInfoForAccount(
+  bankInfo: BankInfo,
+  tokenAccount: TokenAccount,
+  nativeSolBalance: number,
+  marginfiAccount: MarginfiAccount | null
+): ExtendedBankInfo {
+  const isWrappedSol = bankInfo.tokenMint.equals(WSOL_MINT);
+  const positionRaw = marginfiAccount?.activeBalances.find((balance) => balance.bankPk.equals(bankInfo.address));
+  const hasActivePosition = !!positionRaw;
+  const position = hasActivePosition ? makeUserPosition(positionRaw, bankInfo) : null;
+
+  const walletBalance = isWrappedSol ? tokenAccount.balance + nativeSolBalance : tokenAccount.balance;
+
+  const maxDeposit = floor(
+    isWrappedSol ? Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0) : walletBalance,
+    bankInfo.tokenMintDecimals
+  );
+  const maxWithdraw = floor(
+    Math.min(marginfiAccount?.getMaxWithdrawForBank(bankInfo.bank).toNumber() ?? 0, bankInfo.availableLiquidity),
+    bankInfo.tokenMintDecimals
+  );
+  const maxBorrow = floor(
+    Math.min((marginfiAccount?.getMaxBorrowForBank(bankInfo.bank).toNumber() ?? 0) * 0.95, bankInfo.availableLiquidity),
+    bankInfo.tokenMintDecimals
+  );
+  let maxRepay: number;
+  if (isWrappedSol) {
+    maxRepay = !!position ? Math.min(position.amount, maxDeposit) : maxDeposit;
+  } else {
+    maxRepay = !!position ? Math.min(position.amount, maxDeposit) : maxDeposit;
+  }
+
+  const base = {
+    ...bankInfo,
+    hasActivePosition,
+    walletBalance,
+    maxDeposit,
+    maxRepay,
+    maxWithdraw,
+    maxBorrow,
+  };
+
+  return !!position
+    ? {
+        ...base,
+        hasActivePosition: true,
+        position,
+      }
+    : {
+        ...base,
+        hasActivePosition: false,
+      };
+}
+
+function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {
+  const amounts = balance.getQuantity(bankInfo.bank);
+  const usdValues = balance.getUsdValue(bankInfo.bank, MarginRequirementType.Equity);
+  const isLending = usdValues.liabilities.isZero();
+  return {
+    amount: isLending
+      ? nativeToUi(amounts.assets.toNumber(), bankInfo.tokenMintDecimals)
+      : nativeToUi(amounts.liabilities.toNumber(), bankInfo.tokenMintDecimals),
+    usdValue: isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber(),
+    isLending,
+  };
+}
+
+export { DEFAULT_ACCOUNT_SUMMARY, computeAccountSummary, makeBankInfo, makeBankInfoForAccount };

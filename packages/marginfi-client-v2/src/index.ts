@@ -1,5 +1,5 @@
 import MarginfiClient from "./client";
-import MarginfiReadonlyClient from "./clientReadonly";
+import MarginfiClientReadonly from "./clientReadonly";
 import MarginfiGroup from "./group";
 import { NodeWallet } from "./nodeWallet";
 
@@ -9,5 +9,5 @@ export * from "./group";
 export * from "./idl";
 export * from "./types";
 export * from "./utils";
-export { MarginfiClient, MarginfiReadonlyClient, MarginfiGroup };
+export { MarginfiClient, MarginfiClientReadonly, MarginfiGroup };
 export { NodeWallet };

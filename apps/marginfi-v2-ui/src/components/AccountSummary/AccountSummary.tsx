@@ -2,13 +2,13 @@ import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account"
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo } from "react";
 import { usdFormatter } from "~/utils/formatters";
-import { useBorrowLendState } from "~/context";
 import { AccountBalance } from "./AccountBalance";
 import { AccountMetric } from "./AccountMetric";
 import { HealthFactor } from "./HealthMonitor";
+import { useUserAccounts } from "~/context";
 
 const AccountSummary: FC = () => {
-  const { accountSummary, selectedAccount } = useBorrowLendState();
+  const { accountSummary, selectedAccount } = useUserAccounts();
   const wallet = useWallet();
 
   const healthFactor = useMemo(() => {
@@ -29,8 +29,7 @@ const AccountSummary: FC = () => {
         }}
       >
         <AccountBalance isConnected={wallet.connected} accountBalance={accountSummary.balance} />
-        <div
-          className="h-[112px] min-w-[392px] w-[38%] flex flex-row justify-between xl:pt-0 h-full bg-[#0E1113] rounded-xl">
+        <div className="h-[112px] min-w-[392px] w-[38%] flex flex-row justify-between xl:pt-0 h-full bg-[#0E1113] rounded-xl">
           <AccountMetric
             label={"Lending"}
             value={wallet.connected ? usdFormatter.format(accountSummary.lendingAmount) : "-"}

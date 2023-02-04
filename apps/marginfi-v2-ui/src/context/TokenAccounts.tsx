@@ -1,43 +1,35 @@
 import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
 import { nativeToUi } from "@mrgnlabs/marginfi-client-v2";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useBorrowLendState } from "./BorrowLend";
-import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { getAssociatedTokenAddressSync, unpackAccount } from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
+import { useBanks } from "~/context";
+import { TokenAccount, TokenAccountMap } from "~/types";
 
 // @ts-ignore - Safe because context hook checks for null
-const TokenBalancesContext = createContext<TokenBalancesState>();
+const TokenAccountsContext = createContext<TokenAccountsState>();
 
-export interface TokenBalance {
-  mint: PublicKey;
-  created: boolean;
-  balance: number;
-}
-
-type TokenBalanceMap = Map<string, TokenBalance>;
-
-interface TokenBalancesState {
+interface TokenAccountsState {
   fetching: boolean;
   refresh: () => Promise<void>;
-  tokenBalances: TokenBalanceMap;
+  tokenAccountMap: TokenAccountMap;
   nativeSol: number;
 }
 
-const TokenBalancesProvider: FC<{
+const TokenAccountsProvider: FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const { connection } = useConnection();
   const wallet = useWallet();
-  const { banks } = useBorrowLendState();
+  const { banks } = useBanks();
 
   const [fetching, setFetching] = useState<boolean>(false);
   const [nativeSol, setNativeSol] = useState<number>(0);
-  const [tokenBalances, setTokenBalances] = useState<TokenBalanceMap>(new Map<string, TokenBalance>());
+  const [tokenAccountMap, setTokenAccountMap] = useState<TokenAccountMap>(new Map<string, TokenAccount>());
 
-  const fetchTokenBalances = useCallback(async (): Promise<TokenBalanceMap> => {
+  const fetchTokenAccounts = useCallback(async (): Promise<TokenAccountMap> => {
     if (!wallet.publicKey) {
-      return new Map<string, TokenBalance>();
+      return new Map<string, TokenAccount>();
     }
 
     // Get relevant addresses
@@ -54,7 +46,7 @@ const TokenBalancesProvider: FC<{
     const [walletAi, ...ataAiList] = accountsAiList;
     setNativeSol(walletAi?.lamports ? walletAi.lamports / 1e9 : 0);
 
-    const ataList: TokenBalance[] = ataAiList.map((ai, index) => {
+    const ataList: TokenAccount[] = ataAiList.map((ai, index) => {
       if (!ai) {
         return {
           created: false,
@@ -71,18 +63,18 @@ const TokenBalancesProvider: FC<{
     });
 
     return new Map(ataList.map((ata) => [ata.mint.toString(), ata]));
-  }, [connection, wallet.publicKey, banks]);
+  }, [banks, connection, wallet.publicKey]);
 
   const refresh = useCallback(async () => {
     setFetching(true);
     try {
-      setTokenBalances(await fetchTokenBalances());
+      setTokenAccountMap(await fetchTokenAccounts());
     } catch (error: any) {
       console.error(error);
     } finally {
       setFetching(false);
     }
-  }, [fetchTokenBalances]);
+  }, [fetchTokenAccounts]);
 
   useEffect(() => {
     refresh();
@@ -91,19 +83,19 @@ const TokenBalancesProvider: FC<{
   }, [refresh]);
 
   return (
-    <TokenBalancesContext.Provider value={{ fetching, refresh, tokenBalances, nativeSol }}>
+    <TokenAccountsContext.Provider value={{ fetching, refresh, tokenAccountMap: tokenAccountMap, nativeSol }}>
       {children}
-    </TokenBalancesContext.Provider>
+    </TokenAccountsContext.Provider>
   );
 };
 
-const useTokenBalances = () => {
-  const context = useContext(TokenBalancesContext);
+const useTokenAccounts = () => {
+  const context = useContext(TokenAccountsContext);
   if (!context) {
-    throw new Error("useTokenBalances must be used within a TokenBalancesProvider");
+    throw new Error("useTokenAccounts must be used within a TokenAccountsProvider");
   }
 
   return context;
 };
 
-export { useTokenBalances, TokenBalancesProvider };
+export { useTokenAccounts, TokenAccountsProvider };

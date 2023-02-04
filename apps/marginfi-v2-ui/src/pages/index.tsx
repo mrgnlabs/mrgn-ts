@@ -1,12 +1,12 @@
 import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { AccountSummary, AssetsList, MultipleAccountsFoundWarning, UserPositions } from "~/components";
-import { useBorrowLendState } from "~/context/BorrowLend";
 import { PageHeader } from "~/components/PageHeader";
+import { useUserAccounts } from "~/context";
 
 const Home = () => {
   const wallet = useWallet();
-  const { userAccounts } = useBorrowLendState();
+  const { userAccounts } = useUserAccounts();
 
   return (
     <>

@@ -9,7 +9,7 @@ export type MarginfiProgram = Omit<Program<Marginfi>, "provider"> & {
 };
 export type MarginfiReadonlyProgram = Program<Marginfi>;
 
-export type UiAmount = BigNumber | number | string;
+export type Amount = BigNumber | number | string;
 
 export type Wallet = Pick<SignerWalletAdapter, "signAllTransactions" | "signTransaction"> & {
   publicKey: PublicKey;

@@ -2,69 +2,25 @@ import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
 import { TableCell, TableRow } from "@mui/material";
 import { FC, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { UserPosition } from "~/types";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
 import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowHeader } from "./UserPositionRowHeader";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
-import { roundToDecimalPlace } from "~/utils";
-import { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
-import { nativeToUi } from "@mrgnlabs/marginfi-client-v2";
-import { WALLET_BALANCE_MARGIN_SOL, WSOL_MINT } from "~/config";
+import { ActiveBankInfo } from "~/types";
 
 const WITHDRAW_OR_REPAY_TOAST_ID = "withdraw-or-repay";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 
 interface UserPositionRowProps {
-  position: UserPosition;
-  tokenBalance: number;
-  nativeSolBalance: number;
+  activeBankInfo: ActiveBankInfo;
   marginfiAccount?: MarginfiAccount | null;
-  refreshBorrowLendState: () => Promise<void>;
+  reloadPositions: () => Promise<void>;
 }
 
-const UserPositionRow: FC<UserPositionRowProps> = ({
-  position,
-  marginfiAccount,
-  refreshBorrowLendState,
-  tokenBalance,
-  nativeSolBalance,
-}) => {
+const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAccount, reloadPositions }) => {
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
 
-  const walletBalance = useMemo(
-    () => (position.bank.mint.equals(WSOL_MINT) ? tokenBalance + nativeSolBalance : tokenBalance),
-    [position.bank.mint, nativeSolBalance, tokenBalance]
-  );
-
-  const { totalPoolDeposits, totalPoolBorrows } = useMemo(
-    () => ({
-      assetPrice: position.bank.getPrice(PriceBias.None).toNumber(),
-      totalPoolDeposits: nativeToUi(position.bank.totalAssets, position.bank.mintDecimals),
-      totalPoolBorrows: nativeToUi(position.bank.totalLiabilities, position.bank.mintDecimals),
-    }),
-    [position.bank]
-  );
-
-  const maxWithdraw = useMemo(
-    () =>
-      roundToDecimalPlace(
-        Math.min(
-          marginfiAccount?.getMaxWithdrawForBank(position.bank).toNumber() ?? 0,
-          totalPoolDeposits - totalPoolBorrows
-        ),
-        position.bank.mintDecimals
-      ),
-    [position.bank, marginfiAccount, totalPoolBorrows, totalPoolDeposits]
-  );
-
-  const maxRepay = useMemo(() => {
-    if (position.bank.mint.equals(WSOL_MINT)) {
-      return roundToDecimalPlace(Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0), position.bank.mintDecimals);
-    } else {
-      return roundToDecimalPlace(walletBalance, position.bank.mintDecimals);
-    }
-  }, [position.bank.mint, position.bank.mintDecimals, walletBalance]);
+  const position = useMemo(() => activeBankInfo.position, [activeBankInfo.position]);
 
   const withdrawOrRepay = useCallback(async () => {
     if (!marginfiAccount) {
@@ -84,14 +40,14 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
       if (position.isLending) {
         await marginfiAccount.withdraw(
           withdrawOrRepayAmount,
-          position.bank,
-          position && withdrawOrRepayAmount === position.amount
+          activeBankInfo.bank,
+          position && withdrawOrRepayAmount === activeBankInfo.maxWithdraw
         );
       } else {
         await marginfiAccount.repay(
           withdrawOrRepayAmount,
-          position.bank,
-          position && withdrawOrRepayAmount === position.amount
+          activeBankInfo.bank,
+          position && withdrawOrRepayAmount === activeBankInfo.maxRepay
         );
       }
       toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
@@ -115,7 +71,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
 
     toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
-      await refreshBorrowLendState();
+      await reloadPositions();
       toast.update(REFRESH_ACCOUNT_TOAST_ID, {
         render: "Refreshing state 👍",
         type: toast.TYPE.SUCCESS,
@@ -132,12 +88,20 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [marginfiAccount, withdrawOrRepayAmount, refreshBorrowLendState, position]);
+  }, [
+    activeBankInfo.bank,
+    activeBankInfo.maxRepay,
+    activeBankInfo.maxWithdraw,
+    marginfiAccount,
+    position,
+    reloadPositions,
+    withdrawOrRepayAmount,
+  ]);
 
   return (
     <TableRow className="font-aeonik w-full h-full flex justify-between items-center h-[78px] py-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+      <UserPositionRowHeader assetName={activeBankInfo.tokenName} icon={activeBankInfo.tokenIcon} />
       <TableCell className="font-aeonik font-light w-full h-10 flex flex-row justify-between items-center m-0 py-1 px-0 text-white text-sm border-solid border-b-black border-b-[#00000000]">
-        <UserPositionRowHeader assetName={position.assetName} icon={position.tokenMetadata.icon} />
         <div className="bg-transparent max-w-[200px] min-w-fit flex flex-col justify-evenly p-1 px-3">
           <div className=" text-sm text-[#868E95] min-w-[118px]">
             {position.isLending ? "Amount Lending" : "Amount Borrowing"}
@@ -152,8 +116,8 @@ const UserPositionRow: FC<UserPositionRowProps> = ({
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
-          maxValue={position.isLending ? maxWithdraw : maxRepay}
-          maxDecimals={position.bank.mintDecimals}
+          maxValue={position.isLending ? activeBankInfo.maxWithdraw : activeBankInfo.maxRepay}
+          maxDecimals={activeBankInfo.tokenMintDecimals}
         />
       </TableCell>
 

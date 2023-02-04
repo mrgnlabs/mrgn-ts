@@ -1,32 +1,32 @@
 import React, { FC, useMemo } from "react";
 import { Card, Table, TableBody, TableContainer } from "@mui/material";
-import { useBorrowLendState, useTokenBalances } from "~/context";
+import { useTokenAccounts, useUserAccounts } from "~/context";
 import UserPositionRow from "./UserPositionRow";
 
 const UserPositions: FC = () => {
-  const { accountSummary, selectedAccount, refreshData } = useBorrowLendState();
+  const { selectedAccount, activeBankInfos, reload } = useUserAccounts();
+  const { tokenAccountMap } = useTokenAccounts();
+
   const { lendPositions, borrowPositions } = useMemo(
     () => ({
-      lendPositions: accountSummary.positions.filter((p) => p.isLending),
-      borrowPositions: accountSummary.positions.filter((p) => !p.isLending),
+      lendPositions: activeBankInfos.filter((bankInfo) => bankInfo.position.isLending),
+      borrowPositions: activeBankInfos.filter((bankInfo) => !bankInfo.position.isLending),
     }),
-    [accountSummary]
+    [activeBankInfos]
   );
-
-  const { tokenBalances, nativeSol } = useTokenBalances();
 
   const { lentAssetInfos, borrowedAssetInfos } = useMemo(
     () => ({
-      lentAssetInfos: lendPositions.map((position) => ({
-        position,
-        walletBalance: tokenBalances.get(position.bank.mint.toBase58())?.balance || 0,
+      lentAssetInfos: lendPositions.map((bankInfo) => ({
+        bankInfo,
+        walletBalance: tokenAccountMap.get(bankInfo.bank.mint.toBase58())?.balance || 0,
       })),
-      borrowedAssetInfos: borrowPositions.map((position) => ({
-        position,
-        walletBalance: tokenBalances.get(position.bank.mint.toBase58())?.balance || 0,
+      borrowedAssetInfos: borrowPositions.map((bankInfo) => ({
+        bankInfo,
+        walletBalance: tokenAccountMap.get(bankInfo.bank.mint.toBase58())?.balance || 0,
       })),
     }),
-    [lendPositions, borrowPositions, tokenBalances]
+    [borrowPositions, lendPositions, tokenAccountMap]
   );
 
   return (
@@ -37,14 +37,12 @@ const UserPositions: FC = () => {
           <TableContainer>
             <Table className="w-full table-fixed">
               <TableBody className="w-full flex flex-col gap-4">
-                {lentAssetInfos.map(({ position, walletBalance }, index) => (
+                {lentAssetInfos.map(({ bankInfo }, index) => (
                   <UserPositionRow
                     key={index}
-                    position={position}
-                    tokenBalance={walletBalance}
-                    nativeSolBalance={nativeSol}
+                    activeBankInfo={bankInfo}
                     marginfiAccount={selectedAccount}
-                    refreshBorrowLendState={refreshData}
+                    reloadPositions={reload}
                   />
                 ))}
               </TableBody>
@@ -61,14 +59,12 @@ const UserPositions: FC = () => {
             <TableContainer>
               <Table className="table-fixed">
                 <TableBody>
-                  {borrowedAssetInfos.map(({ position, walletBalance }, index) => (
+                  {borrowedAssetInfos.map(({ bankInfo, walletBalance }, index) => (
                     <UserPositionRow
                       key={index}
-                      position={position}
-                      tokenBalance={walletBalance}
-                      nativeSolBalance={nativeSol}
+                      activeBankInfo={bankInfo}
                       marginfiAccount={selectedAccount}
-                      refreshBorrowLendState={refreshData}
+                      reloadPositions={reload}
                     />
                   ))}
                 </TableBody>

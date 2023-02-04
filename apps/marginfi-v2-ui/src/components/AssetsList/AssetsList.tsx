@@ -1,25 +1,16 @@
-import React, { FC, useEffect, useMemo, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Card, Skeleton, Table, TableBody, TableContainer, TableRow } from "@mui/material";
-import { useBorrowLendState, useTokenBalances, useTokenMetadata } from "~/context";
+import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
 
 const AssetsList: FC = () => {
   const [isInLendingMode, setIsInLendingMode] = useState(true);
-  const { banks, selectedAccount, refreshData, mfiClient, accountSummary } = useBorrowLendState();
-  const { tokenBalances, nativeSol } = useTokenBalances();
-  const { tokenMetadataMap } = useTokenMetadata();
+  const { mfiClient } = useProgram();
+  const { reload } = useBanks();
+  const { bankInfosForAccount, selectedAccount } = useUserAccounts();
   const wallet = useWallet();
-
-  const assetInfos = useMemo(
-    () =>
-      banks.map((bank) => ({
-        bank,
-        walletBalance: tokenBalances.get(bank.mint.toBase58())?.balance || 0,
-      })),
-    [banks, tokenBalances]
-  );
 
   // Hack required to circumvent rehydration error
   const [hasMounted, setHasMounted] = React.useState(false);
@@ -41,22 +32,16 @@ const AssetsList: FC = () => {
           <TableContainer>
             <Table className="table-fixed">
               <TableBody className="flex flex-col gap-4">
-                {assetInfos.length > 0 ? (
-                  assetInfos.map(({ bank, walletBalance }) => (
+                {bankInfosForAccount.length > 0 ? (
+                  bankInfosForAccount.map((bankInfo) => (
                     <AssetRow
-                      key={bank.publicKey.toBase58()}
-                      tokenBalance={walletBalance}
-                      nativeSolBalance={nativeSol}
+                      key={bankInfo.tokenName}
+                      bankInfo={bankInfo}
                       isInLendingMode={isInLendingMode}
                       isConnected={wallet.connected}
-                      bank={bank}
-                      tokenMetadata={tokenMetadataMap[bank.label]}
                       marginfiAccount={selectedAccount}
                       marginfiClient={mfiClient}
-                      refreshBorrowLendState={refreshData}
-                      position={accountSummary?.positions.find((position) =>
-                        position.bank.publicKey.equals(bank.publicKey)
-                      )}
+                      reloadBanks={reload}
                     />
                   ))
                 ) : (
