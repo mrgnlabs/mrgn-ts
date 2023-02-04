@@ -254,7 +254,7 @@ class MarginfiAccount {
     debug("Repaying %s %s into marginfi account", amount, bank.mint);
     const ixs = await this.makeRepayIx(amount, bank, repayAll);
     const tx = new Transaction().add(...ixs.instructions);
-    const sig = await this.client.processTransaction(tx, [], { skipPreflight: true });
+    const sig = await this.client.processTransaction(tx);
     debug("Depositing successful %s", sig);
     await this.reload();
     return sig;

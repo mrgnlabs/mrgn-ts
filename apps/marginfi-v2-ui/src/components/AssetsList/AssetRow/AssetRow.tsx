@@ -9,7 +9,7 @@ import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
 import { MarginfiClient, nativeToUi, uiToNative } from "@mrgnlabs/marginfi-client-v2";
-import { WSOL_MINT } from "~/config";
+import { WALLET_BALANCE_MARGIN_SOL, WSOL_MINT } from "~/config";
 import { Keypair, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
 import {
@@ -22,7 +22,6 @@ import { roundToDecimalPlace } from "~/utils";
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 const ACCOUNT_DETECTION_ERROR_TOAST_ID = "account-detection-error";
-const WALLET_BALANCE_MARGIN_SOL = 0.1;
 
 const AssetRow: FC<{
   tokenBalance: number;
@@ -84,6 +83,15 @@ const AssetRow: FC<{
     }
   }, [bank.mint, bank.mintDecimals, walletBalance]);
 
+  const maxWithdraw = useMemo(
+    () =>
+      roundToDecimalPlace(
+        Math.min(marginfiAccount?.getMaxWithdrawForBank(bank).toNumber() ?? 0, totalPoolDeposits - totalPoolBorrows),
+        bank.mintDecimals,
+      ),
+    [bank, marginfiAccount, totalPoolBorrows, totalPoolDeposits],
+  );
+
   const maxBorrow = useMemo(
     () =>
       roundToDecimalPlace(
@@ -96,6 +104,16 @@ const AssetRow: FC<{
     [marginfiAccount, bank, totalPoolDeposits, totalPoolBorrows],
   );
 
+  const maxRepay = useMemo(() => {
+    if (bank.mint.equals(WSOL_MINT)) {
+      const walletMax = roundToDecimalPlace(Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0), bank.mintDecimals);
+      return !!position ? Math.min(position.amount, walletMax) : walletMax;
+    } else {
+      const walletMax = roundToDecimalPlace(walletBalance, bank.mintDecimals);
+      return !!position ? Math.min(position.amount, walletMax) : walletMax;
+    }
+  }, [bank.mint, bank.mintDecimals, position, walletBalance]);
+
   const currentAction = useMemo(() => getCurrentAction(isInLendingMode, position), [isInLendingMode, position]);
 
   const maxBorrowOrLendAmount = useMemo(() => {
@@ -103,13 +121,13 @@ const AssetRow: FC<{
       case ActionType.Deposit:
         return maxDeposit;
       case ActionType.Withdraw:
-        return position?.amount ?? 0;
+        return maxWithdraw;
       case ActionType.Borrow:
         return maxBorrow;
       case ActionType.Repay:
-        return position?.amount ?? 0;
+        return maxRepay;
     }
-  }, [currentAction, maxBorrow, maxDeposit, position?.amount]);
+  }, [currentAction, maxBorrow, maxDeposit, maxRepay, maxWithdraw]);
 
   const borrowOrLend = useCallback(async () => {
     if (marginfiClient === null) throw Error("Marginfi client not ready");

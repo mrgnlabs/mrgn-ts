@@ -14,9 +14,9 @@ const AccountSummary: FC = () => {
   const healthFactor = useMemo(() => {
     if (selectedAccount) {
       const { assets, liabilities } = selectedAccount.getHealthComponents(MarginRequirementType.Maint);
-      return assets.minus(liabilities).dividedBy(assets).toNumber();
+      return assets.isZero() ? 1 : assets.minus(liabilities).dividedBy(assets).toNumber();
     } else {
-      return 0;
+      return 1;
     }
   }, [selectedAccount]);
 
@@ -29,7 +29,8 @@ const AccountSummary: FC = () => {
         }}
       >
         <AccountBalance isConnected={wallet.connected} accountBalance={accountSummary.balance} />
-        <div className="h-[112px] min-w-[392px] w-[38%] flex flex-row justify-between xl:pt-0 h-full bg-[#0E1113] rounded-xl">
+        <div
+          className="h-[112px] min-w-[392px] w-[38%] flex flex-row justify-between xl:pt-0 h-full bg-[#0E1113] rounded-xl">
           <AccountMetric
             label={"Lending"}
             value={wallet.connected ? usdFormatter.format(accountSummary.lendingAmount) : "-"}

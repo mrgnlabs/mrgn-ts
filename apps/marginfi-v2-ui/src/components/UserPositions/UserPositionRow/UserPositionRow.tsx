@@ -1,6 +1,6 @@
 import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
 import { TableCell, TableRow } from "@mui/material";
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { UserPosition } from "~/types";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
@@ -8,18 +8,63 @@ import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowHeader } from "./UserPositionRowHeader";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
 import { roundToDecimalPlace } from "~/utils";
+import { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
+import { nativeToUi } from "@mrgnlabs/marginfi-client-v2";
+import { WALLET_BALANCE_MARGIN_SOL, WSOL_MINT } from "~/config";
 
 const WITHDRAW_OR_REPAY_TOAST_ID = "withdraw-or-repay";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 
 interface UserPositionRowProps {
   position: UserPosition;
+  tokenBalance: number;
+  nativeSolBalance: number;
   marginfiAccount?: MarginfiAccount | null;
   refreshBorrowLendState: () => Promise<void>;
 }
 
-const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, refreshBorrowLendState }) => {
+const UserPositionRow: FC<UserPositionRowProps> = ({
+  position,
+  marginfiAccount,
+  refreshBorrowLendState,
+  tokenBalance,
+  nativeSolBalance,
+}) => {
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
+
+  const walletBalance = useMemo(
+    () => (position.bank.mint.equals(WSOL_MINT) ? tokenBalance + nativeSolBalance : tokenBalance),
+    [position.bank.mint, nativeSolBalance, tokenBalance]
+  );
+
+  const { totalPoolDeposits, totalPoolBorrows } = useMemo(
+    () => ({
+      assetPrice: position.bank.getPrice(PriceBias.None).toNumber(),
+      totalPoolDeposits: nativeToUi(position.bank.totalAssets, position.bank.mintDecimals),
+      totalPoolBorrows: nativeToUi(position.bank.totalLiabilities, position.bank.mintDecimals),
+    }),
+    [position.bank]
+  );
+
+  const maxWithdraw = useMemo(
+    () =>
+      roundToDecimalPlace(
+        Math.min(
+          marginfiAccount?.getMaxWithdrawForBank(position.bank).toNumber() ?? 0,
+          totalPoolDeposits - totalPoolBorrows
+        ),
+        position.bank.mintDecimals
+      ),
+    [position.bank, marginfiAccount, totalPoolBorrows, totalPoolDeposits]
+  );
+
+  const maxRepay = useMemo(() => {
+    if (position.bank.mint.equals(WSOL_MINT)) {
+      return roundToDecimalPlace(Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0), position.bank.mintDecimals);
+    } else {
+      return roundToDecimalPlace(walletBalance, position.bank.mintDecimals);
+    }
+  }, [position.bank.mint, position.bank.mintDecimals, walletBalance]);
 
   const withdrawOrRepay = useCallback(async () => {
     if (!marginfiAccount) {
@@ -37,9 +82,17 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
 
     try {
       if (position.isLending) {
-        await marginfiAccount.withdraw(withdrawOrRepayAmount, position.bank);
+        await marginfiAccount.withdraw(
+          withdrawOrRepayAmount,
+          position.bank,
+          position && withdrawOrRepayAmount === position.amount
+        );
       } else {
-        await marginfiAccount.repay(withdrawOrRepayAmount, position.bank);
+        await marginfiAccount.repay(
+          withdrawOrRepayAmount,
+          position.bank,
+          position && withdrawOrRepayAmount === position.amount
+        );
       }
       toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
         render: position.isLending ? "Withdrawing 👍" : "Repaying 👍",
@@ -99,7 +152,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
-          maxValue={roundToDecimalPlace(position.amount, position.bank.mintDecimals)}
+          maxValue={position.isLending ? maxWithdraw : maxRepay}
           maxDecimals={position.bank.mintDecimals}
         />
       </TableCell>
