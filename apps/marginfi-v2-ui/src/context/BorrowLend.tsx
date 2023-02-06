@@ -87,7 +87,18 @@ const BorrowLendStateProvider: FC<{
       setFetching(true);
 
       try {
-        const [banks, userAccounts] = await Promise.all([await fetchGroupData(), await fetchUserData()]);
+        const banks = await fetchGroupData();
+        if (!isSubscribed) {
+          console.log("Not subscribed, skipping refresh");
+          return;
+        }
+        setBanks(banks);
+      } catch (e) {
+        console.warn(e);
+      }
+
+      try {
+        const userAccounts = await fetchUserData();
         console.log(
           "Found accounts",
           userAccounts.map((a) => a.publicKey.toBase58())
@@ -97,11 +108,11 @@ const BorrowLendStateProvider: FC<{
           console.log("Not subscribed, skipping refresh");
           return;
         }
-
-        setBanks(banks);
         setUserAccounts(userAccounts);
         setInitialFetchDone(true);
-      } catch (e) {}
+      } catch (e) {
+        console.warn(e);
+      }
 
       setFetching(false);
     },
