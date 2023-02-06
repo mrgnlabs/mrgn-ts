@@ -11,7 +11,7 @@ import {
   processTransaction,
   shortenAddress,
   uiToNative,
-  wrappedI80F48toBigNumber
+  wrappedI80F48toBigNumber,
 } from ".";
 import Bank, { BankData, PriceBias } from "./bank";
 import MarginfiGroup from "./group";
@@ -24,7 +24,7 @@ import {
   MarginfiConfig,
   MarginfiProgram,
   UiAmount,
-  WrappedI80F48
+  WrappedI80F48,
 } from "./types";
 import { createAssociatedTokenAccountIdempotentInstruction } from "./utils/spl";
 

@@ -83,8 +83,8 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
 
   return (
     <TableRow className="font-aeonik w-full h-full flex justify-between items-center h-[78px] py-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+      <UserPositionRowHeader assetName={position.assetName} icon={position.tokenMetadata.icon} />
       <TableCell className="font-aeonik font-light w-full h-10 flex flex-row justify-between items-center m-0 py-1 px-0 text-white text-sm border-solid border-b-black border-b-[#00000000]">
-        <UserPositionRowHeader assetName={position.assetName} icon={position.tokenMetadata.icon} />
         <div className="bg-transparent max-w-[200px] min-w-fit flex flex-col justify-evenly p-1 px-3">
           <div className=" text-sm text-[#868E95] min-w-[118px]">
             {position.isLending ? "Amount Lending" : "Amount Borrowing"}

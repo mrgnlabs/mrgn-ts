@@ -1,4 +1,4 @@
-import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, FC, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { MarginfiClient, MarginfiReadonlyClient } from "@mrgnlabs/marginfi-client-v2";
 import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
 import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
@@ -7,13 +7,15 @@ import { computeAccountSummary, DEFAULT_ACCOUNT_SUMMARY } from "~/api";
 import { AccountSummary } from "~/types";
 import { useTokenMetadata } from "./TokenMetadata";
 import config from "~/config";
+import { useRouter } from "next/router";
+import { usePrevious } from "~/utils/usePrevious";
 
 // @ts-ignore - Safe because context hook checks for null
 const BorrowLendContext = createContext<BorrowLendState>();
 
 interface BorrowLendState {
   fetching: boolean;
-  refreshData: () => Promise<void>;
+  refreshData: (isSubscribed?: boolean) => Promise<void>;
   mfiClient: MarginfiClient | null;
   userAccounts: MarginfiAccount[];
   selectedAccount: MarginfiAccount | null;
@@ -27,9 +29,16 @@ const BorrowLendStateProvider: FC<{
   const { connection } = useConnection();
   const anchorWallet = useAnchorWallet();
   const { tokenMetadataMap } = useTokenMetadata();
+  const router = useRouter();
+  const requestedAccountAddress = useMemo(
+    () => (router.query.accountAddress as string) ?? null,
+    [router.query.accountAddress]
+  );
+  const previousRequestedAccountAddress = usePrevious(requestedAccountAddress);
 
   // User-agnostic state
   const [fetching, setFetching] = useState<boolean>(true);
+  const [initialFetchDone, setInitialFetchDone] = useState<boolean>(false);
   const [mfiReadonlyClient, setMfiReadonlyClient] = useState<MarginfiReadonlyClient>();
   const [mfiClient, setMfiClient] = useState<MarginfiClient | null>(null);
   const [banks, setBanks] = useState<Bank[]>([]);
@@ -37,6 +46,7 @@ const BorrowLendStateProvider: FC<{
   // User-specific state
   const [userAccounts, setUserAccounts] = useState<MarginfiAccount[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<MarginfiAccount | null>(null);
+  const previousSelectedAccount = usePrevious(selectedAccount);
   const [accountSummary, setAccountSummary] = useState<AccountSummary>(DEFAULT_ACCOUNT_SUMMARY);
 
   useEffect(() => {
@@ -59,53 +69,93 @@ const BorrowLendStateProvider: FC<{
     })();
   }, [anchorWallet, connection]);
 
-  const refreshUserData = useCallback(async () => {
+  const fetchUserData = useCallback(async (): Promise<MarginfiAccount[]> => {
     if (!mfiClient) {
-      setUserAccounts([]);
-      setSelectedAccount(null);
+      return Promise.reject("marginfi client not ready");
+    }
+    return mfiClient.getMarginfiAccountsForAuthority();
+  }, [mfiClient]);
+
+  const fetchGroupData = useCallback(async (): Promise<Bank[]> => {
+    if (!mfiReadonlyClient) return Promise.reject("marginfi client not ready");
+    await mfiReadonlyClient.group.reload();
+    return [...mfiReadonlyClient.group.banks.values()];
+  }, [mfiReadonlyClient]);
+
+  const refreshData = useCallback(
+    async (isSubscribed: boolean = true) => {
+      setFetching(true);
+
+      try {
+        const [banks, userAccounts] = await Promise.all([await fetchGroupData(), await fetchUserData()]);
+        console.log(
+          "Found accounts",
+          userAccounts.map((a) => a.publicKey.toBase58())
+        );
+
+        if (!isSubscribed) {
+          console.log("Not subscribed, skipping refresh");
+          return;
+        }
+
+        setBanks(banks);
+        setUserAccounts(userAccounts);
+        setInitialFetchDone(true);
+      } catch (e) {}
+
+      setFetching(false);
+    },
+    [fetchGroupData, fetchUserData]
+  );
+
+  useEffect(() => {
+    if (!initialFetchDone) return;
+
+    if (!requestedAccountAddress) {
+      if (userAccounts.length > 0) {
+        const firstAccountAddressStr = userAccounts[0].publicKey.toBase58();
+        router.push(`/account/${firstAccountAddressStr}`, undefined, { shallow: true }).catch((e) => console.log(e));
+      } else {
+        setSelectedAccount(null);
+      }
       return;
     }
 
-    const userAccounts = await mfiClient.getMarginfiAccountsForAuthority();
-    setUserAccounts(userAccounts);
-    console.log(
-      "Found accounts",
-      userAccounts.map((a) => a.publicKey.toBase58())
-    );
-    if (userAccounts.length === 0) {
-      setSelectedAccount(null);
-    } else {
-      setSelectedAccount(userAccounts[0]);
+    const requestedAccount =
+      userAccounts.find((account) => account.publicKey.toBase58() === requestedAccountAddress) ?? null;
+    if (previousRequestedAccountAddress !== requestedAccountAddress) {
+      if (requestedAccount) {
+        router
+          .push(`/account/${requestedAccount.publicKey.toBase58()}`, undefined, { shallow: true })
+          .catch((e) => console.log(e));
+      } else {
+        router.push("/", undefined, { shallow: true }).catch((e) => console.log(e));
+      }
+    } else if (requestedAccount?.publicKey.toBase58() !== previousSelectedAccount?.publicKey.toBase58()) {
+      setSelectedAccount(requestedAccount);
     }
-  }, [mfiClient]);
-
-  const refreshGroupData = useCallback(async () => {
-    if (!mfiReadonlyClient) return;
-    await mfiReadonlyClient.group.reload();
-    setBanks([...mfiReadonlyClient.group.banks.values()]);
-  }, [mfiReadonlyClient]);
-
-  const refreshData = useCallback(async () => {
-    setFetching(true);
-    await Promise.all([await refreshGroupData(), await refreshUserData()]);
-    setFetching(false);
-  }, [refreshGroupData, refreshUserData]);
-
-  // Update group state
-  useEffect(() => {
-    refreshGroupData();
-  }, [refreshGroupData]);
-
-  // Update user state
-  useEffect(() => {
-    refreshUserData();
-  }, [refreshUserData]);
+  }, [
+    initialFetchDone,
+    previousRequestedAccountAddress,
+    previousSelectedAccount?.publicKey,
+    requestedAccountAddress,
+    router,
+    userAccounts,
+  ]);
 
   // Periodically update all data
   useEffect(() => {
-    refreshData();
-    const id = setInterval(refreshData, 60_000);
-    return () => clearInterval(id);
+    let isSubscribed = true;
+
+    refreshData(isSubscribed).catch(() => {});
+    const id = setInterval(() => {
+      refreshData(isSubscribed).catch(() => {});
+    }, 60_000);
+
+    return () => {
+      isSubscribed = false;
+      clearInterval(id);
+    };
   }, [refreshData]);
 
   useEffect(() => {
@@ -113,8 +163,9 @@ const BorrowLendStateProvider: FC<{
       setAccountSummary(DEFAULT_ACCOUNT_SUMMARY);
       return;
     }
-    setAccountSummary(computeAccountSummary(selectedAccount, tokenMetadataMap));
-  }, [selectedAccount, tokenMetadataMap]);
+    const summary = computeAccountSummary(selectedAccount, tokenMetadataMap);
+    setAccountSummary(summary);
+  }, [selectedAccount, tokenMetadataMap, userAccounts]);
 
   return (
     <BorrowLendContext.Provider
