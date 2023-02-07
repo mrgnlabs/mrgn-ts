@@ -11,7 +11,7 @@ import { MARGINFI_IDL } from "./idl";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
 
 /**
- * Wrapper class around a specific marginfi marginfi account.
+ * Wrapper class around a specific marginfi account.
  */
 class MarginfiAccountReadonly {
   public readonly publicKey: PublicKey;
@@ -318,59 +318,6 @@ class MarginfiAccountReadonly {
 
     return new BigNumber(0);
   }
-
-  // public toString() {
-  //   const marginRequirementInit = this.computeMarginRequirement(
-  //     MarginRequirementType.Init
-  //   );
-  //   const marginRequirementMaint = this.computeMarginRequirement(
-  //     MarginRequirementType.Maint
-  //   );
-
-  //   const initHealth =
-  //     marginRequirementInit.toNumber() <= 0
-  //       ? Infinity
-  //       : equity.div(marginRequirementInit.toNumber());
-  //   const maintHealth =
-  //     marginRequirementMaint.toNumber() <= 0
-  //       ? Infinity
-  //       : equity.div(marginRequirementMaint.toNumber());
-  //   const marginRatio = liabilities.lte(0) ? Infinity : equity.div(liabilities);
-
-  //   let str = `-----------------
-  // Marginfi account:
-  //   Address: ${this.publicKey.toBase58()}
-  //   GA Balance: ${deposits.toFixed(6)}
-  //   Equity: ${equity.toFixed(6)}
-  //   Mr Adjusted Equity: ${mrEquity.toFixed(6)}
-  //   Assets: ${assets.toFixed(6)},
-  //   Liabilities: ${liabilities.toFixed(6)}
-  //   Margin ratio: ${marginRatio.toFixed(6)}
-  //   Requirement
-  //     init: ${marginRequirementInit.toFixed(6)}, health: ${initHealth.toFixed(
-  //     6
-  //   )}
-  //     maint: ${marginRequirementMaint.toFixed(
-  //       6
-  //     )}, health: ${maintHealth.toFixed(6)}`;
-
-  //   if (this.activeUtps.length > 0) {
-  //     str = str.concat("\n-----------------\nUTPs:");
-  //   }
-  //   for (let utp of this.activeUtps) {
-  //     const utpStr = `\n  ${UTP_NAME[utp.index]}:
-  //     Address: ${utp.address.toBase58()}
-  //     Equity: ${utp.equity.toFixed(6)},
-  //     Free collateral: ${utp.freeCollateral.toFixed(6)}`;
-  //     str = str.concat(utpStr);
-  //   }
-
-  //   return str;
-  // }
-
-  // [customInspectSymbol](_depth: number, _inspectOptions: any, _inspect: any) {
-  //   return this.toString();
-  // }
 }
 
 export default MarginfiAccountReadonly;

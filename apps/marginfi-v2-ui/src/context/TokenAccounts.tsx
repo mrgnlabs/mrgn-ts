@@ -11,7 +11,8 @@ const TokenAccountsContext = createContext<TokenAccountsState>();
 
 interface TokenAccountsState {
   fetching: boolean;
-  refresh: () => Promise<void>;
+  reload: () => Promise<void>;
+  fetchTokenAccounts: () => Promise<{ nativeSolBalance: number; tokenAccountMap: TokenAccountMap }>;
   tokenAccountMap: TokenAccountMap;
   nativeSol: number;
 }
@@ -27,9 +28,12 @@ const TokenAccountsProvider: FC<{
   const [nativeSol, setNativeSol] = useState<number>(0);
   const [tokenAccountMap, setTokenAccountMap] = useState<TokenAccountMap>(new Map<string, TokenAccount>());
 
-  const fetchTokenAccounts = useCallback(async (): Promise<TokenAccountMap> => {
+  const fetchTokenAccounts = useCallback(async (): Promise<{
+    nativeSolBalance: number;
+    tokenAccountMap: TokenAccountMap;
+  }> => {
     if (!wallet.publicKey) {
-      return new Map<string, TokenAccount>();
+      return { nativeSolBalance: 0, tokenAccountMap: new Map<string, TokenAccount>() };
     }
 
     // Get relevant addresses
@@ -44,7 +48,7 @@ const TokenAccountsProvider: FC<{
 
     // Decode account buffers
     const [walletAi, ...ataAiList] = accountsAiList;
-    setNativeSol(walletAi?.lamports ? walletAi.lamports / 1e9 : 0);
+    const nativeSolBalance = walletAi?.lamports ? walletAi.lamports / 1e9 : 0;
 
     const ataList: TokenAccount[] = ataAiList.map((ai, index) => {
       if (!ai) {
@@ -62,13 +66,15 @@ const TokenAccountsProvider: FC<{
       };
     });
 
-    return new Map(ataList.map((ata) => [ata.mint.toString(), ata]));
+    return { nativeSolBalance, tokenAccountMap: new Map(ataList.map((ata) => [ata.mint.toString(), ata])) };
   }, [banks, connection, wallet.publicKey]);
 
-  const refresh = useCallback(async () => {
+  const reload = useCallback(async () => {
     setFetching(true);
     try {
-      setTokenAccountMap(await fetchTokenAccounts());
+      const { nativeSolBalance, tokenAccountMap } = await fetchTokenAccounts();
+      setNativeSol(nativeSolBalance);
+      setTokenAccountMap(tokenAccountMap);
     } catch (error: any) {
       console.error(error);
     } finally {
@@ -77,13 +83,15 @@ const TokenAccountsProvider: FC<{
   }, [fetchTokenAccounts]);
 
   useEffect(() => {
-    refresh();
-    const id = setInterval(refresh, 10_000);
+    reload();
+    const id = setInterval(reload, 10_000);
     return () => clearInterval(id);
-  }, [refresh]);
+  }, [reload]);
 
   return (
-    <TokenAccountsContext.Provider value={{ fetching, refresh, tokenAccountMap: tokenAccountMap, nativeSol }}>
+    <TokenAccountsContext.Provider
+      value={{ fetching, fetchTokenAccounts, reload, tokenAccountMap: tokenAccountMap, nativeSol }}
+    >
       {children}
     </TokenAccountsContext.Provider>
   );

@@ -48,7 +48,7 @@ function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata): BankInfo {
   };
 }
 
-function makeBankInfoForAccount(
+function makeExtendedBankInfo(
   bankInfo: BankInfo,
   tokenAccount: TokenAccount,
   nativeSolBalance: number,
@@ -115,4 +115,4 @@ function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {
   };
 }
 
-export { DEFAULT_ACCOUNT_SUMMARY, computeAccountSummary, makeBankInfo, makeBankInfoForAccount };
+export { DEFAULT_ACCOUNT_SUMMARY, computeAccountSummary, makeBankInfo, makeExtendedBankInfo };

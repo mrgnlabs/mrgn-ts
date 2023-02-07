@@ -9,7 +9,7 @@ const AssetsList: FC = () => {
   const [isInLendingMode, setIsInLendingMode] = useState(true);
   const { mfiClient } = useProgram();
   const { reload } = useBanks();
-  const { bankInfosForAccount, selectedAccount } = useUserAccounts();
+  const { extendedBankInfos, selectedAccount } = useUserAccounts();
   const wallet = useWallet();
 
   // Hack required to circumvent rehydration error
@@ -32,8 +32,8 @@ const AssetsList: FC = () => {
           <TableContainer>
             <Table className="table-fixed">
               <TableBody className="flex flex-col gap-4">
-                {bankInfosForAccount.length > 0 ? (
-                  bankInfosForAccount.map((bankInfo) => (
+                {extendedBankInfos.length > 0 ? (
+                  extendedBankInfos.map((bankInfo) => (
                     <AssetRow
                       key={bankInfo.tokenName}
                       bankInfo={bankInfo}

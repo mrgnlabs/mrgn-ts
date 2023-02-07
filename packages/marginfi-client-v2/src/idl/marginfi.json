@@ -879,6 +879,12 @@
             "type": {
               "defined": "LendingAccount"
             }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": ["u64", 64]
+            }
           }
         ]
       }
@@ -891,6 +897,18 @@
           {
             "name": "admin",
             "type": "publicKey"
+          },
+          {
+            "name": "padding0",
+            "type": {
+              "array": ["u128", 32]
+            }
+          },
+          {
+            "name": "padding1",
+            "type": {
+              "array": ["u128", 32]
+            }
           }
         ]
       }
@@ -1011,6 +1029,18 @@
             "type": {
               "defined": "BankConfig"
             }
+          },
+          {
+            "name": "padding0",
+            "type": {
+              "array": ["u128", 32]
+            }
+          },
+          {
+            "name": "padding1",
+            "type": {
+              "array": ["u128", 32]
+            }
           }
         ]
       }
@@ -1031,6 +1061,12 @@
                 },
                 16
               ]
+            }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": ["u64", 8]
             }
           }
         ]
@@ -1065,6 +1101,12 @@
             "name": "liabilityShares",
             "type": {
               "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": ["u64", 4]
             }
           }
         ]
@@ -1129,6 +1171,12 @@
             "name": "protocolIrFee",
             "type": {
               "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": ["u128", 8]
             }
           }
         ]
@@ -1196,6 +1244,12 @@
             "name": "ignore",
             "type": {
               "array": ["u8", 6]
+            }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": ["u128", 4]
             }
           }
         ]

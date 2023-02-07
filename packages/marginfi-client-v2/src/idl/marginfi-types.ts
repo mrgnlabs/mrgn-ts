@@ -879,6 +879,12 @@ export type Marginfi = {
             type: {
               defined: "LendingAccount";
             };
+          },
+          {
+            name: "padding";
+            type: {
+              array: ["u64", 64];
+            };
           }
         ];
       };
@@ -891,6 +897,18 @@ export type Marginfi = {
           {
             name: "admin";
             type: "publicKey";
+          },
+          {
+            name: "padding0";
+            type: {
+              array: ["u128", 32];
+            };
+          },
+          {
+            name: "padding1";
+            type: {
+              array: ["u128", 32];
+            };
           }
         ];
       };
@@ -1011,6 +1029,18 @@ export type Marginfi = {
             type: {
               defined: "BankConfig";
             };
+          },
+          {
+            name: "padding0";
+            type: {
+              array: ["u128", 32];
+            };
+          },
+          {
+            name: "padding1";
+            type: {
+              array: ["u128", 32];
+            };
           }
         ];
       };
@@ -1031,6 +1061,12 @@ export type Marginfi = {
                 },
                 16
               ];
+            };
+          },
+          {
+            name: "padding";
+            type: {
+              array: ["u64", 8];
             };
           }
         ];
@@ -1065,6 +1101,12 @@ export type Marginfi = {
             name: "liabilityShares";
             type: {
               defined: "WrappedI80F48";
+            };
+          },
+          {
+            name: "padding";
+            type: {
+              array: ["u64", 4];
             };
           }
         ];
@@ -1129,6 +1171,12 @@ export type Marginfi = {
             name: "protocolIrFee";
             type: {
               defined: "WrappedI80F48";
+            };
+          },
+          {
+            name: "padding";
+            type: {
+              array: ["u128", 8];
             };
           }
         ];
@@ -1196,6 +1244,12 @@ export type Marginfi = {
             name: "ignore";
             type: {
               array: ["u8", 6];
+            };
+          },
+          {
+            name: "padding";
+            type: {
+              array: ["u128", 4];
             };
           }
         ];
@@ -2469,6 +2523,12 @@ export const IDL: Marginfi = {
               defined: "LendingAccount",
             },
           },
+          {
+            name: "padding",
+            type: {
+              array: ["u64", 64],
+            },
+          },
         ],
       },
     },
@@ -2480,6 +2540,18 @@ export const IDL: Marginfi = {
           {
             name: "admin",
             type: "publicKey",
+          },
+          {
+            name: "padding0",
+            type: {
+              array: ["u128", 32],
+            },
+          },
+          {
+            name: "padding1",
+            type: {
+              array: ["u128", 32],
+            },
           },
         ],
       },
@@ -2601,6 +2673,18 @@ export const IDL: Marginfi = {
               defined: "BankConfig",
             },
           },
+          {
+            name: "padding0",
+            type: {
+              array: ["u128", 32],
+            },
+          },
+          {
+            name: "padding1",
+            type: {
+              array: ["u128", 32],
+            },
+          },
         ],
       },
     },
@@ -2620,6 +2704,12 @@ export const IDL: Marginfi = {
                 },
                 16,
               ],
+            },
+          },
+          {
+            name: "padding",
+            type: {
+              array: ["u64", 8],
             },
           },
         ],
@@ -2654,6 +2744,12 @@ export const IDL: Marginfi = {
             name: "liabilityShares",
             type: {
               defined: "WrappedI80F48",
+            },
+          },
+          {
+            name: "padding",
+            type: {
+              array: ["u64", 4],
             },
           },
         ],
@@ -2718,6 +2814,12 @@ export const IDL: Marginfi = {
             name: "protocolIrFee",
             type: {
               defined: "WrappedI80F48",
+            },
+          },
+          {
+            name: "padding",
+            type: {
+              array: ["u128", 8],
             },
           },
         ],
@@ -2785,6 +2887,12 @@ export const IDL: Marginfi = {
             name: "ignore",
             type: {
               array: ["u8", 6],
+            },
+          },
+          {
+            name: "padding",
+            type: {
+              array: ["u128", 4],
             },
           },
         ],
