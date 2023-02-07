@@ -1,8 +1,9 @@
 import { styled, Switch, SwitchProps } from "@mui/material";
+import { Dispatch, SetStateAction } from "react";
 
 interface BorrowLendToggleProps extends SwitchProps {
   isInLendingMode: boolean;
-  setIsInLendingMode: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsInLendingMode: Dispatch<SetStateAction<boolean>>;
 }
 
 const BorrowLendToggle = styled(({ isInLendingMode, setIsInLendingMode, ...switchProps }: BorrowLendToggleProps) => {

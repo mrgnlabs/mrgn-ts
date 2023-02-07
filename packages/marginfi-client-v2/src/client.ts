@@ -222,7 +222,6 @@ class MarginfiClient {
   async getMarginfiAccountsForAuthority(authority?: Address): Promise<MarginfiAccount[]> {
     const marginfiGroup = await MarginfiGroup.fetch(this.config, this.program);
     const _authority = authority ? translateAddress(authority) : this.provider.wallet.publicKey;
-    console.log("fetching accounts for ", _authority.toBase58());
 
     return (
       await this.program.account.marginfiAccount.all([

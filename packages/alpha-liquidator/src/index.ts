@@ -72,7 +72,7 @@ async function needsToBeRebalanced(liquidatorAccount: MarginfiAccount, group: Ma
   await group.reload();
   await liquidatorAccount.reload();
 
-  const lendingAccountToRebalance = liquidatorAccount.lendingAccount
+  const lendingAccountToRebalance = liquidatorAccount.activeBalances
     .map((lendingAccount) => {
       const bank = group.getBankByPk(lendingAccount.bankPk)!;
       const { assets, liabilities } = lendingAccount.getQuantity(bank);
@@ -124,8 +124,8 @@ async function processAccount(
 
   // Find the biggest liability account that can be covered by liquidator
   // within the liquidators liquidation capacity
-  for (let i = 0; i < marginfiAccount.lendingAccount.length; i++) {
-    const balance = marginfiAccount.lendingAccount[i];
+  for (let i = 0; i < marginfiAccount.activeBalances.length; i++) {
+    const balance = marginfiAccount.activeBalances[i];
     const bank = group.getBankByPk(balance.bankPk)!;
     const maxLiabCoverage = liquidatorAccount.getMaxBorrowForBank(bank);
     const liquidatorLiabPayoffCapacityUsd = bank.getUsdValue(maxLiabCoverage, PriceBias.None, undefined, false);
@@ -145,15 +145,15 @@ async function processAccount(
   console.log(
     "Max liability paydown USD value: %d, mint: %s",
     maxLiabilityPaydownUsdValue,
-    group.getBankByPk(marginfiAccount.lendingAccount[bestLiabAccountIndex].bankPk)!.mint
+    group.getBankByPk(marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk)!.mint
   );
 
   let maxCollateralUsd = new BigNumber(0);
   let bestCollateralIndex = 0;
 
   // Find the biggest collateral account
-  for (let i = 0; i < marginfiAccount.lendingAccount.length; i++) {
-    const balance = marginfiAccount.lendingAccount[i];
+  for (let i = 0; i < marginfiAccount.activeBalances.length; i++) {
+    const balance = marginfiAccount.activeBalances[i];
     const bank = group.getBankByPk(balance.bankPk)!;
 
     const { assets: collateralUsdValue } = balance.getUsdValue(bank, MarginRequirementType.Equity);
@@ -166,7 +166,7 @@ async function processAccount(
   console.log(
     "Max collateral USD value: %d, mint: %s",
     maxCollateralUsd,
-    group.getBankByPk(marginfiAccount.lendingAccount[bestCollateralIndex].bankPk)!.mint
+    group.getBankByPk(marginfiAccount.activeBalances[bestCollateralIndex].bankPk)!.mint
   );
 
   // This conversion is ignoring the liquidator discount, but the amounts still in legal bounds, as the liability paydown
@@ -175,11 +175,11 @@ async function processAccount(
 
   console.log("Collateral to liquidate USD value: %d", collateralToLiquidateUsdValue);
 
-  const collateralBankPk = marginfiAccount.lendingAccount[bestCollateralIndex].bankPk;
+  const collateralBankPk = marginfiAccount.activeBalances[bestCollateralIndex].bankPk;
   const collateralBank = group.getBankByPk(collateralBankPk)!;
   const collateralQuantity = collateralBank.getQuantityFromUsdValue(collateralToLiquidateUsdValue, PriceBias.None);
 
-  const liabBankPk = marginfiAccount.lendingAccount[bestLiabAccountIndex].bankPk;
+  const liabBankPk = marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk;
   const liabBank = group.getBankByPk(liabBankPk)!;
 
   console.log("Liquidating %d %s for %s", collateralQuantity, collateralBank.label, liabBank.label);
@@ -210,7 +210,7 @@ async function rebalancingStage(mfiAccount: MarginfiAccount, group: MarginfiGrou
  */
 async function sellNonUsdcDeposits(mfiAccount: MarginfiAccount, group: MarginfiGroup, jupiter: Jupiter) {
   console.log("Starting non-usdc deposit sell step (1/3)");
-  let balancesWithNonUsdcDeposits = mfiAccount.lendingAccount
+  let balancesWithNonUsdcDeposits = mfiAccount.activeBalances
     .map((balance) => {
       let bank = group.getBankByPk(balance.bankPk)!;
       let { assets } = balance.getQuantity(bank);
@@ -278,7 +278,7 @@ async function sellNonUsdcDeposits(mfiAccount: MarginfiAccount, group: MarginfiG
  */
 async function repayAllDebt(mfiAccount: MarginfiAccount, group: MarginfiGroup, jupiter: Jupiter) {
   console.log("Starting debt repayment step (2/3)");
-  const balancesWithNonUsdcLiabilities = mfiAccount.lendingAccount
+  const balancesWithNonUsdcLiabilities = mfiAccount.activeBalances
     .map((balance) => {
       let bank = group.getBankByPk(balance.bankPk)!;
       let { liabilities } = balance.getQuantity(bank);

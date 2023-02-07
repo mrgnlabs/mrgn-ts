@@ -1,23 +1,33 @@
-import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
 import { PublicKey } from "@solana/web3.js";
+import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
 
 interface AccountSummary {
   balance: number;
   lendingAmount: number;
   borrowingAmount: number;
   apy: number;
-  positions: UserPosition[];
+}
+
+interface BankInfo {
+  address: PublicKey;
+  tokenIcon?: string;
+  tokenName: string;
+  tokenMint: PublicKey;
+  tokenMintDecimals: number;
+  tokenPrice: number;
+  lendingRate: number;
+  borrowingRate: number;
+  totalPoolDeposits: number;
+  totalPoolBorrows: number;
+  availableLiquidity: number;
+  utilizationRate: number;
+  bank: Bank;
 }
 
 interface UserPosition {
-  assetName: string;
-  assetMint: PublicKey;
+  isLending: boolean;
   amount: number;
   usdValue: number;
-  isLending: boolean;
-  apy: number;
-  bank: Bank;
-  tokenMetadata: TokenMetadata;
 }
 
 interface TokenMetadata {
@@ -26,4 +36,46 @@ interface TokenMetadata {
 
 type TokenMetadataMap = { [symbol: string]: TokenMetadata };
 
-export type { AccountSummary, UserPosition, TokenMetadata, TokenMetadataMap };
+interface TokenAccount {
+  mint: PublicKey;
+  created: boolean;
+  balance: number;
+}
+
+type TokenAccountMap = Map<string, TokenAccount>;
+
+enum ActionType {
+  Deposit = "Deposit",
+  Borrow = "Borrow",
+  Repay = "Repay",
+  Withdraw = "Withdraw",
+}
+
+export interface BankInfoForAccountBase extends BankInfo {
+  walletBalance: number;
+  maxDeposit: number;
+  maxRepay: number;
+  maxWithdraw: number;
+  maxBorrow: number;
+}
+
+type ActiveBankInfo = BankInfoForAccountBase & { hasActivePosition: true; position: UserPosition };
+type InactiveBankInfo = BankInfoForAccountBase & { hasActivePosition: false };
+type ExtendedBankInfo = ActiveBankInfo | InactiveBankInfo;
+
+const isActiveBankInfo = (bankInfo: ExtendedBankInfo): bankInfo is ActiveBankInfo => bankInfo.hasActivePosition;
+
+export type {
+  AccountSummary,
+  BankInfo,
+  UserPosition,
+  TokenMetadata,
+  TokenMetadataMap,
+  TokenAccount,
+  TokenAccountMap,
+  ActiveBankInfo,
+  InactiveBankInfo,
+  ExtendedBankInfo,
+};
+
+export { ActionType, isActiveBankInfo };

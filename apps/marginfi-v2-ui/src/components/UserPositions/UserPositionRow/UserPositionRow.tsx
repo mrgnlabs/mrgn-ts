@@ -1,25 +1,26 @@
 import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
 import { TableCell, TableRow } from "@mui/material";
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { UserPosition } from "~/types";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
 import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowHeader } from "./UserPositionRowHeader";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
-import { roundToDecimalPlace } from "~/utils";
+import { ActiveBankInfo } from "~/types";
 
 const WITHDRAW_OR_REPAY_TOAST_ID = "withdraw-or-repay";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 
 interface UserPositionRowProps {
-  position: UserPosition;
+  activeBankInfo: ActiveBankInfo;
   marginfiAccount?: MarginfiAccount | null;
-  refreshBorrowLendState: () => Promise<void>;
+  reloadPositions: () => Promise<void>;
 }
 
-const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, refreshBorrowLendState }) => {
+const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAccount, reloadPositions }) => {
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
+
+  const position = useMemo(() => activeBankInfo.position, [activeBankInfo.position]);
 
   const withdrawOrRepay = useCallback(async () => {
     if (!marginfiAccount) {
@@ -37,9 +38,17 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
 
     try {
       if (position.isLending) {
-        await marginfiAccount.withdraw(withdrawOrRepayAmount, position.bank);
+        await marginfiAccount.withdraw(
+          withdrawOrRepayAmount,
+          activeBankInfo.bank,
+          position && withdrawOrRepayAmount === activeBankInfo.maxWithdraw
+        );
       } else {
-        await marginfiAccount.deposit(withdrawOrRepayAmount, position.bank);
+        await marginfiAccount.repay(
+          withdrawOrRepayAmount,
+          activeBankInfo.bank,
+          position && withdrawOrRepayAmount === activeBankInfo.maxRepay
+        );
       }
       toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
         render: position.isLending ? "Withdrawing 👍" : "Repaying 👍",
@@ -62,7 +71,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
 
     toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
-      await refreshBorrowLendState();
+      await reloadPositions();
       toast.update(REFRESH_ACCOUNT_TOAST_ID, {
         render: "Refreshing state 👍",
         type: toast.TYPE.SUCCESS,
@@ -79,12 +88,20 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [marginfiAccount, withdrawOrRepayAmount, refreshBorrowLendState, position]);
+  }, [
+    activeBankInfo.bank,
+    activeBankInfo.maxRepay,
+    activeBankInfo.maxWithdraw,
+    marginfiAccount,
+    position,
+    reloadPositions,
+    withdrawOrRepayAmount,
+  ]);
 
   return (
     <TableRow className="font-aeonik w-full h-full flex justify-between items-center h-[78px] py-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+      <UserPositionRowHeader assetName={activeBankInfo.tokenName} icon={activeBankInfo.tokenIcon} />
       <TableCell className="font-aeonik font-light w-full h-10 flex flex-row justify-between items-center m-0 py-1 px-0 text-white text-sm border-solid border-b-black border-b-[#00000000]">
-        <UserPositionRowHeader assetName={position.assetName} icon={position.tokenMetadata.icon} />
         <div className="bg-transparent max-w-[200px] min-w-fit flex flex-col justify-evenly p-1 px-3">
           <div className=" text-sm text-[#868E95] min-w-[118px]">
             {position.isLending ? "Amount Lending" : "Amount Borrowing"}
@@ -99,8 +116,8 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ position, marginfiAccount, 
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
-          maxValue={roundToDecimalPlace(position.amount, position.bank.mintDecimals)}
-          maxDecimals={position.bank.mintDecimals}
+          maxValue={position.isLending ? activeBankInfo.maxWithdraw : activeBankInfo.maxRepay}
+          maxDecimals={activeBankInfo.tokenMintDecimals}
         />
       </TableCell>
 

@@ -14,7 +14,13 @@ import {
 import { init, push } from "@socialgouv/matomo-next";
 import config from "../config";
 import { Navbar } from "~/components";
-import { BorrowLendStateProvider, TokenBalancesProvider, TokenMetadataProvider } from "~/context";
+import {
+  BanksStateProvider,
+  ProgramProvider,
+  TokenAccountsProvider,
+  TokenMetadataProvider,
+  UserAccountsProvider,
+} from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 
@@ -51,23 +57,27 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     <ConnectionProvider endpoint={config.rpcEndpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <TokenMetadataProvider>
-            <BorrowLendStateProvider>
-              <TokenBalancesProvider>
-                <Head>
-                  <title>marginfi</title>
-                  <meta name="description" content="marginfi v2 UI" />
-                  <meta name="viewport" content="width=device-width, initial-scale=1" />
-                  <link rel="icon" href="/favicon.ico" />
-                </Head>
-                <Navbar />
-                <div className="w-full flex flex-col justify-center items-center pt-[64px]">
-                  <Component {...pageProps} />
-                </div>
-                <ToastContainer position="bottom-left" theme="dark" />
-              </TokenBalancesProvider>
-            </BorrowLendStateProvider>
-          </TokenMetadataProvider>
+          <ProgramProvider>
+            <TokenMetadataProvider>
+              <BanksStateProvider>
+                <TokenAccountsProvider>
+                  <UserAccountsProvider>
+                    <Head>
+                      <title>marginfi</title>
+                      <meta name="description" content="marginfi v2 UI" />
+                      <meta name="viewport" content="width=device-width, initial-scale=1" />
+                      <link rel="icon" href="/favicon.ico" />
+                    </Head>
+                    <Navbar />
+                    <div className="w-full flex flex-col justify-center items-center pt-[64px]">
+                      <Component {...pageProps} />
+                    </div>
+                    <ToastContainer position="bottom-left" theme="dark" />
+                  </UserAccountsProvider>
+                </TokenAccountsProvider>
+              </BanksStateProvider>
+            </TokenMetadataProvider>
+          </ProgramProvider>
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>

@@ -32,18 +32,16 @@ async function main() {
   await marginfiAccount.deposit(2, bank2);
   await marginfiAccount.reload();
 
-  marginfiAccount.lendingAccount.forEach((balance) => {
+  marginfiAccount.activeBalances.forEach((balance) => {
     const bank = group.banks.get(balance.bankPk.toString())!;
     const { assets, liabilities } = balance.getUsdValue(bank, MarginRequirementType.Equity);
 
     console.log(
-      "Balance for %s (%s) deposits: %s, borrows: %s",
-      shortenAddress(bank.mint),
-      shortenAddress(balance.bankPk),
-      assets,
-      liabilities
+      `Balance for ${shortenAddress(bank.mint)} (${shortenAddress(
+        balance.bankPk
+      )}) deposits: ${assets}, borrows: ${liabilities}`
     );
   });
 }
 
-main();
+main().catch((e) => console.log(e));

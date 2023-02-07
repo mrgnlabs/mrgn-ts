@@ -2,21 +2,21 @@ import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account"
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo } from "react";
 import { usdFormatter } from "~/utils/formatters";
-import { useBorrowLendState } from "~/context";
 import { AccountBalance } from "./AccountBalance";
 import { AccountMetric } from "./AccountMetric";
 import { HealthFactor } from "./HealthMonitor";
+import { useUserAccounts } from "~/context";
 
 const AccountSummary: FC = () => {
-  const { accountSummary, selectedAccount } = useBorrowLendState();
+  const { accountSummary, selectedAccount } = useUserAccounts();
   const wallet = useWallet();
 
   const healthFactor = useMemo(() => {
     if (selectedAccount) {
       const { assets, liabilities } = selectedAccount.getHealthComponents(MarginRequirementType.Maint);
-      return assets.minus(liabilities).dividedBy(assets).toNumber();
+      return assets.isZero() ? 1 : assets.minus(liabilities).dividedBy(assets).toNumber();
     } else {
-      return 0;
+      return 1;
     }
   }, [selectedAccount]);
 

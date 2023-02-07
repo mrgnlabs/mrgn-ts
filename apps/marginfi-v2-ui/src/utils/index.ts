@@ -5,8 +5,12 @@ import { TokenMetadata } from "~/types";
 import tokenInfos from "../assets/token_info.json";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
 
-export function roundToDecimalPlace(value: number, decimals: number): number {
-  return Math.round(value * 10 ** decimals) / 10 ** decimals;
+export function floor(value: number, decimals: number): number {
+  return Math.floor(value * 10 ** decimals) / 10 ** decimals;
+}
+
+export function ceil(value: number, decimals: number): number {
+  return Math.ceil(value * 10 ** decimals) / 10 ** decimals;
 }
 
 // ================ token metadata ================

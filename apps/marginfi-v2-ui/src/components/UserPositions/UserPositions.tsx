@@ -1,37 +1,48 @@
 import React, { FC, useMemo } from "react";
 import { Card, Table, TableBody, TableContainer } from "@mui/material";
-import { useBorrowLendState } from "~/context";
+import { useTokenAccounts, useUserAccounts } from "~/context";
 import UserPositionRow from "./UserPositionRow";
-import { roundToDecimalPlace } from "~/utils";
 
 const UserPositions: FC = () => {
-  const { accountSummary, selectedAccount, refreshData } = useBorrowLendState();
+  const { selectedAccount, activeBankInfos, reload } = useUserAccounts();
+  const { tokenAccountMap } = useTokenAccounts();
+
   const { lendPositions, borrowPositions } = useMemo(
     () => ({
-      lendPositions: accountSummary.positions.filter(
-        (p) => p.isLending && roundToDecimalPlace(p.amount, p.bank.mintDecimals) > 0
-      ),
-      borrowPositions: accountSummary.positions.filter(
-        (p) => !p.isLending && roundToDecimalPlace(p.amount, p.bank.mintDecimals) > 0
-      ),
+      lendPositions: activeBankInfos.filter((bankInfo) => bankInfo.position.isLending),
+      borrowPositions: activeBankInfos.filter((bankInfo) => !bankInfo.position.isLending),
     }),
-    [accountSummary]
+    [activeBankInfos]
+  );
+
+  const { lentAssetInfos, borrowedAssetInfos } = useMemo(
+    () => ({
+      lentAssetInfos: lendPositions.map((bankInfo) => ({
+        bankInfo,
+        walletBalance: tokenAccountMap.get(bankInfo.bank.mint.toBase58())?.balance || 0,
+      })),
+      borrowedAssetInfos: borrowPositions.map((bankInfo) => ({
+        bankInfo,
+        walletBalance: tokenAccountMap.get(bankInfo.bank.mint.toBase58())?.balance || 0,
+      })),
+    }),
+    [borrowPositions, lendPositions, tokenAccountMap]
   );
 
   return (
     <>
-      {lendPositions.length > 0 && selectedAccount && (
+      {lentAssetInfos.length > 0 && selectedAccount && (
         <Card elevation={0} className="bg-transparent w-full p-0 grid">
           <div className="font-aeonik font-normal text-2xl my-8 text-white pl-1">Lending</div>
           <TableContainer>
             <Table className="w-full table-fixed">
               <TableBody className="w-full flex flex-col gap-4">
-                {lendPositions.map((position, index) => (
+                {lentAssetInfos.map(({ bankInfo }, index) => (
                   <UserPositionRow
                     key={index}
-                    position={position}
+                    activeBankInfo={bankInfo}
                     marginfiAccount={selectedAccount}
-                    refreshBorrowLendState={refreshData}
+                    reloadPositions={reload}
                   />
                 ))}
               </TableBody>
@@ -40,7 +51,7 @@ const UserPositions: FC = () => {
         </Card>
       )}
       <div>
-        {borrowPositions.length > 0 && selectedAccount && (
+        {borrowedAssetInfos.length > 0 && selectedAccount && (
           <Card elevation={0} className="bg-transparent w-full p-0 grid">
             <div className="text-2xl my-8 text-white pl-1" style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
               Borrowing
@@ -48,12 +59,12 @@ const UserPositions: FC = () => {
             <TableContainer>
               <Table className="table-fixed">
                 <TableBody>
-                  {borrowPositions.map((position, index) => (
+                  {borrowedAssetInfos.map(({ bankInfo, walletBalance }, index) => (
                     <UserPositionRow
                       key={index}
-                      position={position}
+                      activeBankInfo={bankInfo}
                       marginfiAccount={selectedAccount}
-                      refreshBorrowLendState={refreshData}
+                      reloadPositions={reload}
                     />
                   ))}
                 </TableBody>

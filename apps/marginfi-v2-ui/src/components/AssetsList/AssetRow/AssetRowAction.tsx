@@ -1,6 +1,6 @@
 import { Button, ButtonProps } from "@mui/material";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 import dynamic from "next/dynamic";
 
 const WalletMultiButtonDynamic = dynamic(
@@ -9,7 +9,7 @@ const WalletMultiButtonDynamic = dynamic(
 );
 
 interface AssetRowActionProps extends ButtonProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 const AssetRowAction: FC<AssetRowActionProps> = ({ children, disabled, ...otherProps }) => {

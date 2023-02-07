@@ -19,7 +19,7 @@ class Bank {
   public mint: PublicKey;
   public mintDecimals: number;
 
-  public depositShareValue: BigNumber;
+  public assetShareValue: BigNumber;
   public liabilityShareValue: BigNumber;
 
   public liquidityVault: PublicKey;
@@ -29,16 +29,16 @@ class Bank {
   public insuranceVault: PublicKey;
   public insuranceVaultBump: number;
   public insuranceVaultAuthorityBump: number;
-  public insuranceTransferRemainder: BigNumber;
+  public collectedInsuranceFeesOutstanding: BigNumber;
 
   public feeVault: PublicKey;
   public feeVaultBump: number;
   public feeVaultAuthorityBump: number;
-  public feeTransferRemainder: BigNumber;
+  public collectedGroupFeesOutstanding: BigNumber;
 
   public config: BankConfig;
 
-  public totalDepositShares: BigNumber;
+  public totalAssetShares: BigNumber;
   public totalLiabilityShares: BigNumber;
 
   private priceData: PriceData;
@@ -51,7 +51,7 @@ class Bank {
     this.mintDecimals = rawData.mintDecimals;
     this.group = rawData.group;
 
-    this.depositShareValue = wrappedI80F48toBigNumber(rawData.depositShareValue);
+    this.assetShareValue = wrappedI80F48toBigNumber(rawData.assetShareValue);
     this.liabilityShareValue = wrappedI80F48toBigNumber(rawData.liabilityShareValue);
 
     this.liquidityVault = rawData.liquidityVault;
@@ -62,17 +62,17 @@ class Bank {
     this.insuranceVaultBump = rawData.insuranceVaultBump;
     this.insuranceVaultAuthorityBump = rawData.insuranceVaultAuthorityBump;
 
-    this.insuranceTransferRemainder = wrappedI80F48toBigNumber(rawData.insuranceTransferRemainder);
+    this.collectedInsuranceFeesOutstanding = wrappedI80F48toBigNumber(rawData.collectedInsuranceFeesOutstanding);
 
     this.feeVault = rawData.feeVault;
     this.feeVaultBump = rawData.feeVaultBump;
     this.feeVaultAuthorityBump = rawData.feeVaultAuthorityBump;
 
-    this.feeTransferRemainder = wrappedI80F48toBigNumber(rawData.feeTransferRemainder);
+    this.collectedGroupFeesOutstanding = wrappedI80F48toBigNumber(rawData.collectedGroupFeesOutstanding);
 
     this.config = {
-      depositWeightInit: wrappedI80F48toBigNumber(rawData.config.depositWeightInit),
-      depositWeightMaint: wrappedI80F48toBigNumber(rawData.config.depositWeightMaint),
+      assetWeightInit: wrappedI80F48toBigNumber(rawData.config.assetWeightInit),
+      assetWeightMaint: wrappedI80F48toBigNumber(rawData.config.assetWeightMaint),
       liabilityWeightInit: wrappedI80F48toBigNumber(rawData.config.liabilityWeightInit),
       liabilityWeightMaint: wrappedI80F48toBigNumber(rawData.config.liabilityWeightMaint),
       maxCapacity: nativeToUi(rawData.config.maxCapacity, this.mintDecimals),
@@ -89,14 +89,14 @@ class Bank {
       },
     };
 
-    this.totalDepositShares = wrappedI80F48toBigNumber(rawData.totalDepositShares);
+    this.totalAssetShares = wrappedI80F48toBigNumber(rawData.totalAssetShares);
     this.totalLiabilityShares = wrappedI80F48toBigNumber(rawData.totalLiabilityShares);
 
     this.priceData = priceData;
   }
 
-  get totalDeposits(): BigNumber {
-    return this.getAssetQuantity(this.totalDepositShares);
+  get totalAssets(): BigNumber {
+    return this.getAssetQuantity(this.totalAssetShares);
   }
 
   get totalLiabilities(): BigNumber {
@@ -108,16 +108,16 @@ class Bank {
     this.priceData = parsePriceData(pythPriceAccount!.data);
   }
 
-  public getAssetQuantity(depositShares: BigNumber): BigNumber {
-    return depositShares.times(this.depositShareValue);
+  public getAssetQuantity(assetShares: BigNumber): BigNumber {
+    return assetShares.times(this.assetShareValue);
   }
 
   public getLiabilityQuantity(liabilityShares: BigNumber): BigNumber {
     return liabilityShares.times(this.liabilityShareValue);
   }
 
-  public getAssetShares(depositValue: BigNumber): BigNumber {
-    return depositValue.div(this.depositShareValue);
+  public getAssetShares(assetValue: BigNumber): BigNumber {
+    return assetValue.div(this.assetShareValue);
   }
 
   public getLiabilityShares(liabilityValue: BigNumber): BigNumber {
@@ -125,15 +125,11 @@ class Bank {
   }
 
   public getAssetUsdValue(
-    depositShares: BigNumber,
+    assetShares: BigNumber,
     marginRequirementType: MarginRequirementType,
     priceBias: PriceBias
   ): BigNumber {
-    return this.getUsdValue(
-      this.getAssetQuantity(depositShares),
-      priceBias,
-      this.getAssetWeight(marginRequirementType)
-    );
+    return this.getUsdValue(this.getAssetQuantity(assetShares), priceBias, this.getAssetWeight(marginRequirementType));
   }
 
   public getLiabilityUsdValue(
@@ -173,13 +169,13 @@ class Bank {
     }
   }
 
-  // Return deposit weight based on margin requirement types
+  // Return asset weight based on margin requirement types
   public getAssetWeight(marginRequirementType: MarginRequirementType): BigNumber {
     switch (marginRequirementType) {
       case MarginRequirementType.Init:
-        return this.config.depositWeightInit;
+        return this.config.assetWeightInit;
       case MarginRequirementType.Maint:
-        return this.config.depositWeightMaint;
+        return this.config.assetWeightMaint;
       case MarginRequirementType.Equity:
         return new BigNumber(1);
       default:
@@ -240,7 +236,7 @@ class Bank {
   }
 
   private getUtilizationRate(): BigNumber {
-    return this.totalLiabilities.div(this.totalDeposits);
+    return this.totalLiabilities.div(this.totalAssets);
   }
 }
 
@@ -249,8 +245,8 @@ export default Bank;
 // Client types
 
 export interface BankConfig {
-  depositWeightInit: BigNumber;
-  depositWeightMaint: BigNumber;
+  assetWeightInit: BigNumber;
+  assetWeightMaint: BigNumber;
 
   liabilityWeightInit: BigNumber;
   liabilityWeightMaint: BigNumber;
@@ -284,7 +280,7 @@ export interface BankData {
 
   group: PublicKey;
 
-  depositShareValue: WrappedI80F48;
+  assetShareValue: WrappedI80F48;
   liabilityShareValue: WrappedI80F48;
 
   liquidityVault: PublicKey;
@@ -294,15 +290,15 @@ export interface BankData {
   insuranceVault: PublicKey;
   insuranceVaultBump: number;
   insuranceVaultAuthorityBump: number;
-  insuranceTransferRemainder: WrappedI80F48;
+  collectedInsuranceFeesOutstanding: WrappedI80F48;
 
   feeVault: PublicKey;
   feeVaultBump: number;
   feeVaultAuthorityBump: number;
-  feeTransferRemainder: WrappedI80F48;
+  collectedGroupFeesOutstanding: WrappedI80F48;
 
   totalLiabilityShares: WrappedI80F48;
-  totalDepositShares: WrappedI80F48;
+  totalAssetShares: WrappedI80F48;
 
   lastUpdate: BN;
 
@@ -315,8 +311,8 @@ export enum OracleSetup {
 }
 
 export interface BankConfigData {
-  depositWeightInit: WrappedI80F48;
-  depositWeightMaint: WrappedI80F48;
+  assetWeightInit: WrappedI80F48;
+  assetWeightMaint: WrappedI80F48;
 
   liabilityWeightInit: WrappedI80F48;
   liabilityWeightMaint: WrappedI80F48;
