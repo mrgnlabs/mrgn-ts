@@ -22,7 +22,7 @@ export interface TransactionOptions extends ConfirmOptions {
 /**
  * Supported config environments.
  */
-export type Environment = "alpha" | "staging" | "dev";
+export type Environment = "production" | "alpha" | "staging" | "dev";
 
 export interface InstructionsWrapper {
   instructions: TransactionInstruction[];

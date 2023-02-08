@@ -1,5 +1,21 @@
 [
   {
+    "label": "production",
+    "cluster": "mainnet",
+    "program": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+    "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
+    "banks": [
+      {
+        "label": "USDC",
+        "address": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"
+      },
+      {
+        "label": "SOL",
+        "address": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"
+      }
+    ]
+  },
+  {
     "label": "alpha",
     "cluster": "mainnet",
     "program": "yyyxaNHJP5FiDhmQW8RkBkp1jTL2cyxJmhMdWpJfsiy",

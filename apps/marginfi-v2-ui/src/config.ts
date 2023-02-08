@@ -12,6 +12,13 @@ const rpcEndpointOverride = process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRI
 const groupOverride = process.env.NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE;
 
 switch (environment) {
+  case "production":
+    mfiConfig = getConfig(environment);
+    if (groupOverride) {
+      mfiConfig.groupPk = new PublicKey(groupOverride);
+    }
+    rpcEndpoint = rpcEndpointOverride || "https://mrgn.rpcpool.com/";
+    break;
   case "alpha":
     mfiConfig = getConfig(environment);
     if (groupOverride) {
