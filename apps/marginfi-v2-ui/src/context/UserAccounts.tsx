@@ -1,7 +1,7 @@
 import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
 import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
 import { computeAccountSummary, DEFAULT_ACCOUNT_SUMMARY, makeExtendedBankInfo } from "~/api";
-import { AccountSummary, ActiveBankInfo, ExtendedBankInfo, isActiveBankInfo } from "~/types";
+import { AccountSummary, ActiveBankInfo, ExtendedBankInfo, isActiveBankInfo, TokenAccountMap } from "~/types";
 import { useBanks } from "~/context/Banks";
 import { useProgram } from "~/context/Program";
 import { useTokenAccounts } from "~/context/TokenAccounts";
@@ -34,43 +34,45 @@ const UserAccountsProvider: FC<{
   const [selectedAccount, setSelectedAccount] = useState<MarginfiAccount | null>(null);
   const [accountSummary, setAccountSummary] = useState<AccountSummary>(DEFAULT_ACCOUNT_SUMMARY);
 
+  const fetchUserData = useCallback(async (): Promise<{
+    userAccounts: MarginfiAccount[];
+    tokenAccountMap: TokenAccountMap;
+    nativeSolBalance: number;
+  }> => {
+    const userAccounts = (mfiClient && (await mfiClient.getMarginfiAccountsForAuthority())) || [];
+    const { tokenAccountMap, nativeSolBalance } = await fetchTokenAccounts();
+    return { nativeSolBalance, tokenAccountMap, userAccounts };
+  }, [fetchTokenAccounts, mfiClient]);
+
   const reload = useCallback(async () => {
-    if (!mfiClient) {
-      setUserAccounts([]);
-      setSelectedAccount(null);
-      return;
-    }
-
     setFetching(true);
-    try {
-      const userAccounts = await mfiClient.getMarginfiAccountsForAuthority();
-      setUserAccounts(userAccounts);
-      console.log(
-        "Found accounts",
-        userAccounts.map((a) => a.publicKey.toBase58())
-      );
 
+    try {
+      const { tokenAccountMap, nativeSolBalance, userAccounts } = await fetchUserData();
+
+      setUserAccounts(userAccounts);
       if (userAccounts.length === 0) {
         setSelectedAccount(null);
       } else {
         setSelectedAccount(userAccounts[0]);
-        const { tokenAccountMap, nativeSolBalance } = await fetchTokenAccounts();
-        const updatedExtendedBankInfos = bankInfos.map((bankInfo) => {
-          const tokenAccount = tokenAccountMap.get(bankInfo.tokenMint.toBase58());
-          if (tokenAccount === undefined) {
-            throw new Error(`Token account not found for ${bankInfo.tokenMint}`);
-          }
-          return makeExtendedBankInfo(bankInfo, tokenAccount, nativeSolBalance, userAccounts[0]);
-        });
-        setExtendedBankInfos(updatedExtendedBankInfos);
-        setActiveBankInfos(updatedExtendedBankInfos.filter(isActiveBankInfo));
       }
+
+      const updatedExtendedBankInfos = bankInfos.map((bankInfo) => {
+        const tokenAccount = tokenAccountMap.get(bankInfo.tokenMint.toBase58());
+        if (tokenAccount === undefined) {
+          throw new Error(`Token account not found for ${bankInfo.tokenMint}`);
+        }
+        return makeExtendedBankInfo(bankInfo, tokenAccount, nativeSolBalance, userAccounts[0]);
+      });
+
+      setExtendedBankInfos(updatedExtendedBankInfos);
+      setActiveBankInfos(updatedExtendedBankInfos.filter(isActiveBankInfo));
     } catch (e: any) {
       toast.error(e);
-    } finally {
-      setFetching(false);
     }
-  }, [mfiClient, bankInfos, fetchTokenAccounts]);
+
+    setFetching(false);
+  }, [fetchUserData, bankInfos]);
 
   useEffect(() => {
     reload();

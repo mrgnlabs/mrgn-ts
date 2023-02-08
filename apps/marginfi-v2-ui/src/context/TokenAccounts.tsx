@@ -32,15 +32,30 @@ const TokenAccountsProvider: FC<{
     nativeSolBalance: number;
     tokenAccountMap: TokenAccountMap;
   }> => {
-    if (!wallet.publicKey) {
-      return { nativeSolBalance: 0, tokenAccountMap: new Map<string, TokenAccount>() };
-    }
-
     // Get relevant addresses
     const mintList = banks.map((bank) => ({
       address: bank.mint,
       decimals: bank.mintDecimals,
     }));
+
+    if (wallet.publicKey === null) {
+      const emptyTokenAccountMap = new Map(
+        mintList.map(({ address }) => [
+          address.toBase58(),
+          {
+            created: false,
+            mint: address,
+            balance: 0,
+          },
+        ]),
+      );
+
+      return {
+        nativeSolBalance: 0,
+        tokenAccountMap: emptyTokenAccountMap,
+      };
+    }
+
     const ataAddresses = mintList.map((mint) => getAssociatedTokenAddressSync(mint.address, wallet.publicKey!));
 
     // Fetch relevant accounts
