@@ -66,7 +66,8 @@ function makeExtendedBankInfo(
     bankInfo.tokenMintDecimals
   );
   const maxWithdraw = floor(
-    Math.min(marginfiAccount?.getMaxWithdrawForBank(bankInfo.bank).toNumber() ?? 0, bankInfo.availableLiquidity),
+    // Math.min(marginfiAccount?.getMaxWithdrawForBank(bankInfo.bank).toNumber() ?? 0, bankInfo.availableLiquidity),
+    Math.min(position?.amount ?? 0, bankInfo.availableLiquidity), // TODO: FIX
     bankInfo.tokenMintDecimals
   );
   const maxBorrow = floor(
