@@ -1,3 +1,3 @@
 # mrgn-ts
 
-mrgn typescript monorepo.
+Typescript monorepo managed by MRGN, Inc.
