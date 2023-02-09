@@ -59,10 +59,10 @@ function makeExtendedBankInfo(
   const hasActivePosition = !!positionRaw;
   const position = hasActivePosition ? makeUserPosition(positionRaw, bankInfo) : null;
 
-  const walletBalance = isWrappedSol ? tokenAccount.balance + nativeSolBalance : tokenAccount.balance;
+  const tokenBalance = tokenAccount.balance;
 
   const maxDeposit = floor(
-    isWrappedSol ? Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0) : walletBalance,
+    isWrappedSol ? Math.max(tokenBalance + nativeSolBalance - WALLET_BALANCE_MARGIN_SOL, 0) : tokenBalance,
     bankInfo.tokenMintDecimals
   );
   const maxWithdraw = floor(
@@ -83,7 +83,7 @@ function makeExtendedBankInfo(
   const base = {
     ...bankInfo,
     hasActivePosition,
-    walletBalance,
+    tokenBalance,
     maxDeposit,
     maxRepay,
     maxWithdraw,

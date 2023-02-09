@@ -9,7 +9,7 @@ const AssetsList: FC = () => {
   const [isInLendingMode, setIsInLendingMode] = useState(true);
   const { mfiClient } = useProgram();
   const { reload } = useBanks();
-  const { extendedBankInfos, selectedAccount } = useUserAccounts();
+  const { extendedBankInfos, selectedAccount, nativeSolBalance } = useUserAccounts();
   const wallet = useWallet();
 
   // Hack required to circumvent rehydration error
@@ -36,6 +36,7 @@ const AssetsList: FC = () => {
                   extendedBankInfos.map((bankInfo) => (
                     <AssetRow
                       key={bankInfo.tokenName}
+                      nativeSolBalance={nativeSolBalance}
                       bankInfo={bankInfo}
                       isInLendingMode={isInLendingMode}
                       isConnected={wallet.connected}

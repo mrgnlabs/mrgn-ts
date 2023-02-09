@@ -324,7 +324,12 @@ class MarginfiClient {
           ...opts,
         };
 
-        signature = await connection.sendTransaction(versionedTransaction, mergedOpts);
+        signature = await connection.sendTransaction(versionedTransaction, {
+          minContextSlot: mergedOpts.minContextSlot,
+          skipPreflight: mergedOpts.skipPreflight,
+          preflightCommitment: mergedOpts.preflightCommitment,
+          maxRetries: mergedOpts.maxRetries,
+        });
         await connection.confirmTransaction(
           {
             blockhash,

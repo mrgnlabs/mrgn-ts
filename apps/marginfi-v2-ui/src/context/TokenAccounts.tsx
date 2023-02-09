@@ -47,7 +47,7 @@ const TokenAccountsProvider: FC<{
             mint: address,
             balance: 0,
           },
-        ]),
+        ])
       );
 
       return {

@@ -13,6 +13,7 @@ const UserAccountsContext = createContext<UserAccountsState>();
 interface UserAccountsState {
   fetching: boolean;
   reload: () => Promise<void>;
+  nativeSolBalance: number;
   userAccounts: MarginfiAccount[];
   selectedAccount: MarginfiAccount | null;
   extendedBankInfos: ExtendedBankInfo[];
@@ -28,6 +29,7 @@ const UserAccountsProvider: FC<{
   const { fetchTokenAccounts } = useTokenAccounts();
 
   const [fetching, setFetching] = useState<boolean>(false);
+  const [nativeSolBalance, setNativeSolBalance] = useState<number>(0);
   const [extendedBankInfos, setExtendedBankInfos] = useState<ExtendedBankInfo[]>([]);
   const [activeBankInfos, setActiveBankInfos] = useState<ActiveBankInfo[]>([]);
   const [userAccounts, setUserAccounts] = useState<MarginfiAccount[]>([]);
@@ -65,6 +67,7 @@ const UserAccountsProvider: FC<{
         return makeExtendedBankInfo(bankInfo, tokenAccount, nativeSolBalance, userAccounts[0]);
       });
 
+      setNativeSolBalance(nativeSolBalance);
       setExtendedBankInfos(updatedExtendedBankInfos);
       setActiveBankInfos(updatedExtendedBankInfos.filter(isActiveBankInfo));
     } catch (e: any) {
@@ -93,6 +96,7 @@ const UserAccountsProvider: FC<{
       value={{
         fetching,
         reload,
+        nativeSolBalance,
         accountSummary,
         extendedBankInfos,
         activeBankInfos,

@@ -23,12 +23,13 @@ const ACCOUNT_DETECTION_ERROR_TOAST_ID = "account-detection-error";
 
 const AssetRow: FC<{
   bankInfo: ExtendedBankInfo;
+  nativeSolBalance: number;
   isInLendingMode: boolean;
   isConnected: boolean;
   marginfiAccount: MarginfiAccount | null;
   marginfiClient: MarginfiClient | null;
   reloadBanks: () => Promise<void>;
-}> = ({ bankInfo, isInLendingMode, isConnected, marginfiAccount, marginfiClient, reloadBanks }) => {
+}> = ({ bankInfo, nativeSolBalance, isInLendingMode, isConnected, marginfiAccount, marginfiClient, reloadBanks }) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
 
   // Reset b/l amounts on toggle
@@ -145,17 +146,23 @@ const AssetRow: FC<{
               _marginfiAccount.authority,
               ata,
               _marginfiAccount.authority,
-              bankInfo.tokenMint
-            )
+              bankInfo.tokenMint,
+            ),
           );
-          ixs.push(
-            SystemProgram.transfer({
-              fromPubkey: _marginfiAccount.authority,
-              toPubkey: ata,
-              lamports: uiToNative(borrowOrLendAmount - bankInfo.walletBalance, bankInfo.tokenMintDecimals).toNumber(),
-            })
-          );
-          ixs.push(createSyncNativeInstruction(ata));
+
+          const tokenBalanceNative = uiToNative(bankInfo.tokenBalance, bankInfo.tokenMintDecimals);
+          const borrowOrLendAmountNative = uiToNative(borrowOrLendAmount, bankInfo.tokenMintDecimals);
+          const nativeSolTopUpAmount = borrowOrLendAmountNative.sub(tokenBalanceNative);
+          if (nativeSolTopUpAmount.gtn(0)) {
+            ixs.push(
+              SystemProgram.transfer({
+                fromPubkey: _marginfiAccount.authority,
+                toPubkey: ata,
+                lamports: BigInt(nativeSolTopUpAmount.toString()),
+              }),
+            );
+            ixs.push(createSyncNativeInstruction(ata));
+          }
 
           const depositIxs = await _marginfiAccount.makeDepositIx(borrowOrLendAmount, bankInfo.bank);
           ixs = ixs.concat(depositIxs.instructions);
@@ -233,7 +240,8 @@ const AssetRow: FC<{
   }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, marginfiClient, reloadBanks]);
 
   return (
-    <TableRow className="h-full flex justify-between items-center h-[78px] p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+    <TableRow
+      className="h-full flex justify-between items-center h-[78px] p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
       <AssetRowHeader
         assetName={bankInfo.tokenName}
         apy={isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate}
@@ -241,7 +249,8 @@ const AssetRow: FC<{
         isInLendingMode={isInLendingMode}
       />
 
-      <TableCell className="h-full w-full flex py-1 px-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
+      <TableCell
+        className="h-full w-full flex py-1 px-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
         <AssetRowMetric
           longLabel="Current Price"
           shortLabel="Price"
@@ -252,11 +261,11 @@ const AssetRow: FC<{
           longLabel={isInLendingMode ? "Total Pool Deposits" : "Total Pool Borrows"}
           shortLabel={isInLendingMode ? "Deposits" : "Borrows"}
           value={groupedNumberFormatter.format(
-            isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows
+            isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows,
           )}
           borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
           usdEquivalentValue={usdFormatter.format(
-            (isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows) * bankInfo.tokenPrice
+            (isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows) * bankInfo.tokenPrice,
           )}
         />
         {isConnected && (
@@ -264,11 +273,15 @@ const AssetRow: FC<{
             longLabel={isInLendingMode ? "Wallet Balance" : "Available Liquidity"}
             shortLabel={isInLendingMode ? "Wallet Balance" : "Available"}
             value={groupedNumberFormatter.format(
-              isInLendingMode ? bankInfo.walletBalance : bankInfo.availableLiquidity
+              isInLendingMode
+                ? bankInfo.tokenMint.equals(WSOL_MINT)
+                  ? bankInfo.tokenBalance + nativeSolBalance
+                  : bankInfo.tokenBalance
+                : bankInfo.availableLiquidity,
             )}
             borderRadius="0px 10px 10px 0px"
             usdEquivalentValue={usdFormatter.format(
-              (isInLendingMode ? bankInfo.walletBalance : bankInfo.availableLiquidity) * bankInfo.tokenPrice
+              (isInLendingMode ? bankInfo.tokenBalance : bankInfo.availableLiquidity) * bankInfo.tokenPrice,
             )}
           />
         )}

@@ -19,11 +19,11 @@ const UserPositions: FC = () => {
     () => ({
       lentAssetInfos: lendPositions.map((bankInfo) => ({
         bankInfo,
-        walletBalance: tokenAccountMap.get(bankInfo.bank.mint.toBase58())?.balance || 0,
+        tokenBalance: tokenAccountMap.get(bankInfo.bank.mint.toBase58())?.balance || 0,
       })),
       borrowedAssetInfos: borrowPositions.map((bankInfo) => ({
         bankInfo,
-        walletBalance: tokenAccountMap.get(bankInfo.bank.mint.toBase58())?.balance || 0,
+        tokenBalance: tokenAccountMap.get(bankInfo.bank.mint.toBase58())?.balance || 0,
       })),
     }),
     [borrowPositions, lendPositions, tokenAccountMap]
@@ -59,7 +59,7 @@ const UserPositions: FC = () => {
             <TableContainer>
               <Table className="table-fixed">
                 <TableBody>
-                  {borrowedAssetInfos.map(({ bankInfo, walletBalance }, index) => (
+                  {borrowedAssetInfos.map(({ bankInfo, tokenBalance }, index) => (
                     <UserPositionRow
                       key={index}
                       activeBankInfo={bankInfo}
