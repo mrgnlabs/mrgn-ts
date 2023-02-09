@@ -1,6 +1,6 @@
 {
   "name": "@mrgnlabs/marginfi-v2-ui",
-  "version": "0.1.0",
+  "version": "1.0.0-beta",
   "private": true,
   "scripts": {
     "dev": "next dev --port 3004",
