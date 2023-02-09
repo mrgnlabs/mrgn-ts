@@ -1,6 +1,6 @@
 {
   "name": "@mrgnlabs/marginfi-client-v2",
-  "version": "1.0.0-beta",
+  "version": "1.0.0",
   "main": "./src/index.ts",
   "private": true,
   "types": "./src/index.ts",
