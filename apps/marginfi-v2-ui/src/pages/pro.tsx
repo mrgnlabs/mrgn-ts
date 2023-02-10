@@ -327,6 +327,16 @@ const Pro = () => {
     }
   }, [amount])
 
+  // @NEXT: Write deposit fn.
+  const depositAction = () => {
+    if (selectedAsset && (amount > 0)) {
+      console.log({
+        selectedAsset,
+        amount
+      })
+    }
+  }
+
   return (
     <>
       <PageHeader />
@@ -339,10 +349,16 @@ const Pro = () => {
           <div className="w-[300px] h-[100px] flex flex-col gap-5 mb-8 justify-center">
             <div className="flex flex-col gap-1 w-full justify-center">
               <div
-                className="text-2xl flex justify-center"
+                className="text-2xl flex justify-center gap-2"
                 style={{ fontWeight: 400 }}
               >
-                Your deposits: <span style={{ color: "#51B56A" }}>$500,000</span>
+                Your deposits:
+                <span style={{ color: "#51B56A" }}>
+                  {
+                    // @NEXT: Get the user's deposits
+                  }
+                  $500,000
+                </span>
               </div>
             </div>
             <div className="col-span-full flex flex-col justify-center items-center">
@@ -391,7 +407,11 @@ const Pro = () => {
             // You can only deposit right now.
             // All funds will be locked up for 6 months, each from the date of its *own* deposit.
           }
-          <ProAction>Deposit</ProAction>
+          <ProAction
+            onClick={depositAction}
+          >
+            Deposit
+          </ProAction>
         </div>
 
         </div>
