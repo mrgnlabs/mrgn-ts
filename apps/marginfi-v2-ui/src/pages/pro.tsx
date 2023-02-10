@@ -231,7 +231,14 @@ const AssetSelection: FC = () => {
               className="w-[295px] flex justify-between items-center"
             >
               <div>SOL</div>
-              <Image src="https://cryptologos.cc/logos/solana-sol-logo.png?v=024" alt="SOL" height={30} width={30} />
+              <div className="flex gap-4 justify-center items-center">
+                <div
+                  className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
+                >
+                  9%
+                </div>
+                <Image className="ml-[5px]" src="https://cryptologos.cc/logos/solana-sol-logo.png?v=024" alt="SOL" height={30} width={30} />
+              </div>
             </div>
           }
           className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
@@ -255,7 +262,14 @@ const AssetSelection: FC = () => {
               className="w-[300px] flex justify-between items-center"
             >
               <div>USDC</div>
-              <Image src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024" alt="USDC" height={40} width={40} />
+              <div className="flex gap-4 justify-center items-center">
+                <div
+                  className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
+                >
+                  7.8%
+                </div>
+                <Image src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024" alt="USDC" height={40} width={40} />
+              </div>
             </div>
           }
           className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
@@ -292,25 +306,14 @@ const Pro = () => {
         <div
           className="w-[360px] flex flex-col items-center gap-6"
         >
-          <div className="w-[300px] h-[100px] grid grid-cols-2 mb-8">
-            <div className="flex flex-col gap-1 w-[133%]">
+          <div className="w-[300px] h-[100px] grid grid-cols-1 mb-8">
+            <div className="flex flex-col gap-1 w-full justify-center">
               <div
-                className="text-lg"
+                className="text-3xl flex justify-center"
                 style={{ fontWeight: 400 }}
               >
-                Your Deposit: <span style={{ color: "#51B56A" }}>$0</span>
+                Your Deposits: <span style={{ color: "#51B56A" }}>$0</span>
               </div>
-              <div className="text-base text-[#2E2E2E]">Max Allocation: $500,000</div>
-            </div>
-            <div className="text-right flex flex-col">
-              <div className="text-[#2E2E2E] text-base flex justify-end">
-                APY
-                <InfoIcon
-                  className="ml-2"
-                  // onMouseEnter={openTooltip} 
-                />
-              </div>
-              <div className="text-[#D4FF59] text-xl" style={{ fontWeight: 400 }}>+9%</div>
             </div>
             <div className="col-span-full flex flex-col justify-center items-center">
                 <LinearProgress
