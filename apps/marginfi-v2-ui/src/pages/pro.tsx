@@ -33,6 +33,7 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
+import Image from "next/image";
 // ================================
 // ASSET SELECTION
 // ================================
@@ -213,15 +214,49 @@ const AssetSelection: FC = () => {
       >
         <FormControlLabel
           value="SOL"
-          control={<Radio className="bg-[#1E1E1E] mr-2"/>}
-          label="SOL"
+          control={
+            <Radio 
+              className="bg-[#1E1E1E] mr-2"
+              sx={{
+                  color: '#1E1E1E',
+                  '&.Mui-checked': {
+                    color: '#3CAB5F',
+                  },
+              }}
+            />
+          }
+          label={
+            <div
+              className="w-[295px] flex justify-between items-center"
+            >
+              <div>SOL</div>
+              <Image src="https://cryptologos.cc/logos/solana-sol-logo.png?v=024" alt="SOL" height={30} width={30} />
+            </div>
+          }
           className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
           style={{ border: 'solid #1C2125 1px' }}
         />
         <FormControlLabel
           value="USDC" 
-          control={<Radio className="bg-[#1E1E1E] mr-2"/>}
-          label="USDC" 
+          control={
+            <Radio 
+              className="bg-[#1E1E1E] mr-2"
+              sx={{
+                  color: '#1E1E1E',
+                  '&.Mui-checked': {
+                    color: '#3CAB5F',
+                  },
+              }}
+            />
+          }
+          label={
+            <div
+              className="w-[300px] flex justify-between items-center"
+            >
+              <div>USDC</div>
+              <Image src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024" alt="USDC" height={40} width={40} />
+            </div>
+          }
           className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
           style={{ border: 'solid #1C2125 1px' }}
         />
