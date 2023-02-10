@@ -306,13 +306,13 @@ const Pro = () => {
         <div
           className="w-[360px] flex flex-col items-center gap-6"
         >
-          <div className="w-[300px] h-[100px] grid grid-cols-1 mb-8">
+          <div className="w-[300px] h-[100px] flex flex-col gap-5 mb-8 justify-center">
             <div className="flex flex-col gap-1 w-full justify-center">
               <div
-                className="text-3xl flex justify-center"
+                className="text-2xl flex justify-center"
                 style={{ fontWeight: 400 }}
               >
-                Your Deposits: <span style={{ color: "#51B56A" }}>$0</span>
+                Your deposits: <span style={{ color: "#51B56A" }}>$500,000</span>
               </div>
             </div>
             <div className="col-span-full flex flex-col justify-center items-center">
