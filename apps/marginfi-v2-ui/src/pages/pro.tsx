@@ -172,7 +172,9 @@ const ProInputBox: FC<ProInputBox> = ({ value, setValue, maxValue, maxDecimals, 
       InputProps={{
         // @todo width is hacky here
         className: "font-aeonik min-w-[360px] h-12 px-0 bg-[#1C2125] text-[#e1e1e1] text-sm font-light rounded-lg self-center",
-        endAdornment: <MaxInputAdornment onClick={onMaxClick} />,
+        // @note: removing max feature for now for simplicity
+        // keeping here to add later
+        // endAdornment: <MaxInputAdornment onClick={onMaxClick} />,
       }}
     />
   );
@@ -353,7 +355,11 @@ const Pro = () => {
         <div
           className="flex justify-center"
         >
-          <ProAction></ProAction>
+          {
+            // You can only deposit right now.
+            // All funds will be locked up for 6 months, each from the date of its *own* deposit.
+          }
+          <ProAction>Deposit</ProAction>
         </div>
 
         </div>
