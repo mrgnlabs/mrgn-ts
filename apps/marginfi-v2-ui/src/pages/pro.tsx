@@ -334,7 +334,7 @@ const Pro = () => {
         setProgressPercent(0);
       }
     }
-  }, [amount])
+  }, [amount, wallet.connected])
 
   // @NEXT: Write deposit fn.
   const depositAction = () => {
