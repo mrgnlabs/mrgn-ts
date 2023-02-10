@@ -3,7 +3,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
 import { useUserAccounts } from "~/context";
 import { LinearProgress } from '@mui/material';
-import InfoIcon from "@mui/icons-material/Info";
+import { usdFormatter } from "~/utils/formatters";
 
 // ================================
 // INPUT BOX
@@ -303,7 +303,12 @@ const Pro = () => {
   const defaultAsset = "SOL"
   const [selectedAsset, setSelectedAsset] = useState(defaultAsset);
   const [amount, setAmount] = React.useState(0);
-  const [progressPercent, setProgressPercent] = React.useState(50);
+  const [progressPercent, setProgressPercent] = React.useState(0);
+  const { accountSummary, selectedAccount } = useUserAccounts();
+
+  useEffect(() => {
+    console.log(progressPercent)
+  }, [ progressPercent ]);
 
   const marks = [
     { value: 0, label: "CONNECT", color: progressPercent > 0 ? '#51B56A': '#484848' },
@@ -323,7 +328,11 @@ const Pro = () => {
     if (amount > 0) {
       setProgressPercent(100);
     } else {
-      setProgressPercent(50);
+      if (wallet.connected) {
+        setProgressPercent(50);
+      } else {
+        setProgressPercent(0);
+      }
     }
   }, [amount])
 
@@ -348,18 +357,22 @@ const Pro = () => {
         >
           <div className="w-[300px] h-[100px] flex flex-col gap-5 mb-8 justify-center">
             <div className="flex flex-col gap-1 w-full justify-center">
-              <div
-                className="text-2xl flex justify-center gap-2"
-                style={{ fontWeight: 400 }}
-              >
-                Your deposits:
-                <span style={{ color: "#51B56A" }}>
-                  {
-                    // @NEXT: Get the user's deposits
-                  }
-                  $500,000
-                </span>
-              </div>
+              {
+                wallet.connected &&
+                  <div
+                    className="text-2xl flex justify-center gap-2"
+                    style={{ fontWeight: 400 }}
+                  >
+                    Your deposits:
+                    <span style={{ color: "#51B56A" }}>
+                      {
+                        // Since users will only be able to deposit to the LIP,
+                        // the balance of their account should match total deposits.
+                      }
+                      {(usdFormatter.format(accountSummary.balance))}
+                    </span>
+                  </div>
+              }
             </div>
             <div className="col-span-full flex flex-col justify-center items-center">
                 <LinearProgress
