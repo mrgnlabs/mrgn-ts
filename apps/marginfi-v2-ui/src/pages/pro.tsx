@@ -42,6 +42,7 @@ const Marks = ({ marks }) => (
   marks.map(
     (mark, index) => (
       <div
+        key={index}
         className="flex flex-col"
         style={{
           border: 'solid white 1px',
