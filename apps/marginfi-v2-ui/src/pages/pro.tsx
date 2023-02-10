@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
 import { useUserAccounts } from "~/context";
@@ -205,15 +205,28 @@ const MaxInputAdornment: FC<{
 // ASSET SELECTION
 // ================================
 
-const AssetSelection: FC = () => {
+interface AssetSelectionProps {
+  selectedAsset: string;
+  setSelectedAsset: (asset: string) => void;
+  defaultAsset: string;
+}
+
+const AssetSelection: FC<AssetSelectionProps> = ({
+    selectedAsset,
+    setSelectedAsset,
+    defaultAsset
+}) => {
 
   return (
     <FormControl
       className="min-w-[360px] w-[360px]"
     >
       <RadioGroup
-        defaultValue="SOL"
+        defaultValue={defaultAsset}
         className="flex flex-col justify-center items-center gap-2"
+        onChange={(event) => {
+          setSelectedAsset(event.target.value);
+        }}
       >
         <FormControlLabel
           value="SOL"
@@ -287,17 +300,32 @@ const AssetSelection: FC = () => {
 
 const Pro = () => {
   const wallet = useWallet();
-  const { userAccounts } = useUserAccounts();
-
+  const defaultAsset = "SOL"
+  const [selectedAsset, setSelectedAsset] = useState(defaultAsset);
+  const [amount, setAmount] = React.useState(0);
   const [progressPercent, setProgressPercent] = React.useState(50);
 
   const marks = [
     { value: 0, label: "CONNECT", color: progressPercent > 0 ? '#51B56A': '#484848' },
-    { value: 50, label: "DEPOSIT", color: progressPercent >= 50 ? '#51B56A' : '#484848' },
-    { value: 100, label: "CONFIRMED", color: progressPercent >= 100 ? '#51B56A' : '#484848' },
+    { value: 50, label: "SELECT", color: progressPercent >= 50 ? '#51B56A' : '#484848' },
+    { value: 100, label: "READY", color: progressPercent >= 100 ? '#51B56A' : '#484848' },
   ];
 
-  const [amount, setAmount] = React.useState(0);
+  useEffect(() => {
+    if (wallet.connected) {
+      setProgressPercent(50);
+    } else {
+      setProgressPercent(0);
+    }
+  }, [wallet.connected])
+
+  useEffect(() => {
+    if (amount > 0) {
+      setProgressPercent(100);
+    } else {
+      setProgressPercent(50);
+    }
+  }, [amount])
 
   return (
     <>
@@ -339,7 +367,11 @@ const Pro = () => {
         <div
           className="flex justify-center"
         >
-          <AssetSelection />
+          <AssetSelection
+            selectedAsset={selectedAsset}
+            setSelectedAsset={setSelectedAsset}
+            defaultAsset={defaultAsset}
+          />
         </div>
 
         <div className="flex justify-center">
