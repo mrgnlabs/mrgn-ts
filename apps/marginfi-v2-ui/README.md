@@ -15,9 +15,9 @@
   </h4>
 </div>
 
-# marginFi v2 UI (mrgnlend frontend)
+# marginfi v2 UI (mrgnlend frontend)
 
-The MarginFi V2 UI is a nextjs web client that serves as the frontend for the mrgnlend lending platform. It provides an easy-to-use interface for managing your lending and borrowing activities on the Solana blockchain. The UI is built using Next.js, a popular React-based framework for building server-rendered or statically exported React applications.
+The marginfi V2 UI is a nextjs web client that serves as the frontend for the mrgnlend lending platform. It provides an easy-to-use interface for managing your lending and borrowing activities on the Solana blockchain. The UI is built using Next.js, a popular React-based framework for building server-rendered or statically exported React applications.
 
 ## Features
 
@@ -28,7 +28,7 @@ Frontend built for Solana smart contracts, providing a seamless and efficient us
 
 ## Developing
 
-To get started with the MarginFi v2 UI, follow these steps:
+To get started with the marginfi v2 UI, follow these steps:
 
 1. Clone the monorepo and navigate to the `apps/marginfi-v2-ui` directory.
 2. Install the dependencies by running `yarn install`.
@@ -37,4 +37,4 @@ To get started with the MarginFi v2 UI, follow these steps:
 
 ## Contributing
 
-We welcome contributions to the MarginFi v2 UI. If you're interested in helping, check out our [contributing guidelines](https://github.com/mrgnlabs/mrgn-ts/blob/main/CONTRIBUTING.md) and join the [mrgn community](https://t.me/mrgncommunity) on Telegram.
+We welcome contributions to the marginfi v2 UI. If you're interested in helping, check out our [contributing guidelines](https://github.com/mrgnlabs/mrgn-ts/blob/main/CONTRIBUTING.md) and join the [mrgn community](https://t.me/mrgncommunity) on Telegram.
