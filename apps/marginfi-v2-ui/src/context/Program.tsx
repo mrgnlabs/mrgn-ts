@@ -2,6 +2,7 @@ import React, { createContext, FC, useContext, useEffect, useState } from "react
 import { MarginfiClient, MarginfiClientReadonly } from "@mrgnlabs/marginfi-client-v2";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import config from "~/config";
+import { LipClient } from "@mrgnlabs/lip-client";
 
 // @ts-ignore - Safe because context hook checks for null
 const ProgramContext = createContext<ProgramState>();
@@ -9,6 +10,7 @@ const ProgramContext = createContext<ProgramState>();
 interface ProgramState {
   mfiClientReadonly: MarginfiClientReadonly | null;
   mfiClient: MarginfiClient | null;
+  lipClient: LipClient | null;
 }
 
 const ProgramProvider: FC<{
@@ -18,6 +20,7 @@ const ProgramProvider: FC<{
   const anchorWallet = useAnchorWallet();
 
   const [mfiClient, setMfiClient] = useState<MarginfiClient | null>(null);
+  const [lipClient, setLipClient] = useState<MarginfiClient | null>(null);
   const [mfiClientReadonly, setMfiClientReadonly] = useState<MarginfiClientReadonly | null>(null);
 
   useEffect(() => {
@@ -36,7 +39,15 @@ const ProgramProvider: FC<{
         anchorWallet,
         connection
       );
+      const lipClient = await LipClient.fetch(
+        config.lipConfig,
+        //@ts-ignore
+        anchorWallet,
+        connection,
+        client,
+      )
       setMfiClient(client);
+      setLipClient(lipClient);
     })();
   }, [anchorWallet, connection]);
 
@@ -45,6 +56,7 @@ const ProgramProvider: FC<{
       value={{
         mfiClientReadonly,
         mfiClient,
+        lipClient,
       }}
     >
       {children}

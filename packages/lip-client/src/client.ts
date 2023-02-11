@@ -1,4 +1,5 @@
 import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@project-serum/anchor";
+import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 import {
   ConfirmOptions,
@@ -26,14 +27,15 @@ import { NodeWallet } from "./nodeWallet";
 import { loadKeypair, uiToNative } from "./utils";
 import { getConfig } from "./config";
 import instructions from "./instructions";
-import { DEFAULT_COMMITMENT, DEFAULT_CONFIRM_OPTS } from "./constants";
+import { DEFAULT_COMMITMENT, DEFAULT_CONFIRM_OPTS, MARGINFI_ACCOUNT_SEED, DEPOSIT_MFI_AUTH_SIGNER_SEED } from "./constants";
+import Bank from "../../marginfi-client-v2/src/bank";
+import MarginfiClient from "../../marginfi-client-v2/src/client";
 
 /**
  * Entrypoint to interact with the LIP contract.
  */
 class LipClient {
   public readonly programId: PublicKey;
-//   private _group: MarginfiGroup;
 
   /**
    * @internal
@@ -42,6 +44,7 @@ class LipClient {
     readonly config: LipConfig,
     readonly program: LipProgram,
     readonly wallet: Wallet,
+    readonly client: MarginfiClient,
   ) {
     this.programId = config.programId;
   }
@@ -59,13 +62,12 @@ class LipClient {
    * @param opts Solana web.js ConfirmOptions object
    * @returns LipClient instance
    */
-  static async fetch(config: LipConfig, wallet: Wallet, connection: Connection, opts?: ConfirmOptions) {
+  static async fetch(config: LipConfig, wallet: Wallet, connection: Connection, marginfiClient: MarginfiClient, opts?: ConfirmOptions) {
     const debug = require("debug")("lip:client");
     debug(
       "Loading Lip Client\n\tprogram: %s\n\tenv: %s\n\turl: %s",
       config.programId,
       config.environment,
-    //   config.groupPk,
       connection.rpcEndpoint
     );
     const provider = new AnchorProvider(connection, wallet, {
@@ -75,45 +77,46 @@ class LipClient {
     });
 
     const program = new Program(LIP_IDL, config.programId, provider) as any as LipProgram;
-    return new LipClient(config, program, wallet);
+    return new LipClient(config, program, wallet, marginfiClient);
   }
 
-  static async fromEnv(
-    overrides?: Partial<{
-      env: Environment;
-      connection: Connection;
-      programId: Address;
-    //   marginfiGroup: Address;
-      wallet: Wallet;
-    }>
-  ): Promise<LipClient> {
-    const debug = require("debug")("lip:client");
-    const env = overrides?.env ?? (process.env.MARGINFI_ENV! as Environment);
-    const connection =
-      overrides?.connection ??
-      new Connection(process.env.MARGINFI_RPC_ENDPOINT!, {
-        commitment: DEFAULT_COMMITMENT,
-      });
-    const programId = overrides?.programId ?? new PublicKey(process.env.MARGINFI_PROGRAM!);
-    const wallet =
-      overrides?.wallet ??
-      new NodeWallet(
-        process.env.MARGINFI_WALLET_KEY
-          ? Keypair.fromSecretKey(new Uint8Array(JSON.parse(process.env.MARGINFI_WALLET_KEY)))
-          : loadKeypair(process.env.MARGINFI_WALLET!)
-      );
+  // static async fromEnv(
+  //   overrides?: Partial<{
+  //     env: Environment;
+  //     connection: Connection;
+  //     programId: Address;
+  //     marginfiClient: MarginfiClient;
+  //   //   marginfiGroup: Address;
+  //     wallet: Wallet;
+  //   }>
+  // ): Promise<LipClient> {
+  //   const debug = require("debug")("lip:client");
+  //   const env = overrides?.env ?? (process.env.MARGINFI_ENV! as Environment);
+  //   const connection =
+  //     overrides?.connection ??
+  //     new Connection(process.env.MARGINFI_RPC_ENDPOINT!, {
+  //       commitment: DEFAULT_COMMITMENT,
+  //     });
+  //   const programId = overrides?.programId ?? new PublicKey(process.env.MARGINFI_PROGRAM!);
+  //   const wallet =
+  //     overrides?.wallet ??
+  //     new NodeWallet(
+  //       process.env.MARGINFI_WALLET_KEY
+  //         ? Keypair.fromSecretKey(new Uint8Array(JSON.parse(process.env.MARGINFI_WALLET_KEY)))
+  //         : loadKeypair(process.env.MARGINFI_WALLET!)
+  //     );
 
-    debug("Loading the marginfi client from env vars");
-    debug("Env: %s\nProgram: %s\nSigner: %s", env, programId, wallet.publicKey);
+  //   debug("Loading the marginfi client from env vars");
+  //   debug("Env: %s\nProgram: %s\nSigner: %s", env, programId, wallet.publicKey);
 
-    const config = await getConfig(env, {
-      programId: translateAddress(programId),
-    });
+  //   const config = await getConfig(env, {
+  //     programId: translateAddress(programId),
+  //   });
 
-    return LipClient.fetch(config, wallet, connection, {
-      commitment: connection.commitment,
-    });
-  }
+  //   return LipClient.fetch(config, wallet, connection, marginfiClient, {
+  //     commitment: connection.commitment,
+  //   });
+  // }
 
   // --- Getters and setters
 
@@ -123,37 +126,60 @@ class LipClient {
 
   // --- Others
 
-  async makeDepositIx(amount: Amount): Promise<InstructionsWrapper> {
+  async makeDepositIx(
+    campaign: PublicKey,
+    amount: Amount,
+    bank: Bank,
+  ): Promise<InstructionsWrapper> {
+
+    const depositKeypair = Keypair.generate();
+    const tempTokenAccountKeypair = Keypair.generate();
+    const userTokenAtaPk = await associatedAddress({
+      mint: bank.mint,
+      owner: this.client.provider.wallet.publicKey,
+    });
+
     const ix = await instructions.makeCreateDepositIx(
       this.program,
       {
-        // @NEXT: Set account pubkeys here
-        campaign: PublicKey,          // will be hardcoded?
-        signer: PublicKey,            // should be this wallet            // isSigner: true
-        deposit: PublicKey,           // ?                                // isSigner: true
-        mfiPdaSigner: PublicKey,      // ?
-        fundingAccount: PublicKey,    // ?
-        tempTokenAccount: PublicKey,  // mfi client                       // isSigner: true
-        assetMint: PublicKey,         // config'd from the user choice
-        marginfiGroup: PublicKey,     // mfi client
-        marginfiBank: PublicKey,      // mfi client
-        marginfiAccount: PublicKey,   // mfi client
-        marginfiBankVault: PublicKey, // mfi client
-        marginfiProgram: PublicKey,   // mfi client
-        tokenProgram: PublicKey,      // ?
-        rent: PublicKey,              // ?
+        campaign: campaign,
+        signer: this.client.provider.wallet.publicKey,
+        deposit: depositKeypair.publicKey,
+        mfiPdaSigner: PublicKey.findProgramAddressSync(
+          [DEPOSIT_MFI_AUTH_SIGNER_SEED, depositKeypair.publicKey.toBuffer()],
+          this.programId)[0],
+        fundingAccount: userTokenAtaPk,
+        tempTokenAccount: tempTokenAccountKeypair.publicKey,
+        assetMint: bank.mint,
+        marginfiGroup: this.client.group.publicKey,
+        marginfiBank: bank.publicKey,
+        marginfiAccount: PublicKey.findProgramAddressSync(
+          [MARGINFI_ACCOUNT_SEED, depositKeypair.publicKey.toBuffer()],
+          this.programId
+        )[0],
+        marginfiBankVault: bank.liquidityVault,
+        marginfiProgram: this.client.programId,
       },
-      // @NEXT: Set decimals here
-      { amount: uiToNative(amount, 6)}
+      { amount: uiToNative(amount, bank.mintDecimals)}
     )
 
-    return { instructions: [ix], keys: [] };
+    return { 
+      instructions: [ix],
+      keys: [
+        depositKeypair,
+        tempTokenAccountKeypair
+      ]
+    };
   }
 
-  async deposit(amount: Amount): Promise<string> {
+  async deposit(
+    campaign: PublicKey,
+    amount: Amount,
+    bank: Bank,
+  ): Promise<string> {
     const debug = require("debug")(`lip:deposit`);
     debug("Depositing %s into LIP", amount);
-    const ixs = await this.makeDepositIx(amount);
+    const ixs = await this.makeDepositIx(campaign, amount, bank);
     const tx = new Transaction().add(...ixs.instructions);
     const sig = await this.processTransaction(tx);
     debug("Depositing successful %s", sig);
@@ -202,7 +228,7 @@ class LipClient {
 
       const versionedMessage = new TransactionMessage({
         instructions: transaction.instructions,
-        payerKey: this.provider.publicKey,
+        payerKey: this.client.provider.publicKey,
         recentBlockhash: blockhash,
       });
 

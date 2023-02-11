@@ -7,6 +7,7 @@
 
 const withTM = require("next-transpile-modules")([
   "@mrgnlabs/marginfi-client-v2",
+  "@mrgnlabs/lip-client",
 ]);
 
 module.exports = withTM({

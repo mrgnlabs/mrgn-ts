@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
-import { useUserAccounts } from "~/context";
+import { useUserAccounts, useProgram } from "~/context";
 import { LinearProgress } from '@mui/material';
 import { usdFormatter } from "~/utils/formatters";
+import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { LipClient } from "@mrgnlabs/lip-client";
 
 // ================================
 // INPUT BOX
@@ -305,6 +307,7 @@ const Pro = () => {
   const [amount, setAmount] = React.useState(0);
   const [progressPercent, setProgressPercent] = React.useState(0);
   const { accountSummary, selectedAccount } = useUserAccounts();
+  const { lipClient } = useProgram();
 
   useEffect(() => {
     console.log(progressPercent)
@@ -339,10 +342,7 @@ const Pro = () => {
   // @NEXT: Write deposit fn.
   const depositAction = () => {
     if (selectedAsset && (amount > 0)) {
-      console.log({
-        selectedAsset,
-        amount
-      })
+      // lipClient.deposit({)
     }
   }
 

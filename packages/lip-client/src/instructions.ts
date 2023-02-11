@@ -1,4 +1,5 @@
-import { AccountMeta, PublicKey, SystemProgram } from "@solana/web3.js";
+import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import BN from "bn.js";
 import { LipProgram } from "./types";
 
@@ -12,8 +13,6 @@ async function makeCreateCampaingIx(
     marginfiBank: PublicKey;
     admin: PublicKey;
     fundingAccount: PublicKey;
-    rent: PublicKey;
-    tokenProgram: PublicKey;
   },
   args: {
     lockupPeriod: BN;
@@ -35,8 +34,8 @@ async function makeCreateCampaingIx(
         marginfiBank: accounts.marginfiBank,
         admin: accounts.admin,
         fundingAccount: accounts.fundingAccount,
-        rent: accounts.rent,
-        tokenProgram: accounts.tokenProgram,
+        rent: SYSVAR_RENT_PUBKEY,
+        tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
     })
     .instruction();
@@ -57,8 +56,6 @@ async function makeCreateDepositIx(
       marginfiAccount: PublicKey;
       marginfiBankVault: PublicKey;
       marginfiProgram: PublicKey;
-      tokenProgram: PublicKey;
-      rent: PublicKey;
     },
     args: {
       amount: BN;
@@ -79,8 +76,8 @@ async function makeCreateDepositIx(
         marginfiAccount: accounts.marginfiAccount,
         marginfiBankVault: accounts.marginfiBankVault,
         marginfiProgram: accounts.marginfiProgram,
-        tokenProgram: accounts.tokenProgram,
-        rent: accounts.rent,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,
       })
       .instruction();
@@ -105,7 +102,6 @@ async function makeEndDepositIx(
       marginfiBankVault: PublicKey;
       marginfiBankVaultAuthority: PublicKey;
       marginfiProgram: PublicKey;
-      tokenProgram: PublicKey;
     },
   ) {
     return lipProgram.methods
@@ -127,7 +123,7 @@ async function makeEndDepositIx(
           marginfiBankVault: accounts.marginfiBankVault,
           marginfiBankVaultAuthority: accounts.marginfiBankVaultAuthority,
           marginfiProgram: accounts.marginfiProgram,
-          tokenProgram: accounts.tokenProgram,
+          tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
       })
       .instruction();
