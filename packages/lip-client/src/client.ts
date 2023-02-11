@@ -37,6 +37,8 @@ class LipClient {
     readonly program: LipProgram,
     readonly wallet: Wallet,
     readonly client: MarginfiClient,
+    // Multiple campaigns because campaigns are per asset,
+    // and we want to aggregate the value of a user's deposits across campaigns.
     readonly campaigns: Campaign[],
   ) {
     this.programId = config.programId;
@@ -60,13 +62,23 @@ class LipClient {
 
     const program = new Program(LIP_IDL, config.programId, provider) as any as LipProgram;
 
+    // We construct an array of banks with 1) user and 2) asset information
+    // across all campaigns that exist.
+    // First, we find all campaigns, then use their banks to pull relevant asset prices.
+    
+    // 1. Fetch all campaigns that exist
     const allCampaigns = (await program.account.campaign.all()).map((c, i) => ({
       ...c.account,
       publicKey: c.publicKey,
     }));
+    // 2. Get relevant banks for all campaigns
     const relevantBanks = allCampaigns.map((d) => d.marginfiBankPk);
+    // 3. Fetch all banks
     const banksWithNulls = await marginfiClient.program.account.bank.fetchMultiple(relevantBanks);
+    // 4. Filter out banks that aren't found
+    // This shouldn't happen, but is a workaround in case it does.
     const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
+    // 5. Fetch all accounts that pyth writes oracle data too
     const pythAccounts = await program.provider.connection.getMultipleAccountsInfo(
       banksData.map((b) => (b as BankData).config.oracleKeys[0]),
     );
@@ -84,6 +96,8 @@ class LipClient {
       return Promise.reject("Some of the banks were not found");
     }
 
+    // LipClient takes in a list of campaigns, which is
+    // campaigns we've found + bank information we've constructed.
     const campaigns = allCampaigns.map((campaign, i) => {
       return { ...campaign, bank: banks[i] };
     });
