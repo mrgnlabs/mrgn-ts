@@ -52,7 +52,7 @@ function makeExtendedBankInfo(
   bankInfo: BankInfo,
   tokenAccount: TokenAccount,
   nativeSolBalance: number,
-  marginfiAccount: MarginfiAccount | null,
+  marginfiAccount: MarginfiAccount | null
 ): ExtendedBankInfo {
   const isWrappedSol = bankInfo.tokenMint.equals(WSOL_MINT);
   const positionRaw = marginfiAccount?.activeBalances.find((balance) => balance.bankPk.equals(bankInfo.address));
@@ -63,16 +63,16 @@ function makeExtendedBankInfo(
 
   const maxDeposit = floor(
     isWrappedSol ? Math.max(tokenBalance + nativeSolBalance - WALLET_BALANCE_MARGIN_SOL, 0) : tokenBalance,
-    bankInfo.tokenMintDecimals,
+    bankInfo.tokenMintDecimals
   );
   const maxWithdraw = floor(
     // Math.min(marginfiAccount?.getMaxWithdrawForBank(bankInfo.bank).toNumber() ?? 0, bankInfo.availableLiquidity),
     Math.min(position?.amount ?? 0, bankInfo.availableLiquidity), // TODO: FIX
-    bankInfo.tokenMintDecimals,
+    bankInfo.tokenMintDecimals
   );
   const maxBorrow = floor(
     Math.min((marginfiAccount?.getMaxBorrowForBank(bankInfo.bank).toNumber() ?? 0) * 0.95, bankInfo.availableLiquidity),
-    bankInfo.tokenMintDecimals,
+    bankInfo.tokenMintDecimals
   );
   let maxRepay: number;
   if (isWrappedSol) {
@@ -93,14 +93,14 @@ function makeExtendedBankInfo(
 
   return !!position
     ? {
-      ...base,
-      hasActivePosition: true,
-      position,
-    }
+        ...base,
+        hasActivePosition: true,
+        position,
+      }
     : {
-      ...base,
-      hasActivePosition: false,
-    };
+        ...base,
+        hasActivePosition: false,
+      };
 }
 
 function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {

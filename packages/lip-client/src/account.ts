@@ -1,15 +1,14 @@
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
-import { parsePriceData } from "@pythnetwork/client";
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { LIP_IDL } from ".";
 import LipClient from "./client";
-import Bank, { BankData, PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
+import Bank, { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
 import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 
 /**
- * Wrapper class around a specific marginfi account.
+ * Wrapper class around a specific LIP account.
  */
 class LipAccount {
   public campaigns: Campaign[];
@@ -20,67 +19,20 @@ class LipAccount {
     readonly mfiClient: MarginfiClient,
     readonly owner: PublicKey,
     campaigns: Campaign[],
-    deposits: Deposit[],
+    deposits: Deposit[]
   ) {
     this.campaigns = campaigns;
     this.deposits = deposits;
   }
 
-  // --- Getters / Setters
-
-  /** @internal */
-  private get _program() {
-    return this.client.program;
-  }
-
   // --- Factories
 
   static async fetch(walletPk: Address, client: LipClient, mfiClient: MarginfiClient): Promise<LipAccount> {
-    const { program } = client;
     const _walletPk = translateAddress(walletPk);
-
-    const deposits = await client.getDepositsForOwner(_walletPk);
-
-    const relevantCampaignPks = deposits.map((d) => d.campaign.toBase58());
-    const campaignsData = client.campaigns.filter((c) => relevantCampaignPks.includes(c.publicKey.toBase58()));
-
-    const relevantBanks = campaignsData.map((d) => d.marginfiBankPk);
-    const banksWithNulls = await mfiClient.program.account.bank.fetchMultiple(relevantBanks);
-    const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
-
-    const pythAccounts = await program.provider.connection.getMultipleAccountsInfo(
-      banksData.map((b) => (b as BankData).config.oracleKeys[0]),
-    );
-
-    const banks = banksData.map(
-      (bd, index) =>
-        new Bank(
-          mfiClient.config.banks[index].label,
-          relevantBanks[index],
-          bd as BankData,
-          parsePriceData(pythAccounts[index]!.data),
-        ),
-    );
-
-    const processedDeposits = deposits.map((deposit) => {
-      const campaign = client.campaigns.find((c) => deposit.campaign.equals(c.publicKey));
-      if (!campaign) throw Error("Campaign not found");
-      const bank = banks.find((b) => b.publicKey.equals(campaign.marginfiBankPk));
-      if (!bank) throw Error("Bank not found");
-      return new Deposit(deposit, bank);
-    });
-
-    const campaigns = client.campaigns.map((campaign) => {
-      const bank = mfiClient.group.getBankByPk(campaign.marginfiBankPk);
-      if (!bank) throw Error("Bank not found");
-      return { ...campaign, bank };
-    });
-
-    const marginfiAccount = new LipAccount(client, mfiClient, _walletPk, campaigns, processedDeposits);
-
+    const { deposits, campaigns } = await LipAccount._fetchAccountData(_walletPk, client);
+    const lipAccount = new LipAccount(client, mfiClient, _walletPk, campaigns, deposits);
     require("debug")("mfi:margin-account")("Loaded marginfi account %s", _walletPk);
-
-    return marginfiAccount;
+    return lipAccount;
   }
 
   getTotalBalance() {
@@ -98,49 +50,43 @@ class LipAccount {
     return coder.accounts.decode(AccountType.Deposit, encoded);
   }
 
+  private static async _fetchAccountData(
+    owner: PublicKey,
+    lipClient: LipClient
+  ): Promise<{ deposits: Deposit[]; campaigns: Campaign[] }> {
+    const deposits = await lipClient.getDepositsForOwner(owner);
+    await lipClient.reload();
+
+    const relevantCampaignPks = deposits.map((d) => d.campaign.toBase58());
+    const campaignsData = lipClient.campaigns.filter((c) => relevantCampaignPks.includes(c.publicKey.toBase58()));
+
+    const processedDeposits = deposits.map((deposit) => {
+      const campaign = lipClient.campaigns.find((c) => deposit.campaign.equals(c.publicKey));
+      if (!campaign) throw Error("Campaign not found");
+      return new Deposit(deposit, campaign.bank);
+    });
+
+    return {
+      deposits: processedDeposits,
+      campaigns: campaignsData,
+    };
+  }
+
   /**
    * Update instance data by fetching and storing the latest on-chain state.
    */
   async reload() {
-    const deposits = await this.client.getDepositsForOwner(this.owner);
-    console.log("deposits", deposits.length);
-    const relevantCampaignPks = deposits.map((d) => d.campaign.toBase58());
-    const campaignsData = this.client.campaigns.filter((c) => relevantCampaignPks.includes(c.publicKey.toBase58()));
+    const { deposits, campaigns } = await LipAccount._fetchAccountData(this.owner, this.client);
+    this.campaigns = campaigns;
+    this.deposits = deposits;
+  }
 
-    const relevantBanks = campaignsData.map((d) => d.marginfiBankPk);
-    const banksWithNulls = await this.mfiClient.program.account.bank.fetchMultiple(relevantBanks);
-    const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
-
-    const pythAccounts = await this._program.provider.connection.getMultipleAccountsInfo(
-      banksData.map((b) => (b as BankData).config.oracleKeys[0]),
-    );
-
-    const banks = banksData.map(
-      (bd, index) =>
-        new Bank(
-          this.mfiClient.config.banks[index].label,
-          relevantBanks[index],
-          bd as BankData,
-          parsePriceData(pythAccounts[index]!.data),
-        ),
-    );
-
-    const processedDeposits = deposits.map((deposit) => {
-      const campaign = this.client.campaigns.find((c) => deposit.campaign.equals(c.publicKey));
-      if (!campaign) throw Error("Campaign not found");
-      const bank = banks.find((b) => b.publicKey.equals(campaign.marginfiBankPk));
-      if (!bank) throw Error("Bank not found");
-      return new Deposit(deposit, bank);
-    });
-
-    this.campaigns = this.client.campaigns.map((campaign) => {
-      const bank = this.mfiClient.group.getBankByPk(campaign.marginfiBankPk);
-      if (!bank) throw Error("Bank not found");
-      return { ...campaign, bank };
-    });
-    this.deposits = processedDeposits;
-
-    console.log(this.getTotalBalance().toNumber());
+  /**
+   * Update instance data by fetching and storing the latest on-chain state.
+   */
+  async reloadAndClone(): Promise<LipAccount> {
+    await this.reload();
+    return new LipAccount(this.client, this.mfiClient, this.owner, this.campaigns, this.deposits);
   }
 }
 

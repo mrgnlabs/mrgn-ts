@@ -50,7 +50,7 @@ const AirdropZone: FC = () => {
         });
       }
     },
-    [connection, wallet],
+    [connection, wallet]
   );
 
   if (!wallet?.publicKey) return null;

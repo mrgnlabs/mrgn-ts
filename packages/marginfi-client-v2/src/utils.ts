@@ -41,7 +41,7 @@ function getBankVaultAuthoritySeeds(type: BankVaultType): Buffer {
 export function getBankVaultAuthority(
   bankVaultType: BankVaultType,
   bankPk: PublicKey,
-  programId: PublicKey,
+  programId: PublicKey
 ): [PublicKey, number] {
   return PublicKey.findProgramAddressSync([getBankVaultAuthoritySeeds(bankVaultType), bankPk.toBuffer()], programId);
 }

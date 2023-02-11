@@ -20,7 +20,7 @@ async function makeCreateDepositIx(
   },
   args: {
     amount: BN;
-  },
+  }
 ) {
   return lipProgram.methods
     .createDeposit(args.amount)

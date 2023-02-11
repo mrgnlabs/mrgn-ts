@@ -43,7 +43,7 @@ class MarginfiClientReadonly {
       config.programId,
       config.environment,
       config.groupPk,
-      connection.rpcEndpoint,
+      connection.rpcEndpoint
     );
 
     const provider = new AnchorProvider(connection, {} as any, {
@@ -62,7 +62,7 @@ class MarginfiClientReadonly {
       connection: Connection;
       programId: Address;
       marginfiGroup: Address;
-    }>,
+    }>
   ): Promise<MarginfiClientReadonly> {
     const debug = require("debug")("mfi:client");
     const env = overrides?.env ?? (process.env.MARGINFI_ENV! as Environment);
@@ -159,7 +159,7 @@ class MarginfiClientReadonly {
         },
       ])
     ).map((a) =>
-      MarginfiAccountReadonly.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, marginfiGroup),
+      MarginfiAccountReadonly.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, marginfiGroup)
     );
   }
 

@@ -47,7 +47,7 @@ function parseTokenMetadatas(tokenMetadataListRaw: TokenMetadataListRaw): {
     }),
     {} as {
       [symbol: string]: TokenMetadata;
-    },
+    }
   );
 }
 
@@ -66,7 +66,7 @@ export function makeAirdropCollateralIx(
   amount: number,
   mint: PublicKey,
   tokenAccount: PublicKey,
-  faucet: PublicKey,
+  faucet: PublicKey
 ): TransactionInstruction {
   const [faucetPda] = PublicKey.findProgramAddressSync([Buffer.from("faucet")], FAUCET_PROGRAM_ID);
 

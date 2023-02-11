@@ -126,7 +126,7 @@ class Bank {
   public getAssetUsdValue(
     assetShares: BigNumber,
     marginRequirementType: MarginRequirementType,
-    priceBias: PriceBias,
+    priceBias: PriceBias
   ): BigNumber {
     return this.getUsdValue(this.getAssetQuantity(assetShares), priceBias, this.getAssetWeight(marginRequirementType));
   }
@@ -134,12 +134,12 @@ class Bank {
   public getLiabilityUsdValue(
     liabilityShares: BigNumber,
     marginRequirementType: MarginRequirementType,
-    priceBias: PriceBias,
+    priceBias: PriceBias
   ): BigNumber {
     return this.getUsdValue(
       this.getLiabilityQuantity(liabilityShares),
       priceBias,
-      this.getLiabilityWeight(marginRequirementType),
+      this.getLiabilityWeight(marginRequirementType)
     );
   }
 

@@ -27,7 +27,7 @@ class MarginfiAccountReadonly {
     marginfiAccountPk: PublicKey,
     readonly client: MarginfiClientReadonly,
     group: MarginfiGroup,
-    rawData: MarginfiAccountData,
+    rawData: MarginfiAccountData
   ) {
     this.publicKey = marginfiAccountPk;
 
@@ -85,7 +85,7 @@ class MarginfiAccountReadonly {
   static async fetch(
     marginfiAccountPk: Address,
     client: MarginfiClientReadonly,
-    commitment?: Commitment,
+    commitment?: Commitment
   ): Promise<MarginfiAccountReadonly> {
     const { config, program } = client;
     const _marginfiAccountPk = translateAddress(marginfiAccountPk);
@@ -94,14 +94,14 @@ class MarginfiAccountReadonly {
       _marginfiAccountPk,
       config,
       program,
-      commitment,
+      commitment
     );
 
     const marginfiAccount = new MarginfiAccountReadonly(
       _marginfiAccountPk,
       client,
       await MarginfiGroup.fetch(config, program, commitment),
-      accountData,
+      accountData
     );
 
     require("debug")("mfi:margin-account")("Loaded marginfi account %s", _marginfiAccountPk);
@@ -125,11 +125,11 @@ class MarginfiAccountReadonly {
     marginfiAccountPk: Address,
     client: MarginfiClientReadonly,
     accountData: MarginfiAccountData,
-    marginfiGroup: MarginfiGroup,
+    marginfiGroup: MarginfiGroup
   ) {
     if (!accountData.group.equals(client.config.groupPk))
       throw Error(
-        `Marginfi account tied to group ${accountData.group.toBase58()}. Expected: ${client.config.groupPk.toBase58()}`,
+        `Marginfi account tied to group ${accountData.group.toBase58()}. Expected: ${client.config.groupPk.toBase58()}`
       );
 
     const _marginfiAccountPk = translateAddress(marginfiAccountPk);
@@ -153,7 +153,7 @@ class MarginfiAccountReadonly {
     marginfiAccountPk: PublicKey,
     client: MarginfiClientReadonly,
     marginfiAccountRawData: Buffer,
-    marginfiGroup: MarginfiGroup,
+    marginfiGroup: MarginfiGroup
   ) {
     const marginfiAccountData = MarginfiAccountReadonly.decode(marginfiAccountRawData);
 
@@ -176,13 +176,13 @@ class MarginfiAccountReadonly {
     accountAddress: Address,
     config: MarginfiConfig,
     program: MarginfiProgram,
-    commitment?: Commitment,
+    commitment?: Commitment
   ): Promise<MarginfiAccountData> {
     const mergedCommitment = commitment ?? program.provider.connection.commitment ?? DEFAULT_COMMITMENT;
 
     const data: MarginfiAccountData = (await program.account.marginfiAccount.fetch(
       accountAddress,
-      mergedCommitment,
+      mergedCommitment
     )) as any;
 
     if (!data.group.equals(config.groupPk))
@@ -222,7 +222,7 @@ class MarginfiAccountReadonly {
     const marginfiAccountData = MarginfiAccountReadonly.decode(marginfiAccountAi.data);
     if (!marginfiAccountData.group.equals(this._config.groupPk))
       throw Error(
-        `Marginfi account tied to group ${marginfiAccountData.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`,
+        `Marginfi account tied to group ${marginfiAccountData.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`
       );
 
     const bankAddresses = this._config.banks.map((b) => b.address);
@@ -237,7 +237,7 @@ class MarginfiAccountReadonly {
     }
 
     const pythAccounts = await this._program.provider.connection.getMultipleAccountsInfo(
-      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0]),
+      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
     );
 
     const banks = bankAccountsData.map(
@@ -246,8 +246,8 @@ class MarginfiAccountReadonly {
           this._config.banks[index].label,
           bankAddresses[index],
           bd as BankData,
-          parsePriceData(pythAccounts[index]!.data),
-        ),
+          parsePriceData(pythAccounts[index]!.data)
+        )
     );
 
     this._group = MarginfiGroup.fromAccountDataRaw(this._config, this._program, marginfiGroupAi.data, banks);
@@ -271,7 +271,7 @@ class MarginfiAccountReadonly {
 
     let [marginfiGroupAi, marginfiAccountAi] = await this.client.provider.connection.getMultipleAccountsInfo(
       [this._config.groupPk, this.publicKey],
-      DEFAULT_COMMITMENT,
+      DEFAULT_COMMITMENT
     );
 
     if (!marginfiAccountAi) {
@@ -299,7 +299,7 @@ class MarginfiAccountReadonly {
         ([asset, liability], [d, l]) => {
           return [asset.plus(d), liability.plus(l)];
         },
-        [new BigNumber(0), new BigNumber(0)],
+        [new BigNumber(0), new BigNumber(0)]
       );
 
     return { assets, liabilities };

@@ -2,8 +2,13 @@
   "$schema": "https://turbo.build/schema.json",
   "pipeline": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**"
+      ]
     },
     "lint": {
       "outputs": []
@@ -21,6 +26,7 @@
     "NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE",
     "NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE",
     "NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP",
+    "NEXT_PUBLIC_MARGINFI_FEATURES_CREATE_CAMPAIGN",
     "AUTHENTICATION_DISABLED",
     "AUTHENTICATION_USERNAME",
     "AUTHENTICATION_PASSWORD",

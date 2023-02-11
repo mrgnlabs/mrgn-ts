@@ -32,7 +32,7 @@ function parseConfigs(configRaw: ConfigRaw): {
     }),
     {} as {
       [label: string]: LipConfig;
-    },
+    }
   );
 }
 

@@ -2,6 +2,7 @@ import { AnchorProvider, Program } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 import {
+  AccountInfo,
   ConfirmOptions,
   Connection,
   Keypair,
@@ -45,7 +46,7 @@ class LipClient {
     readonly program: LipProgram,
     readonly wallet: Wallet,
     readonly mfiClient: MarginfiClient,
-    campaigns: Campaign[],
+    campaigns: Campaign[]
   ) {
     this.programId = config.programId;
     this.campaigns = campaigns;
@@ -58,80 +59,64 @@ class LipClient {
     wallet: Wallet,
     connection: Connection,
     marginfiClient: MarginfiClient,
-    opts?: ConfirmOptions,
+    opts?: ConfirmOptions
   ) {
     const debug = require("debug")("lip:client");
     debug(
       "Loading Lip Client\n\tprogram: %s\n\tenv: %s\n\turl: %s",
       config.programId,
       config.environment,
-      connection.rpcEndpoint,
+      connection.rpcEndpoint
     );
+
     const provider = new AnchorProvider(connection, wallet, {
       ...AnchorProvider.defaultOptions(),
       commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
       ...opts,
     });
-
     const program = new Program(LIP_IDL, config.programId, provider) as any as LipProgram;
-
-    const allCampaigns = (await program.account.campaign.all()).map((c, i) => ({
-      ...c.account,
-      publicKey: c.publicKey,
-    }));
-    const relevantBanks = allCampaigns.map((d) => d.marginfiBankPk);
-    const banksWithNulls = await marginfiClient.program.account.bank.fetchMultiple(relevantBanks);
-    const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
-    const pythAccounts = await program.provider.connection.getMultipleAccountsInfo(
-      banksData.map((b) => (b as BankData).config.oracleKeys[0]),
-    );
-    const banks = banksData.map(
-      (bd, index) =>
-        new Bank(
-          marginfiClient.config.banks[index].label,
-          relevantBanks[index],
-          bd as BankData,
-          parsePriceData(pythAccounts[index]!.data),
-        ),
-    );
-
-    if (banks.length !== allCampaigns.length) {
-      return Promise.reject("Some of the banks were not found");
-    }
-
-    const campaigns = allCampaigns.map((campaign, i) => {
-      return { ...campaign, bank: banks[i] };
-    });
+    const campaigns = await LipClient._fetchAccountData(program, marginfiClient);
 
     return new LipClient(config, program, wallet, marginfiClient, campaigns);
   }
 
   async reload() {
-    const allCampaigns = (await this.program.account.campaign.all()).map((c, i) => ({
+    this.campaigns = await LipClient._fetchAccountData(this.program, this.mfiClient);
+  }
+
+  private static async _fetchAccountData(program: LipProgram, marginfiClient: MarginfiClient): Promise<Campaign[]> {
+    const allCampaigns = (await program.account.campaign.all()).map((c, i) => ({
       ...c.account,
       publicKey: c.publicKey,
     }));
-    const relevantBanks = allCampaigns.map((d) => d.marginfiBankPk);
-    const banksWithNulls = await this.mfiClient.program.account.bank.fetchMultiple(relevantBanks);
+
+    const relevantBankPks = allCampaigns.map((d) => d.marginfiBankPk);
+    const banksWithNulls = await marginfiClient.program.account.bank.fetchMultiple(relevantBankPks);
     const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
-    const pythAccounts = await this.program.provider.connection.getMultipleAccountsInfo(
-      banksData.map((b) => (b as BankData).config.oracleKeys[0]),
+    if (banksData.length !== banksWithNulls.length) throw new Error("Some banks were not found");
+
+    const pythAccountsWithNulls = await program.provider.connection.getMultipleAccountsInfo(
+      banksData.map((b) => (b as BankData).config.oracleKeys[0])
     );
-    const banks = banksData.map(
-      (bd, index) =>
-        new Bank(
-          this.mfiClient.config.banks[index].label,
-          relevantBanks[index],
-          bd as BankData,
-          parsePriceData(pythAccounts[index]!.data),
-        ),
-    );
+    const pythAccounts = pythAccountsWithNulls.filter((c) => c !== null) as AccountInfo<Buffer>[];
+    if (pythAccounts.length !== pythAccountsWithNulls.length) throw new Error("Some price feeds were not found");
+
+    const banks = banksData.map((bd, index) => {
+      const bankConfig = marginfiClient.config.banks.find((bc) => bc.address.equals(relevantBankPks[index]));
+      if (!bankConfig) throw new Error(`Bank config not found for ${relevantBankPks[index]}`);
+      return new Bank(
+        bankConfig.label,
+        relevantBankPks[index],
+        bd as BankData,
+        parsePriceData(pythAccounts[index]!.data)
+      );
+    });
 
     if (banks.length !== allCampaigns.length) {
       return Promise.reject("Some of the banks were not found");
     }
 
-    this.campaigns = allCampaigns.map((campaign, i) => {
+    return allCampaigns.map((campaign, i) => {
       return { ...campaign, bank: banks[i] };
     });
   }
@@ -176,7 +161,7 @@ class LipClient {
         deposit: depositKeypair.publicKey,
         mfiPdaSigner: PublicKey.findProgramAddressSync(
           [DEPOSIT_MFI_AUTH_SIGNER_SEED, depositKeypair.publicKey.toBuffer()],
-          this.programId,
+          this.programId
         )[0],
         fundingAccount: userTokenAtaPk,
         tempTokenAccount: tempTokenAccountKeypair.publicKey,
@@ -185,12 +170,12 @@ class LipClient {
         marginfiBank: bank.publicKey,
         marginfiAccount: PublicKey.findProgramAddressSync(
           [MARGINFI_ACCOUNT_SEED, depositKeypair.publicKey.toBuffer()],
-          this.programId,
+          this.programId
         )[0],
         marginfiBankVault: bank.liquidityVault,
         marginfiProgram: this.mfiClient.programId,
       },
-      { amount: uiToNative(amount, bank.mintDecimals) },
+      { amount: uiToNative(amount, bank.mintDecimals) }
     );
 
     return {
@@ -213,7 +198,7 @@ class LipClient {
   async processTransaction(
     transaction: Transaction,
     signers?: Array<Signer>,
-    opts?: TransactionOptions,
+    opts?: TransactionOptions
   ): Promise<TransactionSignature> {
     let signature: TransactionSignature = "";
     try {
@@ -238,19 +223,19 @@ class LipClient {
       if (opts?.dryRun) {
         const response = await connection.simulateTransaction(
           versionedTransaction,
-          opts ?? { minContextSlot, sigVerify: false },
+          opts ?? { minContextSlot, sigVerify: false }
         );
         console.log(
-          response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`,
+          response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
         );
         console.log("------ Logs 👇 ------");
         console.log(response.value.logs);
 
         const signaturesEncoded = encodeURIComponent(
-          JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s))),
+          JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s)))
         );
         const messageEncoded = encodeURIComponent(
-          Buffer.from(versionedTransaction.message.serialize()).toString("base64"),
+          Buffer.from(versionedTransaction.message.serialize()).toString("base64")
         );
         console.log(Buffer.from(versionedTransaction.message.serialize()).toString("base64"));
 
@@ -280,7 +265,7 @@ class LipClient {
             lastValidBlockHeight,
             signature,
           },
-          mergedOpts.commitment,
+          mergedOpts.commitment
         );
         return signature;
       }
