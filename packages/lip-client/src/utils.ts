@@ -1,53 +1,13 @@
-import { Address, AnchorProvider, BN } from "@project-serum/anchor";
+import { AnchorProvider, BN } from "@project-serum/anchor";
 import {
   ConfirmOptions,
   Connection,
-  Keypair,
-  PublicKey,
   Signer,
   Transaction,
   TransactionSignature,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-// import {
-//   PDA_BANK_FEE_VAULT_AUTH_SEED,
-//   PDA_BANK_FEE_VAULT_SEED,
-//   PDA_BANK_INSURANCE_VAULT_AUTH_SEED,
-//   PDA_BANK_INSURANCE_VAULT_SEED,
-//   PDA_BANK_LIQUIDITY_VAULT_AUTH_SEED,
-//   PDA_BANK_LIQUIDITY_VAULT_SEED,
-// } from "../constants";
 import { Amount } from "./types";
-import { Decimal } from "decimal.js";
-
-/**
- * Load Keypair from the provided file.
- */
-export function loadKeypair(keypairPath: string): Keypair {
-  const path = require("path");
-  if (!keypairPath || keypairPath == "") {
-    throw new Error("Keypair is required!");
-  }
-  if (keypairPath[0] === "~") {
-    keypairPath = path.join(require("os").homedir(), keypairPath.slice(1));
-  }
-  const keyPath = path.normalize(keypairPath);
-  return Keypair.fromSecretKey(new Uint8Array(JSON.parse(require("fs").readFileSync(keyPath).toString())));
-}
-
-// /**
-//  * @internal
-//  */
-// export function getEnvFromStr(envString: string = "devnet"): Environment {
-//   switch (envString.toUpperCase()) {
-//     case "MAINNET":
-//       return Environment.MAINNET;
-//     case "MAINNET-BETA":
-//       return Environment.MAINNET;
-//     default:
-//       return Environment.DEVNET;
-//   }
-// }
 
 /**
  * Transaction processing and error-handling helper.
@@ -102,31 +62,6 @@ export async function processTransaction(
 /**
  * @internal
  */
-export function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export function wrappedI80F48toBigNumber({ value }: { value: BN }, scaleDecimal: number = 0): BigNumber {
-  let numbers = new Decimal(`${value.isNeg() ? "-" : ""}0b${value.abs().toString(2)}p-48`).dividedBy(
-    10 ** scaleDecimal
-  );
-  return new BigNumber(numbers.toString());
-}
-
-/**
- * Converts a ui representation of a token amount into its native value as `BN`, given the specified mint decimal amount (default to 6 for USDC).
- */
-export function toNumber(amount: Amount): number {
-  let amt: number;
-  if (typeof amount === "number") {
-    amt = amount;
-  } else if (typeof amount === "string") {
-    amt = Number(amount);
-  } else {
-    amt = amount.toNumber();
-  }
-  return amt;
-}
 
 /**
  * Converts a ui representation of a token amount into its native value as `BN`, given the specified mint decimal amount (default to 6 for USDC).
@@ -149,77 +84,3 @@ export function uiToNative(amount: Amount, decimals: number): BN {
   return new BN(amt.times(10 ** decimals).toFixed(0, BigNumber.ROUND_FLOOR));
 }
 
-/**
- * Converts a native representation of a token amount into its UI value as `number`, given the specified mint decimal amount (default to 6 for USDC).
- */
-export function nativeToUi(amount: Amount | BN, decimals: number): number {
-  let amt = toBigNumber(amount);
-  return amt.div(10 ** decimals).toNumber();
-}
-
-// export function getBankVaultSeeds(type: BankVaultType): Buffer {
-//   switch (type) {
-//     case BankVaultType.LiquidityVault:
-//       return PDA_BANK_LIQUIDITY_VAULT_SEED;
-//     case BankVaultType.InsuranceVault:
-//       return PDA_BANK_INSURANCE_VAULT_SEED;
-//     case BankVaultType.FeeVault:
-//       return PDA_BANK_FEE_VAULT_SEED;
-//     default:
-//       throw Error(`Unknown vault type ${type}`);
-//   }
-// }
-
-// function getBankVaultAuthoritySeeds(type: BankVaultType): Buffer {
-//   switch (type) {
-//     case BankVaultType.LiquidityVault:
-//       return PDA_BANK_LIQUIDITY_VAULT_AUTH_SEED;
-//     case BankVaultType.InsuranceVault:
-//       return PDA_BANK_INSURANCE_VAULT_AUTH_SEED;
-//     case BankVaultType.FeeVault:
-//       return PDA_BANK_FEE_VAULT_AUTH_SEED;
-//     default:
-//       throw Error(`Unknown vault type ${type}`);
-//   }
-// }
-
-/**
- * Compute authority PDA for a specific marginfi group bank vault
- */
-// export function getBankVaultAuthority(
-//   bankVaultType: BankVaultType,
-//   bankPk: PublicKey,
-//   programId: PublicKey
-// ): [PublicKey, number] {
-//   return PublicKey.findProgramAddressSync([getBankVaultAuthoritySeeds(bankVaultType), bankPk.toBuffer()], programId);
-// }
-
-// shorten the checksummed version of the input address to have 4 characters at start and end
-export function shortenAddress(pubkey: Address, chars = 4): string {
-  const pubkeyStr = pubkey.toString();
-  return `${pubkeyStr.slice(0, chars)}...${pubkeyStr.slice(-chars)}`;
-}
-
-// ================ apr/apy conversions ================
-
-const HOURS_PER_YEAR = 365.25 * 24;
-
-/**
- * Formula source: http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies
- *
- * @param apy {Number} APY (i.e. 0.06 for 6%)
- * @param compoundingFrequency {Number} Compounding frequency (times a year)
- * @returns {Number} APR (i.e. 0.0582 for APY of 0.06)
- */
-export const apyToApr = (apy: number, compoundingFrequency = HOURS_PER_YEAR) =>
-  ((1 + apy) ** (1 / compoundingFrequency) - 1) * compoundingFrequency;
-
-/**
- * Formula source: http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies
- *
- * @param apr {Number} APR (i.e. 0.0582 for 5.82%)
- * @param compoundingFrequency {Number} Compounding frequency (times a year)
- * @returns {Number} APY (i.e. 0.06 for APR of 0.0582)
- */
-export const aprToApy = (apr: number, compoundingFrequency = HOURS_PER_YEAR) =>
-  (1 + apr / compoundingFrequency) ** compoundingFrequency - 1;

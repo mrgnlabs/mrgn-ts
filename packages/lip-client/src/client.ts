@@ -24,7 +24,7 @@ import {
 } from "./types";
 import { LIP_IDL } from "./idl";
 import { NodeWallet } from "./nodeWallet";
-import { loadKeypair, uiToNative } from "./utils";
+import { uiToNative } from "./utils";
 import { getConfig } from "./config";
 import instructions from "./instructions";
 import { DEFAULT_COMMITMENT, DEFAULT_CONFIRM_OPTS, MARGINFI_ACCOUNT_SEED, DEPOSIT_MFI_AUTH_SIGNER_SEED } from "./constants";
@@ -79,44 +79,6 @@ class LipClient {
     const program = new Program(LIP_IDL, config.programId, provider) as any as LipProgram;
     return new LipClient(config, program, wallet, marginfiClient);
   }
-
-  // static async fromEnv(
-  //   overrides?: Partial<{
-  //     env: Environment;
-  //     connection: Connection;
-  //     programId: Address;
-  //     marginfiClient: MarginfiClient;
-  //   //   marginfiGroup: Address;
-  //     wallet: Wallet;
-  //   }>
-  // ): Promise<LipClient> {
-  //   const debug = require("debug")("lip:client");
-  //   const env = overrides?.env ?? (process.env.MARGINFI_ENV! as Environment);
-  //   const connection =
-  //     overrides?.connection ??
-  //     new Connection(process.env.MARGINFI_RPC_ENDPOINT!, {
-  //       commitment: DEFAULT_COMMITMENT,
-  //     });
-  //   const programId = overrides?.programId ?? new PublicKey(process.env.MARGINFI_PROGRAM!);
-  //   const wallet =
-  //     overrides?.wallet ??
-  //     new NodeWallet(
-  //       process.env.MARGINFI_WALLET_KEY
-  //         ? Keypair.fromSecretKey(new Uint8Array(JSON.parse(process.env.MARGINFI_WALLET_KEY)))
-  //         : loadKeypair(process.env.MARGINFI_WALLET!)
-  //     );
-
-  //   debug("Loading the marginfi client from env vars");
-  //   debug("Env: %s\nProgram: %s\nSigner: %s", env, programId, wallet.publicKey);
-
-  //   const config = await getConfig(env, {
-  //     programId: translateAddress(programId),
-  //   });
-
-  //   return LipClient.fetch(config, wallet, connection, marginfiClient, {
-  //     commitment: connection.commitment,
-  //   });
-  // }
 
   // --- Getters and setters
 
