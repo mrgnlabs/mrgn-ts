@@ -50,16 +50,20 @@
   {
     "label": "dev",
     "cluster": "devnet",
-    "program": "31nJ1cwnVwJKYKeLvoDNG6U6ojQFAGWV4ogkysijoaZu",
-    "group": "2eophx2kdM71vgKQnZXmA7GGCVZ1voRMxU2F4Gcournb",
+    "program": "A7vUDErNPCTt9qrB6SSM4F6GkxzUe9d8P3cXSmRg4eY4",
+    "group": "52NC7T3NTPFFwoxJDFk9mbKcA7675DJ39H1iPNz5RjSV",
     "banks": [
       {
         "label": "USDC",
-        "address": "Ervy8u3zyS6KZj5CfVRkiL1iykZeChDELZekAq7z9rNk"
+        "address": "GhV6ZftLXv3o38CHMhX6nu8GkxS3kvrHSSCVpGFTysUC"
+      },
+      {
+        "label": "FAKE SOL",
+        "address": "9cK3zLUhY1umtbyXQsBcBvEyzxbevMSDax1Sorfp9WVE"
       },
       {
         "label": "SOL",
-        "address": "CmHpj7pTmEDg2hCDgTWP7Hcc4zG7nrGRrdjChgz6iM2K"
+        "address": "2KvZHa7nPDBwLRz2yasXDnHsbyhrpzWkqEp6mEAnGeLJ"
       }
     ]
   }

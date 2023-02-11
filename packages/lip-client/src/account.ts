@@ -14,7 +14,7 @@ class LipAccount {
   /**
    * @internal
    */
-  private constructor(readonly client: LipClient, readonly deposits: Deposit[]) {
+  private constructor(readonly client: LipClient, readonly campaigns: Campaign[], readonly deposits: Deposit[]) {
   }
 
   // --- Getters / Setters
@@ -33,21 +33,24 @@ class LipAccount {
 
   static async fetch(walletPk: Address, client: LipClient, mfiClient: MarginfiClientReadonly): Promise<LipAccount> {
     const { program } = client;
-    const _marginfiAccountPk = translateAddress(walletPk);
+    const _walletPk = translateAddress(walletPk);
 
-    const deposits = await client.getDepositsForOwner(_marginfiAccountPk);
+    const deposits = await client.getDepositsForOwner(_walletPk);
+    console.log("found deposits: ", deposits.length);
 
-    const relevantCampaigns = deposits.map((d) => d.campaign);
-    const campaignsWithNulls = await program.account.campaign.fetchMultiple(relevantCampaigns);
-    const campaigns = campaignsWithNulls.filter((c) => c !== null) as CampaignData[];
+    // const relevantCampaigns = deposits.map((d) => d.campaign);
+    // const campaignsWithNulls = (await program.account.campaign.fetchMultiple(relevantCampaigns)).map((c, i) => ({
+    //   ...c,
+    //   publicKey: relevantCampaigns[i],
+    // }));
+    // const campaignsData = campaignsWithNulls.filter((c) => c !== null) as CampaignData[];
 
-    const relevantBanks = campaigns.map((d) => d.marginfiBankPk);
+    const relevantCampaignPks = deposits.map((d) => d.campaign.toBase58());
+    const campaignsData = client.campaigns.filter(c => relevantCampaignPks.includes(c.publicKey.toBase58()));
+
+    const relevantBanks = campaignsData.map((d) => d.marginfiBankPk);
     const banksWithNulls = await mfiClient.program.account.bank.fetchMultiple(relevantBanks);
     const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
-
-    if (deposits.length !== campaigns.length || deposits.length !== banksData.length) {
-      return Promise.reject("Some of the accounts were not found");
-    }
 
     const pythAccounts = await program.provider.connection.getMultipleAccountsInfo(
       banksData.map((b) => (b as BankData).config.oracleKeys[0]),
@@ -63,24 +66,35 @@ class LipAccount {
         ),
     );
 
-    const zippedDeposits = deposits.map(function(deposit, i) {
-      return { deposit, campaign: campaigns[i], bank: banks[i] };
-    });
-
-    console.log(zippedDeposits);
-
-    const processedDeposits = zippedDeposits.map(({ deposit, campaign, bank }) => {
+    const processedDeposits = deposits.map((deposit) => {
+      const campaign = client.campaigns.find((c) => deposit.campaign.equals(c.publicKey));
+      if (!campaign) throw Error("Campaign not found");
+      const bank = banks.find((b) => b.publicKey.equals(campaign.marginfiBankPk));
+      if (!bank) throw Error("Bank not found");
       return new Deposit(deposit, bank);
     });
 
+    const campaigns = client.campaigns.map((campaign) => {
+      const bank = banks.find((b) => b.publicKey.equals(campaign.marginfiBankPk));
+      if (!bank) throw Error("Bank not found");
+      return { ...campaign, bank };
+    });
+
+    console.log("deposits", processedDeposits.map(d => d.usdValue));
+
     const marginfiAccount = new LipAccount(
       client,
+      campaigns,
       processedDeposits,
     );
 
-    require("debug")("mfi:margin-account")("Loaded marginfi account %s", _marginfiAccountPk);
+    require("debug")("mfi:margin-account")("Loaded marginfi account %s", _walletPk);
 
     return marginfiAccount;
+  }
+
+  getTotalBalance() {
+    return this.deposits.reduce((acc, d) => acc.plus(d.usdValue), new BigNumber(0));
   }
 
   // /**
@@ -275,7 +289,12 @@ export interface DepositData {
 }
 
 export interface CampaignData {
+  publicKey: PublicKey;
   marginfiBankPk: PublicKey;
+}
+
+export interface Campaign extends CampaignData {
+  bank: Bank;
 }
 
 // {

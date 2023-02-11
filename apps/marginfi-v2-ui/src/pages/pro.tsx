@@ -28,45 +28,51 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import Image from "next/image";
 import LipAccount from "@mrgnlabs/lip-client/src/account";
+import { Keypair, Transaction } from "@solana/web3.js";
+import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
+import BN from "bn.js";
+import { uiToNative } from "@mrgnlabs/marginfi-client-v2";
+import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
 // ================================
 // ASSET SELECTION
 // ================================
 
-const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (<>{
-    marks.map(
-      (mark, index) => (
+const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (
+  <>
+    {marks.map((mark, index) => (
+      <div
+        key={index}
+        className="flex flex-col"
+        style={{
+          border: "solid white 1px",
+        }}
+      >
         <div
           key={index}
-          className="flex flex-col"
           style={{
-            border: "solid white 1px",
+            left: `${mark.value}%`,
+            position: "absolute",
+            width: 20,
+            height: 20,
+            borderRadius: "50%",
+            backgroundColor: `${mark.color}`,
+            top: "50%",
+            transform: "translate(-50%, -50%)",
           }}
+          className="flex justify-center items-center"
         >
           <div
-            key={index}
+            className="mt-12 text-xs text-[#484848]"
             style={{
-              left: `${mark.value}%`,
-              position: "absolute",
-              width: 20,
-              height: 20,
-              borderRadius: "50%",
-              backgroundColor: `${mark.color}`,
-              top: "50%",
-              transform: "translate(-50%, -50%)",
+              letterSpacing: "4px",
             }}
-            className="flex justify-center items-center"
           >
-            <div
-              className="mt-12 text-xs text-[#484848]"
-              style={{
-                letterSpacing: "4px",
-              }}
-            >
-              {mark.label}
-            </div>
+            {mark.label}
           </div>
         </div>
-      ))}</>
+      </div>
+    ))}
+  </>
 );
 
 // ================================
@@ -165,7 +171,8 @@ const ProInputBox: FC<ProInputBox> = ({ value, setValue, maxValue, maxDecimals, 
       max={maxValue}
       InputProps={{
         // @todo width is hacky here
-        className: "font-aeonik min-w-[360px] h-12 px-0 bg-[#1C2125] text-[#e1e1e1] text-sm font-light rounded-lg self-center",
+        className:
+          "font-aeonik min-w-[360px] h-12 px-0 bg-[#1C2125] text-[#e1e1e1] text-sm font-light rounded-lg self-center",
         // @note: removing max feature for now for simplicity
         // keeping here to add later
         // endAdornment: <MaxInputAdornment onClick={onMaxClick} />,
@@ -205,16 +212,9 @@ interface AssetSelectionProps {
   defaultAsset: string;
 }
 
-const AssetSelection: FC<AssetSelectionProps> = ({
-                                                   selectedAsset,
-                                                   setSelectedAsset,
-                                                   defaultAsset,
-                                                 }) => {
-
+const AssetSelection: FC<AssetSelectionProps> = ({ selectedAsset, setSelectedAsset, defaultAsset }) => {
   return (
-    <FormControl
-      className="min-w-[360px] w-[360px]"
-    >
+    <FormControl className="min-w-[360px] w-[360px]">
       <RadioGroup
         defaultValue={defaultAsset}
         className="flex flex-col justify-center items-center gap-2"
@@ -236,9 +236,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({
             />
           }
           label={
-            <div
-              className="w-[295px] flex justify-between items-center"
-            >
+            <div className="w-[295px] flex justify-between items-center">
               <div>SOL</div>
               <div className="flex gap-4 justify-center items-center">
                 <div
@@ -246,8 +244,13 @@ const AssetSelection: FC<AssetSelectionProps> = ({
                 >
                   9%
                 </div>
-                <Image className="ml-[5px]" src="https://cryptologos.cc/logos/solana-sol-logo.png?v=024" alt="SOL"
-                       height={30} width={30} />
+                <Image
+                  className="ml-[5px]"
+                  src="https://cryptologos.cc/logos/solana-sol-logo.png?v=024"
+                  alt="SOL"
+                  height={30}
+                  width={30}
+                />
               </div>
             </div>
           }
@@ -268,9 +271,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({
             />
           }
           label={
-            <div
-              className="w-[300px] flex justify-between items-center"
-            >
+            <div className="w-[300px] flex justify-between items-center">
               <div>USDC</div>
               <div className="flex gap-4 justify-center items-center">
                 <div
@@ -278,8 +279,12 @@ const AssetSelection: FC<AssetSelectionProps> = ({
                 >
                   7.8%
                 </div>
-                <Image src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024" alt="USDC" height={40}
-                       width={40} />
+                <Image
+                  src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024"
+                  alt="USDC"
+                  height={40}
+                  width={40}
+                />
               </div>
             </div>
           }
@@ -305,10 +310,9 @@ const Pro = () => {
 
   useEffect(() => {
     (async function() {
-      if (!mfiClientReadonly || !lipClient || !wallet.publicKey)
-        return;
+      if (!mfiClientReadonly || !lipClient || !wallet.publicKey) return;
       const lipAccount = await LipAccount.fetch(wallet.publicKey, lipClient, mfiClientReadonly);
-      console.log(lipAccount);
+      console.log("campaigns", lipClient.campaigns.map(c => c.publicKey.toBase58()));
       setLipAccount(lipAccount);
       // const total = deposits.reduce((acc, deposit) => acc + deposit.amount * mfiClientReadonly?.group., 0); //TODO: move that to a helper in LipAccount
       // setTotalDeposits(total);
@@ -320,7 +324,6 @@ const Pro = () => {
     { value: 50, label: "SELECT", color: progressPercent >= 50 ? "#51B56A" : "#484848" },
     { value: 100, label: "READY", color: progressPercent >= 100 ? "#51B56A" : "#484848" },
   ];
-
 
   useEffect(() => {
     if (wallet.connected) {
@@ -343,39 +346,61 @@ const Pro = () => {
   }, [amount, wallet.connected]);
 
   // @NEXT: Write deposit fn.
-  const depositAction = () => {
-    if (selectedAsset && (amount > 0)) {
-      // lipClient.deposit({)
+  const depositAction = useCallback(async () => {
+    if (lipAccount && lipClient && selectedAsset && amount > 0) {
+      console.log("campaigns", lipClient.campaigns.map(c => c.publicKey.toBase58()));
+      const campaign = lipClient.campaigns.find((campaign) => campaign.bank.label === selectedAsset);
+      if (!campaign) throw new Error("Campaign not found");
+      await lipClient.deposit(campaign.publicKey, amount, campaign.bank);
     }
-  };
+  }, [amount, lipAccount, lipClient, selectedAsset]);
+
+  // @NEXT: Write deposit fn.
+  const createCampaign = useCallback(async () => {
+    if (lipClient && selectedAsset) {
+      const campaignKeypair = Keypair.generate();
+      const banks = mfiClientReadonly?.group.banks || new Map<string, Bank>();
+      console.log({ selectedAsset, banks: [...banks.keys()].map(b => b) });
+      const bank = [...banks.values()].find(b => b.label === selectedAsset);
+      if (!bank) throw new Error("Bank not found");
+      const userTokenAtaPk = await associatedAddress({
+        mint: bank.mint,
+        owner: lipClient.wallet.publicKey,
+      });
+      console.log(bank.publicKey.toBase58());
+      const ix = await lipClient.program.methods
+        .createCampaing(new BN(3600), uiToNative(1000, bank.mintDecimals), uiToNative(1, bank.mintDecimals))
+        .accounts({
+          campaign: campaignKeypair.publicKey,
+          admin: lipClient.wallet.publicKey,
+          fundingAccount: userTokenAtaPk,
+          marginfiBank: bank.publicKey,
+          assetMint: bank.mint,
+
+        }).instruction();
+      await lipClient.processTransaction(new Transaction().add(ix), [campaignKeypair]);
+    }
+  }, [lipClient, mfiClientReadonly?.group.banks, selectedAsset]);
 
   return (
     <>
       <PageHeader />
-      <div
-        className="h-full flex flex-col justify-start items-center content-start py-[64px] w-4/5 max-w-7xl gap-4"
-      >
-        <div
-          className="w-[360px] flex flex-col items-center gap-6"
-        >
+      <div className="h-full flex flex-col justify-start items-center content-start py-[64px] w-4/5 max-w-7xl gap-4">
+        <div className="w-[360px] flex flex-col items-center gap-6">
           <div className="w-[300px] h-[100px] flex flex-col gap-5 mb-8 justify-center">
             <div className="flex flex-col gap-1 w-full justify-center">
-              {
-                wallet.connected &&
-                <div
-                  className="text-2xl flex justify-center gap-2"
-                  style={{ fontWeight: 400 }}
-                >
+              {wallet.connected && (
+                <div className="text-2xl flex justify-center gap-2" style={{ fontWeight: 400 }}>
                   Your deposits:
                   <span style={{ color: "#51B56A" }}>
-                      {
-                        // Since users will only be able to deposit to the LIP,
-                        // the balance of their account should match total deposits.
-                      }
-                    {(usdFormatter.format(totalDeposits))}
-                    </span>
+                    {
+                      // Since users will only be able to deposit to the LIP,
+                      // the balance of their account should match total deposits.
+                    }
+                    {usdFormatter.format(lipAccount?.getTotalBalance().toNumber() || 0)}
+                  </span>
                 </div>
-              }
+              )}
             </div>
             <div className="col-span-full flex flex-col justify-center items-center">
               <LinearProgress
@@ -396,9 +421,7 @@ const Pro = () => {
             </div>
           </div>
 
-          <div
-            className="flex justify-center"
-          >
+          <div className="flex justify-center">
             <AssetSelection
               selectedAsset={selectedAsset}
               setSelectedAsset={setSelectedAsset}
@@ -412,24 +435,25 @@ const Pro = () => {
               setValue={setAmount}
               maxValue={500000} // @todo hardcoded
               maxDecimals={2}
-              disabled={(!(wallet.connected))}
+              disabled={!wallet.connected}
             />
           </div>
 
-          <div
-            className="flex justify-center"
-          >
+          <div className="flex justify-center">
             {
               // You can only deposit right now.
               // All funds will be locked up for 6 months, each from the date of its *own* deposit.
             }
-            <ProAction
-              onClick={depositAction}
-            >
-              Deposit
-            </ProAction>
+            <ProAction onClick={depositAction}>Deposit</ProAction>
           </div>
 
+          <div className="flex justify-center">
+            {
+              // You can only deposit right now.
+              // All funds will be locked up for 6 months, each from the date of its *own* deposit.
+            }
+            <ProAction onClick={createCampaign}>Create campaign</ProAction>
+          </div>
         </div>
       </div>
     </>

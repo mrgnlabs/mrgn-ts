@@ -17,10 +17,11 @@ import { LIP_IDL } from "./idl";
 import { uiToNative } from "./utils";
 import instructions from "./instructions";
 import { DEFAULT_CONFIRM_OPTS, DEPOSIT_MFI_AUTH_SIGNER_SEED, MARGINFI_ACCOUNT_SEED } from "./constants";
-import Bank from "../../marginfi-client-v2/src/bank";
+import Bank, { BankData } from "../../marginfi-client-v2/src/bank";
 import MarginfiClient from "../../marginfi-client-v2/src/client";
 import { Address, translateAddress } from "@coral-xyz/anchor";
-import { DepositData } from "./account";
+import { Campaign, DepositData } from "./account";
+import { parsePriceData } from "@pythnetwork/client";
 
 /**
  * Entrypoint to interact with the LIP contract.
@@ -36,23 +37,13 @@ class LipClient {
     readonly program: LipProgram,
     readonly wallet: Wallet,
     readonly client: MarginfiClient,
+    readonly campaigns: Campaign[],
   ) {
     this.programId = config.programId;
   }
 
   // --- Factories
 
-  /**
-   * LipClient factory
-   *
-   * Fetch account data according to the config.
-   *
-   * @param config Lip config
-   * @param wallet User wallet (used to pay fees and sign transactions)
-   * @param connection Solana web.js Connection object
-   * @param opts Solana web.js ConfirmOptions object
-   * @returns LipClient instance
-   */
   static async fetch(config: LipConfig, wallet: Wallet, connection: Connection, marginfiClient: MarginfiClient, opts?: ConfirmOptions) {
     const debug = require("debug")("lip:client");
     debug(
@@ -68,7 +59,36 @@ class LipClient {
     });
 
     const program = new Program(LIP_IDL, config.programId, provider) as any as LipProgram;
-    return new LipClient(config, program, wallet, marginfiClient);
+
+    const allCampaigns = (await program.account.campaign.all()).map((c, i) => ({
+      ...c.account,
+      publicKey: c.publicKey,
+    }));
+    const relevantBanks = allCampaigns.map((d) => d.marginfiBankPk);
+    const banksWithNulls = await marginfiClient.program.account.bank.fetchMultiple(relevantBanks);
+    const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
+    const pythAccounts = await program.provider.connection.getMultipleAccountsInfo(
+      banksData.map((b) => (b as BankData).config.oracleKeys[0]),
+    );
+    const banks = banksData.map(
+      (bd, index) =>
+        new Bank(
+          marginfiClient.config.banks[index].label,
+          relevantBanks[index],
+          bd as BankData,
+          parsePriceData(pythAccounts[index]!.data),
+        ),
+    );
+
+    if (banks.length !== allCampaigns.length) {
+      return Promise.reject("Some of the banks were not found");
+    }
+
+    const campaigns = allCampaigns.map((campaign, i) => {
+      return { ...campaign, bank: banks[i] };
+    });
+
+    return new LipClient(config, program, wallet, marginfiClient, campaigns);
   }
 
   // --- Getters
@@ -86,7 +106,7 @@ class LipClient {
         {
           memcmp: {
             bytes: _owner.toBase58(),
-            offset: 8 + 144, // owner is the first field in the account after the padding, so offset by the discriminant and a pubkey
+            offset: 8, // owner is the first field in the account after the padding, so offset by the discriminant and a pubkey
           },
         },
       ])
@@ -151,7 +171,7 @@ class LipClient {
     debug("Depositing %s into LIP", amount);
     const ixs = await this.makeDepositIx(campaign, amount, bank);
     const tx = new Transaction().add(...ixs.instructions);
-    const sig = await this.processTransaction(tx);
+    const sig = await this.processTransaction(tx, ixs.keys);
     debug("Depositing successful %s", sig);
     // @note: will need to manage reload appropriately
     return sig;

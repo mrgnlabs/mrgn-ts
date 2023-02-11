@@ -43,7 +43,7 @@ class MarginfiClient {
     readonly config: MarginfiConfig,
     readonly program: MarginfiProgram,
     readonly wallet: Wallet,
-    group: MarginfiGroup
+    group: MarginfiGroup,
   ) {
     this.programId = config.programId;
     this._group = group;
@@ -69,7 +69,7 @@ class MarginfiClient {
       config.programId,
       config.environment,
       config.groupPk,
-      connection.rpcEndpoint
+      connection.rpcEndpoint,
     );
     const provider = new AnchorProvider(connection, wallet, {
       ...AnchorProvider.defaultOptions(),
@@ -88,7 +88,7 @@ class MarginfiClient {
       programId: Address;
       marginfiGroup: Address;
       wallet: Wallet;
-    }>
+    }>,
   ): Promise<MarginfiClient> {
     const debug = require("debug")("mfi:client");
     const env = overrides?.env ?? (process.env.MARGINFI_ENV! as Environment);
@@ -106,7 +106,7 @@ class MarginfiClient {
       new NodeWallet(
         process.env.MARGINFI_WALLET_KEY
           ? Keypair.fromSecretKey(new Uint8Array(JSON.parse(process.env.MARGINFI_WALLET_KEY)))
-          : loadKeypair(process.env.MARGINFI_WALLET!)
+          : loadKeypair(process.env.MARGINFI_WALLET!),
       );
 
     debug("Loading the marginfi client from env vars");
@@ -151,7 +151,8 @@ class MarginfiClient {
     const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
       marginfiGroupPk: this._group.publicKey,
       marginfiAccountPk: accountKeypair.publicKey,
-      signerPk: this.provider.wallet.publicKey,
+      authorityPk: this.provider.wallet.publicKey,
+      feePayerPk: this.provider.wallet.publicKey,
     });
 
     const ixs = [initMarginfiAccountIx];
@@ -269,7 +270,7 @@ class MarginfiClient {
   async processTransaction(
     transaction: Transaction,
     signers?: Array<Signer>,
-    opts?: TransactionOptions
+    opts?: TransactionOptions,
   ): Promise<TransactionSignature> {
     let signature: TransactionSignature = "";
     try {
@@ -294,19 +295,19 @@ class MarginfiClient {
       if (opts?.dryRun) {
         const response = await connection.simulateTransaction(
           versionedTransaction,
-          opts ?? { minContextSlot, sigVerify: false }
+          opts ?? { minContextSlot, sigVerify: false },
         );
         console.log(
-          response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
+          response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`,
         );
         console.log("------ Logs 👇 ------");
         console.log(response.value.logs);
 
         const signaturesEncoded = encodeURIComponent(
-          JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s)))
+          JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s))),
         );
         const messageEncoded = encodeURIComponent(
-          Buffer.from(versionedTransaction.message.serialize()).toString("base64")
+          Buffer.from(versionedTransaction.message.serialize()).toString("base64"),
         );
         console.log(Buffer.from(versionedTransaction.message.serialize()).toString("base64"));
 
@@ -336,7 +337,7 @@ class MarginfiClient {
             lastValidBlockHeight,
             signature,
           },
-          mergedOpts.commitment
+          mergedOpts.commitment,
         );
         return signature;
       }

@@ -1,11 +1,10 @@
 import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@project-serum/anchor";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
-import { ConfirmOptions, Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { AccountType, Environment, InstructionsWrapper, MarginfiConfig, MarginfiProgram } from "./types";
+import { ConfirmOptions, Connection, PublicKey } from "@solana/web3.js";
+import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "./types";
 import { MARGINFI_IDL } from "./idl";
 import { getConfig } from "./config";
 import MarginfiGroup from "./group";
-import instructions from "./instructions";
 import { DEFAULT_COMMITMENT } from "./constants";
 import { MarginfiAccountData } from "./account";
 import MarginfiAccountReadonly from "./accountReadonly";
@@ -44,7 +43,7 @@ class MarginfiClientReadonly {
       config.programId,
       config.environment,
       config.groupPk,
-      connection.rpcEndpoint
+      connection.rpcEndpoint,
     );
 
     const provider = new AnchorProvider(connection, {} as any, {
@@ -63,7 +62,7 @@ class MarginfiClientReadonly {
       connection: Connection;
       programId: Address;
       marginfiGroup: Address;
-    }>
+    }>,
   ): Promise<MarginfiClientReadonly> {
     const debug = require("debug")("mfi:client");
     const env = overrides?.env ?? (process.env.MARGINFI_ENV! as Environment);
@@ -104,31 +103,6 @@ class MarginfiClientReadonly {
   }
 
   // --- Others
-
-  /**
-   * Create transaction instruction to create a new marginfi account under the authority of the user.
-   *
-   * @returns transaction instruction
-   */
-  async makeCreateMarginfiAccountIx(marginfiAccountKeypair?: Keypair): Promise<InstructionsWrapper> {
-    const dbg = require("debug")("mfi:client");
-    const accountKeypair = marginfiAccountKeypair || Keypair.generate();
-
-    dbg("Generating marginfi account ix for %s", accountKeypair.publicKey);
-
-    const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
-      marginfiGroupPk: this._group.publicKey,
-      marginfiAccountPk: accountKeypair.publicKey,
-      signerPk: this.provider.wallet.publicKey,
-    });
-
-    const ixs = [initMarginfiAccountIx];
-
-    return {
-      instructions: ixs,
-      keys: [accountKeypair],
-    };
-  }
 
   /**
    * Retrieves the addresses of all marginfi accounts in the udnerlying group.
@@ -185,7 +159,7 @@ class MarginfiClientReadonly {
         },
       ])
     ).map((a) =>
-      MarginfiAccountReadonly.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, marginfiGroup)
+      MarginfiAccountReadonly.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, marginfiGroup),
     );
   }
 

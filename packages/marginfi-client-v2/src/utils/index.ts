@@ -56,7 +56,7 @@ export async function processTransaction(
   provider: AnchorProvider,
   tx: Transaction,
   signers?: Array<Signer>,
-  opts?: ConfirmOptions
+  opts?: ConfirmOptions,
 ): Promise<TransactionSignature> {
   const connection = new Connection(provider.connection.rpcEndpoint, provider.opts);
   const {
@@ -85,7 +85,7 @@ export async function processTransaction(
         preflightCommitment: provider.connection.commitment,
         commitment: provider.connection.commitment,
         minContextSlot,
-      }
+      },
     );
     await connection.confirmTransaction({
       blockhash,
@@ -108,7 +108,7 @@ export function sleep(ms: number) {
 
 export function wrappedI80F48toBigNumber({ value }: { value: BN }, scaleDecimal: number = 0): BigNumber {
   let numbers = new Decimal(`${value.isNeg() ? "-" : ""}0b${value.abs().toString(2)}p-48`).dividedBy(
-    10 ** scaleDecimal
+    10 ** scaleDecimal,
   );
   return new BigNumber(numbers.toString());
 }
@@ -189,7 +189,7 @@ function getBankVaultAuthoritySeeds(type: BankVaultType): Buffer {
 export function getBankVaultAuthority(
   bankVaultType: BankVaultType,
   bankPk: PublicKey,
-  programId: PublicKey
+  programId: PublicKey,
 ): [PublicKey, number] {
   return PublicKey.findProgramAddressSync([getBankVaultAuthoritySeeds(bankVaultType), bankPk.toBuffer()], programId);
 }
