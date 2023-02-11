@@ -33,5 +33,4 @@ export interface LipConfig {
   environment: Environment;
   cluster: string;
   programId: PublicKey;
-  marginfiClient: MarginfiClient;
 }

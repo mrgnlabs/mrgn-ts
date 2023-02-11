@@ -17,7 +17,7 @@ function parseConfig(configRaw: LipConfigRaw): LipConfig {
   return {
     environment: configRaw.label,
     cluster: configRaw.cluster,
-    programId: new PublicKey(configRaw.program),
+    programId: new PublicKey(configRaw.program)
   };
 }
 
