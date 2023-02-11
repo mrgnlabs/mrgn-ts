@@ -2,7 +2,7 @@ import React, { FC, ReactNode, useCallback, useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
 import { useProgram } from "~/context";
-import { Button, ButtonProps, LinearProgress, TextField } from "@mui/material";
+import { Button, ButtonProps, CircularProgress, LinearProgress, TextField } from "@mui/material";
 import { usdFormatter } from "~/utils/formatters";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import dynamic from "next/dynamic";
@@ -66,9 +66,10 @@ const WalletMultiButtonDynamic = dynamic(
 
 interface ProActionProps extends ButtonProps {
   children: ReactNode;
+  spinning?: boolean;
 }
 
-const ProAction: FC<ProActionProps> = ({ children, disabled, ...otherProps }) => {
+const ProAction: FC<ProActionProps> = ({ children, spinning, disabled, ...otherProps }) => {
   const wallet = useWallet();
 
   return wallet.connected ? (
@@ -83,7 +84,7 @@ const ProAction: FC<ProActionProps> = ({ children, disabled, ...otherProps }) =>
       {...otherProps}
       disabled={disabled || !wallet.connected}
     >
-      {children}
+      {spinning ? <CircularProgress style={{ color: "#3CAB5F", width: "20px", height: "20px" }} /> : children}
     </Button>
   ) : (
     <WalletMultiButtonDynamic
@@ -263,6 +264,8 @@ const AssetSelection: FC<AssetSelectionProps> = ({ setSelectedAsset, defaultAsse
 const Pro = () => {
   const wallet = useWallet();
   const defaultAsset = "SOL";
+  const [initialFetchDone, setInitialFetchDone] = useState(false);
+  const [reloading, setReloading] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(defaultAsset);
   const [amount, setAmount] = React.useState(0);
   const [progressPercent, setProgressPercent] = React.useState(0);
@@ -274,6 +277,7 @@ const Pro = () => {
       if (!mfiClient || !lipClient || !wallet.publicKey) return;
       const lipAccount = await LipAccount.fetch(wallet.publicKey, lipClient, mfiClient);
       setLipAccount(lipAccount);
+      setInitialFetchDone(true);
     })();
   }, [lipClient, mfiClient, wallet.publicKey]);
 
@@ -304,41 +308,47 @@ const Pro = () => {
   }, [amount, wallet.connected]);
 
   const depositAction = useCallback(async () => {
-    if (lipAccount && lipClient && selectedAsset && amount > 0) {
-      const campaign = lipClient.campaigns.find((campaign) => campaign.bank.label === selectedAsset);
-      if (!campaign) throw new Error("Campaign not found");
+    if (!lipAccount || !lipClient || !selectedAsset || amount === 0) return;
+
+    const campaign = lipClient.campaigns.find((campaign) => campaign.bank.label === selectedAsset);
+    if (!campaign) throw new Error("Campaign not found");
+    setReloading(true);
+    try {
       await lipClient.deposit(campaign.publicKey, amount, campaign.bank);
       setLipAccount(await lipAccount.reloadAndClone());
       setAmount(0);
+    } catch (e) {
+      console.error(e);
     }
+    setReloading(false);
   }, [amount, lipAccount, lipClient, selectedAsset]);
 
   const createCampaign = useCallback(async () => {
-    if (mfiClient !== null && lipClient && selectedAsset) {
-      const campaignKeypair = Keypair.generate();
-      const banks = mfiClient.group.banks;
-      const bank = [...banks.values()].find((b) => b.label === selectedAsset);
-      if (!bank) throw new Error("Bank not found");
-      const userTokenAtaPk = await associatedAddress({
-        mint: bank.mint,
-        owner: lipClient.wallet.publicKey,
-      });
+    if (mfiClient === null || !lipClient || !selectedAsset) return;
 
-      const ix = await lipClient.program.methods
-        .createCampaing(new BN(1), uiToNative(1, bank.mintDecimals), uiToNative(1, bank.mintDecimals))
-        .accounts({
-          campaign: campaignKeypair.publicKey,
-          admin: lipClient.wallet.publicKey,
-          fundingAccount: userTokenAtaPk,
-          marginfiBank: bank.publicKey,
-          assetMint: bank.mint,
-        })
-        .instruction();
-      await lipClient.processTransaction(new Transaction().add(ix), [campaignKeypair]);
-      await reloadLipClient();
-      setLipAccount(lipAccount);
-      setAmount(0);
-    }
+    const campaignKeypair = Keypair.generate();
+    const banks = mfiClient.group.banks;
+    const bank = [...banks.values()].find((b) => b.label === selectedAsset);
+    if (!bank) throw new Error("Bank not found");
+    const userTokenAtaPk = await associatedAddress({
+      mint: bank.mint,
+      owner: lipClient.wallet.publicKey,
+    });
+
+    const ix = await lipClient.program.methods
+      .createCampaing(new BN(1), uiToNative(1, bank.mintDecimals), uiToNative(1, bank.mintDecimals))
+      .accounts({
+        campaign: campaignKeypair.publicKey,
+        admin: lipClient.wallet.publicKey,
+        fundingAccount: userTokenAtaPk,
+        marginfiBank: bank.publicKey,
+        assetMint: bank.mint,
+      })
+      .instruction();
+    await lipClient.processTransaction(new Transaction().add(ix), [campaignKeypair]);
+    await reloadLipClient();
+    setLipAccount(lipAccount);
+    setAmount(0);
   }, [lipAccount, lipClient, mfiClient, reloadLipClient, selectedAsset]);
 
   return (
@@ -399,7 +409,13 @@ const Pro = () => {
               // You can only deposit right now.
               // All funds will be locked up for 6 months, each from the date of its *own* deposit.
             }
-            <ProAction onClick={depositAction}>Deposit</ProAction>
+            <ProAction
+              onClick={depositAction}
+              spinning={!initialFetchDone || reloading}
+              disabled={!initialFetchDone || reloading}
+            >
+              Deposit
+            </ProAction>
           </div>
 
           {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_CREATE_CAMPAIGN === "true" && (

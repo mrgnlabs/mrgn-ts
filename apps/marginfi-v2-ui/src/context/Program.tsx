@@ -26,6 +26,7 @@ const ProgramProvider: FC<{
 
   useEffect(() => {
     (async function () {
+      console.log("fetching mfiClient RO");
       const roClient = await MarginfiClientReadonly.fetch(config.mfiConfig, connection);
       setMfiClientReadonly(roClient);
 
@@ -34,12 +35,14 @@ const ProgramProvider: FC<{
         return;
       }
 
+      console.log("fetching mfiClient");
       const client = await MarginfiClient.fetch(
         config.mfiConfig,
         //@ts-ignore
         anchorWallet,
         connection
       );
+      console.log("fetching LIP client");
       const lipClient = await LipClient.fetch(
         config.lipConfig,
         //@ts-ignore

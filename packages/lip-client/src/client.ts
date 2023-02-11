@@ -85,16 +85,19 @@ class LipClient {
   }
 
   private static async _fetchAccountData(program: LipProgram, marginfiClient: MarginfiClient): Promise<Campaign[]> {
+    console.log("fetching campaigns");
     const allCampaigns = (await program.account.campaign.all()).map((c, i) => ({
       ...c.account,
       publicKey: c.publicKey,
     }));
 
     const relevantBankPks = allCampaigns.map((d) => d.marginfiBankPk);
+    console.log("fetching banks");
     const banksWithNulls = await marginfiClient.program.account.bank.fetchMultiple(relevantBankPks);
     const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
     if (banksData.length !== banksWithNulls.length) throw new Error("Some banks were not found");
 
+    console.log("fetching price feeds");
     const pythAccountsWithNulls = await program.provider.connection.getMultipleAccountsInfo(
       banksData.map((b) => (b as BankData).config.oracleKeys[0])
     );
