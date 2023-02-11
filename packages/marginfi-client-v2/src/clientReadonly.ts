@@ -5,9 +5,9 @@ import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "./typ
 import { MARGINFI_IDL } from "./idl";
 import { getConfig } from "./config";
 import MarginfiGroup from "./group";
-import { DEFAULT_COMMITMENT } from "./constants";
 import { MarginfiAccountData } from "./account";
 import MarginfiAccountReadonly from "./accountReadonly";
+import { DEFAULT_COMMITMENT } from "@mrgnlabs/mrgn-common";
 
 /**
  * Entrypoint to interact with the marginfi contract.

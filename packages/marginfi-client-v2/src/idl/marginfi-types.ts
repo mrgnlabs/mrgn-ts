@@ -353,7 +353,7 @@ export type Marginfi = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
-        },
+        }
       ];
       args: [];
     },

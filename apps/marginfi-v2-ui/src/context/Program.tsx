@@ -1,4 +1,4 @@
-import React, { createContext, FC, useContext, useEffect, useState } from "react";
+import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
 import { MarginfiClient, MarginfiClientReadonly } from "@mrgnlabs/marginfi-client-v2";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import config from "~/config";
@@ -11,6 +11,7 @@ interface ProgramState {
   mfiClientReadonly: MarginfiClientReadonly | null;
   mfiClient: MarginfiClient | null;
   lipClient: LipClient | null;
+  reload: () => Promise<void>;
 }
 
 const ProgramProvider: FC<{
@@ -44,12 +45,19 @@ const ProgramProvider: FC<{
         //@ts-ignore
         anchorWallet,
         connection,
-        client,
-      )
+        client
+      );
       setMfiClient(client);
       setLipClient(lipClient);
     })();
   }, [anchorWallet, connection]);
+
+  const reload = useCallback(async () => {
+    if (!lipClient) return;
+    console.log("reloading lipClient");
+    await lipClient.reload();
+    setLipClient(lipClient);
+  }, [lipClient]);
 
   return (
     <ProgramContext.Provider
@@ -57,6 +65,7 @@ const ProgramProvider: FC<{
         mfiClientReadonly,
         mfiClient,
         lipClient,
+        reload,
       }}
     >
       {children}

@@ -12,22 +12,30 @@ import {
   TransactionSignature,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { Amount, InstructionsWrapper, LipConfig, LipProgram, TransactionOptions, Wallet } from "./types";
+import { LipConfig, LipProgram } from "./types";
 import { LIP_IDL } from "./idl";
-import { uiToNative } from "./utils";
 import instructions from "./instructions";
-import { DEFAULT_CONFIRM_OPTS, DEPOSIT_MFI_AUTH_SIGNER_SEED, MARGINFI_ACCOUNT_SEED } from "./constants";
+import { DEPOSIT_MFI_AUTH_SIGNER_SEED, MARGINFI_ACCOUNT_SEED } from "./constants";
 import Bank, { BankData } from "../../marginfi-client-v2/src/bank";
 import MarginfiClient from "../../marginfi-client-v2/src/client";
 import { Address, translateAddress } from "@coral-xyz/anchor";
 import { Campaign, DepositData } from "./account";
 import { parsePriceData } from "@pythnetwork/client";
+import {
+  Amount,
+  DEFAULT_CONFIRM_OPTS,
+  InstructionsWrapper,
+  TransactionOptions,
+  uiToNative,
+  Wallet,
+} from "@mrgnlabs/mrgn-common";
 
 /**
  * Entrypoint to interact with the LIP contract.
  */
 class LipClient {
   public readonly programId: PublicKey;
+  public campaigns: Campaign[];
 
   /**
    * @internal
@@ -36,15 +44,22 @@ class LipClient {
     readonly config: LipConfig,
     readonly program: LipProgram,
     readonly wallet: Wallet,
-    readonly client: MarginfiClient,
-    readonly campaigns: Campaign[],
+    readonly mfiClient: MarginfiClient,
+    campaigns: Campaign[],
   ) {
     this.programId = config.programId;
+    this.campaigns = campaigns;
   }
 
   // --- Factories
 
-  static async fetch(config: LipConfig, wallet: Wallet, connection: Connection, marginfiClient: MarginfiClient, opts?: ConfirmOptions) {
+  static async fetch(
+    config: LipConfig,
+    wallet: Wallet,
+    connection: Connection,
+    marginfiClient: MarginfiClient,
+    opts?: ConfirmOptions,
+  ) {
     const debug = require("debug")("lip:client");
     debug(
       "Loading Lip Client\n\tprogram: %s\n\tenv: %s\n\turl: %s",
@@ -91,6 +106,36 @@ class LipClient {
     return new LipClient(config, program, wallet, marginfiClient, campaigns);
   }
 
+  async reload() {
+    const allCampaigns = (await this.program.account.campaign.all()).map((c, i) => ({
+      ...c.account,
+      publicKey: c.publicKey,
+    }));
+    const relevantBanks = allCampaigns.map((d) => d.marginfiBankPk);
+    const banksWithNulls = await this.mfiClient.program.account.bank.fetchMultiple(relevantBanks);
+    const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
+    const pythAccounts = await this.program.provider.connection.getMultipleAccountsInfo(
+      banksData.map((b) => (b as BankData).config.oracleKeys[0]),
+    );
+    const banks = banksData.map(
+      (bd, index) =>
+        new Bank(
+          this.mfiClient.config.banks[index].label,
+          relevantBanks[index],
+          bd as BankData,
+          parsePriceData(pythAccounts[index]!.data),
+        ),
+    );
+
+    if (banks.length !== allCampaigns.length) {
+      return Promise.reject("Some of the banks were not found");
+    }
+
+    this.campaigns = allCampaigns.map((campaign, i) => {
+      return { ...campaign, bank: banks[i] };
+    });
+  }
+
   // --- Getters
 
   /**
@@ -99,7 +144,7 @@ class LipClient {
    * @returns Deposit instances
    */
   async getDepositsForOwner(owner?: Address): Promise<DepositData[]> {
-    const _owner = owner ? translateAddress(owner) : this.client.wallet.publicKey;
+    const _owner = owner ? translateAddress(owner) : this.mfiClient.wallet.publicKey;
 
     return (
       await this.program.account.deposit.all([
@@ -113,60 +158,48 @@ class LipClient {
     ).map(({ account }) => account as unknown as DepositData);
   }
 
-
   // --- Others
 
-  async makeDepositIx(
-    campaign: PublicKey,
-    amount: Amount,
-    bank: Bank,
-  ): Promise<InstructionsWrapper> {
-
+  async makeDepositIx(campaign: PublicKey, amount: Amount, bank: Bank): Promise<InstructionsWrapper> {
     const depositKeypair = Keypair.generate();
     const tempTokenAccountKeypair = Keypair.generate();
     const userTokenAtaPk = await associatedAddress({
       mint: bank.mint,
-      owner: this.client.provider.wallet.publicKey,
+      owner: this.mfiClient.provider.wallet.publicKey,
     });
 
     const ix = await instructions.makeCreateDepositIx(
       this.program,
       {
         campaign: campaign,
-        signer: this.client.provider.wallet.publicKey,
+        signer: this.mfiClient.provider.wallet.publicKey,
         deposit: depositKeypair.publicKey,
         mfiPdaSigner: PublicKey.findProgramAddressSync(
           [DEPOSIT_MFI_AUTH_SIGNER_SEED, depositKeypair.publicKey.toBuffer()],
-          this.programId)[0],
+          this.programId,
+        )[0],
         fundingAccount: userTokenAtaPk,
         tempTokenAccount: tempTokenAccountKeypair.publicKey,
         assetMint: bank.mint,
-        marginfiGroup: this.client.group.publicKey,
+        marginfiGroup: this.mfiClient.group.publicKey,
         marginfiBank: bank.publicKey,
         marginfiAccount: PublicKey.findProgramAddressSync(
           [MARGINFI_ACCOUNT_SEED, depositKeypair.publicKey.toBuffer()],
           this.programId,
         )[0],
         marginfiBankVault: bank.liquidityVault,
-        marginfiProgram: this.client.programId,
+        marginfiProgram: this.mfiClient.programId,
       },
       { amount: uiToNative(amount, bank.mintDecimals) },
     );
 
     return {
       instructions: [ix],
-      keys: [
-        depositKeypair,
-        tempTokenAccountKeypair,
-      ],
+      keys: [depositKeypair, tempTokenAccountKeypair],
     };
   }
 
-  async deposit(
-    campaign: PublicKey,
-    amount: Amount,
-    bank: Bank,
-  ): Promise<string> {
+  async deposit(campaign: PublicKey, amount: Amount, bank: Bank): Promise<string> {
     const debug = require("debug")(`lip:deposit`);
     debug("Depositing %s into LIP", amount);
     const ixs = await this.makeDepositIx(campaign, amount, bank);
@@ -193,7 +226,7 @@ class LipClient {
 
       const versionedMessage = new TransactionMessage({
         instructions: transaction.instructions,
-        payerKey: this.client.provider.publicKey,
+        payerKey: this.mfiClient.provider.publicKey,
         recentBlockhash: blockhash,
       });
 

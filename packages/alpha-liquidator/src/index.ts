@@ -1,22 +1,12 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import {
-  Environment,
-  getConfig,
-  loadKeypair,
-  MarginfiClient,
-  MarginfiGroup,
-  nativeToUi,
-  NodeWallet,
-  sleep,
-  uiToNative,
-  USDC_DECIMALS,
-} from "@mrgnlabs/marginfi-client-v2";
+import { Environment, getConfig, MarginfiClient, MarginfiGroup, USDC_DECIMALS } from "@mrgnlabs/marginfi-client-v2";
 import { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
 import JSBI from "jsbi";
 import { Jupiter } from "@jup-ag/core";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import MarginfiAccount, { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
+import { loadKeypair, nativeToUi, NodeWallet, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 
@@ -31,7 +21,7 @@ async function mainLoop(
   group: MarginfiGroup,
   liquidatorAccount: MarginfiAccount,
   client: MarginfiClient,
-  jupiter: Jupiter
+  jupiter: Jupiter,
 ) {
   try {
     await swapNonUsdcInTokenAccounts(liquidatorAccount, group, jupiter);
@@ -100,7 +90,7 @@ async function processAccount(
   group: MarginfiGroup,
   client: MarginfiClient,
   liquidatorAccount: MarginfiAccount,
-  marginfiAccountAddress: PublicKey
+  marginfiAccountAddress: PublicKey,
 ): Promise<boolean> {
   console.log("Processing account %s", marginfiAccountAddress);
   const marginfiAccount = await MarginfiAccount.fetch(marginfiAccountAddress, client);
@@ -145,7 +135,7 @@ async function processAccount(
   console.log(
     "Max liability paydown USD value: %d, mint: %s",
     maxLiabilityPaydownUsdValue,
-    group.getBankByPk(marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk)!.mint
+    group.getBankByPk(marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk)!.mint,
   );
 
   let maxCollateralUsd = new BigNumber(0);
@@ -166,7 +156,7 @@ async function processAccount(
   console.log(
     "Max collateral USD value: %d, mint: %s",
     maxCollateralUsd,
-    group.getBankByPk(marginfiAccount.activeBalances[bestCollateralIndex].bankPk)!.mint
+    group.getBankByPk(marginfiAccount.activeBalances[bestCollateralIndex].bankPk)!.mint,
   );
 
   // This conversion is ignoring the liquidator discount, but the amounts still in legal bounds, as the liability paydown
@@ -187,7 +177,7 @@ async function processAccount(
     marginfiAccount,
     collateralBank,
     collateralQuantity,
-    liabBank
+    liabBank,
   );
   console.log("Liquidation tx: %s", sig);
 
@@ -306,7 +296,7 @@ async function repayAllDebt(mfiAccount: MarginfiAccount, group: MarginfiGroup, j
       liabilities,
       MarginRequirementType.Equity,
       // We might need to use a Higher price bias to account for worst case scenario.
-      PriceBias.None
+      PriceBias.None,
     );
 
     // We can possibly withdraw some usdc from the lending account if we are short.

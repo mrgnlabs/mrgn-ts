@@ -6,11 +6,8 @@ import { PublicKey, Transaction } from "@solana/web3.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { makeAirdropCollateralIx } from "~/utils";
 import { toast } from "react-toastify";
-import { shortenAddress } from "@mrgnlabs/marginfi-client-v2";
-import {
-  createAssociatedTokenAccountInstruction,
-  getAssociatedTokenAddressSync,
-} from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
+import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common/src/spl";
+import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 const SOL_AMOUNT = 2 * 10 ** 9;
 
@@ -53,7 +50,7 @@ const AirdropZone: FC = () => {
         });
       }
     },
-    [connection, wallet]
+    [connection, wallet],
   );
 
   if (!wallet?.publicKey) return null;

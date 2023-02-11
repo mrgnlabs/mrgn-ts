@@ -1,37 +1,37 @@
 export type LiquidityIncentiveProgram = {
-  "version": "0.1.0",
-  "name": "liquidity_incentive_program",
-  "constants": [
+  version: "0.1.0";
+  name: "liquidity_incentive_program";
+  constants: [
     {
-      "name": "CAMPAIGN_SEED",
-      "type": "string",
-      "value": "\"campaign\""
+      name: "CAMPAIGN_SEED";
+      type: "string";
+      value: '"campaign"';
     },
     {
-      "name": "CAMPAIGN_AUTH_SEED",
-      "type": "string",
-      "value": "\"campaign_auth\""
+      name: "CAMPAIGN_AUTH_SEED";
+      type: "string";
+      value: '"campaign_auth"';
     },
     {
-      "name": "DEPOSIT_MFI_AUTH_SIGNER_SEED",
-      "type": "string",
-      "value": "\"deposit_mfi_auth\""
+      name: "DEPOSIT_MFI_AUTH_SIGNER_SEED";
+      type: "string";
+      value: '"deposit_mfi_auth"';
     },
     {
-      "name": "TEMP_TOKEN_ACCOUNT_AUTH_SEED",
-      "type": "string",
-      "value": "\"ephemeral_token_account_auth\""
+      name: "TEMP_TOKEN_ACCOUNT_AUTH_SEED";
+      type: "string";
+      value: '"ephemeral_token_account_auth"';
     },
     {
-      "name": "MARGINFI_ACCOUNT_SEED",
-      "type": "string",
-      "value": "\"marginfi_account\""
+      name: "MARGINFI_ACCOUNT_SEED";
+      type: "string";
+      value: '"marginfi_account"';
     }
-  ],
-  "instructions": [
+  ];
+  instructions: [
     {
-      "name": "createCampaing",
-      "docs": [
+      name: "createCampaing";
+      docs: [
         "Creates a new liquidity incentive campaign (LIP).",
         "",
         "# Arguments",
@@ -42,110 +42,108 @@ export type LiquidityIncentiveProgram = {
         "",
         "# Returns",
         "* `Ok(())` if the campaign was successfully created, or an error otherwise."
-      ],
-      "accounts": [
+      ];
+      accounts: [
         {
-          "name": "campaign",
-          "isMut": true,
-          "isSigner": true
+          name: "campaign";
+          isMut: true;
+          isSigner: true;
         },
         {
-          "name": "campaignRewardVault",
-          "isMut": true,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "campaignRewardVault";
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "campaign"
+                kind: "const";
+                type: "string";
+                value: "campaign";
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Campaign",
-                "path": "campaign"
+                kind: "account";
+                type: "publicKey";
+                account: "Campaign";
+                path: "campaign";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "campaignRewardVaultAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "campaignRewardVaultAuthority";
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "campaign_auth"
+                kind: "const";
+                type: "string";
+                value: "campaign_auth";
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Campaign",
-                "path": "campaign"
+                kind: "account";
+                type: "publicKey";
+                account: "Campaign";
+                path: "campaign";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "assetMint",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "asserted by comparing the mint of the marginfi bank"
-          ]
+          name: "assetMint";
+          isMut: false;
+          isSigner: false;
+          docs: ["asserted by comparing the mint of the marginfi bank"];
         },
         {
-          "name": "marginfiBank",
-          "isMut": false,
-          "isSigner": false
+          name: "marginfiBank";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "admin",
-          "isMut": true,
-          "isSigner": true
+          name: "admin";
+          isMut: true;
+          isSigner: true;
         },
         {
-          "name": "fundingAccount",
-          "isMut": true,
-          "isSigner": false
+          name: "fundingAccount";
+          isMut: true;
+          isSigner: false;
         },
         {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
+          name: "rent";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "lockupPeriod",
-          "type": "u64"
+          name: "lockupPeriod";
+          type: "u64";
         },
         {
-          "name": "maxDeposits",
-          "type": "u64"
+          name: "maxDeposits";
+          type: "u64";
         },
         {
-          "name": "maxRewards",
-          "type": "u64"
+          name: "maxRewards";
+          type: "u64";
         }
-      ]
+      ];
     },
     {
-      "name": "createDeposit",
-      "docs": [
+      name: "createDeposit";
+      docs: [
         "Creates a new deposit in an active liquidity incentive campaign (LIP).",
         "",
         "# Arguments",
@@ -158,131 +156,129 @@ export type LiquidityIncentiveProgram = {
         "# Errors",
         "* `LIPError::CampaignNotActive` if the relevant campaign is not active.",
         "* `LIPError::DepositAmountTooLarge` is the deposit amount exceeds the amount of remaining deposits that can be made into the campaign."
-      ],
-      "accounts": [
+      ];
+      accounts: [
         {
-          "name": "campaign",
-          "isMut": true,
-          "isSigner": false
+          name: "campaign";
+          isMut: true;
+          isSigner: false;
         },
         {
-          "name": "signer",
-          "isMut": true,
-          "isSigner": true
+          name: "signer";
+          isMut: true;
+          isSigner: true;
         },
         {
-          "name": "deposit",
-          "isMut": true,
-          "isSigner": true
+          name: "deposit";
+          isMut: true;
+          isSigner: true;
         },
         {
-          "name": "mfiPdaSigner",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "mfiPdaSigner";
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "deposit_mfi_auth"
+                kind: "const";
+                type: "string";
+                value: "deposit_mfi_auth";
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
-                "path": "deposit"
+                kind: "account";
+                type: "publicKey";
+                account: "Deposit";
+                path: "deposit";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "fundingAccount",
-          "isMut": true,
-          "isSigner": false
+          name: "fundingAccount";
+          isMut: true;
+          isSigner: false;
         },
         {
-          "name": "tempTokenAccount",
-          "isMut": true,
-          "isSigner": true
+          name: "tempTokenAccount";
+          isMut: true;
+          isSigner: true;
         },
         {
-          "name": "assetMint",
-          "isMut": false,
-          "isSigner": false
+          name: "assetMint";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "marginfiGroup",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "marginfi_bank is tied to a specific marginfi_group"
-          ]
+          name: "marginfiGroup";
+          isMut: false;
+          isSigner: false;
+          docs: ["marginfi_bank is tied to a specific marginfi_group"];
         },
         {
-          "name": "marginfiBank",
-          "isMut": true,
-          "isSigner": false
+          name: "marginfiBank";
+          isMut: true;
+          isSigner: false;
         },
         {
-          "name": "marginfiAccount",
-          "isMut": true,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "marginfiAccount";
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "marginfi_account"
+                kind: "const";
+                type: "string";
+                value: "marginfi_account";
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
-                "path": "deposit"
+                kind: "account";
+                type: "publicKey";
+                account: "Deposit";
+                path: "deposit";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "marginfiBankVault",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
+          name: "marginfiBankVault";
+          isMut: true;
+          isSigner: false;
+          docs: [
             "marginfi_bank_vault is tied to a specific marginfi_bank,",
             "passing in an incorrect vault will fail the CPI call"
-          ]
+          ];
         },
         {
-          "name": "marginfiProgram",
-          "isMut": false,
-          "isSigner": false
+          name: "marginfiProgram";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
+          name: "rent";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "amount",
-          "type": "u64"
+          name: "amount";
+          type: "u64";
         }
-      ]
+      ];
     },
     {
-      "name": "endDeposit",
-      "docs": [
+      name: "endDeposit";
+      docs: [
         "After a lockup period has ended, closes a deposit and returns the initial deposit + earned rewards from a liquidity incentive campaign back to the liquidity depositor.",
         "",
         "# Arguments",
@@ -299,310 +295,304 @@ export type LiquidityIncentiveProgram = {
         "* Reloading ephemeral token account fails",
         "* Transferring additional reward to ephemeral token account fails",
         "* Reloading ephemeral token account after transfer fails"
-      ],
-      "accounts": [
+      ];
+      accounts: [
         {
-          "name": "campaign",
-          "isMut": false,
-          "isSigner": false
+          name: "campaign";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "campaignRewardVault",
-          "isMut": true,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "campaignRewardVault";
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "campaign"
+                kind: "const";
+                type: "string";
+                value: "campaign";
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Campaign",
-                "path": "campaign"
+                kind: "account";
+                type: "publicKey";
+                account: "Campaign";
+                path: "campaign";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "campaignRewardVaultAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "campaignRewardVaultAuthority";
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "campaign_auth"
+                kind: "const";
+                type: "string";
+                value: "campaign_auth";
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Campaign",
-                "path": "campaign"
+                kind: "account";
+                type: "publicKey";
+                account: "Campaign";
+                path: "campaign";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "signer",
-          "isMut": true,
-          "isSigner": true
+          name: "signer";
+          isMut: true;
+          isSigner: true;
         },
         {
-          "name": "deposit",
-          "isMut": true,
-          "isSigner": false
+          name: "deposit";
+          isMut: true;
+          isSigner: false;
         },
         {
-          "name": "mfiPdaSigner",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "mfiPdaSigner";
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "deposit_mfi_auth"
+                kind: "const";
+                type: "string";
+                value: "deposit_mfi_auth";
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
-                "path": "deposit"
+                kind: "account";
+                type: "publicKey";
+                account: "Deposit";
+                path: "deposit";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "tempTokenAccount",
-          "isMut": true,
-          "isSigner": true
+          name: "tempTokenAccount";
+          isMut: true;
+          isSigner: true;
         },
         {
-          "name": "tempTokenAccountAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "tempTokenAccountAuthority";
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "ephemeral_token_account_auth"
+                kind: "const";
+                type: "string";
+                value: "ephemeral_token_account_auth";
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
-                "path": "deposit"
+                kind: "account";
+                type: "publicKey";
+                account: "Deposit";
+                path: "deposit";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "destinationAccount",
-          "isMut": true,
-          "isSigner": false
+          name: "destinationAccount";
+          isMut: true;
+          isSigner: false;
         },
         {
-          "name": "assetMint",
-          "isMut": false,
-          "isSigner": false
+          name: "assetMint";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "marginfiAccount",
-          "isMut": true,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "marginfiAccount";
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "marginfi_account"
+                kind: "const";
+                type: "string";
+                value: "marginfi_account";
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
-                "path": "deposit"
+                kind: "account";
+                type: "publicKey";
+                account: "Deposit";
+                path: "deposit";
               }
-            ]
-          }
+            ];
+          };
         },
         {
-          "name": "marginfiGroup",
-          "isMut": false,
-          "isSigner": false
+          name: "marginfiGroup";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "marginfiBank",
-          "isMut": true,
-          "isSigner": false
+          name: "marginfiBank";
+          isMut: true;
+          isSigner: false;
         },
         {
-          "name": "marginfiBankVault",
-          "isMut": true,
-          "isSigner": false
+          name: "marginfiBankVault";
+          isMut: true;
+          isSigner: false;
         },
         {
-          "name": "marginfiBankVaultAuthority",
-          "isMut": true,
-          "isSigner": false
+          name: "marginfiBankVaultAuthority";
+          isMut: true;
+          isSigner: false;
         },
         {
-          "name": "marginfiProgram",
-          "isMut": false,
-          "isSigner": false
+          name: "marginfiProgram";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
         }
-      ],
-      "args": []
+      ];
+      args: [];
     }
-  ],
-  "accounts": [
+  ];
+  accounts: [
     {
-      "name": "campaign",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "campaign";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "admin",
-            "type": "publicKey"
+            name: "admin";
+            type: "publicKey";
           },
           {
-            "name": "lockupPeriod",
-            "type": "u64"
+            name: "lockupPeriod";
+            type: "u64";
           },
           {
-            "name": "active",
-            "type": "bool"
+            name: "active";
+            type: "bool";
           },
           {
-            "name": "maxDeposits",
-            "type": "u64"
+            name: "maxDeposits";
+            type: "u64";
           },
           {
-            "name": "remainingCapacity",
-            "type": "u64"
+            name: "remainingCapacity";
+            type: "u64";
           },
           {
-            "name": "maxRewards",
-            "type": "u64"
+            name: "maxRewards";
+            type: "u64";
           },
           {
-            "name": "marginfiBankPk",
-            "type": "publicKey"
+            name: "marginfiBankPk";
+            type: "publicKey";
           },
           {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                16
-              ]
-            }
+            name: "padding";
+            type: {
+              array: ["u64", 16];
+            };
           }
-        ]
-      }
+        ];
+      };
     },
     {
-      "name": "deposit",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "deposit";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "owner",
-            "type": "publicKey"
+            name: "owner";
+            type: "publicKey";
           },
           {
-            "name": "amount",
-            "type": "u64"
+            name: "amount";
+            type: "u64";
           },
           {
-            "name": "startTime",
-            "type": "i64"
+            name: "startTime";
+            type: "i64";
           },
           {
-            "name": "campaign",
-            "type": "publicKey"
+            name: "campaign";
+            type: "publicKey";
           },
           {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                16
-              ]
-            }
+            name: "padding";
+            type: {
+              array: ["u64", 16];
+            };
           }
-        ]
-      }
+        ];
+      };
     }
-  ],
-  "errors": [
+  ];
+  errors: [
     {
-      "code": 6000,
-      "name": "CampaignNotActive",
-      "msg": "Campaign is not active"
+      code: 6000;
+      name: "CampaignNotActive";
+      msg: "Campaign is not active";
     },
     {
-      "code": 6001,
-      "name": "DepositAmountTooLarge",
-      "msg": "Deposit amount is to large"
+      code: 6001;
+      name: "DepositAmountTooLarge";
+      msg: "Deposit amount is to large";
     },
     {
-      "code": 6002,
-      "name": "DepositNotMature",
-      "msg": "Deposit hasn't matured yet"
+      code: 6002;
+      name: "DepositNotMature";
+      msg: "Deposit hasn't matured yet";
     }
-  ]
+  ];
 };
 
 export const IDL: LiquidityIncentiveProgram = {
-  "version": "0.1.0",
-  "name": "liquidity_incentive_program",
-  "constants": [
+  version: "0.1.0",
+  name: "liquidity_incentive_program",
+  constants: [
     {
-      "name": "CAMPAIGN_SEED",
-      "type": "string",
-      "value": "\"campaign\"",
+      name: "CAMPAIGN_SEED",
+      type: "string",
+      value: '"campaign"',
     },
     {
-      "name": "CAMPAIGN_AUTH_SEED",
-      "type": "string",
-      "value": "\"campaign_auth\"",
+      name: "CAMPAIGN_AUTH_SEED",
+      type: "string",
+      value: '"campaign_auth"',
     },
     {
-      "name": "DEPOSIT_MFI_AUTH_SIGNER_SEED",
-      "type": "string",
-      "value": "\"deposit_mfi_auth\"",
+      name: "DEPOSIT_MFI_AUTH_SIGNER_SEED",
+      type: "string",
+      value: '"deposit_mfi_auth"',
     },
     {
-      "name": "TEMP_TOKEN_ACCOUNT_AUTH_SEED",
-      "type": "string",
-      "value": "\"ephemeral_token_account_auth\"",
+      name: "TEMP_TOKEN_ACCOUNT_AUTH_SEED",
+      type: "string",
+      value: '"ephemeral_token_account_auth"',
     },
     {
-      "name": "MARGINFI_ACCOUNT_SEED",
-      "type": "string",
-      "value": "\"marginfi_account\"",
+      name: "MARGINFI_ACCOUNT_SEED",
+      type: "string",
+      value: '"marginfi_account"',
     },
   ],
-  "instructions": [
+  instructions: [
     {
-      "name": "createCampaing",
-      "docs": [
+      name: "createCampaing",
+      docs: [
         "Creates a new liquidity incentive campaign (LIP).",
         "",
         "# Arguments",
@@ -614,109 +604,107 @@ export const IDL: LiquidityIncentiveProgram = {
         "# Returns",
         "* `Ok(())` if the campaign was successfully created, or an error otherwise.",
       ],
-      "accounts": [
+      accounts: [
         {
-          "name": "campaign",
-          "isMut": true,
-          "isSigner": true,
+          name: "campaign",
+          isMut: true,
+          isSigner: true,
         },
         {
-          "name": "campaignRewardVault",
-          "isMut": true,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "campaignRewardVault",
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "campaign",
+                kind: "const",
+                type: "string",
+                value: "campaign",
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Campaign",
-                "path": "campaign",
-              },
-            ],
-          },
-        },
-        {
-          "name": "campaignRewardVaultAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "campaign_auth",
-              },
-              {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Campaign",
-                "path": "campaign",
+                kind: "account",
+                type: "publicKey",
+                account: "Campaign",
+                path: "campaign",
               },
             ],
           },
         },
         {
-          "name": "assetMint",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "asserted by comparing the mint of the marginfi bank",
-          ],
+          name: "campaignRewardVaultAuthority",
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "campaign_auth",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                account: "Campaign",
+                path: "campaign",
+              },
+            ],
+          },
         },
         {
-          "name": "marginfiBank",
-          "isMut": false,
-          "isSigner": false,
+          name: "assetMint",
+          isMut: false,
+          isSigner: false,
+          docs: ["asserted by comparing the mint of the marginfi bank"],
         },
         {
-          "name": "admin",
-          "isMut": true,
-          "isSigner": true,
+          name: "marginfiBank",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "fundingAccount",
-          "isMut": true,
-          "isSigner": false,
+          name: "admin",
+          isMut: true,
+          isSigner: true,
         },
         {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false,
+          name: "fundingAccount",
+          isMut: true,
+          isSigner: false,
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false,
+          name: "rent",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false,
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
         },
       ],
-      "args": [
+      args: [
         {
-          "name": "lockupPeriod",
-          "type": "u64",
+          name: "lockupPeriod",
+          type: "u64",
         },
         {
-          "name": "maxDeposits",
-          "type": "u64",
+          name: "maxDeposits",
+          type: "u64",
         },
         {
-          "name": "maxRewards",
-          "type": "u64",
+          name: "maxRewards",
+          type: "u64",
         },
       ],
     },
     {
-      "name": "createDeposit",
-      "docs": [
+      name: "createDeposit",
+      docs: [
         "Creates a new deposit in an active liquidity incentive campaign (LIP).",
         "",
         "# Arguments",
@@ -730,130 +718,128 @@ export const IDL: LiquidityIncentiveProgram = {
         "* `LIPError::CampaignNotActive` if the relevant campaign is not active.",
         "* `LIPError::DepositAmountTooLarge` is the deposit amount exceeds the amount of remaining deposits that can be made into the campaign.",
       ],
-      "accounts": [
+      accounts: [
         {
-          "name": "campaign",
-          "isMut": true,
-          "isSigner": false,
+          name: "campaign",
+          isMut: true,
+          isSigner: false,
         },
         {
-          "name": "signer",
-          "isMut": true,
-          "isSigner": true,
+          name: "signer",
+          isMut: true,
+          isSigner: true,
         },
         {
-          "name": "deposit",
-          "isMut": true,
-          "isSigner": true,
+          name: "deposit",
+          isMut: true,
+          isSigner: true,
         },
         {
-          "name": "mfiPdaSigner",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "mfiPdaSigner",
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "deposit_mfi_auth",
+                kind: "const",
+                type: "string",
+                value: "deposit_mfi_auth",
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
-                "path": "deposit",
-              },
-            ],
-          },
-        },
-        {
-          "name": "fundingAccount",
-          "isMut": true,
-          "isSigner": false,
-        },
-        {
-          "name": "tempTokenAccount",
-          "isMut": true,
-          "isSigner": true,
-        },
-        {
-          "name": "assetMint",
-          "isMut": false,
-          "isSigner": false,
-        },
-        {
-          "name": "marginfiGroup",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "marginfi_bank is tied to a specific marginfi_group",
-          ],
-        },
-        {
-          "name": "marginfiBank",
-          "isMut": true,
-          "isSigner": false,
-        },
-        {
-          "name": "marginfiAccount",
-          "isMut": true,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "marginfi_account",
-              },
-              {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
-                "path": "deposit",
+                kind: "account",
+                type: "publicKey",
+                account: "Deposit",
+                path: "deposit",
               },
             ],
           },
         },
         {
-          "name": "marginfiBankVault",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
+          name: "fundingAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tempTokenAccount",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "assetMint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "marginfiGroup",
+          isMut: false,
+          isSigner: false,
+          docs: ["marginfi_bank is tied to a specific marginfi_group"],
+        },
+        {
+          name: "marginfiBank",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "marginfiAccount",
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "marginfi_account",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                account: "Deposit",
+                path: "deposit",
+              },
+            ],
+          },
+        },
+        {
+          name: "marginfiBankVault",
+          isMut: true,
+          isSigner: false,
+          docs: [
             "marginfi_bank_vault is tied to a specific marginfi_bank,",
             "passing in an incorrect vault will fail the CPI call",
           ],
         },
         {
-          "name": "marginfiProgram",
-          "isMut": false,
-          "isSigner": false,
+          name: "marginfiProgram",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false,
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false,
+          name: "rent",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false,
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
         },
       ],
-      "args": [
+      args: [
         {
-          "name": "amount",
-          "type": "u64",
+          name: "amount",
+          type: "u64",
         },
       ],
     },
     {
-      "name": "endDeposit",
-      "docs": [
+      name: "endDeposit",
+      docs: [
         "After a lockup period has ended, closes a deposit and returns the initial deposit + earned rewards from a liquidity incentive campaign back to the liquidity depositor.",
         "",
         "# Arguments",
@@ -871,271 +857,265 @@ export const IDL: LiquidityIncentiveProgram = {
         "* Transferring additional reward to ephemeral token account fails",
         "* Reloading ephemeral token account after transfer fails",
       ],
-      "accounts": [
+      accounts: [
         {
-          "name": "campaign",
-          "isMut": false,
-          "isSigner": false,
+          name: "campaign",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "campaignRewardVault",
-          "isMut": true,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "campaignRewardVault",
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "campaign",
+                kind: "const",
+                type: "string",
+                value: "campaign",
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Campaign",
-                "path": "campaign",
-              },
-            ],
-          },
-        },
-        {
-          "name": "campaignRewardVaultAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "campaign_auth",
-              },
-              {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Campaign",
-                "path": "campaign",
+                kind: "account",
+                type: "publicKey",
+                account: "Campaign",
+                path: "campaign",
               },
             ],
           },
         },
         {
-          "name": "signer",
-          "isMut": true,
-          "isSigner": true,
-        },
-        {
-          "name": "deposit",
-          "isMut": true,
-          "isSigner": false,
-        },
-        {
-          "name": "mfiPdaSigner",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "campaignRewardVaultAuthority",
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "deposit_mfi_auth",
+                kind: "const",
+                type: "string",
+                value: "campaign_auth",
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
-                "path": "deposit",
+                kind: "account",
+                type: "publicKey",
+                account: "Campaign",
+                path: "campaign",
               },
             ],
           },
         },
         {
-          "name": "tempTokenAccount",
-          "isMut": true,
-          "isSigner": true,
+          name: "signer",
+          isMut: true,
+          isSigner: true,
         },
         {
-          "name": "tempTokenAccountAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
+          name: "deposit",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mfiPdaSigner",
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
               {
-                "kind": "const",
-                "type": "string",
-                "value": "ephemeral_token_account_auth",
+                kind: "const",
+                type: "string",
+                value: "deposit_mfi_auth",
               },
               {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
-                "path": "deposit",
-              },
-            ],
-          },
-        },
-        {
-          "name": "destinationAccount",
-          "isMut": true,
-          "isSigner": false,
-        },
-        {
-          "name": "assetMint",
-          "isMut": false,
-          "isSigner": false,
-        },
-        {
-          "name": "marginfiAccount",
-          "isMut": true,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "marginfi_account",
-              },
-              {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Deposit",
-                "path": "deposit",
+                kind: "account",
+                type: "publicKey",
+                account: "Deposit",
+                path: "deposit",
               },
             ],
           },
         },
         {
-          "name": "marginfiGroup",
-          "isMut": false,
-          "isSigner": false,
+          name: "tempTokenAccount",
+          isMut: true,
+          isSigner: true,
         },
         {
-          "name": "marginfiBank",
-          "isMut": true,
-          "isSigner": false,
+          name: "tempTokenAccountAuthority",
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "ephemeral_token_account_auth",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                account: "Deposit",
+                path: "deposit",
+              },
+            ],
+          },
         },
         {
-          "name": "marginfiBankVault",
-          "isMut": true,
-          "isSigner": false,
+          name: "destinationAccount",
+          isMut: true,
+          isSigner: false,
         },
         {
-          "name": "marginfiBankVaultAuthority",
-          "isMut": true,
-          "isSigner": false,
+          name: "assetMint",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "marginfiProgram",
-          "isMut": false,
-          "isSigner": false,
+          name: "marginfiAccount",
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "marginfi_account",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                account: "Deposit",
+                path: "deposit",
+              },
+            ],
+          },
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false,
+          name: "marginfiGroup",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false,
+          name: "marginfiBank",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "marginfiBankVault",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "marginfiBankVaultAuthority",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "marginfiProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
         },
       ],
-      "args": [],
+      args: [],
     },
   ],
-  "accounts": [
+  accounts: [
     {
-      "name": "campaign",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "campaign",
+      type: {
+        kind: "struct",
+        fields: [
           {
-            "name": "admin",
-            "type": "publicKey",
+            name: "admin",
+            type: "publicKey",
           },
           {
-            "name": "lockupPeriod",
-            "type": "u64",
+            name: "lockupPeriod",
+            type: "u64",
           },
           {
-            "name": "active",
-            "type": "bool",
+            name: "active",
+            type: "bool",
           },
           {
-            "name": "maxDeposits",
-            "type": "u64",
+            name: "maxDeposits",
+            type: "u64",
           },
           {
-            "name": "remainingCapacity",
-            "type": "u64",
+            name: "remainingCapacity",
+            type: "u64",
           },
           {
-            "name": "maxRewards",
-            "type": "u64",
+            name: "maxRewards",
+            type: "u64",
           },
           {
-            "name": "marginfiBankPk",
-            "type": "publicKey",
+            name: "marginfiBankPk",
+            type: "publicKey",
           },
           {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                16,
-              ],
+            name: "padding",
+            type: {
+              array: ["u64", 16],
             },
           },
         ],
       },
     },
     {
-      "name": "deposit",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "deposit",
+      type: {
+        kind: "struct",
+        fields: [
           {
-            "name": "owner",
-            "type": "publicKey",
+            name: "owner",
+            type: "publicKey",
           },
           {
-            "name": "amount",
-            "type": "u64",
+            name: "amount",
+            type: "u64",
           },
           {
-            "name": "startTime",
-            "type": "i64",
+            name: "startTime",
+            type: "i64",
           },
           {
-            "name": "campaign",
-            "type": "publicKey",
+            name: "campaign",
+            type: "publicKey",
           },
           {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                16,
-              ],
+            name: "padding",
+            type: {
+              array: ["u64", 16],
             },
           },
         ],
       },
     },
   ],
-  "errors": [
+  errors: [
     {
-      "code": 6000,
-      "name": "CampaignNotActive",
-      "msg": "Campaign is not active",
+      code: 6000,
+      name: "CampaignNotActive",
+      msg: "Campaign is not active",
     },
     {
-      "code": 6001,
-      "name": "DepositAmountTooLarge",
-      "msg": "Deposit amount is to large",
+      code: 6001,
+      name: "DepositAmountTooLarge",
+      msg: "Deposit amount is to large",
     },
     {
-      "code": 6002,
-      "name": "DepositNotMature",
-      "msg": "Deposit hasn't matured yet",
+      code: 6002,
+      name: "DepositNotMature",
+      msg: "Deposit hasn't matured yet",
     },
   ],
 };

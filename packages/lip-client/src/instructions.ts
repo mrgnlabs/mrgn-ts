@@ -1,7 +1,6 @@
-import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { LipProgram } from "./types";
-import { TOKEN_PROGRAM_ID } from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
 
 async function makeCreateDepositIx(
   lipProgram: LipProgram,
@@ -25,7 +24,7 @@ async function makeCreateDepositIx(
 ) {
   return lipProgram.methods
     .createDeposit(args.amount)
-    .accountsStrict({
+    .accounts({
       campaign: accounts.campaign,
       signer: accounts.signer,
       fundingAccount: accounts.fundingAccount,
@@ -38,9 +37,6 @@ async function makeCreateDepositIx(
       deposit: accounts.deposit,
       mfiPdaSigner: accounts.mfiPdaSigner,
       marginfiAccount: accounts.marginfiAccount,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      rent: SYSVAR_RENT_PUBKEY,
-      systemProgram: SystemProgram.programId,
     })
     .instruction();
 }

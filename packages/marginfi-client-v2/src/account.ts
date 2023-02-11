@@ -3,13 +3,23 @@ import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { parsePriceData } from "@pythnetwork/client";
 import { AccountInfo, AccountMeta, Commitment, ComputeBudgetProgram, PublicKey, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { aprToApy, DEFAULT_COMMITMENT, MarginfiClient, shortenAddress, uiToNative, wrappedI80F48toBigNumber } from ".";
+import { MarginfiClient } from ".";
 import Bank, { BankData, PriceBias } from "./bank";
 import MarginfiGroup from "./group";
 import { MARGINFI_IDL } from "./idl";
 import instructions from "./instructions";
-import { AccountType, Amount, InstructionsWrapper, MarginfiConfig, MarginfiProgram, WrappedI80F48 } from "./types";
-import { createAssociatedTokenAccountIdempotentInstruction } from "./utils/spl";
+import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
+import {
+  Amount,
+  aprToApy,
+  DEFAULT_COMMITMENT,
+  InstructionsWrapper,
+  shortenAddress,
+  uiToNative,
+  WrappedI80F48,
+  wrappedI80F48toBigNumber,
+} from "@mrgnlabs/mrgn-common";
+import { createAssociatedTokenAccountIdempotentInstruction } from "@mrgnlabs/mrgn-common/src/spl";
 
 /**
  * Wrapper class around a specific marginfi account.

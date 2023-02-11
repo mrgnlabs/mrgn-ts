@@ -2,9 +2,9 @@ import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor
 import { parsePriceData } from "@pythnetwork/client";
 import { Commitment, PublicKey } from "@solana/web3.js";
 import Bank, { BankData } from "./bank";
-import { DEFAULT_COMMITMENT } from "./constants";
 import { MARGINFI_IDL } from "./idl";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
+import { DEFAULT_COMMITMENT } from "@mrgnlabs/mrgn-common";
 
 /**
  * Wrapper class around a specific marginfi group.
@@ -76,7 +76,7 @@ class MarginfiGroup {
     }
 
     const pythAccounts = await program.provider.connection.getMultipleAccountsInfo(
-      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
+      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0]),
     );
 
     const banks = bankAccountsData.map(
@@ -85,8 +85,8 @@ class MarginfiGroup {
           config.banks[index].label,
           bankAddresses[index],
           bd as BankData,
-          parsePriceData(pythAccounts[index]!.data)
-        )
+          parsePriceData(pythAccounts[index]!.data),
+        ),
     );
 
     return new MarginfiGroup(config, program, accountData, banks);
@@ -108,7 +108,7 @@ class MarginfiGroup {
     config: MarginfiConfig,
     program: MarginfiProgram,
     accountData: MarginfiGroupData,
-    banks: Bank[]
+    banks: Bank[],
   ) {
     return new MarginfiGroup(config, program, accountData, banks);
   }
@@ -144,7 +144,7 @@ class MarginfiGroup {
   private static async _fetchAccountData(
     config: MarginfiConfig,
     program: MarginfiProgram,
-    commitment?: Commitment
+    commitment?: Commitment,
   ): Promise<MarginfiGroupData> {
     const mergedCommitment = commitment ?? program.provider.connection.commitment ?? DEFAULT_COMMITMENT;
 
@@ -191,7 +191,7 @@ class MarginfiGroup {
     }
 
     const pythAccounts = await this._program.provider.connection.getMultipleAccountsInfo(
-      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
+      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0]),
     );
 
     const banks = bankAccountsData.map(
@@ -200,8 +200,8 @@ class MarginfiGroup {
           this._config.banks[index].label,
           bankAddresses[index],
           bd as BankData,
-          parsePriceData(pythAccounts[index]!.data)
-        )
+          parsePriceData(pythAccounts[index]!.data),
+        ),
     );
 
     this._admin = rawData.admin;

@@ -9,7 +9,7 @@ async function makeInitMarginfiAccountIx(
     marginfiAccountPk: PublicKey;
     authorityPk: PublicKey;
     feePayerPk: PublicKey;
-  },
+  }
 ) {
   return mfProgram.methods
     .marginfiAccountInitialize()
@@ -35,7 +35,7 @@ async function makeDepositIx(
   args: {
     amount: BN;
   },
-  remainingAccounts: AccountMeta[] = [],
+  remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
     .lendingAccountDeposit(args.amount)
@@ -63,7 +63,7 @@ async function makeRepayIx(
     amount: BN;
     repayAll?: boolean;
   },
-  remainingAccounts: AccountMeta[] = [],
+  remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
     .lendingAccountRepay(args.amount, args.repayAll ?? null)
@@ -91,7 +91,7 @@ async function makeWithdrawIx(
     amount: BN;
     withdrawAll?: boolean;
   },
-  remainingAccounts: AccountMeta[] = [],
+  remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
     .lendingAccountWithdraw(args.amount, args.withdrawAll ?? null)
@@ -118,7 +118,7 @@ async function makeBorrowIx(
   args: {
     amount: BN;
   },
-  remainingAccounts: AccountMeta[] = [],
+  remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
     .lendingAccountBorrow(args.amount)
@@ -146,7 +146,7 @@ function makeLendingAccountLiquidateIx(
   args: {
     assetAmount: BN;
   },
-  remainingAccounts: AccountMeta[] = [],
+  remainingAccounts: AccountMeta[] = []
 ) {
   return mfiProgram.methods
     .lendingAccountLiquidate(args.assetAmount)
