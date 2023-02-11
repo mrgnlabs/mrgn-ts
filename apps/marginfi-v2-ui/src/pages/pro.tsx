@@ -309,10 +309,6 @@ const Pro = () => {
   const { accountSummary, selectedAccount } = useUserAccounts();
   const { lipClient } = useProgram();
 
-  useEffect(() => {
-    console.log(progressPercent)
-  }, [ progressPercent ]);
-
   const marks = [
     { value: 0, label: "CONNECT", color: progressPercent > 0 ? '#51B56A': '#484848' },
     { value: 50, label: "SELECT", color: progressPercent >= 50 ? '#51B56A' : '#484848' },
