@@ -5,9 +5,9 @@ import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "./typ
 import { MARGINFI_IDL } from "./idl";
 import { getConfig } from "./config";
 import MarginfiGroup from "./group";
-import { DEFAULT_COMMITMENT } from "./constants";
 import { MarginfiAccountData } from "./account";
 import MarginfiAccountReadonly from "./accountReadonly";
+import { DEFAULT_COMMITMENT } from "@mrgnlabs/mrgn-common";
 
 /**
  * Entrypoint to interact with the marginfi contract.
@@ -43,7 +43,7 @@ class MarginfiClientReadonly {
       config.programId,
       config.environment,
       config.groupPk,
-      connection.rpcEndpoint,
+      connection.rpcEndpoint
     );
 
     const provider = new AnchorProvider(connection, {} as any, {
@@ -62,7 +62,7 @@ class MarginfiClientReadonly {
       connection: Connection;
       programId: Address;
       marginfiGroup: Address;
-    }>,
+    }>
   ): Promise<MarginfiClientReadonly> {
     const debug = require("debug")("mfi:client");
     const env = overrides?.env ?? (process.env.MARGINFI_ENV! as Environment);
@@ -159,7 +159,7 @@ class MarginfiClientReadonly {
         },
       ])
     ).map((a) =>
-      MarginfiAccountReadonly.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, marginfiGroup),
+      MarginfiAccountReadonly.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, marginfiGroup)
     );
   }
 

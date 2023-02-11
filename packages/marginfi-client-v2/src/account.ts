@@ -3,13 +3,23 @@ import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { parsePriceData } from "@pythnetwork/client";
 import { AccountInfo, AccountMeta, Commitment, ComputeBudgetProgram, PublicKey, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { aprToApy, DEFAULT_COMMITMENT, MarginfiClient, shortenAddress, uiToNative, wrappedI80F48toBigNumber } from ".";
+import { MarginfiClient } from ".";
 import Bank, { BankData, PriceBias } from "./bank";
 import MarginfiGroup from "./group";
 import { MARGINFI_IDL } from "./idl";
 import instructions from "./instructions";
-import { AccountType, Amount, InstructionsWrapper, MarginfiConfig, MarginfiProgram, WrappedI80F48 } from "./types";
-import { createAssociatedTokenAccountIdempotentInstruction } from "./utils/spl";
+import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
+import {
+  Amount,
+  aprToApy,
+  DEFAULT_COMMITMENT,
+  InstructionsWrapper,
+  shortenAddress,
+  uiToNative,
+  WrappedI80F48,
+  wrappedI80F48toBigNumber,
+} from "@mrgnlabs/mrgn-common";
+import { createAssociatedTokenAccountIdempotentInstruction } from "@mrgnlabs/mrgn-common/src/spl";
 
 /**
  * Wrapper class around a specific marginfi account.
@@ -28,7 +38,7 @@ class MarginfiAccount {
     marginfiAccountPk: PublicKey,
     readonly client: MarginfiClient,
     group: MarginfiGroup,
-    rawData: MarginfiAccountData,
+    rawData: MarginfiAccountData
   ) {
     this.publicKey = marginfiAccountPk;
 
@@ -86,7 +96,7 @@ class MarginfiAccount {
   static async fetch(
     marginfiAccountPk: Address,
     client: MarginfiClient,
-    commitment?: Commitment,
+    commitment?: Commitment
   ): Promise<MarginfiAccount> {
     const { config, program } = client;
     const _marginfiAccountPk = translateAddress(marginfiAccountPk);
@@ -97,7 +107,7 @@ class MarginfiAccount {
       _marginfiAccountPk,
       client,
       await MarginfiGroup.fetch(config, program, commitment),
-      accountData,
+      accountData
     );
 
     require("debug")("mfi:margin-account")("Loaded marginfi account %s", _marginfiAccountPk);
@@ -121,11 +131,11 @@ class MarginfiAccount {
     marginfiAccountPk: Address,
     client: MarginfiClient,
     accountData: MarginfiAccountData,
-    marginfiGroup: MarginfiGroup,
+    marginfiGroup: MarginfiGroup
   ) {
     if (!accountData.group.equals(client.config.groupPk))
       throw Error(
-        `Marginfi account tied to group ${accountData.group.toBase58()}. Expected: ${client.config.groupPk.toBase58()}`,
+        `Marginfi account tied to group ${accountData.group.toBase58()}. Expected: ${client.config.groupPk.toBase58()}`
       );
 
     const _marginfiAccountPk = translateAddress(marginfiAccountPk);
@@ -149,7 +159,7 @@ class MarginfiAccount {
     marginfiAccountPk: PublicKey,
     client: MarginfiClient,
     marginfiAccountRawData: Buffer,
-    marginfiGroup: MarginfiGroup,
+    marginfiGroup: MarginfiGroup
   ) {
     const marginfiAccountData = MarginfiAccount.decode(marginfiAccountRawData);
 
@@ -181,7 +191,7 @@ class MarginfiAccount {
         bankPk: bank.publicKey,
       },
       { amount: uiToNative(amount, bank.mintDecimals) },
-      remainingAccounts,
+      remainingAccounts
     );
 
     return { instructions: [ix], keys: [] };
@@ -234,7 +244,7 @@ class MarginfiAccount {
         bankPk: bank.publicKey,
       },
       { amount: uiToNative(amount, bank.mintDecimals), repayAll },
-      remainingAccounts,
+      remainingAccounts
     );
 
     return { instructions: [ix], keys: [] };
@@ -288,7 +298,7 @@ class MarginfiAccount {
         destinationTokenAccountPk: userTokenAtaPk,
       },
       { amount: uiToNative(amount, bank.mintDecimals), withdrawAll },
-      remainingAccounts,
+      remainingAccounts
     );
 
     return { instructions: [ix], keys: [] };
@@ -315,7 +325,7 @@ class MarginfiAccount {
       this.client.provider.wallet.publicKey,
       userAta,
       this.client.provider.wallet.publicKey,
-      bank.mint,
+      bank.mint
     );
     tx.add(createAtaIdempotentIx);
 
@@ -353,7 +363,7 @@ class MarginfiAccount {
         destinationTokenAccountPk: userTokenAtaPk,
       },
       { amount: uiToNative(amount, bank.mintDecimals) },
-      remainingAccounts,
+      remainingAccounts
     );
 
     return { instructions: [ix], keys: [] };
@@ -379,7 +389,7 @@ class MarginfiAccount {
       this.client.provider.wallet.publicKey,
       userAta,
       this.client.provider.wallet.publicKey,
-      bank.mint,
+      bank.mint
     );
     tx.add(createAtaIdempotentIx);
 
@@ -451,13 +461,13 @@ class MarginfiAccount {
     accountAddress: Address,
     config: MarginfiConfig,
     program: MarginfiProgram,
-    commitment?: Commitment,
+    commitment?: Commitment
   ): Promise<MarginfiAccountData> {
     const mergedCommitment = commitment ?? program.provider.connection.commitment ?? DEFAULT_COMMITMENT;
 
     const data: MarginfiAccountData = (await program.account.marginfiAccount.fetch(
       accountAddress,
-      mergedCommitment,
+      mergedCommitment
     )) as any;
 
     if (!data.group.equals(config.groupPk))
@@ -497,7 +507,7 @@ class MarginfiAccount {
     const marginfiAccountData = MarginfiAccount.decode(marginfiAccountAi.data);
     if (!marginfiAccountData.group.equals(this._config.groupPk))
       throw Error(
-        `Marginfi account tied to group ${marginfiAccountData.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`,
+        `Marginfi account tied to group ${marginfiAccountData.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`
       );
 
     const bankAddresses = this._config.banks.map((b) => b.address);
@@ -512,7 +522,7 @@ class MarginfiAccount {
     }
 
     const pythAccounts = await this._program.provider.connection.getMultipleAccountsInfo(
-      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0]),
+      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
     );
 
     const banks = bankAccountsData.map(
@@ -521,8 +531,8 @@ class MarginfiAccount {
           this._config.banks[index].label,
           bankAddresses[index],
           bd as BankData,
-          parsePriceData(pythAccounts[index]!.data),
-        ),
+          parsePriceData(pythAccounts[index]!.data)
+        )
     );
 
     this._group = MarginfiGroup.fromAccountDataRaw(this._config, this._program, marginfiGroupAi.data, banks);
@@ -546,7 +556,7 @@ class MarginfiAccount {
 
     let [marginfiGroupAi, marginfiAccountAi] = await this.client.provider.connection.getMultipleAccountsInfo(
       [this._config.groupPk, this.publicKey],
-      DEFAULT_COMMITMENT,
+      DEFAULT_COMMITMENT
     );
 
     if (!marginfiAccountAi) {
@@ -574,7 +584,7 @@ class MarginfiAccount {
         ([asset, liability], [d, l]) => {
           return [asset.plus(d), liability.plus(l)];
         },
-        [new BigNumber(0), new BigNumber(0)],
+        [new BigNumber(0), new BigNumber(0)]
       );
 
     return { assets, liabilities };
@@ -611,7 +621,7 @@ class MarginfiAccount {
         ([asset, liability], [d, l]) => {
           return [asset.plus(d), liability.plus(l)];
         },
-        [new BigNumber(0), new BigNumber(0)],
+        [new BigNumber(0), new BigNumber(0)]
       );
 
     return { assets, liabilities };
@@ -629,13 +639,13 @@ class MarginfiAccount {
             bank
               .getInterestRates()
               .borrowingRate.times(balance.getUsdValue(bank, MarginRequirementType.Equity).liabilities)
-              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue),
+              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
           )
           .plus(
             bank
               .getInterestRates()
               .lendingRate.times(balance.getUsdValue(bank, MarginRequirementType.Equity).assets)
-              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue),
+              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
           );
       }, new BigNumber(0))
       .toNumber();
@@ -663,7 +673,7 @@ class MarginfiAccount {
     const freeCollateral = this.getFreeCollateral();
     const untiedCollateralForBank = BigNumber.min(
       bank.getAssetUsdValue(balance.assetShares, MarginRequirementType.Init, PriceBias.Lowest),
-      freeCollateral,
+      freeCollateral
     );
 
     const priceLowestBias = bank.getPrice(PriceBias.Lowest);
@@ -685,7 +695,7 @@ class MarginfiAccount {
     const freeCollateral = this.getFreeCollateral();
     const untiedCollateralForBank = BigNumber.min(
       bank.getAssetUsdValue(balance.assetShares, MarginRequirementType.Init, PriceBias.Lowest),
-      freeCollateral,
+      freeCollateral
     );
 
     const priceLowestBias = bank.getPrice(PriceBias.Lowest);
@@ -698,7 +708,7 @@ class MarginfiAccount {
     liquidateeMarginfiAccount: MarginfiAccount,
     assetBank: Bank,
     assetQuantityUi: Amount,
-    liabBank: Bank,
+    liabBank: Bank
   ): Promise<InstructionsWrapper> {
     const ix = await instructions.makeLendingAccountLiquidateIx(
       this._program,
@@ -724,7 +734,7 @@ class MarginfiAccount {
         },
         ...this.getHealthCheckAccounts([assetBank, liabBank]),
         ...liquidateeMarginfiAccount.getHealthCheckAccounts(),
-      ],
+      ]
     );
 
     return { instructions: [ix], keys: [] };
@@ -734,13 +744,13 @@ class MarginfiAccount {
     liquidateeMarginfiAccount: MarginfiAccount,
     assetBank: Bank,
     assetQuantityUi: Amount,
-    liabBank: Bank,
+    liabBank: Bank
   ): Promise<string> {
     const ixw = await this.makeLendingAccountLiquidateIx(
       liquidateeMarginfiAccount,
       assetBank,
       assetQuantityUi,
-      liabBank,
+      liabBank
     );
     const tx = new Transaction().add(...ixw.instructions, ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
     return this.client.processTransaction(tx);
@@ -815,7 +825,7 @@ export class Balance {
 
   public getUsdValueWithPriceBias(
     bank: Bank,
-    marginReqType: MarginRequirementType,
+    marginReqType: MarginRequirementType
   ): { assets: BigNumber; liabilities: BigNumber } {
     return {
       assets: bank.getAssetUsdValue(this.assetShares, marginReqType, PriceBias.Lowest),

@@ -453,10 +453,7 @@
           {
             "name": "padding",
             "type": {
-              "array": [
-                "u64",
-                16
-              ]
+              "array": ["u64", 16]
             }
           }
         ]
@@ -486,10 +483,7 @@
           {
             "name": "padding",
             "type": {
-              "array": [
-                "u64",
-                16
-              ]
+              "array": ["u64", 16]
             }
           }
         ]

@@ -7,7 +7,7 @@ import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
-import { MarginfiClient, uiToNative } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT } from "~/config";
 import { Keypair, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
@@ -15,7 +15,8 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
   getAssociatedTokenAddressSync,
-} from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
+} from "@mrgnlabs/mrgn-common/src/spl";
+import { uiToNative } from "@mrgnlabs/mrgn-common";
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
@@ -115,7 +116,7 @@ const AssetRow: FC<{
           return;
         }
 
-        _marginfiAccount = await marginfiClient.createMarginfiAccount({ dryRun: true });
+        _marginfiAccount = await marginfiClient.createMarginfiAccount();
         toast.update(BORROW_OR_LEND_TOAST_ID, {
           render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenName}`,
         });
@@ -146,8 +147,8 @@ const AssetRow: FC<{
               _marginfiAccount.authority,
               ata,
               _marginfiAccount.authority,
-              bankInfo.tokenMint,
-            ),
+              bankInfo.tokenMint
+            )
           );
 
           const tokenBalanceNative = uiToNative(bankInfo.tokenBalance, bankInfo.tokenMintDecimals);
@@ -159,7 +160,7 @@ const AssetRow: FC<{
                 fromPubkey: _marginfiAccount.authority,
                 toPubkey: ata,
                 lamports: BigInt(nativeSolTopUpAmount.toString()),
-              }),
+              })
             );
             ixs.push(createSyncNativeInstruction(ata));
           }
@@ -240,8 +241,7 @@ const AssetRow: FC<{
   }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, marginfiClient, reloadBanks]);
 
   return (
-    <TableRow
-      className="h-full flex justify-between items-center h-[78px] p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+    <TableRow className="h-full flex justify-between items-center h-[78px] p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
       <AssetRowHeader
         assetName={bankInfo.tokenName}
         apy={isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate}
@@ -249,8 +249,7 @@ const AssetRow: FC<{
         isInLendingMode={isInLendingMode}
       />
 
-      <TableCell
-        className="h-full w-full flex py-1 px-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
+      <TableCell className="h-full w-full flex py-1 px-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
         <AssetRowMetric
           longLabel="Current Price"
           shortLabel="Price"
@@ -261,11 +260,11 @@ const AssetRow: FC<{
           longLabel={isInLendingMode ? "Total Pool Deposits" : "Total Pool Borrows"}
           shortLabel={isInLendingMode ? "Deposits" : "Borrows"}
           value={groupedNumberFormatter.format(
-            isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows,
+            isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows
           )}
           borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
           usdEquivalentValue={usdFormatter.format(
-            (isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows) * bankInfo.tokenPrice,
+            (isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows) * bankInfo.tokenPrice
           )}
         />
         {isConnected && (
@@ -277,11 +276,11 @@ const AssetRow: FC<{
                 ? bankInfo.tokenMint.equals(WSOL_MINT)
                   ? bankInfo.tokenBalance + nativeSolBalance
                   : bankInfo.tokenBalance
-                : bankInfo.availableLiquidity,
+                : bankInfo.availableLiquidity
             )}
             borderRadius="0px 10px 10px 0px"
             usdEquivalentValue={usdFormatter.format(
-              (isInLendingMode ? bankInfo.tokenBalance : bankInfo.availableLiquidity) * bankInfo.tokenPrice,
+              (isInLendingMode ? bankInfo.tokenBalance : bankInfo.availableLiquidity) * bankInfo.tokenPrice
             )}
           />
         )}

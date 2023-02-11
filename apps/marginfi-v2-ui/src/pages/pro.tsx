@@ -1,27 +1,11 @@
-import React, { FC, MouseEventHandler, ReactNode, useCallback, useEffect, useState } from "react";
+import React, { FC, ReactNode, useCallback, useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
 import { useProgram } from "~/context";
-// ================================
-// INPUT BOX
-// ================================
-// ================================
-// INPUT BOX
-// ================================
-// ================================
-// ACTION BUTTON
-// ================================
-import { Button, ButtonProps, InputAdornment, LinearProgress, TextField } from "@mui/material";
+import { Button, ButtonProps, CircularProgress, LinearProgress, TextField } from "@mui/material";
 import { usdFormatter } from "~/utils/formatters";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
-import { toast } from "react-toastify";
 import dynamic from "next/dynamic";
-// ================================
-// ACTION BUTTON
-// ================================
-// ================================
-// ASSET SELECTION
-// ================================
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -31,11 +15,7 @@ import LipAccount from "@mrgnlabs/lip-client/src/account";
 import { Keypair, Transaction } from "@solana/web3.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import BN from "bn.js";
-import { uiToNative } from "@mrgnlabs/marginfi-client-v2";
-import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
-// ================================
-// ASSET SELECTION
-// ================================
+import { uiToNative } from "@mrgnlabs/mrgn-common";
 
 const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (
   <>
@@ -81,14 +61,15 @@ const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ 
 
 const WalletMultiButtonDynamic = dynamic(
   async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
-  { ssr: false },
+  { ssr: false }
 );
 
 interface ProActionProps extends ButtonProps {
   children: ReactNode;
+  spinning?: boolean;
 }
 
-const ProAction: FC<ProActionProps> = ({ children, disabled, ...otherProps }) => {
+const ProAction: FC<ProActionProps> = ({ children, spinning, disabled, ...otherProps }) => {
   const wallet = useWallet();
 
   return wallet.connected ? (
@@ -103,7 +84,7 @@ const ProAction: FC<ProActionProps> = ({ children, disabled, ...otherProps }) =>
       {...otherProps}
       disabled={disabled || !wallet.connected}
     >
-      {children}
+      {spinning ? <CircularProgress style={{ color: "#3CAB5F", width: "20px", height: "20px" }} /> : children}
     </Button>
   ) : (
     <WalletMultiButtonDynamic
@@ -132,13 +113,13 @@ interface ProInputBox {
 }
 
 const ProInputBox: FC<ProInputBox> = ({ value, setValue, maxValue, maxDecimals, disabled }) => {
-  const onMaxClick = useCallback(() => {
-    if (maxValue !== undefined) {
-      setValue(maxValue);
-    } else {
-      toast.error("Not implemented");
-    }
-  }, [maxValue, setValue]);
+  // const onMaxClick = useCallback(() => {
+  //   if (maxValue !== undefined) {
+  //     setValue(maxValue);
+  //   } else {
+  //     toast.error("Not implemented");
+  //   }
+  // }, [maxValue, setValue]);
 
   const onChange = useCallback(
     (event: NumberFormatValues) => {
@@ -153,7 +134,7 @@ const ProInputBox: FC<ProInputBox> = ({ value, setValue, maxValue, maxDecimals, 
 
       setValue(updatedAmount);
     },
-    [maxValue, setValue],
+    [maxValue, setValue]
   );
 
   return (
@@ -181,22 +162,22 @@ const ProInputBox: FC<ProInputBox> = ({ value, setValue, maxValue, maxDecimals, 
   );
 };
 
-// @todo not happy with how this looks on small screens
-const MaxInputAdornment: FC<{
-  onClick: MouseEventHandler<HTMLDivElement>;
-  disabled?: boolean;
-}> = ({ onClick, disabled }) => (
-  <InputAdornment position="end" classes={{ root: "max-w-[40px] h-full" }}>
-    <div
-      className={`font-aeonik p-0 pr-4 text-[#868E95] text-sm lowercase h-9 font-light flex justify-center items-center hover:bg-transparent ${
-        disabled ? "cursor-default" : "cursor-pointer"
-      }`}
-      onClick={onClick}
-    >
-      max
-    </div>
-  </InputAdornment>
-);
+// // @todo not happy with how this looks on small screens
+// const MaxInputAdornment: FC<{
+//   onClick: MouseEventHandler<HTMLDivElement>;
+//   disabled?: boolean;
+// }> = ({ onClick, disabled }) => (
+//   <InputAdornment position="end" classes={{ root: "max-w-[40px] h-full" }}>
+//     <div
+//       className={`font-aeonik p-0 pr-4 text-[#868E95] text-sm lowercase h-9 font-light flex justify-center items-center hover:bg-transparent ${
+//         disabled ? "cursor-default" : "cursor-pointer"
+//       }`}
+//       onClick={onClick}
+//     >
+//       max
+//     </div>
+//   </InputAdornment>
+// );
 
 // ================================
 // INPUT BOX
@@ -207,12 +188,28 @@ const MaxInputAdornment: FC<{
 // ================================
 
 interface AssetSelectionProps {
-  selectedAsset: string;
   setSelectedAsset: (asset: string) => void;
   defaultAsset: string;
 }
 
-const AssetSelection: FC<AssetSelectionProps> = ({ selectedAsset, setSelectedAsset, defaultAsset }) => {
+const CAMPAIGNS_WHITELIST = [
+  {
+    label: "SOL",
+    value: "SOL",
+    icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
+    size: 30,
+    guaranteedApy: 9,
+  },
+  {
+    label: "USDC",
+    value: "USDC",
+    icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
+    size: 30,
+    guaranteedApy: 7.8,
+  },
+];
+
+const AssetSelection: FC<AssetSelectionProps> = ({ setSelectedAsset, defaultAsset }) => {
   return (
     <FormControl className="min-w-[360px] w-[360px]">
       <RadioGroup
@@ -222,75 +219,40 @@ const AssetSelection: FC<AssetSelectionProps> = ({ selectedAsset, setSelectedAss
           setSelectedAsset(event.target.value);
         }}
       >
-        <FormControlLabel
-          value="SOL"
-          control={
-            <Radio
-              className="bg-[#1E1E1E] mr-2"
-              sx={{
-                color: "#1E1E1E",
-                "&.Mui-checked": {
-                  color: "#3CAB5F",
-                },
-              }}
-            />
-          }
-          label={
-            <div className="w-[295px] flex justify-between items-center">
-              <div>SOL</div>
-              <div className="flex gap-4 justify-center items-center">
-                <div
-                  className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
-                >
-                  9%
+        {CAMPAIGNS_WHITELIST.map(({ value, label, icon, size, guaranteedApy }) => (
+          <FormControlLabel
+            key={value}
+            value={value}
+            control={
+              <Radio
+                className="bg-[#1E1E1E] mr-2"
+                sx={{
+                  color: "#1E1E1E",
+                  "&.Mui-checked": {
+                    color: "#3CAB5F",
+                  },
+                }}
+              />
+            }
+            label={
+              <div className="w-[295px] flex justify-between items-center">
+                <div>{label}</div>
+                <div className="flex gap-4 justify-center items-center">
+                  <div
+                    className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
+                  >
+                    {guaranteedApy}%
+                  </div>
+                  <div className="ml-[2px] w-[40px]">
+                    <Image src={icon} alt={value} height={size} width={size} />
+                  </div>
                 </div>
-                <Image
-                  className="ml-[5px]"
-                  src="https://cryptologos.cc/logos/solana-sol-logo.png?v=024"
-                  alt="SOL"
-                  height={30}
-                  width={30}
-                />
               </div>
-            </div>
-          }
-          className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
-          style={{ border: "solid #1C2125 1px" }}
-        />
-        <FormControlLabel
-          value="USDC"
-          control={
-            <Radio
-              className="bg-[#1E1E1E] mr-2"
-              sx={{
-                color: "#1E1E1E",
-                "&.Mui-checked": {
-                  color: "#3CAB5F",
-                },
-              }}
-            />
-          }
-          label={
-            <div className="w-[300px] flex justify-between items-center">
-              <div>USDC</div>
-              <div className="flex gap-4 justify-center items-center">
-                <div
-                  className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
-                >
-                  7.8%
-                </div>
-                <Image
-                  src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024"
-                  alt="USDC"
-                  height={40}
-                  width={40}
-                />
-              </div>
-            </div>
-          }
-          className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
-          style={{ border: "solid #1C2125 1px" }}
-        />
+            }
+            className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
+            style={{ border: "solid #1C2125 1px" }}
+          />
+        ))}
       </RadioGroup>
     </FormControl>
   );
@@ -302,22 +264,22 @@ const AssetSelection: FC<AssetSelectionProps> = ({ selectedAsset, setSelectedAss
 const Pro = () => {
   const wallet = useWallet();
   const defaultAsset = "SOL";
+  const [initialFetchDone, setInitialFetchDone] = useState(false);
+  const [reloading, setReloading] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(defaultAsset);
   const [amount, setAmount] = React.useState(0);
   const [progressPercent, setProgressPercent] = React.useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
-  const { lipClient, mfiClientReadonly } = useProgram();
+  const { lipClient, mfiClient, reload: reloadLipClient } = useProgram();
 
   useEffect(() => {
-    (async function() {
-      if (!mfiClientReadonly || !lipClient || !wallet.publicKey) return;
-      const lipAccount = await LipAccount.fetch(wallet.publicKey, lipClient, mfiClientReadonly);
-      console.log("campaigns", lipClient.campaigns.map(c => c.publicKey.toBase58()));
+    (async function () {
+      if (!mfiClient || !lipClient || !wallet.publicKey) return;
+      const lipAccount = await LipAccount.fetch(wallet.publicKey, lipClient, mfiClient);
       setLipAccount(lipAccount);
-      // const total = deposits.reduce((acc, deposit) => acc + deposit.amount * mfiClientReadonly?.group., 0); //TODO: move that to a helper in LipAccount
-      // setTotalDeposits(total);
+      setInitialFetchDone(true);
     })();
-  }, [lipClient, wallet.publicKey]);
+  }, [lipClient, mfiClient, wallet.publicKey]);
 
   const marks = [
     { value: 0, label: "CONNECT", color: progressPercent > 0 ? "#51B56A" : "#484848" },
@@ -345,42 +307,49 @@ const Pro = () => {
     }
   }, [amount, wallet.connected]);
 
-  // @NEXT: Write deposit fn.
   const depositAction = useCallback(async () => {
-    if (lipAccount && lipClient && selectedAsset && amount > 0) {
-      console.log("campaigns", lipClient.campaigns.map(c => c.publicKey.toBase58()));
-      const campaign = lipClient.campaigns.find((campaign) => campaign.bank.label === selectedAsset);
-      if (!campaign) throw new Error("Campaign not found");
+    if (!lipAccount || !lipClient || !selectedAsset || amount === 0) return;
+
+    const campaign = lipClient.campaigns.find((campaign) => campaign.bank.label === selectedAsset);
+    if (!campaign) throw new Error("Campaign not found");
+    setReloading(true);
+    try {
       await lipClient.deposit(campaign.publicKey, amount, campaign.bank);
+      setLipAccount(await lipAccount.reloadAndClone());
+      setAmount(0);
+    } catch (e) {
+      console.error(e);
     }
+    setReloading(false);
   }, [amount, lipAccount, lipClient, selectedAsset]);
 
-  // @NEXT: Write deposit fn.
   const createCampaign = useCallback(async () => {
-    if (lipClient && selectedAsset) {
-      const campaignKeypair = Keypair.generate();
-      const banks = mfiClientReadonly?.group.banks || new Map<string, Bank>();
-      console.log({ selectedAsset, banks: [...banks.keys()].map(b => b) });
-      const bank = [...banks.values()].find(b => b.label === selectedAsset);
-      if (!bank) throw new Error("Bank not found");
-      const userTokenAtaPk = await associatedAddress({
-        mint: bank.mint,
-        owner: lipClient.wallet.publicKey,
-      });
-      console.log(bank.publicKey.toBase58());
-      const ix = await lipClient.program.methods
-        .createCampaing(new BN(3600), uiToNative(1000, bank.mintDecimals), uiToNative(1, bank.mintDecimals))
-        .accounts({
-          campaign: campaignKeypair.publicKey,
-          admin: lipClient.wallet.publicKey,
-          fundingAccount: userTokenAtaPk,
-          marginfiBank: bank.publicKey,
-          assetMint: bank.mint,
+    if (mfiClient === null || !lipClient || !selectedAsset) return;
 
-        }).instruction();
-      await lipClient.processTransaction(new Transaction().add(ix), [campaignKeypair]);
-    }
-  }, [lipClient, mfiClientReadonly?.group.banks, selectedAsset]);
+    const campaignKeypair = Keypair.generate();
+    const banks = mfiClient.group.banks;
+    const bank = [...banks.values()].find((b) => b.label === selectedAsset);
+    if (!bank) throw new Error("Bank not found");
+    const userTokenAtaPk = await associatedAddress({
+      mint: bank.mint,
+      owner: lipClient.wallet.publicKey,
+    });
+
+    const ix = await lipClient.program.methods
+      .createCampaing(new BN(1), uiToNative(1, bank.mintDecimals), uiToNative(1, bank.mintDecimals))
+      .accounts({
+        campaign: campaignKeypair.publicKey,
+        admin: lipClient.wallet.publicKey,
+        fundingAccount: userTokenAtaPk,
+        marginfiBank: bank.publicKey,
+        assetMint: bank.mint,
+      })
+      .instruction();
+    await lipClient.processTransaction(new Transaction().add(ix), [campaignKeypair]);
+    await reloadLipClient();
+    setLipAccount(lipAccount);
+    setAmount(0);
+  }, [lipAccount, lipClient, mfiClient, reloadLipClient, selectedAsset]);
 
   return (
     <>
@@ -422,11 +391,7 @@ const Pro = () => {
           </div>
 
           <div className="flex justify-center">
-            <AssetSelection
-              selectedAsset={selectedAsset}
-              setSelectedAsset={setSelectedAsset}
-              defaultAsset={defaultAsset}
-            />
+            <AssetSelection setSelectedAsset={setSelectedAsset} defaultAsset={defaultAsset} />
           </div>
 
           <div className="flex justify-center">
@@ -444,16 +409,20 @@ const Pro = () => {
               // You can only deposit right now.
               // All funds will be locked up for 6 months, each from the date of its *own* deposit.
             }
-            <ProAction onClick={depositAction}>Deposit</ProAction>
+            <ProAction
+              onClick={depositAction}
+              spinning={!initialFetchDone || reloading}
+              disabled={!initialFetchDone || reloading}
+            >
+              Deposit
+            </ProAction>
           </div>
 
-          <div className="flex justify-center">
-            {
-              // You can only deposit right now.
-              // All funds will be locked up for 6 months, each from the date of its *own* deposit.
-            }
-            <ProAction onClick={createCampaign}>Create campaign</ProAction>
-          </div>
+          {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_CREATE_CAMPAIGN === "true" && (
+            <div className="flex justify-center">
+              <ProAction onClick={createCampaign}>Create campaign</ProAction>
+            </div>
+          )}
         </div>
       </div>
     </>

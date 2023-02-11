@@ -1,32 +1,10 @@
-import { AnchorProvider, Program } from "@project-serum/anchor";
-import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
-import { ConfirmOptions, Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import BigNumber from "bignumber.js";
+import { PublicKey } from "@solana/web3.js";
 import { Lip } from "./idl";
+import { Program, ProgramReadonly } from "@mrgnlabs/mrgn-common";
+import { Environment } from "@mrgnlabs/marginfi-client-v2";
 
-export type LipProgram = Omit<Program<Lip>, "provider"> & {
-  provider: AnchorProvider;
-};
-
-export type Amount = BigNumber | number | string;
-
-export type Wallet = Pick<SignerWalletAdapter, "signAllTransactions" | "signTransaction"> & {
-  publicKey: PublicKey;
-};
-
-export interface TransactionOptions extends ConfirmOptions {
-  dryRun?: boolean;
-}
-
-/**
- * Supported config environments.
- */
-export type Environment = "production" | "alpha" | "staging" | "dev";
-
-export interface InstructionsWrapper {
-  instructions: TransactionInstruction[];
-  keys: Keypair[];
-}
+export type LipProgram = Program<Lip>;
+export type LipProgramReadonly = ProgramReadonly<Lip>;
 
 export interface LipConfig {
   environment: Environment;
