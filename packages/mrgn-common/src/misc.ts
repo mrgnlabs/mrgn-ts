@@ -1,13 +1,20 @@
-import { AnchorProvider, BN } from "@project-serum/anchor";
-import {
-  ConfirmOptions,
-  Connection,
-  Signer,
-  Transaction,
-  TransactionSignature,
-} from "@solana/web3.js";
-import BigNumber from "bignumber.js";
-import { Amount } from "./types";
+import { AnchorProvider } from "@project-serum/anchor";
+import { ConfirmOptions, Connection, Keypair, Signer, Transaction, TransactionSignature } from "@solana/web3.js";
+
+/**
+ * Load Keypair from the provided file.
+ */
+export function loadKeypair(keypairPath: string): Keypair {
+  const path = require("path");
+  if (!keypairPath || keypairPath == "") {
+    throw new Error("Keypair is required!");
+  }
+  if (keypairPath[0] === "~") {
+    keypairPath = path.join(require("os").homedir(), keypairPath.slice(1));
+  }
+  const keyPath = path.normalize(keypairPath);
+  return Keypair.fromSecretKey(new Uint8Array(JSON.parse(require("fs").readFileSync(keyPath).toString())));
+}
 
 /**
  * Transaction processing and error-handling helper.
@@ -62,25 +69,6 @@ export async function processTransaction(
 /**
  * @internal
  */
-
-/**
- * Converts a ui representation of a token amount into its native value as `BN`, given the specified mint decimal amount (default to 6 for USDC).
- */
-export function toBigNumber(amount: Amount | BN): BigNumber {
-  let amt: BigNumber;
-  if (amount instanceof BigNumber) {
-    amt = amount;
-  } else {
-    amt = new BigNumber(amount.toString());
-  }
-  return amt;
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
-/**
- * Converts a UI representation of a token amount into its native value as `BN`, given the specified mint decimal amount (default to 6 for USDC).
- */
-export function uiToNative(amount: Amount, decimals: number): BN {
-  let amt = toBigNumber(amount);
-  return new BN(amt.times(10 ** decimals).toFixed(0, BigNumber.ROUND_FLOOR));
-}
-

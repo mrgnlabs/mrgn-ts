@@ -11,23 +11,21 @@ import {
   TransactionSignature,
   VersionedTransaction,
 } from "@solana/web3.js";
-import {
-  AccountType,
-  Environment,
-  InstructionsWrapper,
-  MarginfiConfig,
-  MarginfiProgram,
-  TransactionOptions,
-  Wallet,
-} from "./types";
+import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "./types";
 import { MARGINFI_IDL } from "./idl";
-import { NodeWallet } from "./nodeWallet";
-import { loadKeypair } from "./utils";
 import { getConfig } from "./config";
 import MarginfiGroup from "./group";
 import instructions from "./instructions";
 import MarginfiAccount, { MarginfiAccountData } from "./account";
-import { DEFAULT_COMMITMENT, DEFAULT_CONFIRM_OPTS } from "./constants";
+import {
+  DEFAULT_COMMITMENT,
+  DEFAULT_CONFIRM_OPTS,
+  InstructionsWrapper,
+  loadKeypair,
+  NodeWallet,
+  TransactionOptions,
+  Wallet,
+} from "@mrgnlabs/mrgn-common";
 
 /**
  * Entrypoint to interact with the marginfi contract.
@@ -151,7 +149,8 @@ class MarginfiClient {
     const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
       marginfiGroupPk: this._group.publicKey,
       marginfiAccountPk: accountKeypair.publicKey,
-      signerPk: this.provider.wallet.publicKey,
+      authorityPk: this.provider.wallet.publicKey,
+      feePayerPk: this.provider.wallet.publicKey,
     });
 
     const ixs = [initMarginfiAccountIx];

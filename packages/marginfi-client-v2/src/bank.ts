@@ -2,10 +2,9 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
 import { MarginRequirementType } from "./account";
-import { WrappedI80F48 } from "./types";
-import { nativeToUi, wrappedI80F48toBigNumber } from "./utils";
 import { PYTH_PRICE_CONF_INTERVALS } from "./constants";
 import { parsePriceData, PriceData } from "@pythnetwork/client";
+import { nativeToUi, WrappedI80F48, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 
 /**
  * Wrapper class around a specific marginfi group.

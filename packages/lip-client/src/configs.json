@@ -1,17 +1,17 @@
 [
-    {
-      "label": "production",
-      "cluster": "mainnet",
-      "program": "Lip1111111111111111111111111111111111111111"
-    },
-    {
-      "label": "staging",
-      "cluster": "mainnet",
-      "program": "Lip1111111111111111111111111111111111111111"
-    },
-    {
-      "label": "dev",
-      "cluster": "devnet",
-      "program": "sexyDKo4Khm38YdJeiRdNNd5aMQqNtfDkxv7MnYNFeU"
-    }
-  ]
+  {
+    "label": "production",
+    "cluster": "mainnet",
+    "program": "Lip1111111111111111111111111111111111111111"
+  },
+  {
+    "label": "staging",
+    "cluster": "mainnet",
+    "program": "Lip1111111111111111111111111111111111111111"
+  },
+  {
+    "label": "dev",
+    "cluster": "devnet",
+    "program": "5cY6cSEerhUvkzkbUc4zVoBXEmKJmMNw7Sibgg1Bucb8"
+  }
+]
