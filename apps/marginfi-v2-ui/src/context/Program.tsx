@@ -20,7 +20,7 @@ const ProgramProvider: FC<{
   const anchorWallet = useAnchorWallet();
 
   const [mfiClient, setMfiClient] = useState<MarginfiClient | null>(null);
-  const [lipClient, setLipClient] = useState<MarginfiClient | null>(null);
+  const [lipClient, setLipClient] = useState<LipClient | null>(null);
   const [mfiClientReadonly, setMfiClientReadonly] = useState<MarginfiClientReadonly | null>(null);
 
   useEffect(() => {
