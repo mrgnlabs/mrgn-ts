@@ -38,3 +38,7 @@ To get started with the marginfi v2 UI, follow these steps:
 ## Contributing
 
 We welcome contributions to the marginfi v2 UI. If you're interested in helping, check out our [contributing guidelines](https://github.com/mrgnlabs/mrgn-ts/blob/main/CONTRIBUTING.md) and join the [mrgn community](https://t.me/mrgncommunity) on Telegram.
+
+## License
+
+`mrgn-ts` is open source software licensed under the Apache 2.0 license.
