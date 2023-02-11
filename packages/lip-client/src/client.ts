@@ -1,4 +1,4 @@
-import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@project-serum/anchor";
+import { AnchorProvider, Program } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 import {
@@ -14,7 +14,6 @@ import {
 } from "@solana/web3.js";
 import {
   Amount,
-  Environment,
   InstructionsWrapper,
   LipConfig,
   LipProgram,
@@ -22,11 +21,9 @@ import {
   Wallet,
 } from "./types";
 import { LIP_IDL } from "./idl";
-import { NodeWallet } from "./nodeWallet";
 import { uiToNative } from "./utils";
-import { getConfig } from "./config";
 import instructions from "./instructions";
-import { DEFAULT_COMMITMENT, DEFAULT_CONFIRM_OPTS, MARGINFI_ACCOUNT_SEED, DEPOSIT_MFI_AUTH_SIGNER_SEED } from "./constants";
+import { DEFAULT_CONFIRM_OPTS, MARGINFI_ACCOUNT_SEED, DEPOSIT_MFI_AUTH_SIGNER_SEED } from "./constants";
 import Bank from "../../marginfi-client-v2/src/bank";
 import MarginfiClient from "../../marginfi-client-v2/src/client";
 
@@ -77,12 +74,6 @@ class LipClient {
 
     const program = new Program(LIP_IDL, config.programId, provider) as any as LipProgram;
     return new LipClient(config, program, wallet, marginfiClient);
-  }
-
-  // --- Getters and setters
-
-  get provider(): AnchorProvider {
-    return this.program.provider as AnchorProvider;
   }
 
   // --- Others
