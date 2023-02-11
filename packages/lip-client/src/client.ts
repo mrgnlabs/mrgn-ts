@@ -146,7 +146,7 @@ class LipClient {
   ): Promise<TransactionSignature> {
     let signature: TransactionSignature = "";
     try {
-      const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
+      const connection = new Connection(this.client.provider.connection.rpcEndpoint, this.client.provider.opts);
 
       const {
         context: { slot: minContextSlot },
