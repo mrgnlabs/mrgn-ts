@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<div align="center">
+  <img height="170" src="./images/logo.png" />
 
-## Getting Started
+  <h1>mrgn-ts</h1>
+  
+  <p>
+    <!-- Discord -->
+    <a href="https://discord.com/channels/882369954916212737"><img alt="Discord Chat" src="https://img.shields.io/discord/882369954916212737?color=blueviolet&style=flat-square"/></a>
+    <!-- License -->
+    <a href="http://www.apache.org/licenses/LICENSE-2.0"><img alt="License" src="https://img.shields.io/github/license/mrgnlabs/mrgn-ts?style=flat-square&color=ffff00"/></a>
+  </p>
 
-First, run the development server:
+  <h4>
+    <a href="https://app.marginfi.com/">app.marginfi.com</a>
+  </h4>
+</div>
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+# marginFi v2 UI (mrgnlend frontend)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The MarginFi V2 UI is a nextjs web client that serves as the frontend for the mrgnlend lending platform. It provides an easy-to-use interface for managing your lending and borrowing activities on the Solana blockchain. The UI is built using Next.js, a popular React-based framework for building server-rendered or statically exported React applications.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+## Features
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+A clean and modern design with [Tailwind CSS](https://tailwindcss.com/), a utility-first CSS framework for rapidly building custom designs.
+Built with [Material UI](https://material-ui.com/), a popular React UI library that implements Google's Material Design guidelines.
+Leverages a number of other `@mrgnlabs` TypeScript packages, all available in the same [monorepo](https://github.com/mrgnlabs/mrgn-ts).
+Frontend built for Solana smart contracts, providing a seamless and efficient user experience for trading and lending on the Solana network.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+## Developing
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+To get started with the MarginFi v2 UI, follow these steps:
 
-## Learn More
+1. Clone the monorepo and navigate to the `apps/marginfi-v2-ui` directory.
+2. Install the dependencies by running `yarn install`.
+3. Start the development server by running `yarn dev`.
+4. Access the frontend in your web browser at http://localhost:3004.
 
-To learn more about Next.js, take a look at the following resources:
+## Contributing
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+We welcome contributions to the MarginFi v2 UI. If you're interested in helping, check out our [contributing guidelines](https://github.com/mrgnlabs/mrgn-ts/blob/main/CONTRIBUTING.md) and join the [mrgn community](https://t.me/mrgncommunity) on Telegram.
