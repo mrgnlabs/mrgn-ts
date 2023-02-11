@@ -1,81 +1,73 @@
-import React, { useEffect, useState } from "react";
+import React, { FC, MouseEventHandler, ReactNode, useCallback, useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
-import { useUserAccounts, useProgram } from "~/context";
-import { LinearProgress } from '@mui/material';
-import { usdFormatter } from "~/utils/formatters";
-import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { LipClient } from "@mrgnlabs/lip-client";
-
+import { useProgram } from "~/context";
 // ================================
 // INPUT BOX
 // ================================
-import { InputAdornment, TextField } from "@mui/material";
-import { FC, MouseEventHandler, useCallback } from "react";
-import { NumberFormatValues, NumericFormat } from "react-number-format";
-import { toast } from "react-toastify";
 // ================================
 // INPUT BOX
 // ================================
-
 // ================================
 // ACTION BUTTON
 // ================================
-import { Button, ButtonProps } from "@mui/material";
-import { ReactNode } from "react";
+import { Button, ButtonProps, InputAdornment, LinearProgress, TextField } from "@mui/material";
+import { usdFormatter } from "~/utils/formatters";
+import { NumberFormatValues, NumericFormat } from "react-number-format";
+import { toast } from "react-toastify";
 import dynamic from "next/dynamic";
 // ================================
 // ACTION BUTTON
 // ================================
-
 // ================================
 // ASSET SELECTION
 // ================================
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormControl from '@mui/material/FormControl';
+import Radio from "@mui/material/Radio";
+import RadioGroup from "@mui/material/RadioGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormControl from "@mui/material/FormControl";
 import Image from "next/image";
+import LipAccount from "@mrgnlabs/lip-client/src/account";
 // ================================
 // ASSET SELECTION
 // ================================
 
-const Marks = ({ marks }) => (
-  marks.map(
-    (mark, index) => (
-      <div
-        key={index}
-        className="flex flex-col"
-        style={{
-          border: 'solid white 1px',
-        }}
-      >
+const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (<>{
+    marks.map(
+      (mark, index) => (
         <div
           key={index}
-          style={{ 
-            left: `${mark.value}%`,
-            position: 'absolute',
-            width: 20,
-            height: 20,
-            borderRadius: '50%',
-            backgroundColor: `${mark.color}`,
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
+          className="flex flex-col"
+          style={{
+            border: "solid white 1px",
           }}
-          className="flex justify-center items-center"
         >
           <div
-            className="mt-12 text-xs text-[#484848]"
+            key={index}
             style={{
-              letterSpacing: '4px',
+              left: `${mark.value}%`,
+              position: "absolute",
+              width: 20,
+              height: 20,
+              borderRadius: "50%",
+              backgroundColor: `${mark.color}`,
+              top: "50%",
+              transform: "translate(-50%, -50%)",
             }}
+            className="flex justify-center items-center"
           >
-            {mark.label}
+            <div
+              className="mt-12 text-xs text-[#484848]"
+              style={{
+                letterSpacing: "4px",
+              }}
+            >
+              {mark.label}
+            </div>
           </div>
-        </div>        
-      </div>
-    ))
-)
+        </div>
+      ))}</>
+);
 
 // ================================
 // ACTION BUTTON
@@ -83,7 +75,7 @@ const Marks = ({ marks }) => (
 
 const WalletMultiButtonDynamic = dynamic(
   async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
-  { ssr: false }
+  { ssr: false },
 );
 
 interface ProActionProps extends ButtonProps {
@@ -155,7 +147,7 @@ const ProInputBox: FC<ProInputBox> = ({ value, setValue, maxValue, maxDecimals, 
 
       setValue(updatedAmount);
     },
-    [maxValue, setValue]
+    [maxValue, setValue],
   );
 
   return (
@@ -214,10 +206,10 @@ interface AssetSelectionProps {
 }
 
 const AssetSelection: FC<AssetSelectionProps> = ({
-    selectedAsset,
-    setSelectedAsset,
-    defaultAsset
-}) => {
+                                                   selectedAsset,
+                                                   setSelectedAsset,
+                                                   defaultAsset,
+                                                 }) => {
 
   return (
     <FormControl
@@ -233,13 +225,13 @@ const AssetSelection: FC<AssetSelectionProps> = ({
         <FormControlLabel
           value="SOL"
           control={
-            <Radio 
+            <Radio
               className="bg-[#1E1E1E] mr-2"
               sx={{
-                  color: '#1E1E1E',
-                  '&.Mui-checked': {
-                    color: '#3CAB5F',
-                  },
+                color: "#1E1E1E",
+                "&.Mui-checked": {
+                  color: "#3CAB5F",
+                },
               }}
             />
           }
@@ -254,23 +246,24 @@ const AssetSelection: FC<AssetSelectionProps> = ({
                 >
                   9%
                 </div>
-                <Image className="ml-[5px]" src="https://cryptologos.cc/logos/solana-sol-logo.png?v=024" alt="SOL" height={30} width={30} />
+                <Image className="ml-[5px]" src="https://cryptologos.cc/logos/solana-sol-logo.png?v=024" alt="SOL"
+                       height={30} width={30} />
               </div>
             </div>
           }
           className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
-          style={{ border: 'solid #1C2125 1px' }}
+          style={{ border: "solid #1C2125 1px" }}
         />
         <FormControlLabel
-          value="USDC" 
+          value="USDC"
           control={
-            <Radio 
+            <Radio
               className="bg-[#1E1E1E] mr-2"
               sx={{
-                  color: '#1E1E1E',
-                  '&.Mui-checked': {
-                    color: '#3CAB5F',
-                  },
+                color: "#1E1E1E",
+                "&.Mui-checked": {
+                  color: "#3CAB5F",
+                },
               }}
             />
           }
@@ -285,39 +278,49 @@ const AssetSelection: FC<AssetSelectionProps> = ({
                 >
                   7.8%
                 </div>
-                <Image src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024" alt="USDC" height={40} width={40} />
+                <Image src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024" alt="USDC" height={40}
+                       width={40} />
               </div>
             </div>
           }
           className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
-          style={{ border: 'solid #1C2125 1px' }}
+          style={{ border: "solid #1C2125 1px" }}
         />
       </RadioGroup>
     </FormControl>
-  )
-}
+  );
+};
 // ================================
 // ASSET SELECTION
 // ================================
 
 const Pro = () => {
   const wallet = useWallet();
-  const defaultAsset = "SOL"
+  const defaultAsset = "SOL";
   const [selectedAsset, setSelectedAsset] = useState(defaultAsset);
   const [amount, setAmount] = React.useState(0);
   const [progressPercent, setProgressPercent] = React.useState(0);
-  const { accountSummary, selectedAccount } = useUserAccounts();
-  const { lipClient } = useProgram();
+  const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
+  const { lipClient, mfiClientReadonly } = useProgram();
 
   useEffect(() => {
-    console.log(progressPercent)
-  }, [ progressPercent ]);
+    (async function() {
+      if (!mfiClientReadonly || !lipClient || !wallet.publicKey)
+        return;
+      const lipAccount = await LipAccount.fetch(wallet.publicKey, lipClient, mfiClientReadonly);
+      console.log(lipAccount);
+      setLipAccount(lipAccount);
+      // const total = deposits.reduce((acc, deposit) => acc + deposit.amount * mfiClientReadonly?.group., 0); //TODO: move that to a helper in LipAccount
+      // setTotalDeposits(total);
+    })();
+  }, [lipClient, wallet.publicKey]);
 
   const marks = [
-    { value: 0, label: "CONNECT", color: progressPercent > 0 ? '#51B56A': '#484848' },
-    { value: 50, label: "SELECT", color: progressPercent >= 50 ? '#51B56A' : '#484848' },
-    { value: 100, label: "READY", color: progressPercent >= 100 ? '#51B56A' : '#484848' },
+    { value: 0, label: "CONNECT", color: progressPercent > 0 ? "#51B56A" : "#484848" },
+    { value: 50, label: "SELECT", color: progressPercent >= 50 ? "#51B56A" : "#484848" },
+    { value: 100, label: "READY", color: progressPercent >= 100 ? "#51B56A" : "#484848" },
   ];
+
 
   useEffect(() => {
     if (wallet.connected) {
@@ -325,7 +328,7 @@ const Pro = () => {
     } else {
       setProgressPercent(0);
     }
-  }, [wallet.connected])
+  }, [wallet.connected]);
 
   useEffect(() => {
     if (amount > 0) {
@@ -337,14 +340,14 @@ const Pro = () => {
         setProgressPercent(0);
       }
     }
-  }, [amount, wallet.connected])
+  }, [amount, wallet.connected]);
 
   // @NEXT: Write deposit fn.
   const depositAction = () => {
     if (selectedAsset && (amount > 0)) {
       // lipClient.deposit({)
     }
-  }
+  };
 
   return (
     <>
@@ -359,73 +362,73 @@ const Pro = () => {
             <div className="flex flex-col gap-1 w-full justify-center">
               {
                 wallet.connected &&
-                  <div
-                    className="text-2xl flex justify-center gap-2"
-                    style={{ fontWeight: 400 }}
-                  >
-                    Your deposits:
-                    <span style={{ color: "#51B56A" }}>
+                <div
+                  className="text-2xl flex justify-center gap-2"
+                  style={{ fontWeight: 400 }}
+                >
+                  Your deposits:
+                  <span style={{ color: "#51B56A" }}>
                       {
                         // Since users will only be able to deposit to the LIP,
                         // the balance of their account should match total deposits.
                       }
-                      {(usdFormatter.format(accountSummary.balance))}
+                    {(usdFormatter.format(totalDeposits))}
                     </span>
-                  </div>
+                </div>
               }
             </div>
             <div className="col-span-full flex flex-col justify-center items-center">
-                <LinearProgress
-                  className="h-1 w-[300px] rounded-lg" 
-                  variant="determinate"
-                  color="inherit"
-                  value={progressPercent}
-                  sx={{
-                      backgroundColor: '#484848',
-                      '& .MuiLinearProgress-bar': {
-                        backgroundColor: '#51B56A',
-                      }
-                  }}
-                />
-                <div className="flex absolute w-[300px] self-center justify-between">
-                  <Marks marks={marks}/>
-                </div>
+              <LinearProgress
+                className="h-1 w-[300px] rounded-lg"
+                variant="determinate"
+                color="inherit"
+                value={progressPercent}
+                sx={{
+                  backgroundColor: "#484848",
+                  "& .MuiLinearProgress-bar": {
+                    backgroundColor: "#51B56A",
+                  },
+                }}
+              />
+              <div className="flex absolute w-[300px] self-center justify-between">
+                <Marks marks={marks} />
+              </div>
             </div>
           </div>
 
-        <div
-          className="flex justify-center"
-        >
-          <AssetSelection
-            selectedAsset={selectedAsset}
-            setSelectedAsset={setSelectedAsset}
-            defaultAsset={defaultAsset}
-          />
-        </div>
-
-        <div className="flex justify-center">
-          <ProInputBox
-            value={amount}
-            setValue={setAmount}
-            maxValue={500000} // @todo hardcoded
-            maxDecimals={2}
-            disabled={(!(wallet.connected))}
-          />
-        </div>
-
-        <div
-          className="flex justify-center"
-        >
-          {
-            // You can only deposit right now.
-            // All funds will be locked up for 6 months, each from the date of its *own* deposit.
-          }
-          <ProAction
-            onClick={depositAction}
+          <div
+            className="flex justify-center"
           >
-            Deposit
-          </ProAction>
-        </div>
+            <AssetSelection
+              selectedAsset={selectedAsset}
+              setSelectedAsset={setSelectedAsset}
+              defaultAsset={defaultAsset}
+            />
+          </div>
+
+          <div className="flex justify-center">
+            <ProInputBox
+              value={amount}
+              setValue={setAmount}
+              maxValue={500000} // @todo hardcoded
+              maxDecimals={2}
+              disabled={(!(wallet.connected))}
+            />
+          </div>
+
+          <div
+            className="flex justify-center"
+          >
+            {
+              // You can only deposit right now.
+              // All funds will be locked up for 6 months, each from the date of its *own* deposit.
+            }
+            <ProAction
+              onClick={depositAction}
+            >
+              Deposit
+            </ProAction>
+          </div>
 
         </div>
       </div>

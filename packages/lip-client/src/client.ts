@@ -12,20 +12,15 @@ import {
   TransactionSignature,
   VersionedTransaction,
 } from "@solana/web3.js";
-import {
-  Amount,
-  InstructionsWrapper,
-  LipConfig,
-  LipProgram,
-  TransactionOptions,
-  Wallet,
-} from "./types";
+import { Amount, InstructionsWrapper, LipConfig, LipProgram, TransactionOptions, Wallet } from "./types";
 import { LIP_IDL } from "./idl";
 import { uiToNative } from "./utils";
 import instructions from "./instructions";
-import { DEFAULT_CONFIRM_OPTS, MARGINFI_ACCOUNT_SEED, DEPOSIT_MFI_AUTH_SIGNER_SEED } from "./constants";
+import { DEFAULT_CONFIRM_OPTS, DEPOSIT_MFI_AUTH_SIGNER_SEED, MARGINFI_ACCOUNT_SEED } from "./constants";
 import Bank from "../../marginfi-client-v2/src/bank";
 import MarginfiClient from "../../marginfi-client-v2/src/client";
+import { Address, translateAddress } from "@coral-xyz/anchor";
+import { DepositData } from "./account";
 
 /**
  * Entrypoint to interact with the LIP contract.
@@ -64,7 +59,7 @@ class LipClient {
       "Loading Lip Client\n\tprogram: %s\n\tenv: %s\n\turl: %s",
       config.programId,
       config.environment,
-      connection.rpcEndpoint
+      connection.rpcEndpoint,
     );
     const provider = new AnchorProvider(connection, wallet, {
       ...AnchorProvider.defaultOptions(),
@@ -75,6 +70,29 @@ class LipClient {
     const program = new Program(LIP_IDL, config.programId, provider) as any as LipProgram;
     return new LipClient(config, program, wallet, marginfiClient);
   }
+
+  // --- Getters
+
+  /**
+   * Retrieves all deposit accounts for specified owner.
+   *
+   * @returns Deposit instances
+   */
+  async getDepositsForOwner(owner?: Address): Promise<DepositData[]> {
+    const _owner = owner ? translateAddress(owner) : this.client.wallet.publicKey;
+
+    return (
+      await this.program.account.deposit.all([
+        {
+          memcmp: {
+            bytes: _owner.toBase58(),
+            offset: 8 + 144, // owner is the first field in the account after the padding, so offset by the discriminant and a pubkey
+          },
+        },
+      ])
+    ).map(({ account }) => account as unknown as DepositData);
+  }
+
 
   // --- Others
 
@@ -107,20 +125,20 @@ class LipClient {
         marginfiBank: bank.publicKey,
         marginfiAccount: PublicKey.findProgramAddressSync(
           [MARGINFI_ACCOUNT_SEED, depositKeypair.publicKey.toBuffer()],
-          this.programId
+          this.programId,
         )[0],
         marginfiBankVault: bank.liquidityVault,
         marginfiProgram: this.client.programId,
       },
-      { amount: uiToNative(amount, bank.mintDecimals)}
-    )
+      { amount: uiToNative(amount, bank.mintDecimals) },
+    );
 
-    return { 
+    return {
       instructions: [ix],
       keys: [
         depositKeypair,
-        tempTokenAccountKeypair
-      ]
+        tempTokenAccountKeypair,
+      ],
     };
   }
 
@@ -142,11 +160,11 @@ class LipClient {
   async processTransaction(
     transaction: Transaction,
     signers?: Array<Signer>,
-    opts?: TransactionOptions
+    opts?: TransactionOptions,
   ): Promise<TransactionSignature> {
     let signature: TransactionSignature = "";
     try {
-      const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
+      const connection = new Connection(this.program.provider.connection.rpcEndpoint, this.program.provider.opts);
 
       const {
         context: { slot: minContextSlot },
@@ -167,19 +185,19 @@ class LipClient {
       if (opts?.dryRun) {
         const response = await connection.simulateTransaction(
           versionedTransaction,
-          opts ?? { minContextSlot, sigVerify: false }
+          opts ?? { minContextSlot, sigVerify: false },
         );
         console.log(
-          response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
+          response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`,
         );
         console.log("------ Logs 👇 ------");
         console.log(response.value.logs);
 
         const signaturesEncoded = encodeURIComponent(
-          JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s)))
+          JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s))),
         );
         const messageEncoded = encodeURIComponent(
-          Buffer.from(versionedTransaction.message.serialize()).toString("base64")
+          Buffer.from(versionedTransaction.message.serialize()).toString("base64"),
         );
         console.log(Buffer.from(versionedTransaction.message.serialize()).toString("base64"));
 
@@ -209,7 +227,7 @@ class LipClient {
             lastValidBlockHeight,
             signature,
           },
-          mergedOpts.commitment
+          mergedOpts.commitment,
         );
         return signature;
       }

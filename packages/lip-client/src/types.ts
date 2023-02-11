@@ -1,9 +1,8 @@
-import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { AnchorProvider, BN, Program } from "@project-serum/anchor";
+import { AnchorProvider, Program } from "@project-serum/anchor";
 import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
 import { ConfirmOptions, Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { Lip } from "./idl/lip-types";
+import { Lip } from "./idl";
 
 export type LipProgram = Omit<Program<Lip>, "provider"> & {
   provider: AnchorProvider;
