@@ -13,7 +13,6 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import {
-  AccountType,
   Amount,
   Environment,
   InstructionsWrapper,
@@ -147,31 +146,6 @@ class LipClient {
     debug("Depositing successful %s", sig);
     // @note: will need to manage reload appropriately
     return sig;
-  }
-
-  /**
-   * Retrieves the addresses of all accounts owned by the LIP program.
-   *
-   * @returns Account addresses
-   */
-  async getAllProgramAccountAddresses(type: AccountType): Promise<PublicKey[]> {
-    return (
-      await this.program.provider.connection.getProgramAccounts(this.programId, {
-        commitment: this.program.provider.connection.commitment,
-        dataSlice: {
-          offset: 0,
-          length: 0,
-        },
-        filters: [
-          {
-            memcmp: {
-              offset: 0,
-              bytes: bs58.encode(BorshAccountsCoder.accountDiscriminator(type)),
-            },
-          },
-        ],
-      })
-    ).map((a) => a.pubkey);
   }
 
   async processTransaction(

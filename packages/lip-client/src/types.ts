@@ -1,3 +1,4 @@
+import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { AnchorProvider, BN, Program } from "@project-serum/anchor";
 import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
 import { ConfirmOptions, Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
@@ -28,40 +29,9 @@ export interface InstructionsWrapper {
   keys: Keypair[];
 }
 
-/**
- * Marginfi bank vault type
- */
-// export enum BankVaultType {
-//   LiquidityVault,
-//   InsuranceVault,
-//   FeeVault,
-// }
-
 export interface LipConfig {
   environment: Environment;
   cluster: string;
   programId: PublicKey;
-//   groupPk: PublicKey;
-//   banks: BankAddress[];
-}
-
-// export interface BankAddress {
-//   label: string;
-//   address: PublicKey;
-// }
-
-export interface InstructionsWrapper {
-  instructions: TransactionInstruction[];
-  keys: Keypair[];
-}
-
-// --- On-chain account structs
-
-export enum AccountType {
-//   MarginfiGroup = "marginfiGroup",
-  MarginfiAccount = "marginfiAccount",
-}
-
-export interface WrappedI80F48 {
-  value: BN;
+  marginfiClient: MarginfiClient;
 }
