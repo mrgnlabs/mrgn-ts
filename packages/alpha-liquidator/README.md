@@ -1,7 +1,7 @@
 <div align="center">
   <img height="170" src="./images/logo.png" />
 
-  <h1>mrgn-ts</h1>
+  <h1>@mrgnlabs/alpha-liquidator</h1>
   
   <p>
     <!-- Discord -->
@@ -14,8 +14,6 @@
     <a href="https://app.marginfi.com/">app.marginfi.com</a>
   </h4>
 </div>
-
-# @mrgnlabs/alpha-liquidator
 
 A TypeScript client for liquidating on marginfi v2.
 

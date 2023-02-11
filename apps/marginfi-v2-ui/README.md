@@ -1,7 +1,7 @@
 <div align="center">
   <img height="170" src="./images/logo.png" />
 
-  <h1>mrgn-ts</h1>
+  <h1>marginfi v2 UI (mrgnlend frontend)</h1>
   
   <p>
     <!-- Discord -->
@@ -14,8 +14,6 @@
     <a href="https://app.marginfi.com/">app.marginfi.com</a>
   </h4>
 </div>
-
-# marginfi v2 UI (mrgnlend frontend)
 
 The marginfi V2 UI is a nextjs web client that serves as the frontend for the mrgnlend lending platform. It provides an easy-to-use interface for managing your lending and borrowing activities on the Solana blockchain. The UI is built using Next.js, a popular React-based framework for building server-rendered or statically exported React applications.
 
