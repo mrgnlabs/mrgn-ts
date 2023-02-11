@@ -49,5 +49,4 @@ const instructions = {
     makeCreateDepositIx,
   };
   
-  export default instructions;
-  
+export default instructions;
