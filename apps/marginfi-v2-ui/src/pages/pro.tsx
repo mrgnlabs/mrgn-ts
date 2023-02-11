@@ -198,14 +198,14 @@ const CAMPAIGNS_WHITELIST = [
     value: "SOL",
     icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
     size: 30,
-    guaranteedApy: 9.48,
+    guaranteedApr: 9.48,
   },
   {
     label: "USDC",
     value: "USDC",
     icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
     size: 30,
-    guaranteedApy: 3.77,
+    guaranteedApr: 3.77,
   },
 ];
 
@@ -219,7 +219,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ setSelectedAsset, defaultAsse
           setSelectedAsset(event.target.value);
         }}
       >
-        {CAMPAIGNS_WHITELIST.map(({ value, label, icon, size, guaranteedApy }) => (
+        {CAMPAIGNS_WHITELIST.map(({ value, label, icon, size, guaranteedApr }) => (
           <FormControlLabel
             key={value}
             value={value}
@@ -241,7 +241,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ setSelectedAsset, defaultAsse
                   <div
                     className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
                   >
-                    {guaranteedApy}%
+                    {guaranteedApr}%
                   </div>
                   <div className="ml-[2px] w-[40px]">
                     <Image src={icon} alt={value} height={size} width={size} />
@@ -336,7 +336,7 @@ const Pro = () => {
     });
 
     const ix = await lipClient.program.methods
-      .createCampaing(new BN(1), uiToNative(1, bank.mintDecimals), uiToNative(1, bank.mintDecimals))
+      .createCampaign(new BN(1), uiToNative(1, bank.mintDecimals), uiToNative(1, bank.mintDecimals))
       .accounts({
         campaign: campaignKeypair.publicKey,
         admin: lipClient.wallet.publicKey,

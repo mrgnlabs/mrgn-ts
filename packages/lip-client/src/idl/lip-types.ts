@@ -30,7 +30,7 @@ export type LiquidityIncentiveProgram = {
   ];
   instructions: [
     {
-      name: "createCampaing";
+      name: "createCampaign";
       docs: [
         "Creates a new liquidity incentive campaign (LIP).",
         "",
@@ -591,7 +591,7 @@ export const IDL: LiquidityIncentiveProgram = {
   ],
   instructions: [
     {
-      name: "createCampaing",
+      name: "createCampaign",
       docs: [
         "Creates a new liquidity incentive campaign (LIP).",
         "",

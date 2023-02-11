@@ -30,7 +30,7 @@
   ],
   "instructions": [
     {
-      "name": "createCampaing",
+      "name": "createCampaign",
       "accounts": [
         {
           "name": "campaign",
