@@ -198,14 +198,14 @@ const CAMPAIGNS_WHITELIST = [
     value: "SOL",
     icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
     size: 30,
-    guaranteedApy: 9,
+    guaranteedApy: 9.48,
   },
   {
     label: "USDC",
     value: "USDC",
     icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
     size: 30,
-    guaranteedApy: 7.8,
+    guaranteedApy: 3.77,
   },
 ];
 
