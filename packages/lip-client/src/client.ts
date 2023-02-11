@@ -45,6 +45,8 @@ class LipClient {
     readonly config: LipConfig,
     readonly program: LipProgram,
     readonly wallet: Wallet,
+    // Multiple campaigns because campaigns are per asset,
+    // and we want to aggregate the value of a user's deposits across campaigns.
     readonly mfiClient: MarginfiClient,
     campaigns: Campaign[]
   ) {
@@ -84,19 +86,27 @@ class LipClient {
     this.campaigns = await LipClient._fetchAccountData(this.program, this.mfiClient);
   }
 
+  // We construct an array of banks with 1) user and 2) asset information
+  // across all campaigns that exist.
+  // First, we find all campaigns, then use their banks to pull relevant asset prices.
   private static async _fetchAccountData(program: LipProgram, marginfiClient: MarginfiClient): Promise<Campaign[]> {
+    // 1. Fetch all campaigns that exist
     console.log("fetching campaigns");
     const allCampaigns = (await program.account.campaign.all()).map((c, i) => ({
       ...c.account,
       publicKey: c.publicKey,
     }));
-
+    // 2. Get relevant banks for all campaigns
     const relevantBankPks = allCampaigns.map((d) => d.marginfiBankPk);
+    // 3. Fetch all banks
     console.log("fetching banks");
     const banksWithNulls = await marginfiClient.program.account.bank.fetchMultiple(relevantBankPks);
+    // 4. Filter out banks that aren't found
+    // This shouldn't happen, but is a workaround in case it does.
     const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
     if (banksData.length !== banksWithNulls.length) throw new Error("Some banks were not found");
 
+    // 5. Fetch all accounts that pyth writes oracle data too
     console.log("fetching price feeds");
     const pythAccountsWithNulls = await program.provider.connection.getMultipleAccountsInfo(
       banksData.map((b) => (b as BankData).config.oracleKeys[0])
@@ -119,6 +129,8 @@ class LipClient {
       return Promise.reject("Some of the banks were not found");
     }
 
+    // LipClient takes in a list of campaigns, which is
+    // campaigns we've found + bank information we've constructed.
     return allCampaigns.map((campaign, i) => {
       return { ...campaign, bank: banks[i] };
     });
