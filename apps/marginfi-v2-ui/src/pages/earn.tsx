@@ -244,7 +244,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ setSelectedAsset, defaultAsse
                   <div
                     className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
                   >
-                    {guaranteedApr}%
+                    APR: {guaranteedApr}%
                   </div>
                   <div className="ml-[2px] w-[40px]">
                     <Image src={icon} alt={value} height={size} width={size} />
