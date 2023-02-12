@@ -107,12 +107,13 @@ const ProAction: FC<ProActionProps> = ({ children, spinning, disabled, ...otherP
 interface ProInputBox {
   value: number;
   setValue: (value: number) => void;
+  loadingSafetyCheck: () => void;
   maxValue?: number;
   maxDecimals?: number;
   disabled?: boolean;
 }
 
-const ProInputBox: FC<ProInputBox> = ({ value, setValue, maxValue, maxDecimals, disabled }) => {
+const ProInputBox: FC<ProInputBox> = ({ value, setValue, loadingSafetyCheck, maxValue, maxDecimals, disabled }) => {
   // const onMaxClick = useCallback(() => {
   //   if (maxValue !== undefined) {
   //     setValue(maxValue);
@@ -128,13 +129,15 @@ const ProInputBox: FC<ProInputBox> = ({ value, setValue, maxValue, maxDecimals, 
 
       const updatedAmount = Number(updatedAmountStr);
       if (maxValue !== undefined && updatedAmount > maxValue) {
+        loadingSafetyCheck();
         setValue(maxValue);
         return;
       }
 
+      loadingSafetyCheck();
       setValue(updatedAmount);
     },
-    [maxValue, setValue]
+    [maxValue, setValue, loadingSafetyCheck]
   );
 
   return (
@@ -274,10 +277,10 @@ const Pro = () => {
 
   useEffect(() => {
     (async function () {
+      setInitialFetchDone(true);
       if (!mfiClient || !lipClient || !wallet.publicKey) return;
       const lipAccount = await LipAccount.fetch(wallet.publicKey, lipClient, mfiClient);
       setLipAccount(lipAccount);
-      setInitialFetchDone(true);
     })();
   }, [lipClient, mfiClient, wallet.publicKey]);
 
@@ -351,6 +354,12 @@ const Pro = () => {
     setAmount(0);
   }, [lipAccount, lipClient, mfiClient, reloadLipClient, selectedAsset]);
 
+  const loadingSafetyCheck = useCallback(() => {
+    if (!mfiClient || !lipAccount || !lipClient) {
+      setInitialFetchDone(false)
+    }
+  }, [ lipAccount, lipClient, mfiClient, setInitialFetchDone])
+
   return (
     <>
       <PageHeader />
@@ -399,6 +408,7 @@ const Pro = () => {
               value={amount}
               setValue={setAmount}
               maxValue={500000} // @todo hardcoded
+              loadingSafetyCheck={loadingSafetyCheck}
               maxDecimals={2}
               disabled={!wallet.connected}
             />
