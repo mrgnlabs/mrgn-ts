@@ -18,7 +18,7 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
   onClick,
 }) => (
   <Button
-    className={`h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center font-light ${
+    className={`h-full w-1/5 min-w-fit max-w-1/5 text-sm flex justify-center items-center font-light ${
       textFormat || "normal-case"
     }`}
     variant="text"
