@@ -2,13 +2,13 @@ import { Address, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { parsePriceData } from "@pythnetwork/client";
 import { AccountInfo, Commitment, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { DEFAULT_COMMITMENT, shortenAddress } from ".";
 import { Balance, MarginfiAccountData, MarginRequirementType } from "./account";
 import Bank, { BankData } from "./bank";
 import MarginfiClientReadonly from "./clientReadonly";
 import MarginfiGroup from "./group";
 import { MARGINFI_IDL } from "./idl";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
+import { DEFAULT_COMMITMENT, shortenAddress } from "@mrgnlabs/mrgn-common";
 
 /**
  * Wrapper class around a specific marginfi account.

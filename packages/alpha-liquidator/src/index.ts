@@ -1,22 +1,12 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import {
-  Environment,
-  getConfig,
-  loadKeypair,
-  MarginfiClient,
-  MarginfiGroup,
-  nativeToUi,
-  NodeWallet,
-  sleep,
-  uiToNative,
-  USDC_DECIMALS,
-} from "@mrgnlabs/marginfi-client-v2";
+import { Environment, getConfig, MarginfiClient, MarginfiGroup, USDC_DECIMALS } from "@mrgnlabs/marginfi-client-v2";
 import { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
 import JSBI from "jsbi";
 import { Jupiter } from "@jup-ag/core";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import MarginfiAccount, { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
+import { loadKeypair, nativeToUi, NodeWallet, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 

@@ -340,7 +340,12 @@ export type Marginfi = {
           isSigner: true;
         },
         {
-          name: "signer";
+          name: "authority";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "feePayer";
           isMut: true;
           isSigner: true;
         },
@@ -1983,7 +1988,12 @@ export const IDL: Marginfi = {
           isSigner: true,
         },
         {
-          name: "signer",
+          name: "authority",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "feePayer",
           isMut: true,
           isSigner: true,
         },

@@ -3,7 +3,7 @@ import BN from "bn.js";
 import { array, assert, Infer, number, object, string } from "superstruct";
 import { TokenMetadata } from "~/types";
 import tokenInfos from "../assets/token_info.json";
-import { TOKEN_PROGRAM_ID } from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
+import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common/src/spl";
 
 export function floor(value: number, decimals: number): number {
   return Math.floor(value * 10 ** decimals) / 10 ** decimals;
