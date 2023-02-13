@@ -23,9 +23,6 @@ const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ 
       <div
         key={index}
         className="flex flex-col"
-        style={{
-          border: "solid white 1px",
-        }}
       >
         <div
           key={index}
@@ -365,7 +362,7 @@ const Pro = () => {
       <PageHeader />
       <div className="h-full flex flex-col justify-start items-center content-start py-[64px] w-4/5 max-w-7xl gap-4">
         <div className="w-[360px] flex flex-col items-center gap-6">
-          <div className="w-[300px] h-[100px] flex flex-col gap-5 mb-8 justify-center">
+          <div className="w-[300px] h-[100px] flex flex-col gap-5 justify-center">
             <div className="flex flex-col gap-1 w-full justify-center">
               {wallet.connected && (
                 <div className="text-2xl flex justify-center gap-2" style={{ fontWeight: 400 }}>
@@ -397,7 +394,32 @@ const Pro = () => {
                 <Marks marks={marks} />
               </div>
             </div>
+            
           </div>
+
+          <div
+            className="w-[300px] flex flex-col my-4 justify-cen dter font-[rgb(227, 227, 227)]"
+          >
+            <div
+              className="flex justify-center gap-2 text-[#484848] text-xl"
+              style={{ fontWeight: 400 }}
+            >
+              FUNDS WILL BE LOCKED FOR:
+            </div>
+            <div
+              className="flex justify-center gap-2 text-2xl d"
+              style={{ fontWeight: 400, letterSpacing: "0.2em" }}
+            >
+              ⚠️<span style={{ color: "yellow" }}>6 MONTHS</span>⚠️
+            </div>
+            <div
+              className="flex justify-center gap-2 text-[#484848] text-xl"
+              style={{ fontWeight: 400, }}
+            >
+              FROM DEPOSIT DATE
+            </div>
+          </div>
+          
 
           <div className="flex justify-center">
             <AssetSelection setSelectedAsset={setSelectedAsset} defaultAsset={defaultAsset} />
