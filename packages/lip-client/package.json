@@ -1,6 +1,6 @@
 {
   "name": "@mrgnlabs/lip-client",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "./src/index.ts",
   "private": true,
   "types": "./src/index.ts",
