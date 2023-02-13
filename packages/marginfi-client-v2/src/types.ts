@@ -7,7 +7,7 @@ export type MarginfiProgram = Program<Marginfi>;
 /**
  * Supported config environments.
  */
-export type Environment = "production" | "alpha" | "staging" | "dev";
+export type Environment = "production" | "alpha" | "staging" | "dev" | "mainnet-test-1" | "dev.1";
 
 /**
  * Marginfi bank vault type
