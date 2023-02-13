@@ -360,7 +360,7 @@ const Pro = () => {
   return (
     <>
       <PageHeader />
-      <div className="h-full flex flex-col justify-start items-center content-start py-[64px] w-4/5 max-w-7xl gap-4">
+      <div className="h-full flex flex-col justify-start items-center content-start py-[48px] w-4/5 max-w-7xl gap-4">
         <div className="w-[360px] flex flex-col items-center gap-6">
           <div className="w-[300px] h-[100px] flex flex-col gap-5 justify-center">
             <div className="flex flex-col gap-1 w-full justify-center">
