@@ -1,9 +1,9 @@
-import { nativeToUi } from "@mrgnlabs/marginfi-client-v2";
 import MarginfiAccount, { Balance, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
 import { AccountSummary, BankInfo, ExtendedBankInfo, TokenAccount, TokenMetadata, UserPosition } from "~/types";
 import Bank, { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
 import { WALLET_BALANCE_MARGIN_SOL, WSOL_MINT } from "~/config";
 import { floor } from "~/utils";
+import { nativeToUi } from "@mrgnlabs/mrgn-common";
 
 const DEFAULT_ACCOUNT_SUMMARY = {
   balance: 0,
@@ -59,14 +59,15 @@ function makeExtendedBankInfo(
   const hasActivePosition = !!positionRaw;
   const position = hasActivePosition ? makeUserPosition(positionRaw, bankInfo) : null;
 
-  const walletBalance = isWrappedSol ? tokenAccount.balance + nativeSolBalance : tokenAccount.balance;
+  const tokenBalance = tokenAccount.balance;
 
   const maxDeposit = floor(
-    isWrappedSol ? Math.max(walletBalance - WALLET_BALANCE_MARGIN_SOL, 0) : walletBalance,
+    isWrappedSol ? Math.max(tokenBalance + nativeSolBalance - WALLET_BALANCE_MARGIN_SOL, 0) : tokenBalance,
     bankInfo.tokenMintDecimals
   );
   const maxWithdraw = floor(
-    Math.min(marginfiAccount?.getMaxWithdrawForBank(bankInfo.bank).toNumber() ?? 0, bankInfo.availableLiquidity),
+    // Math.min(marginfiAccount?.getMaxWithdrawForBank(bankInfo.bank).toNumber() ?? 0, bankInfo.availableLiquidity),
+    Math.min(position?.amount ?? 0, bankInfo.availableLiquidity), // TODO: FIX
     bankInfo.tokenMintDecimals
   );
   const maxBorrow = floor(
@@ -83,7 +84,7 @@ function makeExtendedBankInfo(
   const base = {
     ...bankInfo,
     hasActivePosition,
-    walletBalance,
+    tokenBalance,
     maxDeposit,
     maxRepay,
     maxWithdraw,

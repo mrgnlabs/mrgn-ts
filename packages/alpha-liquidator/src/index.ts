@@ -2,25 +2,21 @@ import { WRAPPED_SOL_MINT } from "@jup-ag/core";
 import {
   Environment,
   getConfig,
-  loadKeypair,
   MarginfiClient,
   MarginfiGroup,
-  nativeToUi,
-  NodeWallet,
-  sleep,
-  uiToNative,
   USDC_DECIMALS
 } from "@mrgnlabs/marginfi-client-v2";
 import MarginfiAccount, { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
 import { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
-import { getOrca, Orca, OrcaPool, OrcaPoolConfig, OrcaU64 } from "@orca-so/sdk";
+import { createSyncNativeInstruction } from "@mrgnlabs/mrgn-common/src/spl";
+import { loadKeypair, nativeToUi, NodeWallet, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
+import { getOrca, Orca, OrcaPool, OrcaPoolConfig } from "@orca-so/sdk";
 import { BN } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
-import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemInstruction, SystemProgram, Transaction } from "@solana/web3.js";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import Decimal from "decimal.js";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { createSyncNativeInstruction } from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");

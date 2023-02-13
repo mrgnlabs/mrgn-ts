@@ -52,7 +52,7 @@ enum ActionType {
 }
 
 export interface BankInfoForAccountBase extends BankInfo {
-  walletBalance: number;
+  tokenBalance: number;
   maxDeposit: number;
   maxRepay: number;
   maxWithdraw: number;

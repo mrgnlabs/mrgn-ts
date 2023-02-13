@@ -7,7 +7,8 @@ async function makeInitMarginfiAccountIx(
   accounts: {
     marginfiGroupPk: PublicKey;
     marginfiAccountPk: PublicKey;
-    signerPk: PublicKey;
+    authorityPk: PublicKey;
+    feePayerPk: PublicKey;
   }
 ) {
   return mfProgram.methods
@@ -15,8 +16,9 @@ async function makeInitMarginfiAccountIx(
     .accounts({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
-      signer: accounts.signerPk,
+      authority: accounts.authorityPk,
       systemProgram: SystemProgram.programId,
+      feePayer: accounts.feePayerPk,
     })
     .instruction();
 }

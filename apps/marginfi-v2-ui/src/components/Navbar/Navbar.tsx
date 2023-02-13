@@ -26,11 +26,11 @@ const Navbar: FC = () => {
               <Image src="/marginfi_logo.png" alt="marginfi logo" fill />
             </Link>
           </div>
-
-          {/* // @todo spacing between items looks weird at lg breakpoint */}
           <div className="absolute fixed left-0 right-0 flex justify-center items-center w-full h-full invisible lg:visible">
             <div className="h-full w-[28%] flex min-w-fit max-w-[600px]">
-              <NavbarCenterItem text="mrgnlend" textFormat="lowercase" />
+              <Link href={"/earn"}>
+                <NavbarCenterItem text="Earn"/>
+              </Link>
               <NavbarCenterItem text="Markets" disabled />
               <NavbarCenterItem text="Strategies" disabled />
               <NavbarCenterItem text="Trade" disabled />
@@ -41,10 +41,6 @@ const Navbar: FC = () => {
             <Link
               href={"https://marginfi.canny.io/mrgnlend"}
               className=""
-              // style={{
-              //   // border: 'solid red 1px',
-              //   color: '#FFF3D0'
-              // }}
             >
               <Button
                 className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"

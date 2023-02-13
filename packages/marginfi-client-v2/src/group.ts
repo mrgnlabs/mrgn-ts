@@ -2,9 +2,9 @@ import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor
 import { parsePriceData } from "@pythnetwork/client";
 import { Commitment, PublicKey } from "@solana/web3.js";
 import Bank, { BankData } from "./bank";
-import { DEFAULT_COMMITMENT } from "./constants";
 import { MARGINFI_IDL } from "./idl";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
+import { DEFAULT_COMMITMENT } from "@mrgnlabs/mrgn-common";
 
 /**
  * Wrapper class around a specific marginfi group.

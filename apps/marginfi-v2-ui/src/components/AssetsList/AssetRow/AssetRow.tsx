@@ -7,7 +7,7 @@ import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
-import { MarginfiClient, uiToNative } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT } from "~/config";
 import { Keypair, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
@@ -15,7 +15,8 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
   getAssociatedTokenAddressSync,
-} from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
+} from "@mrgnlabs/mrgn-common/src/spl";
+import { uiToNative } from "@mrgnlabs/mrgn-common";
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
@@ -23,12 +24,13 @@ const ACCOUNT_DETECTION_ERROR_TOAST_ID = "account-detection-error";
 
 const AssetRow: FC<{
   bankInfo: ExtendedBankInfo;
+  nativeSolBalance: number;
   isInLendingMode: boolean;
   isConnected: boolean;
   marginfiAccount: MarginfiAccount | null;
   marginfiClient: MarginfiClient | null;
   reloadBanks: () => Promise<void>;
-}> = ({ bankInfo, isInLendingMode, isConnected, marginfiAccount, marginfiClient, reloadBanks }) => {
+}> = ({ bankInfo, nativeSolBalance, isInLendingMode, isConnected, marginfiAccount, marginfiClient, reloadBanks }) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
 
   // Reset b/l amounts on toggle
@@ -148,14 +150,20 @@ const AssetRow: FC<{
               bankInfo.tokenMint
             )
           );
-          ixs.push(
-            SystemProgram.transfer({
-              fromPubkey: _marginfiAccount.authority,
-              toPubkey: ata,
-              lamports: uiToNative(borrowOrLendAmount - bankInfo.walletBalance, bankInfo.tokenMintDecimals).toNumber(),
-            })
-          );
-          ixs.push(createSyncNativeInstruction(ata));
+
+          const tokenBalanceNative = uiToNative(bankInfo.tokenBalance, bankInfo.tokenMintDecimals);
+          const borrowOrLendAmountNative = uiToNative(borrowOrLendAmount, bankInfo.tokenMintDecimals);
+          const nativeSolTopUpAmount = borrowOrLendAmountNative.sub(tokenBalanceNative);
+          if (nativeSolTopUpAmount.gtn(0)) {
+            ixs.push(
+              SystemProgram.transfer({
+                fromPubkey: _marginfiAccount.authority,
+                toPubkey: ata,
+                lamports: BigInt(nativeSolTopUpAmount.toString()),
+              })
+            );
+            ixs.push(createSyncNativeInstruction(ata));
+          }
 
           const depositIxs = await _marginfiAccount.makeDepositIx(borrowOrLendAmount, bankInfo.bank);
           ixs = ixs.concat(depositIxs.instructions);
@@ -264,11 +272,15 @@ const AssetRow: FC<{
             longLabel={isInLendingMode ? "Wallet Balance" : "Available Liquidity"}
             shortLabel={isInLendingMode ? "Wallet Balance" : "Available"}
             value={groupedNumberFormatter.format(
-              isInLendingMode ? bankInfo.walletBalance : bankInfo.availableLiquidity
+              isInLendingMode
+                ? bankInfo.tokenMint.equals(WSOL_MINT)
+                  ? bankInfo.tokenBalance + nativeSolBalance
+                  : bankInfo.tokenBalance
+                : bankInfo.availableLiquidity
             )}
             borderRadius="0px 10px 10px 0px"
             usdEquivalentValue={usdFormatter.format(
-              (isInLendingMode ? bankInfo.walletBalance : bankInfo.availableLiquidity) * bankInfo.tokenPrice
+              (isInLendingMode ? bankInfo.tokenBalance : bankInfo.availableLiquidity) * bankInfo.tokenPrice
             )}
           />
         )}

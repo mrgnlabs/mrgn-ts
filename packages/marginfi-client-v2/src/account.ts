@@ -1,16 +1,25 @@
+import {
+  Amount,
+  aprToApy,
+  DEFAULT_COMMITMENT,
+  InstructionsWrapper,
+  shortenAddress,
+  uiToNative,
+  WrappedI80F48,
+  wrappedI80F48toBigNumber
+} from "@mrgnlabs/mrgn-common";
+import { createAssociatedTokenAccountIdempotentInstruction } from "@mrgnlabs/mrgn-common/src/spl";
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { parsePriceData } from "@pythnetwork/client";
 import { AccountInfo, AccountMeta, Commitment, ComputeBudgetProgram, PublicKey, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { aprToApy, DEFAULT_COMMITMENT, MarginfiClient, shortenAddress, uiToNative, wrappedI80F48toBigNumber } from ".";
+import { MarginfiClient } from ".";
 import Bank, { BankData, PriceBias } from "./bank";
 import MarginfiGroup from "./group";
 import { MARGINFI_IDL } from "./idl";
 import instructions from "./instructions";
-import { AccountType, Amount, InstructionsWrapper, MarginfiConfig, MarginfiProgram, WrappedI80F48 } from "./types";
-import { nativeToUi } from "./utils";
-import { createAssociatedTokenAccountIdempotentInstruction } from "./utils/spl";
+import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
 
 /**
  * Wrapper class around a specific marginfi account.
@@ -201,7 +210,7 @@ class MarginfiAccount {
     debug("Depositing %s %s into marginfi account", amount, bank.mint);
     const ixs = await this.makeDepositIx(amount, bank);
     const tx = new Transaction().add(...ixs.instructions);
-    const sig = await this.client.processTransaction(tx);
+    const sig = await this.client.processTransaction(tx, [], { dryRun: true });
     debug("Depositing successful %s", sig);
     await this.reload();
     return sig;
@@ -872,4 +881,8 @@ export enum MarginRequirementType {
   Init = 0,
   Maint = 1,
   Equity = 2,
+}
+
+function nativeToUi(arg0: BigNumber, mintDecimals: number): BigNumber.Value {
+  throw new Error("Function not implemented.");
 }

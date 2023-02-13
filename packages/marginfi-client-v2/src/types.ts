@@ -1,33 +1,13 @@
-import { AnchorProvider, BN, Program } from "@project-serum/anchor";
-import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
-import { ConfirmOptions, Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import BigNumber from "bignumber.js";
+import { PublicKey } from "@solana/web3.js";
 import { Marginfi } from "./idl/marginfi-types";
+import { Program } from "@mrgnlabs/mrgn-common";
 
-export type MarginfiProgram = Omit<Program<Marginfi>, "provider"> & {
-  provider: AnchorProvider;
-};
-export type MarginfiReadonlyProgram = Program<Marginfi>;
-
-export type Amount = BigNumber | number | string;
-
-export type Wallet = Pick<SignerWalletAdapter, "signAllTransactions" | "signTransaction"> & {
-  publicKey: PublicKey;
-};
-
-export interface TransactionOptions extends ConfirmOptions {
-  dryRun?: boolean;
-}
+export type MarginfiProgram = Program<Marginfi>;
 
 /**
  * Supported config environments.
  */
 export type Environment = "production" | "alpha" | "staging" | "dev" | "mainnet-test-1" | "dev.1";
-
-export interface InstructionsWrapper {
-  instructions: TransactionInstruction[];
-  keys: Keypair[];
-}
 
 /**
  * Marginfi bank vault type
@@ -51,18 +31,9 @@ export interface BankAddress {
   address: PublicKey;
 }
 
-export interface InstructionsWrapper {
-  instructions: TransactionInstruction[];
-  keys: Keypair[];
-}
-
 // --- On-chain account structs
 
 export enum AccountType {
   MarginfiGroup = "marginfiGroup",
   MarginfiAccount = "marginfiAccount",
-}
-
-export interface WrappedI80F48 {
-  value: BN;
 }
