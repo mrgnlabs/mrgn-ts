@@ -12,15 +12,14 @@
     <a href="http://www.apache.org/licenses/LICENSE-2.0"><img alt="License" src="https://img.shields.io/github/license/mrgnlabs/mrgn-ts?style=flat-square&color=ffff00"/></a>
     <!-- Total lines -->
     <a href=""><img alt="License" src="https://img.shields.io/tokei/lines/github/mrgnlabs/mrgn-ts?style=flat-square&color=000000"/></a>
-    <!-- Total lines -->
-    <a href=""><img alt="Total lines" src="https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2Fmarginfi?style=flat-square"/></a>
+    <!-- Twitter -->
+    <a href="https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Ftwitter.com%2Fmarginfi"><img alt="Twitter" src="https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2Fmarginfi"/></a>
     <br>
     <!-- Versions -->
     <a href=""><img alt="marginfi-v2-ui" src="https://img.shields.io/github/package-json/v/mrgnlabs/mrgn-ts?color=white&filename=apps%2Fmarginfi-v2-ui%2Fpackage.json&label=marginfi-v2-ui&style=flat-square"/></a>
     <a href=""><img alt="alpha-liquidator" src="https://img.shields.io/github/package-json/v/mrgnlabs/mrgn-ts?color=white&filename=packages%2Falpha-liquidator%2Fpackage.json&label=alpha-liquidator&style=flat-square"/></a>
     <a href=""><img alt="marginfi-client-v2" src="https://img.shields.io/github/package-json/v/mrgnlabs/mrgn-ts?color=white&filename=packages%2Fmarginfi-client-v2%2Fpackage.json&label=marginfi-client-v2&style=flat-square"/></a>
     <a href=""><img alt="lip-client" src="https://img.shields.io/github/package-json/v/mrgnlabs/mrgn-ts?color=white&filename=packages%2Flip-client%2Fpackage.json&label=lip-client&style=flat-square"/></a>
-    
   </p>
 
   <h4>
@@ -28,7 +27,7 @@
   </h4>
 </div>
 
-A monorepo for [marginfi](app.marginfi.com)-related TypeScript projects managed with Turbo.
+A monorepo for [marginfi](https://app.marginfi.com)-related TypeScript projects managed with Turbo.
 
 ## About
 
@@ -36,7 +35,7 @@ A monorepo for [marginfi](app.marginfi.com)-related TypeScript projects managed 
 
 ## Features
 
-- Managed with [Turbo](https://github.com/primer/turbo)
+- Managed with [Turbo](https://github.com/vercel/turbo)
 - Includes various app UI frontends and SDKs
 - Open source under the Apache 2.0 license
 
