@@ -1,3 +1,4 @@
+import { WRAPPED_SOL_MINT } from "@jup-ag/core";
 import {
   Environment,
   getConfig,
@@ -15,15 +16,19 @@ import { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
 import { getOrca, Orca, OrcaPool, OrcaPoolConfig, OrcaU64 } from "@orca-so/sdk";
 import { BN } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemInstruction, SystemProgram, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
+import Decimal from "decimal.js";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { createSyncNativeInstruction } from "@mrgnlabs/marginfi-client-v2/src/utils/spl";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const SLEEP_INTERVAL = Number.parseInt(process.env.SLEEP_INTERVAL ?? "5000");
+const MIN_SOL_BALANCE = Number.parseFloat(process.env.MIN_SOL_BALANCE ?? "1") * LAMPORTS_PER_SOL;
 
 
-type OrcaPoolMap = Map<Set<PublicKey>, OrcaPool>;
+type OrcaPoolMap = Map<string, OrcaPool>;
 
 class OrcaTrader {
   private poolMap: OrcaPoolMap;
@@ -36,12 +41,12 @@ class OrcaTrader {
     this.poolMap = OrcaTrader.buildOrcaPoolMap(this.orca);
   }
 
-  async trade(inputMint: PublicKey, outputMint: PublicKey, amount: BN | BigNumber) {
+  async trade(inputMint: PublicKey, outputMint: PublicKey, amountIn: BN | BigNumber, minAmountOut: BN | BigNumber = new BigNumber(0)) {
     const debug = getDebugLogger('orca-trader');
 
-    debug("Trading %d %s for %s", amount, inputMint.toBase58(), outputMint.toBase58());
+    debug("Trading %d %s for %s, min amount out", amountIn, inputMint.toBase58(), outputMint.toBase58(), minAmountOut);
 
-    const pool = this.poolMap.get(new Set([inputMint, outputMint]));
+    const pool = this.poolMap.get(getOrcaPoolKey(inputMint, outputMint));
 
     if (!pool) {
       throw new Error("No pool found");
@@ -52,22 +57,32 @@ class OrcaTrader {
 
     const inputOrcaToken = tokenA.mint.equals(inputMint) ? tokenA : tokenB;
 
-    let tx = await pool.swap(this.wallet.payer, inputOrcaToken, OrcaU64.fromNumber(amount.toNumber()), OrcaU64.fromNumber(0));
+    let tx = await pool.swap(this.wallet.payer, inputOrcaToken, new Decimal(amountIn.toNumber()), new Decimal(minAmountOut.toNumber()));
     let sig = await tx.execute();
 
     debug("Tx signature: %s", sig);
   }
 
   private static buildOrcaPoolMap(orca: Orca): OrcaPoolMap {
-    let map = new Map<Set<PublicKey>, OrcaPool>();
+    const debug = getDebugLogger('orca-trader');
+    let map = new Map<string, OrcaPool>();
 
     Object.values(OrcaPoolConfig).forEach(poolAddress => {
       let pool = orca.getPool(poolAddress);
-      map.set(new Set<PublicKey>([pool.getTokenA().mint, pool.getTokenB().mint]), pool);
+      map.set(getOrcaPoolKey(pool.getTokenA().mint, pool.getTokenB().mint), pool);
     })
+
+    debug("Build orcal pool map with %d pools", map.size);
 
     return map
   }
+}
+
+function getOrcaPoolKey(keyA: PublicKey, keyB: PublicKey): string {
+  const bigInt1 = BigInt("0x" + keyA.toBuffer().toString("hex"));
+  const bigInt2 = BigInt("0x" + keyB.toBuffer().toString("hex"));
+
+  return (bigInt1 + bigInt2).toString();
 }
 
 class Liquidator {
@@ -126,24 +141,6 @@ class Liquidator {
       const balance = await this.getTokenAccountBalance(bank.mint);
 
       await this.orcaTrader.trade(bank.mint, USDC_MINT, balance);
-
-      // const routes = await jupiter.computeRoutes({
-      //   inputMint: bank.mint,
-      //   outputMint: USDC_MINT,
-      //   amount: JSBI.BigInt(balance),
-      //   slippageBps: 10,
-      // });
-
-      // const bestRoute = routes.routesInfos[0];
-
-      // const trade = await jupiter.exchange({ routeInfo: bestRoute });
-      // const res = await trade.execute();
-      // // @ts-ignore
-      // if (res.error) {
-      //   // @ts-ignore
-      //   throw new Error(res.error);
-      // }
-      // debug("Tx signature: %s", res);
     }
   }
 
@@ -206,34 +203,62 @@ class Liquidator {
 
       usdcBuyingPower = BigNumber.min(availableUsdcInTokenAccount, liabUsdcValue);
 
-      const usdcAmount = uiToNative(usdcBuyingPower, USDC_DECIMALS);
       debug("Swapping %d USDC to %s", usdcBuyingPower, bank.label);
 
-      await this.orcaTrader.trade(USDC_MINT, bank.mint, new BigNumber(usdcAmount.toString()));
+      await this.orcaTrader.trade(USDC_MINT, bank.mint, usdcBuyingPower);
 
-      // const routes = await jupiter.computeRoutes({
-      //   inputMint: USDC_MINT,
-      //   outputMint: bank.mint,
-      //   amount: JSBI.BigInt(usdcAmount),
-      //   slippageBps: 10,
-      // });
+      if (bank.mint.equals(WRAPPED_SOL_MINT)) {
+        debug("Asset is SOL, wrapping before depositing, min sol in wallet %s", nativeToUi(MIN_SOL_BALANCE, 9));
+        const balance = await this.connection.getBalance(this.wallet.publicKey);
+        const ataBalance = await this.getTokenAccountBalance(WRAPPED_SOL_MINT);
 
-      // const bestRoute = routes.routesInfos[0];
-      // const trade = await jupiter.exchange({
-      //   routeInfo: bestRoute,
-      //   wrapUnwrapSOL: false,
-      // });
+        const transferAmount = BigNumber.min(
+          new BigNumber(Math.max(balance - MIN_SOL_BALANCE, 0)),
+          liabilities.minus(new BigNumber(uiToNative(ataBalance, bank.mintDecimals).toString()))
+        )
 
-      // const res = await trade.execute();
-      // // @ts-ignore
-      // if (res.error) {
-      //   // @ts-ignore
-      //   throw new Error(res.error);
-      // }
-      // debug("Tx signature: %s", res);
+        debug("Wrapping %s SOL", nativeToUi(transferAmount, bank.mintDecimals));
+
+        const ata = await associatedAddress({ mint: bank.mint, owner: this.wallet.publicKey });
+        const ataAccount = await this.connection.getAccountInfo(ata);
+
+        const tx = new Transaction();
+
+        if (!ataAccount) {
+          debug("Creatign WSOL ata account");
+          tx.add(
+            Token.createAssociatedTokenAccountInstruction(
+              ASSOCIATED_TOKEN_PROGRAM_ID,
+              TOKEN_PROGRAM_ID,
+              WRAPPED_SOL_MINT,
+              ata,
+              this.wallet.publicKey,
+              this.wallet.publicKey,
+            ));
+        }
+
+        tx.add(
+          SystemProgram.transfer({
+            fromPubkey: this.wallet.publicKey,
+            toPubkey: ata,
+            lamports: parseInt(transferAmount.toFixed(0, BigNumber.ROUND_FLOOR)),
+          }),
+          createSyncNativeInstruction(ata)
+        );
+
+        const sig = await this.client.processTransaction(
+          tx,
+          [this.wallet.payer],
+        );
+
+        debug("Wrapping tx: %s", sig);
+      }
 
       const liabBalance = await this.getTokenAccountBalance(bank.mint);
-      const depositSig = await this.account.deposit(liabBalance, bank);
+
+      debug("Got %s of %s, depositing to marginfi", liabBalance, bank.mint);
+
+      const depositSig = await this.account.repay(liabBalance, bank);
       debug("Deposit tx: %s", depositSig);
     }
   }
@@ -300,6 +325,7 @@ class Liquidator {
       await this.mainLoop();
     }
   }
+
   private async getTokenAccountBalance(mint: PublicKey): Promise<BigNumber> {
     const tokenAccount = await associatedAddress({ mint, owner: this.wallet.publicKey });
     try {
@@ -319,27 +345,40 @@ class Liquidator {
         continue;
       }
 
-      const amount = await this.getTokenAccountBalance(bank.mint);
+      let amount = await this.getTokenAccountBalance(bank.mint);
 
       if (amount.eq(0)) {
         continue;
       }
 
+      const balance = this.account.getBalance(bank.publicKey);
+      const { liabilities, } = balance.getQuantityUi(bank);
+
+
+      if (liabilities.gt(0)) {
+        debug("Account has %d liabilities in %s", liabilities, bank.label);
+        const depositAmount = BigNumber.min(amount, liabilities);
+
+        debug("Paying off %d %s liabilities", depositAmount, bank.label);
+        await this.account.repay(depositAmount, bank, amount.gte(liabilities));
+
+        amount = await this.getTokenAccountBalance(bank.mint);
+      }
+
+
+      if (bank.mint.equals(WRAPPED_SOL_MINT)) {
+        debug("Unwrapping remaining %s SOL", amount);
+        const ata = await associatedAddress({ mint: WRAPPED_SOL_MINT, owner: this.wallet.publicKey });
+        const ix = Token.createCloseAccountInstruction(TOKEN_PROGRAM_ID, ata, this.wallet.publicKey, this.wallet.publicKey, []);
+
+        const sig = await this.client.processTransaction(new Transaction().add(ix), [this.wallet.payer]);
+        debug("Unwrap tx: %s", sig);
+      }
+
+
       debug("Swapping %d %s to USDC", amount, bank.label);
 
-      await this.orcaTrader.trade(bank.mint, USDC_MINT, uiToNative(amount, bank.mintDecimals));
-
-      // const routes = await jupiter.computeRoutes({
-      //   inputMint: bank.mint,
-      //   outputMint: USDC_MINT,
-      //   amount: JSBI.BigInt(uiToNative(amount, bank.mintDecimals)),
-      //   slippageBps: 10,
-      // });
-
-      // const bestRoute = routes.routesInfos[0];
-      // const trade = await jupiter.exchange({ routeInfo: bestRoute });
-      // const tradeSig = await trade.execute();
-      // debug("Tx signature: %s", tradeSig);
+      await this.orcaTrader.trade(bank.mint, USDC_MINT, amount);
     }
 
     const usdcBalance = await this.getTokenAccountBalance(USDC_MINT);
@@ -523,7 +562,7 @@ async function main() {
 
   const wallet = new NodeWallet(loadKeypair(process.env.KEYPAIR_PATH));
   const connection = new Connection(process.env.RPC_ENDPOINT!, "confirmed");
-  const config = getConfig((process.env.MRGN_ENV as Environment) ?? "alpha");
+  const config = getConfig((process.env.MRGN_ENV as Environment) ?? "production");
   const client = await MarginfiClient.fetch(config, wallet, connection);
   const group = await MarginfiGroup.fetch(config, client.program);
 

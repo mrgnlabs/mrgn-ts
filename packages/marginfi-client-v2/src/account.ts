@@ -9,6 +9,7 @@ import MarginfiGroup from "./group";
 import { MARGINFI_IDL } from "./idl";
 import instructions from "./instructions";
 import { AccountType, Amount, InstructionsWrapper, MarginfiConfig, MarginfiProgram, WrappedI80F48 } from "./types";
+import { nativeToUi } from "./utils";
 import { createAssociatedTokenAccountIdempotentInstruction } from "./utils/spl";
 
 /**
@@ -251,7 +252,7 @@ class MarginfiAccount {
   async repay(amount: Amount, bank: Bank, repayAll: boolean = false): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:repay`);
 
-    debug("Repaying %s %s into marginfi account", amount, bank.mint);
+    debug("Repaying %s %s into marginfi account, repay all: %s", amount, bank.mint, repayAll);
     const ixs = await this.makeRepayIx(amount, bank, repayAll);
     const tx = new Transaction().add(...ixs.instructions);
     const sig = await this.client.processTransaction(tx);
@@ -671,27 +672,35 @@ class MarginfiAccount {
     const depositWeight = bank.getAssetWeight(MarginRequirementType.Init);
     const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Init);
 
-    return untiedCollateralForBank
-      .div(priceLowestBias.times(depositWeight))
-      .plus(freeCollateral.minus(untiedCollateralForBank).div(priceHighestBias.times(liabWeight)));
+    if (depositWeight.eq(0)) {
+      return balance.getQuantityUi(bank).assets.plus(freeCollateral.minus(untiedCollateralForBank).div(priceHighestBias.times(liabWeight)))
+    } else {
+      return untiedCollateralForBank
+        .div(priceLowestBias.times(depositWeight))
+        .plus(freeCollateral.minus(untiedCollateralForBank).div(priceHighestBias.times(liabWeight)));
+    }
   }
 
   /**
    * Calculate the maximum amount that can be withdrawn form a bank without borrowing.
    */
   public getMaxWithdrawForBank(bank: Bank): BigNumber {
+    const assetWeight = bank.getAssetWeight(MarginRequirementType.Init);
     const balance = this.getBalance(bank.publicKey);
 
-    const freeCollateral = this.getFreeCollateral();
-    const untiedCollateralForBank = BigNumber.min(
-      bank.getAssetUsdValue(balance.assetShares, MarginRequirementType.Init, PriceBias.Lowest),
-      freeCollateral
-    );
+    if (assetWeight.eq(0)) {
+      return balance.getQuantityUi(bank).assets
+    } else {
+      const freeCollateral = this.getFreeCollateral();
+      const untiedCollateralForBank = BigNumber.min(
+        bank.getAssetUsdValue(balance.assetShares, MarginRequirementType.Init, PriceBias.Lowest),
+        freeCollateral
+      );
 
-    const priceLowestBias = bank.getPrice(PriceBias.Lowest);
-    const assetWeight = bank.getAssetWeight(MarginRequirementType.Init);
+      const priceLowestBias = bank.getPrice(PriceBias.Lowest);
 
-    return untiedCollateralForBank.div(priceLowestBias.times(assetWeight));
+      return untiedCollateralForBank.div(priceLowestBias.times(assetWeight));
+    }
   }
 
   public async makeLendingAccountLiquidateIx(
@@ -830,6 +839,16 @@ export class Balance {
     return {
       assets: bank.getAssetQuantity(this.assetShares),
       liabilities: bank.getLiabilityQuantity(this.liabilityShares),
+    };
+  }
+
+  public getQuantityUi(bank: Bank): {
+    assets: BigNumber;
+    liabilities: BigNumber;
+  } {
+    return {
+      assets: new BigNumber(nativeToUi(bank.getAssetQuantity(this.assetShares), bank.mintDecimals)),
+      liabilities: new BigNumber(nativeToUi(bank.getLiabilityQuantity(this.liabilityShares), bank.mintDecimals)),
     };
   }
 }
