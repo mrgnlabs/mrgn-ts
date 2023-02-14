@@ -7,7 +7,8 @@ import { useProgram, useTokenAccounts } from "~/context";
 import { ProAction, ProInputBox } from "~/pages/earn";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { groupedNumberFormatterDyn, percentFormatterDyn } from "~/utils/formatters";
-import { calculateInterestFromApr, CompoundFrequency } from "@mrgnlabs/lip-client/src/utils";
+import { calculateInterestFromApr, CompoundFrequency, computeGuaranteedApr } from "@mrgnlabs/lip-client/src/utils";
+import { floor } from "~/utils";
 
 interface CampaignWizardProps {
   selectedAsset: string;
@@ -34,9 +35,13 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
   }, [tokenAccountMap, assetBank]);
 
   const maxRewards = useMemo(() => {
+    if (!assetBank) return 0;
     const lockupPeriodInYears = lockupPeriodInDays / 365;
-    return calculateInterestFromApr(depositCapacity, lockupPeriodInYears, guaranteedApr, CompoundFrequency.DAILY);
-  }, [lockupPeriodInDays, guaranteedApr, depositCapacity]);
+    return floor(
+      calculateInterestFromApr(depositCapacity, lockupPeriodInYears, guaranteedApr, CompoundFrequency.DAILY),
+      assetBank.mintDecimals
+    );
+  }, [assetBank, lockupPeriodInDays, depositCapacity, guaranteedApr]);
 
   const contractInputs = useMemo(() => {
     if (!assetBank)
@@ -60,6 +65,7 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
     if (mfiClient === null || !lipClient || !selectedAsset || !assetBank || maxRewards === 0) return;
 
     const campaignKeypair = Keypair.generate();
+    console.log("creating campaign", campaignKeypair.publicKey.toBase58());
     const userTokenAtaPk = await associatedAddress({
       mint: assetBank.mint,
       owner: lipClient.wallet.publicKey,
@@ -75,7 +81,8 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
         assetMint: assetBank.mint,
       })
       .instruction();
-    await lipClient.processTransaction(new Transaction().add(ix), [campaignKeypair]);
+    const sig = await lipClient.processTransaction(new Transaction().add(ix), [campaignKeypair]);
+    console.log("campaign creation tx", sig);
     await reloadLipClient();
   }, [
     assetBank,
@@ -165,6 +172,26 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
             }}
           >
             {groupedNumberFormatterDyn.format(maxRewards)} {selectedAsset}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          Effective rate:{" "}
+          <span
+            style={{
+              color: "yellow",
+              fontWeight: "bold",
+            }}
+          >
+            {assetBank
+              ? percentFormatterDyn.format(
+                  computeGuaranteedApr(
+                    contractInputs.lockupPeriod,
+                    contractInputs.maxDeposits,
+                    contractInputs.maxRewards,
+                    assetBank
+                  )
+                )
+              : 0}
           </span>
         </div>
       </div>

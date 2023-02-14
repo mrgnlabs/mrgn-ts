@@ -121,6 +121,9 @@ export interface DepositData {
 export interface CampaignData {
   publicKey: PublicKey;
   marginfiBankPk: PublicKey;
+  maxDeposits: BN;
+  maxRewards: BN;
+  lockupPeriod: BN;
 }
 
 export interface Campaign extends CampaignData {
