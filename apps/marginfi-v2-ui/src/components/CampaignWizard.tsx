@@ -59,7 +59,7 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
       maxDeposits: maxDepositsNative,
       maxRewards: maxRewardsNative,
     };
-  }, [assetBank, lockupPeriodInDays, maxRewards, depositCapacity]);
+  }, [assetBank, lockupPeriodInDays, depositCapacity]);
 
   const createCampaign = useCallback(async () => {
     if (mfiClient === null || !lipClient || !selectedAsset || !assetBank || maxRewards === 0) return;
