@@ -114,7 +114,7 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
           value={lockupPeriodInDays}
           setValue={setLockupPeriodInDays}
           loadingSafetyCheck={() => {}}
-          maxDecimals={1}
+          maxDecimals={3}
           disabled={!wallet.connected}
         />
       </div>
