@@ -52,7 +52,7 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
       };
 
     const lockupPeriodInSeconds = (lockupPeriodInDays) * 24 * 60 * 60;
-    const maxRewardsNative = uiToNative(0.5, assetBank.mintDecimals);
+    const maxRewardsNative = uiToNative(maxRewards, assetBank.mintDecimals);
     const maxDepositsNative = uiToNative(depositCapacity, assetBank.mintDecimals);
     return {
       lockupPeriod: new BN(lockupPeriodInSeconds),
