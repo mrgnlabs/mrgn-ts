@@ -7,7 +7,7 @@ import { useProgram, useTokenAccounts } from "~/context";
 import { ProAction, ProInputBox } from "~/pages/earn";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { groupedNumberFormatterDyn, percentFormatterDyn } from "~/utils/formatters";
-import { calculateInterestFromApr, CompoundFrequency, computeGuaranteedApr } from "@mrgnlabs/lip-client/src/utils";
+import { calculateInterestFromApy, computeGuaranteedApy } from "@mrgnlabs/lip-client/src/utils";
 import { floor } from "~/utils";
 
 interface CampaignWizardProps {
@@ -15,7 +15,7 @@ interface CampaignWizardProps {
 }
 
 const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
-  const [guaranteedApr, setGuaranteedApr] = useState(0);
+  const [guaranteedApy, setGuaranteedApy] = useState(0);
   const [lockupPeriodInDays, setLockupPeriodInDays] = useState(0);
   const [depositCapacity, setDepositCapacity] = useState(0);
 
@@ -38,10 +38,10 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
     if (!assetBank) return 0;
     const lockupPeriodInYears = lockupPeriodInDays / 365;
     return floor(
-      calculateInterestFromApr(depositCapacity, lockupPeriodInYears, guaranteedApr, CompoundFrequency.YEARLY),
+      calculateInterestFromApy(depositCapacity, lockupPeriodInYears, guaranteedApy),
       assetBank.mintDecimals
     );
-  }, [assetBank, lockupPeriodInDays, depositCapacity, guaranteedApr]);
+  }, [assetBank, lockupPeriodInDays, depositCapacity, guaranteedApy]);
 
   const contractInputs = useMemo(() => {
     if (!assetBank)
@@ -51,8 +51,8 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
         maxRewards: new BN(0),
       };
 
-    const lockupPeriodInSeconds = lockupPeriodInDays * 24 * 60 * 60;
-    const maxRewardsNative = uiToNative(maxRewards, assetBank.mintDecimals);
+    const lockupPeriodInSeconds = (lockupPeriodInDays) * 24 * 60 * 60;
+    const maxRewardsNative = uiToNative(0.5, assetBank.mintDecimals);
     const maxDepositsNative = uiToNative(depositCapacity, assetBank.mintDecimals);
     return {
       lockupPeriod: new BN(lockupPeriodInSeconds),
@@ -99,10 +99,10 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
   return (
     <div className="flex flex-col justify-center gap-3 p-5 bg-black z-20">
       <div>
-        Guaranteed APR percentage:
+        Guaranteed Apy percentage:
         <ProInputBox
-          value={guaranteedApr * 100}
-          setValue={(value) => setGuaranteedApr(value / 100)}
+          value={guaranteedApy * 100}
+          setValue={(value) => setGuaranteedApy(value / 100)}
           loadingSafetyCheck={() => {}}
           maxDecimals={2}
           disabled={!wallet.connected}
@@ -114,7 +114,7 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
           value={lockupPeriodInDays}
           setValue={setLockupPeriodInDays}
           loadingSafetyCheck={() => {}}
-          maxDecimals={0}
+          maxDecimals={1}
           disabled={!wallet.connected}
         />
       </div>
@@ -146,8 +146,8 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
       <div>
         <b style={{ color: "#3CAB5F" }}>Summary:</b>
         <div className="flex justify-between">
-          Guaranteed APR:{" "}
-          <span style={{ color: "yellow", fontWeight: "bold" }}>{percentFormatterDyn.format(guaranteedApr)}</span>
+          Guaranteed Apy:{" "}
+          <span style={{ color: "yellow", fontWeight: "bold" }}>{percentFormatterDyn.format(guaranteedApy)}</span>
         </div>
         <div className="flex justify-between">
           Lock-up period: <span style={{ color: "yellow", fontWeight: "bold" }}>{lockupPeriodInDays} days</span>
@@ -184,7 +184,7 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
           >
             {assetBank
               ? percentFormatterDyn.format(
-                  computeGuaranteedApr(
+                  computeGuaranteedApy(
                     contractInputs.lockupPeriod,
                     contractInputs.maxDeposits,
                     contractInputs.maxRewards,
