@@ -57,5 +57,6 @@ export function computeGuaranteedApr(lockupPeriodInSeconds: BN, maxDeposits: BN,
   const principal = nativeToUi(maxDeposits, bank.mintDecimals);
   const durationInYears = lockupPeriodInSeconds.toNumber() / 365 / 24 / 60 / 60;
   const interest = nativeToUi(maxRewards, bank.mintDecimals);
+  // @todo this needs to be cleaned up, works cleanly when there is no effective compounding right now
   return calculateAprFromInterest(principal, durationInYears, interest, CompoundFrequency.YEARLY);
 }
