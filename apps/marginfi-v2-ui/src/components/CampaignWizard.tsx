@@ -38,7 +38,7 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
     if (!assetBank) return 0;
     const lockupPeriodInYears = lockupPeriodInDays / 365;
     return floor(
-      calculateInterestFromApr(depositCapacity, lockupPeriodInYears, guaranteedApr, CompoundFrequency.DAILY),
+      calculateInterestFromApr(depositCapacity, lockupPeriodInYears, guaranteedApr, CompoundFrequency.YEARLY),
       assetBank.mintDecimals
     );
   }, [assetBank, lockupPeriodInDays, depositCapacity, guaranteedApr]);
