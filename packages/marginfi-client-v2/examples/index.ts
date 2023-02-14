@@ -11,10 +11,6 @@ async function main() {
   const programAddresses = await client.getAllProgramAccountAddresses(AccountType.MarginfiGroup);
   console.log(programAddresses.map((key) => key.toBase58()));
 
-  // const marginfiAccount = await client.createMarginfiAccount({
-  //   dryRun: false,
-  // });
-
   const marginfiAccount = await MarginfiAccount.fetch("6tgsmyfNHVzZaDJ6bjSVrKBGVsrgpqHNzr7WDz3BeT7t", client);
 
   const group = marginfiAccount.group;
