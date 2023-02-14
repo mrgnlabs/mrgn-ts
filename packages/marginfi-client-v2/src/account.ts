@@ -210,7 +210,7 @@ class MarginfiAccount {
     debug("Depositing %s %s into marginfi account", amount, bank.mint);
     const ixs = await this.makeDepositIx(amount, bank);
     const tx = new Transaction().add(...ixs.instructions);
-    const sig = await this.client.processTransaction(tx, [], { dryRun: true });
+    const sig = await this.client.processTransaction(tx, []);
     debug("Depositing successful %s", sig);
     await this.reload();
     return sig;
