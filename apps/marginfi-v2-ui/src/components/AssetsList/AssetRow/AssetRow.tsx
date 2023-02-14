@@ -279,9 +279,16 @@ const AssetRow: FC<{
                 : bankInfo.availableLiquidity
             )}
             borderRadius="0px 10px 10px 0px"
-            usdEquivalentValue={usdFormatter.format(
-              (isInLendingMode ? bankInfo.tokenBalance : bankInfo.availableLiquidity) * bankInfo.tokenPrice
-            )}
+            usdEquivalentValue={
+              usdFormatter.format(
+              (isInLendingMode ? 
+                bankInfo.tokenMint.equals(WSOL_MINT)
+                  ? bankInfo.tokenBalance + nativeSolBalance
+                  : bankInfo.tokenBalance 
+                : bankInfo.availableLiquidity
+              ) * bankInfo.tokenPrice
+            )
+            }
           />
         )}
       </TableCell>
