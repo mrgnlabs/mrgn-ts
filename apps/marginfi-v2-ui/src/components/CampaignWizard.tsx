@@ -146,7 +146,7 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
       <div>
         <b style={{ color: "#3CAB5F" }}>Summary:</b>
         <div className="flex justify-between">
-          Guaranteed Apy:{" "}
+          Guaranteed APY:{" "}
           <span style={{ color: "yellow", fontWeight: "bold" }}>{percentFormatterDyn.format(guaranteedApy)}</span>
         </div>
         <div className="flex justify-between">
