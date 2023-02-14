@@ -205,6 +205,8 @@ export const AccountLayout = struct<RawAccount>([
 /** Byte length of a token account */
 export const ACCOUNT_SIZE = AccountLayout.span;
 
+export const NATIVE_MINT = new PublicKey('So11111111111111111111111111111111111111112');
+
 /**
  * Retrieve information about a token account
  *
