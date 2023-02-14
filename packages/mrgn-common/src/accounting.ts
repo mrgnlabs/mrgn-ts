@@ -1,6 +1,6 @@
 // ================ apr/apy conversions ================
 
-const HOURS_PER_YEAR = 365.25 * 24;
+export const HOURS_PER_YEAR = 365.25 * 24;
 
 /**
  * Formula source: http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies

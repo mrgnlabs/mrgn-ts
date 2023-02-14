@@ -12,18 +12,12 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import Image from "next/image";
 import LipAccount from "@mrgnlabs/lip-client/src/account";
-import { Keypair, Transaction } from "@solana/web3.js";
-import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
-import BN from "bn.js";
-import { uiToNative } from "@mrgnlabs/mrgn-common";
+import { CampaignWizard } from "~/components/CampaignWizard";
 
 const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (
   <>
     {marks.map((mark, index) => (
-      <div
-        key={index}
-        className="flex flex-col"
-      >
+      <div key={index} className="flex flex-col">
         <div
           key={index}
           style={{
@@ -66,12 +60,14 @@ interface ProActionProps extends ButtonProps {
   spinning?: boolean;
 }
 
-const ProAction: FC<ProActionProps> = ({ children, spinning, disabled, ...otherProps }) => {
+export const ProAction: FC<ProActionProps> = ({ children, spinning, disabled, ...otherProps }) => {
   const wallet = useWallet();
 
   return wallet.connected ? (
     <Button
-      className="bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px]"
+      className={`bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] ${
+        disabled && "cursor-not-allowed"
+      }`}
       style={{
         backgroundColor: disabled || !wallet.connected ? "gray" : "rgb(227, 227, 227)",
         color: "black",
@@ -110,15 +106,14 @@ interface ProInputBox {
   disabled?: boolean;
 }
 
-const ProInputBox: FC<ProInputBox> = ({ value, setValue, loadingSafetyCheck, maxValue, maxDecimals, disabled }) => {
-  // const onMaxClick = useCallback(() => {
-  //   if (maxValue !== undefined) {
-  //     setValue(maxValue);
-  //   } else {
-  //     toast.error("Not implemented");
-  //   }
-  // }, [maxValue, setValue]);
-
+export const ProInputBox: FC<ProInputBox> = ({
+  value,
+  setValue,
+  loadingSafetyCheck,
+  maxValue,
+  maxDecimals,
+  disabled,
+}) => {
   const onChange = useCallback(
     (event: NumberFormatValues) => {
       const updatedAmountStr = event.value;
@@ -267,10 +262,10 @@ const Pro = () => {
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [reloading, setReloading] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(defaultAsset);
-  const [amount, setAmount] = React.useState(0);
-  const [progressPercent, setProgressPercent] = React.useState(0);
+  const [amount, setAmount] = useState(0);
+  const [progressPercent, setProgressPercent] = useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
-  const { lipClient, mfiClient, reload: reloadLipClient } = useProgram();
+  const { lipClient, mfiClient } = useProgram();
 
   useEffect(() => {
     (async function () {
@@ -323,39 +318,11 @@ const Pro = () => {
     setReloading(false);
   }, [amount, lipAccount, lipClient, selectedAsset]);
 
-  const createCampaign = useCallback(async () => {
-    if (mfiClient === null || !lipClient || !selectedAsset) return;
-
-    const campaignKeypair = Keypair.generate();
-    const banks = mfiClient.group.banks;
-    const bank = [...banks.values()].find((b) => b.label === selectedAsset);
-    if (!bank) throw new Error("Bank not found");
-    const userTokenAtaPk = await associatedAddress({
-      mint: bank.mint,
-      owner: lipClient.wallet.publicKey,
-    });
-
-    const ix = await lipClient.program.methods
-      .createCampaign(new BN(1), uiToNative(1, bank.mintDecimals), uiToNative(1, bank.mintDecimals))
-      .accounts({
-        campaign: campaignKeypair.publicKey,
-        admin: lipClient.wallet.publicKey,
-        fundingAccount: userTokenAtaPk,
-        marginfiBank: bank.publicKey,
-        assetMint: bank.mint,
-      })
-      .instruction();
-    await lipClient.processTransaction(new Transaction().add(ix), [campaignKeypair]);
-    await reloadLipClient();
-    setLipAccount(lipAccount);
-    setAmount(0);
-  }, [lipAccount, lipClient, mfiClient, reloadLipClient, selectedAsset]);
-
   const loadingSafetyCheck = useCallback(() => {
     if (!mfiClient || !lipAccount || !lipClient) {
-      setInitialFetchDone(false)
+      setInitialFetchDone(false);
     }
-  }, [ lipAccount, lipClient, mfiClient, setInitialFetchDone])
+  }, [lipAccount, lipClient, mfiClient, setInitialFetchDone]);
 
   return (
     <>
@@ -394,32 +361,19 @@ const Pro = () => {
                 <Marks marks={marks} />
               </div>
             </div>
-            
           </div>
 
-          <div
-            className="w-[300px] flex flex-col my-4 justify-cen dter font-[rgb(227, 227, 227)]"
-          >
-            <div
-              className="flex justify-center gap-2 text-[#484848] text-xl"
-              style={{ fontWeight: 400 }}
-            >
+          <div className="w-[300px] flex flex-col my-4 justify-cen dter font-[rgb(227, 227, 227)]">
+            <div className="flex justify-center gap-2 text-[#484848] text-xl" style={{ fontWeight: 400 }}>
               FUNDS WILL BE LOCKED FOR:
             </div>
-            <div
-              className="flex justify-center gap-2 text-2xl d"
-              style={{ fontWeight: 400, letterSpacing: "0.2em" }}
-            >
+            <div className="flex justify-center gap-2 text-2xl d" style={{ fontWeight: 400, letterSpacing: "0.2em" }}>
               ⚠️<span style={{ color: "yellow" }}>6 MONTHS</span>⚠️
             </div>
-            <div
-              className="flex justify-center gap-2 text-[#484848] text-xl"
-              style={{ fontWeight: 400, }}
-            >
+            <div className="flex justify-center gap-2 text-[#484848] text-xl" style={{ fontWeight: 400 }}>
               FROM DEPOSIT DATE
             </div>
           </div>
-          
 
           <div className="flex justify-center">
             <AssetSelection setSelectedAsset={setSelectedAsset} defaultAsset={defaultAsset} />
@@ -451,9 +405,7 @@ const Pro = () => {
           </div>
 
           {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_CREATE_CAMPAIGN === "true" && (
-            <div className="flex justify-center">
-              <ProAction onClick={createCampaign}>Create campaign</ProAction>
-            </div>
+            <CampaignWizard selectedAsset={selectedAsset} />
           )}
         </div>
       </div>

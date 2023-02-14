@@ -1,11 +1,5 @@
 import { WRAPPED_SOL_MINT } from "@jup-ag/core";
-import {
-  Environment,
-  getConfig,
-  MarginfiClient,
-  MarginfiGroup,
-  USDC_DECIMALS
-} from "@mrgnlabs/marginfi-client-v2";
+import { Environment, getConfig, MarginfiClient, MarginfiGroup, USDC_DECIMALS } from "@mrgnlabs/marginfi-client-v2";
 import MarginfiAccount, { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
 import { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
 import { createSyncNativeInstruction } from "@mrgnlabs/mrgn-common/src/spl";
@@ -23,7 +17,6 @@ const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const SLEEP_INTERVAL = Number.parseInt(process.env.SLEEP_INTERVAL ?? "5000");
 const MIN_SOL_BALANCE = Number.parseFloat(process.env.MIN_SOL_BALANCE ?? "1") * LAMPORTS_PER_SOL;
 
-
 type OrcaPoolMap = Map<string, OrcaPool>;
 
 class OrcaTrader {
@@ -37,8 +30,13 @@ class OrcaTrader {
     this.poolMap = OrcaTrader.buildOrcaPoolMap(this.orca);
   }
 
-  async trade(inputMint: PublicKey, outputMint: PublicKey, amountIn: BN | BigNumber, minAmountOut: BN | BigNumber = new BigNumber(0)) {
-    const debug = getDebugLogger('orca-trader');
+  async trade(
+    inputMint: PublicKey,
+    outputMint: PublicKey,
+    amountIn: BN | BigNumber,
+    minAmountOut: BN | BigNumber = new BigNumber(0)
+  ) {
+    const debug = getDebugLogger("orca-trader");
 
     debug("Trading %d %s for %s, min amount out", amountIn, inputMint.toBase58(), outputMint.toBase58(), minAmountOut);
 
@@ -53,24 +51,29 @@ class OrcaTrader {
 
     const inputOrcaToken = tokenA.mint.equals(inputMint) ? tokenA : tokenB;
 
-    let tx = await pool.swap(this.wallet.payer, inputOrcaToken, new Decimal(amountIn.toNumber()), new Decimal(minAmountOut.toNumber()));
+    let tx = await pool.swap(
+      this.wallet.payer,
+      inputOrcaToken,
+      new Decimal(amountIn.toNumber()),
+      new Decimal(minAmountOut.toNumber())
+    );
     let sig = await tx.execute();
 
     debug("Tx signature: %s", sig);
   }
 
   private static buildOrcaPoolMap(orca: Orca): OrcaPoolMap {
-    const debug = getDebugLogger('orca-trader');
+    const debug = getDebugLogger("orca-trader");
     let map = new Map<string, OrcaPool>();
 
-    Object.values(OrcaPoolConfig).forEach(poolAddress => {
+    Object.values(OrcaPoolConfig).forEach((poolAddress) => {
       let pool = orca.getPool(poolAddress);
       map.set(getOrcaPoolKey(pool.getTokenA().mint, pool.getTokenB().mint), pool);
-    })
+    });
 
     debug("Build orcal pool map with %d pools", map.size);
 
-    return map
+    return map;
   }
 }
 
@@ -89,7 +92,13 @@ class Liquidator {
   orcaTrader: OrcaTrader;
   wallet: NodeWallet;
 
-  constructor(connection: Connection, account: MarginfiAccount, group: MarginfiGroup, client: MarginfiClient, wallet: NodeWallet) {
+  constructor(
+    connection: Connection,
+    account: MarginfiAccount,
+    group: MarginfiGroup,
+    client: MarginfiClient,
+    wallet: NodeWallet
+  ) {
     this.connection = connection;
     this.account = account;
     this.group = group;
@@ -106,7 +115,7 @@ class Liquidator {
    * in a later stage the borrowed liabilities and usdc to untie the remaining collateral.
    */
   private async sellNonUsdcDeposits() {
-    const debug = getDebugLogger('sell-non-usdc-deposits');
+    const debug = getDebugLogger("sell-non-usdc-deposits");
     debug("Starting non-usdc deposit sell step (1/3)");
     let balancesWithNonUsdcDeposits = this.account.activeBalances
       .map((balance) => {
@@ -155,7 +164,7 @@ class Liquidator {
    *
    */
   private async repayAllDebt() {
-    const debug = getDebugLogger('repay-all-debt');
+    const debug = getDebugLogger("repay-all-debt");
     debug("Starting debt repayment step (2/3)");
     const balancesWithNonUsdcLiabilities = this.account.activeBalances
       .map((balance) => {
@@ -211,7 +220,7 @@ class Liquidator {
         const transferAmount = BigNumber.min(
           new BigNumber(Math.max(balance - MIN_SOL_BALANCE, 0)),
           liabilities.minus(new BigNumber(uiToNative(ataBalance, bank.mintDecimals).toString()))
-        )
+        );
 
         debug("Wrapping %s SOL", nativeToUi(transferAmount, bank.mintDecimals));
 
@@ -229,8 +238,9 @@ class Liquidator {
               WRAPPED_SOL_MINT,
               ata,
               this.wallet.publicKey,
-              this.wallet.publicKey,
-            ));
+              this.wallet.publicKey
+            )
+          );
         }
 
         tx.add(
@@ -242,10 +252,7 @@ class Liquidator {
           createSyncNativeInstruction(ata)
         );
 
-        const sig = await this.client.processTransaction(
-          tx,
-          [this.wallet.payer],
-        );
+        const sig = await this.client.processTransaction(tx, [this.wallet.payer]);
 
         debug("Wrapping tx: %s", sig);
       }
@@ -271,7 +278,7 @@ class Liquidator {
    * the re-balancing mechanism will start again.
    */
   private async depositRemainingUsdc() {
-    const debug = getDebugLogger('deposit-remaining-usdc');
+    const debug = getDebugLogger("deposit-remaining-usdc");
     debug("Starting remaining usdc deposit step (3/3)");
 
     const usdcBalance = await this.getTokenAccountBalance(USDC_MINT);
@@ -282,7 +289,7 @@ class Liquidator {
   }
 
   private async rebalancingStage() {
-    const debug = getDebugLogger('rebalancing-stage');
+    const debug = getDebugLogger("rebalancing-stage");
     debug("Starting rebalancing stage");
     await this.sellNonUsdcDeposits();
     await this.repayAllDebt();
@@ -290,7 +297,6 @@ class Liquidator {
   }
 
   async start() {
-
     console.log("Starting liquidator");
 
     console.log("Liquidator account: %s", this.account.publicKey);
@@ -303,7 +309,7 @@ class Liquidator {
   }
 
   private async mainLoop() {
-    const debug = getDebugLogger('main-loop');
+    const debug = getDebugLogger("main-loop");
     try {
       await this.swapNonUsdcInTokenAccounts();
       while (true) {
@@ -332,7 +338,7 @@ class Liquidator {
   }
 
   private async swapNonUsdcInTokenAccounts() {
-    const debug = getDebugLogger('swap-non-usdc-in-token-accounts');
+    const debug = getDebugLogger("swap-non-usdc-in-token-accounts");
     debug("Swapping any remaining non-usdc to usdc");
     const banks = this.group.banks.values();
     for (let bankInterEntry = banks.next(); !bankInterEntry.done; bankInterEntry = banks.next()) {
@@ -348,8 +354,7 @@ class Liquidator {
       }
 
       const balance = this.account.getBalance(bank.publicKey);
-      const { liabilities, } = balance.getQuantityUi(bank);
-
+      const { liabilities } = balance.getQuantityUi(bank);
 
       if (liabilities.gt(0)) {
         debug("Account has %d liabilities in %s", liabilities, bank.label);
@@ -361,16 +366,20 @@ class Liquidator {
         amount = await this.getTokenAccountBalance(bank.mint);
       }
 
-
       if (bank.mint.equals(WRAPPED_SOL_MINT)) {
         debug("Unwrapping remaining %s SOL", amount);
         const ata = await associatedAddress({ mint: WRAPPED_SOL_MINT, owner: this.wallet.publicKey });
-        const ix = Token.createCloseAccountInstruction(TOKEN_PROGRAM_ID, ata, this.wallet.publicKey, this.wallet.publicKey, []);
+        const ix = Token.createCloseAccountInstruction(
+          TOKEN_PROGRAM_ID,
+          ata,
+          this.wallet.publicKey,
+          this.wallet.publicKey,
+          []
+        );
 
         const sig = await this.client.processTransaction(new Transaction().add(ix), [this.wallet.payer]);
         debug("Unwrap tx: %s", sig);
       }
-
 
       debug("Swapping %d %s to USDC", amount, bank.label);
 
@@ -392,7 +401,7 @@ class Liquidator {
   }
 
   private async needsToBeRebalanced(): Promise<boolean> {
-    const debug = getDebugLogger('rebalance-check');
+    const debug = getDebugLogger("rebalance-check");
 
     debug("Checking if liquidator needs to be rebalanced");
     await this.group.reload();
@@ -423,7 +432,7 @@ class Liquidator {
   }
 
   private async liquidationStage() {
-    const debug = getDebugLogger('liquidation-stage');
+    const debug = getDebugLogger("liquidation-stage");
     debug("Started liquidation stage");
     const addresses = await this.client.getAllMarginfiAccountAddresses();
     debug("Found %s accounts", addresses.length);
@@ -441,9 +450,7 @@ class Liquidator {
     }
   }
 
-  private async processAccount(
-    account: PublicKey
-  ): Promise<boolean> {
+  private async processAccount(account: PublicKey): Promise<boolean> {
     const client = this.client;
     const group = this.group;
     const liquidatorAccount = this.account;
@@ -571,5 +578,5 @@ async function main() {
 main().catch((e) => console.log(e));
 
 function getDebugLogger(context: string) {
-  return require('debug')(`mfi:liquidator:${context}`);
+  return require("debug")(`mfi:liquidator:${context}`);
 }
