@@ -230,7 +230,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
                   <div
                     className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
                   >
-                    APR: {percentFormatterDyn.format(computeGuaranteedAprForCampaign(campaign))}%
+                    Min. APY: {percentFormatterDyn.format(computeGuaranteedAprForCampaign(campaign))}
                   </div>
                   <div className="ml-[2px] w-[40px]">
                     <Image src={meta.icon} alt={campaign.bank.label} height={meta.size} width={meta.size} />
