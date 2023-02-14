@@ -29,7 +29,7 @@ const Navbar: FC = () => {
           <div className="absolute fixed left-0 right-0 flex justify-center items-center w-full h-full invisible lg:visible">
             <div className="h-full w-[28%] flex min-w-fit max-w-[600px]">
               <Link href={"/earn"}>
-                <NavbarCenterItem text="Earn"/>
+                <NavbarCenterItem text="Earn" />
               </Link>
               <NavbarCenterItem text="Markets" disabled />
               <NavbarCenterItem text="Strategies" disabled />
@@ -38,10 +38,7 @@ const Navbar: FC = () => {
             </div>
           </div>
           <div className="h-full flex justify-center items-center gap-4 z-10">
-            <Link
-              href={"https://marginfi.canny.io/mrgnlend"}
-              className=""
-            >
+            <Link href={"https://marginfi.canny.io/mrgnlend"} className="">
               <Button
                 className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
                 variant="text"

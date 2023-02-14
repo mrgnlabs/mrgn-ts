@@ -6,7 +6,7 @@ import {
   shortenAddress,
   uiToNative,
   WrappedI80F48,
-  wrappedI80F48toBigNumber
+  wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
 import { createAssociatedTokenAccountIdempotentInstruction } from "@mrgnlabs/mrgn-common/src/spl";
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
@@ -682,7 +682,9 @@ class MarginfiAccount {
     const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Init);
 
     if (depositWeight.eq(0)) {
-      return balance.getQuantityUi(bank).assets.plus(freeCollateral.minus(untiedCollateralForBank).div(priceHighestBias.times(liabWeight)))
+      return balance
+        .getQuantityUi(bank)
+        .assets.plus(freeCollateral.minus(untiedCollateralForBank).div(priceHighestBias.times(liabWeight)));
     } else {
       return untiedCollateralForBank
         .div(priceLowestBias.times(depositWeight))
@@ -698,7 +700,7 @@ class MarginfiAccount {
     const balance = this.getBalance(bank.publicKey);
 
     if (assetWeight.eq(0)) {
-      return balance.getQuantityUi(bank).assets
+      return balance.getQuantityUi(bank).assets;
     } else {
       const freeCollateral = this.getFreeCollateral();
       const untiedCollateralForBank = BigNumber.min(

@@ -4,6 +4,12 @@ export const groupedNumberFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
+export const groupedNumberFormatterDyn = new Intl.NumberFormat("en-US", {
+  useGrouping: true,
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
+
 export const usdFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -17,9 +23,8 @@ export const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
-export const signedPercentFormatter = new Intl.NumberFormat("en-US", {
+export const percentFormatterDyn = new Intl.NumberFormat("en-US", {
   style: "percent",
-  minimumFractionDigits: 2,
+  minimumFractionDigits: 0,
   maximumFractionDigits: 2,
-  signDisplay: "always",
 });

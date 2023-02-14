@@ -1,9 +1,9 @@
-import React, { FC, ReactNode, useCallback, useEffect, useState } from "react";
+import React, { FC, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
 import { useProgram } from "~/context";
 import { Button, ButtonProps, CircularProgress, LinearProgress, TextField } from "@mui/material";
-import { usdFormatter } from "~/utils/formatters";
+import { percentFormatterDyn, usdFormatter } from "~/utils/formatters";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import dynamic from "next/dynamic";
 import Radio from "@mui/material/Radio";
@@ -11,19 +11,15 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import Image from "next/image";
-import LipAccount from "@mrgnlabs/lip-client/src/account";
-import { Keypair, Transaction } from "@solana/web3.js";
-import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
-import BN from "bn.js";
-import { uiToNative } from "@mrgnlabs/mrgn-common";
+import LipAccount, { Campaign } from "@mrgnlabs/lip-client/src/account";
+import { CampaignWizard } from "~/components/CampaignWizard";
+import config from "~/config";
+import { computeGuaranteedApyForCampaign } from "@mrgnlabs/lip-client/src/utils";
 
 const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (
   <>
     {marks.map((mark, index) => (
-      <div
-        key={index}
-        className="flex flex-col"
-      >
+      <div key={index} className="flex flex-col">
         <div
           key={index}
           style={{
@@ -66,12 +62,14 @@ interface ProActionProps extends ButtonProps {
   spinning?: boolean;
 }
 
-const ProAction: FC<ProActionProps> = ({ children, spinning, disabled, ...otherProps }) => {
+export const ProAction: FC<ProActionProps> = ({ children, spinning, disabled, ...otherProps }) => {
   const wallet = useWallet();
 
   return wallet.connected ? (
     <Button
-      className="bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px]"
+      className={`bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] ${
+        disabled && "cursor-not-allowed"
+      }`}
       style={{
         backgroundColor: disabled || !wallet.connected ? "gray" : "rgb(227, 227, 227)",
         color: "black",
@@ -110,15 +108,14 @@ interface ProInputBox {
   disabled?: boolean;
 }
 
-const ProInputBox: FC<ProInputBox> = ({ value, setValue, loadingSafetyCheck, maxValue, maxDecimals, disabled }) => {
-  // const onMaxClick = useCallback(() => {
-  //   if (maxValue !== undefined) {
-  //     setValue(maxValue);
-  //   } else {
-  //     toast.error("Not implemented");
-  //   }
-  // }, [maxValue, setValue]);
-
+export const ProInputBox: FC<ProInputBox> = ({
+  value,
+  setValue,
+  loadingSafetyCheck,
+  maxValue,
+  maxDecimals,
+  disabled,
+}) => {
   const onChange = useCallback(
     (event: NumberFormatValues) => {
       const updatedAmountStr = event.value;
@@ -187,29 +184,21 @@ const ProInputBox: FC<ProInputBox> = ({ value, setValue, loadingSafetyCheck, max
 // ASSET SELECTION
 // ================================
 
+interface WhitelistedCampaignWithMeta {
+  campaign: Campaign;
+  meta: {
+    icon: string;
+    size: number;
+  };
+}
+
 interface AssetSelectionProps {
   setSelectedAsset: (asset: string) => void;
   defaultAsset: string;
+  whitelistedCampaigns: WhitelistedCampaignWithMeta[];
 }
 
-const CAMPAIGNS_WHITELIST = [
-  {
-    label: "SOL",
-    value: "SOL",
-    icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
-    size: 30,
-    guaranteedApr: 9.48,
-  },
-  {
-    label: "USDC",
-    value: "USDC",
-    icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
-    size: 30,
-    guaranteedApr: 3.77,
-  },
-];
-
-const AssetSelection: FC<AssetSelectionProps> = ({ setSelectedAsset, defaultAsset }) => {
+const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSelectedAsset, defaultAsset }) => {
   return (
     <FormControl className="min-w-[360px] w-[360px]">
       <RadioGroup
@@ -219,10 +208,10 @@ const AssetSelection: FC<AssetSelectionProps> = ({ setSelectedAsset, defaultAsse
           setSelectedAsset(event.target.value);
         }}
       >
-        {CAMPAIGNS_WHITELIST.map(({ value, label, icon, size, guaranteedApr }) => (
+        {whitelistedCampaigns.map(({ campaign, meta }) => (
           <FormControlLabel
-            key={value}
-            value={value}
+            key={campaign.bank.label}
+            value={campaign.bank.label}
             control={
               <Radio
                 className="bg-[#1E1E1E] mr-2"
@@ -236,15 +225,15 @@ const AssetSelection: FC<AssetSelectionProps> = ({ setSelectedAsset, defaultAsse
             }
             label={
               <div className="w-[295px] flex justify-between items-center">
-                <div>{label}</div>
+                <div>{campaign.bank.label}</div>
                 <div className="flex gap-4 justify-center items-center">
                   <div
                     className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
                   >
-                    APR: {guaranteedApr}%
+                    Min. APY: {percentFormatterDyn.format(computeGuaranteedApyForCampaign(campaign))}
                   </div>
                   <div className="ml-[2px] w-[40px]">
-                    <Image src={icon} alt={value} height={size} width={size} />
+                    <Image src={meta.icon} alt={campaign.bank.label} height={meta.size} width={meta.size} />
                   </div>
                 </div>
               </div>
@@ -267,10 +256,27 @@ const Pro = () => {
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [reloading, setReloading] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(defaultAsset);
-  const [amount, setAmount] = React.useState(0);
-  const [progressPercent, setProgressPercent] = React.useState(0);
+  const [amount, setAmount] = useState(0);
+  const [progressPercent, setProgressPercent] = useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
-  const { lipClient, mfiClient, reload: reloadLipClient } = useProgram();
+  const { lipClient, mfiClient } = useProgram();
+
+  const whitelistedCampaignsWithMeta = useMemo(() => {
+    if (!lipClient) return [];
+    const whitelistedCampaigns =
+      lipClient.campaigns.filter((c) =>
+        config.campaignWhitelist.map((wc) => wc.publicKey).includes(c.publicKey.toBase58())
+      ) || [];
+    return whitelistedCampaigns.map((c) => {
+      const campaignFound = config.campaignWhitelist.find((wc) => wc.publicKey === c.publicKey.toBase58());
+      if (!campaignFound) throw Error("Campaign not found");
+      const { publicKey, ...meta } = campaignFound;
+      return {
+        campaign: c,
+        meta,
+      };
+    });
+  }, [lipClient]);
 
   useEffect(() => {
     (async function () {
@@ -308,54 +314,29 @@ const Pro = () => {
   }, [amount, wallet.connected]);
 
   const depositAction = useCallback(async () => {
-    if (!lipAccount || !lipClient || !selectedAsset || amount === 0) return;
+    if (!lipAccount || !lipClient || !selectedAsset || amount === 0 || whitelistedCampaignsWithMeta.length === 0)
+      return;
 
-    const campaign = lipClient.campaigns.find((campaign) => campaign.bank.label === selectedAsset);
-    if (!campaign) throw new Error("Campaign not found");
+    const campaignWithMeta = whitelistedCampaignsWithMeta.find(
+      (campaignWithMeta) => campaignWithMeta.campaign.bank.label === selectedAsset
+    );
+    if (!campaignWithMeta) throw new Error("Campaign not found");
     setReloading(true);
     try {
-      await lipClient.deposit(campaign.publicKey, amount, campaign.bank);
+      await lipClient.deposit(campaignWithMeta.campaign.publicKey, amount, campaignWithMeta.campaign.bank);
       setLipAccount(await lipAccount.reloadAndClone());
       setAmount(0);
     } catch (e) {
       console.error(e);
     }
     setReloading(false);
-  }, [amount, lipAccount, lipClient, selectedAsset]);
-
-  const createCampaign = useCallback(async () => {
-    if (mfiClient === null || !lipClient || !selectedAsset) return;
-
-    const campaignKeypair = Keypair.generate();
-    const banks = mfiClient.group.banks;
-    const bank = [...banks.values()].find((b) => b.label === selectedAsset);
-    if (!bank) throw new Error("Bank not found");
-    const userTokenAtaPk = await associatedAddress({
-      mint: bank.mint,
-      owner: lipClient.wallet.publicKey,
-    });
-
-    const ix = await lipClient.program.methods
-      .createCampaign(new BN(1), uiToNative(1, bank.mintDecimals), uiToNative(1, bank.mintDecimals))
-      .accounts({
-        campaign: campaignKeypair.publicKey,
-        admin: lipClient.wallet.publicKey,
-        fundingAccount: userTokenAtaPk,
-        marginfiBank: bank.publicKey,
-        assetMint: bank.mint,
-      })
-      .instruction();
-    await lipClient.processTransaction(new Transaction().add(ix), [campaignKeypair]);
-    await reloadLipClient();
-    setLipAccount(lipAccount);
-    setAmount(0);
-  }, [lipAccount, lipClient, mfiClient, reloadLipClient, selectedAsset]);
+  }, [amount, lipAccount, lipClient, selectedAsset, whitelistedCampaignsWithMeta]);
 
   const loadingSafetyCheck = useCallback(() => {
     if (!mfiClient || !lipAccount || !lipClient) {
-      setInitialFetchDone(false)
+      setInitialFetchDone(false);
     }
-  }, [ lipAccount, lipClient, mfiClient, setInitialFetchDone])
+  }, [lipAccount, lipClient, mfiClient, setInitialFetchDone]);
 
   return (
     <>
@@ -394,35 +375,26 @@ const Pro = () => {
                 <Marks marks={marks} />
               </div>
             </div>
-            
           </div>
 
-          <div
-            className="w-[300px] flex flex-col my-4 justify-cen dter font-[rgb(227, 227, 227)]"
-          >
-            <div
-              className="flex justify-center gap-2 text-[#484848] text-xl"
-              style={{ fontWeight: 400 }}
-            >
+          <div className="w-[300px] flex flex-col my-4 justify-cen dter font-[rgb(227, 227, 227)]">
+            <div className="flex justify-center gap-2 text-[#484848] text-xl" style={{ fontWeight: 400 }}>
               FUNDS WILL BE LOCKED FOR:
             </div>
-            <div
-              className="flex justify-center gap-2 text-2xl d"
-              style={{ fontWeight: 400, letterSpacing: "0.2em" }}
-            >
+            <div className="flex justify-center gap-2 text-2xl d" style={{ fontWeight: 400, letterSpacing: "0.2em" }}>
               ⚠️<span style={{ color: "yellow" }}>6 MONTHS</span>⚠️
             </div>
-            <div
-              className="flex justify-center gap-2 text-[#484848] text-xl"
-              style={{ fontWeight: 400, }}
-            >
+            <div className="flex justify-center gap-2 text-[#484848] text-xl" style={{ fontWeight: 400 }}>
               FROM DEPOSIT DATE
             </div>
           </div>
-          
 
           <div className="flex justify-center">
-            <AssetSelection setSelectedAsset={setSelectedAsset} defaultAsset={defaultAsset} />
+            <AssetSelection
+              whitelistedCampaigns={whitelistedCampaignsWithMeta}
+              setSelectedAsset={setSelectedAsset}
+              defaultAsset={defaultAsset}
+            />
           </div>
 
           <div className="flex justify-center">
@@ -451,9 +423,7 @@ const Pro = () => {
           </div>
 
           {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_CREATE_CAMPAIGN === "true" && (
-            <div className="flex justify-center">
-              <ProAction onClick={createCampaign}>Create campaign</ProAction>
-            </div>
+            <CampaignWizard selectedAsset={selectedAsset} />
           )}
         </div>
       </div>

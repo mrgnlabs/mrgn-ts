@@ -1,98 +1,98 @@
 [
-   {
-      "label":"production",
-      "cluster":"mainnet",
-      "program":"MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-      "group":"4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
-      "banks":[
-         {
-            "label":"USDC",
-            "address":"2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"
-         },
-         {
-            "label":"SOL",
-            "address":"CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"
-         }
-      ]
-   },
-   {
-      "label":"alpha",
-      "cluster":"mainnet",
-      "program":"yyyxaNHJP5FiDhmQW8RkBkp1jTL2cyxJmhMdWpJfsiy",
-      "group":"7xNRPf4qqgDAkvDEgkRuC4SevR1RUxzosoRb7GsaVsqa",
-      "banks":[
-         {
-            "label":"USDC",
-            "address":"Hp5niMGdiSCUmEUJpNyF3n4NMthwwLVTAPZB1hyvVZd9"
-         },
-         {
-            "label":"SOL",
-            "address":"DDxthf5NdQe3VrKByCe41NjsU6tVmVsVBdCAtz143Hdp"
-         }
-      ]
-   },
-   {
-      "label":"mainnet-test-1",
-      "cluster":"mainnet",
-      "program":"MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-      "group":"CWqJj49NPUGE7Y18QuKcJCC6vEyspCj91oKgECyfxepR",
-      "banks":[
-         {
-            "label":"USDC",
-            "address":"4SryZ4bWGqEsNjbqNUKuxnoyagWgbxj6MavyUF2HRzhA"
-         },
-         {
-            "label":"SOL",
-            "address":"BpmLoZcyKJP9Jncq5TE7TTzxPV6PSbKNZkuvU1MB6t8e"
-         }
-      ]
-   },
-   {
-      "label":"staging",
-      "cluster":"mainnet",
-      "program":"MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-      "group":"4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
-      "banks":[
-         {
-            "label":"USDC",
-            "address":"2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"
-         },
-         {
-            "label":"SOL",
-            "address":"CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"
-         }
-      ]
-   },
-   {
-      "label":"dev.1",
-      "cluster":"devnet",
-      "program":"neetcne3Ctrrud7vLdt2ypMm21gZHGN2mCmqWaMVcBQ",
-      "group":"2eophx2kdM71vgKQnZXmA7GGCVZ1voRMxU2F4Gcournb",
-      "banks":[
-         {
-            "label":"USDC",
-            "address":"Ervy8u3zyS6KZj5CfVRkiL1iykZeChDELZekAq7z9rNk"
-         },
-         {
-            "label":"SOL",
-            "address":"CmHpj7pTmEDg2hCDgTWP7Hcc4zG7nrGRrdjChgz6iM2K"
-         }
-      ]
-   },
-   {
-      "label":"dev",
-      "cluster":"devnet",
-      "program":"A7vUDErNPCTt9qrB6SSM4F6GkxzUe9d8P3cXSmRg4eY4",
-      "group":"52NC7T3NTPFFwoxJDFk9mbKcA7675DJ39H1iPNz5RjSV",
-      "banks":[
-         {
-            "label":"USDC",
-            "address":"GhV6ZftLXv3o38CHMhX6nu8GkxS3kvrHSSCVpGFTysUC"
-         },
-         {
-            "label":"SOL",
-            "address":"2KvZHa7nPDBwLRz2yasXDnHsbyhrpzWkqEp6mEAnGeLJ"
-         }
-      ]
-   }
+  {
+    "label": "production",
+    "cluster": "mainnet",
+    "program": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+    "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
+    "banks": [
+      {
+        "label": "USDC",
+        "address": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"
+      },
+      {
+        "label": "SOL",
+        "address": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"
+      }
+    ]
+  },
+  {
+    "label": "alpha",
+    "cluster": "mainnet",
+    "program": "yyyxaNHJP5FiDhmQW8RkBkp1jTL2cyxJmhMdWpJfsiy",
+    "group": "7xNRPf4qqgDAkvDEgkRuC4SevR1RUxzosoRb7GsaVsqa",
+    "banks": [
+      {
+        "label": "USDC",
+        "address": "Hp5niMGdiSCUmEUJpNyF3n4NMthwwLVTAPZB1hyvVZd9"
+      },
+      {
+        "label": "SOL",
+        "address": "DDxthf5NdQe3VrKByCe41NjsU6tVmVsVBdCAtz143Hdp"
+      }
+    ]
+  },
+  {
+    "label": "mainnet-test-1",
+    "cluster": "mainnet",
+    "program": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+    "group": "CWqJj49NPUGE7Y18QuKcJCC6vEyspCj91oKgECyfxepR",
+    "banks": [
+      {
+        "label": "USDC",
+        "address": "4SryZ4bWGqEsNjbqNUKuxnoyagWgbxj6MavyUF2HRzhA"
+      },
+      {
+        "label": "SOL",
+        "address": "BpmLoZcyKJP9Jncq5TE7TTzxPV6PSbKNZkuvU1MB6t8e"
+      }
+    ]
+  },
+  {
+    "label": "staging",
+    "cluster": "mainnet",
+    "program": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+    "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
+    "banks": [
+      {
+        "label": "USDC",
+        "address": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"
+      },
+      {
+        "label": "SOL",
+        "address": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"
+      }
+    ]
+  },
+  {
+    "label": "dev.1",
+    "cluster": "devnet",
+    "program": "neetcne3Ctrrud7vLdt2ypMm21gZHGN2mCmqWaMVcBQ",
+    "group": "2eophx2kdM71vgKQnZXmA7GGCVZ1voRMxU2F4Gcournb",
+    "banks": [
+      {
+        "label": "USDC",
+        "address": "Ervy8u3zyS6KZj5CfVRkiL1iykZeChDELZekAq7z9rNk"
+      },
+      {
+        "label": "SOL",
+        "address": "CmHpj7pTmEDg2hCDgTWP7Hcc4zG7nrGRrdjChgz6iM2K"
+      }
+    ]
+  },
+  {
+    "label": "dev",
+    "cluster": "devnet",
+    "program": "A7vUDErNPCTt9qrB6SSM4F6GkxzUe9d8P3cXSmRg4eY4",
+    "group": "52NC7T3NTPFFwoxJDFk9mbKcA7675DJ39H1iPNz5RjSV",
+    "banks": [
+      {
+        "label": "USDC",
+        "address": "GhV6ZftLXv3o38CHMhX6nu8GkxS3kvrHSSCVpGFTysUC"
+      },
+      {
+        "label": "SOL",
+        "address": "2KvZHa7nPDBwLRz2yasXDnHsbyhrpzWkqEp6mEAnGeLJ"
+      }
+    ]
+  }
 ]
