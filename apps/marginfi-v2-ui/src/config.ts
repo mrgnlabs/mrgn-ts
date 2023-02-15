@@ -26,7 +26,7 @@ switch (environment) {
         icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
         size: 30,
         publicKey: "DaSgzq28jcYgDTqqCEUbzbifSR7WqUF33PFygBWYq9gq",
-      }
+      },
     ];
     break;
   case "alpha":

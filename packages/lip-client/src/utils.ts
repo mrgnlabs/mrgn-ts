@@ -3,19 +3,11 @@ import { nativeToUi } from "@mrgnlabs/mrgn-common";
 import BN from "bn.js";
 import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
 
-export function calculateInterestFromApy(
-  principal: number,
-  durationInYears: number,
-  Apy: number,
-): number {
-  return (principal * Apy) * durationInYears
+export function calculateInterestFromApy(principal: number, durationInYears: number, Apy: number): number {
+  return principal * Apy * durationInYears;
 }
 
-export function calculateApyFromInterest(
-  principal: number,
-  durationInYears: number,
-  interest: number,
-): number {
+export function calculateApyFromInterest(principal: number, durationInYears: number, interest: number): number {
   return interest / (principal * durationInYears);
 }
 
