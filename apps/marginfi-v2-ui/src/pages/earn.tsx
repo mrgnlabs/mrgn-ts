@@ -252,7 +252,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
 
 const Pro = () => {
   const wallet = useWallet();
-  const defaultAsset = "USDC";
+  const defaultAsset = "SOL";
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [reloading, setReloading] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(defaultAsset);
