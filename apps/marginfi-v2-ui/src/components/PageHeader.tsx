@@ -7,6 +7,7 @@ const PageHeader: FC = () => {
         className={
           "h-[80px] w-full w-[90%] max-w-7xl pl-[60px] flex flex-row items-center py-1 font-aeonik font-normal text-3xl bg-[url('/WaveBG3.png')]"
         }
+        style={{ color: 'white' }}
       >
         mrgnlend
       </div>

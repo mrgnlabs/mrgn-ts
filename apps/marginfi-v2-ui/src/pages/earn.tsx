@@ -377,14 +377,22 @@ const Pro = () => {
             </div>
           </div>
 
-          <div className="w-[300px] flex flex-col my-4 justify-cen dter font-[rgb(227, 227, 227)]">
-            <div className="flex justify-center gap-2 text-[#484848] text-xl" style={{ fontWeight: 400 }}>
+          <div className="w-[300px] flex flex-col my-4 justify-cen dter font-[rgb(227, 227, 227)]"style={{ backgroundColor: '#ffff000a', borderRadius: 5, padding: 15, }}>
+
+
+
+            <div className="flex justify-center gap-2 text-[#484848]" style={{ fontWeight: 400, fontSize: 13, letterSpacing: 3, marginBottom: 10, }}>
               FUNDS WILL BE LOCKED FOR:
             </div>
-            <div className="flex justify-center gap-2 text-2xl d" style={{ fontWeight: 400, letterSpacing: "0.2em" }}>
+
+
+
+
+
+            <div className="flex justify-center gap-2 text-2xl d" style={{ fontWeight: 400, letterSpacing: "0.15em" }}>
               ⚠️<span style={{ color: "yellow" }}>6 MONTHS</span>⚠️
             </div>
-            <div className="flex justify-center gap-2 text-[#484848] text-xl" style={{ fontWeight: 400 }}>
+            <div className="flex justify-center gap-2 text-[#484848]" style={{ fontWeight: 400, fontSize: 13, letterSpacing: 4, marginTop: 10,  }}>
               FROM DEPOSIT DATE
             </div>
           </div>
