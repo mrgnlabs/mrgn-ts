@@ -3,6 +3,7 @@ import {
   aprToApy,
   DEFAULT_COMMITMENT,
   InstructionsWrapper,
+  nativeToUi,
   shortenAddress,
   uiToNative,
   WrappedI80F48,
@@ -678,16 +679,16 @@ class MarginfiAccount {
 
     const priceLowestBias = bank.getPrice(PriceBias.Lowest);
     const priceHighestBias = bank.getPrice(PriceBias.Highest);
-    const depositWeight = bank.getAssetWeight(MarginRequirementType.Init);
+    const assetWeight = bank.getAssetWeight(MarginRequirementType.Init);
     const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Init);
 
-    if (depositWeight.eq(0)) {
+    if (assetWeight.eq(0)) {
       return balance
         .getQuantityUi(bank)
         .assets.plus(freeCollateral.minus(untiedCollateralForBank).div(priceHighestBias.times(liabWeight)));
     } else {
       return untiedCollateralForBank
-        .div(priceLowestBias.times(depositWeight))
+        .div(priceLowestBias.times(assetWeight))
         .plus(freeCollateral.minus(untiedCollateralForBank).div(priceHighestBias.times(liabWeight)));
     }
   }
@@ -883,8 +884,4 @@ export enum MarginRequirementType {
   Init = 0,
   Maint = 1,
   Equity = 2,
-}
-
-function nativeToUi(arg0: BigNumber, mintDecimals: number): BigNumber.Value {
-  throw new Error("Function not implemented.");
 }
