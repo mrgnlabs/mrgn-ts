@@ -67,9 +67,8 @@ export const ProAction: FC<ProActionProps> = ({ children, spinning, disabled, ..
 
   return wallet.connected ? (
     <Button
-      className={`bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] ${
-        disabled && "cursor-not-allowed"
-      }`}
+      className={`bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] ${disabled && "cursor-not-allowed"
+        }`}
       style={{
         backgroundColor: disabled || !wallet.connected ? "gray" : "rgb(227, 227, 227)",
         color: "black",
@@ -279,7 +278,7 @@ const Pro = () => {
   }, [lipClient]);
 
   useEffect(() => {
-    (async function () {
+    (async function() {
       setInitialFetchDone(true);
       if (!mfiClient || !lipClient || !wallet.publicKey) return;
       const lipAccount = await LipAccount.fetch(wallet.publicKey, lipClient, mfiClient);

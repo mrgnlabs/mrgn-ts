@@ -8,6 +8,7 @@ import {
   Keypair,
   PublicKey,
   Signer,
+  SystemProgram,
   Transaction,
   TransactionMessage,
   TransactionSignature,
@@ -26,10 +27,12 @@ import {
   Amount,
   DEFAULT_CONFIRM_OPTS,
   InstructionsWrapper,
+  nativeToUi,
   TransactionOptions,
   uiToNative,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
+import { createAssociatedTokenAccountIdempotentInstruction, createSyncNativeInstruction, NATIVE_MINT } from "@mrgnlabs/mrgn-common/src/spl";
 
 /**
  * Entrypoint to interact with the LIP contract.
@@ -178,8 +181,28 @@ class LipClient {
       mint: bank.mint,
       owner: this.mfiClient.provider.wallet.publicKey,
     });
+    const amountNative = uiToNative(amount, bank.mintDecimals);
 
-    const ix = await instructions.makeCreateDepositIx(
+    const ixs = [];
+
+    if (bank.mint.equals(NATIVE_MINT)) {
+      ixs.push(
+        createAssociatedTokenAccountIdempotentInstruction(
+          this.wallet.publicKey,
+          userTokenAtaPk,
+          this.wallet.publicKey,
+          NATIVE_MINT,
+        ),
+        SystemProgram.transfer({
+          fromPubkey: this.wallet.publicKey,
+          toPubkey: userTokenAtaPk,
+          lamports: amountNative.toNumber()
+        }),
+        createSyncNativeInstruction(userTokenAtaPk),
+      );
+    }
+
+    ixs.push(await instructions.makeCreateDepositIx(
       this.program,
       {
         campaign: campaign,
@@ -201,11 +224,12 @@ class LipClient {
         marginfiBankVault: bank.liquidityVault,
         marginfiProgram: this.mfiClient.programId,
       },
-      { amount: uiToNative(amount, bank.mintDecimals) },
+      { amount: amountNative },
+    )
     );
 
     return {
-      instructions: [ix],
+      instructions: ixs,
       keys: [depositKeypair, tempTokenAccountKeypair],
     };
   }

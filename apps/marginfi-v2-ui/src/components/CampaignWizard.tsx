@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useMemo, useState } from "react";
-import { Keypair, Transaction } from "@solana/web3.js";
+import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import BN from "bn.js";
 import { shortenAddress, uiToNative } from "@mrgnlabs/mrgn-common";
@@ -9,6 +9,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { groupedNumberFormatterDyn, percentFormatterDyn } from "~/utils/formatters";
 import { calculateInterestFromApy, computeGuaranteedApy } from "@mrgnlabs/lip-client/src/utils";
 import { floor } from "~/utils";
+import { createAssociatedTokenAccountIdempotentInstruction, createSyncNativeInstruction, NATIVE_MINT } from "@mrgnlabs/mrgn-common/src/spl";
 
 interface CampaignWizardProps {
   selectedAsset: string;
@@ -71,17 +72,36 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
       owner: lipClient.wallet.publicKey,
     });
 
-    const ix = await lipClient.program.methods
-      .createCampaign(contractInputs.lockupPeriod, contractInputs.maxDeposits, contractInputs.maxRewards)
-      .accounts({
-        campaign: campaignKeypair.publicKey,
-        admin: lipClient.wallet.publicKey,
-        fundingAccount: userTokenAtaPk,
-        marginfiBank: assetBank.publicKey,
-        assetMint: assetBank.mint,
-      })
-      .instruction();
-    const sig = await lipClient.processTransaction(new Transaction().add(ix), [campaignKeypair]);
+    const tx = new Transaction();
+
+    if (assetBank.mint.equals(NATIVE_MINT)) {
+      tx.add(
+        createAssociatedTokenAccountIdempotentInstruction(
+          lipClient.wallet.publicKey,
+          userTokenAtaPk,
+          lipClient.wallet.publicKey,
+          NATIVE_MINT,
+        ),
+        SystemProgram.transfer({ fromPubkey: lipClient.wallet.publicKey, toPubkey: userTokenAtaPk, lamports: contractInputs.maxRewards.toNumber() }),
+        createSyncNativeInstruction(userTokenAtaPk),
+      );
+    }
+
+    tx.add(
+      await lipClient.program.methods
+        .createCampaign(contractInputs.lockupPeriod, contractInputs.maxDeposits, contractInputs.maxRewards)
+        .accounts({
+          campaign: campaignKeypair.publicKey,
+          admin: lipClient.wallet.publicKey,
+          fundingAccount: userTokenAtaPk,
+          marginfiBank: assetBank.publicKey,
+          assetMint: assetBank.mint,
+        })
+        .instruction()
+    );
+
+
+    const sig = await lipClient.processTransaction(tx, [campaignKeypair], { skipPreflight: true });
     console.log("campaign creation tx", sig);
     await reloadLipClient();
   }, [
@@ -103,7 +123,7 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
         <ProInputBox
           value={guaranteedApy * 100}
           setValue={(value) => setGuaranteedApy(value / 100)}
-          loadingSafetyCheck={() => {}}
+          loadingSafetyCheck={() => { }}
           maxDecimals={2}
           disabled={!wallet.connected}
         />
@@ -113,7 +133,7 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
         <ProInputBox
           value={lockupPeriodInDays}
           setValue={setLockupPeriodInDays}
-          loadingSafetyCheck={() => {}}
+          loadingSafetyCheck={() => { }}
           maxDecimals={3}
           disabled={!wallet.connected}
         />
@@ -123,7 +143,7 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
         <ProInputBox
           value={depositCapacity}
           setValue={setDepositCapacity}
-          loadingSafetyCheck={() => {}}
+          loadingSafetyCheck={() => { }}
           maxDecimals={2}
           disabled={!wallet.connected}
         />
@@ -184,13 +204,13 @@ const CampaignWizard: FC<CampaignWizardProps> = ({ selectedAsset }) => {
           >
             {assetBank
               ? percentFormatterDyn.format(
-                  computeGuaranteedApy(
-                    contractInputs.lockupPeriod,
-                    contractInputs.maxDeposits,
-                    contractInputs.maxRewards,
-                    assetBank
-                  )
+                computeGuaranteedApy(
+                  contractInputs.lockupPeriod,
+                  contractInputs.maxDeposits,
+                  contractInputs.maxRewards,
+                  assetBank
                 )
+              )
               : 0}
           </span>
         </div>
