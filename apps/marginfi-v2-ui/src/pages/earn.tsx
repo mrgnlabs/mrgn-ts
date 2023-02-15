@@ -346,7 +346,7 @@ const Pro = () => {
           <div className="w-[300px] h-[100px] flex flex-col gap-5 justify-center">
             <div className="flex flex-col gap-1 w-full justify-center">
               {wallet.connected && (
-                <div className="text-2xl flex justify-center gap-2" style={{ fontWeight: 400 }}>
+                <div className="text-2xl flex justify-center gap-2" style={{ fontWeight: 400, color: "rgb(182 182 182)" }}>
                   Your deposits:
                   <span style={{ color: "#51B56A" }}>
                     {

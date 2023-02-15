@@ -63,6 +63,7 @@ body {
 }
 
 body {
+  color: rgb(255, 255, 255);
   background-color: #010101;
   background-image: radial-gradient(
     farthest-side at 10% 10%,
