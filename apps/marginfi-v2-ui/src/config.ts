@@ -21,7 +21,18 @@ switch (environment) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
     rpcEndpoint = rpcEndpointOverride || "https://mrgn.rpcpool.com/";
-    campaignWhitelist = [];
+    campaignWhitelist = [
+      {
+        icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
+        size: 30,
+        publicKey: "3dnoaqBxaKwSmZFwNuPx82eTar4ZMq8nQ2jehrdxptwf",
+      },
+      {
+        icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
+        size: 30,
+        publicKey: "AW8vvsZUn9CTXERjKbEkA1khS7MSjneotxnME8BKkGMd",
+      },
+    ];
     break;
   case "alpha":
     mfiConfig = getConfig(environment);
