@@ -286,7 +286,7 @@ const Pro = () => {
   console.log({
     selectedCampaign,
     selectedCampaignPubkey: selectedCampaign?.campaign.publicKey.toBase58(),
-    selectedCampaignRemainingCapacity: nativeToUi(selectedCampaign?.campaign.remainingCapacity, selectedCampaign?.campaign.bank.mintDecimals)
+    selectedCampaignRemainingCapacity: selectedCampaign && nativeToUi(selectedCampaign.campaign.remainingCapacity, selectedCampaign.campaign.bank.mintDecimals)
   })
 
   const whitelistedCampaignsWithMeta = useMemo(() => {
