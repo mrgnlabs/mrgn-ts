@@ -25,7 +25,7 @@ switch (environment) {
       {
         icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
         size: 30,
-        publicKey: "4Hp63fcymLcaoEH6e9FFZG34n5YrPsruSsaZNK7Qcj6n",
+        publicKey: "8moWyHYWC8oBB1jH9J3qAKs1yvZskPBQyJQGp4VoKKbX",
       },
       {
         icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
