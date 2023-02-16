@@ -32,7 +32,11 @@ import {
   uiToNative,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
-import { createAssociatedTokenAccountIdempotentInstruction, createSyncNativeInstruction, NATIVE_MINT } from "@mrgnlabs/mrgn-common/src/spl";
+import {
+  createAssociatedTokenAccountIdempotentInstruction,
+  createSyncNativeInstruction,
+  NATIVE_MINT,
+} from "@mrgnlabs/mrgn-common/src/spl";
 
 /**
  * Entrypoint to interact with the LIP contract.
