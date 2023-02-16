@@ -34,7 +34,7 @@ switch (environment) {
       },
     ];
     break;
-  case "alpha"
+  case "alpha":
     mfiConfig = getConfig(environment);
     lipConfig = getLipConfig(environment);
     if (groupOverride) {
