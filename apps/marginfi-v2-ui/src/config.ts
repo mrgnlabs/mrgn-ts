@@ -25,12 +25,12 @@ switch (environment) {
       {
         icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
         size: 30,
-        publicKey: "7jtYLk67WbvEWizSi5y8PBuwAE7XycoDZyEcVhQMZZtu",
+        publicKey: "DmU72UuFM8yAijLhj5o2AnJZFrPdKzPHfbdJRkF9zBuL",
       },
       {
         icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
         size: 30,
-        publicKey: "AW8vvsZUn9CTXERjKbEkA1khS7MSjneotxnME8BKkGMd",
+        publicKey: "Cm2yPJQ8qB1wo6b3268F9hC7YbBWRmF6h3mbvvekW68B",
       },
     ];
     break;
