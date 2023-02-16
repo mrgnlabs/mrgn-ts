@@ -22,6 +22,9 @@ function parseConfig(configRaw: LipConfigRaw): LipConfig {
   };
 }
 
+/**
+ * Parse Configs
+ */
 function parseConfigs(configRaw: ConfigRaw): {
   [label: string]: LipConfig;
 } {
