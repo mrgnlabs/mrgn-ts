@@ -230,7 +230,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
             campaignPubKey: campaign.publicKey.toBase58(),
             campaignRemainingCapacity: nativeToUi(campaign.remainingCapacity, campaign.bank.mintDecimals)
           })
-          
+
           return (
           <FormControlLabel
             key={campaign.publicKey.toBase58()}
@@ -282,6 +282,12 @@ const Pro = () => {
   const [progressPercent, setProgressPercent] = useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
   const { lipClient, mfiClient } = useProgram();
+
+  console.log({
+    selectedCampaign,
+    selectedCampaignPubkey: selectedCampaign?.campaign.publicKey.toBase58(),
+    selectedCampaignRemainingCapacity: nativeToUi(selectedCampaign?.campaign.remainingCapacity, selectedCampaign?.campaign.bank.mintDecimals)
+  })
 
   const whitelistedCampaignsWithMeta = useMemo(() => {
     if (!lipClient) return [];
