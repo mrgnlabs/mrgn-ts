@@ -100,3 +100,14 @@ export function getConfig(
     ...getMarginfiConfig(environment, overrides),
   };
 }
+
+/**
+ * Retrieve default config for production eviorment
+ */
+export function getDefaultConfig(
+  overrides?: Partial<Omit<MarginfiConfig, "environment">>
+): MarginfiConfig {
+  return {
+    ...getMarginfiConfig("production", overrides),
+  };
+}
