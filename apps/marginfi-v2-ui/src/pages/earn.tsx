@@ -1,8 +1,8 @@
-import React, { FC, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import React, { FC, MouseEventHandler, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
 import { useProgram } from "~/context";
-import { Button, ButtonProps, CircularProgress, LinearProgress, TextField } from "@mui/material";
+import { Button, ButtonProps, CircularProgress, InputAdornment, LinearProgress, TextField } from "@mui/material";
 import { percentFormatterDyn, usdFormatter } from "~/utils/formatters";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import dynamic from "next/dynamic";
@@ -15,6 +15,8 @@ import LipAccount, { Campaign } from "@mrgnlabs/lip-client/src/account";
 import { CampaignWizard } from "~/components/CampaignWizard";
 import config from "~/config";
 import { computeGuaranteedApyForCampaign } from "@mrgnlabs/lip-client/src/utils";
+import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { floor } from "~/utils";
 
 const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (
   <>
@@ -151,30 +153,36 @@ export const ProInputBox: FC<ProInputBox> = ({
         // @todo width is hacky here
         className:
           "font-aeonik min-w-[360px] h-12 px-0 bg-[#1C2125] text-[#e1e1e1] text-sm font-light rounded-lg self-center",
-        // @note: removing max feature for now for simplicity
-        // keeping here to add later
-        // endAdornment: <MaxInputAdornment onClick={onMaxClick} />,
+        endAdornment: (
+          <MaxInputAdornment
+            onClick={() => {
+              if (maxValue !== undefined) {
+                console.log(maxValue);
+                setValue(maxValue);
+              }
+            }}
+          />
+        ),
       }}
     />
   );
 };
 
-// // @todo not happy with how this looks on small screens
-// const MaxInputAdornment: FC<{
-//   onClick: MouseEventHandler<HTMLDivElement>;
-//   disabled?: boolean;
-// }> = ({ onClick, disabled }) => (
-//   <InputAdornment position="end" classes={{ root: "max-w-[40px] h-full" }}>
-//     <div
-//       className={`font-aeonik p-0 pr-4 text-[#868E95] text-sm lowercase h-9 font-light flex justify-center items-center hover:bg-transparent ${
-//         disabled ? "cursor-default" : "cursor-pointer"
-//       }`}
-//       onClick={onClick}
-//     >
-//       max
-//     </div>
-//   </InputAdornment>
-// );
+const MaxInputAdornment: FC<{
+  onClick: MouseEventHandler<HTMLDivElement>;
+  disabled?: boolean;
+}> = ({ onClick, disabled }) => (
+  <InputAdornment position="end" classes={{ root: "max-w-[40px] h-full" }}>
+    <div
+      className={`font-aeonik p-0 pr-4 text-[#868E95] text-sm lowercase h-9 font-light flex justify-center items-center hover:bg-transparent ${
+        disabled ? "cursor-default" : "cursor-pointer"
+      }`}
+      onClick={onClick}
+    >
+      max
+    </div>
+  </InputAdornment>
+);
 
 // ================================
 // INPUT BOX
@@ -193,25 +201,29 @@ interface WhitelistedCampaignWithMeta {
 }
 
 interface AssetSelectionProps {
-  setSelectedAsset: (asset: string) => void;
-  defaultAsset: string;
+  setSelectedCampaign: (campaign: WhitelistedCampaignWithMeta) => void;
   whitelistedCampaigns: WhitelistedCampaignWithMeta[];
 }
 
-const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSelectedAsset, defaultAsset }) => {
+const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSelectedCampaign }) => {
+  if (whitelistedCampaigns.length === 0) return null;
+  const defaultCampaign = whitelistedCampaigns[0];
+
   return (
     <FormControl className="min-w-[360px] w-[360px]">
       <RadioGroup
-        defaultValue={defaultAsset}
+        defaultValue={defaultCampaign.campaign.publicKey.toBase58()}
         className="flex flex-col justify-center items-center gap-2"
         onChange={(event) => {
-          setSelectedAsset(event.target.value);
+          const campaign = whitelistedCampaigns.find((b) => b.campaign.publicKey.toBase58() === event.target.value);
+          if (!campaign) throw new Error("Campaign not found");
+          setSelectedCampaign(campaign);
         }}
       >
         {whitelistedCampaigns.map(({ campaign, meta }) => (
           <FormControlLabel
-            key={campaign.bank.label}
-            value={campaign.bank.label}
+            key={campaign.publicKey.toBase58()}
+            value={campaign.publicKey.toBase58()}
             control={
               <Radio
                 className="bg-[#1E1E1E] mr-2"
@@ -252,10 +264,9 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
 
 const Pro = () => {
   const wallet = useWallet();
-  const defaultAsset = "SOL";
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [reloading, setReloading] = useState(false);
-  const [selectedAsset, setSelectedAsset] = useState(defaultAsset);
+  const [selectedCampaign, setSelectedCampaign] = useState<WhitelistedCampaignWithMeta | null>(null);
   const [amount, setAmount] = useState(0);
   const [progressPercent, setProgressPercent] = useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
@@ -267,16 +278,60 @@ const Pro = () => {
       lipClient.campaigns.filter((c) =>
         config.campaignWhitelist.map((wc) => wc.publicKey).includes(c.publicKey.toBase58())
       ) || [];
-    return whitelistedCampaigns.map((c) => {
-      const campaignFound = config.campaignWhitelist.find((wc) => wc.publicKey === c.publicKey.toBase58());
-      if (!campaignFound) throw Error("Campaign not found");
-      const { publicKey, ...meta } = campaignFound;
-      return {
-        campaign: c,
-        meta,
-      };
-    });
-  }, [lipClient]);
+    return whitelistedCampaigns
+      .map((c) => {
+        const campaignFound = config.campaignWhitelist.find((wc) => wc.publicKey === c.publicKey.toBase58());
+        if (!campaignFound) throw Error("Campaign not found");
+        const { publicKey, ...meta } = campaignFound;
+        return {
+          campaign: c,
+          meta,
+        };
+      })
+      .sort((c1, c2) => {
+        if (c1.campaign.bank.label < c2.campaign.bank.label) return 1;
+        if (c1.campaign.bank.label > c2.campaign.bank.label) return -1;
+        return 0;
+      });
+  }, [lipClient, lipAccount]);
+
+  const maxDepositAmount = useMemo(
+    () =>
+      selectedCampaign
+        ? nativeToUi(selectedCampaign.campaign.remainingCapacity, selectedCampaign.campaign.bank.mintDecimals)
+        : 0,
+    [selectedCampaign]
+  );
+
+  const marks = [
+    { value: 0, label: "CONNECT", color: progressPercent > 0 ? "#51B56A" : "#484848" },
+    { value: 50, label: "SELECT", color: progressPercent >= 50 ? "#51B56A" : "#484848" },
+    { value: 100, label: "READY", color: progressPercent >= 100 ? "#51B56A" : "#484848" },
+  ];
+
+  useEffect(() => {
+    if (!selectedCampaign) return;
+    const campaign = whitelistedCampaignsWithMeta.find(
+      (c) => c.campaign.publicKey.toBase58() === selectedCampaign.campaign.publicKey.toBase58()
+    );
+    if (!campaign) throw new Error("Campaign not found");
+    setSelectedCampaign(campaign);
+  }, [selectedCampaign, whitelistedCampaignsWithMeta]);
+
+  useEffect(() => {
+    if (
+      whitelistedCampaignsWithMeta === null ||
+      whitelistedCampaignsWithMeta.length === 0 ||
+      selectedCampaign !== null
+    ) {
+      return;
+    }
+    setSelectedCampaign(whitelistedCampaignsWithMeta[0]);
+  }, [selectedCampaign, whitelistedCampaignsWithMeta]);
+
+  useEffect(() => {
+    setAmount(0);
+  }, [selectedCampaign]);
 
   useEffect(() => {
     (async function () {
@@ -286,12 +341,6 @@ const Pro = () => {
       setLipAccount(lipAccount);
     })();
   }, [lipClient, mfiClient, wallet.publicKey]);
-
-  const marks = [
-    { value: 0, label: "CONNECT", color: progressPercent > 0 ? "#51B56A" : "#484848" },
-    { value: 50, label: "SELECT", color: progressPercent >= 50 ? "#51B56A" : "#484848" },
-    { value: 100, label: "READY", color: progressPercent >= 100 ? "#51B56A" : "#484848" },
-  ];
 
   useEffect(() => {
     if (wallet.connected) {
@@ -314,23 +363,23 @@ const Pro = () => {
   }, [amount, wallet.connected]);
 
   const depositAction = useCallback(async () => {
-    if (!lipAccount || !lipClient || !selectedAsset || amount === 0 || whitelistedCampaignsWithMeta.length === 0)
+    if (!lipAccount || !lipClient || !selectedCampaign || amount === 0 || whitelistedCampaignsWithMeta.length === 0)
       return;
 
-    const campaignWithMeta = whitelistedCampaignsWithMeta.find(
-      (campaignWithMeta) => campaignWithMeta.campaign.bank.label === selectedAsset
-    );
-    if (!campaignWithMeta) throw new Error("Campaign not found");
     setReloading(true);
     try {
-      await lipClient.deposit(campaignWithMeta.campaign.publicKey, amount, campaignWithMeta.campaign.bank);
+      await lipClient.deposit(
+        selectedCampaign.campaign.publicKey,
+        floor(amount, selectedCampaign.campaign.bank.mintDecimals),
+        selectedCampaign.campaign.bank
+      );
       setLipAccount(await lipAccount.reloadAndClone());
       setAmount(0);
     } catch (e) {
       console.error(e);
     }
     setReloading(false);
-  }, [amount, lipAccount, lipClient, selectedAsset, whitelistedCampaignsWithMeta]);
+  }, [amount, lipAccount, lipClient, selectedCampaign, whitelistedCampaignsWithMeta]);
 
   const loadingSafetyCheck = useCallback(() => {
     if (!mfiClient || !lipAccount || !lipClient) {
@@ -392,8 +441,7 @@ const Pro = () => {
           <div className="flex justify-center">
             <AssetSelection
               whitelistedCampaigns={whitelistedCampaignsWithMeta}
-              setSelectedAsset={setSelectedAsset}
-              defaultAsset={defaultAsset}
+              setSelectedCampaign={setSelectedCampaign}
             />
           </div>
 
@@ -401,7 +449,7 @@ const Pro = () => {
             <ProInputBox
               value={amount}
               setValue={setAmount}
-              maxValue={500000} // @todo hardcoded
+              maxValue={maxDepositAmount}
               loadingSafetyCheck={loadingSafetyCheck}
               maxDecimals={2}
               disabled={!wallet.connected}

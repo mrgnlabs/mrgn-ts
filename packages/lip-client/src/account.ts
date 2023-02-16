@@ -124,6 +124,7 @@ export interface CampaignData {
   maxDeposits: BN;
   maxRewards: BN;
   lockupPeriod: BN;
+  remainingCapacity: BN;
 }
 
 export interface Campaign extends CampaignData {

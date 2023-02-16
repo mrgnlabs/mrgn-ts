@@ -27,7 +27,6 @@ import {
   Amount,
   DEFAULT_CONFIRM_OPTS,
   InstructionsWrapper,
-  nativeToUi,
   TransactionOptions,
   uiToNative,
   Wallet,
@@ -150,6 +149,7 @@ class LipClient {
         lockupPeriod: campaign.lockupPeriod,
         publicKey: campaign.publicKey,
         marginfiBankPk: banks[i].publicKey,
+        remainingCapacity: campaign.remainingCapacity,
       };
     });
   }
