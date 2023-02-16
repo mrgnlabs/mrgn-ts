@@ -191,47 +191,11 @@ class LipClient {
           this.wallet.publicKey,
           userTokenAtaPk,
           this.wallet.publicKey,
-<<<<<<< HEAD
-          NATIVE_MINT,
-=======
           NATIVE_MINT
->>>>>>> origin/main
         ),
         SystemProgram.transfer({
           fromPubkey: this.wallet.publicKey,
           toPubkey: userTokenAtaPk,
-<<<<<<< HEAD
-          lamports: amountNative.toNumber()
-        }),
-        createSyncNativeInstruction(userTokenAtaPk),
-      );
-    }
-
-    ixs.push(await instructions.makeCreateDepositIx(
-      this.program,
-      {
-        campaign: campaign,
-        signer: this.mfiClient.provider.wallet.publicKey,
-        deposit: depositKeypair.publicKey,
-        mfiPdaSigner: PublicKey.findProgramAddressSync(
-          [DEPOSIT_MFI_AUTH_SIGNER_SEED, depositKeypair.publicKey.toBuffer()],
-          this.programId,
-        )[0],
-        fundingAccount: userTokenAtaPk,
-        tempTokenAccount: tempTokenAccountKeypair.publicKey,
-        assetMint: bank.mint,
-        marginfiGroup: this.mfiClient.group.publicKey,
-        marginfiBank: bank.publicKey,
-        marginfiAccount: PublicKey.findProgramAddressSync(
-          [MARGINFI_ACCOUNT_SEED, depositKeypair.publicKey.toBuffer()],
-          this.programId,
-        )[0],
-        marginfiBankVault: bank.liquidityVault,
-        marginfiProgram: this.mfiClient.programId,
-      },
-      { amount: amountNative },
-    )
-=======
           lamports: amountNative.toNumber(),
         }),
         createSyncNativeInstruction(userTokenAtaPk)
@@ -263,7 +227,6 @@ class LipClient {
         },
         { amount: amountNative }
       )
->>>>>>> origin/main
     );
 
     return {
