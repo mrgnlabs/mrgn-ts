@@ -93,7 +93,7 @@ function getMarginfiConfig(
  * Retrieve config per environment
  */
 export function getConfig(
-  environment: Environment,
+  environment: Environment = "production",
   overrides?: Partial<Omit<MarginfiConfig, "environment">>
 ): MarginfiConfig {
   return {

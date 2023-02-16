@@ -423,7 +423,7 @@ const Pro = () => {
           </div>
 
           {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_CREATE_CAMPAIGN === "true" && (
-            <CampaignWizard selectedAsset={selectedAsset} />
+            <CampaignWizard />
           )}
         </div>
       </div>
