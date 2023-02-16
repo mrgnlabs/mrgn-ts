@@ -383,6 +383,10 @@ const Pro = () => {
     if (!lipAccount || !lipClient || !selectedCampaign || amount === 0 || whitelistedCampaignsWithMeta.length === 0)
       return;
 
+    console.log({
+      depositing: floor(amount, selectedCampaign.campaign.bank.mintDecimals),
+    })
+
     setReloading(true);
     try {
       await lipClient.deposit(
