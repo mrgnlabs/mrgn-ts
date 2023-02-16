@@ -25,7 +25,7 @@ switch (environment) {
       {
         icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
         size: 30,
-        publicKey: "7jtYLk67WbvEWizSi5y8PBuwAE7XycoDZyEcVhQMZZtu",
+        publicKey: "DmU72UuFM8yAijLhj5o2AnJZFrPdKzPHfbdJRkF9zBuL",
       },
       {
         icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
@@ -34,7 +34,7 @@ switch (environment) {
       },
     ];
     break;
-  case "alpha":
+  case "alpha"
     mfiConfig = getConfig(environment);
     lipConfig = getLipConfig(environment);
     if (groupOverride) {
