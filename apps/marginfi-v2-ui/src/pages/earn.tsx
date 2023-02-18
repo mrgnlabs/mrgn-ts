@@ -407,7 +407,7 @@ const Pro = () => {
                 </div>
               )}
             </div>
-            <div className="col-span-full flex flex-col justify-center items-center">
+            <div className="relative col-span-full flex flex-col justify-center items-center">
               <LinearProgress
                 className="h-1 w-[300px] rounded-lg"
                 variant="determinate"
@@ -420,7 +420,7 @@ const Pro = () => {
                   },
                 }}
               />
-              <div className="flex absolute w-[300px] self-center justify-between">
+              <div className="flex absolute w-[300px] justify-between">
                 <Marks marks={marks} />
               </div>
             </div>
