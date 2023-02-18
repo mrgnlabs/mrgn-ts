@@ -28,10 +28,14 @@ const Navbar: FC = () => {
           </div>
           <div className="absolute fixed left-0 right-0 flex justify-center items-center w-full h-full invisible lg:visible">
             <div className="h-full w-[28%] flex min-w-fit max-w-[600px]">
-              <Link href={"/earn"}>
+
+            <Link href={"/"}  style={{padding: 20,}}>
+            <NavbarCenterItem text="Lend" />
+            </Link>
+
+              <Link href={"/earn"}  style={{padding: 20,}}>
                 <NavbarCenterItem text="Earn" />
               </Link>
-              <NavbarCenterItem text="Markets" disabled />
               <NavbarCenterItem text="Strategies" disabled />
               <NavbarCenterItem text="Trade" disabled />
               {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && <AirdropZone />}
