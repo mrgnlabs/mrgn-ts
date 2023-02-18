@@ -420,7 +420,7 @@ const Pro = () => {
                   },
                 }}
               />
-              <div className="flex absolute w-[300px] self-center justify-between">
+              <div className="flex relative w-[300px] self-center justify-between">
                 <Marks marks={marks} />
               </div>
             </div>
