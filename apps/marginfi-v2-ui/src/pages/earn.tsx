@@ -208,6 +208,9 @@ interface AssetSelectionProps {
 const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSelectedCampaign }) => {
   if (whitelistedCampaigns.length === 0) return null;
   const defaultCampaign = whitelistedCampaigns[0];
+  console.log(
+    whitelistedCampaigns
+  )
 
   return (
     <FormControl className="min-w-[360px] w-[360px]">
@@ -220,7 +223,15 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
           setSelectedCampaign(campaign);
         }}
       >
-        {whitelistedCampaigns.map(({ campaign, meta }) => (
+        {whitelistedCampaigns.map(({ campaign, meta }) => {
+          
+          console.log({
+            campaign,
+            campaignPubKey: campaign.publicKey.toBase58(),
+            campaignRemainingCapacity: nativeToUi(campaign.remainingCapacity, campaign.bank.mintDecimals)
+          })
+
+          return (
           <FormControlLabel
             key={campaign.publicKey.toBase58()}
             value={campaign.publicKey.toBase58()}
@@ -253,7 +264,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
             className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
             style={{ border: "solid #1C2125 1px" }}
           />
-        ))}
+        )})}
       </RadioGroup>
     </FormControl>
   );
@@ -271,6 +282,12 @@ const Pro = () => {
   const [progressPercent, setProgressPercent] = useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
   const { lipClient, mfiClient } = useProgram();
+
+  console.log({
+    selectedCampaign,
+    selectedCampaignPubkey: selectedCampaign?.campaign.publicKey.toBase58(),
+    selectedCampaignRemainingCapacity: selectedCampaign && nativeToUi(selectedCampaign.campaign.remainingCapacity, selectedCampaign.campaign.bank.mintDecimals)
+  })
 
   const whitelistedCampaignsWithMeta = useMemo(() => {
     if (!lipClient) return [];
@@ -365,6 +382,10 @@ const Pro = () => {
   const depositAction = useCallback(async () => {
     if (!lipAccount || !lipClient || !selectedCampaign || amount === 0 || whitelistedCampaignsWithMeta.length === 0)
       return;
+
+    console.log({
+      depositing: floor(amount, selectedCampaign.campaign.bank.mintDecimals),
+    })
 
     setReloading(true);
     try {
