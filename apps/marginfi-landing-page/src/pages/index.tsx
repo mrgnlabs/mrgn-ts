@@ -9,9 +9,6 @@ const Home = () => {
     <>
       <div
         className="fixed top-[-10vw] right-[-25vw] md:top-[-25vw] md:right-[-25vw] w-[100vw] h-[67vw]"
-        // style={{
-        //   border: 'solid red 1px',
-        // }}
       >
         <Image src="/hero.jpg" alt="marginfi logo" fill />
       </div>
