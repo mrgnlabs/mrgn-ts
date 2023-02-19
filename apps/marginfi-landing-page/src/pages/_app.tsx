@@ -31,7 +31,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Navbar />
-      <div className="w-full flex flex-col justify-center items-center pt-[64px]">
+      <div className="w-full min-h-[100vh] flex flex-col justify-center items-start ml-10 md:ml-24 2xl:ml-48">
         <Component {...pageProps} />
       </div>
       <Footer />

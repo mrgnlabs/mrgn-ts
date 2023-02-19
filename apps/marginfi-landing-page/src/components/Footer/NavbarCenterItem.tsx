@@ -1,10 +1,8 @@
 import { Button } from "@mui/material";
 import { FC } from "react";
-import LockIcon from "@mui/icons-material/Lock";
 
 interface NavbarCenterItemProps {
   text: string;
-  // icon?: any;
   textFormat?: string;
   disabled?: boolean;
   onClick?: () => void;
@@ -12,7 +10,6 @@ interface NavbarCenterItemProps {
 
 const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
   text,
-  // icon,
   textFormat,
   disabled,
   onClick,
@@ -32,7 +29,6 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
     onClick={onClick}
   >
     {text}
-    {/* {disabled ? <LockIcon className="h-[14px] w-[14px] ml-2" /> : <></>} */}
   </Button>
 );
 
