@@ -17,6 +17,7 @@
     <br>
     <!-- Versions -->
     <a href=""><img alt="marginfi-v2-ui" src="https://img.shields.io/github/package-json/v/mrgnlabs/mrgn-ts?color=white&filename=apps%2Fmarginfi-v2-ui%2Fpackage.json&label=marginfi-v2-ui&style=flat-square"/></a>
+    <a href=""><img alt="marginfi-landing-page" src="https://img.shields.io/github/package-json/v/mrgnlabs/mrgn-ts?color=white&filename=apps%2Fmarginfi-landing-page%2Fpackage.json&label=marginfi-landing-page&style=flat-square"/></a>
     <a href=""><img alt="alpha-liquidator" src="https://img.shields.io/github/package-json/v/mrgnlabs/mrgn-ts?color=white&filename=packages%2Falpha-liquidator%2Fpackage.json&label=alpha-liquidator&style=flat-square"/></a>
     <a href=""><img alt="marginfi-client-v2" src="https://img.shields.io/github/package-json/v/mrgnlabs/mrgn-ts?color=white&filename=packages%2Fmarginfi-client-v2%2Fpackage.json&label=marginfi-client-v2&style=flat-square"/></a>
     <a href=""><img alt="lip-client" src="https://img.shields.io/github/package-json/v/mrgnlabs/mrgn-ts?color=white&filename=packages%2Flip-client%2Fpackage.json&label=lip-client&style=flat-square"/></a>
