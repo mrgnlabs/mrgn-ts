@@ -25,10 +25,12 @@ const Footer: FC = () => {
               <NavbarCenterItem text="Github" />
             </Link>
           </div>
-          <div className="h-full relative hidden lg:flex justify-start items-center z-10">
+          <div className="absolute fixed left-0 right-0 flex justify-center items-center w-full h-full invisible lg:visible">
+            <div className="h-full w-[28%] flex min-w-fit max-w-[600px]">
             <Link href={"https://app.marginfi.com/"}>
               <NavbarCenterItem text="marginfi is a decentralized lending and borrowing protocol on Solana." />
             </Link>
+            </div>
           </div>
           <div className="h-full relative flex justify-start items-center z-10">
             <Link href={"https://app.marginfi.com/"}>
