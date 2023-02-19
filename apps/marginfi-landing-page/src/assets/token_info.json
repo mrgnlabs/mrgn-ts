@@ -1,0 +1,57 @@
+[
+  {
+    "address": "So11111111111111111111111111111111111111112",
+    "chainId": 101,
+    "decimals": 9,
+    "name": "Wrapped SOL",
+    "symbol": "SOL",
+    "logoURI": "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
+    "extensions": {
+      "coingeckoId": "wrapped-solana"
+    }
+  },
+  {
+    "address": "notSo11111111111111111111111111111111111112",
+    "chainId": 101,
+    "decimals": 9,
+    "name": "Not SOL",
+    "symbol": "notSOL",
+    "logoURI": "/not_solana_logo.png",
+    "extensions": {
+      "coingeckoId": "not-solana"
+    }
+  },
+  {
+    "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "chainId": 101,
+    "decimals": 6,
+    "name": "USD Coin",
+    "symbol": "USDC",
+    "logoURI": "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
+    "extensions": {
+      "coingeckoId": "usd-coin"
+    }
+  },
+  {
+    "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    "chainId": 101,
+    "decimals": 6,
+    "name": "USDT",
+    "symbol": "USDT",
+    "logoURI": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=024",
+    "extensions": {
+      "coingeckoId": "tether"
+    }
+  },
+  {
+    "address": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    "chainId": 101,
+    "decimals": 5,
+    "name": "BonkCoin",
+    "symbol": "Bonk",
+    "logoURI": "https://arweave.net/hQiPZOsRZXGXBJd_82PhVdlM_hACsT_q6wqwf5cSY7I?ext=png",
+    "extensions": {
+      "coingeckoId": "bonk"
+    }
+  }
+]
