@@ -157,7 +157,6 @@ export const ProInputBox: FC<ProInputBox> = ({
           <MaxInputAdornment
             onClick={() => {
               if (maxValue !== undefined) {
-                console.log(maxValue);
                 setValue(maxValue);
               }
             }}
@@ -208,9 +207,6 @@ interface AssetSelectionProps {
 const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSelectedCampaign }) => {
   if (whitelistedCampaigns.length === 0) return null;
   const defaultCampaign = whitelistedCampaigns[0];
-  console.log(
-    whitelistedCampaigns
-  )
 
   return (
     <FormControl className="min-w-[360px] w-[360px]">
@@ -224,13 +220,6 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
         }}
       >
         {whitelistedCampaigns.map(({ campaign, meta }) => {
-          
-          console.log({
-            campaign,
-            campaignPubKey: campaign.publicKey.toBase58(),
-            campaignRemainingCapacity: nativeToUi(campaign.remainingCapacity, campaign.bank.mintDecimals)
-          })
-
           return (
           <FormControlLabel
             key={campaign.publicKey.toBase58()}
@@ -282,12 +271,6 @@ const Pro = () => {
   const [progressPercent, setProgressPercent] = useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
   const { lipClient, mfiClient } = useProgram();
-
-  console.log({
-    selectedCampaign,
-    selectedCampaignPubkey: selectedCampaign?.campaign.publicKey.toBase58(),
-    selectedCampaignRemainingCapacity: selectedCampaign && nativeToUi(selectedCampaign.campaign.remainingCapacity, selectedCampaign.campaign.bank.mintDecimals)
-  })
 
   const whitelistedCampaignsWithMeta = useMemo(() => {
     if (!lipClient) return [];
@@ -382,10 +365,6 @@ const Pro = () => {
   const depositAction = useCallback(async () => {
     if (!lipAccount || !lipClient || !selectedCampaign || amount === 0 || whitelistedCampaignsWithMeta.length === 0)
       return;
-
-    console.log({
-      depositing: floor(amount, selectedCampaign.campaign.bank.mintDecimals),
-    })
 
     setReloading(true);
     try {
