@@ -1,28 +1,9 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import {
-  BackpackWalletAdapter,
-  LedgerWalletAdapter,
-  PhantomWalletAdapter,
-  SolflareWalletAdapter,
-  SolletWalletAdapter,
-  TorusWalletAdapter,
-} from "@solana/wallet-adapter-wallets";
 import { init, push } from "@socialgouv/matomo-next";
-import config from "../config";
-import { Navbar } from "~/components";
-import {
-  BanksStateProvider,
-  ProgramProvider,
-  TokenAccountsProvider,
-  TokenMetadataProvider,
-  UserAccountsProvider,
-} from "~/context";
+import { Footer, Navbar } from "~/components";
 import "react-toastify/dist/ReactToastify.min.css";
-import { ToastContainer } from "react-toastify";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -53,6 +34,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       <div className="w-full flex flex-col justify-center items-center pt-[64px]">
         <Component {...pageProps} />
       </div>
+      <Footer />
     </>
   );
 };

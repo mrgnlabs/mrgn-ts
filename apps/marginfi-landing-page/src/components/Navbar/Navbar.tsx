@@ -2,13 +2,11 @@ import { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { NavbarCenterItem } from "./NavbarCenterItem";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "@mui/material";
 import styles from "./Navbar.module.css";
 
 // @todo implement second pretty navbar row
 const Navbar: FC = () => {
-  const wallet = useWallet();
 
   return (
     <header>
