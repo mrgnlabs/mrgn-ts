@@ -10,11 +10,10 @@ const Footer: FC = () => {
 
   return (
     <header>
-      <nav className="fixed w-full bottom-0 h-[64px] z-10 backdrop-blur-md">
+      <nav className="fixed w-full bottom-0 h-[64px] z-10">
         <div
           className="w-full top-0 flex justify-between items-center h-[64px] text-2xl z-10"
           style={{
-            // border: "solid #1C2125 1px",
             padding: "0 15px",
           }}
         >
@@ -25,9 +24,11 @@ const Footer: FC = () => {
             <Link href={"https://app.marginfi.com/"}>
               <NavbarCenterItem text="Github" />
             </Link>
-            {/* <Link href={"/"} className="relative w-[28.02px] h-[24.81px] mr-4 z-10">
-              <Image src="/marginfi_logo.png" alt="marginfi logo" fill />
-            </Link> */}
+          </div>
+          <div className="h-full relative hidden lg:flex justify-start items-center z-10">
+            <Link href={"https://app.marginfi.com/"}>
+              <NavbarCenterItem text="marginfi is a decentralized lending and borrowing protocol on Solana." />
+            </Link>
           </div>
           <div className="h-full relative flex justify-start items-center z-10">
             <Link href={"https://app.marginfi.com/"}>
