@@ -4,8 +4,8 @@
     font-size: 14px !important;
 
     color: #000 !important;
-    background-color: #c0c0c0 !important;
-    border: 1px solid #c0c0c0 !important;
+    background-color: #DCE85D !important;
+    border: 1px solid #DCE85D !important;
     padding: 0 10px !important;
     
     border-radius: 100px !important;
@@ -14,7 +14,7 @@
     justify-content: space-evenly;
     align-items: center;
     
-    font-weight: 700 !important;
+    font-weight: 500 !important;
     text-transform: none !important;
 }
   
