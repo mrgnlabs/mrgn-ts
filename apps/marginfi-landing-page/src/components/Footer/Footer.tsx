@@ -19,9 +19,9 @@ const Footer: FC = () => {
         >
           <div className="h-full relative flex justify-start items-center z-10">
             <Link href={"https://app.marginfi.com/"}>
-              <NavbarCenterItem text="Docs" />
+              <NavbarCenterItem text="Docs" disabled/>
             </Link>
-            <Link href={"https://app.marginfi.com/"}>
+            <Link href={"https://github.com/mrgnlabs"}>
               <NavbarCenterItem text="Github" />
             </Link>
           </div>
@@ -33,7 +33,7 @@ const Footer: FC = () => {
             </div>
           </div>
           <div className="h-full relative flex justify-start items-center z-10">
-            <Link href={"https://app.marginfi.com/"}>
+            <Link href={"https://twitter.com/marginfi"}>
               <NavbarCenterItem text="Twitter" />
             </Link>
             <Link href={"https://app.marginfi.com/"}>

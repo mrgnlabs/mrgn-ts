@@ -34,13 +34,13 @@ const Navbar: FC = () => {
               <Link href={"https://app.marginfi.com/earn"}>
                 <NavbarCenterItem text="Earn" />
               </Link>
-              <Link href={"/earn"}>
+              <Link href={"https://medium.com/marginfi"}>
                 <NavbarCenterItem text="Medium" />
               </Link>
-              <Link href={"/earn"}>
+              <Link href={"https://mrgn.substack.com/"}>
                 <NavbarCenterItem text="Substack" />
               </Link>
-              <Link href={"/earn"}>
+              <Link href={"https://open.spotify.com/show/0sgdNFaGijvlT5y9BeQ97l"}>
                 <NavbarCenterItem text="Podcast" />
               </Link>
             </div>
