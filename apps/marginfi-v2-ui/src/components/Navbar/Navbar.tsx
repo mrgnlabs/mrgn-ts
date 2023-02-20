@@ -27,8 +27,13 @@ const Navbar: FC = () => {
             </Link>
           </div>
           <div className="absolute fixed left-0 right-0 flex justify-center items-center w-full h-full invisible lg:visible">
-            <div className="h-full w-[28%] flex min-w-fit max-w-[600px]">
-              <Link href={"/earn"}>
+            <div
+              className="h-full w-[28%] flex min-w-fit max-w-[600px] justify-center items-center"
+            >
+              <Link
+                href={"/earn"}
+                className="w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center"
+              >
                 <NavbarCenterItem text="Earn" />
               </Link>
               <NavbarCenterItem text="Markets" disabled />
