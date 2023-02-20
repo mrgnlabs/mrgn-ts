@@ -32,9 +32,9 @@ const Navbar: FC = () => {
             >
               <Link
                 href={"/earn"}
-                className="w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center"
+                className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0"
               >
-                <NavbarCenterItem text="Earn" />
+                <NavbarCenterItem text="Earn 🔥" link />
               </Link>
               <NavbarCenterItem text="Markets" disabled />
               <NavbarCenterItem text="Strategies" disabled />

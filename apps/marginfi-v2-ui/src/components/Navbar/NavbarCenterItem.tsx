@@ -8,6 +8,7 @@ interface NavbarCenterItemProps {
   textFormat?: string;
   disabled?: boolean;
   onClick?: () => void;
+  link?: boolean;
 }
 
 const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
@@ -16,9 +17,10 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
   textFormat,
   disabled,
   onClick,
+  link,
 }) => (
   <Button
-    className={`h-full w-1/4 min-w-1/4 max-w-1/4 text-sm flex justify-center items-center font-light ${
+    className={`px-6 h-full ${link ? "w-full min-w-full max-w-full" : "w-1/4 min-w-1/4 max-w-1/4"} text-sm flex justify-evenly items-center font-light ${
       textFormat || "normal-case"
     }`}
     variant="text"
@@ -32,7 +34,7 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
     onClick={onClick}
   >
     {text}
-    {disabled ? <LockIcon className="h-[14px] w-[14px] ml-2" /> : <></>}
+    {disabled ? <LockIcon className="h-[14px] w-[14px]" /> : <></>}
   </Button>
 );
 
