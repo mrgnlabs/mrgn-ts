@@ -5,7 +5,6 @@ import { NavbarCenterItem } from "./NavbarCenterItem";
 import { Button } from "@mui/material";
 import styles from "./Navbar.module.css";
 
-// @todo implement second pretty navbar row
 const Navbar: FC = () => {
 
   return (
@@ -24,43 +23,34 @@ const Navbar: FC = () => {
             </Link>
           </div>
           <div className="absolute fixed left-0 right-0 flex justify-center items-center w-full h-full invisible lg:visible">
-            <div
-              className="h-full w-[33%] flex min-w-fit max-w-[600px] flex justify-evenly"
-            >
-              {/* Need links */}
-              <Link href={"https://app.marginfi.com/"}>
-                <NavbarCenterItem text="Lend" />
-              </Link>
-              <Link href={"https://app.marginfi.com/earn"}>
-                <NavbarCenterItem text="Earn" />
-              </Link>
-              <Link href={"https://medium.com/marginfi"}>
+            <div className="h-full w-[28%] flex min-w-fit max-w-[600px] flex justify-evenly">
+              <Link
+                href={"https://medium.com/marginfi"}
+                className="w-1/3 min-w-1/3 max-w-1/3"
+              >
                 <NavbarCenterItem text="Medium" />
               </Link>
-              <Link href={"https://mrgn.substack.com/"}>
+              <Link
+                href={"https://mrgn.substack.com/"}
+                className="w-1/3 min-w-1/3 max-w-1/3"
+              >
                 <NavbarCenterItem text="Substack" />
               </Link>
-              <Link href={"https://open.spotify.com/show/0sgdNFaGijvlT5y9BeQ97l"}>
+              <Link
+                href={"https://open.spotify.com/show/0sgdNFaGijvlT5y9BeQ97l"}
+                className="w-1/3 min-w-1/3 max-w-1/3"
+              >
                 <NavbarCenterItem text="Podcast" />
               </Link>
             </div>
           </div>
           <div className="h-full flex justify-center items-center gap-4 z-10">
-            <Link href={"https://marginfi.canny.io/mrgnlend"} className="">
-              <Button
-                className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
-                variant="text"
-              >
-                Submit Feedback
-              </Button>
-            </Link>
-            {/* <WalletButton /> */}
             <Link href={"https://app.marginfi.com/"} className="">
               <Button
                 className={styles["wallet-button"]}
                 variant="text"
               >
-                Go to App
+                Launch App
               </Button>
             </Link>
           </div>
