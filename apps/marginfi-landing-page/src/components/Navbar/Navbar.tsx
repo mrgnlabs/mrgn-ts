@@ -5,7 +5,6 @@ import { NavbarCenterItem } from "./NavbarCenterItem";
 import { Button } from "@mui/material";
 import styles from "./Navbar.module.css";
 
-// @todo implement second pretty navbar row
 const Navbar: FC = () => {
 
   return (
@@ -46,21 +45,12 @@ const Navbar: FC = () => {
             </div>
           </div>
           <div className="h-full flex justify-center items-center gap-4 z-10">
-            <Link href={"https://marginfi.canny.io/mrgnlend"} className="">
-              <Button
-                className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
-                variant="text"
-              >
-                Submit Feedback
-              </Button>
-            </Link>
-            {/* <WalletButton /> */}
             <Link href={"https://app.marginfi.com/"} className="">
               <Button
                 className={styles["wallet-button"]}
                 variant="text"
               >
-                Go to App
+                Launch App
               </Button>
             </Link>
           </div>
