@@ -1094,6 +1094,23 @@
     decimal.js "10.3.1"
     jsbi "4.3.0"
 
+"@metaplex-foundation/mpl-core@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@metaplex-foundation/mpl-core/-/mpl-core-0.0.2.tgz#17ee2cc216e17629d6df1dbba75964625ebbd603"
+  integrity sha512-UUJ4BlYiWdDegAWmjsNQiNehwYU3QfSFWs3sv4VX0J6/ZrQ28zqosGhQ+I2ZCTEy216finJ82sZWNjuwSWCYyQ==
+  dependencies:
+    "@solana/web3.js" "^1.31.0"
+    bs58 "^4.0.1"
+
+"@metaplex-foundation/mpl-token-metadata@1.2.5":
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/@metaplex-foundation/mpl-token-metadata/-/mpl-token-metadata-1.2.5.tgz#1a927b1c7d30cd634a1e4782022712a02f6865c2"
+  integrity sha512-pxRG53JsTSwXpiJJMHNulJhH8kO3hHztQ3QxslUoKw2hBYKXsg9TGsiHgNIhN2MPZGBJ2pDeK6kNGv0sd54HhA==
+  dependencies:
+    "@metaplex-foundation/mpl-core" "^0.0.2"
+    "@solana/spl-token" "^0.1.8"
+    "@solana/web3.js" "^1.31.0"
+
 "@mui/base@5.0.0-alpha.113":
   version "5.0.0-alpha.113"
   resolved "https://registry.npmjs.org/@mui/base/-/base-5.0.0-alpha.113.tgz"
@@ -1341,6 +1358,16 @@
     typescript "^4.3.2"
     yargs "^17.0.1"
 
+"@orca-so/common-sdk@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@orca-so/common-sdk/-/common-sdk-0.1.10.tgz#c5c926ba81bbb3d6eab96e58353873f1c1989b26"
+  integrity sha512-0rFFt0hAuA+ucWSNpxKUJ2oKduhtlUnE/S0xiOC1uBj5Ngw0ka90i/fjJ8Lz4SxjxSUQkr+Eqic8eOY13qB7mQ==
+  dependencies:
+    "@project-serum/anchor" "~0.25.0"
+    "@solana/spl-token" "0.1.8"
+    decimal.js "^10.3.1"
+    tiny-invariant "^1.2.0"
+
 "@orca-so/common-sdk@^0.1.4":
   version "0.1.5"
   resolved "https://registry.npmjs.org/@orca-so/common-sdk/-/common-sdk-0.1.5.tgz"
@@ -1371,6 +1398,19 @@
     "@solana/spl-token" "^0.1.8"
     bn.js "^5.1.3"
     decimal.js "^10.2.1"
+
+"@orca-so/whirlpools-sdk@^0.8.2":
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/@orca-so/whirlpools-sdk/-/whirlpools-sdk-0.8.2.tgz#4407fbe20bb2501f8eb67ccd9c6b9730ebd6eea8"
+  integrity sha512-+puVRj8IHfb03Uk2kuBq4W9mDknJ6o6slQoU+5nnk4TwubRx9Gp5zmmCNbzL4vzkedcG3sfx3sv9jBTilvTs6Q==
+  dependencies:
+    "@metaplex-foundation/mpl-token-metadata" "1.2.5"
+    "@orca-so/common-sdk" "^0.1.10"
+    "@project-serum/anchor" "~0.25.0"
+    "@solana/spl-token" "^0.1.8"
+    "@solana/web3.js" "1.66.0"
+    decimal.js "^10.3.1"
+    tiny-invariant "^1.2.0"
 
 "@particle-network/auth@^0.5.5":
   version "0.5.6"
@@ -2410,6 +2450,27 @@
     secp256k1 "^4.0.2"
     superstruct "^0.14.2"
     tweetnacl "^1.0.0"
+
+"@solana/web3.js@1.66.0":
+  version "1.66.0"
+  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.66.0.tgz#ab76e59b369815fc6114c784a48e91726c1ae6c5"
+  integrity sha512-hQCzWd9u100Ba3da52u7GeDRqSRwyFZtZkUj4j08GKSK3c3+ZQ6CQoN3HBXzfyjVKMTyRGKT0FlPA+hOX3kmOQ==
+  dependencies:
+    "@babel/runtime" "^7.12.5"
+    "@noble/ed25519" "^1.7.0"
+    "@noble/hashes" "^1.1.2"
+    "@noble/secp256k1" "^1.6.3"
+    "@solana/buffer-layout" "^4.0.0"
+    bigint-buffer "^1.1.5"
+    bn.js "^5.0.0"
+    borsh "^0.7.0"
+    bs58 "^4.0.1"
+    buffer "6.0.1"
+    fast-stable-stringify "^1.0.0"
+    jayson "^3.4.4"
+    node-fetch "2"
+    rpc-websockets "^7.5.0"
+    superstruct "^0.14.2"
 
 "@solana/web3.js@1.66.2":
   version "1.66.2"
