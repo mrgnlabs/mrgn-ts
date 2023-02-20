@@ -3,93 +3,81 @@ import { Environment, getConfig, MarginfiClient, MarginfiGroup, USDC_DECIMALS } 
 import MarginfiAccount, { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
 import { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
 import { createSyncNativeInstruction } from "@mrgnlabs/mrgn-common/src/spl";
-import { loadKeypair, nativeToUi, NodeWallet, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
-import { getOrca, Orca, OrcaPool, OrcaPoolConfig } from "@orca-so/sdk";
+import { loadKeypair, nativeToUi, NodeWallet, sleep, uiToNative, Wallet } from "@mrgnlabs/mrgn-common";
 import { BN } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
 import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import Decimal from "decimal.js";
+import { buildWhirlpoolClient, ORCA_WHIRLPOOLS_CONFIG, ORCA_WHIRLPOOL_PROGRAM_ID, PDAUtil, swapQuoteByInputToken, TICK_ARRAY_SIZE, Whirlpool, WhirlpoolClient, WhirlpoolContext } from "@orca-so/whirlpools-sdk";
+import { Percentage } from "@orca-so/sdk";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const SLEEP_INTERVAL = Number.parseInt(process.env.SLEEP_INTERVAL ?? "5000");
 const MIN_SOL_BALANCE = Number.parseFloat(process.env.MIN_SOL_BALANCE ?? "1") * LAMPORTS_PER_SOL;
 
-type OrcaPoolMap = Map<string, OrcaPool>;
-
-class OrcaTrader {
-  private poolMap: OrcaPoolMap;
-  private orca: Orca;
-  private wallet: NodeWallet;
-
-  constructor(connection: Connection, wallet: NodeWallet) {
-    this.wallet = wallet;
-    this.orca = getOrca(connection);
-    this.poolMap = OrcaTrader.buildOrcaPoolMap(this.orca);
+class OrcaWhirlpoolTrader {
+  private whirlpoolClient: WhirlpoolClient;
+  private ctx: WhirlpoolContext;
+  constructor(connection: Connection, wallet: Wallet) {
+    const ctx = WhirlpoolContext.from(connection, wallet, ORCA_WHIRLPOOL_PROGRAM_ID);
+    this.ctx = ctx;
+    this.whirlpoolClient = buildWhirlpoolClient(ctx);
   }
 
   async trade(
     inputMint: PublicKey,
     outputMint: PublicKey,
-    amountIn: BN | BigNumber,
-    minAmountOut: BN | BigNumber = new BigNumber(0)
+    amountIn: BN,
   ) {
-    const debug = getDebugLogger("orca-trader");
+    const debug = getDebugLogger("whirlpool-trader");
 
-    debug("Trading %d %s for %s, min amount out", amountIn, inputMint.toBase58(), outputMint.toBase58(), minAmountOut);
+    debug("Trading %d %s for %s", amountIn, inputMint.toBase58(), outputMint.toBase58());
 
-    const pool = this.poolMap.get(getOrcaPoolKey(inputMint, outputMint));
+    const whirlpool = await this.getWhirlpool(inputMint, outputMint);
 
-    if (!pool) {
-      throw new Error("No pool found");
+    const inputTokenQuote = await swapQuoteByInputToken(
+      whirlpool,
+      inputMint,
+      new u64(amountIn),
+      Percentage.fromFraction(25, 1000),
+      this.ctx.program.programId,
+      this.ctx.fetcher,
+      true
+    );
+
+    const sig = await (await whirlpool.swap(inputTokenQuote)).buildAndExecute();
+
+    debug("Tx signature %s", sig)
+  }
+
+  async getWhirlpool(inputMint: PublicKey, outputMint: PublicKey): Promise<Whirlpool> {
+    const pdaA = PDAUtil.getWhirlpool(ORCA_WHIRLPOOL_PROGRAM_ID, ORCA_WHIRLPOOLS_CONFIG, inputMint, outputMint, 64);
+
+    if (!!await this.ctx.connection.getAccountInfo(pdaA.publicKey)) {
+      return this.whirlpoolClient.getPool(pdaA.publicKey)
     }
 
-    let tokenA = pool.getTokenA();
-    let tokenB = pool.getTokenB();
 
-    const inputOrcaToken = tokenA.mint.equals(inputMint) ? tokenA : tokenB;
+    const pdaB = PDAUtil.getWhirlpool(ORCA_WHIRLPOOL_PROGRAM_ID, ORCA_WHIRLPOOLS_CONFIG, outputMint, inputMint, 64);
 
-    let tx = await pool.swap(
-      this.wallet.payer,
-      inputOrcaToken,
-      new Decimal(amountIn.toNumber()),
-      new Decimal(minAmountOut.toNumber())
-    );
-    let sig = await tx.execute();
+    if (!!await this.ctx.connection.getAccountInfo(pdaB.publicKey)) {
+      return this.whirlpoolClient.getPool(pdaB.publicKey)
+    }
 
-    debug("Tx signature: %s", sig);
-  }
 
-  private static buildOrcaPoolMap(orca: Orca): OrcaPoolMap {
-    const debug = getDebugLogger("orca-trader");
-    let map = new Map<string, OrcaPool>();
-
-    Object.values(OrcaPoolConfig).forEach((poolAddress) => {
-      let pool = orca.getPool(poolAddress);
-      map.set(getOrcaPoolKey(pool.getTokenA().mint, pool.getTokenB().mint), pool);
-    });
-
-    debug("Build orcal pool map with %d pools", map.size);
-
-    return map;
+    throw new Error("Can't find whirlpool")
   }
 }
 
-function getOrcaPoolKey(keyA: PublicKey, keyB: PublicKey): string {
-  const bigInt1 = BigInt("0x" + keyA.toBuffer().toString("hex"));
-  const bigInt2 = BigInt("0x" + keyB.toBuffer().toString("hex"));
-
-  return (bigInt1 + bigInt2).toString();
-}
 
 class Liquidator {
   connection: Connection;
   account: MarginfiAccount;
   group: MarginfiGroup;
   client: MarginfiClient;
-  orcaTrader: OrcaTrader;
+  whirlpoolTrader: OrcaWhirlpoolTrader;
   wallet: NodeWallet;
 
   constructor(
@@ -104,7 +92,7 @@ class Liquidator {
     this.group = group;
     this.client = client;
     this.wallet = wallet;
-    this.orcaTrader = new OrcaTrader(connection, wallet);
+    this.whirlpoolTrader = new OrcaWhirlpoolTrader(connection, wallet);
   }
 
   /**
@@ -145,7 +133,22 @@ class Liquidator {
 
       const balance = await this.getTokenAccountBalance(bank.mint);
 
-      await this.orcaTrader.trade(bank.mint, USDC_MINT, balance);
+      if (bank.mint.equals(WRAPPED_SOL_MINT)) {
+        debug("Unwrapping remaining %s SOL", balance);
+        const ata = await associatedAddress({ mint: WRAPPED_SOL_MINT, owner: this.wallet.publicKey });
+        const ix = Token.createCloseAccountInstruction(
+          TOKEN_PROGRAM_ID,
+          ata,
+          this.wallet.publicKey,
+          this.wallet.publicKey,
+          []
+        );
+
+        const sig = await this.client.processTransaction(new Transaction().add(ix), [this.wallet.payer]);
+        debug("Unwrap tx: %s", sig);
+      }
+
+      await this.whirlpoolTrader.trade(bank.mint, USDC_MINT, uiToNative(balance, bank.mintDecimals));
     }
   }
 
@@ -210,7 +213,7 @@ class Liquidator {
 
       debug("Swapping %d USDC to %s", usdcBuyingPower, bank.label);
 
-      await this.orcaTrader.trade(USDC_MINT, bank.mint, usdcBuyingPower);
+      await this.whirlpoolTrader.trade(USDC_MINT, bank.mint, uiToNative(usdcBuyingPower, USDC_DECIMALS));
 
       if (bank.mint.equals(WRAPPED_SOL_MINT)) {
         debug("Asset is SOL, wrapping before depositing, min sol in wallet %s", nativeToUi(MIN_SOL_BALANCE, 9));
@@ -349,7 +352,7 @@ class Liquidator {
 
       let amount = await this.getTokenAccountBalance(bank.mint);
 
-      if (amount.eq(0)) {
+      if (amount.lte(DUST_THRESHOLD)) {
         continue;
       }
 
@@ -383,7 +386,7 @@ class Liquidator {
 
       debug("Swapping %d %s to USDC", amount, bank.label);
 
-      await this.orcaTrader.trade(bank.mint, USDC_MINT, amount);
+      await this.whirlpoolTrader.trade(bank.mint, USDC_MINT, uiToNative(amount, bank.mintDecimals));
     }
 
     const usdcBalance = await this.getTokenAccountBalance(USDC_MINT);
@@ -455,6 +458,10 @@ class Liquidator {
     const group = this.group;
     const liquidatorAccount = this.account;
 
+    if (account.equals(liquidatorAccount.publicKey)) {
+      return false;
+    }
+
     const debug = getDebugLogger(`process-account:${account.toBase58()}`);
 
     debug("Processing account %s", account);
@@ -495,6 +502,11 @@ class Liquidator {
         maxLiabilityPaydownUsdValue = liabUsdValue;
         bestLiabAccountIndex = i;
       }
+    }
+
+    if (maxLiabilityPaydownUsdValue.lt(DUST_THRESHOLD)) {
+      debug("No liability to liquidate");
+      return false;
     }
 
     debug(
