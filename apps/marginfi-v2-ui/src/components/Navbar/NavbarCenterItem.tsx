@@ -20,9 +20,9 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
   link,
 }) => (
   <Button
-    className={`px-6 h-full ${link ? "w-full min-w-full max-w-full" : "w-1/4 min-w-1/4 max-w-1/4"} text-sm flex justify-evenly items-center font-light ${
-      textFormat || "normal-case"
-    }`}
+    className={`px-6 h-full ${
+      link ? "w-full min-w-full max-w-full" : "w-1/4 min-w-1/4 max-w-1/4"
+    } text-sm flex justify-evenly items-center font-light ${textFormat || "normal-case"}`}
     variant="text"
     disabled={disabled}
     style={{

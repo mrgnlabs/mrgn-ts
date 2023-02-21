@@ -18,9 +18,7 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
   onClick,
 }) => (
   <Button
-    className={`h-full w-full text-sm flex justify-center items-center font-light ${
-      textFormat || "normal-case"
-    }`}
+    className={`h-full w-full text-sm flex justify-center items-center font-light ${textFormat || "normal-case"}`}
     variant="text"
     disabled={disabled}
     style={{

@@ -220,39 +220,40 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
       >
         {whitelistedCampaigns.map(({ campaign, meta }) => {
           return (
-          <FormControlLabel
-            key={campaign.publicKey.toBase58()}
-            value={campaign.publicKey.toBase58()}
-            control={
-              <Radio
-                className="bg-[#1E1E1E] mr-2"
-                sx={{
-                  color: "#1E1E1E",
-                  "&.Mui-checked": {
-                    color: "#3CAB5F",
-                  },
-                }}
-              />
-            }
-            label={
-              <div className="w-[295px] flex justify-between items-center">
-                <div>{campaign.bank.label}</div>
-                <div className="flex gap-4 justify-center items-center">
-                  <div
-                    className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
-                  >
-                    Min. APY: {percentFormatterDyn.format(computeGuaranteedApyForCampaign(campaign))}
-                  </div>
-                  <div className="ml-[2px] w-[40px]">
-                    <Image src={meta.icon} alt={campaign.bank.label} height={meta.size} width={meta.size} />
+            <FormControlLabel
+              key={campaign.publicKey.toBase58()}
+              value={campaign.publicKey.toBase58()}
+              control={
+                <Radio
+                  className="bg-[#1E1E1E] mr-2"
+                  sx={{
+                    color: "#1E1E1E",
+                    "&.Mui-checked": {
+                      color: "#3CAB5F",
+                    },
+                  }}
+                />
+              }
+              label={
+                <div className="w-[295px] flex justify-between items-center">
+                  <div>{campaign.bank.label}</div>
+                  <div className="flex gap-4 justify-center items-center">
+                    <div
+                      className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
+                    >
+                      Min. APY: {percentFormatterDyn.format(computeGuaranteedApyForCampaign(campaign))}
+                    </div>
+                    <div className="ml-[2px] w-[40px]">
+                      <Image src={meta.icon} alt={campaign.bank.label} height={meta.size} width={meta.size} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            }
-            className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
-            style={{ border: "solid #1C2125 1px" }}
-          />
-        )})}
+              }
+              className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
+              style={{ border: "solid #1C2125 1px" }}
+            />
+          );
+        })}
       </RadioGroup>
     </FormControl>
   );

@@ -9,7 +9,17 @@ import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
 import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { buildWhirlpoolClient, ORCA_WHIRLPOOLS_CONFIG, ORCA_WHIRLPOOL_PROGRAM_ID, PDAUtil, swapQuoteByInputToken, TICK_ARRAY_SIZE, Whirlpool, WhirlpoolClient, WhirlpoolContext } from "@orca-so/whirlpools-sdk";
+import {
+  buildWhirlpoolClient,
+  ORCA_WHIRLPOOLS_CONFIG,
+  ORCA_WHIRLPOOL_PROGRAM_ID,
+  PDAUtil,
+  swapQuoteByInputToken,
+  TICK_ARRAY_SIZE,
+  Whirlpool,
+  WhirlpoolClient,
+  WhirlpoolContext,
+} from "@orca-so/whirlpools-sdk";
 import { Percentage } from "@orca-so/sdk";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
@@ -27,11 +37,7 @@ class OrcaWhirlpoolTrader {
     this.whirlpoolClient = buildWhirlpoolClient(ctx);
   }
 
-  async trade(
-    inputMint: PublicKey,
-    outputMint: PublicKey,
-    amountIn: BN,
-  ) {
+  async trade(inputMint: PublicKey, outputMint: PublicKey, amountIn: BN) {
     const debug = getDebugLogger("whirlpool-trader");
 
     debug("Trading %d %s for %s", amountIn, inputMint.toBase58(), outputMint.toBase58());
@@ -50,28 +56,25 @@ class OrcaWhirlpoolTrader {
 
     const sig = await (await whirlpool.swap(inputTokenQuote)).buildAndExecute();
 
-    debug("Tx signature %s", sig)
+    debug("Tx signature %s", sig);
   }
 
   async getWhirlpool(inputMint: PublicKey, outputMint: PublicKey): Promise<Whirlpool> {
     const pdaA = PDAUtil.getWhirlpool(ORCA_WHIRLPOOL_PROGRAM_ID, ORCA_WHIRLPOOLS_CONFIG, inputMint, outputMint, 64);
 
-    if (!!await this.ctx.connection.getAccountInfo(pdaA.publicKey)) {
-      return this.whirlpoolClient.getPool(pdaA.publicKey)
+    if (!!(await this.ctx.connection.getAccountInfo(pdaA.publicKey))) {
+      return this.whirlpoolClient.getPool(pdaA.publicKey);
     }
-
 
     const pdaB = PDAUtil.getWhirlpool(ORCA_WHIRLPOOL_PROGRAM_ID, ORCA_WHIRLPOOLS_CONFIG, outputMint, inputMint, 64);
 
-    if (!!await this.ctx.connection.getAccountInfo(pdaB.publicKey)) {
-      return this.whirlpoolClient.getPool(pdaB.publicKey)
+    if (!!(await this.ctx.connection.getAccountInfo(pdaB.publicKey))) {
+      return this.whirlpoolClient.getPool(pdaB.publicKey);
     }
 
-
-    throw new Error("Can't find whirlpool")
+    throw new Error("Can't find whirlpool");
   }
 }
-
 
 class Liquidator {
   connection: Connection;
@@ -279,13 +282,15 @@ class Liquidator {
     const tokenAccount = await associatedAddress({ mint, owner: this.wallet.publicKey });
     const nativeAmount = nativeToUi(
       mint.equals(NATIVE_MINT)
-        ? Math.max(await this.connection.getBalance(this.wallet.publicKey) - MIN_SOL_BALANCE, 0)
+        ? Math.max((await this.connection.getBalance(this.wallet.publicKey)) - MIN_SOL_BALANCE, 0)
         : 0,
       9
     );
 
     try {
-      return new BigNumber((await this.connection.getTokenAccountBalance(tokenAccount)).value.uiAmount!).plus(nativeAmount);
+      return new BigNumber((await this.connection.getTokenAccountBalance(tokenAccount)).value.uiAmount!).plus(
+        nativeAmount
+      );
     } catch (e) {
       return new BigNumber(0).plus(nativeAmount);
     }

@@ -8,12 +8,7 @@ interface NavbarCenterItemProps {
   onClick?: () => void;
 }
 
-const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
-  text,
-  textFormat,
-  disabled,
-  onClick,
-}) => (
+const NavbarCenterItem: FC<NavbarCenterItemProps> = ({ text, textFormat, disabled, onClick }) => (
   <Button
     className={`h-full w-1/5 min-w-fit max-w-1/5 text-sm flex justify-center items-center font-light ${
       textFormat || "normal-case"
