@@ -82,7 +82,7 @@ class Bank {
         maxInterestRate: wrappedI80F48toBigNumber(rawData.config.interestRateConfig.maxInterestRate),
         insuranceIrFee: wrappedI80F48toBigNumber(rawData.config.interestRateConfig.insuranceIrFee),
         optimalUtilizationRate: wrappedI80F48toBigNumber(rawData.config.interestRateConfig.optimalUtilizationRate),
-        plateauInterestRate: wrappedI80F48toBigNumber(rawData.config.interestRateConfig.optimalUtilizationRate),
+        plateauInterestRate: wrappedI80F48toBigNumber(rawData.config.interestRateConfig.plateauInterestRate),
         protocolFixedFeeApr: wrappedI80F48toBigNumber(rawData.config.interestRateConfig.protocolFixedFeeApr),
         protocolIrFee: wrappedI80F48toBigNumber(rawData.config.interestRateConfig.protocolIrFee),
       },
@@ -224,7 +224,7 @@ class Bank {
     const utilizationRate = this.getUtilizationRate();
 
     if (utilizationRate.lte(optimalUtilizationRate)) {
-      return utilizationRate.times(maxInterestRate).div(optimalUtilizationRate);
+      return utilizationRate.times(plateauInterestRate).div(optimalUtilizationRate);
     } else {
       return utilizationRate
         .minus(optimalUtilizationRate)
