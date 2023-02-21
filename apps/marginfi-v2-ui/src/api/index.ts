@@ -62,7 +62,7 @@ function makeExtendedBankInfo(
   const tokenBalance = tokenAccount.balance;
 
   const maxDeposit = floor(
-    isWrappedSol ? Math.max(tokenBalance + nativeSolBalance - WALLET_BALANCE_MARGIN_SOL, 0) : tokenBalance,
+    isWrappedSol ? Math.max(tokenBalance + nativeSolBalance, 0) : tokenBalance,
     bankInfo.tokenMintDecimals
   );
   const maxWithdraw = floor(

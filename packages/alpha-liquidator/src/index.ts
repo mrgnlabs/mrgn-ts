@@ -6,13 +6,24 @@ import { createSyncNativeInstruction } from "@mrgnlabs/mrgn-common/src/spl";
 import { loadKeypair, nativeToUi, NodeWallet, sleep, uiToNative, Wallet } from "@mrgnlabs/mrgn-common";
 import { BN } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
 import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { buildWhirlpoolClient, ORCA_WHIRLPOOLS_CONFIG, ORCA_WHIRLPOOL_PROGRAM_ID, PDAUtil, swapQuoteByInputToken, TICK_ARRAY_SIZE, Whirlpool, WhirlpoolClient, WhirlpoolContext } from "@orca-so/whirlpools-sdk";
+import {
+  buildWhirlpoolClient,
+  ORCA_WHIRLPOOLS_CONFIG,
+  ORCA_WHIRLPOOL_PROGRAM_ID,
+  PDAUtil,
+  swapQuoteByInputToken,
+  TICK_ARRAY_SIZE,
+  Whirlpool,
+  WhirlpoolClient,
+  WhirlpoolContext,
+} from "@orca-so/whirlpools-sdk";
 import { Percentage } from "@orca-so/sdk";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
+const DUST_THRESHOLD_UI = new BigNumber(1);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const SLEEP_INTERVAL = Number.parseInt(process.env.SLEEP_INTERVAL ?? "5000");
 const MIN_SOL_BALANCE = Number.parseFloat(process.env.MIN_SOL_BALANCE ?? "1") * LAMPORTS_PER_SOL;
@@ -26,11 +37,7 @@ class OrcaWhirlpoolTrader {
     this.whirlpoolClient = buildWhirlpoolClient(ctx);
   }
 
-  async trade(
-    inputMint: PublicKey,
-    outputMint: PublicKey,
-    amountIn: BN,
-  ) {
+  async trade(inputMint: PublicKey, outputMint: PublicKey, amountIn: BN) {
     const debug = getDebugLogger("whirlpool-trader");
 
     debug("Trading %d %s for %s", amountIn, inputMint.toBase58(), outputMint.toBase58());
@@ -49,28 +56,25 @@ class OrcaWhirlpoolTrader {
 
     const sig = await (await whirlpool.swap(inputTokenQuote)).buildAndExecute();
 
-    debug("Tx signature %s", sig)
+    debug("Tx signature %s", sig);
   }
 
   async getWhirlpool(inputMint: PublicKey, outputMint: PublicKey): Promise<Whirlpool> {
     const pdaA = PDAUtil.getWhirlpool(ORCA_WHIRLPOOL_PROGRAM_ID, ORCA_WHIRLPOOLS_CONFIG, inputMint, outputMint, 64);
 
-    if (!!await this.ctx.connection.getAccountInfo(pdaA.publicKey)) {
-      return this.whirlpoolClient.getPool(pdaA.publicKey)
+    if (!!(await this.ctx.connection.getAccountInfo(pdaA.publicKey))) {
+      return this.whirlpoolClient.getPool(pdaA.publicKey);
     }
-
 
     const pdaB = PDAUtil.getWhirlpool(ORCA_WHIRLPOOL_PROGRAM_ID, ORCA_WHIRLPOOLS_CONFIG, outputMint, inputMint, 64);
 
-    if (!!await this.ctx.connection.getAccountInfo(pdaB.publicKey)) {
-      return this.whirlpoolClient.getPool(pdaB.publicKey)
+    if (!!(await this.ctx.connection.getAccountInfo(pdaB.publicKey))) {
+      return this.whirlpoolClient.getPool(pdaB.publicKey);
     }
 
-
-    throw new Error("Can't find whirlpool")
+    throw new Error("Can't find whirlpool");
   }
 }
-
 
 class Liquidator {
   connection: Connection;
@@ -132,21 +136,6 @@ class Liquidator {
       debug("Swapping %s to USDC", bank.mint);
 
       const balance = await this.getTokenAccountBalance(bank.mint);
-
-      if (bank.mint.equals(WRAPPED_SOL_MINT)) {
-        debug("Unwrapping remaining %s SOL", balance);
-        const ata = await associatedAddress({ mint: WRAPPED_SOL_MINT, owner: this.wallet.publicKey });
-        const ix = Token.createCloseAccountInstruction(
-          TOKEN_PROGRAM_ID,
-          ata,
-          this.wallet.publicKey,
-          this.wallet.publicKey,
-          []
-        );
-
-        const sig = await this.client.processTransaction(new Transaction().add(ix), [this.wallet.payer]);
-        debug("Unwrap tx: %s", sig);
-      }
 
       await this.whirlpoolTrader.trade(bank.mint, USDC_MINT, uiToNative(balance, bank.mintDecimals));
     }
@@ -215,56 +204,14 @@ class Liquidator {
 
       await this.whirlpoolTrader.trade(USDC_MINT, bank.mint, uiToNative(usdcBuyingPower, USDC_DECIMALS));
 
-      if (bank.mint.equals(WRAPPED_SOL_MINT)) {
-        debug("Asset is SOL, wrapping before depositing, min sol in wallet %s", nativeToUi(MIN_SOL_BALANCE, 9));
-        const balance = await this.connection.getBalance(this.wallet.publicKey);
-        const ataBalance = await this.getTokenAccountBalance(WRAPPED_SOL_MINT);
-
-        const transferAmount = BigNumber.min(
-          new BigNumber(Math.max(balance - MIN_SOL_BALANCE, 0)),
-          liabilities.minus(new BigNumber(uiToNative(ataBalance, bank.mintDecimals).toString()))
-        );
-
-        debug("Wrapping %s SOL", nativeToUi(transferAmount, bank.mintDecimals));
-
-        const ata = await associatedAddress({ mint: bank.mint, owner: this.wallet.publicKey });
-        const ataAccount = await this.connection.getAccountInfo(ata);
-
-        const tx = new Transaction();
-
-        if (!ataAccount) {
-          debug("Creatign WSOL ata account");
-          tx.add(
-            Token.createAssociatedTokenAccountInstruction(
-              ASSOCIATED_TOKEN_PROGRAM_ID,
-              TOKEN_PROGRAM_ID,
-              WRAPPED_SOL_MINT,
-              ata,
-              this.wallet.publicKey,
-              this.wallet.publicKey
-            )
-          );
-        }
-
-        tx.add(
-          SystemProgram.transfer({
-            fromPubkey: this.wallet.publicKey,
-            toPubkey: ata,
-            lamports: parseInt(transferAmount.toFixed(0, BigNumber.ROUND_FLOOR)),
-          }),
-          createSyncNativeInstruction(ata)
-        );
-
-        const sig = await this.client.processTransaction(tx, [this.wallet.payer]);
-
-        debug("Wrapping tx: %s", sig);
-      }
-
-      const liabBalance = await this.getTokenAccountBalance(bank.mint);
+      const liabBalance = BigNumber.min(
+        await this.getTokenAccountBalance(bank.mint),
+        new BigNumber(nativeToUi(liabilities, bank.mintDecimals))
+      );
 
       debug("Got %s of %s, depositing to marginfi", liabBalance, bank.mint);
 
-      const depositSig = await this.account.repay(liabBalance, bank);
+      const depositSig = await this.account.repay(liabBalance, bank, liabBalance.gte(liabilities));
       debug("Deposit tx: %s", depositSig);
     }
   }
@@ -333,10 +280,19 @@ class Liquidator {
 
   private async getTokenAccountBalance(mint: PublicKey): Promise<BigNumber> {
     const tokenAccount = await associatedAddress({ mint, owner: this.wallet.publicKey });
+    const nativeAmount = nativeToUi(
+      mint.equals(NATIVE_MINT)
+        ? Math.max((await this.connection.getBalance(this.wallet.publicKey)) - MIN_SOL_BALANCE, 0)
+        : 0,
+      9
+    );
+
     try {
-      return new BigNumber((await this.connection.getTokenAccountBalance(tokenAccount)).value.uiAmount!);
+      return new BigNumber((await this.connection.getTokenAccountBalance(tokenAccount)).value.uiAmount!).plus(
+        nativeAmount
+      );
     } catch (e) {
-      return new BigNumber(0);
+      return new BigNumber(0).plus(nativeAmount);
     }
   }
 
@@ -352,7 +308,7 @@ class Liquidator {
 
       let amount = await this.getTokenAccountBalance(bank.mint);
 
-      if (amount.lte(DUST_THRESHOLD)) {
+      if (amount.lte(DUST_THRESHOLD_UI)) {
         continue;
       }
 
@@ -367,21 +323,6 @@ class Liquidator {
         await this.account.repay(depositAmount, bank, amount.gte(liabilities));
 
         amount = await this.getTokenAccountBalance(bank.mint);
-      }
-
-      if (bank.mint.equals(WRAPPED_SOL_MINT)) {
-        debug("Unwrapping remaining %s SOL", amount);
-        const ata = await associatedAddress({ mint: WRAPPED_SOL_MINT, owner: this.wallet.publicKey });
-        const ix = Token.createCloseAccountInstruction(
-          TOKEN_PROGRAM_ID,
-          ata,
-          this.wallet.publicKey,
-          this.wallet.publicKey,
-          []
-        );
-
-        const sig = await this.client.processTransaction(new Transaction().add(ix), [this.wallet.payer]);
-        debug("Unwrap tx: %s", sig);
       }
 
       debug("Swapping %d %s to USDC", amount, bank.label);
@@ -443,8 +384,7 @@ class Liquidator {
     for (let i = 0; i < addresses.length; i++) {
       const liquidatedAccount = await this.processAccount(addresses[i]);
 
-      debug("Account %s liquidated: %s, Sleeping for %s", addresses[i], liquidatedAccount, SLEEP_INTERVAL);
-      await sleep(SLEEP_INTERVAL);
+      debug("Account %s liquidated: %s", addresses[i], liquidatedAccount);
 
       if (liquidatedAccount) {
         debug("Account liquidated, stopping to rebalance");
@@ -504,16 +444,16 @@ class Liquidator {
       }
     }
 
-    if (maxLiabilityPaydownUsdValue.lt(DUST_THRESHOLD)) {
-      debug("No liability to liquidate");
-      return false;
-    }
-
     debug(
       "Max liability paydown USD value: %d, mint: %s",
       maxLiabilityPaydownUsdValue,
       group.getBankByPk(marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk)!.mint
     );
+
+    if (maxLiabilityPaydownUsdValue.lt(DUST_THRESHOLD_UI)) {
+      debug("No liability to liquidate");
+      return false;
+    }
 
     let maxCollateralUsd = new BigNumber(0);
     let bestCollateralIndex = 0;

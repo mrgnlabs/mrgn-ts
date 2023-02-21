@@ -191,26 +191,20 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
 
   // @todo Move to config?
   // Not sure how worth it given LIP campaign creation's small user base
-  const assetIcons: { [key: string]: { [key: string] : any }} = {
-    "SOL": {
+  const assetIcons: { [key: string]: { [key: string]: any } } = {
+    SOL: {
       icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
       size: 30,
     },
-    "USDC": {
+    USDC: {
       icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
       size: 30,
     },
-  }
+  };
 
   return (
-    <div
-      className="flex flex-col justify-center p-5 bg-transparent z-20 text-2xl leading-10 min-w-[700px] max-w-7xl gap-4"
-    >
-      <div
-        className="text-4xl flex justify-center mt-12 mb-4"
-      >
-        Create an LIP campaign
-      </div>
+    <div className="flex flex-col justify-center p-5 bg-transparent z-20 text-2xl leading-10 min-w-[700px] max-w-7xl gap-4">
+      <div className="text-4xl flex justify-center mt-12 mb-4">Create an LIP campaign</div>
       <div className="flex justify-between text-[rgb(227, 227, 227)]">
         <div>Campaign asset:</div>
         <Select
@@ -237,7 +231,12 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           {availableBanks.map((b) => (
             <MenuItem key={b.publicKey.toBase58()} value={b.publicKey.toBase58()}>
               <div className="flex gap-4 items-center">
-                <Image src={assetIcons[b.label].icon} alt={b.label} height={assetIcons[b.label].size} width={assetIcons[b.label].size} />
+                <Image
+                  src={assetIcons[b.label].icon}
+                  alt={b.label}
+                  height={assetIcons[b.label].size}
+                  width={assetIcons[b.label].size}
+                />
                 <div>{b.label}</div>
               </div>
             </MenuItem>
@@ -254,13 +253,9 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           disabled={!wallet.connected}
         />
       </div>
-      <div  
-        className="flex justify-between text-[rgb(227, 227, 227)]"
-      >
+      <div className="flex justify-between text-[rgb(227, 227, 227)]">
         <div>Lockup period (days):</div>
-        <div
-          className="max-w-[250px]"
-        >
+        <div className="max-w-[250px]">
           <CampaignWizardInputBox
             value={lockupPeriodInDays}
             setValue={setLockupPeriodInDays}
@@ -280,16 +275,18 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           disabled={!wallet.connected}
         />
       </div>
-      <div>
-      </div>
+      <div></div>
       <div>
         <b style={{ color: "#DCE85D" }}>Summary:</b>
         <div className="flex justify-between">
           Guaranteed APY:{" "}
-          <span style={{ color: "rgb(227, 227, 227)", fontWeight: "bold" }}>{percentFormatterDyn.format(guaranteedApy)}</span>
+          <span style={{ color: "rgb(227, 227, 227)", fontWeight: "bold" }}>
+            {percentFormatterDyn.format(guaranteedApy)}
+          </span>
         </div>
         <div className="flex justify-between text-[rgb(227, 227, 227)]">
-          Lockup period: <span style={{ color: "rgb(227, 227, 227)", fontWeight: "bold" }}>{lockupPeriodInDays} days</span>
+          Lockup period:{" "}
+          <span style={{ color: "rgb(227, 227, 227)", fontWeight: "bold" }}>{lockupPeriodInDays} days</span>
         </div>
         <div className="flex justify-between">
           Max campaign deposits:{" "}
@@ -334,9 +331,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           </span>
         </div>
       </div>
-      <div
-        className="flex justify-center my-8"
-      >
+      <div className="flex justify-center my-8">
         <ProAction
           onClick={createCampaign}
           disabled={mfiClient === null || !lipClient || !campaignBank || maxRewards === 0}
@@ -344,7 +339,6 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           Create campaign
         </ProAction>
       </div>
-      
     </div>
   );
 };

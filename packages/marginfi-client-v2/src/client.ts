@@ -340,6 +340,11 @@ class MarginfiClient {
         return signature;
       }
     } catch (error: any) {
+      if (error.logs) {
+        console.log("------ Logs 👇 ------");
+        console.log(error.logs.join("\n"));
+      }
+
       throw `Transaction failed! ${error?.message}`;
     }
   }

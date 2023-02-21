@@ -9,11 +9,27 @@ import {
   WrappedI80F48,
   wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
-import { createAssociatedTokenAccountIdempotentInstruction } from "@mrgnlabs/mrgn-common/src/spl";
+import {
+  closeAccountInstructionData,
+  createAssociatedTokenAccountIdempotentInstruction,
+  createCloseAccountInstruction,
+  createSyncNativeInstruction,
+  NATIVE_MINT,
+  syncNativeInstructionData,
+} from "@mrgnlabs/mrgn-common/src/spl";
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { parsePriceData } from "@pythnetwork/client";
-import { AccountInfo, AccountMeta, Commitment, ComputeBudgetProgram, PublicKey, Transaction } from "@solana/web3.js";
+import {
+  AccountInfo,
+  AccountMeta,
+  Commitment,
+  ComputeBudgetProgram,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+} from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { MarginfiClient } from ".";
 import Bank, { BankData, PriceBias } from "./bank";
@@ -195,7 +211,10 @@ class MarginfiAccount {
       remainingAccounts
     );
 
-    return { instructions: [ix], keys: [] };
+    return {
+      instructions: bank.mint.equals(NATIVE_MINT) ? await this.wrapInstructionForWSol(ix, amount) : [ix],
+      keys: [],
+    };
   }
 
   /**
@@ -248,7 +267,10 @@ class MarginfiAccount {
       remainingAccounts
     );
 
-    return { instructions: [ix], keys: [] };
+    return {
+      instructions: bank.mint.equals(NATIVE_MINT) ? await this.wrapInstructionForWSol(ix, amount) : [ix],
+      keys: [],
+    };
   }
 
   /**
@@ -261,7 +283,6 @@ class MarginfiAccount {
    */
   async repay(amount: Amount, bank: Bank, repayAll: boolean = false): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:repay`);
-
     debug("Repaying %s %s into marginfi account, repay all: %s", amount, bank.mint, repayAll);
     const ixs = await this.makeRepayIx(amount, bank, repayAll);
     const tx = new Transaction().add(...ixs.instructions);
@@ -302,7 +323,7 @@ class MarginfiAccount {
       remainingAccounts
     );
 
-    return { instructions: [ix], keys: [] };
+    return { instructions: bank.mint.equals(NATIVE_MINT) ? await this.wrapInstructionForWSol(ix) : [ix], keys: [] };
   }
 
   /**
@@ -367,7 +388,7 @@ class MarginfiAccount {
       remainingAccounts
     );
 
-    return { instructions: [ix], keys: [] };
+    return { instructions: bank.mint.equals(NATIVE_MINT) ? await this.wrapInstructionForWSol(ix) : [ix], keys: [] };
   }
 
   /**
@@ -798,6 +819,46 @@ class MarginfiAccount {
     }
 
     return str;
+  }
+
+  private async wrapInstructionForWSol(
+    ix: TransactionInstruction,
+    amount: Amount = new BigNumber(0)
+  ): Promise<TransactionInstruction[]> {
+    const debug = require("debug")("mfi:wrapInstructionForWSol");
+    debug("creating a wsol account, and minting %s wsol", amount);
+    return [...(await this.makeWrapSolIxs(new BigNumber(amount))), ix, await this.makeUnwrapSolIx()];
+  }
+
+  private async makeWrapSolIxs(amount: BigNumber): Promise<TransactionInstruction[]> {
+    const address = await associatedAddress({ mint: NATIVE_MINT, owner: this.client.wallet.publicKey });
+    const ixs = [
+      createAssociatedTokenAccountIdempotentInstruction(
+        this.client.wallet.publicKey,
+        address,
+        this.client.wallet.publicKey,
+        NATIVE_MINT
+      ),
+    ];
+
+    if (amount.gt(0)) {
+      const debug = require("debug")("mfi:wrapInstructionForWSol");
+      const nativeAmount = uiToNative(amount, 9).toNumber() + 100;
+      debug("wrapping %s wsol", nativeAmount);
+
+      ixs.push(
+        SystemProgram.transfer({ fromPubkey: this.client.wallet.publicKey, toPubkey: address, lamports: nativeAmount }),
+        createSyncNativeInstruction(address)
+      );
+    }
+
+    return ixs;
+  }
+
+  private async makeUnwrapSolIx(): Promise<TransactionInstruction> {
+    const address = await associatedAddress({ mint: NATIVE_MINT, owner: this.client.wallet.publicKey });
+
+    return createCloseAccountInstruction(address, this.client.wallet.publicKey, this.client.wallet.publicKey);
   }
 }
 
