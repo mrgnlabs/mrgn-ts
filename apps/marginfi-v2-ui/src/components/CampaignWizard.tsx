@@ -191,7 +191,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
 
   // @todo Move to config?
   // Not sure how worth it given LIP campaign creation's small user base
-  const assetIcons = {
+  const assetIcons: { [key: string]: { [key: string] : string | number }} = {
     "SOL": {
       icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
       size: 30,
