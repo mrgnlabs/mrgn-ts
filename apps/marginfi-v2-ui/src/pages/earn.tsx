@@ -12,7 +12,6 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import Image from "next/image";
 import LipAccount, { Campaign } from "@mrgnlabs/lip-client/src/account";
-import { CampaignWizard } from "~/components/CampaignWizard";
 import config from "~/config";
 import { computeGuaranteedApyForCampaign } from "@mrgnlabs/lip-client/src/utils";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
@@ -167,7 +166,7 @@ export const ProInputBox: FC<ProInputBox> = ({
   );
 };
 
-const MaxInputAdornment: FC<{
+export const MaxInputAdornment: FC<{
   onClick: MouseEventHandler<HTMLDivElement>;
   disabled?: boolean;
 }> = ({ onClick, disabled }) => (
@@ -469,10 +468,6 @@ const Pro = () => {
               Deposit
             </ProAction>
           </div>
-
-          {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_CREATE_CAMPAIGN === "true" && (
-            <CampaignWizard />
-          )}
         </div>
       </div>
     </>

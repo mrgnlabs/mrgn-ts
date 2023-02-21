@@ -2,9 +2,9 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import BN from "bn.js";
-import { shortenAddress, uiToNative } from "@mrgnlabs/mrgn-common";
+import { uiToNative } from "@mrgnlabs/mrgn-common";
 import { useProgram, useTokenAccounts } from "~/context";
-import { ProAction, ProInputBox } from "~/pages/earn";
+import { ProAction } from "~/pages/earn";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { groupedNumberFormatterDyn, percentFormatterDyn } from "~/utils/formatters";
 import { calculateInterestFromApy, computeGuaranteedApy } from "@mrgnlabs/lip-client/src/utils";
@@ -16,6 +16,66 @@ import {
 } from "@mrgnlabs/mrgn-common/src/spl";
 import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
+import Image from "next/image";
+import { NumberFormatValues, NumericFormat } from "react-number-format";
+import { TextField } from "@mui/material";
+
+interface CampaignWizardInputBox {
+  value: number;
+  setValue: (value: number) => void;
+  loadingSafetyCheck: () => void;
+  maxValue?: number;
+  maxDecimals?: number;
+  disabled?: boolean;
+}
+
+const CampaignWizardInputBox: FC<CampaignWizardInputBox> = ({
+  value,
+  setValue,
+  loadingSafetyCheck,
+  maxValue,
+  maxDecimals,
+  disabled,
+}) => {
+  const onChange = useCallback(
+    (event: NumberFormatValues) => {
+      const updatedAmountStr = event.value;
+      if (updatedAmountStr !== "" && !/^\d*\.?\d*$/.test(updatedAmountStr)) return;
+
+      const updatedAmount = Number(updatedAmountStr);
+      if (maxValue !== undefined && updatedAmount > maxValue) {
+        loadingSafetyCheck();
+        setValue(maxValue);
+        return;
+      }
+
+      loadingSafetyCheck();
+      setValue(updatedAmount);
+    },
+    [maxValue, setValue, loadingSafetyCheck]
+  );
+
+  return (
+    // TODO: re-rendering after initial amount capping is messed up and lets anything you type through
+    <NumericFormat
+      value={value}
+      placeholder="0"
+      allowNegative={false}
+      decimalScale={maxDecimals}
+      disabled={disabled}
+      onValueChange={onChange}
+      thousandSeparator=","
+      customInput={TextField}
+      size="small"
+      max={maxValue}
+      InputProps={{
+        // @todo width is hacky here
+        className:
+          "font-aeonik h-12 px-0 bg-[#1C2125] text-[#e1e1e1] text-base font-light rounded-lg self-center w-[210px]",
+      }}
+    />
+  );
+};
 
 interface CampaignWizardProps {}
 
@@ -129,30 +189,64 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
 
   if (!campaignBank) return null;
 
+  // @todo Move to config?
+  // Not sure how worth it given LIP campaign creation's small user base
+  const assetIcons: { [key: string]: { [key: string] : any }} = {
+    "SOL": {
+      icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
+      size: 30,
+    },
+    "USDC": {
+      icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
+      size: 30,
+    },
+  }
+
   return (
-    <div className="flex flex-col justify-center gap-3 p-5 bg-black z-20">
-      <Select
-        className="bg-gray-600"
-        labelId="campaign-bank-label"
-        id="campaign-bank-select"
-        variant="outlined"
-        classes={{ standard: "test-white" }}
-        value={campaignBank.publicKey.toBase58()}
-        onChange={(event: SelectChangeEvent<string>) => {
-          const bank = availableBanks.find((b) => b.publicKey.toBase58() === event.target.value);
-          if (!bank) throw new Error("Bank not found");
-          setCampaignBank(bank);
-        }}
+    <div
+      className="flex flex-col justify-center p-5 bg-transparent z-20 text-2xl leading-10 min-w-[700px] max-w-7xl gap-4"
+    >
+      <div
+        className="text-4xl flex justify-center mt-12 mb-4"
       >
-        {availableBanks.map((b) => (
-          <MenuItem key={b.publicKey.toBase58()} value={b.publicKey.toBase58()}>
-            {b.label} - {shortenAddress(b.publicKey)}
-          </MenuItem>
-        ))}
-      </Select>
-      <div>
-        Guaranteed Apy percentage:
-        <ProInputBox
+        Create an LIP campaign
+      </div>
+      <div className="flex justify-between text-[rgb(227, 227, 227)]">
+        <div>Campaign asset:</div>
+        <Select
+          className="bg-[#1C2125] text-white text-base rounded-lg h-12 w-[210px]"
+          MenuProps={{
+            PaperProps: {
+              style: {
+                backgroundColor: "#1C2125",
+                color: "#fff",
+              },
+            },
+          }}
+          labelId="campaign-bank-label"
+          id="campaign-bank-select"
+          variant="outlined"
+          classes={{ standard: "test-white" }}
+          value={campaignBank.publicKey.toBase58()}
+          onChange={(event: SelectChangeEvent<string>) => {
+            const bank = availableBanks.find((b) => b.publicKey.toBase58() === event.target.value);
+            if (!bank) throw new Error("Bank not found");
+            setCampaignBank(bank);
+          }}
+        >
+          {availableBanks.map((b) => (
+            <MenuItem key={b.publicKey.toBase58()} value={b.publicKey.toBase58()}>
+              <div className="flex gap-4 items-center">
+                <Image src={assetIcons[b.label].icon} alt={b.label} height={assetIcons[b.label].size} width={assetIcons[b.label].size} />
+                <div>{b.label}</div>
+              </div>
+            </MenuItem>
+          ))}
+        </Select>
+      </div>
+      <div className="flex justify-between">
+        <div>Guaranteed APY %:</div>
+        <CampaignWizardInputBox
           value={guaranteedApy * 100}
           setValue={(value) => setGuaranteedApy(value / 100)}
           loadingSafetyCheck={() => {}}
@@ -160,19 +254,25 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           disabled={!wallet.connected}
         />
       </div>
-      <div>
-        Lock-up period (days):
-        <ProInputBox
-          value={lockupPeriodInDays}
-          setValue={setLockupPeriodInDays}
-          loadingSafetyCheck={() => {}}
-          maxDecimals={3}
-          disabled={!wallet.connected}
-        />
+      <div  
+        className="flex justify-between text-[rgb(227, 227, 227)]"
+      >
+        <div>Lockup period (days):</div>
+        <div
+          className="max-w-[250px]"
+        >
+          <CampaignWizardInputBox
+            value={lockupPeriodInDays}
+            setValue={setLockupPeriodInDays}
+            loadingSafetyCheck={() => {}}
+            maxDecimals={3}
+            disabled={!wallet.connected}
+          />
+        </div>
       </div>
-      <div>
-        Deposit capacity (in asset unit):
-        <ProInputBox
+      <div className="flex justify-between text-[rgb(227, 227, 227)]">
+        <div>Campaign size (in asset unit):</div>
+        <CampaignWizardInputBox
           value={depositCapacity}
           setValue={setDepositCapacity}
           loadingSafetyCheck={() => {}}
@@ -181,56 +281,43 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
         />
       </div>
       <div>
-        <b style={{ color: "#3CAB5F" }}>User info:</b>
-        <div className="flex justify-between">
-          token balance:{" "}
-          <span
-            style={{
-              color: "yellow",
-              fontWeight: "bold",
-            }}
-          >
-            {groupedNumberFormatterDyn.format(tokenBalance)} {campaignBank?.label || "none"}
-          </span>
-        </div>
       </div>
-      --------------------------
       <div>
-        <b style={{ color: "#3CAB5F" }}>Summary:</b>
+        <b style={{ color: "#DCE85D" }}>Summary:</b>
         <div className="flex justify-between">
           Guaranteed APY:{" "}
-          <span style={{ color: "yellow", fontWeight: "bold" }}>{percentFormatterDyn.format(guaranteedApy)}</span>
+          <span style={{ color: "rgb(227, 227, 227)", fontWeight: "bold" }}>{percentFormatterDyn.format(guaranteedApy)}</span>
+        </div>
+        <div className="flex justify-between text-[rgb(227, 227, 227)]">
+          Lockup period: <span style={{ color: "rgb(227, 227, 227)", fontWeight: "bold" }}>{lockupPeriodInDays} days</span>
         </div>
         <div className="flex justify-between">
-          Lock-up period: <span style={{ color: "yellow", fontWeight: "bold" }}>{lockupPeriodInDays} days</span>
-        </div>
-        <div className="flex justify-between">
-          Deposit capacity:{" "}
+          Max campaign deposits:{" "}
           <span
             style={{
-              color: "yellow",
+              color: "rgb(227, 227, 227)",
               fontWeight: "bold",
             }}
           >
             {groupedNumberFormatterDyn.format(depositCapacity)} {campaignBank?.label || "none"}
           </span>
         </div>
-        <div className="flex justify-between">
+        <div className="flex justify-between text-[rgb(227, 227, 227)]">
           Max rewards:{" "}
           <span
             style={{
-              color: "yellow",
+              color: "rgb(227, 227, 227)",
               fontWeight: "bold",
             }}
           >
             {groupedNumberFormatterDyn.format(maxRewards)} {campaignBank?.label || "none"}
           </span>
         </div>
-        <div className="flex justify-between">
-          Effective rate:{" "}
+        <div className="flex justify-between text-[rgb(227, 227, 227)]">
+          Campaign APY:{" "}
           <span
             style={{
-              color: "yellow",
+              color: "rgb(227, 227, 227)",
               fontWeight: "bold",
             }}
           >
@@ -247,80 +334,17 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           </span>
         </div>
       </div>
-      --------------------------
-      <div>
-        <b style={{ color: "#3CAB5F" }}>Contract inputs:</b>
-        <div className="flex justify-between">
-          Env: <span style={{ color: "yellow", fontWeight: "bold" }}>{lipClient?.config.environment || "none"}</span>
-        </div>
-        <div className="flex justify-between">
-          Mint:{" "}
-          <span style={{ color: "yellow", fontWeight: "bold" }}>
-            {campaignBank ? shortenAddress(campaignBank.mint) : "none"}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          Mfi program:{" "}
-          <span
-            style={{
-              color: "yellow",
-              fontWeight: "bold",
-            }}
-          >
-            {mfiClient ? shortenAddress(mfiClient.program.programId.toBase58()) : "none"}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          LIP program:{" "}
-          <span
-            style={{
-              color: "yellow",
-              fontWeight: "bold",
-            }}
-          >
-            {lipClient ? shortenAddress(lipClient.program.programId.toBase58()) : "none"}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          lockup_period:{" "}
-          <span
-            style={{
-              color: "yellow",
-              fontWeight: "bold",
-            }}
-          >
-            {groupedNumberFormatterDyn.format(contractInputs.lockupPeriod.toNumber())}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          max_deposit:{" "}
-          <span
-            style={{
-              color: "yellow",
-              fontWeight: "bold",
-            }}
-          >
-            {groupedNumberFormatterDyn.format(contractInputs.maxDeposits.toNumber())}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          max_rewards:{" "}
-          <span
-            style={{
-              color: "yellow",
-              fontWeight: "bold",
-            }}
-          >
-            {groupedNumberFormatterDyn.format(contractInputs.maxRewards.toNumber())}
-          </span>
-        </div>
-      </div>
-      <ProAction
-        onClick={createCampaign}
-        disabled={mfiClient === null || !lipClient || !campaignBank || maxRewards === 0}
+      <div
+        className="flex justify-center my-8"
       >
-        Create campaign
-      </ProAction>
+        <ProAction
+          onClick={createCampaign}
+          disabled={mfiClient === null || !lipClient || !campaignBank || maxRewards === 0}
+        >
+          Create campaign
+        </ProAction>
+      </div>
+      
     </div>
   );
 };
