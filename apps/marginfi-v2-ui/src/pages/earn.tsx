@@ -166,7 +166,7 @@ export const ProInputBox: FC<ProInputBox> = ({
   );
 };
 
-const MaxInputAdornment: FC<{
+export const MaxInputAdornment: FC<{
   onClick: MouseEventHandler<HTMLDivElement>;
   disabled?: boolean;
 }> = ({ onClick, disabled }) => (
