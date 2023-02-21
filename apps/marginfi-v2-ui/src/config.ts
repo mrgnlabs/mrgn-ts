@@ -30,7 +30,7 @@ switch (environment) {
       {
         icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
         size: 30,
-        publicKey: "Fn7bjDdMydcDZdJxSjWsqmsvZpRRYFzRM9V9sAq3f5mg",
+        publicKey: "Cm2yPJQ8qB1wo6b3268F9hC7YbBWRmF6h3mbvvekW68B",
       },
     ];
     break;
