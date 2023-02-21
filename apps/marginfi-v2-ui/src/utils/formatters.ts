@@ -15,7 +15,7 @@ export const usdFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
-  signDisplay: "exceptZero",
+  signDisplay: "auto",
 });
 
 export const percentFormatter = new Intl.NumberFormat("en-US", {
