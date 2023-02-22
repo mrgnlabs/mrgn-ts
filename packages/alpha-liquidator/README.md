@@ -18,7 +18,7 @@
 A TypeScript bot for liquidating on marginfi v2.
 
 # ⚠️⚠️Important⚠️⚠️ 
-**This bot uses the marginfi account and all token accounts owned by the liquidator wallet because it trades outside of marginfi. If there is a USDC balance in the wallet, the bot will automatically deposit it into marginfi and use it for liquidations. Please note that the liquidator will use all token accounts in the wallet for liquidations, so ensure that your wallet doesn't hold any funds anot intended for liquidations.**
+**This bot uses the marginfi account and all token accounts owned by the liquidator wallet because it trades outside of marginfi. If there is a USDC balance in the wallet, the bot will automatically deposit it into marginfi and use it for liquidations. Please note that the liquidator will use all token accounts in the wallet for liquidations, so ensure that your wallet doesn't hold any funds not intended for liquidations.**
 
 ## Setup
 To set up the liquidator, you need to perform the following steps:
