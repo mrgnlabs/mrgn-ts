@@ -843,7 +843,7 @@ class MarginfiAccount {
 
     if (amount.gt(0)) {
       const debug = require("debug")("mfi:wrapInstructionForWSol");
-      const nativeAmount = uiToNative(amount, 9).toNumber() + 100;
+      const nativeAmount = uiToNative(amount, 9).toNumber() + 10000;
       debug("wrapping %s wsol", nativeAmount);
 
       ixs.push(
