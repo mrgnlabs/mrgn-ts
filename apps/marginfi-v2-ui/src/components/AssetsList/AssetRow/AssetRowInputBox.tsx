@@ -50,7 +50,7 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({ value, setValue, maxValue, max
       size="small"
       max={maxValue}
       InputProps={{
-        className: "font-aeonik min-w-[150px] h-12 mx-3 px-0 bg-[#1C2125] text-[#e1e1e1] text-sm font-light rounded-lg",
+        className: "font-aeonik min-w-[150px] h-20 sm:h-12 mx-3 px-0 bg-[#1C2125] text-[#e1e1e1] text-xl sm:text-sm font-light rounded-lg",
         endAdornment: <MaxInputAdornment onClick={onMaxClick} />,
       }}
     />

@@ -241,7 +241,8 @@ const AssetRow: FC<{
   }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, marginfiClient, reloadBanks]);
 
   return (
-    <TableRow className="h-full flex justify-between items-center h-[78px] p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+    <>
+    <TableRow className="hidden sm:flex h-full justify-between items-center h-[78px] p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
       <AssetRowHeader
         assetName={bankInfo.tokenName}
         apy={isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate}
@@ -314,6 +315,50 @@ const AssetRow: FC<{
         </div>
       </TableCell>
     </TableRow>
+
+    {/* Mobile */}
+    <div
+      className="flex sm:hidden flex-col min-h-fit h-full h-[360px] justify-center items-center p-0 px-4 py-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-10"
+    >
+      <AssetRowHeader
+        assetName={bankInfo.tokenName}
+        apy={isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate}
+        icon={bankInfo.tokenIcon}
+        isInLendingMode={isInLendingMode}
+      />
+
+      {isConnected && (
+        <TableCell
+          className="py-1 px-0 h-10 border-hidden flex justify-center items-center"
+        >
+          <AssetRowInputBox
+            value={borrowOrLendAmount}
+            setValue={setBorrowOrLendAmount}
+            maxValue={maxAmount}
+            maxDecimals={bankInfo.tokenMintDecimals}
+          />
+        </TableCell>
+      )}
+
+      <TableCell
+        className="p-0 border-hidden h-10 h-[96px] min-h-fit flex justify-center items-center"
+      >
+        <div className="h-full w-full">
+          <Tooltip
+            title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
+            placement="top"
+          >
+            <div
+              className={`${isConnected ? "h-[96px]" : "h-full"} w-full flex justify-center items-center`}
+              
+            >
+              <AssetRowAction onClick={borrowOrLend}>{currentAction}</AssetRowAction>
+            </div>
+          </Tooltip>
+        </div>
+      </TableCell>
+    </div>
+  </>
   );
 };
 

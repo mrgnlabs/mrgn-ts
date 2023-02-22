@@ -17,7 +17,7 @@ const AssetRowAction: FC<AssetRowActionProps> = ({ children, disabled, ...otherP
 
   return wallet.connected ? (
     <Button
-      className="bg-white text-black normal-case text-sm mx-2 sm:mx-0 w-28 sm:w-32 h-10 max-w-1 rounded-[100px]"
+      className="bg-white text-black normal-case text-2xl sm:text-sm mx-2 sm:mx-0 w-64 sm:w-32 h-20 sm:h-10 max-w-1 rounded-[100px]"
       style={{
         backgroundColor: disabled || !wallet.connected ? "gray" : "rgb(227, 227, 227)",
         color: "black",
@@ -31,7 +31,7 @@ const AssetRowAction: FC<AssetRowActionProps> = ({ children, disabled, ...otherP
     </Button>
   ) : (
     <WalletMultiButtonDynamic
-      className="bg-white text-black normal-case text-sm mx-2 sm:mx-0 w-28 sm:w-32 h-10 max-w-1 rounded-[100px] flex justify-center items-center"
+      className="bg-white text-black normal-case text-2xl sm:text-sm mx-2 sm:mx-0 w-64 sm:w-32 h-20 sm:h-10 max-w-1 rounded-[100px] flex justify-center items-center"
       startIcon={undefined}
     >
       Connect
