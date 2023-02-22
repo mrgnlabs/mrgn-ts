@@ -21,10 +21,9 @@
 /* Mobile optimization */
 @media (max-width: 639px) {
     .wallet-button {
-        height: 47.25px !important;
-        min-width: 219.825px;
-        width: 219.825px;
-        font-size: 21px !important;
+        height: 50px !important;
+        width: 146.55px;
+        font-size: 14px !important;
 
         background-color: transparent !important;
         color: #c0c0c0 !important;
@@ -39,7 +38,7 @@
         
         font-weight: 300 !important;
         text-transform: uppercase !important;
-    } 
+    }
 }
   
 .airdrop-button {
