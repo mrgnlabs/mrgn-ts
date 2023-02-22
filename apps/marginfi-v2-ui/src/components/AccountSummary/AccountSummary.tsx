@@ -23,11 +23,12 @@ const AccountSummary: FC = () => {
   return (
     <div className="col-span-full">
       <div
-        className="flex flex-row flex-wrap justify-start xl:justify-between w-full min-w-[400px] p-0 items-center gap-3 xl:gap-0 font-light"
+        className="flex flex-row flex-wrap justify-start xl:justify-between w-full sm:min-w-[400px] p-0 items-center gap-3 xl:gap-0 font-light"
         style={{
-          fontFamily: "Aeonik Pro",
+          fontFamily: "Aeonik Pro",          
         }}
       >
+        {/* Mobile */}
         <div
           className="flex sm:hidden flex-row items-center"
         >
@@ -38,7 +39,8 @@ const AccountSummary: FC = () => {
         <div className="hidden sm:flex">
           <AccountBalance isConnected={wallet.connected} accountBalance={accountSummary.balance} />
         </div>
-        <div className="h-[112px] min-w-[392px] w-[38%] flex flex-row justify-between xl:pt-0 h-full bg-[#0E1113] rounded-xl">
+
+        <div className="h-[112px] w-full sm:min-w-[392px] sm:w-[38%] flex flex-row justify-between xl:pt-0 h-full bg-[#0E1113] rounded-xl">
           <AccountMetric
             label={"Lending"}
             value={wallet.connected ? usdFormatter.format(accountSummary.lendingAmount) : "-"}
