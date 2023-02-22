@@ -23,7 +23,7 @@ A TypeScript bot for liquidating on marginfi v2.
 ## Setup
 To set up the liquidator, you need to perform the following steps:
 
-Set the required environmental variables by running the following commands:
+Set the required environment variables by running the following commands:
 
 ``` sh
 export RPC_ENDPOINT=https://api.mainnet-beta.solana.com
