@@ -79,7 +79,7 @@ const HealthFactor: FC<HealthMonitorProps> = ({ healthFactor }) => {
 
   return (
     <div
-      className="w-[28%] min-w-[320px] h-[112px] rounded-lg bg-black-800 shadow-md p-2 pl-4 pr-3 flex flex-col justify-between"
+      className="hidden sm:flex w-[28%] min-w-[320px] h-[112px] rounded-lg bg-black-800 shadow-md p-2 pl-4 pr-3 flex-col justify-between"
       style={{
         backgroundImage: 'url("https://i.imgur.com/DVnMT9l.png")',
         backgroundSize: "cover",
