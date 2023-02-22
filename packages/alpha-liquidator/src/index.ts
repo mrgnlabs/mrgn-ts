@@ -26,7 +26,7 @@ const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(1);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const SLEEP_INTERVAL = Number.parseInt(process.env.SLEEP_INTERVAL ?? "5000");
-const MIN_SOL_BALANCE = Number.parseFloat(process.env.MIN_SOL_BALANCE ?? "1") * LAMPORTS_PER_SOL;
+const MIN_SOL_BALANCE = Number.parseFloat(process.env.MIN_SOL_BALANCE ?? "10") * LAMPORTS_PER_SOL;
 
 class OrcaWhirlpoolTrader {
   private whirlpoolClient: WhirlpoolClient;
@@ -378,7 +378,7 @@ class Liquidator {
   private async liquidationStage() {
     const debug = getDebugLogger("liquidation-stage");
     debug("Started liquidation stage");
-    const addresses = await this.client.getAllMarginfiAccountAddresses();
+    const addresses = shuffle(await this.client.getAllMarginfiAccountAddresses());
     debug("Found %s accounts", addresses.length);
 
     for (let i = 0; i < addresses.length; i++) {
@@ -532,3 +532,12 @@ main().catch((e) => console.log(e));
 function getDebugLogger(context: string) {
   return require("debug")(`mfi:liquidator:${context}`);
 }
+
+const shuffle = ([...arr]) => {
+  let m = arr.length;
+  while (m) {
+    const i = Math.floor(Math.random() * m--);
+    [arr[m], arr[i]] = [arr[i], arr[m]];
+  }
+  return arr;
+};
