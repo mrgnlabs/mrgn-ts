@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "ts-node src/index.ts",
+    "setup": "ts-node src/setup.ts",
     "build": "tsup"
   },
   "author": "",
