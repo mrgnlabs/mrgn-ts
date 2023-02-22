@@ -272,7 +272,7 @@ const AssetRow: FC<{
         {isConnected && (
           <AssetRowMetric
             longLabel={isInLendingMode ? "Wallet Balance" : "Available Liquidity"}
-            shortLabel={isInLendingMode ? "Wallet Balance" : "Available"}
+            shortLabel="Available"
             value={groupedNumberFormatter.format(
               isInLendingMode
                 ? bankInfo.tokenMint.equals(WSOL_MINT)

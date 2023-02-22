@@ -21,7 +21,9 @@ const AccountSummary: FC = () => {
   }, [selectedAccount]);
 
   return (
-    <div className="col-span-full">
+    <div  
+      className="col-span-full"
+    >
       <div
         className="flex flex-row flex-wrap justify-start xl:justify-between w-full sm:min-w-[400px] p-0 items-center gap-3 xl:gap-0 font-light"
         style={{
@@ -30,10 +32,10 @@ const AccountSummary: FC = () => {
       >
         {/* Mobile */}
         <div
-          className="flex sm:hidden flex-row items-center"
+          className="flex sm:hidden flex-row items-center w-full"
         >
-        <AccountBalance isConnected={wallet.connected} accountBalance={accountSummary.balance} />
-        <MobileHealth isConnected={wallet.connected} healthFactor={healthFactor} />
+          <AccountBalance isConnected={wallet.connected} accountBalance={accountSummary.balance} />
+          <MobileHealth isConnected={wallet.connected} healthFactor={healthFactor} />
         </div>
         {/* Desktop */}
         <div className="hidden sm:flex">
