@@ -615,7 +615,7 @@ class MarginfiAccount {
   public canBeLiquidated(): boolean {
     const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Maint);
 
-    return assets < liabilities;
+    return assets.lt(liabilities);
   }
 
   public getBalance(bankPk: PublicKey): Balance {
