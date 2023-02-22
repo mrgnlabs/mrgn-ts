@@ -21,10 +21,10 @@
 /* Mobile optimization */
 @media (max-width: 639px) {
     .wallet-button {
-        height: 63px !important;
-        min-width: 293.1px;
-        width: 293.1px;
-        font-size: 28px !important;
+        height: 47.25px !important;
+        min-width: 219.825px;
+        width: 219.825px;
+        font-size: 21px !important;
 
         background-color: transparent !important;
         color: #c0c0c0 !important;

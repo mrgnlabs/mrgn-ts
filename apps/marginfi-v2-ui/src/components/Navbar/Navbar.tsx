@@ -14,10 +14,10 @@ const Navbar: FC = () => {
   return (
     <header>
       <nav
-        className="fixed w-full top-0 h-[128px] sm:h-[64px] z-10 backdrop-blur-md"
+        className="fixed w-full top-0 h-[96px] sm:h-[64px] z-10 backdrop-blur-md"
       >
         <div
-          className="w-full top-0 flex justify-between items-center h-[128px] sm:h-[64px] text-2xl z-10"
+          className="w-full top-0 flex justify-between items-center h-[96px] sm:h-[64px] text-2xl z-10"
           style={{
             border: "solid #1C2125 1px",
             padding: "0 15px",
