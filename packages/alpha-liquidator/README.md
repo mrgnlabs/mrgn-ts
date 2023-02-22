@@ -48,7 +48,7 @@ Once you have completed these steps, the liquidator is ready to operate.
 
 ## Operatign the liquidator
 
-You can start the liquidator with by running.
+You can start the liquidator by running.
 
 ``` sh
 yarn start
