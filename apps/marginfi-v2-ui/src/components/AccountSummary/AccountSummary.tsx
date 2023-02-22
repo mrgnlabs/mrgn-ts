@@ -1,6 +1,6 @@
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
 import { useWallet } from "@solana/wallet-adapter-react";
-import React, { FC, useMemo } from "react";
+import React, { FC, useEffect, useMemo } from "react";
 import { usdFormatter } from "~/utils/formatters";
 import { AccountBalance } from "./AccountBalance";
 import { AccountMetric } from "./AccountMetric";
@@ -40,19 +40,11 @@ const AccountSummary: FC = () => {
           />
           <AccountMetric
             label={"Net APY"}
-            // value={
-            //   wallet.connected
-            //     ? signedPercentFormatter.format(
-            //         Math.round(accountSummary.apy * 1_000_000) / 1_000_000
-            //       )
-            //     : "-"
-            // }
             valueBold
             preview
             boldValue={accountSummary.apy >= 0 ? "#75ba80" : "#bd4d4d"}
           />
         </div>
-
         <HealthFactor healthFactor={healthFactor} />
       </div>
     </div>
