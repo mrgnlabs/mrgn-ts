@@ -31,6 +31,18 @@ require("~/styles/globals.css");
 // Matomo
 const MATOMO_URL = "https://mrgn.matomo.cloud";
 
+// @todo worth moving to a provider
+const iOSVersion = () => {
+  const match = navigator.userAgent.match(/iPad|iPhone|iPod/)
+  const version = (match && match.length > 0) ? navigator.userAgent.match(/OS (\d+)_(\d+)_?(\d+)?/) : null
+  if (version && version.length > 0) {
+    return parseInt(version[1], 10)
+  }
+  return -1
+}
+
+const iosVersionMajor = iOSVersion()
+
 const MyApp = ({ Component, pageProps }: AppProps) => {
   // enable matomo heartbeat
   useEffect(() => {
@@ -69,7 +81,9 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                       <link rel="icon" href="/favicon.ico" />
                     </Head>
                     <Navbar />
-                    <div className="w-full flex flex-col justify-center items-center sm:pt-[64px]">
+                    <div
+                      className={`w-full flex flex-col justify-center items-center ${iosVersionMajor >= 13 ? 'pt-[160px]' : 'pt-[80px]'} sm:pt-[64px]`}
+                    >
                       <Component {...pageProps} />
                     </div>
                     <ToastContainer position="bottom-left" theme="dark" />

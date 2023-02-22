@@ -11,9 +11,9 @@ interface AccountMetricProps {
 
 const AccountMetric: FC<AccountMetricProps> = ({ label, value, valueBold, preview, boldValue }) => {
   return (
-    <div className={"h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl text-lg"}>
+    <div className={"h-[112px] w-1/2 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl text-lg"}>
       <div
-        className="text-base text-[#868E95]"
+        className="text-2xl sm:text-base text-[#868E95]"
         style={{
           fontFamily: "Aeonik Pro",
           fontWeight: valueBold ? 400 : 300,
@@ -23,7 +23,7 @@ const AccountMetric: FC<AccountMetricProps> = ({ label, value, valueBold, previe
       </div>
       {preview ? (
         <div
-          className="text-sm text-[#868E95]"
+          className="text-xl sm:text-sm text-[#868E95]"
           style={{
             fontFamily: "Aeonik Pro",
             fontWeight: 500,

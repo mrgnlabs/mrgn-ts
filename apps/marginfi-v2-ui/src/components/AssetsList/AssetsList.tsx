@@ -2,7 +2,7 @@ import React, { FC, useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Card, Skeleton, Table, TableBody, TableContainer, TableRow } from "@mui/material";
 import { useBanks, useProgram, useUserAccounts } from "~/context";
-import { BorrowLendToggle } from "./BorrowLendToggle";
+import { BorrowLendToggle, BorrowLendToggleMobile } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
 
 const AssetsList: FC = () => {
@@ -23,7 +23,10 @@ const AssetsList: FC = () => {
 
   return (
     <>
-      <div className="col-span-full">
+      <div className="col-span-full sm:hidden">
+        <BorrowLendToggleMobile isInLendingMode={isInLendingMode} setIsInLendingMode={setIsInLendingMode} />
+      </div>
+      <div className="col-span-full hidden sm:flex">
         <BorrowLendToggle isInLendingMode={isInLendingMode} setIsInLendingMode={setIsInLendingMode} />
       </div>
 
