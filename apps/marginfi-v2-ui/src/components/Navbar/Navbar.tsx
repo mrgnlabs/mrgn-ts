@@ -13,9 +13,9 @@ const Navbar: FC = () => {
 
   return (
     <header>
-      <nav className="fixed w-full top-0 h-[64px] z-10 backdrop-blur-md">
+      <nav className="fixed w-full top-0 h-[72px] sm:h-[64px] z-10 backdrop-blur-md">
         <div
-          className="w-full top-0 flex justify-between items-center h-[64px] text-2xl z-10"
+          className="w-full top-0 flex justify-between items-center h-[72px] sm:h-[64px] text-2xl z-10"
           style={{
             border: "solid #1C2125 1px",
             padding: "0 15px",
@@ -38,7 +38,7 @@ const Navbar: FC = () => {
             </div>
           </div>
           <div className="h-full flex justify-center items-center gap-4 z-10">
-            <Link href={"https://marginfi.canny.io/mrgnlend"} className="">
+            <Link href={"https://marginfi.canny.io/mrgnlend"} className="hidden sm:visible">
               <Button
                 className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
                 variant="text"
