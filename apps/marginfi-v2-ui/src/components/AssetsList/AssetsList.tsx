@@ -4,10 +4,11 @@ import { Card, Skeleton, Table, TableBody, TableContainer, TableRow } from "@mui
 import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { FourOptionToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
+import { ProductType } from '~/types';
 
 const AssetsList: FC = () => {
-  const actionOptions = ['Lock', 'Lend', 'Borrow', '⚡️stake'];
-  const [currentAction, setCurrentAction] = useState(actionOptions[0]);
+  const productTypes = [ProductType.Lock, ProductType.Lend, ProductType.Borrow, ProductType.Superstake];
+  const [productType, setProductType] = useState(productTypes[0]);
 
   const { mfiClient } = useProgram();
   const { reload } = useBanks();
@@ -27,9 +28,9 @@ const AssetsList: FC = () => {
     <>
       <div>
         <FourOptionToggle
-          currentAction={currentAction}
-          setCurrentAction={setCurrentAction}
-          actionOptions={actionOptions}
+          productType={productType}
+          setProductType={setProductType}
+          productTypes={productTypes}
         />
       </div>
 
@@ -44,7 +45,7 @@ const AssetsList: FC = () => {
                       key={bankInfo.tokenName}
                       nativeSolBalance={nativeSolBalance}
                       bankInfo={bankInfo}
-                      isInLendingMode={true} // @todo placeholder
+                      productType={productType}
                       isConnected={wallet.connected}
                       marginfiAccount={selectedAccount}
                       marginfiClient={mfiClient}

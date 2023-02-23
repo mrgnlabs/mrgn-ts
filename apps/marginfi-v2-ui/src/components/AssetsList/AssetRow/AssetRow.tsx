@@ -2,7 +2,7 @@ import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
 import { TableCell, TableRow, Tooltip } from "@mui/material";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { ActionType, ExtendedBankInfo, isActiveBankInfo } from "~/types";
+import { ActionType, ProductType, ExtendedBankInfo, isActiveBankInfo } from "~/types";
 import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
@@ -22,23 +22,26 @@ const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 const ACCOUNT_DETECTION_ERROR_TOAST_ID = "account-detection-error";
 
+// @todo currently, action for only lend & borrow is enabled
+// @todo enable lock and superstake progressively
 const AssetRow: FC<{
   bankInfo: ExtendedBankInfo;
   nativeSolBalance: number;
-  isInLendingMode: boolean;
+  productType: ProductType;
   isConnected: boolean;
   marginfiAccount: MarginfiAccount | null;
   marginfiClient: MarginfiClient | null;
   reloadBanks: () => Promise<void>;
-}> = ({ bankInfo, nativeSolBalance, isInLendingMode, isConnected, marginfiAccount, marginfiClient, reloadBanks }) => {
+}> = ({ bankInfo, nativeSolBalance, productType, isConnected, marginfiAccount, marginfiClient, reloadBanks }) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
 
   // Reset b/l amounts on toggle
   useEffect(() => {
     setBorrowOrLendAmount(0);
-  }, [isInLendingMode]);
+  }, [productType]);
 
-  const currentAction = useMemo(() => getCurrentAction(isInLendingMode, bankInfo), [isInLendingMode, bankInfo]);
+  const currentAction = useMemo(() => getCurrentAction(productType, bankInfo), [productType, bankInfo]);
+  const isInLendingMode = useMemo(() => productType === ProductType.Lend ? true : false, [productType]);
 
   const maxAmount = useMemo(() => {
     switch (currentAction) {
@@ -321,18 +324,27 @@ const AssetRow: FC<{
   );
 };
 
-function getCurrentAction(isLendingMode: boolean, bankInfo: ExtendedBankInfo): ActionType {
+function getCurrentAction(
+  productType: ProductType,
+  bankInfo: ExtendedBankInfo,
+): ActionType {
+  if (!((productType === ProductType.Lend) || (productType === ProductType.Borrow))) {
+    console.log("Product type not implemented yet");
+    // @todo this is a dummy return, should error
+    return ActionType.Deposit;
+  }
+
   if (!isActiveBankInfo(bankInfo)) {
-    return isLendingMode ? ActionType.Deposit : ActionType.Borrow;
+    return productType === ProductType.Lend ? ActionType.Deposit : ActionType.Borrow;
   } else {
     if (bankInfo.position.isLending) {
-      if (isLendingMode) {
+      if (productType === ProductType.Lend) {
         return ActionType.Deposit;
       } else {
         return ActionType.Withdraw;
       }
     } else {
-      if (isLendingMode) {
+      if (productType === ProductType.Lend) {
         return ActionType.Repay;
       } else {
         return ActionType.Borrow;
