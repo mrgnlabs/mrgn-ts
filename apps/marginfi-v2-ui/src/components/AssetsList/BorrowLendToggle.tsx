@@ -28,7 +28,7 @@ const FourOptionToggle: FC<FourOptionToggleProps> = ({
 
   return (
     <ToggleButtonGroup
-      className="w-full"
+      className="w-full max-w-[100%] sm:max-w-[33%]"
       sx={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -68,4 +68,48 @@ const FourOptionToggle: FC<FourOptionToggleProps> = ({
   );
 }
 
-export { FourOptionToggle }
+interface DescriptionOrbProps {
+  productType: ProductType;
+}
+
+const DescriptionOrb: FC<DescriptionOrbProps> = ({ productType }) => {
+
+  const productDescriptions = {
+    [ProductType.Lock]: 'Lockup offers a guaranteed APY for a given time period.',
+    [ProductType.Lend]: 'Lend and earn the best yields in DeFi.',
+    [ProductType.Borrow]: 'Borrow against your marginfi deposits.',
+    [ProductType.Superstake]: "Superstake is marginfi's premier levered staking product. Earn outrageously.",
+  }
+
+  return (
+    <div
+      className='flex items-center'
+    >
+      <div
+        className="h-full w-[120px]"
+        style={{
+          backgroundColor: 'solid #0D1011',
+          borderRadius: '30px',
+          border: 'solid #1c2125',
+          zIndex: 1,
+          marginRight: '-60px',
+        }}
+      >
+
+      </div>
+      <div
+        className="flex items-center bg-[#16191B] h-full px-4"
+        style={{
+          borderRadius: '30px',
+          zIndex: 3,
+          border: 'solid #1c2125',
+          color: '#CACACA',
+        }}
+      >
+        {productDescriptions[productType]}
+      </div>
+    </div>
+  )
+}
+
+export { FourOptionToggle, DescriptionOrb }

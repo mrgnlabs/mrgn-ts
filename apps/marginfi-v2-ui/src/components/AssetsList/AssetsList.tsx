@@ -2,7 +2,7 @@ import React, { FC, useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Card, Skeleton, Table, TableBody, TableContainer, TableRow } from "@mui/material";
 import { useBanks, useProgram, useUserAccounts } from "~/context";
-import { FourOptionToggle } from "./BorrowLendToggle";
+import { FourOptionToggle, DescriptionOrb } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
 import { ProductType } from '~/types';
 
@@ -26,12 +26,15 @@ const AssetsList: FC = () => {
 
   return (
     <>
-      <div>
+      <div className="flex justify-start gap-4">
         <FourOptionToggle
           productType={productType}
           setProductType={setProductType}
           productTypes={productTypes}
         />
+        <div className="hidden md:flex">
+          <DescriptionOrb productType={productType}/>
+        </div>
       </div>
 
       <div>
