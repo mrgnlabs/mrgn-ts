@@ -11,8 +11,8 @@ const Home = () => {
     <div className="justify-start content-start py-[64px] flex flex-col w-4/5 max-w-7xl gap-4">
       {wallet.connected && userAccounts.length > 1 && <MultipleAccountsFoundWarning />}
       <AccountSummary />
-      {/* <AssetsList />
-      {wallet.connected && <UserPositions />} */}
+      <AssetsList />
+      {wallet.connected && <UserPositions />}
     </div>
   );
 };
