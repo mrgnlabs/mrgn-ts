@@ -3,46 +3,32 @@ import React, { FC } from "react";
 interface AccountMetricProps {
   label: string;
   value?: string;
-  valueBold?: boolean;
   preview?: boolean;
   extraBorder?: boolean;
   boldValue?: string;
 }
 
-const AccountMetric: FC<AccountMetricProps> = ({ label, value, valueBold, preview, boldValue }) => {
+// @todo Improve number formatter to contract values on mobile
+const AccountMetric: FC<AccountMetricProps> = ({ label, value, preview, boldValue }) => {
   return (
-    <div className={"h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl text-lg"}>
+    <div className="h-[112px] w-1/3 flex flex-col justify-evenly items-start py-3 rounded-xl text-lg px-[5%]">
       <div
         className="text-base text-[#868E95]"
         style={{
-          fontFamily: "Aeonik Pro",
-          fontWeight: valueBold ? 400 : 300,
+          fontWeight: 300,
+          whiteSpace: "nowrap",
         }}
       >
         {label}
       </div>
-      {preview ? (
-        <div
-          className="text-sm text-[#868E95]"
-          style={{
-            fontFamily: "Aeonik Pro",
-            fontWeight: 500,
-          }}
-        >
-          Coming soon™️
-        </div>
-      ) : (
-        <div
-          className="text-xl"
-          style={{
-            fontFamily: "Aeonik Pro",
-            fontWeight: valueBold ? 500 : 300,
-            color: valueBold ? boldValue : "#fff",
-          }}
-        >
-          {value}
-        </div>
-      )}
+      <div
+        className={`text-xl text-[${ preview ? '#868E95' : '#fff'}]`}
+        style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+      >
+        {
+          preview ? <><span></span><span className="text-sm">Soon™️</span></> : value
+        }
+      </div>
     </div>
   );
 };

@@ -20,47 +20,47 @@ const AccountSummary: FC = () => {
     }
   }, [selectedAccount]);
 
-  return (
-    <div  
-      className="col-span-full"
+  const Mobile = () => (
+    <div
+      className="flex sm:hidden flex-row items-center w-full"
     >
-      <div
-        className="flex flex-row flex-wrap justify-start xl:justify-between w-full sm:min-w-[400px] p-0 items-center gap-3 xl:gap-0 font-light"
-        style={{
-          fontFamily: "Aeonik Pro",          
-        }}
-      >
-        {/* Mobile */}
-        <div
-          className="flex sm:hidden flex-row items-center w-full"
-        >
-          <AccountBalance isConnected={wallet.connected} accountBalance={accountSummary.balance} />
-          <MobileHealth isConnected={wallet.connected} healthFactor={healthFactor} />
-        </div>
-        {/* Desktop */}
-        <div className="hidden sm:flex">
-          <AccountBalance isConnected={wallet.connected} accountBalance={accountSummary.balance} />
-        </div>
-
-        <div className="h-[112px] w-full sm:min-w-[392px] sm:w-[38%] flex flex-row justify-between xl:pt-0 h-full bg-[#0E1113] rounded-xl">
-          <AccountMetric
-            label={"Lending"}
-            value={wallet.connected ? usdFormatter.format(accountSummary.lendingAmount) : "-"}
-          />
-          <AccountMetric
-            label={"Borrowing"}
-            value={wallet.connected ? usdFormatter.format(accountSummary.borrowingAmount) : "-"}
-          />
-          <AccountMetric
-            label={"Net APY"}
-            valueBold
-            preview
-            boldValue={accountSummary.apy >= 0 ? "#75ba80" : "#bd4d4d"}
-          />
-        </div> 
-        <HealthFactor healthFactor={healthFactor} />
-      </div>
+      <AccountBalance isConnected={wallet.connected} accountBalance={accountSummary.balance} />
+      <MobileHealth isConnected={wallet.connected} healthFactor={healthFactor} />
     </div>
+  )
+
+  const Desktop = () => (
+    <>
+      <div className="hidden sm:flex">
+        <AccountBalance isConnected={wallet.connected} accountBalance={accountSummary.balance} />
+      </div>
+
+      <div
+        className="w-full sm:min-w-[392px] sm:w-[38%] flex flex-row justify-between xl:pt-0 h-full bg-[#0E1113] rounded-xl"
+      >
+        <AccountMetric
+          label={"Lending"}
+          value={wallet.connected ? usdFormatter.format(accountSummary.lendingAmount) : "-"}
+        />
+        <AccountMetric
+          label={"Borrowing"}
+          value={wallet.connected ? usdFormatter.format(accountSummary.borrowingAmount) : "-"}
+        />
+        <AccountMetric
+          label={"Net APY"}
+          preview
+          boldValue={accountSummary.apy >= 0 ? "#75ba80" : "#bd4d4d"}
+        />
+      </div> 
+      <HealthFactor healthFactor={healthFactor} />
+    </>
+  )
+
+  return (
+      <div className="flex flex-row flex-wrap justify-start xl:justify-between gap-3 xl:gap-0">
+        <Mobile />
+        <Desktop />
+      </div>
   );
 };
 
