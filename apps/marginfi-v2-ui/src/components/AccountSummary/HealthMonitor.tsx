@@ -23,7 +23,7 @@ const HealthSlider = styled(Slider)(() => ({
   },
   "& .MuiSlider-rail": {
     opacity: 1,
-    background: "linear-gradient(to right, #ff0000, #00ff00)",
+    background: "linear-gradient(to right, #FF8F3C, #FFF06D)",
   },
   "& .MuiSlider-mark": {
     backgroundColor: "#fff",
