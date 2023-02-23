@@ -4,6 +4,11 @@ import React, { FC } from 'react';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { ProductType } from '~/types';
 
+import LockIcon from '@mui/icons-material/Lock';
+import YardIcon from '@mui/icons-material/Yard';
+import HailIcon from '@mui/icons-material/Hail';
+import BoltIcon from '@mui/icons-material/Bolt';
+
 interface FourOptionToggleProps {
   productType: ProductType;
   setProductType: Dispatch<SetStateAction<ProductType>>;
@@ -75,10 +80,17 @@ interface DescriptionOrbProps {
 const DescriptionOrb: FC<DescriptionOrbProps> = ({ productType }) => {
 
   const productDescriptions = {
-    [ProductType.Lock]: 'Lockup offers a guaranteed APY for a given time period.',
-    [ProductType.Lend]: 'Lend and earn the best yields in DeFi.',
-    [ProductType.Borrow]: 'Borrow against your marginfi deposits.',
+    [ProductType.Lock]: "Lockup offers a guaranteed APY for a given time period.",
+    [ProductType.Lend]: "Lend and earn the best yields in DeFi.",
+    [ProductType.Borrow]: "Borrow against your marginfi deposits.",
     [ProductType.Superstake]: "Superstake is marginfi's premier levered staking product. Earn outrageously.",
+  }
+
+  const ProductIcons = {
+    [ProductType.Lock]: <LockIcon />,
+    [ProductType.Lend]: <YardIcon />,
+    [ProductType.Borrow]: <HailIcon />,
+    [ProductType.Superstake]: <BoltIcon />,
   }
 
   return (
@@ -86,16 +98,22 @@ const DescriptionOrb: FC<DescriptionOrbProps> = ({ productType }) => {
       className='flex items-center'
     >
       <div
-        className="h-full w-[120px]"
+        className="h-full w-[120px] flex justify-center items-center"
         style={{
           backgroundColor: 'solid #0D1011',
           borderRadius: '30px',
           border: 'solid #1c2125',
           zIndex: 1,
           marginRight: '-60px',
+          paddingRight: '60px',
         }}
       >
-
+        <div
+          className="h-[40px] w-[40px] bg-[#1c2125] flex justify-center items-center rounded-3xl"
+        >
+          {ProductIcons[productType]}
+        </div>
+        
       </div>
       <div
         className="flex items-center bg-[#16191B] h-full px-4"
