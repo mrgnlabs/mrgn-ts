@@ -2,11 +2,13 @@ import React, { FC, useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Card, Skeleton, Table, TableBody, TableContainer, TableRow } from "@mui/material";
 import { useBanks, useProgram, useUserAccounts } from "~/context";
-import { BorrowLendToggle } from "./BorrowLendToggle";
+import { FourOptionToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
 
 const AssetsList: FC = () => {
-  const [isInLendingMode, setIsInLendingMode] = useState(true);
+  const actionOptions = ['Lock', 'Lend', 'Borrow', '⚡️stake'];
+  const [currentAction, setCurrentAction] = useState(actionOptions[0]);
+
   const { mfiClient } = useProgram();
   const { reload } = useBanks();
   const { extendedBankInfos, selectedAccount, nativeSolBalance } = useUserAccounts();
@@ -23,11 +25,15 @@ const AssetsList: FC = () => {
 
   return (
     <>
-      <div className="col-span-full">
-        <BorrowLendToggle isInLendingMode={isInLendingMode} setIsInLendingMode={setIsInLendingMode} />
+      <div>
+        <FourOptionToggle
+          currentAction={currentAction}
+          setCurrentAction={setCurrentAction}
+          actionOptions={actionOptions}
+        />
       </div>
 
-      <div className="col-span-full">
+      <div>
         <Card elevation={0} className="bg-[rgba(0,0,0,0)] w-full">
           <TableContainer>
             <Table className="table-fixed">
@@ -38,7 +44,7 @@ const AssetsList: FC = () => {
                       key={bankInfo.tokenName}
                       nativeSolBalance={nativeSolBalance}
                       bankInfo={bankInfo}
-                      isInLendingMode={isInLendingMode}
+                      isInLendingMode={true} // @todo placeholder
                       isConnected={wallet.connected}
                       marginfiAccount={selectedAccount}
                       marginfiClient={mfiClient}

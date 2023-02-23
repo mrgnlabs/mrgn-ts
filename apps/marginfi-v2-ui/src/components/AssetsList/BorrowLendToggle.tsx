@@ -1,83 +1,71 @@
 import { styled, Switch, SwitchProps } from "@mui/material";
 import { Dispatch, SetStateAction } from "react";
 
-interface BorrowLendToggleProps extends SwitchProps {
-  isInLendingMode: boolean;
-  setIsInLendingMode: Dispatch<SetStateAction<boolean>>;
+import React, { useState, FC } from 'react';
+import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+
+interface FourOptionToggleProps {
+  currentAction: string;
+  setCurrentAction: Dispatch<SetStateAction<string>>;
+  actionOptions: string[];
 }
 
-const BorrowLendToggle = styled(({ isInLendingMode, setIsInLendingMode, ...switchProps }: BorrowLendToggleProps) => {
-  const handleChange = () => {
-    setIsInLendingMode((prev) => !prev);
+const FourOptionToggle: FC<FourOptionToggleProps> = ({
+  currentAction,
+  setCurrentAction,
+  actionOptions
+}) => {
+
+  const handleChange = (event) => {
+    if (event.target.value === currentAction) {
+      return;
+    }
+    if (!actionOptions.includes(event.target.value)) {
+      throw Error(`Invalid action option: ${event.target.value}`);
+    }
+    setCurrentAction(event.target.value);
   };
 
   return (
-    <Switch
-      focusVisibleClassName=".Mui-focusVisible"
-      disableRipple
-      {...switchProps}
-      checked={!isInLendingMode}
+    <ToggleButtonGroup
+      className="w-full"
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        border: 'solid #1c2125 !important',
+        borderRadius: '30px !important',
+        backgroundColor: '#0D1011 !important',
+        maxWidth: '400px',
+      }}
+      value={currentAction}
       onChange={handleChange}
-    />
+    >
+      {actionOptions.map((option) => (
+        <ToggleButton
+          key={option} 
+          value={option}
+          className={option === actionOptions[actionOptions.length - 1] ? "pl-5 sm:pl-[40px] sm:pr-[30px] ml-[-20px] sm:ml-[-30px]" : ""}
+          sx={{
+            backgroundColor: '#0D1011 !important',
+            textTransform: 'capitalize !important',
+            color: currentAction === option ? '#fff !important' : '#868E95 !important',
+            borderLeft: 'solid #0D1011 !important',
+            borderTop: option === actionOptions[3] ? 'solid #62672E !important' : 'none !important',
+            borderBottom: option === actionOptions[3] ? 'solid #62672E !important' : 'none !important',
+            borderRight: option === actionOptions[2] || option === actionOptions[3] ? 'solid #62672E !important' : 'solid #0D1011 !important',
+            borderTopLeftRadius: option === actionOptions[0] ? '30px !important' : '0px !important',
+            borderBottomLeftRadius: option === actionOptions[0] ? '30px !important' : '0px !important',
+            borderTopRightRadius: option === actionOptions[2] || option === actionOptions[3] ? '30px !important' : '0px !important',
+            borderBottomRightRadius: option === actionOptions[2] || option === actionOptions[3] ? '30px !important' : '0px !important',
+            minWidth: '25% !important',
+            zIndex: option === actionOptions[actionOptions.length - 1] ? 1 : 2,
+          }}
+        >
+          {option}
+        </ToggleButton>
+      ))}
+    </ToggleButtonGroup>
   );
-})(({ disabled }) => ({
-  width: 166.34, //
-  height: 52.04,
-  ...(disabled ? { cursor: "not-allowed" } : {}),
-  padding: 0,
-  borderRadius: 43.61,
-  backgroundColor: "rgba(0,0,0,1)", // @todo currently transparency is at 1 to hide the center thing that i can't make disappear
-  border: "solid rgba(255, 255, 255, 0.20) 1px",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  paddingLeft: "27px",
-  paddingRight: "18px",
-  "&:after": {
-    content: "'Borrow'",
-    zIndex: 10,
-    pointerEvents: "none",
-    fontFamily: "Aeonik Pro",
-    fontWeight: 500,
-  },
-  "&:before": {
-    content: "'Lend'",
-    zIndex: 10,
-    pointerEvents: "none",
-    fontFamily: "Aeonik Pro",
-    fontWeight: 500,
-  },
-  "& .MuiSwitch-switchBase": {
-    padding: 0,
-    marginTop: "0.28rem",
-    marginLeft: "0.3rem",
-    width: "48%",
-    height: "80%",
-    borderRadius: 43.61,
-    display: "flex",
-    justifyContent: "center",
-    transitionDuration: "300ms", // ios transition time
-    "&.Mui-checked": {
-      transform: "translateX(4.66rem)",
-      color: "#fff",
-      "& + .MuiSwitch-track": {
-        backgroundColor: "rgba(0,0,0,0)",
-        opacity: 0,
-        border: 0,
-      },
-      "&.Mui-disabled + .MuiSwitch-track": {
-        opacity: 0.5,
-      },
-    },
-  },
-  "& .MuiSwitch-thumb": {
-    boxSizing: "border-box",
-    width: "100%",
-    height: "100%",
-    borderRadius: 43.61,
-    backgroundColor: "#2F373D",
-    border: "solid rgba(255, 255, 255, 0.2) 1px",
-  },
-}));
+}
 
-export { BorrowLendToggle };
+export { FourOptionToggle }
