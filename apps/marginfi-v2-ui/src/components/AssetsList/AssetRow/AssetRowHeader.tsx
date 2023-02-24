@@ -1,43 +1,43 @@
 import { TableCell } from "@mui/material";
 import { FC } from "react";
 import Image from "next/image";
-import { percentFormatter } from "~/utils/formatters";
+import { ProductType } from "~/types";
 
 interface AssetRowHeader {
   assetName: string;
-  apy: number;
   icon?: string;
-  isInLendingMode: boolean;
+  usdPrice: string;
+  tableCellStyling: string;
 }
 
-const AssetRowHeader: FC<AssetRowHeader> = ({ assetName, apy, icon, isInLendingMode }) => (
-  <TableCell
-    className="text-white h-full w-full border-hidden px-0.5 lg:pr-0 flex justify-center sm:justify-start items-center max-w-[250px] gap-1 min-w-fit"
+// @todo these types of styling attributes need to be organized better
+const assetBorders = {
+  "SOL": "#9945FF",
+  "USDC": "#2775CA",
+}
+
+const AssetRowHeader: FC<AssetRowHeader> = ({ assetName, icon, usdPrice, tableCellStyling }) => (
+  <div
+    className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling}`}
     style={{
-      border: 'solid red 1px',
+      border: `solid ${assetBorders[assetName]} 1px`
     }}
   >
-    <div
-      className="flex justify-start items-center min-w-fit"
-    >
+    <div className="flex justify-start items-center min-w-fit">
       {icon && <Image src={icon} alt={assetName} height={25} width={25} className="mr-2" />}
       <div>
         <div className="font-aeonik">{assetName}</div>
       </div>
     </div>
     <div
-      className="font-aeonik px-1 text-sm text-[#868E95] hidden lg:flex"
+      className="flex justify-center items-center px-2 rounded-xl text-xs text-[#868E95]"
+      style={{
+        backgroundColor: "rgba(113, 119, 126, 0.3)",
+      }}
     >
-      Current APY
+      {usdPrice}
     </div>
-    <div
-      className={`font-aeonik flex justify-center items-center px-2 ${
-        isInLendingMode ? "text-[#3AFF6C]" : "text-[#EEB9BA]"
-      } ${isInLendingMode ? "bg-[#3aff6c1f]" : "bg-[#db383e4d]"} rounded-xl text-sm`}
-    >
-      {percentFormatter.format(apy)}
-    </div>
-  </TableCell>
+  </div>
 );
 
 export { AssetRowHeader };

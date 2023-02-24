@@ -243,8 +243,8 @@ const AssetRow: FC<{
     }
   }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, marginfiClient, reloadBanks]);
 
-  return (
-    <TableRow className="h-full flex justify-between items-center min-h-[78px] sm:h-[78px] flex-col sm:flex-row p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+  const Mobile = () => (
+    <TableRow className="flex sm:hidden h-full justify-between items-center min-h-[78px] sm:h-[78px] flex-col sm:flex-row p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
       <AssetRowHeader
         assetName={bankInfo.tokenName}
         apy={isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate}
@@ -295,6 +295,8 @@ const AssetRow: FC<{
         )}
       </TableCell>
 
+      
+      {/********************************/}
       {isConnected && (
         <TableCell
           className="py-1 px-0 h-10 border-hidden flex justify-center items-center"
@@ -307,7 +309,10 @@ const AssetRow: FC<{
           />
         </TableCell>
       )}
+      {/********************************/}
 
+      {/********************************/}
+      {/* Action button plus tooltip */}
       <TableCell className="p-1 h-10 border-hidden flex justify-center items-center my-5 sm:my-0">
         <div className="h-full w-full">
           <Tooltip
@@ -320,7 +325,235 @@ const AssetRow: FC<{
           </Tooltip>
         </div>
       </TableCell>
+      {/********************************/}
+
     </TableRow>
+  )
+
+  const tableCellStyling = {
+    [ProductType.Lock]: "max-w-[12.5%]",
+    [ProductType.Lend]: "max-w-[14.28%]",
+    [ProductType.Borrow]: "max-w-[12.5%]",
+    [ProductType.Superstake]: "",
+  }
+
+  const DesktopTableRowLock = () => (
+    <TableRow
+      className="hidden sm:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
+    >
+      <AssetRowHeader
+        assetName={bankInfo.tokenName}
+        icon={bankInfo.tokenIcon}
+        usdPrice={usdFormatter.format(bankInfo.tokenPrice)}
+        tableCellStyling={tableCellStyling[productType]}
+      />
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+    </TableRow>
+  )
+
+  const DesktopTableRowLend = () => (
+    <TableRow
+      className="hidden sm:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
+    >
+      <AssetRowHeader
+        assetName={bankInfo.tokenName}
+        icon={bankInfo.tokenIcon}
+        usdPrice={usdFormatter.format(bankInfo.tokenPrice)}
+        tableCellStyling={tableCellStyling[productType]}
+      />
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+    </TableRow>
+  )
+
+  const DesktopTableRowBorrow = () => (
+    <TableRow
+      className="hidden sm:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
+    >
+      <AssetRowHeader
+        assetName={bankInfo.tokenName}
+        icon={bankInfo.tokenIcon}
+        usdPrice={usdFormatter.format(bankInfo.tokenPrice)}
+        tableCellStyling={tableCellStyling[productType]}
+      />
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+    </TableRow>
+  )
+
+  const TableRows = {
+    [ProductType.Lock]: <DesktopTableRowLock />,
+    [ProductType.Lend]: <DesktopTableRowLend />,
+    [ProductType.Borrow]: <DesktopTableRowBorrow />,
+    [ProductType.Superstake]: <></>,
+  }
+
+  const Desktop = () => (
+    <>
+      {TableRows[productType]}
+    </>
+  )
+
+  return (
+    <>
+      <Mobile />
+      <Desktop />
+    </>
   );
 };
 
