@@ -1,13 +1,27 @@
 import { TableCell } from "@mui/material";
 import { FC } from "react";
 import Image from "next/image";
-import { ProductType } from "~/types";
+import { ActionType } from "~/types";
+import { AssetRowAction } from "./AssetRowAction";
+import { AssetRowInputBox } from "./AssetRowInputBox";
 
 interface AssetRowHeader {
   assetName: string;
   icon?: string;
   usdPrice: string;
   tableCellStyling: string;
+}
+
+interface AssetRowEnder {
+  assetName: string;
+  icon?: string;
+  tableCellStyling: string;
+  actionButtonOnClick: () => void;
+  currentAction: ActionType;
+  borrowOrLendAmount: number;
+  setBorrowOrLendAmount:  (amount: number) => void;
+  maxAmount: number;
+  maxDecimals: number;
 }
 
 // @todo these types of styling attributes need to be organized better
@@ -18,7 +32,7 @@ const assetBorders = {
 
 const AssetRowHeader: FC<AssetRowHeader> = ({ assetName, icon, usdPrice, tableCellStyling }) => (
   <div
-    className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling}`}
+    className={`text-white h-full w-full px-1 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md min-w-fit ${tableCellStyling}`}
     style={{
       border: `solid ${assetBorders[assetName]} 1px`
     }}
@@ -40,4 +54,22 @@ const AssetRowHeader: FC<AssetRowHeader> = ({ assetName, icon, usdPrice, tableCe
   </div>
 );
 
-export { AssetRowHeader };
+const AssetRowEnder: FC<AssetRowEnder> = ({ assetName, icon, tableCellStyling, actionButtonOnClick, currentAction, borrowOrLendAmount, setBorrowOrLendAmount, maxAmount, maxDecimals }) => (
+  <div
+    className={`text-white h-full w-full p-1 flex justify-between items-center gap-1 rounded-md ${tableCellStyling}`}
+    style={{
+      border: `solid ${assetBorders[assetName]} 1px`
+    }}
+  >
+    {icon && <Image src={icon} alt={assetName} height={25} width={25} className="mx-1" />}
+    <AssetRowInputBox
+      value={borrowOrLendAmount}
+      setValue={setBorrowOrLendAmount}
+      maxValue={maxAmount}
+      maxDecimals={maxDecimals}
+    />
+    <AssetRowAction onClick={actionButtonOnClick}>{currentAction}</AssetRowAction>
+  </div>
+);
+
+export { AssetRowHeader, AssetRowEnder };

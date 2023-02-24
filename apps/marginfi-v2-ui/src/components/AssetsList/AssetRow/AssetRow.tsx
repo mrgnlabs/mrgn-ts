@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { ActionType, ProductType, ExtendedBankInfo, isActiveBankInfo } from "~/types";
 import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
-import { AssetRowHeader } from "./AssetRowHeader";
+import { AssetRowHeader, AssetRowEnder } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
 import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT } from "~/config";
@@ -337,6 +337,13 @@ const AssetRow: FC<{
     [ProductType.Superstake]: "",
   }
 
+  const assetRowEnderStyling = {
+    [ProductType.Lock]: "max-w-[25%]",
+    [ProductType.Lend]: "max-w-[28.56%]",
+    [ProductType.Borrow]: "max-w-[25%]",
+    [ProductType.Superstake]: "",
+  }
+
   const DesktopTableRowLock = () => (
     <TableRow
       className="hidden sm:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
@@ -347,62 +354,63 @@ const AssetRow: FC<{
         usdPrice={usdFormatter.format(bankInfo.tokenPrice)}
         tableCellStyling={tableCellStyling[productType]}
       />
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
+      <div
+        className="h-full w-full min-w-[62.5%] flex rounded-md border border-solid border-[#1C2125] mx-2"
       >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full px-1 pl-4 flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] rounded-md text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          {/* @todo placeholder */}
+          0.00%
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full px-1 pl-4 flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          {/* @todo placeholder */}
+          ◎40,234
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full px-1 pl-4 flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          2 weeks
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full px-1 pl-4 flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          ◎234,523
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full px-1 pl-4 flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] rounded-md text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          ◎421
+        </TableCell>
+      </div>
+      <AssetRowEnder
+        assetName={bankInfo.tokenName}
+        icon={bankInfo.tokenIcon}
+        tableCellStyling={assetRowEnderStyling[productType]}
+        actionButtonOnClick={borrowOrLend}
+        currentAction={currentAction}
+        borrowOrLendAmount={borrowOrLendAmount}
+        setBorrowOrLendAmount={setBorrowOrLendAmount}
+        maxAmount={maxAmount}
+        maxDecimals={bankInfo.tokenMintDecimals}
+      />
     </TableRow>
   )
 

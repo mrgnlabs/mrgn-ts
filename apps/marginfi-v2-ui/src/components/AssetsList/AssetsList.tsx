@@ -14,7 +14,7 @@ const AssetsList: FC = () => {
   const TableHeaderLock = () => (
     <TableRow className="w-full flex">
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-6 text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -22,7 +22,7 @@ const AssetsList: FC = () => {
       >
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-6 text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -31,57 +31,57 @@ const AssetsList: FC = () => {
         APY
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-6 text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
         }}
       >
-        Total Deposits
+        Deposits
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-6 text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
         }}
       >
-        Lockup Period
+        Lockup
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-6 text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
         }}
       >
-        Remaining Capacity
+        Capacity
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-6 text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
         }}
       >
-        Wallet Balance
+        Wallet
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-[#cacaca] h-14 p-0 min-w-[25%] flex items-center pl-6 text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
         }}
       >
       </div>
-      <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+      {/* <div
+        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-5 text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
         }}
       >
-      </div>
+      </div> */}
     </TableRow>
   )
   const TableHeaderLend = () => (
