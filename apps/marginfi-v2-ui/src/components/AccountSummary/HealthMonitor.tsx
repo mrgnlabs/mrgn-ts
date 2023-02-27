@@ -102,6 +102,7 @@ const HealthFactor: FC<HealthMonitorProps> = ({ healthFactor }) => {
               <InfoIcon className="ml-2" onMouseEnter={openTooltip} />
             </label>
           </div>
+          
 
           <div className="h-full w-full flex">
             <div
