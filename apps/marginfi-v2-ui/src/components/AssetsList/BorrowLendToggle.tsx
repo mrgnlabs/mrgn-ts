@@ -33,7 +33,7 @@ const FourOptionToggle: FC<FourOptionToggleProps> = ({
 
   return (
     <ToggleButtonGroup
-      className="w-full max-w-[100%] sm:max-w-[33%]"
+      className="w-full max-w-[100%] sm:max-w-[67%] md:max-w-[50%] xl:max-w-[33%]"
       sx={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -80,10 +80,10 @@ interface DescriptionOrbProps {
 const DescriptionOrb: FC<DescriptionOrbProps> = ({ productType }) => {
 
   const productDescriptions = {
-    [ProductType.Lock]: "Lockup offers a guaranteed APY for a given time period.",
+    [ProductType.Lock]: "Get a guaranteed APY for a given time period.",
     [ProductType.Lend]: "Lend and earn the best yields in DeFi.",
     [ProductType.Borrow]: "Borrow against your marginfi deposits.",
-    [ProductType.Superstake]: "Superstake is marginfi's premier levered staking product. Earn outrageously.",
+    [ProductType.Superstake]: "Superstake is marginfi's premier levered staking product.",
   }
 
   const ProductIcons = {
@@ -106,6 +106,7 @@ const DescriptionOrb: FC<DescriptionOrbProps> = ({ productType }) => {
           zIndex: 1,
           marginRight: '-60px',
           paddingRight: '60px',
+          paddingLeft: '4px',
         }}
       >
         <div
@@ -116,7 +117,7 @@ const DescriptionOrb: FC<DescriptionOrbProps> = ({ productType }) => {
         
       </div>
       <div
-        className="flex items-center bg-[#16191B] h-full px-4"
+        className="flex items-center bg-[#16191B] h-full px-4 text-sm lg:text-base"
         style={{
           borderRadius: '30px',
           zIndex: 3,

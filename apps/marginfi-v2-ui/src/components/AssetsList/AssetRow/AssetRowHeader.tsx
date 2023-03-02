@@ -32,17 +32,25 @@ const assetBorders = {
 
 const AssetRowHeader: FC<AssetRowHeader> = ({ assetName, icon, usdPrice, tableCellStyling }) => (
   <div
-    className={`text-white h-full w-full px-1 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md min-w-fit ${tableCellStyling}`}
+    className={
+      `text-white h-full w-full px-1 py-1 sm:py-0 lg:pr-0 flex flex-col xl:flex-row justify-center sm:justify-evenly items-center gap-0 sm:gap-1 rounded-md ${tableCellStyling}`
+    }
     style={{
       border: `solid ${assetBorders[assetName]} 1px`
     }}
   >
-    <div className="flex justify-start items-center min-w-fit">
-      {icon && <Image src={icon} alt={assetName} height={25} width={25} className="mr-2" />}
+    <div
+      className="flex justify-start items-center min-w-fit"
+    >
+      {
+        icon && 
+          <Image src={icon} alt={assetName} height={25} width={25} className="mr-2 max-w-fit" />
+      }
       <div>
-        <div className="font-aeonik">{assetName}</div>
+        <div className={`${assetName.length <= 3 ? 'text-base' : 'text-base sm:text-xs md:text-sm lg:text-base'}`}>{assetName}</div>
       </div>
     </div>
+
     <div
       className="flex justify-center items-center px-2 rounded-xl text-xs text-[#868E95]"
       style={{

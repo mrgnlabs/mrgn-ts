@@ -331,7 +331,7 @@ const AssetRow: FC<{
   )
 
   const tableCellStyling = {
-    [ProductType.Lock]: "max-w-[12.5%]",
+    [ProductType.Lock]: "min-w-[12.5%] max-w-[12.5%]",
     [ProductType.Lend]: "max-w-[14.28%]",
     [ProductType.Borrow]: "max-w-[12.5%]",
     [ProductType.Superstake]: "",
