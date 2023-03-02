@@ -1,83 +1,134 @@
-import { styled, Switch, SwitchProps } from "@mui/material";
 import { Dispatch, SetStateAction } from "react";
 
-interface BorrowLendToggleProps extends SwitchProps {
-  isInLendingMode: boolean;
-  setIsInLendingMode: Dispatch<SetStateAction<boolean>>;
+import React, { FC } from 'react';
+import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { ProductType } from '~/types';
+
+import LockIcon from '@mui/icons-material/Lock';
+import YardIcon from '@mui/icons-material/Yard';
+import HailIcon from '@mui/icons-material/Hail';
+import BoltIcon from '@mui/icons-material/Bolt';
+
+interface FourOptionToggleProps {
+  productType: ProductType;
+  setProductType: Dispatch<SetStateAction<ProductType>>;
+  productTypes: ProductType[];
 }
 
-const BorrowLendToggle = styled(({ isInLendingMode, setIsInLendingMode, ...switchProps }: BorrowLendToggleProps) => {
-  const handleChange = () => {
-    setIsInLendingMode((prev) => !prev);
+const FourOptionToggle: FC<FourOptionToggleProps> = ({
+  productType,
+  setProductType,
+  productTypes
+}) => {
+
+  const handleChange = (event) => {
+    if (event.target.value === productType) {
+      return;
+    }
+    if (!productTypes.includes(event.target.value)) {
+      throw Error(`Invalid action option: ${event.target.value}`);
+    }
+    setProductType(event.target.value);
   };
 
   return (
-    <Switch
-      focusVisibleClassName=".Mui-focusVisible"
-      disableRipple
-      {...switchProps}
-      checked={!isInLendingMode}
+    <ToggleButtonGroup
+      className="w-full max-w-[100%] sm:max-w-[67%] md:max-w-[50%] xl:max-w-[33%]"
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        border: 'solid #1c2125 !important',
+        borderRadius: '30px !important',
+        backgroundColor: '#0D1011 !important',
+        maxWidth: '400px',
+      }}
+      value={productType}
       onChange={handleChange}
-    />
+    >
+      {productTypes.map((option) => (
+        <ToggleButton
+          key={option} 
+          value={option}
+          className={option === productTypes[productTypes.length - 1] ? "pl-5 sm:pl-[40px] sm:pr-[30px] ml-[-20px] sm:ml-[-30px]" : ""}
+          sx={{
+            backgroundColor: '#0D1011 !important',
+            textTransform: 'capitalize !important',
+            color: productType === option ? '#fff !important' : '#868E95 !important',
+            borderLeft: 'solid #0D1011 !important',
+            borderTop: option === productTypes[3] ? 'solid #62672E !important' : 'none !important',
+            borderBottom: option === productTypes[3] ? 'solid #62672E !important' : 'none !important',
+            borderRight: option === productTypes[2] || option === productTypes[3] ? 'solid #62672E !important' : 'solid #0D1011 !important',
+            borderTopLeftRadius: option === productTypes[0] ? '30px !important' : '0px !important',
+            borderBottomLeftRadius: option === productTypes[0] ? '30px !important' : '0px !important',
+            borderTopRightRadius: option === productTypes[2] || option === productTypes[3] ? '30px !important' : '0px !important',
+            borderBottomRightRadius: option === productTypes[2] || option === productTypes[3] ? '30px !important' : '0px !important',
+            minWidth: '25% !important',
+            zIndex: option === productTypes[productTypes.length - 1] ? 1 : 2,
+          }}
+        >
+          {option}
+        </ToggleButton>
+      ))}
+    </ToggleButtonGroup>
   );
-})(({ disabled }) => ({
-  width: 166.34, //
-  height: 52.04,
-  ...(disabled ? { cursor: "not-allowed" } : {}),
-  padding: 0,
-  borderRadius: 43.61,
-  backgroundColor: "rgba(0,0,0,1)", // @todo currently transparency is at 1 to hide the center thing that i can't make disappear
-  border: "solid rgba(255, 255, 255, 0.20) 1px",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  paddingLeft: "27px",
-  paddingRight: "18px",
-  "&:after": {
-    content: "'Borrow'",
-    zIndex: 10,
-    pointerEvents: "none",
-    fontFamily: "Aeonik Pro",
-    fontWeight: 500,
-  },
-  "&:before": {
-    content: "'Lend'",
-    zIndex: 10,
-    pointerEvents: "none",
-    fontFamily: "Aeonik Pro",
-    fontWeight: 500,
-  },
-  "& .MuiSwitch-switchBase": {
-    padding: 0,
-    marginTop: "0.28rem",
-    marginLeft: "0.3rem",
-    width: "48%",
-    height: "80%",
-    borderRadius: 43.61,
-    display: "flex",
-    justifyContent: "center",
-    transitionDuration: "300ms", // ios transition time
-    "&.Mui-checked": {
-      transform: "translateX(4.66rem)",
-      color: "#fff",
-      "& + .MuiSwitch-track": {
-        backgroundColor: "rgba(0,0,0,0)",
-        opacity: 0,
-        border: 0,
-      },
-      "&.Mui-disabled + .MuiSwitch-track": {
-        opacity: 0.5,
-      },
-    },
-  },
-  "& .MuiSwitch-thumb": {
-    boxSizing: "border-box",
-    width: "100%",
-    height: "100%",
-    borderRadius: 43.61,
-    backgroundColor: "#2F373D",
-    border: "solid rgba(255, 255, 255, 0.2) 1px",
-  },
-}));
+}
 
-export { BorrowLendToggle };
+interface DescriptionOrbProps {
+  productType: ProductType;
+}
+
+const DescriptionOrb: FC<DescriptionOrbProps> = ({ productType }) => {
+
+  const productDescriptions = {
+    [ProductType.Lock]: "Get a guaranteed APY for a given time period.",
+    [ProductType.Lend]: "Lend and earn the best yields in DeFi.",
+    [ProductType.Borrow]: "Borrow against your marginfi deposits.",
+    [ProductType.Superstake]: "Superstake is marginfi's premier levered staking product.",
+  }
+
+  const ProductIcons = {
+    [ProductType.Lock]: <LockIcon />,
+    [ProductType.Lend]: <YardIcon />,
+    [ProductType.Borrow]: <HailIcon />,
+    [ProductType.Superstake]: <BoltIcon />,
+  }
+
+  return (
+    <div
+      className='flex items-center'
+    >
+      <div
+        className="h-full w-[120px] flex justify-center items-center"
+        style={{
+          backgroundColor: 'solid #0D1011',
+          borderRadius: '30px',
+          border: 'solid #1c2125',
+          zIndex: 1,
+          marginRight: '-60px',
+          paddingRight: '60px',
+          paddingLeft: '4px',
+        }}
+      >
+        <div
+          className="h-[40px] w-[40px] bg-[#1c2125] flex justify-center items-center rounded-3xl"
+        >
+          {ProductIcons[productType]}
+        </div>
+        
+      </div>
+      <div
+        className="flex items-center bg-[#16191B] h-full px-4 text-sm lg:text-base"
+        style={{
+          borderRadius: '30px',
+          zIndex: 3,
+          border: 'solid #1c2125',
+          color: '#CACACA',
+        }}
+      >
+        {productDescriptions[productType]}
+      </div>
+    </div>
+  )
+}
+
+export { FourOptionToggle, DescriptionOrb }

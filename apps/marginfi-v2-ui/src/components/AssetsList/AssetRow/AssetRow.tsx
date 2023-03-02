@@ -2,10 +2,10 @@ import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
 import { TableCell, TableRow, Tooltip } from "@mui/material";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { ActionType, ExtendedBankInfo, isActiveBankInfo } from "~/types";
+import { ActionType, ProductType, ExtendedBankInfo, isActiveBankInfo } from "~/types";
 import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
-import { AssetRowHeader } from "./AssetRowHeader";
+import { AssetRowHeader, AssetRowEnder } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
 import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT } from "~/config";
@@ -22,23 +22,26 @@ const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 const ACCOUNT_DETECTION_ERROR_TOAST_ID = "account-detection-error";
 
+// @todo currently, action for only lend & borrow is enabled
+// @todo enable lock and superstake progressively
 const AssetRow: FC<{
   bankInfo: ExtendedBankInfo;
   nativeSolBalance: number;
-  isInLendingMode: boolean;
+  productType: ProductType;
   isConnected: boolean;
   marginfiAccount: MarginfiAccount | null;
   marginfiClient: MarginfiClient | null;
   reloadBanks: () => Promise<void>;
-}> = ({ bankInfo, nativeSolBalance, isInLendingMode, isConnected, marginfiAccount, marginfiClient, reloadBanks }) => {
+}> = ({ bankInfo, nativeSolBalance, productType, isConnected, marginfiAccount, marginfiClient, reloadBanks }) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
 
   // Reset b/l amounts on toggle
   useEffect(() => {
     setBorrowOrLendAmount(0);
-  }, [isInLendingMode]);
+  }, [productType]);
 
-  const currentAction = useMemo(() => getCurrentAction(isInLendingMode, bankInfo), [isInLendingMode, bankInfo]);
+  const currentAction = useMemo(() => getCurrentAction(productType, bankInfo), [productType, bankInfo]);
+  const isInLendingMode = useMemo(() => productType === ProductType.Lend ? true : false, [productType]);
 
   const maxAmount = useMemo(() => {
     switch (currentAction) {
@@ -240,8 +243,8 @@ const AssetRow: FC<{
     }
   }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, marginfiClient, reloadBanks]);
 
-  return (
-    <TableRow className="h-full flex justify-between items-center min-h-[78px] sm:h-[78px] flex-col sm:flex-row p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+  const Mobile = () => (
+    <TableRow className="flex lg:hidden h-full justify-between items-center min-h-[78px] sm:h-[78px] flex-col sm:flex-row p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
       <AssetRowHeader
         assetName={bankInfo.tokenName}
         apy={isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate}
@@ -297,6 +300,8 @@ const AssetRow: FC<{
         )}
       </TableCell>
 
+      
+      {/********************************/}
       {isConnected && (
         <TableCell
           className="py-1 px-0 h-10 border-hidden flex justify-center items-center"
@@ -309,7 +314,10 @@ const AssetRow: FC<{
           />
         </TableCell>
       )}
+      {/********************************/}
 
+      {/********************************/}
+      {/* Action button plus tooltip */}
       <TableCell className="p-1 h-10 border-hidden flex justify-center items-center my-5 sm:my-0">
         <div className="h-full w-full">
           <Tooltip
@@ -322,22 +330,267 @@ const AssetRow: FC<{
           </Tooltip>
         </div>
       </TableCell>
+      {/********************************/}
+
     </TableRow>
+  )
+
+  const tableCellStyling = {
+    [ProductType.Lock]: "min-w-[12.5%] max-w-[12.5%]",
+    [ProductType.Lend]: "max-w-[14.28%]",
+    [ProductType.Borrow]: "max-w-[12.5%]",
+    [ProductType.Superstake]: "",
+  }
+
+  const assetRowEnderStyling = {
+    [ProductType.Lock]: "max-w-[25%]",
+    [ProductType.Lend]: "max-w-[28.56%]",
+    [ProductType.Borrow]: "max-w-[25%]",
+    [ProductType.Superstake]: "",
+  }
+
+  const DesktopTableRowLock = () => (
+    <TableRow
+      className="hidden lg:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
+    >
+      <AssetRowHeader
+        assetName={bankInfo.tokenName}
+        icon={bankInfo.tokenIcon}
+        usdPrice={usdFormatter.format(bankInfo.tokenPrice)}
+        tableCellStyling={tableCellStyling[productType]}
+      />
+      <div
+        className="h-full w-full min-w-[62.5%] flex rounded-md border border-solid border-[#1C2125] mx-2"
+      >
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] rounded-md text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          {/* @todo placeholder */}
+          0.00%
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          {/* @todo placeholder */}
+          ◎40,234
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          2 weeks
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          ◎234,523
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] rounded-md text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          ◎421
+        </TableCell>
+      </div>
+      <AssetRowEnder
+        assetName={bankInfo.tokenName}
+        icon={bankInfo.tokenIcon}
+        tableCellStyling={assetRowEnderStyling[productType]}
+        actionButtonOnClick={borrowOrLend}
+        currentAction={currentAction}
+        borrowOrLendAmount={borrowOrLendAmount}
+        setBorrowOrLendAmount={setBorrowOrLendAmount}
+        maxAmount={maxAmount}
+        maxDecimals={bankInfo.tokenMintDecimals}
+      />
+    </TableRow>
+  )
+
+  const DesktopTableRowLend = () => (
+    <TableRow
+      className="hidden lg:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
+    >
+      <AssetRowHeader
+        assetName={bankInfo.tokenName}
+        icon={bankInfo.tokenIcon}
+        usdPrice={usdFormatter.format(bankInfo.tokenPrice)}
+        tableCellStyling={tableCellStyling[productType]}
+      />
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+    </TableRow>
+  )
+
+  const DesktopTableRowBorrow = () => (
+    <TableRow
+      className="hidden lg:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
+    >
+      <AssetRowHeader
+        assetName={bankInfo.tokenName}
+        icon={bankInfo.tokenIcon}
+        usdPrice={usdFormatter.format(bankInfo.tokenPrice)}
+        tableCellStyling={tableCellStyling[productType]}
+      />
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+      <TableCell
+        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
+        style={{
+          border: `solid #fff 1px`
+        }}
+      >
+
+      </TableCell>
+    </TableRow>
+  )
+
+  const TableRows = {
+    [ProductType.Lock]: <DesktopTableRowLock />,
+    [ProductType.Lend]: <DesktopTableRowLend />,
+    [ProductType.Borrow]: <DesktopTableRowBorrow />,
+    [ProductType.Superstake]: <></>,
+  }
+
+  const Desktop = () => (
+    <>
+      {TableRows[productType]}
+    </>
+  )
+
+  return (
+    <>
+      <Mobile />
+      <Desktop />
+    </>
   );
 };
 
-function getCurrentAction(isLendingMode: boolean, bankInfo: ExtendedBankInfo): ActionType {
+function getCurrentAction(
+  productType: ProductType,
+  bankInfo: ExtendedBankInfo,
+): ActionType {
+  if (!((productType === ProductType.Lend) || (productType === ProductType.Borrow))) {
+    console.log("Product type not implemented yet");
+    // @todo this is a dummy return, should error
+    return ActionType.Deposit;
+  }
+
   if (!isActiveBankInfo(bankInfo)) {
-    return isLendingMode ? ActionType.Deposit : ActionType.Borrow;
+    return productType === ProductType.Lend ? ActionType.Deposit : ActionType.Borrow;
   } else {
     if (bankInfo.position.isLending) {
-      if (isLendingMode) {
+      if (productType === ProductType.Lend) {
         return ActionType.Deposit;
       } else {
         return ActionType.Withdraw;
       }
     } else {
-      if (isLendingMode) {
+      if (productType === ProductType.Lend) {
         return ActionType.Repay;
       } else {
         return ActionType.Borrow;

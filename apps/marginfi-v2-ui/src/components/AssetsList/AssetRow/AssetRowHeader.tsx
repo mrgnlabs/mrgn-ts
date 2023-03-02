@@ -1,43 +1,83 @@
 import { TableCell } from "@mui/material";
 import { FC } from "react";
 import Image from "next/image";
-import { percentFormatter } from "~/utils/formatters";
+import { ActionType } from "~/types";
+import { AssetRowAction } from "./AssetRowAction";
+import { AssetRowInputBox } from "./AssetRowInputBox";
 
 interface AssetRowHeader {
   assetName: string;
-  apy: number;
   icon?: string;
-  isInLendingMode: boolean;
+  usdPrice: string;
+  tableCellStyling: string;
 }
 
-const AssetRowHeader: FC<AssetRowHeader> = ({ assetName, apy, icon, isInLendingMode }) => (
-  <TableCell
-    className="text-white h-full w-full border-hidden px-0.5 lg:pr-0 flex justify-center sm:justify-start items-center max-w-[250px] gap-1 min-w-fit"
+interface AssetRowEnder {
+  assetName: string;
+  icon?: string;
+  tableCellStyling: string;
+  actionButtonOnClick: () => void;
+  currentAction: ActionType;
+  borrowOrLendAmount: number;
+  setBorrowOrLendAmount:  (amount: number) => void;
+  maxAmount: number;
+  maxDecimals: number;
+}
+
+// @todo these types of styling attributes need to be organized better
+const assetBorders = {
+  "SOL": "#9945FF",
+  "USDC": "#2775CA",
+}
+
+const AssetRowHeader: FC<AssetRowHeader> = ({ assetName, icon, usdPrice, tableCellStyling }) => (
+  <div
+    className={
+      `text-white h-full w-full px-1 py-1 sm:py-0 lg:pr-0 flex flex-col xl:flex-row justify-center sm:justify-evenly items-center gap-0 sm:gap-1 rounded-md ${tableCellStyling}`
+    }
     style={{
-      border: 'solid red 1px',
+      border: `solid ${assetBorders[assetName]} 1px`
     }}
   >
     <div
       className="flex justify-start items-center min-w-fit"
     >
-      {icon && <Image src={icon} alt={assetName} height={25} width={25} className="mr-2" />}
+      {
+        icon && 
+          <Image src={icon} alt={assetName} height={25} width={25} className="mr-2 max-w-fit" />
+      }
       <div>
-        <div className="font-aeonik">{assetName}</div>
+        <div className={`${assetName.length <= 3 ? 'text-base' : 'text-base sm:text-xs md:text-sm lg:text-base'}`}>{assetName}</div>
       </div>
     </div>
+
     <div
-      className="font-aeonik px-1 text-sm text-[#868E95] hidden lg:flex"
+      className="flex justify-center items-center px-2 rounded-xl text-xs text-[#868E95]"
+      style={{
+        backgroundColor: "rgba(113, 119, 126, 0.3)",
+      }}
     >
-      Current APY
+      {usdPrice}
     </div>
-    <div
-      className={`font-aeonik flex justify-center items-center px-2 ${
-        isInLendingMode ? "text-[#3AFF6C]" : "text-[#EEB9BA]"
-      } ${isInLendingMode ? "bg-[#3aff6c1f]" : "bg-[#db383e4d]"} rounded-xl text-sm`}
-    >
-      {percentFormatter.format(apy)}
-    </div>
-  </TableCell>
+  </div>
 );
 
-export { AssetRowHeader };
+const AssetRowEnder: FC<AssetRowEnder> = ({ assetName, icon, tableCellStyling, actionButtonOnClick, currentAction, borrowOrLendAmount, setBorrowOrLendAmount, maxAmount, maxDecimals }) => (
+  <div
+    className={`text-white h-full w-full p-1 flex justify-between items-center gap-1 rounded-md ${tableCellStyling}`}
+    style={{
+      border: `solid ${assetBorders[assetName]} 1px`
+    }}
+  >
+    {icon && <Image src={icon} alt={assetName} height={25} width={25} className="mx-1 hidden xl:flex" />}
+    <AssetRowInputBox
+      value={borrowOrLendAmount}
+      setValue={setBorrowOrLendAmount}
+      maxValue={maxAmount}
+      maxDecimals={maxDecimals}
+    />
+    <AssetRowAction onClick={actionButtonOnClick}>{currentAction}</AssetRowAction>
+  </div>
+);
+
+export { AssetRowHeader, AssetRowEnder };
