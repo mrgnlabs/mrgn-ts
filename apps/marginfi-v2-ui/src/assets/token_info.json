@@ -52,10 +52,7 @@
     "logoURI": "https://arweave.net/hQiPZOsRZXGXBJd_82PhVdlM_hACsT_q6wqwf5cSY7I?ext=png",
     "extensions": {
       "coingeckoId": "bonk"
-    },
-    "tags": [
-      "community"
-    ]
+    }
   },
   {
     "address": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
@@ -66,9 +63,6 @@
     "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png",
     "extensions": {
       "coingeckoId": "msol"
-    },
-    "tags": [
-      "old-registry"
-    ]
+    }
   }
 ]
