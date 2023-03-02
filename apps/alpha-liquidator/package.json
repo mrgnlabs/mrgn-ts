@@ -1,0 +1,53 @@
+{
+  "name": "@mrgnlabs/alpha-liquidator",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "tsc-watch --onCompilationComplete 'yarn build' --onSuccess 'yarn serve'",
+    "setup": "ts-node src/setup.ts",
+    "inspect": "ts-node src/inspect.ts",
+    "serve": "pm2-runtime scripts/pm2.config.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@jup-ag/core": "4.0.0-beta.13",
+    "@mongodb-js/zstd": "^1.1.0",
+    "@mrgnlabs/eslint-config-custom": "*",
+    "@mrgnlabs/marginfi-client-v2": "*",
+    "@mrgnlabs/mrgn-common": "*",
+    "@mrgnlabs/tsconfig": "*",
+    "@saberhq/solana-contrib": "1.13.6",
+    "@saberhq/token-utils": "1.13.6",
+    "@solana/buffer-layout": "4.0.0",
+    "@solana/buffer-layout-utils": "~0.2.0",
+    "@solana/spl-token": "0.1.8",
+    "@solana/spl-token-registry": "~0.2.1105",
+    "@solana/web3.js": "~1.72.0",
+    "bignumber.js": "^9.1.1",
+    "bn.js": "5.2.1",
+    "cookie": "^0.4.1",
+    "cron": "~2.0.0",
+    "cross-fetch": "3.1.5",
+    "decimal.js": "10.4.2",
+    "dotenv": "^16.0.3",
+    "fetch-retry": "~5.0.3",
+    "got": "~11.8.6",
+    "ioredis": "5.2.4",
+    "jsbi": "4.3.0",
+    "zod": "^3.20.6"
+  },
+  "devDependencies": {
+    "@project-serum/anchor": "0.24.2",
+    "@sentry/types": "7.32.1",
+    "@tsconfig/node16": "~1.0.2",
+    "@types/bn.js": "^5.1.0",
+    "@types/cron": "~2.0.0",
+    "@types/node": "^16",
+    "bs58": "^4.0.1",
+    "openapi-types": "~11.0.1",
+    "tsc-watch": "~4.5.0",
+    "typescript": "4.9.4"
+  }
+}

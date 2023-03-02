@@ -249,9 +249,7 @@ const AssetRow: FC<{
         isInLendingMode={isInLendingMode}
       />
 
-      <TableCell
-        className="h-full w-full flex py-1 px-0 mb-5 sm:mb-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit"
-      >
+      <TableCell className="h-full w-full flex py-1 px-0 mb-5 sm:mb-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
         <AssetRowMetric
           longLabel="Current Price"
           shortLabel="Price"
@@ -293,9 +291,7 @@ const AssetRow: FC<{
       </TableCell>
 
       {isConnected && (
-        <TableCell
-          className="py-1 px-0 h-10 border-hidden flex justify-center items-center"
-        >
+        <TableCell className="py-1 px-0 h-10 border-hidden flex justify-center items-center">
           <AssetRowInputBox
             value={borrowOrLendAmount}
             setValue={setBorrowOrLendAmount}
