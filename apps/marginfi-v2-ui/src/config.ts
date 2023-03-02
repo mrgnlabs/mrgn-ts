@@ -32,16 +32,16 @@ switch (environment) {
         size: 30,
         publicKey: "Cm2yPJQ8qB1wo6b3268F9hC7YbBWRmF6h3mbvvekW68B",
       },
-      {
-        icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/11461.png",
-        size: 30,
-        publicKey: "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE",
-      },
-      {
-        icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/23095.png",
-        size: 30,
-        publicKey: "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM",
-      },
+      // {
+      //   icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/11461.png",
+      //   size: 30,
+      //   publicKey: "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE",
+      // },
+      // {
+      //   icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/23095.png",
+      //   size: 30,
+      //   publicKey: "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM",
+      // },
     ];
     break;
   case "alpha":
