@@ -4,7 +4,8 @@ interface AssetRowMetricProps {
   shortLabel: string;
   longLabel: string;
   value: string;
-  borderRadius: string;
+  firstMetric?: boolean;
+  lastMetric?: boolean;
   usdEquivalentValue?: string;
 }
 
@@ -12,21 +13,30 @@ const AssetRowMetric: FC<AssetRowMetricProps> = ({
   shortLabel,
   longLabel,
   value,
-  borderRadius,
+  firstMetric,
+  lastMetric,
   usdEquivalentValue,
 }) => {
   return (
     <div
-      className="bg-[#00000033] border-solid border border-[#171C1F] h-12 w-full min-w-fit max-w-[200px] flex flex-col justify-evenly p-1 px-2"
+      // @todo is `items-center` better here on mobile?
+      className="bg-[#00000033] h-full w-full min-w-fit max-w-[200px] flex flex-col justify-evenly p-1 px-2 items-start"
       style={{
-        borderRadius: borderRadius,
+        borderTop: 'solid 1px #171C1F',
+        borderBottom: 'solid 1px #171C1F',
+        borderLeft: firstMetric ? 'solid 1px #171C1F' : '',
+        borderRight: lastMetric ? 'solid 1px #171C1F' : '',
+        borderTopLeftRadius: firstMetric ? '0.375rem' : '',
+        borderBottomLeftRadius: firstMetric ? '0.375rem' : '',
+        borderTopRightRadius: lastMetric ? '0.375rem' : '',
+        borderBottomRightRadius: lastMetric ? '0.375rem' : '',
         fontFamily: "Aeonik Pro",
         fontWeight: 400,
       }}
     >
-      <div className="text-sm text-[#868E95] hidden xl:block">{longLabel}</div>
-      <div className="text-sm text-[#868E95] block xl:hidden">{shortLabel}</div>
-      <div className={`text-sm text-white ${usdEquivalentValue !== undefined ? "flex flex-row gap-1" : ""}`}>
+      <div className="text-xs text-[#868E95] hidden xl:block">{longLabel}</div>
+      <div className="text-xs text-[#868E95] block xl:hidden">{shortLabel}</div>
+      <div className={`text-base text-white ${usdEquivalentValue !== undefined ? "flex flex-row gap-1" : ""}`}>
         {value}
         {usdEquivalentValue !== undefined && (
           <div

@@ -243,8 +243,20 @@ const AssetRow: FC<{
     }
   }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, marginfiClient, reloadBanks]);
 
+
+  // @todo these types of styling attributes need to be organized better
+  const assetBorders = {
+    "SOL": "#9945FF",
+    "USDC": "#2775CA",
+  }
+
   const Mobile = () => (
-    <TableRow className="flex lg:hidden h-full justify-between items-center min-h-[78px] sm:h-[78px] flex-col sm:flex-row p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+    <TableRow
+      className='flex lg:hidden h-full justify-between items-center min-h-[78px] sm:h-[78px] flex-col sm:flex-row p-0 px-4 sm:p-2 lg:p-4 border-solid sm:border-[#1C2125] border rounded-xl gap-2 lg:gap-4'
+      style={{
+        border: `1px solid ${assetBorders[bankInfo.tokenName] || "#1C2125"}`,
+      }}
+    >
       <AssetRowHeader
         assetName={bankInfo.tokenName}
         apy={isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate}
@@ -253,13 +265,13 @@ const AssetRow: FC<{
       />
 
       <TableCell
-        className="h-full w-full flex py-1 px-0 mb-5 sm:mb-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit"
+        className="h-full w-full flex py-0 px-0 mb-5 sm:mb-0 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit"
       >
         <AssetRowMetric
           longLabel="Current Price"
           shortLabel="Price"
           value={usdFormatter.format(bankInfo.tokenPrice)}
-          borderRadius={isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"}
+          firstMetric
         />
         <AssetRowMetric
           longLabel={isInLendingMode ? "Total Pool Deposits" : "Total Pool Borrows"}
@@ -267,10 +279,10 @@ const AssetRow: FC<{
           value={groupedNumberFormatter.format(
             isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows
           )}
-          borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
           usdEquivalentValue={usdFormatter.format(
             (isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows) * bankInfo.tokenPrice
           )}
+          lastMetric={isConnected ? false : true}
         />
         {isConnected && (
           <AssetRowMetric
@@ -283,7 +295,6 @@ const AssetRow: FC<{
                   : bankInfo.tokenBalance
                 : bankInfo.availableLiquidity
             )}
-            borderRadius="0px 10px 10px 0px"
             usdEquivalentValue={usdFormatter.format(
               (isInLendingMode
                 ? bankInfo.tokenMint.equals(WSOL_MINT)
@@ -291,6 +302,7 @@ const AssetRow: FC<{
                   : bankInfo.tokenBalance
                 : bankInfo.availableLiquidity) * bankInfo.tokenPrice
             )}
+            lastMetric
           />
         )}
       </TableCell>
@@ -313,7 +325,12 @@ const AssetRow: FC<{
 
       {/********************************/}
       {/* Action button plus tooltip */}
-      <TableCell className="p-1 h-10 border-hidden flex justify-center items-center my-5 sm:my-0">
+      <TableCell
+        className="p-1 h-full border-hidden sm:border-solid flex justify-center items-center my-5 sm:my-0 rounded-md"
+        style={{
+          border: `1px solid ${assetBorders[bankInfo.tokenName] || "#1C2125"}`,
+        }}
+      >
         <div className="h-full w-full">
           <Tooltip
             title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
