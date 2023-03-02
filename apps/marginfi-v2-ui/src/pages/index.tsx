@@ -8,7 +8,7 @@ const Home = () => {
   const { userAccounts } = useUserAccounts();
 
   return (
-    <div className="justify-start content-start py-[64px] flex flex-col w-4/5 max-w-7xl gap-4">
+    <div className="justify-start content-start py-[64px] flex flex-col w-4/5 sm:w-[90%] xl:w-4/5 max-w-7xl gap-4">
       {wallet.connected && userAccounts.length > 1 && <MultipleAccountsFoundWarning />}
       <AccountSummary />
       <AssetsList />

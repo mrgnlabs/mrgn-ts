@@ -69,7 +69,7 @@ const AssetRowEnder: FC<AssetRowEnder> = ({ assetName, icon, tableCellStyling, a
       border: `solid ${assetBorders[assetName]} 1px`
     }}
   >
-    {icon && <Image src={icon} alt={assetName} height={25} width={25} className="mx-1" />}
+    {icon && <Image src={icon} alt={assetName} height={25} width={25} className="mx-1 hidden xl:flex" />}
     <AssetRowInputBox
       value={borrowOrLendAmount}
       setValue={setBorrowOrLendAmount}

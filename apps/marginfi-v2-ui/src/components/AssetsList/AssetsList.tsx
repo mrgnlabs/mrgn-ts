@@ -18,70 +18,69 @@ const AssetsList: FC = () => {
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
+          // border: 'solid red 1px',
         }}
       >
       </div>
       <div
-        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-6 text-sm"
+        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%] text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
+          // border: 'solid red 1px',
         }}
       >
         APY
       </div>
       <div
-        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-6 text-sm"
+        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%] text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
+          // border: 'solid red 1px',
         }}
       >
         Deposits
       </div>
       <div
-        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-6 text-sm"
+        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%] text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
+          // border: 'solid red 1px',
         }}
       >
         Lockup
       </div>
       <div
-        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-6 text-sm"
+        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%] text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
+          // border: 'solid red 1px',
         }}
       >
         Capacity
       </div>
       <div
-        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-6 text-sm"
+        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%] text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
+          // border: 'solid red 1px',
         }}
       >
         Wallet
       </div>
       <div
-        className="text-[#cacaca] h-14 p-0 min-w-[25%] flex items-center pl-6 text-sm"
+        className="text-[#cacaca] h-14 p-0 min-w-[25%] flex items-center pl-[2%] text-sm"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
+          // border: 'solid red 1px',
         }}
       >
       </div>
-      {/* <div
-        className="text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-5 text-sm"
-        style={{
-          fontWeight: 300,
-          whiteSpace: 'nowrap',
-        }}
-      >
-      </div> */}
     </TableRow>
   )
   const TableHeaderLend = () => (
@@ -228,7 +227,7 @@ const AssetsList: FC = () => {
     [ProductType.Superstake]: <></>,
   }
   const DesktopHead = () => (
-    <TableHead className="hidden sm:flex w-full">
+    <TableHead className="hidden lg:flex w-full">
         {TableHeaders[productType]}
     </TableHead>
   )

@@ -244,7 +244,7 @@ const AssetRow: FC<{
   }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, marginfiClient, reloadBanks]);
 
   const Mobile = () => (
-    <TableRow className="flex sm:hidden h-full justify-between items-center min-h-[78px] sm:h-[78px] flex-col sm:flex-row p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+    <TableRow className="flex lg:hidden h-full justify-between items-center min-h-[78px] sm:h-[78px] flex-col sm:flex-row p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
       <AssetRowHeader
         assetName={bankInfo.tokenName}
         apy={isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate}
@@ -346,7 +346,7 @@ const AssetRow: FC<{
 
   const DesktopTableRowLock = () => (
     <TableRow
-      className="hidden sm:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
+      className="hidden lg:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
     >
       <AssetRowHeader
         assetName={bankInfo.tokenName}
@@ -358,7 +358,7 @@ const AssetRow: FC<{
         className="h-full w-full min-w-[62.5%] flex rounded-md border border-solid border-[#1C2125] mx-2"
       >
         <TableCell
-          className={`border-hidden text-white h-full w-full px-1 pl-4 flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] rounded-md text-base`}
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] rounded-md text-base`}
           style={{
             fontFamily: "Aeonik Pro",
           }}
@@ -367,7 +367,7 @@ const AssetRow: FC<{
           0.00%
         </TableCell>
         <TableCell
-          className={`border-hidden text-white h-full w-full px-1 pl-4 flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
           style={{
             fontFamily: "Aeonik Pro",
           }}
@@ -376,7 +376,7 @@ const AssetRow: FC<{
           ◎40,234
         </TableCell>
         <TableCell
-          className={`border-hidden text-white h-full w-full px-1 pl-4 flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
           style={{
             fontFamily: "Aeonik Pro",
           }}
@@ -384,7 +384,7 @@ const AssetRow: FC<{
           2 weeks
         </TableCell>
         <TableCell
-          className={`border-hidden text-white h-full w-full px-1 pl-4 flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
           style={{
             fontFamily: "Aeonik Pro",
           }}
@@ -392,7 +392,7 @@ const AssetRow: FC<{
           ◎234,523
         </TableCell>
         <TableCell
-          className={`border-hidden text-white h-full w-full px-1 pl-4 flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] rounded-md text-base`}
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] rounded-md text-base`}
           style={{
             fontFamily: "Aeonik Pro",
           }}
@@ -416,7 +416,7 @@ const AssetRow: FC<{
 
   const DesktopTableRowLend = () => (
     <TableRow
-      className="hidden sm:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
+      className="hidden lg:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
     >
       <AssetRowHeader
         assetName={bankInfo.tokenName}
@@ -477,7 +477,7 @@ const AssetRow: FC<{
 
   const DesktopTableRowBorrow = () => (
     <TableRow
-      className="hidden sm:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
+      className="hidden lg:flex min-h-14 sm:h-14 h-full justify-between items-center flex-col sm:flex-row p-0"
     >
       <AssetRowHeader
         assetName={bankInfo.tokenName}
