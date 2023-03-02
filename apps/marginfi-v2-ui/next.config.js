@@ -40,6 +40,12 @@ module.exports = withTM({
         port: "",
         pathname: "/logos/**",
       },
+      {
+        protocol: "https",
+        hostname: "s2.coinmarketcap.com",
+        port: "",
+        pathname: "/static/img/coins/64x64/**",
+      },
     ],
   },
 });
