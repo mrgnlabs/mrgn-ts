@@ -9,7 +9,7 @@ interface AssetRowHeader {
   assetName: string;
   icon?: string;
   usdPrice: string;
-  tableCellStyling: string;
+  tableCellStyling?: string;
 }
 
 interface AssetRowEnder {
@@ -34,7 +34,7 @@ const assetBorders = {
 const AssetRowHeader: FC<AssetRowHeader> = ({ assetName, icon, usdPrice, tableCellStyling }) => (
   <div
     className={
-      `text-white h-full w-full px-1 py-1 sm:py-0 lg:pr-0 flex flex-col xl:flex-row justify-center lg:justify-evenly items-center gap-0 sm:gap-1 rounded-md ${tableCellStyling} border-hidden sm:border-solid`
+      `text-white h-full w-full px-1 py-1 sm:py-0 lg:pr-0 flex flex-row lg:flex-col xl:flex-row justify-center lg:justify-evenly items-center gap-1 rounded-md ${tableCellStyling} border-hidden sm:border-solid`
     }
     style={{
       border: `solid ${assetBorders[assetName]} 1px`
@@ -64,8 +64,9 @@ const AssetRowHeader: FC<AssetRowHeader> = ({ assetName, icon, usdPrice, tableCe
 );
 
 const AssetRowEnder: FC<AssetRowEnder> = ({ assetName, icon, tableCellStyling, actionButtonOnClick, currentAction, borrowOrLendAmount, setBorrowOrLendAmount, maxAmount, maxDecimals, isConnected }) => (
+  // @todo input box height and action button height aren't matching rn
   <div
-    className={`text-white h-full w-full p-1 flex justify-between items-center gap-1 rounded-md ${tableCellStyling}`}
+    className={`text-white h-full min-w-[100%] sm:min-w-[0%] w-full mb-4 sm:mb-0 border-hidden sm:border-solid p-1 flex ${isConnected ? 'justify-between' : 'justify-evenly'} items-center gap-1 rounded-md ${tableCellStyling}`}
     style={{
       border: `solid ${assetBorders[assetName]} 1px`
     }}

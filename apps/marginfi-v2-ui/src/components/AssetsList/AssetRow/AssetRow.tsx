@@ -251,17 +251,17 @@ const AssetRow: FC<{
   }
 
   const Mobile = () => (
+    // padding here is a mess
     <TableRow
-      className='flex lg:hidden h-full justify-between items-center min-h-[78px] sm:h-[78px] flex-col sm:flex-row p-0 px-4 sm:p-2 lg:p-4 border-solid sm:border-[#1C2125] border rounded-xl gap-2 lg:gap-4'
+      className='flex lg:hidden h-full justify-between items-center min-h-[78px] sm:h-[78px] flex-col sm:flex-row p-0 pt-2 px-4 sm:p-2 lg:p-4 border-solid sm:border-[#1C2125] border rounded-xl gap-2 lg:gap-4'
       style={{
         border: `1px solid ${assetBorders[bankInfo.tokenName] || "#1C2125"}`,
       }}
     >
       <AssetRowHeader
         assetName={bankInfo.tokenName}
-        apy={isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate}
         icon={bankInfo.tokenIcon}
-        isInLendingMode={isInLendingMode}
+        usdPrice={usdFormatter.format(bankInfo.tokenPrice)}
       />
 
       <TableCell
@@ -306,44 +306,18 @@ const AssetRow: FC<{
           />
         )}
       </TableCell>
-
-      
-      {/********************************/}
-      {isConnected && (
-        <TableCell
-          className="py-1 px-0 h-10 border-hidden flex justify-center items-center"
-        >
-          <AssetRowInputBox
-            value={borrowOrLendAmount}
-            setValue={setBorrowOrLendAmount}
-            maxValue={maxAmount}
-            maxDecimals={bankInfo.tokenMintDecimals}
-          />
-        </TableCell>
-      )}
-      {/********************************/}
-
-      {/********************************/}
-      {/* Action button plus tooltip */}
-      <TableCell
-        className="p-1 h-full border-hidden sm:border-solid flex justify-center items-center my-5 sm:my-0 rounded-md"
-        style={{
-          border: `1px solid ${assetBorders[bankInfo.tokenName] || "#1C2125"}`,
-        }}
-      >
-        <div className="h-full w-full">
-          <Tooltip
-            title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
-            placement="top"
-          >
-            <div className="h-full w-full flex justify-center items-center">
-              <AssetRowAction onClick={borrowOrLend}>{currentAction}</AssetRowAction>
-            </div>
-          </Tooltip>
-        </div>
-      </TableCell>
-      {/********************************/}
-
+      <AssetRowEnder
+        assetName={bankInfo.tokenName}
+        icon={bankInfo.tokenIcon}
+        tableCellStyling={assetRowEnderStyling[productType]}
+        actionButtonOnClick={borrowOrLend}
+        currentAction={currentAction}
+        borrowOrLendAmount={borrowOrLendAmount}
+        setBorrowOrLendAmount={setBorrowOrLendAmount}
+        maxAmount={maxAmount}
+        maxDecimals={bankInfo.tokenMintDecimals}
+        isConnected={isConnected}
+      />
     </TableRow>
   )
 
@@ -380,8 +354,8 @@ const AssetRow: FC<{
             fontFamily: "Aeonik Pro",
           }}
         >
-          {/* @todo placeholder */}
-          0.00%
+            0.00%
+            {/* needs to be campaign info rate from whitelisted campaigns */}
         </TableCell>
         <TableCell
           className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
@@ -389,8 +363,8 @@ const AssetRow: FC<{
             fontFamily: "Aeonik Pro",
           }}
         >
-          {/* @todo placeholder */}
           ◎40,234
+          {/* total campaign deposits */}
         </TableCell>
         <TableCell
           className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
@@ -399,6 +373,7 @@ const AssetRow: FC<{
           }}
         >
           2 weeks
+          {/* campaign duration in days easiest probably */}
         </TableCell>
         <TableCell
           className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
@@ -407,6 +382,7 @@ const AssetRow: FC<{
           }}
         >
           ◎234,523
+          {/* total campaign size - deposits */}
         </TableCell>
         <TableCell
           className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] rounded-md text-base`}
@@ -414,7 +390,16 @@ const AssetRow: FC<{
             fontFamily: "Aeonik Pro",
           }}
         >
-          ◎421
+          {/* @todo add currency symbol */}
+          {
+            isConnected ?
+              groupedNumberFormatter.format(
+                bankInfo.tokenMint.equals(WSOL_MINT)
+                ? bankInfo.tokenBalance + nativeSolBalance
+                : bankInfo.tokenBalance
+              )
+            : '-'
+          }
         </TableCell>
       </div>
       <AssetRowEnder
@@ -427,6 +412,7 @@ const AssetRow: FC<{
         setBorrowOrLendAmount={setBorrowOrLendAmount}
         maxAmount={maxAmount}
         maxDecimals={bankInfo.tokenMintDecimals}
+        isConnected={isConnected}
       />
     </TableRow>
   )

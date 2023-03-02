@@ -50,6 +50,7 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({ value, setValue, maxValue, max
       size="small"
       max={maxValue}
       InputProps={{
+        // @todo there is some weird input box resizing that seems to only affect sm and md sizes here
         className: "w-full h-full py-1 p-0 bg-[#1C2125] text-[#e1e1e1] text-sm font-light rounded-md",
         endAdornment: <MaxInputAdornment onClick={onMaxClick} />,
       }}
