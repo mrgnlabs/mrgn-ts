@@ -12,6 +12,14 @@
       {
         "label": "SOL",
         "address": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"
+      },
+      {
+        "label": "mSOL",
+        "address": "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE"
+      },
+      {
+        "label": "BONK",
+        "address": "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM"
       }
     ]
   },

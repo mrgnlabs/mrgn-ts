@@ -48,10 +48,21 @@
     "chainId": 101,
     "decimals": 5,
     "name": "BonkCoin",
-    "symbol": "Bonk",
-    "logoURI": "https://arweave.net/hQiPZOsRZXGXBJd_82PhVdlM_hACsT_q6wqwf5cSY7I?ext=png",
+    "symbol": "BONK",
+    "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/23095.png",
     "extensions": {
       "coingeckoId": "bonk"
+    }
+  },
+  {
+    "address": "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
+    "chainId": 101,
+    "decimals": 9,
+    "name": "Marinade staked SOL (mSOL)",
+    "symbol": "mSOL",
+    "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png",
+    "extensions": {
+      "coingeckoId": "msol"
     }
   }
 ]
