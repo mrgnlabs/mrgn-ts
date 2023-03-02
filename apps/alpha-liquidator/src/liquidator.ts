@@ -1,8 +1,13 @@
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import MarginfiAccount, { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
-import { MarginfiClient, MarginfiGroup, USDC_DECIMALS } from "@mrgnlabs/marginfi-client-v2";
+import {
+  MarginfiAccount,
+  MarginRequirementType,
+  MarginfiClient,
+  MarginfiGroup,
+  USDC_DECIMALS,
+  PriceBias,
+} from "@mrgnlabs/marginfi-client-v2";
 import { nativeToUi, NodeWallet, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
-import { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
 import BigNumber from "bignumber.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { NATIVE_MINT } from "@solana/spl-token";

@@ -41,7 +41,7 @@ import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
 /**
  * Wrapper class around a specific marginfi account.
  */
-class MarginfiAccount {
+export class MarginfiAccount {
   public readonly publicKey: PublicKey;
 
   private _group: MarginfiGroup;

@@ -5,8 +5,7 @@ import { runGetAccountInfosProcess } from "./getAccountInfosProcess";
 import { ammsToExclude } from "./ammsToExclude";
 import { connection } from "./utils/connection";
 import { loadKeypair, NodeWallet } from "@mrgnlabs/mrgn-common";
-import { Environment, getConfig, MarginfiClient, MarginfiGroup } from "@mrgnlabs/marginfi-client-v2";
-import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
+import { MarginfiAccount, Environment, getConfig, MarginfiClient, MarginfiGroup } from "@mrgnlabs/marginfi-client-v2";
 import { env_config } from "./config";
 import { Liquidator } from "./liquidator";
 

@@ -1,6 +1,5 @@
 import { Environment, getConfig, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { loadKeypair, NodeWallet } from "@mrgnlabs/mrgn-common";
-import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common/src/spl";
+import { loadKeypair, NodeWallet, getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { env_config } from "./config";
@@ -19,7 +18,7 @@ const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
   const balance = new BigNumber(
     (await connection.getTokenAccountBalance(getAssociatedTokenAddressSync(USDC_MINT, client.wallet.publicKey))).value
-      .uiAmount ?? 0,
+      .uiAmount ?? 0
   );
   if (balance.gt(0)) {
     console.log("Fund liquidator account with %s USDC? [y/n]", balance);

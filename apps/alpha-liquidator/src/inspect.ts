@@ -1,5 +1,10 @@
-import { Environment, getConfig, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import MarginfiAccount, { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
+import {
+  MarginfiAccount,
+  MarginRequirementType,
+  Environment,
+  getConfig,
+  MarginfiClient,
+} from "@mrgnlabs/marginfi-client-v2";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
 import { Connection, Keypair } from "@solana/web3.js";
 import { env_config } from "./config";
