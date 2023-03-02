@@ -255,7 +255,12 @@ const AssetRow: FC<{
         <AssetRowMetric
           longLabel="Current Price"
           shortLabel="Price"
-          value={usdFormatter.format(bankInfo.tokenPrice)}
+          value={
+            bankInfo.tokenPrice >= 0.01 ?
+            usdFormatter.format(bankInfo.tokenPrice)
+            :
+            `$${bankInfo.tokenPrice.toExponential(2)}`
+          }
           borderRadius={isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"}
         />
         <AssetRowMetric
