@@ -1,4 +1,4 @@
-import { WRAPPED_SOL_MINT } from "@jup-ag/core";
+import { Jupiter, WRAPPED_SOL_MINT } from "@jup-ag/core";
 import { Environment, getConfig, MarginfiClient, MarginfiGroup, USDC_DECIMALS } from "@mrgnlabs/marginfi-client-v2";
 import MarginfiAccount, { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
 import { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
@@ -21,12 +21,60 @@ import {
   WhirlpoolContext,
 } from "@orca-so/whirlpools-sdk";
 import { Percentage } from "@orca-so/sdk";
+import JSBI from "jsbi";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(1);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const SLEEP_INTERVAL = Number.parseInt(process.env.SLEEP_INTERVAL ?? "5000");
 const MIN_SOL_BALANCE = Number.parseFloat(process.env.MIN_SOL_BALANCE ?? "10") * LAMPORTS_PER_SOL;
+
+class JupTrader {
+  private jupiter: Jupiter | undefined;
+
+  constructor() {
+  }
+
+  async load(connection: Connection, wallet: NodeWallet) {
+    const debug = getDebugLogger("jup-load");
+
+    debug("Loading jupiter");
+
+    this.jupiter = await Jupiter.load({ connection, user: wallet.payer, cluster: "mainnet-beta", });
+  }
+
+  async trade(inputMint: PublicKey, outputMint: PublicKey, amountIn: BN) {
+    if (!this.jupiter) {
+      throw new Error("Jupiter not loaded");
+    }
+
+    const debug = getDebugLogger("jup-trader");
+
+    const amount = JSBI.BigInt(amountIn.toString());
+
+    debug("Trading %s %s for %s", amount, inputMint, outputMint);
+
+    const routes = await this.jupiter!.computeRoutes({ inputMint, outputMint, amount, slippageBps: 25 });
+
+    const bestRoute = routes.routesInfos[0];
+
+    const { execute } = await this.jupiter.exchange({ routeInfo: bestRoute });
+
+    const result = await execute();
+
+    // @ts-ignore
+    if (result.error) {
+      // @ts-ignore
+      debug("Error: %s", result.error);
+      // @ts-ignore
+      throw new Error(result.error);
+    }
+
+    // @ts-ignore
+    debug("Trade successful %s", result.txid);
+  }
+
+}
 
 class OrcaWhirlpoolTrader {
   private whirlpoolClient: WhirlpoolClient;
@@ -81,7 +129,7 @@ class Liquidator {
   account: MarginfiAccount;
   group: MarginfiGroup;
   client: MarginfiClient;
-  whirlpoolTrader: OrcaWhirlpoolTrader;
+  trader: JupTrader;
   wallet: NodeWallet;
 
   constructor(
@@ -96,7 +144,7 @@ class Liquidator {
     this.group = group;
     this.client = client;
     this.wallet = wallet;
-    this.whirlpoolTrader = new OrcaWhirlpoolTrader(connection, wallet);
+    this.trader = new JupTrader();
   }
 
   /**
@@ -137,7 +185,7 @@ class Liquidator {
 
       const balance = await this.getTokenAccountBalance(bank.mint);
 
-      await this.whirlpoolTrader.trade(bank.mint, USDC_MINT, uiToNative(balance, bank.mintDecimals));
+      await this.trader.trade(bank.mint, USDC_MINT, uiToNative(balance, bank.mintDecimals));
     }
   }
 
@@ -202,7 +250,7 @@ class Liquidator {
 
       debug("Swapping %d USDC to %s", usdcBuyingPower, bank.label);
 
-      await this.whirlpoolTrader.trade(USDC_MINT, bank.mint, uiToNative(usdcBuyingPower, USDC_DECIMALS));
+      await this.trader.trade(USDC_MINT, bank.mint, uiToNative(usdcBuyingPower, USDC_DECIMALS));
 
       const liabBalance = BigNumber.min(
         await this.getTokenAccountBalance(bank.mint),
@@ -244,6 +292,14 @@ class Liquidator {
     await this.sellNonUsdcDeposits();
     await this.repayAllDebt();
     await this.depositRemainingUsdc();
+  }
+
+  async initialize(connection: Connection, wallet: NodeWallet) {
+    const debug = getDebugLogger("liquidator-initialize");
+
+    debug("Initializing liquidator");
+
+    await this.trader.load(connection, wallet);
   }
 
   async start() {
@@ -327,7 +383,7 @@ class Liquidator {
 
       debug("Swapping %d %s to USDC", amount, bank.label);
 
-      await this.whirlpoolTrader.trade(bank.mint, USDC_MINT, uiToNative(amount, bank.mintDecimals));
+      await this.trader.trade(bank.mint, USDC_MINT, uiToNative(amount, bank.mintDecimals));
     }
 
     const usdcBalance = await this.getTokenAccountBalance(USDC_MINT);
@@ -523,6 +579,8 @@ async function main() {
 
   const liquidatorAccount = await MarginfiAccount.fetch(new PublicKey(process.env.LIQUIDATOR_PK!), client);
   const liquidator = new Liquidator(connection, liquidatorAccount, group, client, wallet);
+
+  await liquidator.initialize(connection, wallet);
 
   await liquidator.start();
 }
