@@ -6,7 +6,7 @@ import { PublicKey, Transaction } from "@solana/web3.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { makeAirdropCollateralIx } from "~/utils";
 import { toast } from "react-toastify";
-import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common/src/spl";
+import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 const SOL_AMOUNT = 2 * 10 ** 9;

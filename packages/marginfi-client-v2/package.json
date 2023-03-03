@@ -1,15 +1,19 @@
 {
   "name": "@mrgnlabs/marginfi-client-v2",
   "version": "1.0.0",
-  "main": "./src/index.ts",
   "private": true,
-  "types": "./src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "license": "MIT",
   "scripts": {
     "dev": "tsup --watch",
     "lint": "TIMING=1 eslint \"**/*.ts*\"",
     "build": "tsup"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "dependencies": {
     "@coral-xyz/anchor": "^0.26.0",
     "@project-serum/anchor": "^0.26.0",

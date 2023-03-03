@@ -1,9 +1,9 @@
 {
   "name": "@mrgnlabs/lip-client",
   "version": "1.0.0",
-  "main": "./src/index.ts",
+  "main": "dist/index.js",
   "private": true,
-  "types": "./src/index.ts",
+  "types": "dist/index.d.ts",
   "license": "MIT",
   "scripts": {
     "dev": "tsup --watch",

@@ -4,7 +4,8 @@
     "downlevelIteration": true,
     "paths": {
       "~/*": ["./src/*"]
-    }
+    },
+    "module": "commonjs",
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]

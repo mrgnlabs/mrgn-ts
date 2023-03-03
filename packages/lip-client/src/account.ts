@@ -3,14 +3,14 @@ import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { LIP_IDL } from ".";
 import LipClient from "./client";
-import Bank, { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
+import { Bank, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 
 /**
  * Wrapper class around a specific LIP account.
  */
-class LipAccount {
+export class LipAccount {
   public campaigns: Campaign[];
   public deposits: Deposit[];
 

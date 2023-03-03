@@ -11,9 +11,9 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import Image from "next/image";
-import LipAccount, { Campaign } from "@mrgnlabs/lip-client/src/account";
+import { Campaign, LipAccount } from "@mrgnlabs/lip-client";
 import config from "~/config";
-import { computeGuaranteedApyForCampaign } from "@mrgnlabs/lip-client/src/utils";
+import { computeGuaranteedApyForCampaign } from "@mrgnlabs/lip-client";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 import { floor } from "~/utils";
 

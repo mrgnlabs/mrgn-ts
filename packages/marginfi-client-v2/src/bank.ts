@@ -9,7 +9,7 @@ import { nativeToUi, WrappedI80F48, wrappedI80F48toBigNumber } from "@mrgnlabs/m
 /**
  * Wrapper class around a specific marginfi group.
  */
-class Bank {
+export class Bank {
   public readonly publicKey: PublicKey;
 
   public readonly label: string;

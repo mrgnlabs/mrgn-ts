@@ -1,4 +1,4 @@
-import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
+import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
 import { TableCell, TableRow, Tooltip } from "@mui/material";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
@@ -15,7 +15,7 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
   getAssociatedTokenAddressSync,
-} from "@mrgnlabs/mrgn-common/src/spl";
+} from "@mrgnlabs/mrgn-common";
 import { uiToNative } from "@mrgnlabs/mrgn-common";
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
@@ -249,17 +249,14 @@ const AssetRow: FC<{
         isInLendingMode={isInLendingMode}
       />
 
-      <TableCell
-        className="h-full w-full flex py-1 px-0 mb-5 sm:mb-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit"
-      >
+      <TableCell className="h-full w-full flex py-1 px-0 mb-5 sm:mb-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
         <AssetRowMetric
           longLabel="Current Price"
           shortLabel="Price"
           value={
-            bankInfo.tokenPrice >= 0.01 ?
-            usdFormatter.format(bankInfo.tokenPrice)
-            :
-            `$${bankInfo.tokenPrice.toExponential(2)}`
+            bankInfo.tokenPrice >= 0.01
+              ? usdFormatter.format(bankInfo.tokenPrice)
+              : `$${bankInfo.tokenPrice.toExponential(2)}`
           }
           borderRadius={isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"}
         />
@@ -298,9 +295,7 @@ const AssetRow: FC<{
       </TableCell>
 
       {isConnected && (
-        <TableCell
-          className="py-1 px-0 h-10 border-hidden flex justify-center items-center"
-        >
+        <TableCell className="py-1 px-0 h-10 border-hidden flex justify-center items-center">
           <AssetRowInputBox
             value={borrowOrLendAmount}
             setValue={setBorrowOrLendAmount}

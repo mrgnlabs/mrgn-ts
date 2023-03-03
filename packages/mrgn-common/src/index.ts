@@ -5,5 +5,5 @@ export * from "./types";
 export * from "./misc";
 export * from "./conversion";
 export * from "./accounting";
-export * from "./types";
+export * from "./spl";
 export { NodeWallet };

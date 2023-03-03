@@ -7,15 +7,15 @@ import { useProgram, useTokenAccounts } from "~/context";
 import { ProAction } from "~/pages/earn";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { groupedNumberFormatterDyn, percentFormatterDyn } from "~/utils/formatters";
-import { calculateInterestFromApy, computeGuaranteedApy } from "@mrgnlabs/lip-client/src/utils";
+import { calculateInterestFromApy, computeGuaranteedApy } from "@mrgnlabs/lip-client";
 import { floor } from "~/utils";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
   NATIVE_MINT,
-} from "@mrgnlabs/mrgn-common/src/spl";
+} from "@mrgnlabs/mrgn-common";
 import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
-import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
+import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import Image from "next/image";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import { TextField } from "@mui/material";
