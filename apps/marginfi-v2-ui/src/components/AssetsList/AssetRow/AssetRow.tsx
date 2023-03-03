@@ -323,8 +323,8 @@ const AssetRow: FC<{
 
   const tableCellStyling = {
     [ProductType.Lock]: "min-w-[12.5%] max-w-[12.5%]",
-    [ProductType.Lend]: "max-w-[14.28%]",
-    [ProductType.Borrow]: "max-w-[12.5%]",
+    [ProductType.Lend]: "min-w-[14.28%] max-w-[14.28%]",
+    [ProductType.Borrow]: "min-w-[12.5%] max-w-[12.5%]",
     [ProductType.Superstake]: "",
   }
 
@@ -427,54 +427,66 @@ const AssetRow: FC<{
         usdPrice={usdFormatter.format(bankInfo.tokenPrice)}
         tableCellStyling={tableCellStyling[productType]}
       />
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
+      <div
+        className="h-full w-full min-w-[57.16%] flex rounded-md border border-solid border-[#1C2125] mx-2"
       >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
+        <TableCell
+            className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[25%] rounded-md text-base`}
+            style={{
+              fontFamily: "Aeonik Pro",
+            }}
+          >
+              0.00%
+              {/* needs to be campaign info rate from whitelisted campaigns */}
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[25%] text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          ◎40,234
+          {/* total campaign deposits */}
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[25%] text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          ◎40,234
+          {/* total campaign deposits */}
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[25%] rounded-md text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          {/* @todo add currency symbol */}
+          {
+            isConnected ?
+              groupedNumberFormatter.format(
+                bankInfo.tokenMint.equals(WSOL_MINT)
+                ? bankInfo.tokenBalance + nativeSolBalance
+                : bankInfo.tokenBalance
+              )
+            : '-'
+          }
+        </TableCell>
+      </div>
+      <AssetRowEnder
+        assetName={bankInfo.tokenName}
+        icon={bankInfo.tokenIcon}
+        tableCellStyling={assetRowEnderStyling[productType]}
+        actionButtonOnClick={borrowOrLend}
+        currentAction={currentAction}
+        borrowOrLendAmount={borrowOrLendAmount}
+        setBorrowOrLendAmount={setBorrowOrLendAmount}
+        maxAmount={maxAmount}
+        maxDecimals={bankInfo.tokenMintDecimals}
+        isConnected={isConnected}
+      />
     </TableRow>
   )
 
@@ -488,62 +500,75 @@ const AssetRow: FC<{
         usdPrice={usdFormatter.format(bankInfo.tokenPrice)}
         tableCellStyling={tableCellStyling[productType]}
       />
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
+      <div
+        className="h-full w-full min-w-[62.5%] flex rounded-md border border-solid border-[#1C2125] mx-2"
       >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
-      <TableCell
-        className={`text-white h-full w-full px-0.5 lg:pr-0 flex justify-center sm:justify-evenly items-center gap-1 rounded-md ${tableCellStyling[productType]}`}
-        style={{
-          border: `solid #fff 1px`
-        }}
-      >
-
-      </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] rounded-md text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+            0.00%
+            {/* needs to be campaign info rate from whitelisted campaigns */}
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          ◎40,234
+          {/* total campaign deposits */}
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          2 weeks
+          {/* campaign duration in days easiest probably */}
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          ◎234,523
+          {/* total campaign size - deposits */}
+        </TableCell>
+        <TableCell
+          className={`border-hidden text-white h-full w-full pr-1 pl-[2%] flex justify-start items-center gap-1 bg-[#0D0F11] max-w-[20%] rounded-md text-base`}
+          style={{
+            fontFamily: "Aeonik Pro",
+          }}
+        >
+          {/* @todo add currency symbol */}
+          {
+            isConnected ?
+              groupedNumberFormatter.format(
+                bankInfo.tokenMint.equals(WSOL_MINT)
+                ? bankInfo.tokenBalance + nativeSolBalance
+                : bankInfo.tokenBalance
+              )
+            : '-'
+          }
+        </TableCell>
+      </div>
+      <AssetRowEnder
+        assetName={bankInfo.tokenName}
+        icon={bankInfo.tokenIcon}
+        tableCellStyling={assetRowEnderStyling[productType]}
+        actionButtonOnClick={borrowOrLend}
+        currentAction={currentAction}
+        borrowOrLendAmount={borrowOrLendAmount}
+        setBorrowOrLendAmount={setBorrowOrLendAmount}
+        maxAmount={maxAmount}
+        maxDecimals={bankInfo.tokenMintDecimals}
+        isConnected={isConnected}
+      />
     </TableRow>
   )
 

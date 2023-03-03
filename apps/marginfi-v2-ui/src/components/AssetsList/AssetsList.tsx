@@ -18,7 +18,6 @@ const AssetsList: FC = () => {
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
-          // border: 'solid red 1px',
         }}
       >
       </div>
@@ -27,7 +26,6 @@ const AssetsList: FC = () => {
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
-          // border: 'solid red 1px',
         }}
       >
         APY
@@ -37,7 +35,6 @@ const AssetsList: FC = () => {
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
-          // border: 'solid red 1px',
         }}
       >
         Deposits
@@ -47,7 +44,6 @@ const AssetsList: FC = () => {
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
-          // border: 'solid red 1px',
         }}
       >
         Lockup
@@ -57,7 +53,6 @@ const AssetsList: FC = () => {
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
-          // border: 'solid red 1px',
         }}
       >
         Capacity
@@ -67,7 +62,6 @@ const AssetsList: FC = () => {
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
-          // border: 'solid red 1px',
         }}
       >
         Wallet
@@ -77,7 +71,6 @@ const AssetsList: FC = () => {
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
-          // border: 'solid red 1px',
         }}
       >
       </div>
@@ -86,7 +79,7 @@ const AssetsList: FC = () => {
   const TableHeaderLend = () => (
     <TableRow className="w-full flex">
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[14.28%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[14.28%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -94,7 +87,7 @@ const AssetsList: FC = () => {
       >
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[14.28%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[14.28%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -103,7 +96,7 @@ const AssetsList: FC = () => {
         APY
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[14.28%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[14.28%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -112,7 +105,7 @@ const AssetsList: FC = () => {
         Total Deposits
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[14.28%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[14.28%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -121,7 +114,7 @@ const AssetsList: FC = () => {
         Capacity
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[14.28%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[14.28%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -130,7 +123,7 @@ const AssetsList: FC = () => {
         Wallet Balance
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[14.28%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[14.28%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -138,7 +131,7 @@ const AssetsList: FC = () => {
       >
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -150,7 +143,7 @@ const AssetsList: FC = () => {
   const TableHeaderBorrow = () => (
     <TableRow className="w-full flex">
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -158,7 +151,7 @@ const AssetsList: FC = () => {
       >
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -167,7 +160,7 @@ const AssetsList: FC = () => {
         APY
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -176,7 +169,7 @@ const AssetsList: FC = () => {
         Total Borrows
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -185,7 +178,7 @@ const AssetsList: FC = () => {
         Available Liquidity
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -194,7 +187,7 @@ const AssetsList: FC = () => {
         Max LTV
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -203,7 +196,7 @@ const AssetsList: FC = () => {
         Wallet Balance
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
@@ -211,7 +204,7 @@ const AssetsList: FC = () => {
       >
       </div>
       <div
-        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-2"
+        className="text-base text-[#cacaca] h-14 p-0 min-w-[12.5%] flex items-center pl-[2%]"
         style={{
           fontWeight: 300,
           whiteSpace: 'nowrap',
