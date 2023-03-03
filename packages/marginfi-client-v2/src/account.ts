@@ -16,7 +16,7 @@ import {
   createSyncNativeInstruction,
   NATIVE_MINT,
   syncNativeInstructionData,
-} from "@mrgnlabs/mrgn-common/src/spl";
+} from "@mrgnlabs/mrgn-common";
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { parsePriceData } from "@pythnetwork/client";

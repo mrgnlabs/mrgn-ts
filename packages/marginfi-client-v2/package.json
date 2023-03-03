@@ -11,8 +11,7 @@
     "build": "tsup"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "dependencies": {
     "@coral-xyz/anchor": "^0.26.0",

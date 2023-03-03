@@ -35,7 +35,7 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
   NATIVE_MINT,
-} from "@mrgnlabs/mrgn-common/src/spl";
+} from "@mrgnlabs/mrgn-common";
 
 /**
  * Entrypoint to interact with the LIP contract.
