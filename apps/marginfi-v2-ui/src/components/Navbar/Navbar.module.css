@@ -1,29 +1,30 @@
 .wallet-button {
     height: 31.5px !important;
     width: 146.55px;
-    font-size: 14px !important;
-
+    font-size: 16px !important;
+    letter-spacing: -.3px;
     background-color: #DCE85D !important;
     color: #000 !important;
-    border: 0px solid #c0c0c0 !important;
+    border: 1px solid #c0c0c0 !important;
     padding: 0 10px !important;
-    
+    font-family: "aeonik pro";
+    text-transform: lowercase !important;
     border-radius: 100px !important;
-
+    letter-spacing: -.5px;
     display: flex;
     justify-content: space-evenly;
     align-items: center;
-    
     font-weight: 300 !important;
-    text-transform: uppercase !important;
 }
 
 @media (max-width: 768px) {
     .wallet-button {
+        text-transform: lowercase !important;
+  font-family: "aeonik pro";
         height: 45px !important;
         width: 146.55px;
-        font-size: 14px !important;
-    
+        font-size: 16px !important;
+        letter-spacing: -.5px;
         background-color: #DCE85D !important;
         color: #000 !important;
         border: 0px solid #c0c0c0 !important;
@@ -36,7 +37,6 @@
         align-items: center;
         
         font-weight: 300 !important;
-        text-transform: uppercase !important;
     }
 }
   

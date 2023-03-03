@@ -16,7 +16,6 @@ const WalletButton: FC = () => {
     <WalletMultiButtonDynamic
       className={styles["wallet-button"]}
       // @todo height / width doesn't seem to be making a difference here
-      startIcon={<Image src="/wallet_icon.svg" alt="wallet icon" width={18.9} height={18.9} />}
     >
       {!wallet.connected && "CONNECT"}
     </WalletMultiButtonDynamic>
