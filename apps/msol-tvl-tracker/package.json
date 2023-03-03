@@ -1,0 +1,16 @@
+{
+  "name": "msol-tvl-tracker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "ts-node index.ts"
+  },
+  "dependencies": {
+    "@mrgnlabs/marginfi-client-v2": "*",
+    "@solana/web3.js": "^1.73.3"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1"
+  }
+}
