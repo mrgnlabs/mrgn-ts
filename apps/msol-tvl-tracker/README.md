@@ -1,5 +1,7 @@
 # TVL tracker
 
+This tools prints out the TVL of the mSOL bank
+
 ## Run
 
 ```sh
