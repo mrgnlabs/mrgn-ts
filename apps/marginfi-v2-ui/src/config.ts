@@ -1,6 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 import { getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { getConfig as getLipConfig } from "@mrgnlabs/lip-client";
+import { ProductType } from '~/types';
 
 // ================
 // MAIN APP CONFIG
@@ -90,5 +91,85 @@ const config = {
 };
 
 export default config;
-export const WSOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
-export const WALLET_BALANCE_MARGIN_SOL = 0.1;
+const WSOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
+const WALLET_BALANCE_MARGIN_SOL = 0.1;
+
+const productConfig = {
+  [ProductType.Lock]: {
+    header: {
+      colNames: ['APY', 'Deposits', 'Lockup', 'Capacity', 'Wallet'],
+      cellStyling: "min-w-[12.5%]",
+    },
+    dataRow: {
+      rowStyling: "min-w-[62.5%]",
+      header: {
+        cellStyling: "min-w-[12.5%] max-w-[12.5%]",
+      },
+      inner: {
+        cellStyling: "max-w-[20%]",
+      },
+      ender: {
+        cellStyling: "max-w-[25%]"
+      },
+    },
+  },
+  [ProductType.Lend]: {
+    header: {
+      colNames: ['APY', 'Deposits', 'Capacity', 'Wallet' ],
+      cellStyling: "min-w-[14.28%]",
+    },
+    dataRow: {
+      rowStyling: "min-w-[57.16%]",
+      header: {
+        cellStyling: "min-w-[14.28%] max-w-[14.28%]",
+      },
+      inner: {
+        cellStyling: "max-w-[25%]",
+      },
+      ender: {
+        cellStyling: "max-w-[28.56%]",
+      }
+    },
+  },
+  [ProductType.Borrow]: {
+    header: {
+      colNames: ['APY', 'Borrows', 'Available', 'Max LTV', 'Wallet'],
+      cellStyling: "min-w-[12.5%]",
+    },
+    dataRow: {
+      rowStyling: "min-w-[62.5%]",
+      header: {
+        cellStyling: "min-w-[12.5%] max-w-[12.5%]",
+      },
+      inner: {
+        cellStyling: "max-w-[20%]",
+      },
+      ender: {
+        cellStyling: "max-w-[25%]",
+      }
+    },
+  },
+  [ProductType.Superstake]: {
+    header: {
+      colNames: [],
+      cellStyling: "",
+    },
+    dataRow: {
+      rowStyling: "",
+      header: {
+        cellStyling: ""
+      },
+      ender: {
+        cellStyling: "",
+      }
+    },
+  }
+};
+const productTypes = Object.keys(productConfig) as ProductType[];
+
+export {
+  productConfig,
+  productTypes,
+  WSOL_MINT,
+  WALLET_BALANCE_MARGIN_SOL
+}
