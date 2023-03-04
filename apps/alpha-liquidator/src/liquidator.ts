@@ -34,7 +34,7 @@ class Liquidator {
     readonly client: MarginfiClient,
     readonly wallet: NodeWallet,
     readonly jupiter: Jupiter
-  ) {}
+  ) { }
 
   /**
    * 1. step of the account re-balancing
@@ -205,9 +205,12 @@ class Liquidator {
 
     console.log("Start with DEBUG=mfi:* to see more logs");
 
-    // await this.mainLoop();
+    await this.mainLoop();
+  }
 
-    // Test loop
+  // Print out the top route from SOL to USDC.
+  // Used for testing route data ingestion.
+  private async testLoop() {
     while (true) {
       const bank = await this.account.client.group.getBankByMint(WRAPPED_SOL_MINT);
       if (!bank) {
@@ -219,12 +222,14 @@ class Liquidator {
           amount: JSBI.BigInt(uiToNative(10, bank.mintDecimals).toString()),
           slippageBps: SLIPPAGE_BPS,
         });
-        console.log(routesInfos);
+        console.log(routesInfos[0]);
       }
 
       await wait(5000);
     }
   }
+
+
 
   private async mainLoop() {
     const debug = getDebugLogger("main-loop");

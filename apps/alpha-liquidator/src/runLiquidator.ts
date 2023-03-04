@@ -9,8 +9,10 @@ import { MarginfiAccount, Environment, getConfig, MarginfiClient, MarginfiGroup 
 import { env_config } from "./config";
 import { Liquidator } from "./liquidator";
 
+const debug = require("debug")("mfi:liq-scheduler")
+
 async function start() {
-  console.log("Jupiter initializing");
+  debug("Jupiter initializing");
   const jupiter = await Jupiter.load({
     connection: connection,
     cluster: "mainnet-beta",
@@ -23,7 +25,7 @@ async function start() {
   const accountToAmmIdsMap = jupiter.getAccountToAmmIdsMap();
   const ammIdToAmmMap = jupiter.getAmmIdToAmmMap();
 
-  console.log("Fetching initial blockhash");
+  debug("Fetching initial blockhash");
   let blockhashWithExpiryBlockHeight = await connection.getLatestBlockhash("confirmed");
 
   // each blockhash can last about 1 minute, we refresh every second
@@ -36,7 +38,7 @@ async function start() {
     accountInfos: new Map<string, AccountInfo<Buffer>>(),
   };
 
-  console.log("Starting worker");
+  debug("Starting worker");
   const worker = new Worker(__filename);
 
   worker.on("error", (err) => {
@@ -45,7 +47,7 @@ async function start() {
   });
 
   worker.on("exit", () => {
-    console.log("worker exited");
+    debug("worker exited");
     process.exit(1);
   });
 

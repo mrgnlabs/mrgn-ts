@@ -20,6 +20,7 @@ async function main() {
       connection,
       cluster: "mainnet-beta",
       ammsToExclude,
+      marketUrl: "https://d24ktnyabqcukc.cloudfront.net/markets.json",
     });
     const accountToAmmIdsMap = jupiter.getAccountToAmmIdsMap();
     const ammIdToAmmMap = jupiter.getAmmIdToAmmMap();
