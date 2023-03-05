@@ -12,7 +12,7 @@ import BigNumber from "bignumber.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { Jupiter, WRAPPED_SOL_MINT } from "@jup-ag/core";
-import { caputreException, env_config } from "./config";
+import { captureMessage, caputreException, env_config } from "./config";
 import JSBI from "jsbi";
 import { wait } from "./utils/wait";
 import BN from "bn.js";
@@ -35,7 +35,7 @@ class Liquidator {
     readonly client: MarginfiClient,
     readonly wallet: NodeWallet,
     readonly jupiter: Jupiter
-  ) {}
+  ) { }
 
   private async swap(mintIn: PublicKey, mintOut: PublicKey, amountIn: BN) {
     const debug = getDebugLogger("swap");
@@ -414,6 +414,8 @@ class Liquidator {
       debug("Account is healthy");
       return false;
     }
+
+    captureMessage(`Liquidating account ${account.toBase58()}`);
 
     let maxLiabilityPaydownUsdValue = new BigNumber(0);
     let bestLiabAccountIndex = 0;

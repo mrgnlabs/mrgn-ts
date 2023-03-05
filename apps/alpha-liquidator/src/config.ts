@@ -1,6 +1,8 @@
 import { z } from "zod";
 import dotenv from "dotenv";
 
+const Sentry = require("@sentry/node");
+
 dotenv.config();
 
 /*eslint sort-keys: "error"*/
@@ -21,13 +23,16 @@ type EnvSchema = z.infer<typeof envSchema>;
 export const env_config: EnvSchema = envSchema.parse(process.env);
 
 if (env_config.SENTRY) {
-  const Sentry = require("@sentry/node");
 
   if (!env_config.SENTRY_DSN) {
     throw new Error("SENTRY_DSN is required");
   }
 
+  console.log("Initializing Sentry");
+
   Sentry.init({ dsn: env_config.SENTRY_DSN });
+
+  Sentry.captureMessage("Starting Alpha Liquidator");
 }
 
 process.on("unhandledRejection", (up) => {
@@ -36,7 +41,12 @@ process.on("unhandledRejection", (up) => {
 
 export function caputreException(err: any) {
   if (env_config.SENTRY) {
-    const Sentry = require("@sentry/node");
     Sentry.captureException(err);
+  }
+}
+
+export function captureMessage(message: string) {
+  if (env_config.SENTRY) {
+    Sentry.captureMessage(message);
   }
 }
