@@ -15,11 +15,12 @@ import { Jupiter, WRAPPED_SOL_MINT } from "@jup-ag/core";
 import { env_config } from "./config";
 import JSBI from "jsbi";
 import { wait } from "./utils/wait";
+import BN from "bn.js";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(1);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-const MIN_SOL_BALANCE = env_config.MIN_SOL_BALANCE * LAMPORTS_PER_SOL;
+const MIN_SOL_BALANCE = Number.parseFloat(env_config.MIN_SOL_BALANCE) * LAMPORTS_PER_SOL;
 const SLIPPAGE_BPS = 250;
 
 function getDebugLogger(context: string) {
@@ -35,6 +36,36 @@ class Liquidator {
     readonly wallet: NodeWallet,
     readonly jupiter: Jupiter
   ) { }
+
+  private async swap(mintIn: PublicKey, mintOut: PublicKey, amountIn: BN) {
+    const debug = getDebugLogger("swap");
+
+    debug("Swapping %s %s to %s", amountIn, mintIn.toBase58(), mintOut.toBase58());
+
+    const { routesInfos } = await this.jupiter.computeRoutes({
+      inputMint: mintIn,
+      outputMint: mintOut,
+      amount: JSBI.BigInt(amountIn.toString()),
+      slippageBps: SLIPPAGE_BPS,
+    });
+
+    const route = routesInfos[0];
+
+    const { execute } = await this.jupiter.exchange({ routeInfo: route });
+
+    const result = await execute();
+
+    // @ts-ignore
+    if (result.error) {
+      // @ts-ignore
+      debug("Error: %s", result.error);
+      // @ts-ignore
+      throw new Error(result.error);
+    }
+
+    // @ts-ignore
+    debug("Trade successful %s", result.txid);
+  }
 
   /**
    * 1. step of the account re-balancing
@@ -74,14 +105,7 @@ class Liquidator {
 
       const balance = await this.getTokenAccountBalance(bank.mint);
 
-      const { routesInfos } = await this.jupiter.computeRoutes({
-        inputMint: bank.mint,
-        outputMint: USDC_MINT,
-        amount: JSBI.BigInt(uiToNative(balance, bank.mintDecimals).toString()),
-        slippageBps: SLIPPAGE_BPS,
-      });
-
-      console.log(routesInfos);
+      await this.swap(bank.mint, USDC_MINT, uiToNative(balance, bank.mintDecimals));
     }
   }
 
@@ -146,13 +170,7 @@ class Liquidator {
 
       debug("Swapping %d USDC to %s", usdcBuyingPower, bank.label);
 
-      const { routesInfos } = await this.jupiter.computeRoutes({
-        inputMint: USDC_MINT,
-        outputMint: bank.mint,
-        amount: JSBI.BigInt(uiToNative(usdcBuyingPower, USDC_DECIMALS).toString()),
-        slippageBps: SLIPPAGE_BPS,
-      });
-      console.log(routesInfos);
+      await this.swap(USDC_MINT, bank.mint, uiToNative(usdcBuyingPower, USDC_DECIMALS));
 
       const liabBalance = BigNumber.min(
         await this.getTokenAccountBalance(bank.mint),
@@ -229,8 +247,6 @@ class Liquidator {
     }
   }
 
-
-
   private async mainLoop() {
     const debug = getDebugLogger("main-loop");
     try {
@@ -300,13 +316,7 @@ class Liquidator {
 
       debug("Swapping %d %s to USDC", amount, bank.label);
 
-      const { routesInfos } = await this.jupiter.computeRoutes({
-        inputMint: bank.mint,
-        outputMint: USDC_MINT,
-        amount: JSBI.BigInt(uiToNative(amount, bank.mintDecimals).toString()),
-        slippageBps: SLIPPAGE_BPS,
-      });
-      console.log(routesInfos);
+      await this.swap(bank.mint, USDC_MINT, uiToNative(amount, bank.mintDecimals));
     }
 
     const usdcBalance = await this.getTokenAccountBalance(USDC_MINT);

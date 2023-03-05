@@ -13,6 +13,9 @@ const debug = require("debug")("mfi:liq-scheduler")
 
 async function start() {
   debug("Jupiter initializing");
+
+  const wallet = new NodeWallet(loadKeypair(env_config.KEYPAIR_PATH));
+
   const jupiter = await Jupiter.load({
     connection: connection,
     cluster: "mainnet-beta",
@@ -20,6 +23,7 @@ async function start() {
     restrictIntermediateTokens: true,
     ammsToExclude,
     usePreloadedAddressLookupTableCache: true,
+    user: wallet.payer,
   });
 
   const accountToAmmIdsMap = jupiter.getAccountToAmmIdsMap();
@@ -124,7 +128,6 @@ async function start() {
     );
   });
 
-  const wallet = new NodeWallet(loadKeypair(env_config.KEYPAIR_PATH));
   const config = getConfig(env_config.MRGN_ENV as Environment);
   const liquidatorPk = new PublicKey(env_config.LIQUIDATOR_PK!);
   const client = await MarginfiClient.fetch(config, wallet, connection);
