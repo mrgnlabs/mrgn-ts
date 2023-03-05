@@ -12,8 +12,22 @@ let envSchema = z.object({
   MRGN_ENV: z.enum(["production", "alpha", "staging", "dev", "mainnet-test-1", "dev.1"]).default("production"),
   RPC_ENDPOINT: z.string().url(),
   SLEEP_INTERVAL: z.number().default(5_000),
+  SENTRY: z.string().default(""),
+  SENTRY_DSN: z.string().optional(),
 });
 
 type EnvSchema = z.infer<typeof envSchema>;
 
 export const env_config: EnvSchema = envSchema.parse(process.env);
+
+if (env_config.SENTRY) {
+  const Sentry = require("@sentry/node");
+
+  if (!env_config.SENTRY_DSN) {
+    throw new Error("SENTRY_DSN is required");
+  }
+
+  Sentry.init({ dsn: env_config.SENTRY_DSN });
+}
+
+process.on('unhandledRejection', up => { throw up });
