@@ -221,6 +221,8 @@ class Liquidator {
     console.log("Program id: %s", this.client.program.programId);
     console.log("Group: %s", this.group.publicKey);
 
+    console.log("Liquidating on %s banks", this.group.banks.size);
+
     console.log("Start with DEBUG=mfi:* to see more logs");
 
     await this.mainLoop();
