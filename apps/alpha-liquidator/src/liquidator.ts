@@ -12,7 +12,7 @@ import BigNumber from "bignumber.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { Jupiter, WRAPPED_SOL_MINT } from "@jup-ag/core";
-import { env_config } from "./config";
+import { caputreException, env_config } from "./config";
 import JSBI from "jsbi";
 import { wait } from "./utils/wait";
 import BN from "bn.js";
@@ -35,7 +35,7 @@ class Liquidator {
     readonly client: MarginfiClient,
     readonly wallet: NodeWallet,
     readonly jupiter: Jupiter
-  ) { }
+  ) {}
 
   private async swap(mintIn: PublicKey, mintOut: PublicKey, amountIn: BN) {
     const debug = getDebugLogger("swap");
@@ -264,6 +264,9 @@ class Liquidator {
       }
     } catch (e) {
       console.error(e);
+
+      caputreException(e);
+
       await sleep(env_config.SLEEP_INTERVAL);
       await this.mainLoop();
     }

@@ -9,7 +9,7 @@ import { MarginfiAccount, Environment, getConfig, MarginfiClient, MarginfiGroup 
 import { env_config } from "./config";
 import { Liquidator } from "./liquidator";
 
-const debug = require("debug")("mfi:liq-scheduler")
+const debug = require("debug")("mfi:liq-scheduler");
 
 async function start() {
   debug("Jupiter initializing");

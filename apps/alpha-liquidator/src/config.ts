@@ -30,4 +30,13 @@ if (env_config.SENTRY) {
   Sentry.init({ dsn: env_config.SENTRY_DSN });
 }
 
-process.on('unhandledRejection', up => { throw up });
+process.on("unhandledRejection", (up) => {
+  throw up;
+});
+
+export function caputreException(err: any) {
+  if (env_config.SENTRY) {
+    const Sentry = require("@sentry/node");
+    Sentry.captureException(err);
+  }
+}

@@ -20,7 +20,8 @@ async function main() {
       connection,
       cluster: "mainnet-beta",
       ammsToExclude,
-      marketUrl: "https://3jvpe6g7s5ujv3yv3pqwv7hczdrcnlt53blb4htywz6uxwvmdmkq.arweave.net/2mryeN-XaJrvFdvhavziyOImrn3YVh4eeLZ9S9qsGxU",
+      marketUrl:
+        "https://3jvpe6g7s5ujv3yv3pqwv7hczdrcnlt53blb4htywz6uxwvmdmkq.arweave.net/2mryeN-XaJrvFdvhavziyOImrn3YVh4eeLZ9S9qsGxU",
     });
     const accountToAmmIdsMap = jupiter.getAccountToAmmIdsMap();
     const ammIdToAmmMap = jupiter.getAmmIdToAmmMap();
