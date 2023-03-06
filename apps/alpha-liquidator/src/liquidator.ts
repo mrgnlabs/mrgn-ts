@@ -209,6 +209,7 @@ class Liquidator {
   private async rebalancingStage() {
     const debug = getDebugLogger("rebalancing-stage");
     debug("Starting rebalancing stage");
+    captureMessage("Starting rebalancing stage");
     await this.sellNonUsdcDeposits();
     await this.repayAllDebt();
     await this.depositRemainingUsdc();
