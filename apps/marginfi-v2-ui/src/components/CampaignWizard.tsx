@@ -200,6 +200,14 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
       icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
       size: 30,
     },
+    mSOL: {
+      icon: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png",
+      size: 30,
+    },
+    BONK: {
+      icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/23095.png",
+      size: 30,
+    },
   };
 
   return (
