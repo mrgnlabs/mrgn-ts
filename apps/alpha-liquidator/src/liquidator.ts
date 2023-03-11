@@ -18,7 +18,7 @@ import { wait } from "./utils/wait";
 import BN from "bn.js";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
-const DUST_THRESHOLD_UI = new BigNumber(0.1);
+const DUST_THRESHOLD_UI = new BigNumber(0.01);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const MIN_SOL_BALANCE = Number.parseFloat(env_config.MIN_SOL_BALANCE) * LAMPORTS_PER_SOL;
 const SLIPPAGE_BPS = 250;
