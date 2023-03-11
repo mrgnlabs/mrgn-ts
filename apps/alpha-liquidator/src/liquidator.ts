@@ -173,7 +173,7 @@ class Liquidator {
       await this.swap(USDC_MINT, bank.mint, uiToNative(usdcBuyingPower, USDC_DECIMALS));
 
       const liabBalance = BigNumber.min(
-        await this.getTokenAccountBalance(bank.mint),
+        await this.getTokenAccountBalance(bank.mint, true),
         new BigNumber(nativeToUi(liabilities, bank.mintDecimals))
       );
 
@@ -273,10 +273,10 @@ class Liquidator {
     }
   }
 
-  private async getTokenAccountBalance(mint: PublicKey): Promise<BigNumber> {
+  private async getTokenAccountBalance(mint: PublicKey, ignoreNativeMint: boolean = false): Promise<BigNumber> {
     const tokenAccount = await associatedAddress({ mint, owner: this.wallet.publicKey });
     const nativeAmount = nativeToUi(
-      mint.equals(NATIVE_MINT)
+      (mint.equals(NATIVE_MINT) && !ignoreNativeMint)
         ? Math.max((await this.connection.getBalance(this.wallet.publicKey)) - MIN_SOL_BALANCE, 0)
         : 0,
       9
