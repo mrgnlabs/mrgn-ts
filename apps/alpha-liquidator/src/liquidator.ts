@@ -297,7 +297,7 @@ class Liquidator {
     const banks = this.group.banks.values();
     for (let bankInterEntry = banks.next(); !bankInterEntry.done; bankInterEntry = banks.next()) {
       const bank = bankInterEntry.value;
-      if (bank.mint.equals(USDC_MINT)) {
+      if (bank.mint.equals(USDC_MINT) || bank.mint.equals(NATIVE_MINT)) {
         continue;
       }
 
@@ -420,7 +420,7 @@ class Liquidator {
 
     const { assets, liabilities } = marginfiAccount.getHealthComponents(MarginRequirementType.Maint);
 
-    const maxLiabilityPaydownUsdValueMaint = liabilities.minus(assets).times(10);
+    const maxLiabilityPaydownUsdValueMaint = liabilities.minus(assets).times(5);
 
     let maxLiabilityPaydownUsdValue = new BigNumber(0);
     let bestLiabAccountIndex = 0;
