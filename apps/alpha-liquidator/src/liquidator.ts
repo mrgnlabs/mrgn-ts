@@ -418,6 +418,10 @@ class Liquidator {
 
     captureMessage(`Liquidating account ${account.toBase58()}`);
 
+    const { assets, liabilities } = marginfiAccount.getHealthComponents(MarginRequirementType.Maint);
+
+    const maxLiabilityPaydownUsdValueMaint = liabilities.minus(assets);
+
     let maxLiabilityPaydownUsdValue = new BigNumber(0);
     let bestLiabAccountIndex = 0;
 
@@ -440,6 +444,8 @@ class Liquidator {
         bestLiabAccountIndex = i;
       }
     }
+
+    maxLiabilityPaydownUsdValue = BigNumber.min(maxLiabilityPaydownUsdValue, maxLiabilityPaydownUsdValueMaint);
 
     debug(
       "Max liability paydown USD value: %d, mint: %s",
@@ -475,7 +481,7 @@ class Liquidator {
 
     // This conversion is ignoring the liquidator discount, but the amounts still in legal bounds, as the liability paydown
     // is discounted meaning, the liquidation won't fail because of a too big paydown.
-    const collateralToLiquidateUsdValue = BigNumber.min(maxCollateralUsd, maxLiabilityPaydownUsdValue);
+    const collateralToLiquidateUsdValue = BigNumber.min(maxCollateralUsd, maxLiabilityPaydownUsdValue).times(0.75);
 
     debug("Collateral to liquidate USD value: %d", collateralToLiquidateUsdValue);
 
