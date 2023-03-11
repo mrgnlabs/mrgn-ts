@@ -276,8 +276,8 @@ class Liquidator {
   private async getTokenAccountBalance(mint: PublicKey, ignoreNativeMint: boolean = false): Promise<BigNumber> {
     const tokenAccount = await associatedAddress({ mint, owner: this.wallet.publicKey });
     const nativeAmount = nativeToUi(
-      (mint.equals(NATIVE_MINT) && !ignoreNativeMint)
-        ? Math.max((await this.connection.getBalance(this.wallet.publicKey)) - MIN_SOL_BALANCE, 0)
+      mint.equals(NATIVE_MINT)
+        ? Math.max((await this.connection.getBalance(this.wallet.publicKey)) - (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE), 0)
         : 0,
       9
     );
