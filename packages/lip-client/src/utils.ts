@@ -1,7 +1,7 @@
 import { Campaign } from "./account";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 import BN from "bn.js";
-import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
+import { Bank } from "@mrgnlabs/marginfi-client-v2";
 
 export function calculateInterestFromApy(principal: number, durationInYears: number, Apy: number): number {
   return principal * Apy * durationInYears;

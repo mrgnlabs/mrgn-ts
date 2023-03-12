@@ -1,8 +1,7 @@
 {
-  "extends": "@tsconfig/node16/tsconfig.json",
+  "extends": "@mrgnlabs/tsconfig/base.json",
   "compilerOptions": {
     "resolveJsonModule": true,
-    "outDir": "dist",
-    "moduleResolution": "node"
+    "outDir": "dist"
   }
 }

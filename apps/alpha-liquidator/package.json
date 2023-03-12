@@ -4,6 +4,7 @@
   "description": "",
   "main": "./dist/index.js",
   "scripts": {
+    "clean": "rimraf dist node_modules",
     "build": "tsc -p tsconfig.json",
     "start": "tsc-watch --onCompilationComplete 'yarn build' --onSuccess 'yarn serve'",
     "setup": "ts-node src/setup.ts",
@@ -42,7 +43,6 @@
   "devDependencies": {
     "@project-serum/anchor": "0.24.2",
     "@sentry/types": "7.32.1",
-    "@tsconfig/node16": "~1.0.2",
     "@types/bn.js": "^5.1.0",
     "@types/cron": "~2.0.0",
     "@types/node": "^16",

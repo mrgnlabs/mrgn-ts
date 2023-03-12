@@ -1,4 +1,4 @@
-import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
+import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo } from "react";
 import { usdFormatter } from "~/utils/formatters";

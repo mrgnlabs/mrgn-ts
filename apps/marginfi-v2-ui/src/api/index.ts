@@ -1,7 +1,6 @@
-import MarginfiAccount, { Balance, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
+import { Balance, Bank, MarginfiAccount, MarginRequirementType, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, BankInfo, ExtendedBankInfo, TokenAccount, TokenMetadata, UserPosition } from "~/types";
-import Bank, { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
-import { WALLET_BALANCE_MARGIN_SOL, WSOL_MINT } from "~/config";
+import { WSOL_MINT } from "~/config";
 import { floor } from "~/utils";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 

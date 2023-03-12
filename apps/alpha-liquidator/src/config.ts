@@ -13,9 +13,9 @@ let envSchema = z.object({
   MIN_SOL_BALANCE: z.string().default("0.5"),
   MRGN_ENV: z.enum(["production", "alpha", "staging", "dev", "mainnet-test-1", "dev.1"]).default("production"),
   RPC_ENDPOINT: z.string().url(),
-  SLEEP_INTERVAL: z.number().default(5_000),
   SENTRY: z.string().default(""),
   SENTRY_DSN: z.string().optional(),
+  SLEEP_INTERVAL: z.number().default(5_000),
 });
 
 type EnvSchema = z.infer<typeof envSchema>;
@@ -23,7 +23,6 @@ type EnvSchema = z.infer<typeof envSchema>;
 export const env_config: EnvSchema = envSchema.parse(process.env);
 
 if (env_config.SENTRY) {
-
   if (!env_config.SENTRY_DSN) {
     throw new Error("SENTRY_DSN is required");
   }
@@ -39,7 +38,7 @@ process.on("unhandledRejection", (up) => {
   throw up;
 });
 
-export function caputreException(err: any) {
+export function captureException(err: any) {
   if (env_config.SENTRY) {
     Sentry.captureException(err);
   }

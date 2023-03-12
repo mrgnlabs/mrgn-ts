@@ -239,7 +239,7 @@ class Bank {
   }
 }
 
-export default Bank;
+export { Bank };
 
 // Client types
 

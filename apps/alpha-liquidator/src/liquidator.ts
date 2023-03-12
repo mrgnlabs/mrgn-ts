@@ -1,20 +1,19 @@
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import {
   MarginfiAccount,
-  MarginRequirementType,
   MarginfiClient,
   MarginfiGroup,
-  USDC_DECIMALS,
+  MarginRequirementType,
   PriceBias,
+  USDC_DECIMALS,
 } from "@mrgnlabs/marginfi-client-v2";
 import { nativeToUi, NodeWallet, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { NATIVE_MINT } from "@solana/spl-token";
-import { Jupiter, WRAPPED_SOL_MINT } from "@jup-ag/core";
-import { captureMessage, caputreException, env_config } from "./config";
+import { Jupiter } from "@jup-ag/core";
+import { captureException, captureMessage, env_config } from "./config";
 import JSBI from "jsbi";
-import { wait } from "./utils/wait";
 import BN from "bn.js";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
@@ -35,7 +34,7 @@ class Liquidator {
     readonly client: MarginfiClient,
     readonly wallet: NodeWallet,
     readonly jupiter: Jupiter
-  ) { }
+  ) {}
 
   private async swap(mintIn: PublicKey, mintOut: PublicKey, amountIn: BN) {
     const debug = getDebugLogger("swap");
@@ -229,26 +228,26 @@ class Liquidator {
     await this.mainLoop();
   }
 
-  // Print out the top route from SOL to USDC.
-  // Used for testing route data ingestion.
-  private async testLoop() {
-    while (true) {
-      const bank = await this.account.client.group.getBankByMint(WRAPPED_SOL_MINT);
-      if (!bank) {
-        throw new Error("Bank not found");
-      } else {
-        const { routesInfos } = await this.jupiter.computeRoutes({
-          inputMint: bank.mint,
-          outputMint: USDC_MINT,
-          amount: JSBI.BigInt(uiToNative(10, bank.mintDecimals).toString()),
-          slippageBps: SLIPPAGE_BPS,
-        });
-        console.log(routesInfos[0]);
-      }
-
-      await wait(5000);
-    }
-  }
+  // // Print out the top route from SOL to USDC.
+  // // Used for testing route data ingestion.
+  // private async testLoop() {
+  //   while (true) {
+  //     const bank = await this.account.client.group.getBankByMint(WRAPPED_SOL_MINT);
+  //     if (!bank) {
+  //       throw new Error("Bank not found");
+  //     } else {
+  //       const { routesInfos } = await this.jupiter.computeRoutes({
+  //         inputMint: bank.mint,
+  //         outputMint: USDC_MINT,
+  //         amount: JSBI.BigInt(uiToNative(10, bank.mintDecimals).toString()),
+  //         slippageBps: SLIPPAGE_BPS,
+  //       });
+  //       console.log(routesInfos[0]);
+  //     }
+  //
+  //     await wait(5000);
+  //   }
+  // }
 
   private async mainLoop() {
     const debug = getDebugLogger("main-loop");
@@ -266,7 +265,7 @@ class Liquidator {
     } catch (e) {
       console.error(e);
 
-      caputreException(e);
+      captureException(e);
 
       await sleep(env_config.SLEEP_INTERVAL);
       await this.mainLoop();
@@ -277,7 +276,11 @@ class Liquidator {
     const tokenAccount = await associatedAddress({ mint, owner: this.wallet.publicKey });
     const nativeAmount = nativeToUi(
       mint.equals(NATIVE_MINT)
-        ? Math.max((await this.connection.getBalance(this.wallet.publicKey)) - (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE), 0)
+        ? Math.max(
+            (await this.connection.getBalance(this.wallet.publicKey)) -
+              (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
+            0
+          )
         : 0,
       9
     );

@@ -1,22 +1,18 @@
 import {
   Amount,
   aprToApy,
+  createAssociatedTokenAccountIdempotentInstruction,
+  createCloseAccountInstruction,
+  createSyncNativeInstruction,
   DEFAULT_COMMITMENT,
   InstructionsWrapper,
+  NATIVE_MINT,
   nativeToUi,
   shortenAddress,
   uiToNative,
   WrappedI80F48,
   wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
-import {
-  closeAccountInstructionData,
-  createAssociatedTokenAccountIdempotentInstruction,
-  createCloseAccountInstruction,
-  createSyncNativeInstruction,
-  NATIVE_MINT,
-  syncNativeInstructionData,
-} from "@mrgnlabs/mrgn-common/src/spl";
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { parsePriceData } from "@pythnetwork/client";
@@ -32,7 +28,7 @@ import {
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { MarginfiClient } from ".";
-import Bank, { BankData, PriceBias } from "./bank";
+import { Bank, BankData, PriceBias } from "./bank";
 import MarginfiGroup from "./group";
 import { MARGINFI_IDL } from "./idl";
 import instructions from "./instructions";

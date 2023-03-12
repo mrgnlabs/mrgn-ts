@@ -1,8 +1,15 @@
 {
-  "extends": "@mrgnlabs/tsconfig/node16.json",
+  "extends": "@mrgnlabs/tsconfig/base.json",
   "compilerOptions": {
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "outDir": "dist"
   },
-  "include": ["**/*.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "examples"
+  ]
 }
