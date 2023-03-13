@@ -139,40 +139,8 @@ const AssetRow: FC<{
       let signers: Keypair[] = [];
 
       if (currentAction === ActionType.Deposit) {
-        if (bankInfo.tokenMint.equals(WSOL_MINT)) {
-          const ata = getAssociatedTokenAddressSync(bankInfo.tokenMint, _marginfiAccount.authority, false);
+        await _marginfiAccount.deposit(borrowOrLendAmount, bankInfo.bank);
 
-          ixs.push(
-            createAssociatedTokenAccountIdempotentInstruction(
-              _marginfiAccount.authority,
-              ata,
-              _marginfiAccount.authority,
-              bankInfo.tokenMint
-            )
-          );
-
-          const tokenBalanceNative = uiToNative(bankInfo.tokenBalance, bankInfo.tokenMintDecimals);
-          const borrowOrLendAmountNative = uiToNative(borrowOrLendAmount, bankInfo.tokenMintDecimals);
-          const nativeSolTopUpAmount = borrowOrLendAmountNative.sub(tokenBalanceNative);
-          if (nativeSolTopUpAmount.gtn(0)) {
-            ixs.push(
-              SystemProgram.transfer({
-                fromPubkey: _marginfiAccount.authority,
-                toPubkey: ata,
-                lamports: BigInt(nativeSolTopUpAmount.toString()),
-              })
-            );
-            ixs.push(createSyncNativeInstruction(ata));
-          }
-
-          const depositIxs = await _marginfiAccount.makeDepositIx(borrowOrLendAmount, bankInfo.bank);
-          ixs = ixs.concat(depositIxs.instructions);
-          signers = signers.concat(depositIxs.keys);
-
-          await marginfiClient.processTransaction(new Transaction().add(...ixs), signers);
-        } else {
-          await _marginfiAccount.deposit(borrowOrLendAmount, bankInfo.bank);
-        }
         toast.update(BORROW_OR_LEND_TOAST_ID, {
           render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenName} 👍`,
           type: toast.TYPE.SUCCESS,
@@ -249,17 +217,14 @@ const AssetRow: FC<{
         isInLendingMode={isInLendingMode}
       />
 
-      <TableCell
-        className="h-full w-full flex py-1 px-0 mb-5 sm:mb-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit"
-      >
+      <TableCell className="h-full w-full flex py-1 px-0 mb-5 sm:mb-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
         <AssetRowMetric
           longLabel="Current Price"
           shortLabel="Price"
           value={
-            bankInfo.tokenPrice >= 0.01 ?
-            usdFormatter.format(bankInfo.tokenPrice)
-            :
-            `$${bankInfo.tokenPrice.toExponential(2)}`
+            bankInfo.tokenPrice >= 0.01
+              ? usdFormatter.format(bankInfo.tokenPrice)
+              : `$${bankInfo.tokenPrice.toExponential(2)}`
           }
           borderRadius={isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"}
         />
@@ -298,9 +263,7 @@ const AssetRow: FC<{
       </TableCell>
 
       {isConnected && (
-        <TableCell
-          className="py-1 px-0 h-10 border-hidden flex justify-center items-center"
-        >
+        <TableCell className="py-1 px-0 h-10 border-hidden flex justify-center items-center">
           <AssetRowInputBox
             value={borrowOrLendAmount}
             setValue={setBorrowOrLendAmount}
