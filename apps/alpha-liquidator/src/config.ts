@@ -7,13 +7,13 @@ dotenv.config();
 
 /*eslint sort-keys: "error"*/
 let envSchema = z.object({
-  IS_DEV: z.boolean().default(false),
+  IS_DEV: z.string().optional().default("false").transform((s) => s === "true" || s === "1"),
   KEYPAIR_PATH: z.string(),
   LIQUIDATOR_PK: z.string(),
   MIN_SOL_BALANCE: z.string().default("0.5"),
   MRGN_ENV: z.enum(["production", "alpha", "staging", "dev", "mainnet-test-1", "dev.1"]).default("production"),
   RPC_ENDPOINT: z.string().url(),
-  SENTRY: z.string().default(""),
+  SENTRY: z.string().optional().default("false").transform((s) => s === "true" || s === "1"),
   SENTRY_DSN: z.string().optional(),
   SLEEP_INTERVAL: z.number().default(5_000),
 });
