@@ -4,8 +4,8 @@ import { isMainThread, Worker } from "worker_threads";
 import { runGetAccountInfosProcess } from "./getAccountInfosProcess";
 import { ammsToExclude } from "./ammsToExclude";
 import { connection } from "./utils/connection";
-import { loadKeypair, NodeWallet } from "@mrgnlabs/mrgn-common";
-import { MarginfiAccount, Environment, getConfig, MarginfiClient, MarginfiGroup } from "@mrgnlabs/marginfi-client-v2";
+import { NodeWallet } from "@mrgnlabs/mrgn-common";
+import { getConfig, MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { env_config } from "./config";
 import { Liquidator } from "./liquidator";
 
@@ -14,7 +14,7 @@ const debug = require("debug")("mfi:liq-scheduler");
 async function start() {
   debug("Jupiter initializing");
 
-  const wallet = new NodeWallet(loadKeypair(env_config.KEYPAIR_PATH));
+  const wallet = new NodeWallet(env_config.WALLET_KEYPAIR);
 
   const jupiter = await Jupiter.load({
     connection: connection,
@@ -62,10 +62,10 @@ async function start() {
     worker.on(
       "message",
       ({
-        type,
-        contextSlot,
-        accountInfosMap,
-      }: {
+         type,
+         contextSlot,
+         accountInfosMap,
+       }: {
         type: string;
         contextSlot: number;
         accountInfosMap: Map<string, AccountInfo<Buffer>>;
@@ -124,26 +124,27 @@ async function start() {
         if (!resolved) {
           resolve();
         }
-      }
+      },
     );
   });
 
-  const config = getConfig(env_config.MRGN_ENV as Environment);
-  const liquidatorPk = new PublicKey(env_config.LIQUIDATOR_PK!);
+  const config = getConfig(env_config.MRGN_ENV);
   const client = await MarginfiClient.fetch(config, wallet, connection);
-  const group = await MarginfiGroup.fetch(config, client.program);
 
-  const liquidatorAccount = await MarginfiAccount.fetch(liquidatorPk, client);
-  const liquidator = new Liquidator(connection, liquidatorAccount, group, client, wallet, jupiter);
+  const liquidatorAccount = await MarginfiAccount.fetch(env_config.LIQUIDATOR_PK, client);
+  const liquidator = new Liquidator(connection, liquidatorAccount, client, wallet, jupiter, env_config.MARGINFI_ACCOUNT_WHITELIST, env_config.MARGINFI_ACCOUNT_BLACKLIST);
   await liquidator.start();
 }
 
 if (isMainThread) {
-  start().catch(() => {
+  console.log("Starting liquidator main thread");
+  start().catch(e => {
+    console.log(e);
     process.exit(1);
   });
 } else {
-  runGetAccountInfosProcess().catch(() => {
+  runGetAccountInfosProcess().catch(e => {
+    console.log(e);
     process.exit(1);
   });
 }

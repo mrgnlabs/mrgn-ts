@@ -1,5 +1,5 @@
-import { Environment, getConfig, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { loadKeypair, NodeWallet, getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
+import { getConfig, MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { getAssociatedTokenAddressSync, NodeWallet } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { env_config } from "./config";
@@ -7,21 +7,33 @@ import { env_config } from "./config";
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
 (async () => {
-  console.log("Creating marginfi account");
-
   const connection = new Connection(env_config.RPC_ENDPOINT, "confirmed");
-  const config = getConfig(env_config.MRGN_ENV as Environment);
-  const client = await MarginfiClient.fetch(config, new NodeWallet(loadKeypair(env_config.KEYPAIR_PATH)), connection);
+  const config = getConfig(env_config.MRGN_ENV);
+  const client = await MarginfiClient.fetch(config, new NodeWallet(env_config.WALLET_KEYPAIR), connection);
 
-  const marginfiAccount = await client.createMarginfiAccount();
-  console.log("Liquidator %s account created", marginfiAccount.publicKey);
+  console.log("Create marginfi account for wallet %s? [y/N]", client.wallet.publicKey.toBase58());
+  const y = await new Promise((resolve) => {
+    process.stdin.on("data", (data) => {
+      resolve(data.toString().trim());
+    });
+  });
+  let marginfiAccount: MarginfiAccount;
+  if (y === "y") {
+    console.log("Creating marginfi account");
+    marginfiAccount = await client.createMarginfiAccount();
+    console.log("Liquidator %s account created", marginfiAccount.publicKey);
+  } else {
+    console.log("Exiting");
+    process.exit(0);
+  }
+
 
   const balance = new BigNumber(
     (await connection.getTokenAccountBalance(getAssociatedTokenAddressSync(USDC_MINT, client.wallet.publicKey))).value
-      .uiAmount ?? 0
+      .uiAmount ?? 0,
   );
   if (balance.gt(0)) {
-    console.log("Fund liquidator account with %s USDC? [y/n]", balance);
+    console.log("Fund liquidator account with %s USDC? [y/N]", balance);
 
     const y = await new Promise((resolve) => {
       process.stdin.on("data", (data) => {

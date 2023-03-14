@@ -2,7 +2,6 @@ import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import {
   MarginfiAccount,
   MarginfiClient,
-  MarginfiGroup,
   MarginRequirementType,
   PriceBias,
   USDC_DECIMALS,
@@ -19,7 +18,7 @@ import BN from "bn.js";
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(0.01);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-const MIN_SOL_BALANCE = Number.parseFloat(env_config.MIN_SOL_BALANCE) * LAMPORTS_PER_SOL;
+const MIN_SOL_BALANCE = env_config.MIN_SOL_BALANCE * LAMPORTS_PER_SOL;
 const SLIPPAGE_BPS = 250;
 
 function getDebugLogger(context: string) {
@@ -30,19 +29,31 @@ class Liquidator {
   constructor(
     readonly connection: Connection,
     readonly account: MarginfiAccount,
-    readonly group: MarginfiGroup,
     readonly client: MarginfiClient,
     readonly wallet: NodeWallet,
     readonly jupiter: Jupiter,
+    readonly account_whitelist: PublicKey[] | undefined,
+    readonly account_blacklist: PublicKey[] | undefined,
   ) {
+  }
+
+  get group() {
+    return this.client.group;
   }
 
   async start() {
     console.log("Starting liquidator");
 
+    console.log("Wallet: %s", this.account.authority);
     console.log("Liquidator account: %s", this.account.publicKey);
     console.log("Program id: %s", this.client.program.programId);
     console.log("Group: %s", this.group.publicKey);
+    if (this.account_blacklist) {
+      console.log("Blacklist: %s", this.account_blacklist);
+    }
+    if (this.account_whitelist) {
+      console.log("Whitelist: %s", this.account_whitelist);
+    }
 
     console.log("Liquidating on %s banks", this.group.banks.size);
 
@@ -356,8 +367,18 @@ class Liquidator {
   private async liquidationStage() {
     const debug = getDebugLogger("liquidation-stage");
     debug("Started liquidation stage");
-    const addresses = shuffle(await this.client.getAllMarginfiAccountAddresses());
-    debug("Found %s accounts", addresses.length);
+    const allAccounts = await this.client.getAllMarginfiAccountAddresses();
+    const targetAccounts = allAccounts.filter((address) => {
+      if (this.account_whitelist) {
+        return this.account_whitelist.includes(address);
+      } else if (this.account_blacklist) {
+        return !this.account_blacklist.includes(address);
+      }
+      throw new Error("Uh uh. Either account whitelist or blacklist should have been provided.");
+    });
+    const addresses = shuffle(targetAccounts);
+    debug("Found %s accounts in total", allAccounts.length);
+    debug("Monitoring %s accounts", targetAccounts.length);
 
     for (let i = 0; i < addresses.length; i++) {
       const liquidatedAccount = await this.processAccount(addresses[i]);
