@@ -37,6 +37,43 @@ class Liquidator {
   ) {
   }
 
+  async start() {
+    console.log("Starting liquidator");
+
+    console.log("Liquidator account: %s", this.account.publicKey);
+    console.log("Program id: %s", this.client.program.programId);
+    console.log("Group: %s", this.group.publicKey);
+
+    console.log("Liquidating on %s banks", this.group.banks.size);
+
+    console.log("Start with DEBUG=mfi:* to see more logs");
+
+    await this.mainLoop();
+  }
+
+  private async mainLoop() {
+    const debug = getDebugLogger("main-loop");
+    try {
+      await this.swapNonUsdcInTokenAccounts();
+      while (true) {
+        debug("Started main loop iteration");
+        if (await this.needsToBeRebalanced()) {
+          await this.rebalancingStage();
+          continue;
+        }
+
+        await this.liquidationStage();
+      }
+    } catch (e) {
+      console.error(e);
+
+      captureException(e);
+
+      await sleep(env_config.SLEEP_INTERVAL);
+      await this.mainLoop();
+    }
+  }
+
   private async swap(mintIn: PublicKey, mintOut: PublicKey, amountIn: BN) {
     const debug = getDebugLogger("swap");
 
@@ -213,43 +250,6 @@ class Liquidator {
     await this.sellNonUsdcDeposits();
     await this.repayAllDebt();
     await this.depositRemainingUsdc();
-  }
-
-  async start() {
-    console.log("Starting liquidator");
-
-    console.log("Liquidator account: %s", this.account.publicKey);
-    console.log("Program id: %s", this.client.program.programId);
-    console.log("Group: %s", this.group.publicKey);
-
-    console.log("Liquidating on %s banks", this.group.banks.size);
-
-    console.log("Start with DEBUG=mfi:* to see more logs");
-
-    await this.mainLoop();
-  }
-
-  private async mainLoop() {
-    const debug = getDebugLogger("main-loop");
-    try {
-      await this.swapNonUsdcInTokenAccounts();
-      while (true) {
-        debug("Started main loop iteration");
-        if (await this.needsToBeRebalanced()) {
-          await this.rebalancingStage();
-          continue;
-        }
-
-        await this.liquidationStage();
-      }
-    } catch (e) {
-      console.error(e);
-
-      captureException(e);
-
-      await sleep(env_config.SLEEP_INTERVAL);
-      await this.mainLoop();
-    }
   }
 
   private async getTokenAccountBalance(mint: PublicKey, ignoreNativeMint: boolean = false): Promise<BigNumber> {
@@ -491,14 +491,14 @@ class Liquidator {
       liquidatorMaxLiqCapacityAssetAmount,
     );
 
-    const jitterAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.95);
+    const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.95);
 
-    debug("Liquidating %d %s for %s", jitterAdjustedCollateralAmountToLiquidate, collateralBank.label, liabBank.label);
+    debug("Liquidating %d %s for %s", slippageAdjustedCollateralAmountToLiquidate, collateralBank.label, liabBank.label);
 
     const sig = await liquidatorAccount.lendingAccountLiquidate(
       marginfiAccount,
       collateralBank,
-      jitterAdjustedCollateralAmountToLiquidate,
+      slippageAdjustedCollateralAmountToLiquidate,
       liabBank,
     );
     debug("Liquidation tx: %s", sig);
