@@ -1,22 +1,18 @@
 import {
   Amount,
   aprToApy,
+  createAssociatedTokenAccountIdempotentInstruction,
+  createCloseAccountInstruction,
+  createSyncNativeInstruction,
   DEFAULT_COMMITMENT,
   InstructionsWrapper,
+  NATIVE_MINT,
   nativeToUi,
   shortenAddress,
   uiToNative,
   WrappedI80F48,
   wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
-import {
-  closeAccountInstructionData,
-  createAssociatedTokenAccountIdempotentInstruction,
-  createCloseAccountInstruction,
-  createSyncNativeInstruction,
-  NATIVE_MINT,
-  syncNativeInstructionData,
-} from "@mrgnlabs/mrgn-common/src/spl";
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { parsePriceData } from "@pythnetwork/client";
@@ -32,7 +28,7 @@ import {
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { MarginfiClient } from ".";
-import Bank, { BankData, PriceBias } from "./bank";
+import { Bank, BankData, PriceBias } from "./bank";
 import MarginfiGroup from "./group";
 import { MARGINFI_IDL } from "./idl";
 import instructions from "./instructions";
@@ -41,7 +37,7 @@ import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
 /**
  * Wrapper class around a specific marginfi account.
  */
-class MarginfiAccount {
+export class MarginfiAccount {
   public readonly publicKey: PublicKey;
 
   private _group: MarginfiGroup;
@@ -819,6 +815,53 @@ class MarginfiAccount {
     }
 
     return str;
+  }
+
+  // Calculate the max amount of collateral to liquidate to bring an account maint health to 0 (assuming negative health).
+  //
+  // The asset amount is bounded by 2 constraints,
+  // (1) the amount of liquidated collateral cannot be more than the balance,
+  // (2) the amount of covered liablity cannot be more than existing liablity.
+  public getMaxLiquidatableAssetAmount(assetBank: Bank, liabBank: Bank): BigNumber {
+    const debug = require("debug")("mfi:getMaxLiquidatableAssetAmount");
+    const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Maint);
+    const currentHealth = assets.minus(liabilities);
+
+    const priceAssetLower = assetBank.getPrice(PriceBias.Lowest);
+    const priceAssetMarket = assetBank.getPrice(PriceBias.None);
+    const assetMaintWeight = assetBank.config.assetWeightMaint;
+
+    const liquidationDiscount = new BigNumber(1 - 0.05);
+
+    const priceLiabHighest = liabBank.getPrice(PriceBias.Highest);
+    const priceLiabMarket = liabBank.getPrice(PriceBias.None);
+    const liabMaintWeight = liabBank.config.liabilityWeightMaint;
+
+    // MAX amount of asset to liquidate to bring account maint health to 0, regardless of existing balances
+    const maxLiquidatableUnboundedAssetAmount = currentHealth.div(
+      priceAssetLower
+        .times(assetMaintWeight)
+        .minus(
+          priceAssetMarket
+            .times(liquidationDiscount)
+            .times(priceLiabHighest)
+            .times(liabMaintWeight)
+            .div(priceLiabMarket)
+        )
+    );
+
+    // MAX asset amount bounded by available asset amount
+    const assetBalanceBound = this.getBalance(assetBank.publicKey).getQuantityUi(assetBank).assets;
+
+    const liabBalance = this.getBalance(liabBank.publicKey).getQuantityUi(liabBank).liabilities;
+    // MAX asset amount bounded by availalbe liability amount
+    const liabBalanceBound = liabBalance.times(priceLiabMarket).div(priceAssetMarket.times(liquidationDiscount));
+
+    debug("maxLiquidatableUnboundedAssetAmount", maxLiquidatableUnboundedAssetAmount.toFixed(6));
+    debug("assetBalanceBound", assetBalanceBound.toFixed(6));
+    debug("liabBalanceBound", liabBalanceBound.toFixed(6));
+
+    return BigNumber.min(assetBalanceBound, liabBalanceBound, maxLiquidatableUnboundedAssetAmount);
   }
 
   private async wrapInstructionForWSol(

@@ -1,102 +1,118 @@
-import { WRAPPED_SOL_MINT } from "@jup-ag/core";
-import { Environment, getConfig, MarginfiClient, MarginfiGroup, USDC_DECIMALS } from "@mrgnlabs/marginfi-client-v2";
-import MarginfiAccount, { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
-import { PriceBias } from "@mrgnlabs/marginfi-client-v2/src/bank";
-import { createSyncNativeInstruction } from "@mrgnlabs/mrgn-common/src/spl";
-import { loadKeypair, nativeToUi, NodeWallet, sleep, uiToNative, Wallet } from "@mrgnlabs/mrgn-common";
-import { BN } from "@project-serum/anchor";
-import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
-import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
-import BigNumber from "bignumber.js";
+import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import {
-  buildWhirlpoolClient,
-  ORCA_WHIRLPOOLS_CONFIG,
-  ORCA_WHIRLPOOL_PROGRAM_ID,
-  PDAUtil,
-  swapQuoteByInputToken,
-  TICK_ARRAY_SIZE,
-  Whirlpool,
-  WhirlpoolClient,
-  WhirlpoolContext,
-} from "@orca-so/whirlpools-sdk";
-import { Percentage } from "@orca-so/sdk";
+  MarginfiAccount,
+  MarginfiClient,
+  MarginRequirementType,
+  PriceBias,
+  USDC_DECIMALS,
+} from "@mrgnlabs/marginfi-client-v2";
+import { nativeToUi, NodeWallet, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
+import BigNumber from "bignumber.js";
+import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
+import { NATIVE_MINT } from "@solana/spl-token";
+import { Jupiter } from "@jup-ag/core";
+import { captureException, captureMessage, env_config } from "./config";
+import JSBI from "jsbi";
+import BN from "bn.js";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
-const DUST_THRESHOLD_UI = new BigNumber(1);
+const DUST_THRESHOLD_UI = new BigNumber(0.1);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-const SLEEP_INTERVAL = Number.parseInt(process.env.SLEEP_INTERVAL ?? "5000");
-const MIN_SOL_BALANCE = Number.parseFloat(process.env.MIN_SOL_BALANCE ?? "10") * LAMPORTS_PER_SOL;
+const MIN_SOL_BALANCE = env_config.MIN_SOL_BALANCE * LAMPORTS_PER_SOL;
+const SLIPPAGE_BPS = 250;
 
-class OrcaWhirlpoolTrader {
-  private whirlpoolClient: WhirlpoolClient;
-  private ctx: WhirlpoolContext;
-  constructor(connection: Connection, wallet: Wallet) {
-    const ctx = WhirlpoolContext.from(connection, wallet, ORCA_WHIRLPOOL_PROGRAM_ID);
-    this.ctx = ctx;
-    this.whirlpoolClient = buildWhirlpoolClient(ctx);
-  }
-
-  async trade(inputMint: PublicKey, outputMint: PublicKey, amountIn: BN) {
-    const debug = getDebugLogger("whirlpool-trader");
-
-    debug("Trading %d %s for %s", amountIn, inputMint.toBase58(), outputMint.toBase58());
-
-    const whirlpool = await this.getWhirlpool(inputMint, outputMint);
-
-    const inputTokenQuote = await swapQuoteByInputToken(
-      whirlpool,
-      inputMint,
-      new u64(amountIn),
-      Percentage.fromFraction(25, 1000),
-      this.ctx.program.programId,
-      this.ctx.fetcher,
-      true
-    );
-
-    const sig = await (await whirlpool.swap(inputTokenQuote)).buildAndExecute();
-
-    debug("Tx signature %s", sig);
-  }
-
-  async getWhirlpool(inputMint: PublicKey, outputMint: PublicKey): Promise<Whirlpool> {
-    const pdaA = PDAUtil.getWhirlpool(ORCA_WHIRLPOOL_PROGRAM_ID, ORCA_WHIRLPOOLS_CONFIG, inputMint, outputMint, 64);
-
-    if (!!(await this.ctx.connection.getAccountInfo(pdaA.publicKey))) {
-      return this.whirlpoolClient.getPool(pdaA.publicKey);
-    }
-
-    const pdaB = PDAUtil.getWhirlpool(ORCA_WHIRLPOOL_PROGRAM_ID, ORCA_WHIRLPOOLS_CONFIG, outputMint, inputMint, 64);
-
-    if (!!(await this.ctx.connection.getAccountInfo(pdaB.publicKey))) {
-      return this.whirlpoolClient.getPool(pdaB.publicKey);
-    }
-
-    throw new Error("Can't find whirlpool");
-  }
+function getDebugLogger(context: string) {
+  return require("debug")(`mfi:liquidator:${context}`);
 }
 
 class Liquidator {
-  connection: Connection;
-  account: MarginfiAccount;
-  group: MarginfiGroup;
-  client: MarginfiClient;
-  whirlpoolTrader: OrcaWhirlpoolTrader;
-  wallet: NodeWallet;
-
   constructor(
-    connection: Connection,
-    account: MarginfiAccount,
-    group: MarginfiGroup,
-    client: MarginfiClient,
-    wallet: NodeWallet
+    readonly connection: Connection,
+    readonly account: MarginfiAccount,
+    readonly client: MarginfiClient,
+    readonly wallet: NodeWallet,
+    readonly jupiter: Jupiter,
+    readonly account_whitelist: PublicKey[] | undefined,
+    readonly account_blacklist: PublicKey[] | undefined,
   ) {
-    this.connection = connection;
-    this.account = account;
-    this.group = group;
-    this.client = client;
-    this.wallet = wallet;
-    this.whirlpoolTrader = new OrcaWhirlpoolTrader(connection, wallet);
+  }
+
+  get group() {
+    return this.client.group;
+  }
+
+  async start() {
+    console.log("Starting liquidator");
+
+    console.log("Wallet: %s", this.account.authority);
+    console.log("Liquidator account: %s", this.account.publicKey);
+    console.log("Program id: %s", this.client.program.programId);
+    console.log("Group: %s", this.group.publicKey);
+    if (this.account_blacklist) {
+      console.log("Blacklist: %s", this.account_blacklist);
+    }
+    if (this.account_whitelist) {
+      console.log("Whitelist: %s", this.account_whitelist);
+    }
+
+    console.log("Liquidating on %s banks", this.group.banks.size);
+
+    console.log("Start with DEBUG=mfi:* to see more logs");
+
+    await this.mainLoop();
+  }
+
+  private async mainLoop() {
+    const debug = getDebugLogger("main-loop");
+    try {
+      await this.swapNonUsdcInTokenAccounts();
+      while (true) {
+        debug("Started main loop iteration");
+        if (await this.needsToBeRebalanced()) {
+          await this.rebalancingStage();
+          continue;
+        }
+
+        await this.liquidationStage();
+      }
+    } catch (e) {
+      console.error(e);
+
+      captureException(e);
+
+      await sleep(env_config.SLEEP_INTERVAL);
+      await this.mainLoop();
+    }
+  }
+
+  private async swap(mintIn: PublicKey, mintOut: PublicKey, amountIn: BN) {
+    const debug = getDebugLogger("swap");
+
+    debug("Swapping %s %s to %s", amountIn, mintIn.toBase58(), mintOut.toBase58());
+
+    const { routesInfos } = await this.jupiter.computeRoutes({
+      inputMint: mintIn,
+      outputMint: mintOut,
+      amount: JSBI.BigInt(amountIn.toString()),
+      slippageBps: SLIPPAGE_BPS,
+    });
+
+    const route = routesInfos[0];
+
+    const { execute } = await this.jupiter.exchange({ routeInfo: route });
+
+    const result = await execute();
+
+    // @ts-ignore
+    if (result.error) {
+      // @ts-ignore
+      debug("Error: %s", result.error);
+      // @ts-ignore
+      throw new Error(result.error);
+    }
+
+    // @ts-ignore
+    debug("Trade successful %s", result.txid);
   }
 
   /**
@@ -137,7 +153,7 @@ class Liquidator {
 
       const balance = await this.getTokenAccountBalance(bank.mint);
 
-      await this.whirlpoolTrader.trade(bank.mint, USDC_MINT, uiToNative(balance, bank.mintDecimals));
+      await this.swap(bank.mint, USDC_MINT, uiToNative(balance, bank.mintDecimals));
     }
   }
 
@@ -181,7 +197,7 @@ class Liquidator {
         liabilities,
         MarginRequirementType.Equity,
         // We might need to use a Higher price bias to account for worst case scenario.
-        PriceBias.None
+        PriceBias.None,
       );
 
       // We can possibly withdraw some usdc from the lending account if we are short.
@@ -202,11 +218,11 @@ class Liquidator {
 
       debug("Swapping %d USDC to %s", usdcBuyingPower, bank.label);
 
-      await this.whirlpoolTrader.trade(USDC_MINT, bank.mint, uiToNative(usdcBuyingPower, USDC_DECIMALS));
+      await this.swap(USDC_MINT, bank.mint, uiToNative(usdcBuyingPower, USDC_DECIMALS));
 
       const liabBalance = BigNumber.min(
-        await this.getTokenAccountBalance(bank.mint),
-        new BigNumber(nativeToUi(liabilities, bank.mintDecimals))
+        await this.getTokenAccountBalance(bank.mint, true),
+        new BigNumber(nativeToUi(liabilities, bank.mintDecimals)),
       );
 
       debug("Got %s of %s, depositing to marginfi", liabBalance, bank.mint);
@@ -241,57 +257,28 @@ class Liquidator {
   private async rebalancingStage() {
     const debug = getDebugLogger("rebalancing-stage");
     debug("Starting rebalancing stage");
+    captureMessage("Starting rebalancing stage");
     await this.sellNonUsdcDeposits();
     await this.repayAllDebt();
     await this.depositRemainingUsdc();
   }
 
-  async start() {
-    console.log("Starting liquidator");
-
-    console.log("Liquidator account: %s", this.account.publicKey);
-    console.log("Program id: %s", this.client.program.programId);
-    console.log("Group: %s", this.group.publicKey);
-
-    console.log("Liquidating on %s banks", this.group.banks.size);
-
-    console.log("Start with DEBUG=mfi:* to see more logs");
-
-    await this.mainLoop();
-  }
-
-  private async mainLoop() {
-    const debug = getDebugLogger("main-loop");
-    try {
-      await this.swapNonUsdcInTokenAccounts();
-      while (true) {
-        debug("Started main loop iteration");
-        if (await this.needsToBeRebalanced()) {
-          await this.rebalancingStage();
-          continue;
-        }
-
-        await this.liquidationStage();
-      }
-    } catch (e) {
-      console.error(e);
-      await sleep(SLEEP_INTERVAL);
-      await this.mainLoop();
-    }
-  }
-
-  private async getTokenAccountBalance(mint: PublicKey): Promise<BigNumber> {
+  private async getTokenAccountBalance(mint: PublicKey, ignoreNativeMint: boolean = false): Promise<BigNumber> {
     const tokenAccount = await associatedAddress({ mint, owner: this.wallet.publicKey });
     const nativeAmount = nativeToUi(
       mint.equals(NATIVE_MINT)
-        ? Math.max((await this.connection.getBalance(this.wallet.publicKey)) - MIN_SOL_BALANCE, 0)
+        ? Math.max(
+          (await this.connection.getBalance(this.wallet.publicKey)) -
+          (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
+          0,
+        )
         : 0,
-      9
+      9,
     );
 
     try {
       return new BigNumber((await this.connection.getTokenAccountBalance(tokenAccount)).value.uiAmount!).plus(
-        nativeAmount
+        nativeAmount,
       );
     } catch (e) {
       return new BigNumber(0).plus(nativeAmount);
@@ -304,7 +291,7 @@ class Liquidator {
     const banks = this.group.banks.values();
     for (let bankInterEntry = banks.next(); !bankInterEntry.done; bankInterEntry = banks.next()) {
       const bank = bankInterEntry.value;
-      if (bank.mint.equals(USDC_MINT)) {
+      if (bank.mint.equals(USDC_MINT) || bank.mint.equals(NATIVE_MINT)) {
         continue;
       }
 
@@ -329,7 +316,7 @@ class Liquidator {
 
       debug("Swapping %d %s to USDC", amount, bank.label);
 
-      await this.whirlpoolTrader.trade(bank.mint, USDC_MINT, uiToNative(amount, bank.mintDecimals));
+      await this.swap(bank.mint, USDC_MINT, uiToNative(amount, bank.mintDecimals));
     }
 
     const usdcBalance = await this.getTokenAccountBalance(USDC_MINT);
@@ -380,8 +367,18 @@ class Liquidator {
   private async liquidationStage() {
     const debug = getDebugLogger("liquidation-stage");
     debug("Started liquidation stage");
-    const addresses = shuffle(await this.client.getAllMarginfiAccountAddresses());
-    debug("Found %s accounts", addresses.length);
+    const allAccounts = await this.client.getAllMarginfiAccountAddresses();
+    const targetAccounts = allAccounts.filter((address) => {
+      if (this.account_whitelist) {
+        return this.account_whitelist.find(whitelistedAddress => whitelistedAddress.equals(address)) !== undefined;
+      } else if (this.account_blacklist) {
+        return this.account_blacklist.find(whitelistedAddress => whitelistedAddress.equals(address)) === undefined;
+      }
+      throw new Error("Uh uh. Either account whitelist or blacklist should have been provided.");
+    });
+    const addresses = shuffle(targetAccounts);
+    debug("Found %s accounts in total", allAccounts.length);
+    debug("Monitoring %s accounts", targetAccounts.length);
 
     for (let i = 0; i < addresses.length; i++) {
       const liquidatedAccount = await this.processAccount(addresses[i]);
@@ -411,23 +408,19 @@ class Liquidator {
     if (marginfiAccount.canBeLiquidated()) {
       const { assets, liabilities } = marginfiAccount.getHealthComponents(MarginRequirementType.Maint);
 
-      const maxLiabilityPaydown = liabilities.minus(assets);
-      debug("Account can be liquidated, max liability paydown: %d", maxLiabilityPaydown);
+      const maxLiabilityPaydown = assets.minus(liabilities);
+      debug("Account can be liquidated, account health: %d", maxLiabilityPaydown);
     } else {
       debug("Account cannot be liquidated");
       return false;
     }
 
-    if (!marginfiAccount.canBeLiquidated()) {
-      debug("Account is healthy");
-      return false;
-    }
+    captureMessage(`Liquidating account ${account.toBase58()}`);
 
     let maxLiabilityPaydownUsdValue = new BigNumber(0);
     let bestLiabAccountIndex = 0;
 
     // Find the biggest liability account that can be covered by liquidator
-    // within the liquidators liquidation capacity
     for (let i = 0; i < marginfiAccount.activeBalances.length; i++) {
       const balance = marginfiAccount.activeBalances[i];
       const bank = group.getBankByPk(balance.bankPk)!;
@@ -438,18 +431,16 @@ class Liquidator {
 
       debug("Balance: liab: $%d, max coverage: %d", liquidateeLiabUsdValue, liquidatorLiabPayoffCapacityUsd);
 
-      const liabUsdValue = BigNumber.min(liquidateeLiabUsdValue, liquidatorLiabPayoffCapacityUsd);
-
-      if (liabUsdValue.gt(maxLiabilityPaydownUsdValue)) {
-        maxLiabilityPaydownUsdValue = liabUsdValue;
+      if (liquidateeLiabUsdValue.gt(maxLiabilityPaydownUsdValue)) {
+        maxLiabilityPaydownUsdValue = liquidateeLiabUsdValue;
         bestLiabAccountIndex = i;
       }
     }
 
     debug(
-      "Max liability paydown USD value: %d, mint: %s",
+      "Biggest liability balance paydown USD value: %d, mint: %s",
       maxLiabilityPaydownUsdValue,
-      group.getBankByPk(marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk)!.mint
+      group.getBankByPk(marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk)!.mint,
     );
 
     if (maxLiabilityPaydownUsdValue.lt(DUST_THRESHOLD_UI)) {
@@ -475,64 +466,65 @@ class Liquidator {
     debug(
       "Max collateral USD value: %d, mint: %s",
       maxCollateralUsd,
-      group.getBankByPk(marginfiAccount.activeBalances[bestCollateralIndex].bankPk)!.mint
+      group.getBankByPk(marginfiAccount.activeBalances[bestCollateralIndex].bankPk)!.mint,
     );
-
-    // This conversion is ignoring the liquidator discount, but the amounts still in legal bounds, as the liability paydown
-    // is discounted meaning, the liquidation won't fail because of a too big paydown.
-    const collateralToLiquidateUsdValue = BigNumber.min(maxCollateralUsd, maxLiabilityPaydownUsdValue);
-
-    debug("Collateral to liquidate USD value: %d", collateralToLiquidateUsdValue);
 
     const collateralBankPk = marginfiAccount.activeBalances[bestCollateralIndex].bankPk;
     const collateralBank = group.getBankByPk(collateralBankPk)!;
-    const collateralQuantity = collateralBank.getQuantityFromUsdValue(collateralToLiquidateUsdValue, PriceBias.None);
 
     const liabBankPk = marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk;
     const liabBank = group.getBankByPk(liabBankPk)!;
 
-    debug("Liquidating %d %s for %s", collateralQuantity, collateralBank.label, liabBank.label);
+    // MAX collateral amount to liquidate for given banks and the trader marginfi account balances
+    // this doesn't account for liquidators liquidation capacity
+    const maxCollateralAmountToLiquidate = marginfiAccount.getMaxLiquidatableAssetAmount(collateralBank, liabBank);
+
+    debug("Max collateral amount to liquidate: %d", maxCollateralAmountToLiquidate);
+
+    // MAX collateral amount to liquidate given liquidators current margin account
+    const liquidatorMaxLiquidationCapacityLiabAmount = liquidatorAccount.getMaxBorrowForBank(liabBank);
+    const liquidatorMaxLiquidationCapacityUsd = liabBank.getUsdValue(
+      liquidatorMaxLiquidationCapacityLiabAmount,
+      PriceBias.None,
+      undefined,
+      false,
+    );
+    const liquidatorMaxLiqCapacityAssetAmount = collateralBank.getQuantityFromUsdValue(
+      liquidatorMaxLiquidationCapacityUsd,
+      PriceBias.None,
+    );
+
+    debug(
+      "Liquidator max liquidation capacity: %d ($%d) for bank %s",
+      liquidatorMaxLiquidationCapacityLiabAmount,
+      liquidatorMaxLiquidationCapacityUsd,
+      liabBank.mint,
+    );
+
+    const collateralAmountToLiquidate = BigNumber.min(
+      maxCollateralAmountToLiquidate,
+      liquidatorMaxLiqCapacityAssetAmount,
+    );
+
+    const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.95);
+
+    if (slippageAdjustedCollateralAmountToLiquidate.lt(DUST_THRESHOLD_UI)) {
+      debug("No collateral to liquidate");
+      return false;
+    }
+
+    debug("Liquidating %d %s for %s", slippageAdjustedCollateralAmountToLiquidate, collateralBank.label, liabBank.label);
+
     const sig = await liquidatorAccount.lendingAccountLiquidate(
       marginfiAccount,
       collateralBank,
-      collateralQuantity,
-      liabBank
+      slippageAdjustedCollateralAmountToLiquidate,
+      liabBank,
     );
     debug("Liquidation tx: %s", sig);
 
     return true;
   }
-}
-
-async function main() {
-  if (!process.env.LIQUIDATOR_PK) {
-    throw new Error("LIQUIDATOR_PK not set");
-  }
-
-  if (!process.env.KEYPAIR_PATH) {
-    throw new Error("KEYPAIR_PATH not set");
-  }
-
-  if (!process.env.RPC_ENDPOINT) {
-    throw new Error("RPC_ENDPOINT not set");
-  }
-
-  const wallet = new NodeWallet(loadKeypair(process.env.KEYPAIR_PATH));
-  const connection = new Connection(process.env.RPC_ENDPOINT!, "confirmed");
-  const config = getConfig((process.env.MRGN_ENV as Environment) ?? "production");
-  const client = await MarginfiClient.fetch(config, wallet, connection);
-  const group = await MarginfiGroup.fetch(config, client.program);
-
-  const liquidatorAccount = await MarginfiAccount.fetch(new PublicKey(process.env.LIQUIDATOR_PK!), client);
-  const liquidator = new Liquidator(connection, liquidatorAccount, group, client, wallet);
-
-  await liquidator.start();
-}
-
-main().catch((e) => console.log(e));
-
-function getDebugLogger(context: string) {
-  return require("debug")(`mfi:liquidator:${context}`);
 }
 
 const shuffle = ([...arr]) => {
@@ -543,3 +535,5 @@ const shuffle = ([...arr]) => {
   }
   return arr;
 };
+
+export { Liquidator };

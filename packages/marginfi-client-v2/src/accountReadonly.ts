@@ -3,7 +3,7 @@ import { parsePriceData } from "@pythnetwork/client";
 import { AccountInfo, Commitment, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { Balance, MarginfiAccountData, MarginRequirementType } from "./account";
-import Bank, { BankData } from "./bank";
+import { Bank, BankData } from "./bank";
 import MarginfiClientReadonly from "./clientReadonly";
 import MarginfiGroup from "./group";
 import { MARGINFI_IDL } from "./idl";

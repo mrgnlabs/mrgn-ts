@@ -3,8 +3,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import BN from "bn.js";
 import { useBanks } from "~/context";
 import { TokenAccount, TokenAccountMap } from "~/types";
-import { getAssociatedTokenAddressSync, unpackAccount } from "@mrgnlabs/mrgn-common/src/spl";
-import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { getAssociatedTokenAddressSync, nativeToUi, unpackAccount } from "@mrgnlabs/mrgn-common";
 
 // @ts-ignore - Safe because context hook checks for null
 const TokenAccountsContext = createContext<TokenAccountsState>();

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "clean": "rimraf dist node_modules",
     "dev": "next dev --port 3004",
     "build": "next build",
     "start": "next start",
@@ -13,9 +14,9 @@
     "@coral-xyz/borsh": "^0.26.0",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
-    "@mrgnlabs/mrgn-common": "*",
-    "@mrgnlabs/marginfi-client-v2": "*",
     "@mrgnlabs/lip-client": "*",
+    "@mrgnlabs/marginfi-client-v2": "*",
+    "@mrgnlabs/mrgn-common": "*",
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.2",
     "@next/font": "13.1.1",
@@ -49,7 +50,6 @@
     "postcss": "^8.4.20",
     "prettier": "^2.8.1",
     "tailwindcss": "^3.2.4",
-    "typescript": "4.9.4",
-    "vivid-studio": "^0.14.0"
+    "typescript": "4.9.4"
   }
 }

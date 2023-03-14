@@ -3,7 +3,7 @@ import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import BN from "bn.js";
 import { uiToNative } from "@mrgnlabs/mrgn-common";
-import { useProgram, useTokenAccounts } from "~/context";
+import { useProgram } from "~/context";
 import { ProAction } from "~/pages/earn";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { groupedNumberFormatterDyn, percentFormatterDyn } from "~/utils/formatters";
@@ -14,11 +14,10 @@ import {
   createSyncNativeInstruction,
   NATIVE_MINT,
 } from "@mrgnlabs/mrgn-common/src/spl";
-import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
-import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
+import { MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
+import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import Image from "next/image";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
-import { TextField } from "@mui/material";
 
 interface CampaignWizardInputBox {
   value: number;
@@ -85,7 +84,6 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
   const [depositCapacity, setDepositCapacity] = useState(0);
   const [campaignBank, setCampaignBank] = useState<Bank | null>(null);
 
-  const { tokenAccountMap } = useTokenAccounts();
   const wallet = useWallet();
   const { lipClient, mfiClient, reload: reloadLipClient } = useProgram();
 
@@ -98,11 +96,6 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
     if (availableBanks.length === 0 || campaignBank !== null) return;
     setCampaignBank(availableBanks[0]);
   }, [availableBanks, campaignBank]);
-
-  const tokenBalance = useMemo(() => {
-    if (!campaignBank) return 0;
-    return tokenAccountMap.get(campaignBank.mint.toBase58())?.balance || 0;
-  }, [tokenAccountMap, campaignBank]);
 
   const maxRewards = useMemo(() => {
     if (!campaignBank) return 0;

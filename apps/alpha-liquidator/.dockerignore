@@ -1,0 +1,11 @@
+.env
+.git
+.next
+build
+node_modules
+.DS_Store
+dist
+Dockerfile
+docs
+*.log
+.turbo
