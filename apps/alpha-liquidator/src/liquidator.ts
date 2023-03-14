@@ -408,15 +408,10 @@ class Liquidator {
     if (marginfiAccount.canBeLiquidated()) {
       const { assets, liabilities } = marginfiAccount.getHealthComponents(MarginRequirementType.Maint);
 
-      const maxLiabilityPaydown = liabilities.minus(assets);
-      debug("Account can be liquidated, max liability paydown: %d", maxLiabilityPaydown);
+      const maxLiabilityPaydown = assets.minus(liabilities);
+      debug("Account can be liquidated, account health: %d", maxLiabilityPaydown);
     } else {
       debug("Account cannot be liquidated");
-      return false;
-    }
-
-    if (!marginfiAccount.canBeLiquidated()) {
-      debug("Account is healthy");
       return false;
     }
 
@@ -426,7 +421,6 @@ class Liquidator {
     let bestLiabAccountIndex = 0;
 
     // Find the biggest liability account that can be covered by liquidator
-    // within the liquidators liquidation capacity
     for (let i = 0; i < marginfiAccount.activeBalances.length; i++) {
       const balance = marginfiAccount.activeBalances[i];
       const bank = group.getBankByPk(balance.bankPk)!;
@@ -437,16 +431,14 @@ class Liquidator {
 
       debug("Balance: liab: $%d, max coverage: %d", liquidateeLiabUsdValue, liquidatorLiabPayoffCapacityUsd);
 
-      const liabUsdValue = BigNumber.min(liquidateeLiabUsdValue, liquidatorLiabPayoffCapacityUsd);
-
-      if (liabUsdValue.gt(maxLiabilityPaydownUsdValue)) {
-        maxLiabilityPaydownUsdValue = liabUsdValue;
+      if (liquidateeLiabUsdValue.gt(maxLiabilityPaydownUsdValue)) {
+        maxLiabilityPaydownUsdValue = liquidateeLiabUsdValue;
         bestLiabAccountIndex = i;
       }
     }
 
     debug(
-      "Max liability paydown USD value: %d, mint: %s",
+      "Biggest liability balance paydown USD value: %d, mint: %s",
       maxLiabilityPaydownUsdValue,
       group.getBankByPk(marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk)!.mint,
     );
@@ -494,6 +486,8 @@ class Liquidator {
     const liquidatorMaxLiquidationCapacityUsd = liabBank.getUsdValue(
       liquidatorMaxLiquidationCapacityLiabAmount,
       PriceBias.None,
+      undefined,
+      false,
     );
     const liquidatorMaxLiqCapacityAssetAmount = collateralBank.getQuantityFromUsdValue(
       liquidatorMaxLiquidationCapacityUsd,
@@ -513,6 +507,11 @@ class Liquidator {
     );
 
     const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.95);
+
+    if (slippageAdjustedCollateralAmountToLiquidate.lt(DUST_THRESHOLD_UI)) {
+      debug("No collateral to liquidate");
+      return false;
+    }
 
     debug("Liquidating %d %s for %s", slippageAdjustedCollateralAmountToLiquidate, collateralBank.label, liabBank.label);
 
