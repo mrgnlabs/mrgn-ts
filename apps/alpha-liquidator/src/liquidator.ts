@@ -370,9 +370,9 @@ class Liquidator {
     const allAccounts = await this.client.getAllMarginfiAccountAddresses();
     const targetAccounts = allAccounts.filter((address) => {
       if (this.account_whitelist) {
-        return this.account_whitelist.includes(address);
+        return this.account_whitelist.find(whitelistedAddress => whitelistedAddress.equals(address)) !== undefined;
       } else if (this.account_blacklist) {
-        return !this.account_blacklist.includes(address);
+        return this.account_blacklist.find(whitelistedAddress => whitelistedAddress.equals(address)) === undefined;
       }
       throw new Error("Uh uh. Either account whitelist or blacklist should have been provided.");
     });
