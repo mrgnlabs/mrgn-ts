@@ -33,8 +33,9 @@ class Liquidator {
     readonly group: MarginfiGroup,
     readonly client: MarginfiClient,
     readonly wallet: NodeWallet,
-    readonly jupiter: Jupiter
-  ) {}
+    readonly jupiter: Jupiter,
+  ) {
+  }
 
   private async swap(mintIn: PublicKey, mintOut: PublicKey, amountIn: BN) {
     const debug = getDebugLogger("swap");
@@ -148,7 +149,7 @@ class Liquidator {
         liabilities,
         MarginRequirementType.Equity,
         // We might need to use a Higher price bias to account for worst case scenario.
-        PriceBias.None
+        PriceBias.None,
       );
 
       // We can possibly withdraw some usdc from the lending account if we are short.
@@ -173,7 +174,7 @@ class Liquidator {
 
       const liabBalance = BigNumber.min(
         await this.getTokenAccountBalance(bank.mint, true),
-        new BigNumber(nativeToUi(liabilities, bank.mintDecimals))
+        new BigNumber(nativeToUi(liabilities, bank.mintDecimals)),
       );
 
       debug("Got %s of %s, depositing to marginfi", liabBalance, bank.mint);
@@ -228,27 +229,6 @@ class Liquidator {
     await this.mainLoop();
   }
 
-  // // Print out the top route from SOL to USDC.
-  // // Used for testing route data ingestion.
-  // private async testLoop() {
-  //   while (true) {
-  //     const bank = await this.account.client.group.getBankByMint(WRAPPED_SOL_MINT);
-  //     if (!bank) {
-  //       throw new Error("Bank not found");
-  //     } else {
-  //       const { routesInfos } = await this.jupiter.computeRoutes({
-  //         inputMint: bank.mint,
-  //         outputMint: USDC_MINT,
-  //         amount: JSBI.BigInt(uiToNative(10, bank.mintDecimals).toString()),
-  //         slippageBps: SLIPPAGE_BPS,
-  //       });
-  //       console.log(routesInfos[0]);
-  //     }
-  //
-  //     await wait(5000);
-  //   }
-  // }
-
   private async mainLoop() {
     const debug = getDebugLogger("main-loop");
     try {
@@ -277,17 +257,17 @@ class Liquidator {
     const nativeAmount = nativeToUi(
       mint.equals(NATIVE_MINT)
         ? Math.max(
-            (await this.connection.getBalance(this.wallet.publicKey)) -
-              (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
-            0
-          )
+          (await this.connection.getBalance(this.wallet.publicKey)) -
+          (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
+          0,
+        )
         : 0,
-      9
+      9,
     );
 
     try {
       return new BigNumber((await this.connection.getTokenAccountBalance(tokenAccount)).value.uiAmount!).plus(
-        nativeAmount
+        nativeAmount,
       );
     } catch (e) {
       return new BigNumber(0).plus(nativeAmount);
@@ -421,8 +401,6 @@ class Liquidator {
 
     captureMessage(`Liquidating account ${account.toBase58()}`);
 
-    const { assets, liabilities } = marginfiAccount.getHealthComponents(MarginRequirementType.Maint);
-
     let maxLiabilityPaydownUsdValue = new BigNumber(0);
     let bestLiabAccountIndex = 0;
 
@@ -449,7 +427,7 @@ class Liquidator {
     debug(
       "Max liability paydown USD value: %d, mint: %s",
       maxLiabilityPaydownUsdValue,
-      group.getBankByPk(marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk)!.mint
+      group.getBankByPk(marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk)!.mint,
     );
 
     if (maxLiabilityPaydownUsdValue.lt(DUST_THRESHOLD_UI)) {
@@ -475,7 +453,7 @@ class Liquidator {
     debug(
       "Max collateral USD value: %d, mint: %s",
       maxCollateralUsd,
-      group.getBankByPk(marginfiAccount.activeBalances[bestCollateralIndex].bankPk)!.mint
+      group.getBankByPk(marginfiAccount.activeBalances[bestCollateralIndex].bankPk)!.mint,
     );
 
     const collateralBankPk = marginfiAccount.activeBalances[bestCollateralIndex].bankPk;
@@ -494,23 +472,23 @@ class Liquidator {
     const liquidatorMaxLiquidationCapacityLiabAmount = liquidatorAccount.getMaxBorrowForBank(liabBank);
     const liquidatorMaxLiquidationCapacityUsd = liabBank.getUsdValue(
       liquidatorMaxLiquidationCapacityLiabAmount,
-      PriceBias.None
+      PriceBias.None,
     );
     const liquidatorMaxLiqCapacityAssetAmount = collateralBank.getQuantityFromUsdValue(
       liquidatorMaxLiquidationCapacityUsd,
-      PriceBias.None
+      PriceBias.None,
     );
 
     debug(
       "Liquidator max liquidation capacity: %d ($%d) for bank %s",
       liquidatorMaxLiquidationCapacityLiabAmount,
       liquidatorMaxLiquidationCapacityUsd,
-      liabBank.mint
+      liabBank.mint,
     );
 
     const collateralAmountToLiquidate = BigNumber.min(
       maxCollateralAmountToLiquidate,
-      liquidatorMaxLiqCapacityAssetAmount
+      liquidatorMaxLiqCapacityAssetAmount,
     );
 
     const jitterAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.95);
@@ -521,7 +499,7 @@ class Liquidator {
       marginfiAccount,
       collateralBank,
       jitterAdjustedCollateralAmountToLiquidate,
-      liabBank
+      liabBank,
     );
     debug("Liquidation tx: %s", sig);
 
