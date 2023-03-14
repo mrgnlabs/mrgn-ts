@@ -817,6 +817,48 @@ export class MarginfiAccount {
     return str;
   }
 
+  // Calculate the max amount of collateral to liquidate to bring an account maint health to 0 (assuming negative health).
+  //
+  // The asset amount is bounded by 2 constraints,
+  // (1) the amount of liquidated collateral cannot be more than the balance,
+  // (2) the amount of covered liablity cannot be more than existing liablity.
+  public getMaxLiquidatableAssetAmount(assetBank: Bank, liabBank: Bank): BigNumber {
+    const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Maint);
+    const currentHealth = assets.minus(liabilities).abs();
+
+    const priceAssetLower = assetBank.getPrice(PriceBias.Lowest);
+    const priceAssetMarket = assetBank.getPrice(PriceBias.None);
+    const assetMaintWeight = assetBank.config.assetWeightMaint;
+
+    const liquidationDiscount = new BigNumber(1 - 0.05);
+
+    const priceLiabHighest = liabBank.getPrice(PriceBias.Highest);
+    const priceLiabMarket = liabBank.getPrice(PriceBias.None);
+    const liabMaintWeight = liabBank.config.liabilityWeightMaint;
+
+    // MAX amount of asset to liquidate to bring account maint health to 0, regardless of existing balances
+    const maxLiquidatableUnboundedAssetAmount = currentHealth.div(
+      priceAssetLower
+        .times(assetMaintWeight)
+        .minus(
+          priceAssetMarket
+            .times(liquidationDiscount)
+            .times(priceLiabHighest)
+            .times(liabMaintWeight)
+            .div(priceLiabMarket)
+        )
+    );
+
+    // MAX asset amount bounded by available asset amount
+    const assetBalanceBound = this.getBalance(assetBank.publicKey).assetShares;
+
+    const liabBalance = this.getBalance(liabBank.publicKey).liabilityShares;
+    // MAX asset amount bounded by availalbe liability amount
+    const liabBalanceBound = liabBalance.times(priceLiabMarket).div(priceAssetMarket.times(liquidationDiscount));
+
+    return BigNumber.min(assetBalanceBound, liabBalanceBound, maxLiquidatableUnboundedAssetAmount);
+  }
+
   private async wrapInstructionForWSol(
     ix: TransactionInstruction,
     amount: Amount = new BigNumber(0)

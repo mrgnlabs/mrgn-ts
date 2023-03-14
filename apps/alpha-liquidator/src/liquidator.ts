@@ -423,8 +423,6 @@ class Liquidator {
 
     const { assets, liabilities } = marginfiAccount.getHealthComponents(MarginRequirementType.Maint);
 
-    const maxLiabilityPaydownUsdValueMaint = liabilities.minus(assets).times(5);
-
     let maxLiabilityPaydownUsdValue = new BigNumber(0);
     let bestLiabAccountIndex = 0;
 
@@ -447,8 +445,6 @@ class Liquidator {
         bestLiabAccountIndex = i;
       }
     }
-
-    maxLiabilityPaydownUsdValue = BigNumber.min(maxLiabilityPaydownUsdValue, maxLiabilityPaydownUsdValueMaint);
 
     debug(
       "Max liability paydown USD value: %d, mint: %s",
@@ -482,24 +478,49 @@ class Liquidator {
       group.getBankByPk(marginfiAccount.activeBalances[bestCollateralIndex].bankPk)!.mint
     );
 
-    // This conversion is ignoring the liquidator discount, but the amounts still in legal bounds, as the liability paydown
-    // is discounted meaning, the liquidation won't fail because of a too big paydown.
-    const collateralToLiquidateUsdValue = BigNumber.min(maxCollateralUsd, maxLiabilityPaydownUsdValue);
-
-    debug("Collateral to liquidate USD value: %d", collateralToLiquidateUsdValue);
-
     const collateralBankPk = marginfiAccount.activeBalances[bestCollateralIndex].bankPk;
     const collateralBank = group.getBankByPk(collateralBankPk)!;
-    const collateralQuantity = collateralBank.getQuantityFromUsdValue(collateralToLiquidateUsdValue, PriceBias.None);
 
     const liabBankPk = marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk;
     const liabBank = group.getBankByPk(liabBankPk)!;
 
-    debug("Liquidating %d %s for %s", collateralQuantity, collateralBank.label, liabBank.label);
+    // MAX collateral amount to liquidate for given banks and the trader marginfi account balances
+    // this doesn't account for liquidators liquidation capacity
+    const maxCollateralAmountToLiquidate = marginfiAccount.getMaxLiquidatableAssetAmount(collateralBank, liabBank);
+
+    debug("Max collateral amount to liquidate: %d", maxCollateralAmountToLiquidate);
+
+    // MAX collateral amount to liquidate given liquidators current margin account
+    const liquidatorMaxLiquidationCapacityLiabAmount = liquidatorAccount.getMaxBorrowForBank(liabBank);
+    const liquidatorMaxLiquidationCapacityUsd = liabBank.getUsdValue(
+      liquidatorMaxLiquidationCapacityLiabAmount,
+      PriceBias.None
+    );
+    const liquidatorMaxLiqCapacityAssetAmount = collateralBank.getQuantityFromUsdValue(
+      liquidatorMaxLiquidationCapacityUsd,
+      PriceBias.None
+    );
+
+    debug(
+      "Liquidator max liquidation capacity: %d ($%d) for bank %s",
+      liquidatorMaxLiquidationCapacityLiabAmount,
+      liquidatorMaxLiquidationCapacityUsd,
+      liabBank.mint
+    );
+
+    const collateralAmountToLiquidate = BigNumber.min(
+      maxCollateralAmountToLiquidate,
+      liquidatorMaxLiqCapacityAssetAmount
+    );
+
+    const jitterAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.95);
+
+    debug("Liquidating %d %s for %s", jitterAdjustedCollateralAmountToLiquidate, collateralBank.label, liabBank.label);
+
     const sig = await liquidatorAccount.lendingAccountLiquidate(
       marginfiAccount,
       collateralBank,
-      collateralQuantity,
+      jitterAdjustedCollateralAmountToLiquidate,
       liabBank
     );
     debug("Liquidation tx: %s", sig);
