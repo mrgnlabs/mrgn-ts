@@ -2,7 +2,7 @@
   "name": "@mrgnlabs/lip-client",
   "version": "1.0.0",
   "main": "./src/index.ts",
-  "private": true,
+  "private": false,
   "types": "./src/index.ts",
   "license": "MIT",
   "scripts": {
