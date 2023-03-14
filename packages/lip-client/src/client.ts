@@ -18,24 +18,21 @@ import { LipConfig, LipProgram } from "./types";
 import { LIP_IDL } from "./idl";
 import instructions from "./instructions";
 import { DEPOSIT_MFI_AUTH_SIGNER_SEED, MARGINFI_ACCOUNT_SEED } from "./constants";
-import Bank, { BankData } from "../../marginfi-client-v2/src/bank";
-import MarginfiClient from "../../marginfi-client-v2/src/client";
+import { Bank, BankData, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Address, translateAddress } from "@coral-xyz/anchor";
 import { Campaign, DepositData } from "./account";
 import { parsePriceData } from "@pythnetwork/client";
 import {
   Amount,
+  createAssociatedTokenAccountIdempotentInstruction,
+  createSyncNativeInstruction,
   DEFAULT_CONFIRM_OPTS,
   InstructionsWrapper,
+  NATIVE_MINT,
   TransactionOptions,
   uiToNative,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
-import {
-  createAssociatedTokenAccountIdempotentInstruction,
-  createSyncNativeInstruction,
-  NATIVE_MINT,
-} from "@mrgnlabs/mrgn-common/src/spl";
 
 /**
  * Entrypoint to interact with the LIP contract.

@@ -1,4 +1,4 @@
-import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2/src/account";
+import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo } from "react";
 import { usdFormatter } from "~/utils/formatters";
@@ -21,19 +21,15 @@ const AccountSummary: FC = () => {
   }, [selectedAccount]);
 
   return (
-    <div  
-      className="col-span-full"
-    >
+    <div className="col-span-full">
       <div
         className="flex flex-row flex-wrap justify-start xl:justify-between w-full sm:min-w-[400px] p-0 items-center gap-3 xl:gap-0 font-light"
         style={{
-          fontFamily: "Aeonik Pro",          
+          fontFamily: "Aeonik Pro",
         }}
       >
         {/* Mobile */}
-        <div
-          className="flex sm:hidden flex-row items-center w-full"
-        >
+        <div className="flex sm:hidden flex-row items-center w-full">
           <AccountBalance isConnected={wallet.connected} accountBalance={accountSummary.balance} />
           <MobileHealth isConnected={wallet.connected} healthFactor={healthFactor} />
         </div>
@@ -57,7 +53,7 @@ const AccountSummary: FC = () => {
             preview
             boldValue={accountSummary.apy >= 0 ? "#75ba80" : "#bd4d4d"}
           />
-        </div> 
+        </div>
         <HealthFactor healthFactor={healthFactor} />
       </div>
     </div>

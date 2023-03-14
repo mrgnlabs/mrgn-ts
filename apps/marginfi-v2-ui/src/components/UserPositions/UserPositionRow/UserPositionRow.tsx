@@ -1,4 +1,4 @@
-import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
+import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
 import { TableCell, TableRow } from "@mui/material";
 import { FC, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";

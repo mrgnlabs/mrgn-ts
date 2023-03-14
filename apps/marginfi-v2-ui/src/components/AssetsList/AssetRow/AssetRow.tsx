@@ -1,4 +1,3 @@
-import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
 import { TableCell, TableRow, Tooltip } from "@mui/material";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
@@ -7,7 +6,7 @@ import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { AssetRowHeader } from "./AssetRowHeader";
 import { AssetRowMetric } from "./AssetRowMetric";
-import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT } from "~/config";
 import { Keypair, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";

@@ -1,5 +1,5 @@
 import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
-import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
+import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import { useTokenMetadata } from "./TokenMetadata";
 import { makeBankInfo } from "~/api";
 import { toast } from "react-toastify";

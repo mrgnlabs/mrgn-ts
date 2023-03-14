@@ -1,5 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
-import Bank from "@mrgnlabs/marginfi-client-v2/src/bank";
+import { Bank } from "@mrgnlabs/marginfi-client-v2";
 
 interface AccountSummary {
   balance: number;

@@ -2,6 +2,7 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Default",
   "compilerOptions": {
+    "target": "ES2021",
     "composite": false,
     "declaration": true,
     "declarationMap": true,
@@ -16,5 +17,8 @@
     "skipLibCheck": true,
     "strict": true
   },
-  "exclude": ["dist", "node_modules"]
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
 }

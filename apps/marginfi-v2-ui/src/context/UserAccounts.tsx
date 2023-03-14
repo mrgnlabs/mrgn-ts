@@ -1,5 +1,5 @@
 import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
-import MarginfiAccount from "@mrgnlabs/marginfi-client-v2/src/account";
+import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
 import { computeAccountSummary, DEFAULT_ACCOUNT_SUMMARY, makeExtendedBankInfo } from "~/api";
 import { AccountSummary, ActiveBankInfo, ExtendedBankInfo, isActiveBankInfo, TokenAccountMap } from "~/types";
 import { useBanks } from "~/context/Banks";

@@ -1,7 +1,7 @@
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { parsePriceData } from "@pythnetwork/client";
 import { Commitment, PublicKey } from "@solana/web3.js";
-import Bank, { BankData } from "./bank";
+import { Bank, BankData } from "./bank";
 import { MARGINFI_IDL } from "./idl";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
 import { DEFAULT_COMMITMENT } from "@mrgnlabs/mrgn-common";
