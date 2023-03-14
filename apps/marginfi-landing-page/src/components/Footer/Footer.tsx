@@ -18,8 +18,11 @@ const Footer: FC = () => {
           }}
         >
           <div className="h-full relative flex justify-start items-center z-10">
-            <Link href={"https://app.marginfi.com/"}>
-              <NavbarCenterItem text="Docs" disabled/>
+            <Link href={"https://docs.marginfi.com"}>
+              <NavbarCenterItem text="Docs"/>
+            </Link>
+            <Link href={"https://analytics.marginfi.com"}>
+              <NavbarCenterItem text="Analytics" />
             </Link>
             <Link href={"https://github.com/mrgnlabs"}>
               <NavbarCenterItem text="Github" />
@@ -36,8 +39,8 @@ const Footer: FC = () => {
             <Link href={"https://twitter.com/marginfi"}>
               <NavbarCenterItem text="Twitter" />
             </Link>
-            <Link href={"https://app.marginfi.com/"}>
-              <NavbarCenterItem text="Discord" />
+            <Link href={"https://t.me/mrgncommunity"}>
+              <NavbarCenterItem text="Telegram" />
             </Link>
             <Link href={"https://app.marginfi.com/"}>
               <NavbarCenterItem text="© 2023 MRGN, Inc." disabled/>
