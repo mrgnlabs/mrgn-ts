@@ -8,11 +8,11 @@ import { NodeWallet } from "@mrgnlabs/mrgn-common";
 import { getConfig, MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { env_config } from "./config";
 import { Liquidator } from "./liquidator";
-
-const debug = require("debug")("mfi:liq-scheduler");
+import { initLogging, logger } from "./utils/logger";
 
 async function start() {
-  debug("Jupiter initializing");
+  initLogging();
+  logger.info("Jupiter initializing");
 
   const wallet = new NodeWallet(env_config.WALLET_KEYPAIR);
 
@@ -29,7 +29,7 @@ async function start() {
   const accountToAmmIdsMap = jupiter.getAccountToAmmIdsMap();
   const ammIdToAmmMap = jupiter.getAmmIdToAmmMap();
 
-  debug("Fetching initial blockhash");
+  logger.debug("Fetching initial blockhash");
   let blockhashWithExpiryBlockHeight = await connection.getLatestBlockhash("confirmed");
 
   // each blockhash can last about 1 minute, we refresh every second
@@ -42,16 +42,14 @@ async function start() {
     accountInfos: new Map<string, AccountInfo<Buffer>>(),
   };
 
-  debug("Starting worker");
+  logger.debug("Starting worker");
   const worker = new Worker(__filename);
-
   worker.on("error", (err) => {
-    console.error(err);
+    logger.error(err);
     process.exit(1);
   });
-
   worker.on("exit", () => {
-    debug("worker exited");
+    logger.debug("Worker exited");
     process.exit(1);
   });
 
@@ -108,7 +106,8 @@ async function start() {
             try {
               amm.update(store.accountInfos);
             } catch (e) {
-              console.error(`Failed to update amm ${amm.id}, reason ${e}`);
+              logger.error(`Failed to update amm ${amm.id}`);
+              logger.error(e);
             }
             if (amm.hasDynamicAccounts) {
               amm.getAccountsForUpdate().forEach((pk) => {
@@ -137,14 +136,16 @@ async function start() {
 }
 
 if (isMainThread) {
-  console.log("Starting liquidator main thread");
+  logger.debug("Starting liquidator main thread");
   start().catch(e => {
-    console.log(e);
+    logger.error("Error in liquidator main thread");
+    logger.error(e);
     process.exit(1);
   });
 } else {
   runGetAccountInfosProcess().catch(e => {
-    console.log(e);
+    logger.error("Error in liquidator cache updater worker");
+    logger.error(e);
     process.exit(1);
   });
 }

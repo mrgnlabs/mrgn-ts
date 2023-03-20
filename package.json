@@ -10,6 +10,7 @@
     "clean": "turbo run clean --parallel && rimraf node_modules",
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
+    "watch": "turbo run watch --parallel",
     "start": "turbo run start --parallel",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/src/**/*.{ts,tsx,md,json}\"",

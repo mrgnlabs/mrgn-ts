@@ -6,4 +6,5 @@ export * from "./misc";
 export * from "./conversion";
 export * from "./accounting";
 export * from "./spl";
+export * from "./telemetry";
 export { NodeWallet };

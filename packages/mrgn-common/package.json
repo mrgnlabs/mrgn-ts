@@ -1,24 +1,27 @@
 {
   "name": "@mrgnlabs/mrgn-common",
   "version": "1.0.0",
-  "private":  false,
+  "private": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
   "scripts": {
     "clean": "rimraf dist node_modules",
-    "dev": "tsc --watch",
+    "dev": "tsc -w -p tsconfig.json",
+    "watch": "tsc -w -p tsconfig.json",
     "lint": "TIMING=1 eslint \"**/*.ts*\"",
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.26.0",
+    "@google-cloud/logging-winston": "^5.3.0",
     "@project-serum/anchor": "^0.26.0",
     "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/wallet-adapter-base": "^0.9.20",
     "@solana/web3.js": "^1.71.0",
     "bignumber.js": "^9.1.1",
-    "decimal.js": "^10.4.3"
+    "decimal.js": "^10.4.3",
+    "winston": "^3.8.2"
   },
   "devDependencies": {
     "@mrgnlabs/eslint-config-custom": "*",

@@ -6,7 +6,8 @@
   "scripts": {
     "clean": "rimraf dist node_modules",
     "build": "tsc -p tsconfig.json",
-    "dev": "tsc-watch -p tsconfig.json --onCompilationComplete 'yarn build' --onSuccess 'yarn serve'",
+    "watch": "tsc -w -p tsconfig.json",
+    "start": "tsc-watch -p tsconfig.json --onCompilationComplete 'yarn build' --onSuccess 'yarn serve'",
     "setup": "ts-node src/setup.ts",
     "inspect": "ts-node src/inspect.ts",
     "serve": "pm2-runtime scripts/pm2.config.js"
@@ -38,6 +39,7 @@
     "got": "~11.8.6",
     "ioredis": "5.2.4",
     "jsbi": "4.3.0",
+    "winston": "^3.8.2",
     "zod": "^3.20.6"
   },
   "devDependencies": {

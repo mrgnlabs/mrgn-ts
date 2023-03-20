@@ -6,11 +6,14 @@ import { redis } from "./utils/redis";
 import { deserializeAccountInfosMap } from "./utils/accountInfos";
 import { wait } from "./utils/wait";
 import { ammsToExclude } from "./ammsToExclude";
+import { initLogging, logger } from "./utils/logger";
 
 /**
  * Fetch the accounts from the RPC server and publish them through redis.
  */
 async function main() {
+  initLogging();
+
   let lastUpdatedData = {
     value: process.uptime(),
   };
@@ -60,11 +63,10 @@ async function main() {
 
   setInterval(() => {
     if (process.uptime() - lastUpdatedData.value > 30) {
-      console.error(new Error("Data is not being updated"));
-      // kill itself and pm2 will restart
+      logger.error("Data is not being updated. Exiting to allow restart.");
       process.exit(1);
     }
-  }, 30000);
+  }, 30_000);
 
   while (true) {
     try {
@@ -73,7 +75,7 @@ async function main() {
       const updatedAccountInfosMap = new Map<string, AccountInfo<string[]>>();
       const [contextSlot, newAccountInfosMap] = await chunkedGetRawMultipleAccountInfos(
         connection,
-        addressesToFetch.array
+        addressesToFetch.array,
       );
 
       newAccountInfosMap.forEach((value, key) => {

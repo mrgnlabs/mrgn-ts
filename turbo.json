@@ -16,6 +16,9 @@
     "lint": {
       "outputs": []
     },
+    "watch": {
+      "cache": false
+    },
     "dev": {
       "cache": false
     },
