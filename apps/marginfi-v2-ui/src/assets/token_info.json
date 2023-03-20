@@ -93,6 +93,9 @@
     "decimals": 8,
     "name": "Wrapped BTC (Portal)",
     "symbol": "WBTC",
-    "logoURI": "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/WBTC_wh.png"
+    "logoURI": "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/WBTC_wh.png",
+    "extensions": {
+      "coingeckoId": ""
+    }
   }
 ]
