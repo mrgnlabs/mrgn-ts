@@ -72,11 +72,6 @@
     "name": "Ether (Portal)",
     "symbol": "ETH",
     "logoURI": "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/ETH_wh.png",
-    "tags": [
-        "wormhole",
-        "old-registry",
-        "solana-fm"
-    ],
     "extensions": {
         "coingeckoId": "ethereum-wormhole"
     }
@@ -88,10 +83,6 @@
     "name": "USDT",
     "decimals": 6,
     "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.svg",
-    "tags": [
-        "old-registry",
-        "solana-fm"
-    ],
     "extensions": {
         "coingeckoId": "tether",
         "serumV3Usdc": "77quYg4MGneUdjgXCunt9GgM1usmrxKY31twEy3WHwcS",
@@ -104,12 +95,6 @@
     "decimals": 8,
     "name": "Wrapped BTC (Portal)",
     "symbol": "WBTC",
-    "logoURI": "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/WBTC_wh.png",
-    "tags": [
-        "wormhole",
-        "community",
-        "old-registry",
-        "solana-fm"
-    ]
+    "logoURI": "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/WBTC_wh.png"
   }
 ]
