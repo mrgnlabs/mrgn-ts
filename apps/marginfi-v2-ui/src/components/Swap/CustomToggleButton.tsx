@@ -22,7 +22,7 @@ const CustomToggleButton: React.FC<CustomToggleButtonProps> = ({
     <ToggleButton
       value={value}
       onClick={onClick}
-      className={`w-1/4 text-sm sm:text-base ${
+      className={`w-1/4 text-sm ${
         index === arr.length - 1
           ? 'pl-5 sm:pl-[40px] sm:pr-[30px] ml-[-20px] sm:ml-[-30px]'
           : ''
