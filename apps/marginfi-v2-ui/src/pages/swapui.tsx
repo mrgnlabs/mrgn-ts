@@ -1,6 +1,5 @@
-import React from 'react';
-import { Grid, Paper, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { styled } from '@mui/system';
+import React, { FC, useState, MouseEvent } from 'react';
+import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import InputBox from '~/components/Swap/InputBox';
 import ProductIcon from '~/components/Swap/ProductIcon';
 import HealthFactorGauge from '~/components/Swap/HealthFactorGauge';
@@ -17,15 +16,11 @@ interface SwapUIProps {
   healthFactor: number;
 }
 
-const CustomPaper = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.grey[900],
-}));
-
-const SwapUI: React.FC<SwapUIProps> = ({ tokens, healthFactor }) => {
-  const [selectedAction, setSelectedAction] = React.useState('Lend');
+const SwapUI: FC<SwapUIProps> = ({ tokens, healthFactor }) => {
+  const [selectedAction, setSelectedAction] = useState('Lend');
 
   const handleActionChange = (
-    event: React.MouseEvent<HTMLElement>,
+    event: MouseEvent<HTMLElement>,
     newAction: string | null,
   ) => {
     if (newAction) setSelectedAction(newAction);
@@ -34,38 +29,34 @@ const SwapUI: React.FC<SwapUIProps> = ({ tokens, healthFactor }) => {
   const inputBoxLabel = selectedAction === 'Borrow' ? 'Lend' : selectedAction;
 
   return (
-    <CustomPaper elevation={2} sx={{ p: 2, mt: 2, width: '100%', position: 'relative' }}>
+    <div className="bg-[#0E1113] p-4 mt-2 w-full relative">
       <HealthFactorGauge healthFactor={healthFactor} />
       <ToggleButtonGroup
         value={selectedAction}
         exclusive
         onChange={handleActionChange}
-        sx={{ justifyContent: 'center', display: 'block', marginBottom: 2 }}
+        className="flex justify-center block mb-2"
       >
         <ToggleButton value="Lend">Lend</ToggleButton>
         <ToggleButton value="Borrow">Borrow</ToggleButton>
         <ToggleButton value="Lock">Lock</ToggleButton>
         <ToggleButton value="Superstake">Superstake</ToggleButton>
       </ToggleButtonGroup>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <InputBox tokens={tokens} label={inputBoxLabel} />
-        </Grid>
+      <div className="space-y-4">
+        <InputBox tokens={tokens} label={inputBoxLabel} />
         {selectedAction === 'Borrow' && (
-          <Grid item xs={12}>
-            <InputBox tokens={tokens} label="Borrow" />
-          </Grid>
+          <InputBox tokens={tokens} label="Borrow" />
         )}
-        <Grid item xs={12} container justifyContent="center">
+        <div className="flex justify-center">
           <ProductIcon product={selectedAction} />
-        </Grid>
-        <Grid item xs={12} container justifyContent="center">
-          <button style={{ backgroundColor: 'gray', color: 'white' }}>
+        </div>
+        <div className="flex justify-center">
+          <button className="bg-gray-600 text-[#e1e1e1] px-4 py-2">
             {selectedAction}
           </button>
-        </Grid>
-      </Grid>
-    </CustomPaper>
+        </div>
+      </div>
+    </div>
   );
 };
 

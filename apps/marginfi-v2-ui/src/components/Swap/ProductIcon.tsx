@@ -1,31 +1,16 @@
 import React from 'react';
-import { styled } from '@mui/system';
 
 interface ProductIconProps {
   product: string;
 }
 
-const IconCircle = styled('div')(({ theme }) => ({
-  width: '48px',
-  height: '48px',
-  borderRadius: '50%',
-  backgroundColor: theme.palette.grey[900],
-  border: '2px solid lightgray',
-  position: 'absolute',
-  top: '-24px',
-  left: 'calc(50% - 24px)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-}));
-
 const ProductIcon: React.FC<ProductIconProps> = ({ product }) => {
   const iconPath = `/icons/${product.toLowerCase()}.png`;
 
   return (
-    <IconCircle>
-      <img src={iconPath} alt={product} style={{ width: '24px' }} />
-    </IconCircle>
+    <div className="w-12 h-12 bg-[#0E1113] border-2 border-[#1C2125] rounded-full absolute top-[-24px] left-[calc(50%-24px)] flex justify-center items-center">
+      <img src={iconPath} alt={product} className="w-6" />
+    </div>
   );
 };
 

@@ -1,6 +1,4 @@
 import React from 'react';
-import { FormControl, InputLabel, OutlinedInput, InputAdornment, Select, MenuItem } from '@mui/material';
-import { styled } from '@mui/system';
 
 interface Token {
   value: string;
@@ -15,14 +13,6 @@ interface InputBoxProps {
   showMaxButton?: boolean;
 }
 
-const StyledInputLabel = styled(InputLabel)({
-  color: 'white',
-});
-
-const StyledOutlinedInput = styled(OutlinedInput)({
-  color: 'white',
-});
-
 const InputBox: React.FC<InputBoxProps> = ({ tokens, label, showMaxButton = true }) => {
   const [selectedToken, setSelectedToken] = React.useState(tokens[0]);
 
@@ -32,43 +22,27 @@ const InputBox: React.FC<InputBoxProps> = ({ tokens, label, showMaxButton = true
   };
 
   return (
-    <FormControl fullWidth variant="outlined" sx={{ backgroundColor: '#4C4C4E', borderRadius: 1 }}>
-      <StyledInputLabel>{label}</StyledInputLabel>
-      <StyledOutlinedInput
-        startAdornment={
-          <InputAdornment position="start">
-            <img src={selectedToken.image} alt={selectedToken.label} style={{ width: '24px', marginRight: '8px' }} />
-          </InputAdornment>
-        }
-        endAdornment={
-          <InputAdornment position="end">
-            {showMaxButton && <button style={{ backgroundColor: 'white', marginRight: '8px', fontSize: '12px' }}>MAX</button>}
-            <Select
-              value={selectedToken.value}
-              onChange={handleTokenChange}
-              sx={{
-                color: 'white',
-                backgroundColor: '#2C2C2E',
-                borderRadius: 1,
-                borderColor: selectedToken.borderColor || 'white',
-              }}
-            >
-              {tokens.map((token) => (
-                <MenuItem key={token.value} value={token.value}>
-                  {token.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </InputAdornment>
-        }
-        label={label}
-        sx={{
-          '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: selectedToken.borderColor || 'white',
-          },
-        }}
-      />
-    </FormControl>
+    <div className="w-full bg-[#4C4C4E] rounded p-2">
+      <label className="block text-[#e1e1e1]">{label}</label>
+      <div className="flex items-center border-[2px] border-[#1C2125] bg-[#0E1113] p-1 rounded">
+        <img src={selectedToken.image} alt={selectedToken.label} className="w-6 mr-2" />
+        <input className="flex-grow text-[#e1e1e1] bg-transparent outline-none" />
+        {showMaxButton && (
+          <button className="bg-white text-[#0E1113] text-xs rounded mr-2 py-0.5 px-1">MAX</button>
+        )}
+        <select
+          value={selectedToken.value}
+          onChange={handleTokenChange}
+          className={`text-[#e1e1e1] bg-[#1C2125] border-[2px] border-${selectedToken.borderColor || '#e1e1e1'} p-1 rounded`}
+        >
+          {tokens.map((token) => (
+            <option key={token.value} value={token.value}>
+              {token.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
   );
 };
 
