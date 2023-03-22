@@ -17,13 +17,7 @@ module.exports = {
     config.resolve.fallback = {
       fs: false,
       path: false,
-      child_process: false,
-      net: false,
-      tls: false,
-      async_hooks: false,
-      request: false,
     };
-    config.externals.push(...["dtrace-provider", "fs", "mv", "os", "source-map-support"]);
     return config;
   },
   images: {

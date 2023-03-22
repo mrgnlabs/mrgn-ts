@@ -1,3 +1,5 @@
+require("./utils/errorHandling");
+
 import { Jupiter } from "@jup-ag/core";
 import { connection } from "./utils/connection";
 import { chunkedGetRawMultipleAccountInfos } from "./utils/chunks";
@@ -6,14 +8,16 @@ import { redis } from "./utils/redis";
 import { deserializeAccountInfosMap } from "./utils/accountInfos";
 import { wait } from "./utils/wait";
 import { ammsToExclude } from "./ammsToExclude";
-import { initLogging, logger } from "./utils/logger";
+import { getLogger, initTelemetry } from "./utils/logger";
+import { delayedShutdown } from "./utils/errorHandling";
+
+initTelemetry("rpc-fetcher");
+const logger = getLogger();
 
 /**
  * Fetch the accounts from the RPC server and publish them through redis.
  */
 async function main() {
-  initLogging();
-
   let lastUpdatedData = {
     value: process.uptime(),
   };
@@ -64,7 +68,7 @@ async function main() {
   setInterval(() => {
     if (process.uptime() - lastUpdatedData.value > 30) {
       logger.error("Data is not being updated. Exiting to allow restart.");
-      process.exit(1);
+      delayedShutdown();
     }
   }, 30_000);
 
@@ -132,13 +136,13 @@ async function main() {
       }
       await wait(2_000);
     } catch (e) {
-      console.error(e);
-      process.exit(1);
+      logger.error(e);
+      delayedShutdown();
     }
   }
 }
 
 main().catch((e) => {
-  console.error(e);
-  process.exit(1);
+  logger.error(e);
+  delayedShutdown();
 });

@@ -7,8 +7,6 @@ import * as fs from "fs";
 import path from "path";
 import { homedir } from "os";
 
-const Sentry = require("@sentry/node");
-
 dotenv.config();
 
 /*eslint sort-keys: "error"*/
@@ -39,38 +37,15 @@ let envSchema = z.object({
 
 type EnvSchema = z.infer<typeof envSchema>;
 
-export const env_config: EnvSchema = envSchema.parse(process.env);
+export function parseEnvConfig(): EnvSchema {
+  const env_config = envSchema.parse(process.env);
 
-if (env_config.MARGINFI_ACCOUNT_BLACKLIST && env_config.MARGINFI_ACCOUNT_WHITELIST) {
-  throw new Error("MARGINFI_ACCOUNT_BLACKLIST and MARGINFI_ACCOUNT_WHITELIST are mutually exclusive");
-}
-
-if (env_config.SENTRY) {
-  if (!env_config.SENTRY_DSN) {
-    throw new Error("SENTRY_DSN is required");
+  // Verify that the log name is provided unless logging is exclusively local
+  if (env_config.MARGINFI_ACCOUNT_BLACKLIST && env_config.MARGINFI_ACCOUNT_WHITELIST) {
+    throw new Error("MARGINFI_ACCOUNT_BLACKLIST and MARGINFI_ACCOUNT_WHITELIST are mutually exclusive");
   }
 
-  console.log("Initializing Sentry");
-
-  Sentry.init({ dsn: env_config.SENTRY_DSN });
-
-  Sentry.captureMessage("Starting Alpha Liquidator");
-}
-
-process.on("unhandledRejection", (up) => {
-  throw up;
-});
-
-export function captureException(err: any) {
-  if (env_config.SENTRY) {
-    Sentry.captureException(err);
-  }
-}
-
-export function captureMessage(message: string) {
-  if (env_config.SENTRY) {
-    Sentry.captureMessage(message);
-  }
+  return env_config;
 }
 
 function resolveHome(filepath: string) {

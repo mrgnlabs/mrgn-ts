@@ -1,3 +1,5 @@
+require("./utils/errorHandling");
+
 import { Jupiter } from "@jup-ag/core";
 import { AccountInfo, PublicKey } from "@solana/web3.js";
 import { isMainThread, Worker } from "worker_threads";
@@ -6,13 +8,17 @@ import { ammsToExclude } from "./ammsToExclude";
 import { connection } from "./utils/connection";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
 import { getConfig, MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { env_config } from "./config";
+import { parseEnvConfig } from "./config";
 import { Liquidator } from "./liquidator";
-import { initLogging, logger } from "./utils/logger";
+import { getLogger, initTelemetry } from "./utils/logger";
+import { delayedShutdown } from "./utils/errorHandling";
+
+const env_config = parseEnvConfig();
+initTelemetry("run-liquidator");
+const logger = getLogger();
 
 async function start() {
-  initLogging();
-  logger.info("Jupiter initializing");
+  logger.debug("Jupiter initializing");
 
   const wallet = new NodeWallet(env_config.WALLET_KEYPAIR);
 
@@ -46,11 +52,11 @@ async function start() {
   const worker = new Worker(__filename);
   worker.on("error", (err) => {
     logger.error(err);
-    process.exit(1);
+    delayedShutdown();
   });
   worker.on("exit", () => {
     logger.debug("Worker exited");
-    process.exit(1);
+    delayedShutdown();
   });
 
   // wait until the worker is ready`
@@ -138,14 +144,12 @@ async function start() {
 if (isMainThread) {
   logger.debug("Starting liquidator main thread");
   start().catch(e => {
-    logger.error("Error in liquidator main thread");
     logger.error(e);
-    process.exit(1);
+    delayedShutdown();
   });
 } else {
   runGetAccountInfosProcess().catch(e => {
-    logger.error("Error in liquidator cache updater worker");
     logger.error(e);
-    process.exit(1);
+    delayedShutdown();
   });
 }

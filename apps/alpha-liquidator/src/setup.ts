@@ -2,7 +2,9 @@ import { getConfig, MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-c
 import { getAssociatedTokenAddressSync, NodeWallet } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { env_config } from "./config";
+import { parseEnvConfig } from "./config";
+
+const env_config = parseEnvConfig();
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 

@@ -1,13 +1,15 @@
 import {
-  MarginfiAccount,
-  MarginRequirementType,
   Environment,
   getConfig,
+  MarginfiAccount,
   MarginfiClient,
+  MarginRequirementType,
 } from "@mrgnlabs/marginfi-client-v2";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
 import { Connection, Keypair } from "@solana/web3.js";
-import { env_config } from "./config";
+import { parseEnvConfig } from "./config";
+
+const env_config = parseEnvConfig();
 
 (async () => {
   const connection = new Connection(env_config.RPC_ENDPOINT, "confirmed");

@@ -6,6 +6,9 @@ module.exports = [
     script: path.join(__dirname, "../dist/rpcFetcher.js"),
     instances: 1,
     exec_mode: "fork",
+    args: [
+      "--color",
+    ],
   },
   {
     name: "liquidator",
@@ -15,5 +18,8 @@ module.exports = [
     env_development: {
       IS_DEV: "true",
     },
+    args: [
+      "--color",
+    ],
   },
 ];

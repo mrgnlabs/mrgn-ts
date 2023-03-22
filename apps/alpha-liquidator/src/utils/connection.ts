@@ -1,7 +1,9 @@
 import { Commitment, Connection } from "@solana/web3.js";
 import fetchRetry from "fetch-retry";
 import fetch from "cross-fetch";
-import { env_config } from "../config";
+import { parseEnvConfig } from "../config";
+
+const env_config = parseEnvConfig();
 
 export const commitment: Commitment = "confirmed";
 
