@@ -90,16 +90,20 @@ const COLOR_MAP: Record<string, Chalk> = {
 };
 
 const humanLogFormat = format.combine(
-  format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS Z" }),
+  format.timestamp(),
   format.errors({ stack: true }),
   format.printf((info: TransformableInfo) => {
     let msg;
-    if (info.serviceName)
-      msg = `${chalk.dim(info.timestamp)} ${chalk.bold.italic(info.serviceName)} ${COLOR_MAP[info.level].bold(
+    let timestamp: string;
+    if (typeof info.timestamp === "string") timestamp = info.timestamp;
+    else timestamp = info.timestamp.toISOString();
+
+    if (info.serviceName) {
+      msg = `${chalk.dim(timestamp)} ${chalk.bold.italic(info.serviceName)} ${COLOR_MAP[info.level].bold(
         info.level.toUpperCase(),
       )} ${info.message}`;
-    else {
-      msg = `${chalk.dim(info.timestamp)} ${COLOR_MAP[info.level].bold(info.level.toUpperCase())} ${info.message}`;
+    } else {
+      msg = `${chalk.dim(timestamp)} ${COLOR_MAP[info.level].bold(info.level.toUpperCase())} ${info.message}`;
     }
 
     if (info.level === "error" && info.stack) {
