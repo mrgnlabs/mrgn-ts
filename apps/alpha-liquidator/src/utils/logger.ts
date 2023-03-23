@@ -1,7 +1,8 @@
-import { initTelemetry as _initTelemetry, Logger, Tracer } from "@mrgnlabs/mrgn-telemetry";
+import { initTelemetry as _initTelemetry, Logger, setupErrorHooks, Tracer } from "@mrgnlabs/mrgn-telemetry";
 
 let logger: Logger;
 let tracer: Tracer;
+let delayedShutdown: (signal?: any) => void;
 
 function initTelemetry(serviceName: string): void {
   if (logger) {
@@ -12,6 +13,8 @@ function initTelemetry(serviceName: string): void {
   const telemetry = _initTelemetry(serviceName);
   logger = telemetry.logger;
   tracer = telemetry.tracer;
+
+  delayedShutdown = setupErrorHooks(logger);
 }
 
 function getLogger(): Logger {
@@ -28,4 +31,4 @@ function getTracer(): Tracer {
   return tracer;
 }
 
-export { initTelemetry, getLogger, getTracer };
+export { initTelemetry, getLogger, getTracer, delayedShutdown };

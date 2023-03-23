@@ -1,5 +1,3 @@
-require("./utils/errorHandling");
-
 import { Jupiter } from "@jup-ag/core";
 import { AccountInfo, PublicKey } from "@solana/web3.js";
 import { isMainThread, Worker } from "worker_threads";
@@ -10,12 +8,12 @@ import { NodeWallet } from "@mrgnlabs/mrgn-common";
 import { getConfig, MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { parseEnvConfig } from "./config";
 import { Liquidator } from "./liquidator";
-import { getLogger, initTelemetry } from "./utils/logger";
-import { delayedShutdown } from "./utils/errorHandling";
+import { delayedShutdown, getLogger, initTelemetry } from "./utils/logger";
 
-const env_config = parseEnvConfig();
 initTelemetry("run-liquidator");
 const logger = getLogger();
+
+const env_config = parseEnvConfig();
 
 async function start() {
   logger.debug("Jupiter initializing");

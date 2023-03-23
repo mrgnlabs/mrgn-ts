@@ -1,5 +1,3 @@
-require("./utils/errorHandling");
-
 import { Jupiter } from "@jup-ag/core";
 import { connection } from "./utils/connection";
 import { chunkedGetRawMultipleAccountInfos } from "./utils/chunks";
@@ -8,8 +6,7 @@ import { redis } from "./utils/redis";
 import { deserializeAccountInfosMap } from "./utils/accountInfos";
 import { wait } from "./utils/wait";
 import { ammsToExclude } from "./ammsToExclude";
-import { getLogger, initTelemetry } from "./utils/logger";
-import { delayedShutdown } from "./utils/errorHandling";
+import { delayedShutdown, getLogger, initTelemetry } from "./utils/logger";
 
 initTelemetry("rpc-fetcher");
 const logger = getLogger();
