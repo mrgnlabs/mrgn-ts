@@ -28,6 +28,7 @@
     "@solana/web3.js": "^1.73.0",
     "bignumber.js": "^9.1.1",
     "bn.js": "^5.2.1",
+    "d3": "^7.8.2",
     "next": "13.1.1",
     "react": "18.2.0",
     "react-circular-progressbar": "^2.1.0",
