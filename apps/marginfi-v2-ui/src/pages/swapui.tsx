@@ -1,6 +1,5 @@
 import React, { FC, useState, useEffect, MouseEvent } from 'react';
 import { ActionToggle } from '~/components/Swap/ActionToggle';
-import { HealthFactorGauge } from '~/components/Swap/HealthFactorGauge';
 import { InputBox } from '~/components/Swap/InputBox';
 
 import { useBanks, useProgram, useUserAccounts } from "~/context";
@@ -10,6 +9,44 @@ import { AssetRowAction } from '~/components/Swap/ActionButton';
 interface SwapUIProps {
   healthFactor: number;
 }
+
+const HalfCircularGauge = ({ percentage }: { percentage: number }) => {
+  const viewBox = "0 0 100 50";
+  const radius = 45;
+  const cx = 50;
+  const cy = 50 + 10;
+  const startAngle = -167;
+  const endAngle = -13;
+  const needleWidth = 2;
+  const gaugeColor = `rgb(${255 * (1 - percentage / 100) + 100}, ${255 * percentage / 100 + 100}, 100)`;
+  const needleColor = "#DCE85D";
+
+  // calculate the angle of the needle based on the percentage
+  const angle = startAngle + (endAngle - startAngle) * (percentage / 100);
+
+  // calculate the coordinates of the needle tip
+  const x = cx + radius * Math.cos(angle * Math.PI / 180);
+  const y = cy + radius * Math.sin(angle * Math.PI / 180);
+
+  return (
+    <svg
+      viewBox={viewBox} className="absolute h-[100px] w-[200px] left-[-68px] bottom-[32px] z-[-1]"
+    >
+      <path
+        d={`M ${cx - radius}, ${cy} A ${radius}, ${radius} 0 0 1 ${cx + radius}, ${cy}`}
+        stroke={gaugeColor}
+        strokeWidth={10}
+        fill="none"
+      />
+      <path
+        d={`M ${cx}, ${cy - 10} L ${x}, ${y}`}
+        stroke={needleColor}
+        strokeWidth={needleWidth}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+};
 
 const SwapUI: FC<SwapUIProps> = ({ healthFactor }) => {
   const { mfiClient } = useProgram();
@@ -46,11 +83,10 @@ const SwapUI: FC<SwapUIProps> = ({ healthFactor }) => {
       />
       <div className="h-[320px] w-[400px] flex flex-col items-center justify-between mx-auto rounded-2xl px-10 py-8 bg-[#0E1113] border-2 border-[#1C2125] gap-2">
         <div
-          className="absolute top-[82px]"
+          className="absolute top-[140px]"
         >
-          <div
-            className="w-[64px] h-[64px] flex justify-center items-center mx-auto rounded-full bg-[#0E1113] border-2 border-[#1C2125]"
-          >
+          <HalfCircularGauge percentage={healthFactor || 75 }/>
+          <div className="w-[64px] h-[64px] flex justify-center items-center mx-auto rounded-full bg-[#0E1113] border-2 border-[#1C2125]">
             {/* <img src={iconPath} alt={product} className="w-6" /> */}
           </div>
         </div>

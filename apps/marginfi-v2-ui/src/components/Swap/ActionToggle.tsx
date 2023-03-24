@@ -22,7 +22,7 @@ const ActionToggle: React.FC<ActionToggleProps> = ({ selectedAction, handleActio
   const options = ['Lend', 'Borrow', 'Lock', '⚡️stake'];
 
   return (
-    <div className="relative w-[340px] mx-auto mb-12">
+    <div className="relative w-[340px] mx-auto mb-[111px]">
       <ToggleButtonGroup
         value={selectedAction}
         exclusive
