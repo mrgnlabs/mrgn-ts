@@ -1,4 +1,10 @@
 import React, { FC, useState, useEffect, MouseEvent } from 'react';
+
+import LockIcon from '@mui/icons-material/Lock';
+import YardIcon from '@mui/icons-material/Yard';
+import HailIcon from '@mui/icons-material/Hail';
+import BoltIcon from '@mui/icons-material/Bolt';
+
 import { ActionToggle } from '~/components/Swap/ActionToggle';
 import { InputBox } from '~/components/Swap/InputBox';
 
@@ -6,9 +12,24 @@ import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { AssetRowAction } from '~/components/Swap/ActionButton';
 
-interface SwapUIProps {
-  healthFactor: number;
-}
+const products = [
+  {
+    name: 'Lend',
+    icon: <YardIcon className="h-[60%] w-[60%]" style={{ color: '#1C2125' }}/>,
+  },
+  {
+    name: 'Borrow',
+    icon: <HailIcon className="h-[60%] w-[60%]" style={{ color: '#1C2125' }}/>,
+  },
+  {
+    name: 'Lock',
+    icon: <LockIcon className="h-[60%] w-[60%]" style={{ color: '#1C2125' }}/>,
+  },
+  {
+    name: '⚡️stake',
+    icon: <BoltIcon className="h-[60%] w-[60%]" style={{ color: '#DCE85D' }}/>,
+  },
+]
 
 const HalfCircularGauge = ({ percentage }: { percentage: number }) => {
   const viewBox = "0 0 100 50";
@@ -48,6 +69,10 @@ const HalfCircularGauge = ({ percentage }: { percentage: number }) => {
   );
 };
 
+interface SwapUIProps {
+  healthFactor: number;
+}
+
 const SwapUI: FC<SwapUIProps> = ({ healthFactor }) => {
   const { mfiClient } = useProgram();
   const { reload } = useBanks();
@@ -78,6 +103,7 @@ const SwapUI: FC<SwapUIProps> = ({ healthFactor }) => {
   return (
     <div className="p-4 mt-2 w-full relative">
       <ActionToggle
+        products={products}
         selectedAction={selectedAction}
         handleActionChange={handleActionChange}
       />
@@ -85,9 +111,13 @@ const SwapUI: FC<SwapUIProps> = ({ healthFactor }) => {
         <div
           className="absolute top-[140px]"
         >
-          <HalfCircularGauge percentage={healthFactor || 75 }/>
+          <HalfCircularGauge
+            percentage={healthFactor || 75 }
+          />
           <div className="w-[64px] h-[64px] flex justify-center items-center mx-auto rounded-full bg-[#0E1113] border-2 border-[#1C2125]">
-            {/* <img src={iconPath} alt={product} className="w-6" /> */}
+            {
+              products.find(p => p.name === selectedAction)?.icon
+            }
           </div>
         </div>
         {
