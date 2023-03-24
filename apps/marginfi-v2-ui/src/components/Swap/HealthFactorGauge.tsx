@@ -24,4 +24,4 @@ const HealthFactorGauge: React.FC<HealthFactorGaugeProps> = ({ healthFactor }) =
   );
 };
 
-export default HealthFactorGauge;
+export { HealthFactorGauge };

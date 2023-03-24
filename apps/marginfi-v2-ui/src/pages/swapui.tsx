@@ -1,23 +1,33 @@
-import React, { FC, useState, MouseEvent } from 'react';
-import ActionToggle from '~/components/Swap/ActionToggle';
-import InputBox from '~/components/Swap/InputBox';
-// import ProductIcon from '~/components/Swap/ProductIcon';
-import HealthFactorGauge from '~/components/Swap/HealthFactorGauge';
+import React, { FC, useState, useEffect, MouseEvent } from 'react';
+import { ActionToggle } from '~/components/Swap/ActionToggle';
+import { HealthFactorGauge } from '~/components/Swap/HealthFactorGauge';
+import { InputBox } from '~/components/Swap/InputBox';
 
-interface Token {
-  value: string;
-  label: string;
-  image: string;
-  borderColor?: string;
-}
+import { useBanks, useProgram, useUserAccounts } from "~/context";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { AssetRowAction } from '~/components/Swap/ActionButton';
 
 interface SwapUIProps {
-  tokens: Token[];
   healthFactor: number;
 }
 
-const SwapUI: FC<SwapUIProps> = ({ tokens, healthFactor }) => {
+const SwapUI: FC<SwapUIProps> = ({ healthFactor }) => {
+  const { mfiClient } = useProgram();
+  const { reload } = useBanks();
+  const { extendedBankInfos, selectedAccount, nativeSolBalance } = useUserAccounts();
+  const wallet = useWallet();
+  
   const [selectedAction, setSelectedAction] = useState('Lend');
+
+  // Hack required to circumvent rehydration error
+  // @todo do we still need this in this UI?
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+  if (!hasMounted) {
+    return null;
+  }
 
   const handleActionChange = (
     event: MouseEvent<HTMLElement>,
@@ -26,7 +36,7 @@ const SwapUI: FC<SwapUIProps> = ({ tokens, healthFactor }) => {
     if (newAction) setSelectedAction(newAction);
   };
 
-  const inputBoxLabel = selectedAction === 'Borrow' ? 'Lend' : selectedAction;
+  const topInputBoxLabel = selectedAction === 'Borrow' ? 'Lend' : selectedAction;
 
   return (
     <div className="p-4 mt-2 w-full relative">
@@ -34,21 +44,46 @@ const SwapUI: FC<SwapUIProps> = ({ tokens, healthFactor }) => {
         selectedAction={selectedAction}
         handleActionChange={handleActionChange}
       />
-      <div className="w-4/5 md:w-2/3 max-w-[400px] mx-auto flex flex-col items-center">
-        <HealthFactorGauge healthFactor={healthFactor} />
-        <div className="absolute mt-16 space-y-4 bg-transparent min-h-[400px] min-w-[400px] z-10">
-          {/* <InputBox tokens={tokens} label={inputBoxLabel} /> */}
-          {/* {selectedAction === 'Borrow' && (
-            <InputBox tokens={tokens} label="Borrow" />
-          )}
-          <div className="flex justify-center">
-            <ProductIcon product={selectedAction} />
+      <div className="h-[320px] w-[400px] flex flex-col items-center justify-between mx-auto rounded-2xl px-10 py-8 bg-[#0E1113] border-2 border-[#1C2125] gap-2">
+        <div
+          className="absolute top-[82px]"
+        >
+          <div
+            className="w-[64px] h-[64px] flex justify-center items-center mx-auto rounded-full bg-[#0E1113] border-2 border-[#1C2125]"
+          >
+            {/* <img src={iconPath} alt={product} className="w-6" /> */}
           </div>
-          <div className="flex justify-center">
-            <button className="bg-gray-600 text-[#e1e1e1] px-4 py-2">
-              {selectedAction}
-            </button>
-          </div> */}
+        </div>
+        {
+          extendedBankInfos.length > 0 && (
+            <div className="gap-1">
+              <InputBox
+                // value, 
+                // setValue, 
+                // maxValue, 
+                // maxDecimals, 
+                // disabled,
+                extendedBankInfos={extendedBankInfos}
+                label={topInputBoxLabel}
+                top={true}
+              />
+              {selectedAction === 'Borrow' && (
+                <InputBox
+                  // value, 
+                  // setValue, 
+                  // maxValue, 
+                  // maxDecimals, 
+                  // disabled,
+                  extendedBankInfos={extendedBankInfos}
+                  label="Borrow"
+                  top={false}
+                />
+              )}
+            </div>
+          )
+        }
+        <div className="flex flex-col justify-center">
+          <AssetRowAction>{selectedAction}</AssetRowAction>
         </div>
       </div>
     </div>
