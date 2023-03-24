@@ -44,6 +44,19 @@ interface TokenAccount {
 
 type TokenAccountMap = Map<string, TokenAccount>;
 
+interface Product {
+  name: string;
+  icon: React.ReactElement;
+}
+
+enum ProductType {
+  Lend = "Lend",
+  Borrow = "Borrow",
+  Short = "Short",
+  Superstake = '⚡️stake',
+  // Lock = "Lock",
+}
+
 enum ActionType {
   Deposit = "Deposit",
   Borrow = "Borrow",
@@ -78,4 +91,4 @@ export type {
   ExtendedBankInfo,
 };
 
-export { ActionType, isActiveBankInfo };
+export { ActionType, Product, ProductType, isActiveBankInfo };

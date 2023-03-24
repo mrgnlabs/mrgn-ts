@@ -2,6 +2,12 @@ import { PublicKey } from "@solana/web3.js";
 import { getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { getConfig as getLipConfig } from "@mrgnlabs/lip-client";
 
+import LockIcon from '@mui/icons-material/Lock';
+import YardIcon from '@mui/icons-material/Yard';
+import HailIcon from '@mui/icons-material/Hail';
+import BoltIcon from '@mui/icons-material/Bolt';
+import { Product, ProductType } from "./types";
+
 // ================
 // MAIN APP CONFIG
 // ================
@@ -12,6 +18,27 @@ let campaignWhitelist: { icon: string; size: number; publicKey: string }[];
 const environment = process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT;
 const rpcEndpointOverride = process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE;
 const groupOverride = process.env.NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE;
+
+// const x = () => (<YardIcon />)
+
+const productsConfig = {
+  [ProductType.Lend]: {
+    name: 'Lend',
+    // icon: x,
+  },
+  [ProductType.Borrow]: {
+    name: 'Borrow',
+    // icon: x,
+  },
+  [ProductType.Short]: {
+    name: 'Short',
+    // icon: x,
+  },
+  [ProductType.Superstake]: {
+    name: '⚡️stake',
+    // icon: x,
+  },
+}
 
 switch (environment) {
   case "production":
@@ -82,6 +109,7 @@ switch (environment) {
 }
 
 const config = {
+  productsConfig,
   mfiConfig,
   rpcEndpoint,
   devFaucetAddress,
