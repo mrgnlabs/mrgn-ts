@@ -1,9 +1,5 @@
 import React, { FC, useState, useEffect, MouseEvent } from 'react';
-
-import LockIcon from '@mui/icons-material/Lock';
-import YardIcon from '@mui/icons-material/Yard';
-import HailIcon from '@mui/icons-material/Hail';
-import BoltIcon from '@mui/icons-material/Bolt';
+import Image from 'next/image';
 
 import { ActionToggle } from '~/components/Swap/ActionToggle';
 import { InputBox } from '~/components/Swap/InputBox';
@@ -11,25 +7,27 @@ import { InputBox } from '~/components/Swap/InputBox';
 import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { AssetRowAction } from '~/components/Swap/ActionButton';
+import { ProductType } from '~/types';
+import config from '~/config';
 
-const products = [
-  {
-    name: 'Lend',
-    icon: <YardIcon className="h-[60%] w-[60%]" style={{ color: '#1C2125' }}/>,
-  },
-  {
-    name: 'Borrow',
-    icon: <HailIcon className="h-[60%] w-[60%]" style={{ color: '#1C2125' }}/>,
-  },
-  {
-    name: 'Lock',
-    icon: <LockIcon className="h-[60%] w-[60%]" style={{ color: '#1C2125' }}/>,
-  },
-  {
-    name: '⚡️stake',
-    icon: <BoltIcon className="h-[60%] w-[60%]" style={{ color: '#DCE85D' }}/>,
-  },
-]
+// const products = [
+//   {
+//     name: 'Lend',
+//     icon: <YardIcon className="h-[60%] w-[60%]" style={{ color: '#1C2125' }}/>,
+//   },
+//   {
+//     name: 'Borrow',
+//     icon: <HailIcon className="h-[60%] w-[60%]" style={{ color: '#1C2125' }}/>,
+//   },
+//   {
+//     name: 'Lock',
+//     icon: <LockIcon className="h-[60%] w-[60%]" style={{ color: '#1C2125' }}/>,
+//   },
+//   {
+//     name: '⚡️stake',
+//     icon: <BoltIcon className="h-[60%] w-[60%]" style={{ color: '#DCE85D' }}/>,
+//   },
+// ]
 
 const HalfCircularGauge = ({ percentage }: { percentage: number }) => {
   const viewBox = "0 0 100 50";
@@ -79,7 +77,7 @@ const SwapUI: FC<SwapUIProps> = ({ healthFactor }) => {
   const { extendedBankInfos, selectedAccount, nativeSolBalance } = useUserAccounts();
   const wallet = useWallet();
   
-  const [selectedAction, setSelectedAction] = useState('Lend');
+  const [selectedAction, setSelectedAction] = useState(ProductType.Lend);
 
   // Hack required to circumvent rehydration error
   // @todo do we still need this in this UI?
@@ -98,12 +96,12 @@ const SwapUI: FC<SwapUIProps> = ({ healthFactor }) => {
     if (newAction) setSelectedAction(newAction);
   };
 
-  const topInputBoxLabel = selectedAction === 'Borrow' ? 'Lend' : selectedAction;
+  const topInputBoxLabel = selectedAction.name === ProductType.Borrow ? 'Lend' : selectedAction.name;
 
   return (
     <div className="p-4 mt-2 w-full relative">
       <ActionToggle
-        products={products}
+        // products={config.productsConfig}
         selectedAction={selectedAction}
         handleActionChange={handleActionChange}
       />
@@ -115,9 +113,7 @@ const SwapUI: FC<SwapUIProps> = ({ healthFactor }) => {
             percentage={healthFactor || 75 }
           />
           <div className="w-[64px] h-[64px] flex justify-center items-center mx-auto rounded-full bg-[#0E1113] border-2 border-[#1C2125]">
-            {
-              products.find(p => p.name === selectedAction)?.icon
-            }
+            <Image src="/marginfi_logo.png" alt="marginfi logo" height={32} width={32} className="pb-1" />
           </div>
         </div>
         {
@@ -133,7 +129,7 @@ const SwapUI: FC<SwapUIProps> = ({ healthFactor }) => {
                 label={topInputBoxLabel}
                 top={true}
               />
-              {selectedAction === 'Borrow' && (
+              {selectedAction.name === ProductType.Borrow && (
                 <InputBox
                   // value, 
                   // setValue, 
@@ -149,7 +145,7 @@ const SwapUI: FC<SwapUIProps> = ({ healthFactor }) => {
           )
         }
         <div className="flex flex-col justify-center">
-          <AssetRowAction>{selectedAction}</AssetRowAction>
+          <AssetRowAction>{selectedAction.name}</AssetRowAction>
         </div>
       </div>
     </div>
