@@ -1,12 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 import { getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { getConfig as getLipConfig } from "@mrgnlabs/lip-client";
-
-import LockIcon from '@mui/icons-material/Lock';
-import YardIcon from '@mui/icons-material/Yard';
-import HailIcon from '@mui/icons-material/Hail';
-import BoltIcon from '@mui/icons-material/Bolt';
-import { Product, ProductType } from "./types";
+import { ProductType } from "./types";
 
 // ================
 // MAIN APP CONFIG
@@ -21,24 +16,28 @@ const groupOverride = process.env.NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE;
 
 // const x = () => (<YardIcon />)
 
-const productsConfig = {
+export interface Product {
+  type: ProductType;
+}
+
+const PRODUCTS_CONFIG: Record<ProductType, Product> = {
   [ProductType.Lend]: {
-    name: 'Lend',
+    type: ProductType.Lend,
     // icon: x,
   },
   [ProductType.Borrow]: {
-    name: 'Borrow',
+    type: ProductType.Borrow,
     // icon: x,
   },
   [ProductType.Short]: {
-    name: 'Short',
+    type: ProductType.Short,
     // icon: x,
   },
   [ProductType.Superstake]: {
-    name: '⚡️stake',
+    type: ProductType.Superstake,
     // icon: x,
   },
-}
+};
 
 switch (environment) {
   case "production":
@@ -109,7 +108,7 @@ switch (environment) {
 }
 
 const config = {
-  productsConfig,
+  PRODUCTS_CONFIG,
   mfiConfig,
   rpcEndpoint,
   devFaucetAddress,
