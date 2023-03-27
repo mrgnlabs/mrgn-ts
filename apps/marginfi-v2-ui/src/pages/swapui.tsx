@@ -9,7 +9,7 @@ import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
 const getProductScreen = (
   selectedProduct: ProductType,
-  setProjectedDelta: (projectedHealthComponentDelta: number) => void
+  setProjectedDelta: (projectedHealthComponentDelta: { assets: number; liabilities: number }) => void
 ) => {
   switch (selectedProduct) {
     case ProductType.Lend:
@@ -22,17 +22,17 @@ const SwapUI: FC = () => {
   const { selectedAccount } = useUserAccounts();
 
   const [selectedProduct, setSelectedProduct] = useState<ProductType>(ProductType.Lend);
-  const [projectedDelta, setProjectedDelta] = useState<number>(0);
+  const [projectedDelta, setProjectedDelta] = useState<{ assets: number; liabilities: number }>({
+    assets: 0,
+    liabilities: 0,
+  });
 
   const healthFactor = useMemo(() => {
     if (selectedAccount) {
       let { assets, liabilities } = selectedAccount.getHealthComponents(MarginRequirementType.Maint);
 
-      if (projectedDelta > 0) {
-        assets = assets.plus(projectedDelta);
-      } else if (projectedDelta < 0) {
-        liabilities = liabilities.plus(Math.abs(projectedDelta));
-      }
+      assets = assets.plus(projectedDelta.assets);
+      liabilities = liabilities.plus(projectedDelta.liabilities);
 
       return assets.isZero() ? 1 : assets.minus(liabilities).dividedBy(assets).toNumber();
     } else {

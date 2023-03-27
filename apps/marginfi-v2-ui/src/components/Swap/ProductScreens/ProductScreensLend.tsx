@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { groupedNumberFormatterDyn, percentFormatterDyn, usdFormatter } from "~/utils/formatters";
 import { MarginRequirementType, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import BigNumber from "bignumber.js";
+import { Checkbox } from "@mui/material";
 
 const DEPOSIT_OR_WITHDRAW_TOAST_ID = "deposit-or-withdraw";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
@@ -17,9 +18,9 @@ function filterLendingBanks(banks: ExtendedBankInfo[]) {
   return banks.filter((bank) => !bank.hasActivePosition || (bank.hasActivePosition && bank.position.isLending));
 }
 
-const ProductScreensLend: FC<{ setProjectedDelta: (projectedHealthComponentDelta: number) => void }> = ({
-  setProjectedDelta,
-}) => {
+const ProductScreensLend: FC<{
+  setProjectedDelta: (projectedHealthComponentDelta: { assets: number; liabilities: number }) => void;
+}> = ({ setProjectedDelta }) => {
   const { extendedBankInfos, selectedAccount } = useUserAccounts();
   const { tokenAccountMap } = useTokenAccounts();
   const { mfiClient } = useProgram();
@@ -200,30 +201,32 @@ const ProductScreensLend: FC<{ setProjectedDelta: (projectedHealthComponentDelta
   useEffect(() => {
     if (!selectedBank) return;
     if (depositOrWithdrawAmount === 0) {
-      setProjectedDelta(0);
+      setProjectedDelta({ assets: 0, liabilities: 0 });
       return;
     } else if (isInDepositMode) {
-      setProjectedDelta(
-        selectedBank.bank
+      setProjectedDelta({
+        assets: selectedBank.bank
           .getUsdValue(
             new BigNumber(depositOrWithdrawAmount),
             PriceBias.Lowest,
             selectedBank.bank.getAssetWeight(MarginRequirementType.Maint),
             false
           )
-          .toNumber()
-      );
+          .toNumber(),
+        liabilities: 0,
+      });
     } else {
-      setProjectedDelta(
-        -selectedBank.bank
+      setProjectedDelta({
+        assets: -selectedBank.bank
           .getUsdValue(
             new BigNumber(depositOrWithdrawAmount),
             PriceBias.Highest,
             selectedBank.bank.getLiabilityWeight(MarginRequirementType.Maint),
             false
           )
-          .toNumber()
-      );
+          .toNumber(),
+        liabilities: 0,
+      });
     }
   }, [depositOrWithdrawAmount, selectedBank, isInDepositMode, setProjectedDelta]);
 
@@ -255,10 +258,18 @@ const ProductScreensLend: FC<{ setProjectedDelta: (projectedHealthComponentDelta
         />
 
         {selectedBank.hasActivePosition && (
-          <div className="block text-[#e1e1e1] text-sm px-0.5 pt-2">
-            <b>Current deposit</b>: {groupedNumberFormatterDyn.format(selectedBank.position.amount)} (
-            {usdFormatter.format(selectedBank.position.usdValue)})
-          </div>
+          <>
+            <div className="block text-[#e1e1e1] text-sm px-0.5 pt-2">
+              <b>Current deposit</b>: {groupedNumberFormatterDyn.format(selectedBank.position.amount)} (
+              {usdFormatter.format(selectedBank.position.usdValue)})
+            </div>
+            <Checkbox
+              onClick={() => setIsInDepositMode((isInDepositMode) => !isInDepositMode)}
+              checked={!isInDepositMode}
+              style={{ color: "#e1e1e1" }}
+            />
+            Withdraw
+          </>
         )}
       </div>
       <div className="flex flex-col gap-2">
