@@ -33,6 +33,15 @@ const ProductScreensLend: FC<{
   const [depositOrWithdrawAmount, setDepositOrWithdrawAmount] = useState<number>(0);
   const [isInDepositMode, setIsInDepositMode] = useState<boolean>(true);
 
+  const maxAmount = useMemo(() => {
+    if (!selectedBank) return undefined;
+    if (isInDepositMode) {
+      return selectedBank.maxDeposit;
+    } else {
+      return selectedBank.maxWithdraw;
+    }
+  }, [selectedBank, isInDepositMode]);
+
   const depositOrWithdraw = useCallback(async () => {
     if (mfiClient === null || !selectedBank) return; // @todo: use spinner on associated button to prevent hitting that
 
@@ -220,8 +229,8 @@ const ProductScreensLend: FC<{
         assets: -selectedBank.bank
           .getUsdValue(
             new BigNumber(depositOrWithdrawAmount),
-            PriceBias.Highest,
-            selectedBank.bank.getLiabilityWeight(MarginRequirementType.Maint),
+            PriceBias.Lowest,
+            selectedBank.bank.getAssetWeight(MarginRequirementType.Maint),
             false
           )
           .toNumber(),
@@ -249,9 +258,7 @@ const ProductScreensLend: FC<{
         <BankInputBox
           value={depositOrWithdrawAmount}
           setValue={setDepositOrWithdrawAmount}
-          // maxValue
-          // maxDecimals
-          // disabled
+          maxValue={maxAmount}
           selectedBank={selectedBank}
           setSelectedBank={setSelectedBank}
           banks={extendedBankInfos}

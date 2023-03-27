@@ -3,9 +3,9 @@ import Image from "next/image";
 import { ProductSelector } from "~/components/Swap/ProductSelector";
 import { HalfCircularGauge } from "~/components/Swap/Gauge";
 import { ProductType } from "~/types";
-import { ProductScreensLend } from "~/components/Swap/ProductScreens/ProductScreensLend";
 import { useUserAccounts } from "~/context";
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
+import { ProductScreensBorrow, ProductScreensLend } from "~/components/Swap/ProductScreens";
 
 const getProductScreen = (
   selectedProduct: ProductType,
@@ -14,6 +14,8 @@ const getProductScreen = (
   switch (selectedProduct) {
     case ProductType.Lend:
       return <ProductScreensLend setProjectedDelta={setProjectedDelta} />;
+    case ProductType.Borrow:
+      return <ProductScreensBorrow setProjectedDelta={setProjectedDelta} />;
     default:
       return null;
   }
@@ -34,7 +36,7 @@ const SwapUI: FC = () => {
       assets = assets.plus(projectedDelta.assets);
       liabilities = liabilities.plus(projectedDelta.liabilities);
 
-      return assets.isZero() ? 1 : assets.minus(liabilities).dividedBy(assets).toNumber();
+      return assets.isZero() ? 1 : Math.min(1, Math.max(0, assets.minus(liabilities).dividedBy(assets).toNumber()));
     } else {
       return 1;
     }
