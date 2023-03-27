@@ -65,7 +65,7 @@ export interface BankInfoForAccountBase extends BankInfo {
   maxRepay: number; // max amount user can repay
   maxWithdraw: number; // max amount user can withdraw
   maxBorrow: number; // max amount user can borrow
-  intrinsicColor: string; // associated color for the token
+  intrinsicColor?: string; // associated color for the token
 }
 
 type ActiveBankInfo = BankInfoForAccountBase & { hasActivePosition: true; position: UserPosition };
