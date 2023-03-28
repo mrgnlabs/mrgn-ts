@@ -20,6 +20,18 @@
       {
         "label": "BONK",
         "address": "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM"
+      },
+      {
+        "label": "USDT",
+        "address": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV"
+      },
+      {
+        "label": "ETH",
+        "address": "BkUyfXjbBBALcfZvw76WAFRvYQ21xxMWWeoPtJrUqG3z"
+      },
+      {
+        "label": "WBTC",
+        "address": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a"
       }
     ]
   },

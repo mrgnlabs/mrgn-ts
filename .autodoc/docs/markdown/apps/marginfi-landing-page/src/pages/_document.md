@@ -1,0 +1,28 @@
+[View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/apps/marginfi-landing-page/src/pages/_document.tsx)
+
+The code above is a React component that exports a default function called `Document`. This function returns a JSX element that represents the HTML document structure for a Next.js application. 
+
+The `Html` component is used to define the root element of the HTML document and includes an attribute `lang` set to "en" to specify the language of the document. The `Head` component is used to define the head section of the HTML document, which includes metadata, links to stylesheets, and other resources. In this case, the `Head` component is empty, so it does not include any additional resources.
+
+The `body` element is used to define the body section of the HTML document, which includes the content of the page. The `className` attribute is set to "no-scrollbar", which is a custom CSS class that can be used to style the page. The `Main` component is used to define the main content of the page, and the `NextScript` component is used to include the necessary scripts for the page to function properly.
+
+This component is used by Next.js to generate the HTML document for each page of the application. It provides a consistent structure for the HTML document and allows for customization of the head and body sections of the document. 
+
+For example, if we wanted to add a custom stylesheet to the head section of the document, we could modify the `Head` component to include a `link` element with the appropriate attributes:
+
+```
+<Head>
+  <link rel="stylesheet" href="/custom.css" />
+</Head>
+```
+
+Overall, this code is an important part of the Next.js application and provides a foundation for the HTML document structure.
+## Questions: 
+ 1. What is the purpose of this code?
+   This code is defining a custom Next.js Document component that sets the language of the HTML to English and includes a Head, Main, and NextScript component in the body.
+
+2. What is the significance of the "no-scrollbar" class in the body tag?
+   The "no-scrollbar" class is likely used to remove the scrollbar from the body element, which can be useful for certain design layouts.
+
+3. What is the relationship between this file and the rest of the mrgn-ts project?
+   This file is likely used as part of the overall layout and structure of the mrgn-ts project, as it defines the base HTML document that is used for all pages in the project.

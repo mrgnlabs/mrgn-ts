@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rimraf dist node_modules",
     "build": "tsc -p tsconfig.json",
-    "dev": "tsc-watch -p tsconfig.json --onCompilationComplete 'yarn build' --onSuccess 'yarn serve'",
+    "watch": "tsc-watch -p tsconfig.json --onCompilationComplete 'yarn build' --onSuccess 'yarn serve'",
     "setup": "ts-node src/setup.ts",
     "inspect": "ts-node src/inspect.ts",
     "serve": "pm2-runtime scripts/pm2.config.js"

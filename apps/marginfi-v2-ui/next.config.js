@@ -27,6 +27,12 @@ module.exports = {
       },
       {
         protocol: "https",
+        hostname: "raw.githubusercontent.com",
+        port: "",
+        pathname: "/certusone/wormhole-token-list/main/assets/**",
+      },
+      {
+        protocol: "https",
         hostname: "cryptologos.cc",
         port: "",
         pathname: "/logos/**",

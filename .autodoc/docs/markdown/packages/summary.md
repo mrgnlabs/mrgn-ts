@@ -1,0 +1,13 @@
+[View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/.autodoc/docs/json/packages)
+
+The `eslint-config-custom` folder in the `mrgn-ts` project contains a configuration object that provides linting rules and configuration settings for the project. This configuration object extends three different configurations: "next", "turbo", and "prettier". The "next" configuration likely refers to the Next.js framework, while the "prettier" configuration enforces consistent code style across the project. The "turbo" configuration is specific to the mrgn-ts project.
+
+Developers can use this configuration object in a Next.js project's `package.json` file to ensure consistent code style and enforce certain best practices for React development. For example, the "react-hooks" rules are set to "error" and "warn", respectively, which likely means that the project enforces the use of React hooks and warns developers when they may have missed a dependency in a useEffect hook.
+
+The `lip-client` folder contains reusable React components that can be used throughout the project. These components are organized into subfolders based on their purpose, such as the `common` folder for components used across the project and the `dashboard` folder for components specific to the project's dashboard. Developers can import these components into their code and use them like any other React component.
+
+The `marginfi-client-v2` folder contains code related to the client-side of the `mrgn-ts` project, specifically for interacting with the Marginfi protocol on the Solana blockchain. The `tsconfig.json` files in the `.autodoc/docs/json/packages/tsconfig` folder provide configuration settings for the TypeScript compiler used in the project, ensuring that the TypeScript code is compiled correctly and can be executed in a browser or a Node.js environment.
+
+The `mrgn-common` folder contains a class called `NodeWallet` that provides a way to manage Solana keypairs and sign transactions on the Solana blockchain. This class is used in various parts of the `mrgn-ts` project to interact with the Solana blockchain.
+
+Overall, these files and folders work together to provide a cohesive and well-structured TypeScript library for interacting with the Marginfi protocol on the Solana blockchain. Developers can use the reusable React components in the `lip-client` folder to build the client-side of their applications, while the `mrgn-common` folder provides a way to interact with the Solana blockchain. The configuration files in the `.autodoc/docs/json/packages/tsconfig` folder ensure that the TypeScript code is compiled correctly and can be executed in a browser or a Node.js environment.
