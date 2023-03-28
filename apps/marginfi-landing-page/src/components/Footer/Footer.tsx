@@ -1,13 +1,9 @@
 import { FC } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { NavbarCenterItem } from "./NavbarCenterItem";
-import { Button } from "@mui/material";
-import styles from "./Footer.module.css";
 
 // @todo implement second pretty navbar row
 const Footer: FC = () => {
-
   return (
     <header>
       <nav className="fixed w-full bottom-0 h-[64px] z-10">
@@ -19,7 +15,7 @@ const Footer: FC = () => {
         >
           <div className="h-full relative flex justify-start items-center z-10">
             <Link href={"https://docs.marginfi.com"}>
-              <NavbarCenterItem text="Docs"/>
+              <NavbarCenterItem text="Docs" />
             </Link>
             <Link href={"https://analytics.marginfi.com"}>
               <NavbarCenterItem text="Analytics" />
@@ -30,9 +26,9 @@ const Footer: FC = () => {
           </div>
           <div className="absolute fixed left-0 right-0 flex justify-center items-center w-full h-full invisible lg:visible">
             <div className="h-full w-[28%] flex min-w-fit max-w-[600px]">
-            <Link href={"https://app.marginfi.com/"}>
-              <NavbarCenterItem text="marginfi is a decentralized lending and borrowing protocol on Solana." />
-            </Link>
+              <Link href={"https://app.marginfi.com/"}>
+                <NavbarCenterItem text="marginfi is a decentralized lending and borrowing protocol on Solana." />
+              </Link>
             </div>
           </div>
           <div className="h-full relative flex justify-start items-center z-10">
@@ -43,7 +39,7 @@ const Footer: FC = () => {
               <NavbarCenterItem text="Telegram" />
             </Link>
             <Link href={"https://app.marginfi.com/"}>
-              <NavbarCenterItem text="© 2023 MRGN, Inc." disabled/>
+              <NavbarCenterItem text="© 2023 MRGN, Inc." disabled />
             </Link>
           </div>
         </div>

@@ -62,10 +62,10 @@ async function start() {
     worker.on(
       "message",
       ({
-         type,
-         contextSlot,
-         accountInfosMap,
-       }: {
+        type,
+        contextSlot,
+        accountInfosMap,
+      }: {
         type: string;
         contextSlot: number;
         accountInfosMap: Map<string, AccountInfo<Buffer>>;
@@ -124,7 +124,7 @@ async function start() {
         if (!resolved) {
           resolve();
         }
-      },
+      }
     );
   });
 
@@ -132,18 +132,26 @@ async function start() {
   const client = await MarginfiClient.fetch(config, wallet, connection);
 
   const liquidatorAccount = await MarginfiAccount.fetch(env_config.LIQUIDATOR_PK, client);
-  const liquidator = new Liquidator(connection, liquidatorAccount, client, wallet, jupiter, env_config.MARGINFI_ACCOUNT_WHITELIST, env_config.MARGINFI_ACCOUNT_BLACKLIST);
+  const liquidator = new Liquidator(
+    connection,
+    liquidatorAccount,
+    client,
+    wallet,
+    jupiter,
+    env_config.MARGINFI_ACCOUNT_WHITELIST,
+    env_config.MARGINFI_ACCOUNT_BLACKLIST
+  );
   await liquidator.start();
 }
 
 if (isMainThread) {
   console.log("Starting liquidator main thread");
-  start().catch(e => {
+  start().catch((e) => {
     console.log(e);
     process.exit(1);
   });
 } else {
-  runGetAccountInfosProcess().catch(e => {
+  runGetAccountInfosProcess().catch((e) => {
     console.log(e);
     process.exit(1);
   });

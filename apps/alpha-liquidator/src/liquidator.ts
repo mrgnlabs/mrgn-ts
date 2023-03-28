@@ -33,9 +33,8 @@ class Liquidator {
     readonly wallet: NodeWallet,
     readonly jupiter: Jupiter,
     readonly account_whitelist: PublicKey[] | undefined,
-    readonly account_blacklist: PublicKey[] | undefined,
-  ) {
-  }
+    readonly account_blacklist: PublicKey[] | undefined
+  ) {}
 
   get group() {
     return this.client.group;
@@ -197,7 +196,7 @@ class Liquidator {
         liabilities,
         MarginRequirementType.Equity,
         // We might need to use a Higher price bias to account for worst case scenario.
-        PriceBias.None,
+        PriceBias.None
       );
 
       // We can possibly withdraw some usdc from the lending account if we are short.
@@ -222,7 +221,7 @@ class Liquidator {
 
       const liabBalance = BigNumber.min(
         await this.getTokenAccountBalance(bank.mint, true),
-        new BigNumber(nativeToUi(liabilities, bank.mintDecimals)),
+        new BigNumber(nativeToUi(liabilities, bank.mintDecimals))
       );
 
       debug("Got %s of %s, depositing to marginfi", liabBalance, bank.mint);
@@ -268,17 +267,17 @@ class Liquidator {
     const nativeAmount = nativeToUi(
       mint.equals(NATIVE_MINT)
         ? Math.max(
-          (await this.connection.getBalance(this.wallet.publicKey)) -
-          (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
-          0,
-        )
+            (await this.connection.getBalance(this.wallet.publicKey)) -
+              (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
+            0
+          )
         : 0,
-      9,
+      9
     );
 
     try {
       return new BigNumber((await this.connection.getTokenAccountBalance(tokenAccount)).value.uiAmount!).plus(
-        nativeAmount,
+        nativeAmount
       );
     } catch (e) {
       return new BigNumber(0).plus(nativeAmount);
@@ -370,9 +369,9 @@ class Liquidator {
     const allAccounts = await this.client.getAllMarginfiAccountAddresses();
     const targetAccounts = allAccounts.filter((address) => {
       if (this.account_whitelist) {
-        return this.account_whitelist.find(whitelistedAddress => whitelistedAddress.equals(address)) !== undefined;
+        return this.account_whitelist.find((whitelistedAddress) => whitelistedAddress.equals(address)) !== undefined;
       } else if (this.account_blacklist) {
-        return this.account_blacklist.find(whitelistedAddress => whitelistedAddress.equals(address)) === undefined;
+        return this.account_blacklist.find((whitelistedAddress) => whitelistedAddress.equals(address)) === undefined;
       }
       throw new Error("Uh uh. Either account whitelist or blacklist should have been provided.");
     });
@@ -440,7 +439,7 @@ class Liquidator {
     debug(
       "Biggest liability balance paydown USD value: %d, mint: %s",
       maxLiabilityPaydownUsdValue,
-      group.getBankByPk(marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk)!.mint,
+      group.getBankByPk(marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk)!.mint
     );
 
     if (maxLiabilityPaydownUsdValue.lt(DUST_THRESHOLD_UI)) {
@@ -466,7 +465,7 @@ class Liquidator {
     debug(
       "Max collateral USD value: %d, mint: %s",
       maxCollateralUsd,
-      group.getBankByPk(marginfiAccount.activeBalances[bestCollateralIndex].bankPk)!.mint,
+      group.getBankByPk(marginfiAccount.activeBalances[bestCollateralIndex].bankPk)!.mint
     );
 
     const collateralBankPk = marginfiAccount.activeBalances[bestCollateralIndex].bankPk;
@@ -487,23 +486,23 @@ class Liquidator {
       liquidatorMaxLiquidationCapacityLiabAmount,
       PriceBias.None,
       undefined,
-      false,
+      false
     );
     const liquidatorMaxLiqCapacityAssetAmount = collateralBank.getQuantityFromUsdValue(
       liquidatorMaxLiquidationCapacityUsd,
-      PriceBias.None,
+      PriceBias.None
     );
 
     debug(
       "Liquidator max liquidation capacity: %d ($%d) for bank %s",
       liquidatorMaxLiquidationCapacityLiabAmount,
       liquidatorMaxLiquidationCapacityUsd,
-      liabBank.mint,
+      liabBank.mint
     );
 
     const collateralAmountToLiquidate = BigNumber.min(
       maxCollateralAmountToLiquidate,
-      liquidatorMaxLiqCapacityAssetAmount,
+      liquidatorMaxLiqCapacityAssetAmount
     );
 
     const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.95);
@@ -513,13 +512,18 @@ class Liquidator {
       return false;
     }
 
-    debug("Liquidating %d %s for %s", slippageAdjustedCollateralAmountToLiquidate, collateralBank.label, liabBank.label);
+    debug(
+      "Liquidating %d %s for %s",
+      slippageAdjustedCollateralAmountToLiquidate,
+      collateralBank.label,
+      liabBank.label
+    );
 
     const sig = await liquidatorAccount.lendingAccountLiquidate(
       marginfiAccount,
       collateralBank,
       slippageAdjustedCollateralAmountToLiquidate,
-      liabBank,
+      liabBank
     );
     debug("Liquidation tx: %s", sig);
 
