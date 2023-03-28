@@ -8,11 +8,11 @@ const WalletMultiButtonDynamic = dynamic(
   { ssr: false }
 );
 
-interface AssetRowActionProps extends ButtonProps {
+interface ActionButtonProps extends ButtonProps {
   children: ReactNode;
 }
 
-const AssetRowAction: FC<AssetRowActionProps> = ({ children, disabled, ...otherProps }) => {
+const ActionButton: FC<ActionButtonProps> = ({ children, disabled, ...otherProps }) => {
   const wallet = useWallet();
 
   return wallet.connected ? (
@@ -42,4 +42,4 @@ const AssetRowAction: FC<AssetRowActionProps> = ({ children, disabled, ...otherP
   );
 };
 
-export { AssetRowAction };
+export { ActionButton };

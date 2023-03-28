@@ -44,16 +44,11 @@ interface TokenAccount {
 
 type TokenAccountMap = Map<string, TokenAccount>;
 
-interface Product {
-  name: string;
-  icon: React.ReactElement;
-}
-
 enum ProductType {
   Lend = "Lend",
   Borrow = "Borrow",
   Short = "Short",
-  Superstake = '⚡️stake',
+  Superstake = "⚡️stake",
   // Lock = "Lock",
 }
 
@@ -65,11 +60,12 @@ enum ActionType {
 }
 
 export interface BankInfoForAccountBase extends BankInfo {
-  tokenBalance: number;
-  maxDeposit: number;
-  maxRepay: number;
-  maxWithdraw: number;
-  maxBorrow: number;
+  tokenBalance: number; // current user's token balance
+  maxDeposit: number; // max amount user can deposit
+  maxRepay: number; // max amount user can repay
+  maxWithdraw: number; // max amount user can withdraw
+  maxBorrow: number; // max amount user can borrow
+  intrinsicColor?: string; // associated color for the token
 }
 
 type ActiveBankInfo = BankInfoForAccountBase & { hasActivePosition: true; position: UserPosition };
@@ -91,4 +87,4 @@ export type {
   ExtendedBankInfo,
 };
 
-export { ActionType, Product, ProductType, isActiveBankInfo };
+export { ActionType, ProductType, isActiveBankInfo };

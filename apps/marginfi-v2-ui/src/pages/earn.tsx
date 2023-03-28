@@ -293,7 +293,7 @@ const Pro = () => {
         if (c1.campaign.bank.label > c2.campaign.bank.label) return -1;
         return 0;
       });
-  }, [lipClient, lipAccount]);
+  }, [lipClient, lipAccount]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const maxDepositAmount = useMemo(
     () =>
