@@ -1,0 +1,30 @@
+[View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/apps/alpha-liquidator/src/utils/redis.ts)
+
+The code above imports the Redis library from the "ioredis" package and creates a Redis client instance named "redis". Redis is an in-memory data structure store that can be used as a database, cache, and message broker. 
+
+The Redis client instance is configured with the host and port of the Redis server, which in this case is set to "localhost" and "6379" respectively. Additionally, a connectTimeout of 500 milliseconds is set, which means that if the client is unable to connect to the Redis server within that time, it will throw an error.
+
+This code is likely used in the larger mrgn-ts project to establish a connection to a Redis server and perform operations such as storing and retrieving data. For example, the following code snippet shows how the Redis client instance can be used to set a key-value pair in Redis:
+
+```
+redis.set("myKey", "myValue", (err, result) => {
+  if (err) {
+    console.error(err);
+  } else {
+    console.log(result); // "OK"
+  }
+});
+```
+
+In this example, the `set` method is called on the Redis client instance with the key "myKey" and the value "myValue". The callback function is executed once the operation is complete, and any errors are logged to the console. If the operation is successful, the result "OK" is logged to the console.
+
+Overall, this code is a crucial part of the mrgn-ts project as it enables the project to interact with a Redis server and perform various operations on the data stored in it.
+## Questions: 
+ 1. **What is the purpose of this code?**\
+A smart developer might want to know what this code is doing and what its purpose is within the mrgn-ts project. Based on the code, it appears to be importing the Redis library and creating a new Redis instance with specific configuration options.
+
+2. **Why is the Redis library being used in this project?**\
+A smart developer might want to know why the mrgn-ts project is using Redis and what specific functionality it provides. Without additional context, it's unclear what role Redis plays in the project.
+
+3. **What is the significance of the configuration options used when creating the Redis instance?**\
+A smart developer might want to know why the specific configuration options (host, port, connectTimeout) were chosen when creating the Redis instance. Understanding the reasoning behind these choices could provide insight into the project's requirements and constraints.

@@ -1,0 +1,34 @@
+[View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/apps/marginfi-landing-page/src/components/Footer/NavbarCenterItem.tsx)
+
+The code defines a React functional component called `NavbarCenterItem` that renders a `Button` component from the Material-UI library. The component takes in four props: `text`, `textFormat`, `disabled`, and `onClick`. 
+
+The `text` prop is a required string that specifies the text to be displayed on the button. The `textFormat` prop is an optional string that specifies the text formatting to be applied to the button text. If not provided, the default value is `"normal-case"`. The `disabled` prop is an optional boolean that specifies whether the button should be disabled or not. If not provided, the default value is `false`. The `onClick` prop is an optional function that specifies the action to be taken when the button is clicked.
+
+The `Button` component is styled using CSS classes and inline styles. The `className` prop specifies a set of CSS classes to be applied to the button. These classes define the button's height, width, font size, alignment, and font weight. The `variant` prop specifies the button's appearance. In this case, it is set to `"text"`, which means the button has no background color and a transparent border. The `disabled` prop specifies whether the button is disabled or not. If it is disabled, the button's text color is set to a light gray color. The `style` prop specifies a set of inline styles to be applied to the button. These styles define the button's text color, background color, and font family. The `onClick` prop specifies the function to be called when the button is clicked.
+
+This component can be used in a larger project as a reusable button component that can be customized with different text, formatting, and click actions. For example, it can be used in a navigation bar as a center item that links to a specific page or performs a specific action when clicked. Here is an example usage of the `NavbarCenterItem` component:
+
+```
+import { NavbarCenterItem } from "mrgn-ts";
+
+const MyNavbar = () => (
+  <nav>
+    <ul>
+      <li><a href="#">Home</a></li>
+      <li><a href="#">About</a></li>
+      <li><NavbarCenterItem text="Contact Us" onClick={() => console.log("Contact Us clicked")} /></li>
+      <li><a href="#">FAQ</a></li>
+      <li><a href="#">Blog</a></li>
+    </ul>
+  </nav>
+);
+```
+## Questions: 
+ 1. What is the purpose of this code?
+   This code defines a React functional component called `NavbarCenterItem` that renders a Material UI `Button` with customizable text, text formatting, and click behavior.
+
+2. What dependencies does this code rely on?
+   This code imports two modules: `Button` from the `@mui/material` package and `FC` from the `react` package.
+
+3. What are the customizable props for the `NavbarCenterItem` component?
+   The `NavbarCenterItem` component accepts four props: `text` (string), `textFormat` (string, optional), `disabled` (boolean, optional), and `onClick` (function, optional). These props control the text content, text formatting, disabled state, and click behavior of the rendered button.

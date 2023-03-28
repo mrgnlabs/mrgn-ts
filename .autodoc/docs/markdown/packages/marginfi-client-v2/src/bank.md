@@ -1,0 +1,48 @@
+[View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/packages/marginfi-client-v2/src/bank.ts)
+
+The `Bank` class in this file is a wrapper around a specific marginfi group. It contains various properties and methods that allow for the calculation of asset and liability values, interest rates, and more. 
+
+The `Bank` class has properties for the group's public key, label, mint, mint decimals, asset and liability share values, liquidity and insurance vaults, fee vault, and more. It also has a `config` property that contains various configuration options for the group, such as asset and liability weight, maximum capacity, and interest rate configuration. 
+
+The `Bank` class has methods for calculating the total assets and liabilities of the group, as well as the asset and liability quantities from their respective share values. It also has methods for calculating the USD value of assets and liabilities, taking into account the margin requirement type and price bias. 
+
+The `Bank` class has a method for reloading the price data for the group, which is stored in the `priceData` property. It also has a method for getting the current price of the group, taking into account the price bias. 
+
+The `Bank` class has methods for getting the asset and liability weights based on the margin requirement type. It also has a method for getting the interest rates for the group, taking into account the utilization rate, interest rate curve, and various fees. 
+
+Overall, the `Bank` class provides a way to interact with a specific marginfi group and perform various calculations related to its assets, liabilities, and interest rates. It can be used in the larger project to manage and analyze marginfi groups. 
+
+Example usage:
+
+```typescript
+import { Connection, PublicKey } from "@solana/web3.js";
+import { Bank, PriceBias } from "@mrgnlabs/mrgn-ts";
+
+const connection = new Connection("https://api.mainnet-beta.solana.com");
+
+const bankPublicKey = new PublicKey("..."); // replace with actual bank public key
+const bankLabel = "My Bank"; // replace with actual bank label
+
+const bankData = await fetchBankData(bankPublicKey); // replace with actual function to fetch bank data
+const priceData = await fetchPriceData(); // replace with actual function to fetch price data
+
+const bank = new Bank(bankLabel, bankPublicKey, bankData, priceData);
+
+const totalAssets = bank.totalAssets;
+const totalLiabilities = bank.totalLiabilities;
+
+const assetUsdValue = bank.getAssetUsdValue(assetShares, MarginRequirementType.Init, PriceBias.None);
+const liabilityUsdValue = bank.getLiabilityUsdValue(liabilityShares, MarginRequirementType.Init, PriceBias.None);
+
+const lendingRate = bank.getInterestRates().lendingRate;
+const borrowingRate = bank.getInterestRates().borrowingRate;
+```
+## Questions: 
+ 1. What is the purpose of the `Bank` class and what data does it store?
+- The `Bank` class is a wrapper around a specific marginfi group and stores various data related to the group such as its public key, label, mint, asset and liability share values, vaults, fees, configuration, and total asset and liability shares.
+
+2. What is the purpose of the `getInterestRates` method and how does it calculate lending and borrowing rates?
+- The `getInterestRates` method calculates the lending and borrowing rates for the `Bank` based on its interest rate configuration, utilization rate, and interest rate curve. It adds the insurance and protocol fixed fees to the borrowing rate and returns both rates as a key-value pair.
+
+3. What is the purpose of the `PriceBias` enum and how is it used in the `getUsdValue` and `getPrice` methods?
+- The `PriceBias` enum is used to specify whether to use the lowest, highest, or no confidence range when calculating the USD value of an asset or liability and when getting the price of the `Bank`. It is used in the `getUsdValue` method to adjust the price based on the confidence range and in the `getPrice` method to calculate the base price plus or minus the confidence range based on the specified bias.
