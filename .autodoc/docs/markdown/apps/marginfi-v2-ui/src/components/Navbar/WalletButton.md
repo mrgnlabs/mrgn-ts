@@ -1,0 +1,29 @@
+[View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/apps/marginfi-v2-ui/src/components/Navbar/WalletButton.tsx)
+
+This code defines a React component called `WalletButton` that renders a button for connecting to a Solana wallet. The component imports several dependencies, including `dynamic` from the `next/dynamic` package, `FC` from the `react` package, `Image` from the `next/image` package, `styles` from a local CSS module file, and `useWallet` from the `@solana/wallet-adapter-react` package.
+
+The `WalletMultiButtonDynamic` component is defined using the `dynamic` function, which allows for dynamic imports of components that are not needed during server-side rendering. This component is imported from the `@solana/wallet-adapter-react-ui` package and is used to render the actual wallet button. The `ssr` option is set to `false` to ensure that the component is not rendered on the server.
+
+The `WalletButton` component uses the `useWallet` hook to access the Solana wallet state and render the `WalletMultiButtonDynamic` component. The `startIcon` prop is used to render the wallet icon, which is an SVG image imported from the local `public` directory. If the wallet is not connected, the button displays the text "CONNECT".
+
+This component can be used in a larger project to provide a user interface for connecting to a Solana wallet. It can be imported and rendered in any React component that needs to interact with the Solana blockchain. For example, it could be used in a decentralized application (dApp) to allow users to connect their wallets and interact with smart contracts on the Solana network. Here is an example of how the `WalletButton` component could be used in a React component:
+
+```jsx
+import { WalletButton } from "mrgn-ts";
+
+function MyComponent() {
+  return (
+    <div>
+      <h1>Welcome to my dApp</h1>
+      <WalletButton />
+    </div>
+  );
+}
+```
+## Questions: 
+ 1. What is the purpose of the `dynamic` import and how does it work?
+   - The `dynamic` import is used to asynchronously load a component from the `@solana/wallet-adapter-react-ui` package. It works by returning a Promise that resolves to the component when it is ready to be rendered.
+2. What is the `WalletButton` component and what does it render?
+   - The `WalletButton` component is a functional component that renders a dynamic `WalletMultiButton` component from the `@solana/wallet-adapter-react-ui` package. It also renders an image of a wallet icon and the text "CONNECT" if the user is not currently connected to a wallet.
+3. What is the purpose of the `useWallet` hook and where does it come from?
+   - The `useWallet` hook is used to access the Solana wallet connection state and functions. It comes from the `@solana/wallet-adapter-react` package.

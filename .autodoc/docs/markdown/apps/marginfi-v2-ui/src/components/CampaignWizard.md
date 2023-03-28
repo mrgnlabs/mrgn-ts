@@ -1,0 +1,20 @@
+[View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/apps/marginfi-v2-ui/src/components/CampaignWizard.tsx)
+
+The `CampaignWizard` component is a React functional component that allows users to create a new LIP (Lending and Borrowing Protocol) campaign. The component imports various modules from different packages, including `@solana/web3.js`, `@project-serum/anchor`, `@mrgnlabs/mrgn-common`, `@solana/wallet-adapter-react`, and `@mui/material`. 
+
+The component renders a form with several input fields, including a dropdown menu to select the campaign asset, an input field to set the guaranteed APY (annual percentage yield), an input field to set the lockup period in days, and an input field to set the campaign size in asset units. The component also displays a summary of the user's input and the calculated campaign APY. Finally, the component includes a button to create the campaign.
+
+The `CampaignWizard` component uses several hooks, including `useState`, `useMemo`, `useCallback`, and `useEffect`. The `useState` hook is used to manage the component's state, including the guaranteed APY, lockup period, deposit capacity, and campaign bank. The `useMemo` hook is used to memoize the available banks and the contract inputs. The `useCallback` hook is used to create the `onChange` function for the input fields. The `useEffect` hook is used to set the default campaign bank when the available banks change.
+
+The `CampaignWizardInputBox` component is a child component of `CampaignWizard` that renders a numeric input field with a custom format. The component uses the `NumericFormat` component from the `react-number-format` package to format the input field. The component also includes a `loadingSafetyCheck` function that is called when the user inputs a value greater than the maximum value allowed.
+
+Overall, the `CampaignWizard` component is an important part of the LIP protocol that allows users to create new campaigns with different parameters. The component is designed to be user-friendly and includes several input fields with custom formats to ensure that users input valid values.
+## Questions: 
+ 1. What is the purpose of the `CampaignWizard` component?
+- The `CampaignWizard` component is used to create an LIP campaign, and it allows the user to input various parameters such as the campaign asset, guaranteed APY, lockup period, and campaign size.
+
+2. What external libraries and APIs are being used in this file?
+- The file is importing various libraries and APIs such as React, @solana/web3.js, @project-serum/anchor, @mrgnlabs/mrgn-common, @solana/wallet-adapter-react, and next/image.
+
+3. What is the purpose of the `CampaignWizardInputBox` component?
+- The `CampaignWizardInputBox` component is a reusable input box that is used in the `CampaignWizard` component to allow the user to input numerical values. It includes functionality to cap the input value at a maximum value if specified, and to format the input value with commas and decimal places.

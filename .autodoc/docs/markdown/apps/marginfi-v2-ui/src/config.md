@@ -1,0 +1,22 @@
+[View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/apps/marginfi-v2-ui/src/config.ts)
+
+This code is responsible for setting up the configuration for the `mrgn-ts` project. It imports two functions, `getConfig` from `@mrgnlabs/marginfi-client-v2` and `getConfig` from `@mrgnlabs/lip-client`, which are used to retrieve the configuration for the MarginFi and Lending in Production (LIP) services respectively. 
+
+The code then sets up a number of variables based on the environment in which the code is running. It checks the value of the `NEXT_PUBLIC_MARGINFI_ENVIRONMENT` environment variable and sets the `mfiConfig`, `lipConfig`, `rpcEndpoint`, `devFaucetAddress`, and `campaignWhitelist` variables accordingly. 
+
+The `mfiConfig` and `lipConfig` variables are set to the configuration objects returned by the `getConfig` functions. The `rpcEndpoint` variable is set to the URL of the Solana RPC endpoint to use, which is either the value of the `NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE` environment variable or a default value. The `devFaucetAddress` variable is set to the public key of the development faucet address, which is used to fund new accounts on the devnet. The `campaignWhitelist` variable is set to an array of objects representing the whitelisted tokens for the campaign.
+
+The `config` object is then created, which contains all of the configuration variables. This object is exported as the default export of the module, which can be imported and used throughout the project. 
+
+In addition to the `config` object, two other constants are exported: `WSOL_MINT` and `WALLET_BALANCE_MARGIN_SOL`. `WSOL_MINT` is a constant representing the public key of the wrapped SOL (WSOL) mint, which is used in various parts of the project. `WALLET_BALANCE_MARGIN_SOL` is a constant representing the minimum balance required in a wallet to participate in MarginFi campaigns.
+
+Overall, this code sets up the configuration for the `mrgn-ts` project based on the environment in which it is running, and exports the resulting configuration object as well as two other constants for use throughout the project.
+## Questions: 
+ 1. What is the purpose of this code?
+- This code exports a configuration object containing various settings for the mrgn-ts project, including environment-specific settings such as API endpoints and campaign whitelists.
+
+2. What external libraries or dependencies does this code use?
+- This code imports the `PublicKey` class from the `@solana/web3.js` library, as well as the `getConfig` function from the `@mrgnlabs/marginfi-client-v2` and `@mrgnlabs/lip-client` libraries.
+
+3. What is the significance of the `campaignWhitelist` array?
+- The `campaignWhitelist` array contains objects representing whitelisted tokens for certain campaigns. Each object contains an icon URL, size, and public key for the token.

@@ -1,0 +1,31 @@
+[View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/packages/lip-client/tsconfig.json)
+
+This code is a configuration file for the TypeScript compiler in the mrgn-ts project. The file is named `tsconfig.json` and is located in the root directory of the project. 
+
+The `extends` property specifies that this configuration file extends another configuration file located at `@mrgnlabs/tsconfig/base.json`. This means that the settings in `base.json` will be inherited by this file, and any changes made in this file will override the settings in `base.json`.
+
+The `compilerOptions` property is an object that specifies options for the TypeScript compiler. In this case, the `resolveJsonModule` option is set to `true`, which allows TypeScript to import JSON files as modules. The `outDir` option specifies the output directory for compiled TypeScript files.
+
+The `include` property is an array of file or directory paths that should be included in the compilation process. In this case, the `.` path includes all files in the current directory.
+
+The `exclude` property is an array of file or directory paths that should be excluded from the compilation process. In this case, the `dist` and `node_modules` directories are excluded.
+
+Overall, this configuration file sets up the TypeScript compiler to compile all TypeScript files in the current directory, with output files going to the `dist` directory. It also allows for importing JSON files as modules. This file is an important part of the mrgn-ts project, as it ensures that TypeScript files are compiled correctly and that the project is set up to use JSON files as modules. 
+
+Example usage:
+```
+// Import a JSON file as a module
+import data from './data.json';
+
+// Use the imported data
+console.log(data);
+```
+## Questions: 
+ 1. What is the base.json file that this code is extending from?
+- The code is extending from a file called base.json located in the @mrgnlabs/tsconfig directory.
+
+2. What is the purpose of the "resolveJsonModule" option in the compilerOptions?
+- The "resolveJsonModule" option allows the TypeScript compiler to import JSON files as modules.
+
+3. Why are the "dist" and "node_modules" directories excluded from the compilation process?
+- The "dist" directory is excluded because that is where the compiled code will be outputted to. The "node_modules" directory is excluded because it contains external dependencies that do not need to be compiled.
