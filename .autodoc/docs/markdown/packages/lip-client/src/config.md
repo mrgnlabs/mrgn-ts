@@ -1,0 +1,31 @@
+[View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/packages/lip-client/src/config.ts)
+
+The code in this file is responsible for parsing and retrieving configuration settings for the mrgn-ts project. It imports the PublicKey class from the Solana web3.js library, the LipConfig interface from a local types file, and various functions and types from the Superstruct and marginfi-client-v2 libraries. It also imports a JSON file containing configuration data.
+
+The LipConfigRaw and ConfigRaw types are defined using Superstruct. LipConfigRaw is an object with three properties: label (an enum with four possible values), cluster (a string), and program (a string representing a public key). ConfigRaw is an array of LipConfigRaw objects. These types are used to validate the structure of the configuration data.
+
+The parseConfig function takes a LipConfigRaw object and returns a LipConfig object with the same properties, but with the programId property converted to a PublicKey object. This function is used to convert individual configuration objects to the LipConfig format.
+
+The parseConfigs function takes an array of LipConfigRaw objects and returns an object with keys corresponding to the label property of each object and values corresponding to the LipConfig object returned by parseConfig. This function is used to convert the entire configuration data to a more usable format.
+
+The loadDefaultConfig function loads the configuration data from the configs.json file and validates it against the ConfigRaw type using the assert function from Superstruct. It then returns the parsed configuration data using the parseConfigs function.
+
+The getLipConfig function takes an environment string and an optional overrides object and returns a LipConfig object with the specified environment and the cluster and programId properties taken from the default configuration for that environment, with any overrides applied. This function is used internally to retrieve the LipConfig object for a given environment.
+
+The getConfig function is the main function exported by this file. It takes an environment string and an optional overrides object and returns a LipConfig object with the specified environment and the cluster and programId properties taken from the default configuration for that environment, with any overrides applied. This function is used throughout the mrgn-ts project to retrieve the configuration settings for the current environment.
+
+Example usage:
+
+```
+import { getConfig } from "mrgn-ts";
+
+const config = getConfig("production");
+console.log(config.programId.toBase58()); // prints the public key for the program in the production environment
+```
+## Questions: 
+ 1. What is the purpose of the `LipConfig` type and how is it used in this code?
+   - The `LipConfig` type is defined in the `types` module and is used to represent a configuration object with properties for `environment`, `cluster`, and `programId`. It is used throughout the code to parse and generate configuration objects.
+2. What is the purpose of the `parseConfigs` function and how is it used?
+   - The `parseConfigs` function takes an array of `LipConfigRaw` objects and returns an object with keys corresponding to the `label` property of each `LipConfigRaw` object and values corresponding to the parsed `LipConfig` objects. It is used to generate a map of configurations from the `configs` JSON file.
+3. What is the purpose of the `getLipConfig` function and how is it used?
+   - The `getLipConfig` function takes an `environment` string and an optional `overrides` object and returns a `LipConfig` object with properties based on the specified environment and overrides. It is used internally by the `getConfig` function to generate a configuration object for a given environment.

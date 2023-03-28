@@ -1,0 +1,38 @@
+[View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/apps/marginfi-landing-page/tailwind.config.js)
+
+This code exports a Tailwind CSS configuration object that can be used to customize the styling of a web application. The `theme` object contains various properties that define the visual style of the application, such as colors, fonts, and screen sizes. The `extend` property allows for further customization of the theme by adding new properties or modifying existing ones. 
+
+The `important` property is set to `true`, which means that any styles defined in this configuration will take precedence over styles defined elsewhere in the application. The `content` property specifies the files that should be scanned for CSS classes and styles. In this case, it includes all files in the `src/pages` and `src/components` directories that have a `.js`, `.ts`, `.jsx`, or `.tsx` extension.
+
+The `screens` property defines the breakpoints for responsive design. The `sm`, `md`, `lg`, `xl`, and `2xl` keys correspond to screen sizes in pixels. For example, the `sm` breakpoint is set to 640 pixels, which means that styles defined for screens smaller than 640 pixels will be applied to devices with smaller screens, such as mobile phones.
+
+The `plugins` array contains a single plugin that adds a new utility class to the application. The `addUtilities` function is called with an object that defines the new class, `.invisible-scroll`. This class sets the `content-visibility` property to `auto`, which improves the performance of scrolling by reducing the amount of work the browser has to do to render the page.
+
+Overall, this code provides a starting point for customizing the visual style of a web application using Tailwind CSS. Developers can modify the properties of the `theme` object to change the colors, fonts, and other visual elements of the application. They can also add new utility classes using plugins to extend the functionality of Tailwind CSS. 
+
+Example usage:
+
+```javascript
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css'; // Import Tailwind CSS styles
+import App from './App';
+
+ReactDOM.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+  document.getElementById('root')
+);
+```
+
+In this example, the `index.css` file imports the Tailwind CSS styles defined in the configuration object. These styles are then applied to the `App` component, which is rendered in the `root` element of the HTML document.
+## Questions: 
+ 1. What is the purpose of this code?
+    - This code exports a Tailwind CSS configuration object for the mrgn-ts project, which includes customizations to the theme, screens, and plugins.
+
+2. What is the significance of the `important` and `content` properties?
+    - The `important` property ensures that the generated CSS is output with the `!important` flag, which can be useful for overriding other styles. The `content` property specifies the files that should be scanned for CSS classes to include in the final output.
+
+3. What does the custom plugin defined in the `plugins` array do?
+    - The custom plugin defined in the `plugins` array adds a new utility class called `.invisible-scroll` that sets the `content-visibility` CSS property to `auto`, which can improve performance by reducing the amount of work the browser needs to do when scrolling.
