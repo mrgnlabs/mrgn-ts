@@ -1,7 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import { getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { getConfig as getLipConfig } from "@mrgnlabs/lip-client";
-import { ProductType } from "./types";
 
 import LockIcon from '@mui/icons-material/Lock';
 import YardIcon from '@mui/icons-material/Yard';
