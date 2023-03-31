@@ -17,7 +17,7 @@ const ActionButton: FC<ActionButtonProps> = ({ children, disabled, ...otherProps
 
   return wallet.connected ? (
     <Button
-      className="bg-[#DCE85D] text-black normal-case text-base w-[310px] h-[60px] rounded flex justify-center items-center"
+      className="bg-[#DCE85D] text-black normal-case text-base w-full max-w-[310px] h-[60px] rounded flex justify-center items-center"
       style={{
         color: "black",
         fontFamily: "Aeonik Pro",
