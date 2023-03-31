@@ -8,18 +8,24 @@ import { groupedNumberFormatterDyn, percentFormatterDyn, usdFormatter } from "~/
 import { MarginRequirementType, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import BigNumber from "bignumber.js";
 import { Checkbox } from "@mui/material";
+import { superStake, withdrawSuperstake } from "../superStakeActions";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 const SUPERSTAKE_OR_WITHDRAW_TOAST_ID = "superstake-or-withdraw";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 
 const ProductScreensSuperstake: FC = () => {
   const { extendedBankInfos, selectedAccount } = useUserAccounts();
+  const { connection } = useConnection();
   const { tokenAccountMap } = useTokenAccounts();
   const { mfiClient } = useProgram();
   const { reload: reloadBanks } = useBanks();
+  const wallet = useWallet();
 
   const [selectedBank, setSelectedBank] = useState<ExtendedBankInfo>();
   const [whitelistedBanks, setWhitelistedBanks] = useState<ExtendedBankInfo[] | []>([]);
+  const [solBank, setSOLBank] = useState<ExtendedBankInfo | undefined>();
+
   const [superStakeOrWithdrawAmount, setSuperStakeOrWithdrawAmount] = useState<number>(0);
   const [isInSuperStakeMode, setIsInSuperStakeMode] = useState<boolean>(true);
 
@@ -40,6 +46,12 @@ const ProductScreensSuperstake: FC = () => {
         "jitoSOL",
         "stSOL",
       ].includes(bank.tokenName)
+    )
+  }
+
+  const getSOLBank = (banks: ExtendedBankInfo[]) => {
+    return banks.find(
+      (bank) => bank.tokenName === "SOL"
     )
   }
 
@@ -73,6 +85,10 @@ const ProductScreensSuperstake: FC = () => {
     setWhitelistedBanks(filterBanks(extendedBankInfos));
   }, [extendedBankInfos]);
 
+  useEffect(() => {
+    setSOLBank(getSOLBank(extendedBankInfos));
+  }, [extendedBankInfos]);
+
   // Set the superStakeOrWithdrawAmount to 0 when the component mounts
   useEffect(() => {
     setSuperStakeOrWithdrawAmount(0);
@@ -104,10 +120,17 @@ const ProductScreensSuperstake: FC = () => {
   // END: HELPERS
   // ================================
 
+
+  /**
+   * @description This hook is used for staking and withdrawing the specified amount of tokens.
+   * The superStakeOrWithdraw function gets called when the user decides to stake or withdraw tokens,
+   * and it performs the required operations and updates the state accordingly.
+  */
   const superStakeOrWithdraw = useCallback(async () => {
     // ================================
     // START: SETUP
     // ================================
+    // Ensure that the necessary objects are available before proceeding
     if (mfiClient === null || !selectedBank || !selectedAccount) return; // @todo: use spinner on associated button to prevent hitting that
 
     let marginfiAccount = selectedAccount;
@@ -121,6 +144,7 @@ const ProductScreensSuperstake: FC = () => {
 
     // Don't think we need a free collateral check here
 
+    // Ensure the entered amount is greater than 0
     if (superStakeOrWithdrawAmount <= 0) {
       toast.error("Please enter an amount over 0.");
       return;
@@ -141,9 +165,15 @@ const ProductScreensSuperstake: FC = () => {
       });
 
       if (isInSuperStakeMode) {
+        // Stake the specified amount of tokens
         await superStake(
+          mfiClient,
+          connection,
+          wallet,
           superStakeOrWithdrawAmount,
-          selectedBank.bank
+          selectedBank,
+          solBank,
+          reloadBanks,
         );
 
         toast.update(SUPERSTAKE_OR_WITHDRAW_TOAST_ID, {
@@ -154,7 +184,7 @@ const ProductScreensSuperstake: FC = () => {
         });
       } // Withdraw
       else {
-        // const repayAll = isActiveBankInfo(selectedBank) ? superStakeOrWithdrawAmount === selectedBank.position.amount : false;
+        // Withdraw the specified amount of tokens
         await withdrawSuperstake(
           superStakeOrWithdrawAmount,
           selectedBank.bank
@@ -169,6 +199,7 @@ const ProductScreensSuperstake: FC = () => {
       }
 
     } catch (error: any) {
+      // Handle any errors and update the toast to show the error message
       const msg = `Error while ${isInSuperStakeMode ? "staking" : "withdrawing"}: ${error.message ?? error}`
 
       toast.update(SUPERSTAKE_OR_WITHDRAW_TOAST_ID, {
@@ -249,8 +280,8 @@ const ProductScreensSuperstake: FC = () => {
           </div>
         </div>
         <div className="w-full flex gap-2">
-          <ActionButton onClick={borrowOrRepay}>⚡️ stake</ActionButton>
-          <ActionButton onClick={borrowOrRepay}>🛑 withdraw</ActionButton>
+          <ActionButton onClick={superStakeOrWithdraw}>⚡️ stake</ActionButton>
+          <ActionButton onClick={superStakeOrWithdraw}>🛑 withdraw</ActionButton>
         </div>
       </div>
     </div>
