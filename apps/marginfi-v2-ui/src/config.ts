@@ -3,7 +3,7 @@ import { getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { getConfig as getLipConfig } from "@mrgnlabs/lip-client";
 import { ENV as ENVChainId } from "@solana/spl-token-registry";
 
-import { Product, ProductType } from "./types";
+import { ProductType } from "./types";
 
 // ================
 // MAIN APP CONFIG
@@ -16,7 +16,7 @@ const environment = process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT;
 const rpcEndpointOverride = process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE;
 const groupOverride = process.env.NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE;
 
-export interface Product {
+interface Product {
   type: ProductType;
 }
 
