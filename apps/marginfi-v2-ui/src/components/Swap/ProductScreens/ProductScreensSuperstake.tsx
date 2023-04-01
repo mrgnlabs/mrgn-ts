@@ -164,18 +164,19 @@ const ProductScreensSuperstake: FC = () => {
 
       if (isInSuperStakeMode) {
         // Stake the specified amount of tokens
-        // await superStake(
-        //   mfiClient,
-        //   connection,
-        //   wallet,
-        //   superStakeOrWithdrawAmount,
-        //   selectedBank,
-        //   solBank,
-        //   reloadBanks,
-        //   tokenMap,
-        //   routeMap,
-        //   api
-        // );
+        await superStake(
+          mfiClient,
+          marginfiAccount,
+          connection,
+          wallet,
+          superStakeOrWithdrawAmount,
+          selectedBank,
+          solBank,
+          reloadBanks,
+          tokenMap,
+          routeMap,
+          api
+        );
 
         toast.update(SUPERSTAKE_OR_WITHDRAW_TOAST_ID, {
           render: `Staking ${superStakeOrWithdrawAmount} ${selectedBank.tokenName} 👍`,
@@ -188,6 +189,7 @@ const ProductScreensSuperstake: FC = () => {
         // Withdraw the specified amount of tokens
         // await withdrawSuperstake(
         //   mfiClient,
+        //   marginfiAccount,
         //   connection,
         //   wallet,
         //   superStakeOrWithdrawAmount,
@@ -279,6 +281,7 @@ const ProductScreensSuperstake: FC = () => {
           value={superStakeOrWithdrawAmount}
           setValue={setSuperStakeOrWithdrawAmount}
           maxValue={maxAmount}
+          maxDecimals={selectedBank.bank.mintDecimals}
           selectedBank={selectedBank}
           setSelectedBank={setSelectedBank}
           banks={whitelistedBanks}
