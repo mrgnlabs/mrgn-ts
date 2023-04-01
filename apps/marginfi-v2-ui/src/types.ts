@@ -45,11 +45,7 @@ interface TokenAccount {
 type TokenAccountMap = Map<string, TokenAccount>;
 
 enum ProductType {
-  Lend = "Lend",
-  Borrow = "Borrow",
-  Short = "Short",
   Superstake = "⚡️stake",
-  // Lock = "Lock",
 }
 
 enum ActionType {
