@@ -5,7 +5,7 @@ import { HalfCircularGauge } from "~/components/Swap/Gauge";
 import { ProductType } from "~/types";
 import { useUserAccounts } from "~/context";
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
-import { ProductScreensBorrow, ProductScreensLend, ProductScreensSuperstake } from "~/components/Swap/ProductScreens";
+import { ProductScreensSuperstake } from "~/components/Swap/ProductScreens";
 
 const SwapUI: FC = () => {
   const { selectedAccount } = useUserAccounts();
