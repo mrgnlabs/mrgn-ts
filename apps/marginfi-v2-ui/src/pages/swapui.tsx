@@ -1,10 +1,5 @@
-import React, { FC, MouseEvent, useMemo, useState } from "react";
-import Image from "next/image";
-import { ProductSelector } from "~/components/Swap/ProductSelector";
-import { HalfCircularGauge } from "~/components/Swap/Gauge";
-import { ProductType } from "~/types";
+import React, { FC } from "react";
 import { useUserAccounts } from "~/context";
-import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { ProductScreensSuperstake } from "~/components/Swap/ProductScreens";
 
 const SwapUI: FC = () => {
