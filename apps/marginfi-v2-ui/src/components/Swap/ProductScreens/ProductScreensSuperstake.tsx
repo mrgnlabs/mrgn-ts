@@ -1,13 +1,10 @@
 import { BankInputBox } from "~/components/Swap/BankInputBox";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { useBanks, useProgram, useTokenAccounts, useUserAccounts } from "~/context";
-import { ExtendedBankInfo, isActiveBankInfo } from "~/types";
+import { ExtendedBankInfo } from "~/types";
 import { ActionButton } from "~/components/Swap/ActionButton";
 import { toast } from "react-toastify";
-import { groupedNumberFormatterDyn, percentFormatterDyn, usdFormatter } from "~/utils/formatters";
-import { MarginRequirementType, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import BigNumber from "bignumber.js";
-import { Checkbox } from "@mui/material";
+import { groupedNumberFormatterDyn } from "~/utils/formatters";
 import { superStake, withdrawSuperstake } from "../superStakeActions";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useJupiterApiContext } from "~/context/JupiterApiProvider";
