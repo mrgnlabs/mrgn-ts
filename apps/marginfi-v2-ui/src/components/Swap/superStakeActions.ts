@@ -1,63 +1,57 @@
-import { Jupiter } from '@jup-ag/core';
-import config from '~/config';
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
-
-// ================================
-// START: JUPITER SETUP
-// ================================
-
-class WalletSigner {
-  constructor(wallet) {
-    this.wallet = wallet;
-  }
-
-  get publicKey() {
-    return this.wallet.publicKey;
-  }
-
-  async signTransaction(transaction) {
-    return await this.wallet.signTransaction(transaction);
-  }
-}
-
-const loadJupiter = async ({
-  wallet,
-  connection,
-}) => {
-  const walletSigner = new WalletSigner(wallet);
-
-  const jupiter = await Jupiter.load({
-    connection,
-    cluster: config.mfiConfig.environment,
-    user: walletSigner,
-  });
-
-  return jupiter;
-}
-
-// ================================
-// END: JUPITER SETUP
-// ================================
 
 // ================================
 // START: SUPERSTAKE INSTRUCTIONS
 // ================================
 
-const makeSwapIx = async ({ jupiter, amount, inputTokenAddress, outputTokenAddress, slippageBps }) => {
-  const routes = await jupiter.computeRoutes({
-    inputMint: new PublicKey(inputTokenAddress),
-    outputMint: new PublicKey(outputTokenAddress),
-    amount:  JSBI.BigInt(amount),
-    slippageBps: slippageBps,
+const makeSwapIx = async ({
+  amount,
+  inputTokenAddress,
+  outputTokenAddress,
+  slippageBps,
+  tokenMap,
+  routeMap,
+  api,
+}) => {
+  const inputMint = new PublicKey(inputTokenAddress);
+  const outputMint = new PublicKey(outputTokenAddress);
+
+  const { data: routes } = await api.v4QuoteGet({
+    amount,
+    inputMint: inputMint.toBase58(),
+    outputMint: outputMint.toBase58(),
+    slippage: slippageBps / 10000,
   });
 
-  const bestRoute = routes.routesInfos[0];
-  const { swapTransaction, addressLookupTableAccounts } = await jupiter.exchange({ routeInfo: bestRoute });
+  if (!routes || routes.length === 0) {
+    throw new Error("No routes found for the given input and output tokens.");
+  }
 
-  return {
-    instructions: swapTransaction.message.instructions,
-    addressLookupTableAccounts,
-  };
+  const route = routes[0];
+
+  const inputTokenInfo = tokenMap.get(inputMint.toBase58());
+  const outputTokenInfo = tokenMap.get(outputMint.toBase58());
+  if (!inputTokenInfo || !outputTokenInfo) {
+    throw new Error("Input or output token not found in token map.");
+  }
+
+  const validOutputMints = routeMap.get(inputMint.toBase58()) || [];
+  if (!validOutputMints.includes(outputMint.toBase58())) {
+    throw new Error(
+      "Output token is not a valid swap route for the given input token."
+    );
+  }
+
+  const swapTransaction = await api.v4SwapPost({
+    body: {
+      route,
+      userPublicKey: "",
+    },
+  });
+
+  const instructions = swapTransaction.message.instructions;
+
+  return { instructions };
 };
 
 const makeSuperStakeIx = async ({
@@ -66,7 +60,10 @@ const makeSuperStakeIx = async ({
   borrowBank,
   maxLTV,
   slippageBpsSwapTolerance = 50,
-  buffer = 0.9
+  buffer = 0.9,
+  tokenMap,
+  routeMap,
+  api,
 }) => {
 
   const createLoop = async ({
@@ -84,11 +81,13 @@ const makeSuperStakeIx = async ({
       
       // use jupiter api
       const { instructions: swapIx } = await makeSwapIx({
-          jupiter,
           amount: initialLoopCollateralAmount * maxLTV * buffer,
           slippageBps: slippageBpsSwapTolerance,
           inputTokenAddress: borrowBank.tokenMint,
           outputTokenAddress: depositBank.tokenMint,
+          tokenMap,
+          routeMap,
+          api,
       });
   
       return {
@@ -163,11 +162,10 @@ const superStake = async (
     depositBank: ExtendedBankInfo,
     borrowBank: ExtendedBankInfo,
     reloadBanks: () => void,
+    tokenMap,
+    routeMap,
+    api
 ) => {
-  const jupiter = loadJupiter({
-    wallet,
-    connection,
-  });
 
   const superStakeIxs = await makeSuperStakeIx({
     superStakeOrWithdrawAmount,
@@ -175,7 +173,10 @@ const superStake = async (
     borrowBank,
     maxLTV: nativeToUi(borrowBank.bank.config.liabilityWeightInit, borrowBank.tokenMintDecimals),
     slippageBpsSwapTolerance: 50,
-    buffer: 0.9
+    buffer: 0.9,
+    tokenMap,
+    routeMap,
+    api,
   })
 
   const tx = new Transaction().add(...superStakeIxs.instructions);

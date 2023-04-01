@@ -3,6 +3,7 @@ import { TokenAccountsProvider, useTokenAccounts } from "./TokenAccounts";
 import { TokenMetadataProvider, useTokenMetadata } from "./TokenMetadata";
 import { UserAccountsProvider, useUserAccounts } from "./UserAccounts";
 import { ProgramProvider, useProgram } from "./Program";
+import { JupiterApiProvider } from "./JupiterApiProvider";
 
 export {
   BanksStateProvider,
@@ -15,4 +16,5 @@ export {
   TokenAccountsProvider,
   useTokenMetadata,
   TokenMetadataProvider,
+  JupiterApiProvider,
 };

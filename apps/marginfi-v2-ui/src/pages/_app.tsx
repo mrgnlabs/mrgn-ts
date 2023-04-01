@@ -20,6 +20,7 @@ import {
   TokenAccountsProvider,
   TokenMetadataProvider,
   UserAccountsProvider,
+  JupiterApiProvider,
 } from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
@@ -62,17 +63,19 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
               <BanksStateProvider>
                 <TokenAccountsProvider>
                   <UserAccountsProvider>
-                    <Head>
-                      <title>marginfi</title>
-                      <meta name="description" content="marginfi v2 UI" />
-                      <meta name="viewport" content="width=device-width, initial-scale=1" />
-                      <link rel="icon" href="/favicon.ico" />
-                    </Head>
-                    <Navbar />
-                    <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
-                      <Component {...pageProps} />
-                    </div>
-                    <ToastContainer position="bottom-left" theme="dark" />
+                    <JupiterApiProvider>
+                      <Head>
+                        <title>marginfi</title>
+                        <meta name="description" content="marginfi v2 UI" />
+                        <meta name="viewport" content="width=device-width, initial-scale=1" />
+                        <link rel="icon" href="/favicon.ico" />
+                      </Head>
+                      <Navbar />
+                      <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
+                        <Component {...pageProps} />
+                      </div>
+                      <ToastContainer position="bottom-left" theme="dark" />
+                    </JupiterApiProvider>
                   </UserAccountsProvider>
                 </TokenAccountsProvider>
               </BanksStateProvider>

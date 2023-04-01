@@ -10,6 +10,7 @@ import BigNumber from "bignumber.js";
 import { Checkbox } from "@mui/material";
 import { superStake, withdrawSuperstake } from "../superStakeActions";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useJupiterApiContext } from "~/context/JupiterApiProvider";
 
 const SUPERSTAKE_OR_WITHDRAW_TOAST_ID = "superstake-or-withdraw";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
@@ -28,6 +29,7 @@ const ProductScreensSuperstake: FC = () => {
 
   const [superStakeOrWithdrawAmount, setSuperStakeOrWithdrawAmount] = useState<number>(0);
   const [isInSuperStakeMode, setIsInSuperStakeMode] = useState<boolean>(true);
+  const { tokenMap, routeMap, loaded, api } = useJupiterApiContext();
 
   // ================================
   // START: HELPERS
@@ -174,6 +176,9 @@ const ProductScreensSuperstake: FC = () => {
           selectedBank,
           solBank,
           reloadBanks,
+          tokenMap,
+          routeMap,
+          api
         );
 
         toast.update(SUPERSTAKE_OR_WITHDRAW_TOAST_ID, {
@@ -256,7 +261,7 @@ const ProductScreensSuperstake: FC = () => {
 
   }, [mfiClient, selectedBank, isInSuperStakeMode, superStakeOrWithdrawAmount, selectedAccount, reloadBanks]);
 
-  if (!selectedBank) return null;
+  if ((!selectedBank) || (!loaded)) return null;
 
   return (
     <div className="flex flex-col h-full justify-between">

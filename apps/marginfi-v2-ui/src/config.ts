@@ -1,25 +1,20 @@
 import { PublicKey } from "@solana/web3.js";
 import { getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { getConfig as getLipConfig } from "@mrgnlabs/lip-client";
+import { ENV as ENVChainId } from "@solana/spl-token-registry";
 
-import LockIcon from '@mui/icons-material/Lock';
-import YardIcon from '@mui/icons-material/Yard';
-import HailIcon from '@mui/icons-material/Hail';
-import BoltIcon from '@mui/icons-material/Bolt';
 import { Product, ProductType } from "./types";
 
 // ================
 // MAIN APP CONFIG
 // ================
 
-let mfiConfig, rpcEndpoint, devFaucetAddress, lipConfig;
+let mfiConfig, rpcEndpoint, devFaucetAddress, lipConfig, JUPITER_CHAIN_ID: number;
 let campaignWhitelist: { icon: string; size: number; publicKey: string }[];
 
 const environment = process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT;
 const rpcEndpointOverride = process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE;
 const groupOverride = process.env.NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE;
-
-// const x = () => (<YardIcon />)
 
 export interface Product {
   type: ProductType;
@@ -64,6 +59,7 @@ switch (environment) {
         publicKey: "Cm2yPJQ8qB1wo6b3268F9hC7YbBWRmF6h3mbvvekW68B",
       },
     ];
+    JUPITER_CHAIN_ID = ENVChainId.MainnetBeta
     break;
   case "alpha":
     mfiConfig = getConfig(environment);
@@ -77,6 +73,7 @@ switch (environment) {
   case "staging":
     mfiConfig = getConfig(environment);
     lipConfig = getLipConfig(environment);
+    JUPITER_CHAIN_ID = ENVChainId.Devnet
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
@@ -92,6 +89,7 @@ switch (environment) {
     rpcEndpoint = rpcEndpointOverride || "https://devnet.rpcpool.com/";
     devFaucetAddress = new PublicKey("B87AhxX6BkBsj3hnyHzcerX2WxPoACC7ZyDr8E7H9geN");
     campaignWhitelist = [];
+    JUPITER_CHAIN_ID = ENVChainId.Devnet
     break;
   default:
     mfiConfig = getConfig("dev");
@@ -110,6 +108,7 @@ switch (environment) {
         publicKey: "AjyDM13qAPeE7MQgaS53UcgomVc7o7tfxssDggx5kJHt",
       },
     ];
+    JUPITER_CHAIN_ID = ENVChainId.Devnet
 }
 
 const config = {
@@ -124,3 +123,4 @@ const config = {
 export default config;
 export const WSOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 export const WALLET_BALANCE_MARGIN_SOL = 0.1;
+export { JUPITER_CHAIN_ID };
