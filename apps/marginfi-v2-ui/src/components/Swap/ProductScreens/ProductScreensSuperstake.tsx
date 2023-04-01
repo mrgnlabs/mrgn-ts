@@ -190,7 +190,7 @@ const ProductScreensSuperstake: FC = () => {
       } // Withdraw
       else {
         // Withdraw the specified amount of tokens
-        await superStake(
+        await withdrawSuperstake(
           mfiClient,
           connection,
           wallet,

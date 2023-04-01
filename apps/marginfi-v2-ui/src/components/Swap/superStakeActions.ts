@@ -280,7 +280,7 @@ const superStake = async (
   await reloadBanks()
 }
 
-const withdrawSuperStake = async (
+const withdrawSuperstake = async (
     mfiClient: any,
     connection: Connection,
     wallet: Wallet,
