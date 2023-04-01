@@ -11,7 +11,7 @@ const SwapUI: FC = () => {
         <div className="absolute top-[140px]">          
         </div>
         <div className="h-full gap-1">
-          {/* <ProductScreensSuperstake /> */}
+          <ProductScreensSuperstake />
         </div>
       </div>
     </div>

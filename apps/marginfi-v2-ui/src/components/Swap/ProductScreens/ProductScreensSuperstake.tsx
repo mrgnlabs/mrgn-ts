@@ -73,7 +73,7 @@ const ProductScreensSuperstake: FC = () => {
         setSelectedBank(updatedBank);
       }
     }
-  }, [selectedBank, JSON.stringify(whitelistedBanks)]);
+  }, [selectedBank, whitelistedBanks]);
 
   /**
    * Updates the whitelistedBanks array when the extendedBankInfos array changes.
@@ -269,10 +269,12 @@ const ProductScreensSuperstake: FC = () => {
   if ((!selectedBank) || (!loaded)) return null;
 
   return (
-    <div className="flex flex-col h-full justify-between">
+    <div
+      className="flex flex-col h-full justify-between"
+    >
       <div>
         <div className="flex w-full justify-end px-0.5 pb-2">
-          <div className="block text-[#e1e1e1] text-sm">Balance: {groupedNumberFormatterDyn.format(tokenBalance)}</div>
+          <div className="block text-[#e1e1e1] text-sm">{selectedBank.tokenName} Balance: {groupedNumberFormatterDyn.format(tokenBalance)}</div>
         </div>
         <BankInputBox
           value={superStakeOrWithdrawAmount}
@@ -280,18 +282,21 @@ const ProductScreensSuperstake: FC = () => {
           maxValue={maxAmount}
           selectedBank={selectedBank}
           setSelectedBank={setSelectedBank}
-          banks={extendedBankInfos}
+          banks={whitelistedBanks}
         />
       </div>
       <div className="flex flex-col gap-2">
-        <div className="flex w-full justify-between items-end">
+        <div className="flex w-full justify-start items-end gap-1">
+          <div className="block text-[#9BEB8E] text-lg px-0.5" style={{ fontWeight: 300 }}>
+            {selectedBank.tokenName} sAPY:
+          </div>
           <div className="block text-[#9BEB8E] text-3xl px-0.5" style={{ fontWeight: 500 }}>
-            23.5% APY
+            23.5%
           </div>
         </div>
         <div className="w-full flex gap-2">
           <ActionButton onClick={superStakeOrWithdraw}>⚡️ stake</ActionButton>
-          <ActionButton onClick={superStakeOrWithdraw}>🛑 withdraw</ActionButton>
+          {/* <ActionButton onClick={superStakeOrWithdraw}>🛑 withdraw</ActionButton> */}
         </div>
       </div>
     </div>
