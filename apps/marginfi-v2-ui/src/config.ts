@@ -23,19 +23,15 @@ export interface Product {
 const PRODUCTS_CONFIG: Record<ProductType, Product> = {
   [ProductType.Lend]: {
     type: ProductType.Lend,
-    // icon: x,
   },
   [ProductType.Borrow]: {
     type: ProductType.Borrow,
-    // icon: x,
   },
   [ProductType.Short]: {
     type: ProductType.Short,
-    // icon: x,
   },
   [ProductType.Superstake]: {
     type: ProductType.Superstake,
-    // icon: x,
   },
 };
 
