@@ -107,8 +107,7 @@ const ProductScreensSuperstake: FC = () => {
   const maxAmount = useMemo(() => {
     if (!selectedBank) return undefined;
     if (isInSuperStakeMode) {
-      // @todo NEEDS UPDATING
-      return selectedBank.maxBorrow;
+      return selectedBank.maxDeposit;
     } else {
       // @todo NEEDS UPDATING
       return selectedBank.maxRepay;
@@ -148,7 +147,7 @@ const ProductScreensSuperstake: FC = () => {
       toast.error("Please enter an amount over 0.");
       return;
     }
-    
+
     // ================================
     // END: VALIDATION CHECKS
     // ================================
@@ -165,18 +164,18 @@ const ProductScreensSuperstake: FC = () => {
 
       if (isInSuperStakeMode) {
         // Stake the specified amount of tokens
-        await superStake(
-          mfiClient,
-          connection,
-          wallet,
-          superStakeOrWithdrawAmount,
-          selectedBank,
-          solBank,
-          reloadBanks,
-          tokenMap,
-          routeMap,
-          api
-        );
+        // await superStake(
+        //   mfiClient,
+        //   connection,
+        //   wallet,
+        //   superStakeOrWithdrawAmount,
+        //   selectedBank,
+        //   solBank,
+        //   reloadBanks,
+        //   tokenMap,
+        //   routeMap,
+        //   api
+        // );
 
         toast.update(SUPERSTAKE_OR_WITHDRAW_TOAST_ID, {
           render: `Staking ${superStakeOrWithdrawAmount} ${selectedBank.tokenName} 👍`,
@@ -187,18 +186,18 @@ const ProductScreensSuperstake: FC = () => {
       } // Withdraw
       else {
         // Withdraw the specified amount of tokens
-        await withdrawSuperstake(
-          mfiClient,
-          connection,
-          wallet,
-          superStakeOrWithdrawAmount,
-          selectedBank,
-          solBank,
-          reloadBanks,
-          tokenMap,
-          routeMap,
-          api
-        );
+        // await withdrawSuperstake(
+        //   mfiClient,
+        //   connection,
+        //   wallet,
+        //   superStakeOrWithdrawAmount,
+        //   selectedBank,
+        //   solBank,
+        //   reloadBanks,
+        //   tokenMap,
+        //   routeMap,
+        //   api
+        // );
 
         toast.update(SUPERSTAKE_OR_WITHDRAW_TOAST_ID, {
           render: `Withdrawing ${superStakeOrWithdrawAmount} ${selectedBank.tokenName} 👍`,
@@ -288,7 +287,7 @@ const ProductScreensSuperstake: FC = () => {
       <div className="flex flex-col gap-2">
         <div className="flex w-full justify-start items-end gap-1">
           <div className="block text-[#9BEB8E] text-lg px-0.5" style={{ fontWeight: 300 }}>
-            {selectedBank.tokenName} sAPY:
+            {selectedBank.tokenName} APY:
           </div>
           <div className="block text-[#9BEB8E] text-3xl px-0.5" style={{ fontWeight: 500 }}>
             23.5%

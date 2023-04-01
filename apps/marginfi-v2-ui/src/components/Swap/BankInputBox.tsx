@@ -16,7 +16,6 @@ interface InputBoxProps {
   maxValue?: number;
   maxDecimals?: number;
   disabled?: boolean;
-  showMaxButton?: boolean;
 }
 
 const BankInputBox: FC<InputBoxProps> = ({
@@ -28,15 +27,7 @@ const BankInputBox: FC<InputBoxProps> = ({
   banks,
   selectedBank,
   setSelectedBank,
-  // showMaxButton = true,
 }) => {
-  // const onMaxClick = useCallback(() => {
-  //   if (maxValue !== undefined) {
-  //     setValue(maxValue);
-  //   } else {
-  //     toast.error("Max value not implemented");
-  //   }
-  // }, [maxValue, setValue]);
 
   const onChange = useCallback(
     (event: NumberFormatValues) => {
