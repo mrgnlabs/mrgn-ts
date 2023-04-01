@@ -146,6 +146,102 @@ const makeSuperStakeIx = async ({
   }
 }
 
+const makeWithdrawSuperStakeIx = async ({
+  initialWithdrawableAmount, // need to figure this out
+  depositBank,
+  borrowBank,
+  maxLTV,
+  slippageBpsSwapTolerance = 50,
+  buffer = 0.9,
+  tokenMap,
+  routeMap,
+  api,
+}) => {
+
+  const createLoop = async ({
+      LSTAvailableAmount
+  }) => {
+
+      // use jupiter api
+      const { instructions: swapIx } = await makeSwapIx({
+        amount: LSTAvailableAmount,
+        slippageBps: slippageBpsSwapTolerance,
+        inputTokenAddress: depositBank.tokenMint,
+        outputTokenAddress: borrowBank.tokenMint,
+        tokenMap,
+        routeMap,
+        api,
+      });
+
+      const { instructions: repayIx } = await makeRepayIx({
+        amount: LSTAvailableAmount * (1-slippageBpsSwapTolerance/10000),
+        bank: borrowBank,
+      });
+
+      const { instructions: withdrawIx } = await makeWithdrawIx({
+          amount: LSTAvailableAmount * (1-slippageBpsSwapTolerance/10000),
+          bank: depositBank,
+      });
+  
+      return {
+          instructions: [...swapIx, ...repayIx, ...withdrawIx],
+          LSTSOLOutputAmount: LSTAvailableAmount * (1-slippageBpsSwapTolerance/10000),
+      };
+  }    
+
+  // first withdraw
+  const { 
+    instructions: firstWithdrawIx,
+    LSTSOLOutputAmount: LSTSOLOutputAmount0
+  } = await makeWithdrawIx({
+    amount: initialWithdrawableAmount,
+    bank: depositBank
+  });
+
+  // reverse loop 1
+  const {
+      instructions: LSTSOLloopInstructions1,
+      LSTSOLOutputAmount: LSTSOLOutputAmount1
+  } = await createLoop({
+    LSTSOLOutputAmount1
+  })
+  
+  // reverse loop 2
+  const {
+      instructions: LSTSOLloopInstructions2,
+      LSTSOLOutputAmount: LSTSOLOutputAmount2
+  } = await createLoop({
+    LSTSOLOutputAmount2
+  })
+
+  // reverse loop 3
+  const {
+      instructions: LSTSOLloopInstructions3,
+      LSTSOLOutputAmount: LSTSOLOutputAmount3
+  } = await createLoop({
+    LSTSOLOutputAmount3
+  })
+
+  // reverse loop 4
+  const {
+      instructions: LSTSOLloopInstructions4,
+      LSTSOLOutputAmount: LSTSOLOutputAmount4
+  } = await createLoop({
+    LSTSOLOutputAmount4
+  })
+
+  return {
+      instructions: [
+          ...firstWithdrawIx,
+          ...LSTSOLloopInstructions1,
+          ...LSTSOLloopInstructions2,
+          ...LSTSOLloopInstructions3,
+          ...LSTSOLloopInstructions4,
+      ],
+      keys: []
+  }
+}
+
 // ================================
 // END: SUPERSTAKE INSTRUCTIONS
 // ================================
@@ -184,7 +280,35 @@ const superStake = async (
   await reloadBanks()
 }
 
-const withdrawSuperstake = () => {}
+const withdrawSuperStake = async (
+    mfiClient: any,
+    connection: Connection,
+    wallet: Wallet,
+    superStakeOrWithdrawAmount: number,
+    depositBank: ExtendedBankInfo,
+    borrowBank: ExtendedBankInfo,
+    reloadBanks: () => void,
+    tokenMap,
+    routeMap,
+    api
+) => {
+
+  const withdrawSuperStakeIxs = await makeWithdrawSuperStakeIx({
+    superStakeOrWithdrawAmount,
+    depositBank,
+    borrowBank,
+    maxLTV: nativeToUi(borrowBank.bank.config.liabilityWeightInit, borrowBank.tokenMintDecimals),
+    slippageBpsSwapTolerance: 50,
+    buffer: 0.9,
+    tokenMap,
+    routeMap,
+    api,
+  })
+
+  const tx = new Transaction().add(...withdrawSuperStakeIxs.instructions);
+  const sig = await mfiClient.processTransaction(tx)
+  await reloadBanks()
+}
 
 export {
     superStake,

@@ -190,10 +190,18 @@ const ProductScreensSuperstake: FC = () => {
       } // Withdraw
       else {
         // Withdraw the specified amount of tokens
-        await withdrawSuperstake(
+        await superStake(
+          mfiClient,
+          connection,
+          wallet,
           superStakeOrWithdrawAmount,
-          selectedBank.bank
-        )
+          selectedBank,
+          solBank,
+          reloadBanks,
+          tokenMap,
+          routeMap,
+          api
+        );
 
         toast.update(SUPERSTAKE_OR_WITHDRAW_TOAST_ID, {
           render: `Withdrawing ${superStakeOrWithdrawAmount} ${selectedBank.tokenName} 👍`,
