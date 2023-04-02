@@ -1,11 +1,14 @@
 import { SystemProgram, Keypair, PublicKey, Transaction, VersionedTransaction, TransactionMessage } from "@solana/web3.js";
 import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { Marinade, MarinadeConfig } from '@marinade.finance/marinade-ts-sdk';
+import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common/src/spl";
 
 // ================================
 // START: SUPERSTAKE INSTRUCTIONS
 // ================================
 
 const makeSwapIx = async ({
+  wallet,
   connection,
   marginfiAccount,
   amount,
@@ -18,65 +21,44 @@ const makeSwapIx = async ({
   api,
 }) => {
 
-  const { data: routes } = await api.v4QuoteGet({
-    amount: Math.round(amount * Math.pow(10,inputTokenMintDecimals-1)), // @todo confirm this is correct
-    inputMint: inputTokenAddress.toBase58(),
-    outputMint: outputTokenAddress.toBase58(),
-    slippage: slippageBps / 10000,
-  });  
+  console.log("   ✅ - running swap");  
+  const config = new MarinadeConfig({
+    connection: connection,
+    publicKey: wallet.publicKey,
+  })
+  console.log("   ✅ - got config");  
 
-  if (!routes || routes.length === 0) {
-    throw new Error("No routes found for the given input and output tokens.");
-  }
-
-  const route = routes[0];
-
-  const inputTokenInfo = tokenMap.get(inputTokenAddress.toBase58());
-  const outputTokenInfo = tokenMap.get(outputTokenAddress.toBase58());
-  if (!inputTokenInfo || !outputTokenInfo) {
-    throw new Error("Input or output token not found in token map.");
-  }
-
-  const validOutputMints = routeMap.get(inputTokenAddress.toBase58()) || [];
-  if (!validOutputMints.includes(outputTokenAddress.toBase58())) {
-    throw new Error(
-      "Output token is not a valid swap route for the given input token."
-    );
-  }
-
-  const swapTransaction = await api.v4SwapPost({
-    body: {
-      route,
-      userPublicKey: marginfiAccount.publicKey.toBase58(),
-    },
-  });
-
-  const swapTransactionBuf = Buffer.from(swapTransaction.swapTransaction, 'base64');
-  const tx = VersionedTransaction.deserialize(swapTransactionBuf);
-
-  console.log(tx)
-
-  const addressTableLookupsAccountKeys = tx.message.addressTableLookups.map((lookup) => lookup.accountKey);
-
-  const lookupTableAccounts = await Promise.all(
-    addressTableLookupsAccountKeys.map(
-      async key => await connection.getAddressLookupTable(key).then((res) => res.value)
-    )
-  )
-
-  const txMessageDecompiled = TransactionMessage.decompile(
-    tx.message,
-    {
-      addressLookupTableAccounts: lookupTableAccounts,
+  const marinade = new Marinade(config)
+  const marinadeState = await marinade.getMarinadeState();
+  const program = await marinade.provideReferralOrMainProgram();
+  console.log("   ✅ - got program");
+  const instruction = program.liquidUnstakeInstruction({
+    amount : amount * 1000000,
+    accounts: {
+      state: marinadeState.marinadeStateAddress,
+      msolMint: marinadeState.mSolMintAddress,
+      liqPoolMsolLeg: marinadeState.mSolLeg,
+      liqPoolSolLegPda: await marinadeState.solLeg(),
+      getMsolFrom: getAssociatedTokenAddressSync(
+        marinadeState.mSolMintAddress,
+        wallet.publicKey,
+      ),
+      getMsolFromAuthority: wallet.publicKey,
+      transferSolTo: wallet.publicKey,
+      treasuryMsolAccount: marinadeState.treasuryMsolAccount,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
     }
-  );
+  })
+  console.log("   ✅ - constructed instruction");
 
-  const instructions = txMessageDecompiled.instructions;
-
-  return { instructions, lookupTableAccounts };
+  return {
+    instructions: [instruction]
+  }
 };
 
 const makeSuperStakeIx = async ({
+  wallet,
   connection,
   marginfiAccount,
   initialCollateralAmount,
@@ -105,7 +87,8 @@ const makeSuperStakeIx = async ({
       );
       
       // // use jupiter api
-      const { instructions: swapIx, lookupTableAccounts } = await makeSwapIx({
+      const { instructions: swapIx } = await makeSwapIx({
+          wallet,
           connection,
           marginfiAccount,
           amount: initialLoopCollateralAmount * maxLTV * buffer,
@@ -117,18 +100,10 @@ const makeSuperStakeIx = async ({
           routeMap,
           api,
       });
-
-      // console.log({
-      //   depositIx,
-      //   borrowIx,
-      //   swapIx,
-      // });
   
       return {
-          // instructions: [...depositIx, ...borrowIx, ...swapIx],
-          instructions: swapIx,
+          instructions: [...depositIx, ...borrowIx, ...swapIx],
           LSTSOLOutputAmount: initialLoopCollateralAmount * maxLTV * buffer * (1-slippageBpsSwapTolerance/10000),
-          lookupTableAccounts,
       };
   }
 
@@ -136,28 +111,24 @@ const makeSuperStakeIx = async ({
   const {
       instructions: LSTSOLloopInstructions1,
       LSTSOLOutputAmount: LSTSOLOutputAmount1,
-      lookupTableAccounts: lookupTableAccounts1,
   } = await createLoop(initialCollateralAmount)
   
   // loop 2
   const {
       instructions: LSTSOLloopInstructions2,
       LSTSOLOutputAmount: LSTSOLOutputAmount2,
-      lookupTableAccounts: lookupTableAccounts2,
   } = await createLoop(LSTSOLOutputAmount1)
 
   // loop 3
   const {
       instructions: LSTSOLloopInstructions3,
       LSTSOLOutputAmount: LSTSOLOutputAmount3,
-      lookupTableAccounts: lookupTableAccounts3,
   } = await createLoop(LSTSOLOutputAmount2)
 
   // loop 4
   const {
       instructions: LSTSOLloopInstructions4,
       LSTSOLOutputAmount: LSTSOLOutputAmount4,
-      lookupTableAccounts: lookupTableAccounts4,
   } = await createLoop(LSTSOLOutputAmount3)
 
   // final deposit
@@ -174,17 +145,11 @@ const makeSuperStakeIx = async ({
           ...LSTSOLloopInstructions4,
           ...finalDepositIx
       ],
-      lookupTableAccounts: [
-          ...lookupTableAccounts1,
-          ...lookupTableAccounts2,
-          ...lookupTableAccounts3,
-          ...lookupTableAccounts4,
-      ],
-      // keys: []
   }
 }
 
 const makeWithdrawSuperStakeIx = async ({
+  wallet,
   connection,
   marginfiAccount,
   initialWithdrawableAmount, // need to figure this out
@@ -297,6 +262,7 @@ const superStake = async (
 ) => {
 
   const superStakeIxs = await makeSuperStakeIx({
+    wallet,
     connection,
     marginfiAccount,
     initialCollateralAmount: superStakeOrWithdrawAmount,
@@ -309,66 +275,16 @@ const superStake = async (
     routeMap,
     api,
   })
-  // console.log("   ✅ - Constructed superstake instructions");
 
-  // const messageV0 = new TransactionMessage({
-  //   payerKey: wallet.publicKey,
-  //   recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
-  //   instructions: superStakeIxs.instructions,
-  // }).compileToV0Message(superStakeIxs.lookupTableAccounts);
-  // console.log("   ✅ - Compiled Transaction Message");
+  const messageV0 = new TransactionMessage({
+    payerKey: wallet.publicKey,
+    recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
+    instructions: superStakeIxs.instructions,
+  }).compileToV0Message();
+  const tx = new VersionedTransaction(messageV0)
+  wallet.signTransaction(tx);
 
-  // const tx = new VersionedTransaction(messageV0);
-  // console.log(tx)
-  // console.log("   ✅ - Created transaction");
-
-  // const payer = Keypair.generate();
-
-  // console.log(
-  //   tx.message.staticAccountKeys.map((account) => account.toBase58())
-  // )
-  // console.log(
-  //   superStakeIxs.lookupTableAccounts.map((account) => account.key.toBase58())
-  // )
-  // const minRent = 0;
-
-  // const instructions = [
-  //   SystemProgram.transfer({
-  //     fromPubkey: payer.publicKey,
-  //     toPubkey: payer.publicKey,
-  //     lamports: minRent,
-  //   }),
-  // ];  
-  // const instructions = superStakeIxs.instructions.slice(0,10);
-  // console.log(instructions[0])
-
-  // const messageV0 = new TransactionMessage({
-  //   payerKey: payer.publicKey,
-  //   recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
-  //   instructions,
-  // }).compileToV0Message();
-  // const tx = new VersionedTransaction(messageV0);
-  // tx.sign([payer]);
-  // console.log(tx);
-  // const keypair = Keypair.generate();
-
-  // tx.sign([keypair]);
-  // console.log(tx)
-  // console.log(keypair)
-  // console.log(wallet);
-
-  // wallet.signTransaction(tx);
-
-  // tx.sign([wallet]);
-  // console.log(tx)
-  // console.log("   ✅ - Signed transaction");
-
-
-  // const txid = await wallet.sendTransaction(tx, connection, {
-  //   skipPreflight: true,
-  // });
-  // console.log("   ✅ - Sent transaction");
-  // console.log(txid)
+  console.log(tx);
   
   return;
 
@@ -390,6 +306,7 @@ const withdrawSuperstake = async (
 ) => {
 
   const withdrawSuperStakeIxs = await makeWithdrawSuperStakeIx({
+    wallet,
     connection,
     marginfiAccount,
     initialWithdrawableAmount: superStakeOrWithdrawAmount,
