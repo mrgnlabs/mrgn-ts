@@ -1,4 +1,4 @@
-import { PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { PublicKey, Transaction, VersionedTransaction, TransactionMessage } from "@solana/web3.js";
 import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 // ================================
@@ -6,6 +6,7 @@ import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 // ================================
 
 const makeSwapIx = async ({
+  connection,
   marginfiAccount,
   amount,
   inputTokenAddress,
@@ -51,14 +52,30 @@ const makeSwapIx = async ({
   });
 
   const swapTransactionBuf = Buffer.from(swapTransaction.swapTransaction, 'base64');
-  const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
+  const tx = VersionedTransaction.deserialize(swapTransactionBuf);
 
-  const instructions = transaction.message.compiledInstructions;
+  const addressTableLookupsAccountKeys = tx.message.addressTableLookups.map((lookup) => lookup.accountKey);
+
+  const lookupTableAccounts = await Promise.all(
+    addressTableLookupsAccountKeys.map(
+      async key => await connection.getAddressLookupTable(key).then((res) => res.value)
+    )
+  )
+
+  const txMessageDecompiled = TransactionMessage.decompile(
+    tx.message,
+    {
+      addressLookupTableAccounts: lookupTableAccounts,
+    }
+  );
+
+  const instructions = txMessageDecompiled.instructions;
 
   return { instructions };
 };
 
 const makeSuperStakeIx = async ({
+  connection,
   marginfiAccount,
   initialCollateralAmount,
   depositBank,
@@ -87,6 +104,7 @@ const makeSuperStakeIx = async ({
       
       // // use jupiter api
       const { instructions: swapIx } = await makeSwapIx({
+          connection,
           marginfiAccount,
           amount: initialLoopCollateralAmount * maxLTV * buffer,
           slippageBps: slippageBpsSwapTolerance,
@@ -147,6 +165,7 @@ const makeSuperStakeIx = async ({
 }
 
 const makeWithdrawSuperStakeIx = async ({
+  connection,
   marginfiAccount,
   initialWithdrawableAmount, // need to figure this out
   depositBank,
@@ -258,6 +277,7 @@ const superStake = async (
 ) => {
 
   const superStakeIxs = await makeSuperStakeIx({
+    connection,
     marginfiAccount,
     initialCollateralAmount: superStakeOrWithdrawAmount,
     depositBank,
@@ -270,13 +290,26 @@ const superStake = async (
     api,
   })
 
-  console.log({
-    superStakeIxs
-  })
+  console.log("   ✅ - Constructed superstake instructions");
+
+  const messageV0 = new TransactionMessage({
+    payerKey: wallet.publicKey,
+    recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
+    instructions: superStakeIxs.instructions,
+  }).compileToV0Message();
+  console.log("   ✅ - Compiled Transaction Message");
+
+  const tx = new VersionedTransaction(messageV0);
+  console.log("   ✅ - Created transaction");
+
+  const txid = await wallet.sendTransaction(tx, connection, {
+    skipPreflight: true,
+  });
+  console.log("   ✅ - Sent transaction");
+  console.log(txid)
+  
   return;
 
-  // const tx = new Transaction().add(...superStakeIxs.instructions);
-  // const sig = await mfiClient.processTransaction(tx)
   await reloadBanks()
 }
 
@@ -295,6 +328,7 @@ const withdrawSuperstake = async (
 ) => {
 
   const withdrawSuperStakeIxs = await makeWithdrawSuperStakeIx({
+    connection,
     marginfiAccount,
     initialWithdrawableAmount: superStakeOrWithdrawAmount,
     depositBank,
