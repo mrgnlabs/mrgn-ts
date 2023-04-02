@@ -320,8 +320,14 @@ const withdrawSuperstake = async (
     api,  
   })
 
-  const tx = new Transaction().add(...withdrawSuperStakeIxs.instructions);
-  const sig = await mfiClient.processTransaction(tx)
+  const messageV0 = new TransactionMessage({
+    payerKey: wallet.publicKey,
+    recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
+    instructions: superStakeIxs.instructions,
+  }).compileToV0Message();
+  const tx = new VersionedTransaction(messageV0)
+  wallet.signTransaction(tx);
+
   await reloadBanks()
 }
 
