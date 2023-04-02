@@ -1,4 +1,4 @@
-import { PublicKey, Transaction, VersionedTransaction, TransactionMessage } from "@solana/web3.js";
+import { SystemProgram, Keypair, PublicKey, Transaction, VersionedTransaction, TransactionMessage } from "@solana/web3.js";
 import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 // ================================
@@ -54,6 +54,8 @@ const makeSwapIx = async ({
   const swapTransactionBuf = Buffer.from(swapTransaction.swapTransaction, 'base64');
   const tx = VersionedTransaction.deserialize(swapTransactionBuf);
 
+  console.log(tx)
+
   const addressTableLookupsAccountKeys = tx.message.addressTableLookups.map((lookup) => lookup.accountKey);
 
   const lookupTableAccounts = await Promise.all(
@@ -71,7 +73,7 @@ const makeSwapIx = async ({
 
   const instructions = txMessageDecompiled.instructions;
 
-  return { instructions };
+  return { instructions, lookupTableAccounts };
 };
 
 const makeSuperStakeIx = async ({
@@ -103,7 +105,7 @@ const makeSuperStakeIx = async ({
       );
       
       // // use jupiter api
-      const { instructions: swapIx } = await makeSwapIx({
+      const { instructions: swapIx, lookupTableAccounts } = await makeSwapIx({
           connection,
           marginfiAccount,
           amount: initialLoopCollateralAmount * maxLTV * buffer,
@@ -115,35 +117,47 @@ const makeSuperStakeIx = async ({
           routeMap,
           api,
       });
+
+      // console.log({
+      //   depositIx,
+      //   borrowIx,
+      //   swapIx,
+      // });
   
       return {
-          instructions: [...depositIx, ...borrowIx, ...swapIx],
+          // instructions: [...depositIx, ...borrowIx, ...swapIx],
+          instructions: swapIx,
           LSTSOLOutputAmount: initialLoopCollateralAmount * maxLTV * buffer * (1-slippageBpsSwapTolerance/10000),
+          lookupTableAccounts,
       };
   }
 
   // loop 1
   const {
       instructions: LSTSOLloopInstructions1,
-      LSTSOLOutputAmount: LSTSOLOutputAmount1
+      LSTSOLOutputAmount: LSTSOLOutputAmount1,
+      lookupTableAccounts: lookupTableAccounts1,
   } = await createLoop(initialCollateralAmount)
   
   // loop 2
   const {
       instructions: LSTSOLloopInstructions2,
-      LSTSOLOutputAmount: LSTSOLOutputAmount2
+      LSTSOLOutputAmount: LSTSOLOutputAmount2,
+      lookupTableAccounts: lookupTableAccounts2,
   } = await createLoop(LSTSOLOutputAmount1)
 
   // loop 3
   const {
       instructions: LSTSOLloopInstructions3,
-      LSTSOLOutputAmount: LSTSOLOutputAmount3
+      LSTSOLOutputAmount: LSTSOLOutputAmount3,
+      lookupTableAccounts: lookupTableAccounts3,
   } = await createLoop(LSTSOLOutputAmount2)
 
   // loop 4
   const {
       instructions: LSTSOLloopInstructions4,
-      LSTSOLOutputAmount: LSTSOLOutputAmount4
+      LSTSOLOutputAmount: LSTSOLOutputAmount4,
+      lookupTableAccounts: lookupTableAccounts4,
   } = await createLoop(LSTSOLOutputAmount3)
 
   // final deposit
@@ -160,7 +174,13 @@ const makeSuperStakeIx = async ({
           ...LSTSOLloopInstructions4,
           ...finalDepositIx
       ],
-      keys: []
+      lookupTableAccounts: [
+          ...lookupTableAccounts1,
+          ...lookupTableAccounts2,
+          ...lookupTableAccounts3,
+          ...lookupTableAccounts4,
+      ],
+      // keys: []
   }
 }
 
@@ -289,24 +309,66 @@ const superStake = async (
     routeMap,
     api,
   })
+  // console.log("   ✅ - Constructed superstake instructions");
 
-  console.log("   ✅ - Constructed superstake instructions");
+  // const messageV0 = new TransactionMessage({
+  //   payerKey: wallet.publicKey,
+  //   recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
+  //   instructions: superStakeIxs.instructions,
+  // }).compileToV0Message(superStakeIxs.lookupTableAccounts);
+  // console.log("   ✅ - Compiled Transaction Message");
 
-  const messageV0 = new TransactionMessage({
-    payerKey: wallet.publicKey,
-    recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
-    instructions: superStakeIxs.instructions,
-  }).compileToV0Message();
-  console.log("   ✅ - Compiled Transaction Message");
+  // const tx = new VersionedTransaction(messageV0);
+  // console.log(tx)
+  // console.log("   ✅ - Created transaction");
 
-  const tx = new VersionedTransaction(messageV0);
-  console.log("   ✅ - Created transaction");
+  // const payer = Keypair.generate();
 
-  const txid = await wallet.sendTransaction(tx, connection, {
-    skipPreflight: true,
-  });
-  console.log("   ✅ - Sent transaction");
-  console.log(txid)
+  // console.log(
+  //   tx.message.staticAccountKeys.map((account) => account.toBase58())
+  // )
+  // console.log(
+  //   superStakeIxs.lookupTableAccounts.map((account) => account.key.toBase58())
+  // )
+  // const minRent = 0;
+
+  // const instructions = [
+  //   SystemProgram.transfer({
+  //     fromPubkey: payer.publicKey,
+  //     toPubkey: payer.publicKey,
+  //     lamports: minRent,
+  //   }),
+  // ];  
+  // const instructions = superStakeIxs.instructions.slice(0,10);
+  // console.log(instructions[0])
+
+  // const messageV0 = new TransactionMessage({
+  //   payerKey: payer.publicKey,
+  //   recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
+  //   instructions,
+  // }).compileToV0Message();
+  // const tx = new VersionedTransaction(messageV0);
+  // tx.sign([payer]);
+  // console.log(tx);
+  // const keypair = Keypair.generate();
+
+  // tx.sign([keypair]);
+  // console.log(tx)
+  // console.log(keypair)
+  // console.log(wallet);
+
+  // wallet.signTransaction(tx);
+
+  // tx.sign([wallet]);
+  // console.log(tx)
+  // console.log("   ✅ - Signed transaction");
+
+
+  // const txid = await wallet.sendTransaction(tx, connection, {
+  //   skipPreflight: true,
+  // });
+  // console.log("   ✅ - Sent transaction");
+  // console.log(txid)
   
   return;
 
