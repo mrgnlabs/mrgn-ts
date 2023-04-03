@@ -157,6 +157,7 @@ const AssetRow: FC<{
       }
 
       if (currentAction === ActionType.Borrow) {
+        console.log('testing')
         await _marginfiAccount.borrow(borrowOrLendAmount, bankInfo.bank);
       } else if (currentAction === ActionType.Repay) {
         const repayAll = isActiveBankInfo(bankInfo) ? borrowOrLendAmount === bankInfo.position.amount : false;

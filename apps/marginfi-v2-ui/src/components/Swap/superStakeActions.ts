@@ -2,6 +2,8 @@ import { SystemProgram, Keypair, PublicKey, Transaction, VersionedTransaction, T
 import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Marinade, MarinadeConfig } from '@marinade.finance/marinade-ts-sdk';
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common/src/spl";
+import { uiToNative, createAssociatedTokenAccountIdempotentInstruction, NATIVE_MINT } from '@mrgnlabs/mrgn-common';
+import * as token_1 from '@project-serum/anchor/dist/cjs/utils/token';
 
 // ================================
 // START: SUPERSTAKE INSTRUCTIONS
@@ -33,7 +35,7 @@ const makeSwapIx = async ({
   const program = await marinade.provideReferralOrMainProgram();
   console.log("   ✅ - got program");
   const instruction = program.liquidUnstakeInstruction({
-    amount : amount * 1000000,
+    amount: amount,
     accounts: {
       state: marinadeState.marinadeStateAddress,
       msolMint: marinadeState.mSolMintAddress,
@@ -80,13 +82,15 @@ const makeSuperStakeIx = async ({
         initialLoopCollateralAmount,
         depositBank.bank,
       );
-      
+
+      // borrow logic
       const { instructions: borrowIx } = await marginfiAccount.makeBorrowIx(
-          initialLoopCollateralAmount * maxLTV * buffer,
-          borrowBank.bank,
+        initialLoopCollateralAmount * maxLTV * buffer,
+        borrowBank.bank,
+        { remainingAccountsBankOverride: [depositBank.bank, borrowBank.bank] }
       );
-      
-      // // use jupiter api
+
+      // use jupiter api
       const { instructions: swapIx } = await makeSwapIx({
           wallet,
           connection,

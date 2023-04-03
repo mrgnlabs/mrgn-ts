@@ -187,6 +187,7 @@ export class MarginfiAccount {
    * @returns `MarginDepositCollateral` transaction instruction
    */
   async makeDepositIx(amount: Amount, bank: Bank): Promise<InstructionsWrapper> {
+
     const userTokenAtaPk = await associatedAddress({
       mint: bank.mint,
       owner: this.client.provider.wallet.publicKey,
