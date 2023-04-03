@@ -276,17 +276,18 @@ const superStake = async (
     api,
   })
 
+  const lutAccount = await connection.getAddressLookupTable(new PublicKey("B3We5gAbzUCWYvp85rGMyAhsDCV9wypk7dXG7FyETdQ3")).then((res) => res.value)
+
   const messageV0 = new TransactionMessage({
     payerKey: wallet.publicKey,
     recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
     instructions: superStakeIxs.instructions,
-  }).compileToV0Message();
+  }).compileToV0Message([lutAccount]);
   const tx = new VersionedTransaction(messageV0)
-  wallet.signTransaction(tx);
-
-  console.log(tx);
-  
-  return;
+  const txid = await wallet.sendTransaction(tx, connection, {
+    skipPreflight: true,
+  });
+  console.log(txid)
 
   await reloadBanks()
 }
@@ -327,6 +328,8 @@ const withdrawSuperstake = async (
   }).compileToV0Message();
   const tx = new VersionedTransaction(messageV0)
   wallet.signTransaction(tx);
+
+  return;
 
   await reloadBanks()
 }
