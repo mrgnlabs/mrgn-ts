@@ -1,44 +1,53 @@
-import { SystemProgram, Keypair, PublicKey, Transaction, VersionedTransaction, TransactionMessage } from "@solana/web3.js";
+import { PublicKey, VersionedTransaction, TransactionMessage, Connection } from "@solana/web3.js";
 import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Marinade, MarinadeConfig } from '@marinade.finance/marinade-ts-sdk';
-import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common/src/spl";
-import { uiToNative, createAssociatedTokenAccountIdempotentInstruction, NATIVE_MINT } from '@mrgnlabs/mrgn-common';
-import * as token_1 from '@project-serum/anchor/dist/cjs/utils/token';
+import { uiToNative, nativeToUi } from '@mrgnlabs/mrgn-common';
+import { ExtendedBankInfo } from '~/types';
+import { WalletContextState } from "@solana/wallet-adapter-react";
 
 // ================================
 // START: SUPERSTAKE INSTRUCTIONS
 // ================================
 
+interface SwapParams {
+  wallet: WalletContextState;
+  connection: Connection;
+  amount: number;
+  inputTokenMintDecimals: number;
+}
+
 const makeSwapIx = async ({
   wallet,
   connection,
-  marginfiAccount,
   amount,
-  inputTokenAddress,
-  outputTokenAddress,
   inputTokenMintDecimals,
-  slippageBps,
-  tokenMap,
-  routeMap,
-  api,
-}) => {
+}: SwapParams) => {
 
-  console.log("   ✅ - running swap");  
   const config = new MarinadeConfig({
     connection: connection,
     publicKey: wallet.publicKey,
   })
-  console.log("   ✅ - got config");  
 
   const marinade = new Marinade(config)
   const tx = await marinade.deposit(uiToNative(amount, inputTokenMintDecimals))
+
   const ix = tx.transaction.instructions
-  console.log("   ✅ - got instruction");  
 
   return {
     instructions: ix
   }
 };
+
+interface SuperStakeParams {
+  wallet: WalletContextState;
+  connection: Connection;
+  marginfiAccount: MarginfiAccount;
+  initialCollateralAmount: number;
+  depositBank: ExtendedBankInfo;
+  borrowBank: ExtendedBankInfo;
+  maxLTV: number;
+  buffer?: number;
+}
 
 const makeSuperStakeIx = async ({
   wallet,
@@ -48,15 +57,11 @@ const makeSuperStakeIx = async ({
   depositBank,
   borrowBank,
   maxLTV,
-  slippageBpsSwapTolerance = 50,
-  buffer = 0.9,
-  tokenMap,
-  routeMap,
-  api,
-}) => {
+  buffer = 0.99,
+}: SuperStakeParams) => {
 
   const createLoop = async (
-      initialLoopCollateralAmount
+      initialLoopCollateralAmount: number
   ) => {
 
       const { instructions: depositIx } = await marginfiAccount.makeDepositIx(
@@ -64,9 +69,16 @@ const makeSuperStakeIx = async ({
         depositBank.bank,
       );
 
+      const calcSOLAmount = initialLoopCollateralAmount * 
+        maxLTV * 
+        (
+          depositBank.tokenPrice / borrowBank.tokenPrice
+        ) *
+        buffer
+
       // borrow logic
       const { instructions: borrowIx } = await marginfiAccount.makeBorrowIx(
-        initialLoopCollateralAmount * maxLTV * buffer,
+        calcSOLAmount,
         borrowBank.bank,
         { remainingAccountsBankOverride: [depositBank.bank, borrowBank.bank] }
       );
@@ -75,20 +87,17 @@ const makeSuperStakeIx = async ({
       const { instructions: swapIx } = await makeSwapIx({
           wallet,
           connection,
-          marginfiAccount,
-          amount: initialLoopCollateralAmount * maxLTV * buffer,
-          slippageBps: slippageBpsSwapTolerance,
-          inputTokenAddress: borrowBank.tokenMint,
-          outputTokenAddress: depositBank.tokenMint,
+          amount: calcSOLAmount,
           inputTokenMintDecimals: borrowBank.bank.mintDecimals,
-          tokenMap,
-          routeMap,
-          api,
       });
   
       return {
           instructions: [...depositIx, ...borrowIx, ...swapIx],
-          LSTSOLOutputAmount: initialLoopCollateralAmount * maxLTV * buffer * (1-slippageBpsSwapTolerance/10000),
+          // @todo we can do better at estimating how much output LSTSOL we're going to have here.
+          // Right now we're calculating the expected fx based on the token price and using a 5% buffer.
+          // Impact here is that if we calculate wrong (i.e. we expect more LSTSOL than we actually get),
+          // then the transaction will fail so users should stay safe.
+          LSTSOLOutputAmount: calcSOLAmount / (depositBank.tokenPrice / borrowBank.tokenPrice) * 0.95,
       };
   }
 
@@ -121,14 +130,6 @@ const makeSuperStakeIx = async ({
       LSTSOLOutputAmount4,
       depositBank.bank,
   );
-
-  console.log({
-    LSTSOLloopInstructions1,
-    LSTSOLloopInstructions2,
-    LSTSOLloopInstructions3,
-    LSTSOLloopInstructions4,
-    finalDepositIx
-  })
 
   return {
       instructions: [
@@ -241,18 +242,16 @@ const makeWithdrawSuperStakeIx = async ({
 // ================================
 
 const superStake = async (
-    mfiClient: MarginfiClient,
     marginfiAccount: MarginfiAccount,
     connection: Connection,
-    wallet: Wallet,
+    wallet: WalletContextState,
     superStakeOrWithdrawAmount: number,
     depositBank: ExtendedBankInfo,
     borrowBank: ExtendedBankInfo,
     reloadBanks: () => void,
-    tokenMap,
-    routeMap,
-    api
 ) => {
+
+  if (!wallet.publicKey) return;
 
   const superStakeIxs = await makeSuperStakeIx({
     wallet,
@@ -261,15 +260,14 @@ const superStake = async (
     initialCollateralAmount: superStakeOrWithdrawAmount,
     depositBank,
     borrowBank,
-    maxLTV: depositBank.bank.config.assetWeightInit / borrowBank.bank.config.liabilityWeightInit,
-    slippageBpsSwapTolerance: 50,
-    buffer: 0.9,
-    tokenMap,
-    routeMap,
-    api,
+    maxLTV: nativeToUi(depositBank.bank.config.assetWeightInit, 0) / nativeToUi(borrowBank.bank.config.liabilityWeightInit, 0),
+    buffer: 0.99,
   })
 
   const lutAccount = await connection.getAddressLookupTable(new PublicKey("B3We5gAbzUCWYvp85rGMyAhsDCV9wypk7dXG7FyETdQ3")).then((res) => res.value)
+  if (!lutAccount) {
+    throw new Error("LUT account not found");
+  }
 
   const messageV0 = new TransactionMessage({
     payerKey: wallet.publicKey,
@@ -277,7 +275,6 @@ const superStake = async (
     instructions: superStakeIxs.instructions,
   }).compileToV0Message([lutAccount]);
   const tx = new VersionedTransaction(messageV0)
-  console.log("   ✅ - got transaction");  
 
   const txid = await wallet.sendTransaction(tx, connection, {
     skipPreflight: true,

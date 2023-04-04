@@ -26,7 +26,6 @@ const ProductScreensSuperstake: FC = () => {
 
   const [superStakeOrWithdrawAmount, setSuperStakeOrWithdrawAmount] = useState<number>(0);
   const [isInSuperStakeMode, setIsInSuperStakeMode] = useState<boolean>(true);
-  const { tokenMap, routeMap, loaded, api } = useJupiterApiContext();
 
   // ================================
   // START: HELPERS
@@ -129,7 +128,7 @@ const ProductScreensSuperstake: FC = () => {
     // START: SETUP
     // ================================
     // Ensure that the necessary objects are available before proceeding
-    if (mfiClient === null || !selectedBank || !selectedAccount) return; // @todo: use spinner on associated button to prevent hitting that
+    if (mfiClient === null || !selectedBank || !solBank || !selectedAccount) return; // @todo: use spinner on associated button to prevent hitting that
 
     let marginfiAccount = selectedAccount;
     // ================================
@@ -165,7 +164,7 @@ const ProductScreensSuperstake: FC = () => {
       if (isInSuperStakeMode) {
         // Stake the specified amount of tokens
         await superStake(
-          mfiClient,
+          // mfiClient,
           marginfiAccount,
           connection,
           wallet,
@@ -173,9 +172,6 @@ const ProductScreensSuperstake: FC = () => {
           selectedBank,
           solBank,
           reloadBanks,
-          tokenMap,
-          routeMap,
-          api
         );
 
         toast.update(SUPERSTAKE_OR_WITHDRAW_TOAST_ID, {
@@ -267,7 +263,7 @@ const ProductScreensSuperstake: FC = () => {
 
   }, [mfiClient, selectedBank, isInSuperStakeMode, superStakeOrWithdrawAmount, selectedAccount, reloadBanks]);
 
-  if ((!selectedBank) || (!loaded)) return null;
+  if (!selectedBank) return null;
 
   return (
     <div
