@@ -31,31 +31,12 @@ const makeSwapIx = async ({
   console.log("   ✅ - got config");  
 
   const marinade = new Marinade(config)
-  const marinadeState = await marinade.getMarinadeState();
-  const program = await marinade.provideReferralOrMainProgram();
-  console.log("   ✅ - got program");
-  const instruction = program.liquidUnstakeInstruction({
-    amount: amount,
-    accounts: {
-      state: marinadeState.marinadeStateAddress,
-      msolMint: marinadeState.mSolMintAddress,
-      liqPoolMsolLeg: marinadeState.mSolLeg,
-      liqPoolSolLegPda: await marinadeState.solLeg(),
-      getMsolFrom: getAssociatedTokenAddressSync(
-        marinadeState.mSolMintAddress,
-        wallet.publicKey,
-      ),
-      getMsolFromAuthority: wallet.publicKey,
-      transferSolTo: wallet.publicKey,
-      treasuryMsolAccount: marinadeState.treasuryMsolAccount,
-      systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    }
-  })
-  console.log("   ✅ - constructed instruction");
+  const tx = await marinade.deposit(uiToNative(amount, inputTokenMintDecimals))
+  const ix = tx.transaction.instructions
+  console.log("   ✅ - got instruction");  
 
   return {
-    instructions: [instruction]
+    instructions: ix
   }
 };
 
@@ -140,6 +121,14 @@ const makeSuperStakeIx = async ({
       LSTSOLOutputAmount4,
       depositBank.bank,
   );
+
+  console.log({
+    LSTSOLloopInstructions1,
+    LSTSOLloopInstructions2,
+    LSTSOLloopInstructions3,
+    LSTSOLloopInstructions4,
+    finalDepositIx
+  })
 
   return {
       instructions: [
@@ -288,6 +277,8 @@ const superStake = async (
     instructions: superStakeIxs.instructions,
   }).compileToV0Message([lutAccount]);
   const tx = new VersionedTransaction(messageV0)
+  console.log("   ✅ - got transaction");  
+
   const txid = await wallet.sendTransaction(tx, connection, {
     skipPreflight: true,
   });
