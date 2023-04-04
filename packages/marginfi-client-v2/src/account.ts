@@ -364,13 +364,14 @@ export class MarginfiAccount {
    * @param bank Bank to withdraw from
    * @returns `MarginWithdrawCollateral` transaction instruction
    */
-  async makeBorrowIx(amount: Amount, bank: Bank, opt: { remainingAccountsBankOverride: [] } ): Promise<InstructionsWrapper> {
+  async makeBorrowIx(amount: Amount, bank: Bank, opt?: { remainingAccountsBankOverride: [] } | undefined ): Promise<InstructionsWrapper> {
     const userTokenAtaPk = await associatedAddress({
       mint: bank.mint,
       owner: this.client.provider.wallet.publicKey,
     });
 
     const remainingAccounts = this.getHealthCheckAccounts(
+      opt &&
       opt.remainingAccountsBankOverride.length > 0 ?
       opt.remainingAccountsBankOverride :
       [bank]

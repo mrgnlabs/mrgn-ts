@@ -321,7 +321,7 @@ const withdrawSuperstake = async (
   const messageV0 = new TransactionMessage({
     payerKey: wallet.publicKey,
     recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
-    instructions: superStakeIxs.instructions,
+    instructions: withdrawSuperStakeIxs.instructions,
   }).compileToV0Message([lutAccount]);
   const tx = new VersionedTransaction(messageV0)
   const txid = await wallet.sendTransaction(tx, connection, {
