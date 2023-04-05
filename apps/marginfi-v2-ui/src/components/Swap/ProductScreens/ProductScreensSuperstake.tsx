@@ -291,8 +291,9 @@ const ProductScreensSuperstake: FC = () => {
           </div>
         </div>
         <div className="w-full flex gap-2">
-          <ActionButton onClick={superStakeOrWithdraw}>⚡️ stake</ActionButton>
-          {/* <ActionButton onClick={superStakeOrWithdraw}>🛑 withdraw</ActionButton> */}
+          <ActionButton onClick={superStakeOrWithdraw}>{
+          `${isInSuperStakeMode ? "⚡️ stake" : "🛑 withdraw"}`
+          }</ActionButton>
         </div>
       </div>
     </div>
