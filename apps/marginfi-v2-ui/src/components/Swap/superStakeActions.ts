@@ -231,7 +231,6 @@ const makeSuperStakeIx = async ({
 
 
 interface WithdrawSuperStakeParams {
-  wallet: WalletContextState;
   connection: Connection;
   marginfiAccount: MarginfiAccount;
   initialWithdrawableAmount: number;
@@ -243,7 +242,6 @@ interface WithdrawSuperStakeParams {
 }
 
 const makeWithdrawSuperStakeIx = async ({
-  wallet,
   connection,
   marginfiAccount,
   initialWithdrawableAmount, // need to figure this out
@@ -357,7 +355,6 @@ const withdrawSuperstake = async (
   }
 
   const withdrawSuperStakeIxs = await makeWithdrawSuperStakeIx({
-    wallet,
     connection,
     marginfiAccount,
     initialWithdrawableAmount: superStakeOrWithdrawAmount,
