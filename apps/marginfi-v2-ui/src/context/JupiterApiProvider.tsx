@@ -5,7 +5,7 @@ import { JUPITER_CHAIN_ID } from "../config";
 
 type RouteMap = Map<string, string[]>;
 
-interface JupiterApiContext {
+export interface JupiterApiContext {
   api: DefaultApi;
   loaded: boolean;
   tokenMap: Map<string, TokenInfo>;

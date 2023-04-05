@@ -26,6 +26,7 @@ const ProductScreensSuperstake: FC = () => {
 
   const [superStakeOrWithdrawAmount, setSuperStakeOrWithdrawAmount] = useState<number>(0);
   const [isInSuperStakeMode, setIsInSuperStakeMode] = useState<boolean>(true);
+  const jupiter = useJupiterApiContext();
 
   // ================================
   // START: HELPERS
@@ -164,7 +165,6 @@ const ProductScreensSuperstake: FC = () => {
       if (isInSuperStakeMode) {
         // Stake the specified amount of tokens
         await superStake(
-          // mfiClient,
           marginfiAccount,
           connection,
           wallet,
@@ -183,19 +183,17 @@ const ProductScreensSuperstake: FC = () => {
       } // Withdraw
       else {
         // Withdraw the specified amount of tokens
-        // await withdrawSuperstake(
-        //   mfiClient,
-        //   marginfiAccount,
-        //   connection,
-        //   wallet,
-        //   superStakeOrWithdrawAmount,
-        //   selectedBank,
-        //   solBank,
-        //   reloadBanks,
-        //   tokenMap,
-        //   routeMap,
-        //   api
-        // );
+        // jupiter
+        await withdrawSuperstake(
+          marginfiAccount,
+          connection,
+          wallet,
+          superStakeOrWithdrawAmount,
+          selectedBank,
+          solBank,
+          reloadBanks,
+          jupiter,
+        );
 
         toast.update(SUPERSTAKE_OR_WITHDRAW_TOAST_ID, {
           render: `Withdrawing ${superStakeOrWithdrawAmount} ${selectedBank.tokenName} 👍`,

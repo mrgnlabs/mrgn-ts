@@ -1,9 +1,10 @@
 import { PublicKey, VersionedTransaction, TransactionMessage, Connection } from "@solana/web3.js";
-import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { Bank, MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Marinade, MarinadeConfig } from '@marinade.finance/marinade-ts-sdk';
 import { uiToNative, nativeToUi } from '@mrgnlabs/mrgn-common';
 import { ExtendedBankInfo } from '~/types';
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import { JupiterApiContext } from "~/context/JupiterApiProvider";
 
 // ================================
 // START: SUPERSTAKE INSTRUCTIONS
@@ -16,7 +17,7 @@ interface SwapParams {
   inputTokenMintDecimals: number;
 }
 
-const makeSwapIx = async ({
+const makeMarinadeDepositSwapIx = async ({
   wallet,
   connection,
   amount,
@@ -35,6 +36,94 @@ const makeSwapIx = async ({
 
   return {
     instructions: ix
+  }
+};
+
+interface JupiterSwapParams {
+  connection: Connection;
+  marginfiAccount: MarginfiAccount;
+  amount: number;
+  inputBankInfo: ExtendedBankInfo;
+  outputBankInfo: ExtendedBankInfo;
+  buffer?: number;
+  jupiter: JupiterApiContext;
+}
+
+const makeJupiterSwapIx = async ({
+  connection,
+  marginfiAccount,
+  amount,
+  inputBankInfo,
+  outputBankInfo,
+  buffer,
+  jupiter,
+}: JupiterSwapParams) => {
+
+  const { data: routes } = await jupiter.api.v4QuoteGet({
+    amount: uiToNative(amount, inputBankInfo.bank.mintDecimals).toString(),
+    inputMint: inputBankInfo.bank.mint.toBase58(),
+    outputMint: outputBankInfo.bank.mint.toBase58(),
+    slippageBps: (1-(buffer || 1)) * 10000,
+  });
+
+  if (!routes || routes.length === 0) {
+    throw new Error("No routes found for the given input and output tokens.");
+  }
+
+  const route = routes[0];
+
+  const inputTokenInfo = jupiter.tokenMap.get(inputBankInfo.bank.mint.toBase58());
+  const outputTokenInfo = jupiter.tokenMap.get(outputBankInfo.bank.mint.toBase58());
+  if (!inputTokenInfo || !outputTokenInfo) {
+    throw new Error("Input or output token not found in token map.");
+  }
+
+  const validOutputMints = jupiter.routeMap.get(inputBankInfo.bank.mint.toBase58()) || [];
+  if (!validOutputMints.includes(outputBankInfo.bank.mint.toBase58())) {
+    throw new Error(
+      "Output token is not a valid swap route for the given input token."
+    );
+  }
+
+  const swapTransaction = await jupiter.api.v4SwapPost({
+    body: {
+      // @ts-ignore
+      route: route,
+      userPublicKey: marginfiAccount.publicKey.toBase58(),
+    }
+  })
+
+  // @ts-ignore
+  const swapTransactionBuf = Buffer.from(swapTransaction.swapTransaction, 'base64');
+  const tx = VersionedTransaction.deserialize(swapTransactionBuf);
+  console.log(tx)
+
+  const addressTableLookupsAccountKeys = tx.message.addressTableLookups.map((lookup) => lookup.accountKey);
+
+  const lookupTableAccounts = await Promise.all(
+    addressTableLookupsAccountKeys.map(
+      async key => await connection.getAddressLookupTable(key).then((res) => res.value)
+    )
+  )
+  if (!(lookupTableAccounts.length > 0)) {
+    throw new Error("No lookup table accounts found.");
+  }
+
+  const txMessageDecompiled = TransactionMessage.decompile(
+    tx.message,
+    {
+      // @ts-ignore
+      addressLookupTableAccounts: lookupTableAccounts,
+    }
+  );
+  const ix = txMessageDecompiled.instructions;
+
+  // @note we're conservatively adding a buffer here, but this can be removed with some more work
+  const SOLOutputAmount = amount * (inputBankInfo.tokenPrice / outputBankInfo.tokenPrice) * (buffer || 1)
+
+  return {
+    instructions: ix,
+    SOLOutputAmount,
   }
 };
 
@@ -76,15 +165,13 @@ const makeSuperStakeIx = async ({
         ) *
         buffer
 
-      // borrow logic
       const { instructions: borrowIx } = await marginfiAccount.makeBorrowIx(
-        calcSOLAmount,
+        calcSOLAmount, // @todo we should be able to just make this max borrow
         borrowBank.bank,
         { remainingAccountsBankOverride: [depositBank.bank, borrowBank.bank] }
       );
 
-      // use jupiter api
-      const { instructions: swapIx } = await makeSwapIx({
+      const { instructions: swapIx } = await makeMarinadeDepositSwapIx({
           wallet,
           connection,
           amount: calcSOLAmount,
@@ -94,10 +181,10 @@ const makeSuperStakeIx = async ({
       return {
           instructions: [...depositIx, ...borrowIx, ...swapIx],
           // @todo we can do better at estimating how much output LSTSOL we're going to have here.
-          // Right now we're calculating the expected fx based on the token price and using a 5% buffer.
+          // Right now we're calculating the expected fx based on the token price and using a 2% buffer.
           // Impact here is that if we calculate wrong (i.e. we expect more LSTSOL than we actually get),
           // then the transaction will fail so users should stay safe.
-          LSTSOLOutputAmount: calcSOLAmount / (depositBank.tokenPrice / borrowBank.tokenPrice) * 0.95,
+          LSTSOLOutputAmount: calcSOLAmount / (depositBank.tokenPrice / borrowBank.tokenPrice) * 0.98,
       };
   }
 
@@ -142,6 +229,19 @@ const makeSuperStakeIx = async ({
   }
 }
 
+
+interface WithdrawSuperStakeParams {
+  wallet: WalletContextState;
+  connection: Connection;
+  marginfiAccount: MarginfiAccount;
+  initialWithdrawableAmount: number;
+  depositBank: ExtendedBankInfo;
+  borrowBank: ExtendedBankInfo;
+  maxLTV: number;
+  buffer?: number;
+  jupiter: JupiterApiContext;
+}
+
 const makeWithdrawSuperStakeIx = async ({
   wallet,
   connection,
@@ -149,87 +249,42 @@ const makeWithdrawSuperStakeIx = async ({
   initialWithdrawableAmount, // need to figure this out
   depositBank,
   borrowBank,
-  maxLTV,
-  slippageBpsSwapTolerance = 50,
-  buffer = 0.9,
-  tokenMap,
-  routeMap,
-  api,
-}) => {
-
-  const createLoop = async (LSTAvailableAmount) => {
-
-      // use jupiter api
-      const { instructions: swapIx } = await makeSwapIx({
-        marginfiAccount,
-        amount: LSTAvailableAmount,
-        slippageBps: slippageBpsSwapTolerance,
-        inputTokenAddress: depositBank.tokenMint,
-        outputTokenAddress: borrowBank.tokenMint,
-        inputTokenMintDecimals: depositBank.bank.mintDecimals,
-        tokenMap,
-        routeMap,
-        api,
-      });
-
-      const { instructions: repayIx } = await marginfiAccount.makeRepayIx(
-        LSTAvailableAmount * (1-slippageBpsSwapTolerance/10000),
-        borrowBank,
-      );
-
-      const { instructions: withdrawIx } = await marginfiAccount.makeWithdrawIx(
-          LSTAvailableAmount * (1-slippageBpsSwapTolerance/10000),
-          depositBank,
-      );
-  
-      return {
-          instructions: [...swapIx, ...repayIx, ...withdrawIx],
-          LSTSOLOutputAmount: LSTAvailableAmount * (1-slippageBpsSwapTolerance/10000),
-      };
-  }    
+  buffer = 0.99,
+  jupiter,
+}: WithdrawSuperStakeParams) => {
 
   // first withdraw
-  const { 
-    instructions: firstWithdrawIx,
-    LSTSOLOutputAmount: LSTSOLOutputAmount0
-  } = await marginfiAccount.makeWithdrawIx(
+  const { instructions: withdrawIx } = await marginfiAccount.makeWithdrawIx(
     initialWithdrawableAmount,
-    depositBank
+    depositBank.bank,
+  )
+
+  // swap withdrawn mSOL to SOL
+  const { 
+    instructions: swapIx,
+    SOLOutputAmount,
+  } = await makeJupiterSwapIx({
+    connection,
+    marginfiAccount,
+    amount: initialWithdrawableAmount,
+    inputBankInfo: depositBank,
+    outputBankInfo: borrowBank,
+    buffer,
+    jupiter,
+  });
+
+  // repay SOL
+  const { instructions: repayIx } = await marginfiAccount.makeRepayIx(
+    SOLOutputAmount,
+    borrowBank.bank,
   );
-
-  // reverse loop 1
-  const {
-      instructions: LSTSOLloopInstructions1,
-      LSTSOLOutputAmount: LSTSOLOutputAmount1
-  } = await createLoop(LSTSOLOutputAmount1)
-  
-  // reverse loop 2
-  const {
-      instructions: LSTSOLloopInstructions2,
-      LSTSOLOutputAmount: LSTSOLOutputAmount2
-  } = await createLoop(LSTSOLOutputAmount2)
-
-  // reverse loop 3
-  const {
-      instructions: LSTSOLloopInstructions3,
-      LSTSOLOutputAmount: LSTSOLOutputAmount3
-  } = await createLoop(LSTSOLOutputAmount3)
-
-  // reverse loop 4
-  const {
-      instructions: LSTSOLloopInstructions4,
-      LSTSOLOutputAmount: LSTSOLOutputAmount4
-  } = await createLoop(LSTSOLOutputAmount4)
 
   return {
       instructions: [
-          ...firstWithdrawIx,
-          ...LSTSOLloopInstructions1,
-          ...LSTSOLloopInstructions2,
-          ...LSTSOLloopInstructions3,
-          ...LSTSOLloopInstructions4,
-      ],
-      keys: []
+          ...withdrawIx,
+          ...swapIx,
+          ...repayIx,
+      ]
   }
 }
 
@@ -251,7 +306,9 @@ const superStake = async (
     reloadBanks: () => void,
 ) => {
 
-  if (!wallet.publicKey) return;
+  if (!wallet.publicKey) {
+    throw new Error("Wallet pubkey not found");
+  }
 
   const superStakeIxs = await makeSuperStakeIx({
     wallet,
@@ -285,18 +342,19 @@ const superStake = async (
 }
 
 const withdrawSuperstake = async (
-    mfiClient: MarginfiClient,
     marginfiAccount: MarginfiAccount,
     connection: Connection,
-    wallet: Wallet,
+    wallet: WalletContextState,
     superStakeOrWithdrawAmount: number,
     depositBank: ExtendedBankInfo,
     borrowBank: ExtendedBankInfo,
     reloadBanks: () => void,
-    tokenMap,
-    routeMap,
-    api
+    jupiter: JupiterApiContext,
 ) => {
+  
+  if (!wallet.publicKey) {
+    throw new Error("Wallet pubkey not found");
+  }
 
   const withdrawSuperStakeIxs = await makeWithdrawSuperStakeIx({
     wallet,
@@ -305,15 +363,15 @@ const withdrawSuperstake = async (
     initialWithdrawableAmount: superStakeOrWithdrawAmount,
     depositBank,
     borrowBank,
-    maxLTV: depositBank.bank.config.assetWeightInit / borrowBank.bank.config.liabilityWeightInit, // @todo DOUBLE CHECK
-    slippageBpsSwapTolerance: 50,
-    buffer: 0.9,
-    tokenMap,
-    routeMap,
-    api,  
+    maxLTV: nativeToUi(depositBank.bank.config.assetWeightInit, 0) / nativeToUi(borrowBank.bank.config.liabilityWeightInit, 0),
+    buffer: 0.99,
+    jupiter,
   })
 
   const lutAccount = await connection.getAddressLookupTable(new PublicKey("B3We5gAbzUCWYvp85rGMyAhsDCV9wypk7dXG7FyETdQ3")).then((res) => res.value)
+  if (!lutAccount) {
+    throw new Error("LUT account not found");
+  }
 
   const messageV0 = new TransactionMessage({
     payerKey: wallet.publicKey,
