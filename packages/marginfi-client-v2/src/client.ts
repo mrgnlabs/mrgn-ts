@@ -266,12 +266,17 @@ class MarginfiClient {
   }
 
   async processTransaction(
-    transaction: Transaction,
+    transaction: Transaction | VersionedTransaction,
     signers?: Array<Signer>,
     opts?: TransactionOptions
   ): Promise<TransactionSignature> {
     let signature: TransactionSignature = "";
+
+    console.log('client.ts');
+    
     try {
+
+      let versionedTransaction: VersionedTransaction;
       const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
 
       const {
@@ -279,13 +284,17 @@ class MarginfiClient {
         value: { blockhash, lastValidBlockHeight },
       } = await connection.getLatestBlockhashAndContext();
 
-      const versionedMessage = new TransactionMessage({
-        instructions: transaction.instructions,
-        payerKey: this.provider.publicKey,
-        recentBlockhash: blockhash,
-      });
+      if (transaction instanceof Transaction) {
+        const versionedMessage = new TransactionMessage({
+          instructions: transaction.instructions,
+          payerKey: this.provider.publicKey,
+          recentBlockhash: blockhash,
+        });
 
-      let versionedTransaction = new VersionedTransaction(versionedMessage.compileToV0Message([]));
+        versionedTransaction = new VersionedTransaction(versionedMessage.compileToV0Message([]));
+      } else {
+        versionedTransaction = transaction;
+      }
 
       versionedTransaction = await this.wallet.signTransaction(versionedTransaction);
       if (signers) versionedTransaction.sign(signers);
