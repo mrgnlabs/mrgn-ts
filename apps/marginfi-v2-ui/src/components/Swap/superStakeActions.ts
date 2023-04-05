@@ -40,6 +40,7 @@ const makeMarinadeDepositSwapIx = async ({
 };
 
 interface JupiterSwapParams {
+  wallet: WalletContextState;
   connection: Connection;
   marginfiAccount: MarginfiAccount;
   amount: number;
@@ -50,6 +51,7 @@ interface JupiterSwapParams {
 }
 
 const makeJupiterSwapIx = async ({
+  wallet,
   connection,
   marginfiAccount,
   amount,
@@ -63,7 +65,7 @@ const makeJupiterSwapIx = async ({
     amount: uiToNative(amount, inputBankInfo.bank.mintDecimals).toString(),
     inputMint: inputBankInfo.bank.mint.toBase58(),
     outputMint: outputBankInfo.bank.mint.toBase58(),
-    slippageBps: (1-(buffer || 1)) * 10000,
+    slippageBps: Math.round((1-(buffer || 1)) * 10000),
   });
 
   if (!routes || routes.length === 0) {
@@ -89,14 +91,13 @@ const makeJupiterSwapIx = async ({
     body: {
       // @ts-ignore
       route: route,
-      userPublicKey: marginfiAccount.publicKey.toBase58(),
+      userPublicKey: wallet.publicKey.toBase58(),
     }
   })
 
   // @ts-ignore
   const swapTransactionBuf = Buffer.from(swapTransaction.swapTransaction, 'base64');
   const tx = VersionedTransaction.deserialize(swapTransactionBuf);
-  console.log(tx)
 
   const addressTableLookupsAccountKeys = tx.message.addressTableLookups.map((lookup) => lookup.accountKey);
 
@@ -120,6 +121,11 @@ const makeJupiterSwapIx = async ({
 
   // @note we're conservatively adding a buffer here, but this can be removed with some more work
   const SOLOutputAmount = amount * (inputBankInfo.tokenPrice / outputBankInfo.tokenPrice) * (buffer || 1)
+
+  console.log({
+    ix,
+    programs: ix.map(i => i.programId.toBase58()),
+  })
 
   return {
     instructions: ix,
@@ -231,6 +237,7 @@ const makeSuperStakeIx = async ({
 
 
 interface WithdrawSuperStakeParams {
+  wallet: WalletContextState;
   connection: Connection;
   marginfiAccount: MarginfiAccount;
   initialWithdrawableAmount: number;
@@ -242,6 +249,7 @@ interface WithdrawSuperStakeParams {
 }
 
 const makeWithdrawSuperStakeIx = async ({
+  wallet,
   connection,
   marginfiAccount,
   initialWithdrawableAmount, // need to figure this out
@@ -250,6 +258,8 @@ const makeWithdrawSuperStakeIx = async ({
   buffer = 0.99,
   jupiter,
 }: WithdrawSuperStakeParams) => {
+
+  console.log('constructing instructions')
 
   // first withdraw
   const { instructions: withdrawIx } = await marginfiAccount.makeWithdrawIx(
@@ -262,6 +272,7 @@ const makeWithdrawSuperStakeIx = async ({
     instructions: swapIx,
     SOLOutputAmount,
   } = await makeJupiterSwapIx({
+    wallet,
     connection,
     marginfiAccount,
     amount: initialWithdrawableAmount,
@@ -331,9 +342,14 @@ const superStake = async (
   }).compileToV0Message([lutAccount]);
   const tx = new VersionedTransaction(messageV0)
 
-  const txid = await wallet.sendTransaction(tx, connection, {
-    skipPreflight: true,
-  });
+  console.log('✅ -------- constructed final transaction -------- ✅')
+  console.log(tx)
+
+  const txid = await marginfiAccount.client.processTransaction(
+    tx,
+    [],
+    { skipPreflight: true }
+  )
   console.log(txid)
 
   await reloadBanks()
@@ -355,6 +371,7 @@ const withdrawSuperstake = async (
   }
 
   const withdrawSuperStakeIxs = await makeWithdrawSuperStakeIx({
+    wallet,
     connection,
     marginfiAccount,
     initialWithdrawableAmount: superStakeOrWithdrawAmount,
@@ -363,6 +380,10 @@ const withdrawSuperstake = async (
     maxLTV: nativeToUi(depositBank.bank.config.assetWeightInit, 0) / nativeToUi(borrowBank.bank.config.liabilityWeightInit, 0),
     buffer: 0.99,
     jupiter,
+  })
+
+  console.log({
+    withdrawSuperStakeIxs
   })
 
   const lutAccount = await connection.getAddressLookupTable(new PublicKey("B3We5gAbzUCWYvp85rGMyAhsDCV9wypk7dXG7FyETdQ3")).then((res) => res.value)
@@ -375,10 +396,17 @@ const withdrawSuperstake = async (
     recentBlockhash: (await connection.getRecentBlockhash()).blockhash,
     instructions: withdrawSuperStakeIxs.instructions,
   }).compileToV0Message([lutAccount]);
+
+  console.log('tx created');
+  
   const tx = new VersionedTransaction(messageV0)
-  const txid = await wallet.sendTransaction(tx, connection, {
-    skipPreflight: true,
-  });
+  console.log('versioned tx created');
+
+  const txid = await marginfiAccount.client.processTransaction(
+    tx,
+    [],
+    { skipPreflight: true }
+  )
   console.log(txid)
 
   await reloadBanks()
