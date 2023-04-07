@@ -24,17 +24,18 @@ const AiUI: FC = () => {
 
   return (
     <div
-      className="top-0 w-full h-full absolute flex flex-col justify-center items-center gap-20"
+      className="top-0 w-full h-full absolute flex flex-col justify-center items-center gap-5 max-w-7xl"
     >
-      <div className="text-7xl" style={{ fontWeight: 500 }}>
-        superstake
+      <div className="text-5xl flex justify-between w-3/5" style={{ fontWeight: 500 }}>
+        <div>superstake 🥩</div>
+        <div className="text-[#9BEB8E]">11.5%</div>
       </div>
       <form onSubmit={handleSubmit} className="w-3/5">
         <TextField
           fullWidth
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          defaultValue="Superstake 10 mSOL..."
+          defaultValue="Tell me what to do..."
           InputProps={{
             sx: {
               backgroundColor: '#181C1F',
@@ -46,7 +47,7 @@ const AiUI: FC = () => {
           }}
         />
       </form>
-      <div className="min-h-[100px] flex justify-center items-center">
+      <div className="min-h-[100px] flex w-3/5">
         {response && <div>Response: {response}</div>}
       </div>
     </div>
