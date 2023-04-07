@@ -1,12 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-// import axios from 'axios';
-import { OpenAI } from "langchain/llms";
-import { PromptTemplate } from "langchain/prompts";
-import { LLMChain } from "langchain/chains";
-import { initializeAgentExecutor } from "langchain/agents";
-import { DynamicTool } from "langchain/tools";
+import { LLMChain } from "langchain";
+import { ChatOpenAI } from "langchain/chat_models";
+import { ZeroShotAgent, AgentExecutor } from "langchain/agents";
+import { SerpAPI } from "langchain/tools";
+import {
+  ChatPromptTemplate,
+  SystemMessagePromptTemplate,
+  HumanMessagePromptTemplate,
+} from "langchain/prompts";
 
-const template = `
+const prefix = `
   Below you will find two things:
   
   1. A user prompt 
@@ -41,84 +44,55 @@ const template = `
   Your response will be typed out to the user, so format your response as if you're talking to them in first person. Make sure it's grammatically correct. Write in full sentences. In your response, tell the user what you think they want to do and that you're "setting up a transaction" for them to do it.
 
   Here is their input:
+`
 
-  {input}
-`;
+const suffix = ''
 
-interface getOpenAIResponseParams {
+interface ResponseProps {
   req: NextApiRequest;
 }
 
-const prompt = new PromptTemplate({
-  template: template,
-  inputVariables: ["input"],
-});
+const getResponse = async ({ req }: ResponseProps)  => {
+  console.log('hitting api');
+  const tools = []
 
-const getOpenAIResponse = async ({
-  req,
-}: getOpenAIResponseParams) => {
+  const prompt = ZeroShotAgent.createPrompt(tools, {
+    prefix: prefix,
+    suffix: suffix,
+  });
 
-    try {
-      const model = new OpenAI({ openAIApiKey: process.env.OPENAI_API_KEY, temperature: 1 });
-      const tools = [
-        new DynamicTool({
-          name: "FOO",
-          description:
-            "call this to get the value of foo. input should be an empty string.",
-          func: async () => "baz",
-        }),
-        new DynamicTool({
-          name: "BAR",
-          description:
-            "call this to get the value of bar. input should be an empty string.",
-          func: async () => "baz1",
-        }),
-      ];
+  const chatPrompt = ChatPromptTemplate.fromPromptMessages([
+    new SystemMessagePromptTemplate(prompt),
+    HumanMessagePromptTemplate.fromTemplate(`{input}
 
-      const chain = new LLMChain({ llm: model, prompt: prompt });
+  This was your previous work (but I haven't seen any of it! I only see what you return as final answer):
+  {agent_scratchpad}`),
+    ]);
 
-      // const executor = await initializeAgentExecutor(
-      //   tools,
-      //   model,
-      //   "zero-shot-react-description"
-      // );
+  const chat = new ChatOpenAI({});
 
-      const res = await chain.call({
-        input: req.body.prompt
-      });
-      return res.text
+  const llmChain = new LLMChain({
+    prompt: chatPrompt,
+    llm: chat,
+  });
 
-      // const res = await axios.post(
-      //   'https://api.openai.com/v1/completions',
-      //   {
-      //     model: 'text-davinci-003',
-      //     prompt: `
-      //       ${prePrompt} 
+  const agent = new ZeroShotAgent({
+    llmChain,
+    allowedTools: tools.map((tool) => tool.name),
+  });
 
-      //       ${req.body.prompt}
-      //     `,
-      //     max_tokens: req.body.max_tokens || 50,
-      //     n: 1,
-      //     stop: null,
-      //     temperature: 1,
-      //   },
-      //   {
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //       'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-      //     },
-      //   }
-      // );
-      // return res.data.choices[0].text;
-    } catch (error) {
-      console.error(`Error getting OpenAI response: ${error.message}`);
-    }
+  const executor = AgentExecutor.fromAgentAndTools({ agent, tools });
+
+  const res = await executor.run(req.body.prompt);
+
+  console.log(res)
+  return res
 }
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const response = await getOpenAIResponse({req});
+    const response = await getResponse({req});
     res.status(200).json(response);
   } catch (error) {
 
