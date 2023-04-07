@@ -9,11 +9,12 @@ import { ExtendedBankInfo } from "~/types";
 import { superStake, withdrawSuperstake } from "~/components/Swap/superStakeActions";
 import { TypeAnimation } from 'react-type-animation';
 
+import { PositionDiagram } from '~/components/Swap/existingPositionDiagram';
+
 const AiUI: FC = () => {
   // State variables for holding input and output text, the amount to super stake or withdraw, and the mSOL and SOL bank information
   const [prompt, setPrompt] = useState(null);
   const [response, setResponse] = useState<string>('');
-  const [displayText, setDisplayText] = useState('')
 
   const { mfiClient } = useProgram();
   const [mSOLBank, setmSOLBank] = useState<ExtendedBankInfo>();
@@ -26,7 +27,7 @@ const AiUI: FC = () => {
 
   // Reset display text and super stake/withdraw amount when the component mounts
   useEffect(() => {
-    setDisplayText('');
+    setResponse('')
   }, [])
 
   // Handle form submission for API call
@@ -44,22 +45,6 @@ const AiUI: FC = () => {
       setResponse('Error calling API route');
     }
   };
-
-  // Handle typing animation for output text
-  // useEffect(() => {
-  //   if (response === null) return;
-
-  //   let index = 0;
-  //   const intervalId = setInterval(() => {
-  //     setDisplayText(text => text + response.charAt(index));
-  //     index++;
-  //     if (index === response.length) {
-  //       clearInterval(intervalId);
-  //     }
-  //   }, 30);
-
-  //   return () => clearInterval(intervalId);
-  // }, [response]);
 
   // Set mSOL and SOL bank information when the user accounts context is updated
   useEffect(() => {
@@ -177,7 +162,7 @@ const AiUI: FC = () => {
     >
       <div className="text-5xl flex justify-between w-3/5" style={{ fontWeight: 500 }}>
         <div>superstake</div>
-        <div className="text-[#9BEB8E]">8000%</div>
+        <div className="text-[#9BEB8E]">11.5%</div>
       </div>
       <form onSubmit={handleSubmit} className="w-3/5">
         <TextField
@@ -196,7 +181,7 @@ const AiUI: FC = () => {
           }}
         />
       </form>
-      <div className="min-h-[100px] flex w-3/5" style={{ fontFamily: "monospace" }}>
+      <div className="min-h-[50px] flex w-3/5" style={{ fontFamily: "monospace" }}>
         {
           response &&
           <TypeAnimation
@@ -205,6 +190,8 @@ const AiUI: FC = () => {
           />
         }
       </div>
+      <PositionDiagram type='Current' amount={10}/>
+      {/* <PositionDiagram type='New' amount={10}/> */}
     </div>
   )
 }
