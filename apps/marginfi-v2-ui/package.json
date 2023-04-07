@@ -2,6 +2,9 @@
   "name": "@mrgnlabs/marginfi-v2-ui",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "clean": "rimraf dist node_modules",
     "dev": "next dev --port 3004",
@@ -32,6 +35,7 @@
     "bignumber.js": "^9.1.1",
     "bn.js": "^5.2.1",
     "d3": "^7.8.2",
+    "langchain": "^0.0.49",
     "next": "13.1.1",
     "react": "18.2.0",
     "react-circular-progressbar": "^2.1.0",

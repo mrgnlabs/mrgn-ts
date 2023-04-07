@@ -1,15 +1,16 @@
-import React, { FC, useState, useEffect, useCallback } from 'react';
+import React, { FC, useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { TextField } from '@mui/material';
 
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useBanks, useProgram, useUserAccounts } from "~/context";
+import { useBanks, useProgram, useUserAccounts, useTokenAccounts } from "~/context";
 import { useJupiterApiContext } from "~/context/JupiterApiProvider";
 import { ExtendedBankInfo } from "~/types";
 import { superStake, withdrawSuperstake } from "~/components/Swap/superStakeActions";
 import { TypeAnimation } from 'react-type-animation';
+import { nativeToUi } from '@mrgnlabs/mrgn-common';
 
-import { PositionDiagram } from '~/components/Swap/existingPositionDiagram';
+// console.log(OpenAI)
 
 const AiUI: FC = () => {
   // State variables for holding input and output text, the amount to super stake or withdraw, and the mSOL and SOL bank information
@@ -19,7 +20,8 @@ const AiUI: FC = () => {
   const { mfiClient } = useProgram();
   const [mSOLBank, setmSOLBank] = useState<ExtendedBankInfo>();
   const [solBank, setSOLBank] = useState<ExtendedBankInfo>();
-  const { extendedBankInfos, selectedAccount } = useUserAccounts();
+  const { extendedBankInfos, selectedAccount, activeBankInfos } = useUserAccounts();
+  // const { tokenAccountMap } = useTokenAccounts();
   const { reload: reloadBanks } = useBanks();
   const { connection } = useConnection();
   const wallet = useWallet();
@@ -37,7 +39,8 @@ const AiUI: FC = () => {
     try {
       const apiResponse = await axios.post('/api/openai', {
         prompt: prompt,
-        max_tokens: 50,
+        // extendedBankInfos: extendedBankInfos,
+        max_tokens: 400,
       });
       setResponse(apiResponse.data);
     } catch (error) {
@@ -162,18 +165,18 @@ const AiUI: FC = () => {
     >
       <div className="text-5xl flex justify-between w-3/5" style={{ fontWeight: 500 }}>
         <div>superstake</div>
-        <div className="text-[#9BEB8E]">11.5%</div>
+        <div className="text-[#9BEB8E]">+11.5%</div>
       </div>
       <form onSubmit={handleSubmit} className="w-3/5">
         <TextField
           fullWidth
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          defaultValue="Tell me what to do..."
+          placeholder='Enter a prompt, like "I want to superstake 10 mSOL."'
           InputProps={{
             sx: {
               backgroundColor: '#181C1F',
-              color: 'rgb(161, 161, 161)',
+              color: 'rgb(227, 227, 227)',
               fontSize: '1rem',
               width: '100%',
               fontFamily: 'Aeonik Pro',
@@ -181,7 +184,7 @@ const AiUI: FC = () => {
           }}
         />
       </form>
-      <div className="min-h-[50px] flex w-3/5" style={{ fontFamily: "monospace" }}>
+      <div className="min-h-[50px] flex w-3/5 font-[rgb(227, 227, 227)]" style={{ fontFamily: "monospace" }}>
         {
           response &&
           <TypeAnimation
@@ -190,8 +193,6 @@ const AiUI: FC = () => {
           />
         }
       </div>
-      <PositionDiagram type='Current' amount={10}/>
-      {/* <PositionDiagram type='New' amount={10}/> */}
     </div>
   )
 }

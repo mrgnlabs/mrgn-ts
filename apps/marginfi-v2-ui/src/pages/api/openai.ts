@@ -1,7 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import axios from 'axios';
+// import axios from 'axios';
+import { OpenAI } from "langchain/llms";
+import { PromptTemplate } from "langchain/prompts";
+import { LLMChain } from "langchain/chains";
+import { initializeAgentExecutor } from "langchain/agents";
+import { DynamicTool } from "langchain/tools";
 
-const prePrompt = `
+const template = `
+  Below you will find two things:
+  
+  1. A user prompt 
   Below is user input for a product called Superstake.
 
   Here's how Superstake works:
@@ -24,44 +32,84 @@ const prePrompt = `
   c) If they use any other ticker than mSOL, assume the action is illegal.
   d) The value CANNOT be anything but a valid number above 0 with no more than 9 decimals. If you don't know the exact number from the prompt or if the number doesn't adhere to being over 0 or having no more than 9 decimals, assume it's 0 and that the action is illegal.
 
-  If and ONLY if the user's input is legal, respond with a string that says "It sounds like you want to [action] [value] mSOL. I'm setting up a transaction for you." where [action] is either "superstake" or "unstake" and [value] is the number they want to superstake or unstake.
+  If and ONLY if the user's input is legal, respond with a string that says "It sounds like you want to [action] [value] mSOL. I'm setting up a transaction for you. " where [action] is either "superstake" or "unstake" and [value] is the number they want to superstake or unstake.
+
+  If and ONLY if [action] is "superstake", the next sentence in your response should say "Superstaking mSOL involves depositing [value] mSOL into marginfi. This will automatically borrow [value * 0.7] SOL and swap it into mSOL. The newly acquired mSOL will be deposited into marginfi again. This loop will continue to maximally leverage the mSOL and get you leveraged staking rewards."
 
   If the user's input is illegal, say "That doesn't sound like a legal action. Try to superstake some mSOL."
 
   Your response will be typed out to the user, so format your response as if you're talking to them in first person. Make sure it's grammatically correct. Write in full sentences. In your response, tell the user what you think they want to do and that you're "setting up a transaction" for them to do it.
 
   Here is their input:
+
+  {input}
 `;
 
 interface getOpenAIResponseParams {
-  prePrompt: string;
   req: NextApiRequest;
 }
 
+const prompt = new PromptTemplate({
+  template: template,
+  inputVariables: ["input"],
+});
+
 const getOpenAIResponse = async ({
-  prePrompt,
   req,
 }: getOpenAIResponseParams) => {
 
     try {
-      const res = await axios.post(
-        'https://api.openai.com/v1/completions',
-        {
-          model: 'text-davinci-003',
-          prompt: `${prePrompt} ${req.body.prompt}`,
-          max_tokens: req.body.max_tokens || 50,
-          n: 1,
-          stop: null,
-          temperature: 1,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          },
-        }
-      );
-      return res.data.choices[0].text;
+      const model = new OpenAI({ openAIApiKey: process.env.OPENAI_API_KEY, temperature: 1 });
+      const tools = [
+        new DynamicTool({
+          name: "FOO",
+          description:
+            "call this to get the value of foo. input should be an empty string.",
+          func: async () => "baz",
+        }),
+        new DynamicTool({
+          name: "BAR",
+          description:
+            "call this to get the value of bar. input should be an empty string.",
+          func: async () => "baz1",
+        }),
+      ];
+
+      const chain = new LLMChain({ llm: model, prompt: prompt });
+
+      // const executor = await initializeAgentExecutor(
+      //   tools,
+      //   model,
+      //   "zero-shot-react-description"
+      // );
+
+      const res = await chain.call({
+        input: req.body.prompt
+      });
+      return res.text
+
+      // const res = await axios.post(
+      //   'https://api.openai.com/v1/completions',
+      //   {
+      //     model: 'text-davinci-003',
+      //     prompt: `
+      //       ${prePrompt} 
+
+      //       ${req.body.prompt}
+      //     `,
+      //     max_tokens: req.body.max_tokens || 50,
+      //     n: 1,
+      //     stop: null,
+      //     temperature: 1,
+      //   },
+      //   {
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //       'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      //     },
+      //   }
+      // );
+      // return res.data.choices[0].text;
     } catch (error) {
       console.error(`Error getting OpenAI response: ${error.message}`);
     }
@@ -70,7 +118,7 @@ const getOpenAIResponse = async ({
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const response = await getOpenAIResponse({prePrompt, req});
+    const response = await getOpenAIResponse({req});
     res.status(200).json(response);
   } catch (error) {
 

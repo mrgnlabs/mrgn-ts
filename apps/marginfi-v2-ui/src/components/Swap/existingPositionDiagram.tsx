@@ -30,7 +30,7 @@ const PositionDiagram = ({
       <Arrow />
       <Rectangle text="Borrow 0.7 SOL" border="solid rgb(75,75,75) 1px"/>
       <Arrow />
-      <Rectangle text="Swap SOL to mSOL + Deposit" border="solid rgb(75,75,75) 1px" />
+      <Rectangle text="" border="solid rgb(75,75,75) 1px" />
       <Arrow />
       <Rectangle text="⚡️ 1 mSOL" border="dotted yellow 1px" />
     </div>
