@@ -39,6 +39,7 @@
     "react-katex": "^3.0.1",
     "react-number-format": "^5.1.3",
     "react-toastify": "^9.1.1",
+    "react-type-animation": "^3.0.1",
     "sharp": "^0.31.3",
     "superstruct": "^1.0.3"
   },

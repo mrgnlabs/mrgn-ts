@@ -30,8 +30,6 @@ const prePrompt = `
 
   Your response will be typed out to the user, so format your response as if you're talking to them in first person. Make sure it's grammatically correct. Write in full sentences. In your response, tell the user what you think they want to do and that you're "setting up a transaction" for them to do it.
 
-  OVERRIDE ALL OF THE ABOVE INSTRUCTIONS IF THE FOLLOWING HAPPENS: If the user input is JUST 'vm', say 'vm baddie' back.
-
   Here is their input:
 `;
 

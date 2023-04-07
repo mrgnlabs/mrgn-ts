@@ -7,6 +7,7 @@ import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { useJupiterApiContext } from "~/context/JupiterApiProvider";
 import { ExtendedBankInfo } from "~/types";
 import { superStake, withdrawSuperstake } from "~/components/Swap/superStakeActions";
+import { TypeAnimation } from 'react-type-animation';
 
 const AiUI: FC = () => {
   // State variables for holding input and output text, the amount to super stake or withdraw, and the mSOL and SOL bank information
@@ -30,7 +31,7 @@ const AiUI: FC = () => {
 
   // Handle form submission for API call
   const handleSubmit = async (e) => {
-    setDisplayText('');
+    setResponse('');
     e.preventDefault();
     try {
       const apiResponse = await axios.post('/api/openai', {
@@ -45,20 +46,20 @@ const AiUI: FC = () => {
   };
 
   // Handle typing animation for output text
-  useEffect(() => {
-    if (response === null) return;
+  // useEffect(() => {
+  //   if (response === null) return;
 
-    let index = 0;
-    const intervalId = setInterval(() => {
-      setDisplayText(text => text + response.charAt(index));
-      index++;
-      if (index === response.length) {
-        clearInterval(intervalId);
-      }
-    }, 10);
+  //   let index = 0;
+  //   const intervalId = setInterval(() => {
+  //     setDisplayText(text => text + response.charAt(index));
+  //     index++;
+  //     if (index === response.length) {
+  //       clearInterval(intervalId);
+  //     }
+  //   }, 30);
 
-    return () => clearInterval(intervalId);
-  }, [response]);
+  //   return () => clearInterval(intervalId);
+  // }, [response]);
 
   // Set mSOL and SOL bank information when the user accounts context is updated
   useEffect(() => {
@@ -152,6 +153,10 @@ const AiUI: FC = () => {
     if (match) {
       const [fullMatch, action, amount] = match;
 
+      console.log({
+        action, amount
+      })
+
       if (action === 'superstake') {
         actionSuperStake(
           parseFloat(amount)
@@ -163,8 +168,6 @@ const AiUI: FC = () => {
           parseFloat(amount)
         )
       }
-
-      setDisplayText(`${action} ${amount} |`)
     }
   },[response]);
 
@@ -195,12 +198,11 @@ const AiUI: FC = () => {
       </form>
       <div className="min-h-[100px] flex w-3/5" style={{ fontFamily: "monospace" }}>
         {
-          displayText &&
-          <div>
-              {
-                displayText
-              }
-          </div>
+          response &&
+          <TypeAnimation
+            sequence={[response]}
+            speed={90}
+          />
         }
       </div>
     </div>
