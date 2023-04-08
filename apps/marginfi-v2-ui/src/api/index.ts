@@ -51,7 +51,7 @@ function makeExtendedBankInfo(
   bankInfo: BankInfo,
   tokenAccount: TokenAccount,
   nativeSolBalance: number,
-  marginfiAccount: MarginfiAccount | null
+  marginfiAccount: any,
 ): ExtendedBankInfo {
   const isWrappedSol = bankInfo.tokenMint.equals(WSOL_MINT);
   const positionRaw = marginfiAccount?.activeBalances.find((balance) => balance.bankPk.equals(bankInfo.address));

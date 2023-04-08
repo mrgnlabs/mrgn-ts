@@ -37,12 +37,17 @@ const AiUI: FC = () => {
     setResponse('');
     e.preventDefault();
     try {
-      const apiResponse = await axios.post('/api/openai', {
-        prompt: prompt,
-        // extendedBankInfos: extendedBankInfos,
-        max_tokens: 400,
+      const res = await axios.post('/api/ai', {
+        
       });
-      setResponse(apiResponse.data);
+      console.log(res)
+
+      // const apiResponse = await axios.post('/api/openai', {
+      //   prompt: prompt,
+      //   // extendedBankInfos: extendedBankInfos,
+      //   max_tokens: 400,
+      // });
+      // setResponse(apiResponse.data);
     } catch (error) {
       console.error('Error calling API route:', error);
       setResponse('Error calling API route');
