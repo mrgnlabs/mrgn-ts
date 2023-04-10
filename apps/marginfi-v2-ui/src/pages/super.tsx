@@ -1,17 +1,14 @@
-import React, { FC, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { FC, useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import axios from 'axios';
 import { TextField } from '@mui/material';
 
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useBanks, useProgram, useUserAccounts, useTokenAccounts } from "~/context";
+import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { useJupiterApiContext } from "~/context/JupiterApiProvider";
 import { ExtendedBankInfo } from "~/types";
 import { superStake, withdrawSuperstake } from "~/components/Swap/superStakeActions";
 import { TypeAnimation } from 'react-type-animation';
-import { nativeToUi } from '@mrgnlabs/mrgn-common';
-
-// console.log(OpenAI)
 
 const AiUI: FC = () => {
   // State variables for holding input and output text, the amount to super stake or withdraw, and the mSOL and SOL bank information
@@ -175,7 +172,6 @@ const AiUI: FC = () => {
       <div className="w-3/5 flex items-center gap-5">
         <div className="relative w-[28.02px] h-[24.81px]">
           <div className="absolute w-[1px] h-[1px] top-[13.51px] left-[11.905px] z-[-1]" style={{ boxShadow: '0 0 40px 15px yellow' }}></div>
-          {/* <div className="absolute w-full h-full" style={{ boxShadow: '0 0 20px yellow' }}></div> */}
           <Image src="/marginfi_logo.png" alt="marginfi logo" fill className="z-10"/>
         </div>
         <form onSubmit={handleSubmit} className="w-full">
