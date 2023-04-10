@@ -63,7 +63,7 @@ const FORMAT_INSTRUCTIONS = `
 
   i. The action that the user wants to take
   ii. The token they want to take an action with
-  iii. The amount of the token they want to take an action with
+  iii. The amount of the token they want to take an action with, which must be a number greater than zero roundedd to the nearest hundredth decimal.
 
   Choose from the following output formats:
 
@@ -163,17 +163,35 @@ class ActionPromptTemplate extends BaseStringPromptTemplate {
 // [Start] Output parser
 // ===================
 
-class CustomOutputParser extends AgentActionOutputParser {
+class ActionOutputParser extends AgentActionOutputParser {
   async parse(text: string): Promise<AgentAction | AgentFinish> {
     if (text.includes("Final Answer:")) {
       const parts = text.split("Final Answer:");
       const input = parts[parts.length - 1].trim();
-      const finalAnswers = { output: input };
-      return { log: text, returnValues: finalAnswers };
+
+      let finalAnswers;
+      if (input.includes("It sounds like you want to")) {
+        finalAnswers = {
+          output: input,
+          data: {
+            action: input.split("It sounds like you want to ")[1].split(" ")[0].trim(),
+            amount: input.split("It sounds like you want to ")[1].split(" ")[1].trim(),
+            tokenSymbol: input.split("It sounds like you want to ")[1].split(" ")[2].split(".")[0].trim(),
+          }
+        }
+      } else {
+        finalAnswers = { 
+          output: input
+        }
+      }
+
+      return { 
+        log: text, 
+        returnValues: finalAnswers 
+      };
     }
 
     const match = /Action: (.*)\nAction Input: (.*)/s.exec(text);
-    console.log({match})
     if (!match) {
       throw new Error(`Could not parse LLM output: ${text}`);
     }
@@ -211,7 +229,7 @@ const getActionAgent = async ({ walletPublicKey }: { walletPublicKey: string }) 
     })
   const agent = new LLMSingleActionAgent({
     llmChain,
-    outputParser: new CustomOutputParser(),
+    outputParser: new ActionOutputParser(),
     stop: ["\nObservation"],
   });
   const executor = new AgentExecutor({

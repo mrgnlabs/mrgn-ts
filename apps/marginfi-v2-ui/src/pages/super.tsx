@@ -42,14 +42,10 @@ const AiUI: FC = () => {
         input: prompt,
         walletPublicKey: wallet.publicKey?.toBase58(),
       });
-      setResponse(res.data)
-
-      // const apiResponse = await axios.post('/api/openai', {
-      //   prompt: prompt,
-      //   // extendedBankInfos: extendedBankInfos,
-      //   max_tokens: 400,
-      // });
-      // setResponse(apiResponse.data);
+      setResponse(res.data.output);
+      if (res.data.data) {
+        setUpTransaction({ ...res.data.data })
+      }
     } catch (error) {
       console.error('Error calling API route:', error);
       setResponse('Error calling API route');
@@ -57,6 +53,12 @@ const AiUI: FC = () => {
 
     setPrompt("");
   };
+
+  const setUpTransaction = async ({ action, amount, tokenSymbol }: { action: string; amount: string; tokenSymbol: string; }) => {
+    console.log({
+      action, amount, tokenSymbol
+    })
+  }
 
   // Set mSOL and SOL bank information when the user accounts context is updated
   // useEffect(() => {
