@@ -87,7 +87,6 @@ switch (environment) {
 }
 
 const config = {
-  // PRODUCTS_CONFIG,
   mfiConfig,
   rpcEndpoint,
   devFaucetAddress,
