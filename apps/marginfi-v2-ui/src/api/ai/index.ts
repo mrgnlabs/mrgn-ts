@@ -151,8 +151,4 @@ const callAI = async (input: string) => {
   return output;
 }
 
-export { 
-  getClient,
-  getAccounts,
-  callAI 
-};
+export { callAI };
