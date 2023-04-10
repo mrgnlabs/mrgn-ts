@@ -6,31 +6,20 @@ import { TextField } from '@mui/material';
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { useJupiterApiContext } from "~/context/JupiterApiProvider";
-import { ExtendedBankInfo } from "~/types";
+import { isActiveBankInfo, ExtendedBankInfo } from "~/types";
 import { superStake, withdrawSuperstake } from "~/components/Swap/superStakeActions";
 import { TypeAnimation } from 'react-type-animation';
 
 const AiUI: FC = () => {
-  // State variables for holding input and output text, the amount to super stake or withdraw, and the mSOL and SOL bank information
   const [prompt, setPrompt] = useState<string>("");
   const [response, setResponse] = useState<string>('');
   
+  const { connection } = useConnection();
+  const { mfiClient: marginfiClient } = useProgram();
+  const { reload: reloadBanks } = useBanks();
   const wallet = useWallet();
-
-  // const { mfiClient } = useProgram();
-  // const [mSOLBank, setmSOLBank] = useState<ExtendedBankInfo>();
-  // const [solBank, setSOLBank] = useState<ExtendedBankInfo>();
-  // const { extendedBankInfos, selectedAccount, activeBankInfos } = useUserAccounts();
-  // // const { tokenAccountMap } = useTokenAccounts();
-  // const { reload: reloadBanks } = useBanks();
-  // const { connection } = useConnection();
-  // const wallet = useWallet();
-  // const jupiter = useJupiterApiContext();
-
-  // Reset display text and super stake/withdraw amount when the component mounts
-  // useEffect(() => {
-  //   setResponse('')
-  // }, [])
+  const jupiter = useJupiterApiContext();
+  const { extendedBankInfos, selectedAccount, activeBankInfos } = useUserAccounts();
 
   // Handle form submission for API call
   const handleSubmit = async (e) => {
@@ -44,7 +33,7 @@ const AiUI: FC = () => {
       });
       setResponse(res.data.output);
       if (res.data.data) {
-        setUpTransaction({ ...res.data.data })
+        action({ ...res.data.data })
       }
     } catch (error) {
       console.error('Error calling API route:', error);
@@ -54,108 +43,133 @@ const AiUI: FC = () => {
     setPrompt("");
   };
 
-  const setUpTransaction = async ({ action, amount, tokenSymbol }: { action: string; amount: string; tokenSymbol: string; }) => {
-    console.log({
-      action, amount, tokenSymbol
-    })
+  const action = async ({ action, amount, tokenSymbol }: { action: string; amount: string; tokenSymbol: string; }) => {
+    if (!marginfiClient) return;
+
+    let _marginfiAccount = selectedAccount;
+
+    // If user does not have a marginfi account, throw an error for now.
+    if ((action !== 'deposit') && (_marginfiAccount === null)) { throw new Error("User does not have a marginfi account."); }
+
+    const amountFloat = parseFloat(amount);
+
+    const bankInfo = extendedBankInfos.find((bank) => bank.tokenName.toUpperCase() === tokenSymbol)
+    if (!bankInfo) {
+      throw new Error(`Bank info was not found, tokenSymbol: ${tokenSymbol} bankInfo: ${bankInfo}`);
+    }
+
+    let mSOLBank;
+    let SOLBank;
+
+    try {
+      switch (action) {
+        case 'deposit':
+          // Check if the user has a marginfi account
+          if (_marginfiAccount === null) {
+            try {
+              // If the user does not have a marginfi account, create one for them.
+
+              // First, we double check that we don't have a state management problem.
+              const userAccounts = await marginfiClient.getMarginfiAccountsForAuthority();
+              if (userAccounts.length > 0) {
+                try {
+                  await reloadBanks();
+                } catch (error: any) {
+                  console.log(`Error while reloading state: ${error}`)
+                }
+              }
+
+              // If we're all good on state, we create an account
+              _marginfiAccount = await marginfiClient.createMarginfiAccount();
+            } catch (error: any) {
+              console.log(`Error while reloading state: ${error}`)
+              break;
+            }
+          }
+          
+          console.log("constructing transaction");
+
+          // perform the deposit action
+          await _marginfiAccount.deposit(
+            amountFloat,
+            bankInfo.bank,
+          );
+
+          break;
+
+        case 'withdraw':
+
+          const withdrawAll = isActiveBankInfo(bankInfo) ? amountFloat === bankInfo.position.amount : false;
+          // @ts-ignore marginfi account is checked above
+          await _marginfiAccount.withdraw(amountFloat, bankInfo.bank, withdrawAll);
+          
+          break;
+
+        case 'borrow':
+          
+          // perform the borrow action
+          // @ts-ignore marginfi account is checked above
+          await _marginfiAccount.borrow(parseFloat(amount), bankInfo.bank);
+          
+          break;
+
+        case 'repay':
+
+          const repayAll = isActiveBankInfo(bankInfo) ? amountFloat === bankInfo.position.amount : false;
+          // @ts-ignore marginfi account is checked above
+          await _marginfiAccount.repay(amountFloat, bankInfo.bank, repayAll);
+          
+          break;
+
+        case 'stake':
+
+          mSOLBank = extendedBankInfos.find((bank) => bank.tokenName === "mSOL");
+          if (!mSOLBank) { throw new Error("mSOL bank info was not found"); }
+          SOLBank = extendedBankInfos.find((bank) => bank.tokenName === "SOL");
+          if (!SOLBank) { throw new Error("SOL bank info was not found"); }
+
+          await superStake(
+            // @ts-ignore marginfi account is checked above
+            _marginfiAccount,
+            connection,
+            wallet,
+            amountFloat,
+            mSOLBank,
+            SOLBank,
+            reloadBanks
+          )
+          
+          break;
+
+        case 'unstake':
+
+          mSOLBank = extendedBankInfos.find((bank) => bank.tokenName === "mSOL");
+          if (!mSOLBank) { throw new Error("mSOL bank info was not found"); }
+          SOLBank = extendedBankInfos.find((bank) => bank.tokenName === "SOL");
+          if (!SOLBank) { throw new Error("SOL bank info was not found"); }
+
+          await withdrawSuperstake(
+            // @ts-ignore marginfi account is checked above
+            _marginfiAccount,
+            connection,
+            wallet,
+            amountFloat,
+            mSOLBank,
+            SOLBank,
+            reloadBanks,
+            jupiter,
+          )
+          
+          break;
+      
+        default:
+          console.log("Invalid action passed to action().")
+          break;
+      } 
+    } catch (error: any) {
+      console.log(`Error while performing action '${action}': ${error}`)
+    }
   }
-
-  // Set mSOL and SOL bank information when the user accounts context is updated
-  // useEffect(() => {
-  //   setSOLBank(
-  //     extendedBankInfos.find((bank) => bank.tokenName === "SOL")
-  //   )
-  //   setmSOLBank(
-  //     extendedBankInfos.find((bank) => bank.tokenName === "mSOL")
-  //   )
-  // }, [extendedBankInfos])
-
-  // const actionSuperStake = useCallback(async (superStakeOrWithdrawAmount: number ) => {
-  //   if (mfiClient === null || !mSOLBank || !solBank || !selectedAccount) return;
-  //   let marginfiAccount = selectedAccount;
-  //   if (superStakeOrWithdrawAmount <= 0) {
-  //     setResponse('Please enter a valid amount above 0.');
-  //     return;
-  //   }
-
-  //   try {
-  //     await superStake(
-  //       marginfiAccount,
-  //       connection,
-  //       wallet,
-  //       superStakeOrWithdrawAmount,
-  //       mSOLBank,
-  //       solBank,
-  //       reloadBanks
-  //     )
-  //   } catch (error: any) {
-  //     setResponse("I'm sorry, there was an error. Please try again.")
-  //   }
-
-  //   try {
-  //     await reloadBanks();
-  //   } catch (error: any) {
-  //     setResponse("There was an error reloading banks. Please refresh the page.")
-  //   }
-
-  // }, [mfiClient, mSOLBank, solBank, selectedAccount, reloadBanks])
-
-  // const actionUnstake = useCallback(async (superStakeOrWithdrawAmount: number) => {
-  //   if (mfiClient === null || !mSOLBank || !solBank || !selectedAccount) return;
-  //   let marginfiAccount = selectedAccount;
-  //   if (superStakeOrWithdrawAmount <= 0) {
-  //     setResponse('Please enter a valid amount above 0.');
-  //     return;
-  //   }
-
-  //   try {
-  //     await withdrawSuperstake(
-  //       marginfiAccount,
-  //       connection,
-  //       wallet,
-  //       superStakeOrWithdrawAmount,
-  //       mSOLBank,
-  //       solBank,
-  //       reloadBanks,
-  //       jupiter,
-  //     )
-  //   } catch (error: any) {
-  //     setResponse("I'm sorry, there was an error. Please try again.")
-  //   }
-
-  //   try {
-  //     await reloadBanks();
-  //   } catch (error: any) {
-  //     setResponse("There was an error reloading banks. Please refresh the page.")
-  //   }
-
-  // }, [mfiClient, mSOLBank, solBank, selectedAccount, reloadBanks])
-
-  // useEffect(() => {
-
-  //   const regex = /It sounds like you want to (\w+) (\d+) mSOL.*/;
-  //   const match = response.match(regex);
-
-  //   if (match) {
-  //     const [fullMatch, action, amount] = match;
-
-  //     console.log({
-  //       action, amount
-  //     })
-
-  //     if (action === 'superstake') {
-  //       actionSuperStake(
-  //         parseFloat(amount)
-  //       )
-  //     }
-
-  //     if (action === 'unstake') {
-  //       actionUnstake(
-  //         parseFloat(amount)
-  //       )
-  //     }
-  //   }
-  // },[response]);
 
   return (
     <div className="top-0 w-full h-full absolute flex flex-col justify-center items-center gap-5 max-w-7xl">

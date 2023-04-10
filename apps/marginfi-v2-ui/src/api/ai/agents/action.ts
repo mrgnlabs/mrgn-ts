@@ -54,8 +54,10 @@ const WARM_START_INSTRUCTIONS = `
 
   1. If a user says "lend" or similar, assume they want to deposit.
   2. If a user says "take out" or similar, assume they want to withdraw.
-  3. If a user says "superstake" or similar, assume they want to stake.
-  4. If a user says "unsuperstake", "withdraw my superstake", or similar, assume they want to unstake.
+  3. If a user says "repay", "pay back", "return", or similar, assume they want to repay.
+  4. If a user says "superstake", "stake", or similar, assume they want to stake.
+  5. If a user says "unsuperstake", "withdraw my superstake", "unstake", or similar, assume they want to unstake.
+  6. If the user doesn't say "stake" in some form, assume they are not looking to stake or unstake.
 `;
 
 const FORMAT_INSTRUCTIONS = `
@@ -174,9 +176,9 @@ class ActionOutputParser extends AgentActionOutputParser {
         finalAnswers = {
           output: input,
           data: {
-            action: input.split("It sounds like you want to ")[1].split(" ")[0].trim(),
+            action: input.split("It sounds like you want to ")[1].split(" ")[0].trim().toLowerCase(),
             amount: input.split("It sounds like you want to ")[1].split(" ")[1].trim(),
-            tokenSymbol: input.split("It sounds like you want to ")[1].split(" ")[2].split(".")[0].trim(),
+            tokenSymbol: input.split("It sounds like you want to ")[1].split(" ")[2].split(".")[0].trim().toUpperCase(),
           }
         }
       } else {
@@ -193,6 +195,7 @@ class ActionOutputParser extends AgentActionOutputParser {
 
     const match = /Action: (.*)\nAction Input: (.*)/s.exec(text);
     if (!match) {
+      console.log({ match })
       throw new Error(`Could not parse LLM output: ${text}`);
     }
 
