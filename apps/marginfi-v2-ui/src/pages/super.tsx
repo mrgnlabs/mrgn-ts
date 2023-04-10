@@ -22,7 +22,8 @@ const AiUI: FC = () => {
   const { extendedBankInfos, selectedAccount, activeBankInfos } = useUserAccounts();
 
   // Handle form submission for API call
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
+    
     setResponse("");
     e.preventDefault();
 

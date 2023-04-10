@@ -35,6 +35,7 @@ export const JupiterApiProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const routeMap = Object.keys(indexedRouteMap).reduce((routeMap, key) => {
         routeMap.set(
           mintKeys[Number(key)],
+          // @ts-ignore
           indexedRouteMap[key].map((index: string | number) => mintKeys[index])
         );
         return routeMap;

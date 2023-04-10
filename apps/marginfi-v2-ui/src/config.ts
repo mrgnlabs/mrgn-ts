@@ -3,8 +3,6 @@ import { getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { getConfig as getLipConfig } from "@mrgnlabs/lip-client";
 import { ENV as ENVChainId } from "@solana/spl-token-registry";
 
-import { ProductType } from "./types";
-
 // ================
 // MAIN APP CONFIG
 // ================
@@ -15,25 +13,6 @@ let campaignWhitelist: { icon: string; size: number; publicKey: string }[];
 const environment = process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT;
 const rpcEndpointOverride = process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE;
 const groupOverride = process.env.NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE;
-
-interface Product {
-  type: ProductType;
-}
-
-const PRODUCTS_CONFIG: Record<ProductType, Product> = {
-  [ProductType.Lend]: {
-    type: ProductType.Lend,
-  },
-  [ProductType.Borrow]: {
-    type: ProductType.Borrow,
-  },
-  [ProductType.Short]: {
-    type: ProductType.Short,
-  },
-  [ProductType.Superstake]: {
-    type: ProductType.Superstake,
-  },
-};
 
 switch (environment) {
   case "production":
@@ -108,7 +87,7 @@ switch (environment) {
 }
 
 const config = {
-  PRODUCTS_CONFIG,
+  // PRODUCTS_CONFIG,
   mfiConfig,
   rpcEndpoint,
   devFaucetAddress,

@@ -61,6 +61,10 @@ const makeJupiterSwapIx = async ({
   jupiter,
 }: JupiterSwapParams) => {
 
+  if (!wallet.publicKey) {
+    throw new Error("Wallet public key not found.");
+  }
+
   const { data: routes } = await jupiter.api.v4QuoteGet({
     amount: uiToNative(amount, inputBankInfo.bank.mintDecimals).toString(),
     inputMint: inputBankInfo.bank.mint.toBase58(),

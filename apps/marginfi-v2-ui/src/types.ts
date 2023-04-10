@@ -44,10 +44,6 @@ interface TokenAccount {
 
 type TokenAccountMap = Map<string, TokenAccount>;
 
-enum ProductType {
-  Superstake = "⚡️stake",
-}
-
 enum ActionType {
   Deposit = "Deposit",
   Borrow = "Borrow",
@@ -83,4 +79,4 @@ export type {
   ExtendedBankInfo,
 };
 
-export { ActionType, ProductType, isActiveBankInfo };
+export { ActionType, isActiveBankInfo };
