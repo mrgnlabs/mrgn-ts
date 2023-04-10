@@ -18,7 +18,7 @@ import {
   AgentAction,
   AgentFinish,
 } from "langchain/schema";
-import { AccountsTool, BanksTool, TokenInfoTool } from './tools';
+import { AccountsTool, BanksTool, TokenInfoTool } from '../tools';
 import { Tool } from "langchain/tools";
 
 // ===================
@@ -173,6 +173,7 @@ class CustomOutputParser extends AgentActionOutputParser {
     }
 
     const match = /Action: (.*)\nAction Input: (.*)/s.exec(text);
+    console.log({match})
     if (!match) {
       throw new Error(`Could not parse LLM output: ${text}`);
     }
@@ -197,7 +198,7 @@ class CustomOutputParser extends AgentActionOutputParser {
 // [Start] Agent
 // ===================
 
-const getActionAgent = async ({ walletPublicKey }) => {
+const getActionAgent = async ({ walletPublicKey }: { walletPublicKey: string }) => {
   const model = new OpenAI({ openAIApiKey: process.env.OPENAI_API_KEY, maxTokens: 400, temperature: 1 });
   const tools = [
     new BanksTool(), 
@@ -217,7 +218,7 @@ const getActionAgent = async ({ walletPublicKey }) => {
     agent,
     tools,
   });
-  console.log("Loaded agent.");
+  console.log('Loaded action agent.')
 
   return executor;
 }
