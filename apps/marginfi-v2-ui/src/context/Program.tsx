@@ -18,7 +18,6 @@ const ProgramProvider: FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const { connection } = useConnection();
-  console.log(connection)
   const anchorWallet = useAnchorWallet();
 
   const [mfiClient, setMfiClient] = useState<MarginfiClient | null>(null);
