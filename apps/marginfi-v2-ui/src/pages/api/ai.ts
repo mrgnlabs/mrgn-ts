@@ -4,9 +4,9 @@ import { callAI } from "~/api/ai";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
-  const { input } = req.body;
-  const response = await callAI(input);
-  console.log(response);
+  const { input, walletPublicKey } = req.body;
+  const response = await callAI({ input, walletPublicKey });
+  console.log(JSON.stringify(response))
 
   try {
   

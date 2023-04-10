@@ -14,6 +14,8 @@ const AiUI: FC = () => {
   // State variables for holding input and output text, the amount to super stake or withdraw, and the mSOL and SOL bank information
   const [prompt, setPrompt] = useState<string>("");
   const [response, setResponse] = useState<string>('');
+  
+  const wallet = useWallet();
 
   // const { mfiClient } = useProgram();
   // const [mSOLBank, setmSOLBank] = useState<ExtendedBankInfo>();
@@ -38,8 +40,8 @@ const AiUI: FC = () => {
     try {
       const res = await axios.post('/api/ai', {
         input: prompt,
+        walletPublicKey: wallet.publicKey?.toBase58(),
       });
-      console.log(res)
       setResponse(res.data)
 
       // const apiResponse = await axios.post('/api/openai', {
