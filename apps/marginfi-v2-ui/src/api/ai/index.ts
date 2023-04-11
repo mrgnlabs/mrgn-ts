@@ -18,8 +18,8 @@ const callAI = async ({
     Here is more information about the two agents:
   `
   const CONTEXT = JSON.stringify({
-    "information_agent": "An agent that provides broad information about the marginfi protocol and user accounts. Useful if the user is seeking to retrieve information.",
-    "action_agent": "An agent that sets up transactions for the user. Useful if the user is seeking to perform an action.",
+    "information_agent": "An agent that provides information about the marginfi protocol and user accounts. Useful if the user is only seeking to retrieve information.",
+    "action_agent": "An agent that sets up transactions for the user. Useful if the user is only seeking to perform an action.",
   })
 
   const SUFFIX = `

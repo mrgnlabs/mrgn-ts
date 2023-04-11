@@ -13,6 +13,7 @@ import { TypeAnimation } from 'react-type-animation';
 const AiUI: FC = () => {
   const [prompt, setPrompt] = useState<string>("");
   const [response, setResponse] = useState<string>('');
+  const [thinking, setThinking] = useState<boolean>(false);
   
   const { connection } = useConnection();
   const { mfiClient: marginfiClient } = useProgram();
@@ -25,6 +26,7 @@ const AiUI: FC = () => {
   const handleSubmit = async (e: any) => {
     
     setResponse("");
+    setThinking(true)
     e.preventDefault();
 
     try {
@@ -32,6 +34,8 @@ const AiUI: FC = () => {
         input: prompt,
         walletPublicKey: wallet.publicKey?.toBase58(),
       });
+      
+      setThinking(false);
       setResponse(res.data.output);
       if (res.data.data) {
         action({ ...res.data.data })
@@ -207,6 +211,13 @@ const AiUI: FC = () => {
       </div>
       {/* The LLM output gets printed below the prompt. */}
       <div className="min-h-[50px] flex w-3/5 font-[rgb(227, 227, 227)]" style={{ fontFamily: "monospace" }}>
+        {
+          (!response) && thinking &&
+          <TypeAnimation
+            sequence={["Hmm... let me think..."]}
+            speed={90}
+          />
+        }
         {
           response &&
           <TypeAnimation

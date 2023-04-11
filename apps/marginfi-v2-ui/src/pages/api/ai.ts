@@ -5,20 +5,29 @@ import { callAI } from "~/api/ai";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const { input, walletPublicKey } = req.body;
-  const response = await callAI({ input, walletPublicKey });
 
-  console.log("response on api side:")
-  console.log({ response })
+  let response;
+  let attempts = 0;
+  const maxAttempts = 3;
+
+  while (attempts < maxAttempts) {
+    try {
+      response = await callAI({ input, walletPublicKey });
+      console.log("response on api side:")
+      console.log({ response: JSON.stringify(response) })
+      break;
+    } catch (error) {
+      attempts++;
+      console.error('Error calling OpenAI API:', error);
+    }
+  }
 
   try {
-  
     res.status(200).json(
       response
     );
   } catch (error) {
-
     console.error('Error calling OpenAI API:', error);
     res.status(500).json({ error: 'Error calling OpenAI API' });
-
   }
 }

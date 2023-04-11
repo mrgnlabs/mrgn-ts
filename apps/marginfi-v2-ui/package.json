@@ -25,6 +25,7 @@
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.2",
     "@next/font": "13.1.1",
+    "@pinecone-database/pinecone": "^0.0.12",
     "@socialgouv/matomo-next": "^1.4.0",
     "@solana/wallet-adapter-base": "^0.9.20",
     "@solana/wallet-adapter-react": "^0.15.28",
