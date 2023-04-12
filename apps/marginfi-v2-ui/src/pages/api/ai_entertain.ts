@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { callAI } from "~/api/ai";
+import { getOmniVectorChain } from "~/api/ai/tools/omniqa";
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -17,12 +18,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  // @todo running retry attempts here creates a lot of overhead because the manager agent has to choose the direction again
-  // improve this
   while (attempts < maxAttempts) {
     try {
-      console.log({ attempts })
-      response = await callAI({ input, walletPublicKey });
+      // response = await callAI({ input, walletPublicKey });
+      const chain = await getOmniVectorChain()
+      const responseRaw = await chain.call({ query: input });
+      
+      // Get the first sentence of the response
+      const sentenceDelimiters = /(\.|\?|!)/;
+      const sentences = responseRaw.output.split(sentenceDelimiters);
+      response = {
+        output: `Did you know? ${sentences[0]}`
+      }
+
       console.log("response on api side:")
       console.log({ response: JSON.stringify(response) })
       break;

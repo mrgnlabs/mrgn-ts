@@ -215,7 +215,7 @@ class ActionOutputParser extends AgentActionOutputParser {
       tool: match[1].trim(),
       toolInput: match[2].trim().replace(/^"+|"+$/g, ""),
       log: text,
-    };
+    };    
   }
 
   getFormatInstructions(): string {
@@ -236,7 +236,7 @@ const getActionAgent = async ({ walletPublicKey }: { walletPublicKey: string }) 
     modelName: "gpt-3.5-turbo",
     openAIApiKey: process.env.OPENAI_API_KEY, 
     maxTokens: 1000,
-    temperature: 0,
+    temperature: 0.8,
     verbose: true,
   });
 
@@ -244,7 +244,7 @@ const getActionAgent = async ({ walletPublicKey }: { walletPublicKey: string }) 
     new BanksTool(), 
     new TokenInfoTool(),
     new AccountsTool(walletPublicKey),
-    await getOmniQaTool(),
+    // await getOmniQaTool(),
   ];
   const llmChain = new LLMChain({
       prompt: new ActionPromptTemplate({ tools, inputVariables: ["input", "agent_scratchpad"] }),

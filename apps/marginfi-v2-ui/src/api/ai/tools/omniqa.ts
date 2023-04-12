@@ -18,14 +18,13 @@ const getPineconeClient = async () => {
     return client;
   }
 
-const getOmniQaTool = async() => {
-
+const getOmniVectorChain = async() => {
     // Get base OpenAI model
     const model = new OpenAI({ 
         modelName: "gpt-3.5-turbo",
         openAIApiKey: process.env.OPENAI_API_KEY, 
         maxTokens: 1000,
-        temperature: 0.5,
+        temperature: 0.8,
         verbose: true,
     });
 
@@ -38,6 +37,11 @@ const getOmniQaTool = async() => {
         { pineconeIndex }
     );
     const vectorChain = VectorDBQAChain.fromLLM(model, vectorStore);
+
+    return vectorChain
+}
+const getOmniQaTool = async() => {
+    const vectorChain = await getOmniVectorChain();
     const omniQa = new ChainTool({
         name: "omni-qa",
         description:
@@ -48,4 +52,4 @@ const getOmniQaTool = async() => {
     return omniQa;
 }
 
-export { getOmniQaTool }
+export { getOmniQaTool, getOmniVectorChain }
