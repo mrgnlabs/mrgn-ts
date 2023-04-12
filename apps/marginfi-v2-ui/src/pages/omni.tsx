@@ -201,13 +201,14 @@ const AiUI: FC = () => {
   }
 
   return (
-    <div className="top-0 w-full h-full absolute flex flex-col justify-center items-center gap-5 max-w-7xl">
+    <div className="top-0 w-full h-full absolute flex flex-col justify-center items-center gap-5 max-w-7xl pb-20">
       {/* Name header */}
-      <div className="text-5xl flex justify-between w-3/5 ml-24" style={{ fontWeight: 500 }}>
-        <div>marginfi</div>
+      <div className="pb-20 flex justify-center w-4/5 sm:w-3/5" style={{ fontWeight: 200 }}>
+        <div className="text-7xl">omni</div>
+        <div>omni</div>
       </div>
       {/* Logo and prompt input */}
-      <div className="w-3/5 flex items-center gap-5">
+      <div className="w-4/5 sm:w-3/5 flex items-center gap-5">
         <div className="relative w-[28.02px] h-[24.81px]">
           <div className="absolute w-[1px] h-[1px] top-[13.51px] left-[11.905px] z-[-1]" style={{ boxShadow: '0 0 40px 15px yellow' }}></div>
           <Image src="/marginfi_logo.png" alt="marginfi logo" fill className="z-10"/>
@@ -220,7 +221,7 @@ const AiUI: FC = () => {
             // The prompt input only handles value changing.
             // Actual action isn't taken until enter is pressed.
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder='Enter a prompt, like "I want to superstake 10 mSOL."'
+            placeholder='Superstake 7 mSOL'
             InputProps={{
               sx: {
                 backgroundColor: '#181C1F',

@@ -233,7 +233,7 @@ class ActionOutputParser extends AgentActionOutputParser {
 
 const getActionAgent = async ({ walletPublicKey }: { walletPublicKey: string }) => {
   const model = new OpenAI({ 
-    modelName: "gpt-3.5-turbo",
+    modelName: "text-davinci-003",
     openAIApiKey: process.env.OPENAI_API_KEY, 
     maxTokens: 1000,
     temperature: 0.8,
