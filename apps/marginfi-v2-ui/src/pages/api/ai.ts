@@ -10,7 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let attempts = 0;
   const maxAttempts = 3;
 
-  console.log({ walletPublicKey })
   if (!walletPublicKey) {
     res.status(200).json({
       output: "It looks like you haven't connected your wallet yet. Connect your wallet and let's get started."

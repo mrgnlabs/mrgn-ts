@@ -48,6 +48,8 @@ const PREFIX = `
 
   The token must be one that marginfi supports, or else the user is trying to take an action that's not allowed.
 
+  If the user wants to stake or unstake, the token MUST be mSOL.
+
   The amount must be greater than 0.
 `
 

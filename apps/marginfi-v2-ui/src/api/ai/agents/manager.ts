@@ -1,19 +1,14 @@
 import { OpenAI } from "langchain";
 import { initializeAgentExecutor } from "langchain/agents";
 
-import { BanksTool, TokenInfoTool } from '../tools';
+import { BanksTool, TokenInfoTool, getOmniQaTool } from '../tools';
 
 const getManagerAgent = async() => {
-    const model = new OpenAI({ 
-      modelName: "gpt-3.5-turbo",
-      openAIApiKey: process.env.OPENAI_API_KEY, 
-      maxTokens: 1000,
-      temperature: 0.3,
-      verbose: true,
-    });
+    const model = new OpenAI({ openAIApiKey: process.env.OPENAI_API_KEY, maxTokens: 400, temperature: 1 });
     const tools = [
       new BanksTool(), 
       new TokenInfoTool(),
+      await getOmniQaTool(),
     ];
 
     const executor = await initializeAgentExecutor(
