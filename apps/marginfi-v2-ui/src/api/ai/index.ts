@@ -13,12 +13,14 @@ const callAI = async ({
   const PREFIX = `
     Determine which agent should be used for the user input below. 
     
-    You have two choices: information_agent or action_agent. You must choose one of these two agents. your ouput must be only the agent name.
+    You have two choices: information_agent or action_agent. You must choose one of these two agents.
 
     Here is more information about the two agents:
 
-    information_agent: Answers information-seeking queries. For example, "What is marginfi?" or "How much am I lending?" Useful if the user is only seeking to retrieve information.
-    action_agent: Sets up transactions for the user. The user must want to do something that requires a blockchain transaction. For example, depositing, withdrawing, or trading. Useful if the user is only seeking to perform an action.
+    "information_agent": Answers information-seeking queries. For example, "What is marginfi?" or "How much am I lending?" Useful if the user is only seeking to retrieve information.
+    "action_agent": Sets up transactions for the user. The user must want to do something that requires a blockchain transaction. For example, depositing, withdrawing, or trading. Useful if the user is only seeking to perform an action.
+
+    Respond ONLY with the name of the agent you want to use. Do not respond with any other text.
 
     Here is the user input:
   `

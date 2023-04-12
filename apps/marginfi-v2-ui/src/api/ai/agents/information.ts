@@ -24,7 +24,13 @@ const getPineconeClient = async () => {
 const getInformationAgent = async ({ walletPublicKey }: { walletPublicKey: string; }) => {
 
   // Get base OpenAI model
-  const model = new OpenAI({ openAIApiKey: process.env.OPENAI_API_KEY, maxTokens: 400, temperature: 1 });
+  const model = new OpenAI({ 
+      modelName: "gpt-3.5-turbo",
+      openAIApiKey: process.env.OPENAI_API_KEY, 
+      maxTokens: 1000,
+      temperature: 0.5,
+      verbose: true,
+  });
 
   // Set up Pinecone client
   const client = await getPineconeClient();
@@ -35,18 +41,18 @@ const getInformationAgent = async ({ walletPublicKey }: { walletPublicKey: strin
     { pineconeIndex }
   );
   const vectorChain = VectorDBQAChain.fromLLM(model, vectorStore);
-  const andersQa = new ChainTool({
-    name: "anders-qa",
+  const omniQa = new ChainTool({
+    name: "omni-qa",
     description:
-      "ChainTool to answer questions about Anders. Input should be a question about Anders.",
+      "ChainTool to answer questions about blockchain protocols. Input should be a question about a protocol.",
     chain: vectorChain,
   });
 
   const tools = [
-    // new BanksTool(), 
-    // new TokenInfoTool(),
-    // new AccountsTool(walletPublicKey),
-    andersQa,
+    new BanksTool(), 
+    new TokenInfoTool(),
+    new AccountsTool(walletPublicKey),
+    omniQa,
   ];
 
   const executor = await initializeAgentExecutor(
