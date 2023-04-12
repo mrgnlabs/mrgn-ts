@@ -11,25 +11,20 @@ const callAI = async ({
   const manager = await getManagerAgent();
   
   const PREFIX = `
-    Determine which agent I should use for the user input below.
-
-    You must choose either information_agent or action_agent, and your output must be only that one agent name.
+    Determine which agent should be used for the user input below. 
+    
+    You have two choices: information_agent or action_agent. You must choose one of these two agents. your ouput must be only the agent name.
 
     Here is more information about the two agents:
-  `
-  const CONTEXT = JSON.stringify({
-    "information_agent": "An agent that provides information about the marginfi protocol and user accounts. Useful if the user is only seeking to retrieve information.",
-    "action_agent": "An agent that sets up transactions for the user. Useful if the user is only seeking to perform an action.",
-  })
 
-  const SUFFIX = `
+    information_agent: Answers information-seeking queries. For example, "What is marginfi?" or "How much am I lending?" Useful if the user is only seeking to retrieve information.
+    action_agent: Sets up transactions for the user. The user must want to do something that requires a blockchain transaction. For example, depositing, withdrawing, or trading. Useful if the user is only seeking to perform an action.
+
     Here is the user input:
   `
 
   const template = [
     PREFIX,
-    CONTEXT,
-    SUFFIX,
     input
   ]
   const response = await manager.call({ input: template.join('\n\n')})
