@@ -16,7 +16,6 @@ const getAccounts = async ({ walletPublicKey }: AccountsProps) => {
 
   const componentsEquity = account.getHealthComponents(MarginRequirementType.Equity);
   const componentMaintenance = account.getHealthComponents(MarginRequirementType.Maint);
-  const componentInitial = account.getHealthComponents(MarginRequirementType.Init);
 
   // User metrics
   const equityValueUsd = componentsEquity.assets.minus(componentsEquity.liabilities).toNumber();
