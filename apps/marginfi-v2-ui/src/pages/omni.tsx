@@ -27,34 +27,13 @@ const AiUI: FC = () => {
     
     setResponse("");
     setThinking(true)
-    e.preventDefault();
-
-    // Define the function to be called at intervals
-    // const waitingFunction = async () => {
-    //   console.log("Calling entertainment model...");
-    //   const res = await axios.post('/api/ai_entertain', {
-    //     input: prompt,
-    //     walletPublicKey: wallet.publicKey?.toBase58(),
-    //   });
-    //   setThinking(false);
-    //   setResponse(res.data.output);
-      
-    //   // Perform any other actions you'd like while waiting for the response
-    // };
-
-    // Start calling the waitingFunction at specified intervals (e.g., 1000 milliseconds)
-    // const intervalId = setInterval(async () => {
-    //   await waitingFunction();
-    // }, 10000);
+    e.preventDefault()
 
     try {
       const res = await axios.post('/api/ai', {
         input: prompt,
         walletPublicKey: wallet.publicKey?.toBase58(),
       });
-
-      // Clear the interval after the request is completed
-      // clearInterval(intervalId);
       
       setThinking(false);
       setResponse(res.data.output);
@@ -64,9 +43,6 @@ const AiUI: FC = () => {
     } catch (error) {
       console.error('Error calling API route:', error);
       setResponse('Error calling API route');
-
-      // Clear the interval in case of an error
-      // clearInterval(intervalId);
     }
 
     setPrompt("");
