@@ -4,7 +4,7 @@ import { callAI } from "~/api/ai";
 
 // Extract variables
 const extractVariables = (sentence: string) => {
-  const actionRegex = /(deposit|withdraw|borrow|repay|stake|unstake|superstake|unsuperstake)/;
+  const actionRegex = /(lend|deposit|withdraw|borrow|repay|stake|unstake|superstake|unsuperstake)/;
   const amountRegex = /(\d+(?:\.\d+)?)/;
   const tokenRegex = /(USDC|SOL|mSOL|BONK|USDT|ETH|WBTC)/;
 
@@ -20,6 +20,8 @@ const extractVariables = (sentence: string) => {
     action = 'stake';
   } else if (action === 'unsuperstake') {
     action = 'unstake';
+  } else if (action === 'lend') {
+    action = 'deposit'
   }
 
   return {
