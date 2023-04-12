@@ -90,20 +90,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         tokenSymbol: result.token,
       }
     }
+    res.status(200).json(
+      response
+    );
+    return;
   } else {
     
     // AI approach if regex fails
     try {
       response = await callAI({ input, walletPublicKey });
 
-      return res.status(200).json(
+      res.status(200).json(
         response
       );
+      return 
     } catch (error) {
       console.error('Error calling OpenAI API:', error);
-      return res.status(200).json({
+      res.status(200).json({
         output: getApologyMessage()
       })
+      return 
     }
   }
 }
