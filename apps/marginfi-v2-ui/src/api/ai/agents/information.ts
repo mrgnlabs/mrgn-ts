@@ -35,18 +35,18 @@ const getInformationAgent = async ({ walletPublicKey }: { walletPublicKey: strin
     { pineconeIndex }
   );
   const vectorChain = VectorDBQAChain.fromLLM(model, vectorStore);
-  const exampleQa = new ChainTool({
-    name: "example-qa",
+  const andersQa = new ChainTool({
+    name: "anders-qa",
     description:
-      "Example QA - useful for when you need to ask questions about the EXAMPLE entity.",
+      "ChainTool to answer questions about Anders. Input should be a question about Anders.",
     chain: vectorChain,
   });
 
   const tools = [
-    new BanksTool(), 
-    new TokenInfoTool(),
-    new AccountsTool(walletPublicKey),
-    exampleQa,
+    // new BanksTool(), 
+    // new TokenInfoTool(),
+    // new AccountsTool(walletPublicKey),
+    andersQa,
   ];
 
   const executor = await initializeAgentExecutor(
