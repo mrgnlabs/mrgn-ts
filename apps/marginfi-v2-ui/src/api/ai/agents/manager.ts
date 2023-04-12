@@ -8,7 +8,7 @@ const getManagerAgent = async() => {
       modelName: "gpt-3.5-turbo",
       openAIApiKey: process.env.OPENAI_API_KEY, 
       maxTokens: 1000,
-      temperature: 0,
+      temperature: 0.3,
       verbose: true,
     });
     const tools = [

@@ -18,7 +18,7 @@ import {
   AgentAction,
   AgentFinish,
 } from "langchain/schema";
-import { AccountsTool, BanksTool, TokenInfoTool } from '../tools';
+import { AccountsTool, BanksTool, TokenInfoTool, getOmniQaTool } from '../tools';
 import { Tool } from "langchain/tools";
 
 // ===================
@@ -26,7 +26,17 @@ import { Tool } from "langchain/tools";
 // ===================
 
 const PREFIX = `
-  Predict the action that a user wants to take based on their input below, as well as the token and the amount of token they want to take that action with. You must choose one of the following 7 actions:
+  There is user input below and the user wants to take an action with marginfi.
+
+  Predict three data points:
+
+  * The action that the user wants to take.
+  * The token they want to take an action with.
+  * The amount of the token they want to take an action with.
+  
+  Rules:
+
+  You must choose one of the following 7 actions:
 
   1. deposit
   2. withdraw
@@ -34,7 +44,11 @@ const PREFIX = `
   4. repay
   5. stake
   6. unstake
-  7. another action that's not allowed
+  7. an action that's not allowed
+
+  The token must be one that marginfi supports, or else the user is trying to take an action that's not allowed.
+
+  The amount must be greater than 0.
 `
 
 const processInstructions = (toolNames: string) => `
@@ -50,7 +64,7 @@ Thought: I now know the final answer
 `;
 
 const WARM_START_INSTRUCTIONS = `
-  Follow these rules:
+  Make the following assumptions:
 
   1. If a user says "lend" or similar, assume they want to deposit.
   2. If a user says "take out" or similar, assume they want to withdraw.
@@ -61,13 +75,7 @@ const WARM_START_INSTRUCTIONS = `
 `;
 
 const FORMAT_INSTRUCTIONS = `
-  When you know:
-
-  i. The action that the user wants to take
-  ii. The token they want to take an action with
-  iii. The amount of the token they want to take an action with, which must be a number greater than zero roundedd to the nearest hundredth decimal.
-
-  Choose from the following output formats:
+  When you know all three data points you must predict, use one of the following appropriate output formats:
 
   If and ONLY if the user wants to take an action that's allowed, use the following format:
 
@@ -80,6 +88,8 @@ const FORMAT_INSTRUCTIONS = `
   If the user wants to take an action with a token that's not supported, respond with the following:
 
   "Final Answer: Regrettably, [token] is not supported on marginfi yet."
+
+  Be strict with your output format. Do not deviate from the above options.
 `;
 
 const SUFFIX = `Begin!
@@ -227,11 +237,12 @@ const getActionAgent = async ({ walletPublicKey }: { walletPublicKey: string }) 
     temperature: 0,
     verbose: true,
   });
-  
+
   const tools = [
     new BanksTool(), 
     new TokenInfoTool(),
-    new AccountsTool(walletPublicKey)
+    new AccountsTool(walletPublicKey),
+    await getOmniQaTool(),
   ];
   const llmChain = new LLMChain({
       prompt: new ActionPromptTemplate({ tools, inputVariables: ["input", "agent_scratchpad"] }),
