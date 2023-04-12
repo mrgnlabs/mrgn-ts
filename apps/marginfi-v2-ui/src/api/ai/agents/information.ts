@@ -11,7 +11,7 @@ const getInformationAgent = async ({ walletPublicKey }: { walletPublicKey: strin
       modelName: "gpt-3.5-turbo",
       openAIApiKey: process.env.OPENAI_API_KEY, 
       maxTokens: 1000,
-      temperature: 0.5,
+      temperature: 0.8,
       verbose: true,
   });
 
