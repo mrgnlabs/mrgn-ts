@@ -11,9 +11,9 @@ interface ExtractVariablesOutput {
 }
 
 const extractVariables = (sentence: string): ExtractVariablesOutput => {
-  const actionRegex = /(lend|deposit|withdraw|borrow|repay|stake|unstake|superstake|unsuperstake|add|put|give|bring|submit|provide|contribute|take|get|withdrawal|retrieve|repayment|return|earn|gain|collect|dump|stuff|yank|stash|grab|cash-in|cash-out|bounce|withdraw-inate|deposit-ify|plunk|squirrel|park|nest-egg|sock-away|hoard|tuck-away|'take out')/;
+  const actionRegex = /(lend|deposit|withdraw|borrow|repay|stake|unstake|superstake|unsuperstake|add|put|give|bring|submit|provide|contribute|take|get|withdrawal|retrieve|repayment|return|earn|gain|collect|dump|stuff|yank|stash|grab|cash-in|cash-out|bounce|withdraw-inate|deposit-ify|plunk|squirrel|park|nest-egg|sock-away|hoard|tuck-away|take out)/;
   const amountRegex = /(\d+(?:\.\d+)?)/;
-  const tokenRegex = /(USDC|SOL|mSOL|BONK|USDT|ETH|WBTC)/;
+  const tokenRegex = /(USDC|SOL|mSOL|BONK|USDT|ETH|WBTC)/i;
 
   const actionMatch = sentence.match(actionRegex);
   const amountMatch = sentence.match(amountRegex);
@@ -21,7 +21,7 @@ const extractVariables = (sentence: string): ExtractVariablesOutput => {
 
   let action: Action = actionMatch ? actionMatch[0] as Action : null;
   const amount: number | null = amountMatch ? parseFloat(amountMatch[0]) : null;
-  const token: Token = tokenMatch ? tokenMatch[0] as Token : null;
+  const token: Token = tokenMatch ? tokenMatch[0].toUpperCase() as Token : null;
 
   if (action !== null) {
     if (['lend', 'add', 'put', 'give', 'bring', 'submit', 'provide', 'contribute', 'deposit-ify', 'plunk', 'squirrel', 'park', 'nest-egg', 'sock-away', 'hoard', 'tuck-away'].includes(action)) {
@@ -45,6 +45,7 @@ const extractVariables = (sentence: string): ExtractVariablesOutput => {
     token,
   };
 }
+
 
 
 // Get random action in case of error
