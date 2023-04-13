@@ -17,6 +17,7 @@ import BN from "bn.js";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(0.1);
+const DUST_THRESHOLD_VALUE_UI = new BigNumber(1);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const MIN_SOL_BALANCE = env_config.MIN_SOL_BALANCE * LAMPORTS_PER_SOL;
 const SLIPPAGE_BPS = 250;
@@ -34,7 +35,7 @@ class Liquidator {
     readonly jupiter: Jupiter,
     readonly account_whitelist: PublicKey[] | undefined,
     readonly account_blacklist: PublicKey[] | undefined
-  ) {}
+  ) { }
 
   get group() {
     return this.client.group;
@@ -199,6 +200,11 @@ class Liquidator {
         PriceBias.None
       );
 
+      if (liabUsdcValue.lte(DUST_THRESHOLD_VALUE_UI)) {
+        debug("Skipping %s, liability value is too low", bank.label);
+        continue;
+      }
+
       // We can possibly withdraw some usdc from the lending account if we are short.
       let usdcBuyingPower = BigNumber.min(availableUsdcInTokenAccount, liabUsdcValue);
       const missingUsdc = liabUsdcValue.minus(usdcBuyingPower);
@@ -267,10 +273,10 @@ class Liquidator {
     const nativeAmount = nativeToUi(
       mint.equals(NATIVE_MINT)
         ? Math.max(
-            (await this.connection.getBalance(this.wallet.publicKey)) -
-              (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
-            0
-          )
+          (await this.connection.getBalance(this.wallet.publicKey)) -
+          (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
+          0
+        )
         : 0,
       9
     );
@@ -295,8 +301,9 @@ class Liquidator {
       }
 
       let amount = await this.getTokenAccountBalance(bank.mint);
+      let value = bank.getUsdValue(amount, PriceBias.None);
 
-      if (amount.lte(DUST_THRESHOLD_UI)) {
+      if (value.lte(DUST_THRESHOLD_VALUE_UI)) {
         continue;
       }
 
@@ -342,12 +349,12 @@ class Liquidator {
     const lendingAccountToRebalance = this.account.activeBalances
       .map((lendingAccount) => {
         const bank = this.group.getBankByPk(lendingAccount.bankPk)!;
-        const { assets, liabilities } = lendingAccount.getQuantity(bank);
+        const { assets, liabilities } = lendingAccount.getUsdValue(bank, MarginRequirementType.Equity)
 
         return { bank, assets, liabilities };
       })
       .filter(({ bank, assets, liabilities }) => {
-        return (assets.gt(DUST_THRESHOLD) && !bank.mint.equals(USDC_MINT)) || liabilities.gt(DUST_THRESHOLD);
+        return (assets.gt(DUST_THRESHOLD_VALUE_UI) && !bank.mint.equals(USDC_MINT)) || liabilities.gt(DUST_THRESHOLD_VALUE_UI);
       });
 
     const lendingAccountToRebalanceExists = lendingAccountToRebalance.length > 0;
