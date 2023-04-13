@@ -1,17 +1,18 @@
 import { Connection } from "@solana/web3.js";
-import { AccountType, getConfig, MarginfiClient, NodeWallet } from "../src";
+import { NodeWallet } from "@mrgnlabs/mrgn-common";
+import { AccountType, getConfig, MarginfiClient } from "../src";
 import MarginfiAccount, { MarginRequirementType } from "../src/account";
 
 async function main() {
-  const connection = new Connection("https://devnet.genesysgo.net/", "confirmed");
+  const connection = new Connection(process.env.RPC_ENDPOINT!, "confirmed");
   const wallet = NodeWallet.local();
-  const config = await getConfig("dev");
+  const config = await getConfig();
   const client = await MarginfiClient.fetch(config, wallet, connection);
 
   const programAddresses = await client.getAllProgramAccountAddresses(AccountType.MarginfiGroup);
   console.log(programAddresses.map((key) => key.toBase58()));
 
-  const marginfiAccount = await MarginfiAccount.fetch("6tgsmyfNHVzZaDJ6bjSVrKBGVsrgpqHNzr7WDz3BeT7t", client);
+  const marginfiAccount = await MarginfiAccount.fetch(process.env.MARGINFI_ACCOUNT!, client);
 
   const group = marginfiAccount.group;
 
@@ -26,6 +27,10 @@ async function main() {
   const { assets, liabilities } = marginfiAccount.getHealthComponents(MarginRequirementType.Init);
 
   console.log("Assets: %s, Liabs: %s", assets, liabilities);
+
+  console.log(marginfiAccount.describe());
+
+  group.banks.forEach((bank) => console.log(bank.describe()));
 }
 
 main();
