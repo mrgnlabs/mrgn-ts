@@ -107,6 +107,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       actionDisplayed = 'put in';
     } else if (result.action === 'borrow') {
       actionDisplayed = 'take out';
+    } else {
+      actionDisplayed = result.action;
     }
 
     response = {
