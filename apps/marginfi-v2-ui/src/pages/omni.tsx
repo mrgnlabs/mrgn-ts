@@ -35,7 +35,6 @@ const AiUI: FC = () => {
         walletPublicKey: wallet.publicKey?.toBase58(),
       });
       
-      setThinking(false);
       setResponse(res.data.output);
       if (res.data.data) {
         action({ ...res.data.data })
@@ -48,16 +47,23 @@ const AiUI: FC = () => {
     setPrompt("");
   };
 
+  // generic functions are now:
+  // deposit()
+  // borrow()
+  // the endpoint needs to return one of these ^
   const action = async ({ action, amount, tokenSymbol }: { action: string; amount: string; tokenSymbol: string; }) => {
     if (!marginfiClient) return;
 
     let _marginfiAccount = selectedAccount;
 
     // If user does not have a marginfi account, throw an error for now.
+    // @todo If the account doesn't exist and the user is trying to take an action other than deposit,
+    // tell the user in prompt response that they need to deposit first.
     if ((action !== 'deposit') && (_marginfiAccount === null)) { throw new Error("User does not have a marginfi account."); }
 
     const amountFloat = parseFloat(amount);
 
+    // Types: 
     const bankInfo = extendedBankInfos.find((bank) => bank.tokenName.toUpperCase() === tokenSymbol)
     if (!bankInfo) {
       throw new Error(`Bank info was not found, tokenSymbol: ${tokenSymbol} bankInfo: ${bankInfo}`);
@@ -102,27 +108,11 @@ const AiUI: FC = () => {
 
           break;
 
-        case 'withdraw':
-
-          const withdrawAll = isActiveBankInfo(bankInfo) ? amountFloat === bankInfo.position.amount : false;
-          // @ts-ignore marginfi account is checked above
-          await _marginfiAccount.withdraw(amountFloat, bankInfo.bank, withdrawAll);
-          
-          break;
-
         case 'borrow':
           
           // perform the borrow action
           // @ts-ignore marginfi account is checked above
           await _marginfiAccount.borrow(parseFloat(amount), bankInfo.bank);
-          
-          break;
-
-        case 'repay':
-
-          const repayAll = isActiveBankInfo(bankInfo) ? amountFloat === bankInfo.position.amount : false;
-          // @ts-ignore marginfi account is checked above
-          await _marginfiAccount.repay(amountFloat, bankInfo.bank, repayAll);
           
           break;
 

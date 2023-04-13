@@ -1,10 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { callAI } from "~/api/ai";
 
+type Action = 'deposit' | 'borrow' | 'stake' | 'unstake' | null;
+type Token = 'USDC' | 'SOL' | 'mSOL' | 'BONK' | 'USDT' | 'ETH' | 'WBTC' | null;
 
-// Extract variables
-const extractVariables = (sentence: string) => {
-  const actionRegex = /(lend|deposit|withdraw|borrow|repay|stake|unstake|superstake|unsuperstake)/;
+interface ExtractVariablesOutput {
+  action: Action;
+  amount: number | null;
+  token: Token;
+}
+
+const extractVariables = (sentence: string): ExtractVariablesOutput => {
+  const actionRegex = /(lend|deposit|withdraw|borrow|repay|stake|unstake|superstake|unsuperstake|add|put|give|bring|submit|provide|contribute|take|get|withdrawal|retrieve|repayment|return|earn|gain|collect|dump|stuff|yank|stash|grab|cash-in|cash-out|bounce|withdraw-inate|deposit-ify|plunk|squirrel|park|nest-egg|sock-away|hoard|tuck-away|'take out')/;
   const amountRegex = /(\d+(?:\.\d+)?)/;
   const tokenRegex = /(USDC|SOL|mSOL|BONK|USDT|ETH|WBTC)/;
 
@@ -12,16 +19,24 @@ const extractVariables = (sentence: string) => {
   const amountMatch = sentence.match(amountRegex);
   const tokenMatch = sentence.match(tokenRegex);
 
-  let action = actionMatch ? actionMatch[0] : null;
-  const amount = amountMatch ? parseFloat(amountMatch[0]) : null;
-  const token = tokenMatch ? tokenMatch[0] : null;
+  let action: Action = actionMatch ? actionMatch[0] as Action : null;
+  const amount: number | null = amountMatch ? parseFloat(amountMatch[0]) : null;
+  const token: Token = tokenMatch ? tokenMatch[0] as Token : null;
 
-  if (action === 'superstake') {
-    action = 'stake';
-  } else if (action === 'unsuperstake') {
-    action = 'unstake';
-  } else if (action === 'lend') {
-    action = 'deposit'
+  if (action !== null) {
+    if (['lend', 'add', 'put', 'give', 'bring', 'submit', 'provide', 'contribute', 'deposit-ify', 'plunk', 'squirrel', 'park', 'nest-egg', 'sock-away', 'hoard', 'tuck-away'].includes(action)) {
+      action = 'deposit';
+    } else if (['withdraw', 'pull', 'take', 'get', 'withdrawal', 'retrieve', 'repayment', 'return', 'dump', 'stuff', 'yank', 'stash', 'grab', 'cash-in', 'cash-out', 'bounce', 'withdraw-inate', 'take out'].includes(action)) {
+      action = 'borrow';
+    } else if (['superstake', 'earn'].includes(action)) {
+      action = 'stake';
+    } else if (['unsuperstake'].includes(action)) {
+      action = 'unstake';
+    }
+  }
+
+  if (action !== null && !['deposit', 'borrow', 'stake', 'unstake'].includes(action)) {
+    action = null;
   }
 
   return {
@@ -30,6 +45,7 @@ const extractVariables = (sentence: string) => {
     token,
   };
 }
+
 
 // Get random action in case of error
 const getRandomAction = (): string => {
@@ -84,8 +100,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   console.log({ result })
 
   if (result.action && result.amount && result.token) {
+
+    let actionDisplayed;
+    if (result.action === 'deposit') {
+      actionDisplayed = 'put in';
+    } else if (result.action === 'borrow') {
+      actionDisplayed = 'take out';
+    }
+
     response = {
-      output: `It sounds like you want to ${result.action} ${result.amount} ${result.token}. I'm setting up a transaction for you.`,
+      output: `It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. I'm setting up a transaction for you.`,
       data: {
         action: result.action,
         amount: result.amount,
