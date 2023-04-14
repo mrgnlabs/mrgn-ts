@@ -9,11 +9,13 @@ import { useJupiterApiContext } from "~/context/JupiterApiProvider";
 import { isActiveBankInfo, ExtendedBankInfo } from "~/types";
 import { superStake, withdrawSuperstake } from "~/components/Swap/superStakeActions";
 import { TypeAnimation } from 'react-type-animation';
+import { InputAdornment } from '@mui/material';
 
 const AiUI: FC = () => {
   const [prompt, setPrompt] = useState<string>("");
   const [response, setResponse] = useState<string>('');
   const [thinking, setThinking] = useState<boolean>(false);
+  const [failed, setFailed] = useState<boolean>(false);
   
   const { connection } = useConnection();
   const { mfiClient: marginfiClient } = useProgram();
@@ -25,9 +27,10 @@ const AiUI: FC = () => {
   // Handle form submission for API call
   const handleSubmit = async (e: any) => {
     
+    setFailed(false);
     setResponse("");
-    setThinking(true)
-    e.preventDefault()
+    setThinking(true);
+    e.preventDefault();
 
     try {
       const res = await axios.post('/api/ai', {
@@ -35,13 +38,18 @@ const AiUI: FC = () => {
         walletPublicKey: wallet.publicKey?.toBase58(),
       });
       
+      setThinking(false);
       setResponse(res.data.output);
+      if (res.data.error) { 
+        setFailed(true);
+      }
       if (res.data.data) {
         action({ ...res.data.data })
       }
     } catch (error) {
       console.error('Error calling API route:', error);
-      setResponse('Error calling API route');
+      setResponse('Sorry, I was helping Polygon catch up. Please try again.');
+      setFailed(true);
     }
 
     setPrompt("");
@@ -185,7 +193,7 @@ const AiUI: FC = () => {
           <Image src="/marginfi_logo.png" alt="marginfi logo" fill className="z-10"/>
         </div>
         {/* Form submission is dependent on `handleSumbit()` */}
-        <form onSubmit={handleSubmit} className="w-full border-none">
+        <form onSubmit={handleSubmit} className="w-full border-none" style={{ border: 'solid red 1px' }}>
           <TextField
             fullWidth
             value={prompt}
@@ -211,6 +219,25 @@ const AiUI: FC = () => {
                 outline: 'none !important',
                 border: 'none !important',
               },
+              endAdornment: (
+                <InputAdornment position="end">
+                  {thinking && !failed && !response && (
+                    <div className="relative w-[32px] h-[32px] z-10">
+                      <Image src="/pending.png" alt="pending" fill className="pulse" />
+                    </div>
+                  )}
+                  {!thinking && response && !failed && (
+                    <div className="relative w-[32px] h-[32px] z-10">
+                      <Image src="/confirmed.png" alt="confirmed" fill />
+                    </div>
+                  )}
+                  {failed && (
+                    <div className="relative w-[32px] h-[32px] z-10">
+                      <Image src="/failed.png" alt="failed" fill />
+                    </div>
+                  )}
+                </InputAdornment>
+              ),
             }}
           />
         </form>
@@ -221,7 +248,7 @@ const AiUI: FC = () => {
           <div
             className="min-h-[100px] w-full flex font-[#262B2F] bg-[#D9D9D9] p-4 pr-24"
             style={{ 
-              fontFamily: "monospace", 
+              // fontFamily: "monospace", 
               borderRadius: '20px 20px 0 20px'
             }}
           >

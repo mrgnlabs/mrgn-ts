@@ -136,7 +136,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error) {
       console.error('Error calling OpenAI API:', error);
       res.status(200).json({
-        output: getApologyMessage()
+        output: getApologyMessage(),
+        // @ts-ignore
+        error: error.message
       })
       return 
     }
