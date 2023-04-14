@@ -243,7 +243,7 @@ const AiUI: FC = () => {
         </form>
       </div>
       {/* The LLM output gets printed below the prompt. */}
-      <div className="relative max-w-[60%]">
+      <div className="relative max-w-[80%] sm:max-w-[60%]">
         <div className="w-full flex shrink">
           <div
             className="min-h-[100px] w-full flex font-[#262B2F] bg-[#D9D9D9] p-4 pr-24"
