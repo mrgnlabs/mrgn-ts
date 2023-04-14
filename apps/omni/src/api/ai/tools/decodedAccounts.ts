@@ -141,10 +141,10 @@ const getDecodedAccounts = async ({ accountAddresses, rpcEndpoint }: DecodedAcco
 };
 
 class DecodedAccountsTool extends Tool {
-  name = "accounts-tool";
+  name = "decoded-accounts-tool";
 
   description =
-    "A tool to get information about the state of a user's marginfi account. Useful when you need to answer questions about A user's balance, total deposits, liabilities, equity, or account health. The user's wallet public key is intialized in the constructor. Input should be null.";
+    "A tool to fetch and parse on-chain Solana accounts. The parsing is done by automatically fetching the Interface Definiton Language (IDL) of the programs owning requested accounts. This tool can be used whenever a user requests any information available on-chain that is not available through a more specific tool. The tool input is the list of requested accounts, provided as a comma-separated list of base58-encoded public keys. It returns the parsed accounts as a JSONinfied list of the following structure: { programId: string, programName: string, accountType: string, address: string, account: any }";
 
   async _call(arg: string): Promise<string> {
     const accountAddresses = arg.split(",");
