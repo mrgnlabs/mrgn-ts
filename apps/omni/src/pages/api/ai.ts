@@ -82,10 +82,27 @@ const getApologyMessage = (): string => {
   return `Sorry, I got caught ${randomAction}. Try again.`;
 };
 
+function findVM(input: string): string | null {
+  const regex = /vm/i;
+  const result = input.match(regex);
+  return result ? result[0] : null;
+}
+
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const { input, walletPublicKey } = req.body;
+
+  // Check for vm
+  const vm = findVM(input);
+  if (vm) {
+    res.status(200).json({
+      output: "vm "
+    });
+    return;
+  }
+
+
   let response;
 
   // Check if wallet is connected

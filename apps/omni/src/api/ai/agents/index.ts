@@ -1,7 +1,6 @@
 import { OpenAI } from "langchain";
-import { ChatOpenAI } from "langchain/chat_models";
 import { initializeAgentExecutor } from "langchain/agents";
-import { AccountsTool, BanksTool, TokenInfoTool, getOmniQaTool } from '../tools';
+import { AccountsTool, BanksTool, TokenInfoTool, getOmniQaTool, MarginfiGlossary } from '../tools';
 
 const getGeneralAgent = async ({ walletPublicKey }: { walletPublicKey: string; }) => {
 
@@ -19,6 +18,7 @@ const getGeneralAgent = async ({ walletPublicKey }: { walletPublicKey: string; }
     new TokenInfoTool(),
     new AccountsTool(walletPublicKey),
     await getOmniQaTool(),
+    new MarginfiGlossary(),
   ];
 
   const executor = await initializeAgentExecutor(
