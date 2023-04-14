@@ -94,6 +94,33 @@ class Bank {
     this.priceData = priceData;
   }
 
+  public describe(): string {
+    return `
+Bank: ${this.label}, address: ${this.publicKey.toBase58()}
+Mint: ${this.mint.toBase58()}, decimals: ${this.mintDecimals}
+
+Total deposits: ${nativeToUi(this.totalAssets, this.mintDecimals)}
+Total borrows: ${nativeToUi(this.totalLiabilities, this.mintDecimals)}
+
+Total assets (USD value): ${this.getAssetUsdValue(this.totalAssetShares, MarginRequirementType.Equity, PriceBias.None)}
+Total liabilities (USD value): ${this.getLiabilityUsdValue(this.totalLiabilityShares, MarginRequirementType.Equity, PriceBias.None)}
+
+Asset price (USD): ${this.getPrice(PriceBias.None)}
+
+Config:
+- Asset weight init: ${this.config.assetWeightInit.toFixed(2)}
+- Asset weight maint: ${this.config.assetWeightMaint.toFixed(2)}
+- Liability weight init: ${this.config.liabilityWeightInit.toFixed(2)}
+- Liability weight maint: ${this.config.liabilityWeightMaint.toFixed(2)}
+- Max capacity: ${this.config.maxCapacity}
+
+LTVs:
+- Initial: ${new BigNumber(1).div(this.config.liabilityWeightInit).times(100).toFixed(2)}%
+- Maintenance: ${new BigNumber(1).div(this.config.liabilityWeightMaint).times(100).toFixed(2)}%
+`
+      ;
+  }
+
   get totalAssets(): BigNumber {
     return this.getAssetQuantity(this.totalAssetShares);
   }

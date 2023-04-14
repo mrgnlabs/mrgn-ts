@@ -1,0 +1,58 @@
+.wallet-button {
+    height: 31.5px !important;
+    width: 146.55px;
+    font-size: 14px !important;
+
+    background-color: transparent !important;
+    color: #fff !important;
+    border: 1px solid #fff !important;
+    padding: 0 10px !important;
+    
+    border-radius: 100px !important;
+
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    
+    font-weight: 300 !important;
+    text-transform: uppercase !important;
+}
+
+@media (max-width: 768px) {
+    .wallet-button {
+        height: 45px !important;
+        width: 146.55px;
+        font-size: 14px !important;
+    
+        background-color: transparent !important;
+        color: #fff !important;
+        border: 1px solid #fff !important;
+        padding: 0 10px !important;
+        
+        border-radius: 100px !important;
+    
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+        
+        font-weight: 300 !important;
+        text-transform: uppercase !important;
+    }
+}
+  
+.airdrop-button {
+    background-color: rgba(21, 255, 0, 0.3) !important;
+    color: #fff !important;
+    border: 1px solid #fff !important;
+    padding: 0 10px !important;
+    height: 38px !important;
+    border-radius: 100px !important;
+}
+  
+.airdrop-button:hover {
+    font-weight: bold;
+    background-color: transparent;
+    color: white;
+    border: 1px solid white;
+    border-radius: 100px;
+}
