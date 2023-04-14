@@ -126,7 +126,6 @@ class DecodedAccountsTool extends Tool {
       const idl = idls[programId];
       const program = new Program(idl, programId, provider);
       const accountTypes = (idl["accounts"] ?? []).map((a) => a.name);
-      console.log(accountTypes);
 
       accounts.forEach((account) => {
         const accountType = accountTypes.find(
@@ -135,7 +134,6 @@ class DecodedAccountsTool extends Tool {
         if (!accountType) {
           throw new Error(`Account type not found for account ${account.address.toBase58()}`);
         }
-        console.log(accountType);
 
         const decodedAccount = program.coder.accounts.decode(accountType, account.info.data);
         decodedAccounts.push({
