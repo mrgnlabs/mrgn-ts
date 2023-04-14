@@ -11,7 +11,6 @@
   </p>
 
   <h4>
-    <a href="https://omni.marginfi.com/">omni.marginfi.com</a>
     <a href="https://app.marginfi.com/">app.marginfi.com</a>
   </h4>
 </div>

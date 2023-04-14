@@ -1,7 +1,7 @@
 <div align="center">
   <img height="170" src="./images/logo.png" />
 
-  <h1>marginfi v2 UI (mrgnlend frontend)</h1>
+  <h1>omni</h1>
   
   <p>
     <!-- Discord -->
@@ -11,11 +11,11 @@
   </p>
 
   <h4>
-    <a href="https://app.marginfi.com/">app.marginfi.com</a>
+    <a href="https://omni.marginfi.com/">omni.marginfi.com</a>
   </h4>
 </div>
 
-The marginfi V2 UI is a nextjs web client that serves as the frontend for the mrgnlend lending platform. It provides an easy-to-use interface for managing your lending and borrowing activities on the Solana blockchain. The UI is built using Next.js, a popular React-based framework for building server-rendered or statically exported React applications.
+Omni is an autonomous agent to interact with the Solana blockchain.
 
 ## Features
 
@@ -24,18 +24,24 @@ Built with [Material UI](https://material-ui.com/), a popular React UI library t
 Leverages a number of other `@mrgnlabs` TypeScript packages, all available in the same [monorepo](https://github.com/mrgnlabs/mrgn-ts).
 Frontend built for Solana smart contracts, providing a seamless and efficient user experience for trading and lending on the Solana network.
 
+## Built on top of
+
+* OpenAI
+* LangchainJS
+* Solana
+
 ## Developing
 
-To get started with the marginfi v2 UI, follow these steps:
+To get started with omni, follow these steps:
 
-1. Clone the monorepo and navigate to the `apps/marginfi-v2-ui` directory.
+1. Clone the monorepo and navigate to the `apps/omni` directory.
 2. Install the dependencies by running `yarn install`.
 3. Start the development server by running `yarn dev`.
 4. Access the frontend in your web browser at http://localhost:3004.
 
 ## Contributing
 
-We welcome contributions to the marginfi v2 UI. If you're interested in helping, check out our [contributing guidelines](https://github.com/mrgnlabs/mrgn-ts/blob/main/CONTRIBUTING.md) and join the [mrgn community](https://t.me/mrgncommunity) on Telegram.
+We welcome contributions to Omni. If you're interested in helping, check out our [contributing guidelines](https://github.com/mrgnlabs/mrgn-ts/blob/main/CONTRIBUTING.md) and join the [mrgn community](https://t.me/mrgncommunity) on Telegram.
 
 ## License
 
