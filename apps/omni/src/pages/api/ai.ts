@@ -97,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const vm = findVM(input);
   if (vm) {
     res.status(200).json({
-      output: "vm "
+      output: "vm"
     });
     return;
   }
