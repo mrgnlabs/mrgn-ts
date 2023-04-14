@@ -1842,6 +1842,15 @@
   dependencies:
     buffer "^6.0.1"
 
+"@pythnetwork/client@^2.17.0":
+  version "2.17.0"
+  resolved "https://registry.yarnpkg.com/@pythnetwork/client/-/client-2.17.0.tgz#b155af06958f4b729bfee1c07130c556598cf168"
+  integrity sha512-hv285vehmLH6N762Z4jqvPTM+hCYnXQaUp6DMgLUpDHvE0mTbwW9PvlxYoUJZGtyeCDkgn9HrTWXPtnaXTRr+Q==
+  dependencies:
+    "@coral-xyz/anchor" "^0.26.0"
+    "@coral-xyz/borsh" "^0.26.0"
+    buffer "^6.0.1"
+
 "@pythnetwork/client@^2.5.1", "@pythnetwork/client@^2.8.0", "@pythnetwork/client@^2.9.0":
   version "2.15.0"
   resolved "https://registry.npmjs.org/@pythnetwork/client/-/client-2.15.0.tgz"
