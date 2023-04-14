@@ -4,7 +4,7 @@ class MarginfiGlossary extends Tool {
   name = "marginfi-glossary-tool";
 
   description =
-    "A tool to understand marginfi-specific terms. Use this tool when the user asks about concepts, especially acronyms of products like: [superstake, mrgnlend, UTP, vault, black box, or omni]. Input should be null."
+    "A tool to understand marginfi-specific terms. Use this tool when the user asks about marginfi-specific concepts, especially acronyms of products like: [superstake, mrgnlend, UTP, vault, black box, or omni]. If the user is *not* asking about something part of the marginfi protocol (e.g. if they're asking about a different protocol), use the omni-qa tool. Input should be null."
 
   constructor() {
     super();
