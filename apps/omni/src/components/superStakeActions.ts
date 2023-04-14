@@ -1,5 +1,5 @@
 import { PublicKey, VersionedTransaction, TransactionMessage, Connection } from "@solana/web3.js";
-import { Bank, MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
 import { Marinade, MarinadeConfig } from '@marinade.finance/marinade-ts-sdk';
 import { uiToNative, nativeToUi } from '@mrgnlabs/mrgn-common';
 import { ExtendedBankInfo } from '~/types';

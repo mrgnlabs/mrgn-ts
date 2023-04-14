@@ -6,8 +6,7 @@ import { TextField } from '@mui/material';
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { useJupiterApiContext } from "~/context/JupiterApiProvider";
-import { isActiveBankInfo, ExtendedBankInfo } from "~/types";
-import { superStake, withdrawSuperstake } from "~/components/Swap/superStakeActions";
+import { superStake, withdrawSuperstake } from "~/components/superStakeActions";
 import { TypeAnimation } from 'react-type-animation';
 import { InputAdornment } from '@mui/material';
 
@@ -22,7 +21,7 @@ const AiUI: FC = () => {
   const { reload: reloadBanks } = useBanks();
   const wallet = useWallet();
   const jupiter = useJupiterApiContext();
-  const { extendedBankInfos, selectedAccount, activeBankInfos } = useUserAccounts();
+  const { extendedBankInfos, selectedAccount } = useUserAccounts();
 
   // Handle form submission for API call
   const handleSubmit = async (e: any) => {
