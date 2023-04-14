@@ -1,16 +1,17 @@
 import { Tool } from "langchain/tools";
 import { Connection } from "@solana/web3.js";
 import { PythHttpClient, getPythProgramKeyForCluster } from "@pythnetwork/client";
+import { usdFormatter } from "~/utils/formatters";
 
 interface TokenPriceProps {
   tokenName: string;
 }
 
 class TokenPriceTool extends Tool {
-  name = "token-price-tool";
+  name = "realtime-token-price-tool";
 
   description =
-    "A tool to fetch token prices. This tool can be used whenever a user requests involves the price of a token. The tool input is the token name. It returns the price in USD.";
+    "A tool to fetch the current price for a token. Useful when a user requests price data about a token. Input is the token name. Output is the token price in USD.";
 
   connection: Connection;
 
@@ -19,12 +20,15 @@ class TokenPriceTool extends Tool {
     this.connection = new Connection(rpcEndpoint, "confirmed");
   }
 
-  async getTokenPrice({ tokenName }: TokenPriceProps): Promise<string | undefined> {
+  async getTokenPrice({ tokenName }: TokenPriceProps): Promise<string> {
     const instrumentName = tokenName.toUpperCase();
+    console.log({ instrumentName });
     const pythPublicKey = getPythProgramKeyForCluster("mainnet-beta");
     const pythClient = new PythHttpClient(this.connection, pythPublicKey);
     const data = await pythClient.getData();
+
     const instrumentData = data.productPrice.get(`Crypto.${instrumentName}/USD`);
+
     if (!instrumentData) {
       return `Error: Token ${instrumentName} not found`;
     }
@@ -33,14 +37,21 @@ class TokenPriceTool extends Tool {
       return `Error: Token price is not available for token ${instrumentName}`;
     }
 
-    return instrumentData.price.toString();
+    try {
+      return `
+      According to Pyth, current price for ${tokenName} is ${usdFormatter.format(instrumentData.price)} ${instrumentData.confidence ? '\xB1' + usdFormatter.format(instrumentData.confidence) : ''} USD. Marginfi uses Pyth's confidence intervals, an important risk management feature. Make sure you highlight that you're using Pyth to get the token price and marginfi's usage of Pyth's confidence intervals to the user.
+      `
+    } catch (error) {
+      return `Error: Token price is not available for token ${instrumentName}`;
+    }
   }
 
   async _call(tokenName: string): Promise<string> {
-    const accounts = await this.getTokenPrice({
+    const price = await this.getTokenPrice({
       tokenName,
     });
-    return JSON.stringify(accounts);
+
+    return price;
   }
 }
 
