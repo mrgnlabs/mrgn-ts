@@ -16,7 +16,7 @@ const getGeneralAgent = async ({ walletPublicKey }: { walletPublicKey: string })
   const tools = [
     new BanksTool(config.rpcEndpoint),
     new TokenInfoTool(),
-    new DecodedAccountsTool(config.rpcEndpoint),
+    // new DecodedAccountsTool(config.rpcEndpoint),
     new TokenPriceTool(config.rpcEndpoint),
     new AccountsTool(walletPublicKey, config.rpcEndpoint),
     await getOmniQaTool(),
