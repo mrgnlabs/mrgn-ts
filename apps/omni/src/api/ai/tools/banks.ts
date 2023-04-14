@@ -1,33 +1,39 @@
 import { Tool } from "langchain/tools";
-import { getClient } from '../utils';
+import { getClient } from "../utils";
+import { Connection } from "@solana/web3.js";
 
-const getBanks = async () => {
-  const client = await getClient();
-  const banks = client.group.banks;
 
-  const allBanksInformation = [...banks.values()].map(
-    (bank) => bank.describe()
-  );
-
-  return JSON.stringify(allBanksInformation);
-}
 
 class BanksTool extends Tool {
     name = "bank-tool";
   
     description =
       "A tool to get information about marginfi token pools, which are internally called Banks. Useful when you need to answer questions about the state of liquidity pools on the marginfi protocol or answer questions about marginfi's risk management parameters. Input should be null."
+
+    connection: Connection;
       
   
-    constructor() {
+    constructor(rpcEndpoint: string) {
       super();
+      this.connection = new Connection(rpcEndpoint, "confirmed");
+    }
+
+    async getBanks() {
+      const client = await getClient(this.connection);
+      const banks = client.group.banks;
+    
+      const allBanksInformation = [...banks.values()].map(
+        (bank) => bank.describe()
+      );
+    
+      return JSON.stringify(allBanksInformation);
     }
   
     async _call(): Promise<string> {
 
       console.log('calling bank tool');
 
-      const banks = await getBanks();
+      const banks = await this.getBanks();
 
       const PREFIX = `
         You called a Banks tool that provides information on the entire marginfi protocol.
@@ -61,4 +67,4 @@ class BanksTool extends Tool {
     }
 }
 
-export { BanksTool }
+export { BanksTool };
