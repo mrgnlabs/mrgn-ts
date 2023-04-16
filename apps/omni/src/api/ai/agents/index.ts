@@ -1,6 +1,14 @@
 import { OpenAI } from "langchain";
 import { initializeAgentExecutor } from "langchain/agents";
-import { AccountsTool, BanksTool, DecodedAccountsTool, TokenInfoTool, TokenPriceTool, getOmniQaTool, MarginfiGlossary } from "../tools";
+import {
+  AccountsTool,
+  BanksTool,
+  WalletBalancesTool,
+  TokenInfoTool,
+  TokenPriceTool,
+  getOmniQaTool,
+  MarginfiGlossary,
+} from "../tools";
 import config from "~/config";
 
 const getGeneralAgent = async ({ walletPublicKey }: { walletPublicKey: string }) => {
@@ -19,6 +27,7 @@ const getGeneralAgent = async ({ walletPublicKey }: { walletPublicKey: string })
     // new DecodedAccountsTool(config.rpcEndpoint),
     new TokenPriceTool(config.rpcEndpoint),
     new AccountsTool(walletPublicKey, config.rpcEndpoint),
+    new WalletBalancesTool(walletPublicKey, config.rpcEndpoint),
     await getOmniQaTool(),
     new MarginfiGlossary(),
   ];
