@@ -12,7 +12,7 @@ import { InputAdornment } from '@mui/material';
 
 const AiUI: FC = () => {
   const [prompt, setPrompt] = useState<string>("");
-  const [response, setResponse] = useState<string>('');
+  const [response, setResponse] = useState<string>("");
   const [thinking, setThinking] = useState<boolean>(false);
   const [failed, setFailed] = useState<boolean>(false);
   
@@ -25,33 +25,30 @@ const AiUI: FC = () => {
 
   // Handle form submission for API call
   const handleSubmit = async (e: any) => {
-    
     setFailed(false);
     setResponse("");
     setThinking(true);
     e.preventDefault();
 
     try {
-      const res = await axios.post('/api/ai', {
+      const res = await axios.post("/api/ai", {
         input: prompt,
         walletPublicKey: wallet.publicKey?.toBase58(),
       });
-      
+
       setThinking(false);
       setResponse(res.data.output);
-      if (res.data.error) { 
+      if (res.data.error) {
         setFailed(true);
       }
       if (res.data.data) {
-        action({ ...res.data.data })
+        action({ ...res.data.data });
       }
     } catch (error) {
-      console.error('Error calling API route:', error);
-      setResponse('Sorry, I was helping Polygon catch up. Please try again.');
+      console.error("Error calling API route:", error);
+      setResponse("Sorry, I was helping Polygon catch up. Please try again.");
       setFailed(true);
     }
-
-    setPrompt("");
   };
 
   // generic functions are now:
@@ -198,6 +195,9 @@ const AiUI: FC = () => {
             value={prompt}
             // The prompt input only handles value changing.
             // Actual action isn't taken until enter is pressed.
+            onFocus={() => {
+              setPrompt("");
+            }}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder='Ask me who I am'
             variant="standard"
