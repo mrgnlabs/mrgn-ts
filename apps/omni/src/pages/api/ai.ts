@@ -172,15 +172,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else {
     // AI approach if regex fails
     try {
+      console.log('calling AI')
       response = await callAI({ input, walletPublicKey });
 
       // Regex action check
-      console.log({ response });
+      console.log({ response: JSON.stringify(response) });
 
       try {
-        const result = JSON.parse(response.output);
+        // const result = JSON.parse(response.output);
+        const result = extractVariables(response.output);
+        console.log({ result });
 
-        console.log({ response });
         if (result.action && result.amount && result.token) {
           let actionDisplayed;
           if (result.action === "deposit") {

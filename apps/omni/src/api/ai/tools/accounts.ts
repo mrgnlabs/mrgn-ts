@@ -43,6 +43,7 @@ class AccountsTool extends Tool {
 
   async _call(): Promise<string> {
     console.log("calling accounts tool");
+
     const account = await this.getAccounts();
 
     const PREFIX = `
@@ -68,7 +69,7 @@ class AccountsTool extends Tool {
 
     const response = [PREFIX, account].join("\n\n");
 
-    console.log({ response });
+    console.log({ response: JSON.stringify(response) });
 
     return response;
   }

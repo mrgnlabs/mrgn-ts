@@ -254,7 +254,11 @@ const AiUI: FC = () => {
               (!response) && (!thinking) &&
               <TypeAnimation
                 style={{ color: '#262B2F !important'}}
-                sequence={["Hi, I'm Omni. I'm an autonomous agent that can help you with anything on Solana. What would you like to do today?"]}
+                sequence={[`
+                  Hi, I'm Omni - an experiment in Crypto + AI.
+                  I'm an autonomous agent that can interact with protocols for you, answer questions about web3, and provide you with realtime market data.
+                  What would you like to do today?
+                `]}
                 speed={70}
               />
             }
