@@ -1,0 +1,7 @@
+{
+  "expo": {
+    "name": "omni-xnft",
+    "slug": "omni-xnft",
+    "entryPoint": "./src/App"
+  }
+}

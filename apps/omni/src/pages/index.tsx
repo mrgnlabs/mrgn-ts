@@ -171,9 +171,11 @@ const AiUI: FC = () => {
   }
 
   return (
-    <div className="top-0 w-full h-full absolute flex flex-col justify-center items-center gap-8 max-w-7xl">
+    <div
+      className="top-[112px] sm:top-0 w-full h-full absolute flex flex-col justify-start sm:justify-center items-center gap-8 max-w-7xl"
+    >
       {/* Name header */}
-      <div className="w-4/5 sm:w-3/5 flex flex-col justify-center gap-8 pb-10" style={{ fontWeight: 200 }}>
+      <div className="w-4/5 sm:w-3/5 hidden sm:flex flex-col justify-center gap-8 pb-10" style={{ fontWeight: 200 }}>
         <div className="flex justify-center items-center w-full">
           <div className="relative w-[23.259px] h-[24.81px] mr-1 mt-4 z-10">
             <Image src="/omni_circle.png" alt="omni logo" fill />
@@ -182,8 +184,11 @@ const AiUI: FC = () => {
         </div>
         <div className="text-xl text-center" style={{ color: '#2F3135', fontWeight: 300 }}>Redefining the web3 experience. Powered by AI.</div>
       </div>
+
       {/* Logo and prompt input */}
-      <div className="w-4/5 sm:w-3/5 flex items-center gap-5">
+      <div
+        className="w-4/5 sm:w-3/5 flex items-center gap-5"
+      >
         <div className="relative w-[28.02px] h-[24.81px]">
           <div className="absolute w-[1px] h-[1px] top-[13.51px] left-[11.905px] z-[-1]"></div>
           <Image src="/marginfi_logo.png" alt="marginfi logo" fill className="z-10"/>
