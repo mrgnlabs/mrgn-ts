@@ -4,8 +4,9 @@ import { loadTokenMetadatas } from "~/utils";
 class TokenInfoTool extends Tool {
   name = "token-info-tool";
 
-  description =
-    "A tool to get information on tokens supported by marginfi. Use it when you need to map token pubkeys to token symbols and names. Input should be null.";
+  description = `
+    A tool to provide you metadata information on tokens supported by marginfi. Use this only when you need to map a token name to a token address. Input should be null.
+  `;
 
   constructor() {
     super();
@@ -14,6 +15,8 @@ class TokenInfoTool extends Tool {
   async _call(): Promise<string> {
     console.log("calling token infos tool");
     const tokenMetadata = loadTokenMetadatas();
+
+    console.log({ tokenInfo: JSON.stringify(tokenMetadata) })
 
     return JSON.stringify(tokenMetadata) || "Token info is not available. Highlight this as an error.";
   }

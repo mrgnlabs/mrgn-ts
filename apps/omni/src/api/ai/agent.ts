@@ -7,8 +7,7 @@ import {
   TokenInfoTool,
   TokenPriceTool,
   getOmniQaTool,
-  MarginfiGlossary,
-} from "../tools";
+} from "./tools";
 import config from "~/config";
 
 const getGeneralAgent = async ({ walletPublicKey }: { walletPublicKey: string }) => {
@@ -29,7 +28,7 @@ const getGeneralAgent = async ({ walletPublicKey }: { walletPublicKey: string })
     new AccountsTool(walletPublicKey, config.rpcEndpoint),
     new WalletBalancesTool(walletPublicKey, config.rpcEndpoint),
     await getOmniQaTool(),
-    new MarginfiGlossary(),
+    // new MarginfiGlossary(),
   ];
 
   const executor = await initializeAgentExecutor(tools, model, "zero-shot-react-description");
