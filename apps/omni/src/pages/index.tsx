@@ -180,7 +180,7 @@ const AiUI: FC = () => {
           </div>
           <div className="text-7xl" style={{ color: '#2F3135' }}>omni</div>
         </div>
-        <div className="text-xl text-center" style={{ color: '#2F3135', fontWeight: 300 }}>Do anything. Only on Solana.</div>
+        <div className="text-xl text-center" style={{ color: '#2F3135', fontWeight: 300 }}>Redefining the web3 experience. Powered by AI.</div>
       </div>
       {/* Logo and prompt input */}
       <div className="w-4/5 sm:w-3/5 flex items-center gap-5">
