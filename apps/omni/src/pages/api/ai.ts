@@ -172,6 +172,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else {
     // AI approach if regex fails
     try {
+      console.log('calling AI')
       response = await callAI({ input, walletPublicKey });
 
       // Regex action check

@@ -8,7 +8,7 @@ import {
   TokenPriceTool,
   getOmniQaTool,
   MarginfiGlossary,
-} from "../tools";
+} from "./tools";
 import config from "~/config";
 
 const getGeneralAgent = async ({ walletPublicKey }: { walletPublicKey: string }) => {
