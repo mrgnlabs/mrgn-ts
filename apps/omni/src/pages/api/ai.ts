@@ -161,7 +161,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
         }
       `,
-      data: {
+      data: walletPublicKey && {
         action: result.action,
         amount: result.amount,
         tokenSymbol: result.token,
@@ -192,7 +192,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
               walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
           }`,
-          data: {
+          data: walletPublicKey && {
             action: result.action,
             amount: result.amount,
             tokenSymbol: result.token,
