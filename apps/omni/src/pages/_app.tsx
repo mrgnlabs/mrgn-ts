@@ -24,6 +24,7 @@ import {
 } from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
+import { Analytics } from '@vercel/analytics/react';
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -73,6 +74,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                       <Navbar />
                       <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
                         <Component {...pageProps} />
+                        <Analytics />
                       </div>
                       <ToastContainer position="bottom-left" theme="dark" />
                     </JupiterApiProvider>

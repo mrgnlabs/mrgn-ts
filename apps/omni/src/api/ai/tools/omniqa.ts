@@ -45,7 +45,7 @@ const getOmniQaTool = async() => {
     const omniQa = new ChainTool({
         name: "omni-qa",
         description:
-        "ChainTool to answer questions about blockchain protocols. Input should be a question about a protocol.",
+            "A tool to answer questions about blockchain questions. Useful when you want to reference a library of domain-specific knowledge. Input should be a question.",
         chain: vectorChain,
     });
 

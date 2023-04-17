@@ -22,13 +22,12 @@ class AccountsTool extends Tool {
     const client = await getClient(this.connection);
     const accounts = await client.getMarginfiAccountsForAuthority(new PublicKey(this.walletPublicKey));
     const marginfiAccount = accounts[0];
-
+    if (!marginfiAccount) return `No account was found for wallet ${this.walletPublicKey}`;
     return marginfiAccount.describe();
   }
 
   async _call(): Promise<string> {
-
-    console.log('calling accounts tool');
+    console.log("calling accounts tool");
     const account = await this.getAccounts();
 
     const PREFIX = `
@@ -55,17 +54,14 @@ class AccountsTool extends Tool {
       - Round all numbers to the second decimal.
 
       Here is the user's account information:
-    `
+    `;
 
-    const response = [
-      PREFIX,
-      account,
-    ].join('\n\n');
+    const response = [PREFIX, account].join("\n\n");
 
-    console.log({response});
+    console.log({ response });
 
     return response;
   }
 }
 
-export { AccountsTool }
+export { AccountsTool };
