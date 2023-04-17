@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import NextCors from "nextjs-cors";
 import { callAI } from "~/api/ai";
 
 type Action = "deposit" | "borrow" | "stake" | "unstake" | null;
@@ -128,6 +129,12 @@ function findVM(input: string): string | null {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  await NextCors(req, res, {
+    methods: ["POST"],
+    origin: process.env.CORS_ORIGIN,
+    optionsSuccessStatus: 200,
+  });
+
   const { input, walletPublicKey } = req.body;
 
   // Check for vm
