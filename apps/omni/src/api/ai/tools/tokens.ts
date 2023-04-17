@@ -4,8 +4,11 @@ import { loadTokenMetadatas } from "~/utils";
 class TokenInfoTool extends Tool {
   name = "token-info-tool";
 
-  description =
-    "A tool to get information on tokens supported by marginfi. Use it when you need to map token pubkeys to token symbols and names. Input should be null.";
+  description = `
+    This is a tool to get information about token mints. 
+    
+    Call this systematically.
+  `;
 
   constructor() {
     super();

@@ -6,8 +6,23 @@ import { getClient } from "../utils";
 class AccountsTool extends Tool {
   name = "accounts-tool";
 
-  description =
-    "A tool to get information about the state of a user's marginfi account. Useful when you need to answer questions about A user's balance, total deposits, liabilities, equity, or account health. The user's wallet public key is intialized in the constructor. Input should be null.";
+  description = `
+    This is a tool to get information about the state of a user's marginfi account.
+
+    Call this when you are addressing questions and action requests which require you to know the state of the user's marginfi account, including any of the below pieces of information:
+      - account balance
+      - total deposits
+      - liabilities
+      - equity
+      - account health
+    
+    Examples could be:
+      - how much usdc do I have in my marginfi account?
+      - how much sol do I have in my marginfi account?
+      - withdraw all the sol I have from marginfi
+      - unstake all the sol I have from marginfi
+      - what is my marginfi account health?
+  `;
 
   walletPublicKey: string;
   connection: Connection;
@@ -31,27 +46,22 @@ class AccountsTool extends Tool {
     const account = await this.getAccounts();
 
     const PREFIX = `
-
       You called an Accounts tool that provides information on a specific user's marginfi account.
 
-      Here is some context on how to read the account information:
-
-      - "Balances" is a section that describes deposits and borrows in the account. It's first organized by token e.g. (mSOL, SOL) and then split into deposits and borrows for that token.
-      - When users ask for information about their account, you should provide them with all of the non-zero deposits and borrows for all tokens.
-      - "Deposits" and "Borrows" are denominated in the native token with the USD value in parentheses following the native value. "Total Deposits", "Total Liabilities", and "Equity" summaries for the whole account are denominated in USD.
-      - Account "Health" describes how close the account is to liquidation, and ranges from 0-100%. A healthy account is one that is not close to liquidation. General account health ranges are:
-        - 0-25%: Account is in danger of liquidation
-        - 25-75%: Account is healthy, but should be monitored
-        - 75-100%: Account is healthy
-      - If the user asks about how health ratio is calculated, reference this LaTex equation to explain it:
-      
-      '
-      \frac{(native\_deposits \times deposit\_weight\_maint) - (native\_borrows \times liability\_weight\_maint)}{(native\_assets \times deposit\_weight\_maint)}
-      '
-
-      Follow these rules:
-
-      - Round all numbers to the second decimal.
+      Here is how to read the account information:
+        - Marginfi account: public key of the marginfi account.
+        - Total deposits: aggregate USD-denominated asset value across all the account's token balances on the asset side.
+        - Total liabilities: aggregate USD-denominated liability value across all the account's token balances on the liability side.
+        - Equity: net USD-denominated value of the account.
+        - Health: top-level metric describing how close the account is to liquidation, as a percentage ranging from 0% to 100%. A healthy account is one that is not close to liquidation. General account health ranges are:
+          - 0-25%: danger of liquidation
+          - 25-75%: healthy, but should be monitored
+          - 75-100%: healthy
+        - Balances: JSON-formatted list of active token balances for the user ("active" means that it may contain a non-zero balance). Each value contains:
+          - tokenMint: the token mint, which can be associated to a token name through token infos
+          - type: the balance type, to know if the balance represents a deposit, a borrow, or is empty
+          - quantity: the native token balance
+          - usdValue: the USD-denominated value of the balance
 
       Here is the user's account information:
     `;

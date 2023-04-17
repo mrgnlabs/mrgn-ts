@@ -158,8 +158,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     response = {
       output: `
         It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
-          walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
-        }
+        walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
+      }
       `,
       data: walletPublicKey && {
         action: result.action,
@@ -175,32 +175,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       response = await callAI({ input, walletPublicKey });
 
       // Regex action check
-      const result = extractVariables(response.output);
+      console.log({ response });
 
-      if (result.action && result.amount && result.token) {
-        let actionDisplayed;
-        if (result.action === "deposit") {
-          actionDisplayed = "put in";
-        } else if (result.action === "borrow") {
-          actionDisplayed = "take out";
-        } else {
-          actionDisplayed = result.action;
-        }
+      try {
+        const result = JSON.parse(response.output);
 
-        response = {
-          output: `
+        console.log({ response });
+        if (result.action && result.amount && result.token) {
+          let actionDisplayed;
+          if (result.action === "deposit") {
+            actionDisplayed = "put in";
+          } else if (result.action === "borrow") {
+            actionDisplayed = "take out";
+          } else {
+            actionDisplayed = result.action;
+          }
+
+          response = {
+            output: `
             It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
               walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
-          }`,
-          data: walletPublicKey && {
-            action: result.action,
-            amount: result.amount,
-            tokenSymbol: result.token,
-          },
-        };
-        res.status(200).json(response);
-        return;
-      }
+            }`,
+            data: walletPublicKey && {
+              action: result.action,
+              amount: result.amount,
+              tokenSymbol: result.token,
+            },
+          };
+          res.status(200).json(response);
+          return;
+        }
+      } catch (error: any) {}
 
       res.status(200).json(response);
       return;

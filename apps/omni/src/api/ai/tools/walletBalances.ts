@@ -11,13 +11,19 @@ interface TokenAccount {
   balance: number;
 }
 
-type TokenAccountMap = Map<string, TokenAccount>;
-
 class WalletBalancesTool extends Tool {
   name = "wallet-balances-tool";
 
-  description =
-    "A tool to get information about the SOL and token balances of a user. Useful when you need to answer questions and action requests related to how much the user has available to use (e.g. 'how much usdc so I have in my wallet?' or 'deposit all the bonk I have into marginfi'). The user's wallet public key is intialized in the constructor. Input should be null.";
+  description = `
+    This is a tool to get information about the SOL and token balances of a user.
+
+    Call this when you are addressing questions and action requests which require you to know the native SOL and/or token balances the user has available in its wallet, outside of any protocol, especially when the user is trying to deposit funds.
+    
+    Examples could be:
+      - how much usdc so I have in my wallet?
+      - deposit all the bonk I have into marginfi
+      - deposit all my usdc into marginfi but leave 10 usdc in my wallet
+  `;
 
   walletPublicKey: string;
   connection: Connection;
@@ -64,7 +70,6 @@ class WalletBalancesTool extends Tool {
 
     // Fetch relevant accounts
     const accountsAiList = await this.connection.getMultipleAccountsInfo([wallet, ...ataAddresses]);
-    console.log(accountsAiList);
 
     // Decode account buffers
     const [walletAi, ...ataAiList] = accountsAiList;
@@ -105,7 +110,14 @@ class WalletBalancesTool extends Tool {
 
       Here is the user's native SOL balance: ${walletBalances.nativeSolBalance}
       Here are the user's token balances:
-      ${JSON.stringify(walletBalances.tokenAccounts)}
+      ${walletBalances.tokenAccounts.map(
+        (tokenAccount) => `
+        - ${tokenAccount.mint.toBase58()}:
+          - created: ${tokenAccount.created}
+          - mint: ${tokenAccount.mint.toBase58()}
+          - balance: ${tokenAccount.balance}
+      `
+      )}
     `;
 
     console.log({ response });
