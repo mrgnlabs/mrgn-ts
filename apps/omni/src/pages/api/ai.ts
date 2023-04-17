@@ -179,9 +179,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log({ response: JSON.stringify(response) });
 
       try {
-        const result = JSON.parse(response.output);
+        // const result = JSON.parse(response.output);
+        const result = extractVariables(response.output);
+        console.log({ result });
 
-        console.log({ response: JSON.stringify(response) });
         if (result.action && result.amount && result.token) {
           let actionDisplayed;
           if (result.action === "deposit") {
