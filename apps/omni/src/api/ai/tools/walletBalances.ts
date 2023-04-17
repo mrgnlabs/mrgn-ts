@@ -96,6 +96,7 @@ class WalletBalancesTool extends Tool {
 
   async _call(): Promise<string> {
     console.log("calling wallet balances tool");
+    
     const walletBalances = await this.getWalletBalances();
 
     const response = `
@@ -120,7 +121,7 @@ class WalletBalancesTool extends Tool {
       )}
     `;
 
-    console.log({ response });
+    console.log({ response: JSON.stringify(response) });
 
     return response;
   }

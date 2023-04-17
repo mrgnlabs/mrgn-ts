@@ -45,7 +45,9 @@ const getOmniQaTool = async() => {
     const omniQa = new ChainTool({
         name: "omni-qa",
         description:
-            "A tool to answer questions about blockchain questions. Useful when you want to reference a library of domain-specific knowledge. Input should be a question.",
+            `
+                A tool to answer questions about blockchain. Like a second brain for you. Useful when you want to reference a library of knowledge. Here are some protocols this can help you with: Drift, Meteora, Jupiter, Tensor, Mango, Zeta, Kamino, Marinade, Lido, Orca, Raydium, Francium, Jito, Cega, Lifinity, Hubble, UXD, marginfi, Cypher. Input should be a question.
+            `,
         chain: vectorChain,
     });
 

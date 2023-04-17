@@ -21,6 +21,8 @@ class TokenPriceTool extends Tool {
   }
 
   async getTokenPrice({ tokenName }: TokenPriceProps): Promise<string> {
+    console.log('calling token price tool');
+    
     const instrumentName = tokenName.toUpperCase();
     console.log({ instrumentName });
     const pythPublicKey = getPythProgramKeyForCluster("mainnet-beta");
