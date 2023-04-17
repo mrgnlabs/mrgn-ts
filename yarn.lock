@@ -3316,6 +3316,11 @@
     tiny-invariant "^1.2.0"
     tslib "^2.4.0"
 
+"@vercel/analytics@^0.1.11":
+  version "0.1.11"
+  resolved "https://registry.yarnpkg.com/@vercel/analytics/-/analytics-0.1.11.tgz#727a0ac655a4a89104cdea3e6925476470299428"
+  integrity sha512-mj5CPR02y0BRs1tN3oZcBNAX9a8NxsIUl9vElDPcqxnMfP0RbRc9fI9Ud7+QDg/1Izvt5uMumsr+6YsmVHcyuw==
+
 "@wallet-standard/app@^1.0.1":
   version "1.0.1"
   resolved "https://registry.npmjs.org/@wallet-standard/app/-/app-1.0.1.tgz"

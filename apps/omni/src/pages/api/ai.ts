@@ -141,14 +141,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   let response;
 
-  // Check if wallet is connected
-  if (!walletPublicKey) {
-    res.status(200).json({
-      output: "It looks like you haven't connected your wallet yet. Connect your wallet and let's get started.",
-    });
-    return;
-  }
-
   // Regex action check
   const result = extractVariables(input);
   console.log({ result });
@@ -164,8 +156,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     response = {
-      output: `It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. I'm setting up a transaction for you.`,
-      data: {
+      output: `
+        It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
+          walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
+        }
+      `,
+      data: walletPublicKey && {
         action: result.action,
         amount: result.amount,
         tokenSymbol: result.token,
@@ -192,8 +188,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         response = {
-          output: `It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. I'm setting up a transaction for you.`,
-          data: {
+          output: `
+            It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
+              walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
+          }`,
+          data: walletPublicKey && {
             action: result.action,
             amount: result.amount,
             tokenSymbol: result.token,

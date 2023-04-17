@@ -14,6 +14,9 @@ const PREFIX = `
 `;
 
 const callAI = async ({ input, walletPublicKey }: { input: string; walletPublicKey: string }) => {
+
+  walletPublicKey = walletPublicKey || "GqJX498c6EdywuDh93uyYvL8816Yc4Xsuz6nYgzDJEtU" ;
+  
   const executor = await getGeneralAgent({ walletPublicKey });
 
   const formattedInput = [PREFIX, input].join("\n\n");
