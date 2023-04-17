@@ -247,8 +247,7 @@ const AiUI: FC = () => {
           <div
             className="min-h-[100px] w-full flex font-[#262B2F] bg-[#D9D9D9] p-4 pr-24"
             style={{ 
-              // fontFamily: "monospace", 
-              borderRadius: '20px 20px 0 20px'
+              borderRadius: '15px 15px 15px 15px'
             }}
           >
             {
