@@ -4,6 +4,8 @@ import { callAI } from "~/api/ai";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { BigQuery } from "@google-cloud/bigquery";
+import path from "path";
+import fs from "fs";
 
 type Action = "deposit" | "borrow" | "stake" | "unstake" | null;
 type Token = "USDC" | "SOL" | "mSOL" | "BONK" | "USDT" | "ETH" | "WBTC" | null;
@@ -167,6 +169,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   console.log({ result });
 
   let response: any;
+  let success = true;
   if (result.action && result.amount && result.token) {
     let actionDisplayed;
     if (result.action === "deposit") {
@@ -226,6 +229,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         output: getApologyMessage(),
         error: error.message,
       };
+      success = false;
     }
   }
 
@@ -233,7 +237,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT === "production" ? process.env.NEXT_PUBLIC_OMNI_TABLE_ID : undefined;
   if (bqTableId) {
     try {
-      const bigquery = new BigQuery();
+      const filename = "service-account.json";
+      const filepath = path.join("/tmp", filename);
+
+      // Write some data to the temporary file
+      fs.writeFileSync(filepath, process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON, "utf8");
+      const bigquery = new BigQuery({ keyFilename: filepath });
 
       const datasetId = "omni";
       const tableId = bqTableId;
@@ -242,6 +251,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           wallet: walletPublicKey,
           prompt: (input as string).trim(),
           response: (response.output as string).trim(),
+          success,
         },
       ];
 
