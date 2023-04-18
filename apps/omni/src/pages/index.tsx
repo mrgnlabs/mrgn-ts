@@ -1,4 +1,4 @@
-import React, { FC, useState, useCallback, useRef } from "react";
+import React, { FC, useState, useCallback } from "react";
 import Image from "next/image";
 import axios from "axios";
 import { TextField } from "@mui/material";
@@ -14,6 +14,7 @@ import { FormEventHandler } from "react";
 const AiUI: FC = () => {
   const [prompt, setPrompt] = useState<string>("");
   const [response, setResponse] = useState<string>("");
+  const [actionResult, setActionResult] = useState<string>("");
   const [thinking, setThinking] = useState<boolean>(false);
   const [transacting, setTransacting] = useState<boolean>(false);
   const [transactionFailed, setTransactionFailed] = useState<boolean>(false);
@@ -33,6 +34,7 @@ const AiUI: FC = () => {
     setTransacting(false);
     setFailed(false);
     setTransactionFailed(false);
+    setActionResult("");
   }, []);
 
   // Handle form submission for API call
@@ -55,8 +57,9 @@ const AiUI: FC = () => {
       }
       if (res.data.data) {
         setTransacting(true);
-        const actionSuccess = await action({ ...res.data.data });
-        setTransactionFailed(!actionSuccess);
+        const { message, success } = await action({ ...res.data.data });
+        setTransactionFailed(!success);
+        setActionResult(message);
         setTransacting(false);
       }
     } catch (error) {
@@ -78,30 +81,35 @@ const AiUI: FC = () => {
     action: string;
     amount: string;
     tokenSymbol: string;
-  }): Promise<boolean> => {
-    if (!marginfiClient) return false;
-
-    let _marginfiAccount = selectedAccount;
-
-    // If user does not have a marginfi account, throw an error for now.
-    // @todo If the account doesn't exist and the user is trying to take an action other than deposit,
-    // tell the user in prompt response that they need to deposit first.
-    if (action !== "deposit" && _marginfiAccount === null) {
-      throw new Error("User does not have a marginfi account.");
-    }
-
-    const amountFloat = parseFloat(amount);
-
-    // Types:
-    const bankInfo = extendedBankInfos.find((bank) => bank.tokenName.toUpperCase() === tokenSymbol);
-    if (!bankInfo) {
-      throw new Error(`Bank info was not found, tokenSymbol: ${tokenSymbol} bankInfo: ${bankInfo}`);
-    }
-
-    let mSOLBank;
-    let SOLBank;
-
+  }): Promise<{ success: boolean; message: string }> => {
     try {
+      if (!marginfiClient) {
+        console.error("Marginfi client not found");
+        throw new Error("Something went wrong. Please try again.");
+      }
+
+      let _marginfiAccount = selectedAccount;
+
+      // If user does not have a marginfi account, throw an error for now.
+      // @todo If the account doesn't exist and the user is trying to take an action other than deposit,
+      // tell the user in prompt response that they need to deposit first.
+      if (action !== "deposit" && _marginfiAccount === null) {
+        throw new Error(
+          `You need a marginfi account before being able to ${action}. An account will be created upon first deposit.`
+        );
+      }
+
+      const amountFloat = parseFloat(amount);
+
+      const bankInfo = extendedBankInfos.find((bank) => bank.tokenName.toUpperCase() === tokenSymbol);
+      if (!bankInfo) {
+        console.error(`Bank info was not found, tokenSymbol: ${tokenSymbol} bankInfo: ${bankInfo}`);
+        throw new Error("Something went wrong. Please try again.");
+      }
+
+      let mSOLBank;
+      let SOLBank;
+
       switch (action) {
         case "deposit":
           // Check if the user has a marginfi account
@@ -112,18 +120,14 @@ const AiUI: FC = () => {
               // First, we double check that we don't have a state management problem.
               const userAccounts = await marginfiClient.getMarginfiAccountsForAuthority();
               if (userAccounts.length > 0) {
-                try {
-                  await reloadBanks();
-                } catch (error: any) {
-                  throw new Error(`Error while reloading state: ${error}`);
-                }
+                await reloadBanks();
               }
 
               // If we're all good on state, we create an account
               _marginfiAccount = await marginfiClient.createMarginfiAccount();
             } catch (error: any) {
-              throw new Error(`Error while creating marginfi account: ${error}`);
-              break;
+              console.error(`Error while creating marginfi account: ${error}`);
+              throw new Error(`Failed to create marginfi account: ${error}`);
             }
           }
 
@@ -194,10 +198,13 @@ const AiUI: FC = () => {
       }
     } catch (error: any) {
       console.log(`Error while performing action '${action}': ${error}`);
-      return false;
+      return {
+        success: false,
+        message: `I encountered an issue: ${error.message ? error.message : error}`,
+      };
     }
 
-    return true;
+    return { success: true, message: `Yay all done!` };
   };
 
   return (
@@ -223,7 +230,6 @@ const AiUI: FC = () => {
           <div className="absolute w-[1px] h-[1px] top-[13.51px] left-[11.905px] z-[-1]"></div>
           <Image src="/marginfi_logo.png" alt="marginfi logo" fill className="z-10" />
         </div>
-        {/* Form submission is dependent on `handleSumbit()` */}
         <form onSubmit={handleSubmit} className="w-full border-none" style={{ border: "solid red 1px" }}>
           <TextField
             fullWidth
@@ -279,6 +285,7 @@ const AiUI: FC = () => {
           />
         </form>
       </div>
+
       {/* The LLM output gets printed below the prompt. */}
       <div className="relative max-w-[80%] sm:max-w-[60%]">
         <div className="w-full flex shrink">
@@ -298,18 +305,40 @@ const AiUI: FC = () => {
                   What would you like to do today?
                 `,
                 ]}
-                speed={70}
+                speed={75}
+                cursor={false}
               />
             )}
-            {!response && thinking && (
-              <TypeAnimation style={{ color: "#262B2F !important" }} sequence={["Hmm... let me think..."]} speed={70} />
+
+            {response && (
+              <TypeAnimation style={{ color: "#262B2F !important " }} sequence={[response]} speed={75} cursor={false} />
             )}
-            {response && <TypeAnimation style={{ color: "#262B2F !important " }} sequence={[response]} speed={70} />}
           </div>
           <div className="absolute w-[100px] h-[100px] z-10" style={{ right: "-40px", top: "-40px" }}>
             <Image src="/orb.png" alt="orb" fill className="pulse" />
           </div>
         </div>
+        {/* The action result gets printed below the LLM output. */}
+        {actionResult && (
+          <div className="relative w-full mt-[-40px] ml-[50px]">
+            <div className="w-full flex shrink">
+              <div
+                className={`min-h-[60px] w-full flex font-[#262B2F] p-4 shadow-2xl`}
+                style={{
+                  backgroundColor: transactionFailed ? "#C96567" : "#009c7d",
+                  borderRadius: "15px 15px 15px 15px",
+                }}
+              >
+                <TypeAnimation
+                  style={{ color: "#262B2F !important " }}
+                  sequence={[actionResult]}
+                  speed={75}
+                  cursor={false}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
