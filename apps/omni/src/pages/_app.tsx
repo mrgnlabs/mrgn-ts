@@ -13,7 +13,7 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { init, push } from "@socialgouv/matomo-next";
 import config from "../config";
-import { Navbar } from "~/components";
+import { Navbar, Footer } from "~/components";
 import {
   BanksStateProvider,
   ProgramProvider,
@@ -76,7 +76,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                         <Component {...pageProps} />
                         <Analytics />
                       </div>
-                      <ToastContainer position="bottom-left" theme="dark" />
+                      <Footer />
                     </JupiterApiProvider>
                   </UserAccountsProvider>
                 </TokenAccountsProvider>
