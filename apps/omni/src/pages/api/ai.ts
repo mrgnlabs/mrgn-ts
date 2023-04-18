@@ -251,6 +251,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const tableId = bqTableId;
       const rows = [
         {
+          timestamp: bigquery.datetime(new Date().toISOString()),
           wallet: walletPublicKey,
           prompt: (input as string).trim(),
           response: (response.output as string).trim(),
