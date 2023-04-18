@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import NextCors from "nextjs-cors";
 import { callAI } from "~/api/ai";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 type Action = "deposit" | "borrow" | "stake" | "unstake" | null;
 type Token = "USDC" | "SOL" | "mSOL" | "BONK" | "USDT" | "ETH" | "WBTC" | null;
@@ -128,7 +130,21 @@ function findVM(input: string): string | null {
   return result ? result[0] : null;
 }
 
+const rateLimiter = new Ratelimit({ redis: Redis.fromEnv(), limiter: Ratelimit.slidingWindow(50, "3h") });
+
+async function rateLimiterMiddleware(req: NextApiRequest, res: NextApiResponse) {
+  const ip = req.headers["x-real-ip"] as string;
+  const { success } = await rateLimiter.limit(ip);
+
+  if (!success) {
+    res.status(429).send({});
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+
+  await rateLimiterMiddleware(req, res);
+
   await NextCors(req, res, {
     methods: ["POST"],
     origin: process.env.CORS_ORIGIN,
