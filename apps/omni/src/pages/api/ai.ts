@@ -18,7 +18,7 @@ interface ExtractVariablesOutput {
 
 const extractVariables = (sentence: string): ExtractVariablesOutput => {
   const actionRegex =
-    /(lend|deposit|withdraw|borrow|repay|stake|unstake|superstake|unsuperstake|add|put|give|bring|submit|provide|contribute|take|get|withdrawal|retrieve|repayment|return|earn|gain|collect|dump|stuff|yank|stash|grab|cash-in|cash-out|bounce|withdraw-inate|deposit-ify|plunk|squirrel|park|nest-egg|sock-away|hoard|tuck-away|take out)/;
+    /(lend|deposit|withdraw|borrow|repay|stake|unstake|superstake|unsuperstake|add|put|give|bring|submit|provide|contribute|take|get|withdrawal|retrieve|repayment|return|earn|gain|collect|dump|stuff|yank|stash|grab|cash-in|cash-out|bounce|withdraw-inate|deposit-ify|plunk|squirrel|park|nest-egg|sock-away|hoard|tuck-away|take out)/i;
   const amountRegex = /(\d+(?:\.\d+)?)/;
   const tokenRegex = /(USDC|SOL|mSOL|BONK|USDT|ETH|WBTC)/i;
 
@@ -26,7 +26,7 @@ const extractVariables = (sentence: string): ExtractVariablesOutput => {
   const amountMatch = sentence.match(amountRegex);
   const tokenMatch = sentence.match(tokenRegex);
 
-  let action: Action = actionMatch ? (actionMatch[0] as Action) : null;
+  let action: Action = actionMatch ? (actionMatch[0].toLowerCase() as Action) : null;
   const amount: number | null = amountMatch ? parseFloat(amountMatch[0]) : null;
   const token: Token = tokenMatch ? (tokenMatch[0].toUpperCase() as Token) : null;
 
@@ -182,9 +182,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     response = {
       output: `
-        It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
-        walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
-      }
+        It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
+        }
       `,
       data: walletPublicKey && {
         action: result.action,
