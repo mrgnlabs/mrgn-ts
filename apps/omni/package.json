@@ -43,6 +43,7 @@
     "d3": "^7.8.2",
     "langchain": "^0.0.49",
     "next": "13.1.1",
+    "nextjs-cors": "^2.1.2",
     "pako": "^2.1.0",
     "react": "18.2.0",
     "react-circular-progressbar": "^2.1.0",

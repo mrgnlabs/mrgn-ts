@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import NextCors from "nextjs-cors";
 import { callAI } from "~/api/ai";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
@@ -141,7 +142,14 @@ async function rateLimiterMiddleware(req: NextApiRequest, res: NextApiResponse) 
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+
   await rateLimiterMiddleware(req, res);
+
+  await NextCors(req, res, {
+    methods: ["POST"],
+    origin: process.env.CORS_ORIGIN,
+    optionsSuccessStatus: 200,
+  });
 
   const { input, walletPublicKey } = req.body;
 

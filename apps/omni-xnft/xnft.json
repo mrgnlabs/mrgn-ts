@@ -1,0 +1,20 @@
+{
+  "name": "Omni xNFT, by marginfi",
+  "version": "1.0.0",
+  "storage": "",
+  "description": "Omni is an experiment in Crypto + AI.",
+  "website": "https://omni.marginfi.com",
+  "kind": "app",
+  "icon": {
+    "md": "./assets/icon.png"
+  },
+  "contact": "",
+  "screenshots": [
+    "./assets/screenShot.png"
+  ],
+  "entrypoints": {
+    "default": {
+      "web": "./web-build/index.html"
+    }
+  }
+}

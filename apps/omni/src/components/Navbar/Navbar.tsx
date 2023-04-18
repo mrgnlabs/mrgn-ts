@@ -24,8 +24,12 @@ const Navbar: FC = () => {
             <Link href={"/"} className="relative w-[28.02px] h-[24.81px] mr-4 z-10">
               <Image src="/marginfi_logo.png" alt="marginfi logo" fill />
             </Link>
+            <Link href={"https://omni.marginfi.com"} className="h-full w-1/2 min-w-1/2 max-w-1/2 flex lg:hidden justify-center items-center p-0">
+              <NavbarCenterItem overrideColor="#000" text="omni" link textFormat="text-3xl lowercase" />
+            </Link>
           </div>
-          <div className="absolute fixed left-0 right-0 flex justify-center items-center w-full h-full invisible lg:visible">
+
+          <div className="absolute fixed left-0 right-0 justify-center items-center w-full h-full hidden lg:flex">
             <div className="h-full w-[20%] flex min-w-fit max-w-[600px] justify-center items-center">
               <Link href={"https://omni.marginfi.com"} className="h-full w-1/2 min-w-1/2 max-w-1/2 flex justify-center items-center p-0">
                 <NavbarCenterItem overrideColor="#fff" text="omni" link />
