@@ -133,19 +133,19 @@ function findVM(input: string): string | null {
   return result ? result[0] : null;
 }
 
-// const rateLimiter = new Ratelimit({ redis: Redis.fromEnv(), limiter: Ratelimit.slidingWindow(50, "3h") });
+const rateLimiter = new Ratelimit({ redis: Redis.fromEnv(), limiter: Ratelimit.slidingWindow(50, "3h") });
 
-// async function rateLimiterMiddleware(req: NextApiRequest, res: NextApiResponse) {
-//   const ip = req.headers["x-real-ip"] as string;
-//   const { success } = await rateLimiter.limit(ip);
+async function rateLimiterMiddleware(req: NextApiRequest, res: NextApiResponse) {
+  const ip = req.headers["x-real-ip"] as string;
+  const { success } = await rateLimiter.limit(ip);
 
-//   if (!success) {
-//     res.status(429).send({});
-//   }
-// }
+  if (!success) {
+    res.status(429).send({});
+  }
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // await rateLimiterMiddleware(req, res);
+  await rateLimiterMiddleware(req, res);
 
   await NextCors(req, res, {
     methods: ["POST"],
@@ -251,6 +251,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const tableId = bqTableId;
       const rows = [
         {
+          timestamp: bigquery.datetime(new Date().toISOString()),
           wallet: walletPublicKey,
           prompt: (input as string).trim(),
           response: (response.output as string).trim(),
