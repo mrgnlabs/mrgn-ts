@@ -1,27 +1,29 @@
 {
-  "name": "Omni xNFT, by marginfi",
+  "name": "Omni AI",
   "kind": "app",
-  "version": "1.0.0",
-  "description": "Omni is an experiment in Crypto + AI.",
+  "version": "0.1.0",
+  "description": "An AI agent for web3. Omni is an experiment in Crypto + AI. It's an autonomous agent that can interact with protocols for you, answer questions about web3, and provide you with realtime market data. What would you like to do today?",
   "website": "https://omni.marginfi.com",
   "storage": "aws",
-  "contact": "engineering@mrgn.group",
+  "contact": "https://t.me/mrgncommunity",
   "icon": {
     "sm": "./assets/icon.png",
     "md": "./assets/icon.png",
     "lg": "./assets/icon.png"
   },
   "screenshots": [
-    "./assets/screenShot.png"
+    "./assets/screenshot-1.png",
+    "./assets/screenshot-2.png",
+    "./assets/screenshot-3.png"
   ],
   "entrypoints": {
     "default": {
       "web": "./web-build/index.html"
     }
   },
-  "splash": {
+  "splash": [{
     "src": "./assets/icon.png",
     "height": 64,
     "width": 64
-  }
+  }]
 }

@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "homepage": ".",
   "scripts": {
-    "build": "expo export:web",
+    "build": "npx expo build:web",
     "start": "yarn build && npx xnft web",
     "bundle": "yarn build && npx xnft bundle",
     "dev": "expo start --web & npx xnft --iframe http://localhost:19006"
