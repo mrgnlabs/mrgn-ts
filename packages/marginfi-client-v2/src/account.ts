@@ -187,7 +187,6 @@ export class MarginfiAccount {
    * @returns `MarginDepositCollateral` transaction instruction
    */
   async makeDepositIx(amount: Amount, bank: Bank): Promise<InstructionsWrapper> {
-
     const userTokenAtaPk = await associatedAddress({
       mint: bank.mint,
       owner: this.client.provider.wallet.publicKey,
@@ -364,16 +363,18 @@ export class MarginfiAccount {
    * @param bank Bank to withdraw from
    * @returns `MarginWithdrawCollateral` transaction instruction
    */
-  async makeBorrowIx(amount: Amount, bank: Bank, opt?: { remainingAccountsBankOverride?: Bank[] } | undefined): Promise<InstructionsWrapper> {
+  async makeBorrowIx(
+    amount: Amount,
+    bank: Bank,
+    opt?: { remainingAccountsBankOverride?: Bank[] } | undefined
+  ): Promise<InstructionsWrapper> {
     const userTokenAtaPk = await associatedAddress({
       mint: bank.mint,
       owner: this.client.provider.wallet.publicKey,
     });
 
     const remainingAccounts = this.getHealthCheckAccounts(
-      (opt?.remainingAccountsBankOverride?.length ?? 0) > 0 ?
-        opt?.remainingAccountsBankOverride :
-        [bank]
+      (opt?.remainingAccountsBankOverride?.length ?? 0) > 0 ? opt?.remainingAccountsBankOverride : [bank]
     );
 
     const ix = await instructions.makeBorrowIx(
@@ -871,19 +872,16 @@ export class MarginfiAccount {
 
   public describe(): string {
     const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Equity);
-    const { assets: assetsMaint, liabilities: liabilitiesMaint } = this.getHealthComponents(MarginRequirementType.Maint);
     return `
-Marginfi account: ${this.publicKey.toBase58()}
-
-Balances: ${this.activeBalances.map((la) => la.describe(this._group.getBankByPk(la.bankPk)!)).join("")}
-
-Total Deposits: $${assets.toFixed(6)}
-Total Liabilities: $${liabilities.toFixed(6)}
-
-Equity: $${assets.minus(liabilities).toFixed(6)}
-
-Health: ${assets.minus(liabilities).div(assets).times(100).toFixed(2)}%
-`
+- Marginfi account: ${this.publicKey}
+- Total deposits: $${assets.toFixed(6)}
+- Total liabilities: $${liabilities.toFixed(6)}
+- Equity: $${assets.minus(liabilities).toFixed(6)}
+- Health: ${assets.minus(liabilities).div(assets).times(100).toFixed(2)}%
+- Balances:  ${this.activeBalances.map((la) => {
+      const bank = this._group.getBankByPk(la.bankPk)!;
+      return la.describe(bank);
+    })}`;
   }
 
   private async wrapInstructionForWSol(
@@ -953,7 +951,10 @@ export class Balance {
     });
   }
 
-  public getUsdValue(bank: Bank, marginReqType: MarginRequirementType = MarginRequirementType.Equity): { assets: BigNumber; liabilities: BigNumber } {
+  public getUsdValue(
+    bank: Bank,
+    marginReqType: MarginRequirementType = MarginRequirementType.Equity
+  ): { assets: BigNumber; liabilities: BigNumber } {
     return {
       assets: bank.getAssetUsdValue(this.assetShares, marginReqType, PriceBias.None),
       liabilities: bank.getLiabilityUsdValue(this.liabilityShares, marginReqType, PriceBias.None),
@@ -990,16 +991,15 @@ export class Balance {
     };
   }
 
-
   public describe(bank: Bank): string {
     let { assets: assetsQt, liabilities: liabsQt } = this.getQuantityUi(bank);
     let { assets: assetsUsd, liabilities: liabsUsd } = this.getUsdValue(bank, MarginRequirementType.Equity);
 
     return `
 ${bank.label} Balance:
-Deposits: ${assetsQt.toFixed(5)} (${assetsUsd.toFixed(5)} USD)
-Borrows: ${liabsQt.toFixed(5)} (${liabsUsd.toFixed(5)} USD)
-`
+- Deposits: ${assetsQt.toFixed(5)} (${assetsUsd.toFixed(5)} USD)
+- Borrows: ${liabsQt.toFixed(5)} (${liabsUsd.toFixed(5)} USD)
+`;
   }
 }
 

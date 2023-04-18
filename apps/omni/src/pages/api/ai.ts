@@ -3,6 +3,7 @@ import NextCors from "nextjs-cors";
 import { callAI } from "~/api/ai";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { BigQuery } from "@google-cloud/bigquery";
 
 type Action = "deposit" | "borrow" | "stake" | "unstake" | null;
 type Token = "USDC" | "SOL" | "mSOL" | "BONK" | "USDT" | "ETH" | "WBTC" | null;
@@ -142,7 +143,6 @@ function findVM(input: string): string | null {
 // }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-
   // await rateLimiterMiddleware(req, res);
 
   await NextCors(req, res, {
@@ -162,12 +162,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  let response;
-
   // Regex action check
   const result = extractVariables(input);
   console.log({ result });
 
+  let response: any;
   if (result.action && result.amount && result.token) {
     let actionDisplayed;
     if (result.action === "deposit") {
@@ -190,58 +189,68 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         tokenSymbol: result.token,
       },
     };
-    res.status(200).json(response);
-    return;
   } else {
     // AI approach if regex fails
     try {
-      console.log('calling AI')
+      console.log("calling AI");
       response = await callAI({ input, walletPublicKey });
 
-      // Regex action check
-      console.log({ response: JSON.stringify(response) });
-
-      try {
-        // const result = JSON.parse(response.output);
-        const result = extractVariables(response.output);
-        console.log({ result });
-
-        if (result.action && result.amount && result.token) {
-          let actionDisplayed;
-          if (result.action === "deposit") {
-            actionDisplayed = "put in";
-          } else if (result.action === "borrow") {
-            actionDisplayed = "take out";
-          } else {
-            actionDisplayed = result.action;
-          }
-
-          response = {
-            output: `
-            It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
-              walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
-            }`,
-            data: walletPublicKey && {
-              action: result.action,
-              amount: result.amount,
-              tokenSymbol: result.token,
-            },
-          };
-          res.status(200).json(response);
-          return;
+      // Second string parsing to detect the agent returning an action
+      const result = extractVariables(response.output); // todo: parse according to stricter format, to avoid this wrongly returning an action to client
+      console.log({ result });
+      if (result.action && result.amount && result.token) {
+        let actionDisplayed;
+        if (result.action === "deposit") {
+          actionDisplayed = "put in";
+        } else if (result.action === "borrow") {
+          actionDisplayed = "take out";
+        } else {
+          actionDisplayed = result.action;
         }
-      } catch (error: any) {}
 
-      res.status(200).json(response);
-      return;
-    } catch (error) {
+        response = {
+          output: `
+            It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
+            walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
+          }`,
+          data: walletPublicKey && {
+            action: result.action,
+            amount: result.amount,
+            tokenSymbol: result.token,
+          },
+        };
+      }
+    } catch (error: any) {
       console.error("Error calling OpenAI API:", error);
-      res.status(200).json({
+      response = {
         output: getApologyMessage(),
-        // @ts-ignore
         error: error.message,
-      });
-      return;
+      };
     }
   }
+
+  const bqTableId =
+    process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT === "production" ? process.env.NEXT_PUBLIC_OMNI_TABLE_ID : undefined;
+  if (bqTableId) {
+    try {
+      const bigquery = new BigQuery();
+
+      const datasetId = "omni";
+      const tableId = bqTableId;
+      const rows = [
+        {
+          wallet: walletPublicKey,
+          prompt: (input as string).trim(),
+          response: (response.output as string).trim(),
+        },
+      ];
+
+      await bigquery.dataset(datasetId).table(tableId).insert(rows);
+      console.log(`Inserted ${rows.length} rows`);
+    } catch (error: any) {
+      console.error("Failed to log data to BQ:", error);
+    }
+  }
+
+  res.status(200).json(response);
 }
