@@ -18,6 +18,7 @@
     "@coral-xyz/borsh": "^0.26.0",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
+    "@google-cloud/bigquery": "^6.2.0",
     "@jup-ag/api": "^4.0.1-alpha.0",
     "@marinade.finance/marinade-ts-sdk": "^4.0.6",
     "@mrgnlabs/lip-client": "*",
