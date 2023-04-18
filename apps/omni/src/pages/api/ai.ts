@@ -235,7 +235,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const bqTableId =
     process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT === "production" ? process.env.NEXT_PUBLIC_OMNI_TABLE_ID : undefined;
-  if (bqTableId) {
+  if (bqTableId && process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
     try {
       const filename = "service-account.json";
       const filepath = path.join("/tmp", filename);
