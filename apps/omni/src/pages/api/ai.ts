@@ -257,6 +257,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await bigquery.dataset(datasetId).table(tableId).insert(rows);
       console.log(`Inserted ${rows.length} rows`);
+      fs.rmSync(filepath);
     } catch (error: any) {
       console.error("Failed to log data to BQ:", error);
     }
