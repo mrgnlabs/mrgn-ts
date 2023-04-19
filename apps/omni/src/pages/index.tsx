@@ -1,4 +1,4 @@
-import React, { FC, useState, useCallback, useRef } from "react";
+import React, { FC, useState, useCallback, useRef, useMemo } from "react";
 import Image from "next/image";
 import axios from "axios";
 import { TextField } from "@mui/material";
@@ -10,6 +10,23 @@ import { superStake, withdrawSuperstake } from "~/components/superStakeActions";
 import { TypeAnimation } from "react-type-animation";
 import { InputAdornment } from "@mui/material";
 import { FormEventHandler } from "react";
+
+const SAMPLE_PROMPTS = [
+  "Show me my account, fool!",
+  "Deposit 10 USDC into marginfi",
+  "I want to lend 100 usdc on marginfi",
+  "Can I borrow 1 SOL from marginfi?",
+  "Withdraw all my USDC from marginfi",
+  "How much SOL do I have deposited in marginfi?",
+  "How much BONK do I have deposited in marginfi?",
+  "Is DUST supported on marginfi?",
+  "Show me my debt on marginfi",
+  "How is my health calculated on hubble?",
+  "给我查下最新的eth价格",
+  "What is dialect?",
+  "크립토 시장이 성장할 거라고 생각하니?",
+  "Hola, que sabes sobre bitcoin?",
+];
 
 const AiUI: FC = () => {
   const [prompt, setPrompt] = useState<string>("");
@@ -26,9 +43,12 @@ const AiUI: FC = () => {
   const jupiter = useJupiterApiContext();
   const { extendedBankInfos, selectedAccount } = useUserAccounts();
 
+  const samplePrompt = useMemo(() => {
+    return SAMPLE_PROMPTS[Math.floor(Math.random() * SAMPLE_PROMPTS.length)];
+  }, []);
+
   const resetState = useCallback(() => {
     setPrompt("");
-    setResponse("");
     setThinking(false);
     setTransacting(false);
     setFailed(false);
@@ -235,7 +255,7 @@ const AiUI: FC = () => {
               if (response && !thinking && !transacting) resetState();
             }}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Ask me who I am"
+            placeholder={samplePrompt}
             variant="standard"
             InputProps={{
               disableUnderline: true, // <== added this
