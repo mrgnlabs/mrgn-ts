@@ -34,6 +34,7 @@ const extractVariables = (sentence: string): ExtractVariablesOutput => {
     if (
       [
         "lend",
+        "repay",
         "add",
         "put",
         "give",
@@ -182,8 +183,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     response = {
       output: `
-        It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
-        }
+        It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
+        walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
+      }
       `,
       data: walletPublicKey && {
         action: result.action,
@@ -197,34 +199,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log("calling AI");
       response = await callAI({ input, walletPublicKey });
 
-      // // Second string parsing to detect the agent returning an action
-      // const result = extractVariables(response); // todo: parse according to stricter format, to avoid this wrongly returning an action to client
-      // console.log(response.output);
-      // console.log({ result });
+      // Second string parsing to detect the agent returning an action
+      const result = extractVariables(response.output); // todo: parse according to stricter format, to avoid this wrongly returning an action to client
+      console.log(response.output);
+      console.log({ result });
 
-      // // if ((response.output as string).startsWith("ACTION:") && result.action && result.amount && result.token) {
-      // if (result.action && result.amount && result.token) {
-      //   let actionDisplayed;
-      //   if (result.action === "deposit") {
-      //     actionDisplayed = "put in";
-      //   } else if (result.action === "borrow") {
-      //     actionDisplayed = "take out";
-      //   } else {
-      //     actionDisplayed = result.action;
-      //   }
+      if ((response.output as string).startsWith("FORMATTED:") && result.action && result.amount && result.token) {
+        let actionDisplayed;
+        if (result.action === "deposit") {
+          actionDisplayed = "put in";
+        } else if (result.action === "borrow") {
+          actionDisplayed = "take out";
+        } else {
+          actionDisplayed = result.action;
+        }
 
-      //   response = {
-      //     output: `
-      //       It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
-      //       walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
-      //     }`,
-      //     data: walletPublicKey && {
-      //       action: result.action,
-      //       amount: result.amount,
-      //       tokenSymbol: result.token,
-      //     },
-      //   };
-      // }
+        response = {
+          output: `
+            It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
+            walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
+          }`,
+          data: walletPublicKey && {
+            action: result.action,
+            amount: result.amount,
+            tokenSymbol: result.token,
+          },
+        };
+      }
     } catch (error: any) {
       console.error("Error calling OpenAI API:", error);
       response = {
