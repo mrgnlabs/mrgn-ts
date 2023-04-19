@@ -228,9 +228,12 @@ const AiUI: FC = () => {
           <TextField
             fullWidth
             value={prompt}
+            disabled={thinking || transacting}
             // The prompt input only handles value changing.
             // Actual action isn't taken until enter is pressed.
-            onClick={resetState}
+            onClick={() => {
+              if (!thinking && !transacting) resetState();
+            }}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Ask me who I am"
             variant="standard"
