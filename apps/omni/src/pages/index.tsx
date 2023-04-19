@@ -232,7 +232,7 @@ const AiUI: FC = () => {
             // The prompt input only handles value changing.
             // Actual action isn't taken until enter is pressed.
             onClick={() => {
-              if (!thinking && !transacting) resetState();
+              if (response && !thinking && !transacting) resetState();
             }}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Ask me who I am"
