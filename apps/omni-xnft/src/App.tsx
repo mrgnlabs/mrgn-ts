@@ -1,20 +1,39 @@
 import { registerRootComponent } from "expo";
-import { RecoilRoot } from "recoil";
-import { Iframe } from 'react-xnft';
+import { useState, useEffect } from "react";
+import { View, Text } from "react-native";
+import { Navbar } from './components/Navbar';
 
-function App() {
+// Import global styles
+import "../../omni/src/styles/globals.css";
+
+
+const App = () => {
+  const [loaded, setLoaded] = useState<boolean>(false);
+  const [walletPublicKey, setWalletPublicKey] = useState<string | null >("");
+
+  useEffect(() => {
+    // @ts-ignore
+    if ( window?.xnft?.solana?.publicKey?.toBase58() ) {
+      setLoaded(true);
+      setWalletPublicKey(
+        // @ts-ignore
+        window?.xnft?.solana?.publicKey?.toBase58()
+      );
+    }
+  }, [
+    // @ts-ignore
+    window.xnft,
+    // @ts-ignore
+    window.xnft.solana,
+    // @ts-ignore
+    window.xnft.solana.publicKey,
+  ])
 
   return (
-    <RecoilRoot>
-      <Iframe
-        src="https://omni.marginfi.com"
-        style={{
-          width: "100%",
-          height: "100%",
-        }}
-      ></Iframe>
-    </RecoilRoot>
-  );
+    <View>
+      <Navbar />
+    </View>
+  )
 }
 
 export default registerRootComponent(App);
