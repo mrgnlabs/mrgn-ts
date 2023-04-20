@@ -1,19 +1,37 @@
+import { useEffect, useState, useMemo } from 'react';
 import { registerRootComponent } from "expo";
-import { RecoilRoot } from "recoil";
-import { Iframe } from 'react-xnft';
+import { SafeAreaView } from "react-native";
+import { handlePromptSubmit } from "@mrgnlabs/omni-common";
+import { ConnectionProvider, WalletProvider, useWallet } from "@solana/wallet-adapter-react";
 
-function App() {
+import tw from './tw';
+
+const Inner = () => {
+
+  const wallet = useWallet();
+
+  console.log({
+    wallet, xnft: window.xnft
+  })
 
   return (
-    <RecoilRoot>
-      <Iframe
-        src="https://omni.marginfi.com"
-        style={{
-          width: "100%",
-          height: "100%",
-        }}
-      ></Iframe>
-    </RecoilRoot>
+    <SafeAreaView style={tw`h-full w-full`}>
+    </SafeAreaView>
+  )
+  
+}
+
+const App = () => {
+
+  useEffect(() => {
+    console.log(window.backpack);
+    console.log(window.xnft);
+  }, [window, window.backpack, window.xnft])
+
+  return (
+    <WalletProvider wallets={[]} autoConnect>
+      <Inner />
+    </WalletProvider>
   );
 }
 
