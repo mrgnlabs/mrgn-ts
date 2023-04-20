@@ -148,6 +148,10 @@ class MarginfiGroup {
   ): Promise<MarginfiGroupData> {
     const mergedCommitment = commitment ?? program.provider.connection.commitment ?? DEFAULT_COMMITMENT;
 
+    console.log(config.groupPk.toBase58());
+    const res = await program.account.marginfiGroup.getAccountInfoAndContext(config.groupPk, mergedCommitment);
+    console.log("value", res.value, res.value?.data.length);
+
     return (await program.account.marginfiGroup.fetch(config.groupPk, mergedCommitment)) as any;
   }
 

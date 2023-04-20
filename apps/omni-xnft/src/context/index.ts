@@ -4,6 +4,7 @@ import { TokenMetadataProvider, useTokenMetadata } from "./TokenMetadata";
 import { UserAccountsProvider, useUserAccounts } from "./UserAccounts";
 import { ProgramProvider, useProgram } from "./Program";
 import { JupiterApiProvider, useJupiterApiContext } from "./JupiterApiProvider";
+import { XnftProviderProvider, useXnftProvider } from "./XnftWallet";
 
 export {
   BanksStateProvider,
@@ -18,4 +19,6 @@ export {
   TokenMetadataProvider,
   JupiterApiProvider,
   useJupiterApiContext,
+  XnftProviderProvider,
+  useXnftProvider,
 };

@@ -24,6 +24,7 @@
     "@mrgnlabs/lip-client": "*",
     "@mrgnlabs/marginfi-client-v2": "*",
     "@mrgnlabs/mrgn-common": "*",
+    "@mrgnlabs/omni-common": "*",
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.2",
     "@next/font": "13.1.1",

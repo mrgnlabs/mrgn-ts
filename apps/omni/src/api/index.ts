@@ -51,10 +51,12 @@ function makeExtendedBankInfo(
   bankInfo: BankInfo,
   tokenAccount: TokenAccount,
   nativeSolBalance: number,
-  marginfiAccount: any,
+  marginfiAccount: any
 ): ExtendedBankInfo {
   const isWrappedSol = bankInfo.tokenMint.equals(WSOL_MINT);
-  const positionRaw = marginfiAccount?.activeBalances.find((balance: Balance) => balance.bankPk.equals(bankInfo.address));
+  const positionRaw = marginfiAccount?.activeBalances.find((balance: Balance) =>
+    balance.bankPk.equals(bankInfo.address)
+  );
   const hasActivePosition = !!positionRaw;
   const position = hasActivePosition ? makeUserPosition(positionRaw, bankInfo) : null;
 

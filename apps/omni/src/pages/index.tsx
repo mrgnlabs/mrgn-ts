@@ -1,11 +1,10 @@
-import React, { FC, useState, useCallback, useRef, useMemo } from "react";
+import React, { FC, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import axios from "axios";
 import { TextField } from "@mui/material";
 
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useBanks, useProgram, useUserAccounts } from "~/context";
-import { useJupiterApiContext } from "~/context/JupiterApiProvider";
+import { useBanks, useProgram, useUserAccounts, useJupiterApiContext } from "~/context";
 import { superStake, withdrawSuperstake } from "~/components/superStakeActions";
 import { TypeAnimation } from "react-type-animation";
 import { InputAdornment } from "@mui/material";

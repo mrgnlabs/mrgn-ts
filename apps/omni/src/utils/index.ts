@@ -1,8 +1,5 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
-import { array, assert, Infer, number, object, string } from "superstruct";
-import { TokenMetadata } from "~/types";
-import tokenInfos from "../assets/token_info.json";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
 export function floor(value: number, decimals: number): number {
@@ -11,51 +8,6 @@ export function floor(value: number, decimals: number): number {
 
 export function ceil(value: number, decimals: number): number {
   return Math.ceil(value * 10 ** decimals) / 10 ** decimals;
-}
-
-// ================ token metadata ================
-
-const TokenMetadataRaw = object({
-  address: string(),
-  chainId: number(),
-  decimals: number(),
-  name: string(),
-  symbol: string(),
-  logoURI: string(),
-  extensions: object({
-    coingeckoId: string(),
-  }),
-});
-const TokenMetadataList = array(TokenMetadataRaw);
-
-export type TokenMetadataRaw = Infer<typeof TokenMetadataRaw>;
-export type TokenMetadataListRaw = Infer<typeof TokenMetadataList>;
-
-function parseTokenMetadata(tokenMetadataRaw: TokenMetadataRaw): TokenMetadata {
-  return {
-    icon: tokenMetadataRaw.logoURI,
-  };
-}
-
-function parseTokenMetadatas(tokenMetadataListRaw: TokenMetadataListRaw): {
-  [symbol: string]: TokenMetadata;
-} {
-  return tokenMetadataListRaw.reduce(
-    (config, current, _) => ({
-      [current.symbol]: parseTokenMetadata(current),
-      ...config,
-    }),
-    {} as {
-      [symbol: string]: TokenMetadata;
-    }
-  );
-}
-
-export function loadTokenMetadatas(): {
-  [symbol: string]: TokenMetadata;
-} {
-  assert(tokenInfos, TokenMetadataList);
-  return parseTokenMetadatas(tokenInfos);
 }
 
 // ================ development utils ================

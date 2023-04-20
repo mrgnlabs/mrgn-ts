@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "omni-xnft",
+  "name": "@mrgnlabs/omni-xnft",
   "version": "1.0.0",
   "homepage": ".",
   "scripts": {
@@ -13,6 +13,8 @@
     "@coral-xyz/common-public": "^0.2.0-latest.3375",
     "@expo-google-fonts/dev": "*",
     "@expo/vector-icons": "^13.0.0",
+    "@mrgnlabs/marginfi-client-v2": "^1.0.0",
+    "@mrgnlabs/mrgn-common": "*",
     "@mrgnlabs/omni-common": "*",
     "@react-navigation/bottom-tabs": "6.3.1",
     "@react-navigation/native": "6.0.10",

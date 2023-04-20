@@ -1,5 +1,5 @@
+import { loadTokenMetadatas } from "@mrgnlabs/omni-common";
 import { Tool } from "langchain/tools";
-import { loadTokenMetadatas } from "~/utils";
 
 class TokenInfoTool extends Tool {
   name = "token-info-tool";
@@ -16,7 +16,7 @@ class TokenInfoTool extends Tool {
     console.log("calling token infos tool");
     const tokenMetadata = loadTokenMetadatas();
 
-    console.log({ tokenInfo: JSON.stringify(tokenMetadata) })
+    console.log({ tokenInfo: JSON.stringify(tokenMetadata) });
 
     return JSON.stringify(tokenMetadata) || "Token info is not available. Highlight this as an error.";
   }

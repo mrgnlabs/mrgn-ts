@@ -45,6 +45,7 @@ class MarginfiClientReadonly {
       config.groupPk,
       connection.rpcEndpoint
     );
+    console.log("HEY");
 
     const provider = new AnchorProvider(connection, {} as any, {
       ...AnchorProvider.defaultOptions(),

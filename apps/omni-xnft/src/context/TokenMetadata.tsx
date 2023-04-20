@@ -1,7 +1,7 @@
-import { loadTokenMetadatas } from "@mrgnlabs/omni-common";
 import React, { useMemo } from "react";
 import { FC, createContext, useContext } from "react";
 import { TokenMetadataMap } from "~/types";
+import { loadTokenMetadatas } from "@mrgnlabs/omni-common";
 
 // @ts-ignore - Safe because context hook checks for null
 const TokenMetadataContext = createContext<TokenMetadataState>();
