@@ -4,15 +4,12 @@ import config from "~/config";
 import { PageHeaderSwap } from "~/components/PageHeader";
 
 const JupiterPage = () => {
-    const { wallet } = useWallet();
+    const wallet = useWallet();
+    const { wallet: jupWallet } = useWallet();
   
     useEffect(() => {
       initJupiter();
-    }, [wallet]);
-
-    console.log({
-      endpoint: config.rpcEndpoint
-    })
+    }, []);
   
     const initJupiter = () => {
       if (wallet) {
@@ -21,7 +18,7 @@ const JupiterPage = () => {
           displayMode: "integrated",
           integratedTargetId: "integrated-terminal",
           endpoint: config.rpcEndpoint,
-          passThroughWallet: wallet,
+          passThroughWallet: jupWallet,
         });
       }
     };
@@ -29,9 +26,10 @@ const JupiterPage = () => {
     return (
       <>
         <PageHeaderSwap />
-        <div className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-[350px]">
+        <div className='w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-[350px]'
+        >
           <div>
-          <div className="text-[#fff] text-3xl min-w-[600px] text-center">Zero fees. <span className="text-[#DCE85D]">Always.</span></div>
+            <div className="text-[#fff] text-3xl min-w-[600px] text-center">Zero fees. <span className="text-[#DCE85D]">Always.</span></div>
           </div>
           <div id="integrated-terminal"></div>
         </div>
