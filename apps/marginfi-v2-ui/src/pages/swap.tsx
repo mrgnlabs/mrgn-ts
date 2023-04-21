@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import config from "~/config";
+import { PageHeader } from "~/components/PageHeader";
 
 const JupiterPage = () => {
     const { wallet } = useWallet();
@@ -26,9 +27,14 @@ const JupiterPage = () => {
     };
   
     return (
-      <div className="flex justify-center items-start h-screen w-full pt-5">
-        <div id="integrated-terminal"></div>
-      </div>
+      <>
+        <PageHeader />
+        {/* <div className="flex justify-center items-start h-screen w-full pt-5"> */}
+        <div className="w-full h-full flex flex-col justify-start content-start py-[64px] gap-4 w-4/5 max-w-[350px]">
+          <div id="integrated-terminal"></div>
+        </div>
+      </>
+      
     );
   };
   
