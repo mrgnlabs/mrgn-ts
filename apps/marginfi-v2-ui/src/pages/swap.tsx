@@ -10,6 +10,10 @@ const JupiterPage = () => {
     useEffect(() => {
       initJupiter();
     }, []);
+
+    useEffect(() => {
+      initJupiter();
+    }, [wallet]);
   
     const initJupiter = () => {
       if (wallet) {
