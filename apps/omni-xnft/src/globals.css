@@ -24,24 +24,11 @@ Let's leave for now - it's clean and provides ample room to scale the experience
   /* --background-end-rgb: 0, 0, 0; */
 
   --primary-glow: radial-gradient(rgba(1, 65, 255, 0.4), rgba(1, 65, 255, 0));
-  --secondary-glow: linear-gradient(
-    to bottom right,
-    rgba(1, 65, 255, 0),
-    rgba(1, 65, 255, 0),
-    rgba(1, 65, 255, 0.3)
-  );
+  --secondary-glow: linear-gradient(to bottom right, rgba(1, 65, 255, 0), rgba(1, 65, 255, 0), rgba(1, 65, 255, 0.3));
 
   --tile-start-rgb: 2, 13, 46;
   --tile-end-rgb: 2, 5, 19;
-  --tile-border: conic-gradient(
-    #ffffff80,
-    #ffffff40,
-    #ffffff30,
-    #ffffff20,
-    #ffffff10,
-    #ffffff10,
-    #ffffff80
-  );
+  --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
 
   --callout-rgb: 20, 20, 20;
   --callout-border-rgb: 108, 108, 108;
@@ -65,11 +52,7 @@ body {
 body {
   color: #000;
   background-color: rgba(186, 172, 156, 0.76);
-  background-image: radial-gradient(
-    farthest-side at 10% 10%,
-    #BAAC9C 10%,
-    rgba(186, 172, 156, 0.76) 160%
-  );
+  background-image: radial-gradient(farthest-side at 10% 10%, #baac9c 10%, rgba(186, 172, 156, 0.76) 160%);
   background-size: cover;
   background-repeat: no-repeat;
   font-family: "Aeonik Pro";

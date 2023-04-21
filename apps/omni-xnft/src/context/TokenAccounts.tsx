@@ -18,7 +18,7 @@ interface TokenAccountsState {
 const TokenAccountsProvider: FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { provider } = useXnftProvider();
+  const { wallet, connection } = useXnftProvider();
   const { banks } = useBanks();
 
   const [fetching, setFetching] = useState<boolean>(false);
@@ -35,7 +35,7 @@ const TokenAccountsProvider: FC<{
       decimals: bank.mintDecimals,
     }));
 
-    if (!provider?.publicKey || !provider?.connection) {
+    if (!wallet?.publicKey || !connection) {
       const emptyTokenAccountMap = new Map(
         mintList.map(({ address }) => [
           address.toBase58(),
@@ -53,10 +53,10 @@ const TokenAccountsProvider: FC<{
       };
     }
 
-    const ataAddresses = mintList.map((mint) => getAssociatedTokenAddressSync(mint.address, provider.publicKey!));
+    const ataAddresses = mintList.map((mint) => getAssociatedTokenAddressSync(mint.address, wallet.publicKey!));
 
     // Fetch relevant accounts
-    const accountsAiList = await provider.connection.getMultipleAccountsInfo([provider.publicKey, ...ataAddresses]);
+    const accountsAiList = await connection.getMultipleAccountsInfo([wallet.publicKey, ...ataAddresses]);
 
     // Decode account buffers
     const [walletAi, ...ataAiList] = accountsAiList;
@@ -79,7 +79,7 @@ const TokenAccountsProvider: FC<{
     });
 
     return { nativeSolBalance, tokenAccountMap: new Map(ataList.map((ata) => [ata.mint.toString(), ata])) };
-  }, [banks, provider]);
+  }, [banks, wallet, connection]);
 
   const reload = useCallback(async () => {
     setFetching(true);

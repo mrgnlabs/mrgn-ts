@@ -44,9 +44,6 @@ const UserAccountsProvider: FC<{
     nativeSolBalance: number;
   }> => {
     const userAccounts = (mfiClient && (await mfiClient.getMarginfiAccountsForAuthority())) || [];
-    console.log("mfiClient", mfiClient);
-    console.log("userAccounts", userAccounts);
-
     const { tokenAccountMap, nativeSolBalance } = await fetchTokenAccounts();
     return { nativeSolBalance, tokenAccountMap, userAccounts };
   }, [fetchTokenAccounts, mfiClient]);

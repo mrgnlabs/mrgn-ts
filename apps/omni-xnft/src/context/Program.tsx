@@ -14,34 +14,30 @@ interface ProgramState {
 const ProgramProvider: FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { provider } = useXnftProvider();
+  const { wallet, connection } = useXnftProvider();
 
   const [mfiClient, setMfiClient] = useState<MarginfiClient | null>(null);
   const [mfiClientReadonly, setMfiClientReadonly] = useState<MarginfiClientReadonly | null>(null);
 
   useEffect(() => {
     (async function () {
-      console.log("fetching mfiClient", provider);
-
-      if (!provider?.connection) {
+      if (!connection) {
         setMfiClientReadonly(null);
         return;
       }
 
-      console.log("fetching mfiClient RO", config.mfiConfig.groupPk.toBase58());
-      const roClient = await MarginfiClientReadonly.fetch(config.mfiConfig, provider.connection);
+      const roClient = await MarginfiClientReadonly.fetch(config.mfiConfig, connection);
       setMfiClientReadonly(roClient);
 
-      if (!provider) {
+      if (!wallet) {
         setMfiClient(null);
         return;
       }
 
-      console.log("fetching mfiClient");
-      const client = await MarginfiClient.fetch(config.mfiConfig, provider, provider.connection);
+      const client = await MarginfiClient.fetch(config.mfiConfig, wallet, connection);
       setMfiClient(client);
     })();
-  }, [provider]);
+  }, [wallet, connection]);
 
   return (
     <ProgramContext.Provider

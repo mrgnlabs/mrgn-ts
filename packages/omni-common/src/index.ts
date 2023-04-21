@@ -95,3 +95,20 @@ export function loadTokenMetadatas(): {
   assert(tokenInfos, TokenMetadataList);
   return parseTokenMetadatas(tokenInfos);
 }
+
+export const SAMPLE_PROMPTS = [
+  "Show me my account, fool!",
+  "Deposit 10 USDC into marginfi",
+  "I want to lend 100 usdc on marginfi",
+  "Can I borrow 1 SOL from marginfi?",
+  "Withdraw all my USDC from marginfi",
+  "How much SOL do I have deposited in marginfi?",
+  "How much BONK do I have deposited in marginfi?",
+  "Is DUST supported on marginfi?",
+  "Show me my debt on marginfi",
+  "How is my health calculated on hubble?",
+  "给我查下最新的eth价格",
+  "What is dialect?",
+  "크립토 시장이 성장할 거라고 생각하니?",
+  "Hola, que sabes sobre bitcoin?",
+];

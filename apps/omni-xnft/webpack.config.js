@@ -9,11 +9,15 @@ module.exports = async function (env, argv) {
     fs: false,
     os: false,
     path: false,
+    stream: require.resolve("stream-browserify"),
+    buffer: require.resolve("buffer"),
   };
   config.devtool.sourceMap = "source-map";
   config.plugins.push(
     new webpack.ProvidePlugin({
       Buffer: ["buffer", "Buffer"],
+    }),
+    new webpack.ProvidePlugin({
       process: "process/browser",
     })
   );

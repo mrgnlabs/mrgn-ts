@@ -1,6 +1,6 @@
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { parsePriceData } from "@pythnetwork/client";
-import { Commitment, PublicKey } from "@solana/web3.js";
+import { Commitment, Connection, PublicKey } from "@solana/web3.js";
 import { Bank, BankData } from "./bank";
 import { MARGINFI_IDL } from "./idl";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
@@ -147,11 +147,6 @@ class MarginfiGroup {
     commitment?: Commitment
   ): Promise<MarginfiGroupData> {
     const mergedCommitment = commitment ?? program.provider.connection.commitment ?? DEFAULT_COMMITMENT;
-
-    console.log(config.groupPk.toBase58());
-    const res = await program.account.marginfiGroup.getAccountInfoAndContext(config.groupPk, mergedCommitment);
-    console.log("value", res.value, res.value?.data.length);
-
     return (await program.account.marginfiGroup.fetch(config.groupPk, mergedCommitment)) as any;
   }
 
