@@ -9,7 +9,6 @@ interface NavbarCenterItemProps {
   disabled?: boolean;
   onClick?: () => void;
   link?: boolean;
-  overrideColor?: string;
 }
 
 const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
@@ -19,16 +18,15 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
   disabled,
   onClick,
   link,
-  overrideColor,
 }) => (
   <Button
     className={`px-6 h-full ${
-      link ? "w-full min-w-full max-w-full" : "w-1/2 min-w-1/2 max-w-1/2"
-    } text-base flex justify-evenly items-center font-light ${textFormat || "normal-case"}`}
+      link ? "w-full min-w-full max-w-full" : "w-1/4 min-w-1/4 max-w-1/4"
+    } text-sm flex justify-evenly items-center font-light ${textFormat || "normal-case"}`}
     variant="text"
     disabled={disabled}
     style={{
-      color: overrideColor ? overrideColor : disabled ? "rgba(0, 0, 0, 0.2)" : "#000",
+      color: disabled ? "rgba(255, 255, 255, 0.2)" : "#000",
       // @todo clean UI change on click
       backgroundColor: "transparent",
       fontFamily: "Aeonik Pro",
