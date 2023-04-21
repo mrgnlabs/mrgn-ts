@@ -1,4 +1,6 @@
+import { DefaultApi } from "@jup-ag/api";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
+import { TokenInfo } from "@solana/spl-token-registry";
 import { PublicKey } from "@solana/web3.js";
 
 interface AccountSummary {
@@ -30,4 +32,14 @@ interface UserPosition {
   usdValue: number;
 }
 
-export type { AccountSummary, BankInfo, UserPosition };
+type RouteMap = Map<string, string[]>;
+
+interface JupiterParams {
+  api: DefaultApi;
+  tokenMap: Map<string, TokenInfo>;
+  routeMap: RouteMap;
+}
+
+type DispatchAction = "deposit" | "borrow" | "stake" | "unstake";
+
+export type { AccountSummary, BankInfo, UserPosition, JupiterParams, DispatchAction };

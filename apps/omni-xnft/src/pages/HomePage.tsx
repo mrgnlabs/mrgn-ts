@@ -1,14 +1,16 @@
-import { SAMPLE_PROMPTS } from "@mrgnlabs/omni-common";
+import { SAMPLE_PROMPTS, dispatchMarginfiAction } from "@mrgnlabs/omni-common";
 import { FormEventHandler, useMemo, useState } from "react";
 import { SafeAreaView, View, Text, TextInput } from "react-native";
 import axios from "axios";
-import { useProgram, useUserAccounts, useXnftProvider } from "~context";
+import { useBanks, useJupiterApiContext, useUserAccounts, useXnftProvider } from "~context";
 import tw from "~tw";
+import { API_ENDPOINT } from "~config";
 
 const HomePage = () => {
   const { wallet } = useXnftProvider();
-  const { mfiClient, mfiClientReadonly } = useProgram();
-  const { activeBankInfos, accountSummary } = useUserAccounts();
+  const { extendedBankInfos, selectedAccount } = useUserAccounts();
+  const { reload: reloadBanks } = useBanks();
+  const jupiter = useJupiterApiContext();
 
   const [prompt, setPrompt] = useState<string>("");
   const [response, setResponse] = useState<string>("");
@@ -35,8 +37,10 @@ const HomePage = () => {
         input: prompt,
         walletPublicKey: wallet.publicKey?.toBase58(),
       });
-      const res = await axios.post(
-        "http://localhost:3005/api/ai",
+      const {
+        data: { output: botResponse, error: botError, data: actionDispatchData },
+      } = await axios.post(
+        `${API_ENDPOINT}/api/ai`,
         {
           input: prompt,
           walletPublicKey: wallet.publicKey?.toBase58(),
@@ -49,13 +53,21 @@ const HomePage = () => {
       );
 
       setThinking(false);
-      setResponse(res.data.output);
-      if (res.data.error) {
+      setResponse(botResponse);
+      if (botError) {
         setFailed(true);
       }
-      if (res.data.data) {
+      if (actionDispatchData) {
         setTransacting(true);
-        const actionSuccess = true; // await action({ ...res.data.data });
+        const actionSuccess = await dispatchMarginfiAction({
+          action: actionDispatchData.action,
+          amount: actionDispatchData.amount,
+          tokenSymbol: actionDispatchData.tokenSymbol,
+          marginfiAccount: selectedAccount,
+          extendedBankInfos,
+          jupiter,
+          reloadBanks,
+        });
         setTransactionFailed(!actionSuccess);
         setTransacting(false);
       }

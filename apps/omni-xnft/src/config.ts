@@ -32,4 +32,5 @@ const config = {
 
 export default config;
 export const WALLET_BALANCE_MARGIN_SOL = 0.1;
+export const API_ENDPOINT = "https://omni-git-main-mrgn.vercel.app";
 export { JUPITER_CHAIN_ID };

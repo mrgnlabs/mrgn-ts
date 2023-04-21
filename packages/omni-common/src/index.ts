@@ -1,7 +1,9 @@
-import { TokenMetadata } from "@mrgnlabs/marginfi-client-v2";
+import { ExtendedBankInfo, MarginfiAccount, MarginfiClient, TokenMetadata } from "@mrgnlabs/marginfi-client-v2";
 import axios from "axios";
 import tokenInfos from "./token_info.json";
 import { object, string, number, array, Infer, assert } from "superstruct";
+import { superStake, withdrawSuperstake } from "./superStakeActions";
+import { DispatchAction, JupiterParams } from "./types";
 
 interface HandlePromptSubmitParams {
   input: string;
@@ -46,10 +48,6 @@ const handlePromptSubmit = async ({
     onSubmitError();
   }
 };
-
-export { handlePromptSubmit };
-
-export * from "./types";
 
 // ================ token metadata ================
 
@@ -112,3 +110,118 @@ export const SAMPLE_PROMPTS = [
   "크립토 시장이 성장할 거라고 생각하니?",
   "Hola, que sabes sobre bitcoin?",
 ];
+
+const dispatchMarginfiAction = async ({
+  action,
+  amount,
+  tokenSymbol,
+  marginfiAccount,
+  marginfiClient,
+  extendedBankInfos,
+  jupiter,
+  reloadBanks,
+}: {
+  action: DispatchAction;
+  amount: string;
+  tokenSymbol: string;
+  marginfiAccount: MarginfiAccount | null;
+  marginfiClient?: MarginfiClient;
+  extendedBankInfos: ExtendedBankInfo[];
+  jupiter: JupiterParams;
+  reloadBanks: () => Promise<void>;
+}): Promise<boolean> => {
+  let _marginfiAccount = marginfiAccount;
+  try {
+    // If user does not have a marginfi account, throw an error for now.
+    // @todo If the account doesn't exist and the user is trying to take an action other than deposit,
+    // tell the user in prompt response that they need to deposit first.
+    if (_marginfiAccount === null) {
+      if (action === "deposit") {
+        if (!marginfiClient) {
+          throw new Error("Marginfi client was not provided.");
+        }
+
+        try {
+          // If the user does not have a marginfi account, create one for them.
+
+          // First, we double check that we don't have a state management problem.
+          const userAccounts = await marginfiClient.getMarginfiAccountsForAuthority();
+          if (userAccounts.length > 0) {
+            try {
+              await reloadBanks();
+            } catch (error: any) {
+              throw new Error(`Error while reloading state: ${error}`);
+            }
+          }
+
+          // If we're all good on state, we create an account
+          _marginfiAccount = await marginfiClient.createMarginfiAccount();
+        } catch (error: any) {
+          throw new Error(`Error while creating marginfi account: ${error}`);
+        }
+      } else {
+        throw new Error("This action requires a marginfi account.");
+      }
+    }
+
+    const amountFloat = parseFloat(amount);
+
+    const bankInfo = extendedBankInfos.find((bank) => bank.tokenName.toUpperCase() === tokenSymbol);
+    if (!bankInfo) {
+      throw new Error(`Bank info was not found, tokenSymbol: ${tokenSymbol} bankInfo: ${bankInfo}`);
+    }
+
+    let mSOLBank;
+    let SOLBank;
+
+    switch (action) {
+      case "deposit":
+        await _marginfiAccount.deposit(amountFloat, bankInfo.bank);
+        break;
+
+      case "borrow":
+        await _marginfiAccount.borrow(parseFloat(amount), bankInfo.bank);
+        break;
+
+      case "stake":
+        mSOLBank = extendedBankInfos.find((bank) => bank.tokenName === "mSOL");
+        if (!mSOLBank) {
+          throw new Error("mSOL bank info was not found");
+        }
+        SOLBank = extendedBankInfos.find((bank) => bank.tokenName === "SOL");
+        if (!SOLBank) {
+          throw new Error("SOL bank info was not found");
+        }
+
+        await superStake(_marginfiAccount, amountFloat, mSOLBank, SOLBank, reloadBanks);
+        break;
+
+      case "unstake":
+        mSOLBank = extendedBankInfos.find((bank) => bank.tokenName === "mSOL");
+        if (!mSOLBank) {
+          throw new Error("mSOL bank info was not found");
+        }
+        SOLBank = extendedBankInfos.find((bank) => bank.tokenName === "SOL");
+        if (!SOLBank) {
+          throw new Error("SOL bank info was not found");
+        }
+
+        await withdrawSuperstake(_marginfiAccount, amountFloat, mSOLBank, SOLBank, reloadBanks, jupiter);
+        break;
+
+      default:
+        console.log("Invalid action passed to action().");
+        break;
+    }
+  } catch (error: any) {
+    console.log(`Error while performing action '${action}': ${error}`);
+    return false;
+  }
+
+  return true;
+};
+
+export { dispatchMarginfiAction, handlePromptSubmit };
+
+export * from "./types";
+export * from "./superStakeActions";

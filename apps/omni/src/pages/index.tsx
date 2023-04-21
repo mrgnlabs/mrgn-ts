@@ -2,14 +2,12 @@ import React, { FC, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import axios from "axios";
 import { TextField } from "@mui/material";
-
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useBanks, useProgram, useUserAccounts, useJupiterApiContext } from "~/context";
-import { superStake, withdrawSuperstake } from "~/components/superStakeActions";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useBanks, useUserAccounts, useJupiterApiContext } from "~/context";
 import { TypeAnimation } from "react-type-animation";
 import { InputAdornment } from "@mui/material";
 import { FormEventHandler } from "react";
-import { SAMPLE_PROMPTS } from "@mrgnlabs/omni-common";
+import { SAMPLE_PROMPTS, dispatchMarginfiAction } from "@mrgnlabs/omni-common";
 
 const AiUI: FC = () => {
   const [prompt, setPrompt] = useState<string>("");
@@ -19,8 +17,6 @@ const AiUI: FC = () => {
   const [transactionFailed, setTransactionFailed] = useState<boolean>(false);
   const [failed, setFailed] = useState<boolean>(false);
 
-  const { connection } = useConnection();
-  const { mfiClient: marginfiClient } = useProgram();
   const { reload: reloadBanks } = useBanks();
   const wallet = useWallet();
   const jupiter = useJupiterApiContext();
@@ -46,19 +42,29 @@ const AiUI: FC = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post("/api/ai", {
+      const {
+        data: { output: botResponse, error: botError, data: actionDispatchData },
+      } = await axios.post("/api/ai", {
         input: prompt,
         walletPublicKey: wallet.publicKey?.toBase58(),
       });
 
       setThinking(false);
-      setResponse(res.data.output);
-      if (res.data.error) {
+      setResponse(botResponse);
+      if (botError) {
         setFailed(true);
       }
-      if (res.data.data) {
+      if (actionDispatchData) {
         setTransacting(true);
-        const actionSuccess = await action({ ...res.data.data });
+        const actionSuccess = await dispatchMarginfiAction({
+          action: actionDispatchData.action,
+          amount: actionDispatchData.amount,
+          tokenSymbol: actionDispatchData.tokenSymbol,
+          marginfiAccount: selectedAccount,
+          extendedBankInfos,
+          jupiter,
+          reloadBanks,
+        });
         setTransactionFailed(!actionSuccess);
         setTransacting(false);
       }
@@ -67,140 +73,6 @@ const AiUI: FC = () => {
       setResponse("Sorry, I was helping Polygon catch up. Please try again.");
       setFailed(true);
     }
-  };
-
-  // generic functions are now:
-  // deposit()
-  // borrow()
-  // the endpoint needs to return one of these ^
-  const action = async ({
-    action,
-    amount,
-    tokenSymbol,
-  }: {
-    action: string;
-    amount: string;
-    tokenSymbol: string;
-  }): Promise<boolean> => {
-    if (!marginfiClient) return false;
-
-    let _marginfiAccount = selectedAccount;
-
-    // If user does not have a marginfi account, throw an error for now.
-    // @todo If the account doesn't exist and the user is trying to take an action other than deposit,
-    // tell the user in prompt response that they need to deposit first.
-    if (action !== "deposit" && _marginfiAccount === null) {
-      throw new Error("User does not have a marginfi account.");
-    }
-
-    const amountFloat = parseFloat(amount);
-
-    // Types:
-    const bankInfo = extendedBankInfos.find((bank) => bank.tokenName.toUpperCase() === tokenSymbol);
-    if (!bankInfo) {
-      throw new Error(`Bank info was not found, tokenSymbol: ${tokenSymbol} bankInfo: ${bankInfo}`);
-    }
-
-    let mSOLBank;
-    let SOLBank;
-
-    try {
-      switch (action) {
-        case "deposit":
-          // Check if the user has a marginfi account
-          if (_marginfiAccount === null) {
-            try {
-              // If the user does not have a marginfi account, create one for them.
-
-              // First, we double check that we don't have a state management problem.
-              const userAccounts = await marginfiClient.getMarginfiAccountsForAuthority();
-              if (userAccounts.length > 0) {
-                try {
-                  await reloadBanks();
-                } catch (error: any) {
-                  throw new Error(`Error while reloading state: ${error}`);
-                }
-              }
-
-              // If we're all good on state, we create an account
-              _marginfiAccount = await marginfiClient.createMarginfiAccount();
-            } catch (error: any) {
-              throw new Error(`Error while creating marginfi account: ${error}`);
-              break;
-            }
-          }
-
-          console.log("constructing transaction");
-
-          // perform the deposit action
-          await _marginfiAccount.deposit(amountFloat, bankInfo.bank);
-
-          break;
-
-        case "borrow":
-          // perform the borrow action
-          // @ts-ignore marginfi account is checked above
-          await _marginfiAccount.borrow(parseFloat(amount), bankInfo.bank);
-
-          break;
-
-        case "stake":
-          mSOLBank = extendedBankInfos.find((bank) => bank.tokenName === "mSOL");
-          if (!mSOLBank) {
-            throw new Error("mSOL bank info was not found");
-          }
-          SOLBank = extendedBankInfos.find((bank) => bank.tokenName === "SOL");
-          if (!SOLBank) {
-            throw new Error("SOL bank info was not found");
-          }
-
-          await superStake(
-            // @ts-ignore marginfi account is checked above
-            _marginfiAccount,
-            connection,
-            wallet,
-            amountFloat,
-            mSOLBank,
-            SOLBank,
-            reloadBanks
-          );
-
-          break;
-
-        case "unstake":
-          mSOLBank = extendedBankInfos.find((bank) => bank.tokenName === "mSOL");
-          if (!mSOLBank) {
-            throw new Error("mSOL bank info was not found");
-          }
-          SOLBank = extendedBankInfos.find((bank) => bank.tokenName === "SOL");
-          if (!SOLBank) {
-            throw new Error("SOL bank info was not found");
-          }
-
-          await withdrawSuperstake(
-            // @ts-ignore marginfi account is checked above
-            _marginfiAccount,
-            connection,
-            wallet,
-            amountFloat,
-            mSOLBank,
-            SOLBank,
-            reloadBanks,
-            jupiter
-          );
-
-          break;
-
-        default:
-          console.log("Invalid action passed to action().");
-          break;
-      }
-    } catch (error: any) {
-      console.log(`Error while performing action '${action}': ${error}`);
-      return false;
-    }
-
-    return true;
   };
 
   return (
