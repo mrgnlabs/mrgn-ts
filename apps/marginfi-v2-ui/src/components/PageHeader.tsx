@@ -23,7 +23,7 @@ const PageHeaderSwap: FC = () => {
         }
       >
         swap
-        <span className="text-sm h-[48px] pt-[32px] bg-gradient-colors bg-clip-text text-transparent">By Jupiter</span>
+        <span className="text-sm h-[48px] pt-[32px] bg-gradient-colors bg-clip-text text-transparent">Powered by Jupiter</span>
       </div>
     </div>
   );

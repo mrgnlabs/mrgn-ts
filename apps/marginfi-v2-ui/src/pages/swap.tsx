@@ -31,7 +31,7 @@ const JupiterPage = () => {
         <PageHeaderSwap />
         <div className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[48px] gap-12 w-4/5 max-w-[350px]">
           <div>
-          <div className="text-[#fff] text-3xl min-w-[600px] text-center">zero fees. <span className="text-[#DCE85D]">always.</span></div>
+          <div className="text-[#fff] text-3xl min-w-[600px] text-center">Zero fees. <span className="text-[#DCE85D]">Always.</span></div>
           </div>
           <div id="integrated-terminal"></div>
         </div>
