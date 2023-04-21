@@ -74,6 +74,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                       <Component {...pageProps} />
                       <Analytics />
                     </div>
+                    <script src="https://terminal.jup.ag/main-v1.js" data-preload />
                     <ToastContainer position="bottom-left" theme="dark" />
                   </UserAccountsProvider>
                 </TokenAccountsProvider>

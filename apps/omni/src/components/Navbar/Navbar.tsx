@@ -25,17 +25,20 @@ const Navbar: FC = () => {
               <Image src="/marginfi_logo.png" alt="marginfi logo" fill />
             </Link>
             <Link href={"https://omni.marginfi.com"} className="h-full w-1/2 min-w-1/2 max-w-1/2 flex lg:hidden justify-center items-center p-0">
-              <NavbarCenterItem overrideColor="#000" text="omni" link textFormat="text-3xl lowercase" />
+              <NavbarCenterItem text="omni" link textFormat="text-3xl lowercase" />
             </Link>
           </div>
 
           <div className="absolute fixed left-0 right-0 justify-center items-center w-full h-full hidden lg:flex">
-            <div className="h-full w-[20%] flex min-w-fit max-w-[600px] justify-center items-center">
-              <Link href={"https://omni.marginfi.com"} className="h-full w-1/2 min-w-1/2 max-w-1/2 flex justify-center items-center p-0">
-                <NavbarCenterItem overrideColor="#fff" text="omni" link />
+            <div className="h-full w-[28%] flex min-w-fit max-w-[600px] justify-center items-center">
+              <Link href={"https://app.marginfi.com"} className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0">
+                <NavbarCenterItem text="Lend" />
               </Link>
-              <Link href={"https://app.marginfi.com"} className="h-full w-1/2 min-w-1/2 max-w-1/2 flex justify-center items-center p-0">
-                <NavbarCenterItem text="lend" link />
+              <Link href={"https://app.marginfi.com/swap"} className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0">
+                <NavbarCenterItem text="Swap" />
+              </Link>
+              <Link href={"https://omni.marginfi.com"} className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0">
+              <NavbarCenterItem text="Omni"/>
               </Link>
               {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && <AirdropZone />}
             </div>
