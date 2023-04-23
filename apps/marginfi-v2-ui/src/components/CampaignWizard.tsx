@@ -201,6 +201,18 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
       icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/23095.png",
       size: 30,
     },
+    USDT: {
+      icon: "https://cryptologos.cc/logos/tether-usdt-logo.png?v=024",
+      size: 30,
+    },
+    ETH: {
+      icon: "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/ETH_wh.png",
+      size: 30,
+    },
+    WBTC: {
+      icon: "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/WBTC_wh.png",
+      size: 30,
+    }
   };
 
   return (
