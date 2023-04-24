@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { TableCell, TableRow, Tooltip } from "@mui/material";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
@@ -16,10 +17,12 @@ import {
   getAssociatedTokenAddressSync,
 } from "@mrgnlabs/mrgn-common/src/spl";
 import { uiToNative } from "@mrgnlabs/mrgn-common";
+import { percentFormatter } from "~/utils/formatters";
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 const ACCOUNT_DETECTION_ERROR_TOAST_ID = "account-detection-error";
+
 
 const AssetRow: FC<{
   bankInfo: ExtendedBankInfo;
@@ -208,81 +211,90 @@ const AssetRow: FC<{
   }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, marginfiClient, reloadBanks]);
 
   return (
-    <TableRow className="h-full flex justify-between items-center min-h-[78px] sm:h-[78px] flex-col sm:flex-row p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
-      <AssetRowHeader
-        assetName={bankInfo.tokenName}
-        apy={isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate}
-        icon={bankInfo.tokenIcon}
-        isInLendingMode={isInLendingMode}
-      />
-
-      <TableCell className="h-full w-full flex py-1 px-0 mb-5 sm:mb-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
-        <AssetRowMetric
-          longLabel="Current Price"
-          shortLabel="Price"
-          value={
-            bankInfo.tokenPrice >= 0.01
-              ? usdFormatter.format(bankInfo.tokenPrice)
-              : `$${bankInfo.tokenPrice.toExponential(2)}`
+    <TableRow
+      className="h-full w-full"
+    >
+      <TableCell
+        className="text-white p-0 border-none font-aeonik"
+        style={{ fontWeight: 300 }}
+      >
+        <div className="flex px-4 gap-4">
+          {
+            bankInfo.tokenIcon && 
+            <Image
+              src={bankInfo.tokenIcon}
+              alt={bankInfo.tokenName}
+              height={25}
+              width={25}
+            />
           }
-          borderRadius={isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"}
-        />
-        <AssetRowMetric
-          longLabel={isInLendingMode ? "Total Pool Deposits" : "Total Pool Borrows"}
-          shortLabel={isInLendingMode ? "Deposits" : "Borrows"}
-          value={groupedNumberFormatter.format(
-            isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows
-          )}
-          borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
-          usdEquivalentValue={usdFormatter.format(
-            (isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows) * bankInfo.tokenPrice
-          )}
-        />
-        {isConnected && (
-          <AssetRowMetric
-            longLabel={isInLendingMode ? "Wallet Balance" : "Available Liquidity"}
-            shortLabel="Available"
-            value={groupedNumberFormatter.format(
-              isInLendingMode
-                ? bankInfo.tokenMint.equals(WSOL_MINT)
-                  ? bankInfo.tokenBalance + nativeSolBalance
-                  : bankInfo.tokenBalance
-                : bankInfo.availableLiquidity
-            )}
-            borderRadius="0px 10px 10px 0px"
-            usdEquivalentValue={usdFormatter.format(
-              (isInLendingMode
-                ? bankInfo.tokenMint.equals(WSOL_MINT)
-                  ? bankInfo.tokenBalance + nativeSolBalance
-                  : bankInfo.tokenBalance
-                : bankInfo.availableLiquidity) * bankInfo.tokenPrice
-            )}
-          />
-        )}
+          <div className="font-aeonik">{bankInfo.tokenName}</div>
+        </div>
       </TableCell>
 
-      {isConnected && (
-        <TableCell className="py-1 px-0 h-10 border-hidden flex justify-center items-center">
-          <AssetRowInputBox
-            value={borrowOrLendAmount}
-            setValue={setBorrowOrLendAmount}
-            maxValue={maxAmount}
-            maxDecimals={bankInfo.tokenMintDecimals}
-          />
-        </TableCell>
-      )}
+      <TableCell className="text-white border-none px-2 font-aeonik" align="right" style={{ fontWeight: 300 }}>
+        {
+          bankInfo.tokenPrice >= 0.01
+          ? usdFormatter.format(bankInfo.tokenPrice)
+          : `$${bankInfo.tokenPrice.toExponential(2)}`
+        }
+      </TableCell>
 
-      <TableCell className="p-1 h-10 border-hidden flex justify-center items-center my-5 sm:my-0">
-        <div className="h-full w-full">
-          <Tooltip
-            title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
-            placement="top"
-          >
-            <div className="h-full w-full flex justify-center items-center">
-              <AssetRowAction onClick={borrowOrLend}>{currentAction}</AssetRowAction>
-            </div>
-          </Tooltip>
-        </div>
+      <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+        {
+          percentFormatter.format(
+            isInLendingMode ? bankInfo.lendingRate :
+            bankInfo.borrowingRate
+          )
+        }
+      </TableCell>
+
+      <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+        {
+          isInLendingMode ?
+            bankInfo.bank.config.assetWeightInit.toNumber().toFixed(2) + ' / ' + 
+            bankInfo.bank.config.assetWeightMaint.toNumber().toFixed(2)
+          :
+          bankInfo.bank.config.liabilityWeightInit.toNumber().toFixed(2) + ' / ' + 
+          bankInfo.bank.config.liabilityWeightMaint.toNumber().toFixed(2)
+        }
+      </TableCell>
+
+      <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+        {
+          groupedNumberFormatter.format(
+            isInLendingMode ?
+            bankInfo.totalPoolDeposits
+            :
+            bankInfo.availableLiquidity,
+          )
+        }
+      </TableCell>
+
+      <TableCell className="text-white border-none font-aeonik px-2" align="right">
+        {
+          percentFormatter.format(bankInfo.utilizationRate/100)
+        }
+      </TableCell>
+
+      <TableCell className="border-none p-0 w-full" colSpan={2}>
+        <AssetRowInputBox
+          value={borrowOrLendAmount}
+          setValue={setBorrowOrLendAmount}
+          maxValue={maxAmount}
+          maxDecimals={bankInfo.tokenMintDecimals}
+        />
+      </TableCell>
+      
+      <TableCell className="text-white border-none font-aeonik p-0 px-2">
+        <Tooltip
+          title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
+          placement="top"
+        >
+          <div className="h-full w-full flex justify-center items-center">
+            <AssetRowAction onClick={borrowOrLend}>{currentAction}</AssetRowAction>
+          </div>
+        </Tooltip>
       </TableCell>
     </TableRow>
   );
@@ -309,3 +321,116 @@ function getCurrentAction(isLendingMode: boolean, bankInfo: ExtendedBankInfo): A
 }
 
 export { AssetRow };
+
+// isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate
+
+
+// <TableRow className="h-full flex justify-between items-center min-h-[56px] sm:h-[56px] flex-col sm:flex-row p-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
+
+  {/* <TableCell
+    className="text-white h-full w-full border-hidden px-0.5 lg:pr-0 flex justify-center sm:justify-start items-center max-w-[250px] gap-1 min-w-fit"
+  > */}
+    {/* <div className="flex justify-start items-center min-w-fit">
+      {
+        bankInfo.tokenIcon && 
+        <Image 
+          src={bankInfo.tokenIcon} 
+          alt={bankInfo.tokenName} 
+          height={25} 
+          width={25} 
+          className="mr-2" 
+        />}
+      <div>
+        <div className="font-aeonik">{bankInfo.tokenName}</div>
+      </div>
+    </div> */}
+  {/* </TableCell> */}
+
+  {/* <div
+      className={`font-aeonik flex justify-center items-center px-2 ${
+        isInLendingMode ? "text-[#3AFF6C]" : "text-[#EEB9BA]"
+      } ${isInLendingMode ? "bg-[#3aff6c1f]" : "bg-[#db383e4d]"} rounded-xl text-sm`}
+    >
+      {
+        bankInfo.tokenPrice >= 0.01
+        ? usdFormatter.format(bankInfo.tokenPrice)
+        : `$${bankInfo.tokenPrice.toExponential(2)}`
+      }
+    </div> */}
+
+  {/* <AssetRowHeader
+    assetName={bankInfo.tokenName}
+    apy={isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate}
+    icon={bankInfo.tokenIcon}
+    isInLendingMode={isInLendingMode}
+  /> */}
+
+  {/* <TableCell className="h-full w-full flex py-1 px-0 mb-5 sm:mb-0 h-10 border-hidden flex justify-center items-center w-full max-w-[600px] min-w-fit">
+    <AssetRowMetric
+      longLabel="Current Price"
+      shortLabel="Price"
+      value={
+        bankInfo.tokenPrice >= 0.01
+          ? usdFormatter.format(bankInfo.tokenPrice)
+          : `$${bankInfo.tokenPrice.toExponential(2)}`
+      }
+      borderRadius={isConnected ? "10px 0px 0px 10px" : "10px 0px 0px 10px"}
+    />
+    <AssetRowMetric
+      longLabel={isInLendingMode ? "Total Pool Deposits" : "Total Pool Borrows"}
+      shortLabel={isInLendingMode ? "Deposits" : "Borrows"}
+      value={groupedNumberFormatter.format(
+        isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows
+      )}
+      borderRadius={isConnected ? "" : "0px 10px 10px 0px"}
+      usdEquivalentValue={usdFormatter.format(
+        (isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.totalPoolBorrows) * bankInfo.tokenPrice
+      )}
+    />
+    {isConnected && (
+      <AssetRowMetric
+        longLabel={isInLendingMode ? "Wallet Balance" : "Available Liquidity"}
+        shortLabel="Available"
+        value={groupedNumberFormatter.format(
+          isInLendingMode
+            ? bankInfo.tokenMint.equals(WSOL_MINT)
+              ? bankInfo.tokenBalance + nativeSolBalance
+              : bankInfo.tokenBalance
+            : bankInfo.availableLiquidity
+        )}
+        borderRadius="0px 10px 10px 0px"
+        usdEquivalentValue={usdFormatter.format(
+          (isInLendingMode
+            ? bankInfo.tokenMint.equals(WSOL_MINT)
+              ? bankInfo.tokenBalance + nativeSolBalance
+              : bankInfo.tokenBalance
+            : bankInfo.availableLiquidity) * bankInfo.tokenPrice
+        )}
+      />
+    )}
+  </TableCell> */}
+
+  {/* {isConnected && (
+    <TableCell className="py-1 px-0 h-10 border-hidden flex justify-center items-center">
+      <AssetRowInputBox
+        value={borrowOrLendAmount}
+        setValue={setBorrowOrLendAmount}
+        maxValue={maxAmount}
+        maxDecimals={bankInfo.tokenMintDecimals}
+      />
+    </TableCell>
+  )} */}
+
+  {/* <TableCell className="p-1 h-10 border-hidden flex justify-center items-center my-5 sm:my-0">
+    <div className="h-full w-full">
+      <Tooltip
+        title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
+        placement="top"
+      >
+        <div className="h-full w-full flex justify-center items-center">
+          <AssetRowAction onClick={borrowOrLend}>{currentAction}</AssetRowAction>
+        </div>
+      </Tooltip>
+    </div>
+  </TableCell> */}
+// </TableRow>

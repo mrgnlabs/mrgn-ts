@@ -23,14 +23,17 @@ const AssetRowHeader: FC<AssetRowHeader> = ({ assetName, apy, icon, isInLendingM
         <div className="font-aeonik">{assetName}</div>
       </div>
     </div>
-    <div className="font-aeonik px-1 text-sm text-[#868E95] hidden lg:flex">Current APY</div>
-    <div
+    
+    {/* <div className="font-aeonik px-1 text-sm text-[#868E95] hidden lg:flex">Current APY</div> */}
+
+    {/* <div
       className={`font-aeonik flex justify-center items-center px-2 ${
         isInLendingMode ? "text-[#3AFF6C]" : "text-[#EEB9BA]"
       } ${isInLendingMode ? "bg-[#3aff6c1f]" : "bg-[#db383e4d]"} rounded-xl text-sm`}
     >
       {percentFormatter.format(apy)}
-    </div>
+    </div> */}
+
   </TableCell>
 );
 
