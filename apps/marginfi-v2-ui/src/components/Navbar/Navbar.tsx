@@ -29,7 +29,7 @@ const Navbar: FC = () => {
           <div className="absolute fixed left-0 right-0 flex justify-center items-center w-full h-full invisible lg:visible">
             <div className="h-full w-[33%] flex min-w-fit max-w-[600px] justify-center items-center">
               <Link href={"/earn"} className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0">
-                <NavbarCenterItem text="Earn" />
+                <NavbarCenterItem text="Earn!" icon />
               </Link>
               <Link href={"https://app.marginfi.com"} className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0">
                 <NavbarCenterItem text="Lend" />
