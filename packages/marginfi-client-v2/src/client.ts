@@ -26,6 +26,11 @@ import {
   TransactionOptions,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
+import { OraclePriceData, OracleSetup } from "./bank";
+import { parsePriceData } from "@pythnetwork/client";
+import { BigNumber } from "bignumber.js";
+import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS } from "./constants";
+import { AggregatorAccount, SwitchboardProgram } from "@switchboard-xyz/solana.js";
 
 /**
  * Entrypoint to interact with the marginfi contract.
@@ -273,7 +278,7 @@ class MarginfiClient {
     let signature: TransactionSignature = "";
 
     console.log('client.ts');
-    
+
     try {
 
       let versionedTransaction: VersionedTransaction;

@@ -1,9 +1,9 @@
 import { Address, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { parsePriceData } from "@pythnetwork/client";
-import { AccountInfo, Commitment, PublicKey } from "@solana/web3.js";
+import { AccountInfo, Cluster, Commitment, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { Balance, MarginfiAccountData, MarginRequirementType } from "./account";
-import { Bank, BankData } from "./bank";
+import { Bank, BankData, getOraclePriceData } from "./bank";
 import MarginfiClientReadonly from "./clientReadonly";
 import MarginfiGroup from "./group";
 import { MARGINFI_IDL } from "./idl";
@@ -236,19 +236,15 @@ class MarginfiAccountReadonly {
       throw Error(`Failed to fetch banks ${nullAccounts}`);
     }
 
-    const pythAccounts = await this._program.provider.connection.getMultipleAccountsInfo(
-      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
-    );
-
-    const banks = bankAccountsData.map(
-      (bd, index) =>
+    const banks = await Promise.all(bankAccountsData.map(
+      async (bd, index) =>
         new Bank(
           this._config.banks[index].label,
           bankAddresses[index],
           bd as BankData,
-          parsePriceData(pythAccounts[index]!.data)
+          await getOraclePriceData(this._program.provider.connection, (bd as BankData).config.oracleSetup, (bd as BankData).config.oracleKeys)
         )
-    );
+    ));
 
     this._group = MarginfiGroup.fromAccountDataRaw(this._config, this._program, marginfiGroupAi.data, banks);
     this._updateFromAccountData(marginfiAccountData);
