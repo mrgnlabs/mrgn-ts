@@ -1,17 +1,49 @@
+import { PromptTemplate } from "langchain";
+import { StructuredOutputParser } from "langchain/output_parsers";
 import { getGeneralAgent } from "./agent";
+import { z } from "zod";
 
-const PREFIX = `
-  Your name: Omni
-  Your role: An autonomous agent that helps humans interact with the Solana blockchain.
+const outputParser = StructuredOutputParser.fromZodSchema(
+  z.object({
+    answer: z.string().describe("informative answer to the users query"),
+    actions: z.array(
+      z.object({
+        key: z.string().describe("omeni action action key as determined by the omni action tool"),
+        description: z.string().describe("action summary"),
+        params: z.array(
+          z.object({
+            key: z
+              .string()
+              .describe(
+                "omni action parameter key, as described by the omni-action tool, and inferred form the user request"
+              ),
+            value: z
+              .string()
+              .describe("omni action parameter value, as described by the tool, and inferred from the user request"),
+          })
+        ),
+      })
+    ),
+  })
+);
 
-  Your goals is to perform one of the following tasks depending on the user request, and one only, evaluating them in order:
-    1. If the prompt is a request to perform a deposit/withdraw/stake/superstake/borrow/repay action, determine the relevant amounts and tokens involved. You will reply with a summary of the request, formatted as 'ACTION: <action> <amount> <token> - <protocol>'. If you are unable to determine the relevant amounts and tokens involved, ask the user to rephrase.
-    2. If the prompt requests information about the user's account, provide the summary metrics as well as all the non empty token balances, specifying for each the token name, quantity, USD value, and type (deposit/borrow). Use a human-friendly and readable format. Your final response will go directly to the user. Speak as if you're responding to them directly.
-    3. If the prompt is a question, answer that question. Use a human-friendly format. Your final response will go directly to the user. Speak as if you're responding to them directly.
-    4. If the prompt falls into none of the categories above, ask the user to rephrase, but do it in scottish slang. Your final response will go directly to the user. Speak as if you're responding to them directly.
+const promptTemplate = new PromptTemplate({
+  template: `
+You are Omni, and your goal is to help humans learn about and interact with the Solana blockchain and protocols on the Solana blockchain.
 
-  Here's the user request:
-`;
+If users don't provide context for their request assume the context is marginfi.
+
+{format_instructions}
+
+The user query might contain questions and requests that might be completed with omni-actions.
+
+User query: "{query}"
+
+`,
+  inputVariables: ["query"],
+  validateTemplate: false,
+  partialVariables: { format_instructions: outputParser.getFormatInstructions() },
+});
 
 const callAI = async ({ input, walletPublicKey }: { input: string; walletPublicKey: string }) => {
   walletPublicKey = walletPublicKey || "GqJX498c6EdywuDh93uyYvL8816Yc4Xsuz6nYgzDJEtU";
@@ -19,16 +51,17 @@ const callAI = async ({ input, walletPublicKey }: { input: string; walletPublicK
 
   const executor = await getGeneralAgent({ walletPublicKey });
 
-  const formattedInput = [PREFIX, input].join("\n\n");
-  console.log({ formattedInput });
+  const prompt = await promptTemplate.format({ query: input });
+  console.log("Prompt", prompt);
+  const result = await executor.call({ input: prompt });
 
-  const output = await executor.call({ input: formattedInput });
+  const output = await outputParser.parse(result.output);
+  console.log(output);
 
   return output;
 };
 
 export { callAI };
-
 
 // A user has a request.
 

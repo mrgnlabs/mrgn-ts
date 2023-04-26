@@ -6,15 +6,15 @@ class MarginfiGlossary extends Tool {
   description = `
       A tool to help you understand marginfi-specific terms. use this tool ONLY when the user asks about concepts specific to marginfi.
       If the user is asking about something *other* than marginfi (like another protocol), use the omni-qa tool.
-    `
+      If the user is asking vague questions without context assume its about marginfi (for example "Which assets are supported?")
+    `;
 
   constructor() {
     super();
   }
 
   async _call(): Promise<string> {
-
-    console.log('calling marginfi glossary tool');
+    console.log("calling marginfi glossary tool");
 
     const GLOSSARY = `
       Here is a glossary of marginfi-specific terms. Use these to understand the marginfi universe.
