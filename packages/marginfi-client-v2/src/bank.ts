@@ -1,10 +1,12 @@
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Cluster, Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
 import { MarginRequirementType } from "./account";
-import { PYTH_PRICE_CONF_INTERVALS } from "./constants";
+import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS } from "./constants";
 import { parsePriceData, PriceData } from "@pythnetwork/client";
 import { nativeToUi, WrappedI80F48, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
+import { AggregatorAccount, SwitchboardProgram } from "@switchboard-xyz/solana.js";
+import MarginfiClient from "./client";
 
 /**
  * Wrapper class around a specific marginfi group.
@@ -40,9 +42,9 @@ class Bank {
   public totalAssetShares: BigNumber;
   public totalLiabilityShares: BigNumber;
 
-  private priceData: PriceData;
+  private priceData: OraclePriceData;
 
-  constructor(label: string, address: PublicKey, rawData: BankData, priceData: PriceData) {
+  constructor(label: string, address: PublicKey, rawData: BankData, priceData: OraclePriceData) {
     this.label = label;
     this.publicKey = address;
 
@@ -130,8 +132,7 @@ LTVs:
   }
 
   public async reloadPriceData(connection: Connection) {
-    const pythPriceAccount = await connection.getAccountInfo(this.config.oracleKeys[0]);
-    this.priceData = parsePriceData(pythPriceAccount!.data);
+    this.priceData = await getOraclePriceData(connection, this.config.oracleSetup, this.config.oracleKeys);
   }
 
   public getAssetQuantity(assetShares: BigNumber): BigNumber {
@@ -178,20 +179,14 @@ LTVs:
       .dividedBy(scaleToBase ? 10 ** this.mintDecimals : 1);
   }
 
-  public getPrice(priceBias: PriceBias): BigNumber {
-    const basePrice = this.priceData.emaPrice;
-    const confidenceRange = this.priceData.emaConfidence;
-
-    const basePriceVal = new BigNumber(basePrice.value);
-    const confidenceRangeVal = new BigNumber(confidenceRange.value).times(PYTH_PRICE_CONF_INTERVALS);
-
+  public getPrice(priceBias: PriceBias = PriceBias.None): BigNumber {
     switch (priceBias) {
       case PriceBias.Lowest:
-        return basePriceVal.minus(confidenceRangeVal);
+        return this.priceData.lowestPrice;
       case PriceBias.Highest:
-        return basePriceVal.plus(confidenceRangeVal);
+        return this.priceData.highestPrice;
       case PriceBias.None:
-        return basePriceVal;
+        return this.priceData.price;
     }
   }
 
@@ -333,7 +328,17 @@ export interface BankData {
 
 export enum OracleSetup {
   None = 0,
-  Pyth = 1,
+  PythEma = 1,
+  SwitchboardV2 = 2
+}
+
+export function decodeOracleSetup(oracleSetup: object): OracleSetup {
+  switch (Object.keys(oracleSetup)[0]) {
+    case "pyth": return OracleSetup.PythEma;
+    case "pythema": return OracleSetup.PythEma;
+    case "switchboard": return OracleSetup.SwitchboardV2;
+    default: return OracleSetup.None;
+  }
 }
 
 export interface BankConfigData {
@@ -368,4 +373,54 @@ export enum PriceBias {
   Lowest = 0,
   None = 1,
   Highest = 2,
+}
+
+export interface OraclePriceData {
+  price: BigNumber;
+  confidenceInterval: BigNumber;
+  lowestPrice: BigNumber;
+  highestPrice: BigNumber;
+}
+
+export async function getOraclePriceData(connection: Connection, oracleSetup: OracleSetup, oracleKeys: PublicKey[]): Promise<OraclePriceData> {
+  const oracleType = decodeOracleSetup(oracleSetup as any);
+  switch (oracleType) {
+    case OracleSetup.PythEma:
+      const accounts = await connection.getMultipleAccountsInfo(oracleKeys);
+      const pythPriceData = parsePriceData(accounts[0]!.data);
+
+      const pythPrice = new BigNumber(pythPriceData.emaPrice.value);
+      const pythConfInterval = new BigNumber(pythPriceData.emaConfidence.value);
+      const pythLowestPrice = pythPrice.minus(pythConfInterval.times(PYTH_PRICE_CONF_INTERVALS));
+      const pythHighestPrice = pythPrice.plus(pythConfInterval.times(PYTH_PRICE_CONF_INTERVALS));
+
+      return {
+        price: pythPrice,
+        confidenceInterval: pythConfInterval,
+        lowestPrice: pythLowestPrice,
+        highestPrice: pythHighestPrice
+      };
+
+    case OracleSetup.SwitchboardV2:
+      const swbProgram = await SwitchboardProgram.load("mainnet-beta", connection);
+      const aggAccount = new AggregatorAccount(swbProgram, oracleKeys[0]);
+
+      const aggData = await aggAccount.loadData();
+      const swbPrice = new BigNumber(AggregatorAccount.decodeLatestValue(aggData)!.toString());
+      const swbConfidence = new BigNumber(aggData.latestConfirmedRound.stdDeviation.toBig().toString());
+
+      const swbLowestPrice = swbPrice.minus(swbConfidence.times(SWB_PRICE_CONF_INTERVALS));
+      const swbHighestPrice = swbPrice.plus(swbConfidence.times(SWB_PRICE_CONF_INTERVALS));
+
+      return {
+        price: swbPrice,
+        confidenceInterval: swbConfidence,
+        lowestPrice: swbLowestPrice,
+        highestPrice: swbHighestPrice,
+      };
+
+    default:
+      console.log("Invalid oracle setup", oracleSetup);
+      throw new Error(`Invalid oracle setup "${oracleSetup}"`);
+  }
 }

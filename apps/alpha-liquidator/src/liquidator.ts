@@ -19,7 +19,7 @@ const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(0.1);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const MIN_SOL_BALANCE = env_config.MIN_SOL_BALANCE * LAMPORTS_PER_SOL;
-const SLIPPAGE_BPS = 250;
+const SLIPPAGE_BPS = 10000;
 
 function getDebugLogger(context: string) {
   return require("debug")(`mfi:liquidator:${context}`);
@@ -34,7 +34,7 @@ class Liquidator {
     readonly jupiter: Jupiter,
     readonly account_whitelist: PublicKey[] | undefined,
     readonly account_blacklist: PublicKey[] | undefined
-  ) {}
+  ) { }
 
   get group() {
     return this.client.group;
@@ -267,10 +267,10 @@ class Liquidator {
     const nativeAmount = nativeToUi(
       mint.equals(NATIVE_MINT)
         ? Math.max(
-            (await this.connection.getBalance(this.wallet.publicKey)) -
-              (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
-            0
-          )
+          (await this.connection.getBalance(this.wallet.publicKey)) -
+          (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
+          0
+        )
         : 0,
       9
     );

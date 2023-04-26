@@ -1457,7 +1457,10 @@
             "name": "None"
           },
           {
-            "name": "Pyth"
+            "name": "PythEma"
+          },
+          {
+            "name": "SwitchboardV2"
           }
         ]
       }
