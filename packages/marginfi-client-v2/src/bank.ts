@@ -386,8 +386,8 @@ export async function getOraclePriceData(connection: Connection, oracleSetup: Or
   const oracleType = decodeOracleSetup(oracleSetup as any);
   switch (oracleType) {
     case OracleSetup.PythEma:
-      const accounts = await connection.getMultipleAccountsInfo(oracleKeys);
-      const pythPriceData = parsePriceData(accounts[0]!.data);
+      const account = await connection.getAccountInfo(oracleKeys[0]!);
+      const pythPriceData = parsePriceData(account!.data);
 
       const pythPrice = new BigNumber(pythPriceData.emaPrice.value);
       const pythConfInterval = new BigNumber(pythPriceData.emaConfidence.value);
