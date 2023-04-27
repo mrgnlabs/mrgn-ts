@@ -225,27 +225,19 @@ class MarginfiAccountReadonly {
         `Marginfi account tied to group ${marginfiAccountData.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`
       );
 
-    const bankAddresses = this._config.banks.map((b) => b.address);
-    let bankAccountsData = await this._program.account.bank.fetchMultiple(bankAddresses);
-
-    let nullAccounts = [];
-    for (let i = 0; i < bankAccountsData.length; i++) {
-      if (bankAccountsData[i] === null) nullAccounts.push(bankAddresses[i]);
-    }
-    if (nullAccounts.length > 0) {
-      throw Error(`Failed to fetch banks ${nullAccounts}`);
-    }
+    const bankAccountsData = (await this._program.account.bank.all([{ memcmp: { offset: 8 + 32 + 1, bytes: this._config.groupPk.toBase58() } }]));
 
     const banks = await Promise.all(bankAccountsData.map(
-      async (bd, index) =>
-        new Bank(
-          this._config.banks[index].label,
-          bankAddresses[index],
-          bd as BankData,
-          await getOraclePriceData(this._program.provider.connection, (bd as BankData).config.oracleSetup, (bd as BankData).config.oracleKeys)
+      async accountData => {
+        let bankData = accountData.account as any as BankData;
+        return new Bank(
+          this._config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
+          accountData.publicKey,
+          bankData,
+          await getOraclePriceData(this._program.provider.connection, bankData.config.oracleSetup, bankData.config.oracleKeys)
         )
+      }
     ));
-
     this._group = MarginfiGroup.fromAccountDataRaw(this._config, this._program, marginfiGroupAi.data, banks);
     this._updateFromAccountData(marginfiAccountData);
   }
