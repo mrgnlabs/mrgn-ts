@@ -97,5 +97,16 @@
     "extensions": {
       "coingeckoId": ""
     }
+  },
+  {
+    "address": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+    "chainId": 101,
+    "decimals": 9,
+    "name": "Jito Staked SOL",
+    "symbol": "JitoSOL",
+    "logoURI": "https://storage.googleapis.com/token-metadata/JitoSOL-256.png",
+    "extensions": {
+      "coingeckoId": ""
+    }
   }
 ]
