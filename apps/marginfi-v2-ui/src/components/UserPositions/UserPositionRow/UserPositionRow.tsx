@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
 import { TableCell, TableRow } from "@mui/material";
 import { FC, useCallback, useMemo, useState } from "react";
@@ -99,20 +100,41 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
   ]);
 
   return (
-    <TableRow className="font-aeonik w-full h-full flex justify-between items-center h-[78px] py-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4">
-      <UserPositionRowHeader assetName={activeBankInfo.tokenName} icon={activeBankInfo.tokenIcon} />
-      <TableCell className="font-aeonik font-light w-full h-10 flex flex-row justify-between items-center m-0 py-1 px-0 text-white text-sm border-solid border-b-black border-b-[#00000000]">
-        <div className="bg-transparent max-w-[200px] min-w-fit flex flex-col justify-evenly p-1 px-3">
-          <div className=" text-sm text-[#868E95] min-w-[118px]">
-            {position.isLending ? "Amount Lending" : "Amount Borrowing"}
-          </div>
-          <div className="font-normal text-sm text-white flex flex-row gap-1">
-            {groupedNumberFormatter.format(position.amount)}
-            <div className="text-[#868E95] font-light px-1 hidden lg:flex justify-center items-center text-xs rounded bg-usd-equiv">
-              {usdFormatter.format(position.usdValue)}
-            </div>
-          </div>
+    <TableRow
+      // className="font-aeonik w-full h-full flex justify-between items-center h-[78px] py-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4"
+      className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl"
+    >
+      <TableCell
+        className="text-white p-0 border-none font-aeonik"
+        style={{ fontWeight: 300 }}
+      >
+        <div className="flex px-4 gap-4">
+          {
+            activeBankInfo.tokenIcon && 
+            <Image
+              src={activeBankInfo.tokenIcon}
+              alt={activeBankInfo.tokenName}
+              height={25}
+              width={25}
+            />
+          }
+          <div className="font-aeonik">{activeBankInfo.tokenName}</div>
         </div>
+      </TableCell>
+
+      <TableCell className="text-white border-none px-2 font-aeonik" align="right" style={{ fontWeight: 300 }}>
+        {
+          groupedNumberFormatter.format(position.amount)
+        }
+      </TableCell>
+
+      <TableCell className="text-white border-none px-2 font-aeonik" align="right" style={{ fontWeight: 300 }}>
+        {
+          usdFormatter.format(position.usdValue)
+        }
+      </TableCell>
+
+      <TableCell className="border-none p-0 w-full" colSpan={2}>
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
@@ -121,10 +143,12 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         />
       </TableCell>
 
-      <TableCell className="flex p-0 pr-[10px] h-full justify-end items-center sm:flex border-solid border-b-black border-b-[#00000000]">
-        <UserPositionRowAction onClick={withdrawOrRepay}>
-          {position.isLending ? "Withdraw" : "Repay"}
-        </UserPositionRowAction>
+      <TableCell className="text-white border-none font-aeonik p-0 px-2">
+          <div className="h-full w-full flex justify-center items-center">
+            <UserPositionRowAction onClick={withdrawOrRepay}>
+              {position.isLending ? "Withdraw" : "Repay"}
+            </UserPositionRowAction>
+          </div>
       </TableCell>
     </TableRow>
   );

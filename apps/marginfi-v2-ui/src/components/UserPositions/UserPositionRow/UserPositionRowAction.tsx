@@ -8,10 +8,14 @@ interface UserPositionRowActionProps extends ButtonProps {
 const UserPositionRowAction: FC<UserPositionRowActionProps> = ({ children, ...otherProps }) => {
   return (
     <Button
-      className={`font-aeonik ${
-        otherProps.disabled ? "bg-gray" : "bg-btn-light"
-      } text-black normal-case text-sm sm:mx-0 w-28 sm:w-30 h-10 max-w-1 rounded-[100px]`}
-      {...otherProps}
+      className="bg-white text-black normal-case text-sm mx-2 sm:mx-0 w-28 sm:w-32 h-11 max-w-1 rounded-md"
+      style={{
+        backgroundColor: otherProps.disabled ? "gray" : "rgb(227, 227, 227)",
+        color: "black",
+        fontWeight: 400,
+        fontFamily: "Aeonik Pro",
+        zIndex: 10,
+      }}
     >
       {children}
     </Button>
