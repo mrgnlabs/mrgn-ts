@@ -64,8 +64,19 @@ class MarginfiGroup {
 
     const accountData = await MarginfiGroup._fetchAccountData(config, program, commitment);
 
+    console.log("Config", config);
     const bankAddresses = config.banks.map((b) => b.address);
-    let bankAccountsData = (await program.account.bank.all([{ memcmp: { offset: 8 + 32 + 1, bytes: config.groupPk.toBase58() } }]));
+    // let bankAccountsData = (await program.account.bank.all([{ memcmp: { offset: 8 + 32 + 1, bytes: config.groupPk.toBase58() } }]));
+
+    for (let b of bankAddresses) {
+      console.log("Bank %s", b.toBase58())
+
+      const data = await program.account.bank.fetch(b);
+    }
+
+    console.log("Done")
+
+    const bankAccountsData = await program.account.bank.all();
 
     let nullAccounts = [];
     for (let i = 0; i < bankAccountsData.length; i++) {

@@ -1,3295 +1,4515 @@
 export type Marginfi = {
-  version: "0.1.0";
-  name: "marginfi";
-  instructions: [
+  "version": "0.1.0",
+  "name": "marginfi",
+  "instructions": [
     {
-      name: "marginfiGroupInitialize";
-      accounts: [
+      "name": "marginfiGroupInitialize",
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: true;
-          isSigner: true;
+          "name": "marginfiGroup",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          name: "admin";
-          isMut: true;
-          isSigner: true;
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [];
+      ],
+      "args": []
     },
     {
-      name: "marginfiGroupConfigure";
-      accounts: [
+      "name": "marginfiGroupConfigure",
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: true;
-          isSigner: false;
+          "name": "marginfiGroup",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "admin";
-          isMut: false;
-          isSigner: true;
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "config";
-          type: {
-            defined: "GroupConfig";
-          };
+          "name": "config",
+          "type": {
+            "defined": "GroupConfig"
+          }
         }
-      ];
+      ]
     },
     {
-      name: "lendingPoolAddBank";
-      accounts: [
+      "name": "lendingPoolAddBank",
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: false;
-          isSigner: false;
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "admin";
-          isMut: true;
-          isSigner: true;
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          name: "bankMint";
-          isMut: false;
-          isSigner: false;
+          "name": "bankMint",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "bank";
-          isMut: true;
-          isSigner: true;
+          "name": "bank",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          name: "liquidityVaultAuthority";
-          isMut: false;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "liquidityVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault_auth";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault_auth"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "liquidityVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "liquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "insuranceVaultAuthority";
-          isMut: false;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "insuranceVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "insurance_vault_auth";
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault_auth"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "insuranceVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "insuranceVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "insurance_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "feeVaultAuthority";
-          isMut: false;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "feeVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "fee_vault_auth";
+                "kind": "const",
+                "type": "string",
+                "value": "fee_vault_auth"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "feeVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "feeVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "fee_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "fee_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "rent";
-          isMut: false;
-          isSigner: false;
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "bankConfig";
-          type: {
-            defined: "BankConfig";
-          };
+          "name": "bankConfig",
+          "type": {
+            "defined": "BankConfig"
+          }
         }
-      ];
+      ]
     },
     {
-      name: "lendingPoolConfigureBank";
-      accounts: [
+      "name": "lendingPoolConfigureBank",
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: false;
-          isSigner: false;
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "admin";
-          isMut: false;
-          isSigner: true;
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "bank";
-          isMut: true;
-          isSigner: false;
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "bankConfigOpt";
-          type: {
-            defined: "BankConfigOpt";
-          };
+          "name": "bankConfigOpt",
+          "type": {
+            "defined": "BankConfigOpt"
+          }
         }
-      ];
+      ]
     },
     {
-      name: "lendingPoolHandleBankruptcy";
-      docs: ["Handle bad debt of a bankrupt marginfi account for a given bank."];
-      accounts: [
+      "name": "lendingPoolHandleBankruptcy",
+      "docs": [
+        "Handle bad debt of a bankrupt marginfi account for a given bank."
+      ],
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: false;
-          isSigner: false;
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "admin";
-          isMut: false;
-          isSigner: true;
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "bank";
-          isMut: true;
-          isSigner: false;
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "marginfiAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "liquidityVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "liquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "insuranceVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "insuranceVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "insurance_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "insuranceVaultAuthority";
-          isMut: false;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "insuranceVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "insurance_vault_auth";
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault_auth"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [];
+      ],
+      "args": []
     },
     {
-      name: "marginfiAccountInitialize";
-      docs: ["Initialize a marginfi account for a given group"];
-      accounts: [
+      "name": "marginfiAccountInitialize",
+      "docs": [
+        "Initialize a marginfi account for a given group"
+      ],
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: false;
-          isSigner: false;
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "marginfiAccount";
-          isMut: true;
-          isSigner: true;
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          name: "authority";
-          isMut: false;
-          isSigner: true;
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "feePayer";
-          isMut: true;
-          isSigner: true;
+          "name": "feePayer",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [];
+      ],
+      "args": []
     },
     {
-      name: "lendingAccountDeposit";
-      accounts: [
+      "name": "lendingAccountDeposit",
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: false;
-          isSigner: false;
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "marginfiAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signer";
-          isMut: false;
-          isSigner: true;
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "bank";
-          isMut: true;
-          isSigner: false;
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signerTokenAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "signerTokenAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "bankLiquidityVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "amount";
-          type: "u64";
+          "name": "amount",
+          "type": "u64"
         }
-      ];
+      ]
     },
     {
-      name: "lendingAccountRepay";
-      accounts: [
+      "name": "lendingAccountRepay",
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: false;
-          isSigner: false;
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "marginfiAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signer";
-          isMut: false;
-          isSigner: true;
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "bank";
-          isMut: true;
-          isSigner: false;
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signerTokenAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "signerTokenAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "bankLiquidityVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "amount";
-          type: "u64";
+          "name": "amount",
+          "type": "u64"
         },
         {
-          name: "repayAll";
-          type: {
-            option: "bool";
-          };
+          "name": "repayAll",
+          "type": {
+            "option": "bool"
+          }
         }
-      ];
+      ]
     },
     {
-      name: "lendingAccountWithdraw";
-      accounts: [
+      "name": "lendingAccountWithdraw",
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: false;
-          isSigner: false;
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "marginfiAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signer";
-          isMut: false;
-          isSigner: true;
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "bank";
-          isMut: true;
-          isSigner: false;
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "destinationTokenAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "destinationTokenAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "bankLiquidityVaultAuthority";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVaultAuthority",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault_auth";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault_auth"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "bankLiquidityVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "amount";
-          type: "u64";
+          "name": "amount",
+          "type": "u64"
         },
         {
-          name: "withdrawAll";
-          type: {
-            option: "bool";
-          };
+          "name": "withdrawAll",
+          "type": {
+            "option": "bool"
+          }
         }
-      ];
+      ]
     },
     {
-      name: "lendingAccountBorrow";
-      accounts: [
+      "name": "lendingAccountBorrow",
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: false;
-          isSigner: false;
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "marginfiAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signer";
-          isMut: false;
-          isSigner: true;
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "bank";
-          isMut: true;
-          isSigner: false;
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "destinationTokenAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "destinationTokenAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "bankLiquidityVaultAuthority";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVaultAuthority",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault_auth";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault_auth"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "bankLiquidityVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "amount";
-          type: "u64";
+          "name": "amount",
+          "type": "u64"
         }
-      ];
+      ]
     },
     {
-      name: "lendingAccountLiquidate";
-      docs: ["Liquidate a lending account balance of an unhealthy marginfi account"];
-      accounts: [
+      "name": "lendingAccountLiquidate",
+      "docs": [
+        "Liquidate a lending account balance of an unhealthy marginfi account"
+      ],
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: false;
-          isSigner: false;
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "assetBank";
-          isMut: true;
-          isSigner: false;
+          "name": "assetBank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "liabBank";
-          isMut: true;
-          isSigner: false;
+          "name": "liabBank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "liquidatorMarginfiAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "liquidatorMarginfiAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signer";
-          isMut: false;
-          isSigner: true;
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "liquidateeMarginfiAccount";
-          isMut: true;
-          isSigner: false;
+          "name": "liquidateeMarginfiAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "bankLiquidityVaultAuthority";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVaultAuthority",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault_auth";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault_auth"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "liab_bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "liab_bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "bankLiquidityVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "liab_bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "liab_bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "bankInsuranceVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "bankInsuranceVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "insurance_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "liab_bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "liab_bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [
+      ],
+      "args": [
         {
-          name: "assetAmount";
-          type: "u64";
+          "name": "assetAmount",
+          "type": "u64"
         }
-      ];
+      ]
     },
     {
-      name: "lendingPoolAccrueBankInterest";
-      accounts: [
+      "name": "lendingPoolAccrueBankInterest",
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: false;
-          isSigner: false;
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "bank";
-          isMut: true;
-          isSigner: false;
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         }
-      ];
-      args: [];
+      ],
+      "args": []
     },
     {
-      name: "lendingPoolCollectBankFees";
-      accounts: [
+      "name": "lendingPoolCollectBankFees",
+      "accounts": [
         {
-          name: "marginfiGroup";
-          isMut: false;
-          isSigner: false;
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "bank";
-          isMut: true;
-          isSigner: false;
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "liquidityVaultAuthority";
-          isMut: false;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "liquidityVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault_auth";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault_auth"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "liquidityVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "liquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "liquidity_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "insuranceVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "insuranceVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "insurance_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "feeVault";
-          isMut: true;
-          isSigner: false;
-          pda: {
-            seeds: [
+          "name": "feeVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const";
-                type: "string";
-                value: "fee_vault";
+                "kind": "const",
+                "type": "string",
+                "value": "fee_vault"
               },
               {
-                kind: "account";
-                type: "publicKey";
-                path: "bank";
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
               }
-            ];
-          };
+            ]
+          }
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         }
-      ];
-      args: [];
+      ],
+      "args": []
     }
-  ];
-  accounts: [
+  ],
+  "accounts": [
     {
-      name: "marginfiAccount";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "marginfiAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "group";
-            type: "publicKey";
+            "name": "group",
+            "type": "publicKey"
           },
           {
-            name: "authority";
-            type: "publicKey";
+            "name": "authority",
+            "type": "publicKey"
           },
           {
-            name: "lendingAccount";
-            type: {
-              defined: "LendingAccount";
-            };
+            "name": "lendingAccount",
+            "type": {
+              "defined": "LendingAccount"
+            }
           },
           {
-            name: "padding";
-            type: {
-              array: ["u64", 64];
-            };
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                64
+              ]
+            }
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "marginfiGroup";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "marginfiGroup",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "admin";
-            type: "publicKey";
+            "name": "admin",
+            "type": "publicKey"
           },
           {
-            name: "padding0";
-            type: {
-              array: ["u128", 32];
-            };
+            "name": "padding0",
+            "type": {
+              "array": [
+                "u128",
+                32
+              ]
+            }
           },
           {
-            name: "padding1";
-            type: {
-              array: ["u128", 32];
-            };
+            "name": "padding1",
+            "type": {
+              "array": [
+                "u128",
+                32
+              ]
+            }
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "bank";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "bank",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "mint";
-            type: "publicKey";
+            "name": "mint",
+            "type": "publicKey"
           },
           {
-            name: "mintDecimals";
-            type: "u8";
+            "name": "mintDecimals",
+            "type": "u8"
           },
           {
-            name: "group";
-            type: "publicKey";
+            "name": "group",
+            "type": "publicKey"
           },
           {
-            name: "ignore1";
-            type: {
-              array: ["u8", 7];
-            };
+            "name": "assetShareValue",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "assetShareValue";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "liabilityShareValue",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "liabilityShareValue";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "liquidityVault",
+            "type": "publicKey"
           },
           {
-            name: "liquidityVault";
-            type: "publicKey";
+            "name": "liquidityVaultBump",
+            "type": "u8"
           },
           {
-            name: "liquidityVaultBump";
-            type: "u8";
+            "name": "liquidityVaultAuthorityBump",
+            "type": "u8"
           },
           {
-            name: "liquidityVaultAuthorityBump";
-            type: "u8";
+            "name": "insuranceVault",
+            "type": "publicKey"
           },
           {
-            name: "insuranceVault";
-            type: "publicKey";
+            "name": "insuranceVaultBump",
+            "type": "u8"
           },
           {
-            name: "insuranceVaultBump";
-            type: "u8";
+            "name": "insuranceVaultAuthorityBump",
+            "type": "u8"
           },
           {
-            name: "insuranceVaultAuthorityBump";
-            type: "u8";
+            "name": "collectedInsuranceFeesOutstanding",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "ignore2";
-            type: {
-              array: ["u8", 4];
-            };
+            "name": "feeVault",
+            "type": "publicKey"
           },
           {
-            name: "collectedInsuranceFeesOutstanding";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "feeVaultBump",
+            "type": "u8"
           },
           {
-            name: "feeVault";
-            type: "publicKey";
+            "name": "feeVaultAuthorityBump",
+            "type": "u8"
           },
           {
-            name: "feeVaultBump";
-            type: "u8";
+            "name": "collectedGroupFeesOutstanding",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "feeVaultAuthorityBump";
-            type: "u8";
+            "name": "totalLiabilityShares",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "ignore3";
-            type: {
-              array: ["u8", 6];
-            };
+            "name": "totalAssetShares",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "collectedGroupFeesOutstanding";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "lastUpdate",
+            "type": "i64"
           },
           {
-            name: "totalLiabilityShares";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "config",
+            "type": {
+              "defined": "BankConfig"
+            }
           },
           {
-            name: "totalAssetShares";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "padding0",
+            "type": {
+              "array": [
+                "u128",
+                32
+              ]
+            }
           },
           {
-            name: "lastUpdate";
-            type: "i64";
-          },
-          {
-            name: "config";
-            type: {
-              defined: "BankConfig";
-            };
-          },
-          {
-            name: "padding0";
-            type: {
-              array: ["u128", 32];
-            };
-          },
-          {
-            name: "padding1";
-            type: {
-              array: ["u128", 32];
-            };
+            "name": "padding1",
+            "type": {
+              "array": [
+                "u128",
+                32
+              ]
+            }
           }
-        ];
-      };
+        ]
+      }
     }
-  ];
-  types: [
+  ],
+  "types": [
     {
-      name: "LendingAccount";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "GroupEventHeader",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "balances";
-            type: {
-              array: [
+            "name": "signer",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "marginfiGroup",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AccountEventHeader",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "signer",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "marginfiAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "marginfiAccountAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "marginfiGroup",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LiquidationBalances",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "liquidateeAssetBalance",
+            "type": "f64"
+          },
+          {
+            "name": "liquidateeLiabilityBalance",
+            "type": "f64"
+          },
+          {
+            "name": "liquidatorAssetBalance",
+            "type": "f64"
+          },
+          {
+            "name": "liquidatorLiabilityBalance",
+            "type": "f64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LendingAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "balances",
+            "type": {
+              "array": [
                 {
-                  defined: "Balance";
+                  "defined": "Balance"
                 },
                 16
-              ];
-            };
+              ]
+            }
           },
           {
-            name: "padding";
-            type: {
-              array: ["u64", 8];
-            };
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                8
+              ]
+            }
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "Balance";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "Balance",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "active";
-            type: "bool";
+            "name": "active",
+            "type": "bool"
           },
           {
-            name: "bankPk";
-            type: "publicKey";
+            "name": "bankPk",
+            "type": "publicKey"
           },
           {
-            name: "ignore";
-            type: {
-              array: ["u8", 7];
-            };
+            "name": "assetShares",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "assetShares";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "liabilityShares",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "liabilityShares";
-            type: {
-              defined: "WrappedI80F48";
-            };
-          },
-          {
-            name: "padding";
-            type: {
-              array: ["u64", 4];
-            };
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                4
+              ]
+            }
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "GroupConfig";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "GroupConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "admin";
-            type: {
-              option: "publicKey";
-            };
+            "name": "admin",
+            "type": {
+              "option": "publicKey"
+            }
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "InterestRateConfig";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "InterestRateConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "optimalUtilizationRate";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "optimalUtilizationRate",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "plateauInterestRate";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "plateauInterestRate",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "maxInterestRate";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "maxInterestRate",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "insuranceFeeFixedApr";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "insuranceFeeFixedApr",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "insuranceIrFee";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "insuranceIrFee",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "protocolFixedFeeApr";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "protocolFixedFeeApr",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "protocolIrFee";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "protocolIrFee",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "padding";
-            type: {
-              array: ["u128", 8];
-            };
+            "name": "padding",
+            "type": {
+              "array": [
+                "u128",
+                8
+              ]
+            }
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "BankConfig";
-      docs: ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"];
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "InterestRateConfigOpt",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "assetWeightInit";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "optimalUtilizationRate",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "assetWeightMaint";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "plateauInterestRate",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "liabilityWeightInit";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "maxInterestRate",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "liabilityWeightMaint";
-            type: {
-              defined: "WrappedI80F48";
-            };
+            "name": "insuranceFeeFixedApr",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "maxCapacity";
-            type: "u64";
+            "name": "insuranceIrFee",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "interestRateConfig";
-            type: {
-              defined: "InterestRateConfig";
-            };
+            "name": "protocolFixedFeeApr",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "operationalState";
-            type: {
-              defined: "BankOperationalState";
-            };
-          },
-          {
-            name: "oracleSetup";
-            type: {
-              defined: "OracleSetup";
-            };
-          },
-          {
-            name: "oracleKeys";
-            type: {
-              array: ["publicKey", 5];
-            };
-          },
-          {
-            name: "ignore";
-            type: {
-              array: ["u8", 6];
-            };
-          },
-          {
-            name: "padding";
-            type: {
-              array: ["u128", 4];
-            };
+            "name": "protocolIrFee",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "WrappedI80F48";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "BankConfig",
+      "docs": [
+        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "value";
-            type: "i128";
+            "name": "assetWeightInit",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "assetWeightMaint",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "liabilityWeightInit",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "liabilityWeightMaint",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "depositLimit",
+            "type": "u64"
+          },
+          {
+            "name": "interestRateConfig",
+            "type": {
+              "defined": "InterestRateConfig"
+            }
+          },
+          {
+            "name": "operationalState",
+            "type": {
+              "defined": "BankOperationalState"
+            }
+          },
+          {
+            "name": "oracleSetup",
+            "type": {
+              "defined": "OracleSetup"
+            }
+          },
+          {
+            "name": "oracleKeys",
+            "type": {
+              "array": [
+                "publicKey",
+                5
+              ]
+            }
+          },
+          {
+            "name": "borrowLimit",
+            "type": "u64"
+          },
+          {
+            "name": "riskTier",
+            "type": {
+              "defined": "RiskTier"
+            }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                6
+              ]
+            }
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "BankConfigOpt";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "WrappedI80F48",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "assetWeightInit";
-            type: {
-              option: {
-                defined: "WrappedI80F48";
-              };
-            };
-          },
-          {
-            name: "assetWeightMaint";
-            type: {
-              option: {
-                defined: "WrappedI80F48";
-              };
-            };
-          },
-          {
-            name: "liabilityWeightInit";
-            type: {
-              option: {
-                defined: "WrappedI80F48";
-              };
-            };
-          },
-          {
-            name: "liabilityWeightMaint";
-            type: {
-              option: {
-                defined: "WrappedI80F48";
-              };
-            };
-          },
-          {
-            name: "maxCapacity";
-            type: {
-              option: "u64";
-            };
-          },
-          {
-            name: "operationalState";
-            type: {
-              option: {
-                defined: "BankOperationalState";
-              };
-            };
-          },
-          {
-            name: "oracle";
-            type: {
-              option: {
-                defined: "OracleConfig";
-              };
-            };
-          },
-          {
-            name: "ignore";
-            type: {
-              array: ["u8", 6];
-            };
+            "name": "value",
+            "type": "i128"
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "OracleConfig";
-      type: {
-        kind: "struct";
-        fields: [
+      "name": "BankConfigOpt",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "setup";
-            type: {
-              defined: "OracleSetup";
-            };
+            "name": "assetWeightInit",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "keys";
-            type: {
-              array: ["publicKey", 5];
-            };
+            "name": "assetWeightMaint",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "liabilityWeightInit",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "liabilityWeightMaint",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "depositLimit",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "borrowLimit",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "operationalState",
+            "type": {
+              "option": {
+                "defined": "BankOperationalState"
+              }
+            }
+          },
+          {
+            "name": "oracle",
+            "type": {
+              "option": {
+                "defined": "OracleConfig"
+              }
+            }
+          },
+          {
+            "name": "interestRateConfig",
+            "type": {
+              "option": {
+                "defined": "InterestRateConfigOpt"
+              }
+            }
+          },
+          {
+            "name": "riskTier",
+            "type": {
+              "option": {
+                "defined": "RiskTier"
+              }
+            }
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "BalanceIncreaseType";
-      type: {
-        kind: "enum";
-        variants: [
+      "name": "OracleConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "Any";
+            "name": "setup",
+            "type": {
+              "defined": "OracleSetup"
+            }
           },
           {
-            name: "RepayOnly";
-          },
-          {
-            name: "DepositOnly";
+            "name": "keys",
+            "type": {
+              "array": [
+                "publicKey",
+                5
+              ]
+            }
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "BalanceDecreaseType";
-      type: {
-        kind: "enum";
-        variants: [
+      "name": "BalanceIncreaseType",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Any";
+            "name": "Any"
           },
           {
-            name: "WithdrawOnly";
+            "name": "RepayOnly"
           },
           {
-            name: "BorrowOnly";
+            "name": "DepositOnly"
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "WeightType";
-      type: {
-        kind: "enum";
-        variants: [
+      "name": "BalanceDecreaseType",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Initial";
+            "name": "Any"
           },
           {
-            name: "Maintenance";
+            "name": "WithdrawOnly"
+          },
+          {
+            "name": "BorrowOnly"
+          },
+          {
+            "name": "BypassBorrowLimit"
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "BalanceSide";
-      type: {
-        kind: "enum";
-        variants: [
+      "name": "WeightType",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Assets";
+            "name": "Initial"
           },
           {
-            name: "Liabilities";
+            "name": "Maintenance"
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "RiskRequirementType";
-      type: {
-        kind: "enum";
-        variants: [
+      "name": "BalanceSide",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Initial";
+            "name": "Assets"
           },
           {
-            name: "Maintenance";
+            "name": "Liabilities"
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "BankOperationalState";
-      type: {
-        kind: "enum";
-        variants: [
+      "name": "RiskRequirementType",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Paused";
+            "name": "Initial"
           },
           {
-            name: "Operational";
-          },
-          {
-            name: "ReduceOnly";
+            "name": "Maintenance"
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "OracleSetup";
-      type: {
-        kind: "enum";
-        variants: [
+      "name": "BankOperationalState",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "None";
+            "name": "Paused"
           },
           {
-            name: "Pyth";
+            "name": "Operational"
+          },
+          {
+            "name": "ReduceOnly"
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "OracleKey";
-      type: {
-        kind: "enum";
-        variants: [
+      "name": "RiskTier",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Pyth";
-            fields: ["publicKey"];
+            "name": "Collateral"
+          },
+          {
+            "name": "Isolated"
           }
-        ];
-      };
+        ]
+      }
     },
     {
-      name: "BankVaultType";
-      type: {
-        kind: "enum";
-        variants: [
+      "name": "BankVaultType",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Liquidity";
+            "name": "Liquidity"
           },
           {
-            name: "Insurance";
+            "name": "Insurance"
           },
           {
-            name: "Fee";
+            "name": "Fee"
           }
-        ];
-      };
+        ]
+      }
+    },
+    {
+      "name": "OracleSetup",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "PythEma"
+          },
+          {
+            "name": "SwitchboardV2"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OraclePriceFeedAdapter",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "PythEma",
+            "fields": [
+              {
+                "defined": "PythEmaPriceFeed"
+              }
+            ]
+          },
+          {
+            "name": "SwitchboardV2",
+            "fields": [
+              {
+                "defined": "SwitchboardV2PriceFeed"
+              }
+            ]
+          }
+        ]
+      }
     }
-  ];
-  errors: [
+  ],
+  "events": [
     {
-      code: 6000;
-      name: "MathError";
-      msg: "Math error";
+      "name": "MarginfiGroupCreateEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "GroupEventHeader"
+          },
+          "index": false
+        }
+      ]
     },
     {
-      code: 6001;
-      name: "BankNotFound";
-      msg: "Invalid bank index";
+      "name": "MarginfiGroupConfigureEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "GroupEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "config",
+          "type": {
+            "defined": "GroupConfig"
+          },
+          "index": false
+        }
+      ]
     },
     {
-      code: 6002;
-      name: "LendingAccountBalanceNotFound";
-      msg: "Lending account balance not found";
+      "name": "LendingPoolBankCreateEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "GroupEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6003;
-      name: "BankAssetCapacityExceeded";
-      msg: "Bank deposit capacity exceeded";
+      "name": "LendingPoolBankConfigureEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "GroupEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "config",
+          "type": {
+            "defined": "BankConfigOpt"
+          },
+          "index": false
+        }
+      ]
     },
     {
-      code: 6004;
-      name: "InvalidTransfer";
-      msg: "Invalid transfer";
+      "name": "LendingPoolBankAccrueInterestEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "GroupEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "delta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "feesCollected",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "insuranceCollected",
+          "type": "f64",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6005;
-      name: "MissingPythOrBankAccount";
-      msg: "Missing Pyth or Bank account";
+      "name": "LendingPoolBankCollectFeesEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "GroupEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "groupFeesCollected",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "groupFeesOutstanding",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "insuranceFeesCollected",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "insuranceFeesOutstanding",
+          "type": "f64",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6006;
-      name: "MissingPythAccount";
-      msg: "Missing Pyth account";
+      "name": "LendingPoolBankHandleBankruptcyEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "badDebt",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "coveredAmount",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "socializedAmount",
+          "type": "f64",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6007;
-      name: "InvalidOracleAccount";
-      msg: "Invalid Pyth account";
+      "name": "MarginfiAccountCreateEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        }
+      ]
     },
     {
-      code: 6008;
-      name: "MissingBankAccount";
-      msg: "Missing Bank account";
+      "name": "LendingAccountDepositEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "amount",
+          "type": "u64",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6009;
-      name: "InvalidBankAccount";
-      msg: "Invalid Bank account";
+      "name": "LendingAccountRepayEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "amount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "closeBalance",
+          "type": "bool",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6010;
-      name: "BadAccountHealth";
-      msg: "Bad account health";
+      "name": "LendingAccountBorrowEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "amount",
+          "type": "u64",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6011;
-      name: "LendingAccountBalanceSlotsFull";
-      msg: "Lending account balance slots are full";
+      "name": "LendingAccountWithdrawEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "amount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "closeBalance",
+          "type": "bool",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6012;
-      name: "BankAlreadyExists";
-      msg: "Bank already exists";
-    },
-    {
-      code: 6013;
-      name: "IllegalLiquidation";
-      msg: "Illegal post liquidation state, account is either not unhealthy or liquidation was too big";
-    },
-    {
-      code: 6014;
-      name: "AccountNotBankrupt";
-      msg: "Account is not bankrupt";
-    },
-    {
-      code: 6015;
-      name: "BalanceNotBadDebt";
-      msg: "Account balance is not bad debt";
-    },
-    {
-      code: 6016;
-      name: "InvalidConfig";
-      msg: "Invalid group config";
-    },
-    {
-      code: 6017;
-      name: "StaleOracle";
-      msg: "Stale oracle data";
-    },
-    {
-      code: 6018;
-      name: "BankPaused";
-      msg: "Bank paused";
-    },
-    {
-      code: 6019;
-      name: "BankReduceOnly";
-      msg: "Bank is ReduceOnly mode";
-    },
-    {
-      code: 6020;
-      name: "BankAccoutNotFound";
-      msg: "Bank is missing";
-    },
-    {
-      code: 6021;
-      name: "OperationDepositOnly";
-      msg: "Operation is deposit-only";
-    },
-    {
-      code: 6022;
-      name: "OperationWithdrawOnly";
-      msg: "Operation is withdraw-only";
-    },
-    {
-      code: 6023;
-      name: "OperationBorrowOnly";
-      msg: "Operation is borrow-only";
-    },
-    {
-      code: 6024;
-      name: "OperationRepayOnly";
-      msg: "Operation is repay-only";
-    },
-    {
-      code: 6025;
-      name: "NoAssetFound";
-      msg: "No asset found";
-    },
-    {
-      code: 6026;
-      name: "NoLiabilityFound";
-      msg: "No liability found";
-    },
-    {
-      code: 6027;
-      name: "InvalidOracleSetup";
-      msg: "Invalid oracle setup";
-    },
-    {
-      code: 6028;
-      name: "IllegalUtilizationRatio";
-      msg: "Invalid bank utilization ratio";
+      "name": "LendingAccountLiquidateEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "liquidateeMarginfiAccount",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "liquidateeMarginfiAccountAuthority",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "assetBank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "assetMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "liabilityBank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "liabilityMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "liquidateePreHealth",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "liquidateePostHealth",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "preBalances",
+          "type": {
+            "defined": "LiquidationBalances"
+          },
+          "index": false
+        },
+        {
+          "name": "postBalances",
+          "type": {
+            "defined": "LiquidationBalances"
+          },
+          "index": false
+        }
+      ]
     }
-  ];
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "MathError",
+      "msg": "Math error"
+    },
+    {
+      "code": 6001,
+      "name": "BankNotFound",
+      "msg": "Invalid bank index"
+    },
+    {
+      "code": 6002,
+      "name": "LendingAccountBalanceNotFound",
+      "msg": "Lending account balance not found"
+    },
+    {
+      "code": 6003,
+      "name": "BankAssetCapacityExceeded",
+      "msg": "Bank deposit capacity exceeded"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidTransfer",
+      "msg": "Invalid transfer"
+    },
+    {
+      "code": 6005,
+      "name": "MissingPythOrBankAccount",
+      "msg": "Missing Pyth or Bank account"
+    },
+    {
+      "code": 6006,
+      "name": "MissingPythAccount",
+      "msg": "Missing Pyth account"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidOracleAccount",
+      "msg": "Invalid Pyth account"
+    },
+    {
+      "code": 6008,
+      "name": "MissingBankAccount",
+      "msg": "Missing Bank account"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidBankAccount",
+      "msg": "Invalid Bank account"
+    },
+    {
+      "code": 6010,
+      "name": "BadAccountHealth",
+      "msg": "Bad account health"
+    },
+    {
+      "code": 6011,
+      "name": "LendingAccountBalanceSlotsFull",
+      "msg": "Lending account balance slots are full"
+    },
+    {
+      "code": 6012,
+      "name": "BankAlreadyExists",
+      "msg": "Bank already exists"
+    },
+    {
+      "code": 6013,
+      "name": "IllegalLiquidation",
+      "msg": "Illegal post liquidation state, account is either not unhealthy or liquidation was too big"
+    },
+    {
+      "code": 6014,
+      "name": "AccountNotBankrupt",
+      "msg": "Account is not bankrupt"
+    },
+    {
+      "code": 6015,
+      "name": "BalanceNotBadDebt",
+      "msg": "Account balance is not bad debt"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidConfig",
+      "msg": "Invalid group config"
+    },
+    {
+      "code": 6017,
+      "name": "StaleOracle",
+      "msg": "Stale oracle data"
+    },
+    {
+      "code": 6018,
+      "name": "BankPaused",
+      "msg": "Bank paused"
+    },
+    {
+      "code": 6019,
+      "name": "BankReduceOnly",
+      "msg": "Bank is ReduceOnly mode"
+    },
+    {
+      "code": 6020,
+      "name": "BankAccoutNotFound",
+      "msg": "Bank is missing"
+    },
+    {
+      "code": 6021,
+      "name": "OperationDepositOnly",
+      "msg": "Operation is deposit-only"
+    },
+    {
+      "code": 6022,
+      "name": "OperationWithdrawOnly",
+      "msg": "Operation is withdraw-only"
+    },
+    {
+      "code": 6023,
+      "name": "OperationBorrowOnly",
+      "msg": "Operation is borrow-only"
+    },
+    {
+      "code": 6024,
+      "name": "OperationRepayOnly",
+      "msg": "Operation is repay-only"
+    },
+    {
+      "code": 6025,
+      "name": "NoAssetFound",
+      "msg": "No asset found"
+    },
+    {
+      "code": 6026,
+      "name": "NoLiabilityFound",
+      "msg": "No liability found"
+    },
+    {
+      "code": 6027,
+      "name": "InvalidOracleSetup",
+      "msg": "Invalid oracle setup"
+    },
+    {
+      "code": 6028,
+      "name": "IllegalUtilizationRatio",
+      "msg": "Invalid bank utilization ratio"
+    },
+    {
+      "code": 6029,
+      "name": "BankLiabilityCapacityExceeded",
+      "msg": "Bank borrow cap exceeded"
+    },
+    {
+      "code": 6030,
+      "name": "InvalidPrice",
+      "msg": "Invalid Price"
+    },
+    {
+      "code": 6031,
+      "name": "IsolatedAccountIllegalState",
+      "msg": "Account can have only one liablity when account is under isolated risk"
+    },
+    {
+      "code": 6032,
+      "name": "OracleNotSetup",
+      "msg": "Oracle is not set"
+    },
+    {
+      "code": 6033,
+      "name": "InvalidSwitchboardDecimalConversion",
+      "msg": "Invalid swithcboard decimal conversion"
+    }
+  ]
 };
 
 export const IDL: Marginfi = {
-  version: "0.1.0",
-  name: "marginfi",
-  instructions: [
+  "version": "0.1.0",
+  "name": "marginfi",
+  "instructions": [
     {
-      name: "marginfiGroupInitialize",
-      accounts: [
+      "name": "marginfiGroupInitialize",
+      "accounts": [
         {
-          name: "marginfiGroup",
-          isMut: true,
-          isSigner: true,
+          "name": "marginfiGroup",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          name: "admin",
-          isMut: true,
-          isSigner: true,
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
-      args: [],
+      "args": []
     },
     {
-      name: "marginfiGroupConfigure",
-      accounts: [
+      "name": "marginfiGroupConfigure",
+      "accounts": [
         {
-          name: "marginfiGroup",
-          isMut: true,
-          isSigner: false,
+          "name": "marginfiGroup",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "admin",
-          isMut: false,
-          isSigner: true,
-        },
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
+        }
       ],
-      args: [
+      "args": [
         {
-          name: "config",
-          type: {
-            defined: "GroupConfig",
-          },
-        },
-      ],
+          "name": "config",
+          "type": {
+            "defined": "GroupConfig"
+          }
+        }
+      ]
     },
     {
-      name: "lendingPoolAddBank",
-      accounts: [
+      "name": "lendingPoolAddBank",
+      "accounts": [
         {
-          name: "marginfiGroup",
-          isMut: false,
-          isSigner: false,
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "admin",
-          isMut: true,
-          isSigner: true,
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          name: "bankMint",
-          isMut: false,
-          isSigner: false,
+          "name": "bankMint",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "bank",
-          isMut: true,
-          isSigner: true,
+          "name": "bank",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          name: "liquidityVaultAuthority",
-          isMut: false,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "liquidityVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault_auth",
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault_auth"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "liquidityVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "liquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault",
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "insuranceVaultAuthority",
-          isMut: false,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "insuranceVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "insurance_vault_auth",
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault_auth"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "insuranceVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "insuranceVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "insurance_vault",
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "feeVaultAuthority",
-          isMut: false,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "feeVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "fee_vault_auth",
+                "kind": "const",
+                "type": "string",
+                "value": "fee_vault_auth"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "feeVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "feeVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "fee_vault",
+                "kind": "const",
+                "type": "string",
+                "value": "fee_vault"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "rent",
-          isMut: false,
-          isSigner: false,
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
-      args: [
+      "args": [
         {
-          name: "bankConfig",
-          type: {
-            defined: "BankConfig",
-          },
-        },
-      ],
+          "name": "bankConfig",
+          "type": {
+            "defined": "BankConfig"
+          }
+        }
+      ]
     },
     {
-      name: "lendingPoolConfigureBank",
-      accounts: [
+      "name": "lendingPoolConfigureBank",
+      "accounts": [
         {
-          name: "marginfiGroup",
-          isMut: false,
-          isSigner: false,
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "admin",
-          isMut: false,
-          isSigner: true,
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "bank",
-          isMut: true,
-          isSigner: false,
-        },
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        }
       ],
-      args: [
+      "args": [
         {
-          name: "bankConfigOpt",
-          type: {
-            defined: "BankConfigOpt",
-          },
-        },
-      ],
+          "name": "bankConfigOpt",
+          "type": {
+            "defined": "BankConfigOpt"
+          }
+        }
+      ]
     },
     {
-      name: "lendingPoolHandleBankruptcy",
-      docs: ["Handle bad debt of a bankrupt marginfi account for a given bank."],
-      accounts: [
-        {
-          name: "marginfiGroup",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "admin",
-          isMut: false,
-          isSigner: true,
-        },
-        {
-          name: "bank",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "marginfiAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "liquidityVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
-              {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault",
-              },
-              {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
-        },
-        {
-          name: "insuranceVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
-              {
-                kind: "const",
-                type: "string",
-                value: "insurance_vault",
-              },
-              {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
-        },
-        {
-          name: "insuranceVaultAuthority",
-          isMut: false,
-          isSigner: false,
-          pda: {
-            seeds: [
-              {
-                kind: "const",
-                type: "string",
-                value: "insurance_vault_auth",
-              },
-              {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
-        },
-        {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
+      "name": "lendingPoolHandleBankruptcy",
+      "docs": [
+        "Handle bad debt of a bankrupt marginfi account for a given bank."
       ],
-      args: [],
+      "accounts": [
+        {
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "insuranceVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "insuranceVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault_auth"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     },
     {
-      name: "marginfiAccountInitialize",
-      docs: ["Initialize a marginfi account for a given group"],
-      accounts: [
-        {
-          name: "marginfiGroup",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "marginfiAccount",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "authority",
-          isMut: false,
-          isSigner: true,
-        },
-        {
-          name: "feePayer",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
+      "name": "marginfiAccountInitialize",
+      "docs": [
+        "Initialize a marginfi account for a given group"
       ],
-      args: [],
+      "accounts": [
+        {
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "feePayer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     },
     {
-      name: "lendingAccountDeposit",
-      accounts: [
+      "name": "lendingAccountDeposit",
+      "accounts": [
         {
-          name: "marginfiGroup",
-          isMut: false,
-          isSigner: false,
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "marginfiAccount",
-          isMut: true,
-          isSigner: false,
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signer",
-          isMut: false,
-          isSigner: true,
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "bank",
-          isMut: true,
-          isSigner: false,
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signerTokenAccount",
-          isMut: true,
-          isSigner: false,
+          "name": "signerTokenAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "bankLiquidityVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault",
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
-      args: [
+      "args": [
         {
-          name: "amount",
-          type: "u64",
-        },
-      ],
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     },
     {
-      name: "lendingAccountRepay",
-      accounts: [
+      "name": "lendingAccountRepay",
+      "accounts": [
         {
-          name: "marginfiGroup",
-          isMut: false,
-          isSigner: false,
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "marginfiAccount",
-          isMut: true,
-          isSigner: false,
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signer",
-          isMut: false,
-          isSigner: true,
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "bank",
-          isMut: true,
-          isSigner: false,
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signerTokenAccount",
-          isMut: true,
-          isSigner: false,
+          "name": "signerTokenAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "bankLiquidityVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault",
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
-      args: [
+      "args": [
         {
-          name: "amount",
-          type: "u64",
+          "name": "amount",
+          "type": "u64"
         },
         {
-          name: "repayAll",
-          type: {
-            option: "bool",
-          },
-        },
-      ],
+          "name": "repayAll",
+          "type": {
+            "option": "bool"
+          }
+        }
+      ]
     },
     {
-      name: "lendingAccountWithdraw",
-      accounts: [
+      "name": "lendingAccountWithdraw",
+      "accounts": [
         {
-          name: "marginfiGroup",
-          isMut: false,
-          isSigner: false,
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "marginfiAccount",
-          isMut: true,
-          isSigner: false,
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signer",
-          isMut: false,
-          isSigner: true,
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "bank",
-          isMut: true,
-          isSigner: false,
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "destinationTokenAccount",
-          isMut: true,
-          isSigner: false,
+          "name": "destinationTokenAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "bankLiquidityVaultAuthority",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVaultAuthority",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault_auth",
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault_auth"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "bankLiquidityVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault",
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
-      args: [
+      "args": [
         {
-          name: "amount",
-          type: "u64",
+          "name": "amount",
+          "type": "u64"
         },
         {
-          name: "withdrawAll",
-          type: {
-            option: "bool",
-          },
-        },
-      ],
+          "name": "withdrawAll",
+          "type": {
+            "option": "bool"
+          }
+        }
+      ]
     },
     {
-      name: "lendingAccountBorrow",
-      accounts: [
+      "name": "lendingAccountBorrow",
+      "accounts": [
         {
-          name: "marginfiGroup",
-          isMut: false,
-          isSigner: false,
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "marginfiAccount",
-          isMut: true,
-          isSigner: false,
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "signer",
-          isMut: false,
-          isSigner: true,
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          name: "bank",
-          isMut: true,
-          isSigner: false,
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "destinationTokenAccount",
-          isMut: true,
-          isSigner: false,
+          "name": "destinationTokenAccount",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "bankLiquidityVaultAuthority",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVaultAuthority",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault_auth",
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault_auth"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "bankLiquidityVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "bankLiquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault",
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
-      args: [
+      "args": [
         {
-          name: "amount",
-          type: "u64",
-        },
-      ],
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     },
     {
-      name: "lendingAccountLiquidate",
-      docs: ["Liquidate a lending account balance of an unhealthy marginfi account"],
-      accounts: [
-        {
-          name: "marginfiGroup",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "assetBank",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "liabBank",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "liquidatorMarginfiAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "signer",
-          isMut: false,
-          isSigner: true,
-        },
-        {
-          name: "liquidateeMarginfiAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "bankLiquidityVaultAuthority",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
-              {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault_auth",
-              },
-              {
-                kind: "account",
-                type: "publicKey",
-                path: "liab_bank",
-              },
-            ],
-          },
-        },
-        {
-          name: "bankLiquidityVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
-              {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault",
-              },
-              {
-                kind: "account",
-                type: "publicKey",
-                path: "liab_bank",
-              },
-            ],
-          },
-        },
-        {
-          name: "bankInsuranceVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
-              {
-                kind: "const",
-                type: "string",
-                value: "insurance_vault",
-              },
-              {
-                kind: "account",
-                type: "publicKey",
-                path: "liab_bank",
-              },
-            ],
-          },
-        },
-        {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
+      "name": "lendingAccountLiquidate",
+      "docs": [
+        "Liquidate a lending account balance of an unhealthy marginfi account"
       ],
-      args: [
+      "accounts": [
         {
-          name: "assetAmount",
-          type: "u64",
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
+        {
+          "name": "assetBank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liabBank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liquidatorMarginfiAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "liquidateeMarginfiAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bankLiquidityVaultAuthority",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault_auth"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "liab_bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bankLiquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "liab_bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bankInsuranceVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "liab_bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
+      "args": [
+        {
+          "name": "assetAmount",
+          "type": "u64"
+        }
+      ]
     },
     {
-      name: "lendingPoolAccrueBankInterest",
-      accounts: [
+      "name": "lendingPoolAccrueBankInterest",
+      "accounts": [
         {
-          name: "marginfiGroup",
-          isMut: false,
-          isSigner: false,
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "bank",
-          isMut: true,
-          isSigner: false,
-        },
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        }
       ],
-      args: [],
+      "args": []
     },
     {
-      name: "lendingPoolCollectBankFees",
-      accounts: [
+      "name": "lendingPoolCollectBankFees",
+      "accounts": [
         {
-          name: "marginfiGroup",
-          isMut: false,
-          isSigner: false,
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          name: "bank",
-          isMut: true,
-          isSigner: false,
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          name: "liquidityVaultAuthority",
-          isMut: false,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "liquidityVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault_auth",
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault_auth"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "liquidityVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "liquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "liquidity_vault",
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "insuranceVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "insuranceVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "insurance_vault",
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "feeVault",
-          isMut: true,
-          isSigner: false,
-          pda: {
-            seeds: [
+          "name": "feeVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
               {
-                kind: "const",
-                type: "string",
-                value: "fee_vault",
+                "kind": "const",
+                "type": "string",
+                "value": "fee_vault"
               },
               {
-                kind: "account",
-                type: "publicKey",
-                path: "bank",
-              },
-            ],
-          },
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
         },
         {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
-      args: [],
-    },
+      "args": []
+    }
   ],
-  accounts: [
+  "accounts": [
     {
-      name: "marginfiAccount",
-      type: {
-        kind: "struct",
-        fields: [
+      "name": "marginfiAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "group",
-            type: "publicKey",
+            "name": "group",
+            "type": "publicKey"
           },
           {
-            name: "authority",
-            type: "publicKey",
+            "name": "authority",
+            "type": "publicKey"
           },
           {
-            name: "lendingAccount",
-            type: {
-              defined: "LendingAccount",
-            },
+            "name": "lendingAccount",
+            "type": {
+              "defined": "LendingAccount"
+            }
           },
           {
-            name: "padding",
-            type: {
-              array: ["u64", 64],
-            },
-          },
-        ],
-      },
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                64
+              ]
+            }
+          }
+        ]
+      }
     },
     {
-      name: "marginfiGroup",
-      type: {
-        kind: "struct",
-        fields: [
+      "name": "marginfiGroup",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "admin",
-            type: "publicKey",
+            "name": "admin",
+            "type": "publicKey"
           },
           {
-            name: "padding0",
-            type: {
-              array: ["u128", 32],
-            },
+            "name": "padding0",
+            "type": {
+              "array": [
+                "u128",
+                32
+              ]
+            }
           },
           {
-            name: "padding1",
-            type: {
-              array: ["u128", 32],
-            },
-          },
-        ],
-      },
+            "name": "padding1",
+            "type": {
+              "array": [
+                "u128",
+                32
+              ]
+            }
+          }
+        ]
+      }
     },
     {
-      name: "bank",
-      type: {
-        kind: "struct",
-        fields: [
+      "name": "bank",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "mint",
-            type: "publicKey",
+            "name": "mint",
+            "type": "publicKey"
           },
           {
-            name: "mintDecimals",
-            type: "u8",
+            "name": "mintDecimals",
+            "type": "u8"
           },
           {
-            name: "group",
-            type: "publicKey",
+            "name": "group",
+            "type": "publicKey"
           },
           {
-            name: "ignore1",
-            type: {
-              array: ["u8", 7],
-            },
+            "name": "assetShareValue",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "assetShareValue",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "liabilityShareValue",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "liabilityShareValue",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "liquidityVault",
+            "type": "publicKey"
           },
           {
-            name: "liquidityVault",
-            type: "publicKey",
+            "name": "liquidityVaultBump",
+            "type": "u8"
           },
           {
-            name: "liquidityVaultBump",
-            type: "u8",
+            "name": "liquidityVaultAuthorityBump",
+            "type": "u8"
           },
           {
-            name: "liquidityVaultAuthorityBump",
-            type: "u8",
+            "name": "insuranceVault",
+            "type": "publicKey"
           },
           {
-            name: "insuranceVault",
-            type: "publicKey",
+            "name": "insuranceVaultBump",
+            "type": "u8"
           },
           {
-            name: "insuranceVaultBump",
-            type: "u8",
+            "name": "insuranceVaultAuthorityBump",
+            "type": "u8"
           },
           {
-            name: "insuranceVaultAuthorityBump",
-            type: "u8",
+            "name": "collectedInsuranceFeesOutstanding",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "ignore2",
-            type: {
-              array: ["u8", 4],
-            },
+            "name": "feeVault",
+            "type": "publicKey"
           },
           {
-            name: "collectedInsuranceFeesOutstanding",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "feeVaultBump",
+            "type": "u8"
           },
           {
-            name: "feeVault",
-            type: "publicKey",
+            "name": "feeVaultAuthorityBump",
+            "type": "u8"
           },
           {
-            name: "feeVaultBump",
-            type: "u8",
+            "name": "collectedGroupFeesOutstanding",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "feeVaultAuthorityBump",
-            type: "u8",
+            "name": "totalLiabilityShares",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "ignore3",
-            type: {
-              array: ["u8", 6],
-            },
+            "name": "totalAssetShares",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "collectedGroupFeesOutstanding",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "lastUpdate",
+            "type": "i64"
           },
           {
-            name: "totalLiabilityShares",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "config",
+            "type": {
+              "defined": "BankConfig"
+            }
           },
           {
-            name: "totalAssetShares",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "padding0",
+            "type": {
+              "array": [
+                "u128",
+                32
+              ]
+            }
           },
           {
-            name: "lastUpdate",
-            type: "i64",
-          },
-          {
-            name: "config",
-            type: {
-              defined: "BankConfig",
-            },
-          },
-          {
-            name: "padding0",
-            type: {
-              array: ["u128", 32],
-            },
-          },
-          {
-            name: "padding1",
-            type: {
-              array: ["u128", 32],
-            },
-          },
-        ],
-      },
-    },
+            "name": "padding1",
+            "type": {
+              "array": [
+                "u128",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    }
   ],
-  types: [
+  "types": [
     {
-      name: "LendingAccount",
-      type: {
-        kind: "struct",
-        fields: [
+      "name": "GroupEventHeader",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "balances",
-            type: {
-              array: [
+            "name": "signer",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "marginfiGroup",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AccountEventHeader",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "signer",
+            "type": {
+              "option": "publicKey"
+            }
+          },
+          {
+            "name": "marginfiAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "marginfiAccountAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "marginfiGroup",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LiquidationBalances",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "liquidateeAssetBalance",
+            "type": "f64"
+          },
+          {
+            "name": "liquidateeLiabilityBalance",
+            "type": "f64"
+          },
+          {
+            "name": "liquidatorAssetBalance",
+            "type": "f64"
+          },
+          {
+            "name": "liquidatorLiabilityBalance",
+            "type": "f64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LendingAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "balances",
+            "type": {
+              "array": [
                 {
-                  defined: "Balance",
+                  "defined": "Balance"
                 },
-                16,
-              ],
-            },
+                16
+              ]
+            }
           },
           {
-            name: "padding",
-            type: {
-              array: ["u64", 8],
-            },
-          },
-        ],
-      },
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                8
+              ]
+            }
+          }
+        ]
+      }
     },
     {
-      name: "Balance",
-      type: {
-        kind: "struct",
-        fields: [
+      "name": "Balance",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "active",
-            type: "bool",
+            "name": "active",
+            "type": "bool"
           },
           {
-            name: "bankPk",
-            type: "publicKey",
+            "name": "bankPk",
+            "type": "publicKey"
           },
           {
-            name: "ignore",
-            type: {
-              array: ["u8", 7],
-            },
+            "name": "assetShares",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "assetShares",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "liabilityShares",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "liabilityShares",
-            type: {
-              defined: "WrappedI80F48",
-            },
-          },
-          {
-            name: "padding",
-            type: {
-              array: ["u64", 4],
-            },
-          },
-        ],
-      },
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                4
+              ]
+            }
+          }
+        ]
+      }
     },
     {
-      name: "GroupConfig",
-      type: {
-        kind: "struct",
-        fields: [
+      "name": "GroupConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "admin",
-            type: {
-              option: "publicKey",
-            },
-          },
-        ],
-      },
+            "name": "admin",
+            "type": {
+              "option": "publicKey"
+            }
+          }
+        ]
+      }
     },
     {
-      name: "InterestRateConfig",
-      type: {
-        kind: "struct",
-        fields: [
+      "name": "InterestRateConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "optimalUtilizationRate",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "optimalUtilizationRate",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "plateauInterestRate",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "plateauInterestRate",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "maxInterestRate",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "maxInterestRate",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "insuranceFeeFixedApr",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "insuranceFeeFixedApr",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "insuranceIrFee",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "insuranceIrFee",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "protocolFixedFeeApr",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "protocolFixedFeeApr",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "protocolIrFee",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "protocolIrFee",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
           {
-            name: "padding",
-            type: {
-              array: ["u128", 8],
-            },
-          },
-        ],
-      },
+            "name": "padding",
+            "type": {
+              "array": [
+                "u128",
+                8
+              ]
+            }
+          }
+        ]
+      }
     },
     {
-      name: "BankConfig",
-      docs: ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
-      type: {
-        kind: "struct",
-        fields: [
+      "name": "InterestRateConfigOpt",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "assetWeightInit",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "optimalUtilizationRate",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "assetWeightMaint",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "plateauInterestRate",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "liabilityWeightInit",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "maxInterestRate",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "liabilityWeightMaint",
-            type: {
-              defined: "WrappedI80F48",
-            },
+            "name": "insuranceFeeFixedApr",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "maxCapacity",
-            type: "u64",
+            "name": "insuranceIrFee",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "interestRateConfig",
-            type: {
-              defined: "InterestRateConfig",
-            },
+            "name": "protocolFixedFeeApr",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "operationalState",
-            type: {
-              defined: "BankOperationalState",
-            },
-          },
-          {
-            name: "oracleSetup",
-            type: {
-              defined: "OracleSetup",
-            },
-          },
-          {
-            name: "oracleKeys",
-            type: {
-              array: ["publicKey", 5],
-            },
-          },
-          {
-            name: "ignore",
-            type: {
-              array: ["u8", 6],
-            },
-          },
-          {
-            name: "padding",
-            type: {
-              array: ["u128", 4],
-            },
-          },
-        ],
-      },
+            "name": "protocolIrFee",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
+          }
+        ]
+      }
     },
     {
-      name: "WrappedI80F48",
-      type: {
-        kind: "struct",
-        fields: [
+      "name": "BankConfig",
+      "docs": [
+        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "value",
-            type: "i128",
+            "name": "assetWeightInit",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
-        ],
-      },
+          {
+            "name": "assetWeightMaint",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "liabilityWeightInit",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "liabilityWeightMaint",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "depositLimit",
+            "type": "u64"
+          },
+          {
+            "name": "interestRateConfig",
+            "type": {
+              "defined": "InterestRateConfig"
+            }
+          },
+          {
+            "name": "operationalState",
+            "type": {
+              "defined": "BankOperationalState"
+            }
+          },
+          {
+            "name": "oracleSetup",
+            "type": {
+              "defined": "OracleSetup"
+            }
+          },
+          {
+            "name": "oracleKeys",
+            "type": {
+              "array": [
+                "publicKey",
+                5
+              ]
+            }
+          },
+          {
+            "name": "borrowLimit",
+            "type": "u64"
+          },
+          {
+            "name": "riskTier",
+            "type": {
+              "defined": "RiskTier"
+            }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                6
+              ]
+            }
+          }
+        ]
+      }
     },
     {
-      name: "BankConfigOpt",
-      type: {
-        kind: "struct",
-        fields: [
+      "name": "WrappedI80F48",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "assetWeightInit",
-            type: {
-              option: {
-                defined: "WrappedI80F48",
-              },
-            },
-          },
-          {
-            name: "assetWeightMaint",
-            type: {
-              option: {
-                defined: "WrappedI80F48",
-              },
-            },
-          },
-          {
-            name: "liabilityWeightInit",
-            type: {
-              option: {
-                defined: "WrappedI80F48",
-              },
-            },
-          },
-          {
-            name: "liabilityWeightMaint",
-            type: {
-              option: {
-                defined: "WrappedI80F48",
-              },
-            },
-          },
-          {
-            name: "maxCapacity",
-            type: {
-              option: "u64",
-            },
-          },
-          {
-            name: "operationalState",
-            type: {
-              option: {
-                defined: "BankOperationalState",
-              },
-            },
-          },
-          {
-            name: "oracle",
-            type: {
-              option: {
-                defined: "OracleConfig",
-              },
-            },
-          },
-          {
-            name: "ignore",
-            type: {
-              array: ["u8", 6],
-            },
-          },
-        ],
-      },
+            "name": "value",
+            "type": "i128"
+          }
+        ]
+      }
     },
     {
-      name: "OracleConfig",
-      type: {
-        kind: "struct",
-        fields: [
+      "name": "BankConfigOpt",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "setup",
-            type: {
-              defined: "OracleSetup",
-            },
+            "name": "assetWeightInit",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
           {
-            name: "keys",
-            type: {
-              array: ["publicKey", 5],
-            },
+            "name": "assetWeightMaint",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
           },
-        ],
-      },
+          {
+            "name": "liabilityWeightInit",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "liabilityWeightMaint",
+            "type": {
+              "option": {
+                "defined": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "depositLimit",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "borrowLimit",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "operationalState",
+            "type": {
+              "option": {
+                "defined": "BankOperationalState"
+              }
+            }
+          },
+          {
+            "name": "oracle",
+            "type": {
+              "option": {
+                "defined": "OracleConfig"
+              }
+            }
+          },
+          {
+            "name": "interestRateConfig",
+            "type": {
+              "option": {
+                "defined": "InterestRateConfigOpt"
+              }
+            }
+          },
+          {
+            "name": "riskTier",
+            "type": {
+              "option": {
+                "defined": "RiskTier"
+              }
+            }
+          }
+        ]
+      }
     },
     {
-      name: "BalanceIncreaseType",
-      type: {
-        kind: "enum",
-        variants: [
+      "name": "OracleConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "Any",
+            "name": "setup",
+            "type": {
+              "defined": "OracleSetup"
+            }
           },
           {
-            name: "RepayOnly",
-          },
-          {
-            name: "DepositOnly",
-          },
-        ],
-      },
+            "name": "keys",
+            "type": {
+              "array": [
+                "publicKey",
+                5
+              ]
+            }
+          }
+        ]
+      }
     },
     {
-      name: "BalanceDecreaseType",
-      type: {
-        kind: "enum",
-        variants: [
+      "name": "BalanceIncreaseType",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Any",
+            "name": "Any"
           },
           {
-            name: "WithdrawOnly",
+            "name": "RepayOnly"
           },
           {
-            name: "BorrowOnly",
-          },
-        ],
-      },
+            "name": "DepositOnly"
+          }
+        ]
+      }
     },
     {
-      name: "WeightType",
-      type: {
-        kind: "enum",
-        variants: [
+      "name": "BalanceDecreaseType",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Initial",
+            "name": "Any"
           },
           {
-            name: "Maintenance",
+            "name": "WithdrawOnly"
           },
-        ],
-      },
+          {
+            "name": "BorrowOnly"
+          },
+          {
+            "name": "BypassBorrowLimit"
+          }
+        ]
+      }
     },
     {
-      name: "BalanceSide",
-      type: {
-        kind: "enum",
-        variants: [
+      "name": "WeightType",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Assets",
+            "name": "Initial"
           },
           {
-            name: "Liabilities",
-          },
-        ],
-      },
+            "name": "Maintenance"
+          }
+        ]
+      }
     },
     {
-      name: "RiskRequirementType",
-      type: {
-        kind: "enum",
-        variants: [
+      "name": "BalanceSide",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Initial",
+            "name": "Assets"
           },
           {
-            name: "Maintenance",
-          },
-        ],
-      },
+            "name": "Liabilities"
+          }
+        ]
+      }
     },
     {
-      name: "BankOperationalState",
-      type: {
-        kind: "enum",
-        variants: [
+      "name": "RiskRequirementType",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Paused",
+            "name": "Initial"
           },
           {
-            name: "Operational",
-          },
-          {
-            name: "ReduceOnly",
-          },
-        ],
-      },
+            "name": "Maintenance"
+          }
+        ]
+      }
     },
     {
-      name: "OracleSetup",
-      type: {
-        kind: "enum",
-        variants: [
+      "name": "BankOperationalState",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "None",
+            "name": "Paused"
           },
           {
-            name: "Pyth",
+            "name": "Operational"
           },
-        ],
-      },
+          {
+            "name": "ReduceOnly"
+          }
+        ]
+      }
     },
     {
-      name: "OracleKey",
-      type: {
-        kind: "enum",
-        variants: [
+      "name": "RiskTier",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Pyth",
-            fields: ["publicKey"],
+            "name": "Collateral"
           },
-        ],
-      },
+          {
+            "name": "Isolated"
+          }
+        ]
+      }
     },
     {
-      name: "BankVaultType",
-      type: {
-        kind: "enum",
-        variants: [
+      "name": "BankVaultType",
+      "type": {
+        "kind": "enum",
+        "variants": [
           {
-            name: "Liquidity",
+            "name": "Liquidity"
           },
           {
-            name: "Insurance",
+            "name": "Insurance"
           },
           {
-            name: "Fee",
-          },
-        ],
-      },
+            "name": "Fee"
+          }
+        ]
+      }
     },
+    {
+      "name": "OracleSetup",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "PythEma"
+          },
+          {
+            "name": "SwitchboardV2"
+          }
+        ]
+      }
+    }
   ],
-  errors: [
+  "events": [
     {
-      code: 6000,
-      name: "MathError",
-      msg: "Math error",
+      "name": "MarginfiGroupCreateEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "GroupEventHeader"
+          },
+          "index": false
+        }
+      ]
     },
     {
-      code: 6001,
-      name: "BankNotFound",
-      msg: "Invalid bank index",
+      "name": "MarginfiGroupConfigureEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "GroupEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "config",
+          "type": {
+            "defined": "GroupConfig"
+          },
+          "index": false
+        }
+      ]
     },
     {
-      code: 6002,
-      name: "LendingAccountBalanceNotFound",
-      msg: "Lending account balance not found",
+      "name": "LendingPoolBankCreateEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "GroupEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6003,
-      name: "BankAssetCapacityExceeded",
-      msg: "Bank deposit capacity exceeded",
+      "name": "LendingPoolBankConfigureEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "GroupEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "config",
+          "type": {
+            "defined": "BankConfigOpt"
+          },
+          "index": false
+        }
+      ]
     },
     {
-      code: 6004,
-      name: "InvalidTransfer",
-      msg: "Invalid transfer",
+      "name": "LendingPoolBankAccrueInterestEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "GroupEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "delta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "feesCollected",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "insuranceCollected",
+          "type": "f64",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6005,
-      name: "MissingPythOrBankAccount",
-      msg: "Missing Pyth or Bank account",
+      "name": "LendingPoolBankCollectFeesEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "GroupEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "groupFeesCollected",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "groupFeesOutstanding",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "insuranceFeesCollected",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "insuranceFeesOutstanding",
+          "type": "f64",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6006,
-      name: "MissingPythAccount",
-      msg: "Missing Pyth account",
+      "name": "LendingPoolBankHandleBankruptcyEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "badDebt",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "coveredAmount",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "socializedAmount",
+          "type": "f64",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6007,
-      name: "InvalidOracleAccount",
-      msg: "Invalid Pyth account",
+      "name": "MarginfiAccountCreateEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        }
+      ]
     },
     {
-      code: 6008,
-      name: "MissingBankAccount",
-      msg: "Missing Bank account",
+      "name": "LendingAccountDepositEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "amount",
+          "type": "u64",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6009,
-      name: "InvalidBankAccount",
-      msg: "Invalid Bank account",
+      "name": "LendingAccountRepayEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "amount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "closeBalance",
+          "type": "bool",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6010,
-      name: "BadAccountHealth",
-      msg: "Bad account health",
+      "name": "LendingAccountBorrowEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "amount",
+          "type": "u64",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6011,
-      name: "LendingAccountBalanceSlotsFull",
-      msg: "Lending account balance slots are full",
+      "name": "LendingAccountWithdrawEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "bank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "amount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "closeBalance",
+          "type": "bool",
+          "index": false
+        }
+      ]
     },
     {
-      code: 6012,
-      name: "BankAlreadyExists",
-      msg: "Bank already exists",
-    },
-    {
-      code: 6013,
-      name: "IllegalLiquidation",
-      msg: "Illegal post liquidation state, account is either not unhealthy or liquidation was too big",
-    },
-    {
-      code: 6014,
-      name: "AccountNotBankrupt",
-      msg: "Account is not bankrupt",
-    },
-    {
-      code: 6015,
-      name: "BalanceNotBadDebt",
-      msg: "Account balance is not bad debt",
-    },
-    {
-      code: 6016,
-      name: "InvalidConfig",
-      msg: "Invalid group config",
-    },
-    {
-      code: 6017,
-      name: "StaleOracle",
-      msg: "Stale oracle data",
-    },
-    {
-      code: 6018,
-      name: "BankPaused",
-      msg: "Bank paused",
-    },
-    {
-      code: 6019,
-      name: "BankReduceOnly",
-      msg: "Bank is ReduceOnly mode",
-    },
-    {
-      code: 6020,
-      name: "BankAccoutNotFound",
-      msg: "Bank is missing",
-    },
-    {
-      code: 6021,
-      name: "OperationDepositOnly",
-      msg: "Operation is deposit-only",
-    },
-    {
-      code: 6022,
-      name: "OperationWithdrawOnly",
-      msg: "Operation is withdraw-only",
-    },
-    {
-      code: 6023,
-      name: "OperationBorrowOnly",
-      msg: "Operation is borrow-only",
-    },
-    {
-      code: 6024,
-      name: "OperationRepayOnly",
-      msg: "Operation is repay-only",
-    },
-    {
-      code: 6025,
-      name: "NoAssetFound",
-      msg: "No asset found",
-    },
-    {
-      code: 6026,
-      name: "NoLiabilityFound",
-      msg: "No liability found",
-    },
-    {
-      code: 6027,
-      name: "InvalidOracleSetup",
-      msg: "Invalid oracle setup",
-    },
-    {
-      code: 6028,
-      name: "IllegalUtilizationRatio",
-      msg: "Invalid bank utilization ratio",
-    },
+      "name": "LendingAccountLiquidateEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "liquidateeMarginfiAccount",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "liquidateeMarginfiAccountAuthority",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "assetBank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "assetMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "liabilityBank",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "liabilityMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "liquidateePreHealth",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "liquidateePostHealth",
+          "type": "f64",
+          "index": false
+        },
+        {
+          "name": "preBalances",
+          "type": {
+            "defined": "LiquidationBalances"
+          },
+          "index": false
+        },
+        {
+          "name": "postBalances",
+          "type": {
+            "defined": "LiquidationBalances"
+          },
+          "index": false
+        }
+      ]
+    }
   ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "MathError",
+      "msg": "Math error"
+    },
+    {
+      "code": 6001,
+      "name": "BankNotFound",
+      "msg": "Invalid bank index"
+    },
+    {
+      "code": 6002,
+      "name": "LendingAccountBalanceNotFound",
+      "msg": "Lending account balance not found"
+    },
+    {
+      "code": 6003,
+      "name": "BankAssetCapacityExceeded",
+      "msg": "Bank deposit capacity exceeded"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidTransfer",
+      "msg": "Invalid transfer"
+    },
+    {
+      "code": 6005,
+      "name": "MissingPythOrBankAccount",
+      "msg": "Missing Pyth or Bank account"
+    },
+    {
+      "code": 6006,
+      "name": "MissingPythAccount",
+      "msg": "Missing Pyth account"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidOracleAccount",
+      "msg": "Invalid Pyth account"
+    },
+    {
+      "code": 6008,
+      "name": "MissingBankAccount",
+      "msg": "Missing Bank account"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidBankAccount",
+      "msg": "Invalid Bank account"
+    },
+    {
+      "code": 6010,
+      "name": "BadAccountHealth",
+      "msg": "Bad account health"
+    },
+    {
+      "code": 6011,
+      "name": "LendingAccountBalanceSlotsFull",
+      "msg": "Lending account balance slots are full"
+    },
+    {
+      "code": 6012,
+      "name": "BankAlreadyExists",
+      "msg": "Bank already exists"
+    },
+    {
+      "code": 6013,
+      "name": "IllegalLiquidation",
+      "msg": "Illegal post liquidation state, account is either not unhealthy or liquidation was too big"
+    },
+    {
+      "code": 6014,
+      "name": "AccountNotBankrupt",
+      "msg": "Account is not bankrupt"
+    },
+    {
+      "code": 6015,
+      "name": "BalanceNotBadDebt",
+      "msg": "Account balance is not bad debt"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidConfig",
+      "msg": "Invalid group config"
+    },
+    {
+      "code": 6017,
+      "name": "StaleOracle",
+      "msg": "Stale oracle data"
+    },
+    {
+      "code": 6018,
+      "name": "BankPaused",
+      "msg": "Bank paused"
+    },
+    {
+      "code": 6019,
+      "name": "BankReduceOnly",
+      "msg": "Bank is ReduceOnly mode"
+    },
+    {
+      "code": 6020,
+      "name": "BankAccoutNotFound",
+      "msg": "Bank is missing"
+    },
+    {
+      "code": 6021,
+      "name": "OperationDepositOnly",
+      "msg": "Operation is deposit-only"
+    },
+    {
+      "code": 6022,
+      "name": "OperationWithdrawOnly",
+      "msg": "Operation is withdraw-only"
+    },
+    {
+      "code": 6023,
+      "name": "OperationBorrowOnly",
+      "msg": "Operation is borrow-only"
+    },
+    {
+      "code": 6024,
+      "name": "OperationRepayOnly",
+      "msg": "Operation is repay-only"
+    },
+    {
+      "code": 6025,
+      "name": "NoAssetFound",
+      "msg": "No asset found"
+    },
+    {
+      "code": 6026,
+      "name": "NoLiabilityFound",
+      "msg": "No liability found"
+    },
+    {
+      "code": 6027,
+      "name": "InvalidOracleSetup",
+      "msg": "Invalid oracle setup"
+    },
+    {
+      "code": 6028,
+      "name": "IllegalUtilizationRatio",
+      "msg": "Invalid bank utilization ratio"
+    },
+    {
+      "code": 6029,
+      "name": "BankLiabilityCapacityExceeded",
+      "msg": "Bank borrow cap exceeded"
+    },
+    {
+      "code": 6030,
+      "name": "InvalidPrice",
+      "msg": "Invalid Price"
+    },
+    {
+      "code": 6031,
+      "name": "IsolatedAccountIllegalState",
+      "msg": "Account can have only one liablity when account is under isolated risk"
+    },
+    {
+      "code": 6032,
+      "name": "OracleNotSetup",
+      "msg": "Oracle is not set"
+    },
+    {
+      "code": 6033,
+      "name": "InvalidSwitchboardDecimalConversion",
+      "msg": "Invalid swithcboard decimal conversion"
+    }
+  ]
 };
