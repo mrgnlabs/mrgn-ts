@@ -18,6 +18,7 @@ import {
 } from "@mrgnlabs/mrgn-common/src/spl";
 import { uiToNative } from "@mrgnlabs/mrgn-common";
 import { percentFormatter } from "~/utils/formatters";
+import { PriceBias } from "@mrgnlabs/marginfi-client-v2";
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
@@ -212,7 +213,7 @@ const AssetRow: FC<{
 
   return (
     <TableRow
-      className="h-full w-full"
+      className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl"
     >
       <TableCell
         className="text-white p-0 border-none font-aeonik"
@@ -232,6 +233,8 @@ const AssetRow: FC<{
         </div>
       </TableCell>
 
+      {/* usdFormatter.format(bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()) */}
+      {/* usdFormatter.format(bankInfo.bank.getPrice(PriceBias.Highest).toNumber()) */}
       <TableCell className="text-white border-none px-2 font-aeonik" align="right" style={{ fontWeight: 300 }}>
         {
           bankInfo.tokenPrice >= 0.01
@@ -240,7 +243,14 @@ const AssetRow: FC<{
         }
       </TableCell>
 
-      <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+      <TableCell
+        className="border-none font-aeonik px-2"
+        align="right"
+        style={{ 
+          // fontWeight: 500,
+          color: isInLendingMode ? "#83DB8C" : "#83DB8C"
+        }}
+      >
         {
           percentFormatter.format(
             isInLendingMode ? bankInfo.lendingRate :
@@ -271,7 +281,7 @@ const AssetRow: FC<{
         }
       </TableCell>
 
-      <TableCell className="text-white border-none font-aeonik px-2" align="right">
+      <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
         {
           percentFormatter.format(bankInfo.utilizationRate/100)
         }
