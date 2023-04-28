@@ -64,28 +64,20 @@ class MarginfiGroup {
 
     const accountData = await MarginfiGroup._fetchAccountData(config, program, commitment);
 
-    const bankAddresses = config.banks.map((b) => b.address);
-    let bankAccountsData = (await program.account.bank.all([{ memcmp: { offset: 8 + 32 + 1, bytes: config.groupPk.toBase58() } }]));
+    const bankAccountsData = (await program.account.bank.all([{ memcmp: { offset: 8 + 32 + 1, bytes: config.groupPk.toBase58() } }]));
 
-    let nullAccounts = [];
-    for (let i = 0; i < bankAccountsData.length; i++) {
-      if (bankAccountsData[i] === null) nullAccounts.push(bankAddresses[i]);
-    }
-    if (nullAccounts.length > 0) {
-      throw Error(`Failed to fetch banks ${nullAccounts}`);
-    }
-
-    const banks = await Promise.all(bankAccountsData.map(
-      async accountData => {
+    const banks = await Promise.all(
+      bankAccountsData.map(async (accountData) => {
         let bankData = accountData.account as any as BankData;
         return new Bank(
           config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
           accountData.publicKey,
           bankData,
           await getOraclePriceData(program.provider.connection, bankData.config.oracleSetup, bankData.config.oracleKeys)
-        )
-      }
-    ));
+        );
+      })
+    );
+
 
     return new MarginfiGroup(config, program, accountData, banks);
   }
@@ -179,7 +171,9 @@ class MarginfiGroup {
 
     const bankAddresses = this._config.banks.map((b) => b.address);
 
-    let bankAccountsData = (await this._program.account.bank.all([{ memcmp: { offset: 8 + 32 + 1, bytes: this._config.groupPk.toBase58() } }]));
+    let bankAccountsData = await this._program.account.bank.all([
+      { memcmp: { offset: 8 + 32 + 1, bytes: this._config.groupPk.toBase58() } },
+    ]);
 
     let nullAccounts = [];
     for (let i = 0; i < bankAccountsData.length; i++) {
@@ -189,17 +183,21 @@ class MarginfiGroup {
       throw Error(`Failed to fetch banks ${nullAccounts}`);
     }
 
-    const banks = await Promise.all(bankAccountsData.map(
-      async accountData => {
+    const banks = await Promise.all(
+      bankAccountsData.map(async (accountData) => {
         let bankData = accountData.account as any as BankData;
         return new Bank(
           this._config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
           accountData.publicKey,
           bankData,
-          await getOraclePriceData(this._program.provider.connection, bankData.config.oracleSetup, bankData.config.oracleKeys)
-        )
-      }
-    ));
+          await getOraclePriceData(
+            this._program.provider.connection,
+            bankData.config.oracleSetup,
+            bankData.config.oracleKeys
+          )
+        );
+      })
+    );
 
     this._admin = rawData.admin;
     this._banks = banks.reduce((acc, current) => {

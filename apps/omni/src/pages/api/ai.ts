@@ -8,7 +8,7 @@ import path from "path";
 import fs from "fs";
 
 type Action = "deposit" | "borrow" | "stake" | "unstake" | null;
-type Token = "USDC" | "SOL" | "mSOL" | "BONK" | "USDT" | "ETH" | "WBTC" | null;
+type Token = "USDC" | "SOL" | "mSOL" | "BONK" | "USDT" | "ETH" | "WBTC" | "JitoSOL" | null;
 
 interface ExtractVariablesOutput {
   action: Action;
@@ -183,9 +183,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     response = {
       output: `
-        It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
-        walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
-      }
+        It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
+        }
       `,
       data: walletPublicKey && {
         action: result.action,
@@ -216,9 +215,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         response = {
           output: `
-            It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
-            walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
-          }`,
+            It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
+            }`,
           data: walletPublicKey && {
             action: result.action,
             amount: result.amount,

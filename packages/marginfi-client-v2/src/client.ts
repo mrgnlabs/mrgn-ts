@@ -277,10 +277,9 @@ class MarginfiClient {
   ): Promise<TransactionSignature> {
     let signature: TransactionSignature = "";
 
-    console.log('client.ts');
+    console.log("client.ts");
 
     try {
-
       let versionedTransaction: VersionedTransaction;
       const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
 

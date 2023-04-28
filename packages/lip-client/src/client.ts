@@ -112,16 +112,22 @@ class LipClient {
     const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
     if (banksData.length !== banksWithNulls.length) throw new Error("Some banks were not found");
 
-    const banks = await Promise.all(banksData.map(async (bd, index) => {
-      const bankConfig = marginfiClient.config.banks.find((bc) => bc.address.equals(relevantBankPks[index]));
-      if (!bankConfig) throw new Error(`Bank config not found for ${relevantBankPks[index]}`);
-      return new Bank(
-        bankConfig.label,
-        relevantBankPks[index],
-        bd as BankData,
-        await getOraclePriceData(program.provider.connection, (bd as BankData).config.oracleSetup, (bd as BankData).config.oracleKeys)
-      );
-    }));
+    const banks = await Promise.all(
+      banksData.map(async (bd, index) => {
+        const bankConfig = marginfiClient.config.banks.find((bc) => bc.address.equals(relevantBankPks[index]));
+        if (!bankConfig) throw new Error(`Bank config not found for ${relevantBankPks[index]}`);
+        return new Bank(
+          bankConfig.label,
+          relevantBankPks[index],
+          bd as BankData,
+          await getOraclePriceData(
+            program.provider.connection,
+            (bd as BankData).config.oracleSetup,
+            (bd as BankData).config.oracleKeys
+          )
+        );
+      })
+    );
 
     if (banks.length !== allCampaigns.length) {
       return Promise.reject("Some of the banks were not found");
