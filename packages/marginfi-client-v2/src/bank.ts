@@ -76,7 +76,7 @@ class Bank {
       assetWeightMaint: wrappedI80F48toBigNumber(rawData.config.assetWeightMaint),
       liabilityWeightInit: wrappedI80F48toBigNumber(rawData.config.liabilityWeightInit),
       liabilityWeightMaint: wrappedI80F48toBigNumber(rawData.config.liabilityWeightMaint),
-      maxCapacity: nativeToUi(rawData.config.maxCapacity, this.mintDecimals),
+      depositLimit: nativeToUi(rawData.config.depositLimit, this.mintDecimals),
       oracleSetup: rawData.config.oracleSetup,
       oracleKeys: rawData.config.oracleKeys,
       interestRateConfig: {
@@ -114,13 +114,12 @@ Config:
 - Asset weight maint: ${this.config.assetWeightMaint.toFixed(2)}
 - Liability weight init: ${this.config.liabilityWeightInit.toFixed(2)}
 - Liability weight maint: ${this.config.liabilityWeightMaint.toFixed(2)}
-- Max capacity: ${this.config.maxCapacity}
+- Max capacity: ${this.config.depositLimit}
 
 LTVs:
 - Initial: ${new BigNumber(1).div(this.config.liabilityWeightInit).times(100).toFixed(2)}%
 - Maintenance: ${new BigNumber(1).div(this.config.liabilityWeightMaint).times(100).toFixed(2)}%
-`
-      ;
+`;
   }
 
   get totalAssets(): BigNumber {
@@ -272,7 +271,7 @@ export interface BankConfig {
   liabilityWeightInit: BigNumber;
   liabilityWeightMaint: BigNumber;
 
-  maxCapacity: number;
+  depositLimit: number;
 
   interestRateConfig: InterestRateConfig;
 
@@ -329,16 +328,7 @@ export interface BankData {
 export enum OracleSetup {
   None = 0,
   PythEma = 1,
-  SwitchboardV2 = 2
-}
-
-export function decodeOracleSetup(oracleSetup: object): OracleSetup {
-  switch (Object.keys(oracleSetup)[0]) {
-    case "pyth": return OracleSetup.PythEma;
-    case "pythema": return OracleSetup.PythEma;
-    case "switchboard": return OracleSetup.SwitchboardV2;
-    default: return OracleSetup.None;
-  }
+  SwitchboardV2 = 2,
 }
 
 export interface BankConfigData {
@@ -348,7 +338,8 @@ export interface BankConfigData {
   liabilityWeightInit: WrappedI80F48;
   liabilityWeightMaint: WrappedI80F48;
 
-  maxCapacity: BN;
+  depositLimit: BN;
+  borrowLimit: BN;
 
   interestRateConfig: InterestRateConfigData;
 
@@ -382,8 +373,11 @@ export interface OraclePriceData {
   highestPrice: BigNumber;
 }
 
-export async function getOraclePriceData(connection: Connection, oracleSetup: OracleSetup, oracleKeys: PublicKey[]): Promise<OraclePriceData> {
-  // const oracleType = decodeOracleSetup(oracleSetup as any);
+export async function getOraclePriceData(
+  connection: Connection,
+  oracleSetup: OracleSetup,
+  oracleKeys: PublicKey[]
+): Promise<OraclePriceData> {
   switch (oracleSetup) {
     case OracleSetup.PythEma:
       const accounts = await connection.getMultipleAccountsInfo(oracleKeys);
@@ -398,7 +392,7 @@ export async function getOraclePriceData(connection: Connection, oracleSetup: Or
         price: pythPrice,
         confidenceInterval: pythConfInterval,
         lowestPrice: pythLowestPrice,
-        highestPrice: pythHighestPrice
+        highestPrice: pythHighestPrice,
       };
 
     case OracleSetup.SwitchboardV2:

@@ -545,15 +545,21 @@ export class MarginfiAccount {
       throw Error(`Failed to fetch banks ${nullAccounts}`);
     }
 
-    const banks = await Promise.all(bankAccountsData.map(
-      async (bd, index) =>
-        new Bank(
-          this._config.banks[index].label,
-          bankAddresses[index],
-          bd as BankData,
-          await getOraclePriceData(this._program.provider.connection, (bd as BankData).config.oracleSetup, (bd as BankData).config.oracleKeys)
-        )
-    ));
+    const banks = await Promise.all(
+      bankAccountsData.map(
+        async (bd, index) =>
+          new Bank(
+            this._config.banks[index].label,
+            bankAddresses[index],
+            bd as BankData,
+            await getOraclePriceData(
+              this._program.provider.connection,
+              (bd as BankData).config.oracleSetup,
+              (bd as BankData).config.oracleKeys
+            )
+          )
+      )
+    );
 
     this._group = MarginfiGroup.fromAccountDataRaw(this._config, this._program, marginfiGroupAi.data, banks);
     this._updateFromAccountData(marginfiAccountData);
