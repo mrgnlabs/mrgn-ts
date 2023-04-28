@@ -104,7 +104,7 @@
     "decimals": 9,
     "name": "Jito Staked SOL",
     "symbol": "JitoSOL",
-    "logoURI": "https://storage.googleapis.com/token-metadata/JitoSOL-256.png",
+    "logoURI": "/JitoSOL-256.png",
     "extensions": {
       "coingeckoId": ""
     }
