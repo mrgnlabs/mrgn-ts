@@ -238,9 +238,7 @@
     },
     {
       "name": "lendingPoolHandleBankruptcy",
-      "docs": [
-        "Handle bad debt of a bankrupt marginfi account for a given bank."
-      ],
+      "docs": ["Handle bad debt of a bankrupt marginfi account for a given bank."],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -329,9 +327,7 @@
     },
     {
       "name": "marginfiAccountInitialize",
-      "docs": [
-        "Initialize a marginfi account for a given group"
-      ],
+      "docs": ["Initialize a marginfi account for a given group"],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -653,9 +649,7 @@
     },
     {
       "name": "lendingAccountLiquidate",
-      "docs": [
-        "Liquidate a lending account balance of an unhealthy marginfi account"
-      ],
+      "docs": ["Liquidate a lending account balance of an unhealthy marginfi account"],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -894,10 +888,7 @@
           {
             "name": "padding",
             "type": {
-              "array": [
-                "u64",
-                64
-              ]
+              "array": ["u64", 64]
             }
           }
         ]
@@ -915,19 +906,13 @@
           {
             "name": "padding0",
             "type": {
-              "array": [
-                "u128",
-                32
-              ]
+              "array": ["u128", 32]
             }
           },
           {
             "name": "padding1",
             "type": {
-              "array": [
-                "u128",
-                32
-              ]
+              "array": ["u128", 32]
             }
           }
         ]
@@ -953,10 +938,7 @@
           {
             "name": "ignore1",
             "type": {
-              "array": [
-                "u8",
-                7
-              ]
+              "array": ["u8", 7]
             }
           },
           {
@@ -986,10 +968,7 @@
           {
             "name": "ignore2",
             "type": {
-              "array": [
-                "u8",
-                4
-              ]
+              "array": ["u8", 4]
             }
           },
           {
@@ -1007,10 +986,7 @@
           {
             "name": "ignore2",
             "type": {
-              "array": [
-                "u8",
-                4
-              ]
+              "array": ["u8", 4]
             }
           },
           {
@@ -1034,10 +1010,7 @@
           {
             "name": "ignore2",
             "type": {
-              "array": [
-                "u8",
-                6
-              ]
+              "array": ["u8", 6]
             }
           },
           {
@@ -1071,19 +1044,13 @@
           {
             "name": "padding0",
             "type": {
-              "array": [
-                "u128",
-                32
-              ]
+              "array": ["u128", 32]
             }
           },
           {
             "name": "padding1",
             "type": {
-              "array": [
-                "u128",
-                32
-              ]
+              "array": ["u128", 32]
             }
           }
         ]
@@ -1178,10 +1145,7 @@
           {
             "name": "padding",
             "type": {
-              "array": [
-                "u64",
-                8
-              ]
+              "array": ["u64", 8]
             }
           }
         ]
@@ -1203,10 +1167,7 @@
           {
             "name": "ignore",
             "type": {
-              "array": [
-                "u8",
-                7
-              ]
+              "array": ["u8", 7]
             }
           },
           {
@@ -1224,10 +1185,7 @@
           {
             "name": "padding",
             "type": {
-              "array": [
-                "u64",
-                4
-              ]
+              "array": ["u64", 4]
             }
           }
         ]
@@ -1297,10 +1255,7 @@
           {
             "name": "padding",
             "type": {
-              "array": [
-                "u128",
-                8
-              ]
+              "array": ["u128", 8]
             }
           }
         ]
@@ -1372,9 +1327,7 @@
     },
     {
       "name": "BankConfig",
-      "docs": [
-        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
-      ],
+      "docs": ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
       "type": {
         "kind": "struct",
         "fields": [
@@ -1425,21 +1378,15 @@
           {
             "name": "oracleKeys",
             "type": {
-              "array": [
-                "publicKey",
-                5
-              ]
+              "array": ["publicKey", 5]
             }
           },
           {
             "name": "ignore1",
             "type": {
-              "array": [
-                "u8",
-                6
-              ]
+              "array": ["u8", 6]
             }
-          }
+          },
           {
             "name": "borrowLimit",
             "type": "u64"
@@ -1453,10 +1400,7 @@
           {
             "name": "padding",
             "type": {
-              "array": [
-                "u64",
-                6
-              ]
+              "array": ["u64", 6]
             }
           }
         ]
@@ -1482,10 +1426,7 @@
           {
             "name": "ignore1",
             "type": {
-              "array": [
-                "u8",
-                208
-              ]
+              "array": ["u8", 208]
             }
           },
           {
@@ -1535,10 +1476,7 @@
           {
             "name": "ignore2",
             "type": {
-              "array": [
-                "u8",
-                272
-              ]
+              "array": ["u8", 272]
             }
           },
           {
@@ -1576,10 +1514,7 @@
           {
             "name": "ignore3",
             "type": {
-              "array": [
-                "u8",
-                264
-              ]
+              "array": ["u8", 264]
             }
           }
         ]
@@ -1599,10 +1534,7 @@
           {
             "name": "keys",
             "type": {
-              "array": [
-                "publicKey",
-                5
-              ]
+              "array": ["publicKey", 5]
             }
           }
         ]
