@@ -1,6 +1,6 @@
 [View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/packages/marginfi-client-v2/src/instructions.ts)
 
-The `mrgn-ts` project contains a module that exports a set of functions for interacting with a lending protocol called Marginfi. The module is defined in a file that exports an object called `instructions`. This object contains six functions that generate Solana program instructions for various Marginfi operations. 
+The `mrgn-ts` project contains a module that exports a set of functions for interacting with a lending protocol called Marginfi. The module is defined in a file that exports an object called `instructions`. This object contains six functions that generate Solana program instructions for various Marginfi operations.
 
 The `makeInitMarginfiAccountIx` function generates an instruction for initializing a Marginfi account. This function takes two arguments: `mfProgram`, which is an instance of the `MarginfiProgram` class, and `accounts`, which is an object containing four public keys. The function returns an instruction that can be used to initialize a Marginfi account.
 
@@ -15,12 +15,17 @@ The `makeBorrowIx` function generates an instruction for borrowing funds from a 
 The `makeLendingAccountLiquidateIx` function generates an instruction for liquidating a Marginfi account. This function takes four arguments: `mfProgram`, `accounts`, `args`, and `remainingAccounts`. The `mfProgram` argument is an instance of the `MarginfiProgram` class, `accounts` is an object containing six public keys, `args` is an object containing an amount of funds to liquidate, and `remainingAccounts` is an optional array of `AccountMeta` objects. The function returns an instruction that can be used to liquidate a Marginfi account.
 
 These functions are designed to be used in conjunction with the `MarginfiProgram` class, which is defined in another module of the `mrgn-ts` project. The `MarginfiProgram` class provides a high-level interface for interacting with the Marginfi protocol on the Solana blockchain. The `instructions` module provides a lower-level interface for generating Solana program instructions that can be used to interact with the Marginfi protocol. Developers can use the `MarginfiProgram` class to perform common Marginfi operations, or they can use the `instructions` module to generate custom instructions for more complex operations.
-## Questions: 
- 1. What is the purpose of this code?
+
+## Questions:
+
+1.  What is the purpose of this code?
+
 - This code exports a set of functions that generate Solana program instructions for various margin trading actions such as depositing, repaying, withdrawing, borrowing, and liquidating.
 
 2. What external libraries or dependencies does this code use?
+
 - This code uses the "@solana/web3.js" library for interacting with the Solana blockchain and the "bn.js" library for handling big numbers.
 
 3. What are the parameters and return types of the "makeWithdrawIx" function?
+
 - The "makeWithdrawIx" function takes in a "MarginfiProgram" object, an object containing various public keys, an object containing an amount and an optional boolean, and an optional array of "AccountMeta" objects. It returns a Promise that resolves to a Solana program instruction.

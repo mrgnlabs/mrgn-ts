@@ -9,12 +9,17 @@ The `AssetRow` component also contains several state variables, including `borro
 The `AssetRow` component uses several utility functions and libraries, including `toast` from the `react-toastify` library, which is used to display toast messages to the user; `groupedNumberFormatter` and `usdFormatter` from the `~/utils/formatters` module, which are used to format numbers and currency values; and various functions from the `@mrgnlabs/mrgn-common/src/spl` and `@mrgnlabs/mrgn-common` modules, which are used to create and manage associated token accounts and perform various Solana transactions.
 
 The `AssetRow` component is responsible for handling user interactions with the asset row, such as clicking the action button to borrow or lend the asset, entering an amount to borrow or lend, and refreshing the user's bank information. When the user clicks the action button, the component performs various checks to ensure that the user has entered a valid amount and that the user has the necessary funds to perform the action. If the checks pass, the component creates a Marginfi account for the user (if one does not already exist) and performs the relevant Solana transaction (e.g., deposit, withdraw, borrow, or repay). The component then updates the user's bank information and displays a toast message to the user indicating whether the transaction was successful or not.
-## Questions: 
- 1. What is the purpose of this code file?
+
+## Questions:
+
+1.  What is the purpose of this code file?
+
 - This code file contains a React functional component called `AssetRow` that renders a table row for a specific bank asset. It also includes helper functions to determine the current action (deposit, withdraw, borrow, or repay) based on the user's lending mode and the bank's current position.
 
 2. What external libraries or APIs does this code use?
+
 - This code imports several libraries and APIs, including Material-UI, React, React Toastify, Solana Web3.js, and Marginfi Client v2. It also imports helper functions from the `mrgn-common` package.
 
 3. What are some potential error scenarios that this code handles?
+
 - This code handles several potential error scenarios, such as when the user tries to deposit or borrow an amount of 0, when the user doesn't have any tokens to lend or can't borrow any tokens, and when there is an error creating or accessing the Marginfi account. It also handles errors related to performing the relevant operation (deposit, borrow, repay, or withdraw) and reloading the state. The code displays error messages using React Toastify.

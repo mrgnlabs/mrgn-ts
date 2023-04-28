@@ -7,12 +7,17 @@ The `processTransaction` function is a helper function for processing transactio
 The `sleep` function is an internal helper function that takes a number of milliseconds as an argument and returns a promise that resolves after the specified number of milliseconds.
 
 These functions can be used in the mrgn-ts project to load keypairs and process transactions on the Solana blockchain. For example, the `loadKeypair` function can be used to load a keypair from a file path and pass it to the `processTransaction` function as an additional signer. The `processTransaction` function can be used to send a transaction to the Solana blockchain and confirm it. The `sleep` function can be used internally in the project to delay execution for a specified amount of time.
-## Questions: 
- 1. What is the purpose of the `loadKeypair` function?
+
+## Questions:
+
+1.  What is the purpose of the `loadKeypair` function?
+
 - The `loadKeypair` function loads a keypair from a provided file and returns it as a `Keypair` object.
 
 2. What is the purpose of the `processTransaction` function?
+
 - The `processTransaction` function is a helper function for processing transactions and handling errors. It takes in a provider, a transaction, an optional array of signers, and optional confirmation options, and returns a transaction signature.
 
 3. What is the purpose of the `sleep` function?
+
 - The `sleep` function is an internal function that returns a promise that resolves after a specified number of milliseconds. It is likely used for delaying execution in certain parts of the code.

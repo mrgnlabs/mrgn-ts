@@ -23,7 +23,7 @@ import {
 } from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
-import { Analytics } from '@vercel/analytics/react';
+import { Analytics } from "@vercel/analytics/react";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");

@@ -20,7 +20,7 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
   disabled,
   onClick,
   link,
-  icon
+  icon,
 }) => (
   <Button
     className={`px-6 h-full ${
@@ -37,16 +37,15 @@ const NavbarCenterItem: FC<NavbarCenterItemProps> = ({
     onClick={onClick}
   >
     {text}
-    {
-      icon &&
+    {icon && (
       <Image
         src="https://s2.coinmarketcap.com/static/img/coins/64x64/23095.png"
         alt="bonk"
         height={24}
         width={24}
-        style={{ borderRadius: 100, }}
+        style={{ borderRadius: 100 }}
       />
-    }
+    )}
     {disabled ? <LockIcon className="h-[14px] w-[14px]" /> : <></>}
   </Button>
 );

@@ -25,12 +25,17 @@ function MyComponent() {
   );
 }
 ```
-## Questions: 
- 1. What is the purpose of the `NavbarCenterItem` component?
+
+## Questions:
+
+1.  What is the purpose of the `NavbarCenterItem` component?
+
 - The `NavbarCenterItem` component is used to render a button in the center of a navigation bar with customizable text, formatting, and click behavior.
 
 2. What external libraries or dependencies does this code use?
+
 - This code uses the `@mui/material` library for the `Button` component and the `LockIcon` component from the `@mui/icons-material` library. It also uses the `FC` interface from the `react` library.
 
 3. What is the purpose of the `link` prop in the `NavbarCenterItemProps` interface?
+
 - The `link` prop is used to determine whether the button should take up the full width of the navigation bar or only a quarter of the width. If `link` is `true`, the button will take up the full width. If `link` is `false` or not provided, the button will take up a quarter of the width.

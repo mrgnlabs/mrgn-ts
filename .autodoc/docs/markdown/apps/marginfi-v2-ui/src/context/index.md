@@ -7,12 +7,17 @@ The `BanksStateProvider` and `useBanks` hooks are used to manage and access info
 These providers and hooks can be used throughout the larger project to access and manage the data needed for the cryptocurrency trading platform. For example, a component that displays a user's token account balance could use the `useTokenAccounts` hook to access that information and display it to the user. Similarly, a component that allows a user to select a bank for trading could use the `BanksStateProvider` to manage the state of the available banks and the `useBanks` hook to access that information and display it to the user.
 
 Overall, this code provides a set of tools for managing and accessing the data needed for a cryptocurrency trading platform, making it easier to build and maintain such a platform.
-## Questions: 
- 1. What is the purpose of this code file?
+
+## Questions:
+
+1.  What is the purpose of this code file?
+
 - This code file exports several providers and hooks related to banks, token accounts, user accounts, program, and token metadata.
 
 2. How are these providers and hooks used in the mrgn-ts project?
+
 - It is unclear from this code file alone how these providers and hooks are used in the mrgn-ts project. Further investigation into the project's codebase is needed.
 
 3. Are there any dependencies required for this code file to work properly?
+
 - It is unclear from this code file alone if there are any dependencies required for this code file to work properly. The import statements suggest that there are other files or modules that this code file depends on.

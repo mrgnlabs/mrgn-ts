@@ -1,6 +1,6 @@
 [View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/packages/mrgn-common/src/conversion.ts)
 
-This file contains several utility functions that are used to convert and manipulate different types of data in the mrgn-ts project. 
+This file contains several utility functions that are used to convert and manipulate different types of data in the mrgn-ts project.
 
 The `wrappedI80F48toBigNumber` function takes a `BN` object and a `scaleDecimal` number as input and returns a `BigNumber` object. It converts the input `BN` object to a binary string and then to a decimal number using the `Decimal` library. The resulting decimal number is then divided by 10 to the power of `scaleDecimal` and returned as a `BigNumber` object. This function is used to convert a wrapped I80F48 number to a `BigNumber` object.
 
@@ -13,12 +13,17 @@ The `uiToNative` function takes an `Amount` object and a `decimals` number as in
 The `nativeToUi` function takes an `Amount` or `BN` object and a `decimals` number as input and returns a `number`. It first converts the input `Amount` or `BN` object to a `BigNumber` object using the `toBigNumber` function. It then divides the resulting `BigNumber` object by 10 to the power of `decimals` and returns the result as a `number`. This function is used to convert a native representation of a token amount to its UI value as a `number`.
 
 The `shortenAddress` function takes an `Address` object and a `chars` number as input and returns a shortened string representation of the input address. It first converts the input `Address` object to a string and then returns a string that contains the first `chars` characters of the input address, followed by an ellipsis, followed by the last `chars` characters of the input address. This function is used to shorten the checksummed version of an input address to have 4 characters at the start and end.
-## Questions: 
- 1. What is the purpose of the `wrappedI80F48toBigNumber` function?
+
+## Questions:
+
+1.  What is the purpose of the `wrappedI80F48toBigNumber` function?
+
 - The `wrappedI80F48toBigNumber` function converts a 64-bit fixed-point number to a BigNumber with a specified scale.
 
 2. What is the purpose of the `uiToNative` function?
+
 - The `uiToNative` function converts a UI representation of a token amount into its native value as a BN, given the specified mint decimal amount.
 
 3. What is the purpose of the `shortenAddress` function?
+
 - The `shortenAddress` function shortens the checksummed version of an input address to have 4 characters at the start and end.

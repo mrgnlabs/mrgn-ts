@@ -7,9 +7,9 @@ This code serves as a centralized location for information about the various tok
 To use this code in the larger project, developers can import the `tokens` array from the `mrgn-ts` project and use it to access information about specific tokens. For example, to find the token object for USDC, the following code could be used:
 
 ```typescript
-import tokens from 'mrgn-ts/tokens';
+import tokens from "mrgn-ts/tokens";
 
-const usdc = tokens.find(token => token.symbol === 'USDC');
+const usdc = tokens.find((token) => token.symbol === "USDC");
 console.log(`The address of USDC is ${usdc.address}`);
 ```
 

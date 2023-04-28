@@ -1,6 +1,6 @@
 [View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/apps/marginfi-v2-ui/src/pages/_document.tsx)
 
-The code above is a React component that exports a default function called `Document`. This function returns a JSX element that represents the basic structure of an HTML document. 
+The code above is a React component that exports a default function called `Document`. This function returns a JSX element that represents the basic structure of an HTML document.
 
 The `Html` component is imported from the `next/document` module and is used to represent the root element of an HTML document. It takes an optional `lang` attribute that specifies the language of the document. In this case, it is set to "en" for English.
 
@@ -12,7 +12,7 @@ The `Main` component is also imported from the `next/document` module and is use
 
 The `NextScript` component is also imported from the `next/document` module and is used to represent the scripts that should be included at the end of the document. This is typically where JavaScript files are included.
 
-Overall, this code provides a basic structure for an HTML document that can be used as a starting point for building a web page. It is likely used as a template for all pages in the larger project, with specific content being rendered within the `Main` component. 
+Overall, this code provides a basic structure for an HTML document that can be used as a starting point for building a web page. It is likely used as a template for all pages in the larger project, with specific content being rendered within the `Main` component.
 
 Here is an example of how this component might be used in a larger project:
 
@@ -30,8 +30,10 @@ function HomePage() {
 ```
 
 In this example, the `Document` component is used as a wrapper for the content of the home page. The `h1` and `p` elements are rendered within the `Main` component, which is included in the `body` section of the document. The `Head` and `NextScript` components are automatically included by Next.js.
-## Questions: 
- 1. What is the purpose of this code?
+
+## Questions:
+
+1. What is the purpose of this code?
    This code is defining a custom Next.js Document component that sets the language of the HTML to English and includes a Head, Main, and NextScript component in the body.
 
 2. What is the significance of the "no-scrollbar" class in the body element?

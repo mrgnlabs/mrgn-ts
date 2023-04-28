@@ -1,13 +1,6 @@
 import { OpenAI } from "langchain";
 import { initializeAgentExecutor } from "langchain/agents";
-import {
-  AccountsTool,
-  BanksTool,
-  WalletBalancesTool,
-  TokenInfoTool,
-  TokenPriceTool,
-  getOmniQaTool,
-} from "./tools";
+import { AccountsTool, BanksTool, WalletBalancesTool, TokenInfoTool, TokenPriceTool, getOmniQaTool } from "./tools";
 import config from "~/config";
 
 const getGeneralAgent = async ({ walletPublicKey }: { walletPublicKey: string }) => {

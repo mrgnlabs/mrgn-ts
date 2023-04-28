@@ -7,12 +7,17 @@ The component defines several constants that represent the amount of tokens to b
 The `AirdropZone` component renders a button that, when clicked, opens a modal that displays three additional buttons, each of which corresponds to a different token. When a button is clicked, the corresponding `airdropToken` function is called with the appropriate arguments. The component also uses the `toast` function from the `react-toastify` library to display a loading spinner and a success or error message when an airdrop is requested.
 
 Overall, the `AirdropZone` component provides a simple interface for users to request airdrops of various tokens, and it leverages several Solana and mrgn-common libraries to handle the creation and sending of transactions. This component could be used in a larger project that requires users to interact with the Solana network and request airdrops of tokens.
-## Questions: 
- 1. What is the purpose of the `airdropToken` function?
+
+## Questions:
+
+1.  What is the purpose of the `airdropToken` function?
+
 - The `airdropToken` function is used to airdrop a specified amount of a token to the user's associated token account.
 
 2. What are the `NOTSOL_AMOUNT`, `USDC_AMOUNT`, and `SOL_AMOUNT` constants used for?
+
 - These constants represent the amount of different tokens that will be airdropped to the user when the corresponding button is clicked.
 
 3. What is the `createAssociatedTokenAccountInstruction` function used for?
+
 - The `createAssociatedTokenAccountInstruction` function is used to create an instruction to create an associated token account for the user if one does not already exist.

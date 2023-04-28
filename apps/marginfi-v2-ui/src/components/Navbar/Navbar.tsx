@@ -31,14 +31,23 @@ const Navbar: FC = () => {
               <Link href={"/earn"} className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0">
                 <NavbarCenterItem text="Earn!" icon />
               </Link>
-              <Link href={"https://app.marginfi.com"} className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0">
+              <Link
+                href={"https://app.marginfi.com"}
+                className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0"
+              >
                 <NavbarCenterItem text="Lend" />
               </Link>
-              <Link href={"https://app.marginfi.com/swap"} className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0">
+              <Link
+                href={"https://app.marginfi.com/swap"}
+                className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0"
+              >
                 <NavbarCenterItem text="Swap" />
               </Link>
-              <Link href={"https://omni.marginfi.com"} className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0">
-              <NavbarCenterItem text="Omni"/>
+              <Link
+                href={"https://omni.marginfi.com"}
+                className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0"
+              >
+                <NavbarCenterItem text="Omni" />
               </Link>
               {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && <AirdropZone />}
             </div>

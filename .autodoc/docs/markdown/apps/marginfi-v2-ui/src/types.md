@@ -21,12 +21,16 @@ The `ExtendedBankInfo` type is a union of `ActiveBankInfo` and `InactiveBankInfo
 The `isActiveBankInfo` function is a type guard that checks whether a given `ExtendedBankInfo` object is of type `ActiveBankInfo`.
 
 Overall, this code provides a set of data structures that can be used to represent different aspects of the mrgn-ts project, such as banks, user positions, and tokens. These structures can be used throughout the project to store and manipulate data. For example, the `BankInfo` interface can be used to represent a bank's information, while the `UserPosition` interface can be used to represent a user's position in a bank. The `ActionType` enum can be used to specify the type of action a user wants to take in a bank, and the `isActiveBankInfo` function can be used to check whether a bank has an active user position.
-## Questions: 
- 1. What is the purpose of the `Bank` import from `@mrgnlabs/marginfi-client-v2`?
-   - A smart developer might ask what the `Bank` class from `@mrgnlabs/marginfi-client-v2` is used for within this code.
-   - Answer: The `Bank` class is used as a property of the `BankInfo` interface to provide additional information about a bank.
+
+## Questions:
+
+1.  What is the purpose of the `Bank` import from `@mrgnlabs/marginfi-client-v2`?
+
+- A smart developer might ask what the `Bank` class from `@mrgnlabs/marginfi-client-v2` is used for within this code.
+- Answer: The `Bank` class is used as a property of the `BankInfo` interface to provide additional information about a bank.
 
 2. What is the difference between `ActiveBankInfo` and `InactiveBankInfo`?
+
    - A smart developer might ask what distinguishes `ActiveBankInfo` from `InactiveBankInfo`.
    - Answer: `ActiveBankInfo` includes a `UserPosition` property, indicating that the user has an active position with the bank, while `InactiveBankInfo` does not.
 

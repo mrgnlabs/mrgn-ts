@@ -22,12 +22,17 @@ function MyPage() {
   );
 }
 ```
-## Questions: 
- 1. What is the purpose of this code and where is it used in the project?
+
+## Questions:
+
+1.  What is the purpose of this code and where is it used in the project?
+
 - This code defines a React functional component called `Footer` that renders a fixed navigation bar at the bottom of the page. It is likely used as a common footer component across multiple pages of the `mrgn-ts` project.
 
 2. What external libraries or frameworks are being used in this code?
+
 - This code imports several external libraries and frameworks, including `react`, `next/link`, `next/image`, and `@mui/material`. It also imports a custom CSS module called `Footer.module.css`.
 
 3. What is the purpose of the `NavbarCenterItem` and `Button` components, and where are they defined?
+
 - The `NavbarCenterItem` component is a custom component that is likely defined elsewhere in the project. It is used to render a clickable link with a text label in the center of the navigation bar. The `Button` component is imported from the `@mui/material` library but is not actually used in this code.

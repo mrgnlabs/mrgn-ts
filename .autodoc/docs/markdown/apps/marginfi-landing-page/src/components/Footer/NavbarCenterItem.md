@@ -1,6 +1,6 @@
 [View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/apps/marginfi-landing-page/src/components/Footer/NavbarCenterItem.tsx)
 
-The code defines a React functional component called `NavbarCenterItem` that renders a `Button` component from the Material-UI library. The component takes in four props: `text`, `textFormat`, `disabled`, and `onClick`. 
+The code defines a React functional component called `NavbarCenterItem` that renders a `Button` component from the Material-UI library. The component takes in four props: `text`, `textFormat`, `disabled`, and `onClick`.
 
 The `text` prop is a required string that specifies the text to be displayed on the button. The `textFormat` prop is an optional string that specifies the text formatting to be applied to the button text. If not provided, the default value is `"normal-case"`. The `disabled` prop is an optional boolean that specifies whether the button should be disabled or not. If not provided, the default value is `false`. The `onClick` prop is an optional function that specifies the action to be taken when the button is clicked.
 
@@ -23,8 +23,10 @@ const MyNavbar = () => (
   </nav>
 );
 ```
-## Questions: 
- 1. What is the purpose of this code?
+
+## Questions:
+
+1. What is the purpose of this code?
    This code defines a React functional component called `NavbarCenterItem` that renders a Material UI `Button` with customizable text, text formatting, and click behavior.
 
 2. What dependencies does this code rely on?

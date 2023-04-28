@@ -35,7 +35,7 @@ class Liquidator {
     readonly jupiter: Jupiter,
     readonly account_whitelist: PublicKey[] | undefined,
     readonly account_blacklist: PublicKey[] | undefined
-  ) { }
+  ) {}
 
   get group() {
     return this.client.group;
@@ -227,10 +227,7 @@ class Liquidator {
       await this.swap(USDC_MINT, bank.mint, uiToNative(usdcBuyingPower, USDC_DECIMALS));
 
       const liabsUi = new BigNumber(nativeToUi(liabilities, bank.mintDecimals));
-      const liabBalance = BigNumber.min(
-        await this.getTokenAccountBalance(bank.mint, true),
-        liabsUi
-      );
+      const liabBalance = BigNumber.min(await this.getTokenAccountBalance(bank.mint, true), liabsUi);
 
       debug("Got %s of %s, depositing to marginfi", liabBalance, bank.mint);
 
@@ -275,10 +272,10 @@ class Liquidator {
     const nativeAmount = nativeToUi(
       mint.equals(NATIVE_MINT)
         ? Math.max(
-          (await this.connection.getBalance(this.wallet.publicKey)) -
-          (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
-          0
-        )
+            (await this.connection.getBalance(this.wallet.publicKey)) -
+              (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
+            0
+          )
         : 0,
       9
     );

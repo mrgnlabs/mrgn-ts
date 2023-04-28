@@ -105,7 +105,11 @@ Total deposits: ${nativeToUi(this.totalAssets, this.mintDecimals)}
 Total borrows: ${nativeToUi(this.totalLiabilities, this.mintDecimals)}
 
 Total assets (USD value): ${this.getAssetUsdValue(this.totalAssetShares, MarginRequirementType.Equity, PriceBias.None)}
-Total liabilities (USD value): ${this.getLiabilityUsdValue(this.totalLiabilityShares, MarginRequirementType.Equity, PriceBias.None)}
+Total liabilities (USD value): ${this.getLiabilityUsdValue(
+      this.totalLiabilityShares,
+      MarginRequirementType.Equity,
+      PriceBias.None
+    )}
 
 Asset price (USD): ${this.getPrice(PriceBias.None)}
 

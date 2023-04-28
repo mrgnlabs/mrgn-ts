@@ -23,12 +23,17 @@ chunkedGetRawMultipleAccountInfos(connection, pks).then(([contextSlot, accountIn
   console.log(`Account info map: ${JSON.stringify([...accountInfoMap])}`);
 });
 ```
-## Questions: 
- 1. What is the purpose of the `chunks` function?
+
+## Questions:
+
+1.  What is the purpose of the `chunks` function?
+
 - The `chunks` function takes an array and a size and returns an array of arrays where each subarray has a length of `size` or less. It is likely used to split up a larger array into smaller chunks for processing.
 
 2. What is the purpose of the `chunkedGetRawMultipleAccountInfos` function?
+
 - The `chunkedGetRawMultipleAccountInfos` function takes a Solana connection object, an array of public keys, and two optional chunk sizes as arguments. It uses the `chunks` function to split the public keys into batches and then fetches account information for each batch using the Solana `getMultipleAccounts` method. The function returns a Promise that resolves to a tuple containing the highest slot number of all the fetched accounts and a Map of account information objects keyed by their public key.
 
 3. Why is the `base64+zstd` encoding used instead of `base64` for fetching account information?
+
 - The `base64+zstd` encoding is used instead of `base64` because it is faster when fetching from the Solana RPC. According to a comment in the code, `base64` was found to be 3x slower than `zstd` when fetching.

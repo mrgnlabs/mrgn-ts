@@ -25,12 +25,17 @@ This component can be used in a larger project to display metrics for various as
 ```
 
 This would render a row of metrics for Bitcoin with a short label of "BTC", a long label of "Bitcoin", a value of "50,000", and a USD equivalent value of "$2,500,000". The component would have a border radius of 8 pixels.
-## Questions: 
- 1. What is the purpose of this code?
+
+## Questions:
+
+1.  What is the purpose of this code?
+
 - This code defines a React functional component called `AssetRowMetric` that renders a styled div containing some text and an optional USD equivalent value.
 
 2. What props does the `AssetRowMetric` component accept?
+
 - The `AssetRowMetric` component accepts five props: `shortLabel` (string), `longLabel` (string), `value` (string), `borderRadius` (string), and `usdEquivalentValue` (optional string).
 
 3. What styling is applied to the rendered div?
+
 - The rendered div has a black semi-transparent background, a solid border with a dark gray color, a height of 12 pixels, a full width that can be constrained to a maximum of 200 pixels, and some padding. The border radius and font family are customizable through props, and the font weight is fixed at 400. The text color is light gray, except for the USD equivalent value, which has a white text color and a light blue background color. The USD equivalent value is only displayed if the `usdEquivalentValue` prop is defined.

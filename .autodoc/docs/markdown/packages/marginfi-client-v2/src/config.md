@@ -17,12 +17,17 @@ The `getMarginfiConfig` function takes an `environment` argument of type `Enviro
 The `getConfig` function takes an optional `environment` argument of type `Environment` and an optional `overrides` argument of type `Partial<Omit<MarginfiConfig, "environment">>` and returns an object of type `MarginfiConfig` that is either the default configuration for the input `environment` or a configuration that overrides some of the default values with the values in the `overrides` argument. This function is the main interface for retrieving configuration data for the Marginfi application.
 
 Overall, this module provides a way to retrieve configuration data for the Marginfi application based on the current environment. The `getConfig` function can be called with an optional `environment` argument to retrieve the default configuration for that environment, or with an optional `overrides` argument to override some of the default values. The `loadDefaultConfig` function reads configuration data from a JSON file and parses it into an object that can be used by the `getConfig` function. The `parseConfigs`, `parseConfig`, and `parseBankConfig` functions are used to parse the configuration data into the appropriate types.
-## Questions: 
- 1. What is the purpose of the `types` module that is imported?
+
+## Questions:
+
+1.  What is the purpose of the `types` module that is imported?
+
 - A smart developer might wonder what types are defined in the `types` module that is imported, and how they are used in this code.
 
 2. What is the format of the `configs.json` file that is imported?
+
 - A smart developer might want to know the structure of the `configs.json` file that is imported, and what information it contains.
 
 3. What is the purpose of the `parseConfigs` function?
+
 - A smart developer might wonder what the `parseConfigs` function does, and how it is used in the code.

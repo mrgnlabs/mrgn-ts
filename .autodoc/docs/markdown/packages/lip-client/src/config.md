@@ -22,9 +22,13 @@ import { getConfig } from "mrgn-ts";
 const config = getConfig("production");
 console.log(config.programId.toBase58()); // prints the public key for the program in the production environment
 ```
-## Questions: 
- 1. What is the purpose of the `LipConfig` type and how is it used in this code?
-   - The `LipConfig` type is defined in the `types` module and is used to represent a configuration object with properties for `environment`, `cluster`, and `programId`. It is used throughout the code to parse and generate configuration objects.
+
+## Questions:
+
+1.  What is the purpose of the `LipConfig` type and how is it used in this code?
+
+- The `LipConfig` type is defined in the `types` module and is used to represent a configuration object with properties for `environment`, `cluster`, and `programId`. It is used throughout the code to parse and generate configuration objects.
+
 2. What is the purpose of the `parseConfigs` function and how is it used?
    - The `parseConfigs` function takes an array of `LipConfigRaw` objects and returns an object with keys corresponding to the `label` property of each `LipConfigRaw` object and values corresponding to the parsed `LipConfig` objects. It is used to generate a map of configurations from the `configs` JSON file.
 3. What is the purpose of the `getLipConfig` function and how is it used?

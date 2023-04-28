@@ -5,12 +5,17 @@ The code defines a React functional component called `AssetRowHeader` that rende
 The component first renders a div containing the asset's icon (if provided) and name. It then conditionally renders a div containing the text "Current APY" (only visible on larger screens) and another div containing the asset's APY percentage, formatted using a utility function called `percentFormatter`. The background color and text color of this div depend on whether the asset is in lending mode or not.
 
 This component is likely used in a larger project that displays information about various financial assets, such as a portfolio management dashboard or investment tracking app. It could be used in conjunction with other components to create a table or list of assets, with each row containing an `AssetRowHeader` cell and additional cells for other information such as current price, market cap, or trading volume. The `AssetRowHeader` component could also be customized or extended to include additional information or functionality, such as a tooltip with more detailed information about the asset or a button to toggle lending mode on or off.
-## Questions: 
- 1. What is the purpose of this code?
+
+## Questions:
+
+1.  What is the purpose of this code?
+
 - This code defines a React component called `AssetRowHeader` that renders a table cell with information about an asset, including its name, icon, and APY.
 
 2. What external dependencies does this code rely on?
+
 - This code imports several dependencies, including `@mui/material`, `react`, `next/image`, and a custom utility function called `percentFormatter` from a file located at `~/utils/formatters`.
 
 3. What props does the `AssetRowHeader` component accept?
+
 - The `AssetRowHeader` component accepts four props: `assetName` (a string representing the name of the asset), `apy` (a number representing the asset's APY), `icon` (an optional string representing the URL of the asset's icon), and `isInLendingMode` (a boolean indicating whether the asset is in lending mode).

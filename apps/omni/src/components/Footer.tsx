@@ -9,7 +9,7 @@ import { FC } from "react";
 
 // @todo implement second pretty navbar row
 const Footer: FC = () => {
-//   const wallet = useWallet();
+  //   const wallet = useWallet();
 
   return (
     <div>

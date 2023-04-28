@@ -9,12 +9,17 @@ The `captureException` and `captureMessage` functions are exported for use in ot
 The `resolveHome` function is a helper function that resolves a file path that starts with `"~"` to the user's home directory.
 
 Overall, this code provides a standardized way to load and parse environment variables for the mrgn-ts project, and provides error reporting functionality through Sentry. Other parts of the project can import the `env_config` object and use its properties as needed. For example, a module that interacts with the Solana blockchain might use the `LIQUIDATOR_PK` property to access a specific account.
-## Questions: 
- 1. What external libraries are being used in this code?
+
+## Questions:
+
+1.  What external libraries are being used in this code?
+
 - The code is importing several external libraries including `zod`, `dotenv`, `@solana/web3.js`, `@mrgnlabs/marginfi-client-v2`, `@mrgnlabs/mrgn-common`, `fs`, `path`, and `os`.
 
 2. What is the purpose of the `envSchema` object?
+
 - The `envSchema` object is defining a schema for the environment variables that the application expects to receive. It uses the `zod` library to define the expected types and default values for each variable.
 
 3. What is the purpose of the `captureException` and `captureMessage` functions?
+
 - These functions are used to capture and report errors and messages to the Sentry error tracking service, if the `SENTRY` environment variable is set to true.

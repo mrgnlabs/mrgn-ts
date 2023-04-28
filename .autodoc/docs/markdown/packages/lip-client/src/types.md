@@ -1,6 +1,6 @@
 [View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/packages/lip-client/src/types.ts)
 
-This code defines types and interfaces related to the Lending Incentive Program (LIP) in the mrgn-ts project. The LIP is a program that incentivizes users to lend their assets on the MarginFi platform. 
+This code defines types and interfaces related to the Lending Incentive Program (LIP) in the mrgn-ts project. The LIP is a program that incentivizes users to lend their assets on the MarginFi platform.
 
 The code imports the PublicKey class from the Solana web3.js library, the Lip interface from an idl file, and the Program and ProgramReadonly classes from the mrgn-common library. It also imports the Environment interface from the marginfi-client-v2 library.
 
@@ -26,11 +26,15 @@ const lipProgram: LipProgram = new Program<Lip>(config.programId, Lip, config);
 ```
 
 This code creates a new LipConfig object with the necessary configuration options, and then uses those options to create a new instance of the LIP program using the Program class from the mrgn-common library. The resulting LipProgram object can then be used to interact with the LIP program on the specified Solana cluster.
-## Questions: 
- 1. What is the purpose of the `Lip` import from "./idl"?
-   - The `Lip` import is likely a custom interface or data structure defined in the "./idl" file, but without further context it is unclear what it represents or how it is used.
+
+## Questions:
+
+1.  What is the purpose of the `Lip` import from "./idl"?
+
+- The `Lip` import is likely a custom interface or data structure defined in the "./idl" file, but without further context it is unclear what it represents or how it is used.
 
 2. What is the difference between `LipProgram` and `LipProgramReadonly`?
+
    - `LipProgram` and `LipProgramReadonly` are both type aliases for `Program<Lip>` and `ProgramReadonly<Lip>` respectively, but without knowing the definitions of those types it is unclear what the practical difference between the two aliases is.
 
 3. What is the purpose of the `LipConfig` interface and how is it used?

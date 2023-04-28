@@ -76,7 +76,7 @@ const CampaignWizardInputBox: FC<CampaignWizardInputBox> = ({
   );
 };
 
-interface CampaignWizardProps { }
+interface CampaignWizardProps {}
 
 const CampaignWizard: FC<CampaignWizardProps> = () => {
   const [guaranteedApy, setGuaranteedApy] = useState(0);
@@ -265,7 +265,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
         <CampaignWizardInputBox
           value={guaranteedApy * 100}
           setValue={(value) => setGuaranteedApy(value / 100)}
-          loadingSafetyCheck={() => { }}
+          loadingSafetyCheck={() => {}}
           maxDecimals={2}
           disabled={!wallet.connected}
         />
@@ -276,7 +276,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           <CampaignWizardInputBox
             value={lockupPeriodInDays}
             setValue={setLockupPeriodInDays}
-            loadingSafetyCheck={() => { }}
+            loadingSafetyCheck={() => {}}
             maxDecimals={3}
             disabled={!wallet.connected}
           />
@@ -287,7 +287,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
         <CampaignWizardInputBox
           value={depositCapacity}
           setValue={setDepositCapacity}
-          loadingSafetyCheck={() => { }}
+          loadingSafetyCheck={() => {}}
           maxDecimals={2}
           disabled={!wallet.connected}
         />
@@ -337,13 +337,13 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           >
             {campaignBank
               ? percentFormatterDyn.format(
-                computeGuaranteedApy(
-                  contractInputs.lockupPeriod,
-                  contractInputs.maxDeposits,
-                  contractInputs.maxRewards,
-                  campaignBank
+                  computeGuaranteedApy(
+                    contractInputs.lockupPeriod,
+                    contractInputs.maxDeposits,
+                    contractInputs.maxRewards,
+                    campaignBank
+                  )
                 )
-              )
               : 0}
           </span>
         </div>

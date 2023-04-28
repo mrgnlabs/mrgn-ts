@@ -20,12 +20,17 @@ async function getBalance(publicKey: PublicKey): Promise<number> {
 ```
 
 In this example, the `getBalance` function uses the `connection` object to query the balance of a Solana account identified by `publicKey`. The `commitment` level is passed as an argument to ensure that the balance is final and confirmed. The function returns the account balance as a number.
-## Questions: 
- 1. What is the purpose of the `Commitment` and `Connection` imports from `@solana/web3.js`?
+
+## Questions:
+
+1.  What is the purpose of the `Commitment` and `Connection` imports from `@solana/web3.js`?
+
 - The `Commitment` and `Connection` imports are likely used for interacting with the Solana blockchain network.
 
 2. What is the purpose of the `fetchRetry` and `fetch` imports?
+
 - The `fetchRetry` and `fetch` imports are likely used for making HTTP requests, with `fetchRetry` providing retry functionality.
 
 3. What is the purpose of the `env_config` import from "../config"?
+
 - The `env_config` import is likely used for accessing environment variables or configuration settings specific to the project.
