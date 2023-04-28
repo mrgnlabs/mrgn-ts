@@ -21,8 +21,10 @@ const HomePage: FC = () => {
 In this example, the `HomePage` component renders the `PageHeader` component followed by a heading and a paragraph. The `PageHeader` component provides a visually consistent header across all pages of the application, while the `HomePage` component provides the specific content for the home page.
 
 Overall, this code demonstrates how React components can be used to create reusable UI elements that can be composed together to build complex web applications. By defining a consistent header component, the application can provide a unified user experience across all pages.
-## Questions: 
- 1. What is the purpose of this code?
+
+## Questions:
+
+1. What is the purpose of this code?
    This code defines a React functional component called `PageHeader` that renders a header with a background image and the text "mrgnlend".
 
 2. What dependencies does this code have?

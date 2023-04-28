@@ -9,12 +9,17 @@ The logo is a clickable link that takes the user to the home page of the website
 The navigation bar is styled using CSS classes defined in `./Navbar.module.css`. The CSS classes define the layout, colors, and other visual properties of the navigation bar.
 
 This component can be used in the larger project to provide a consistent navigation experience across all pages of the website. It can be easily customized by changing the logo, navigation links, and launch app button. For example, the navigation links can be updated to point to different pages or external websites. The launch app button can be updated to launch a different application or perform a different action.
-## Questions: 
- 1. What libraries and frameworks are being used in this code?
+
+## Questions:
+
+1.  What libraries and frameworks are being used in this code?
+
 - The code is using React, Next.js, and Material-UI.
 
 2. What is the purpose of the NavbarCenterItem component?
+
 - The NavbarCenterItem component is used to render a link with a specific text for the center section of the navbar.
 
 3. What is the significance of the "invisible lg:visible" class in the second div?
+
 - The "invisible lg:visible" class is used to hide the div on smaller screens and show it on larger screens (using the "lg" breakpoint).

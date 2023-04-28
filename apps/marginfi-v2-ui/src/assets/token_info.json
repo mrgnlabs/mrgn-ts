@@ -73,7 +73,7 @@
     "symbol": "ETH",
     "logoURI": "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/ETH_wh.png",
     "extensions": {
-        "coingeckoId": "ethereum-wormhole"
+      "coingeckoId": "ethereum-wormhole"
     }
   },
   {
@@ -84,7 +84,7 @@
     "decimals": 6,
     "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.svg",
     "extensions": {
-        "coingeckoId": "tether"
+      "coingeckoId": "tether"
     }
   },
   {

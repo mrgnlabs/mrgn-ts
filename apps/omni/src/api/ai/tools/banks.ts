@@ -2,40 +2,34 @@ import { Tool } from "langchain/tools";
 import { getClient } from "../utils";
 import { Connection } from "@solana/web3.js";
 
-
-
 class BanksTool extends Tool {
-    name = "bank-tool";
-  
-    description =
-      "A tool to get information about marginfi token pools, which are internally called Banks. Useful when you need to answer questions about the state of liquidity pools on the marginfi protocol or answer questions about marginfi's risk management parameters. Input should be null."
+  name = "bank-tool";
 
-    connection: Connection;
-      
-  
-    constructor(rpcEndpoint: string) {
-      super();
-      this.connection = new Connection(rpcEndpoint, "confirmed");
-    }
+  description =
+    "A tool to get information about marginfi token pools, which are internally called Banks. Useful when you need to answer questions about the state of liquidity pools on the marginfi protocol or answer questions about marginfi's risk management parameters. Input should be null.";
 
-    async getBanks() {
-      const client = await getClient(this.connection);
-      const banks = client.group.banks;
-    
-      const allBanksInformation = [...banks.values()].map(
-        (bank) => bank.describe()
-      );
-    
-      return JSON.stringify(allBanksInformation);
-    }
-  
-    async _call(): Promise<string> {
+  connection: Connection;
 
-      console.log('calling bank tool');
+  constructor(rpcEndpoint: string) {
+    super();
+    this.connection = new Connection(rpcEndpoint, "confirmed");
+  }
 
-      const banks = await this.getBanks();
+  async getBanks() {
+    const client = await getClient(this.connection);
+    const banks = client.group.banks;
 
-      const PREFIX = `
+    const allBanksInformation = [...banks.values()].map((bank) => bank.describe());
+
+    return JSON.stringify(allBanksInformation);
+  }
+
+  async _call(): Promise<string> {
+    console.log("calling bank tool");
+
+    const banks = await this.getBanks();
+
+    const PREFIX = `
         You called a Banks tool that provides information on the entire marginfi protocol.
 
         This tool returns information on each bank in the marginfi protocol. You'll get a list of bank information. For each bank, you'll see the following data points:
@@ -52,19 +46,16 @@ class BanksTool extends Tool {
         - Max capacity: The maximum amount of deposits allowed for the bank, denominated in native token. This is a hard limit and a risk management parameter.
 
         Here is the bank info:
-      `
+      `;
 
-      const response = [
-        PREFIX,
-        banks
-      ].join('\n\n');
+    const response = [PREFIX, banks].join("\n\n");
 
-      console.log({
-        response
-      })
+    console.log({
+      response,
+    });
 
-      return response;
-    }
+    return response;
+  }
 }
 
 export { BanksTool };

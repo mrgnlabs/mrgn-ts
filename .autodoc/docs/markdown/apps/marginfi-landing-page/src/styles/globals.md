@@ -14,25 +14,23 @@ Overall, this file sets up the basic styles and typography for the mrgn-ts proje
 
 ```css
 .my-component {
-  background: linear-gradient(
-    to bottom right,
-    var(--tile-start-rgb),
-    var(--tile-end-rgb)
-  );
+  background: linear-gradient(to bottom right, var(--tile-start-rgb), var(--tile-end-rgb));
   border: var(--tile-border);
 }
 ```
 
 In this example, the `background` and `border` properties use the custom colors defined in the `:root` selector to create a consistent look for the component.
-## Questions: 
- 1. What is the purpose of the `globals.css` file and why is it being left as is?
-   
-   The purpose of the `globals.css` file is not explicitly stated, but it is being left as is because it is clean and provides ample room to scale the experience.
+
+## Questions:
+
+1.  What is the purpose of the `globals.css` file and why is it being left as is?
+
+The purpose of the `globals.css` file is not explicitly stated, but it is being left as is because it is clean and provides ample room to scale the experience.
 
 2. What is the purpose of the `@layer utilities` block and what does it do?
-   
-   The `@layer utilities` block defines utility classes for hiding scrollbars in different browsers using CSS. 
+
+   The `@layer utilities` block defines utility classes for hiding scrollbars in different browsers using CSS.
 
 3. What is the purpose of the `:root` block and what variables are defined within it?
-   
+
    The `:root` block defines variables for various colors and gradients used throughout the project, including `--primary-glow`, `--secondary-glow`, `--tile-start-rgb`, `--tile-end-rgb`, `--tile-border`, `--callout-rgb`, `--callout-border-rgb`, `--card-rgb`, and `--card-border-rgb`.

@@ -11,7 +11,7 @@ In the larger project, these functions could be used in conjunction with other m
 Here is an example of how the `computeAccountSummary` function could be used:
 
 ```typescript
-import { computeAccountSummary } from '.autodoc/docs/json/apps/marginfi-v2-ui/src/api';
+import { computeAccountSummary } from ".autodoc/docs/json/apps/marginfi-v2-ui/src/api";
 
 const marginfiAccount = {
   balance: 100,

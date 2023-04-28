@@ -1,6 +1,6 @@
 [View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/.autodoc/docs/json/packages/lip-client/src/idl)
 
-The `idl` folder in the `lip-client` package of the `mrgn-ts` project contains code that defines the structure and functionality of a Liquidity Incentive Program (LIP). The `index.ts` file exports two items from the `lip-types` module: `IDL` and `LiquidityIncentiveProgram`. 
+The `idl` folder in the `lip-client` package of the `mrgn-ts` project contains code that defines the structure and functionality of a Liquidity Incentive Program (LIP). The `index.ts` file exports two items from the `lip-types` module: `IDL` and `LiquidityIncentiveProgram`.
 
 The `IDL` item is likely an interface or type definition that describes the structure of data used in the LIP. The `LiquidityIncentiveProgram` type is likely a class or object that represents an instance of the LIP. By exporting these items, other parts of the `mrgn-ts` project can easily access and use the LIP functionality without needing to redefine the types or create new instances of the program.
 

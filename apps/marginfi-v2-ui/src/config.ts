@@ -26,7 +26,7 @@ switch (environment) {
         icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/23095.png",
         size: 30,
         publicKey: "94hHpPTJk2Kq7cyAkC3a2uPUqx7oJZBaScyzwvLZ6mx2",
-      }
+      },
     ];
     break;
   case "alpha":

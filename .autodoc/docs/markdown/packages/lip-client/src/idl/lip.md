@@ -1,24 +1,29 @@
 [View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/packages/lip-client/src/idl/lip.json)
 
-The code provided is a JSON file that defines a liquidity incentive program for a project called mrgn-ts. The program consists of three instructions: createCampaign, createDeposit, and endDeposit. 
+The code provided is a JSON file that defines a liquidity incentive program for a project called mrgn-ts. The program consists of three instructions: createCampaign, createDeposit, and endDeposit.
 
-The createCampaign instruction creates a new campaign with a specified lockup period, maximum number of deposits, and maximum rewards. The instruction takes several accounts as input, including the campaign account, campaignRewardVault, campaignRewardVaultAuthority, assetMint, marginfiBank, admin, fundingAccount, rent, tokenProgram, and systemProgram. The instruction also takes three arguments: lockupPeriod, maxDeposits, and maxRewards. 
+The createCampaign instruction creates a new campaign with a specified lockup period, maximum number of deposits, and maximum rewards. The instruction takes several accounts as input, including the campaign account, campaignRewardVault, campaignRewardVaultAuthority, assetMint, marginfiBank, admin, fundingAccount, rent, tokenProgram, and systemProgram. The instruction also takes three arguments: lockupPeriod, maxDeposits, and maxRewards.
 
-The createDeposit instruction creates a new deposit for a specified amount. The instruction takes several accounts as input, including the campaign account, signer, deposit, mfiPdaSigner, fundingAccount, tempTokenAccount, assetMint, marginfiGroup, marginfiBank, marginfiAccount, marginfiBankVault, marginfiProgram, tokenProgram, rent, and systemProgram. The instruction also takes one argument: amount. 
+The createDeposit instruction creates a new deposit for a specified amount. The instruction takes several accounts as input, including the campaign account, signer, deposit, mfiPdaSigner, fundingAccount, tempTokenAccount, assetMint, marginfiGroup, marginfiBank, marginfiAccount, marginfiBankVault, marginfiProgram, tokenProgram, rent, and systemProgram. The instruction also takes one argument: amount.
 
-The endDeposit instruction ends a deposit and transfers the funds to a specified destination account. The instruction takes several accounts as input, including the campaign account, campaignRewardVault, campaignRewardVaultAuthority, signer, deposit, mfiPdaSigner, tempTokenAccount, tempTokenAccountAuthority, destinationAccount, assetMint, marginfiAccount, marginfiGroup, marginfiBank, marginfiBankVault, marginfiBankVaultAuthority, marginfiProgram, tokenProgram, and systemProgram. The instruction does not take any arguments. 
+The endDeposit instruction ends a deposit and transfers the funds to a specified destination account. The instruction takes several accounts as input, including the campaign account, campaignRewardVault, campaignRewardVaultAuthority, signer, deposit, mfiPdaSigner, tempTokenAccount, tempTokenAccountAuthority, destinationAccount, assetMint, marginfiAccount, marginfiGroup, marginfiBank, marginfiBankVault, marginfiBankVaultAuthority, marginfiProgram, tokenProgram, and systemProgram. The instruction does not take any arguments.
 
-The JSON file also defines two account types: Campaign and Deposit. The Campaign account contains information about the campaign, including the admin, lockup period, maximum number of deposits, remaining capacity, maximum rewards, marginfi bank public key, and padding. The Deposit account contains information about a deposit, including the owner, amount, start time, campaign public key, and padding. 
+The JSON file also defines two account types: Campaign and Deposit. The Campaign account contains information about the campaign, including the admin, lockup period, maximum number of deposits, remaining capacity, maximum rewards, marginfi bank public key, and padding. The Deposit account contains information about a deposit, including the owner, amount, start time, campaign public key, and padding.
 
-Finally, the JSON file defines three error codes: CampaignNotActive, DepositAmountTooLarge, and DepositNotMature. These error codes are used to indicate errors that may occur during the execution of the program. 
+Finally, the JSON file defines three error codes: CampaignNotActive, DepositAmountTooLarge, and DepositNotMature. These error codes are used to indicate errors that may occur during the execution of the program.
 
 Overall, this liquidity incentive program is designed to incentivize users to deposit funds into the mrgn-ts project by offering rewards for deposits. The program allows users to create campaigns, make deposits, and end deposits, with the goal of maximizing the number of deposits and rewards. The program is implemented using Solana's programming language and can be executed on the Solana blockchain.
-## Questions: 
- 1. What is the purpose of this code and what problem does it solve?
+
+## Questions:
+
+1.  What is the purpose of this code and what problem does it solve?
+
 - This code is for a liquidity incentive program and it allows users to create campaigns and deposits, and end deposits. The purpose of this program is to incentivize liquidity providers to deposit funds into a liquidity pool.
 
 2. What are the different types of accounts used in this code and what are their roles?
+
 - There are several types of accounts used in this code, including campaign, deposit, marginfiAccount, and tempTokenAccount. Campaign accounts are used to store information about the campaign, deposit accounts are used to store information about the deposit, marginfiAccount is used to store margin information, and tempTokenAccount is used to store temporary token information.
 
 3. What are some potential errors that could occur while running this code and how are they handled?
+
 - Some potential errors that could occur include CampaignNotActive, DepositAmountTooLarge, and DepositNotMature. These errors are handled by returning an error code and message to the user.

@@ -39,12 +39,17 @@ const MyComponent = () => {
   );
 };
 ```
-## Questions: 
- 1. What is the purpose of this code and what problem does it solve?
+
+## Questions:
+
+1.  What is the purpose of this code and what problem does it solve?
+
 - This code provides a context and hooks for managing token accounts and fetching their balances for a Solana wallet. It solves the problem of needing to manage and display multiple token balances for a wallet.
 
 2. What external libraries or dependencies does this code rely on?
+
 - This code relies on several external libraries and dependencies, including React, @solana/wallet-adapter-react, BN.js, and @mrgnlabs/mrgn-common.
 
 3. What is the significance of the `TokenAccountsContext` and `TokenAccountsProvider` components?
+
 - The `TokenAccountsContext` component creates a context for managing token accounts and their balances, while the `TokenAccountsProvider` component provides the context and hooks for other components to use. This allows other components to easily access and display token balances for a wallet.

@@ -10,18 +10,17 @@ Here is an example of how the IBM Plex Mono font might be used in the mrgn-ts pr
 
 ```css
 @font-face {
-  font-family: 'IBM Plex Mono';
-  src: url('assets/IBM_Plex_Mono/IBMPlexMono-Regular.eot');
-  src: url('assets/IBM_Plex_Mono/IBMPlexMono-Regular.eot?#iefix') format('embedded-opentype'),
-       url('assets/IBM_Plex_Mono/IBMPlexMono-Regular.woff2') format('woff2'),
-       url('assets/IBM_Plex_Mono/IBMPlexMono-Regular.woff') format('woff'),
-       url('assets/IBM_Plex_Mono/IBMPlexMono-Regular.ttf') format('truetype');
+  font-family: "IBM Plex Mono";
+  src: url("assets/IBM_Plex_Mono/IBMPlexMono-Regular.eot");
+  src: url("assets/IBM_Plex_Mono/IBMPlexMono-Regular.eot?#iefix") format("embedded-opentype"), url("assets/IBM_Plex_Mono/IBMPlexMono-Regular.woff2")
+      format("woff2"), url("assets/IBM_Plex_Mono/IBMPlexMono-Regular.woff") format("woff"), url("assets/IBM_Plex_Mono/IBMPlexMono-Regular.ttf")
+      format("truetype");
   font-weight: normal;
   font-style: normal;
 }
 
 code {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: "IBM Plex Mono", monospace;
 }
 ```
 

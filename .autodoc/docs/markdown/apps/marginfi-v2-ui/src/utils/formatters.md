@@ -19,8 +19,10 @@ const growthRate = 0.1234;
 console.log(usdFormatter.format(revenue)); // "$12,345.67"
 console.log(percentFormatter.format(growthRate)); // "12.34%"
 ```
-## Questions: 
- 1. What is the purpose of this code?
+
+## Questions:
+
+1. What is the purpose of this code?
    This code exports several instances of the Intl.NumberFormat class with different configurations for formatting numbers and currencies in the en-US locale.
 
 2. What are the differences between the various formatters?

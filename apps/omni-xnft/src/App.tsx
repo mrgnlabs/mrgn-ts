@@ -1,9 +1,8 @@
 import { registerRootComponent } from "expo";
 import { RecoilRoot } from "recoil";
-import { Iframe } from 'react-xnft';
+import { Iframe } from "react-xnft";
 
 function App() {
-
   return (
     <RecoilRoot>
       <Iframe

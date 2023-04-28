@@ -225,19 +225,25 @@ class MarginfiAccountReadonly {
         `Marginfi account tied to group ${marginfiAccountData.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`
       );
 
-    const bankAccountsData = (await this._program.account.bank.all([{ memcmp: { offset: 8 + 32 + 1, bytes: this._config.groupPk.toBase58() } }]));
+    const bankAccountsData = await this._program.account.bank.all([
+      { memcmp: { offset: 8 + 32 + 1, bytes: this._config.groupPk.toBase58() } },
+    ]);
 
-    const banks = await Promise.all(bankAccountsData.map(
-      async accountData => {
+    const banks = await Promise.all(
+      bankAccountsData.map(async (accountData) => {
         let bankData = accountData.account as any as BankData;
         return new Bank(
           this._config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
           accountData.publicKey,
           bankData,
-          await getOraclePriceData(this._program.provider.connection, bankData.config.oracleSetup, bankData.config.oracleKeys)
-        )
-      }
-    ));
+          await getOraclePriceData(
+            this._program.provider.connection,
+            bankData.config.oracleSetup,
+            bankData.config.oracleKeys
+          )
+        );
+      })
+    );
     this._group = MarginfiGroup.fromAccountDataRaw(this._config, this._program, marginfiGroupAi.data, banks);
     this._updateFromAccountData(marginfiAccountData);
   }

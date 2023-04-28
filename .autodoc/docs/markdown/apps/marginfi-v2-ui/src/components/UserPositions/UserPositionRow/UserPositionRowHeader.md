@@ -25,11 +25,15 @@ const AssetTable = ({ assets }) => (
 ```
 
 In this example, the `AssetTable` component takes an array of asset objects as a prop and maps over them to render a table row for each asset. The `UserPositionRowHeader` component is used to render the header cell for each row, passing in the asset name and icon URL from the current asset object.
-## Questions: 
- 1. What is the purpose of this code?
-   - This code defines a React component called `UserPositionRowHeader` that renders a table cell with an asset name and an optional icon.
+
+## Questions:
+
+1.  What is the purpose of this code?
+
+- This code defines a React component called `UserPositionRowHeader` that renders a table cell with an asset name and an optional icon.
 
 2. What external libraries or dependencies does this code use?
+
    - This code imports `TableCell` from the `@mui/material` library, `Image` from the `next/image` library, and `FC` (FunctionComponent) from the `react` library.
 
 3. What styling or layout properties are applied to the rendered component?

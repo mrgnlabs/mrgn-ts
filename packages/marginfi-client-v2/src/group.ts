@@ -64,7 +64,9 @@ class MarginfiGroup {
 
     const accountData = await MarginfiGroup._fetchAccountData(config, program, commitment);
 
-    const bankAccountsData = (await program.account.bank.all([{ memcmp: { offset: 8 + 32 + 1, bytes: config.groupPk.toBase58() } }]));
+    const bankAccountsData = await program.account.bank.all([
+      { memcmp: { offset: 8 + 32 + 1, bytes: config.groupPk.toBase58() } },
+    ]);
 
     const banks = await Promise.all(
       bankAccountsData.map(async (accountData) => {
@@ -77,7 +79,6 @@ class MarginfiGroup {
         );
       })
     );
-
 
     return new MarginfiGroup(config, program, accountData, banks);
   }

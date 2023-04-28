@@ -20,12 +20,17 @@ The `useEffect` hook is used to call `reload` on component mount and set up the 
 The `UserAccountsProvider` component is used to wrap child components that need access to the user account data. The `useUserAccounts` hook is used in child components to access the data from the context.
 
 Overall, this code provides a centralized way to manage user account data in the mrgn-ts project, and makes it easy to access and update the data in child components.
-## Questions: 
- 1. What is the purpose of this code?
+
+## Questions:
+
+1.  What is the purpose of this code?
+
 - This code defines a React context provider and hook for managing user accounts and related data in a Marginfi application.
 
 2. What external dependencies does this code rely on?
+
 - This code relies on several external dependencies, including the `@mrgnlabs/marginfi-client-v2` package, a custom `api` module, and several context providers and hooks defined in other files.
 
 3. What data is being managed by the `UserAccountsProvider` and `UserAccountsContext`?
+
 - The `UserAccountsProvider` and `UserAccountsContext` manage several pieces of data related to user accounts, including the user's Marginfi accounts, token account balances, bank information, and account summaries.

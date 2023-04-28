@@ -16,11 +16,7 @@ Overall, this file sets up the basic styles and typography for the mrgn-ts proje
 
 ```css
 .my-component {
-  background: linear-gradient(
-    to bottom right,
-    var(--tile-start-rgb),
-    var(--tile-end-rgb)
-  );
+  background: linear-gradient(to bottom right, var(--tile-start-rgb), var(--tile-end-rgb));
   border: var(--tile-border);
 }
 ```
