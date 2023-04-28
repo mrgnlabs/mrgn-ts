@@ -1420,9 +1420,7 @@
           },
           {
             "name": "oracleSetup",
-            "type": {
-              "defined": "OracleSetup"
-            }
+            "type": "u8"
           },
           {
             "name": "oracleKeys",
@@ -1593,15 +1591,6 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "ignore1",
-            "type": {
-              "array": [
-                "u8",
-                160
-              ]
-            }
-          },
-          {
             "name": "setup",
             "type": {
               "defined": "OracleSetup"
@@ -1613,15 +1602,6 @@
               "array": [
                 "publicKey",
                 5
-              ]
-            }
-          },
-          {
-            "name": "ignore2",
-            "type": {
-              "array": [
-                "u8",
-                1
               ]
             }
           }

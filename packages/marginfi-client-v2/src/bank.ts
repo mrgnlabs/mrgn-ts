@@ -383,8 +383,8 @@ export interface OraclePriceData {
 }
 
 export async function getOraclePriceData(connection: Connection, oracleSetup: OracleSetup, oracleKeys: PublicKey[]): Promise<OraclePriceData> {
-  const oracleType = decodeOracleSetup(oracleSetup as any);
-  switch (oracleType) {
+  // const oracleType = decodeOracleSetup(oracleSetup as any);
+  switch (oracleSetup) {
     case OracleSetup.PythEma:
       const accounts = await connection.getMultipleAccountsInfo(oracleKeys);
       const pythPriceData = parsePriceData(accounts[0]!.data);

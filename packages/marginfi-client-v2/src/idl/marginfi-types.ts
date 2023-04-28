@@ -951,6 +951,15 @@ export type Marginfi = {
             "type": "publicKey"
           },
           {
+            "name": "ignore1",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
             "name": "assetShareValue",
             "type": {
               "defined": "WrappedI80F48"
@@ -987,6 +996,15 @@ export type Marginfi = {
             "type": "u8"
           },
           {
+            "name": "ignore2",
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          },
+          {
             "name": "collectedInsuranceFeesOutstanding",
             "type": {
               "defined": "WrappedI80F48"
@@ -1003,6 +1021,15 @@ export type Marginfi = {
           {
             "name": "feeVaultAuthorityBump",
             "type": "u8"
+          },
+          {
+            "name": "ignore3",
+            "type": {
+              "array": [
+                "u8",
+                6
+              ]
+            }
           },
           {
             "name": "collectedGroupFeesOutstanding",
@@ -1163,6 +1190,15 @@ export type Marginfi = {
           {
             "name": "bankPk",
             "type": "publicKey"
+          },
+          {
+            "name": "ignore1",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
           },
           {
             "name": "assetShares",
@@ -1375,9 +1411,7 @@ export type Marginfi = {
           },
           {
             "name": "oracleSetup",
-            "type": {
-              "defined": "OracleSetup"
-            }
+            "type": "u8"
           },
           {
             "name": "oracleKeys",
@@ -1385,6 +1419,15 @@ export type Marginfi = {
               "array": [
                 "publicKey",
                 5
+              ]
+            }
+          },
+          {
+            "name": "ignore1",
+            "type": {
+              "array": [
+                "u8",
+                6
               ]
             }
           },
@@ -1427,6 +1470,15 @@ export type Marginfi = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "ignore1",
+            "type": {
+              "array": [
+                "u8",
+                208
+              ]
+            }
+          },
           {
             "name": "assetWeightInit",
             "type": {
@@ -1472,6 +1524,15 @@ export type Marginfi = {
             }
           },
           {
+            "name": "ignore2",
+            "type": {
+              "array": [
+                "u8",
+                272
+              ]
+            }
+          },
+          {
             "name": "operationalState",
             "type": {
               "option": {
@@ -1502,6 +1563,15 @@ export type Marginfi = {
                 "defined": "RiskTier"
               }
             }
+          },
+          {
+            "name": "ignore2"
+            "type": {
+              "array": [
+                "u8",
+                264
+              ]
+            }
           }
         ]
       }
@@ -1511,6 +1581,15 @@ export type Marginfi = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "ignore1",
+            "type": {
+              "array": [
+                "u8",
+                160
+              ]
+            }
+          },
           {
             "name": "setup",
             "type": {
@@ -1523,6 +1602,15 @@ export type Marginfi = {
               "array": [
                 "publicKey",
                 5
+              ]
+            }
+          },
+          {
+            "name": "ignore2",
+            "type": {
+              "array": [
+                "u8",
+                1
               ]
             }
           }
@@ -1669,30 +1757,6 @@ export type Marginfi = {
           },
           {
             "name": "SwitchboardV2"
-          }
-        ]
-      }
-    },
-    {
-      "name": "OraclePriceFeedAdapter",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "PythEma",
-            "fields": [
-              {
-                "defined": "PythEmaPriceFeed"
-              }
-            ]
-          },
-          {
-            "name": "SwitchboardV2",
-            "fields": [
-              {
-                "defined": "SwitchboardV2PriceFeed"
-              }
-            ]
           }
         ]
       }
@@ -3208,6 +3272,7 @@ export const IDL: Marginfi = {
       "type": {
         "kind": "struct",
         "fields": [
+
           {
             "name": "mint",
             "type": "publicKey"
@@ -3219,6 +3284,15 @@ export const IDL: Marginfi = {
           {
             "name": "group",
             "type": "publicKey"
+          },
+          {
+            "name": "ignore1",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
           },
           {
             "name": "assetShareValue",
@@ -3257,6 +3331,15 @@ export const IDL: Marginfi = {
             "type": "u8"
           },
           {
+            "name": "ignore2",
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          },
+          {
             "name": "collectedInsuranceFeesOutstanding",
             "type": {
               "defined": "WrappedI80F48"
@@ -3273,6 +3356,15 @@ export const IDL: Marginfi = {
           {
             "name": "feeVaultAuthorityBump",
             "type": "u8"
+          },
+          {
+            "name": "ignore3",
+            "type": {
+              "array": [
+                "u8",
+                6
+              ]
+            }
           },
           {
             "name": "collectedGroupFeesOutstanding",
@@ -3433,6 +3525,15 @@ export const IDL: Marginfi = {
           {
             "name": "bankPk",
             "type": "publicKey"
+          },
+          {
+            "name": "ignore1",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
           },
           {
             "name": "assetShares",
@@ -3645,9 +3746,7 @@ export const IDL: Marginfi = {
           },
           {
             "name": "oracleSetup",
-            "type": {
-              "defined": "OracleSetup"
-            }
+            "type": "u8"
           },
           {
             "name": "oracleKeys",
@@ -3655,6 +3754,15 @@ export const IDL: Marginfi = {
               "array": [
                 "publicKey",
                 5
+              ]
+            }
+          },
+          {
+            "name": "ignore1",
+            "type": {
+              "array": [
+                "u8",
+                6
               ]
             }
           },
@@ -3697,6 +3805,15 @@ export const IDL: Marginfi = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "ignore1",
+            "type": {
+              "array": [
+                "u8",
+                208
+              ]
+            }
+          },
           {
             "name": "assetWeightInit",
             "type": {
@@ -3742,6 +3859,15 @@ export const IDL: Marginfi = {
             }
           },
           {
+            "name": "ignore2",
+            "type": {
+              "array": [
+                "u8",
+                272
+              ]
+            }
+          },
+          {
             "name": "operationalState",
             "type": {
               "option": {
@@ -3772,6 +3898,15 @@ export const IDL: Marginfi = {
                 "defined": "RiskTier"
               }
             }
+          },
+          {
+            "name": "ignore2",
+            "type": {
+              "array": [
+                "u8",
+                264
+              ]
+            }
           }
         ]
       }
@@ -3781,6 +3916,15 @@ export const IDL: Marginfi = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "ignore1",
+            "type": {
+              "array": [
+                "u8",
+                160
+              ]
+            }
+          },
           {
             "name": "setup",
             "type": {
@@ -3793,6 +3937,15 @@ export const IDL: Marginfi = {
               "array": [
                 "publicKey",
                 5
+              ]
+            }
+          },
+          {
+            "name": "ignore2",
+            "type": {
+              "array": [
+                "u8",
+                1
               ]
             }
           }
