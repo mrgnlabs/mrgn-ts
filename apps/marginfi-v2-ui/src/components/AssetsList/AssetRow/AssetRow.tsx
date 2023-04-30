@@ -223,7 +223,7 @@ const AssetRow: FC<{
           fontWeight: 300,
         }}
       >
-        <div className="flex px-4 gap-4">
+        <div className="flex px-4 gap-4 items-center">
           {
             bankInfo.tokenIcon && 
             <Image
