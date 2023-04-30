@@ -251,7 +251,6 @@ const AssetRow: FC<{
         className="border-none font-aeonik px-2"
         align="right"
         style={{ 
-          // fontWeight: 500,
           color: isInLendingMode ? "#83DB8C" : "#CF6F6F"
         }}
       >
