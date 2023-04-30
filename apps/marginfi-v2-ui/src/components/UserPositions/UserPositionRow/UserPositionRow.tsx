@@ -122,19 +122,25 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         </div>
       </TableCell>
 
-      <TableCell className="text-white border-none px-2 font-aeonik" align="right" style={{ fontWeight: 300 }}>
+      <TableCell
+        className="text-white border-none px-2 font-aeonik hidden sm:table-cell" align="right" style={{ fontWeight: 300 }}
+      >
         {
           groupedNumberFormatter.format(position.amount)
         }
       </TableCell>
 
-      <TableCell className="text-white border-none px-2 font-aeonik" align="right" style={{ fontWeight: 300 }}>
+      <TableCell className="text-white border-none px-2 font-aeonik hidden md:table-cell" align="right" style={{ fontWeight: 300 }}>
         {
           usdFormatter.format(position.usdValue)
         }
       </TableCell>
 
-      <TableCell className="border-none p-0 w-full" colSpan={2}>
+      <TableCell
+        className="border-none p-0 w-full"
+        align="center"
+        colSpan={2}
+      >
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
@@ -143,8 +149,13 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         />
       </TableCell>
 
-      <TableCell className="text-white border-none font-aeonik p-0 px-2">
-          <div className="h-full w-full flex justify-center items-center">
+      <TableCell
+        className="text-white border-none font-aeonik p-0 px-2"
+        align="right"
+      >
+          <div
+            className="h-full w-full flex justify-end items-center"
+          >
             <UserPositionRowAction onClick={withdrawOrRepay}>
               {position.isLending ? "Withdraw" : "Repay"}
             </UserPositionRowAction>

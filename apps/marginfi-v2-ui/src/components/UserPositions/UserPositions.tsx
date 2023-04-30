@@ -43,8 +43,8 @@ const UserPositions: FC = () => {
             >
               <TableHead>
                 <TableCell className="border-none"></TableCell>
-                <TableCell className="text-[#A1A1A1] text-sm border-none px-2" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">Lending</TableCell>
-                <TableCell className="text-[#A1A1A1] text-sm border-none px-2" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">USD Value</TableCell>
+                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden sm:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">Lending</TableCell>
+                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">USD Value</TableCell>
                 <TableCell className="border-none"></TableCell>
                 <TableCell className="border-none"></TableCell>
               </TableHead>
@@ -77,8 +77,8 @@ const UserPositions: FC = () => {
               >
                 <TableHead>
                   <TableCell className="border-none"></TableCell>
-                  <TableCell className="text-[#A1A1A1] text-sm border-none px-2" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">Borrowing</TableCell>
-                  <TableCell className="text-[#A1A1A1] text-sm border-none px-2" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">USD Value</TableCell>
+                  <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden sm:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">Borrowing</TableCell>
+                  <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">USD Value</TableCell>
                   <TableCell className="border-none"></TableCell>
                   <TableCell className="border-none"></TableCell>
                 </TableHead>

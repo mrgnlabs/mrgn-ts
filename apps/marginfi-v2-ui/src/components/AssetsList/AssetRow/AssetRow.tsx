@@ -223,7 +223,7 @@ const AssetRow: FC<{
           fontWeight: 300,
         }}
       >
-        <div className="flex px-4 gap-4 items-center">
+        <div className="flex px-0 sm:px-4 gap-4 justify-center sm:justiy-start items-center">
           {
             bankInfo.tokenIcon && 
             <Image
@@ -233,13 +233,13 @@ const AssetRow: FC<{
               width={25}
             />
           }
-          <div className="font-aeonik">{bankInfo.tokenName}</div>
+          <div className="font-aeonik hidden lg:block">{bankInfo.tokenName}</div>
         </div>
       </TableCell>
 
       {/* usdFormatter.format(bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()) */}
       {/* usdFormatter.format(bankInfo.bank.getPrice(PriceBias.Highest).toNumber()) */}
-      <TableCell className="text-white border-none px-2 font-aeonik" align="right" style={{ fontWeight: 300 }}>
+      <TableCell className="text-white border-none px-2 font-aeonik hidden lg:table-cell" align="right" style={{ fontWeight: 300 }}>
         {
           bankInfo.tokenPrice >= 0.01
           ? usdFormatter.format(bankInfo.tokenPrice)
@@ -262,7 +262,7 @@ const AssetRow: FC<{
         }
       </TableCell>
 
-      <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+      <TableCell className="text-white border-none font-aeonik px-2 hidden md:table-cell" align="right" style={{ fontWeight: 300 }}>
         {
           isInLendingMode ?
             (bankInfo.bank.config.assetWeightInit.toNumber().toFixed(2) === bankInfo.bank.config.assetWeightMaint.toNumber().toFixed(2)) ?
@@ -279,7 +279,7 @@ const AssetRow: FC<{
         }
       </TableCell>
 
-      <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+      <TableCell className="text-white border-none font-aeonik px-2 hidden lg:table-cell" align="right" style={{ fontWeight: 300 }}>
         {
           groupedNumberFormatter.format(
             isInLendingMode ?
@@ -290,7 +290,7 @@ const AssetRow: FC<{
         }
       </TableCell>
 
-      <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+      <TableCell className="text-white border-none font-aeonik px-2 hidden lg:table-cell" align="right" style={{ fontWeight: 300 }}>
         {
           percentFormatter.format(bankInfo.utilizationRate/100)
         }
@@ -305,12 +305,14 @@ const AssetRow: FC<{
         />
       </TableCell>
       
-      <TableCell className="text-white border-none font-aeonik p-0 px-2">
+      <TableCell
+        className="text-white border-none font-aeonik p-0 px-2"
+      >
         <Tooltip
           title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
           placement="top"
         >
-          <div className="h-full w-full flex justify-center items-center">
+          <div className="h-full w-full flex justify-end items-center">
             <AssetRowAction onClick={borrowOrLend}>{currentAction}</AssetRowAction>
           </div>
         </Tooltip>

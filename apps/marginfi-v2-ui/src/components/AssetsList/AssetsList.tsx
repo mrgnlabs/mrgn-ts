@@ -38,23 +38,23 @@ const AssetsList: FC = () => {
             >
               <TableHead>
                 <TableCell className="border-none"></TableCell>
-                <TableCell className="text-[#A1A1A1] text-sm border-none px-2" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">Price</TableCell>
-                <TableCell className="text-[#A1A1A1] text-sm border-none px-2" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
+                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">Price</TableCell>
+                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
                   {
                     isInLendingMode ? 'Lend APY' : 'Borrow APR' 
                   }
                 </TableCell>
-                <TableCell className="text-[#A1A1A1] text-sm border-none px-2" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
+                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
                   {
                     isInLendingMode ? 'Lend weights' : 'Borrow weights'
                   }
                 </TableCell>
-                <TableCell className="text-[#A1A1A1] text-sm border-none px-2" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
+                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
                   {
                     isInLendingMode ? 'Deposits' : 'Available'
                   }
                 </TableCell>
-                <TableCell className="text-[#A1A1A1] text-sm border-none px-2" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
+                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
                   Pool utilization
                 </TableCell>
                 {/* <TableCell className="text-white text-sm border-none px-2" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right"></TableCell> */}
