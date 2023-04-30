@@ -108,7 +108,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         className="text-white p-0 border-none font-aeonik"
         style={{ fontWeight: 300 }}
       >
-        <div className="flex px-4 gap-4">
+        <div className="flex items-center px-4 gap-4">
           {
             activeBankInfo.tokenIcon && 
             <Image
