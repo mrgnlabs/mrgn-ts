@@ -5,7 +5,6 @@ import { FC, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
 import { UserPositionRowAction } from "./UserPositionRowAction";
-import { UserPositionRowHeader } from "./UserPositionRowHeader";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
 import { ActiveBankInfo } from "~/types";
 
@@ -101,14 +100,15 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
 
   return (
     <TableRow
-      // className="font-aeonik w-full h-full flex justify-between items-center h-[78px] py-0 px-4 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4"
       className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl"
     >
       <TableCell
-        className="text-white p-0 border-none font-aeonik"
+        className={
+          `text-white p-0 font-aeonik border-[1px] border-${activeBankInfo.tokenName}`
+        }
         style={{ fontWeight: 300 }}
       >
-        <div className="flex items-center px-4 gap-4">
+        <div className="flex justify-center items-center px-4 gap-4">
           {
             activeBankInfo.tokenIcon && 
             <Image

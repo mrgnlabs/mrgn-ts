@@ -216,8 +216,12 @@ const AssetRow: FC<{
       className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl"
     >
       <TableCell
-        className="text-white p-0 border-none font-aeonik"
-        style={{ fontWeight: 300 }}
+        className={
+          `text-white p-0 font-aeonik border-[1px] border-${bankInfo.tokenName}`
+        }
+        style={{ 
+          fontWeight: 300,
+        }}
       >
         <div className="flex px-4 gap-4">
           {
