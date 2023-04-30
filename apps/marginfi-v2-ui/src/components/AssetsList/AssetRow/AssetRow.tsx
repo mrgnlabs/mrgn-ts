@@ -252,7 +252,7 @@ const AssetRow: FC<{
         align="right"
         style={{ 
           // fontWeight: 500,
-          color: isInLendingMode ? "#83DB8C" : "#83DB8C"
+          color: isInLendingMode ? "#83DB8C" : "#CF6F6F"
         }}
       >
         {
