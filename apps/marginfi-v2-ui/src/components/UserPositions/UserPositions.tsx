@@ -33,7 +33,7 @@ const UserPositions: FC = () => {
     <>
       {lentAssetInfos.length > 0 && selectedAccount && (
         <Card elevation={0} className="bg-transparent w-full p-0 grid">
-          <div className="font-aeonik font-normal text-2xl my-8 text-white pl-1">Lending</div>
+          <div className="font-aeonik font-normal text-2xl my-0 lg:my-8 text-white">Lending</div>
           <TableContainer>
             <Table className="table-fixed"
               style={{
@@ -65,7 +65,7 @@ const UserPositions: FC = () => {
       <div>
         {borrowedAssetInfos.length > 0 && selectedAccount && (
           <Card elevation={0} className="bg-transparent w-full p-0 grid">
-            <div className="text-2xl my-8 text-white pl-1" style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
+            <div className="text-2xl my-0 lg:my-8 text-white" style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
               Borrowing
             </div>
             <TableContainer>
