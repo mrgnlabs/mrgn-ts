@@ -256,8 +256,10 @@ const AssetRow: FC<{
       <TableCell className="text-white border-none font-aeonik px-2 hidden md:table-cell" align="right" style={{ fontWeight: 300 }}>
         {
           isInLendingMode ?            
+            // (bankInfo.bank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + '%'
+            bankInfo.bank.config.assetWeightMaint.toNumber() > 0 ?
             (bankInfo.bank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + '%'
-            // bankInfo.bank.config.assetWeightMaint.toNumber() > 0 ? '✅' : '❌'
+            : '-'
           :
             (1/bankInfo.bank.config.liabilityWeightInit.toNumber() * 100).toFixed(0) + '%'
         }
