@@ -61,7 +61,7 @@ const AssetsList: FC = () => {
                   }
                 </TableCell>
                 <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
-                  Pool utilization
+                  Wallet Balance
                 </TableCell>
                 <TableCell className="border-none"></TableCell>
                 <TableCell className="border-none"></TableCell>

@@ -1,8 +1,23 @@
-export const groupedNumberFormatter = new Intl.NumberFormat("en-US", {
+class CustomNumberFormat extends Intl.NumberFormat {
+  constructor(locale: string | string[] | undefined, options: Intl.NumberFormatOptions | undefined) {
+    super(locale, options);
+  }
+
+  format(value: number | bigint) {
+    if (value === 0) {
+      return '-';
+    } else {
+      return super.format(value);
+    }
+  }
+}
+
+export const groupedNumberFormatter = new CustomNumberFormat("en-US", {
   useGrouping: true,
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
+
 
 export const groupedNumberFormatterDyn = new Intl.NumberFormat("en-US", {
   useGrouping: true,

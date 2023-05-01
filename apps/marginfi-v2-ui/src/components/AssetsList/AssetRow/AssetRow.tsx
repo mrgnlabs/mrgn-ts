@@ -9,6 +9,7 @@ import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Keypair, TransactionInstruction } from "@solana/web3.js";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
 import { percentFormatter } from "~/utils/formatters";
+import { WSOL_MINT } from "~/config"
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
@@ -275,7 +276,11 @@ const AssetRow: FC<{
 
       <TableCell className="text-white border-none font-aeonik px-2 hidden lg:table-cell" align="right" style={{ fontWeight: 300 }}>
         {
-          percentFormatter.format(bankInfo.utilizationRate/100)
+          groupedNumberFormatter.format(
+            bankInfo.tokenMint.equals(WSOL_MINT)
+                ? bankInfo.tokenBalance + nativeSolBalance
+                : bankInfo.tokenBalance
+          )
         }
       </TableCell>
 
