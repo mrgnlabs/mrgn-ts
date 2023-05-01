@@ -10,7 +10,7 @@ To use the IBM Plex Sans font in the mrgn-ts project, developers can include the
 
 ```css
 h1 {
-  font-family: 'IBM Plex Sans', sans-serif;
+  font-family: "IBM Plex Sans", sans-serif;
   font-weight: 400;
 }
 ```

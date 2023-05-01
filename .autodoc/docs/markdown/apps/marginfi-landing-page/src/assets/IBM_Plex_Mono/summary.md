@@ -10,7 +10,7 @@ Here is an example of how the IBM_Plex_Mono font may be used in the mrgn-ts proj
 
 ```css
 body {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: "IBM Plex Mono", monospace;
   font-size: 16px;
   line-height: 1.5;
 }

@@ -19,12 +19,17 @@ const newApy = aprToApy(apr); // 0.06
 ```
 
 In this example, we start with an APY value of 6% and use `apyToApr` to convert it to an APR value of 5.82%. We then use `aprToApy` to convert the APR value back to an APY value of 6%, demonstrating that the functions are inverses of each other.
-## Questions: 
- 1. What is the purpose of this code?
+
+## Questions:
+
+1.  What is the purpose of this code?
+
 - This code provides functions for converting between annual percentage yield (APY) and annual percentage rate (APR) based on a given compounding frequency.
 
 2. What is the source of the formulas used in these functions?
+
 - The formulas used in these functions are sourced from http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies.
 
 3. What is the default value for the `compoundingFrequency` parameter in these functions?
-- The default value for the `compoundingFrequency` parameter is `HOURS_PER_YEAR`, which is a constant defined as 365.25 * 24.
+
+- The default value for the `compoundingFrequency` parameter is `HOURS_PER_YEAR`, which is a constant defined as 365.25 \* 24.

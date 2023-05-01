@@ -17,7 +17,7 @@ This code can be used in a larger project to handle authentication requests and 
 Here is an example of how this code can be used in a Next.js API route:
 
 ```javascript
-import handler from 'mrgn-ts';
+import handler from "mrgn-ts";
 
 export default function secureRoute(req, res) {
   // Check if user is authenticated
@@ -26,7 +26,7 @@ export default function secureRoute(req, res) {
     handler(req, res);
   } else {
     // If authenticated, allow access to the secure area
-    res.status(200).json({ message: 'Welcome to the secure area!' });
+    res.status(200).json({ message: "Welcome to the secure area!" });
   }
 }
 ```
@@ -40,7 +40,7 @@ This code can be used in any Next.js project that requires authentication. For e
 To use this code, simply import the `handler` function and call it when authentication is required. For example:
 
 ```javascript
-import handler from './auth';
+import handler from "./auth";
 
 // Check if user is authenticated
 if (!user.isAuthenticated()) {
@@ -48,7 +48,7 @@ if (!user.isAuthenticated()) {
   handler(req, res);
 } else {
   // If authenticated, allow access to the secure area
-  res.status(200).json({ message: 'Welcome to the secure area!' });
+  res.status(200).json({ message: "Welcome to the secure area!" });
 }
 ```
 

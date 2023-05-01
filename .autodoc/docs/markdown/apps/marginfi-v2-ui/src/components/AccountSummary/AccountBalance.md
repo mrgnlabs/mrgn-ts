@@ -29,12 +29,17 @@ const App = () => {
   );
 };
 ```
-## Questions: 
- 1. What is the purpose of the `usdFormatter` function imported from "~/utils/formatters"?
+
+## Questions:
+
+1.  What is the purpose of the `usdFormatter` function imported from "~/utils/formatters"?
+
 - The `usdFormatter` function is used to format the `accountBalance` value as a USD currency string in the `AccountBalance` component.
 
 2. What is the significance of the `healthFactor` prop in the `MobileHealth` component?
+
 - The `healthFactor` prop is used to calculate the color of the percentage value displayed in the component, with higher values resulting in more green and lower values resulting in more red.
 
 3. Why are the `AccountBalance` and `MobileHealth` components structured similarly?
+
 - The components are structured similarly because they share a common layout and styling, with different text and value formatting based on their respective props. This allows for code reuse and easier maintenance.

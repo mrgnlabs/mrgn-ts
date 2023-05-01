@@ -11,12 +11,17 @@ The component also defines an `onChange` function that is called when the value 
 Finally, the component renders the `NumericFormat` component with the appropriate props and some additional styling. The component also renders a `MaxInputAdornment` component that displays a "max" button next to the input box. The `MaxInputAdornment` component takes in an `onClick` prop that is called when the "max" button is clicked. When the "max" button is clicked, the `onClick` function defined in the `UserPositionRowInputBox` component is called.
 
 Overall, this code defines a reusable input box component that can be used to input numeric values with some additional features, such as a maximum value and a "max" button. The component uses the `NumericFormat` component from the `react-number-format` library to format the input value and provides some additional styling to the input box and the "max" button.
-## Questions: 
- 1. What is the purpose of this code?
+
+## Questions:
+
+1.  What is the purpose of this code?
+
 - This code defines a React component called `UserPositionRowInputBox` that renders a text input box with number formatting and a "max" button. It takes in a value, a function to set the value, and optional maximum value and decimal places.
 
 2. What external libraries or dependencies does this code use?
+
 - This code imports two components from the "@mui/material" library and two types from the "react-number-format" library.
 
 3. What is the purpose of the "MaxInputAdornment" component?
+
 - The "MaxInputAdornment" component is a subcomponent of the "UserPositionRowInputBox" component that renders a button labeled "max" on the right side of the input box. When clicked, it sets the input value to the maximum value specified in the props of the parent component.

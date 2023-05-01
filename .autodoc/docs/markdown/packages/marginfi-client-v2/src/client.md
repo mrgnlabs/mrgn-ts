@@ -11,12 +11,17 @@ The `MarginfiClient` class has several static methods for creating instances of 
 The `MarginfiClient` class has several instance methods for interacting with the Marginfi contract. The `makeCreateMarginfiAccountIx` method creates a transaction instruction to create a new Marginfi account under the authority of the user. The `createMarginfiAccount` method creates a new Marginfi account under the authority of the user and returns a `MarginfiAccount` instance. The `getAllMarginfiAccountAddresses` method retrieves the addresses of all Marginfi accounts in the underlying group. The `getMarginfiAccountsForAuthority` method retrieves all Marginfi accounts under the specified authority. The `getAllProgramAccountAddresses` method retrieves the addresses of all accounts owned by the Marginfi program. The `processTransaction` method processes a transaction and returns a transaction signature.
 
 Overall, the `MarginfiClient` class provides a high-level interface for interacting with the Marginfi contract and its associated accounts. It can be used to create and fetch Marginfi accounts, retrieve account addresses, and process transactions.
-## Questions: 
- 1. What is the purpose of the `MarginfiClient` class?
+
+## Questions:
+
+1.  What is the purpose of the `MarginfiClient` class?
+
 - The `MarginfiClient` class is an entry point to interact with the marginfi contract and provides methods to create and retrieve marginfi accounts.
 
 2. What external dependencies does this code rely on?
+
 - This code relies on several external dependencies including `@project-serum/anchor`, `@solana/web3.js`, and `@mrgnlabs/mrgn-common`.
 
 3. What is the purpose of the `processTransaction` method?
+
 - The `processTransaction` method processes a given transaction by signing it with the user's wallet and sending it to the Solana network for confirmation. It also provides an option for a dry run to simulate the transaction without actually sending it to the network.

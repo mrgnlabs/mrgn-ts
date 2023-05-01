@@ -21,12 +21,14 @@ console.log(response);
 In this example, we import the `LipClient` class from the `mrgn-ts` project and create a new instance of it. We then connect to a server at `example.com` on port `1234`, send some data to the server, and receive a response. Finally, we log the response to the console.
 
 Overall, this code is an important part of the `mrgn-ts` project as it exports the main class and various modules that are used throughout the project. By making these available for use in other parts of the project, it helps to keep the code organized and maintainable.
-## Questions: 
- 1. **What is the purpose of the `LipClient` import and export?**\
-A smart developer might wonder what functionality the `LipClient` provides and how it is used within the project.
+
+## Questions:
+
+1. **What is the purpose of the `LipClient` import and export?**\
+   A smart developer might wonder what functionality the `LipClient` provides and how it is used within the project.
 
 2. **What is the significance of the other exports in the file?**\
-A smart developer might question why the other exports are being included in this file and how they relate to the overall functionality of the project.
+   A smart developer might question why the other exports are being included in this file and how they relate to the overall functionality of the project.
 
 3. **What is the overall purpose of this file within the `mrgn-ts` project?**\
-A smart developer might want to know how this file fits into the larger project structure and what role it plays in the overall functionality of the application.
+   A smart developer might want to know how this file fits into the larger project structure and what role it plays in the overall functionality of the application.

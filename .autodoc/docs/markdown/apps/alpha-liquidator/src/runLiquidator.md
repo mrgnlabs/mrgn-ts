@@ -13,12 +13,17 @@ The `start()` function also initializes a `Liquidator` instance using the `Liqui
 Finally, the `start()` function is called if the current thread is the main thread. Otherwise, the `runGetAccountInfosProcess()` function is called, which runs the separate process to fetch account information from the Solana blockchain.
 
 Overall, the `liqScheduler.ts` file is responsible for initializing the Jupiter library, fetching account information from the Solana blockchain, and performing liquidations on the Solana blockchain. It is an important part of the `mrgn-ts` project and is used to manage the state of the Jupiter library.
-## Questions: 
- 1. What is the purpose of the `mrgn-ts` project and how does this file fit into it?
+
+## Questions:
+
+1.  What is the purpose of the `mrgn-ts` project and how does this file fit into it?
+
 - The purpose of the `mrgn-ts` project is not clear from this file alone. This file appears to be a liquidator scheduler that interacts with the `@jup-ag/core`, `@solana/web3.js`, `@mrgnlabs/mrgn-common`, and `@mrgnlabs/marginfi-client-v2` packages to perform its tasks.
 
 2. What is the role of the `Worker` in this code and what does it do?
+
 - The `Worker` is used to run a separate process that fetches account information. The main thread waits for the worker to send a message with updated account information, which it then uses to update AMMs.
 
 3. What is the purpose of the `Liquidator` class and how is it used in this code?
+
 - The `Liquidator` class appears to be a custom class that is used to perform liquidation tasks. It is instantiated with various parameters and then passed to the `start` function, which calls its `start` method to begin the liquidation process.

@@ -8,20 +8,22 @@ Example of how this license may be used in the mrgn-ts project:
 
 ```html
 <head>
-  <link href="https://fonts.googleapis.com/css?family=Plex&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Plex&display=swap" rel="stylesheet" />
 </head>
 ```
 
 In this example, the font "Plex" is being used in the mrgn-ts project through the Google Fonts API. The SIL Open Font License, Version 1.1 ensures that the font can be used in this way without any legal issues.
-## Questions: 
- 1. What is the purpose of this code?
-   
-   This code is the license for the mrgn-ts font software, which is licensed under the SIL Open Font License, Version 1.1.
+
+## Questions:
+
+1.  What is the purpose of this code?
+
+This code is the license for the mrgn-ts font software, which is licensed under the SIL Open Font License, Version 1.1.
 
 2. Can the licensed fonts be sold?
-   
+
    No, the licensed fonts, including any derivative works, cannot be sold by themselves. However, they can be bundled, embedded, redistributed, and/or sold with any software provided that any reserved names are not used by derivative works.
 
 3. What are the conditions for using, modifying, and distributing the licensed fonts?
-   
+
    The licensed fonts can be used, studied, modified, and redistributed freely as long as they are not sold by themselves. Any modified versions of the font software must be distributed entirely under the SIL Open Font License, Version 1.1, and must not be released under any other type of license. Additionally, any reserved font names cannot be used unless explicit written permission is granted by the corresponding copyright holder.

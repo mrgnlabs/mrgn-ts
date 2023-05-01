@@ -48,12 +48,17 @@ const depositIx = await instructions.makeCreateDepositIx(lipProgram, {
 ```
 
 In this example, the makeCreateDepositIx function is used to create a deposit instruction for the LipProgram with the specified accounts and deposit amount. The resulting depositIx can then be used to execute a deposit transaction on the Solana blockchain.
-## Questions: 
- 1. What is the purpose of this code?
+
+## Questions:
+
+1.  What is the purpose of this code?
+
 - This code exports a function `makeCreateDepositIx` that creates a deposit instruction for a LIP program, and an object `instructions` that contains this function.
 
 2. What external libraries or dependencies does this code use?
+
 - This code imports `PublicKey` from the `@solana/web3.js` library, `BN` from the `bn.js` library, and `LipProgram` from a local file `./types`.
 
 3. What arguments does the `makeCreateDepositIx` function take, and what do they represent?
+
 - The `makeCreateDepositIx` function takes three arguments: `lipProgram` (an object representing a LIP program), `accounts` (an object containing various public keys), and `args` (an object containing an amount represented as a `BN`). These arguments are used to construct a deposit instruction for the LIP program.

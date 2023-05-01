@@ -18,7 +18,7 @@ import { LipConfig, LipProgram } from "./types";
 import { LIP_IDL } from "./idl";
 import instructions from "./instructions";
 import { DEPOSIT_MFI_AUTH_SIGNER_SEED, MARGINFI_ACCOUNT_SEED } from "./constants";
-import { Bank, BankData, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { Bank, BankData, getOraclePriceData, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Address, translateAddress } from "@coral-xyz/anchor";
 import { Campaign, DepositData } from "./account";
 import { parsePriceData } from "@pythnetwork/client";
@@ -33,7 +33,6 @@ import {
   uiToNative,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
-
 /**
  * Entrypoint to interact with the LIP contract.
  */
@@ -113,24 +112,22 @@ class LipClient {
     const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
     if (banksData.length !== banksWithNulls.length) throw new Error("Some banks were not found");
 
-    // 5. Fetch all accounts that pyth writes oracle data too
-    console.log("fetching price feeds");
-    const pythAccountsWithNulls = await program.provider.connection.getMultipleAccountsInfo(
-      banksData.map((b) => (b as BankData).config.oracleKeys[0])
+    const banks = await Promise.all(
+      banksData.map(async (bd, index) => {
+        const bankConfig = marginfiClient.config.banks.find((bc) => bc.address.equals(relevantBankPks[index]));
+        if (!bankConfig) throw new Error(`Bank config not found for ${relevantBankPks[index]}`);
+        return new Bank(
+          bankConfig.label,
+          relevantBankPks[index],
+          bd as BankData,
+          await getOraclePriceData(
+            program.provider.connection,
+            (bd as BankData).config.oracleSetup,
+            (bd as BankData).config.oracleKeys
+          )
+        );
+      })
     );
-    const pythAccounts = pythAccountsWithNulls.filter((c) => c !== null) as AccountInfo<Buffer>[];
-    if (pythAccounts.length !== pythAccountsWithNulls.length) throw new Error("Some price feeds were not found");
-
-    const banks = banksData.map((bd, index) => {
-      const bankConfig = marginfiClient.config.banks.find((bc) => bc.address.equals(relevantBankPks[index]));
-      if (!bankConfig) throw new Error(`Bank config not found for ${relevantBankPks[index]}`);
-      return new Bank(
-        bankConfig.label,
-        relevantBankPks[index],
-        bd as BankData,
-        parsePriceData(pythAccounts[index]!.data)
-      );
-    });
 
     if (banks.length !== allCampaigns.length) {
       return Promise.reject("Some of the banks were not found");

@@ -1,6 +1,6 @@
 [View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/.autodoc/docs/json/packages/mrgn-common/src)
 
-The `mrgn-common/src` folder contains several TypeScript files that provide various utility functions, constants, and types for the `mrgn-ts` project. 
+The `mrgn-common/src` folder contains several TypeScript files that provide various utility functions, constants, and types for the `mrgn-ts` project.
 
 The `accounting.ts` file provides two functions for converting between annual percentage rate (APR) and annual percentage yield (APY), which are useful for financial calculations involving different investment options. The `apyToApr` function takes an APY value and an optional compounding frequency and returns the corresponding APR value. The `aprToApy` function takes an APR value and an optional compounding frequency and returns the corresponding APY value. These functions can be used to compare different investment options that may have different compounding frequencies.
 

@@ -5,15 +5,17 @@ This code is a license for a font called "Plex" that is being used in the mrgn-t
 This license is important for the mrgn-ts project because it ensures that the font being used is licensed appropriately and can be used freely without any legal issues. It also allows for modifications to be made to the font if necessary, which can be useful for customizing the font to fit the needs of the project.
 
 Example usage of this license in the mrgn-ts project would be to include the license file in the project's repository and ensure that any derivative works of the font are not released under any other type of license. This ensures that the project is in compliance with the license and can continue to use the font without any legal issues.
-## Questions: 
- 1. What is the purpose of this code?
-   
-   This code is the license for the "Plex" font software, which is being made available under the SIL Open Font License, Version 1.1.
+
+## Questions:
+
+1.  What is the purpose of this code?
+
+This code is the license for the "Plex" font software, which is being made available under the SIL Open Font License, Version 1.1.
 
 2. Can the licensed fonts be sold?
-   
+
    No, the licensed fonts cannot be sold by themselves, but they can be bundled, embedded, redistributed, and/or sold with any software provided that any reserved names are not used by derivative works.
 
 3. What are the conditions for using, modifying, and distributing the licensed fonts?
-   
+
    The licensed fonts can be used, studied, modified, and redistributed freely as long as they are not sold by themselves. Any derivative works must also be distributed under the same license, and any reserved font names cannot be used without explicit written permission from the copyright holder.

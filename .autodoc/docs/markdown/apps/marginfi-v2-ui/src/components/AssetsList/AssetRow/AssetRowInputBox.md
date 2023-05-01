@@ -9,12 +9,17 @@ The `AssetRowInputBox` component adds some custom styling to the input field usi
 The `MaxInputAdornment` component is a helper component that renders the "max" input adornment. It takes in a function to handle the click event and an optional flag to disable the adornment.
 
 Overall, this code provides a reusable input field component with some additional features that can be used in various parts of the larger project. For example, it could be used in a form for users to input asset values or quantities, or in a table to display and edit asset values. The "max" input adornment could be particularly useful in scenarios where there is a maximum allowed value for the input field, such as when buying or selling assets.
-## Questions: 
- 1. What is the purpose of this code?
+
+## Questions:
+
+1.  What is the purpose of this code?
+
 - This code defines a React component called `AssetRowInputBox` that renders a numeric input field with a maximum value and a "max" button that sets the input value to the maximum value.
 
 2. What external libraries or dependencies does this code use?
+
 - This code imports several modules from the `@mui/material`, `react`, `react-number-format`, and `react-toastify` libraries.
 
 3. Are there any known issues or areas for improvement in this code?
+
 - The code includes a TODO comment indicating that there is a re-rendering issue after the initial amount capping. The author is not happy with how the "max" button looks on small screens.

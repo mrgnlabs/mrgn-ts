@@ -7,12 +7,17 @@ The component first retrieves the user's account summary and selected account fr
 The component then renders the account summary information in a responsive layout. On mobile devices, the account balance and health factor are displayed side-by-side, while on desktop devices only the account balance is displayed. The component also displays three account metrics: lending amount, borrowing amount, and net APY. The lending and borrowing amounts are displayed as formatted USD amounts, while the net APY is displayed as a percentage with a color-coded preview of whether it is positive or negative. Finally, the component displays the health factor as a circular gauge.
 
 This component is likely used as part of a larger project that provides a user interface for a financial application. It provides a quick overview of the user's account information, including their balance, lending and borrowing amounts, and solvency. The component is designed to be responsive and adapt to different screen sizes, and provides a clear and concise summary of the user's financial position.
-## Questions: 
- 1. What external libraries or dependencies are being used in this code?
+
+## Questions:
+
+1.  What external libraries or dependencies are being used in this code?
+
 - The code is importing several libraries including `@mrgnlabs/marginfi-client-v2`, `@solana/wallet-adapter-react`, and `React`.
 
 2. What is the purpose of the `useMemo` hook in this code?
+
 - The `useMemo` hook is being used to calculate the health factor of the selected account. It checks if the selected account has assets and liabilities, and returns a value based on the calculation.
 
 3. What is the purpose of the `AccountMetric` component and how is it being used in this code?
+
 - The `AccountMetric` component is being used to display information about the user's lending, borrowing, and net APY. It takes in props such as `label`, `value`, `valueBold`, and `boldValue` to customize the display of the information.

@@ -23,11 +23,15 @@ This component can be used in a larger project to display various metrics or dat
   boldValue="#00FF00"
 />
 ```
-## Questions: 
- 1. What is the purpose of this code?
-   - This code defines a React component called `AccountMetric` that renders a label and a value with optional bold styling and preview mode.
+
+## Questions:
+
+1.  What is the purpose of this code?
+
+- This code defines a React component called `AccountMetric` that renders a label and a value with optional bold styling and preview mode.
 
 2. What props can be passed to the `AccountMetric` component?
+
    - The `AccountMetric` component accepts props for `label`, `value`, `valueBold`, `preview`, `extraBorder`, and `boldValue`.
 
 3. What CSS classes and styles are applied to the rendered component?

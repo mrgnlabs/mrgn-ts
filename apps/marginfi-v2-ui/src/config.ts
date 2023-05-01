@@ -23,14 +23,9 @@ switch (environment) {
     rpcEndpoint = rpcEndpointOverride || "https://mrgn.rpcpool.com/";
     campaignWhitelist = [
       {
-        icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
+        icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/23095.png",
         size: 30,
-        publicKey: "B4zvDnVn1kPosJ4yDGWaPkJFE7z78r6wmdzhe1kxs1kT",
-      },
-      {
-        icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
-        size: 30,
-        publicKey: "Cm2yPJQ8qB1wo6b3268F9hC7YbBWRmF6h3mbvvekW68B",
+        publicKey: "94hHpPTJk2Kq7cyAkC3a2uPUqx7oJZBaScyzwvLZ6mx2",
       },
     ];
     break;

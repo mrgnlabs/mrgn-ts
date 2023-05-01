@@ -17,9 +17,10 @@ import BN from "bn.js";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(0.1);
+const DUST_THRESHOLD_VALUE_UI = new BigNumber(0);
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const MIN_SOL_BALANCE = env_config.MIN_SOL_BALANCE * LAMPORTS_PER_SOL;
-const SLIPPAGE_BPS = 250;
+const SLIPPAGE_BPS = 10000;
 
 function getDebugLogger(context: string) {
   return require("debug")(`mfi:liquidator:${context}`);
@@ -180,10 +181,10 @@ class Liquidator {
 
         return { liabilities, bank };
       })
-      .filter(({ liabilities, bank }) => liabilities.gt(DUST_THRESHOLD) && !bank.mint.equals(USDC_MINT));
+      .filter(({ liabilities, bank }) => liabilities.gt(new BigNumber(0)) && !bank.mint.equals(USDC_MINT));
 
     for (let { liabilities, bank } of balancesWithNonUsdcLiabilities) {
-      debug("Repaying %d %s", nativeToUi(liabilities, bank.mintDecimals), bank.label);
+      debug("Repaying %d %si", nativeToUi(liabilities, bank.mintDecimals), bank.label);
       let availableUsdcInTokenAccount = await this.getTokenAccountBalance(USDC_MINT);
 
       await this.group.reload();
@@ -192,12 +193,18 @@ class Liquidator {
       const availableUsdcLiquidity = this.account.getMaxBorrowForBank(usdcBank);
 
       await bank.reloadPriceData(this.connection);
-      const liabUsdcValue = bank.getLiabilityUsdValue(
+      const baseLiabUsdcValue = bank.getLiabilityUsdValue(
         liabilities,
         MarginRequirementType.Equity,
         // We might need to use a Higher price bias to account for worst case scenario.
         PriceBias.None
       );
+
+      /// When a liab value is super small (1 BONK), we cannot feasibly buy it for the exact amount,
+      // so the solution is to buy more (trivial amount more), and then over repay.
+      const liabUsdcValue = BigNumber.max(baseLiabUsdcValue, new BigNumber(1));
+
+      debug("Liab usd value %s", liabUsdcValue);
 
       // We can possibly withdraw some usdc from the lending account if we are short.
       let usdcBuyingPower = BigNumber.min(availableUsdcInTokenAccount, liabUsdcValue);
@@ -219,14 +226,12 @@ class Liquidator {
 
       await this.swap(USDC_MINT, bank.mint, uiToNative(usdcBuyingPower, USDC_DECIMALS));
 
-      const liabBalance = BigNumber.min(
-        await this.getTokenAccountBalance(bank.mint, true),
-        new BigNumber(nativeToUi(liabilities, bank.mintDecimals))
-      );
+      const liabsUi = new BigNumber(nativeToUi(liabilities, bank.mintDecimals));
+      const liabBalance = BigNumber.min(await this.getTokenAccountBalance(bank.mint, true), liabsUi);
 
       debug("Got %s of %s, depositing to marginfi", liabBalance, bank.mint);
 
-      const depositSig = await this.account.repay(liabBalance, bank, liabBalance.gte(liabilities));
+      const depositSig = await this.account.repay(liabBalance, bank, liabBalance.gte(liabsUi));
       debug("Deposit tx: %s", depositSig);
     }
   }
@@ -347,7 +352,7 @@ class Liquidator {
         return { bank, assets, liabilities };
       })
       .filter(({ bank, assets, liabilities }) => {
-        return (assets.gt(DUST_THRESHOLD) && !bank.mint.equals(USDC_MINT)) || liabilities.gt(DUST_THRESHOLD);
+        return (assets.gt(DUST_THRESHOLD_VALUE_UI) && !bank.mint.equals(USDC_MINT)) || liabilities.gt(new BigNumber(0));
       });
 
     const lendingAccountToRebalanceExists = lendingAccountToRebalance.length > 0;
@@ -505,7 +510,7 @@ class Liquidator {
       liquidatorMaxLiqCapacityAssetAmount
     );
 
-    const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.95);
+    const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.75);
 
     if (slippageAdjustedCollateralAmountToLiquidate.lt(DUST_THRESHOLD_UI)) {
       debug("No collateral to liquidate");

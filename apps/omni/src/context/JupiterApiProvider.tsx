@@ -53,9 +53,7 @@ export const JupiterApiProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, []);
 
   return (
-    <JupiterApiContext.Provider value={{ api, routeMap, tokenMap, loaded }}>
-      {children}
-    </JupiterApiContext.Provider>
+    <JupiterApiContext.Provider value={{ api, routeMap, tokenMap, loaded }}>{children}</JupiterApiContext.Provider>
   );
 };
 
@@ -63,9 +61,7 @@ export const useJupiterApiContext = () => {
   const context = useContext(JupiterApiContext);
 
   if (!context) {
-    throw new Error(
-      "useJupiterApiContext must be used within a JupiterApiProvider"
-    );
+    throw new Error("useJupiterApiContext must be used within a JupiterApiProvider");
   }
 
   return context;

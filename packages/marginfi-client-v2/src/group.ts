@@ -1,7 +1,7 @@
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { parsePriceData } from "@pythnetwork/client";
-import { Commitment, PublicKey } from "@solana/web3.js";
-import { Bank, BankData } from "./bank";
+import { Cluster, Commitment, PublicKey } from "@solana/web3.js";
+import { Bank, BankData, getOraclePriceData } from "./bank";
 import { MARGINFI_IDL } from "./idl";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
 import { DEFAULT_COMMITMENT } from "@mrgnlabs/mrgn-common";
@@ -64,29 +64,20 @@ class MarginfiGroup {
 
     const accountData = await MarginfiGroup._fetchAccountData(config, program, commitment);
 
-    const bankAddresses = config.banks.map((b) => b.address);
-    let bankAccountsData = await program.account.bank.fetchMultiple(bankAddresses, commitment);
+    const bankAccountsData = await program.account.bank.all([
+      { memcmp: { offset: 8 + 32 + 1, bytes: config.groupPk.toBase58() } },
+    ]);
 
-    let nullAccounts = [];
-    for (let i = 0; i < bankAccountsData.length; i++) {
-      if (bankAccountsData[i] === null) nullAccounts.push(bankAddresses[i]);
-    }
-    if (nullAccounts.length > 0) {
-      throw Error(`Failed to fetch banks ${nullAccounts}`);
-    }
-
-    const pythAccounts = await program.provider.connection.getMultipleAccountsInfo(
-      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
-    );
-
-    const banks = bankAccountsData.map(
-      (bd, index) =>
-        new Bank(
-          config.banks[index].label,
-          bankAddresses[index],
-          bd as BankData,
-          parsePriceData(pythAccounts[index]!.data)
-        )
+    const banks = await Promise.all(
+      bankAccountsData.map(async (accountData) => {
+        let bankData = accountData.account as any as BankData;
+        return new Bank(
+          config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
+          accountData.publicKey,
+          bankData,
+          await getOraclePriceData(program.provider.connection, bankData.config.oracleSetup, bankData.config.oracleKeys)
+        );
+      })
     );
 
     return new MarginfiGroup(config, program, accountData, banks);
@@ -180,7 +171,10 @@ class MarginfiGroup {
     const rawData = await MarginfiGroup._fetchAccountData(this._config, this._program, commitment);
 
     const bankAddresses = this._config.banks.map((b) => b.address);
-    let bankAccountsData = await this._program.account.bank.fetchMultiple(bankAddresses, commitment);
+
+    let bankAccountsData = await this._program.account.bank.all([
+      { memcmp: { offset: 8 + 32 + 1, bytes: this._config.groupPk.toBase58() } },
+    ]);
 
     let nullAccounts = [];
     for (let i = 0; i < bankAccountsData.length; i++) {
@@ -190,18 +184,20 @@ class MarginfiGroup {
       throw Error(`Failed to fetch banks ${nullAccounts}`);
     }
 
-    const pythAccounts = await this._program.provider.connection.getMultipleAccountsInfo(
-      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
-    );
-
-    const banks = bankAccountsData.map(
-      (bd, index) =>
-        new Bank(
-          this._config.banks[index].label,
-          bankAddresses[index],
-          bd as BankData,
-          parsePriceData(pythAccounts[index]!.data)
-        )
+    const banks = await Promise.all(
+      bankAccountsData.map(async (accountData) => {
+        let bankData = accountData.account as any as BankData;
+        return new Bank(
+          this._config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
+          accountData.publicKey,
+          bankData,
+          await getOraclePriceData(
+            this._program.provider.connection,
+            bankData.config.oracleSetup,
+            bankData.config.oracleKeys
+          )
+        );
+      })
     );
 
     this._admin = rawData.admin;

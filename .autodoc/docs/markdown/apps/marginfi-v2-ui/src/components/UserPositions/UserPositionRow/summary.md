@@ -10,7 +10,7 @@ The `UserPositionRowInputBox` component in the `UserPositionRowInputBox.tsx` fil
 
 The `index.tsx` file exports the `UserPositionRow` class from the `UserPositionRow.ts` file, which can be used to render a row in a table or list of user positions.
 
-These components may be used together in a larger project to build a user interface for managing positions in a lending or borrowing market. For example, the `UserPositionRow` component may be used in a `UserPositionsTable` component to render a table of user positions, with each row containing a `UserPositionRowHeader` component and an `UserPositionRowInputBox` component for withdrawing or repaying tokens. The `UserPositionRowAction` component may be used to render buttons for withdrawing or repaying tokens in the `UserPositionRow` component. 
+These components may be used together in a larger project to build a user interface for managing positions in a lending or borrowing market. For example, the `UserPositionRow` component may be used in a `UserPositionsTable` component to render a table of user positions, with each row containing a `UserPositionRowHeader` component and an `UserPositionRowInputBox` component for withdrawing or repaying tokens. The `UserPositionRowAction` component may be used to render buttons for withdrawing or repaying tokens in the `UserPositionRow` component.
 
 Here is an example of how these components may be used together:
 

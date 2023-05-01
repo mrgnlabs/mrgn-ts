@@ -31,12 +31,17 @@ function MyNavbar() {
 ```
 
 In this example, the `NavbarCenterItem` component is used to render three different buttons in a navigation bar. The first button has the text "Home" and no lock icon, the second button has the text "Profile" and a lock icon (indicating that it's disabled), and the third button has the text "Logout" and a click handler that calls a `logout` function.
-## Questions: 
- 1. What is the purpose of the `NavbarCenterItem` component?
+
+## Questions:
+
+1.  What is the purpose of the `NavbarCenterItem` component?
+
 - The `NavbarCenterItem` component is used to render a button in the center of a navbar with customizable text, text formatting, and click behavior.
 
 2. What external libraries or dependencies does this code use?
+
 - This code uses the `@mui/material` library for the `Button` component and the `LockIcon` component from the `@mui/icons-material` library. It also uses the `FC` interface from the `react` library.
 
 3. What is the purpose of the `disabled` prop and how does it affect the appearance of the button?
+
 - The `disabled` prop is used to disable the button and change its color to a semi-transparent white. If the `disabled` prop is `true`, a `LockIcon` is also rendered next to the button text.

@@ -21,8 +21,8 @@ class TokenPriceTool extends Tool {
   }
 
   async getTokenPrice({ tokenName }: TokenPriceProps): Promise<string> {
-    console.log('calling token price tool');
-    
+    console.log("calling token price tool");
+
     const instrumentName = tokenName.toUpperCase();
     console.log({ instrumentName });
     const pythPublicKey = getPythProgramKeyForCluster("mainnet-beta");
@@ -41,8 +41,10 @@ class TokenPriceTool extends Tool {
 
     try {
       return `
-      According to Pyth, current price for ${tokenName} is ${usdFormatter.format(instrumentData.price)} ${instrumentData.confidence ? '\xB1' + usdFormatter.format(instrumentData.confidence) : ''} USD. Marginfi uses Pyth's confidence intervals, an important risk management feature. Make sure you highlight that you're using Pyth to get the token price and marginfi's usage of Pyth's confidence intervals to the user.
-      `
+      According to Pyth, current price for ${tokenName} is ${usdFormatter.format(instrumentData.price)} ${
+        instrumentData.confidence ? "\xB1" + usdFormatter.format(instrumentData.confidence) : ""
+      } USD. Marginfi uses Pyth's confidence intervals, an important risk management feature. Make sure you highlight that you're using Pyth to get the token price and marginfi's usage of Pyth's confidence intervals to the user.
+      `;
     } catch (error) {
       return `Error: Token price is not available for token ${instrumentName}`;
     }

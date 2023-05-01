@@ -1,6 +1,6 @@
 [View code on GitHub](https://github.com/mrgnlabs/mrgn-ts/packages/lip-client/src/constants.ts)
 
-The code above defines several constants that are used as seeds for generating authentication keys in the mrgn-ts project. These seeds are used to create secure keys that are used to authenticate various actions within the project. 
+The code above defines several constants that are used as seeds for generating authentication keys in the mrgn-ts project. These seeds are used to create secure keys that are used to authenticate various actions within the project.
 
 The first constant, `PDA_BANK_LIQUIDITY_VAULT_AUTH_SEED`, is used to generate an authentication key for the liquidity vault in the project. This key is used to ensure that only authorized users can access the liquidity vault and perform actions such as depositing or withdrawing funds.
 
@@ -25,12 +25,17 @@ const campaignAuthKey = await PublicKey.createWithSeed(
   programId
 );
 ```
-## Questions: 
- 1. What is the purpose of this file in the mrgn-ts project?
+
+## Questions:
+
+1.  What is the purpose of this file in the mrgn-ts project?
+
 - This file contains constants related to seed values for various authentication and account creation purposes in the project.
 
 2. What is the significance of using Buffer.from() method for each constant?
+
 - The Buffer.from() method is used to create a new Buffer object from the given input, which in this case is a string representing the seed value. This is likely used to ensure that the seed values are stored in a specific format that can be easily used in other parts of the project.
 
 3. How are these constants used in the mrgn-ts project?
+
 - These constants are likely used in various parts of the project where authentication or account creation is required, such as when creating a new marginfi account or authorizing a deposit from an MFI.

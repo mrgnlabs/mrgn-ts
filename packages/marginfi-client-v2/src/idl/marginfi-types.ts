@@ -1053,6 +1053,74 @@ export type Marginfi = {
   ];
   types: [
     {
+      name: "GroupEventHeader";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "signer";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "marginfiGroup";
+            type: "publicKey";
+          }
+        ];
+      };
+    },
+    {
+      name: "AccountEventHeader";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "signer";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "marginfiAccount";
+            type: "publicKey";
+          },
+          {
+            name: "marginfiAccountAuthority";
+            type: "publicKey";
+          },
+          {
+            name: "marginfiGroup";
+            type: "publicKey";
+          }
+        ];
+      };
+    },
+    {
+      name: "LiquidationBalances";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "liquidateeAssetBalance";
+            type: "f64";
+          },
+          {
+            name: "liquidateeLiabilityBalance";
+            type: "f64";
+          },
+          {
+            name: "liquidatorAssetBalance";
+            type: "f64";
+          },
+          {
+            name: "liquidatorLiabilityBalance";
+            type: "f64";
+          }
+        ];
+      };
+    },
+    {
       name: "LendingAccount";
       type: {
         kind: "struct";
@@ -1091,7 +1159,7 @@ export type Marginfi = {
             type: "publicKey";
           },
           {
-            name: "ignore";
+            name: "ignore1";
             type: {
               array: ["u8", 7];
             };
@@ -1188,6 +1256,70 @@ export type Marginfi = {
       };
     },
     {
+      name: "InterestRateConfigOpt";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "optimalUtilizationRate";
+            type: {
+              option: {
+                defined: "WrappedI80F48";
+              };
+            };
+          },
+          {
+            name: "plateauInterestRate";
+            type: {
+              option: {
+                defined: "WrappedI80F48";
+              };
+            };
+          },
+          {
+            name: "maxInterestRate";
+            type: {
+              option: {
+                defined: "WrappedI80F48";
+              };
+            };
+          },
+          {
+            name: "insuranceFeeFixedApr";
+            type: {
+              option: {
+                defined: "WrappedI80F48";
+              };
+            };
+          },
+          {
+            name: "insuranceIrFee";
+            type: {
+              option: {
+                defined: "WrappedI80F48";
+              };
+            };
+          },
+          {
+            name: "protocolFixedFeeApr";
+            type: {
+              option: {
+                defined: "WrappedI80F48";
+              };
+            };
+          },
+          {
+            name: "protocolIrFee";
+            type: {
+              option: {
+                defined: "WrappedI80F48";
+              };
+            };
+          }
+        ];
+      };
+    },
+    {
       name: "BankConfig";
       docs: ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"];
       type: {
@@ -1218,7 +1350,7 @@ export type Marginfi = {
             };
           },
           {
-            name: "maxCapacity";
+            name: "depositLimit";
             type: "u64";
           },
           {
@@ -1235,9 +1367,7 @@ export type Marginfi = {
           },
           {
             name: "oracleSetup";
-            type: {
-              defined: "OracleSetup";
-            };
+            type: "u8";
           },
           {
             name: "oracleKeys";
@@ -1246,15 +1376,25 @@ export type Marginfi = {
             };
           },
           {
-            name: "ignore";
+            name: "ignore1";
             type: {
               array: ["u8", 6];
             };
           },
           {
+            name: "borrowLimit";
+            type: "u64";
+          },
+          {
+            name: "riskTier";
+            type: {
+              defined: "RiskTier";
+            };
+          },
+          {
             name: "padding";
             type: {
-              array: ["u128", 4];
+              array: ["u64", 6];
             };
           }
         ];
@@ -1277,6 +1417,12 @@ export type Marginfi = {
       type: {
         kind: "struct";
         fields: [
+          {
+            name: "ignore1";
+            type: {
+              array: ["u8", 208];
+            };
+          },
           {
             name: "assetWeightInit";
             type: {
@@ -1310,9 +1456,21 @@ export type Marginfi = {
             };
           },
           {
-            name: "maxCapacity";
+            name: "depositLimit";
             type: {
               option: "u64";
+            };
+          },
+          {
+            name: "borrowLimit";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "ignore2";
+            type: {
+              array: ["u8", 272];
             };
           },
           {
@@ -1332,9 +1490,25 @@ export type Marginfi = {
             };
           },
           {
-            name: "ignore";
+            name: "interestRateConfig";
             type: {
-              array: ["u8", 6];
+              option: {
+                defined: "InterestRateConfigOpt";
+              };
+            };
+          },
+          {
+            name: "riskTier";
+            type: {
+              option: {
+                defined: "RiskTier";
+              };
+            };
+          },
+          {
+            name: "ignore2";
+            type: {
+              array: ["u8", 264];
             };
           }
         ];
@@ -1346,6 +1520,12 @@ export type Marginfi = {
         kind: "struct";
         fields: [
           {
+            name: "ignore1";
+            type: {
+              array: ["u8", 160];
+            };
+          },
+          {
             name: "setup";
             type: {
               defined: "OracleSetup";
@@ -1355,6 +1535,12 @@ export type Marginfi = {
             name: "keys";
             type: {
               array: ["publicKey", 5];
+            };
+          },
+          {
+            name: "ignore2";
+            type: {
+              array: ["u8", 1];
             };
           }
         ];
@@ -1390,6 +1576,9 @@ export type Marginfi = {
           },
           {
             name: "BorrowOnly";
+          },
+          {
+            name: "BypassBorrowLimit";
           }
         ];
       };
@@ -1454,27 +1643,15 @@ export type Marginfi = {
       };
     },
     {
-      name: "OracleSetup";
+      name: "RiskTier";
       type: {
         kind: "enum";
         variants: [
           {
-            name: "None";
+            name: "Collateral";
           },
           {
-            name: "Pyth";
-          }
-        ];
-      };
-    },
-    {
-      name: "OracleKey";
-      type: {
-        kind: "enum";
-        variants: [
-          {
-            name: "Pyth";
-            fields: ["publicKey"];
+            name: "Isolated";
           }
         ];
       };
@@ -1495,6 +1672,419 @@ export type Marginfi = {
           }
         ];
       };
+    },
+    {
+      name: "OracleSetup";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "None";
+          },
+          {
+            name: "PythEma";
+          },
+          {
+            name: "SwitchboardV2";
+          }
+        ];
+      };
+    }
+  ];
+  events: [
+    {
+      name: "MarginfiGroupCreateEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "GroupEventHeader";
+          };
+          index: false;
+        }
+      ];
+    },
+    {
+      name: "MarginfiGroupConfigureEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "GroupEventHeader";
+          };
+          index: false;
+        },
+        {
+          name: "config";
+          type: {
+            defined: "GroupConfig";
+          };
+          index: false;
+        }
+      ];
+    },
+    {
+      name: "LendingPoolBankCreateEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "GroupEventHeader";
+          };
+          index: false;
+        },
+        {
+          name: "bank";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "mint";
+          type: "publicKey";
+          index: false;
+        }
+      ];
+    },
+    {
+      name: "LendingPoolBankConfigureEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "GroupEventHeader";
+          };
+          index: false;
+        },
+        {
+          name: "bank";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "mint";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "config";
+          type: {
+            defined: "BankConfigOpt";
+          };
+          index: false;
+        }
+      ];
+    },
+    {
+      name: "LendingPoolBankAccrueInterestEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "GroupEventHeader";
+          };
+          index: false;
+        },
+        {
+          name: "bank";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "mint";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "delta";
+          type: "u64";
+          index: false;
+        },
+        {
+          name: "feesCollected";
+          type: "f64";
+          index: false;
+        },
+        {
+          name: "insuranceCollected";
+          type: "f64";
+          index: false;
+        }
+      ];
+    },
+    {
+      name: "LendingPoolBankCollectFeesEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "GroupEventHeader";
+          };
+          index: false;
+        },
+        {
+          name: "bank";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "mint";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "groupFeesCollected";
+          type: "f64";
+          index: false;
+        },
+        {
+          name: "groupFeesOutstanding";
+          type: "f64";
+          index: false;
+        },
+        {
+          name: "insuranceFeesCollected";
+          type: "f64";
+          index: false;
+        },
+        {
+          name: "insuranceFeesOutstanding";
+          type: "f64";
+          index: false;
+        }
+      ];
+    },
+    {
+      name: "LendingPoolBankHandleBankruptcyEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "AccountEventHeader";
+          };
+          index: false;
+        },
+        {
+          name: "bank";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "mint";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "badDebt";
+          type: "f64";
+          index: false;
+        },
+        {
+          name: "coveredAmount";
+          type: "f64";
+          index: false;
+        },
+        {
+          name: "socializedAmount";
+          type: "f64";
+          index: false;
+        }
+      ];
+    },
+    {
+      name: "MarginfiAccountCreateEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "AccountEventHeader";
+          };
+          index: false;
+        }
+      ];
+    },
+    {
+      name: "LendingAccountDepositEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "AccountEventHeader";
+          };
+          index: false;
+        },
+        {
+          name: "bank";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "mint";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "amount";
+          type: "u64";
+          index: false;
+        }
+      ];
+    },
+    {
+      name: "LendingAccountRepayEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "AccountEventHeader";
+          };
+          index: false;
+        },
+        {
+          name: "bank";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "mint";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "amount";
+          type: "u64";
+          index: false;
+        },
+        {
+          name: "closeBalance";
+          type: "bool";
+          index: false;
+        }
+      ];
+    },
+    {
+      name: "LendingAccountBorrowEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "AccountEventHeader";
+          };
+          index: false;
+        },
+        {
+          name: "bank";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "mint";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "amount";
+          type: "u64";
+          index: false;
+        }
+      ];
+    },
+    {
+      name: "LendingAccountWithdrawEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "AccountEventHeader";
+          };
+          index: false;
+        },
+        {
+          name: "bank";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "mint";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "amount";
+          type: "u64";
+          index: false;
+        },
+        {
+          name: "closeBalance";
+          type: "bool";
+          index: false;
+        }
+      ];
+    },
+    {
+      name: "LendingAccountLiquidateEvent";
+      fields: [
+        {
+          name: "header";
+          type: {
+            defined: "AccountEventHeader";
+          };
+          index: false;
+        },
+        {
+          name: "liquidateeMarginfiAccount";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "liquidateeMarginfiAccountAuthority";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "assetBank";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "assetMint";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "liabilityBank";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "liabilityMint";
+          type: "publicKey";
+          index: false;
+        },
+        {
+          name: "liquidateePreHealth";
+          type: "f64";
+          index: false;
+        },
+        {
+          name: "liquidateePostHealth";
+          type: "f64";
+          index: false;
+        },
+        {
+          name: "preBalances";
+          type: {
+            defined: "LiquidationBalances";
+          };
+          index: false;
+        },
+        {
+          name: "postBalances";
+          type: {
+            defined: "LiquidationBalances";
+          };
+          index: false;
+        }
+      ];
     }
   ];
   errors: [
@@ -1642,6 +2232,31 @@ export type Marginfi = {
       code: 6028;
       name: "IllegalUtilizationRatio";
       msg: "Invalid bank utilization ratio";
+    },
+    {
+      code: 6029;
+      name: "BankLiabilityCapacityExceeded";
+      msg: "Bank borrow cap exceeded";
+    },
+    {
+      code: 6030;
+      name: "InvalidPrice";
+      msg: "Invalid Price";
+    },
+    {
+      code: 6031;
+      name: "IsolatedAccountIllegalState";
+      msg: "Account can have only one liablity when account is under isolated risk";
+    },
+    {
+      code: 6032;
+      name: "OracleNotSetup";
+      msg: "Oracle is not set";
+    },
+    {
+      code: 6033;
+      name: "InvalidSwitchboardDecimalConversion";
+      msg: "Invalid swithcboard decimal conversion";
     }
   ];
 };
@@ -2701,6 +3316,74 @@ export const IDL: Marginfi = {
   ],
   types: [
     {
+      name: "GroupEventHeader",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "signer",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "marginfiGroup",
+            type: "publicKey",
+          },
+        ],
+      },
+    },
+    {
+      name: "AccountEventHeader",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "signer",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "marginfiAccount",
+            type: "publicKey",
+          },
+          {
+            name: "marginfiAccountAuthority",
+            type: "publicKey",
+          },
+          {
+            name: "marginfiGroup",
+            type: "publicKey",
+          },
+        ],
+      },
+    },
+    {
+      name: "LiquidationBalances",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "liquidateeAssetBalance",
+            type: "f64",
+          },
+          {
+            name: "liquidateeLiabilityBalance",
+            type: "f64",
+          },
+          {
+            name: "liquidatorAssetBalance",
+            type: "f64",
+          },
+          {
+            name: "liquidatorLiabilityBalance",
+            type: "f64",
+          },
+        ],
+      },
+    },
+    {
       name: "LendingAccount",
       type: {
         kind: "struct",
@@ -2739,7 +3422,7 @@ export const IDL: Marginfi = {
             type: "publicKey",
           },
           {
-            name: "ignore",
+            name: "ignore1",
             type: {
               array: ["u8", 7],
             },
@@ -2836,6 +3519,70 @@ export const IDL: Marginfi = {
       },
     },
     {
+      name: "InterestRateConfigOpt",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "optimalUtilizationRate",
+            type: {
+              option: {
+                defined: "WrappedI80F48",
+              },
+            },
+          },
+          {
+            name: "plateauInterestRate",
+            type: {
+              option: {
+                defined: "WrappedI80F48",
+              },
+            },
+          },
+          {
+            name: "maxInterestRate",
+            type: {
+              option: {
+                defined: "WrappedI80F48",
+              },
+            },
+          },
+          {
+            name: "insuranceFeeFixedApr",
+            type: {
+              option: {
+                defined: "WrappedI80F48",
+              },
+            },
+          },
+          {
+            name: "insuranceIrFee",
+            type: {
+              option: {
+                defined: "WrappedI80F48",
+              },
+            },
+          },
+          {
+            name: "protocolFixedFeeApr",
+            type: {
+              option: {
+                defined: "WrappedI80F48",
+              },
+            },
+          },
+          {
+            name: "protocolIrFee",
+            type: {
+              option: {
+                defined: "WrappedI80F48",
+              },
+            },
+          },
+        ],
+      },
+    },
+    {
       name: "BankConfig",
       docs: ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
       type: {
@@ -2866,7 +3613,7 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "maxCapacity",
+            name: "depositLimit",
             type: "u64",
           },
           {
@@ -2883,9 +3630,7 @@ export const IDL: Marginfi = {
           },
           {
             name: "oracleSetup",
-            type: {
-              defined: "OracleSetup",
-            },
+            type: "u8",
           },
           {
             name: "oracleKeys",
@@ -2894,15 +3639,25 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "ignore",
+            name: "ignore1",
             type: {
               array: ["u8", 6],
             },
           },
           {
+            name: "borrowLimit",
+            type: "u64",
+          },
+          {
+            name: "riskTier",
+            type: {
+              defined: "RiskTier",
+            },
+          },
+          {
             name: "padding",
             type: {
-              array: ["u128", 4],
+              array: ["u64", 6],
             },
           },
         ],
@@ -2925,6 +3680,12 @@ export const IDL: Marginfi = {
       type: {
         kind: "struct",
         fields: [
+          {
+            name: "ignore1",
+            type: {
+              array: ["u8", 208],
+            },
+          },
           {
             name: "assetWeightInit",
             type: {
@@ -2958,9 +3719,21 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "maxCapacity",
+            name: "depositLimit",
             type: {
               option: "u64",
+            },
+          },
+          {
+            name: "borrowLimit",
+            type: {
+              option: "u64",
+            },
+          },
+          {
+            name: "ignore2",
+            type: {
+              array: ["u8", 272],
             },
           },
           {
@@ -2980,9 +3753,25 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "ignore",
+            name: "interestRateConfig",
             type: {
-              array: ["u8", 6],
+              option: {
+                defined: "InterestRateConfigOpt",
+              },
+            },
+          },
+          {
+            name: "riskTier",
+            type: {
+              option: {
+                defined: "RiskTier",
+              },
+            },
+          },
+          {
+            name: "ignore2",
+            type: {
+              array: ["u8", 264],
             },
           },
         ],
@@ -2994,6 +3783,12 @@ export const IDL: Marginfi = {
         kind: "struct",
         fields: [
           {
+            name: "ignore1",
+            type: {
+              array: ["u8", 160],
+            },
+          },
+          {
             name: "setup",
             type: {
               defined: "OracleSetup",
@@ -3003,6 +3798,12 @@ export const IDL: Marginfi = {
             name: "keys",
             type: {
               array: ["publicKey", 5],
+            },
+          },
+          {
+            name: "ignore2",
+            type: {
+              array: ["u8", 1],
             },
           },
         ],
@@ -3038,6 +3839,9 @@ export const IDL: Marginfi = {
           },
           {
             name: "BorrowOnly",
+          },
+          {
+            name: "BypassBorrowLimit",
           },
         ],
       },
@@ -3102,27 +3906,15 @@ export const IDL: Marginfi = {
       },
     },
     {
-      name: "OracleSetup",
+      name: "RiskTier",
       type: {
         kind: "enum",
         variants: [
           {
-            name: "None",
+            name: "Collateral",
           },
           {
-            name: "Pyth",
-          },
-        ],
-      },
-    },
-    {
-      name: "OracleKey",
-      type: {
-        kind: "enum",
-        variants: [
-          {
-            name: "Pyth",
-            fields: ["publicKey"],
+            name: "Isolated",
           },
         ],
       },
@@ -3143,6 +3935,419 @@ export const IDL: Marginfi = {
           },
         ],
       },
+    },
+    {
+      name: "OracleSetup",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "None",
+          },
+          {
+            name: "PythEma",
+          },
+          {
+            name: "SwitchboardV2",
+          },
+        ],
+      },
+    },
+  ],
+  events: [
+    {
+      name: "MarginfiGroupCreateEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "GroupEventHeader",
+          },
+          index: false,
+        },
+      ],
+    },
+    {
+      name: "MarginfiGroupConfigureEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "GroupEventHeader",
+          },
+          index: false,
+        },
+        {
+          name: "config",
+          type: {
+            defined: "GroupConfig",
+          },
+          index: false,
+        },
+      ],
+    },
+    {
+      name: "LendingPoolBankCreateEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "GroupEventHeader",
+          },
+          index: false,
+        },
+        {
+          name: "bank",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "mint",
+          type: "publicKey",
+          index: false,
+        },
+      ],
+    },
+    {
+      name: "LendingPoolBankConfigureEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "GroupEventHeader",
+          },
+          index: false,
+        },
+        {
+          name: "bank",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "mint",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "config",
+          type: {
+            defined: "BankConfigOpt",
+          },
+          index: false,
+        },
+      ],
+    },
+    {
+      name: "LendingPoolBankAccrueInterestEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "GroupEventHeader",
+          },
+          index: false,
+        },
+        {
+          name: "bank",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "mint",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "delta",
+          type: "u64",
+          index: false,
+        },
+        {
+          name: "feesCollected",
+          type: "f64",
+          index: false,
+        },
+        {
+          name: "insuranceCollected",
+          type: "f64",
+          index: false,
+        },
+      ],
+    },
+    {
+      name: "LendingPoolBankCollectFeesEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "GroupEventHeader",
+          },
+          index: false,
+        },
+        {
+          name: "bank",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "mint",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "groupFeesCollected",
+          type: "f64",
+          index: false,
+        },
+        {
+          name: "groupFeesOutstanding",
+          type: "f64",
+          index: false,
+        },
+        {
+          name: "insuranceFeesCollected",
+          type: "f64",
+          index: false,
+        },
+        {
+          name: "insuranceFeesOutstanding",
+          type: "f64",
+          index: false,
+        },
+      ],
+    },
+    {
+      name: "LendingPoolBankHandleBankruptcyEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "AccountEventHeader",
+          },
+          index: false,
+        },
+        {
+          name: "bank",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "mint",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "badDebt",
+          type: "f64",
+          index: false,
+        },
+        {
+          name: "coveredAmount",
+          type: "f64",
+          index: false,
+        },
+        {
+          name: "socializedAmount",
+          type: "f64",
+          index: false,
+        },
+      ],
+    },
+    {
+      name: "MarginfiAccountCreateEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "AccountEventHeader",
+          },
+          index: false,
+        },
+      ],
+    },
+    {
+      name: "LendingAccountDepositEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "AccountEventHeader",
+          },
+          index: false,
+        },
+        {
+          name: "bank",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "mint",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "amount",
+          type: "u64",
+          index: false,
+        },
+      ],
+    },
+    {
+      name: "LendingAccountRepayEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "AccountEventHeader",
+          },
+          index: false,
+        },
+        {
+          name: "bank",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "mint",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "amount",
+          type: "u64",
+          index: false,
+        },
+        {
+          name: "closeBalance",
+          type: "bool",
+          index: false,
+        },
+      ],
+    },
+    {
+      name: "LendingAccountBorrowEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "AccountEventHeader",
+          },
+          index: false,
+        },
+        {
+          name: "bank",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "mint",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "amount",
+          type: "u64",
+          index: false,
+        },
+      ],
+    },
+    {
+      name: "LendingAccountWithdrawEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "AccountEventHeader",
+          },
+          index: false,
+        },
+        {
+          name: "bank",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "mint",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "amount",
+          type: "u64",
+          index: false,
+        },
+        {
+          name: "closeBalance",
+          type: "bool",
+          index: false,
+        },
+      ],
+    },
+    {
+      name: "LendingAccountLiquidateEvent",
+      fields: [
+        {
+          name: "header",
+          type: {
+            defined: "AccountEventHeader",
+          },
+          index: false,
+        },
+        {
+          name: "liquidateeMarginfiAccount",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "liquidateeMarginfiAccountAuthority",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "assetBank",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "assetMint",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "liabilityBank",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "liabilityMint",
+          type: "publicKey",
+          index: false,
+        },
+        {
+          name: "liquidateePreHealth",
+          type: "f64",
+          index: false,
+        },
+        {
+          name: "liquidateePostHealth",
+          type: "f64",
+          index: false,
+        },
+        {
+          name: "preBalances",
+          type: {
+            defined: "LiquidationBalances",
+          },
+          index: false,
+        },
+        {
+          name: "postBalances",
+          type: {
+            defined: "LiquidationBalances",
+          },
+          index: false,
+        },
+      ],
     },
   ],
   errors: [
@@ -3290,6 +4495,31 @@ export const IDL: Marginfi = {
       code: 6028,
       name: "IllegalUtilizationRatio",
       msg: "Invalid bank utilization ratio",
+    },
+    {
+      code: 6029,
+      name: "BankLiabilityCapacityExceeded",
+      msg: "Bank borrow cap exceeded",
+    },
+    {
+      code: 6030,
+      name: "InvalidPrice",
+      msg: "Invalid Price",
+    },
+    {
+      code: 6031,
+      name: "IsolatedAccountIllegalState",
+      msg: "Account can have only one liablity when account is under isolated risk",
+    },
+    {
+      code: 6032,
+      name: "OracleNotSetup",
+      msg: "Oracle is not set",
+    },
+    {
+      code: 6033,
+      name: "InvalidSwitchboardDecimalConversion",
+      msg: "Invalid swithcboard decimal conversion",
     },
   ],
 };

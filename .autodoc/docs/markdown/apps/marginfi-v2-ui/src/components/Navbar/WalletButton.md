@@ -20,9 +20,13 @@ function MyComponent() {
   );
 }
 ```
-## Questions: 
- 1. What is the purpose of the `dynamic` import and how does it work?
-   - The `dynamic` import is used to asynchronously load a component from the `@solana/wallet-adapter-react-ui` package. It works by returning a Promise that resolves to the component when it is ready to be rendered.
+
+## Questions:
+
+1.  What is the purpose of the `dynamic` import and how does it work?
+
+- The `dynamic` import is used to asynchronously load a component from the `@solana/wallet-adapter-react-ui` package. It works by returning a Promise that resolves to the component when it is ready to be rendered.
+
 2. What is the `WalletButton` component and what does it render?
    - The `WalletButton` component is a functional component that renders a dynamic `WalletMultiButton` component from the `@solana/wallet-adapter-react-ui` package. It also renders an image of a wallet icon and the text "CONNECT" if the user is not currently connected to a wallet.
 3. What is the purpose of the `useWallet` hook and where does it come from?

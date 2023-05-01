@@ -28,7 +28,7 @@ import {
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { MarginfiClient } from ".";
-import { Bank, BankData, PriceBias } from "./bank";
+import { Bank, BankData, getOraclePriceData, PriceBias } from "./bank";
 import MarginfiGroup from "./group";
 import { MARGINFI_IDL } from "./idl";
 import instructions from "./instructions";
@@ -534,29 +534,24 @@ export class MarginfiAccount {
         `Marginfi account tied to group ${marginfiAccountData.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`
       );
 
-    const bankAddresses = this._config.banks.map((b) => b.address);
-    let bankAccountsData = await this._program.account.bank.fetchMultiple(bankAddresses);
+    const bankAccountsData = await this._program.account.bank.all([
+      { memcmp: { offset: 8 + 32 + 1, bytes: this._config.groupPk.toBase58() } },
+    ]);
 
-    let nullAccounts = [];
-    for (let i = 0; i < bankAccountsData.length; i++) {
-      if (bankAccountsData[i] === null) nullAccounts.push(bankAddresses[i]);
-    }
-    if (nullAccounts.length > 0) {
-      throw Error(`Failed to fetch banks ${nullAccounts}`);
-    }
-
-    const pythAccounts = await this._program.provider.connection.getMultipleAccountsInfo(
-      bankAccountsData.map((b) => (b as BankData).config.oracleKeys[0])
-    );
-
-    const banks = bankAccountsData.map(
-      (bd, index) =>
-        new Bank(
-          this._config.banks[index].label,
-          bankAddresses[index],
-          bd as BankData,
-          parsePriceData(pythAccounts[index]!.data)
-        )
+    const banks = await Promise.all(
+      bankAccountsData.map(async (accountData) => {
+        let bankData = accountData.account as any as BankData;
+        return new Bank(
+          this._config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
+          accountData.publicKey,
+          bankData,
+          await getOraclePriceData(
+            this._program.provider.connection,
+            bankData.config.oracleSetup,
+            bankData.config.oracleKeys
+          )
+        );
+      })
     );
 
     this._group = MarginfiGroup.fromAccountDataRaw(this._config, this._program, marginfiGroupAi.data, banks);

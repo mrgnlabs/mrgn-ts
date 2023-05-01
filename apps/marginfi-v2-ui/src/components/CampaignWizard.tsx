@@ -212,7 +212,11 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
     WBTC: {
       icon: "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/WBTC_wh.png",
       size: 30,
-    }
+    },
+    JitoSOL: {
+      icon: "https://storage.googleapis.com/token-metadata/JitoSOL-256.png",
+      size: 30,
+    },
   };
 
   return (

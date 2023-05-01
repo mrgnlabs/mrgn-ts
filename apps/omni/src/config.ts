@@ -34,7 +34,7 @@ switch (environment) {
         publicKey: "Cm2yPJQ8qB1wo6b3268F9hC7YbBWRmF6h3mbvvekW68B",
       },
     ];
-    JUPITER_CHAIN_ID = ENVChainId.MainnetBeta
+    JUPITER_CHAIN_ID = ENVChainId.MainnetBeta;
     break;
   case "alpha":
     mfiConfig = getConfig(environment);
@@ -48,7 +48,7 @@ switch (environment) {
   case "staging":
     mfiConfig = getConfig(environment);
     lipConfig = getLipConfig(environment);
-    JUPITER_CHAIN_ID = ENVChainId.Devnet
+    JUPITER_CHAIN_ID = ENVChainId.Devnet;
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
@@ -64,7 +64,7 @@ switch (environment) {
     rpcEndpoint = rpcEndpointOverride || "https://devnet.rpcpool.com/";
     devFaucetAddress = new PublicKey("B87AhxX6BkBsj3hnyHzcerX2WxPoACC7ZyDr8E7H9geN");
     campaignWhitelist = [];
-    JUPITER_CHAIN_ID = ENVChainId.Devnet
+    JUPITER_CHAIN_ID = ENVChainId.Devnet;
     break;
   default:
     mfiConfig = getConfig("dev");
@@ -83,7 +83,7 @@ switch (environment) {
         publicKey: "AjyDM13qAPeE7MQgaS53UcgomVc7o7tfxssDggx5kJHt",
       },
     ];
-    JUPITER_CHAIN_ID = ENVChainId.Devnet
+    JUPITER_CHAIN_ID = ENVChainId.Devnet;
 }
 
 const config = {
