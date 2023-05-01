@@ -8,14 +8,7 @@ import { AssetRowAction } from "./AssetRowAction";
 import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Keypair, TransactionInstruction } from "@solana/web3.js";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
-import {
-  createAssociatedTokenAccountIdempotentInstruction,
-  createSyncNativeInstruction,
-  getAssociatedTokenAddressSync,
-} from "@mrgnlabs/mrgn-common/src/spl";
-import { uiToNative } from "@mrgnlabs/mrgn-common";
 import { percentFormatter } from "~/utils/formatters";
-import { PriceBias } from "@mrgnlabs/marginfi-client-v2";
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
