@@ -5,11 +5,8 @@ import { toast } from "react-toastify";
 import { ActionType, ExtendedBankInfo, isActiveBankInfo } from "~/types";
 import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
-import { AssetRowHeader } from "./AssetRowHeader";
-import { AssetRowMetric } from "./AssetRowMetric";
 import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { WSOL_MINT } from "~/config";
-import { Keypair, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { Keypair, TransactionInstruction } from "@solana/web3.js";
 import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
