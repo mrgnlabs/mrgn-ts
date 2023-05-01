@@ -16,6 +16,7 @@ const UserPositionRowAction: FC<UserPositionRowActionProps> = ({ children, ...ot
         fontFamily: "Aeonik Pro",
         zIndex: 10,
       }}
+      {...otherProps}
     >
       {children}
     </Button>
