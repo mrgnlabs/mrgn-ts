@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Card, Skeleton, Table, TableBody, TableContainer, TableRow } from "@mui/material";
+import { Card, Skeleton, Table, TableHead, TableBody, TableContainer, TableRow, TableCell } from "@mui/material";
 import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
@@ -30,10 +30,45 @@ const AssetsList: FC = () => {
       <div className="col-span-full">
         <Card elevation={0} className="bg-[rgba(0,0,0,0)] w-full">
           <TableContainer>
-            <Table className="table-fixed">
-              <TableBody className="flex flex-col gap-4">
+            <Table className="table-fixed"
+              style={{
+                borderCollapse: 'separate',
+                borderSpacing: '0px 8px',
+              }}
+            >
+              <TableHead>
+                <TableCell className="border-none"></TableCell>
+                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
+                  Price
+                </TableCell>
+                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
+                  {
+                    isInLendingMode ? 'Lend APY' : 'Borrow APR' 
+                  }
+                </TableCell>
+                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
+                  {
+                    isInLendingMode ? 'Lend weights' : 'Borrow weights'
+                  }
+                </TableCell>
+                <TableCell
+                  className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell"
+                  style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }}
+                  align="right"
+                >
+                  {
+                    isInLendingMode ? 'Deposits' : 'Available'
+                  }
+                </TableCell>
+                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">
+                  Pool utilization
+                </TableCell>
+                <TableCell className="border-none"></TableCell>
+                <TableCell className="border-none"></TableCell>
+              </TableHead>
+              <TableBody>
                 {extendedBankInfos.length > 0 ? (
-                  extendedBankInfos.map((bankInfo) => (
+                  extendedBankInfos.sort((a, b) => (b.totalPoolDeposits * b.tokenPrice) - (a.totalPoolDeposits * a.tokenPrice)).map((bankInfo) => (
                     <AssetRow
                       key={bankInfo.tokenName}
                       nativeSolBalance={nativeSolBalance}
