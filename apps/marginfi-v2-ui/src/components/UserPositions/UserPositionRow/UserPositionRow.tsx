@@ -150,11 +150,11 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       </TableCell>
 
       <TableCell
-        className="text-white border-none font-aeonik p-0 px-2"
+        className="text-white border-none font-aeonik p-0"
         align="right"
       >
           <div
-            className="h-full w-full flex justify-end items-center"
+            className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 px-2"
           >
             <UserPositionRowAction onClick={withdrawOrRepay}>
               {position.isLending ? "Withdraw" : "Repay"}

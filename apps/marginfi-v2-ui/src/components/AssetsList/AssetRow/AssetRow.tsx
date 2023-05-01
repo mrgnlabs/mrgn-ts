@@ -306,13 +306,15 @@ const AssetRow: FC<{
       </TableCell>
       
       <TableCell
-        className="text-white border-none font-aeonik p-0 px-2"
+        className="text-white border-none font-aeonik p-0"
       >
         <Tooltip
           title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
           placement="top"
         >
-          <div className="h-full w-full flex justify-end items-center">
+          <div
+            className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 px-2"
+          >
             <AssetRowAction onClick={borrowOrLend}>{currentAction}</AssetRowAction>
           </div>
         </Tooltip>
