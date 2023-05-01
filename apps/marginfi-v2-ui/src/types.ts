@@ -45,7 +45,7 @@ interface TokenAccount {
 type TokenAccountMap = Map<string, TokenAccount>;
 
 enum ActionType {
-  Deposit = "Deposit",
+  Deposit = "Supply",
   Borrow = "Borrow",
   Repay = "Repay",
   Withdraw = "Withdraw",

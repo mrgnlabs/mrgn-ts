@@ -256,6 +256,7 @@ const AssetRow: FC<{
         {
           isInLendingMode ?            
             (bankInfo.bank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + '%'
+            // bankInfo.bank.config.assetWeightMaint.toNumber() > 0 ? '✅' : '❌'
           :
             (1/bankInfo.bank.config.liabilityWeightInit.toNumber() * 100).toFixed(0) + '%'
         }
@@ -297,7 +298,9 @@ const AssetRow: FC<{
           <div
             className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 px-2"
           >
-            <AssetRowAction onClick={borrowOrLend}>{currentAction}</AssetRowAction>
+            <AssetRowAction bgColor={
+              (currentAction === ActionType.Deposit || currentAction === ActionType.Borrow) ? "rgb(227, 227, 227)" : "rgba(0,0,0,0)"
+            } onClick={borrowOrLend}>{currentAction}</AssetRowAction>
           </div>
         </Tooltip>
       </TableCell>
