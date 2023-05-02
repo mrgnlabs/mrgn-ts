@@ -285,7 +285,10 @@ const AssetRow: FC<{
         }
       </TableCell>
 
-      <TableCell className="border-none p-0 w-full" colSpan={2}>
+      <TableCell
+        className="border-none p-0 w-full"
+        colSpan={2}
+      >
         <AssetRowInputBox
           value={borrowOrLendAmount}
           setValue={setBorrowOrLendAmount}
