@@ -214,7 +214,7 @@ const AssetRow: FC<{
           fontWeight: 300,
         }}
       >
-        <div className="flex px-0 sm:px-4 gap-4 justify-center sm:justify-start items-center">
+        <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
           {
             bankInfo.tokenIcon && 
             <Image
