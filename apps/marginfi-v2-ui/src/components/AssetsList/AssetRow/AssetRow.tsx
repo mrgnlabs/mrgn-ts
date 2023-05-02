@@ -305,7 +305,7 @@ const AssetRow: FC<{
           placement="top"
         >
           <div
-            className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 px-2"
+            className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2"
           >
             <AssetRowAction bgColor={
               (currentAction === ActionType.Deposit || currentAction === ActionType.Borrow) ? "rgb(227, 227, 227)" : "rgba(0,0,0,0)"

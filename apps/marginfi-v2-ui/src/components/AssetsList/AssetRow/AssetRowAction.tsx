@@ -18,7 +18,7 @@ const AssetRowAction: FC<AssetRowActionProps> = ({ children, disabled, bgColor, 
 
   return wallet.connected ? (
     <Button
-      className="normal-case text-[10px] sm:text-sm mx-2 sm:mx-0 w-12 sm:w-32 h-11 max-w-1 rounded-md"
+      className="normal-case text-[10px] sm:text-sm mx-2 sm:mx-0 w-14 sm:w-32 h-11 max-w-1 rounded-md"
       style={{
         backgroundColor:
           (disabled || !wallet.connected) ? 'gray'
@@ -37,7 +37,7 @@ const AssetRowAction: FC<AssetRowActionProps> = ({ children, disabled, bgColor, 
     </Button>
   ) : (
     <WalletMultiButtonDynamic
-      className="bg-[#E3E3E3] text-black normal-case text-[10px] sm:text-sm mx-2 sm:mx-0 w-12 sm:w-32 h-11 max-w-1 rounded-md flex justify-center items-center"
+      className="bg-[#E3E3E3] text-black normal-case text-[10px] sm:text-sm mx-2 sm:mx-0 w-14 sm:w-32 h-11 max-w-1 rounded-md flex justify-center items-center"
       style={{ fontWeight: 400 }}
       startIcon={undefined}
     >
