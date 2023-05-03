@@ -108,5 +108,16 @@
     "extensions": {
       "coingeckoId": ""
     }
+  },
+  {
+    "address": "7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT",
+    "chainId": 101,
+    "decimals": 6,
+    "name": "UXD Stablecoin",
+    "symbol": "UXD",
+    "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT/uxd-icon-black.png",
+    "extensions": {
+      "coingeckoId": ""
+    }
   }
 ]
