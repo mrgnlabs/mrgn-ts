@@ -1,12 +1,11 @@
-import { Cluster, Connection, PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
 import { MarginRequirementType } from "./account";
 import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS } from "./constants";
-import { parsePriceData, PriceData } from "@pythnetwork/client";
+import { parsePriceData } from "@pythnetwork/client";
 import { getMint, nativeToUi, WrappedI80F48, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { AggregatorAccount, SwitchboardProgram } from "@switchboard-xyz/solana.js";
-import MarginfiClient from "./client";
 
 /**
  * Wrapper class around a specific marginfi group.
@@ -51,6 +50,7 @@ class Bank {
   private priceData: OraclePriceData;
 
   constructor(label: string, address: PublicKey, rawData: BankData, priceData: OraclePriceData) {
+
     this.label = label;
     this.publicKey = address;
 
@@ -104,9 +104,10 @@ class Bank {
     this.emissionsActiveBorrowing = (rawData.emissionsFlags & 2) > 0;
     this.emissionsActiveLending = (rawData.emissionsFlags & 1) > 0;
 
-    this.emissionsRate = wrappedI80F48toBigNumber(rawData.emissionsRate);
+    // @todo existence checks here should be temporary - remove once all banks have emission configs
+    this.emissionsRate = rawData.emissionsRate ? wrappedI80F48toBigNumber(rawData.emissionsRate) : new BigNumber(0);
     this.emissionsMint = rawData.emissionsMint;
-    this.emissionsRemaining = wrappedI80F48toBigNumber(rawData.emissionsRemaining);
+    this.emissionsRemaining = rawData.emissionsRemaining ? wrappedI80F48toBigNumber(rawData.emissionsRemaining) : new BigNumber(0);
   }
 
   public describe(): string {

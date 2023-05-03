@@ -1,19 +1,34 @@
 import Image from "next/image";
-import { TableCell, TableRow, Tooltip } from "@mui/material";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { TableCell, TableRow } from "@mui/material";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { ActionType, ExtendedBankInfo, isActiveBankInfo } from "~/types";
 import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Keypair, TransactionInstruction } from "@solana/web3.js";
-import { groupedNumberFormatter, numeralFormatter, usdFormatter } from "~/utils/formatters";
+import { numeralFormatter, usdFormatter } from "~/utils/formatters";
 import { percentFormatter } from "~/utils/formatters";
 import { WSOL_MINT } from "~/config";
+import { styled } from "@mui/material/styles";
+import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 const ACCOUNT_DETECTION_ERROR_TOAST_ID = "account-detection-error";
+
+const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: "rgb(227, 227, 227)",
+    color: "rgba(0, 0, 0, 0.87)",
+    maxWidth: 220,
+    fontSize: theme.typography.pxToRem(12),
+    border: "1px solid #dadde9",
+  },
+}));
 
 const AssetRow: FC<{
   bankInfo: ExtendedBankInfo;
@@ -234,7 +249,40 @@ const AssetRow: FC<{
           color: isInLendingMode ? "#83DB8C" : "#CF6F6F",
         }}
       >
-        {percentFormatter.format(isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate)}
+        <div className="h-full w-full flex justify-end items-center gap-3">
+          {
+            bankInfo.tokenName === "SOL" && isInLendingMode &&
+            <div className="w-1/2 flex justify-center sm:justify-end">
+              <HtmlTooltip
+                title={
+                  <React.Fragment>
+                    <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                      Liquidity rewards
+                    </Typography>
+                    {
+                      `${
+                        percentFormatter.format(bankInfo.lendingRate)
+                      } Supply APY + 20% UXP rewards.`
+                    }
+                    <br />
+                    <a href="https://docs.marginfi.com"><u>Learn more.</u></a>
+                  </React.Fragment>
+                }
+                placement="left"
+              >
+                <Image src="/info_icon.png" alt="info" height={16} width={16} />
+              </HtmlTooltip>
+            </div>
+          }
+          <div
+            className="w-[40%] flex justify-end"
+            style={{
+              fontWeight: bankInfo.tokenName === "SOL" && isInLendingMode ? 500 : 400
+            }}
+          >
+          {percentFormatter.format(isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate)}
+          </div>
+        </div>
       </TableCell>
 
       <TableCell
