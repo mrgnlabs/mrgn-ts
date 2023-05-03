@@ -7,7 +7,7 @@ import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Keypair, TransactionInstruction } from "@solana/web3.js";
-import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
+import { groupedNumberFormatter, numeralFormatter, usdFormatter } from "~/utils/formatters";
 import { percentFormatter } from "~/utils/formatters";
 import { WSOL_MINT } from "~/config"
 
@@ -210,13 +210,13 @@ const AssetRow: FC<{
         className={
           `text-white p-0 font-aeonik border-[1px] border-${bankInfo.tokenName}`
         }
-        style={{ 
+        style={{
           fontWeight: 300,
         }}
       >
         <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
           {
-            bankInfo.tokenIcon && 
+            bankInfo.tokenIcon &&
             <Image
               src={bankInfo.tokenIcon}
               alt={bankInfo.tokenName}
@@ -233,54 +233,54 @@ const AssetRow: FC<{
       <TableCell className="text-white border-none px-2 font-aeonik hidden lg:table-cell" align="right" style={{ fontWeight: 300 }}>
         {
           bankInfo.tokenPrice >= 0.01
-          ? usdFormatter.format(bankInfo.tokenPrice)
-          : `$${bankInfo.tokenPrice.toExponential(2)}`
+            ? usdFormatter.format(bankInfo.tokenPrice)
+            : `$${bankInfo.tokenPrice.toExponential(2)}`
         }
       </TableCell>
 
       <TableCell
         className="border-none font-aeonik px-2"
         align="right"
-        style={{ 
+        style={{
           color: isInLendingMode ? "#83DB8C" : "#CF6F6F"
         }}
       >
         {
           percentFormatter.format(
             isInLendingMode ? bankInfo.lendingRate :
-            bankInfo.borrowingRate
+              bankInfo.borrowingRate
           )
         }
       </TableCell>
 
       <TableCell className="text-white border-none font-aeonik px-2 hidden md:table-cell" align="right" style={{ fontWeight: 300 }}>
         {
-          isInLendingMode ?            
+          isInLendingMode ?
             bankInfo.bank.config.assetWeightMaint.toNumber() > 0 ?
-            (bankInfo.bank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + '%'
-            : '-'
-          :
-            (1/bankInfo.bank.config.liabilityWeightInit.toNumber() * 100).toFixed(0) + '%'
+              (bankInfo.bank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + '%'
+              : '-'
+            :
+            (1 / bankInfo.bank.config.liabilityWeightInit.toNumber() * 100).toFixed(0) + '%'
         }
       </TableCell>
 
       <TableCell className="text-white border-none font-aeonik px-2 hidden lg:table-cell" align="right" style={{ fontWeight: 300 }}>
         {
-          groupedNumberFormatter.format(
+          numeralFormatter(
             isInLendingMode ?
-            bankInfo.totalPoolDeposits
-            :
-            bankInfo.availableLiquidity,
+              bankInfo.totalPoolDeposits
+              :
+              bankInfo.availableLiquidity,
           )
         }
       </TableCell>
 
       <TableCell className="text-white border-none font-aeonik px-2 hidden lg:table-cell" align="right" style={{ fontWeight: 300 }}>
         {
-          groupedNumberFormatter.format(
+          numeralFormatter(
             bankInfo.tokenMint.equals(WSOL_MINT)
-                ? bankInfo.tokenBalance + nativeSolBalance
-                : bankInfo.tokenBalance
+              ? bankInfo.tokenBalance + nativeSolBalance
+              : bankInfo.tokenBalance
           )
         }
       </TableCell>
@@ -296,7 +296,7 @@ const AssetRow: FC<{
           maxDecimals={bankInfo.tokenMintDecimals}
         />
       </TableCell>
-      
+
       <TableCell
         className="text-white border-none font-aeonik p-0"
       >
