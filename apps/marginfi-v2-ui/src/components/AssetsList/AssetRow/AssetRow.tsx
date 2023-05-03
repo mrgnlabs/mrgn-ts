@@ -257,9 +257,13 @@ const AssetRow: FC<{
                 title={
                   <React.Fragment>
                     <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                      More with friends
+                      Liquidity rewards
                     </Typography>
-                    1% Supply APY + 20% UXP rewards.
+                    {
+                      `${
+                        percentFormatter.format(bankInfo.lendingRate)
+                      } Supply APY + 20% UXP rewards.`
+                    }
                     <br />
                     <a href="https://docs.marginfi.com"><u>Learn more.</u></a>
                   </React.Fragment>
@@ -273,7 +277,7 @@ const AssetRow: FC<{
           <div
             className="w-[40%] flex justify-end"
             style={{
-              fontWeight: bankInfo.tokenName === "SOL" ? 500 : 400
+              fontWeight: bankInfo.tokenName === "SOL" && isInLendingMode ? 500 : 400
             }}
           >
           {percentFormatter.format(isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate)}
