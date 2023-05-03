@@ -35,16 +35,29 @@ const UserPositions: FC = () => {
         <Card elevation={0} className="bg-transparent w-full p-0 grid">
           <div className="font-aeonik font-normal text-2xl my-0 lg:my-8 text-white">Lending</div>
           <TableContainer>
-            <Table className="table-fixed"
+            <Table
+              className="table-fixed"
               style={{
-                borderCollapse: 'separate',
-                borderSpacing: '0px 8px',
+                borderCollapse: "separate",
+                borderSpacing: "0px 8px",
               }}
             >
               <TableHead>
                 <TableCell className="border-none"></TableCell>
-                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden sm:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">Lending</TableCell>
-                <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">USD Value</TableCell>
+                <TableCell
+                  className="text-[#A1A1A1] text-sm border-none px-2 hidden sm:table-cell"
+                  style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                  align="right"
+                >
+                  Lending
+                </TableCell>
+                <TableCell
+                  className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell"
+                  style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                  align="right"
+                >
+                  USD Value
+                </TableCell>
                 <TableCell className="border-none"></TableCell>
                 <TableCell className="border-none"></TableCell>
               </TableHead>
@@ -69,16 +82,29 @@ const UserPositions: FC = () => {
               Borrowing
             </div>
             <TableContainer>
-              <Table className="table-fixed"
+              <Table
+                className="table-fixed"
                 style={{
-                  borderCollapse: 'separate',
-                  borderSpacing: '0px 8px',
+                  borderCollapse: "separate",
+                  borderSpacing: "0px 8px",
                 }}
               >
                 <TableHead>
                   <TableCell className="border-none"></TableCell>
-                  <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden sm:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">Borrowing</TableCell>
-                  <TableCell className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell" style={{ fontFamily: "Aeonik Pro", fontWeight: 300, }} align="right">USD Value</TableCell>
+                  <TableCell
+                    className="text-[#A1A1A1] text-sm border-none px-2 hidden sm:table-cell"
+                    style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                    align="right"
+                  >
+                    Borrowing
+                  </TableCell>
+                  <TableCell
+                    className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell"
+                    style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                    align="right"
+                  >
+                    USD Value
+                  </TableCell>
                   <TableCell className="border-none"></TableCell>
                   <TableCell className="border-none"></TableCell>
                 </TableHead>

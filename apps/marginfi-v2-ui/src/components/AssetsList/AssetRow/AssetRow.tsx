@@ -9,12 +9,11 @@ import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Keypair, TransactionInstruction } from "@solana/web3.js";
 import { groupedNumberFormatter, numeralFormatter, usdFormatter } from "~/utils/formatters";
 import { percentFormatter } from "~/utils/formatters";
-import { WSOL_MINT } from "~/config"
+import { WSOL_MINT } from "~/config";
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 const ACCOUNT_DETECTION_ERROR_TOAST_ID = "account-detection-error";
-
 
 const AssetRow: FC<{
   bankInfo: ExtendedBankInfo;
@@ -203,92 +202,72 @@ const AssetRow: FC<{
   }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, marginfiClient, reloadBanks]);
 
   return (
-    <TableRow
-      className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl"
-    >
+    <TableRow className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl">
       <TableCell
-        className={
-          `text-white p-0 font-aeonik border-[1px] border-${bankInfo.tokenName}`
-        }
+        className={`text-white p-0 font-aeonik border-[1px] border-${bankInfo.tokenName}`}
         style={{
           fontWeight: 300,
         }}
       >
         <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
-          {
-            bankInfo.tokenIcon &&
-            <Image
-              src={bankInfo.tokenIcon}
-              alt={bankInfo.tokenName}
-              height={25}
-              width={25}
-            />
-          }
+          {bankInfo.tokenIcon && <Image src={bankInfo.tokenIcon} alt={bankInfo.tokenName} height={25} width={25} />}
           <div className="font-aeonik hidden lg:block">{bankInfo.tokenName}</div>
         </div>
       </TableCell>
 
       {/* usdFormatter.format(bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()) */}
       {/* usdFormatter.format(bankInfo.bank.getPrice(PriceBias.Highest).toNumber()) */}
-      <TableCell className="text-white border-none px-2 font-aeonik hidden lg:table-cell" align="right" style={{ fontWeight: 300 }}>
-        {
-          bankInfo.tokenPrice >= 0.01
-            ? usdFormatter.format(bankInfo.tokenPrice)
-            : `$${bankInfo.tokenPrice.toExponential(2)}`
-        }
+      <TableCell
+        className="text-white border-none px-2 font-aeonik hidden lg:table-cell"
+        align="right"
+        style={{ fontWeight: 300 }}
+      >
+        {bankInfo.tokenPrice >= 0.01
+          ? usdFormatter.format(bankInfo.tokenPrice)
+          : `$${bankInfo.tokenPrice.toExponential(2)}`}
       </TableCell>
 
       <TableCell
         className="border-none font-aeonik px-2"
         align="right"
         style={{
-          color: isInLendingMode ? "#83DB8C" : "#CF6F6F"
+          color: isInLendingMode ? "#83DB8C" : "#CF6F6F",
         }}
       >
-        {
-          percentFormatter.format(
-            isInLendingMode ? bankInfo.lendingRate :
-              bankInfo.borrowingRate
-          )
-        }
-      </TableCell>
-
-      <TableCell className="text-white border-none font-aeonik px-2 hidden md:table-cell" align="right" style={{ fontWeight: 300 }}>
-        {
-          isInLendingMode ?
-            bankInfo.bank.config.assetWeightMaint.toNumber() > 0 ?
-              (bankInfo.bank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + '%'
-              : '-'
-            :
-            (1 / bankInfo.bank.config.liabilityWeightInit.toNumber() * 100).toFixed(0) + '%'
-        }
-      </TableCell>
-
-      <TableCell className="text-white border-none font-aeonik px-2 hidden lg:table-cell" align="right" style={{ fontWeight: 300 }}>
-        {
-          numeralFormatter(
-            isInLendingMode ?
-              bankInfo.totalPoolDeposits
-              :
-              bankInfo.availableLiquidity,
-          )
-        }
-      </TableCell>
-
-      <TableCell className="text-white border-none font-aeonik px-2 hidden lg:table-cell" align="right" style={{ fontWeight: 300 }}>
-        {
-          numeralFormatter(
-            bankInfo.tokenMint.equals(WSOL_MINT)
-              ? bankInfo.tokenBalance + nativeSolBalance
-              : bankInfo.tokenBalance
-          )
-        }
+        {percentFormatter.format(isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate)}
       </TableCell>
 
       <TableCell
-        className="border-none p-0 w-full"
-        colSpan={2}
+        className="text-white border-none font-aeonik px-2 hidden md:table-cell"
+        align="right"
+        style={{ fontWeight: 300 }}
       >
+        {isInLendingMode
+          ? bankInfo.bank.config.assetWeightMaint.toNumber() > 0
+            ? (bankInfo.bank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + "%"
+            : "-"
+          : ((1 / bankInfo.bank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%"}
+      </TableCell>
+
+      <TableCell
+        className="text-white border-none font-aeonik px-2 hidden lg:table-cell"
+        align="right"
+        style={{ fontWeight: 300 }}
+      >
+        {numeralFormatter(isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.availableLiquidity)}
+      </TableCell>
+
+      <TableCell
+        className="text-white border-none font-aeonik px-2 hidden lg:table-cell"
+        align="right"
+        style={{ fontWeight: 300 }}
+      >
+        {numeralFormatter(
+          bankInfo.tokenMint.equals(WSOL_MINT) ? bankInfo.tokenBalance + nativeSolBalance : bankInfo.tokenBalance
+        )}
+      </TableCell>
+
+      <TableCell className="border-none p-0 w-full" colSpan={2}>
         <AssetRowInputBox
           value={borrowOrLendAmount}
           setValue={setBorrowOrLendAmount}
@@ -297,19 +276,22 @@ const AssetRow: FC<{
         />
       </TableCell>
 
-      <TableCell
-        className="text-white border-none font-aeonik p-0"
-      >
+      <TableCell className="text-white border-none font-aeonik p-0">
         <Tooltip
           title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
           placement="top"
         >
-          <div
-            className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2"
-          >
-            <AssetRowAction bgColor={
-              (currentAction === ActionType.Deposit || currentAction === ActionType.Borrow) ? "rgb(227, 227, 227)" : "rgba(0,0,0,0)"
-            } onClick={borrowOrLend}>{currentAction}</AssetRowAction>
+          <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
+            <AssetRowAction
+              bgColor={
+                currentAction === ActionType.Deposit || currentAction === ActionType.Borrow
+                  ? "rgb(227, 227, 227)"
+                  : "rgba(0,0,0,0)"
+              }
+              onClick={borrowOrLend}
+            >
+              {currentAction}
+            </AssetRowAction>
           </div>
         </Tooltip>
       </TableCell>

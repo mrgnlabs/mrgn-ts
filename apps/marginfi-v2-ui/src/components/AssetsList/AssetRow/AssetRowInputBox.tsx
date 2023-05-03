@@ -38,22 +38,22 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({ value, setValue, maxValue, max
 
   return (
     <div className="flex justify-center">
-    <NumericFormat
-      value={value}
-      placeholder="0"
-      allowNegative={false}
-      decimalScale={maxDecimals}
-      disabled={disabled}
-      onValueChange={onChange}
-      thousandSeparator=","
-      customInput={TextField}
-      size="small"
-      max={maxValue}
-      InputProps={{
-        className: "font-aeonik bg-[#1C2125] text-[#e1e1e1] p-0 m-0 text-sm h-11",
-        endAdornment: <MaxInputAdornment onClick={onMaxClick} />,
-      }}
-    />
+      <NumericFormat
+        value={value}
+        placeholder="0"
+        allowNegative={false}
+        decimalScale={maxDecimals}
+        disabled={disabled}
+        onValueChange={onChange}
+        thousandSeparator=","
+        customInput={TextField}
+        size="small"
+        max={maxValue}
+        InputProps={{
+          className: "font-aeonik bg-[#1C2125] text-[#e1e1e1] p-0 m-0 text-sm h-11",
+          endAdornment: <MaxInputAdornment onClick={onMaxClick} />,
+        }}
+      />
     </div>
   );
 };

@@ -20,12 +20,9 @@ const AssetRowAction: FC<AssetRowActionProps> = ({ children, disabled, bgColor, 
     <Button
       className="normal-case text-[10px] sm:text-sm mx-2 sm:mx-0 w-14 sm:w-32 h-11 max-w-1 rounded-md"
       style={{
-        backgroundColor:
-          (disabled || !wallet.connected) ? 'gray'
-          :
-          bgColor ? bgColor : "rgb(227, 227, 227)",
-        border: bgColor ? 'solid 1px rgb(227, 227, 227)' : 'none',
-        color: bgColor === 'rgba(0,0,0,0)' ? "rgb(227, 227, 227)" : 'black',
+        backgroundColor: disabled || !wallet.connected ? "gray" : bgColor ? bgColor : "rgb(227, 227, 227)",
+        border: bgColor ? "solid 1px rgb(227, 227, 227)" : "none",
+        color: bgColor === "rgba(0,0,0,0)" ? "rgb(227, 227, 227)" : "black",
         fontWeight: 400,
         fontFamily: "Aeonik Pro",
         zIndex: 10,

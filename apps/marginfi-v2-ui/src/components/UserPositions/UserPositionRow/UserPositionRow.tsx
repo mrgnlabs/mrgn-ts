@@ -99,48 +99,36 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
   ]);
 
   return (
-    <TableRow
-      className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl"
-    >
+    <TableRow className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl">
       <TableCell
-        className={
-          `text-white p-0 font-aeonik border-[1px] border-${activeBankInfo.tokenName}`
-        }
+        className={`text-white p-0 font-aeonik border-[1px] border-${activeBankInfo.tokenName}`}
         style={{ fontWeight: 300 }}
       >
         <div className="flex justify-center items-center px-4 gap-4">
-          {
-            activeBankInfo.tokenIcon && 
-            <Image
-              src={activeBankInfo.tokenIcon}
-              alt={activeBankInfo.tokenName}
-              height={25}
-              width={25}
-            />
-          }
+          {activeBankInfo.tokenIcon && (
+            <Image src={activeBankInfo.tokenIcon} alt={activeBankInfo.tokenName} height={25} width={25} />
+          )}
           <div className="font-aeonik">{activeBankInfo.tokenName}</div>
         </div>
       </TableCell>
 
       <TableCell
-        className="text-white border-none px-2 font-aeonik hidden sm:table-cell" align="right" style={{ fontWeight: 300 }}
+        className="text-white border-none px-2 font-aeonik hidden sm:table-cell"
+        align="right"
+        style={{ fontWeight: 300 }}
       >
-        {
-          groupedNumberFormatter.format(position.amount)
-        }
-      </TableCell>
-
-      <TableCell className="text-white border-none px-2 font-aeonik hidden md:table-cell" align="right" style={{ fontWeight: 300 }}>
-        {
-          usdFormatter.format(position.usdValue)
-        }
+        {groupedNumberFormatter.format(position.amount)}
       </TableCell>
 
       <TableCell
-        className="p-0 w-full pl-4 sm:pl-0 border-none"
-        align="center"
-        colSpan={2}
+        className="text-white border-none px-2 font-aeonik hidden md:table-cell"
+        align="right"
+        style={{ fontWeight: 300 }}
       >
+        {usdFormatter.format(position.usdValue)}
+      </TableCell>
+
+      <TableCell className="p-0 w-full pl-4 sm:pl-0 border-none" align="center" colSpan={2}>
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
@@ -149,17 +137,12 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         />
       </TableCell>
 
-      <TableCell
-        className="text-white font-aeonik p-0 border-none"
-        align="right"
-      >
-          <div
-            className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2"
-          >
-            <UserPositionRowAction onClick={withdrawOrRepay}>
-              {position.isLending ? "Withdraw" : "Repay"}
-            </UserPositionRowAction>
-          </div>
+      <TableCell className="text-white font-aeonik p-0 border-none" align="right">
+        <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
+          <UserPositionRowAction onClick={withdrawOrRepay}>
+            {position.isLending ? "Withdraw" : "Repay"}
+          </UserPositionRowAction>
+        </div>
       </TableCell>
     </TableRow>
   );
