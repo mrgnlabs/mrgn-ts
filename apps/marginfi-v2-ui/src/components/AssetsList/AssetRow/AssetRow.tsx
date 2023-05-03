@@ -251,7 +251,7 @@ const AssetRow: FC<{
       >
         <div className="h-full w-full flex justify-end items-center gap-3">
           {
-            bankInfo.tokenName === "SOL" &&
+            bankInfo.tokenName === "SOL" && isInLendingMode &&
             <div className="w-1/2 flex justify-center sm:justify-end">
               <HtmlTooltip
                 title={
@@ -270,7 +270,12 @@ const AssetRow: FC<{
               </HtmlTooltip>
             </div>
           }
-          <div className="w-[40%] flex justify-end">
+          <div
+            className="w-[40%] flex justify-end"
+            style={{
+              fontWeight: bankInfo.tokenName === "SOL" ? 500 : 400
+            }}
+          >
           {percentFormatter.format(isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate)}
           </div>
         </div>
