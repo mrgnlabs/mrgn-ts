@@ -4,7 +4,7 @@ import BN from "bn.js";
 import { MarginRequirementType } from "./account";
 import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS } from "./constants";
 import { parsePriceData, PriceData } from "@pythnetwork/client";
-import { nativeToUi, WrappedI80F48, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
+import { getMint, nativeToUi, WrappedI80F48, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { AggregatorAccount, SwitchboardProgram } from "@switchboard-xyz/solana.js";
 import MarginfiClient from "./client";
 
@@ -41,6 +41,12 @@ class Bank {
 
   public totalAssetShares: BigNumber;
   public totalLiabilityShares: BigNumber;
+
+  public emissionsActiveBorrowing: boolean;
+  public emissionsActiveLending: boolean;
+  public emissionsRate: BigNumber;
+  public emissionsMint: PublicKey;
+  public emissionsRemaining: BigNumber;
 
   private priceData: OraclePriceData;
 
@@ -94,6 +100,13 @@ class Bank {
     this.totalLiabilityShares = wrappedI80F48toBigNumber(rawData.totalLiabilityShares);
 
     this.priceData = priceData;
+
+    this.emissionsActiveBorrowing = (rawData.emissionsFlags & 2) > 0;
+    this.emissionsActiveLending = (rawData.emissionsFlags & 1) > 0;
+
+    this.emissionsRate = wrappedI80F48toBigNumber(rawData.emissionsRate);
+    this.emissionsMint = rawData.emissionsMint;
+    this.emissionsRemaining = wrappedI80F48toBigNumber(rawData.emissionsRemaining);
   }
 
   public describe(): string {
@@ -262,6 +275,27 @@ LTVs:
   private getUtilizationRate(): BigNumber {
     return this.totalLiabilities.div(this.totalAssets);
   }
+
+  public async getEmissionsData(connection: Connection): Promise<{ lendingActive: boolean, borrowingActive: boolean, rateUi: BigNumber, remainingUi: BigNumber }> {
+    const mint = await getMint(connection, this.emissionsMint);
+
+    const remainingUi = this.emissionsRemaining.div(10 ** mint.decimals);
+    let rateUi = this.emissionsRate.div(10 ** mint.decimals);
+
+    let bankMintDiff = this.mintDecimals - 6;
+    if (bankMintDiff > 0) {
+      rateUi = rateUi.times(10 ** bankMintDiff);
+    } else if (bankMintDiff < 0) {
+      rateUi = rateUi.div(10 ** bankMintDiff);
+    }
+
+    return {
+      lendingActive: this.emissionsActiveLending,
+      borrowingActive: this.emissionsActiveBorrowing,
+      rateUi,
+      remainingUi,
+    };
+  }
 }
 
 export { Bank };
@@ -327,6 +361,11 @@ export interface BankData {
   lastUpdate: BN;
 
   config: BankConfigData;
+
+  emissionsFlags: number;
+  emissionsRate: WrappedI80F48;
+  emissionsMint: PublicKey;
+  emissionsRemaining: WrappedI80F48;
 }
 
 export enum OracleSetup {
