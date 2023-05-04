@@ -3,6 +3,8 @@ import { AccountSummary, BankInfo, ExtendedBankInfo, TokenAccount, TokenMetadata
 import { WSOL_MINT } from "~/config";
 import { floor } from "~/utils";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import BigNumber from "bignumber.js";
+import { PublicKey } from "@solana/web3.js";
 
 const DEFAULT_ACCOUNT_SUMMARY = {
   balance: 0,
@@ -12,8 +14,19 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   positions: [],
 };
 
-function computeAccountSummary(marginfiAccount: MarginfiAccount): AccountSummary {
+function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: BankInfo[]): AccountSummary {
   const equityComponents = marginfiAccount.getHealthComponents(MarginRequirementType.Equity);
+
+  let outstandingUxpEmissions = new BigNumber(0);
+
+  const uxpBank = bankInfos.find((bank) => bank.tokenName === "UXP");
+  const uxpBalance = marginfiAccount.activeBalances.find((balance) =>
+    balance.bankPk.equals(uxpBank?.address ?? PublicKey.default)
+  );
+
+  if (uxpBalance) {
+    outstandingUxpEmissions = uxpBalance.getTotalOutstandingEmissions(uxpBank!.bank).div(new BigNumber(10).pow(9));
+  }
 
   return {
     balance: equityComponents.assets.minus(equityComponents.liabilities).toNumber(),

@@ -87,7 +87,7 @@ const UserAccountsProvider: FC<{
       setAccountSummary(DEFAULT_ACCOUNT_SUMMARY);
       return;
     }
-    setAccountSummary(computeAccountSummary(selectedAccount));
+    setAccountSummary(computeAccountSummary(selectedAccount, bankInfos));
   }, [selectedAccount]);
 
   return (
