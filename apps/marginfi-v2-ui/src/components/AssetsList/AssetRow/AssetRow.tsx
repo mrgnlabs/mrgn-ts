@@ -219,7 +219,7 @@ const AssetRow: FC<{
   return (
     <TableRow className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl">
       <TableCell
-        className={`text-white p-0 font-aeonik border-[1px] border-${bankInfo.tokenName}`}
+        className={`text-white p-0 font-aeonik border-[1.5px] border-${bankInfo.tokenName}`}
         style={{
           fontWeight: 300,
         }}
@@ -246,7 +246,7 @@ const AssetRow: FC<{
         className="border-none font-aeonik px-2"
         align="right"
         style={{
-          color: isInLendingMode ? "#83DB8C" : "#CF6F6F",
+          color: isInLendingMode ? "#75BA80" : "#CF6F6F",
         }}
       >
         <div className="h-full w-full flex justify-end items-center gap-3">
