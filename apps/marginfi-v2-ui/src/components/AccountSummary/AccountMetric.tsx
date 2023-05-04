@@ -1,4 +1,5 @@
 import React, { FC } from "react";
+import { Button, ButtonProps } from "@mui/material";
 
 interface AccountMetricProps {
   label: string;
@@ -47,7 +48,12 @@ const AccountMetric: FC<AccountMetricProps> = ({ label, value, valueBold, previe
   );
 };
 
-const RewardMetric: FC<AccountMetricProps> = ({ label, value }) => {
+
+interface RewardMetricProps {
+  value?: string;
+}
+
+const RewardMetric: FC<RewardMetricProps> = ({ value }) => {
   return (
     <div
       className={"h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl text-lg"}
@@ -60,7 +66,20 @@ const RewardMetric: FC<AccountMetricProps> = ({ label, value }) => {
           
         }}
       >
-        {label}
+        <Button
+          className="normal-case text-xs h-6 rounded-xs flex gap-1"
+          style={{
+            backgroundColor: "rgb(227, 227, 227)",
+            border: "solid 1px rgb(227, 227, 227)",
+            color: "black",
+            fontWeight: 400,
+            fontFamily: "Aeonik Pro",
+            zIndex: 10,
+          }}
+        >
+          <span>Claim</span>
+          <span className="hidden lg:block">Rewards</span>
+        </Button>
       </div>
       <div
         className="text-xl text-[#75BA80]"
