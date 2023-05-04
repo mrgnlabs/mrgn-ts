@@ -250,8 +250,8 @@ const AssetRow: FC<{
         }}
       >
         <div className="h-full w-full flex justify-end items-center gap-3">
-          {/* {
-            bankInfo.tokenName === "SOL" && isInLendingMode &&
+          {
+            bankInfo.tokenName === "UXD" && isInLendingMode &&
             <div className="w-1/2 flex justify-center sm:justify-end">
               <HtmlTooltip
                 title={
@@ -260,8 +260,7 @@ const AssetRow: FC<{
                       Liquidity rewards
                     </Typography>
                     {
-                      `${
-                        percentFormatter.format(bankInfo.lendingRate)
+                      `${percentFormatter.format(bankInfo.lendingRate)
                       } Supply APY + 20% UXP rewards.`
                     }
                     <br />
@@ -273,15 +272,15 @@ const AssetRow: FC<{
                 <Image src="/info_icon.png" alt="info" height={16} width={16} />
               </HtmlTooltip>
             </div>
-          } */}
-          {/* <div
+          }
+          <div
             className="w-[40%] flex justify-end"
             style={{
               fontWeight: bankInfo.tokenName === "SOL" && isInLendingMode ? 500 : 400
             }}
-          > */}
-          {percentFormatter.format(isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate)}
-          {/* </div> */}
+          >
+            {percentFormatter.format(isInLendingMode ? bankInfo.lendingRate + (bankInfo.tokenName === "UXD" ? 0.2 : 0) : bankInfo.borrowingRate)}
+          </div>
         </div>
       </TableCell>
 
