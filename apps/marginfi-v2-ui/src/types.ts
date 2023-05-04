@@ -6,6 +6,7 @@ interface AccountSummary {
   lendingAmount: number;
   borrowingAmount: number;
   apy: number;
+  outstandingUxpEmissions: number;
 }
 
 interface BankInfo {

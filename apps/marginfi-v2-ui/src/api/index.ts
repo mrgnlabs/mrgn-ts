@@ -33,6 +33,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
     lendingAmount: equityComponents.assets.toNumber(),
     borrowingAmount: equityComponents.liabilities.toNumber(),
     apy: marginfiAccount.computeNetApy(),
+    outstandingUxpEmissions: outstandingUxpEmissions.toNumber(),
   };
 }
 
