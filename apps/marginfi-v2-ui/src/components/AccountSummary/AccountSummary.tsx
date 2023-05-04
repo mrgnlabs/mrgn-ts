@@ -3,7 +3,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo } from "react";
 import { usdFormatter } from "~/utils/formatters";
 import { AccountBalance, MobileHealth } from "./AccountBalance";
-import { AccountMetric } from "./AccountMetric";
+import { AccountMetric, RewardMetric } from "./AccountMetric";
 import { HealthFactor } from "./HealthMonitor";
 import { useUserAccounts } from "~/context";
 
@@ -39,6 +39,10 @@ const AccountSummary: FC = () => {
         </div>
 
         <div className="h-[112px] w-full sm:min-w-[392px] sm:w-[38%] flex flex-row justify-between xl:pt-0 h-full bg-[#0E1113] rounded-xl">
+          <RewardMetric
+            label={"Rewards"}
+            value={wallet.connected ? usdFormatter.format(accountSummary.lendingAmount) : "-"}
+          />
           <AccountMetric
             label={"Lending"}
             value={wallet.connected ? usdFormatter.format(accountSummary.lendingAmount) : "-"}
@@ -46,12 +50,6 @@ const AccountSummary: FC = () => {
           <AccountMetric
             label={"Borrowing"}
             value={wallet.connected ? usdFormatter.format(accountSummary.borrowingAmount) : "-"}
-          />
-          <AccountMetric
-            label={"Net APY"}
-            valueBold
-            preview
-            boldValue={accountSummary.apy >= 0 ? "#75ba80" : "#bd4d4d"}
           />
         </div>
         <HealthFactor healthFactor={healthFactor} />

@@ -262,3 +262,22 @@ a {
   border-image: theme("borderImage.UXD");
   border-image-slice: 1;
 }
+
+@keyframes pulse {
+  0% {
+    opacity: 0.90;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0.90;
+    transform: scale(1);
+  }
+}
+
+.pulse {
+  animation: pulse 1.8s infinite;
+}
