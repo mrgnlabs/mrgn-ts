@@ -47,13 +47,10 @@ const AccountMetric: FC<AccountMetricProps> = ({ label, value, valueBold, previe
   );
 };
 
-const RewardMetric: FC<AccountMetricProps> = ({ label, value, valueBold, preview, boldValue }) => {
+const RewardMetric: FC<AccountMetricProps> = ({ label, value }) => {
   return (
     <div
       className={"h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl text-lg"}
-      style={{
-        border: 'solid rgba(250,189,18, 0.5) 1px'
-      }}
     >
       <div
         className="text-base text-[#868E95]"
@@ -66,7 +63,7 @@ const RewardMetric: FC<AccountMetricProps> = ({ label, value, valueBold, preview
         {label}
       </div>
       <div
-        className="text-xl text-[#fff]"
+        className="text-xl text-[#75BA80]"
         style={{
           fontFamily: "Aeonik Pro",
           fontWeight: 500,
