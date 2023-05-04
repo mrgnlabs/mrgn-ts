@@ -929,12 +929,16 @@ export class Balance {
   bankPk: PublicKey;
   assetShares: BigNumber;
   liabilityShares: BigNumber;
+  emissionsOutstanding: BigNumber;
+  lastUpdate: number;
 
   constructor(data: BalanceData) {
     this.active = data.active;
     this.bankPk = data.bankPk;
     this.assetShares = wrappedI80F48toBigNumber(data.assetShares);
     this.liabilityShares = wrappedI80F48toBigNumber(data.liabilityShares);
+    this.emissionsOutstanding = wrappedI80F48toBigNumber(data.emissionsOutstanding);
+    this.lastUpdate = data.lastUpdate;
   }
 
   public static newEmpty(bankPk: PublicKey): Balance {
@@ -986,6 +990,46 @@ export class Balance {
     };
   }
 
+  public getTotalOutstandingEmissions(bank: Bank): BigNumber {
+    const claimedEmissions = this.emissionsOutstanding;
+    const unclaimedEmissions = this.calcClaimedEmissions(bank, Date.now() / 1000);
+
+    return claimedEmissions.plus(unclaimedEmissions);
+  }
+
+  public calcClaimedEmissions(
+    bank: Bank,
+    currentTimestamp: number,
+  ): BigNumber {
+    const lendingActive = bank.emissionsActiveLending;
+    const borrowActive = bank.emissionsActiveBorrowing;
+
+    const { assets, liabilities } = this.getQuantity(bank);
+
+    let balanceAmount: BigNumber | null = null;
+
+    if (lendingActive) {
+      balanceAmount = assets;
+    } else if (borrowActive) {
+      balanceAmount = liabilities;
+    }
+
+    if (balanceAmount) {
+      const lastUpdate = this.lastUpdate;
+      const period = new BigNumber(currentTimestamp - lastUpdate);
+      const emissionsRate = new BigNumber(bank.emissionsRate);
+      const emissions = period
+        .times(balanceAmount)
+        .times(emissionsRate)
+        .div(31_536_000_000_000);
+      const emissionsReal = BigNumber.min(emissions, new BigNumber(bank.emissionsRemaining));
+
+      return emissionsReal;
+    }
+
+    return new BigNumber(0);
+  }
+
   public describe(bank: Bank): string {
     let { assets: assetsQt, liabilities: liabsQt } = this.getQuantityUi(bank);
     let { assets: assetsUsd, liabilities: liabsUsd } = this.getUsdValue(bank, MarginRequirementType.Equity);
@@ -1011,6 +1055,8 @@ export interface BalanceData {
   bankPk: PublicKey;
   assetShares: WrappedI80F48;
   liabilityShares: WrappedI80F48;
+  emissionsOutstanding: WrappedI80F48;
+  lastUpdate: number;
 }
 
 export enum MarginRequirementType {
