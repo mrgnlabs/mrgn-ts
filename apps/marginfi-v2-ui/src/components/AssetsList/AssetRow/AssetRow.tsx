@@ -269,7 +269,7 @@ const AssetRow: FC<{
                 }
                 placement="left"
               >
-                <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                <Image src="/uxp-icon-white.png" alt="info" height={16} width={16} className="pulse"/>
               </HtmlTooltip>
             </div>
           }
