@@ -237,6 +237,110 @@ export type Marginfi = {
       ];
     },
     {
+      name: "lendingPoolSetupEmissions";
+      accounts: [
+        {
+          name: "marginfiGroup";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "admin";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "bank";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "emissionsMint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "emissionsAuth";
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "emissions_auth_seed";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                account: "Mint";
+                path: "emissions_mint";
+              }
+            ];
+          };
+        },
+        {
+          name: "emissionsTokenAccount";
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "emissions_token_account_seed";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                account: "Mint";
+                path: "emissions_mint";
+              }
+            ];
+          };
+        },
+        {
+          name: "emissionsFundingAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "flags";
+          type: "u64";
+        },
+        {
+          name: "rate";
+          type: "u64";
+        },
+        {
+          name: "totalEmissions";
+          type: "u64";
+        }
+      ];
+    },
+    {
       name: "lendingPoolHandleBankruptcy";
       docs: ["Handle bad debt of a bankrupt marginfi account for a given bank."];
       accounts: [
@@ -648,6 +752,97 @@ export type Marginfi = {
       ];
     },
     {
+      name: "lendingAccountWithdrawEmissions";
+      accounts: [
+        {
+          name: "marginfiGroup";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "marginfiAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "bank";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "emissionsMint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "emissionsAuth";
+          isMut: false;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "emissions_auth_seed";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                account: "Mint";
+                path: "emissions_mint";
+              }
+            ];
+          };
+        },
+        {
+          name: "emissionsVault";
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "emissions_token_account_seed";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                account: "Mint";
+                path: "emissions_mint";
+              }
+            ];
+          };
+        },
+        {
+          name: "destinationAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
       name: "lendingAccountLiquidate";
       docs: ["Liquidate a lending account balance of an unhealthy marginfi account"];
       accounts: [
@@ -863,97 +1058,6 @@ export type Marginfi = {
         }
       ];
       args: [];
-    },
-    {
-      "name": "lendingAccountWithdrawEmissions",
-      "accounts": [
-        {
-          "name": "marginfiGroup",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "marginfiAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "signer",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "bank",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "emissionsMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "emissionsAuth",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "emissions_auth_seed"
-              },
-              {
-                "kind": "account",
-                "type": "publicKey",
-                "path": "bank"
-              },
-              {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Mint",
-                "path": "emissions_mint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "emissionsVault",
-          "isMut": true,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "emissions_token_account_seed"
-              },
-              {
-                "kind": "account",
-                "type": "publicKey",
-                "path": "bank"
-              },
-              {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Mint",
-                "path": "emissions_mint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "destinationAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
     }
   ];
   accounts: [
@@ -1127,51 +1231,45 @@ export type Marginfi = {
             };
           },
           {
-            "name": "emissionsFlags",
-            "docs": [
+            name: "emissionsFlags";
+            docs: [
               "Emissions Config Flags",
               "",
               "- EMISSIONS_FLAG_BORROW_ACTIVE: 1",
               "- EMISSIONS_FLAG_LENDING_ACTIVE: 2",
               ""
-            ],
-            "type": "u64"
+            ];
+            type: "u64";
           },
           {
-            "name": "emissionsRate",
-            "docs": [
+            name: "emissionsRate";
+            docs: [
               "Emissions APR.",
               "Number of emitted tokens (emissions_mint) per 1M tokens (bank mint) (native amount) per 1 YEAR."
-            ],
-            "type": "u64"
+            ];
+            type: "u64";
           },
           {
-            "name": "emissionsRemaining",
-            "type": {
-              "defined": "WrappedI80F48"
-            }
+            name: "emissionsRemaining";
+            type: {
+              defined: "WrappedI80F48";
+            };
           },
           {
-            "name": "emissionsMint",
-            "type": "publicKey"
+            name: "emissionsMint";
+            type: "publicKey";
           },
           {
-            "name": "padding0",
-            "type": {
-              "array": [
-                "u128",
-                28
-              ]
-            }
+            name: "padding0";
+            type: {
+              array: ["u128", 28];
+            };
           },
           {
-            "name": "padding1",
-            "type": {
-              "array": [
-                "u128",
-                32
-              ]
-            }
+            name: "padding1";
+            type: {
+              array: ["u128", 32];
+            };
           }
         ];
       };
@@ -1285,7 +1383,7 @@ export type Marginfi = {
             type: "publicKey";
           },
           {
-            name: "ignore1";
+            name: "ignore";
             type: {
               array: ["u8", 7];
             };
@@ -1303,23 +1401,20 @@ export type Marginfi = {
             };
           },
           {
-            "name": "emissionsOutstanding",
-            "type": {
-              "defined": "WrappedI80F48"
-            }
+            name: "emissionsOutstanding";
+            type: {
+              defined: "WrappedI80F48";
+            };
           },
           {
-            "name": "lastUpdate",
-            "type": "u64"
+            name: "lastUpdate";
+            type: "u64";
           },
           {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                1
-              ]
-            }
+            name: "padding";
+            type: {
+              array: ["u64", 1];
+            };
           }
         ];
       };
@@ -1506,7 +1601,9 @@ export type Marginfi = {
           },
           {
             name: "oracleSetup";
-            type: "u8";
+            type: {
+              defined: "OracleSetup";
+            };
           },
           {
             name: "oracleKeys";
@@ -1557,12 +1654,6 @@ export type Marginfi = {
         kind: "struct";
         fields: [
           {
-            name: "ignore1";
-            type: {
-              array: ["u8", 208];
-            };
-          },
-          {
             name: "assetWeightInit";
             type: {
               option: {
@@ -1607,12 +1698,6 @@ export type Marginfi = {
             };
           },
           {
-            name: "ignore2";
-            type: {
-              array: ["u8", 272];
-            };
-          },
-          {
             name: "operationalState";
             type: {
               option: {
@@ -1643,12 +1728,6 @@ export type Marginfi = {
                 defined: "RiskTier";
               };
             };
-          },
-          {
-            name: "ignore2";
-            type: {
-              array: ["u8", 264];
-            };
           }
         ];
       };
@@ -1659,12 +1738,6 @@ export type Marginfi = {
         kind: "struct";
         fields: [
           {
-            name: "ignore1";
-            type: {
-              array: ["u8", 160];
-            };
-          },
-          {
             name: "setup";
             type: {
               defined: "OracleSetup";
@@ -1674,12 +1747,6 @@ export type Marginfi = {
             name: "keys";
             type: {
               array: ["publicKey", 5];
-            };
-          },
-          {
-            name: "ignore2";
-            type: {
-              array: ["u8", 1];
             };
           }
         ];
@@ -1825,6 +1892,30 @@ export type Marginfi = {
           },
           {
             name: "SwitchboardV2";
+          }
+        ];
+      };
+    },
+    {
+      name: "OraclePriceFeedAdapter";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "PythEma";
+            fields: [
+              {
+                defined: "PythEmaPriceFeed";
+              }
+            ];
+          },
+          {
+            name: "SwitchboardV2";
+            fields: [
+              {
+                defined: "SwitchboardV2PriceFeed";
+              }
+            ];
           }
         ];
       };
@@ -2389,11 +2480,16 @@ export type Marginfi = {
     },
     {
       code: 6032;
+      name: "EmissionsAlreadySetup";
+      msg: "Emissions already setup";
+    },
+    {
+      code: 6033;
       name: "OracleNotSetup";
       msg: "Oracle is not set";
     },
     {
-      code: 6033;
+      code: 6034;
       name: "InvalidSwitchboardDecimalConversion";
       msg: "Invalid swithcboard decimal conversion";
     }
@@ -2635,6 +2731,110 @@ export const IDL: Marginfi = {
           type: {
             defined: "BankConfigOpt",
           },
+        },
+      ],
+    },
+    {
+      name: "lendingPoolSetupEmissions",
+      accounts: [
+        {
+          name: "marginfiGroup",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "admin",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "bank",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "emissionsMint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "emissionsAuth",
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "emissions_auth_seed",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                account: "Mint",
+                path: "emissions_mint",
+              },
+            ],
+          },
+        },
+        {
+          name: "emissionsTokenAccount",
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "emissions_token_account_seed",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                account: "Mint",
+                path: "emissions_mint",
+              },
+            ],
+          },
+        },
+        {
+          name: "emissionsFundingAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "flags",
+          type: "u64",
+        },
+        {
+          name: "rate",
+          type: "u64",
+        },
+        {
+          name: "totalEmissions",
+          type: "u64",
         },
       ],
     },
@@ -3050,6 +3250,97 @@ export const IDL: Marginfi = {
       ],
     },
     {
+      name: "lendingAccountWithdrawEmissions",
+      accounts: [
+        {
+          name: "marginfiGroup",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "marginfiAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "bank",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "emissionsMint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "emissionsAuth",
+          isMut: false,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "emissions_auth_seed",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                account: "Mint",
+                path: "emissions_mint",
+              },
+            ],
+          },
+        },
+        {
+          name: "emissionsVault",
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "emissions_token_account_seed",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                account: "Mint",
+                path: "emissions_mint",
+              },
+            ],
+          },
+        },
+        {
+          name: "destinationAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
       name: "lendingAccountLiquidate",
       docs: ["Liquidate a lending account balance of an unhealthy marginfi account"],
       accounts: [
@@ -3266,97 +3557,6 @@ export const IDL: Marginfi = {
       ],
       args: [],
     },
-    {
-      "name": "lendingAccountWithdrawEmissions",
-      "accounts": [
-        {
-          "name": "marginfiGroup",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "marginfiAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "signer",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "bank",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "emissionsMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "emissionsAuth",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "emissions_auth_seed"
-              },
-              {
-                "kind": "account",
-                "type": "publicKey",
-                "path": "bank"
-              },
-              {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Mint",
-                "path": "emissions_mint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "emissionsVault",
-          "isMut": true,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "emissions_token_account_seed"
-              },
-              {
-                "kind": "account",
-                "type": "publicKey",
-                "path": "bank"
-              },
-              {
-                "kind": "account",
-                "type": "publicKey",
-                "account": "Mint",
-                "path": "emissions_mint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "destinationAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    }
   ],
   accounts: [
     {
@@ -3529,52 +3729,46 @@ export const IDL: Marginfi = {
             },
           },
           {
-            "name": "emissionsFlags",
-            "docs": [
+            name: "emissionsFlags",
+            docs: [
               "Emissions Config Flags",
               "",
               "- EMISSIONS_FLAG_BORROW_ACTIVE: 1",
               "- EMISSIONS_FLAG_LENDING_ACTIVE: 2",
-              ""
+              "",
             ],
-            "type": "u64"
+            type: "u64",
           },
           {
-            "name": "emissionsRate",
-            "docs": [
+            name: "emissionsRate",
+            docs: [
               "Emissions APR.",
-              "Number of emitted tokens (emissions_mint) per 1M tokens (bank mint) (native amount) per 1 YEAR."
+              "Number of emitted tokens (emissions_mint) per 1M tokens (bank mint) (native amount) per 1 YEAR.",
             ],
-            "type": "u64"
+            type: "u64",
           },
           {
-            "name": "emissionsRemaining",
-            "type": {
-              "defined": "WrappedI80F48"
-            }
+            name: "emissionsRemaining",
+            type: {
+              defined: "WrappedI80F48",
+            },
           },
           {
-            "name": "emissionsMint",
-            "type": "publicKey"
+            name: "emissionsMint",
+            type: "publicKey",
           },
           {
-            "name": "padding0",
-            "type": {
-              "array": [
-                "u128",
-                28
-              ]
-            }
+            name: "padding0",
+            type: {
+              array: ["u128", 28],
+            },
           },
           {
-            "name": "padding1",
-            "type": {
-              "array": [
-                "u128",
-                32
-              ]
-            }
-          }
+            name: "padding1",
+            type: {
+              array: ["u128", 32],
+            },
+          },
         ],
       },
     },
@@ -3687,10 +3881,10 @@ export const IDL: Marginfi = {
             type: "publicKey",
           },
           {
-            name: "ignore1",
+            name: "ignore",
             type: {
               array: ["u8", 7],
-            },
+            }
           },
           {
             name: "assetShares",
@@ -3705,24 +3899,21 @@ export const IDL: Marginfi = {
             },
           },
           {
-            "name": "emissionsOutstanding",
-            "type": {
-              "defined": "WrappedI80F48"
-            }
+            name: "emissionsOutstanding",
+            type: {
+              defined: "WrappedI80F48",
+            },
           },
           {
-            "name": "lastUpdate",
-            "type": "u64"
+            name: "lastUpdate",
+            type: "u64",
           },
           {
-            "name": "padding",
-            "type": {
-              "array": [
-                "u64",
-                1
-              ]
-            }
-          }
+            name: "padding",
+            type: {
+              array: ["u64", 1],
+            },
+          },
         ],
       },
     },
@@ -3908,7 +4099,9 @@ export const IDL: Marginfi = {
           },
           {
             name: "oracleSetup",
-            type: "u8",
+            type: {
+              defined: "OracleSetup",
+            },
           },
           {
             name: "oracleKeys",
@@ -3959,12 +4152,6 @@ export const IDL: Marginfi = {
         kind: "struct",
         fields: [
           {
-            name: "ignore1",
-            type: {
-              array: ["u8", 208],
-            },
-          },
-          {
             name: "assetWeightInit",
             type: {
               option: {
@@ -4009,12 +4196,6 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "ignore2",
-            type: {
-              array: ["u8", 272],
-            },
-          },
-          {
             name: "operationalState",
             type: {
               option: {
@@ -4046,12 +4227,6 @@ export const IDL: Marginfi = {
               },
             },
           },
-          {
-            name: "ignore2",
-            type: {
-              array: ["u8", 264],
-            },
-          },
         ],
       },
     },
@@ -4060,12 +4235,6 @@ export const IDL: Marginfi = {
       type: {
         kind: "struct",
         fields: [
-          {
-            name: "ignore1",
-            type: {
-              array: ["u8", 160],
-            },
-          },
           {
             name: "setup",
             type: {
@@ -4076,12 +4245,6 @@ export const IDL: Marginfi = {
             name: "keys",
             type: {
               array: ["publicKey", 5],
-            },
-          },
-          {
-            name: "ignore2",
-            type: {
-              array: ["u8", 1],
             },
           },
         ],
@@ -4227,6 +4390,30 @@ export const IDL: Marginfi = {
           },
           {
             name: "SwitchboardV2",
+          },
+        ],
+      },
+    },
+    {
+      name: "OraclePriceFeedAdapter",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "PythEma",
+            fields: [
+              {
+                defined: "PythEmaPriceFeed",
+              },
+            ],
+          },
+          {
+            name: "SwitchboardV2",
+            fields: [
+              {
+                defined: "SwitchboardV2PriceFeed",
+              },
+            ],
           },
         ],
       },
@@ -4791,11 +4978,16 @@ export const IDL: Marginfi = {
     },
     {
       code: 6032,
+      name: "EmissionsAlreadySetup",
+      msg: "Emissions already setup",
+    },
+    {
+      code: 6033,
       name: "OracleNotSetup",
       msg: "Oracle is not set",
     },
     {
-      code: 6033,
+      code: 6034,
       name: "InvalidSwitchboardDecimalConversion",
       msg: "Invalid swithcboard decimal conversion",
     },
