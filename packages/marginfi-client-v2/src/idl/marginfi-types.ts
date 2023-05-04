@@ -3231,6 +3231,97 @@ export const IDL: Marginfi = {
       ],
       args: [],
     },
+    {
+      "name": "lendingAccountWithdrawEmissions",
+      "accounts": [
+        {
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "emissionsMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "emissionsAuth",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "emissions_auth_seed"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Mint",
+                "path": "emissions_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "emissionsVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "emissions_token_account_seed"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Mint",
+                "path": "emissions_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "destinationAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    }
   ],
   accounts: [
     {
@@ -3544,11 +3635,24 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "padding",
-            type: {
-              array: ["u64", 4],
-            },
+            "name": "emissionsOutstanding",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
           },
+          {
+            "name": "lastUpdate",
+            "type": "u64"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u64",
+                1
+              ]
+            }
+          }
         ],
       },
     },

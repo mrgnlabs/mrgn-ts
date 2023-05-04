@@ -929,7 +929,7 @@ export class Balance {
   bankPk: PublicKey;
   assetShares: BigNumber;
   liabilityShares: BigNumber;
-  emissionsOutstanding: BigNumber;
+  private emissionsOutstanding: BigNumber;
   lastUpdate: number;
 
   constructor(data: BalanceData) {
@@ -947,6 +947,8 @@ export class Balance {
       bankPk,
       assetShares: { value: new BN(0) },
       liabilityShares: { value: new BN(0) },
+      emissionsOutstanding: { value: new BN(0) },
+      lastUpdate: 0,
     });
   }
 
@@ -997,7 +999,7 @@ export class Balance {
     return claimedEmissions.plus(unclaimedEmissions);
   }
 
-  public calcClaimedEmissions(
+  private calcClaimedEmissions(
     bank: Bank,
     currentTimestamp: number,
   ): BigNumber {

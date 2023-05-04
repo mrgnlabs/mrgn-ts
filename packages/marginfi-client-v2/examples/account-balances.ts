@@ -41,6 +41,9 @@ async function main() {
         balance.bankPk
       )}) deposits: ${assets}, borrows: ${liabilities}`
     );
+
+
+    const emissions = balance.getTotalOutstandingEmissions(bank);
   });
 }
 
