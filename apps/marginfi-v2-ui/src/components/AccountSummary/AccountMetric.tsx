@@ -1,5 +1,7 @@
 import React, { FC } from "react";
 import { Button, ButtonProps } from "@mui/material";
+import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
+import { ExtendedBankInfo } from "~/types";
 
 interface AccountMetricProps {
   label: string;
@@ -51,9 +53,11 @@ const AccountMetric: FC<AccountMetricProps> = ({ label, value, valueBold, previe
 
 interface RewardMetricProps {
   value?: string;
+  marginfiAccount: MarginfiAccount | null;
+  extendedBankInfos: ExtendedBankInfo[];
 }
 
-const RewardMetric: FC<RewardMetricProps> = ({ value }) => {
+const RewardMetric: FC<RewardMetricProps> = ({ value, marginfiAccount, extendedBankInfos }) => {
   return (
     <div
       className={"h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl text-lg"}
@@ -76,6 +80,15 @@ const RewardMetric: FC<RewardMetricProps> = ({ value }) => {
             fontFamily: "Aeonik Pro",
             zIndex: 10,
           }}
+          onClick={
+            () => {
+              if (marginfiAccount && (extendedBankInfos.find(b => b.tokenName === 'UXD')!.bank)) {
+                marginfiAccount!.withdrawEmissions(
+                  extendedBankInfos.find(b => b.tokenName === 'UXD')!.bank
+                );
+              }
+            }
+          }
         >
           <span>Claim</span>
           <span className="hidden lg:block">Rewards</span>

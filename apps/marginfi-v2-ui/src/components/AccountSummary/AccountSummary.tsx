@@ -9,6 +9,7 @@ import { useUserAccounts } from "~/context";
 
 const AccountSummary: FC = () => {
   const { accountSummary, selectedAccount } = useUserAccounts();
+  const { extendedBankInfos } = useUserAccounts();
   const wallet = useWallet();
 
   const healthFactor = useMemo(() => {
@@ -41,6 +42,8 @@ const AccountSummary: FC = () => {
         <div className="h-[112px] w-full sm:min-w-[392px] sm:w-[38%] flex flex-row justify-between xl:pt-0 h-full bg-[#0E1113] rounded-xl">
           <RewardMetric
             value={wallet.connected ? groupedNumberFormatter.format(accountSummary.outstandingUxpEmissions) + " " + 'UXP' : "-"}
+            marginfiAccount={selectedAccount}
+            extendedBankInfos={extendedBankInfos}
           />
           <AccountMetric
             label={"Lending"}
