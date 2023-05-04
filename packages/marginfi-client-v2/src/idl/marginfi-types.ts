@@ -1601,9 +1601,7 @@ export type Marginfi = {
           },
           {
             name: "oracleSetup";
-            type: {
-              defined: "OracleSetup";
-            };
+            type: "u8",
           },
           {
             name: "oracleKeys";
@@ -4075,9 +4073,7 @@ export const IDL: Marginfi = {
           },
           {
             name: "oracleSetup",
-            type: {
-              defined: "OracleSetup",
-            },
+            type: "u8"
           },
           {
             name: "oracleKeys",
