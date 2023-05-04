@@ -37,8 +37,8 @@ function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata): BankInfo {
     tokenPrice: bank.getPrice(PriceBias.None).toNumber(),
     tokenMint: bank.mint,
     tokenMintDecimals: bank.mintDecimals,
-    lendingRate: lendingRate.toNumber(),
-    borrowingRate: borrowingRate.toNumber(),
+    lendingRate: isNaN(lendingRate.toNumber()) ? 0 : lendingRate.toNumber(),
+    borrowingRate: isNaN(borrowingRate.toNumber()) ? 0 : borrowingRate.toNumber(),
     totalPoolDeposits,
     totalPoolBorrows,
     availableLiquidity: liquidity,
@@ -92,14 +92,14 @@ function makeExtendedBankInfo(
 
   return !!position
     ? {
-        ...base,
-        hasActivePosition: true,
-        position,
-      }
+      ...base,
+      hasActivePosition: true,
+      position,
+    }
     : {
-        ...base,
-        hasActivePosition: false,
-      };
+      ...base,
+      hasActivePosition: false,
+    };
 }
 
 function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {
