@@ -1,7 +1,7 @@
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo } from "react";
-import { usdFormatter } from "~/utils/formatters";
+import { usdFormatter, groupedNumberFormatter } from "~/utils/formatters";
 import { AccountBalance, MobileHealth } from "./AccountBalance";
 import { AccountMetric, RewardMetric } from "./AccountMetric";
 import { HealthFactor } from "./HealthMonitor";
@@ -40,8 +40,7 @@ const AccountSummary: FC = () => {
 
         <div className="h-[112px] w-full sm:min-w-[392px] sm:w-[38%] flex flex-row justify-between xl:pt-0 h-full bg-[#0E1113] rounded-xl">
           <RewardMetric
-            label={"Rewards"}
-            value={wallet.connected ? usdFormatter.format(accountSummary.lendingAmount) : "-"}
+            value={wallet.connected ? groupedNumberFormatter.format(accountSummary.outstandingUxpEmissions) : "-"}
           />
           <AccountMetric
             label={"Lending"}
