@@ -35,7 +35,7 @@ const BanksStateProvider: FC<{
       const banks = [...mfiClientReadonly.group.banks.values()];
       setBanks(banks);
       setBankInfos(
-        banks.map((bank) => {
+        banks.filter(b => b.label !== 'Unknown').map((bank) => {
           const tokenMetadata = tokenMetadataMap[bank.label];
           if (tokenMetadata === undefined) {
             throw new Error(`Token metadata not found for ${bank.label}`);
