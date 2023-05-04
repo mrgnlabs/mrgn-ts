@@ -82,7 +82,7 @@ const RewardMetric: FC<RewardMetricProps> = ({ value, marginfiAccount, extendedB
           }}
           onClick={
             () => {
-              if (marginfiAccount && (extendedBankInfos.find(b => b.tokenName === 'UXD')!.bank)) {
+              if (marginfiAccount && (extendedBankInfos?.find(b => b.tokenName === 'UXD')?.bank)) {
                 marginfiAccount!.withdrawEmissions(
                   extendedBankInfos.find(b => b.tokenName === 'UXD')!.bank
                 );
