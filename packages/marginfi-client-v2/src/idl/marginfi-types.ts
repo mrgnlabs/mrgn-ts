@@ -1895,30 +1895,6 @@ export type Marginfi = {
           }
         ];
       };
-    },
-    {
-      name: "OraclePriceFeedAdapter";
-      type: {
-        kind: "enum";
-        variants: [
-          {
-            name: "PythEma";
-            fields: [
-              {
-                defined: "PythEmaPriceFeed";
-              }
-            ];
-          },
-          {
-            name: "SwitchboardV2";
-            fields: [
-              {
-                defined: "SwitchboardV2PriceFeed";
-              }
-            ];
-          }
-        ];
-      };
     }
   ];
   events: [
@@ -4390,30 +4366,6 @@ export const IDL: Marginfi = {
           },
           {
             name: "SwitchboardV2",
-          },
-        ],
-      },
-    },
-    {
-      name: "OraclePriceFeedAdapter",
-      type: {
-        kind: "enum",
-        variants: [
-          {
-            name: "PythEma",
-            fields: [
-              {
-                defined: "PythEmaPriceFeed",
-              },
-            ],
-          },
-          {
-            name: "SwitchboardV2",
-            fields: [
-              {
-                defined: "SwitchboardV2PriceFeed",
-              },
-            ],
           },
         ],
       },
