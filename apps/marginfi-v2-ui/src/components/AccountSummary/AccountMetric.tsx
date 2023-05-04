@@ -58,6 +58,10 @@ interface RewardMetricProps {
 }
 
 const RewardMetric: FC<RewardMetricProps> = ({ value, marginfiAccount, extendedBankInfos }) => {
+
+  console.log({
+    bank: extendedBankInfos?.find(b => b.tokenName === 'UXD')?.bank
+  })
   return (
     <div
       className={"h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl text-lg"}
@@ -82,7 +86,7 @@ const RewardMetric: FC<RewardMetricProps> = ({ value, marginfiAccount, extendedB
           }}
           onClick={
             () => {
-              if (marginfiAccount && (extendedBankInfos.find(b => b.tokenName === 'UXD')!.bank)) {
+              if (marginfiAccount && (extendedBankInfos?.find(b => b.tokenName === 'UXD')?.bank)) {
                 marginfiAccount!.withdrawEmissions(
                   extendedBankInfos.find(b => b.tokenName === 'UXD')!.bank
                 );
