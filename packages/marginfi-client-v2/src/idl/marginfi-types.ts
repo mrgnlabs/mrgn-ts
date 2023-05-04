@@ -1127,16 +1127,51 @@ export type Marginfi = {
             };
           },
           {
-            name: "padding0";
-            type: {
-              array: ["u128", 32];
-            };
+            "name": "emissionsFlags",
+            "docs": [
+              "Emissions Config Flags",
+              "",
+              "- EMISSIONS_FLAG_BORROW_ACTIVE: 1",
+              "- EMISSIONS_FLAG_LENDING_ACTIVE: 2",
+              ""
+            ],
+            "type": "u64"
           },
           {
-            name: "padding1";
-            type: {
-              array: ["u128", 32];
-            };
+            "name": "emissionsRate",
+            "docs": [
+              "Emissions APR.",
+              "Number of emitted tokens (emissions_mint) per 1M tokens (bank mint) (native amount) per 1 YEAR."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "emissionsRemaining",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "emissionsMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "padding0",
+            "type": {
+              "array": [
+                "u128",
+                28
+              ]
+            }
+          },
+          {
+            "name": "padding1",
+            "type": {
+              "array": [
+                "u128",
+                32
+              ]
+            }
           }
         ];
       };
@@ -3494,17 +3529,52 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "padding0",
-            type: {
-              array: ["u128", 32],
-            },
+            "name": "emissionsFlags",
+            "docs": [
+              "Emissions Config Flags",
+              "",
+              "- EMISSIONS_FLAG_BORROW_ACTIVE: 1",
+              "- EMISSIONS_FLAG_LENDING_ACTIVE: 2",
+              ""
+            ],
+            "type": "u64"
           },
           {
-            name: "padding1",
-            type: {
-              array: ["u128", 32],
-            },
+            "name": "emissionsRate",
+            "docs": [
+              "Emissions APR.",
+              "Number of emitted tokens (emissions_mint) per 1M tokens (bank mint) (native amount) per 1 YEAR."
+            ],
+            "type": "u64"
           },
+          {
+            "name": "emissionsRemaining",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "emissionsMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "padding0",
+            "type": {
+              "array": [
+                "u128",
+                28
+              ]
+            }
+          },
+          {
+            "name": "padding1",
+            "type": {
+              "array": [
+                "u128",
+                32
+              ]
+            }
+          }
         ],
       },
     },
