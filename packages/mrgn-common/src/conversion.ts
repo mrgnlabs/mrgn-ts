@@ -4,6 +4,8 @@ import { Decimal } from "decimal.js";
 import { Amount } from "./types";
 
 export function wrappedI80F48toBigNumber({ value }: { value: BN }, scaleDecimal: number = 0): BigNumber {
+  if (!(value)) return new BigNumber(0);
+  
   let numbers = new Decimal(`${value.isNeg() ? "-" : ""}0b${value.abs().toString(2)}p-48`).dividedBy(
     10 ** scaleDecimal
   );
