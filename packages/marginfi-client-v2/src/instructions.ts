@@ -162,6 +162,30 @@ function makeLendingAccountLiquidateIx(
     .instruction();
 }
 
+function makelendingAccountWithdrawEmissionIx(
+  mfiProgram: MarginfiProgram,
+  accounts: {
+    marginfiGroup: PublicKey;
+    marginfiAccount: PublicKey;
+    signer: PublicKey;
+    destinationTokenAccount: PublicKey;
+    bank: PublicKey;
+    emissionsMint: PublicKey;
+  }
+) {
+  return mfiProgram.methods.lendingAccountWithdrawEmissions()
+    .accounts({
+      marginfiGroup: accounts.marginfiGroup,
+      marginfiAccount: accounts.marginfiAccount,
+      signer: accounts.signer,
+      destinationAccount: accounts.destinationTokenAccount,
+      bank: accounts.bank,
+      emissionsMint: accounts.emissionsMint,
+    })
+    .instruction()
+}
+
+
 const instructions = {
   makeDepositIx,
   makeRepayIx,
@@ -169,6 +193,7 @@ const instructions = {
   makeBorrowIx,
   makeInitMarginfiAccountIx,
   makeLendingAccountLiquidateIx,
+  makelendingAccountWithdrawEmissionIx,
 };
 
 export default instructions;

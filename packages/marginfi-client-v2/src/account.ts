@@ -425,6 +425,47 @@ export class MarginfiAccount {
     return sig;
   }
 
+  async makeWithdrawEmissionsIx(bank: Bank): Promise<InstructionsWrapper> {
+    const userAta = await associatedAddress({
+      mint: bank.emissionsMint,
+      owner: this.client.provider.wallet.publicKey,
+    });
+    const ix = await instructions.makelendingAccountWithdrawEmissionIx(
+      this._program,
+      {
+        marginfiGroup: this.group.publicKey,
+        marginfiAccount: this.publicKey,
+        signer: this.client.provider.wallet.publicKey,
+        bank: bank.publicKey,
+        destinationTokenAccount: userAta,
+        emissionsMint: bank.emissionsMint,
+      },
+    );
+
+    return { instructions: [ix], keys: [] }
+  }
+
+  async withdrawEmissions(bank: Bank): Promise<string> {
+    const tx = new Transaction();
+    const userAta = await associatedAddress({
+      mint: bank.emissionsMint,
+      owner: this.client.provider.wallet.publicKey,
+    });
+    const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
+      this.client.provider.wallet.publicKey,
+      userAta,
+      this.client.provider.wallet.publicKey,
+      bank.emissionsMint
+    );
+
+    tx.add(createAtaIdempotentIx);
+    tx.add(...(await this.makeWithdrawEmissionsIx(bank)).instructions);
+
+    const sig = await this.client.processTransaction(tx);
+    await this.reload();
+    return sig;
+  }
+
   // --- Others
 
   getHealthCheckAccounts(mandatoryBanks: Bank[] = [], excludedBanks: Bank[] = []): AccountMeta[] {

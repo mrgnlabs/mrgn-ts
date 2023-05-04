@@ -12,6 +12,7 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   borrowingAmount: 0,
   apy: 0,
   positions: [],
+  outstandingUxpEmissions: 0,
 };
 
 function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: BankInfo[]): AccountSummary {
