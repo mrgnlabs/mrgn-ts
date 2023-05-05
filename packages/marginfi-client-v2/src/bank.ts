@@ -43,14 +43,13 @@ class Bank {
 
   public emissionsActiveBorrowing: boolean;
   public emissionsActiveLending: boolean;
-  public emissionsRate: BigNumber;
+  public emissionsRate: number;
   public emissionsMint: PublicKey;
   public emissionsRemaining: BigNumber;
 
   private priceData: OraclePriceData;
 
   constructor(label: string, address: PublicKey, rawData: BankData, priceData: OraclePriceData) {
-
     this.label = label;
     this.publicKey = address;
 
@@ -101,11 +100,13 @@ class Bank {
 
     this.priceData = priceData;
 
-    this.emissionsActiveBorrowing = (rawData.emissionsFlags & 2) > 0;
-    this.emissionsActiveLending = (rawData.emissionsFlags & 1) > 0;
+    const emissionsFlags = rawData.emissionsFlags.toNumber();
+
+    this.emissionsActiveBorrowing = (emissionsFlags & 2) > 0;
+    this.emissionsActiveLending = (emissionsFlags & 0) > 0;
 
     // @todo existence checks here should be temporary - remove once all banks have emission configs
-    this.emissionsRate = rawData.emissionsRate ? wrappedI80F48toBigNumber(rawData.emissionsRate) : new BigNumber(0);
+    this.emissionsRate = rawData.emissionsRate.toNumber();
     this.emissionsMint = rawData.emissionsMint;
     this.emissionsRemaining = rawData.emissionsRemaining ? wrappedI80F48toBigNumber(rawData.emissionsRemaining) : new BigNumber(0);
   }
@@ -281,19 +282,19 @@ LTVs:
     const mint = await getMint(connection, this.emissionsMint);
 
     const remainingUi = this.emissionsRemaining.div(10 ** mint.decimals);
-    let rateUi = this.emissionsRate.div(10 ** mint.decimals);
+    let rateUi = this.emissionsRate / (10 ** mint.decimals);
 
     let bankMintDiff = this.mintDecimals - 6;
     if (bankMintDiff > 0) {
-      rateUi = rateUi.times(10 ** bankMintDiff);
+      rateUi = rateUi * (10 ** bankMintDiff);
     } else if (bankMintDiff < 0) {
-      rateUi = rateUi.div(10 ** bankMintDiff);
+      rateUi = rateUi * (10 ** bankMintDiff);
     }
 
     return {
       lendingActive: this.emissionsActiveLending,
       borrowingActive: this.emissionsActiveBorrowing,
-      rateUi,
+      rateUi: new BigNumber(rateUi),
       remainingUi,
     };
   }
@@ -363,8 +364,8 @@ export interface BankData {
 
   config: BankConfigData;
 
-  emissionsFlags: number;
-  emissionsRate: WrappedI80F48;
+  emissionsFlags: BN;
+  emissionsRate: BN;
   emissionsMint: PublicKey;
   emissionsRemaining: WrappedI80F48;
 }

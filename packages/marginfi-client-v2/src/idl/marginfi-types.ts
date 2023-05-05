@@ -1240,7 +1240,7 @@ export type Marginfi = {
               ""
             ];
             type: "u64";
-          },
+          }, 
           {
             name: "emissionsRate";
             docs: [
@@ -1628,7 +1628,7 @@ export type Marginfi = {
           {
             name: "padding";
             type: {
-              array: ["u64", 6];
+              array: ["u8", 55];
             };
           }
         ];
@@ -4100,7 +4100,7 @@ export const IDL: Marginfi = {
           {
             name: "padding",
             type: {
-              array: ["u64", 6],
+              array: ["u8", 55],
             },
           },
         ],
