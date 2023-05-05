@@ -20,7 +20,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
 
   let outstandingUxpEmissions = new BigNumber(0);
 
-  const uxpBank = bankInfos.find((bank) => bank.tokenName === "UXP");
+  const uxpBank = bankInfos.find((bank) => bank.tokenName === "UXD");
   const uxpBalance = marginfiAccount.activeBalances.find((balance) =>
     balance.bankPk.equals(uxpBank?.address ?? PublicKey.default)
   );
