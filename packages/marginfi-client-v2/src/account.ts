@@ -281,7 +281,25 @@ export class MarginfiAccount {
     const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:repay`);
     debug("Repaying %s %s into marginfi account, repay all: %s", amount, bank.mint, repayAll);
     const ixs = await this.makeRepayIx(amount, bank, repayAll);
-    const tx = new Transaction().add(...ixs.instructions);
+    const tx = new Transaction();
+
+    if (repayAll && !bank.emissionsMint.equals(PublicKey.default)) {
+      const userAta = await associatedAddress({
+        mint: bank.emissionsMint,
+        owner: this.client.provider.wallet.publicKey,
+      });
+      const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
+        this.client.provider.wallet.publicKey,
+        userAta,
+        this.client.provider.wallet.publicKey,
+        bank.emissionsMint
+      );
+
+      tx.add(createAtaIdempotentIx);
+      tx.add(...(await this.makeWithdrawEmissionsIx(bank)).instructions);
+    }
+
+    tx.add(...ixs.instructions);
     const sig = await this.client.processTransaction(tx);
     debug("Depositing successful %s", sig);
     await this.reload();
@@ -334,6 +352,22 @@ export class MarginfiAccount {
     const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
     const tx = new Transaction();
+
+    if (withdrawAll && !bank.emissionsMint.equals(PublicKey.default)) {
+      const userAta = await associatedAddress({
+        mint: bank.emissionsMint,
+        owner: this.client.provider.wallet.publicKey,
+      });
+      const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
+        this.client.provider.wallet.publicKey,
+        userAta,
+        this.client.provider.wallet.publicKey,
+        bank.emissionsMint
+      );
+
+      tx.add(createAtaIdempotentIx);
+      tx.add(...(await this.makeWithdrawEmissionsIx(bank)).instructions);
+    }
 
     const userAta = await associatedAddress({
       mint: bank.mint,
