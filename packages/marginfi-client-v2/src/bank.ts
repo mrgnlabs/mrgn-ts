@@ -102,8 +102,8 @@ class Bank {
 
     const emissionsFlags = rawData.emissionsFlags.toNumber();
 
-    this.emissionsActiveBorrowing = (emissionsFlags & 2) > 0;
-    this.emissionsActiveLending = (emissionsFlags & 0) > 0;
+    this.emissionsActiveBorrowing = (emissionsFlags & 0) > 0;
+    this.emissionsActiveLending = (emissionsFlags & 2) > 0;
 
     // @todo existence checks here should be temporary - remove once all banks have emission configs
     this.emissionsRate = rawData.emissionsRate.toNumber();
