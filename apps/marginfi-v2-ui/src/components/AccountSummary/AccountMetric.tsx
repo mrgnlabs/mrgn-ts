@@ -96,7 +96,7 @@ const RewardMetric: FC<RewardMetricProps> = ({ value, marginfiAccount, extendedB
         </Button>
       </div>
       <div
-        className="text-lg text-[#6FCF97] flex items-center gap-2"
+        className="text-lg text-[#75BA80] flex items-center gap-2"
         style={{
           fontFamily: "Aeonik Pro",
           fontWeight: 500,
