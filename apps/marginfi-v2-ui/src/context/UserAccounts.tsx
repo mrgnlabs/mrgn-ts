@@ -83,11 +83,17 @@ const UserAccountsProvider: FC<{
   }, [reload]);
 
   useEffect(() => {
-    if (selectedAccount === null) {
-      setAccountSummary(DEFAULT_ACCOUNT_SUMMARY);
-      return;
-    }
-    setAccountSummary(computeAccountSummary(selectedAccount, bankInfos));
+    const intervalId = setInterval(() => {
+      if (selectedAccount === null) {
+        setAccountSummary(DEFAULT_ACCOUNT_SUMMARY);
+        return;
+      }
+      setAccountSummary(computeAccountSummary(selectedAccount, bankInfos));
+    }, 50);
+  
+    return () => {
+      clearInterval(intervalId); // Clean up the interval when the component unmounts or the dependency changes
+    };
   }, [selectedAccount]);
 
   return (

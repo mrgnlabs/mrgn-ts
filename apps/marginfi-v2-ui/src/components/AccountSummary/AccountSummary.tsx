@@ -41,7 +41,7 @@ const AccountSummary: FC = () => {
 
         <div className="h-[112px] w-full sm:min-w-[392px] sm:w-[38%] flex flex-row justify-between xl:pt-0 h-full bg-[#0E1113] rounded-xl">
           <RewardMetric
-            value={wallet.connected ? groupedNumberFormatter.format(accountSummary.outstandingUxpEmissions) + " " + 'UXP' : "-"}
+            value={wallet.connected ? accountSummary.outstandingUxpEmissions.toExponential(5) : "-"}
             marginfiAccount={selectedAccount}
             extendedBankInfos={extendedBankInfos}
           />

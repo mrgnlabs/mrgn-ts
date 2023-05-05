@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React, { FC } from "react";
 import { Button, ButtonProps } from "@mui/material";
 import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
@@ -60,7 +61,7 @@ interface RewardMetricProps {
 const RewardMetric: FC<RewardMetricProps> = ({ value, marginfiAccount, extendedBankInfos }) => {
   return (
     <div
-      className={"h-[112px] w-1/3 flex flex-col justify-evenly items-start px-6 py-3 rounded-xl text-lg"}
+      className={"h-[112px] w-1/3 flex flex-col justify-evenly items-start pl-3 py-3 rounded-xl text-lg"}
     >
       <div
         className="text-base text-[#868E95]"
@@ -95,12 +96,15 @@ const RewardMetric: FC<RewardMetricProps> = ({ value, marginfiAccount, extendedB
         </Button>
       </div>
       <div
-        className="text-xl text-[#75BA80]"
+        className="text-lg text-[#75BA80] flex items-center gap-2"
         style={{
           fontFamily: "Aeonik Pro",
           fontWeight: 500,
         }}
       >
+        <div>
+          <Image src="/uxp-icon-white.png" alt="info" height={16} width={16} className="pulse"/>
+        </div>
         {value}
       </div>
     </div>

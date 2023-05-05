@@ -1069,6 +1069,7 @@ export class Balance {
 
   public getTotalOutstandingEmissions(bank: Bank): BigNumber {
     const claimedEmissions = this.emissionsOutstanding;
+    
     const unclaimedEmissions = this.calcClaimedEmissions(bank, Date.now() / 1000);
 
     return claimedEmissions.plus(unclaimedEmissions);
