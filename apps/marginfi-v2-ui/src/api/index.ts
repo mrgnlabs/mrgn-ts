@@ -1,5 +1,13 @@
 import { Balance, Bank, MarginfiAccount, MarginRequirementType, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, BankInfo, ExtendedBankInfo, TokenAccount, TokenMetadata, UserPosition } from "~/types";
+import {
+  AccountSummary,
+  BankInfo,
+  ExtendedBankInfo,
+  TokenAccount,
+  TokenMetadata,
+  TokenPriceMap,
+  UserPosition,
+} from "~/types";
 import { WSOL_MINT } from "~/config";
 import { floor } from "~/utils";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
@@ -39,7 +47,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
 }
 
 function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata): BankInfo {
-  const { lendingRate, borrowingRate } = bank.getInterestRates();
+  let { lendingRate, borrowingRate } = bank.getInterestRates();
   const totalPoolDeposits = nativeToUi(bank.totalAssets, bank.mintDecimals);
   const totalPoolBorrows = nativeToUi(bank.totalLiabilities, bank.mintDecimals);
   const liquidity = totalPoolDeposits - totalPoolBorrows;
@@ -60,6 +68,36 @@ function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata): BankInfo {
     utilizationRate,
     bank,
   };
+}
+
+const BIRDEYE_API = "https://public-api.birdeye.so";
+async function fetchBirdeyePrice(tokenPubkey: PublicKey): Promise<BigNumber> {
+  const response = await fetch(`${BIRDEYE_API}/public/price?address=${tokenPubkey.toBase58()}`, {
+    headers: { Accept: "application/json" },
+  });
+
+  const responseBody = await response.json();
+  if (responseBody.success) {
+    return new BigNumber(responseBody.data.value);
+  }
+
+  throw new Error("Failed to fetch price");
+}
+
+export async function buildEmissionsPriceMap(banks: Bank[]): Promise<TokenPriceMap> {
+  const prices: [PublicKey, BigNumber][] = await Promise.all(
+    banks
+      .filter((bank) => !bank.emissionsMint.equals(PublicKey.default))
+      .map(async (bank) => [bank.emissionsMint, await fetchBirdeyePrice(bank.emissionsMint)])
+  );
+
+  const tokenMap: TokenPriceMap = {};
+
+  for (let price of prices) {
+    tokenMap[price[0].toBase58()] = { price: price[1] };
+  }
+
+  return tokenMap;
 }
 
 function makeExtendedBankInfo(

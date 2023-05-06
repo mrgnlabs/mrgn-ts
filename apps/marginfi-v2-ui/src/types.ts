@@ -1,5 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
+import BigNumber from "bignumber.js";
 
 interface AccountSummary {
   balance: number;
@@ -33,6 +34,12 @@ interface UserPosition {
 
 interface TokenMetadata {
   icon?: string;
+}
+
+interface TokenPriceMap {
+  [key: string]: {
+    price: BigNumber;
+  };
 }
 
 type TokenMetadataMap = { [symbol: string]: TokenMetadata };
@@ -77,6 +84,7 @@ export type {
   ActiveBankInfo,
   InactiveBankInfo,
   ExtendedBankInfo,
+  TokenPriceMap,
 };
 
 export { ActionType, isActiveBankInfo };
