@@ -702,13 +702,13 @@ export interface RawMint {
 
 /** Buffer layout for de/serializing a mint */
 export const MintLayout = struct<RawMint>([
-  u32('mintAuthorityOption'),
-  publicKey('mintAuthority'),
-  u64('supply'),
-  u8('decimals'),
-  bool('isInitialized'),
-  u32('freezeAuthorityOption'),
-  publicKey('freezeAuthority'),
+  u32("mintAuthorityOption"),
+  publicKey("mintAuthority"),
+  u64("supply"),
+  u8("decimals"),
+  bool("isInitialized"),
+  u32("freezeAuthorityOption"),
+  publicKey("freezeAuthority"),
 ]);
 
 /** Byte length of a mint */

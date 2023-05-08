@@ -51,7 +51,6 @@ const AccountMetric: FC<AccountMetricProps> = ({ label, value, valueBold, previe
   );
 };
 
-
 interface RewardMetricProps {
   value?: string;
   marginfiAccount: MarginfiAccount | null;
@@ -60,15 +59,12 @@ interface RewardMetricProps {
 
 const RewardMetric: FC<RewardMetricProps> = ({ value, marginfiAccount, extendedBankInfos }) => {
   return (
-    <div
-      className={"h-[112px] w-1/3 flex flex-col justify-evenly items-start pl-3 py-3 rounded-xl text-lg"}
-    >
+    <div className={"h-[112px] w-1/3 flex flex-col justify-evenly items-start pl-3 py-3 rounded-xl text-lg"}>
       <div
         className="text-base text-[#868E95]"
         style={{
           fontFamily: "Aeonik Pro",
           fontWeight: 400,
-          
         }}
       >
         <Button
@@ -81,15 +77,11 @@ const RewardMetric: FC<RewardMetricProps> = ({ value, marginfiAccount, extendedB
             fontFamily: "Aeonik Pro",
             zIndex: 10,
           }}
-          onClick={
-            () => {
-              if (marginfiAccount && (extendedBankInfos?.find(b => b.tokenName === 'UXD')?.bank)) {
-                marginfiAccount!.withdrawEmissions(
-                  extendedBankInfos.find(b => b.tokenName === 'UXD')!.bank
-                );
-              }
+          onClick={() => {
+            if (marginfiAccount && extendedBankInfos?.find((b) => b.tokenName === "UXD")?.bank) {
+              marginfiAccount!.withdrawEmissions(extendedBankInfos.find((b) => b.tokenName === "UXD")!.bank);
             }
-          }
+          }}
         >
           <span>Claim</span>
           <span className="hidden lg:block">Rewards</span>
@@ -103,7 +95,7 @@ const RewardMetric: FC<RewardMetricProps> = ({ value, marginfiAccount, extendedB
         }}
       >
         <div>
-          <Image src="/uxp-icon-white.png" alt="info" height={16} width={16} className="pulse"/>
+          <Image src="/uxp-icon-white.png" alt="info" height={16} width={16} className="pulse" />
         </div>
         {value}
       </div>

@@ -19,6 +19,8 @@ interface BankInfo {
   tokenPrice: number;
   lendingRate: number;
   borrowingRate: number;
+  emissionsRate: number;
+  emissions: Emissions;
   totalPoolDeposits: number;
   totalPoolBorrows: number;
   availableLiquidity: number;
@@ -39,6 +41,7 @@ interface TokenMetadata {
 interface TokenPriceMap {
   [key: string]: {
     price: BigNumber;
+    decimals: number;
   };
 }
 
@@ -72,6 +75,12 @@ type InactiveBankInfo = BankInfoForAccountBase & { hasActivePosition: false };
 type ExtendedBankInfo = ActiveBankInfo | InactiveBankInfo;
 
 const isActiveBankInfo = (bankInfo: ExtendedBankInfo): bankInfo is ActiveBankInfo => bankInfo.hasActivePosition;
+
+export enum Emissions {
+  Inactive,
+  Lending,
+  Borrowing,
+}
 
 export type {
   AccountSummary,

@@ -5,6 +5,7 @@ import { buildEmissionsPriceMap, makeBankInfo } from "~/api";
 import { toast } from "react-toastify";
 import { useProgram } from "~/context/Program";
 import { BankInfo } from "~/types";
+import { useConnection } from "@solana/wallet-adapter-react";
 
 // @ts-ignore - Safe because context hook checks for null
 const BanksContext = createContext<BanksState>();
@@ -21,6 +22,7 @@ const BanksStateProvider: FC<{
 }> = ({ children }) => {
   const { mfiClientReadonly } = useProgram();
   const { tokenMetadataMap } = useTokenMetadata();
+  const { connection } = useConnection();
 
   const [fetching, setFetching] = useState<boolean>(true);
   const [banks, setBanks] = useState<Bank[]>([]);
@@ -34,7 +36,7 @@ const BanksStateProvider: FC<{
       await mfiClientReadonly.group.reload();
       const banks = [...mfiClientReadonly.group.banks.values()];
       setBanks(banks);
-      const priceMap = await buildEmissionsPriceMap(banks);
+      const priceMap = await buildEmissionsPriceMap(banks, connection);
       setBankInfos(
         banks
           .filter((b) => b.label !== "Unknown")
