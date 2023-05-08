@@ -464,19 +464,16 @@ export class MarginfiAccount {
       mint: bank.emissionsMint,
       owner: this.client.provider.wallet.publicKey,
     });
-    const ix = await instructions.makelendingAccountWithdrawEmissionIx(
-      this._program,
-      {
-        marginfiGroup: this.group.publicKey,
-        marginfiAccount: this.publicKey,
-        signer: this.client.provider.wallet.publicKey,
-        bank: bank.publicKey,
-        destinationTokenAccount: userAta,
-        emissionsMint: bank.emissionsMint,
-      },
-    );
+    const ix = await instructions.makelendingAccountWithdrawEmissionIx(this._program, {
+      marginfiGroup: this.group.publicKey,
+      marginfiAccount: this.publicKey,
+      signer: this.client.provider.wallet.publicKey,
+      bank: bank.publicKey,
+      destinationTokenAccount: userAta,
+      emissionsMint: bank.emissionsMint,
+    });
 
-    return { instructions: [ix], keys: [] }
+    return { instructions: [ix], keys: [] };
   }
 
   async withdrawEmissions(bank: Bank): Promise<string> {
@@ -1069,16 +1066,13 @@ export class Balance {
 
   public getTotalOutstandingEmissions(bank: Bank): BigNumber {
     const claimedEmissions = this.emissionsOutstanding;
-    
+
     const unclaimedEmissions = this.calcClaimedEmissions(bank, Date.now() / 1000);
 
     return claimedEmissions.plus(unclaimedEmissions);
   }
 
-  private calcClaimedEmissions(
-    bank: Bank,
-    currentTimestamp: number,
-  ): BigNumber {
+  private calcClaimedEmissions(bank: Bank, currentTimestamp: number): BigNumber {
     const lendingActive = bank.emissionsActiveLending;
     const borrowActive = bank.emissionsActiveBorrowing;
 
@@ -1096,10 +1090,7 @@ export class Balance {
       const lastUpdate = this.lastUpdate;
       const period = new BigNumber(currentTimestamp - lastUpdate);
       const emissionsRate = new BigNumber(bank.emissionsRate);
-      const emissions = period
-        .times(balanceAmount)
-        .times(emissionsRate)
-        .div(31_536_000_000_000);
+      const emissions = period.times(balanceAmount).times(emissionsRate).div(31_536_000_000_000);
       const emissionsReal = BigNumber.min(emissions, new BigNumber(bank.emissionsRemaining));
 
       return emissionsReal;

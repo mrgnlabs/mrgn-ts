@@ -1240,7 +1240,7 @@ export type Marginfi = {
               ""
             ];
             type: "u64";
-          }, 
+          },
           {
             name: "emissionsRate";
             docs: [
@@ -1601,7 +1601,7 @@ export type Marginfi = {
           },
           {
             name: "oracleSetup";
-            type: "u8",
+            type: "u8";
           },
           {
             name: "oracleKeys";
@@ -3858,7 +3858,7 @@ export const IDL: Marginfi = {
             name: "ignore",
             type: {
               array: ["u8", 7],
-            }
+            },
           },
           {
             name: "assetShares",
@@ -4073,7 +4073,7 @@ export const IDL: Marginfi = {
           },
           {
             name: "oracleSetup",
-            type: "u8"
+            type: "u8",
           },
           {
             name: "oracleKeys",

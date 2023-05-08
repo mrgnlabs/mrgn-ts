@@ -2,7 +2,7 @@ import Image from "next/image";
 import { TableCell, TableRow } from "@mui/material";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { ActionType, ExtendedBankInfo, isActiveBankInfo } from "~/types";
+import { ActionType, Emissions, ExtendedBankInfo, isActiveBankInfo } from "~/types";
 import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
@@ -250,8 +250,7 @@ const AssetRow: FC<{
         }}
       >
         <div className="h-full w-full flex justify-end items-center gap-3">
-          {
-            bankInfo.tokenName === "UXD" && isInLendingMode &&
+          {bankInfo.tokenName === "UXD" && isInLendingMode && (
             <div className="w-1/2 flex justify-center sm:justify-end">
               <HtmlTooltip
                 title={
@@ -259,27 +258,32 @@ const AssetRow: FC<{
                     <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                       Liquidity rewards
                     </Typography>
-                    {
-                      `${percentFormatter.format(bankInfo.lendingRate)
-                      } Supply APY + 20% UXP rewards.`
-                    }
+                    {`${percentFormatter.format(bankInfo.lendingRate)} Supply APY + ${percentFormatter.format(
+                      bankInfo.emissionsRate
+                    )}% UXP rewards.`}
                     <br />
-                    <a href="https://docs.marginfi.com"><u>Learn more.</u></a>
+                    <a href="https://docs.marginfi.com">
+                      <u>Learn more.</u>
+                    </a>
                   </React.Fragment>
                 }
                 placement="left"
               >
-                <Image src="/uxp-icon-white.png" alt="info" height={16} width={16} className="pulse"/>
+                <Image src="/uxp-icon-white.png" alt="info" height={16} width={16} className="pulse" />
               </HtmlTooltip>
             </div>
-          }
+          )}
           <div
             className="w-[40%] flex justify-end"
             style={{
-              fontWeight: bankInfo.tokenName === "SOL" && isInLendingMode ? 500 : 400
+              fontWeight: bankInfo.tokenName === "SOL" && isInLendingMode ? 500 : 400,
             }}
           >
-            {percentFormatter.format(isInLendingMode ? bankInfo.lendingRate + (bankInfo.tokenName === "UXD" ? 0.2 : 0) : bankInfo.borrowingRate)}
+            {percentFormatter.format(
+              (isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate) +
+                (isInLendingMode && bankInfo.emissions == Emissions.Lending ? bankInfo.emissionsRate : 0) +
+                (!isInLendingMode && bankInfo.emissions == Emissions.Borrowing ? bankInfo.emissionsRate : 0)
+            )}
           </div>
         </div>
       </TableCell>
