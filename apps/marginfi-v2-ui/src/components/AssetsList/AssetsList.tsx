@@ -8,6 +8,15 @@ import Typography from "@mui/material/Typography";
 import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
+import { lendZoomLevel } from '~/state';
+import { useRecoilValue } from 'recoil';
+
+{/* Utilization */}
+{/* Total Borrows */}
+{/* USD values */}
+{/* Deposit caps */}
+{/* Borrow caps */}
+{/* Global vs. isolated pools */}
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -27,6 +36,7 @@ const AssetsList: FC = () => {
   const { reload } = useBanks();
   const { extendedBankInfos, selectedAccount, nativeSolBalance } = useUserAccounts();
   const wallet = useWallet();
+  const zoomLevel = useRecoilValue(lendZoomLevel);
 
   // Hack required to circumvent rehydration error
   const [hasMounted, setHasMounted] = React.useState(false);
