@@ -1,10 +1,19 @@
 import { Balance, Bank, MarginfiAccount, MarginRequirementType, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, BankInfo, ExtendedBankInfo, TokenAccount, TokenMetadata, UserPosition } from "~/types";
+import {
+  AccountSummary,
+  BankInfo,
+  Emissions,
+  ExtendedBankInfo,
+  TokenAccount,
+  TokenMetadata,
+  TokenPriceMap,
+  UserPosition,
+} from "~/types";
 import { WSOL_MINT } from "~/config";
 import { floor } from "~/utils";
-import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { getMint, nativeToUi } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
-import { PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 
 const DEFAULT_ACCOUNT_SUMMARY = {
   balance: 0,
@@ -38,12 +47,31 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
   };
 }
 
-function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata): BankInfo {
-  const { lendingRate, borrowingRate } = bank.getInterestRates();
+function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata, priceMap: TokenPriceMap): BankInfo {
+  let { lendingRate, borrowingRate } = bank.getInterestRates();
   const totalPoolDeposits = nativeToUi(bank.totalAssets, bank.mintDecimals);
   const totalPoolBorrows = nativeToUi(bank.totalLiabilities, bank.mintDecimals);
   const liquidity = totalPoolDeposits - totalPoolBorrows;
   const utilizationRate = totalPoolDeposits > 0 ? (totalPoolBorrows / totalPoolDeposits) * 100 : 0;
+
+  let emissionsRate: number = 0;
+  let emissions = Emissions.Inactive;
+
+  if (bank.emissionsActiveLending || bank.emissionsActiveBorrowing) {
+    const bankTokenData = priceMap[bank.mint.toBase58()];
+    const emissionsTokenData = priceMap[bank.emissionsMint.toBase58()];
+    const emissionsRateAmount = new BigNumber(nativeToUi(bank.emissionsRate, emissionsTokenData.decimals));
+    const emissionsRateValue = emissionsRateAmount.times(emissionsTokenData.price);
+    const emissionsRateAdditionalyApy = emissionsRateValue.div(bankTokenData.price);
+
+    emissionsRate = emissionsRateAdditionalyApy.toNumber();
+
+    if (bank.emissionsActiveBorrowing) {
+      emissions = Emissions.Borrowing;
+    } else if (bank.emissionsActiveLending) {
+      emissions = Emissions.Lending;
+    }
+  }
 
   return {
     address: bank.publicKey,
@@ -54,12 +82,57 @@ function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata): BankInfo {
     tokenMintDecimals: bank.mintDecimals,
     lendingRate: isNaN(lendingRate.toNumber()) ? 0 : lendingRate.toNumber(),
     borrowingRate: isNaN(borrowingRate.toNumber()) ? 0 : borrowingRate.toNumber(),
+    emissionsRate,
+    emissions,
     totalPoolDeposits,
     totalPoolBorrows,
     availableLiquidity: liquidity,
     utilizationRate,
     bank,
   };
+}
+
+const BIRDEYE_API = "https://public-api.birdeye.so";
+async function fetchBirdeyePrice(tokenPubkey: PublicKey): Promise<BigNumber> {
+  const response = await fetch(`${BIRDEYE_API}/public/price?address=${tokenPubkey.toBase58()}`, {
+    headers: { Accept: "application/json" },
+  });
+
+  const responseBody = await response.json();
+  if (responseBody.success) {
+    return new BigNumber(responseBody.data.value);
+  }
+
+  throw new Error("Failed to fetch price");
+}
+
+export async function buildEmissionsPriceMap(banks: Bank[], connection: Connection): Promise<TokenPriceMap> {
+  const banksWithEmissions = banks.filter((bank) => !bank.emissionsMint.equals(PublicKey.default));
+
+  const emissionsPrices = banksWithEmissions.map(async (bank) => ({
+    mint: bank.emissionsMint,
+    price: await fetchBirdeyePrice(bank.emissionsMint),
+    decimals: (await getMint(connection, bank.emissionsMint)).decimals,
+  }));
+
+  const bankPrices = banksWithEmissions.map(async (bank) => ({
+    mint: bank.mint,
+    price: await fetchBirdeyePrice(bank.mint),
+    decimals: bank.mintDecimals,
+  }));
+
+  const prices: { mint: PublicKey; price: BigNumber; decimals: number }[] = await Promise.all([
+    ...emissionsPrices,
+    ...bankPrices,
+  ]);
+
+  const tokenMap: TokenPriceMap = {};
+
+  for (let { mint, price, decimals } of prices) {
+    tokenMap[mint.toBase58()] = { price, decimals };
+  }
+
+  return tokenMap;
 }
 
 function makeExtendedBankInfo(

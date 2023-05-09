@@ -90,7 +90,7 @@ const UserAccountsProvider: FC<{
       }
       setAccountSummary(computeAccountSummary(selectedAccount, bankInfos));
     }, 50);
-  
+
     return () => {
       clearInterval(intervalId); // Clean up the interval when the component unmounts or the dependency changes
     };
