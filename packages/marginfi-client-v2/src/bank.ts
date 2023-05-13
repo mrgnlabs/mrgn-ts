@@ -108,7 +108,9 @@ class Bank {
     // @todo existence checks here should be temporary - remove once all banks have emission configs
     this.emissionsRate = rawData.emissionsRate.toNumber();
     this.emissionsMint = rawData.emissionsMint;
-    this.emissionsRemaining = rawData.emissionsRemaining ? wrappedI80F48toBigNumber(rawData.emissionsRemaining) : new BigNumber(0);
+    this.emissionsRemaining = rawData.emissionsRemaining
+      ? wrappedI80F48toBigNumber(rawData.emissionsRemaining)
+      : new BigNumber(0);
   }
 
   public describe(): string {
@@ -278,17 +280,19 @@ LTVs:
     return this.totalLiabilities.div(this.totalAssets);
   }
 
-  public async getEmissionsData(connection: Connection): Promise<{ lendingActive: boolean, borrowingActive: boolean, rateUi: BigNumber, remainingUi: BigNumber }> {
+  public async getEmissionsData(
+    connection: Connection
+  ): Promise<{ lendingActive: boolean; borrowingActive: boolean; rateUi: BigNumber; remainingUi: BigNumber }> {
     const mint = await getMint(connection, this.emissionsMint);
 
     const remainingUi = this.emissionsRemaining.div(10 ** mint.decimals);
-    let rateUi = this.emissionsRate / (10 ** mint.decimals);
+    let rateUi = this.emissionsRate / 10 ** mint.decimals;
 
     let bankMintDiff = this.mintDecimals - 6;
     if (bankMintDiff > 0) {
-      rateUi = rateUi * (10 ** bankMintDiff);
+      rateUi = rateUi * 10 ** bankMintDiff;
     } else if (bankMintDiff < 0) {
-      rateUi = rateUi * (10 ** bankMintDiff);
+      rateUi = rateUi * 10 ** bankMintDiff;
     }
 
     return {

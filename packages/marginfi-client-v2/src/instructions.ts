@@ -173,7 +173,8 @@ function makelendingAccountWithdrawEmissionIx(
     emissionsMint: PublicKey;
   }
 ) {
-  return mfiProgram.methods.lendingAccountWithdrawEmissions()
+  return mfiProgram.methods
+    .lendingAccountWithdrawEmissions()
     .accounts({
       marginfiGroup: accounts.marginfiGroup,
       marginfiAccount: accounts.marginfiAccount,
@@ -182,9 +183,8 @@ function makelendingAccountWithdrawEmissionIx(
       bank: accounts.bank,
       emissionsMint: accounts.emissionsMint,
     })
-    .instruction()
+    .instruction();
 }
-
 
 const instructions = {
   makeDepositIx,
