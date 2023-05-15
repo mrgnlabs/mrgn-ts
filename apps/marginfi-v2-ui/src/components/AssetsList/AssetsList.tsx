@@ -200,7 +200,7 @@ const AssetsList: FC = () => {
                       <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                         Isolated pools are risky ⚠️
                       </Typography>
-                        All assets in isolated pools have an asset weight of 0 in marginfi. This means you cannot borrow against them. You can only borrow them with other assets as your collateral. As always, remember that marginfi is a decentralized protocol and all funds you deposit into marginfi are at risk.
+                        Assets in isolated pools cannot be used as collateral. They can only be borrowed against other assets. Isolated pools should be considered particularly risky. As always, remember that marginfi is a decentralized protocol and all deposited funds are at risk.
                     </React.Fragment>
                   }
                   placement="top"
