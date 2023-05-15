@@ -260,7 +260,7 @@ const AssetRow: FC<{
                     </Typography>
                     {`${percentFormatter.format(bankInfo.lendingRate)} Supply APY + ${percentFormatter.format(
                       bankInfo.emissionsRate
-                    )}% UXP rewards.`}
+                    )} UXP rewards.`}
                     <br />
                     <a href="https://docs.marginfi.com">
                       <u>Learn more.</u>
