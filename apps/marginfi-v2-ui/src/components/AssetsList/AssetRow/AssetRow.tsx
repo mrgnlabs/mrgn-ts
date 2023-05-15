@@ -276,7 +276,7 @@ const AssetRow: FC<{
           <div
             className="w-[40%] flex justify-end"
             style={{
-              fontWeight: bankInfo.tokenName === "SOL" && isInLendingMode ? 500 : 400,
+              fontWeight: 400,
             }}
           >
             {percentFormatter.format(
