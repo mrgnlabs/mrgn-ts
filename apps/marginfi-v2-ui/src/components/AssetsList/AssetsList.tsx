@@ -57,7 +57,7 @@ const AssetsList: FC = () => {
               <TableHead>
                 <TableCell className="text-white border-none p-0">
                   <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white gap-1">
-                    Main <span className="hidden lg:block">pool</span>
+                    Global <span className="hidden lg:block">pool</span>
                   </div>
                 </TableCell>
                 <TableCell
@@ -193,7 +193,7 @@ const AssetsList: FC = () => {
                 )}
               </TableBody>
               <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white my-4 gap-2">
-                <span className="gap-1 flex">Isolated <span className="hidden lg:block">pool</span></span>
+                <span className="gap-1 flex">Isolated <span className="hidden lg:block">pools</span></span>
                 <HtmlTooltip
                   title={
                     <React.Fragment>
