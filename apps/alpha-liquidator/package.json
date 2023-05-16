@@ -2,6 +2,7 @@
   "name": "@mrgnlabs/alpha-liquidator",
   "version": "0.1.0",
   "description": "",
+  "private": true,
   "main": "./dist/index.js",
   "scripts": {
     "clean": "rimraf dist node_modules",
@@ -13,7 +14,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@jup-ag/core": "4.0.0-beta.13",
+    "@jup-ag/core": "^4.0.0-beta.18",
     "@mongodb-js/zstd": "^1.1.0",
     "@mrgnlabs/eslint-config-custom": "*",
     "@mrgnlabs/marginfi-client-v2": "*",
