@@ -147,7 +147,7 @@ const AssetsList: FC = () => {
                           </Typography>
                           {isInLendingMode
                             ? "Total marginfi deposits for each asset. Everything is denominated in native tokens."
-                            : "The amount of tokens available to borrow for each asset."}
+                            : "The amount of tokens available to borrow for each asset. Calculated as the minimum of the asset's borrow limit and available liquidity that has not yet been borrowed."}
                         </React.Fragment>
                       }
                       placement="top"
