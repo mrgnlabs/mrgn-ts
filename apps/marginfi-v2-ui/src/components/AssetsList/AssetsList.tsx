@@ -56,6 +56,7 @@ const AssetsList: FC = () => {
       <div className="col-span-full">
         <Card elevation={0} className="bg-[rgba(0,0,0,0)] w-full">
           <TableContainer>
+            
             <Table
               className="table-fixed"
               style={{
@@ -64,7 +65,11 @@ const AssetsList: FC = () => {
               }}
             >
               <TableHead>
-                <TableCell className="border-none"></TableCell>
+                <TableCell className="text-white border-none p-0">
+                  <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white gap-1">
+                    Global <span className="hidden lg:block">pool</span>
+                  </div>
+                </TableCell>
                 <TableCell
                   className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell"
                   style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
@@ -152,7 +157,7 @@ const AssetsList: FC = () => {
                           </Typography>
                           {isInLendingMode
                             ? "Total marginfi deposits for each asset. Everything is denominated in native tokens."
-                            : "The amount of tokens available to borrow for each asset."}
+                            : "The amount of tokens available to borrow for each asset. Calculated as the minimum of the asset's borrow limit and available liquidity that has not yet been borrowed."}
                         </React.Fragment>
                       }
                       placement="top"
@@ -168,15 +173,57 @@ const AssetsList: FC = () => {
                 >
                   <div className="h-full w-full flex justify-end items-center gap-2">
                     Wallet Balance
-                    {/* <Image src="/info_icon.png" alt="info" height={16} width={16} /> */}
                   </div>
                 </TableCell>
                 <TableCell className="border-none"></TableCell>
                 <TableCell className="border-none"></TableCell>
               </TableHead>
+              
               <TableBody>
                 {extendedBankInfos.length > 0 ? (
                   extendedBankInfos
+                    .filter(
+                      b => (b.bank.config.assetWeightInit.toNumber() > 0)
+                    )
+                    .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
+                    .map((bankInfo) => (
+                      <AssetRow
+                        key={bankInfo.tokenName}
+                        nativeSolBalance={nativeSolBalance}
+                        bankInfo={bankInfo}
+                        isInLendingMode={isInLendingMode}
+                        isConnected={wallet.connected}
+                        marginfiAccount={selectedAccount}
+                        marginfiClient={mfiClient}
+                        reloadBanks={reload}
+                      />
+                    ))
+                ) : (
+                  <LoadingAssets />
+                )}
+              </TableBody>
+              <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white my-4 gap-2">
+                <span className="gap-1 flex">Isolated <span className="hidden lg:block">pools</span></span>
+                <HtmlTooltip
+                  title={
+                    <React.Fragment>
+                      <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                        Isolated pools are risky ⚠️
+                      </Typography>
+                        Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot borrow other assets. Isolated pools should be considered particularly risky. As always, remember that marginfi is a decentralized protocol and all deposited funds are at risk.
+                    </React.Fragment>
+                  }
+                  placement="top"
+                >
+                  <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                </HtmlTooltip>
+              </div>
+              <TableBody>
+                {extendedBankInfos.length > 0 ? (
+                  extendedBankInfos
+                    .filter(
+                      b => (b.bank.config.assetWeightInit.toNumber() === 0)
+                    )
                     .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
                     .map((bankInfo) => (
                       <AssetRow

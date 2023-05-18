@@ -48,7 +48,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
 }
 
 function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata, priceMap: TokenPriceMap): BankInfo {
-  let { lendingRate, borrowingRate } = bank.getInterestRates();
+  const { lendingRate, borrowingRate } = bank.getInterestRates();
   const totalPoolDeposits = nativeToUi(bank.totalAssets, bank.mintDecimals);
   const totalPoolBorrows = nativeToUi(bank.totalLiabilities, bank.mintDecimals);
   const liquidity = totalPoolDeposits - totalPoolBorrows;

@@ -20,7 +20,6 @@ async function main() {
       connection,
       cluster: "mainnet-beta",
       ammsToExclude,
-      marketUrl: "https://cache.jup.ag/markets?v=3",
     });
     const accountToAmmIdsMap = jupiter.getAccountToAmmIdsMap();
     const ammIdToAmmMap = jupiter.getAmmIdToAmmMap();

@@ -260,7 +260,7 @@ const AssetRow: FC<{
                     </Typography>
                     {`${percentFormatter.format(bankInfo.lendingRate)} Supply APY + ${percentFormatter.format(
                       bankInfo.emissionsRate
-                    )}% UXP rewards.`}
+                    )} UXP rewards.`}
                     <br />
                     <a href="https://docs.marginfi.com">
                       <u>Learn more.</u>
@@ -276,7 +276,7 @@ const AssetRow: FC<{
           <div
             className="w-[40%] flex justify-end"
             style={{
-              fontWeight: bankInfo.tokenName === "SOL" && isInLendingMode ? 500 : 400,
+              fontWeight: 400,
             }}
           >
             {percentFormatter.format(
@@ -305,7 +305,15 @@ const AssetRow: FC<{
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {numeralFormatter(isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.availableLiquidity)}
+        {
+          numeralFormatter(
+            isInLendingMode ?
+            bankInfo.totalPoolDeposits : 
+            Math.min(
+              bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
+            ) - bankInfo.totalPoolBorrows
+          )
+        }
       </TableCell>
 
       <TableCell

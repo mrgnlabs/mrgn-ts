@@ -35,7 +35,7 @@ class Liquidator {
     readonly jupiter: Jupiter,
     readonly account_whitelist: PublicKey[] | undefined,
     readonly account_blacklist: PublicKey[] | undefined
-  ) {}
+  ) { }
 
   get group() {
     return this.client.group;
@@ -272,10 +272,10 @@ class Liquidator {
     const nativeAmount = nativeToUi(
       mint.equals(NATIVE_MINT)
         ? Math.max(
-            (await this.connection.getBalance(this.wallet.publicKey)) -
-              (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
-            0
-          )
+          (await this.connection.getBalance(this.wallet.publicKey)) -
+          (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
+          0
+        )
         : 0,
       9
     );
@@ -378,7 +378,7 @@ class Liquidator {
       } else if (this.account_blacklist) {
         return this.account_blacklist.find((whitelistedAddress) => whitelistedAddress.equals(address)) === undefined;
       }
-      throw new Error("Uh uh. Either account whitelist or blacklist should have been provided.");
+      return true;
     });
     const addresses = shuffle(targetAccounts);
     debug("Found %s accounts in total", allAccounts.length);
