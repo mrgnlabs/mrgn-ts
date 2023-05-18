@@ -305,7 +305,7 @@ const AssetRow: FC<{
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {numeralFormatter(isInLendingMode ? bankInfo.totalPoolDeposits : bankInfo.availableLiquidity)}
+        {numeralFormatter(isInLendingMode ? bankInfo.totalPoolDeposits : Math.min(bankInfo.availableLiquidity, bankInfo.bank.config.borrowLimit ) )}
       </TableCell>
 
       <TableCell
