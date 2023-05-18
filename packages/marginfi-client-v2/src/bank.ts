@@ -82,6 +82,7 @@ class Bank {
       liabilityWeightInit: wrappedI80F48toBigNumber(rawData.config.liabilityWeightInit),
       liabilityWeightMaint: wrappedI80F48toBigNumber(rawData.config.liabilityWeightMaint),
       depositLimit: nativeToUi(rawData.config.depositLimit, this.mintDecimals),
+      borrowLimit: nativeToUi(rawData.config.borrowLimit, this.mintDecimals),
       oracleSetup: rawData.config.oracleSetup,
       oracleKeys: rawData.config.oracleKeys,
       interestRateConfig: {
@@ -135,7 +136,9 @@ Config:
 - Asset weight maint: ${this.config.assetWeightMaint.toFixed(2)}
 - Liability weight init: ${this.config.liabilityWeightInit.toFixed(2)}
 - Liability weight maint: ${this.config.liabilityWeightMaint.toFixed(2)}
-- Max capacity: ${this.config.depositLimit}
+
+- Deposit limit: ${this.config.depositLimit}
+- Borrow limit: ${this.config.borrowLimit}
 
 LTVs:
 - Initial: ${new BigNumber(1).div(this.config.liabilityWeightInit).times(100).toFixed(2)}%
@@ -316,6 +319,7 @@ export interface BankConfig {
   liabilityWeightMaint: BigNumber;
 
   depositLimit: number;
+  borrowLimit: number;
 
   interestRateConfig: InterestRateConfig;
 
