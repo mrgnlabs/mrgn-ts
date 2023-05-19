@@ -30,7 +30,7 @@ body {
 body {
   color: rgb(255, 255, 255);
   background-image: radial-gradient(farthest-side at 10% 10%, #171c1f 10%, #010101 80%);
-  /* background-color: #0F1111; */
+  background-color: #010101;
   background-size: cover;
   background-repeat: no-repeat;
   font-family: "Aeonik Pro";

@@ -13,6 +13,8 @@ import { WSOL_MINT } from "~/config";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import { lendZoomLevel } from '~/state';
+import { useRecoilValue } from 'recoil';
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
@@ -40,6 +42,7 @@ const AssetRow: FC<{
   reloadBanks: () => Promise<void>;
 }> = ({ bankInfo, nativeSolBalance, isInLendingMode, isConnected, marginfiAccount, marginfiClient, reloadBanks }) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
+  const zoomLevel = useRecoilValue(lendZoomLevel);
 
   // Reset b/l amounts on toggle
   useEffect(() => {
@@ -316,6 +319,51 @@ const AssetRow: FC<{
         }
       </TableCell>
 
+      {/*******************************/}
+      {/* [START]: ZOOM-BASED COLUMNS */}
+      {/*******************************/}
+
+      {
+        zoomLevel < 3 &&
+        <TableCell
+          className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
+          align="right"
+          style={{ fontWeight: 300 }}
+        >
+          {
+            numeralFormatter(
+              isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit
+            )
+          }
+        </TableCell>
+      }
+
+      {
+        zoomLevel < 4 &&
+        <TableCell
+          className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
+          align="right"
+          style={{ fontWeight: 300 }}
+        >
+          {
+            percentFormatter.format(bankInfo.utilizationRate / 100)
+          }
+          {/* {
+            numeralFormatter(
+              isInLendingMode ?
+              bankInfo.totalPoolDeposits : 
+              Math.min(
+                bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
+              ) - bankInfo.totalPoolBorrows
+            )
+          } */}
+        </TableCell>
+      }
+
+      {/*******************************/}
+      {/* [END]: ZOOM-BASED COLUMNS */}
+      {/*******************************/}
+
       <TableCell
         className="text-white border-none font-aeonik px-2 hidden lg:table-cell"
         align="right"
@@ -326,7 +374,7 @@ const AssetRow: FC<{
         )}
       </TableCell>
 
-      <TableCell className="border-none p-0 w-full" colSpan={2}>
+      <TableCell className="border-none p-0 w-full xl:px-4" colSpan={2}>
         <AssetRowInputBox
           value={borrowOrLendAmount}
           setValue={setBorrowOrLendAmount}

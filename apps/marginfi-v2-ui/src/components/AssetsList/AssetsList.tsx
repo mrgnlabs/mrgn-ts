@@ -11,12 +11,9 @@ import AssetRow from "./AssetRow";
 import { lendZoomLevel } from '~/state';
 import { useRecoilValue } from 'recoil';
 
-{/* Utilization */}
-{/* Total Borrows */}
+{/* Utilization */} // {/* Total Borrows */}
+{/* Deposit caps */} // {/* Borrow caps */}
 {/* USD values */}
-{/* Deposit caps */}
-{/* Borrow caps */}
-{/* Global vs. isolated pools */}
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -166,6 +163,68 @@ const AssetsList: FC = () => {
                     </HtmlTooltip>
                   </div>
                 </TableCell>
+
+                {/*******************************/}
+                {/* [START]: ZOOM-BASED COLUMNS */}
+                {/*******************************/}
+
+                {
+                  zoomLevel < 3 &&
+                    <TableCell
+                      className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
+                      style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                      align="right"
+                    >
+                      <div className="h-full w-full flex justify-end items-center gap-2">
+                        Global limit
+                        <HtmlTooltip
+                          title={
+                            <React.Fragment>
+                              <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                                {isInLendingMode ? "Global deposit cap" : "Global borrow cap"}
+                              </Typography>
+                                Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount that all users combined can deposit or borrow of a given token.
+                            </React.Fragment>
+                          }
+                          placement="top"
+                        >
+                          <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                        </HtmlTooltip>
+                      </div>
+                    </TableCell>
+                }
+
+                {
+                  zoomLevel < 4 &&
+                  <TableCell
+                    className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
+                    style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                    align="right"
+                  >
+                    <div className="h-full w-full flex justify-end items-center gap-2">
+                      Utilization
+                      <HtmlTooltip
+                        title={
+                          <React.Fragment>
+                            <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                              Pool utilization
+                            </Typography>
+                            What percentage of supplied tokens have been borrowed. Helps determine the pool's interest rates.
+                          </React.Fragment>
+                        }
+                        placement="top"
+                      >
+                        <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                      </HtmlTooltip>
+                    </div>
+                  </TableCell>
+                }                
+
+                {/*******************************/}
+                {/* [END]: ZOOM-BASED COLUMNS */}
+                {/*******************************/}
+
+
                 <TableCell
                   className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell"
                   style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
