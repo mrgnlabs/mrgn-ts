@@ -169,7 +169,7 @@ const AssetsList: FC = () => {
                 {/*******************************/}
 
                 {
-                  zoomLevel < 3 &&
+                  zoomLevel < 2 &&
                     <TableCell
                       className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
                       style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
@@ -195,7 +195,7 @@ const AssetsList: FC = () => {
                 }
 
                 {
-                  zoomLevel < 4 &&
+                  zoomLevel < 3 &&
                   <TableCell
                     className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}

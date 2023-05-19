@@ -4,9 +4,15 @@ import { atom } from 'recoil';
 
 const lendZoomLevel = atom({
   key: 'lendZoomLevel',
-  default: 4,
+  default: 3,
+})
+
+const denominationUSD = atom({
+  key: 'denominationUSD',
+  default: false,
 })
 
 export {
-  lendZoomLevel
+  lendZoomLevel,
+  denominationUSD
 }
