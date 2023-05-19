@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { ActionType, Emissions, ExtendedBankInfo, isActiveBankInfo } from "~/types";
 import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
-import { MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccount, MarginfiClient, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { Keypair, TransactionInstruction } from "@solana/web3.js";
 import { numeralFormatter, usdFormatter } from "~/utils/formatters";
 import { percentFormatter } from "~/utils/formatters";
@@ -13,6 +13,8 @@ import { WSOL_MINT } from "~/config";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import { lendZoomLevel, denominationUSD } from '~/state';
+import { useRecoilValue } from 'recoil';
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
@@ -40,6 +42,8 @@ const AssetRow: FC<{
   reloadBanks: () => Promise<void>;
 }> = ({ bankInfo, nativeSolBalance, isInLendingMode, isConnected, marginfiAccount, marginfiClient, reloadBanks }) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
+  const zoomLevel = useRecoilValue(lendZoomLevel);
+  const showUSD = useRecoilValue(denominationUSD);
 
   // Reset b/l amounts on toggle
   useEffect(() => {
@@ -230,15 +234,26 @@ const AssetRow: FC<{
         </div>
       </TableCell>
 
-      {/* usdFormatter.format(bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()) */}
-      {/* usdFormatter.format(bankInfo.bank.getPrice(PriceBias.Highest).toNumber()) */}
       <TableCell
-        className="text-white border-none px-2 font-aeonik hidden lg:table-cell"
+        className={
+          `text-white border-none px-2 font-aeonik hidden lg:table-cell ${
+            (bankInfo.tokenPrice > 999 && zoomLevel < 2) ? 'xl:text-xs xl:pl-0' : ''
+          }`
+        }
         align="right"
         style={{ fontWeight: 300 }}
       >
         {bankInfo.tokenPrice >= 0.01
-          ? usdFormatter.format(bankInfo.tokenPrice)
+          ?
+            zoomLevel < 2 ?
+            `${usdFormatter.format(bankInfo.tokenPrice)} ± ${
+              Math.max(
+                bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
+                bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+              ).toFixed(2)
+            }`
+            :
+            usdFormatter.format(bankInfo.tokenPrice)
           : `$${bankInfo.tokenPrice.toExponential(2)}`}
       </TableCell>
 
@@ -306,6 +321,19 @@ const AssetRow: FC<{
         style={{ fontWeight: 300 }}
       >
         {
+          showUSD ?
+            usdFormatter.format(
+              (
+                isInLendingMode ?
+                  bankInfo.totalPoolDeposits : 
+                  Math.min(
+                    bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
+                  ) - bankInfo.totalPoolBorrows
+              )
+              *
+              bankInfo.tokenPrice
+            )
+          :
           numeralFormatter(
             isInLendingMode ?
             bankInfo.totalPoolDeposits : 
@@ -316,17 +344,69 @@ const AssetRow: FC<{
         }
       </TableCell>
 
+      {/*******************************/}
+      {/* [START]: ZOOM-BASED COLUMNS */}
+      {/*******************************/}
+
+      {
+        zoomLevel < 2 &&
+        <TableCell
+          className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
+          align="right"
+          style={{ fontWeight: 300 }}
+        >
+          {
+            showUSD ?
+            usdFormatter.format(
+              (isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit)
+              *
+              bankInfo.tokenPrice
+            )
+            :
+            numeralFormatter(
+              isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit
+            )
+          }
+        </TableCell>
+      }
+
+      {
+        zoomLevel < 3 &&
+        <TableCell
+          className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
+          align="right"
+          style={{ fontWeight: 300 }}
+        >
+          {
+            percentFormatter.format(bankInfo.utilizationRate / 100)
+          }
+        </TableCell>
+      }
+
+      {/*******************************/}
+      {/* [END]: ZOOM-BASED COLUMNS */}
+      {/*******************************/}
+
       <TableCell
         className="text-white border-none font-aeonik px-2 hidden lg:table-cell"
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {numeralFormatter(
-          bankInfo.tokenMint.equals(WSOL_MINT) ? bankInfo.tokenBalance + nativeSolBalance : bankInfo.tokenBalance
-        )}
+        {
+          showUSD ?
+          usdFormatter.format(
+            (bankInfo.tokenMint.equals(WSOL_MINT) ? bankInfo.tokenBalance + nativeSolBalance : bankInfo.tokenBalance)
+            *
+            bankInfo.tokenPrice
+          )
+          :
+          numeralFormatter(
+            bankInfo.tokenMint.equals(WSOL_MINT) ? bankInfo.tokenBalance + nativeSolBalance : bankInfo.tokenBalance
+          )
+        }
       </TableCell>
 
-      <TableCell className="border-none p-0 w-full" colSpan={2}>
+      <TableCell className="border-none p-0 w-full xl:px-4" colSpan={2}>
         <AssetRowInputBox
           value={borrowOrLendAmount}
           setValue={setBorrowOrLendAmount}
