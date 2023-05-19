@@ -209,7 +209,7 @@ const AssetsList: FC = () => {
                             <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                               Pool utilization
                             </Typography>
-                            What percentage of supplied tokens have been borrowed. Helps determine the pool's interest rates.
+                            What percentage of supplied tokens have been borrowed. This helps determine interest rates. This is not based on the global pool limits, which can limit utilization.
                           </React.Fragment>
                         }
                         placement="top"

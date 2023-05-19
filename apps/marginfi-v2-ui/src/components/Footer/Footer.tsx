@@ -36,11 +36,11 @@ const Footer: FC = () => {
           <div className="w-1/3 max-w-[75px] h-full max-h-full justify-center items-center">
             <Slider defaultValue={4} step={1} min={0} max={4}
               sx={{ 
-                color: '#dce85d',
+                color: 'rgb(227, 227, 227)',
                 '& .MuiSlider-thumb': {
-                  boxShadow: '0 0 0 8px rgba(220, 232, 93, 0.04)',
+                  boxShadow: '0 0 0 8px rgba(227, 227, 227, 0.04)',
                   '&:hover': {
-                    boxShadow: '0 0 0 8px rgba(220, 232, 93, 0.08)',
+                    boxShadow: '0 0 0 8px rgba(227, 227, 227, 0.08)',
                   },
                 }
               }} 
