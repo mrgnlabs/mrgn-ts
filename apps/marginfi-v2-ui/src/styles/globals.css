@@ -1,7 +1,3 @@
-/* The globals.css file is currently in line with the default approach Next took.
-Let's leave for now - it's clean and provides ample room to scale the experience. */
-
-/* tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -16,24 +12,6 @@ Let's leave for now - it's clean and provides ample room to scale the experience
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
-}
-
-:root {
-  --max-width: 1152px; /* aligns with tailwind width for main content */
-  /* --background-start-rgb: 0, 0, 0; */
-  /* --background-end-rgb: 0, 0, 0; */
-
-  --primary-glow: radial-gradient(rgba(1, 65, 255, 0.4), rgba(1, 65, 255, 0));
-  --secondary-glow: linear-gradient(to bottom right, rgba(1, 65, 255, 0), rgba(1, 65, 255, 0), rgba(1, 65, 255, 0.3));
-
-  --tile-start-rgb: 2, 13, 46;
-  --tile-end-rgb: 2, 5, 19;
-  --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
-
-  --callout-rgb: 20, 20, 20;
-  --callout-border-rgb: 108, 108, 108;
-  --card-rgb: 100, 100, 100;
-  --card-border-rgb: 200, 200, 200;
 }
 
 * {
@@ -51,8 +29,8 @@ body {
 
 body {
   color: rgb(255, 255, 255);
-  background-color: #010101;
-  background-image: radial-gradient(farthest-side at 10% 10%, #171c1f 10%, #010101 160%);
+  background-image: radial-gradient(farthest-side at 10% 10%, #171c1f 10%, #010101 80%);
+  /* background-color: #0F1111; */
   background-size: cover;
   background-repeat: no-repeat;
   font-family: "Aeonik Pro";
@@ -62,205 +40,6 @@ body {
 a {
   color: inherit;
   text-decoration: none;
-}
-
-/* AEONIK PRO */
-
-@font-face {
-  font-family: "Aeonik Pro";
-  src: url(../assets/Aeonik_Pro/AeonikPro-Air.otf);
-  font-weight: 100;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Aeonik Pro";
-  src: url(../assets/Aeonik_Pro/AeonikPro-Thin.otf);
-  font-weight: 200;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Aeonik Pro";
-  src: url(../assets/Aeonik_Pro/AeonikPro-Light.otf);
-  font-weight: 300;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Aeonik Pro";
-  src: url(../assets/Aeonik_Pro/AeonikPro-Regular.otf);
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Aeonik Pro";
-  src: url(../assets/Aeonik_Pro/AeonikPro-Medium.otf);
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Aeonik Pro";
-  src: url(../assets/Aeonik_Pro/AeonikPro-Bold.otf);
-  font-weight: 600;
-  font-style: normal;
-}
-
-/* IBM Plex Sans */
-
-@font-face {
-  font-family: "IBM Plex Sans";
-  src: url(../assets/IBM_Plex_Sans/IBMPlexSans-Thin.ttf);
-  font-weight: 100;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "IBM Plex Sans";
-  src: url(../assets/IBM_Plex_Sans/IBMPlexSans-ExtraLight.ttf);
-  font-weight: 200;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "IBM Plex Sans";
-  src: url(../assets/IBM_Plex_Sans/IBMPlexSans-Light.ttf);
-  font-weight: 300;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "IBM Plex Sans";
-  src: url(../assets/IBM_Plex_Sans/IBMPlexSans-Regular.ttf);
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "IBM Plex Sans";
-  src: url(../assets/IBM_Plex_Sans/IBMPlexSans-Medium.ttf);
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "IBM Plex Sans";
-  src: url(../assets/IBM_Plex_Sans/IBMPlexSans-SemiBold.ttf);
-  font-weight: 600;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url(../assets/IBM_Plex_Mono/IBMPlexMono-Bold.ttf);
-  font-weight: 700;
-  font-style: normal;
-}
-
-/* IBM Plex Mono */
-
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url(../assets/IBM_Plex_Mono/IBMPlexMono-Thin.ttf);
-  font-weight: 100;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url(../assets/IBM_Plex_Mono/IBMPlexMono-ExtraLight.ttf);
-  font-weight: 200;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url(../assets/IBM_Plex_Mono/IBMPlexMono-Light.ttf);
-  font-weight: 300;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url(../assets/IBM_Plex_Mono/IBMPlexMono-Regular.ttf);
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url(../assets/IBM_Plex_Mono/IBMPlexMono-Medium.ttf);
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url(../assets/IBM_Plex_Mono/IBMPlexMono-SemiBold.ttf);
-  font-weight: 600;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url(../assets/IBM_Plex_Mono/IBMPlexMono-Bold.ttf);
-  font-weight: 700;
-  font-style: normal;
-}
-
-.border-SOL {
-  border-image: theme("borderImage.SOL");
-  border-image-slice: 1;
-}
-
-.border-USDC {
-  /* @apply border-2; */
-  border-image: theme("borderImage.USDC");
-  border-image-slice: 1;
-}
-
-.border-mSOL {
-  /* @apply border-2; */
-  border-image: theme("borderImage.mSOL");
-  border-image-slice: 1;
-}
-
-.border-BONK {
-  /* @apply border-2; */
-  border-image: theme("borderImage.BONK");
-  border-image-slice: 1;
-}
-
-.border-USDT {
-  /* @apply border-2; */
-  border-image: theme("borderImage.USDT");
-  border-image-slice: 1;
-}
-
-.border-ETH {
-  /* @apply border-2; */
-  border-image: theme("borderImage.ETH");
-  border-image-slice: 1;
-}
-
-.border-WBTC {
-  /* @apply border-2; */
-  border-image: theme("borderImage.WBTC");
-  border-image-slice: 1;
-}
-
-.border-JitoSOL {
-  /* @apply border-2; */
-  border-image: theme("borderImage.JitoSOL");
-  border-image-slice: 1;
-}
-
-.border-UXD {
-  /* @apply border-2; */
-  border-image: theme("borderImage.UXD");
-  border-image-slice: 1;
 }
 
 @keyframes pulse {

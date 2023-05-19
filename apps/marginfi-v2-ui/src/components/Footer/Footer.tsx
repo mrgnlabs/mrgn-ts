@@ -23,7 +23,7 @@ const Footer: FC = () => {
       <div
         className="fixed w-full bottom-0 h-[34px] z-20"
         style={{
-          backgroundColor: '#0F1111'
+          backgroundColor: '#010101'
         }}
       >
         <div

@@ -30,6 +30,8 @@ import { RecoilRoot } from 'recoil';
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
 require("~/styles/globals.css");
+require("~/styles/fonts.css");
+require("~/styles/asset-borders.css");
 
 // Matomo
 const MATOMO_URL = "https://mrgn.matomo.cloud";
