@@ -7,8 +7,7 @@ import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { MarginfiAccount, MarginfiClient, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { Keypair, TransactionInstruction } from "@solana/web3.js";
-import { numeralFormatter, usdFormatter } from "~/utils/formatters";
-import { percentFormatter } from "~/utils/formatters";
+import { numeralFormatter, usdFormatter, percentFormatter, groupedNumberFormatterDyn } from "~/utils/formatters";
 import { WSOL_MINT } from "~/config";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
@@ -334,6 +333,15 @@ const AssetRow: FC<{
               bankInfo.tokenPrice
             )
           :
+          zoomLevel < 2 ?
+          groupedNumberFormatterDyn.format(
+            isInLendingMode ?
+            bankInfo.totalPoolDeposits : 
+            Math.min(
+              bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
+            ) - bankInfo.totalPoolBorrows
+          )
+          :
           numeralFormatter(
             isInLendingMode ?
             bankInfo.totalPoolDeposits : 
@@ -361,6 +369,11 @@ const AssetRow: FC<{
               (isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit)
               *
               bankInfo.tokenPrice
+            )
+            :
+            zoomLevel < 2 ?
+            groupedNumberFormatterDyn.format(
+              isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit
             )
             :
             numeralFormatter(
