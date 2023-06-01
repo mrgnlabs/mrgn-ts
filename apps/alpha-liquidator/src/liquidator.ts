@@ -22,6 +22,8 @@ const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const MIN_SOL_BALANCE = env_config.MIN_SOL_BALANCE * LAMPORTS_PER_SOL;
 const SLIPPAGE_BPS = 10000;
 
+const EXCLUDE_ISOLATED_BANKS: boolean = process.env.EXCLUDE_ISOLATED_BANKS === "true";
+
 function getDebugLogger(context: string) {
   return require("debug")(`mfi:liquidator:${context}`);
 }
@@ -428,6 +430,12 @@ class Liquidator {
     for (let i = 0; i < marginfiAccount.activeBalances.length; i++) {
       const balance = marginfiAccount.activeBalances[i];
       const bank = group.getBankByPk(balance.bankPk)!;
+
+      if (EXCLUDE_ISOLATED_BANKS && bank.config.assetWeightInit.isEqualTo(0)) {
+        debug("Skipping isolated bank %s", bank.label);
+        continue;
+      }
+
       const maxLiabCoverage = liquidatorAccount.getMaxBorrowForBank(bank);
       const liquidatorLiabPayoffCapacityUsd = bank.getUsdValue(maxLiabCoverage, PriceBias.None, undefined, false);
       debug("Max borrow for bank: %d ($%d)", maxLiabCoverage, liquidatorLiabPayoffCapacityUsd);
@@ -459,6 +467,11 @@ class Liquidator {
     for (let i = 0; i < marginfiAccount.activeBalances.length; i++) {
       const balance = marginfiAccount.activeBalances[i];
       const bank = group.getBankByPk(balance.bankPk)!;
+
+      if (EXCLUDE_ISOLATED_BANKS && bank.config.assetWeightInit.isEqualTo(0)) {
+        debug("Skipping isolated bank %s", bank.label);
+        continue;
+      }
 
       const { assets: collateralUsdValue } = balance.getUsdValue(bank, MarginRequirementType.Equity);
       if (collateralUsdValue.gt(maxCollateralUsd)) {
