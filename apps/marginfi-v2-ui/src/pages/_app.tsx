@@ -13,7 +13,8 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { init, push } from "@socialgouv/matomo-next";
 import config from "../config";
-import { Navbar } from "~/components";
+import { Navbar, Footer } from "~/components";
+
 import {
   BanksStateProvider,
   ProgramProvider,
@@ -24,10 +25,13 @@ import {
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
+import { RecoilRoot } from 'recoil';
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
 require("~/styles/globals.css");
+require("~/styles/fonts.css");
+require("~/styles/asset-borders.css");
 
 // Matomo
 const MATOMO_URL = "https://mrgn.matomo.cloud";
@@ -69,12 +73,15 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                       <meta name="viewport" content="width=device-width, initial-scale=1" />
                       <link rel="icon" href="/favicon.ico" />
                     </Head>
+                    <RecoilRoot>
                     <Navbar />
                     <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
                       <Component {...pageProps} />
                       <Analytics />
                     </div>
+                    <Footer />
                     <ToastContainer position="bottom-left" theme="dark" />
+                    </RecoilRoot>
                   </UserAccountsProvider>
                 </TokenAccountsProvider>
               </BanksStateProvider>
