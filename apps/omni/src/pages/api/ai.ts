@@ -8,7 +8,7 @@ import path from "path";
 import fs from "fs";
 
 type Action = "deposit" | "borrow" | "stake" | "unstake" | null;
-type Token = "USDC" | "SOL" | "mSOL" | "BONK" | "USDT" | "ETH" | "WBTC" | "JitoSOL" | "UXD" | null;
+type Token = "USDC" | "SOL" | "mSOL" | "BONK" | "USDT" | "ETH" | "WBTC" | "JitoSOL" | "UXD" | "HNT" | null;
 
 interface ExtractVariablesOutput {
   action: Action;
@@ -20,7 +20,7 @@ const extractVariables = (sentence: string): ExtractVariablesOutput => {
   const actionRegex =
     /(lend|deposit|withdraw|borrow|repay|stake|unstake|superstake|unsuperstake|add|put|give|bring|submit|provide|contribute|take|get|withdrawal|retrieve|repayment|return|earn|gain|collect|dump|stuff|yank|stash|grab|cash-in|cash-out|bounce|withdraw-inate|deposit-ify|plunk|squirrel|park|nest-egg|sock-away|hoard|tuck-away|take out)/i;
   const amountRegex = /(\d+(?:\.\d+)?)/;
-  const tokenRegex = /(USDC|SOL|mSOL|BONK|USDT|ETH|WBTC|JITOSOL|UXD)/i;
+  const tokenRegex = /(USDC|SOL|mSOL|BONK|USDT|ETH|WBTC|JITOSOL|UXD|HNT)/i;
 
   const actionMatch = sentence.match(actionRegex);
   const amountMatch = sentence.match(amountRegex);
@@ -183,9 +183,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     response = {
       output: `
-        It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
-        walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
-      }
+        It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
+        }
       `,
       data: walletPublicKey && {
         action: result.action,
@@ -216,9 +215,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         response = {
           output: `
-            It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${
-            walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
-          }`,
+            It sounds like you want to ${actionDisplayed} ${result.amount} ${result.token}. ${walletPublicKey ? "I'm setting up a transaction for you." : "Connect your wallet and let's get started."
+            }`,
           data: walletPublicKey && {
             action: result.action,
             amount: result.amount,

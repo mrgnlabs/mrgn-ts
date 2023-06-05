@@ -119,5 +119,16 @@
     "extensions": {
       "coingeckoId": ""
     }
+  },
+  {
+    "address": "JBcir4DPRPYVUpks9hkS1jtHMXejfeBo4xJGv3AYYHg6",
+    "chainId": 101,
+    "decimals": 6,
+    "name": "Helium Network Token",
+    "symbol": "HNT",
+    "logoURI": "/hnt.png",
+    "extensions": {
+      "coingeckoId": ""
+    }
   }
 ]
