@@ -23,8 +23,11 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+console.log({ db })
 
-const getPoints = async ({ wallet }:{ wallet: any }) => {
+const getPoints = async ({ wallet }:{ wallet: string | undefined }) => {
+  if (!wallet) return;
+
   const basePath = "transferConfigs/6494a219-0000-22b3-836f-94eb2c062932/runs";
   const docRef = doc(
     db, 
@@ -35,6 +38,7 @@ const getPoints = async ({ wallet }:{ wallet: any }) => {
   if (docSnap.exists()) {
     // get latest run id
     const latestRunId = docSnap.data().latestRunId;
+    
     // get collection from latest run
     const q = query(
       collection(
@@ -44,17 +48,23 @@ const getPoints = async ({ wallet }:{ wallet: any }) => {
       where(
         "owner",
         "==",
-        wallet.publicKey
+        wallet
       )
     )
     const querySnapshot = await getDocs(q);
 
     // we should have a points data object here
     const pointsData = querySnapshot.docs[0].data();
-    return pointsData;
+    const points = {
+      owner: pointsData.owner,
+      deposit_points: pointsData.total_deposit_points.toFixed(4),
+      borrow_points: pointsData.total_borrow_points.toFixed(4),
+      total: (pointsData.total_deposit_points + pointsData.total_borrow_points).toFixed(4)
+    }    
+    return points;
   } else {
     console.log("No such document!");
-    return null;
+    return;
   }
 }
 
@@ -62,6 +72,7 @@ type Points = {
   owner: string;
   deposit_points: number;
   borrow_points: number;
+  total: number;
 } | null;
 
 
@@ -71,15 +82,18 @@ const Navbar: FC = () => {
   const [points, setPoints] = useState<Points>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const pointsData = await getPoints(wallet) as Points;
-      if (pointsData) {
-        setPoints(pointsData);
-      }
-    };
-  
-    fetchData();
-  }, []);  
+    if (wallet.publicKey?.toBase58()) {
+      const fetchData = async () => {
+        const pointsData = await getPoints({ wallet: wallet.publicKey?.toBase58()} );
+        // @ts-ignore
+        if (pointsData) {
+          setPoints(pointsData);
+        }
+      };
+    
+      fetchData();
+    }    
+  }, [wallet.publicKey?.toBase58()]);  
 
   return (
     <header>
@@ -124,13 +138,24 @@ const Navbar: FC = () => {
           </div>
           <div className="h-full flex justify-center items-center gap-4 z-10">
             {
-              points && points.deposit_points &&
+              points && points.total &&
               <Link href={"https://marginfi.canny.io/mrgnlend"} className="hidden sm:block">
                 <Button
                   className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
                   variant="text"
                 >
-                  {points.deposit_points}
+                  {`🎁 ${points.total}`}
+                </Button>
+              </Link>
+            }
+            {
+              points && points.borrow_points &&
+              <Link href={"https://marginfi.canny.io/mrgnlend"} className="hidden sm:block">
+                <Button
+                  className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
+                  variant="text"
+                >
+                  {points.borrow_points}
                 </Button>
               </Link>
             }
