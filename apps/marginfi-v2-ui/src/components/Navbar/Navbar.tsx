@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { NavbarCenterItem } from "./NavbarCenterItem";
@@ -7,9 +7,79 @@ import { WalletButton } from "./WalletButton";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "@mui/material";
 
+// Firebase - should be moved to a global location medium term
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { doc, collection, query, where, getDocs, getDoc } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBPAKOn7YKvEHg6iXTRbyZws3G4kPhWjtQ",
+  authDomain: "marginfi-dev.firebaseapp.com",
+  projectId: "marginfi-dev",
+  storageBucket: "marginfi-dev.appspot.com",
+  messagingSenderId: "509588742572",
+  appId: "1:509588742572:web:18d74a3ace2f3aa2071a09"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const getPoints = async ({ wallet }:{ wallet: any }) => {
+  const basePath = "transferConfigs/6494a219-0000-22b3-836f-94eb2c062932/runs";
+  const docRef = doc(
+    db, 
+    basePath,
+    "latest"
+  );
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    // get latest run id
+    const latestRunId = docSnap.data().latestRunId;
+    // get collection from latest run
+    const q = query(
+      collection(
+        db,
+        `${basePath}/${latestRunId}/output`
+      ),
+      where(
+        "owner",
+        "==",
+        wallet.publicKey
+      )
+    )
+    const querySnapshot = await getDocs(q);
+
+    // we should have a points data object here
+    const pointsData = querySnapshot.docs[0].data();
+    return pointsData;
+  } else {
+    console.log("No such document!");
+    return null;
+  }
+}
+
+type Points = {
+  owner: string;
+  deposit_points: number;
+  borrow_points: number;
+} | null;
+
+
 // @todo implement second pretty navbar row
 const Navbar: FC = () => {
   const wallet = useWallet();
+  const [points, setPoints] = useState<Points>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const pointsData = await getPoints(wallet) as Points;
+      if (pointsData) {
+        setPoints(pointsData);
+      }
+    };
+  
+    fetchData();
+  }, []);  
 
   return (
     <header>
@@ -53,7 +123,18 @@ const Navbar: FC = () => {
             </div>
           </div>
           <div className="h-full flex justify-center items-center gap-4 z-10">
-            <Link href={"https://marginfi.canny.io/mrgnlend"} className="hidden sm:visible">
+            {
+              points && points.deposit_points &&
+              <Link href={"https://marginfi.canny.io/mrgnlend"} className="hidden sm:block">
+                <Button
+                  className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
+                  variant="text"
+                >
+                  {points.deposit_points}
+                </Button>
+              </Link>
+            }
+            <Link href={"https://marginfi.canny.io/mrgnlend"} className="hidden sm:block">
               <Button
                 className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
                 variant="text"
