@@ -15,17 +15,11 @@ import { init, push } from "@socialgouv/matomo-next";
 import config from "../config";
 import { Navbar, Footer } from "~/components";
 
-import {
-  BanksStateProvider,
-  ProgramProvider,
-  TokenAccountsProvider,
-  TokenMetadataProvider,
-  UserAccountsProvider,
-} from "~/context";
+import { BanksStateProvider, ProgramProvider, TokenAccountsProvider, UserAccountsProvider } from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-import { RecoilRoot } from 'recoil';
+import { RecoilRoot } from "recoil";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -63,17 +57,16 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <ProgramProvider>
-            <TokenMetadataProvider>
-              <BanksStateProvider>
-                <TokenAccountsProvider>
-                  <UserAccountsProvider>
-                    <Head>
-                      <title>marginfi</title>
-                      <meta name="description" content="marginfi v2 UI" />
-                      <meta name="viewport" content="width=device-width, initial-scale=1" />
-                      <link rel="icon" href="/favicon.ico" />
-                    </Head>
-                    <RecoilRoot>
+            <BanksStateProvider>
+              <TokenAccountsProvider>
+                <UserAccountsProvider>
+                  <Head>
+                    <title>marginfi</title>
+                    <meta name="description" content="marginfi v2 UI" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1" />
+                    <link rel="icon" href="/favicon.ico" />
+                  </Head>
+                  <RecoilRoot>
                     <Navbar />
                     <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
                       <Component {...pageProps} />
@@ -81,11 +74,10 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                     </div>
                     <Footer />
                     <ToastContainer position="bottom-left" theme="dark" />
-                    </RecoilRoot>
-                  </UserAccountsProvider>
-                </TokenAccountsProvider>
-              </BanksStateProvider>
-            </TokenMetadataProvider>
+                  </RecoilRoot>
+                </UserAccountsProvider>
+              </TokenAccountsProvider>
+            </BanksStateProvider>
           </ProgramProvider>
         </WalletModalProvider>
       </WalletProvider>

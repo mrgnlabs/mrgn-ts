@@ -121,12 +121,12 @@
     }
   },
   {
-    "address": "JBcir4DPRPYVUpks9hkS1jtHMXejfeBo4xJGv3AYYHg6",
+    "address": "hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux",
     "chainId": 101,
-    "decimals": 6,
+    "decimals": 8,
     "name": "Helium Network Token",
     "symbol": "HNT",
-    "logoURI": "/hnt.png",
+    "logoURI": "https://shdw-drive.genesysgo.net/6tcnBSybPG7piEDShBcrVtYJDPSvGrDbVvXmXKpzBvWP/hnt.png",
     "extensions": {
       "coingeckoId": ""
     }

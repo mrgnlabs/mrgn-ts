@@ -1,9 +1,10 @@
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 import { array, assert, Infer, number, object, string } from "superstruct";
 import { TokenMetadata } from "~/types";
 import tokenInfos from "../assets/token_info.json";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { Metadata, PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
 export function floor(value: number, decimals: number): number {
   return Math.floor(value * 10 ** decimals) / 10 ** decimals;
@@ -51,11 +52,68 @@ function parseTokenMetadatas(tokenMetadataListRaw: TokenMetadataListRaw): {
   );
 }
 
-export function loadTokenMetadatas(): {
+export async function loadTokenMetadatas(
+  mints: PublicKey[],
+  connection: Connection
+): Promise<{
   [symbol: string]: TokenMetadata;
-} {
+}> {
   assert(tokenInfos, TokenMetadataList);
-  return parseTokenMetadatas(tokenInfos);
+  const missingTokens = mints.filter((mint) => !tokenInfos.some(({ address: mint2 }) => mint.toString() === mint2));
+  const missingTokensMetadata = await fetchTokenMetadata(missingTokens, connection);
+
+  return parseTokenMetadatas(tokenInfos.concat(missingTokensMetadata));
+}
+
+export async function fetchTokenMetadata(mints: PublicKey[], connection: Connection) {
+  const mintPdas = mints.map(
+    (mint) =>
+      PublicKey.findProgramAddressSync([Buffer.from("metadata"), PROGRAM_ID.toBuffer(), mint.toBuffer()], PROGRAM_ID)[0]
+  );
+
+  const tokensMetadataJson = Object.fromEntries(
+    (
+      await Promise.all(
+        mintPdas
+          .map((mintPda, idx) =>
+            Metadata.fromAccountAddress(connection, mintPda).then((tokenMetadata) =>
+              fetch(tokenMetadata.data.uri).then((tokenMetadataRaw) => tokenMetadataRaw.json())
+            )
+          )
+          .map((p) => p.catch((e) => undefined))
+      )
+    ).map((tokenMetaData, idx) => [mints[idx].toString(), tokenMetaData])
+  );
+
+  const tokenDecimals = Object.fromEntries(
+    (await Promise.all(mints.map((mint) => connection.getTokenSupply(mint).then((v) => v.value.decimals)))).map(
+      (tokenSupply, idx) => [mints[idx].toString(), tokenSupply]
+    )
+  );
+
+  const tokensMetadataParsed = Object.keys(tokensMetadataJson).flatMap((mint) => {
+    const tokenMetadata = tokensMetadataJson[mint];
+
+    if (!tokenMetadata) {
+      console.error(`details for mint ${mint} not found`);
+    }
+
+    return tokenMetadata
+      ? ({
+          symbol: tokenMetadata.symbol,
+          address: mint,
+          chainId: 101,
+          decimals: tokenDecimals[mint],
+          name: tokenMetadata.name,
+          logoURI: tokenMetadata.image,
+          extensions: { coingeckoId: "" },
+        } as TokenMetadataRaw)
+      : [];
+  });
+
+  assert(tokensMetadataParsed, TokenMetadataList);
+
+  return tokensMetadataParsed;
 }
 
 // ================ development utils ================
