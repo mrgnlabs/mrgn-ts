@@ -29,7 +29,7 @@ const BanksStateProvider: FC<{
   const [bankInfos, setBankInfos] = useState<BankInfo[]>([]);
 
   const reload = useCallback(async () => {
-    if (mfiClientReadonly === null) return;
+    if (mfiClientReadonly === null || !tokenMetadataMap) return;
 
     setFetching(true);
     try {
