@@ -51,11 +51,25 @@ function parseTokenMetadatas(tokenMetadataListRaw: TokenMetadataListRaw): {
   );
 }
 
-export function loadTokenMetadatas(): {
+export async function loadTokenMetadatas(): Promise<{
   [symbol: string]: TokenMetadata;
-} {
-  assert(tokenInfos, TokenMetadataList);
-  return parseTokenMetadatas(tokenInfos);
+}> {
+  const response = await fetch(`https://storage.googleapis.com/mrgn-public/mrgn-token-metadata-cache.json`, {
+    headers: {
+      Accept: "application/json",
+    },
+    method: "GET",
+  });
+
+  const responseBody = await response.json();
+  if (responseBody.success) {
+    const responseData = responseBody.data.value;
+    assert(responseData, TokenMetadataList);
+    return parseTokenMetadatas(responseData);
+  } else {
+    assert(tokenInfos, TokenMetadataList);
+    return parseTokenMetadatas(tokenInfos);
+  }
 }
 
 // ================ development utils ================
