@@ -56,3 +56,9 @@
   border-image: theme("borderImage.HNT");
   border-image-slice: 1;
 }
+
+.border-stSOL {
+  /* @apply border-2; */
+  border-image: theme("borderImage.stSOL");
+  border-image-slice: 1;
+}

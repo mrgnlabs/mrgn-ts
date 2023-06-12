@@ -130,5 +130,16 @@
     "extensions": {
       "coingeckoId": ""
     }
+  },
+  {
+    "address": "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj",
+    "chainId": 101,
+    "decimals": 9,
+    "name": "Lido Staked SOL",
+    "symbol": "stSOL",
+    "logoURI": "/stSOL.png",
+    "extensions": {
+      "coingeckoId": ""
+    }
   }
 ]

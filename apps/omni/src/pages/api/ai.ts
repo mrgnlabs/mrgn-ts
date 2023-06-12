@@ -8,7 +8,7 @@ import path from "path";
 import fs from "fs";
 
 type Action = "deposit" | "borrow" | "stake" | "unstake" | null;
-type Token = "USDC" | "SOL" | "mSOL" | "BONK" | "USDT" | "ETH" | "WBTC" | "JitoSOL" | "UXD" | "HNT" | null;
+type Token = "USDC" | "SOL" | "mSOL" | "BONK" | "USDT" | "ETH" | "WBTC" | "JitoSOL" | "UXD" | "HNT" | "stSOL" | null;
 
 interface ExtractVariablesOutput {
   action: Action;
@@ -20,7 +20,7 @@ const extractVariables = (sentence: string): ExtractVariablesOutput => {
   const actionRegex =
     /(lend|deposit|withdraw|borrow|repay|stake|unstake|superstake|unsuperstake|add|put|give|bring|submit|provide|contribute|take|get|withdrawal|retrieve|repayment|return|earn|gain|collect|dump|stuff|yank|stash|grab|cash-in|cash-out|bounce|withdraw-inate|deposit-ify|plunk|squirrel|park|nest-egg|sock-away|hoard|tuck-away|take out)/i;
   const amountRegex = /(\d+(?:\.\d+)?)/;
-  const tokenRegex = /(USDC|SOL|mSOL|BONK|USDT|ETH|WBTC|JITOSOL|UXD|HNT)/i;
+  const tokenRegex = /(USDC|SOL|mSOL|BONK|USDT|ETH|WBTC|JITOSOL|UXD|HNT|STSOL)/i;
 
   const actionMatch = sentence.match(actionRegex);
   const amountMatch = sentence.match(amountRegex);
