@@ -24,6 +24,7 @@ const WalletButton: FC = () => {
       //@ts-ignore
       wallet.signMessage(encodedMessage)
         .then((signature) => {
+          const base64Signature = Buffer.from(signature).toString('base64');
           // Now we have the signature, send this back to your server
           return fetch('/api/authUser', {
             method: 'POST',
@@ -32,7 +33,7 @@ const WalletButton: FC = () => {
             },
             body: JSON.stringify({
               publicKey: wallet?.publicKey?.toBase58(),
-              signature,
+              signature: base64Signature,
               uuid,
             }),
           });
