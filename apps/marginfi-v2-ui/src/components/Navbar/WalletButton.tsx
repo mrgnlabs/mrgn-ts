@@ -14,6 +14,7 @@ const WalletButton: FC = () => {
 
   useEffect(() => {
     if (wallet.connected) {
+      console.log('authenticating user - client side');
       // When the wallet is connected, we send the public key to our endpoint to authenticate or create the user
       fetch('/api/authUser', {
         method: 'POST',

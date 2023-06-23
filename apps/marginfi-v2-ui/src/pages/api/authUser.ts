@@ -1,4 +1,4 @@
-// pages/api/authUser.ts
+import type { NextApiRequest, NextApiResponse } from "next";
 import * as admin from 'firebase-admin';
 
 // Check if the app is already initialized to avoid initializing multiple times
@@ -13,7 +13,8 @@ if (!admin.apps.length) {
   });
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log('authenticating user');
   const { publicKey } = req.body;
 
   if (!publicKey) {
