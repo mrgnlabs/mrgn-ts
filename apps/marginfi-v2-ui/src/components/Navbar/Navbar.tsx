@@ -41,8 +41,14 @@ const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
     return points;
   } else {
     // docSnap.data() will be undefined in this case
-    console.log("No such document!");
-    return;
+    console.log("No points record for this wallet.");
+    // return a points object with all fields set to zero
+    return {
+      owner: wallet,
+      deposit_points: 0,
+      borrow_points: 0,
+      total: 0
+    };
   }
 }
 
@@ -59,9 +65,11 @@ const Navbar: FC = () => {
   const wallet = useWallet();
   const [points, setPoints] = useState<Points>(null);
   const [user, setUser] = useState<null | string>(null);
+  console.log({ user });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log('detected auth change');
       setUser(user?.uid || null);
     });
 
@@ -72,6 +80,7 @@ const Navbar: FC = () => {
   useEffect(() => {
     if (user && wallet.publicKey?.toBase58()) {
       const fetchData = async () => {
+        console.log('fetching data');
         const pointsData = await getPoints({ wallet: wallet.publicKey?.toBase58() });
         if (pointsData) {
           setPoints(pointsData);
@@ -125,10 +134,10 @@ const Navbar: FC = () => {
           </div>
           <div className="h-full flex justify-center items-center gap-4 z-10">
             {
-              points && points.total &&
+              points &&
               <Link href={"https://marginfi.canny.io/mrgnlend"} className="hidden sm:block">
                 <Button
-                  className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
+                  className="h-full w-1/4 min-w-[140px] max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
                   variant="text"
                 >
                   {`🎁 ${points.total}`}

@@ -75,7 +75,10 @@ export default async function handler(req: any, res: any) {
   // Log successful login attempt
   await logAttempt(publicKey, uuid, signature, true);
 
+  // Generate a custom token for the client to sign in
+  const customToken = await admin.auth().createCustomToken(publicKey);
+
   // At this point, either the user already existed, or a new user was created.
-  // Respond with success.
-  res.status(200).json({ status: 'success', uid: publicKey });
+  // Respond with success and custom token.
+  res.status(200).json({ status: 'success', uid: publicKey, token: customToken });
 }
