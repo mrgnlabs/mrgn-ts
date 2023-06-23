@@ -7,10 +7,10 @@ import { WalletButton } from "./WalletButton";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "@mui/material";
 
-// Firebase - should be moved to a global location medium term
+// Firebase
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { doc, collection, query, where, getDocs, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBPAKOn7YKvEHg6iXTRbyZws3G4kPhWjtQ",
@@ -23,7 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-console.log({ db })
+const auth = getAuth(app);
 
 const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
   if (!wallet) return;
@@ -58,12 +58,21 @@ type Points = {
 const Navbar: FC = () => {
   const wallet = useWallet();
   const [points, setPoints] = useState<Points>(null);
+  const [user, setUser] = useState<null | string>(null);
 
   useEffect(() => {
-    if (wallet.publicKey?.toBase58()) {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user?.uid || null);
+    });
+
+    return () => unsubscribe();
+
+  }, [auth]);
+
+  useEffect(() => {
+    if (user && wallet.publicKey?.toBase58()) {
       const fetchData = async () => {
         const pointsData = await getPoints({ wallet: wallet.publicKey?.toBase58() });
-        // @ts-ignore
         if (pointsData) {
           setPoints(pointsData);
         }
@@ -71,7 +80,7 @@ const Navbar: FC = () => {
 
       fetchData();
     }
-  }, [wallet.publicKey?.toBase58()]);
+  }, [user, wallet.publicKey?.toBase58()]);
 
   return (
     <header>
