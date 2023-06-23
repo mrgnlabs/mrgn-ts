@@ -25,44 +25,22 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 console.log({ db })
 
-const getPoints = async ({ wallet }:{ wallet: string | undefined }) => {
+const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
   if (!wallet) return;
 
-  const basePath = "transferConfigs/6494a219-0000-22b3-836f-94eb2c062932/runs";
-  const docRef = doc(
-    db, 
-    basePath,
-    "latest"
-  );
+  const docRef = doc(db, "points", wallet);
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
-    // get latest run id
-    const latestRunId = docSnap.data().latestRunId;
-    
-    // get collection from latest run
-    const q = query(
-      collection(
-        db,
-        `${basePath}/${latestRunId}/output`
-      ),
-      where(
-        "owner",
-        "==",
-        wallet
-      )
-    )
-    const querySnapshot = await getDocs(q);
-
-    // we should have a points data object here
-    const pointsData = querySnapshot.docs[0].data();
+    const pointsData = docSnap.data();
     const points = {
       owner: pointsData.owner,
       deposit_points: pointsData.total_deposit_points.toFixed(4),
       borrow_points: pointsData.total_borrow_points.toFixed(4),
       total: (pointsData.total_deposit_points + pointsData.total_borrow_points).toFixed(4)
-    }    
+    }
     return points;
   } else {
+    // docSnap.data() will be undefined in this case
     console.log("No such document!");
     return;
   }
@@ -84,16 +62,16 @@ const Navbar: FC = () => {
   useEffect(() => {
     if (wallet.publicKey?.toBase58()) {
       const fetchData = async () => {
-        const pointsData = await getPoints({ wallet: wallet.publicKey?.toBase58()} );
+        const pointsData = await getPoints({ wallet: wallet.publicKey?.toBase58() });
         // @ts-ignore
         if (pointsData) {
           setPoints(pointsData);
         }
       };
-    
+
       fetchData();
-    }    
-  }, [wallet.publicKey?.toBase58()]);  
+    }
+  }, [wallet.publicKey?.toBase58()]);
 
   return (
     <header>

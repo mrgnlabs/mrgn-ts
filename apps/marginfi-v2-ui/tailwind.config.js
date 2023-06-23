@@ -21,6 +21,8 @@ module.exports = {
         WBTC: "linear-gradient(to top right, #E58C2C, #FFFFFF)",
         JitoSOL: "linear-gradient(to top right, #659C7B, #FFFFFF)",
         UXD: "linear-gradient(to top right, #60746E, #FFFFFF)",
+        HNT: "linear-gradient(to top right, #474DFF, #FFFFFF)",
+        stSOL: "linear-gradient(to top right, #11B5FF, #FFFFFF)",
       },
       colors: {
         "usd-equiv": "rgba(113, 119, 126, 0.3)",
@@ -39,7 +41,7 @@ module.exports = {
     },
   },
   plugins: [
-    plugin(function ({ addUtilities }) {
+    plugin(function({ addUtilities }) {
       addUtilities({
         ".invisible-scroll": {
           "content-visibility": "auto",
