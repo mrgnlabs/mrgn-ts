@@ -1,10 +1,9 @@
 import dynamic from "next/dynamic";
-import { FC, useEffect } from "react";
-import Image from "next/image";
-import styles from "./Navbar.module.css";
+import { FC, useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { v4 as uuidv4 } from "uuid";
 import { getAuth, signOut, signInWithCustomToken } from "firebase/auth";
+import { SigningDialogBox } from './SigningDialogBox';
 
 const WalletMultiButtonDynamic = dynamic(
   async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
@@ -12,6 +11,8 @@ const WalletMultiButtonDynamic = dynamic(
 );
 
 const WalletButton: FC = () => {
+  const [signingDialogBoxOpen, setSigningDialogBoxOpen] = useState(false)
+
   const wallet = useWallet();
   const auth = getAuth();
 
@@ -25,7 +26,8 @@ const WalletButton: FC = () => {
           console.log("Error signing out:", error);
         });
     } else if (wallet && wallet.connected && wallet.publicKey) {
-      console.log('authenticating user - client side');
+
+      setSigningDialogBoxOpen(true);
 
       const uuid = uuidv4();
       const encodedMessage = new TextEncoder().encode(uuid);
@@ -83,11 +85,14 @@ const WalletButton: FC = () => {
   }, [wallet.connected]);
 
   return (
-    <WalletMultiButtonDynamic
-      className={`${wallet.connected ? "glow-on-hover" : "glow"} bg-transparent px-0 font-aeonik font-[500]`}
-    >
-      {!wallet.connected && "CONNECT"}
-    </WalletMultiButtonDynamic>
+    <div>
+      <WalletMultiButtonDynamic
+        className={`${wallet.connected ? "glow-on-hover" : "glow"} bg-transparent px-0 font-aeonik font-[500]`}
+      >
+        {!wallet.connected && "CONNECT"}
+      </WalletMultiButtonDynamic>
+      <SigningDialogBox open={signingDialogBoxOpen} setOpen={setSigningDialogBoxOpen} />
+    </div>
   );
 };
 
