@@ -1,11 +1,9 @@
 import { FC, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { NavbarCenterItem } from "./NavbarCenterItem";
 import AirdropZone from "./AirdropZone";
 import { WalletButton } from "./WalletButton";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Button } from "@mui/material";
 
 // Firebase
 import { initializeApp } from "firebase/app";
@@ -65,7 +63,6 @@ const Navbar: FC = () => {
   const wallet = useWallet();
   const [points, setPoints] = useState<Points>(null);
   const [user, setUser] = useState<null | string>(null);
-  console.log({ user });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -93,70 +90,56 @@ const Navbar: FC = () => {
 
   return (
     <header>
-      <nav className="fixed w-full top-0 h-[72px] sm:h-[64px] z-20 backdrop-blur-md">
-        <div
-          className="w-full top-0 flex justify-between items-center h-[72px] sm:h-[64px] text-2xl z-10"
-          style={{
-            border: "solid #1C2125 1px",
-            padding: "0 15px",
-          }}
-        >
-          <div className="h-full relative flex justify-start items-center z-10">
-            <Link href={"/"} className="relative w-[28.02px] h-[24.81px] mr-4 z-10">
-              <Image src="/marginfi_logo.png" alt="marginfi logo" fill />
+      <nav
+        className="fixed w-full top-0 h-[64px] z-20 backdrop-blur-md"
+      >
+        <div className="w-full top-0 flex justify-between items-center h-16 text-2xl z-10 border-b-[0.5px] border-[#1C2125] px-4">
+          <div
+            className="h-full w-1/2 flex justify-start items-center z-10 text-base font-[500] gap-4 lg:gap-8"
+          >
+            <Link href={"https://app.marginfi.com"} className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center">
+              <Image src="/marginfi_logo.png" alt="marginfi logo" height={35.025} width={31.0125} />
             </Link>
+
+            <Link href={"/"} className="glow-on-hover hidden md:block">
+              lend
+            </Link>
+
+            <Link href={"/swap"} className="glow-on-hover">
+              swap
+            </Link>
+
+            <Link href={"/earn"} className="glow-on-hover">
+              earn
+            </Link>
+
+            <Link href={"https://omni.marginfi.com"} className="glow-on-hover">
+              omni
+            </Link>
+
+            {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && wallet.connected && <AirdropZone />}
           </div>
-          <div className="absolute fixed left-0 right-0 flex justify-center items-center w-full h-full invisible lg:visible">
-            <div className="h-full w-[33%] flex min-w-fit max-w-[600px] justify-center items-center">
-              <Link href={"/earn"} className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0">
-                <NavbarCenterItem text="Earn!" icon />
-              </Link>
-              <Link
-                href={"https://app.marginfi.com"}
-                className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0"
-              >
-                <NavbarCenterItem text="Lend" />
-              </Link>
-              <Link
-                href={"https://app.marginfi.com/swap"}
-                className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0"
-              >
-                <NavbarCenterItem text="Swap" />
-              </Link>
-              <Link
-                href={"https://omni.marginfi.com"}
-                className="h-full w-1/4 min-w-1/4 max-w-1/4 flex justify-center items-center p-0"
-              >
-                <NavbarCenterItem text="Omni" />
-              </Link>
-              {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && <AirdropZone />}
-            </div>
-          </div>
-          <div className="h-full flex justify-center items-center gap-4 z-10">
+
+          <div
+            className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[500] gap-4 lg:gap-8"
+          >
+
             {
-              points &&
-              <Link href={"https://marginfi.canny.io/mrgnlend"} className="hidden sm:block">
-                <Button
-                  className="h-full w-1/4 min-w-[140px] max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
-                  variant="text"
-                >
-                  {`🎁 ${points.total}`}
-                </Button>
+              wallet.connected && user && points &&
+              <Link href={"/"} className="glow whitespace-nowrap">
+                {`${points.total} points`}
               </Link>
             }
-            <Link href={"https://marginfi.canny.io/mrgnlend"} className="hidden sm:block">
-              <Button
-                className="h-full w-1/4 min-w-fit max-w-1/4 text-sm flex justify-center items-center normal-case rounded-2xl bg-gradient-to-r to-[#FFF3D0] from-[#C5B893] text-black px-4"
-                variant="text"
-              >
-                Submit Feedback
-              </Button>
+
+            <Link href={"https://marginfi.canny.io/mrgnlend"} className="glow-on-hover whitespace-nowrap hidden md:block">
+              build marginfi
             </Link>
+
             <WalletButton />
           </div>
         </div>
       </nav>
-    </header>
+    </header >
   );
 };
 

@@ -84,8 +84,7 @@ const WalletButton: FC = () => {
 
   return (
     <WalletMultiButtonDynamic
-      className={styles["wallet-button"]}
-      startIcon={<Image src="/wallet_icon.svg" alt="wallet icon" width={18.9} height={18.9} />}
+      className={`${wallet.connected ? "glow-on-hover" : "glow"} bg-transparent px-0`}
     >
       {!wallet.connected && "CONNECT"}
     </WalletMultiButtonDynamic>

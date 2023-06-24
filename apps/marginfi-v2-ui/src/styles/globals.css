@@ -60,3 +60,13 @@ a {
 .pulse {
   animation: pulse 1.8s infinite;
 }
+
+.glow-on-hover:hover {
+  text-shadow: 0 0 10px #DCE85D, 0 0 30px #DCE85D;
+  color: #DCE85D;
+}
+
+.glow {
+  text-shadow: 0 0 10px #DCE85D, 0 0 30px #DCE85D;
+  color: #DCE85D;
+}
