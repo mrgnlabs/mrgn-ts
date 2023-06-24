@@ -25,7 +25,7 @@ const WalletButton: FC = () => {
         .catch((error) => {
           console.log("Error signing out:", error);
         });
-    } else if (wallet && wallet.connected && wallet.publicKey) {
+    } else if (wallet && wallet.connected && wallet.publicKey && (!auth.currentUser || wallet.publicKey.toBase58() != auth.currentUser.uid)) {
 
       setSigningDialogBoxOpen(true);
 
