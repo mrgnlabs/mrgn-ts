@@ -84,7 +84,7 @@ const WalletButton: FC = () => {
 
   return (
     <WalletMultiButtonDynamic
-      className={`${wallet.connected ? "glow-on-hover" : "glow"} bg-transparent px-0`}
+      className={`${wallet.connected ? "glow-on-hover" : "glow"} bg-transparent px-0 font-aeonik font-[500]`}
     >
       {!wallet.connected && "CONNECT"}
     </WalletMultiButtonDynamic>

@@ -95,7 +95,7 @@ const Navbar: FC = () => {
       >
         <div className="w-full top-0 flex justify-between items-center h-16 text-2xl z-10 border-b-[0.5px] border-[#1C2125] px-4">
           <div
-            className="h-full w-1/2 flex justify-start items-center z-10 text-base font-[500] gap-4 lg:gap-8"
+            className="h-full w-1/2 flex justify-start items-center z-10 text-base font-[300] gap-4 lg:gap-8"
           >
             <Link href={"https://app.marginfi.com"} className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center">
               <Image src="/marginfi_logo.png" alt="marginfi logo" height={35.025} width={31.0125} />
@@ -121,7 +121,7 @@ const Navbar: FC = () => {
           </div>
 
           <div
-            className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[500] gap-4 lg:gap-8"
+            className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[300] gap-4 lg:gap-8"
           >
 
             {
