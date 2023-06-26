@@ -34,7 +34,7 @@ const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
       owner: pointsData.owner,
       deposit_points: pointsData.total_deposit_points.toFixed(4),
       borrow_points: pointsData.total_borrow_points.toFixed(4),
-      total: (pointsData.total_deposit_points + pointsData.total_borrow_points).toFixed(4)
+      total: (pointsData.total_deposit_points + pointsData.total_borrow_points).toFixed(2)
     }
     return points;
   } else {
@@ -125,9 +125,13 @@ const Navbar: FC = () => {
           >
 
             {
-              wallet.connected && user && points &&
               <Link href={"/"} className="glow whitespace-nowrap">
-                {`${points.total} points`}
+                {`${(wallet.connected && user && points && points.total && points.total > 0)
+                  ?
+                  points.total
+                  :
+                  0
+                  } points`}
               </Link>
             }
 
