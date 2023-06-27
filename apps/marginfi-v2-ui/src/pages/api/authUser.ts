@@ -1,6 +1,7 @@
 import * as admin from 'firebase-admin';
 import { PublicKey } from '@solana/web3.js';
 import nacl from 'tweetnacl';
+import { v4 as uuidv4 } from "uuid";
 
 // Check if the app is already initialized to avoid initializing multiple times
 if (!admin.apps.length) {
@@ -32,7 +33,7 @@ const logAttempt = async (publicKey: string, uuid: string, signature: string, su
 
 export default async function handler(req: any, res: any) {
   console.log('authenticating user');
-  const { publicKey, signature, uuid } = req.body;
+  const { publicKey, signature, uuid, referralCode } = req.body;
 
   if (!publicKey || !signature || !uuid) {
     return res.status(400).json({ error: 'publicKey, signature, and uuid are required' });
@@ -60,9 +61,29 @@ export default async function handler(req: any, res: any) {
     // If user does not exist, create a new user
     if (error.code === 'auth/user-not-found') {
       try {
+        const db = admin.firestore();
+        let referredBy = null;
+
+        // Validate referrer code if one exists
+        if (referralCode) {
+          const referrerQuery = await db.collection('users').where('referralCode', '==', referralCode).limit(1).get();
+          if (!referrerQuery.empty) {
+            const referrerDoc = referrerQuery.docs[0];
+            referredBy = referrerDoc.id;
+          }
+        }
+
+        // Create new user in Firebase Auth
         await admin.auth().createUser({
           uid: publicKey,
         });
+
+        // Create new user in Firestore
+        await db.collection('users').doc(publicKey).set({
+          referredBy,
+          referralCode: uuidv4(),
+        });
+        console.log('successfully created new user')
       } catch (createUserError: any) {
         return res.status(500).json({ error: createUserError.message });
       }

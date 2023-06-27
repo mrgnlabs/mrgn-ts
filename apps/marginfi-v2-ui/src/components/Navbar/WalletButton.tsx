@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import { FC, useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useRouter } from 'next/router';
 import { v4 as uuidv4 } from "uuid";
 import { getAuth, signOut, signInWithCustomToken } from "firebase/auth";
 import { SigningDialogBox } from './SigningDialogBox';
@@ -15,6 +16,8 @@ const WalletButton: FC = () => {
 
   const wallet = useWallet();
   const auth = getAuth();
+  const router = useRouter();
+  const { referralCode } = router.query;
 
   useEffect(() => {
     if (!wallet.connected) {
@@ -45,6 +48,7 @@ const WalletButton: FC = () => {
               publicKey: wallet?.publicKey?.toBase58(),
               signature: base64Signature,
               uuid,
+              referralCode
             }),
           });
         })
