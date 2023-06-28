@@ -68,95 +68,90 @@ const Points: FC = () => {
   return (
     <>
       <PageHeader text="leaderboard" />
-      <div
+      {/* <div
         className="flex flex-col items-center w-4/5 max-w-7xl gap-8 py-[32px]"
-      >
-        <div className="min-w-[600px] w-2/3 grid grid-rows-3 gap-4">
-          <div className="grid grid-cols-2 gap-4 row-start-1 row-end-2">
-            <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
-              <CardContent>
-                <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
-                  Total Points
-                </Typography>
-                <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-                  420
-                </Typography>
-              </CardContent>
-            </Card>
-            <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
-              <CardContent>
-                <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
-                  Rank
-                </Typography>
-                <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-                  #69
-                </Typography>
-              </CardContent>
-            </Card>
-          </div>
-          <div className="grid grid-cols-3 gap-4 row-start-2 row-end-3">
-            <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
-              <CardContent>
-                <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
-                  Lending Points
-                </Typography>
-                <Typography color="#fff" component="div" className="font-aeonik font-[500] text-2xl">
-                  123
-                </Typography>
-              </CardContent>
-            </Card>
-            <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
-              <CardContent>
-                <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
-                  Borrowing Points
-                </Typography>
-                <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-                  321
-                </Typography>
-              </CardContent>
-            </Card>
-            <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
-              <CardContent>
-                <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
-                  Points from referrals
-                </Typography>
-                <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-                  101
-                </Typography>
-              </CardContent>
-            </Card>
-          </div>
-          <div className="grid w-4/5 grid-cols-2 gap-4 row-start-3 row-end-4 justify-self-center">
-            <div className="w-full flex justify-center items-center h-24">
-              <Button
-                className="normal-case text-xl font-aeonik min-w-[267px] min-h-[60px] rounded-[45px]"
-                style={{
-                  backgroundColor: "rgb(227, 227, 227)",
-                  border: "none",
-                  color: "black",
-                  zIndex: 10,
-                }}
-              >
-                How do points work?
-              </Button>
-            </div>
-
-            <div className="w-full flex justify-center items-center h-24">
-              <Button
-                className="normal-case text-xl font-aeonik min-w-[267px] min-h-[60px] rounded-[45px] gap-2"
-                style={{
-                  backgroundColor: "rgb(227, 227, 227)",
-                  border: "none",
-                  color: "black",
-                  zIndex: 10,
-                }}
-              >
-                Copy referral link
-                <FileCopyIcon />
-              </Button>
-            </div>
-          </div>
+      > */}
+      <div className="flex flex-col items-center w-full sm:w-4/5 max-w-7xl gap-4 py-[64px] sm:py-[32px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-2/3">
+          <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+            <CardContent>
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
+                Total Points
+              </Typography>
+              <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
+                420
+              </Typography>
+            </CardContent>
+          </Card>
+          <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+            <CardContent>
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
+                Rank
+              </Typography>
+              <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
+                #69
+              </Typography>
+            </CardContent>
+          </Card>
         </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-2/3">
+          <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+            <CardContent>
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
+                Lending Points
+              </Typography>
+              <Typography color="#fff" component="div" className="font-aeonik font-[500] text-2xl">
+                123
+              </Typography>
+            </CardContent>
+          </Card>
+          <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+            <CardContent>
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
+                Borrowing Points
+              </Typography>
+              <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
+                321
+              </Typography>
+            </CardContent>
+          </Card>
+          <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+            <CardContent>
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
+                Referral points
+              </Typography>
+              <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
+                101
+              </Typography>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 justify-items-center w-2/3 md:w-1/2">
+          <Button
+            className="normal-case text-lg font-aeonik w-full min-h-[60px] rounded-[45px] whitespace-nowrap"
+            style={{
+              backgroundColor: "rgb(227, 227, 227)",
+              border: "none",
+              color: "black",
+              zIndex: 10,
+            }}
+          >
+            How do points work?
+          </Button>
+          <Button
+            className="normal-case text-lg font-aeonik w-full min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap"
+            style={{
+              backgroundColor: "rgb(227, 227, 227)",
+              border: "none",
+              color: "black",
+              zIndex: 10,
+            }}
+          >
+            Copy referral link
+            <FileCopyIcon />
+          </Button>
+        </div>
+        {/* </div> */}
         {/* {
           referralLink &&
           <Link href={referralLink} className="text-2xl glow-on-hover">
