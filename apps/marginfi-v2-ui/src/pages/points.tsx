@@ -97,8 +97,8 @@ const Points: FC = () => {
   return (
     <>
       <PageHeader text="points" />
-      <div className="flex flex-col items-center w-full sm:w-4/5 max-w-7xl gap-4 py-[64px] sm:py-[32px]">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-2/3">
+      <div className="flex flex-col items-center w-full sm:w-4/5 max-w-7xl gap-5 py-[64px] sm:py-[32px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-2/3">
           <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
             <CardContent>
               <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
@@ -120,7 +120,7 @@ const Points: FC = () => {
             </CardContent>
           </Card>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-2/3">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 w-2/3">
           <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
             <CardContent>
               <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
@@ -152,7 +152,7 @@ const Points: FC = () => {
             </CardContent>
           </Card>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 justify-items-center w-2/3 md:w-1/2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 justify-items-center w-2/3 md:w-1/2">
           <Button
             className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap"
             style={{
