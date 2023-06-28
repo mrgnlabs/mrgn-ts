@@ -96,10 +96,7 @@ const Points: FC = () => {
 
   return (
     <>
-      <PageHeader text="leaderboard" />
-      {/* <div
-        className="flex flex-col items-center w-4/5 max-w-7xl gap-8 py-[32px]"
-      > */}
+      <PageHeader text="points" />
       <div className="flex flex-col items-center w-full sm:w-4/5 max-w-7xl gap-4 py-[64px] sm:py-[32px]">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-2/3">
           <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
@@ -186,24 +183,32 @@ const Points: FC = () => {
           </Button>
         </div>
         <TableContainer
-          component={Paper} className="h-full min-w-full bg-[#131619] border border-[#1E2122] rounded-2xl"
+          component={Paper} className="h-full min-w-full bg-[#131619] rounded-xl"
         >
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell className="text-white font-aeonik border-none" style={{ fontWeight: 300 }}>Wallet</TableCell>
-                <TableCell className="text-white font-aeonik border-none" align="right" style={{ fontWeight: 300 }}>Activity Points</TableCell>
-                <TableCell className="text-white font-aeonik border-none" align="right" style={{ fontWeight: 300 }}>Referral Points</TableCell>
-                <TableCell className="text-white font-aeonik border-none" align="right" style={{ fontWeight: 300 }}>Total Points</TableCell>
+                <TableCell align="center" className="text-white text-base font-aeonik border-none pl-2" style={{ fontWeight: 500 }}>Rank</TableCell>
+                <TableCell className="text-white text-base font-aeonik border-none" style={{ fontWeight: 500 }}>User</TableCell>
+                <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Lending Points</TableCell>
+                <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Borrowing Points</TableCell>
+                <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Referral Points</TableCell>
+                <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Total Points</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {leaderboardData.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell component="th" scope="row" className="text-white border-none font-aeonik px-2" style={{ fontWeight: 300 }}>{row.id}</TableCell>
-                  <TableCell align="right" className="text-white border-none font-aeonik px-2" style={{ fontWeight: 300 }}>{groupedNumberFormatter.format(Math.round(row.total_activity_deposit_points) + Math.round(row.total_activity_borrow_points)).replace(/\.00$/, '')}</TableCell>
-                  <TableCell align="right" className="text-white border-none font-aeonik px-2" style={{ fontWeight: 300 }}>{groupedNumberFormatter.format(Math.round(row.total_referral_deposit_points) + Math.round(row.total_referral_borrow_points)).replace(/\.00$/, '')}</TableCell>
-                  <TableCell align="right" className="text-white border-none font-aeonik px-2" style={{ fontWeight: 300 }}>{groupedNumberFormatter.format(Math.round(row.total_deposit_points) + Math.round(row.total_borrow_points)).replace(/\.00$/, '')}</TableCell>
+              {leaderboardData.map((row, index) => (
+                <TableRow key={row.id} className={`${row.id === user ? 'glow' : ''}`}>
+                  <TableCell align="center" className={`${index <= 2 ? 'text-2xl glow' : 'text-base'} border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`}>
+                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                  </TableCell>
+                  <TableCell className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>
+                    {`${row.id.slice(0, 5)}...${row.id.slice(-5)}`}
+                  </TableCell>
+                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_activity_deposit_points))}</TableCell>
+                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_activity_borrow_points))}</TableCell>
+                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_referral_deposit_points + row.total_referral_borrow_points))}</TableCell>
+                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_deposit_points + row.total_borrow_points))}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
