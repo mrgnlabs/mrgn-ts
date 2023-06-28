@@ -154,7 +154,7 @@ const Points: FC = () => {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 justify-items-center w-2/3 md:w-1/2">
           <Button
-            className="normal-case text-lg font-aeonik w-full min-h-[60px] rounded-[45px] whitespace-nowrap"
+            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap"
             style={{
               backgroundColor: "rgb(227, 227, 227)",
               border: "none",
@@ -165,7 +165,7 @@ const Points: FC = () => {
             How do points work?
           </Button>
           <Button
-            className="normal-case text-lg font-aeonik w-full min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap"
+            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap"
             style={{
               backgroundColor: "rgb(227, 227, 227)",
               border: "none",

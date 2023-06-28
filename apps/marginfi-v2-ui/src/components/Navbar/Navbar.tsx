@@ -4,6 +4,7 @@ import Image from "next/image";
 import AirdropZone from "./AirdropZone";
 import { WalletButton } from "./WalletButton";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { groupedNumberFormatterDyn } from "~/utils/formatters";
 
 // Firebase
 import { initializeApp } from "firebase/app";
@@ -34,7 +35,7 @@ const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
       owner: pointsData.owner,
       deposit_points: pointsData.total_deposit_points.toFixed(4),
       borrow_points: pointsData.total_borrow_points.toFixed(4),
-      total: (pointsData.total_deposit_points + pointsData.total_borrow_points).toFixed(2)
+      total: (pointsData.total_deposit_points + pointsData.total_borrow_points)
     }
     return points;
   } else {
@@ -128,7 +129,7 @@ const Navbar: FC = () => {
               <Link href={"/"} className="glow whitespace-nowrap">
                 {`${(wallet.connected && user && points && points.total && points.total > 0)
                   ?
-                  points.total
+                  groupedNumberFormatterDyn.format(Math.round(points.total))
                   :
                   0
                   } points`}
