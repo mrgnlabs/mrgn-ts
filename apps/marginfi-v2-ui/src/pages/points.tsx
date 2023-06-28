@@ -8,6 +8,7 @@ import { PageHeader } from "~/components/PageHeader";
 import { groupedNumberFormatter } from '~/utils/formatters';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import FileCopyIcon from '@mui/icons-material/FileCopy';
+import { numeralFormatter, groupedNumberFormatterDyn } from "~/utils/formatters";
 import Link from "next/link";
 
 const firebaseConfig = {
@@ -27,7 +28,7 @@ const Points: FC = () => {
   const [leaderboardData, setLeaderboardData] = useState([]);
   const wallet = useWallet();
   const [user, setUser] = useState<null | string>(null);
-  const [referralLink, setReferralLink] = useState();
+  const [userData, setUserData] = useState();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -42,28 +43,56 @@ const Points: FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       const pointsCollection = collection(db, 'points');
-      const pointsQuery = query(pointsCollection, orderBy("total_deposit_points", "desc"));
+      const pointsQuery = query(pointsCollection);
       const querySnapshot = await getDocs(pointsQuery);
-      const leaderboard = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const leaderboardUnsorted = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      // Fetch referral code only for the current user
-      // const currentUser = leaderboard.find(user => user.owner === wallet.publicKey?.toBase58());
+      // Add a total_points field to each user in the leaderboard and sort it
+      const leaderboard = leaderboardUnsorted.map(userPoints => {
+        return {
+          ...userPoints,
+          // @ts-ignore
+          total_points: userPoints.total_deposit_points + userPoints.total_borrow_points
+        };
+      }).sort((a, b) => b.total_points - a.total_points);
+
+      // Fetch user data
       if (user) {
+        // get user referral code
         const userDoc = await getDoc(doc(db, "users", user));
         const userReferralData = userDoc.data();
-        const referralCode = userReferralData?.referralCode || "";
-        if (referralCode) {
-          setReferralLink(
-            `https://mfi.gg/${referralCode}`
-          )
-        }
+        const userReferralCode = userReferralData?.referralCode || "";
+
+        // get user points
+        const userPointsDoc = await getDoc(doc(db, "points", user));
+        const userPointsData = userPointsDoc.data();
+
+        const userTotalPoints = userPointsData?.total_deposit_points + userPointsData?.total_borrow_points;
+        const userLendingPoints = userPointsData?.total_activity_deposit_points;
+        const userBorrowingPoints = userPointsData?.total_activity_borrow_points;
+        const userReferralPoints = userPointsData?.total_referral_deposit_points + userPointsData?.total_referral_borrow_points;
+
+        // get user rank
+        const userRank = leaderboard.findIndex(user => user.id === wallet.publicKey?.toBase58()) + 1;
+
+        // @ts-ignore
+        setUserData({
+          // @ts-ignore
+          userTotalPoints,
+          userLendingPoints,
+          userBorrowingPoints,
+          userReferralPoints,
+          userReferralLink: userReferralCode ? `https://mfi.gg/${userReferralCode}` : '',
+          userRank
+        })
       }
 
+      // @ts-ignore
       setLeaderboardData(leaderboard);
     }
 
     fetchData();
-  }, [wallet.connected]);
+  }, [wallet.connected, user, wallet.publicKey]);
 
   return (
     <>
@@ -79,7 +108,7 @@ const Points: FC = () => {
                 Total Points
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-                420
+                {userData && userData?.userTotalPoints > 0 ? numeralFormatter(userData?.userTotalPoints) : '-'}
               </Typography>
             </CardContent>
           </Card>
@@ -89,7 +118,7 @@ const Points: FC = () => {
                 Rank
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-                #69
+                {`#${userData && userData?.userRank > 0 ? groupedNumberFormatterDyn.format(userData?.userRank) : '-'}`}
               </Typography>
             </CardContent>
           </Card>
@@ -101,7 +130,7 @@ const Points: FC = () => {
                 Lending Points
               </Typography>
               <Typography color="#fff" component="div" className="font-aeonik font-[500] text-2xl">
-                123
+                {userData && userData?.userLendingPoints > 0 ? numeralFormatter(userData?.userLendingPoints) : '-'}
               </Typography>
             </CardContent>
           </Card>
@@ -111,7 +140,7 @@ const Points: FC = () => {
                 Borrowing Points
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-                321
+                {userData && userData?.userBorrowingPoints > 0 ? numeralFormatter(userData?.userBorrowingPoints) : '-'}
               </Typography>
             </CardContent>
           </Card>
@@ -121,7 +150,7 @@ const Points: FC = () => {
                 Referral points
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-                101
+                {userData && userData?.userReferralPoints > 0 ? numeralFormatter(userData?.userReferralPoints) : '-'}
               </Typography>
             </CardContent>
           </Card>
@@ -146,18 +175,16 @@ const Points: FC = () => {
               color: "black",
               zIndex: 10,
             }}
+            onClick={() => {
+              if (userData?.userReferralLink) {
+                navigator.clipboard.writeText(userData.userReferralLink);
+              }
+            }}
           >
             Copy referral link
             <FileCopyIcon />
           </Button>
         </div>
-        {/* </div> */}
-        {/* {
-          referralLink &&
-          <Link href={referralLink} className="text-2xl glow-on-hover">
-            {`wield your code: ${referralLink}`}
-          </Link>
-        } */}
         <TableContainer
           component={Paper} className="h-full min-w-full bg-[#131619] border border-[#1E2122] rounded-2xl"
         >
