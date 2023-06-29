@@ -126,8 +126,23 @@ const Points: FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-2/3">
           <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
             <CardContent>
-              <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
                 Total Points
+                <div className="self-center">
+                  <HtmlTooltip
+                    title={
+                      <Fragment>
+                        <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                          Points
+                        </Typography>
+                        Points refresh every 24 hours.
+                      </Fragment>
+                    }
+                    placement="top"
+                  >
+                    <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                  </HtmlTooltip>
+                </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
                 {userData?.userTotalPoints && userData.userTotalPoints > 0 ? numeralFormatter(userData.userTotalPoints) : '-'}
