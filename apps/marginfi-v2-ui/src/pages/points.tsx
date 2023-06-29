@@ -1,4 +1,5 @@
-import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Tooltip, Typography, Card, CardContent } from '@mui/material';
+import { Fragment } from 'react';
+import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Card, CardContent } from '@mui/material';
 import { collection, getDocs, query, orderBy, getDoc, doc } from "firebase/firestore";
 import { getFirestore } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
@@ -10,6 +11,9 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import { numeralFormatter, groupedNumberFormatterDyn } from "~/utils/formatters";
 import Link from "next/link";
+import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
+import { styled } from "@mui/material/styles";
+import Image from "next/image";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBPAKOn7YKvEHg6iXTRbyZws3G4kPhWjtQ",
@@ -43,6 +47,17 @@ type LeaderboardRow = {
   total_borrow_points: number;
 };
 
+const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }: { theme: any; }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: "rgb(227, 227, 227)",
+    color: "rgba(0, 0, 0, 0.87)",
+    maxWidth: 220,
+    fontSize: theme.typography.pxToRem(12),
+    border: "1px solid #dadde9",
+  },
+}));
 
 const Points: FC = () => {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[]>([]);
@@ -133,8 +148,23 @@ const Points: FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 w-2/3">
           <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
             <CardContent>
-              <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
                 Lending Points
+                <div className="self-center">
+                  <HtmlTooltip
+                    title={
+                      <Fragment>
+                        <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                          Lending
+                        </Typography>
+                        Lending earns 1 point per dollar lent per day.
+                      </Fragment>
+                    }
+                    placement="top"
+                  >
+                    <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                  </HtmlTooltip>
+                </div>
               </Typography>
               <Typography color="#fff" component="div" className="font-aeonik font-[500] text-2xl">
                 {userData?.userLendingPoints && userData?.userLendingPoints > 0 ? numeralFormatter(userData?.userLendingPoints) : '-'}
@@ -143,8 +173,23 @@ const Points: FC = () => {
           </Card>
           <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
             <CardContent>
-              <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
                 Borrowing Points
+                <div className="self-center">
+                  <HtmlTooltip
+                    title={
+                      <Fragment>
+                        <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                          Borrowing
+                        </Typography>
+                        Borrowing earns 4 points per dollar borrowed per day.
+                      </Fragment>
+                    }
+                    placement="top"
+                  >
+                    <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                  </HtmlTooltip>
+                </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
                 {userData?.userBorrowingPoints && userData?.userBorrowingPoints > 0 ? numeralFormatter(userData?.userBorrowingPoints) : '-'}
@@ -153,8 +198,23 @@ const Points: FC = () => {
           </Card>
           <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
             <CardContent>
-              <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
                 Referral Points
+                <div className="self-center">
+                  <HtmlTooltip
+                    title={
+                      <Fragment>
+                        <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                          Earn more with friends
+                        </Typography>
+                        Earn 10% of the points any user you refer earns.
+                      </Fragment>
+                    }
+                    placement="top"
+                  >
+                    <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                  </HtmlTooltip>
+                </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
                 {userData?.userReferralPoints && userData?.userReferralPoints > 0 ? numeralFormatter(userData?.userReferralPoints) : '-'}

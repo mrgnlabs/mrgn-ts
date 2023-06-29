@@ -11,10 +11,6 @@ import AssetRow from "./AssetRow";
 import { lendZoomLevel } from '~/state';
 import { useRecoilValue } from 'recoil';
 
-{/* Utilization */} // {/* Total Borrows */}
-{/* Deposit caps */} // {/* Borrow caps */}
-{/* USD values */}
-
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
 ))(({ theme }) => ({
@@ -53,7 +49,7 @@ const AssetsList: FC = () => {
       <div className="col-span-full">
         <Card elevation={0} className="bg-[rgba(0,0,0,0)] w-full">
           <TableContainer>
-            
+
             <Table
               className="table-fixed"
               style={{
@@ -170,28 +166,28 @@ const AssetsList: FC = () => {
 
                 {
                   zoomLevel < 2 &&
-                    <TableCell
-                      className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
-                      style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
-                      align="right"
-                    >
-                      <div className="h-full w-full flex justify-end items-center gap-2">
-                        Global limit
-                        <HtmlTooltip
-                          title={
-                            <React.Fragment>
-                              <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                                {isInLendingMode ? "Global deposit cap" : "Global borrow cap"}
-                              </Typography>
-                                Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount that all users combined can deposit or borrow of a given token.
-                            </React.Fragment>
-                          }
-                          placement="top"
-                        >
-                          <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                        </HtmlTooltip>
-                      </div>
-                    </TableCell>
+                  <TableCell
+                    className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
+                    style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                    align="right"
+                  >
+                    <div className="h-full w-full flex justify-end items-center gap-2">
+                      Global limit
+                      <HtmlTooltip
+                        title={
+                          <React.Fragment>
+                            <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                              {isInLendingMode ? "Global deposit cap" : "Global borrow cap"}
+                            </Typography>
+                            Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount that all users combined can deposit or borrow of a given token.
+                          </React.Fragment>
+                        }
+                        placement="top"
+                      >
+                        <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                      </HtmlTooltip>
+                    </div>
+                  </TableCell>
                 }
 
                 {
@@ -218,7 +214,7 @@ const AssetsList: FC = () => {
                       </HtmlTooltip>
                     </div>
                   </TableCell>
-                }                
+                }
 
                 {/*******************************/}
                 {/* [END]: ZOOM-BASED COLUMNS */}
@@ -237,7 +233,7 @@ const AssetsList: FC = () => {
                 <TableCell className="border-none"></TableCell>
                 <TableCell className="border-none"></TableCell>
               </TableHead>
-              
+
               <TableBody>
                 {extendedBankInfos.length > 0 ? (
                   extendedBankInfos
@@ -269,7 +265,7 @@ const AssetsList: FC = () => {
                       <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                         Isolated pools are risky ⚠️
                       </Typography>
-                        Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot borrow other assets. Isolated pools should be considered particularly risky. As always, remember that marginfi is a decentralized protocol and all deposited funds are at risk.
+                      Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot borrow other assets. Isolated pools should be considered particularly risky. As always, remember that marginfi is a decentralized protocol and all deposited funds are at risk.
                     </React.Fragment>
                   }
                   placement="top"
