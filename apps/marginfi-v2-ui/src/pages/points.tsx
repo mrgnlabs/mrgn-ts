@@ -52,7 +52,6 @@ const Points: FC = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('detected auth change');
       setUser(user?.uid || null);
     });
 

@@ -41,10 +41,6 @@ const WalletButton: FC = () => {
 
   useEffect(() => {
     if (!wallet.connected && !wallet.autoConnect) {
-      console.log('test')
-      console.log({
-        wallet
-      })
       signOut(auth)
         .then(() => {
           console.log("Signed user out.");
@@ -82,8 +78,8 @@ const WalletButton: FC = () => {
           // Now that we have the custom token, use it to sign in
           if (data.token) {
             signInWithCustomToken(auth, data.token)
-              .then((userCredential) => {
-                console.log("Signed in with custom token: ", userCredential);
+              .then(() => {
+                console.log("Signed user in.");
               })
               .catch((error) => {
                 console.error("Error signing in with custom token: ", error);

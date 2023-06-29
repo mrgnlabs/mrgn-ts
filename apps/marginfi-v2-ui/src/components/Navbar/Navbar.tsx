@@ -67,7 +67,6 @@ const Navbar: FC = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('detected auth change');
       setUser(user?.uid || null);
     });
 
@@ -78,7 +77,6 @@ const Navbar: FC = () => {
   useEffect(() => {
     if (user && wallet.publicKey?.toBase58()) {
       const fetchData = async () => {
-        console.log('fetching data');
         const pointsData = await getPoints({ wallet: wallet.publicKey?.toBase58() });
         if (pointsData) {
           setPoints(pointsData);

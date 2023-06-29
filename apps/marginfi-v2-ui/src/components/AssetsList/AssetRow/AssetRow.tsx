@@ -235,8 +235,7 @@ const AssetRow: FC<{
 
       <TableCell
         className={
-          `text-white border-none px-2 font-aeonik hidden lg:table-cell ${
-            (bankInfo.tokenPrice > 999 && zoomLevel < 2) ? 'xl:text-xs xl:pl-0' : ''
+          `text-white border-none px-2 font-aeonik hidden lg:table-cell ${(bankInfo.tokenPrice > 999 && zoomLevel < 2) ? 'xl:text-xs xl:pl-0' : ''
           }`
         }
         align="right"
@@ -244,12 +243,11 @@ const AssetRow: FC<{
       >
         {bankInfo.tokenPrice >= 0.01
           ?
-            zoomLevel < 2 ?
-            `${usdFormatter.format(bankInfo.tokenPrice)} ± ${
-              Math.max(
-                bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
-                bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
-              ).toFixed(2)
+          zoomLevel < 2 ?
+            `${usdFormatter.format(bankInfo.tokenPrice)} ± ${Math.max(
+              bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
+              bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+            ).toFixed(2)
             }`
             :
             usdFormatter.format(bankInfo.tokenPrice)
@@ -295,8 +293,8 @@ const AssetRow: FC<{
           >
             {percentFormatter.format(
               (isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate) +
-                (isInLendingMode && bankInfo.emissions == Emissions.Lending ? bankInfo.emissionsRate : 0) +
-                (!isInLendingMode && bankInfo.emissions == Emissions.Borrowing ? bankInfo.emissionsRate : 0)
+              (isInLendingMode && bankInfo.emissions == Emissions.Lending ? bankInfo.emissionsRate : 0) +
+              (!isInLendingMode && bankInfo.emissions == Emissions.Borrowing ? bankInfo.emissionsRate : 0)
             )}
           </div>
         </div>
@@ -324,7 +322,7 @@ const AssetRow: FC<{
             usdFormatter.format(
               (
                 isInLendingMode ?
-                  bankInfo.totalPoolDeposits : 
+                  bankInfo.totalPoolDeposits :
                   Math.min(
                     bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
                   ) - bankInfo.totalPoolBorrows
@@ -332,23 +330,23 @@ const AssetRow: FC<{
               *
               bankInfo.tokenPrice
             )
-          :
-          zoomLevel < 2 ?
-          groupedNumberFormatterDyn.format(
-            isInLendingMode ?
-            bankInfo.totalPoolDeposits : 
-            Math.min(
-              bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
-            ) - bankInfo.totalPoolBorrows
-          )
-          :
-          numeralFormatter(
-            isInLendingMode ?
-            bankInfo.totalPoolDeposits : 
-            Math.min(
-              bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
-            ) - bankInfo.totalPoolBorrows
-          )
+            :
+            zoomLevel < 2 ?
+              groupedNumberFormatterDyn.format(
+                isInLendingMode ?
+                  bankInfo.totalPoolDeposits :
+                  Math.min(
+                    bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
+                  ) - bankInfo.totalPoolBorrows
+              )
+              :
+              numeralFormatter(
+                isInLendingMode ?
+                  bankInfo.totalPoolDeposits :
+                  Math.min(
+                    bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
+                  ) - bankInfo.totalPoolBorrows
+              )
         }
       </TableCell>
 
@@ -365,20 +363,20 @@ const AssetRow: FC<{
         >
           {
             showUSD ?
-            usdFormatter.format(
-              (isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit)
-              *
-              bankInfo.tokenPrice
-            )
-            :
-            zoomLevel < 2 ?
-            groupedNumberFormatterDyn.format(
-              isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit
-            )
-            :
-            numeralFormatter(
-              isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit
-            )
+              usdFormatter.format(
+                (isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit)
+                *
+                bankInfo.tokenPrice
+              )
+              :
+              zoomLevel < 2 ?
+                groupedNumberFormatterDyn.format(
+                  isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit
+                )
+                :
+                numeralFormatter(
+                  isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit
+                )
           }
         </TableCell>
       }
@@ -407,15 +405,15 @@ const AssetRow: FC<{
       >
         {
           showUSD ?
-          usdFormatter.format(
-            (bankInfo.tokenMint.equals(WSOL_MINT) ? bankInfo.tokenBalance + nativeSolBalance : bankInfo.tokenBalance)
-            *
-            bankInfo.tokenPrice
-          )
-          :
-          numeralFormatter(
-            bankInfo.tokenMint.equals(WSOL_MINT) ? bankInfo.tokenBalance + nativeSolBalance : bankInfo.tokenBalance
-          )
+            usdFormatter.format(
+              (bankInfo.tokenMint.equals(WSOL_MINT) ? bankInfo.tokenBalance + nativeSolBalance : bankInfo.tokenBalance)
+              *
+              bankInfo.tokenPrice
+            )
+            :
+            numeralFormatter(
+              bankInfo.tokenMint.equals(WSOL_MINT) ? bankInfo.tokenBalance + nativeSolBalance : bankInfo.tokenBalance
+            )
         }
       </TableCell>
 
