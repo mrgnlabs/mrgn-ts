@@ -183,7 +183,7 @@ const Points: FC = () => {
           </Button>
         </div>
         <TableContainer
-          component={Paper} className="h-full min-w-full bg-[#131619] rounded-xl"
+          component={Paper} className="h-full w-4/5 sm:w-full bg-[#131619] rounded-xl overflow-x-auto"
         >
           <Table>
             <TableHead>
@@ -199,7 +199,7 @@ const Points: FC = () => {
             <TableBody>
               {leaderboardData.map((row, index) => (
                 <TableRow key={row.id} className={`${row.id === user ? 'glow' : ''}`}>
-                  <TableCell align="center" className={`${index <= 2 ? 'text-2xl glow' : 'text-base'} border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`}>
+                  <TableCell align="center" className={`${index <= 2 ? 'text-2xl' : 'text-base'} border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`}>
                     {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                   </TableCell>
                   <TableCell className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>

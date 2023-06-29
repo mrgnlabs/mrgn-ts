@@ -118,6 +118,10 @@ const Navbar: FC = () => {
               omni
             </Link>
 
+            <Link href={"/points"} className="glow-on-hover hidden md:block">
+              points
+            </Link>
+
             {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && wallet.connected && <AirdropZone />}
           </div>
 
