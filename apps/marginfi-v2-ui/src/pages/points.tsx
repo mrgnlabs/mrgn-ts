@@ -213,7 +213,9 @@ const Points: FC = () => {
                     {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                   </TableCell>
                   <TableCell className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>
-                    {`${row.id.slice(0, 5)}...${row.id.slice(-5)}`}
+                    <a href={`https://solscan.io/account/${row.id}`} style={{ textDecoration: 'none', color: 'inherit' }} className="glow-on-hover">
+                      {`${row.id.slice(0, 5)}...${row.id.slice(-5)}`}
+                    </a>
                   </TableCell>
                   <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_activity_deposit_points))}</TableCell>
                   <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_activity_borrow_points))}</TableCell>
