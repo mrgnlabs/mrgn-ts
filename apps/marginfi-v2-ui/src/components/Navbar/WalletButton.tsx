@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { v4 as uuidv4 } from "uuid";
 import { getAuth, signOut, signInWithCustomToken } from "firebase/auth";
 import { SigningDialogBox } from './SigningDialogBox';
+import { onAuthStateChanged } from "firebase/auth";
 
 const WalletMultiButtonDynamic = dynamic(
   async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
@@ -13,14 +14,36 @@ const WalletMultiButtonDynamic = dynamic(
 
 const WalletButton: FC = () => {
   const [signingDialogBoxOpen, setSigningDialogBoxOpen] = useState(false)
+  const [userLoaded, setUserLoaded] = useState(false);
+  const [user, setUser] = useState(null); // To store the current user
 
   const wallet = useWallet();
   const auth = getAuth();
   const router = useRouter();
   const { referralCode } = router.query;
 
+  console.log({
+    auth: auth,
+    user: auth.currentUser,
+    uid: auth?.currentUser?.uid,
+  })
+
   useEffect(() => {
-    if (!wallet.connected) {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser); // Store the current user, whether it's null or an actual user
+      setUserLoaded(true); // Indicate that the user loading process is complete
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [auth]);
+
+  useEffect(() => {
+    if (!wallet.connected && !wallet.autoConnect) {
+      console.log('test')
+      console.log({
+        wallet
+      })
       signOut(auth)
         .then(() => {
           console.log("Signed user out.");
@@ -28,7 +51,7 @@ const WalletButton: FC = () => {
         .catch((error) => {
           console.log("Error signing out:", error);
         });
-    } else if (wallet && wallet.connected && wallet.publicKey && (!auth.currentUser || wallet.publicKey.toBase58() != auth.currentUser.uid)) {
+    } else if (userLoaded && wallet && wallet.connected && wallet.publicKey && (!auth.currentUser || wallet.publicKey.toBase58() != auth.currentUser.uid)) {
 
       setSigningDialogBoxOpen(true);
 

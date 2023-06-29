@@ -32,7 +32,6 @@ const logAttempt = async (publicKey: string, uuid: string, signature: string, su
 };
 
 export default async function handler(req: any, res: any) {
-  console.log('authenticating user');
   const { publicKey, signature, uuid, referralCode } = req.body;
 
   if (!publicKey || !signature || !uuid) {

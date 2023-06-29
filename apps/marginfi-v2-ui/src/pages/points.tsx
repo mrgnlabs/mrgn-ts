@@ -43,18 +43,9 @@ const Points: FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       const pointsCollection = collection(db, 'points');
-      const pointsQuery = query(pointsCollection);
+      const pointsQuery = query(pointsCollection, orderBy("total_points", "desc"));
       const querySnapshot = await getDocs(pointsQuery);
-      const leaderboardUnsorted = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      // Add a total_points field to each user in the leaderboard and sort it
-      const leaderboard = leaderboardUnsorted.map(userPoints => {
-        return {
-          ...userPoints,
-          // @ts-ignore
-          total_points: userPoints.total_deposit_points + userPoints.total_borrow_points
-        };
-      }).sort((a, b) => b.total_points - a.total_points);
+      const leaderboard = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       // Fetch user data
       if (user) {
@@ -82,7 +73,7 @@ const Points: FC = () => {
           userLendingPoints,
           userBorrowingPoints,
           userReferralPoints,
-          userReferralLink: userReferralCode ? `https://mfi.gg/${userReferralCode}` : '',
+          userReferralLink: userReferralCode ? `https://mfi.gg/refer/${userReferralCode}` : '',
           userRank
         })
       }
