@@ -34,7 +34,7 @@ export const SigningDialogBox = ({
           It is free and does not involve the network.
         </div>
         <Button onClick={handleClose} autoFocus className="bg-transparent font-aeonik text-white text-base font-xl glow-on-hover">
-          LET'S DO THIS
+          LET&apos;S DO THIS
         </Button>
       </div>
     </Dialog >
