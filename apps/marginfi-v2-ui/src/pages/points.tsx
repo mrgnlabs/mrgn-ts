@@ -57,7 +57,7 @@ const Points: FC = () => {
 
     return () => unsubscribe();
 
-  }, [auth]);
+  }, [auth, wallet.connected, wallet.publicKey]);
 
   useEffect(() => {
     const fetchData = async () => {

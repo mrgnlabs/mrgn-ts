@@ -23,11 +23,24 @@ const WalletButton: FC = () => {
   const router = useRouter();
   const { referralCode } = router.query;
 
-  console.log({
-    auth: auth,
-    user: auth.currentUser,
-    uid: auth?.currentUser?.uid,
-  })
+  // console.log({
+  //   auth: auth,
+  //   user: auth.currentUser,
+  //   uid: auth?.currentUser?.uid,
+
+  //   userLoaded: userLoaded,
+  //   wallet: wallet,
+  //   connected: wallet.connected,
+  //   publicKey: wallet.publicKey?.toBase58(),
+
+  //   full_check: userLoaded &&
+  //     wallet &&
+  //     wallet.connected &&
+  //     wallet.publicKey &&
+  //     (!auth.currentUser || wallet.publicKey.toBase58() != auth.currentUser.uid),
+
+  //   final_check: (!auth.currentUser || wallet?.publicKey.toBase58() != auth.currentUser.uid)
+  // })
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -48,7 +61,12 @@ const WalletButton: FC = () => {
         .catch((error) => {
           console.log("Error signing out:", error);
         });
-    } else if (userLoaded && wallet && wallet.connected && wallet.publicKey && (!auth.currentUser || wallet.publicKey.toBase58() != auth.currentUser.uid)) {
+    } else if (
+      userLoaded &&
+      wallet &&
+      wallet.connected &&
+      wallet.publicKey &&
+      (!auth.currentUser || wallet.publicKey.toBase58() != auth.currentUser.uid)) {
 
       setSigningDialogBoxOpen(true);
 
@@ -74,7 +92,6 @@ const WalletButton: FC = () => {
         })
         .then(response => response.json())
         .then(data => {
-          console.log(data);
           // Now that we have the custom token, use it to sign in
           if (data.token) {
             signInWithCustomToken(auth, data.token)
@@ -106,7 +123,7 @@ const WalletButton: FC = () => {
           }
         });
     }
-  }, [wallet.connected]);
+  }, [wallet.connected, wallet.publicKey, auth, referralCode, userLoaded, wallet]);
 
   return (
     <div>
