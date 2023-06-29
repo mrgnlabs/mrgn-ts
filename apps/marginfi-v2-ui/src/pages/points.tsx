@@ -267,6 +267,11 @@ const Points: FC = () => {
             <FileCopyIcon />
           </Button>
         </div>
+        <div className="w-4/5 text-center text-[#868E95] text-xs flex justify-center gap-1">
+          <div>We reserve the right to update point calculations at any time.</div>
+          <div><a href="/terms/points" style={{ textDecoration: 'underline' }}>Terms.</a></div>
+        </div>
+
         <TableContainer
           component={Paper} className="h-full w-4/5 sm:w-full bg-[#131619] rounded-xl overflow-x-auto"
         >
