@@ -24,11 +24,31 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+type UserData = {
+  userTotalPoints?: number,
+  userLendingPoints?: number,
+  userBorrowingPoints?: number,
+  userReferralPoints?: number,
+  userReferralLink?: string,
+  userRank?: number
+};
+
+type LeaderboardRow = {
+  id: string;
+  total_activity_deposit_points: number;
+  total_activity_borrow_points: number;
+  total_referral_deposit_points: number;
+  total_referral_borrow_points: number;
+  total_deposit_points: number;
+  total_borrow_points: number;
+};
+
+
 const Points: FC = () => {
-  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[]>([]);
   const wallet = useWallet();
   const [user, setUser] = useState<null | string>(null);
-  const [userData, setUserData] = useState();
+  const [userData, setUserData] = useState<UserData>();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -96,7 +116,7 @@ const Points: FC = () => {
                 Total Points
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-                {userData && userData?.userTotalPoints > 0 ? numeralFormatter(userData?.userTotalPoints) : '-'}
+                {userData?.userTotalPoints && userData.userTotalPoints > 0 ? numeralFormatter(userData.userTotalPoints) : '-'}
               </Typography>
             </CardContent>
           </Card>
@@ -106,7 +126,7 @@ const Points: FC = () => {
                 Rank
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-                {`#${userData && userData?.userRank > 0 ? groupedNumberFormatterDyn.format(userData?.userRank) : '-'}`}
+                {`#${userData?.userRank && userData?.userRank > 0 ? groupedNumberFormatterDyn.format(userData?.userRank) : '-'}`}
               </Typography>
             </CardContent>
           </Card>
@@ -118,7 +138,7 @@ const Points: FC = () => {
                 Lending Points
               </Typography>
               <Typography color="#fff" component="div" className="font-aeonik font-[500] text-2xl">
-                {userData && userData?.userLendingPoints > 0 ? numeralFormatter(userData?.userLendingPoints) : '-'}
+                {userData?.userLendingPoints && userData?.userLendingPoints > 0 ? numeralFormatter(userData?.userLendingPoints) : '-'}
               </Typography>
             </CardContent>
           </Card>
@@ -128,7 +148,7 @@ const Points: FC = () => {
                 Borrowing Points
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-                {userData && userData?.userBorrowingPoints > 0 ? numeralFormatter(userData?.userBorrowingPoints) : '-'}
+                {userData?.userBorrowingPoints && userData?.userBorrowingPoints > 0 ? numeralFormatter(userData?.userBorrowingPoints) : '-'}
               </Typography>
             </CardContent>
           </Card>
@@ -138,7 +158,7 @@ const Points: FC = () => {
                 Referral points
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-                {userData && userData?.userReferralPoints > 0 ? numeralFormatter(userData?.userReferralPoints) : '-'}
+                {userData?.userReferralPoints && userData?.userReferralPoints > 0 ? numeralFormatter(userData?.userReferralPoints) : '-'}
               </Typography>
             </CardContent>
           </Card>
@@ -188,7 +208,7 @@ const Points: FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {leaderboardData.map((row, index) => (
+              {leaderboardData.map((row: LeaderboardRow, index: number) => (
                 <TableRow key={row.id} className={`${row.id === user ? 'glow' : ''}`}>
                   <TableCell align="center" className={`${index <= 2 ? 'text-2xl' : 'text-base'} border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`}>
                     {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}

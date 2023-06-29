@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getAuth, signOut, signInWithCustomToken } from "firebase/auth";
 import { SigningDialogBox } from './SigningDialogBox';
 import { onAuthStateChanged } from "firebase/auth";
+import { User } from "firebase/auth";
 
 const WalletMultiButtonDynamic = dynamic(
   async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
@@ -15,7 +16,7 @@ const WalletMultiButtonDynamic = dynamic(
 const WalletButton: FC = () => {
   const [signingDialogBoxOpen, setSigningDialogBoxOpen] = useState(false)
   const [userLoaded, setUserLoaded] = useState(false);
-  const [user, setUser] = useState(null); // To store the current user
+  const [user, setUser] = useState<User | null>(null);
 
   const wallet = useWallet();
   const auth = getAuth();
