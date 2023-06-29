@@ -116,9 +116,9 @@ const Navbar: FC = () => {
               omni
             </Link>
 
-            <Link href={"/points"} className="glow-on-hover hidden md:block">
+            {/* <Link href={"/points"} className="glow-on-hover hidden md:block">
               points
-            </Link>
+            </Link> */}
 
             {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && wallet.connected && <AirdropZone />}
           </div>
@@ -128,7 +128,7 @@ const Navbar: FC = () => {
           >
 
             {
-              <Link href={"/"} className="glow whitespace-nowrap">
+              <Link href={"/points"} className="glow whitespace-nowrap">
                 {`${(wallet.connected && user && points && points.total && points.total > 0)
                   ?
                   groupedNumberFormatterDyn.format(Math.round(points.total))

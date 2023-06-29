@@ -154,7 +154,7 @@ const Points: FC = () => {
           <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
             <CardContent>
               <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
-                Referral points
+                Referral Points
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
                 {userData?.userReferralPoints && userData?.userReferralPoints > 0 ? numeralFormatter(userData?.userReferralPoints) : '-'}
