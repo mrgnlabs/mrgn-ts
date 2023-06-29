@@ -269,7 +269,7 @@ const Points: FC = () => {
         </div>
         <div className="w-4/5 text-center text-[#868E95] text-xs flex justify-center gap-1">
           <div>We reserve the right to update point calculations at any time.</div>
-          <div><a href="/terms/points" style={{ textDecoration: 'underline' }}>Terms.</a></div>
+          <div><Link href="/terms/points"><a style={{ textDecoration: 'underline' }}>Terms.</a></Link></div>
         </div>
 
         <TableContainer
