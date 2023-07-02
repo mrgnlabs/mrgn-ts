@@ -1,6 +1,10 @@
 import { FC } from "react";
 
-const PageHeader: FC = () => {
+interface PageHeaderProps {
+  text?: string;
+}
+
+const PageHeader: FC<PageHeaderProps> = ({ text = "mrgnlend" }) => {
   return (
     <div className="hidden sm:flex w-full flex-row justify-center border-solid border-[#1C2125] border-y-[1px]">
       <div
@@ -8,11 +12,12 @@ const PageHeader: FC = () => {
           "h-[64px] w-full w-[90%] max-w-7xl pl-[60px] flex flex-row items-center py-1 font-aeonik font-normal text-3xl bg-[url('/WaveBG3.png')]"
         }
       >
-        mrgnlend
+        {text}
       </div>
     </div>
   );
 };
+
 
 const PageHeaderSwap: FC = () => {
   return (

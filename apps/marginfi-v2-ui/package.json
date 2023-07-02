@@ -29,6 +29,8 @@
     "@vercel/analytics": "^1.0.0",
     "bignumber.js": "^9.1.1",
     "bn.js": "^5.2.1",
+    "firebase": "^9.22.1",
+    "firebase-admin": "^11.9.0",
     "next": "13.1.1",
     "numeral": "^2.0.6",
     "react": "18.2.0",
@@ -38,7 +40,9 @@
     "react-toastify": "^9.1.1",
     "recoil": "^0.7.7",
     "sharp": "^0.31.3",
-    "superstruct": "^1.0.3"
+    "superstruct": "^1.0.3",
+    "tweetnacl": "^1.0.3",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@mrgnlabs/eslint-config-custom": "*",
@@ -48,6 +52,7 @@
     "@types/react": "18.0.26",
     "@types/react-dom": "18.0.10",
     "@types/react-katex": "^3.0.0",
+    "@types/uuid": "^9.0.2",
     "autoprefixer": "^10.4.13",
     "eslint": "8.30.0",
     "next-transpile-modules": "^10.0.0",

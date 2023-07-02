@@ -3,6 +3,7 @@ import Slider from '@mui/material/Slider';
 import { lendZoomLevel, denominationUSD } from '~/state';
 import { useRecoilState } from 'recoil';
 import Switch from '@mui/material/Switch';
+import { useRouter } from 'next/router';
 
 
 const Footer: FC = () => {
@@ -16,6 +17,12 @@ const Footer: FC = () => {
 
   const denominationOnChange = (event: any) => {
     setDenominationUSD(event.target.checked);
+  }
+
+  const router = useRouter();
+
+  if (router.pathname !== '/') {
+    return null;
   }
 
   return (
@@ -37,7 +44,7 @@ const Footer: FC = () => {
             className="w-[60px] h-full max-h-full flex justify-center items-center"
           >
             <Slider defaultValue={3} step={1} min={1} max={3}
-              sx={{ 
+              sx={{
                 color: 'rgb(227, 227, 227)',
                 '& .MuiSlider-thumb': {
                   boxShadow: '0 0 0 8px rgba(227, 227, 227, 0.04)',
@@ -45,7 +52,7 @@ const Footer: FC = () => {
                     boxShadow: '0 0 0 8px rgba(227, 227, 227, 0.08)',
                   },
                 }
-              }} 
+              }}
               onChange={zoomOnChange}
             />
           </div>

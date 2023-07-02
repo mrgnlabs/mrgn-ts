@@ -1,6 +1,5 @@
 import { Button, Modal } from "@mui/material";
 import { FC, useCallback, useState } from "react";
-import { NavbarCenterItem } from "./NavbarCenterItem";
 import styles from "./AirdropZone.module.css";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -60,7 +59,7 @@ const AirdropZone: FC = () => {
 
   return (
     <div>
-      <NavbarCenterItem text="Airdrop" onClick={open} />
+      <span className="glow-on-hover" onClick={open}>Airdrop</span>
       <Modal open={isOpen} onClose={close} aria-labelledby="title" aria-describedby="description">
         <div id={styles["container"]}>
           <div id={styles["overlay"]}>
