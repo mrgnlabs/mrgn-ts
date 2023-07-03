@@ -45,12 +45,12 @@ export default async function handler(req: any, res: any) {
 
   const tx = Transaction.from(Buffer.from(signedData, "base64"));
 
+  const memoIx = tx.instructions.find(x => x.programId.equals(MEMO_PROGRAM_ID))
   const isValidAuthTx =
     tx.feePayer !== undefined &&
-    tx.instructions[0] !== undefined &&
-    tx.instructions[0].programId.equals(MEMO_PROGRAM_ID) &&
-    tx.instructions[0].keys.length === 1 &&
-    tx.instructions[0].keys[0].isSigner &&
+    memoIx !== undefined &&
+    memoIx.keys.length === 1 &&
+    memoIx.keys[0].isSigner &&
     tx.signatures.length === 1;
 
   if (!isValidAuthTx) {
@@ -58,8 +58,9 @@ export default async function handler(req: any, res: any) {
   }
 
   let walletPublicKey = tx.feePayer!.toBase58();
+  console.log({ authData: memoIx.data.toString("utf8") })
   const authData: AuthData = JSON.parse(
-    tx.instructions[0].data.toString("utf8")
+    memoIx.data.toString("utf8")
   );
 
   try {
