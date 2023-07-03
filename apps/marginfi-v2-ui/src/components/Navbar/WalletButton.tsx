@@ -9,6 +9,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { User } from "firebase/auth";
 import { createMemoInstruction } from "@mrgnlabs/mrgn-common";
 import { PublicKey, Transaction } from "@solana/web3.js";
+import { AuthData } from "~/pages/api/authUser";
 
 const WalletMultiButtonDynamic = dynamic(
   async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
@@ -75,32 +76,38 @@ const WalletButton: FC = () => {
 
       const uuid = uuidv4();
 
+      if (referralCode !== undefined && typeof referralCode !== 'string') {
+        console.error("Invalid referral code provided.");
+        return;
+      }
+
       // "Container" tx for the user metadata
       connection
         .getLatestBlockhash()
         .then((latestBlockhash) => {
           const userPublicKey = wallet.publicKey as PublicKey; // help the shitty type inference from else if clause
-          const referralTx = new Transaction().add(createMemoInstruction(uuid, [userPublicKey]));
-          referralTx.feePayer = userPublicKey;
-          referralTx.recentBlockhash = latestBlockhash.blockhash;
-          referralTx.lastValidBlockHeight = latestBlockhash.lastValidBlockHeight;
+          const authData: AuthData = {
+            uuid,
+            referralCode,
+          };
+          const authDataStr = JSON.stringify(authData);
+          const authDummyTx = new Transaction().add(createMemoInstruction(authDataStr, [userPublicKey]));
+          authDummyTx.feePayer = userPublicKey;
+          authDummyTx.recentBlockhash = latestBlockhash.blockhash;
+          authDummyTx.lastValidBlockHeight = latestBlockhash.lastValidBlockHeight;
+
           //@ts-ignore
-          return wallet.signTransaction(referralTx);
+          return wallet.signTransaction(authDummyTx);
         })
-        .then((signedReferralTx) => {
-          let signedData = signedReferralTx.serialize().toString("base64");
+        .then((signedAuthDummyTx) => {
+          let signedData = signedAuthDummyTx.serialize().toString("base64");
 
           return fetch("/api/authUser", {
             method: "POST",
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              publicKey: wallet?.publicKey?.toBase58(),
-              signature: signedData,
-              uuid,
-              referralCode
-            }),
+            body: JSON.stringify({ signedData })
           });
         })
         .then(response => response.json())
