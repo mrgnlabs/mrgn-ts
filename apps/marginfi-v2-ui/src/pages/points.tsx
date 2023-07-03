@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Card, CardContent } from '@mui/material';
-import { collection, getDocs, query, orderBy, getDoc, doc } from "firebase/firestore";
+import { collection, doc, query, orderBy, startAfter, limit, getDocs, getDoc } from "firebase/firestore";
 import { getFirestore } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -75,11 +75,23 @@ const Points: FC = () => {
   }, [auth, wallet.connected, wallet.publicKey]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async (lastDoc = null) => {
+      const pageSize = 10;
       const pointsCollection = collection(db, 'points');
-      const pointsQuery = query(pointsCollection, orderBy("total_points", "desc"));
+      let pointsQuery;
+
+      // If we have a last document, set the cursor to start after it
+      if (lastDoc) {
+        pointsQuery = query(pointsCollection, orderBy("total_points", "desc"), startAfter(lastDoc), limit(pageSize));
+      } else {
+        pointsQuery = query(pointsCollection, orderBy("total_points", "desc"), limit(pageSize));
+      }
+
       const querySnapshot = await getDocs(pointsQuery);
       const leaderboard = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // @ts-ignore
+      setLeaderboardData(oldData => [...oldData, ...leaderboard]);
 
       // Fetch user data
       if (user) {
@@ -100,24 +112,25 @@ const Points: FC = () => {
         // get user rank
         const userRank = leaderboard.findIndex(user => user.id === wallet.publicKey?.toBase58()) + 1;
 
-        // @ts-ignore
         setUserData({
-          // @ts-ignore
           userTotalPoints,
           userLendingPoints,
           userBorrowingPoints,
           userReferralPoints,
           userReferralLink: userReferralCode ? `https://mfi.gg/refer/${userReferralCode}` : '',
           userRank
-        })
+        });
       }
 
-      // @ts-ignore
-      setLeaderboardData(leaderboard);
-    }
+      // If documents are returned, set the last one as the cursor for next pagination
+      if (querySnapshot.docs.length > 0) {
+        // @ts-ignore
+        fetchData(querySnapshot.docs[querySnapshot.docs.length - 1]);
+      }
+    };
 
     fetchData();
-  }, [wallet.connected, user, wallet.publicKey]);
+  }, [wallet.connected, user, wallet.publicKey]); // Dependency array to re-fetch when these variables change
 
   return (
     <>
