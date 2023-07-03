@@ -45,16 +45,16 @@ export default async function handler(req: any, res: any) {
 
   const tx = Transaction.from(Buffer.from(signedData, "base64"));
 
-  const isValidAuthTx = 
+  const isValidAuthTx =
     tx.feePayer !== undefined &&
     tx.instructions[0] !== undefined &&
     tx.instructions[0].programId.equals(MEMO_PROGRAM_ID) &&
     tx.instructions[0].keys.length === 1 &&
     tx.instructions[0].keys[0].isSigner &&
     tx.signatures.length === 1;
-    
+
   if (!isValidAuthTx) {
-    return res.status(400).json({ error: 'Invalid auth data' });
+    return res.status(401).json({ error: 'Invalid auth data' });
   }
 
   let walletPublicKey = tx.feePayer!.toBase58();
@@ -66,7 +66,7 @@ export default async function handler(req: any, res: any) {
     const isValidSignature = tx.verifySignatures();
     if (!isValidSignature) {
       await logAttempt(walletPublicKey, authData.uuid, signedData, false);
-      return res.status(401).json({ error: 'Invalid signature' });
+      return res.status(402).json({ error: 'Invalid signature' });
     }
 
     // Try to get the user with the given uid
