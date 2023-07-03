@@ -311,6 +311,10 @@ const Points: FC = () => {
               color: "black",
               zIndex: 10,
             }}
+            component="a"
+            href="https://medium.com/marginfi/introducing-mrgn-points-949e18f31a8c"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             How do points work?
           </Button>
