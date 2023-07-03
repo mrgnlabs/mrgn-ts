@@ -1,6 +1,5 @@
 import * as admin from 'firebase-admin';
-import { PublicKey } from '@solana/web3.js';
-import nacl from 'tweetnacl';
+import { Transaction } from '@solana/web3.js';
 import { v4 as uuidv4 } from "uuid";
 
 // Check if the app is already initialized to avoid initializing multiple times
@@ -39,17 +38,15 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const encodedMessage = new TextEncoder().encode(uuid);
-    const decodedPublicKey = new PublicKey(publicKey).toBuffer();
-    const decodedSignature = Buffer.from(signature, 'base64');
+    const tx = Transaction.from(Buffer.from(signature, "base64"));
 
-    const validSignature = nacl.sign.detached.verify(
-      encodedMessage,
-      decodedSignature,
-      decodedPublicKey,
-    );
+    const isValidSignature =
+      tx.instructions.length === 1 &&
+      tx.instructions[0] !== undefined &&
+      tx.feePayer?.toBase58() === publicKey &&
+      tx.verifySignatures();
 
-    if (!validSignature) {
+    if (!isValidSignature) {
       await logAttempt(publicKey, uuid, signature, false);
       return res.status(401).json({ error: 'Invalid signature' });
     }

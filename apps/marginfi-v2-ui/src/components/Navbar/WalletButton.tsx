@@ -1,12 +1,14 @@
 import dynamic from "next/dynamic";
 import { FC, useEffect, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from 'next/router';
 import { v4 as uuidv4 } from "uuid";
 import { getAuth, signOut, signInWithCustomToken } from "firebase/auth";
 import { SigningDialogBox } from './SigningDialogBox';
 import { onAuthStateChanged } from "firebase/auth";
 import { User } from "firebase/auth";
+import { createMemoInstruction } from "@mrgnlabs/mrgn-common";
+import { PublicKey, Transaction } from "@solana/web3.js";
 
 const WalletMultiButtonDynamic = dynamic(
   async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
@@ -17,6 +19,7 @@ const WalletButton: FC = () => {
   const [signingDialogBoxOpen, setSigningDialogBoxOpen] = useState(false)
   const [userLoaded, setUserLoaded] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const { connection } = useConnection();
 
   const wallet = useWallet();
   const auth = getAuth();
@@ -71,20 +74,30 @@ const WalletButton: FC = () => {
       setSigningDialogBoxOpen(true);
 
       const uuid = uuidv4();
-      const encodedMessage = new TextEncoder().encode(uuid);
 
-      //@ts-ignore
-      wallet.signMessage(encodedMessage)
-        .then((signature) => {
-          const base64Signature = Buffer.from(signature).toString('base64');
-          return fetch('/api/authUser', {
-            method: 'POST',
+      // "Container" tx for the user metadata
+      connection
+        .getLatestBlockhash()
+        .then((latestBlockhash) => {
+          const userPublicKey = wallet.publicKey as PublicKey; // help the shitty type inference from else if clause
+          const referralTx = new Transaction().add(createMemoInstruction(uuid, [userPublicKey]));
+          referralTx.feePayer = userPublicKey;
+          referralTx.recentBlockhash = latestBlockhash.blockhash;
+          referralTx.lastValidBlockHeight = latestBlockhash.lastValidBlockHeight;
+          //@ts-ignore
+          return wallet.signTransaction(referralTx);
+        })
+        .then((signedReferralTx) => {
+          let signedData = signedReferralTx.serialize().toString("base64");
+
+          return fetch("/api/authUser", {
+            method: "POST",
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
               publicKey: wallet?.publicKey?.toBase58(),
-              signature: base64Signature,
+              signature: signedData,
               uuid,
               referralCode
             }),
