@@ -91,10 +91,28 @@ const Points: FC = () => {
       const leaderboard = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       // @ts-ignore
-      setLeaderboardData(oldData => [...oldData, ...leaderboard]);
+      setLeaderboardData(oldData => {
+        const dataMap = new Map();
+        [...oldData, ...leaderboard].forEach(item => {
+          dataMap.set(item.id, item);
+        });
+        return Array.from(dataMap.values());
+      });
 
+      // If documents are returned, set the last one as the cursor for next pagination
+      if (querySnapshot.docs.length > 0) {
+        // @ts-ignore
+        fetchData(querySnapshot.docs[querySnapshot.docs.length - 1]);
+      }
+    };
+
+    fetchData();
+  }, [wallet.connected, user, wallet.publicKey]); // Dependency array to re-fetch when these variables change
+
+  useEffect(() => {
+    const fetchuserData = async () => {
       // Fetch user data
-      if (user) {
+      if (user && leaderboardData.length > 0) {
         // get user referral code
         const userDoc = await getDoc(doc(db, "users", user));
         const userReferralData = userDoc.data();
@@ -110,7 +128,7 @@ const Points: FC = () => {
         const userReferralPoints = userPointsData?.total_referral_deposit_points + userPointsData?.total_referral_borrow_points;
 
         // get user rank
-        const userRank = leaderboard.findIndex(user => user.id === wallet.publicKey?.toBase58()) + 1;
+        const userRank = leaderboardData.findIndex(user => user.id === wallet.publicKey?.toBase58()) + 1;
 
         setUserData({
           userTotalPoints,
@@ -121,16 +139,11 @@ const Points: FC = () => {
           userRank
         });
       }
+    }
 
-      // If documents are returned, set the last one as the cursor for next pagination
-      if (querySnapshot.docs.length > 0) {
-        // @ts-ignore
-        fetchData(querySnapshot.docs[querySnapshot.docs.length - 1]);
-      }
-    };
+    fetchuserData()
 
-    fetchData();
-  }, [wallet.connected, user, wallet.publicKey]); // Dependency array to re-fetch when these variables change
+  }, [user, JSON.stringify(leaderboardData)])
 
   return (
     <>
