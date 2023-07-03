@@ -178,7 +178,7 @@ const Points: FC = () => {
           <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
             <CardContent>
               <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
-                Rank
+                Global Rank
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
                 {`#${userData?.userRank && userData?.userRank > 0 ? groupedNumberFormatterDyn.format(userData?.userRank) : '-'}`}
