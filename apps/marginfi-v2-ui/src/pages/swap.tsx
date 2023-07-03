@@ -32,6 +32,7 @@ const SwapPage = () => {
   const handleMayanLoad = () => {
     console.log('trying to load mayan');
     const intervalId = setInterval(() => {
+      // @ts-ignore
       if (window.MayanSwap) {
         console.log('MayanSwap loaded');
         const config = {
@@ -42,6 +43,7 @@ const SwapPage = () => {
           },
         };
 
+        // @ts-ignore
         window.MayanSwap.init('swap_widget', config);
         clearInterval(intervalId); // Clear the interval once we have initialized MayanSwap
       }
