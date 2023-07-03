@@ -1,12 +1,31 @@
 import { styled, Switch, SwitchProps } from "@mui/material";
 import { Dispatch, SetStateAction } from "react";
 
+type PaddingConfigs = {
+  left: string;
+  right: string;
+};
+
+
 interface BorrowLendToggleProps extends SwitchProps {
   isInLendingMode: boolean;
   setIsInLendingMode: Dispatch<SetStateAction<boolean>>;
+  leftTitle?: string;
+  rightTitle?: string;
+  paddingConfigs?: PaddingConfigs;
 }
 
-const BorrowLendToggle = styled(({ isInLendingMode, setIsInLendingMode, ...switchProps }: BorrowLendToggleProps) => {
+const BorrowLendToggle = styled(({
+  isInLendingMode,
+  setIsInLendingMode,
+  leftTitle = "Lend",
+  rightTitle = "Borrow",
+  paddingConfigs = {
+    "left": "27px",
+    "right": "18px"
+  },
+  ...switchProps
+}: BorrowLendToggleProps) => {
   const handleChange = () => {
     setIsInLendingMode((prev) => !prev);
   };
@@ -20,7 +39,15 @@ const BorrowLendToggle = styled(({ isInLendingMode, setIsInLendingMode, ...switc
       onChange={handleChange}
     />
   );
-})(({ disabled }) => ({
+})(({
+  disabled,
+  leftTitle = "Lend",
+  rightTitle = "Borrow",
+  paddingConfigs = {
+    "left": "27px",
+    "right": "18px"
+  }
+}) => ({
   width: 166.34, //
   height: 52.04,
   ...(disabled ? { cursor: "not-allowed" } : {}),
@@ -31,17 +58,17 @@ const BorrowLendToggle = styled(({ isInLendingMode, setIsInLendingMode, ...switc
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  paddingLeft: "27px",
-  paddingRight: "18px",
+  paddingLeft: paddingConfigs.left,
+  paddingRight: paddingConfigs.right,
   "&:after": {
-    content: "'Borrow'",
+    content: `'${rightTitle}'`,
     zIndex: 10,
     pointerEvents: "none",
     fontFamily: "Aeonik Pro",
     fontWeight: 500,
   },
   "&:before": {
-    content: "'Lend'",
+    content: `'${leftTitle}'`,
     zIndex: 10,
     pointerEvents: "none",
     fontFamily: "Aeonik Pro",

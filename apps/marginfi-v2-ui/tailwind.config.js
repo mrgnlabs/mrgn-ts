@@ -9,7 +9,8 @@ module.exports = {
     extend: {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-colors": "linear-gradient(to right, #A0F0F8, #EEAC55)",
+        "jup-gradient-colors": "linear-gradient(to right, #A0F0F8, #EEAC55)",
+        "mayan-gradient-colors": "linear-gradient(90deg, #5768BD 0.11%, #FFFFFF 100%)"
       },
       borderImage: {
         SOL: "linear-gradient(to top right, #9945FF, #19FB9B)",
