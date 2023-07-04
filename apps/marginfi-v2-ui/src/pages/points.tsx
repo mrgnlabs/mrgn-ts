@@ -306,7 +306,7 @@ const Points: FC = () => {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 justify-items-center w-2/3 md:w-1/2">
           <Button
-            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap"
+            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap max-w-[310px]"
             style={{
               backgroundColor: "rgb(227, 227, 227)",
               border: "none",
@@ -321,7 +321,7 @@ const Points: FC = () => {
             How do points work?
           </Button>
           <Button
-            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap"
+            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap max-w-[310px]"
             style={{
               backgroundColor: "rgb(227, 227, 227)",
               border: "none",
@@ -336,6 +336,37 @@ const Points: FC = () => {
           >
             Copy referral link
             <FileCopyIcon />
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 gap-5 justify-items-center w-full">
+          <Button
+            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap max-w-[310px]"
+            style={{
+              background: "linear-gradient(to right, #FF7272, #fff, #0D5BF3)",
+              border: "none",
+              color: "black",
+              zIndex: 10,
+            }}
+            component="a"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => {
+              if (userData?.userReferralLink) {
+                const tweetText = `🇺🇸🦅HEY YOU🇺🇸🦅
+
+🫵🏽YEAH YOU🫵
+
+While you were celebrating freedom🇺🇸, I was farming @marginfi points
+
+Imagine getting outworked like this😤
+
+${userData.userReferralLink}`;
+                const encodedText = encodeURIComponent(tweetText);
+                window.open(`https://twitter.com/intent/tweet?text=${encodedText}`, "_blank");
+              }
+            }}
+          >
+            🦅🇺🇸 EARN 1776 POINTS 🇺🇸🦅
           </Button>
         </div>
         <div className="w-4/5 text-center text-[#868E95] text-xs flex justify-center gap-1">
