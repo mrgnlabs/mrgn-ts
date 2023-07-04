@@ -45,6 +45,7 @@ type LeaderboardRow = {
   total_referral_borrow_points: number;
   total_deposit_points: number;
   total_borrow_points: number;
+  socialPoints: number;
 };
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
@@ -124,7 +125,7 @@ const Points: FC = () => {
         const userPointsDoc = await getDoc(doc(db, "points", user));
         const userPointsData = userPointsDoc.data();
 
-        const userTotalPoints = userPointsData?.total_deposit_points + userPointsData?.total_borrow_points;
+        const userTotalPoints = userPointsData?.total_deposit_points + userPointsData?.total_borrow_points + (userPointsData?.socialPoints ? userPointsData?.socialPoints : 0);
         const userLendingPoints = userPointsData?.total_activity_deposit_points;
         const userBorrowingPoints = userPointsData?.total_activity_borrow_points;
         const userReferralPoints = userPointsData?.total_referral_deposit_points + userPointsData?.total_referral_borrow_points;
@@ -385,6 +386,7 @@ ${userData.userReferralLink}`;
                 <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Lending Points</TableCell>
                 <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Borrowing Points</TableCell>
                 <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Referral Points</TableCell>
+                <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Social Points</TableCell>
                 <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Total Points</TableCell>
               </TableRow>
             </TableHead>
@@ -407,7 +409,8 @@ ${userData.userReferralLink}`;
                   <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_activity_deposit_points))}</TableCell>
                   <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_activity_borrow_points))}</TableCell>
                   <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_referral_deposit_points + row.total_referral_borrow_points))}</TableCell>
-                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_deposit_points + row.total_borrow_points))}</TableCell>
+                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.socialPoints ? row.socialPoints : 0))}</TableCell>
+                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_deposit_points + row.total_borrow_points + (row.socialPoints ? row.socialPoints : 0)))}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

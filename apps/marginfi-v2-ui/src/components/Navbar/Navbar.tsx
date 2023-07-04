@@ -31,11 +31,12 @@ const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
     const pointsData = docSnap.data();
+    console.log('found points for user')
     const points = {
       owner: pointsData.owner,
       deposit_points: pointsData.total_deposit_points.toFixed(4),
       borrow_points: pointsData.total_borrow_points.toFixed(4),
-      total: (pointsData.total_deposit_points + pointsData.total_borrow_points)
+      total: (pointsData.total_deposit_points + pointsData.total_borrow_points + (pointsData.socialPoints ? pointsData.socialPoints : 0))
     }
     return points;
   } else {
