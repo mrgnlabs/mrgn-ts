@@ -17,6 +17,7 @@ import { useRecoilValue } from 'recoil';
 import Badge from '@mui/material/Badge';
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
+const LIMIT_REACHED_ID = "limit-reached";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 const ACCOUNT_DETECTION_ERROR_TOAST_ID = "account-detection-error";
 
@@ -67,6 +68,16 @@ const AssetRow: FC<{
 
   const borrowOrLend = useCallback(async () => {
     if (marginfiClient === null) throw Error("Marginfi client not ready");
+
+    if (currentAction === ActionType.Deposit && bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit) {
+      toast.error(`${bankInfo.tokenName} deposit limit has been been reached. Additional deposits are not currently available.`)
+      return;
+    }
+
+    if (currentAction === ActionType.Borrow && bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit) {
+      toast.error(`${bankInfo.tokenName} borrow limit has been been reached. Additional borrows are not currently available.`)
+      return;
+    }
 
     if (currentAction === ActionType.Deposit && bankInfo.maxDeposit === 0) {
       toast.error(`You don't have any ${bankInfo.tokenName} to lend in your wallet.`);
