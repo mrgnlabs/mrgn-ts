@@ -14,6 +14,7 @@ import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { lendZoomLevel, denominationUSD } from '~/state';
 import { useRecoilValue } from 'recoil';
+import Badge from '@mui/material/Badge';
 
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
@@ -317,37 +318,82 @@ const AssetRow: FC<{
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {
-          showUSD ?
-            usdFormatter.format(
-              (
-                isInLendingMode ?
-                  bankInfo.totalPoolDeposits :
-                  Math.min(
-                    bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
-                  ) - bankInfo.totalPoolBorrows
-              )
-              *
-              bankInfo.tokenPrice
-            )
+        <HtmlTooltip
+          title={
+            <React.Fragment>
+              <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                Limit reached
+              </Typography>
+              {`${bankInfo.tokenName
+                } has reached its ${isInLendingMode ? 'deposit' : 'borrow'} limit. Additional ${isInLendingMode ? 'deposits' : 'borrows'} are not currently available.`
+              }
+              <br />
+              <a href="https://docs.marginfi.com">
+                <u>Learn more.</u>
+              </a>
+            </React.Fragment>
+          }
+          placement="right"
+          className={`${isInLendingMode ?
+            bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit ? "" : "hidden"
             :
-            zoomLevel < 2 ?
-              groupedNumberFormatterDyn.format(
-                isInLendingMode ?
-                  bankInfo.totalPoolDeposits :
-                  Math.min(
-                    bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
-                  ) - bankInfo.totalPoolBorrows
-              )
+            bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit ? "" : "hidden"
+            }`}
+        >
+          <Badge badgeContent={
+            isInLendingMode ?
+              bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit ? '💯' : ''
               :
-              numeralFormatter(
-                isInLendingMode ?
-                  bankInfo.totalPoolDeposits :
-                  Math.min(
-                    bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
-                  ) - bankInfo.totalPoolBorrows
-              )
-        }
+              bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit ? 'at capacity' : ''
+          }
+            className="bg-transparent"
+            sx={{
+              "& .MuiBadge-badge": {
+                fontSize: 20,
+
+              }
+            }}
+            invisible={
+              isInLendingMode ?
+                bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit ? false : true
+                :
+                bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit ? false : true
+            }
+
+          >
+            {
+              showUSD ?
+                usdFormatter.format(
+                  (
+                    isInLendingMode ?
+                      bankInfo.totalPoolDeposits :
+                      Math.min(
+                        bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
+                      ) - bankInfo.totalPoolBorrows
+                  )
+                  *
+                  bankInfo.tokenPrice
+                )
+                :
+                zoomLevel < 2 ?
+                  groupedNumberFormatterDyn.format(
+                    isInLendingMode ?
+                      bankInfo.totalPoolDeposits :
+                      Math.min(
+                        bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
+                      ) - bankInfo.totalPoolBorrows
+                  )
+                  :
+                  numeralFormatter(
+                    isInLendingMode ?
+                      bankInfo.totalPoolDeposits :
+                      Math.min(
+                        bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
+                      ) - bankInfo.totalPoolBorrows
+                  )
+            }
+          </Badge>
+        </HtmlTooltip>
       </TableCell>
 
       {/*******************************/}
