@@ -342,7 +342,7 @@ const Points: FC = () => {
           <Button
             className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap max-w-[310px]"
             style={{
-              background: "linear-gradient(to right, #FF7272, #fff, #0D5BF3)",
+              background: "linear-gradient(150deg, #FF7272 10.84%, #FFFFFF 50.62%, #0D5BF3 91.25%)",
               border: "none",
               color: "black",
               zIndex: 10,
