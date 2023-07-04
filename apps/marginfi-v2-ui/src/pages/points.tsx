@@ -93,9 +93,11 @@ const Points: FC = () => {
       // @ts-ignore
       setLeaderboardData(oldData => {
         const dataMap = new Map();
-        [...oldData, ...leaderboard].forEach(item => {
-          dataMap.set(item.id, item);
-        });
+        [...oldData, ...leaderboard]
+          .filter(item => item.id !== null && item.id !== undefined && item.id != 'None') // Exclude items with null or undefined id
+          .forEach(item => {
+            dataMap.set(item.id, item);
+          });
         return Array.from(dataMap.values());
       });
 
