@@ -356,7 +356,7 @@ const Points: FC = () => {
 
 🫵🏽YEAH YOU🫵
 
-While you were celebrating freedom🇺🇸, I was farming @marginfi points
+While you were celebrating freedom🇺🇸, I was farming @marginfi points◼️
 
 Imagine getting outworked like this😤
 
