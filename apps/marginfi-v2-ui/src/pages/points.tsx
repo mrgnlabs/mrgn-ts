@@ -65,6 +65,7 @@ const Points: FC = () => {
   const wallet = useWallet();
   const [user, setUser] = useState<null | string>(null);
   const [userData, setUserData] = useState<UserData>();
+  const [usingCustomReferralCode, setUsingCustomReferralCode] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -119,7 +120,17 @@ const Points: FC = () => {
         // get user referral code
         const userDoc = await getDoc(doc(db, "users", user));
         const userReferralData = userDoc.data();
-        const userReferralCode = userReferralData?.referralCode || "";
+
+        let userReferralCode = "";
+
+        if (userReferralData && Array.isArray(userReferralData?.referralCode)) {
+          const uuidPattern = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-\b[0-9a-fA-F]{12}$/;
+          userReferralCode = userReferralData.referralCode.find(code => !uuidPattern.test(code));
+          setUsingCustomReferralCode(true)
+        } else {
+          userReferralCode = userReferralData?.referralCode || "";
+          setUsingCustomReferralCode(false)
+        }
 
         // get user points
         const userPointsDoc = await getDoc(doc(db, "points", user));
@@ -138,7 +149,7 @@ const Points: FC = () => {
           userLendingPoints,
           userBorrowingPoints,
           userReferralPoints,
-          userReferralLink: userReferralCode ? `https://mfi.gg/refer/${userReferralCode}` : '',
+          userReferralLink: userReferralCode ? `https://mfi.gg/r/${userReferralCode}` : '',
           userRank
         });
       }
@@ -146,7 +157,7 @@ const Points: FC = () => {
 
     fetchuserData()
 
-  }, [user, JSON.stringify(leaderboardData)])
+  }, [user, JSON.stringify(leaderboardData), setUsingCustomReferralCode])
 
   return (
     <>
@@ -305,9 +316,9 @@ const Points: FC = () => {
             </CardContent>
           </Card>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 justify-items-center w-2/3 md:w-1/2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <Button
-            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap max-w-[310px]"
+            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap min-w-[260px] max-w-[260px]"
             style={{
               backgroundColor: "rgb(227, 227, 227)",
               border: "none",
@@ -322,9 +333,11 @@ const Points: FC = () => {
             How do points work?
           </Button>
           <Button
-            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap max-w-[310px]"
+            className={`normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap min-w-[260px] max-w-[260px]`}
             style={{
-              backgroundColor: "rgb(227, 227, 227)",
+              backgroundImage: usingCustomReferralCode ? "radial-gradient(ellipse at center, #fff 0%, #fff 10%, #DCE85D 60%, #DCE85D 100%)" : "none",
+              backgroundColor: usingCustomReferralCode ? "transparent" : "rgb(227, 227, 227)",
+
               border: "none",
               color: "black",
               zIndex: 10,
@@ -335,12 +348,16 @@ const Points: FC = () => {
               }
             }}
           >
-            Copy referral link
+            {
+              `${usingCustomReferralCode ? userData?.userReferralLink?.replace("https://", "") : 'Copy referral link'}`
+            }
             <FileCopyIcon />
           </Button>
         </div>
-        <div className="grid grid-cols-1 gap-5 justify-items-center w-full">
+        {/* <div className="grid grid-cols-1 gap-5 justify-items-center w-full">
           <Button
+            backgroundColor: usingCustomReferralCode ? "#DCE85D" : "rgb(227, 227, 227)",
+            backgroundImage: usingCustomReferralCode ? "linear-gradient(150deg, #DCE85D 10.84%, #fff  50.62%, #DCE85D 91.25%)" : "none",
             className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap max-w-[310px]"
             style={{
               background: "linear-gradient(150deg, #FF7272 10.84%, #FFFFFF 50.62%, #0D5BF3 91.25%)",
@@ -355,21 +372,21 @@ const Points: FC = () => {
               if (userData?.userReferralLink) {
                 const tweetText = `🇺🇸🦅HEY YOU🇺🇸🦅
 
-🫵🏽YEAH YOU🫵
+            🫵🏽YEAH YOU🫵
 
-While you were celebrating freedom🇺🇸, I was farming @marginfi points◼️
+            While you were celebrating freedom🇺🇸, I was farming @marginfi points◼️
 
-Imagine getting outworked like this😤
+            Imagine getting outworked like this😤
 
-${userData.userReferralLink}`;
-                const encodedText = encodeURIComponent(tweetText);
-                window.open(`https://twitter.com/intent/tweet?text=${encodedText}`, "_blank");
+            ${userData.userReferralLink}`;
+            const encodedText = encodeURIComponent(tweetText);
+            window.open(`https://twitter.com/intent/tweet?text=${encodedText}`, "_blank");
               }
             }}
           >
             🦅🇺🇸 EARN 1776 POINTS 🇺🇸🦅
           </Button>
-        </div>
+        </div> */}
         <div className="w-4/5 text-center text-[#868E95] text-xs flex justify-center gap-1">
           <div>We reserve the right to update point calculations at any time.</div>
           <div><Link href="/terms/points" style={{ textDecoration: 'underline' }}>Terms.</Link></div>
