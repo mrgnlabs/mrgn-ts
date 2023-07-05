@@ -339,7 +339,7 @@ const Points: FC = () => {
             <FileCopyIcon />
           </Button>
         </div>
-        <div className="grid grid-cols-1 gap-5 justify-items-center w-full">
+        {/* <div className="grid grid-cols-1 gap-5 justify-items-center w-full">
           <Button
             className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap max-w-[310px]"
             style={{
@@ -369,7 +369,7 @@ ${userData.userReferralLink}`;
           >
             🦅🇺🇸 EARN 1776 POINTS 🇺🇸🦅
           </Button>
-        </div>
+        </div> */}
         <div className="w-4/5 text-center text-[#868E95] text-xs flex justify-center gap-1">
           <div>We reserve the right to update point calculations at any time.</div>
           <div><Link href="/terms/points" style={{ textDecoration: 'underline' }}>Terms.</Link></div>
