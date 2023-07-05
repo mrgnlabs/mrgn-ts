@@ -81,15 +81,16 @@ export default async function handler(req: any, res: any) {
 
         // Validate referrer code if one exists
         let referrerQuery;
-        if (authData.referralCode) {
+        const referralCodeLower = authData?.referralCode?.toLowerCase();
+        if (referralCodeLower) {
           // Do the standard search
-          referrerQuery = await db.collection('users').where('referralCode', '==', authData.referralCode).limit(1).get();
+          referrerQuery = await db.collection('users').where('referralCode', '==', referralCodeLower).limit(1).get();
           if (!referrerQuery.empty) {
             console.log('found standard referral code')
             const referrerDoc = referrerQuery.docs[0];
             referredBy = referrerDoc.id;
           } else {
-            referrerQuery = await db.collection('users').where('referralCode', 'array-contains', authData.referralCode).limit(1).get();
+            referrerQuery = await db.collection('users').where('referralCode', 'array-contains', referralCodeLower).limit(1).get();
             if (!referrerQuery.empty) {
               console.log('found multiple referral codes for user')
               const referrerDoc = referrerQuery.docs[0];
