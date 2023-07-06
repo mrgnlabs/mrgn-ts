@@ -4,7 +4,8 @@ import Image from "next/image";
 import AirdropZone from "./AirdropZone";
 import { WalletButton } from "./WalletButton";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { groupedNumberFormatterDyn } from "~/utils/formatters";
+import { groupedNumberFormatterDyn, numeralFormatter } from "~/utils/formatters";
+import { useUserAccounts } from "~/context";
 
 // Firebase
 import { initializeApp } from "firebase/app";
@@ -65,6 +66,7 @@ const Navbar: FC = () => {
   const wallet = useWallet();
   const [points, setPoints] = useState<Points>(null);
   const [user, setUser] = useState<null | string>(null);
+  const { accountSummary, selectedAccount, extendedBankInfos } = useUserAccounts();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -109,17 +111,13 @@ const Navbar: FC = () => {
               swap
             </Link>
 
-            <Link href={"/earn"} className="glow-on-hover">
+            <Link href={"/earn"} className="glow-on-hover hidden md:block">
               earn
             </Link>
 
-            <Link href={"https://omni.marginfi.com"} className="glow-on-hover">
+            <Link href={"https://omni.marginfi.com"} className="glow-on-hover hidden sm:block">
               omni
             </Link>
-
-            {/* <Link href={"/points"} className="glow-on-hover hidden md:block">
-              points
-            </Link> */}
 
             {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && wallet.connected && <AirdropZone />}
           </div>
@@ -127,6 +125,26 @@ const Navbar: FC = () => {
           <div
             className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[300] gap-4 lg:gap-8"
           >
+
+
+            <div
+              className="glow-uxd whitespace-nowrap cursor-pointer"
+              onClick={() => {
+                if (selectedAccount && extendedBankInfos?.find((b) => b.tokenName === "UXD")?.bank) {
+                  selectedAccount!.withdrawEmissions(extendedBankInfos.find((b) => b.tokenName === "UXD")!.bank);
+                }
+              }}
+            >
+              {
+                wallet.connected && selectedAccount && extendedBankInfos &&
+                `Claim ${accountSummary.outstandingUxpEmissions < 1 ?
+                  accountSummary.outstandingUxpEmissions.toExponential(5)
+                  :
+                  numeralFormatter(accountSummary.outstandingUxpEmissions)
+                } UXP`
+              }
+            </div>
+
 
             {
               <Link href={"/points"} className="glow whitespace-nowrap">

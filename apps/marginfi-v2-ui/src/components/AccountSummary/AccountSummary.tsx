@@ -464,20 +464,3 @@ const AccountSummary: FC = () => {
 };
 
 export { AccountSummary };
-
-// {/* </div> */}
-// <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-5" style={{ border: 'solid red 1px' }}>
-//   <RewardMetric
-//     value={wallet.connected ? accountSummary.outstandingUxpEmissions.toExponential(5) : "-"}
-//     marginfiAccount={selectedAccount}
-//     extendedBankInfos={extendedBankInfos}
-//   />
-//   <AccountMetric
-//     label={"Lending"}
-//     value={wallet.connected ? usdFormatter.format(accountSummary.lendingAmount) : "-"}
-//   />
-//   <AccountMetric
-//     label={"Borrowing"}
-//     value={wallet.connected ? usdFormatter.format(accountSummary.borrowingAmount) : "-"}
-//   />
-// </div>
