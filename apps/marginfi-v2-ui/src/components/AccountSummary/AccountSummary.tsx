@@ -8,6 +8,10 @@ import { Card, CardContent, Typography, Skeleton } from '@mui/material';
 import { getFirestore, collection, getDocs } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { ExtendedBankInfo } from "~/types";
+import Image from "next/image";
+import { styled } from "@mui/material/styles";
+import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
+import Link from 'next/link';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBPAKOn7YKvEHg6iXTRbyZws3G4kPhWjtQ",
@@ -20,6 +24,18 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: "rgb(227, 227, 227)",
+    color: "rgba(0, 0, 0, 0.87)",
+    maxWidth: 220,
+    fontSize: theme.typography.pxToRem(12),
+    border: "1px solid #dadde9",
+  },
+}));
 
 const AccountSummary: FC = () => {
   const { accountSummary, selectedAccount, extendedBankInfos } = useUserAccounts();
@@ -90,6 +106,19 @@ const AccountSummary: FC = () => {
             <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
               Global Supplied
               <div className="self-center">
+                <HtmlTooltip
+                  title={
+                    <React.Fragment>
+                      <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                        Global Supplied
+                      </Typography>
+                      Total value supplied across all assets in the marginfi protocol.
+                    </React.Fragment>
+                  }
+                  placement="top"
+                >
+                  <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                </HtmlTooltip>
               </div>
             </Typography>
             <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
@@ -108,8 +137,23 @@ const AccountSummary: FC = () => {
         </Card>
         <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
           <CardContent>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
+            <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
               Global Borrowed
+              <div className="self-center">
+                <HtmlTooltip
+                  title={
+                    <React.Fragment>
+                      <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                        Global Borrowed
+                      </Typography>
+                      Total value borrowed across all assets in the marginfi protocol.
+                    </React.Fragment>
+                  }
+                  placement="top"
+                >
+                  <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                </HtmlTooltip>
+              </div>
             </Typography>
             <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
               {
@@ -127,8 +171,26 @@ const AccountSummary: FC = () => {
         </Card>
         <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
           <CardContent>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
+            <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
               Global TVL
+              <div className="self-center">
+                <HtmlTooltip
+                  title={
+                    <React.Fragment>
+                      <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                        Global TVL
+                      </Typography>
+                      <div className="flex flex-col gap-2 pb-2">
+                        <div>Total value locked in the marginfi protocol, calculated as:</div>
+                        <div className="text-sm text-center">{"deposits - borrowed"}</div>
+                      </div>
+                    </React.Fragment>
+                  }
+                  placement="top"
+                >
+                  <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                </HtmlTooltip>
+              </div>
             </Typography>
             <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
               {
@@ -149,6 +211,21 @@ const AccountSummary: FC = () => {
             <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
               Global Points
               <div className="self-center">
+                <HtmlTooltip
+                  title={
+                    <React.Fragment>
+                      <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                        Points
+                      </Typography>
+                      <div className="flex flex-col gap-2 pb-2">
+                        <div>Learn more about points <Link href="/points"><u>here</u></Link>.</div>
+                      </div>
+                    </React.Fragment>
+                  }
+                  placement="top"
+                >
+                  <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                </HtmlTooltip>
               </div>
             </Typography>
             <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
@@ -182,6 +259,21 @@ const AccountSummary: FC = () => {
                 <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
                   Account Balance
                   <div className="self-center">
+                    <HtmlTooltip
+                      title={
+                        <React.Fragment>
+                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                            Your account
+                          </Typography>
+                          <div className="flex flex-col gap-2 pb-2">
+                            {"Your account balance is calculated as the value of your deposits minus the value of your borrows."}
+                          </div>
+                        </React.Fragment>
+                      }
+                      placement="top"
+                    >
+                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                    </HtmlTooltip>
                   </div>
                 </Typography>
                 <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
@@ -220,6 +312,21 @@ const AccountSummary: FC = () => {
                 <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
                   Supplying
                   <div className="self-center">
+                    <HtmlTooltip
+                      title={
+                        <React.Fragment>
+                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                            Your supplies
+                          </Typography>
+                          <div className="flex flex-col gap-2 pb-2">
+                            {"How much you're supplying, in USD value."}
+                          </div>
+                        </React.Fragment>
+                      }
+                      placement="top"
+                    >
+                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                    </HtmlTooltip>
                   </div>
                 </Typography>
                 <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
@@ -258,6 +365,21 @@ const AccountSummary: FC = () => {
                 <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
                   Borrowing
                   <div className="self-center">
+                    <HtmlTooltip
+                      title={
+                        <React.Fragment>
+                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                            Your borrows
+                          </Typography>
+                          <div className="flex flex-col gap-2 pb-2">
+                            {"How much you're borrowing, in USD value."}
+                          </div>
+                        </React.Fragment>
+                      }
+                      placement="top"
+                    >
+                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                    </HtmlTooltip>
                   </div>
                 </Typography>
                 <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
@@ -296,9 +418,28 @@ const AccountSummary: FC = () => {
                 <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
                   Health Factor
                   <div className="self-center">
+                    <HtmlTooltip
+                      title={
+                        <React.Fragment>
+                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                            Health Factor
+                          </Typography>
+                          <div className="flex flex-col gap-2 pb-2">
+                            <div>Calculates portfolio risk and ranges from 0% (liquidation) to 100% (no debt). The formula is:</div>
+                            <div className="text-sm text-center">{"(assets - liabilities) / (assets)"}</div>
+                          </div>
+                        </React.Fragment>
+                      }
+                      placement="top"
+                    >
+                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                    </HtmlTooltip>
+                  </div>
+                  <div className="self-center">
                   </div>
                 </Typography>
                 <Typography
+                  //@ts-ignore
                   color={healthFactor ? healthColor : "#fff"}
                   className="font-aeonik font-[500] text-3xl" component="div">
                   {
@@ -311,8 +452,6 @@ const AccountSummary: FC = () => {
                         className="w-1/3 rounded-md top-[4px]"
                       />
                   }
-
-
                 </Typography>
               </CardContent>
             </Card>
