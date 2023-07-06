@@ -36,6 +36,14 @@ export const usdFormatter = new Intl.NumberFormat("en-US", {
   signDisplay: "auto",
 });
 
+export const usdFormatterDyn = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+  signDisplay: "auto",
+});
+
 export const percentFormatter = new Intl.NumberFormat("en-US", {
   style: "percent",
   minimumFractionDigits: 2,

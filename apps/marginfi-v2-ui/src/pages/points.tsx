@@ -6,7 +6,6 @@ import { initializeApp } from "firebase/app";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { FC, useEffect, useState } from 'react';
 import { PageHeader } from "~/components/PageHeader";
-import { groupedNumberFormatter } from '~/utils/formatters';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import { numeralFormatter, groupedNumberFormatterDyn } from "~/utils/formatters";
