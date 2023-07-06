@@ -2,11 +2,9 @@ import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo, useState, useEffect } from "react";
 import { usdFormatter, percentFormatter, numeralFormatter, usdFormatterDyn } from "~/utils/formatters";
-// import { AccountBalance, MobileHealth } from "./AccountBalance";
 import { RewardMetric } from "./AccountMetric";
 import { useUserAccounts } from "~/context";
 import { Card, CardContent, Typography, Skeleton } from '@mui/material';
-import BigNumber from "bignumber.js";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { ExtendedBankInfo } from "~/types";
@@ -23,21 +21,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const calculateTotalPoints = async () => {
-  const pointsCollection = collection(db, 'points');
-  const pointSnapshot = await getDocs(pointsCollection);
-  let totalPoints = 0;
-
-  pointSnapshot.forEach((doc) => {
-    totalPoints += doc.data().total_points;
-  });
-
-  return totalPoints;
-};
-
 const AccountSummary: FC = () => {
   const { accountSummary, selectedAccount, extendedBankInfos } = useUserAccounts();
   const wallet = useWallet();
+  const [globalPoints, setGlobalPoints] = useState<number | null>(null);
+  const [healthColor, setHealthColor] = useState<string | null>(null);
 
   const healthFactor = useMemo(() => {
     if (selectedAccount) {
@@ -56,8 +44,6 @@ const AccountSummary: FC = () => {
   const globalBorrows = useMemo(() => calculateTotal(extendedBankInfos, 'totalPoolBorrows'), [extendedBankInfos]);
   const globalTVL = useMemo(() => Math.max(globalDeposits - globalBorrows, 0), [globalDeposits, globalBorrows]);
 
-  const [globalPoints, setGlobalPoints] = useState<number | null>(null);
-
   useEffect(() => {
     const calculateTotalPoints = async () => {
       const pointsCollection = collection(db, 'points');
@@ -74,6 +60,22 @@ const AccountSummary: FC = () => {
 
     calculateTotalPoints();
   }, []);
+
+  useEffect(() => {
+    if (healthFactor) {
+      let color;
+
+      if (healthFactor >= 0.5) {
+        color = "#75BA80"; // green color " : "#",
+      } else if (healthFactor >= 0.25) {
+        color = "#B8B45F"; // yellow color
+      } else {
+        color = "#CF6F6F"; // red color
+      }
+
+      setHealthColor(color);
+    }
+  }, [healthFactor]);
 
   return (
     <div className="flex flex-col items-center w-full max-w-7xl gap-5 col-span-full">
@@ -292,14 +294,16 @@ const AccountSummary: FC = () => {
             <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
               <CardContent>
                 <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
-                  Health factor
+                  Health Factor
                   <div className="self-center">
                   </div>
                 </Typography>
-                <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
+                <Typography
+                  color={healthFactor ? healthColor : "#fff"}
+                  className="font-aeonik font-[500] text-3xl" component="div">
                   {
                     healthFactor ?
-                      percentFormatter.format(new BigNumber(healthFactor).toNumber())
+                      percentFormatter.format(healthFactor)
                       :
                       <Skeleton
                         variant="rectangular"
