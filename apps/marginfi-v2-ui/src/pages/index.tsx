@@ -2,7 +2,6 @@ import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { AccountSummary, AssetsList, MultipleAccountsFoundWarning, UserPositions } from "~/components";
 import { PageHeader } from "~/components/PageHeader";
-import { GlobalMetrics } from "~/components/GlobalMetrics";
 import { useUserAccounts } from "~/context";
 
 const Home = () => {
