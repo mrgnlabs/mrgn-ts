@@ -70,3 +70,8 @@ a {
   text-shadow: 0 0 10px #DCE85D, 0 0 30px #DCE85D;
   color: #DCE85D !important;
 }
+
+.glow-uxd {
+  text-shadow: 0 0 10px #05FFFF, 0 0 30px #05FFFF;
+  color: #05FFFF !important;
+}
