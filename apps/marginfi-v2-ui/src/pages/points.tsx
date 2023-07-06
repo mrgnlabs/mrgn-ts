@@ -14,6 +14,8 @@ import Link from "next/link";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
+import { PointsLeaderBoard } from '~/components/Points';
+import * as models from "~/models"
 
 const firebaseConfig = {
   apiKey: "AIzaSyBPAKOn7YKvEHg6iXTRbyZws3G4kPhWjtQ",
@@ -28,26 +30,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-type UserData = {
-  userTotalPoints?: number,
-  userLendingPoints?: number,
-  userBorrowingPoints?: number,
-  userReferralPoints?: number,
-  userReferralLink?: string,
-  userRank?: number
-};
-
-type LeaderboardRow = {
-  id: string;
-  total_activity_deposit_points: number;
-  total_activity_borrow_points: number;
-  total_referral_deposit_points: number;
-  total_referral_borrow_points: number;
-  total_deposit_points: number;
-  total_borrow_points: number;
-  socialPoints: number;
-};
-
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
 ))(({ theme }: { theme: any; }) => ({
@@ -61,10 +43,10 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 const Points: FC = () => {
-  const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[]>([]);
+  const [leaderboardData, setLeaderboardData] = useState<models.LeaderboardRow[]>([]);
   const wallet = useWallet();
   const [user, setUser] = useState<null | string>(null);
-  const [userData, setUserData] = useState<UserData>();
+  const [userData, setUserData] = useState<models.UserData>();
   const [usingCustomReferralCode, setUsingCustomReferralCode] = useState(false);
 
   useEffect(() => {
@@ -97,7 +79,8 @@ const Points: FC = () => {
         const dataMap = new Map();
         [...oldData, ...leaderboard]
           .filter(item => item.id !== null && item.id !== undefined && item.id != 'None') // Exclude items with null or undefined id
-          .forEach(item => {
+          .forEach((item, idx) => {
+            item.rank = idx
             dataMap.set(item.id, item);
           });
         return Array.from(dataMap.values());
@@ -392,47 +375,7 @@ const Points: FC = () => {
           <div><Link href="/terms/points" style={{ textDecoration: 'underline' }}>Terms.</Link></div>
         </div>
 
-        <TableContainer
-          component={Paper} className="h-full w-4/5 sm:w-full bg-[#131619] rounded-xl overflow-x-auto"
-        >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell align="center" className="text-white text-base font-aeonik border-none pl-2" style={{ fontWeight: 500 }}>Rank</TableCell>
-                <TableCell className="text-white text-base font-aeonik border-none" style={{ fontWeight: 500 }}>User</TableCell>
-                <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Lending Points</TableCell>
-                <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Borrowing Points</TableCell>
-                <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Referral Points</TableCell>
-                <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Social Points</TableCell>
-                <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Total Points</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {leaderboardData.map((row: LeaderboardRow, index: number) => (
-                <TableRow key={row.id} className={`${row.id === user ? 'glow' : ''}`}>
-                  <TableCell align="center" className={`${index <= 2 ? 'text-2xl' : 'text-base'} border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`}>
-                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                  </TableCell>
-                  <TableCell className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>
-                    <a href={`https://solscan.io/account/${row.id}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }} className="glow-on-hover">
-                      {`${row.id.slice(0, 5)}...${row.id.slice(-5)}`}
-                      <style jsx>{`
-                        a:hover {
-                          text-decoration: underline;
-                        }
-                      `}</style>
-                    </a>
-                  </TableCell>
-                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_activity_deposit_points))}</TableCell>
-                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_activity_borrow_points))}</TableCell>
-                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_referral_deposit_points + row.total_referral_borrow_points))}</TableCell>
-                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.socialPoints ? row.socialPoints : 0))}</TableCell>
-                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_deposit_points + row.total_borrow_points + (row.socialPoints ? row.socialPoints : 0)))}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <PointsLeaderBoard leaderboardData={leaderboardData} user={user} />
       </div>
     </>
   );
