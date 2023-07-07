@@ -415,7 +415,7 @@ const AssetRow: FC<{
         >
           <Badge badgeContent={
             isInLendingMode ?
-              (bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit ? "💯" : (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? "❗️" : null)) :
+              (bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit ? "💯" : (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? "❗" : null)) :
               (bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit ? "💯" : (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? "❗" : null))
           }
             className="bg-transparent"
