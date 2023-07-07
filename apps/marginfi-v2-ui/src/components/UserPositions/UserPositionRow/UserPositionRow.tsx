@@ -124,7 +124,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {usdFormatter.format(position.usdValue)}
+        {usdFormatter.format(position.weightedUSDValue)}
       </TableCell>
 
       <TableCell
