@@ -32,8 +32,7 @@ export const EnhancedTableHead = (props: EnhancedTableProps) => {
               sx={{
                 "& .MuiTableSortLabel-icon": {
                   color: "white !important",
-                },
-                "& svg": {
+                  opacity: 0.6,
                   position: `${headCell.numeric ? "absolute" : "relative"}`,
                   right: `${headCell.numeric ? "-28px" : "unset"}`,
                 },
@@ -42,7 +41,7 @@ export const EnhancedTableHead = (props: EnhancedTableProps) => {
               active={orderBy === headCell.id}
               direction={orderBy === headCell.id ? order : "asc"}
               disabled={headCell.id === "rank"}
-              hideSortIcon={headCell.id === "rank"}
+              hideSortIcon={headCell.id === "rank" ? true : false}
               onClick={createSortHandler(headCell.id)}
             >
               <span className="text-white text-base font-aeonik border-none">{headCell.label}</span>
