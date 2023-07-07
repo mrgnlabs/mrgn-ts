@@ -43,7 +43,7 @@ let envSchema = z.object({
     .default("false")
     .transform((s) => s === "true" || s === "1"),
   SENTRY_DSN: z.string().optional(),
-  SLEEP_INTERVAL: z.number().default(5_000),
+  SLEEP_INTERVAL: z.string().default("10000").transform((s) => parseInt(s, 10)),
   WALLET_KEYPAIR: z.string().transform((keypairStr) => {
     if (fs.existsSync(resolveHome(keypairStr))) {
       return loadKeypair(keypairStr);

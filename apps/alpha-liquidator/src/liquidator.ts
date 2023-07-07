@@ -373,23 +373,24 @@ class Liquidator {
   private async liquidationStage() {
     const debug = getDebugLogger("liquidation-stage");
     debug("Started liquidation stage");
-    const allAccounts = await this.client.getAllMarginfiAccountAddresses();
-    const targetAccounts = allAccounts.filter((address) => {
+    const allAccounts = await this.client.getAllMarginfiAccounts();
+    const targetAccounts = allAccounts.filter((account) => {
       if (this.account_whitelist) {
-        return this.account_whitelist.find((whitelistedAddress) => whitelistedAddress.equals(address)) !== undefined;
+        return this.account_whitelist.find((whitelistedAddress) => whitelistedAddress.equals(account.publicKey)) !== undefined;
       } else if (this.account_blacklist) {
-        return this.account_blacklist.find((whitelistedAddress) => whitelistedAddress.equals(address)) === undefined;
+        return this.account_blacklist.find((whitelistedAddress) => whitelistedAddress.equals(account.publicKey)) === undefined;
       }
       return true;
     });
-    const addresses = shuffle(targetAccounts);
+
+    const accounts = shuffle(targetAccounts);
     debug("Found %s accounts in total", allAccounts.length);
     debug("Monitoring %s accounts", targetAccounts.length);
 
-    for (let i = 0; i < addresses.length; i++) {
-      const liquidatedAccount = await this.processAccount(addresses[i]);
+    for (let i = 0; i < accounts.length; i++) {
+      const liquidatedAccount = await this.processAccount(accounts[i]);
 
-      debug("Account %s liquidated: %s", addresses[i], liquidatedAccount);
+      debug("Account %s liquidated: %s", accounts[i], liquidatedAccount);
 
       if (liquidatedAccount) {
         debug("Account liquidated, stopping to rebalance");
@@ -398,19 +399,18 @@ class Liquidator {
     }
   }
 
-  private async processAccount(account: PublicKey): Promise<boolean> {
-    const client = this.client;
+  private async processAccount(marginfiAccount: MarginfiAccount): Promise<boolean> {
     const group = this.group;
     const liquidatorAccount = this.account;
 
-    if (account.equals(liquidatorAccount.publicKey)) {
+    if (marginfiAccount.publicKey.equals(liquidatorAccount.publicKey)) {
       return false;
     }
 
-    const debug = getDebugLogger(`process-account:${account.toBase58()}`);
+    const debug = getDebugLogger(`process-account:${marginfiAccount.publicKey.toBase58()}`);
 
-    debug("Processing account %s", account);
-    const marginfiAccount = await MarginfiAccount.fetch(account, client);
+    debug("Processing account %s", marginfiAccount.publicKey);
+
     if (marginfiAccount.canBeLiquidated()) {
       const { assets, liabilities } = marginfiAccount.getHealthComponents(MarginRequirementType.Maint);
 
@@ -421,7 +421,7 @@ class Liquidator {
       return false;
     }
 
-    captureMessage(`Liquidating account ${account.toBase58()}`);
+    captureMessage(`Liquidating account ${marginfiAccount.publicKey.toBase58()}`);
 
     let maxLiabilityPaydownUsdValue = new BigNumber(0);
     let bestLiabAccountIndex = 0;
