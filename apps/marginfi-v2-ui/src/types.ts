@@ -8,6 +8,11 @@ interface AccountSummary {
   borrowingAmount: number;
   apy: number;
   outstandingUxpEmissions: number;
+  balanceUnbiased: number;
+  lendingAmountUnbiased: number;
+  borrowingAmountUnbiased: number;
+  lendingAmountWithBiasAndWeighted: number;
+  borrowingAmountWithBiasAndWeighted: number;
 }
 
 interface BankInfo {
@@ -32,6 +37,7 @@ interface UserPosition {
   isLending: boolean;
   amount: number;
   usdValue: number;
+  weightedUSDValue: number;
 }
 
 interface TokenMetadata {

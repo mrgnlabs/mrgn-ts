@@ -19,6 +19,11 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   balance: 0,
   lendingAmount: 0,
   borrowingAmount: 0,
+  balanceUnbiased: 0,
+  lendingAmountUnbiased: 0,
+  borrowingAmountUnbiased: 0,
+  lendingAmountWithBiasAndWeighted: 0,
+  borrowingAmountWithBiasAndWeighted: 0,
   apy: 0,
   positions: [],
   outstandingUxpEmissions: 0,
@@ -26,6 +31,8 @@ const DEFAULT_ACCOUNT_SUMMARY = {
 
 function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: BankInfo[]): AccountSummary {
   const equityComponents = marginfiAccount.getHealthComponents(MarginRequirementType.Equity);
+  const equityComponentsUnbiased = marginfiAccount.getHealthComponentsWithoutBias(MarginRequirementType.Equity);
+  const equityComponentsWithBiasAndWeighted = marginfiAccount.getHealthComponents(MarginRequirementType.Maint);
 
   let outstandingUxpEmissions = new BigNumber(0);
 
@@ -42,6 +49,11 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
     balance: equityComponents.assets.minus(equityComponents.liabilities).toNumber(),
     lendingAmount: equityComponents.assets.toNumber(),
     borrowingAmount: equityComponents.liabilities.toNumber(),
+    balanceUnbiased: equityComponentsUnbiased.assets.minus(equityComponentsUnbiased.liabilities).toNumber(),
+    lendingAmountUnbiased: equityComponentsUnbiased.assets.toNumber(),
+    borrowingAmountUnbiased: equityComponentsUnbiased.liabilities.toNumber(),
+    lendingAmountWithBiasAndWeighted: equityComponentsWithBiasAndWeighted.assets.toNumber(),
+    borrowingAmountWithBiasAndWeighted: equityComponentsWithBiasAndWeighted.liabilities.toNumber(),
     apy: marginfiAccount.computeNetApy(),
     outstandingUxpEmissions: outstandingUxpEmissions.toNumber(),
   };
@@ -193,12 +205,14 @@ function makeExtendedBankInfo(
 function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {
   const amounts = balance.getQuantity(bankInfo.bank);
   const usdValues = balance.getUsdValue(bankInfo.bank, MarginRequirementType.Equity);
+  const weightedUSDValues = balance.getUsdValueWithPriceBias(bankInfo.bank, MarginRequirementType.Maint);
   const isLending = usdValues.liabilities.isZero();
   return {
     amount: isLending
       ? nativeToUi(amounts.assets.toNumber(), bankInfo.tokenMintDecimals)
       : nativeToUi(amounts.liabilities.toNumber(), bankInfo.tokenMintDecimals),
     usdValue: isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber(),
+    weightedUSDValue: isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber(),
     isLending,
   };
 }

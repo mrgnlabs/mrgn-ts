@@ -1,8 +1,7 @@
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo, useState, useEffect } from "react";
-import { usdFormatter, percentFormatter, numeralFormatter, usdFormatterDyn } from "~/utils/formatters";
-import { RewardMetric } from "./AccountMetric";
+import { usdFormatter, percentFormatter, numeralFormatter, usdFormatterDyn, groupedNumberFormatter } from "~/utils/formatters";
 import { useUserAccounts } from "~/context";
 import { Card, CardContent, Typography, Skeleton } from '@mui/material';
 import { getFirestore, collection, getDocs } from "firebase/firestore";
@@ -65,7 +64,6 @@ const AccountSummary: FC = () => {
       const pointsCollection = collection(db, 'points');
       const pointSnapshot = await getDocs(pointsCollection);
       let totalPoints = 0;
-      console.log(totalPoints)
 
       pointSnapshot.forEach((doc) => {
         totalPoints += doc.data().total_points ? parseFloat(doc.data().total_points) : 0;
@@ -266,8 +264,11 @@ const AccountSummary: FC = () => {
                             Your account
                           </Typography>
                           <div className="flex flex-col gap-2 pb-2">
-                            {"Your account balance is calculated as the value of your deposits minus the value of your borrows."}
+                            {`Without price bias, your account balance is ${usdFormatter.format(accountSummary.balanceUnbiased)
+                              }. With bias, your account balance is ${usdFormatter.format(accountSummary.balance)
+                              }.`}
                           </div>
+                          <Link href="https://t.me/mrgncommunity"><u>Learn why price bias matters.</u></Link>
                         </React.Fragment>
                       }
                       placement="top"
@@ -278,23 +279,23 @@ const AccountSummary: FC = () => {
                 </Typography>
                 <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
                   {
-                    accountSummary.balance ?
+                    accountSummary.balanceUnbiased ?
                       <>
                         <div className="sm:hidden">
-                          {`$${numeralFormatter(accountSummary.balance)}`}
+                          {`$${numeralFormatter(accountSummary.balanceUnbiased)}`}
                         </div>
 
                         <div className="hidden sm:block xl:hidden">
                           {
-                            Math.round(accountSummary.balance) > 10000 ?
-                              usdFormatterDyn.format(Math.round(accountSummary.balance))
+                            Math.round(accountSummary.balanceUnbiased) > 10000 ?
+                              usdFormatterDyn.format(Math.round(accountSummary.balanceUnbiased))
                               :
-                              usdFormatter.format(accountSummary.balance)
+                              usdFormatter.format(accountSummary.balanceUnbiased)
                           }
                         </div>
 
                         <div className="hidden xl:block">
-                          {usdFormatter.format(accountSummary.balance)}
+                          {usdFormatter.format(accountSummary.balanceUnbiased)}
                         </div>
                       </>
                       :
@@ -316,11 +317,14 @@ const AccountSummary: FC = () => {
                       title={
                         <React.Fragment>
                           <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                            Your supplies
+                            How much are you lending?
                           </Typography>
                           <div className="flex flex-col gap-2 pb-2">
-                            {"How much you're supplying, in USD value."}
+                            {`Your assets are worth ${usdFormatter.format(accountSummary.lendingAmountUnbiased)
+                              } without price bias and ${usdFormatter.format(accountSummary.lendingAmount)
+                              } with price bias.`}
                           </div>
+                          <Link href="https://t.me/mrgncommunity"><u>Learn why price bias matters.</u></Link>
                         </React.Fragment>
                       }
                       placement="top"
@@ -331,23 +335,23 @@ const AccountSummary: FC = () => {
                 </Typography>
                 <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
                   {
-                    accountSummary.lendingAmount ?
+                    accountSummary.lendingAmountUnbiased ?
                       <>
                         <div className="sm:hidden">
-                          {`$${numeralFormatter(accountSummary.lendingAmount)}`}
+                          {`$${numeralFormatter(accountSummary.lendingAmountUnbiased)}`}
                         </div>
 
                         <div className="hidden sm:block xl:hidden">
                           {
-                            Math.round(accountSummary.lendingAmount) > 10000 ?
-                              usdFormatterDyn.format(Math.round(accountSummary.lendingAmount))
+                            Math.round(accountSummary.lendingAmountUnbiased) > 10000 ?
+                              usdFormatterDyn.format(Math.round(accountSummary.lendingAmountUnbiased))
                               :
-                              usdFormatter.format(accountSummary.lendingAmount)
+                              usdFormatter.format(accountSummary.lendingAmountUnbiased)
                           }
                         </div>
 
                         <div className="hidden xl:block">
-                          {usdFormatter.format(accountSummary.lendingAmount)}
+                          {usdFormatter.format(accountSummary.lendingAmountUnbiased)}
                         </div>
                       </>
                       :
@@ -369,11 +373,14 @@ const AccountSummary: FC = () => {
                       title={
                         <React.Fragment>
                           <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                            Your borrows
+                            How much are you borrowing?
                           </Typography>
                           <div className="flex flex-col gap-2 pb-2">
-                            {"How much you're borrowing, in USD value."}
+                            {`Your liabilities are worth ${usdFormatter.format(accountSummary.borrowingAmountUnbiased)
+                              } without price bias and ${usdFormatter.format(accountSummary.borrowingAmount)
+                              } with price bias.`}
                           </div>
+                          <Link href="https://t.me/mrgncommunity"><u>Learn why price bias matters.</u></Link>
                         </React.Fragment>
                       }
                       placement="top"
@@ -384,23 +391,23 @@ const AccountSummary: FC = () => {
                 </Typography>
                 <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
                   {
-                    accountSummary.borrowingAmount ?
+                    accountSummary.borrowingAmountUnbiased !== undefined && accountSummary.borrowingAmountUnbiased !== null ?
                       <>
                         <div className="sm:hidden">
-                          {`$${numeralFormatter(accountSummary.borrowingAmount)}`}
+                          {`$${numeralFormatter(accountSummary.borrowingAmountUnbiased)}`}
                         </div>
 
                         <div className="hidden sm:block xl:hidden">
                           {
-                            Math.round(accountSummary.borrowingAmount) > 10000 ?
-                              usdFormatterDyn.format(Math.round(accountSummary.borrowingAmount))
+                            Math.round(accountSummary.borrowingAmountUnbiased) > 10000 ?
+                              usdFormatterDyn.format(Math.round(accountSummary.borrowingAmountUnbiased))
                               :
-                              usdFormatter.format(accountSummary.borrowingAmount)
+                              usdFormatter.format(accountSummary.borrowingAmountUnbiased)
                           }
                         </div>
 
                         <div className="hidden xl:block">
-                          {usdFormatter.format(accountSummary.borrowingAmount)}
+                          {usdFormatter.format(accountSummary.borrowingAmountUnbiased)}
                         </div>
                       </>
                       :
@@ -425,8 +432,14 @@ const AccountSummary: FC = () => {
                             Health Factor
                           </Typography>
                           <div className="flex flex-col gap-2 pb-2">
-                            <div>Calculates portfolio risk and ranges from 0% (liquidation) to 100% (no debt). The formula is:</div>
+                            <div>Health factor is based off of <b>price biased</b> and <b>weighted</b> asset and liability values.</div>
+                            <div>The formula is:</div>
                             <div className="text-sm text-center">{"(assets - liabilities) / (assets)"}</div>
+                            <div>Your math is:</div>
+                            <div className="text-sm text-center">{`(${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)
+                              } - ${usdFormatter.format(accountSummary.borrowingAmountWithBiasAndWeighted)
+                              }) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)
+                              })`}</div>
                           </div>
                         </React.Fragment>
                       }
