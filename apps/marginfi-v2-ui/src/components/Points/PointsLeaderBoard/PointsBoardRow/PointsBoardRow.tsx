@@ -11,12 +11,11 @@ export interface PointsBoardRowProps {
 
 export const PointsBoardRow: FC<PointsBoardRowProps> = ({ row, user }) => {
   return (
-    <TableRow key={row.id} className={`${row.id === user ? "glow" : ""}`}>
+    <TableRow key={row.id} className={`${row.id === user ? "glow" : ""} h-[68px]`}>
       <TableCell
         align="center"
-        className={`${row.rank <= 2 ? "text-2xl" : "text-base"} border-none font-aeonik ${
-          row.id === user ? "text-[#DCE85D]" : "text-white"
-        }`}
+        className={`${row.rank <= 2 ? "text-2xl" : "text-base"} border-none font-aeonik ${row.id === user ? "text-[#DCE85D]" : "text-white"
+          }`}
       >
         {row.rank === 0 ? "🥇" : row.rank === 1 ? "🥈" : row.rank === 2 ? "🥉" : row.rank + 1}
       </TableCell>
