@@ -6,10 +6,27 @@ import { loadKeypair } from "@mrgnlabs/mrgn-common";
 import * as fs from "fs";
 import path from "path";
 import { homedir } from "os";
+import BigNumber from "bignumber.js";
 
 const Sentry = require("@sentry/node");
 
 dotenv.config();
+
+// Nicely log when LIQUIDATOR_PK, WALLET_KEYPAIR, or RPC_ENDPOINT are missing
+if (!process.env.LIQUIDATOR_PK) {
+  console.error("LIQUIDATOR_PK is required");
+  process.exit(1);
+}
+
+if (!process.env.WALLET_KEYPAIR) {
+  console.error("WALLET_KEYPAIR is required");
+  process.exit(1);
+}
+
+if (!process.env.RPC_ENDPOINT) {
+  console.error("RPC_ENDPOINT is required");
+  process.exit(1);
+}
 
 /*eslint sort-keys: "error"*/
 let envSchema = z.object({
@@ -52,6 +69,7 @@ let envSchema = z.object({
       return Keypair.fromSecretKey(new Uint8Array(JSON.parse(keypairStr)));
     }
   }),
+  MIN_LIQUIDATION_AMOUNT_USD_UI: z.string().default("0.1").transform((s) => new BigNumber(s)),
 });
 
 type EnvSchema = z.infer<typeof envSchema>;

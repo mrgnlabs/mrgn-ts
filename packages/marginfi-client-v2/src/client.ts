@@ -194,28 +194,15 @@ class MarginfiClient {
    */
   async getAllMarginfiAccounts(): Promise<MarginfiAccount[]> {
     return (
-      await this.program.provider.connection.getProgramAccounts(this.programId, {
-        commitment: this.program.provider.connection.commitment,
-        dataSlice: {
-          offset: 0,
-          length: 0,
+      await this.program.account.marginfiAccount.all([
+        {
+          memcmp: {
+            bytes: this._group.publicKey.toBase58(),
+            offset: 8, // marginfiGroup is the first field in the account, so only offset is the discriminant
+          },
         },
-        filters: [
-          {
-            memcmp: {
-              bytes: this._group.publicKey.toBase58(),
-              offset: 8, // marginfiGroup is the second field in the account after the authority, so offset by the discriminant and a pubkey
-            },
-          },
-          {
-            memcmp: {
-              offset: 0,
-              bytes: bs58.encode(BorshAccountsCoder.accountDiscriminator(AccountType.MarginfiAccount)),
-            },
-          },
-        ],
-      })
-    ).map((a) => MarginfiAccount.fromAccountDataRaw(a.pubkey, this, a.account.data, this.group));
+      ])
+    ).map((a) => MarginfiAccount.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, this.group));
   }
 
   /**
