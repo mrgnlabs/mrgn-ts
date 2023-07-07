@@ -2,7 +2,6 @@ import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo, useState, useEffect } from "react";
 import { usdFormatter, percentFormatter, numeralFormatter, usdFormatterDyn, groupedNumberFormatter } from "~/utils/formatters";
-import { RewardMetric } from "./AccountMetric";
 import { useUserAccounts } from "~/context";
 import { Card, CardContent, Typography, Skeleton } from '@mui/material';
 import { getFirestore, collection, getDocs } from "firebase/firestore";
