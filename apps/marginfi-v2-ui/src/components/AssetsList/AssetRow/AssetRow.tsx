@@ -385,10 +385,20 @@ const AssetRow: FC<{
           title={
             <React.Fragment>
               <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                Limit reached
+                {
+                  isInLendingMode ?
+                    (bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit ? "Limit Reached" : (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? "Approaching Limit" : null)) :
+                    (bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit ? "Limit Reached" : (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? "Approaching Limit" : null))
+                }
               </Typography>
               {`${bankInfo.tokenName
-                } has reached its ${isInLendingMode ? 'deposit' : 'borrow'} limit. Additional ${isInLendingMode ? 'deposits' : 'borrows'} are not currently available.`
+                } ${isInLendingMode ? 'deposits' : 'borrows'} are at ${percentFormatter.format(
+                  isInLendingMode ?
+                    bankInfo.totalPoolDeposits / bankInfo.bank.config.depositLimit
+                    :
+                    bankInfo.totalPoolBorrows / bankInfo.bank.config.borrowLimit
+                )
+                } capacity.`
               }
               <br />
               <a href="https://docs.marginfi.com">
@@ -398,16 +408,15 @@ const AssetRow: FC<{
           }
           placement="right"
           className={`${isInLendingMode ?
-            bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit ? "" : "hidden"
+            bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? "" : ""
             :
-            bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit ? "" : "hidden"
+            bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? "" : ""
             }`}
         >
           <Badge badgeContent={
             isInLendingMode ?
-              bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit ? '💯' : ''
-              :
-              bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit ? 'at capacity' : ''
+              (bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit ? "💯" : (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? "❗️" : null)) :
+              (bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit ? "💯" : (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? "❗" : null))
           }
             className="bg-transparent"
             sx={{
@@ -418,9 +427,9 @@ const AssetRow: FC<{
             }}
             invisible={
               isInLendingMode ?
-                bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit ? false : true
+                bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? false : true
                 :
-                bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit ? false : true
+                bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? false : true
             }
 
           >
@@ -554,7 +563,7 @@ const AssetRow: FC<{
           </div>
         </Tooltip>
       </TableCell>
-    </TableRow>
+    </TableRow >
   );
 };
 
