@@ -33,10 +33,16 @@ export const EnhancedTableHead = (props: EnhancedTableProps) => {
                 "& .MuiTableSortLabel-icon": {
                   color: "white !important",
                 },
+                "& svg": {
+                  position: `${headCell.numeric ? "absolute" : "relative"}`,
+                  right: `${headCell.numeric ? "-28px" : "unset"}`,
+                },
               }}
               className="text-white text-base font-aeonik border-none"
               active={orderBy === headCell.id}
               direction={orderBy === headCell.id ? order : "asc"}
+              disabled={headCell.id === "rank"}
+              hideSortIcon={headCell.id === "rank"}
               onClick={createSortHandler(headCell.id)}
             >
               <span className="text-white text-base font-aeonik border-none">{headCell.label}</span>

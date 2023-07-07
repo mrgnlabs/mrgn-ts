@@ -14,13 +14,14 @@ type Order = "asc" | "desc";
 
 export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData, user }) => {
   const [order, setOrder] = useState<Order>("asc");
-  const [orderBy, setOrderBy] = useState<string>("rank");
+  const [orderBy, setOrderBy] = useState<string>("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof models.LeaderboardRow) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
+    const isAsc = orderBy === property && order === "desc";
+    console.log({ hi: isAsc ? "desc" : "asc", orde: order === "asc", prop: orderBy === property });
+    setOrder(isAsc ? "asc" : "desc");
     setOrderBy(property);
   };
 
@@ -46,7 +47,10 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData,
   ) as models.LeaderboardRow[];
 
   return (
-    <TableContainer component={Paper} className="h-full w-4/5 sm:w-full bg-[#131619] rounded-xl overflow-x-auto">
+    <TableContainer
+      component={Paper}
+      className="h-full w-4/5 sm:w-full bg-[#131619] rounded-xl overflow-x-auto px-4 py-3"
+    >
       <Table>
         <EnhancedTableHead order={order} orderBy={orderBy} onRequestSort={handleRequestSort} />
 
