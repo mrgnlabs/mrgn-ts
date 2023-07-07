@@ -19,6 +19,9 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   balance: 0,
   lendingAmount: 0,
   borrowingAmount: 0,
+  balanceUnweighted: 0,
+  lendingAmountUnweighted: 0,
+  borrowingAmountUnweighted: 0,
   apy: 0,
   positions: [],
   outstandingUxpEmissions: 0,
@@ -26,6 +29,7 @@ const DEFAULT_ACCOUNT_SUMMARY = {
 
 function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: BankInfo[]): AccountSummary {
   const equityComponents = marginfiAccount.getHealthComponents(MarginRequirementType.Equity);
+  const equityComponentsUnweighted = marginfiAccount.getHealthComponentsWithoutBias(MarginRequirementType.Equity);
 
   let outstandingUxpEmissions = new BigNumber(0);
 
@@ -42,6 +46,9 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
     balance: equityComponents.assets.minus(equityComponents.liabilities).toNumber(),
     lendingAmount: equityComponents.assets.toNumber(),
     borrowingAmount: equityComponents.liabilities.toNumber(),
+    balanceUnweighted: equityComponentsUnweighted.assets.minus(equityComponentsUnweighted.liabilities).toNumber(),
+    lendingAmountUnweighted: equityComponentsUnweighted.assets.toNumber(),
+    borrowingAmountUnweighted: equityComponentsUnweighted.liabilities.toNumber(),
     apy: marginfiAccount.computeNetApy(),
     outstandingUxpEmissions: outstandingUxpEmissions.toNumber(),
   };

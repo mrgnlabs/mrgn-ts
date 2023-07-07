@@ -56,7 +56,14 @@ const UserPositions: FC = () => {
                   style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                   align="right"
                 >
-                  USD Value
+                  Weighted
+                </TableCell>
+                <TableCell
+                  className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell"
+                  style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                  align="right"
+                >
+                  USD
                 </TableCell>
                 <TableCell className="border-none"></TableCell>
                 <TableCell className="border-none"></TableCell>
@@ -101,7 +108,14 @@ const UserPositions: FC = () => {
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                     align="right"
                   >
-                    USD Value
+                    Weighted
+                  </TableCell>
+                  <TableCell
+                    className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell"
+                    style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                    align="right"
+                  >
+                    USD
                   </TableCell>
                   <TableCell className="border-none"></TableCell>
                   <TableCell className="border-none"></TableCell>

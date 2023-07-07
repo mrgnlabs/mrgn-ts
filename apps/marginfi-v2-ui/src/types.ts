@@ -8,6 +8,9 @@ interface AccountSummary {
   borrowingAmount: number;
   apy: number;
   outstandingUxpEmissions: number;
+  balanceUnweighted: number;
+  lendingAmountUnweighted: number;
+  borrowingAmountUnweighted: number;
 }
 
 interface BankInfo {

@@ -1,7 +1,7 @@
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo, useState, useEffect } from "react";
-import { usdFormatter, percentFormatter, numeralFormatter, usdFormatterDyn } from "~/utils/formatters";
+import { usdFormatter, percentFormatter, numeralFormatter, usdFormatterDyn, groupedNumberFormatter } from "~/utils/formatters";
 import { RewardMetric } from "./AccountMetric";
 import { useUserAccounts } from "~/context";
 import { Card, CardContent, Typography, Skeleton } from '@mui/material';
@@ -266,8 +266,11 @@ const AccountSummary: FC = () => {
                             Your account
                           </Typography>
                           <div className="flex flex-col gap-2 pb-2">
-                            {"Your account balance is calculated as the value of your deposits minus the value of your borrows."}
+                            {`Your unweighted account balance is ${usdFormatter.format(accountSummary.balanceUnweighted)
+                              }, and your weighted account balance is ${usdFormatter.format(accountSummary.balance)
+                              }.`}
                           </div>
+                          <Link href="https://t.me/mrgncommunity"><u>Learn the difference.</u></Link>
                         </React.Fragment>
                       }
                       placement="top"
@@ -278,23 +281,23 @@ const AccountSummary: FC = () => {
                 </Typography>
                 <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
                   {
-                    accountSummary.balance ?
+                    accountSummary.balanceUnweighted ?
                       <>
                         <div className="sm:hidden">
-                          {`$${numeralFormatter(accountSummary.balance)}`}
+                          {`$${numeralFormatter(accountSummary.balanceUnweighted)}`}
                         </div>
 
                         <div className="hidden sm:block xl:hidden">
                           {
-                            Math.round(accountSummary.balance) > 10000 ?
-                              usdFormatterDyn.format(Math.round(accountSummary.balance))
+                            Math.round(accountSummary.balanceUnweighted) > 10000 ?
+                              usdFormatterDyn.format(Math.round(accountSummary.balanceUnweighted))
                               :
-                              usdFormatter.format(accountSummary.balance)
+                              usdFormatter.format(accountSummary.balanceUnweighted)
                           }
                         </div>
 
                         <div className="hidden xl:block">
-                          {usdFormatter.format(accountSummary.balance)}
+                          {usdFormatter.format(accountSummary.balanceUnweighted)}
                         </div>
                       </>
                       :
@@ -316,11 +319,14 @@ const AccountSummary: FC = () => {
                       title={
                         <React.Fragment>
                           <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                            Your supplies
+                            How much are you lending?
                           </Typography>
                           <div className="flex flex-col gap-2 pb-2">
-                            {"How much you're supplying, in USD value."}
+                            {`Your assets are worth ${usdFormatter.format(accountSummary.lendingAmountUnweighted)
+                              } unweighted and ${usdFormatter.format(accountSummary.lendingAmount)
+                              } weighted.`}
                           </div>
+                          <Link href="https://t.me/mrgncommunity"><u>Learn the difference.</u></Link>
                         </React.Fragment>
                       }
                       placement="top"
@@ -331,23 +337,23 @@ const AccountSummary: FC = () => {
                 </Typography>
                 <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
                   {
-                    accountSummary.lendingAmount ?
+                    accountSummary.lendingAmountUnweighted ?
                       <>
                         <div className="sm:hidden">
-                          {`$${numeralFormatter(accountSummary.lendingAmount)}`}
+                          {`$${numeralFormatter(accountSummary.lendingAmountUnweighted)}`}
                         </div>
 
                         <div className="hidden sm:block xl:hidden">
                           {
-                            Math.round(accountSummary.lendingAmount) > 10000 ?
-                              usdFormatterDyn.format(Math.round(accountSummary.lendingAmount))
+                            Math.round(accountSummary.lendingAmountUnweighted) > 10000 ?
+                              usdFormatterDyn.format(Math.round(accountSummary.lendingAmountUnweighted))
                               :
-                              usdFormatter.format(accountSummary.lendingAmount)
+                              usdFormatter.format(accountSummary.lendingAmountUnweighted)
                           }
                         </div>
 
                         <div className="hidden xl:block">
-                          {usdFormatter.format(accountSummary.lendingAmount)}
+                          {usdFormatter.format(accountSummary.lendingAmountUnweighted)}
                         </div>
                       </>
                       :
@@ -369,11 +375,14 @@ const AccountSummary: FC = () => {
                       title={
                         <React.Fragment>
                           <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                            Your borrows
+                            How much are you borrowing?
                           </Typography>
                           <div className="flex flex-col gap-2 pb-2">
-                            {"How much you're borrowing, in USD value."}
+                            {`Your liabilities are worth ${usdFormatter.format(accountSummary.borrowingAmountUnweighted)
+                              } unweighted and ${usdFormatter.format(accountSummary.borrowingAmount)
+                              } weighted.`}
                           </div>
+                          <Link href="https://t.me/mrgncommunity"><u>Learn the difference.</u></Link>
                         </React.Fragment>
                       }
                       placement="top"
@@ -384,23 +393,23 @@ const AccountSummary: FC = () => {
                 </Typography>
                 <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
                   {
-                    accountSummary.borrowingAmount ?
+                    accountSummary.borrowingAmountUnweighted !== undefined && accountSummary.borrowingAmountUnweighted !== null ?
                       <>
                         <div className="sm:hidden">
-                          {`$${numeralFormatter(accountSummary.borrowingAmount)}`}
+                          {`$${numeralFormatter(accountSummary.borrowingAmountUnweighted)}`}
                         </div>
 
                         <div className="hidden sm:block xl:hidden">
                           {
-                            Math.round(accountSummary.borrowingAmount) > 10000 ?
-                              usdFormatterDyn.format(Math.round(accountSummary.borrowingAmount))
+                            Math.round(accountSummary.borrowingAmountUnweighted) > 10000 ?
+                              usdFormatterDyn.format(Math.round(accountSummary.borrowingAmountUnweighted))
                               :
-                              usdFormatter.format(accountSummary.borrowingAmount)
+                              usdFormatter.format(accountSummary.borrowingAmountUnweighted)
                           }
                         </div>
 
                         <div className="hidden xl:block">
-                          {usdFormatter.format(accountSummary.borrowingAmount)}
+                          {usdFormatter.format(accountSummary.borrowingAmountUnweighted)}
                         </div>
                       </>
                       :
@@ -425,8 +434,14 @@ const AccountSummary: FC = () => {
                             Health Factor
                           </Typography>
                           <div className="flex flex-col gap-2 pb-2">
-                            <div>Calculates portfolio risk and ranges from 0% (liquidation) to 100% (no debt). The formula is:</div>
+                            <div>Health factor is based off of <b>weighted</b> asset and liability values.</div>
+                            <div>The formula is:</div>
                             <div className="text-sm text-center">{"(assets - liabilities) / (assets)"}</div>
+                            <div>Your math is:</div>
+                            <div className="text-sm text-center">{`(${usdFormatter.format(accountSummary.lendingAmount)
+                              } - ${usdFormatter.format(accountSummary.borrowingAmount)
+                              }) / (${usdFormatter.format(accountSummary.lendingAmount)
+                              })`}</div>
                           </div>
                         </React.Fragment>
                       }

@@ -697,7 +697,7 @@ export class MarginfiAccount {
     return BigNumber.max(0, assets.minus(liabilities));
   }
 
-  private _getHealthComponentsWithoutBias(marginReqType: MarginRequirementType): {
+  public getHealthComponentsWithoutBias(marginReqType: MarginRequirementType): {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
@@ -719,7 +719,7 @@ export class MarginfiAccount {
   }
 
   public computeNetApy(): number {
-    const { assets, liabilities } = this._getHealthComponentsWithoutBias(MarginRequirementType.Equity);
+    const { assets, liabilities } = this.getHealthComponentsWithoutBias(MarginRequirementType.Equity);
     const totalUsdValue = assets.minus(liabilities);
     const apr = this.activeBalances
       .reduce((weightedApr, balance) => {
