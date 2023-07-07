@@ -253,17 +253,69 @@ const AssetRow: FC<{
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {bankInfo.tokenPrice >= 0.01
-          ?
-          zoomLevel < 2 ?
-            `${usdFormatter.format(bankInfo.tokenPrice)} ± ${Math.max(
+        <HtmlTooltip
+          title={
+            <React.Fragment>
+              <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                Wide oracle price bands
+              </Typography>
+              {`${bankInfo.tokenName} price estimates is
+                ${usdFormatter.format(bankInfo.tokenPrice)} ± ${Math.max(
+                bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
+                bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+              ).toFixed(2)
+                }, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`
+              }
+              <br />
+              <a href="https://docs.marginfi.com">
+                <u>Learn more.</u>
+              </a>
+            </React.Fragment>
+          }
+          placement="right"
+          className={
+            `${Math.max(
               bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
               bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
-            ).toFixed(2)
+            ) > (bankInfo.tokenPrice * 0.10)
+              ? "cursor-pointer" : "cursor-pointer"
             }`
-            :
-            usdFormatter.format(bankInfo.tokenPrice)
-          : `$${bankInfo.tokenPrice.toExponential(2)}`}
+          }
+        >
+          <Badge badgeContent={
+            Math.max(
+              bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
+              bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+            ) > (bankInfo.tokenPrice * 0.10)
+              ? '⚠️' : '✅'
+          }
+            className="bg-transparent"
+            sx={{
+              "& .MuiBadge-badge": {
+                fontSize: 20,
+              }
+            }}
+            invisible={
+              Math.max(
+                bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
+                bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+              ) > (bankInfo.tokenPrice * 0.10)
+                ? false : true
+            }
+          >
+            {bankInfo.tokenPrice >= 0.01
+              ?
+              zoomLevel < 2 ?
+                `${usdFormatter.format(bankInfo.tokenPrice)} ± ${Math.max(
+                  bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
+                  bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+                ).toFixed(2)
+                }`
+                :
+                usdFormatter.format(bankInfo.tokenPrice)
+              : `$${bankInfo.tokenPrice.toExponential(2)}`}
+          </Badge>
+        </HtmlTooltip>
       </TableCell>
 
       <TableCell
