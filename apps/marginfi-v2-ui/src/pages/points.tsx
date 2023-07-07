@@ -80,11 +80,18 @@ const Points: FC = () => {
         [...oldData, ...leaderboard]
           .filter(item => item.id !== null && item.id !== undefined && item.id != 'None') // Exclude items with null or undefined id
           .forEach((item, idx) => {
+            // @ts-ignore
+            if (item.socialPoints === undefined) {
+              // @ts-ignore
+              item.socialPoints = 0; // set socialPoints to 0 if it's not defined
+            }
+            // @ts-ignore
             item.rank = idx
             dataMap.set(item.id, item);
           });
         return Array.from(dataMap.values());
       });
+
 
       // If documents are returned, set the last one as the cursor for next pagination
       if (querySnapshot.docs.length > 0) {
