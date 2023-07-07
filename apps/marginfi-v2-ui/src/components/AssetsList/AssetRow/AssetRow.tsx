@@ -278,7 +278,7 @@ const AssetRow: FC<{
               bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
               bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
             ) > (bankInfo.tokenPrice * 0.10)
-              ? "cursor-pointer" : "cursor-pointer"
+              ? "cursor-pointer" : "hidden"
             }`
           }
         >
@@ -287,7 +287,7 @@ const AssetRow: FC<{
               bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
               bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
             ) > (bankInfo.tokenPrice * 0.10)
-              ? '⚠️' : '✅'
+              ? '⚠️' : ''
           }
             className="bg-transparent"
             sx={{
