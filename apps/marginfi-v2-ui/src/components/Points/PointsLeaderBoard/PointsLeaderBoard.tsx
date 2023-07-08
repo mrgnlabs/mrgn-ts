@@ -20,7 +20,6 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData,
 
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof models.LeaderboardRow) => {
     const isAsc = orderBy === property && order === "desc";
-    console.log({ hi: isAsc ? "desc" : "asc", orde: order === "asc", prop: orderBy === property });
     setOrder(isAsc ? "asc" : "desc");
     setOrderBy(property);
   };

@@ -43,7 +43,7 @@ export const headCells: readonly HeadCell[] = [
     label: "Social Points",
   },
   {
-    id: "totalPoints",
+    id: "total_points",
     numeric: true,
     disablePadding: false,
     label: "Total Points",
