@@ -15,7 +15,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@jup-ag/core": "^4.0.0-beta.18",
+    "@jup-ag/core": "^4.0.0-beta.20",
     "@mongodb-js/zstd": "^1.1.0",
     "@mrgnlabs/eslint-config-custom": "*",
     "@mrgnlabs/marginfi-client-v2": "*",

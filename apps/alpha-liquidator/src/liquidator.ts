@@ -103,6 +103,7 @@ class Liquidator {
       outputMint: mintOut,
       amount: JSBI.BigInt(amountIn.toString()),
       slippageBps: SLIPPAGE_BPS,
+      forceFetch: true,
     });
 
     const route = routesInfos[0];
