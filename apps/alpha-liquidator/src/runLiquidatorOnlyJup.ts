@@ -1,7 +1,4 @@
 import { Jupiter } from "@jup-ag/core";
-import { AccountInfo, PublicKey } from "@solana/web3.js";
-import { isMainThread, Worker } from "worker_threads";
-import { runGetAccountInfosProcess } from "./getAccountInfosProcess";
 import { ammsToExclude } from "./ammsToExclude";
 import { connection } from "./utils/connection";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
@@ -16,7 +13,7 @@ async function start() {
   const jupiter = await Jupiter.load({
     connection: connection,
     cluster: "mainnet-beta",
-    routeCacheDuration: env_config.IS_DEV ? 5_000 : -1,
+    routeCacheDuration: 5_000,
     restrictIntermediateTokens: true,
     ammsToExclude,
     usePreloadedAddressLookupTableCache: true,
