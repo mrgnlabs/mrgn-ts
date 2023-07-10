@@ -67,10 +67,6 @@ const BanksStateProvider: FC<{
     }
   }, [mfiClientReadonly, tokenMetadataMap]);
 
-  useEffect(() => {
-    reload();
-  }, [reload]);
-
   // Periodically update all data
   useEffect(() => {
     reload();
