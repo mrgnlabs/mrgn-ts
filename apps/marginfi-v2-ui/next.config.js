@@ -43,6 +43,24 @@ module.exports = {
         port: "",
         pathname: "/static/img/coins/64x64/**",
       },
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        port: "",
+        pathname: "/token-metadata/**",
+      },
+      {
+        protocol: "https",
+        hostname: "arweave.net",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "shdw-drive.genesysgo.net",
+        port: "",
+        pathname: "/6tcnBSybPG7piEDShBcrVtYJDPSvGrDbVvXmXKpzBvWP/**",
+      }
     ],
   },
 };

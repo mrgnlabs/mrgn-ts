@@ -61,9 +61,9 @@ export async function loadTokenMetadatas(): Promise<{
     method: "GET",
   });
 
-  const responseBody = await response.json();
-  if (responseBody.success) {
-    const responseData = responseBody.data.value;
+
+  if (response.status === 200) {
+    const responseData = await response.json();
     assert(responseData, TokenMetadataList);
     return parseTokenMetadatas(responseData);
   } else {
