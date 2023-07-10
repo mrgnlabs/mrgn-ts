@@ -40,7 +40,7 @@ const BanksStateProvider: FC<{
   }
 
   const reload = useCallback(async () => {
-    if (mfiClientReadonly === null || !tokenMetadataMap) return;
+    if (mfiClientReadonly === null) return;
 
     setFetching(true);
     try {

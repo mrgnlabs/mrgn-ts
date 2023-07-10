@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import { FC, createContext, useContext } from "react";
 import { loadTokenMetadatas } from "~/utils";
 import { TokenMetadataMap } from "~/types";
@@ -7,22 +7,13 @@ import { TokenMetadataMap } from "~/types";
 const TokenMetadataContext = createContext<TokenMetadataState>();
 
 interface TokenMetadataState {
-  tokenMetadataMap?: TokenMetadataMap;
+  tokenMetadataMap: TokenMetadataMap;
 }
 
 const TokenMetadataProvider: FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const [tokenMetadataMap, setTokenMetadatMap] = useState<TokenMetadataMap>();
-
-  const fetchTokenMetadata = async () => {
-    const tokens = await loadTokenMetadatas();
-    setTokenMetadatMap(tokens);
-  };
-
-  useEffect(() => {
-    fetchTokenMetadata();
-  }, []);
+  const tokenMetadataMap = useMemo(() => loadTokenMetadatas(), []);
 
   return <TokenMetadataContext.Provider value={{ tokenMetadataMap }}>{children}</TokenMetadataContext.Provider>;
 };
