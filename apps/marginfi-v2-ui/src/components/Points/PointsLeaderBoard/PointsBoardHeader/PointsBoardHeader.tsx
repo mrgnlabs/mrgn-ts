@@ -5,14 +5,14 @@ import { headCells } from "./PointsBoardHeader.consts";
 type Order = "asc" | "desc";
 
 interface EnhancedTableProps {
-  onRequestSort: (event: React.MouseEvent<unknown>, property: string) => void;
+  onRequestSort: (event: React.MouseEvent<unknown>, property: any) => void;
   order: Order;
   orderBy: string;
 }
 
 export const EnhancedTableHead = (props: EnhancedTableProps) => {
   const { order, orderBy, onRequestSort } = props;
-  const createSortHandler = (property: string) => (event: React.MouseEvent<unknown>) => {
+  const createSortHandler = (property: any) => (event: React.MouseEvent<unknown>) => {
     onRequestSort(event, property);
   };
 

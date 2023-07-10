@@ -7,7 +7,7 @@ import { PointsBoardRow } from "./PointsBoardRow";
 
 interface PointsLeaderBoardProps {
   leaderboardData: models.LeaderboardRow[];
-  user: string;
+  user: any;
 }
 
 type Order = "asc" | "desc";

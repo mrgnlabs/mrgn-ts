@@ -10,14 +10,15 @@ export interface PointsBoardRowProps {
 }
 
 export const PointsBoardRow: FC<PointsBoardRowProps> = ({ row, user }) => {
+  const rank = row.rank ?? Number.MAX_VALUE;
   return (
     <TableRow key={row.id} className={`${row.id === user ? "glow" : ""} h-[68px]`}>
       <TableCell
         align="center"
-        className={`${row.rank <= 2 ? "text-2xl" : "text-base"} border-none font-aeonik ${row.id === user ? "text-[#DCE85D]" : "text-white"
+        className={`${rank <= 2 ? "text-2xl" : "text-base"} border-none font-aeonik ${row.id === user ? "text-[#DCE85D]" : "text-white"
           }`}
       >
-        {row.rank === 0 ? "🥇" : row.rank === 1 ? "🥈" : row.rank === 2 ? "🥉" : row.rank + 1}
+        {rank === 0 ? "🥇" : rank === 1 ? "🥈" : rank === 2 ? "🥉" : rank + 1}
       </TableCell>
       <TableCell
         className={`text-base border-none font-aeonik ${row.id === user ? "text-[#DCE85D]" : "text-white"}`}
