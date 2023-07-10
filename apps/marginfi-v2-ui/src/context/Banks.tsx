@@ -49,18 +49,6 @@ const BanksStateProvider: FC<{
       setBanks(banks);
       const priceMap = await buildEmissionsPriceMap(banks, connection);
 
-      console.log({
-        banksNew: banks
-        // .filter((b) => b.label !== "Unknown")
-        // .map((bank) => {
-        //   const tokenMetadata = findMetadataInsensitive(tokenMetadataMap, bank.label);
-        //   if (tokenMetadata === undefined) {
-        //     throw new Error(`Token metadata not found for ${bank.label}`);
-        //   }
-        //   return makeBankInfo(bank, tokenMetadata, priceMap);
-        // })
-      })
-
       setBankInfos(
         banks
           .filter((b) => b.label !== "Unknown")

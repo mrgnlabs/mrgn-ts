@@ -49,6 +49,18 @@ module.exports = {
         port: "",
         pathname: "/token-metadata/**",
       },
+      {
+        protocol: "https",
+        hostname: "arweave.net",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "shdw-drive.genesysgo.net",
+        port: "",
+        pathname: "/6tcnBSybPG7piEDShBcrVtYJDPSvGrDbVvXmXKpzBvWP/**",
+      }
     ],
   },
 };
