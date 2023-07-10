@@ -22,9 +22,7 @@ const TokenMetadataRaw = object({
   name: string(),
   symbol: string(),
   logoURI: string(),
-  extensions: object({
-    coingeckoId: string(),
-  }),
+  extensions: object(),
 });
 const TokenMetadataList = array(TokenMetadataRaw);
 
@@ -54,16 +52,15 @@ function parseTokenMetadatas(tokenMetadataListRaw: TokenMetadataListRaw): {
 export async function loadTokenMetadatas(): Promise<{
   [symbol: string]: TokenMetadata;
 }> {
-  const response = await fetch(`https://storage.googleapis.com/mrgn-public/mrgn-token-metadata-cache.json`, {
+  const response = await fetch(`http://34.36.156.131/mrgn-token-metadata-cache.json`, {
     headers: {
       Accept: "application/json",
     },
     method: "GET",
   });
 
-  const responseBody = await response.json();
-  if (responseBody.success) {
-    const responseData = responseBody.data.value;
+  if (response.status === 200) {
+    const responseData = await response.json();
     assert(responseData, TokenMetadataList);
     return parseTokenMetadatas(responseData);
   } else {
