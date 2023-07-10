@@ -43,6 +43,12 @@ module.exports = {
         port: "",
         pathname: "/static/img/coins/64x64/**",
       },
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        port: "",
+        pathname: "/token-metadata/**",
+      },
     ],
   },
 };
