@@ -125,10 +125,8 @@ const Navbar: FC = () => {
           <div
             className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[300] gap-4 lg:gap-8"
           >
-
-
             <div
-              className="glow-uxd whitespace-nowrap cursor-pointer"
+              className="glow-uxd whitespace-nowrap cursor-pointer hidden md:block"
               onClick={() => {
                 if (selectedAccount && extendedBankInfos?.find((b) => b.tokenName === "UXD")?.bank) {
                   selectedAccount!.withdrawEmissions(extendedBankInfos.find((b) => b.tokenName === "UXD")!.bank);
@@ -137,11 +135,14 @@ const Navbar: FC = () => {
             >
               {
                 wallet.connected && selectedAccount && extendedBankInfos &&
-                `Claim ${accountSummary.outstandingUxpEmissions < 1 ?
-                  accountSummary.outstandingUxpEmissions.toExponential(5)
+                  accountSummary.outstandingUxpEmissions === 0 ?
+                  `Lend UXD to earn UXP`
                   :
-                  numeralFormatter(accountSummary.outstandingUxpEmissions)
-                } UXP`
+                  `Claim ${accountSummary.outstandingUxpEmissions < 1 ?
+                    accountSummary.outstandingUxpEmissions.toExponential(5)
+                    :
+                    numeralFormatter(accountSummary.outstandingUxpEmissions)
+                  } UXP`
               }
             </div>
 
