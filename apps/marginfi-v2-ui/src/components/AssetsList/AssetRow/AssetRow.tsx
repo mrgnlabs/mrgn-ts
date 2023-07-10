@@ -46,6 +46,11 @@ const AssetRow: FC<{
   const zoomLevel = useRecoilValue(lendZoomLevel);
   const showUSD = useRecoilValue(denominationUSD);
 
+  console.log({
+    deposits: bankInfo.totalPoolDeposits,
+    limit: bankInfo.bank.config.depositLimit
+  })
+
   // Reset b/l amounts on toggle
   useEffect(() => {
     setBorrowOrLendAmount(0);
@@ -387,8 +392,8 @@ const AssetRow: FC<{
               <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                 {
                   isInLendingMode ?
-                    (bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit ? "Limit Reached" : (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? "Approaching Limit" : null)) :
-                    (bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit ? "Limit Reached" : (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? "Approaching Limit" : null))
+                    (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.99999) ? "Limit Reached" : (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? "Approaching Limit" : null)) :
+                    (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.99999) ? "Limit Reached" : (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? "Approaching Limit" : null))
                 }
               </Typography>
               {`${bankInfo.tokenName
@@ -415,8 +420,8 @@ const AssetRow: FC<{
         >
           <Badge badgeContent={
             isInLendingMode ?
-              (bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit ? "💯" : (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? "❗" : null)) :
-              (bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit ? "💯" : (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? "❗" : null))
+              (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.99999) ? "💯" : (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? "❗" : null)) :
+              (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.99999) ? "💯" : (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? "❗" : null))
           }
             className="bg-transparent"
             sx={{

@@ -58,6 +58,7 @@ const UserAccountsProvider: FC<{
       } else {
         setSelectedAccount(userAccounts[0]);
       }
+
       const updatedExtendedBankInfos = bankInfos.map((bankInfo) => {
         const tokenAccount = tokenAccountMap.get(bankInfo.tokenMint.toBase58());
         if (tokenAccount === undefined) {
