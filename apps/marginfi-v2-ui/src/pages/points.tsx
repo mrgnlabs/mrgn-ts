@@ -117,7 +117,7 @@ const Points: FC = () => {
       // Fetch user data
       if (user && leaderboardData.length > 0) {
         // get user referral code
-        const userDoc = await getDoc(doc(db, "users", user));
+        const userDoc = await getDoc(doc(db, "users_public", user));
         const userReferralData = userDoc.data();
 
         let userReferralCode = "";
