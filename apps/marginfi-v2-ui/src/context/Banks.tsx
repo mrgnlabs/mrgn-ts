@@ -28,6 +28,17 @@ const BanksStateProvider: FC<{
   const [banks, setBanks] = useState<Bank[]>([]);
   const [bankInfos, setBankInfos] = useState<BankInfo[]>([]);
 
+  const findMetadataInsensitive = (tokenMetadataMap: any, label: string) => {
+    const lowerCaseLabel = label.toLowerCase();
+    for (let key in tokenMetadataMap) {
+      if (key.toLowerCase() === lowerCaseLabel) {
+        return tokenMetadataMap[key];
+      }
+    }
+    // If no match is found, throw an error
+    throw new Error(`Token metadata not found for ${label}`);
+  }
+
   const reload = useCallback(async () => {
     if (mfiClientReadonly === null || !tokenMetadataMap) return;
 
@@ -37,11 +48,12 @@ const BanksStateProvider: FC<{
       const banks = [...mfiClientReadonly.group.banks.values()];
       setBanks(banks);
       const priceMap = await buildEmissionsPriceMap(banks, connection);
+
       setBankInfos(
         banks
           .filter((b) => b.label !== "Unknown")
           .map((bank) => {
-            const tokenMetadata = tokenMetadataMap[bank.label];
+            const tokenMetadata = findMetadataInsensitive(tokenMetadataMap, bank.label);
             if (tokenMetadata === undefined) {
               throw new Error(`Token metadata not found for ${bank.label}`);
             }
