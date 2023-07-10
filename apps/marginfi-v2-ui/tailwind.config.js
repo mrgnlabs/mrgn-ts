@@ -10,7 +10,7 @@ module.exports = {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "jup-gradient-colors": "linear-gradient(to right, #A0F0F8, #EEAC55)",
-        "mayan-gradient-colors": "linear-gradient(90deg, #5768BD 0.11%, #FFFFFF 100%)"
+        "mayan-gradient-colors": "linear-gradient(90deg, #5768BD 0.11%, #FFFFFF 100%)",
       },
       borderImage: {
         SOL: "linear-gradient(to top right, #9945FF, #19FB9B)",
@@ -24,6 +24,7 @@ module.exports = {
         UXD: "linear-gradient(to top right, #60746E, #FFFFFF)",
         HNT: "linear-gradient(to top right, #474DFF, #FFFFFF)",
         stSOL: "linear-gradient(to top right, #11B5FF, #FFFFFF)",
+        bSOL: "linear-gradient(to top right, #DC1FFF, #03FFA3)",
       },
       colors: {
         "usd-equiv": "rgba(113, 119, 126, 0.3)",

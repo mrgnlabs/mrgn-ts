@@ -8,7 +8,20 @@ import path from "path";
 import fs from "fs";
 
 type Action = "deposit" | "borrow" | "stake" | "unstake" | null;
-type Token = "USDC" | "SOL" | "mSOL" | "BONK" | "USDT" | "ETH" | "WBTC" | "JitoSOL" | "UXD" | "HNT" | "stSOL" | null;
+type Token =
+  | "USDC"
+  | "SOL"
+  | "mSOL"
+  | "BONK"
+  | "USDT"
+  | "ETH"
+  | "WBTC"
+  | "JitoSOL"
+  | "UXD"
+  | "HNT"
+  | "stSOL"
+  | "bSOL"
+  | null;
 
 interface ExtractVariablesOutput {
   action: Action;

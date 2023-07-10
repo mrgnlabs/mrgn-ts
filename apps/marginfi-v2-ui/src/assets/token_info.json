@@ -141,5 +141,16 @@
     "extensions": {
       "coingeckoId": ""
     }
+  },
+  {
+    "address": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
+    "chainId": 101,
+    "decimals": 9,
+    "name": "BlazeStake Staked SOL",
+    "symbol": "bSOL",
+    "logoURI": "/bSOL.png",
+    "extensions": {
+      "coingeckoId": ""
+    }
   }
 ]
