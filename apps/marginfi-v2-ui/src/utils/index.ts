@@ -22,9 +22,7 @@ const TokenMetadataRaw = object({
   name: string(),
   symbol: string(),
   logoURI: string(),
-  extensions: object({
-    coingeckoId: string(),
-  }),
+  extensions: object(),
 });
 const TokenMetadataList = array(TokenMetadataRaw);
 
@@ -60,7 +58,6 @@ export async function loadTokenMetadatas(): Promise<{
     },
     method: "GET",
   });
-
 
   if (response.status === 200) {
     const responseData = await response.json();
