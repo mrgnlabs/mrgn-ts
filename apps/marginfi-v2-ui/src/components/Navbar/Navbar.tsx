@@ -76,34 +76,41 @@ const Navbar: FC = () => {
   const [user, setUser] = useState<null | string>(null);
   const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
   const router = useRouter();
-
-  useHotkeys("ctrl + l, ctrl + s, ctrl + e, ctrl + o", (_, handler: HotkeysEvent) => {
-    switch (handler.keys?.join("")) {
-      case "l":
-        router.push("/");
-        break;
-      case "s":
-        router.push("/swap");
-        break;
-      case "e":
-        router.push("/earn");
-        break;
-      case "o":
-        router.push("https://omni.marginfi.com");
-        break;
-    }
-  });
-
-  useHotkeys("ctrl", () => {
-    setShowBadges(true);
-  });
+  useHotkeys(
+    "meta + l, meta + s, meta + e, meta + o",
+    (_, handler: HotkeysEvent) => {
+      switch (handler.keys?.join("")) {
+        case "l":
+          router.push("/");
+          break;
+        case "s":
+          router.push("/swap");
+          break;
+        case "e":
+          router.push("/earn");
+          break;
+        case "o":
+          router.push("https://omni.marginfi.com");
+          break;
+      }
+    },
+    { preventDefault: true, enableOnFormTags: true }
+  );
 
   useHotkeys(
-    "ctrl",
+    "meta",
+    () => {
+      setShowBadges(true);
+    },
+    { enableOnFormTags: true }
+  );
+
+  useHotkeys(
+    "meta",
     () => {
       setShowBadges(false);
     },
-    { keyup: true }
+    { keyup: true, enableOnFormTags: true }
   );
   const { accountSummary, selectedAccount, extendedBankInfos } = useUserAccounts();
 

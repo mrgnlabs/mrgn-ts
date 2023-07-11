@@ -41,7 +41,7 @@ const AssetsList: FC = () => {
   useHotkeys(
     extendedBankInfos
       .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
-      .map((_, i) => `ctrl + ${i + 1}`)
+      .map((_, i) => `meta + ${i + 1}`)
       .join(", "),
     (_, handler) => {
       const globalBankTokenNames = extendedBankInfos
@@ -67,19 +67,24 @@ const AssetsList: FC = () => {
           .focus();
         setShowBadges(false);
       }
-    }
+    },
+	{ preventDefault: true, enableOnFormTags: true }
   );
 
-  useHotkeys("ctrl", () => {
-    setShowBadges(true);
-  });
+  useHotkeys(
+    "meta",
+    () => {
+      setShowBadges(true);
+    },
+    { enableOnFormTags: true }
+  );
 
   useHotkeys(
-    "ctrl",
+    "meta",
     () => {
       setShowBadges(false);
     },
-    { keyup: true }
+    { keyup: true, enableOnFormTags: true }
   );
 
   // Hack required to circumvent rehydration error
