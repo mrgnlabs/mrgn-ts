@@ -101,8 +101,10 @@ const AccountSummary: FC = () => {
 
         <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
           <CardContent>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
-              Global Supplied
+            <div className=" flex gap-1 mb-2">
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base">
+                Global Supplied
+              </Typography>
               <div className="self-center">
                 <HtmlTooltip
                   title={
@@ -118,7 +120,7 @@ const AccountSummary: FC = () => {
                   <Image src="/info_icon.png" alt="info" height={16} width={16} />
                 </HtmlTooltip>
               </div>
-            </Typography>
+            </div>
             <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
               {
                 globalDeposits ?
@@ -135,8 +137,10 @@ const AccountSummary: FC = () => {
         </Card>
         <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
           <CardContent>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
-              Global Borrowed
+            <div className=" flex gap-1 mb-2">
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base">
+                Global Borrowed
+              </Typography>
               <div className="self-center">
                 <HtmlTooltip
                   title={
@@ -152,7 +156,7 @@ const AccountSummary: FC = () => {
                   <Image src="/info_icon.png" alt="info" height={16} width={16} />
                 </HtmlTooltip>
               </div>
-            </Typography>
+            </div>
             <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
               {
                 globalBorrows ?
@@ -169,8 +173,10 @@ const AccountSummary: FC = () => {
         </Card>
         <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
           <CardContent>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
-              Global TVL
+            <div className=" flex gap-1 mb-2">
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base">
+                Global TVL
+              </Typography>
               <div className="self-center">
                 <HtmlTooltip
                   title={
@@ -189,7 +195,7 @@ const AccountSummary: FC = () => {
                   <Image src="/info_icon.png" alt="info" height={16} width={16} />
                 </HtmlTooltip>
               </div>
-            </Typography>
+            </div>
             <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
               {
                 globalTVL ?
@@ -206,8 +212,10 @@ const AccountSummary: FC = () => {
         </Card>
         <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
           <CardContent>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
-              Global Points
+            <div className=" flex gap-1 mb-2">
+              <Typography color="#868E95" className="font-aeonik font-[300] text-base">
+                Global Points
+              </Typography>
               <div className="self-center">
                 <HtmlTooltip
                   title={
@@ -225,7 +233,7 @@ const AccountSummary: FC = () => {
                   <Image src="/info_icon.png" alt="info" height={16} width={16} />
                 </HtmlTooltip>
               </div>
-            </Typography>
+            </div>
             <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
               {
                 globalPoints ?
