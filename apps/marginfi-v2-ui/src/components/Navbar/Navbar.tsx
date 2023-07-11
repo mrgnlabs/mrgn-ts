@@ -4,8 +4,9 @@ import Image from "next/image";
 import AirdropZone from "./AirdropZone";
 import { WalletButton } from "./WalletButton";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { groupedNumberFormatterDyn } from "~/utils/formatters";
+import { groupedNumberFormatterDyn, numeralFormatter } from "~/utils/formatters";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useUserAccounts } from "~/context";
 import { useRecoilState } from "recoil";
 import { showBadgesState } from "../../state";
 
@@ -75,6 +76,7 @@ const Navbar: FC = () => {
   const [user, setUser] = useState<null | string>(null);
   const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
   const router = useRouter();
+
   useHotkeys("ctrl + l, ctrl + s, ctrl + e, ctrl + o", (_, handler: HotkeysEvent) => {
     switch (handler.keys?.join("")) {
       case "l":
@@ -103,6 +105,7 @@ const Navbar: FC = () => {
     },
     { keyup: true }
   );
+  const { accountSummary, selectedAccount, extendedBankInfos } = useUserAccounts();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -212,15 +215,31 @@ const Navbar: FC = () => {
                 omni
               </Link>
             </Badge>
-
-            {/* <Link href={"/points"} className="glow-on-hover hidden md:block">
-              points
-            </Link> */}
-
             {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && wallet.connected && <AirdropZone />}
           </div>
-
-          <div className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[300] gap-4 lg:gap-8">
+          <div
+            className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[300] gap-4 lg:gap-8"
+          >
+            <div
+              className="glow-uxd whitespace-nowrap cursor-pointer hidden md:block"
+              onClick={() => {
+                if (selectedAccount && extendedBankInfos?.find((b) => b.tokenName === "UXD")?.bank) {
+                  selectedAccount!.withdrawEmissions(extendedBankInfos.find((b) => b.tokenName === "UXD")!.bank);
+                }
+              }}
+            >
+              {
+                wallet.connected && selectedAccount && extendedBankInfos &&
+                  accountSummary.outstandingUxpEmissions === 0 ?
+                  `Lend UXD to earn UXP`
+                  :
+                  `Claim ${accountSummary.outstandingUxpEmissions < 1 ?
+                    accountSummary.outstandingUxpEmissions.toExponential(5)
+                    :
+                    numeralFormatter(accountSummary.outstandingUxpEmissions)
+                  } UXP`
+              }
+            </div>
             {
               <Link href={"/points"} className="glow whitespace-nowrap">
                 {`${
