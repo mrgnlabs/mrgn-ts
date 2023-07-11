@@ -257,22 +257,28 @@ const AssetsList: FC = () => {
                   <LoadingAssets />
                 )}
               </TableBody>
-              <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white my-4 gap-2">
-                <span className="gap-1 flex">Isolated <span className="hidden lg:block">pools</span></span>
-                <HtmlTooltip
-                  title={
-                    <React.Fragment>
-                      <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                        Isolated pools are risky ⚠️
-                      </Typography>
-                      Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot borrow other assets. Isolated pools should be considered particularly risky. As always, remember that marginfi is a decentralized protocol and all deposited funds are at risk.
-                    </React.Fragment>
-                  }
-                  placement="top"
-                >
-                  <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                </HtmlTooltip>
-              </div>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="text-white border-none p-0 ">
+                    <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white gap-1 my-4">
+                      <span className="gap-1 flex">Isolated <span className="hidden lg:block">pools</span></span>
+                      <HtmlTooltip
+                        title={
+                          <React.Fragment>
+                            <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                              Isolated pools are risky ⚠️
+                            </Typography>
+                            Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot borrow other assets. Isolated pools should be considered particularly risky. As always, remember that marginfi is a decentralized protocol and all deposited funds are at risk.
+                          </React.Fragment>
+                        }
+                        placement="top"
+                      >
+                        <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                      </HtmlTooltip>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
               <TableBody>
                 {extendedBankInfos.length > 0 ? (
                   extendedBankInfos
