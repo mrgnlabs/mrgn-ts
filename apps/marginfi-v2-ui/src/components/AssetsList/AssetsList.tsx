@@ -58,128 +58,76 @@ const AssetsList: FC = () => {
               }}
             >
               <TableHead>
-                <TableCell className="text-white border-none p-0">
-                  <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white gap-1">
-                    Global <span className="hidden lg:block">pool</span>
-                  </div>
-                </TableCell>
-                <TableCell
-                  className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell"
-                  style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
-                  align="right"
-                >
-                  <div className="h-full w-full flex justify-end items-center gap-2">
-                    Price
-                    <HtmlTooltip
-                      title={
-                        <React.Fragment>
-                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                            Realtime prices
-                          </Typography>
-                          Powered by Pyth and Switchboard.
-                        </React.Fragment>
-                      }
-                      placement="top"
-                    >
-                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </HtmlTooltip>
-                  </div>
-                </TableCell>
-                <TableCell
-                  className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell"
-                  style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
-                  align="right"
-                >
-                  <div className="h-full w-full flex justify-end items-center gap-2">
-                    {isInLendingMode ? "APY" : "APR"}
-                    <HtmlTooltip
-                      title={
-                        <React.Fragment>
-                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                            {isInLendingMode ? "APY" : "APR"}
-                          </Typography>
-                          <span style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
+                <TableRow>
+                  <TableCell className="text-white border-none p-0">
+                    <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white gap-1">
+                      Global <span className="hidden lg:block">pool</span>
+                    </div>
+                  </TableCell>
+                  <TableCell
+                    className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell"
+                    style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                    align="right"
+                  >
+                    <div className="h-full w-full flex justify-end items-center gap-2">
+                      Price
+                      <HtmlTooltip
+                        title={
+                          <React.Fragment>
+                            <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                              Realtime prices
+                            </Typography>
+                            Powered by Pyth and Switchboard.
+                          </React.Fragment>
+                        }
+                        placement="top"
+                      >
+                        <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                      </HtmlTooltip>
+                    </div>
+                  </TableCell>
+                  <TableCell
+                    className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell"
+                    style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                    align="right"
+                  >
+                    <div className="h-full w-full flex justify-end items-center gap-2">
+                      {isInLendingMode ? "APY" : "APR"}
+                      <HtmlTooltip
+                        title={
+                          <React.Fragment>
+                            <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                              {isInLendingMode ? "APY" : "APR"}
+                            </Typography>
+                            <span style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
+                              {isInLendingMode
+                                ? "What you'll earn on deposits over a year. This includes compounding. All marginfi deposits are compounded hourly."
+                                : "What you'll pay for your borrows, or the price of a loan. This does not include compounding. All marginfi borrows are compounded hourly."}
+                            </span>
+                          </React.Fragment>
+                        }
+                        placement="top"
+                      >
+                        <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                      </HtmlTooltip>
+                    </div>
+                  </TableCell>
+                  <TableCell
+                    className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell"
+                    style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                    align="right"
+                  >
+                    <div className="h-full w-full flex justify-end items-center gap-2">
+                      {isInLendingMode ? "Weight" : "LTV"}
+                      <HtmlTooltip
+                        title={
+                          <React.Fragment>
+                            <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                              {isInLendingMode ? "Weight" : "LTV"}
+                            </Typography>
                             {isInLendingMode
-                              ? "What you'll earn on deposits over a year. This includes compounding. All marginfi deposits are compounded hourly."
-                              : "What you'll pay for your borrows, or the price of a loan. This does not include compounding. All marginfi borrows are compounded hourly."}
-                          </span>
-                        </React.Fragment>
-                      }
-                      placement="top"
-                    >
-                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </HtmlTooltip>
-                  </div>
-                </TableCell>
-                <TableCell
-                  className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell"
-                  style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
-                  align="right"
-                >
-                  <div className="h-full w-full flex justify-end items-center gap-2">
-                    {isInLendingMode ? "Weight" : "LTV"}
-                    <HtmlTooltip
-                      title={
-                        <React.Fragment>
-                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                            {isInLendingMode ? "Weight" : "LTV"}
-                          </Typography>
-                          {isInLendingMode
-                            ? "How much your assets count for collateral, relative to their USD value. The higher the weight, the more collateral you can borrow against it."
-                            : "How much you can borrow against the marginfi value of your collateral. The higher the LTV, the more you can borrow against your collateral."}
-                        </React.Fragment>
-                      }
-                      placement="top"
-                    >
-                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </HtmlTooltip>
-                  </div>
-                </TableCell>
-                <TableCell
-                  className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell"
-                  style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
-                  align="right"
-                >
-                  <div className="h-full w-full flex justify-end items-center gap-2">
-                    {isInLendingMode ? "Deposits" : "Available"}
-                    <HtmlTooltip
-                      title={
-                        <React.Fragment>
-                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                            {isInLendingMode ? "Total deposits" : "Total available"}
-                          </Typography>
-                          {isInLendingMode
-                            ? "Total marginfi deposits for each asset. Everything is denominated in native tokens."
-                            : "The amount of tokens available to borrow for each asset. Calculated as the minimum of the asset's borrow limit and available liquidity that has not yet been borrowed."}
-                        </React.Fragment>
-                      }
-                      placement="top"
-                    >
-                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </HtmlTooltip>
-                  </div>
-                </TableCell>
-
-                {/*******************************/}
-                {/* [START]: ZOOM-BASED COLUMNS */}
-                {/*******************************/}
-
-                {
-                  zoomLevel < 2 &&
-                  <TableCell
-                    className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
-                    style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
-                    align="right"
-                  >
-                    <div className="h-full w-full flex justify-end items-center gap-2">
-                      Global limit
-                      <HtmlTooltip
-                        title={
-                          <React.Fragment>
-                            <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                              {isInLendingMode ? "Global deposit cap" : "Global borrow cap"}
-                            </Typography>
-                            Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount that all users combined can deposit or borrow of a given token.
+                              ? "How much your assets count for collateral, relative to their USD value. The higher the weight, the more collateral you can borrow against it."
+                              : "How much you can borrow against the marginfi value of your collateral. The higher the LTV, the more you can borrow against your collateral."}
                           </React.Fragment>
                         }
                         placement="top"
@@ -188,24 +136,22 @@ const AssetsList: FC = () => {
                       </HtmlTooltip>
                     </div>
                   </TableCell>
-                }
-
-                {
-                  zoomLevel < 3 &&
                   <TableCell
-                    className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
+                    className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                     align="right"
                   >
                     <div className="h-full w-full flex justify-end items-center gap-2">
-                      Utilization
+                      {isInLendingMode ? "Deposits" : "Available"}
                       <HtmlTooltip
                         title={
                           <React.Fragment>
                             <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                              Pool utilization
+                              {isInLendingMode ? "Total deposits" : "Total available"}
                             </Typography>
-                            What percentage of supplied tokens have been borrowed. This helps determine interest rates. This is not based on the global pool limits, which can limit utilization.
+                            {isInLendingMode
+                              ? "Total marginfi deposits for each asset. Everything is denominated in native tokens."
+                              : "The amount of tokens available to borrow for each asset. Calculated as the minimum of the asset's borrow limit and available liquidity that has not yet been borrowed."}
                           </React.Fragment>
                         }
                         placement="top"
@@ -214,24 +160,80 @@ const AssetsList: FC = () => {
                       </HtmlTooltip>
                     </div>
                   </TableCell>
-                }
 
-                {/*******************************/}
-                {/* [END]: ZOOM-BASED COLUMNS */}
-                {/*******************************/}
+                  {/*******************************/}
+                  {/* [START]: ZOOM-BASED COLUMNS */}
+                  {/*******************************/}
+
+                  {
+                    zoomLevel < 2 &&
+                    <TableCell
+                      className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
+                      style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                      align="right"
+                    >
+                      <div className="h-full w-full flex justify-end items-center gap-2">
+                        Global limit
+                        <HtmlTooltip
+                          title={
+                            <React.Fragment>
+                              <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                                {isInLendingMode ? "Global deposit cap" : "Global borrow cap"}
+                              </Typography>
+                              Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount that all users combined can deposit or borrow of a given token.
+                            </React.Fragment>
+                          }
+                          placement="top"
+                        >
+                          <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                        </HtmlTooltip>
+                      </div>
+                    </TableCell>
+                  }
+
+                  {
+                    zoomLevel < 3 &&
+                    <TableCell
+                      className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
+                      style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                      align="right"
+                    >
+                      <div className="h-full w-full flex justify-end items-center gap-2">
+                        Utilization
+                        <HtmlTooltip
+                          title={
+                            <React.Fragment>
+                              <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                                Pool utilization
+                              </Typography>
+                              What percentage of supplied tokens have been borrowed. This helps determine interest rates. This is not based on the global pool limits, which can limit utilization.
+                            </React.Fragment>
+                          }
+                          placement="top"
+                        >
+                          <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                        </HtmlTooltip>
+                      </div>
+                    </TableCell>
+                  }
+
+                  {/*******************************/}
+                  {/* [END]: ZOOM-BASED COLUMNS */}
+                  {/*******************************/}
 
 
-                <TableCell
-                  className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell"
-                  style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
-                  align="right"
-                >
-                  <div className="h-full w-full flex justify-end items-center gap-2">
-                    Wallet Balance
-                  </div>
-                </TableCell>
-                <TableCell className="border-none"></TableCell>
-                <TableCell className="border-none"></TableCell>
+                  <TableCell
+                    className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell"
+                    style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                    align="right"
+                  >
+                    <div className="h-full w-full flex justify-end items-center gap-2">
+                      Wallet Balance
+                    </div>
+                  </TableCell>
+                  <TableCell className="border-none"></TableCell>
+                  <TableCell className="border-none"></TableCell>
+                </TableRow>
               </TableHead>
 
               <TableBody>
