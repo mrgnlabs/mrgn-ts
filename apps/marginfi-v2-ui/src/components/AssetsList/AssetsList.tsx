@@ -342,7 +342,7 @@ const AssetsList: FC = () => {
                         reloadBanks={reload}
                         inputRefs={inputRefs}
                         showBadges={showBadges}
-                        badgeContent={globalBankTokenLength + 1}
+                        badgeContent={globalBankTokenLength + i + 1}
                       />
                     ))
                 ) : (
