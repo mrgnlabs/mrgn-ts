@@ -6,39 +6,7 @@ import Switch from "@mui/material/Switch";
 import AutoStoriesOutlinedIcon from "@mui/icons-material/AutoStoriesOutlined";
 import MouseOverPopover from "../Modals/PopOver";
 import PopUp from "../Modals/PopUp";
-
-// const MyWebSocketComponent = () => {
-//   useEffect(() => {
-//     // Create a new WebSocket instance
-//     const socket = new WebSocket("wss://stream.binance.com:9443/ws/solusdt@trade");
-
-//     // WebSocket onOpen event handler
-//     socket.onopen = () => {
-//       console.log("WebSocket connection established.");
-//     };
-
-//     // WebSocket onMessage event handler
-//     socket.onmessage = (event) => {
-//       const data = JSON.parse(event.data);
-//       console.log("Received data:", data);
-//       // Handle the received data here, e.g., update the state with the data
-//     };
-
-//     // WebSocket onClose event handler
-//     socket.onclose = () => {
-//       console.log("WebSocket connection closed.");
-//     };
-
-//     // Clean up the WebSocket on component unmount
-//     return () => {
-//       socket.close();
-//     };
-//   }, []);
-
-//   return <div>WebSocket example</div>;
-// };
-
-// export default MyWebSocketComponent;
+import TwitterIcon from "@mui/icons-material/Twitter";
 
 const Footer: FC = () => {
   const [_, setZoom] = useRecoilState(lendZoomLevel);
@@ -118,12 +86,25 @@ const Footer: FC = () => {
                 borderLeft: "solid rgba(227, 227, 227, 0.4) 1px",
               }}
             >
-              <a target="_blank" href="https://docs.marginfi.com">
-                <AutoStoriesOutlinedIcon
+              <a target="_blank" href="https://twitter.com/marginfi">
+                <TwitterIcon
                   sx={{
                     fontSize: "18px",
                     "&:hover": {
-                      boxShadow: "0px 0px 20px rgba(9, 194, 246, 0.4)",
+                      filter: "drop-shadow( 0 0 10px #dce85d)",
+                      color: "#dce85d",
+                    },
+                  }}
+                />
+              </a>
+              <a target="_blank" href="https://docs.marginfi.com" className="glow-on-hover">
+                <AutoStoriesOutlinedIcon
+                  sx={{
+                    fontSize: "18px",
+                    marginLeft: "40px",
+                    "&:hover": {
+                      filter: "drop-shadow( 0 0 10px #dce85d)",
+                      color: "#dce85d",
                     },
                   }}
                 />
@@ -137,7 +118,12 @@ const Footer: FC = () => {
                   borderLeft: "solid rgba(227, 227, 227, 0.4) 1px",
                 }}
               >
-                <MouseOverPopover title="solana transaction per second" top={670} left={1200} />
+                <MouseOverPopover
+                  title="solana transaction per second"
+                  top={670}
+                  left={1200}
+                  solanaTransactionPerSecond={`TPS:-`}
+                />
               </span>
               <span
                 className="w-[120px] text-base px-2 h-full flex justify-center items-center"
@@ -145,7 +131,7 @@ const Footer: FC = () => {
                   borderLeft: "solid rgba(227, 227, 227, 0.4) 1px",
                 }}
               >
-                <MouseOverPopover title="SOL price" top={670} left={1600} />
+                <MouseOverPopover title="SOL price" top={670} left={1600} solPrice={`$-`} />
               </span>
             </div>
           </div>

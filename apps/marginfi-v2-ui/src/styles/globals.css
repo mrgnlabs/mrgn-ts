@@ -44,7 +44,7 @@ a {
 
 @keyframes pulse {
   0% {
-    opacity: 0.90;
+    opacity: 0.9;
     transform: scale(1);
   }
   50% {
@@ -52,7 +52,7 @@ a {
     transform: scale(1.05);
   }
   100% {
-    opacity: 0.90;
+    opacity: 0.9;
     transform: scale(1);
   }
 }
@@ -62,11 +62,15 @@ a {
 }
 
 .glow-on-hover:hover {
-  text-shadow: 0 0 10px #DCE85D, 0 0 30px #DCE85D;
-  color: #DCE85D !important;
+  text-shadow: 0 0 10px #dce85d, 0 0 30px #dce85d;
+  color: #dce85d !important;
 }
 
 .glow {
-  text-shadow: 0 0 10px #DCE85D, 0 0 30px #DCE85D;
-  color: #DCE85D !important;
+  text-shadow: 0 0 10px #dce85d, 0 0 30px #dce85d;
+  color: #dce85d !important;
+}
+
+.MuiPopover-paper {
+  box-shadow: 0 0 10px #dce85d;
 }
