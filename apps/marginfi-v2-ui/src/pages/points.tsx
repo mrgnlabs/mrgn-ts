@@ -6,7 +6,6 @@ import { initializeApp } from "firebase/app";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { FC, useEffect, useState } from 'react';
 import { PageHeader } from "~/components/PageHeader";
-import { groupedNumberFormatter } from '~/utils/formatters';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import { numeralFormatter, groupedNumberFormatterDyn } from "~/utils/formatters";
@@ -45,6 +44,7 @@ type LeaderboardRow = {
   total_referral_borrow_points: number;
   total_deposit_points: number;
   total_borrow_points: number;
+  socialPoints: number;
 };
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
@@ -64,6 +64,7 @@ const Points: FC = () => {
   const wallet = useWallet();
   const [user, setUser] = useState<null | string>(null);
   const [userData, setUserData] = useState<UserData>();
+  const [usingCustomReferralCode, setUsingCustomReferralCode] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -93,9 +94,11 @@ const Points: FC = () => {
       // @ts-ignore
       setLeaderboardData(oldData => {
         const dataMap = new Map();
-        [...oldData, ...leaderboard].forEach(item => {
-          dataMap.set(item.id, item);
-        });
+        [...oldData, ...leaderboard]
+          .filter(item => item.id !== null && item.id !== undefined && item.id != 'None') // Exclude items with null or undefined id
+          .forEach(item => {
+            dataMap.set(item.id, item);
+          });
         return Array.from(dataMap.values());
       });
 
@@ -114,15 +117,25 @@ const Points: FC = () => {
       // Fetch user data
       if (user && leaderboardData.length > 0) {
         // get user referral code
-        const userDoc = await getDoc(doc(db, "users", user));
+        const userDoc = await getDoc(doc(db, "users_public", user));
         const userReferralData = userDoc.data();
-        const userReferralCode = userReferralData?.referralCode || "";
+
+        let userReferralCode = "";
+
+        if (userReferralData && Array.isArray(userReferralData?.referralCode)) {
+          const uuidPattern = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-\b[0-9a-fA-F]{12}$/;
+          userReferralCode = userReferralData.referralCode.find(code => !uuidPattern.test(code));
+          setUsingCustomReferralCode(true)
+        } else {
+          userReferralCode = userReferralData?.referralCode || "";
+          setUsingCustomReferralCode(false)
+        }
 
         // get user points
         const userPointsDoc = await getDoc(doc(db, "points", user));
         const userPointsData = userPointsDoc.data();
 
-        const userTotalPoints = userPointsData?.total_deposit_points + userPointsData?.total_borrow_points;
+        const userTotalPoints = userPointsData?.total_deposit_points + userPointsData?.total_borrow_points + (userPointsData?.socialPoints ? userPointsData?.socialPoints : 0);
         const userLendingPoints = userPointsData?.total_activity_deposit_points;
         const userBorrowingPoints = userPointsData?.total_activity_borrow_points;
         const userReferralPoints = userPointsData?.total_referral_deposit_points + userPointsData?.total_referral_borrow_points;
@@ -135,7 +148,7 @@ const Points: FC = () => {
           userLendingPoints,
           userBorrowingPoints,
           userReferralPoints,
-          userReferralLink: userReferralCode ? `https://mfi.gg/refer/${userReferralCode}` : '',
+          userReferralLink: userReferralCode ? `https://mfi.gg/r/${userReferralCode}` : '',
           userRank
         });
       }
@@ -143,7 +156,7 @@ const Points: FC = () => {
 
     fetchuserData()
 
-  }, [user, JSON.stringify(leaderboardData)])
+  }, [user, JSON.stringify(leaderboardData), setUsingCustomReferralCode])
 
   return (
     <>
@@ -302,9 +315,9 @@ const Points: FC = () => {
             </CardContent>
           </Card>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 justify-items-center w-2/3 md:w-1/2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <Button
-            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap"
+            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap min-w-[260px] max-w-[260px]"
             style={{
               backgroundColor: "rgb(227, 227, 227)",
               border: "none",
@@ -319,9 +332,11 @@ const Points: FC = () => {
             How do points work?
           </Button>
           <Button
-            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap"
+            className={`normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap min-w-[260px] max-w-[260px]`}
             style={{
-              backgroundColor: "rgb(227, 227, 227)",
+              backgroundImage: usingCustomReferralCode ? "radial-gradient(ellipse at center, #fff 0%, #fff 10%, #DCE85D 60%, #DCE85D 100%)" : "none",
+              backgroundColor: usingCustomReferralCode ? "transparent" : "rgb(227, 227, 227)",
+
               border: "none",
               color: "black",
               zIndex: 10,
@@ -332,10 +347,45 @@ const Points: FC = () => {
               }
             }}
           >
-            Copy referral link
+            {
+              `${usingCustomReferralCode ? userData?.userReferralLink?.replace("https://", "") : 'Copy referral link'}`
+            }
             <FileCopyIcon />
           </Button>
         </div>
+        {/* <div className="grid grid-cols-1 gap-5 justify-items-center w-full">
+          <Button
+            backgroundColor: usingCustomReferralCode ? "#DCE85D" : "rgb(227, 227, 227)",
+            backgroundImage: usingCustomReferralCode ? "linear-gradient(150deg, #DCE85D 10.84%, #fff  50.62%, #DCE85D 91.25%)" : "none",
+            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap max-w-[310px]"
+            style={{
+              background: "linear-gradient(150deg, #FF7272 10.84%, #FFFFFF 50.62%, #0D5BF3 91.25%)",
+              border: "none",
+              color: "black",
+              zIndex: 10,
+            }}
+            component="a"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => {
+              if (userData?.userReferralLink) {
+                const tweetText = `🇺🇸🦅HEY YOU🇺🇸🦅
+
+            🫵🏽YEAH YOU🫵
+
+            While you were celebrating freedom🇺🇸, I was farming @marginfi points◼️
+
+            Imagine getting outworked like this😤
+
+            ${userData.userReferralLink}`;
+            const encodedText = encodeURIComponent(tweetText);
+            window.open(`https://twitter.com/intent/tweet?text=${encodedText}`, "_blank");
+              }
+            }}
+          >
+            🦅🇺🇸 EARN 1776 POINTS 🇺🇸🦅
+          </Button>
+        </div> */}
         <div className="w-4/5 text-center text-[#868E95] text-xs flex justify-center gap-1">
           <div>We reserve the right to update point calculations at any time.</div>
           <div><Link href="/terms/points" style={{ textDecoration: 'underline' }}>Terms.</Link></div>
@@ -352,6 +402,7 @@ const Points: FC = () => {
                 <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Lending Points</TableCell>
                 <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Borrowing Points</TableCell>
                 <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Referral Points</TableCell>
+                <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Social Points</TableCell>
                 <TableCell className="text-white text-base font-aeonik border-none" align="right" style={{ fontWeight: 500 }}>Total Points</TableCell>
               </TableRow>
             </TableHead>
@@ -374,7 +425,8 @@ const Points: FC = () => {
                   <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_activity_deposit_points))}</TableCell>
                   <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_activity_borrow_points))}</TableCell>
                   <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_referral_deposit_points + row.total_referral_borrow_points))}</TableCell>
-                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_deposit_points + row.total_borrow_points))}</TableCell>
+                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.socialPoints ? row.socialPoints : 0))}</TableCell>
+                  <TableCell align="right" className={`text-base border-none font-aeonik ${row.id === user ? 'text-[#DCE85D]' : 'text-white'}`} style={{ fontWeight: 400 }}>{groupedNumberFormatterDyn.format(Math.round(row.total_deposit_points + row.total_borrow_points + (row.socialPoints ? row.socialPoints : 0)))}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

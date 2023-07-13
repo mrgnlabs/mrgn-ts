@@ -1,7 +1,23 @@
 import React, { FC, useMemo } from "react";
-import { Card, Table, TableBody, TableContainer, TableHead, TableCell } from "@mui/material";
+import { Card, Table, TableBody, TableContainer, TableHead, TableCell, Typography } from "@mui/material";
 import { useTokenAccounts, useUserAccounts } from "~/context";
 import UserPositionRow from "./UserPositionRow";
+import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
+import { styled } from "@mui/material/styles";
+import Image from 'next/image';
+import Link from 'next/link';
+
+const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: "rgb(227, 227, 227)",
+    color: "rgba(0, 0, 0, 0.87)",
+    maxWidth: 220,
+    fontSize: theme.typography.pxToRem(12),
+    border: "1px solid #dadde9",
+  },
+}));
 
 const UserPositions: FC = () => {
   const { selectedAccount, activeBankInfos, reload } = useUserAccounts();
@@ -45,18 +61,73 @@ const UserPositions: FC = () => {
               <TableHead>
                 <TableCell className="border-none"></TableCell>
                 <TableCell
-                  className="text-[#A1A1A1] text-sm border-none px-2 hidden sm:table-cell"
+                  className="hidden md:table-cell border-none"
                   style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                   align="right"
                 >
-                  Lending
+                  <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1">
+                    Lending
+                  </Typography>
                 </TableCell>
                 <TableCell
-                  className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell"
+                  className="hidden md:table-cell border-none"
                   style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                   align="right"
                 >
-                  USD Value
+                  <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1">
+                    Wtd
+                    <div className="self-center">
+                      <HtmlTooltip
+                        title={
+                          <React.Fragment>
+                            <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                              Weighted values
+                            </Typography>
+                            <div className="flex flex-col gap-2 pb-2">
+                              For risk purposes, token values are adjusted by oracle price bias and risk weights.
+                            </div>
+                            <div className="flex flex-col gap-2 pb-2">
+                              Weighted prices used in risk calculations and are relevant to your health factor.
+                            </div>
+                            <Link href="https://t.me/mrgncommunity"><u>Learn more here.</u></Link>
+                          </React.Fragment>
+                        }
+                        placement="top"
+                      >
+                        <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                      </HtmlTooltip>
+                    </div>
+                  </Typography>
+                </TableCell>
+                <TableCell
+                  className="hidden md:table-cell border-none"
+                  style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                  align="right"
+                >
+                  <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1">
+                    USD
+                    <div className="self-center">
+                      <HtmlTooltip
+                        title={
+                          <React.Fragment>
+                            <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                              USD Values
+                            </Typography>
+                            <div className="flex flex-col gap-2 pb-2">
+                              Unadjusted USD values are based on oracle mid prices - or the best estimate the oracle has of average token price.
+                            </div>
+                            <div className="flex flex-col gap-2 pb-2">
+                              Unadjusted USD values are not used in risk calculations. Values with price bias are used because they are more conservative, and can control for oracle inaccuracies.
+                            </div>
+                            <Link href="https://t.me/mrgncommunity"><u>Learn more here.</u></Link>
+                          </React.Fragment>
+                        }
+                        placement="top"
+                      >
+                        <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                      </HtmlTooltip>
+                    </div>
+                  </Typography>
                 </TableCell>
                 <TableCell className="border-none"></TableCell>
                 <TableCell className="border-none"></TableCell>
@@ -90,18 +161,73 @@ const UserPositions: FC = () => {
                 <TableHead>
                   <TableCell className="border-none"></TableCell>
                   <TableCell
-                    className="text-[#A1A1A1] text-sm border-none px-2 hidden sm:table-cell"
+                    className="hidden md:table-cell border-none"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                     align="right"
                   >
-                    Borrowing
+                    <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1">
+                      Borrowing
+                    </Typography>
                   </TableCell>
                   <TableCell
-                    className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell"
+                    className="hidden md:table-cell border-none"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                     align="right"
                   >
-                    USD Value
+                    <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1">
+                      Wtd
+                      <div className="self-center">
+                        <HtmlTooltip
+                          title={
+                            <React.Fragment>
+                              <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                                Weighted values
+                              </Typography>
+                              <div className="flex flex-col gap-2 pb-2">
+                                For risk purposes, token values are adjusted by oracle price bias and risk weights.
+                              </div>
+                              <div className="flex flex-col gap-2 pb-2">
+                                Weighted prices used in risk calculations and are relevant to your health factor.
+                              </div>
+                              <Link href="https://t.me/mrgncommunity"><u>Learn more here.</u></Link>
+                            </React.Fragment>
+                          }
+                          placement="top"
+                        >
+                          <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                        </HtmlTooltip>
+                      </div>
+                    </Typography>
+                  </TableCell>
+                  <TableCell
+                    className="hidden md:table-cell border-none"
+                    style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+                    align="right"
+                  >
+                    <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1">
+                      USD
+                      <div className="self-center">
+                        <HtmlTooltip
+                          title={
+                            <React.Fragment>
+                              <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                                USD Values
+                              </Typography>
+                              <div className="flex flex-col gap-2 pb-2">
+                                Unadjusted USD values are based on oracle mid prices - or the best estimate the oracle has of average token price.
+                              </div>
+                              <div className="flex flex-col gap-2 pb-2">
+                                Unadjusted USD values are not used in risk calculations. Values with price bias are used because they are more conservative, and can control for oracle inaccuracies.
+                              </div>
+                              <Link href="https://t.me/mrgncommunity"><u>Learn more here.</u></Link>
+                            </React.Fragment>
+                          }
+                          placement="top"
+                        >
+                          <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                        </HtmlTooltip>
+                      </div>
+                    </Typography>
                   </TableCell>
                   <TableCell className="border-none"></TableCell>
                   <TableCell className="border-none"></TableCell>

@@ -74,3 +74,8 @@ a {
 .MuiPopover-paper {
   box-shadow: 0 0 10px #dce85d;
 }
+
+.glow-uxd {
+  text-shadow: 0 0 10px #05FFFF, 0 0 30px #05FFFF;
+  color: #05FFFF !important;
+}

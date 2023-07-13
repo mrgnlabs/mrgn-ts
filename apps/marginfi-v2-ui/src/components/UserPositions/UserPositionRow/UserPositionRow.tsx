@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccount, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { TableCell, TableRow } from "@mui/material";
 import { FC, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
@@ -102,9 +102,8 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
     <TableRow className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl">
       <TableCell
         className={`text-white p-0 font-aeonik border-[1px] border-${activeBankInfo.tokenName}`}
-        style={{ fontWeight: 300 }}
       >
-        <div className="flex justify-center items-center px-4 gap-4">
+        <div className="flex justify-center items-center px-4 gap-2">
           {activeBankInfo.tokenIcon && (
             <Image src={activeBankInfo.tokenIcon} alt={activeBankInfo.tokenName} height={25} width={25} />
           )}
@@ -118,6 +117,14 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         style={{ fontWeight: 300 }}
       >
         {groupedNumberFormatter.format(position.amount)}
+      </TableCell>
+
+      <TableCell
+        className="text-white border-none px-2 font-aeonik hidden md:table-cell"
+        align="right"
+        style={{ fontWeight: 300 }}
+      >
+        {usdFormatter.format(position.weightedUSDValue)}
       </TableCell>
 
       <TableCell
