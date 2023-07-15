@@ -233,7 +233,7 @@ const UserPositions: FC = () => {
                   <TableCell className="border-none"></TableCell>
                 </TableHead>
                 <TableBody>
-                  {borrowedAssetInfos.map(({ bankInfo, tokenBalance }, index) => (
+                  {borrowedAssetInfos.map(({ bankInfo }, index) => (
                     <UserPositionRow
                       key={index}
                       activeBankInfo={bankInfo}

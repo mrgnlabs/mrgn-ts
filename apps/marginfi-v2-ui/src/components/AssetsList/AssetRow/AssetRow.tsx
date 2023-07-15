@@ -46,11 +46,6 @@ const AssetRow: FC<{
   const zoomLevel = useRecoilValue(lendZoomLevel);
   const showUSD = useRecoilValue(denominationUSD);
 
-  console.log({
-    deposits: bankInfo.totalPoolDeposits,
-    limit: bankInfo.bank.config.depositLimit
-  })
-
   // Reset b/l amounts on toggle
   useEffect(() => {
     setBorrowOrLendAmount(0);
