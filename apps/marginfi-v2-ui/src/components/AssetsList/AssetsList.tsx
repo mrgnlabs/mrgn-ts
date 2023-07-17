@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useMemo, useRef, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Card, Skeleton, Table, TableHead, TableBody, TableContainer, TableRow, TableCell } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -8,8 +8,9 @@ import Typography from "@mui/material/Typography";
 import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
-import { lendZoomLevel } from '~/state';
-import { useRecoilValue } from 'recoil';
+import { lendZoomLevel, showBadgesState } from '~/state';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { useHotkeys } from "react-hotkeys-hook";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -30,6 +31,44 @@ const AssetsList: FC = () => {
   const { extendedBankInfos, selectedAccount, nativeSolBalance } = useUserAccounts();
   const wallet = useWallet();
   const zoomLevel = useRecoilValue(lendZoomLevel);
+  const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
+  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  useHotkeys(
+    extendedBankInfos
+      .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
+      .map((_, i) => `meta + ${i + 1}`)
+      .join(", "),
+    (_, handler) => {
+      const globalBankTokenNames = extendedBankInfos
+        .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
+        .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
+        .map((b) => b.tokenName);
+
+      const keyPressed = handler.keys?.join("");
+      if (Number(keyPressed) >= 1 && Number(keyPressed) <= globalBankTokenNames.length) {
+        inputRefs.current[globalBankTokenNames[Number(keyPressed) - 1]]?.querySelector("input")!.focus();
+        setShowBadges(false);
+      }
+    },
+	{ preventDefault: true, enableOnFormTags: true }
+  );
+
+  useHotkeys(
+    "meta",
+    () => {
+      setShowBadges(true);
+    },
+    { enableOnFormTags: true }
+  );
+
+  useHotkeys(
+    "meta",
+    () => {
+      setShowBadges(false);
+    },
+    { keyup: true, enableOnFormTags: true }
+  );
 
   // Hack required to circumvent rehydration error
   const [hasMounted, setHasMounted] = React.useState(false);
@@ -49,7 +88,6 @@ const AssetsList: FC = () => {
       <div className="col-span-full">
         <Card elevation={0} className="bg-[rgba(0,0,0,0)] w-full">
           <TableContainer>
-
             <Table
               className="table-fixed"
               style={{
@@ -164,8 +202,7 @@ const AssetsList: FC = () => {
                 {/* [START]: ZOOM-BASED COLUMNS */}
                 {/*******************************/}
 
-                {
-                  zoomLevel < 2 &&
+                {zoomLevel < 2 && (
                   <TableCell
                     className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
@@ -179,7 +216,8 @@ const AssetsList: FC = () => {
                             <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                               {isInLendingMode ? "Global deposit cap" : "Global borrow cap"}
                             </Typography>
-                            Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount that all users combined can deposit or borrow of a given token.
+                            Each marginfi pool has global deposit and borrow limits, also known as caps. This is the
+                            total amount that all users combined can deposit or borrow of a given token.
                           </React.Fragment>
                         }
                         placement="top"
@@ -188,10 +226,9 @@ const AssetsList: FC = () => {
                       </HtmlTooltip>
                     </div>
                   </TableCell>
-                }
+                )}
 
-                {
-                  zoomLevel < 3 &&
+                {zoomLevel < 3 && (
                   <TableCell
                     className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
@@ -205,7 +242,8 @@ const AssetsList: FC = () => {
                             <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                               Pool utilization
                             </Typography>
-                            What percentage of supplied tokens have been borrowed. This helps determine interest rates. This is not based on the global pool limits, which can limit utilization.
+                            What percentage of supplied tokens have been borrowed. This helps determine interest rates.
+                            This is not based on the global pool limits, which can limit utilization.
                           </React.Fragment>
                         }
                         placement="top"
@@ -214,21 +252,18 @@ const AssetsList: FC = () => {
                       </HtmlTooltip>
                     </div>
                   </TableCell>
-                }
+                )}
 
                 {/*******************************/}
                 {/* [END]: ZOOM-BASED COLUMNS */}
                 {/*******************************/}
-
 
                 <TableCell
                   className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell"
                   style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                   align="right"
                 >
-                  <div className="h-full w-full flex justify-end items-center gap-2">
-                    Wallet Balance
-                  </div>
+                  <div className="h-full w-full flex justify-end items-center gap-2">Wallet Balance</div>
                 </TableCell>
                 <TableCell className="border-none"></TableCell>
                 <TableCell className="border-none"></TableCell>
@@ -237,11 +272,9 @@ const AssetsList: FC = () => {
               <TableBody>
                 {extendedBankInfos.length > 0 ? (
                   extendedBankInfos
-                    .filter(
-                      b => (b.bank.config.assetWeightInit.toNumber() > 0)
-                    )
+                    .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
                     .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
-                    .map((bankInfo) => (
+                    .map((bankInfo, i) => (
                       <AssetRow
                         key={bankInfo.tokenName}
                         nativeSolBalance={nativeSolBalance}
@@ -251,6 +284,10 @@ const AssetsList: FC = () => {
                         marginfiAccount={selectedAccount}
                         marginfiClient={mfiClient}
                         reloadBanks={reload}
+                        inputRefs={inputRefs}
+						hasHotkey={true}
+                        showHotkeyBadges={showBadges}
+                        badgeContent={`${i + 1}`}
                       />
                     ))
                 ) : (
@@ -258,14 +295,18 @@ const AssetsList: FC = () => {
                 )}
               </TableBody>
               <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white my-4 gap-2">
-                <span className="gap-1 flex">Isolated <span className="hidden lg:block">pools</span></span>
+                <span className="gap-1 flex">
+                  Isolated <span className="hidden lg:block">pools</span>
+                </span>
                 <HtmlTooltip
                   title={
                     <React.Fragment>
                       <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                         Isolated pools are risky ⚠️
                       </Typography>
-                      Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot borrow other assets. Isolated pools should be considered particularly risky. As always, remember that marginfi is a decentralized protocol and all deposited funds are at risk.
+                      Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you
+                      cannot borrow other assets. Isolated pools should be considered particularly risky. As always,
+                      remember that marginfi is a decentralized protocol and all deposited funds are at risk.
                     </React.Fragment>
                   }
                   placement="top"
@@ -276,11 +317,9 @@ const AssetsList: FC = () => {
               <TableBody>
                 {extendedBankInfos.length > 0 ? (
                   extendedBankInfos
-                    .filter(
-                      b => (b.bank.config.assetWeightInit.toNumber() === 0)
-                    )
+                    .filter((b) => b.bank.config.assetWeightInit.toNumber() === 0)
                     .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
-                    .map((bankInfo) => (
+                    .map((bankInfo, i) => (
                       <AssetRow
                         key={bankInfo.tokenName}
                         nativeSolBalance={nativeSolBalance}
@@ -290,6 +329,8 @@ const AssetsList: FC = () => {
                         marginfiAccount={selectedAccount}
                         marginfiClient={mfiClient}
                         reloadBanks={reload}
+                        inputRefs={inputRefs}
+						hasHotkey={false}
                       />
                     ))
                 ) : (
