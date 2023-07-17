@@ -9,10 +9,14 @@ import {
   PhantomWalletAdapter,
   SolflareWalletAdapter,
   GlowWalletAdapter,
+  WalletConnectWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import {
   OKXWalletAdapter
 } from "~/context/OKXWallet";
+import {
+  WalletAdapterNetwork,
+} from '@solana/wallet-adapter-base';
 import { init, push } from "@socialgouv/matomo-next";
 import config from "../config";
 import { Navbar, Footer } from "~/components";
@@ -56,6 +60,20 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       new LedgerWalletAdapter(),
       new SolflareWalletAdapter(),
       new GlowWalletAdapter(),
+      new WalletConnectWalletAdapter({
+        network: WalletAdapterNetwork.Mainnet,
+        options: {
+          relayUrl: 'wss://relay.walletconnect.com',
+          // example WC app project ID
+          projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
+          metadata: {
+            name: 'marginfi',
+            description: 'The lending foundation for DeFi 2.0 on Solana.',
+            url: 'https://github.com/mrgnlabs/marginfi-v2',
+            icons: ['https://pbs.twimg.com/profile_images/1654146217583030272/RagjN98V_400x400.jpg'],
+          },
+        },
+      }),
     ],
     []
   );
