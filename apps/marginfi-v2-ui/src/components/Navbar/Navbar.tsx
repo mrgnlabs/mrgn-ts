@@ -77,7 +77,7 @@ const Navbar: FC = () => {
   const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
   const router = useRouter();
   useHotkeys(
-    "meta + l, meta + s, meta + e, meta + o",
+    "l, s, e, o",
     (_, handler: HotkeysEvent) => {
       switch (handler.keys?.join("")) {
         case "l":
@@ -94,7 +94,7 @@ const Navbar: FC = () => {
           break;
       }
     },
-    { preventDefault: true, enableOnFormTags: true }
+    { preventDefault: true, enableOnFormTags: true, ignoreModifiers: true }
   );
 
   useHotkeys(

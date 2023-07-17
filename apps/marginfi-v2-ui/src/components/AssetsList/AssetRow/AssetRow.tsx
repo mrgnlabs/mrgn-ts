@@ -43,7 +43,7 @@ const AssetRow: FC<{
   reloadBanks: () => Promise<void>;
   inputRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
   showBadges: boolean;
-  badgeContent: number;
+  badgeContent: string;
 }> = ({ bankInfo, nativeSolBalance, isInLendingMode, isConnected, marginfiAccount, marginfiClient, reloadBanks, inputRefs, showBadges, badgeContent }) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
   const zoomLevel = useRecoilValue(lendZoomLevel);

@@ -41,7 +41,7 @@ const AssetsList: FC = () => {
   useHotkeys(
     extendedBankInfos
       .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
-      .map((_, i) => `meta + ${i + 1}`)
+      .map((_, i) => `meta + ${i + 1 > 10 ? `shift + ${i + 1 - 10}` : i + 1}`)
       .join(", "),
     (_, handler) => {
       const globalBankTokenNames = extendedBankInfos
@@ -303,7 +303,7 @@ const AssetsList: FC = () => {
                         reloadBanks={reload}
                         inputRefs={inputRefs}
                         showBadges={showBadges}
-                        badgeContent={i + 1}
+                        badgeContent={`${i + 1 >= 10 ? `shift + ${i + 1 - 10}` : i + 1}`}
                       />
                     ))
                 ) : (
@@ -347,7 +347,7 @@ const AssetsList: FC = () => {
                         reloadBanks={reload}
                         inputRefs={inputRefs}
                         showBadges={showBadges}
-                        badgeContent={globalBankTokenLength + i + 1}
+                        badgeContent={`${globalBankTokenLength + i + 1 >= 10 ? `shift + ${globalBankTokenLength + i + 1 - 10}` : globalBankTokenLength + i + 1}`}
                       />
                     ))
                 ) : (
