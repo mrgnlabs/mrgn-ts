@@ -12,7 +12,13 @@ const denominationUSD = atom({
   default: false,
 })
 
+const showBadgesState = atom({
+	key: 'showBadges',
+	default: false,
+})
+
 export {
   lendZoomLevel,
-  denominationUSD
+  denominationUSD,
+  showBadgesState,
 }

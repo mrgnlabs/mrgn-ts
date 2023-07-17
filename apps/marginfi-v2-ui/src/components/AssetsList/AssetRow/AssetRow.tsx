@@ -41,7 +41,11 @@ const AssetRow: FC<{
   marginfiAccount: MarginfiAccount | null;
   marginfiClient: MarginfiClient | null;
   reloadBanks: () => Promise<void>;
-}> = ({ bankInfo, nativeSolBalance, isInLendingMode, isConnected, marginfiAccount, marginfiClient, reloadBanks }) => {
+  inputRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
+  hasHotkey: boolean;
+  showHotkeyBadges?: boolean;
+  badgeContent?: string;
+}> = ({ bankInfo, nativeSolBalance, isInLendingMode, isConnected, marginfiAccount, marginfiClient, reloadBanks, inputRefs, hasHotkey, showHotkeyBadges, badgeContent }) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
   const zoomLevel = useRecoilValue(lendZoomLevel);
   const showUSD = useRecoilValue(denominationUSD);
@@ -244,12 +248,10 @@ const AssetRow: FC<{
           <div className="font-aeonik hidden lg:block">{bankInfo.tokenName}</div>
         </div>
       </TableCell>
-
       <TableCell
-        className={
-          `text-white border-none px-2 font-aeonik hidden lg:table-cell ${(bankInfo.tokenPrice > 999 && zoomLevel < 2) ? 'xl:text-xs xl:pl-0' : ''
-          }`
-        }
+        className={`text-white border-none px-2 font-aeonik hidden lg:table-cell ${
+          bankInfo.tokenPrice > 999 && zoomLevel < 2 ? "xl:text-xs xl:pl-0" : ""
+        }`}
         align="right"
         style={{ fontWeight: 300 }}
       >
@@ -263,9 +265,9 @@ const AssetRow: FC<{
                 ${usdFormatter.format(bankInfo.tokenPrice)} ± ${Math.max(
                 bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
                 bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
-              ).toFixed(2)
-                }, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`
-              }
+              ).toFixed(
+                2
+              )}, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`}
               <br />
               <a href="https://docs.marginfi.com">
                 <u>Learn more.</u>
@@ -273,46 +275,49 @@ const AssetRow: FC<{
             </React.Fragment>
           }
           placement="right"
-          className={
-            `${Math.max(
-              bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
-              bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
-            ) > (bankInfo.tokenPrice * 0.10)
-              ? "cursor-pointer" : "hidden"
-            }`
-          }
-        >
-          <Badge badgeContent={
+          className={`${
             Math.max(
               bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
               bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
-            ) > (bankInfo.tokenPrice * 0.10)
-              ? '⚠️' : ''
-          }
+            ) >
+            bankInfo.tokenPrice * 0.1
+              ? "cursor-pointer"
+              : "hidden"
+          }`}
+        >
+          <Badge
+            badgeContent={
+              Math.max(
+                bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
+                bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+              ) >
+              bankInfo.tokenPrice * 0.1
+                ? "⚠️"
+                : ""
+            }
             className="bg-transparent"
             sx={{
               "& .MuiBadge-badge": {
                 fontSize: 20,
-              }
+              },
             }}
             invisible={
               Math.max(
                 bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
                 bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
-              ) > (bankInfo.tokenPrice * 0.10)
-                ? false : true
+              ) >
+              bankInfo.tokenPrice * 0.1
+                ? false
+                : true
             }
           >
             {bankInfo.tokenPrice >= 0.01
-              ?
-              zoomLevel < 2 ?
-                `${usdFormatter.format(bankInfo.tokenPrice)} ± ${Math.max(
-                  bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
-                  bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
-                ).toFixed(2)
-                }`
-                :
-                usdFormatter.format(bankInfo.tokenPrice)
+              ? zoomLevel < 2
+                ? `${usdFormatter.format(bankInfo.tokenPrice)} ± ${Math.max(
+                    bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
+                    bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+                  ).toFixed(2)}`
+                : usdFormatter.format(bankInfo.tokenPrice)
               : `$${bankInfo.tokenPrice.toExponential(2)}`}
           </Badge>
         </HtmlTooltip>
@@ -357,8 +362,8 @@ const AssetRow: FC<{
           >
             {percentFormatter.format(
               (isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate) +
-              (isInLendingMode && bankInfo.emissions == Emissions.Lending ? bankInfo.emissionsRate : 0) +
-              (!isInLendingMode && bankInfo.emissions == Emissions.Borrowing ? bankInfo.emissionsRate : 0)
+                (isInLendingMode && bankInfo.emissions == Emissions.Lending ? bankInfo.emissionsRate : 0) +
+                (!isInLendingMode && bankInfo.emissions == Emissions.Borrowing ? bankInfo.emissionsRate : 0)
             )}
           </div>
         </div>
@@ -385,21 +390,23 @@ const AssetRow: FC<{
           title={
             <React.Fragment>
               <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                {
-                  isInLendingMode ?
-                    (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.99999) ? "Limit Reached" : (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? "Approaching Limit" : null)) :
-                    (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.99999) ? "Limit Reached" : (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? "Approaching Limit" : null))
-                }
+                {isInLendingMode
+                  ? bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit * 0.99999
+                    ? "Limit Reached"
+                    : bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit * 0.9
+                    ? "Approaching Limit"
+                    : null
+                  : bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit * 0.99999
+                  ? "Limit Reached"
+                  : bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit * 0.9
+                  ? "Approaching Limit"
+                  : null}
               </Typography>
-              {`${bankInfo.tokenName
-                } ${isInLendingMode ? 'deposits' : 'borrows'} are at ${percentFormatter.format(
-                  isInLendingMode ?
-                    bankInfo.totalPoolDeposits / bankInfo.bank.config.depositLimit
-                    :
-                    bankInfo.totalPoolBorrows / bankInfo.bank.config.borrowLimit
-                )
-                } capacity.`
-              }
+              {`${bankInfo.tokenName} ${isInLendingMode ? "deposits" : "borrows"} are at ${percentFormatter.format(
+                isInLendingMode
+                  ? bankInfo.totalPoolDeposits / bankInfo.bank.config.depositLimit
+                  : bankInfo.totalPoolBorrows / bankInfo.bank.config.borrowLimit
+              )} capacity.`}
               <br />
               <a href="https://docs.marginfi.com">
                 <u>Learn more.</u>
@@ -407,63 +414,64 @@ const AssetRow: FC<{
             </React.Fragment>
           }
           placement="right"
-          className={`${isInLendingMode ?
-            bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? "" : ""
-            :
-            bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? "" : ""
-            }`}
+          className={`${
+            isInLendingMode
+              ? bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit * 0.9
+                ? ""
+                : ""
+              : bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit * 0.9
+              ? ""
+              : ""
+          }`}
         >
-          <Badge badgeContent={
-            isInLendingMode ?
-              (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.99999) ? "💯" : (bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? "❗" : null)) :
-              (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.99999) ? "💯" : (bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? "❗" : null))
-          }
+          <Badge
+            badgeContent={
+              isInLendingMode
+                ? bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit * 0.99999
+                  ? "💯"
+                  : bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit * 0.9
+                  ? "❗"
+                  : null
+                : bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit * 0.99999
+                ? "💯"
+                : bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit * 0.9
+                ? "❗"
+                : null
+            }
             className="bg-transparent"
             sx={{
               "& .MuiBadge-badge": {
                 fontSize: 20,
-
-              }
+              },
             }}
             invisible={
-              isInLendingMode ?
-                bankInfo.totalPoolDeposits >= (bankInfo.bank.config.depositLimit * 0.9) ? false : true
-                :
-                bankInfo.totalPoolBorrows >= (bankInfo.bank.config.borrowLimit * 0.9) ? false : true
+              isInLendingMode
+                ? bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit * 0.9
+                  ? false
+                  : true
+                : bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit * 0.9
+                ? false
+                : true
             }
-
           >
-            {
-              showUSD ?
-                usdFormatter.format(
-                  (
-                    isInLendingMode ?
-                      bankInfo.totalPoolDeposits :
-                      Math.min(
-                        bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
-                      ) - bankInfo.totalPoolBorrows
-                  )
-                  *
-                  bankInfo.tokenPrice
+            {showUSD
+              ? usdFormatter.format(
+                  (isInLendingMode
+                    ? bankInfo.totalPoolDeposits
+                    : Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) -
+                      bankInfo.totalPoolBorrows) * bankInfo.tokenPrice
                 )
-                :
-                zoomLevel < 2 ?
-                  groupedNumberFormatterDyn.format(
-                    isInLendingMode ?
-                      bankInfo.totalPoolDeposits :
-                      Math.min(
-                        bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
-                      ) - bankInfo.totalPoolBorrows
-                  )
-                  :
-                  numeralFormatter(
-                    isInLendingMode ?
-                      bankInfo.totalPoolDeposits :
-                      Math.min(
-                        bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit
-                      ) - bankInfo.totalPoolBorrows
-                  )
-            }
+              : zoomLevel < 2
+              ? groupedNumberFormatterDyn.format(
+                  isInLendingMode
+                    ? bankInfo.totalPoolDeposits
+                    : Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows
+                )
+              : numeralFormatter(
+                  isInLendingMode
+                    ? bankInfo.totalPoolDeposits
+                    : Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows
+                )}
           </Badge>
         </HtmlTooltip>
       </TableCell>
@@ -472,45 +480,34 @@ const AssetRow: FC<{
       {/* [START]: ZOOM-BASED COLUMNS */}
       {/*******************************/}
 
-      {
-        zoomLevel < 2 &&
+      {zoomLevel < 2 && (
         <TableCell
           className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
           align="right"
           style={{ fontWeight: 300 }}
         >
-          {
-            showUSD ?
-              usdFormatter.format(
-                (isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit)
-                *
-                bankInfo.tokenPrice
+          {showUSD
+            ? usdFormatter.format(
+                (isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit) *
+                  bankInfo.tokenPrice
               )
-              :
-              zoomLevel < 2 ?
-                groupedNumberFormatterDyn.format(
-                  isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit
-                )
-                :
-                numeralFormatter(
-                  isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit
-                )
-          }
+            : zoomLevel < 2
+            ? groupedNumberFormatterDyn.format(
+                isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit
+              )
+            : numeralFormatter(isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit)}
         </TableCell>
-      }
+      )}
 
-      {
-        zoomLevel < 3 &&
+      {zoomLevel < 3 && (
         <TableCell
           className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
           align="right"
           style={{ fontWeight: 300 }}
         >
-          {
-            percentFormatter.format(bankInfo.utilizationRate / 100)
-          }
+          {percentFormatter.format(bankInfo.utilizationRate / 100)}
         </TableCell>
-      }
+      )}
 
       {/*******************************/}
       {/* [END]: ZOOM-BASED COLUMNS */}
@@ -521,27 +518,53 @@ const AssetRow: FC<{
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {
-          showUSD ?
-            usdFormatter.format(
-              (bankInfo.tokenMint.equals(WSOL_MINT) ? bankInfo.tokenBalance + nativeSolBalance : bankInfo.tokenBalance)
-              *
-              bankInfo.tokenPrice
+        {showUSD
+          ? usdFormatter.format(
+              (bankInfo.tokenMint.equals(WSOL_MINT)
+                ? bankInfo.tokenBalance + nativeSolBalance
+                : bankInfo.tokenBalance) * bankInfo.tokenPrice
             )
-            :
-            numeralFormatter(
+          : numeralFormatter(
               bankInfo.tokenMint.equals(WSOL_MINT) ? bankInfo.tokenBalance + nativeSolBalance : bankInfo.tokenBalance
-            )
-        }
+            )}
       </TableCell>
 
       <TableCell className="border-none p-0 w-full xl:px-4" colSpan={2}>
-        <AssetRowInputBox
-          value={borrowOrLendAmount}
-          setValue={setBorrowOrLendAmount}
-          maxValue={maxAmount}
-          maxDecimals={bankInfo.tokenMintDecimals}
-        />
+        {hasHotkey && (
+          <Badge
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+            sx={{
+              "& .MuiBadge-badge": {
+                backgroundColor: "rgb(220, 232, 93)",
+                color: "#1C2125",
+              },
+            }}
+            badgeContent={badgeContent}
+            invisible={!showHotkeyBadges}
+          >
+            <AssetRowInputBox
+              tokenName={bankInfo.tokenName}
+              value={borrowOrLendAmount}
+              setValue={setBorrowOrLendAmount}
+              maxValue={maxAmount}
+              maxDecimals={bankInfo.tokenMintDecimals}
+              inputRefs={inputRefs}
+            />
+          </Badge>
+        )}
+        {!hasHotkey && (
+          <AssetRowInputBox
+            tokenName={bankInfo.tokenName}
+            value={borrowOrLendAmount}
+            setValue={setBorrowOrLendAmount}
+            maxValue={maxAmount}
+            maxDecimals={bankInfo.tokenMintDecimals}
+            inputRefs={inputRefs}
+          />
+        )}
       </TableCell>
 
       <TableCell className="text-white border-none font-aeonik p-0">
@@ -563,7 +586,7 @@ const AssetRow: FC<{
           </div>
         </Tooltip>
       </TableCell>
-    </TableRow >
+    </TableRow>
   );
 };
 
