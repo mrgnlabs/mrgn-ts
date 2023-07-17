@@ -1,4 +1,4 @@
-import type { EventEmitter, SendTransactionOptions, WalletName } from '@solana/wallet-adapter-base';
+import type { EventEmitter, WalletName } from '@solana/wallet-adapter-base';
 import {
   BaseMessageSignerWalletAdapter,
   scopePollingDetectionStrategy,
@@ -6,16 +6,10 @@ import {
   WalletConnectionError,
   WalletDisconnectedError,
   WalletDisconnectionError,
-  WalletError,
-  WalletNotConnectedError,
   WalletNotReadyError,
   WalletPublicKeyError,
   WalletReadyState,
-  WalletSendTransactionError,
-  WalletSignMessageError,
-  WalletSignTransactionError,
 } from '@solana/wallet-adapter-base';
-import type { Connection, SendOptions, Transaction, TransactionSignature } from '@solana/web3.js';
 import { PublicKey } from '@solana/web3.js';
 
 interface OKXWalletEvents {
@@ -28,13 +22,6 @@ interface OKXWallet extends EventEmitter<OKXWalletEvents> {
   isOkxWallet?: boolean;
   isConnected: boolean;
   publicKey?: PublicKey;
-  signTransaction(transaction: Transaction, publicKey?: PublicKey | null): Promise<Transaction>;
-  signAllTransactions(transactions: Transaction[], publicKey?: PublicKey | null): Promise<Transaction[]>;
-  signAndSendTransaction(
-    transaction: Transaction,
-    options?: SendOptions
-  ): Promise<{ signature: TransactionSignature }>;
-  signMessage(message: Uint8Array, publicKey?: PublicKey | null): Promise<Uint8Array>;
   connect(): Promise<any>;
   disconnect(): Promise<void>;
 }
@@ -51,6 +38,7 @@ export interface OKXWalletAdapterConfig { }
 
 export const OKXWalletName = 'OKX Wallet' as WalletName<'OKX Wallet'>;
 
+//@ts-ignore
 export class OKXWalletAdapter extends BaseMessageSignerWalletAdapter {
   name = OKXWalletName;
   url = 'https://www.okx.com/web3';
@@ -93,7 +81,8 @@ export class OKXWalletAdapter extends BaseMessageSignerWalletAdapter {
   }
 
   get connected() {
-    return !!this._wallet?.isConnected;
+    return false;
+    // return !!this._wallet?.isConnected;
   }
 
   get readyState() {
@@ -143,7 +132,7 @@ export class OKXWalletAdapter extends BaseMessageSignerWalletAdapter {
   async disconnect(): Promise<void> {
     const wallet = this._wallet;
     if (wallet) {
-      wallet.off('disconnect', this._disconnected);
+      wallet.on('disconnect', this._disconnected);
 
       this._wallet = null;
       this._publicKey = null;
@@ -158,88 +147,10 @@ export class OKXWalletAdapter extends BaseMessageSignerWalletAdapter {
     this.emit('disconnect');
   }
 
-  async sendTransaction(
-    transaction: Transaction,
-    connection: Connection,
-    options: SendTransactionOptions = {}
-  ): Promise<TransactionSignature> {
-    try {
-      const wallet = this._wallet;
-      if (!wallet) throw new WalletNotConnectedError();
-
-      try {
-        const { signers, ...sendOptions } = options;
-
-        transaction = await this.prepareTransaction(transaction, connection, sendOptions);
-
-        signers?.length && transaction.partialSign(...signers);
-
-        sendOptions.preflightCommitment = sendOptions.preflightCommitment || connection.commitment;
-
-        const { signature } = await wallet.signAndSendTransaction(transaction, sendOptions);
-        return signature;
-      } catch (error: any) {
-        if (error instanceof WalletError) throw error;
-        throw new WalletSendTransactionError(error?.message, error);
-      }
-    } catch (error: any) {
-      this.emit('error', error);
-      throw error;
-    }
-  }
-
-  async signTransaction<T extends Transaction>(transaction: T): Promise<T> {
-    try {
-      const wallet = this._wallet;
-      if (!wallet) throw new WalletNotConnectedError();
-
-      try {
-        return (await wallet.signTransaction(transaction, this.publicKey)) as T;
-      } catch (error: any) {
-        throw new WalletSignTransactionError(error?.message, error);
-      }
-    } catch (error: any) {
-      this.emit('error', error);
-      throw error;
-    }
-  }
-
-  async signAllTransactions<T extends Transaction>(transactions: T[]): Promise<T[]> {
-    try {
-      const wallet = this._wallet;
-      if (!wallet) throw new WalletNotConnectedError();
-
-      try {
-        return (await wallet.signAllTransactions(transactions, this.publicKey)) as T[];
-      } catch (error: any) {
-        throw new WalletSignTransactionError(error?.message, error);
-      }
-    } catch (error: any) {
-      this.emit('error', error);
-      throw error;
-    }
-  }
-
-  async signMessage(message: Uint8Array): Promise<Uint8Array> {
-    try {
-      const wallet = this._wallet;
-      if (!wallet) throw new WalletNotConnectedError();
-
-      try {
-        return await wallet.signMessage(message, this.publicKey);
-      } catch (error: any) {
-        throw new WalletSignMessageError(error?.message, error);
-      }
-    } catch (error: any) {
-      this.emit('error', error);
-      throw error;
-    }
-  }
-
   private _disconnected = () => {
     const wallet = this._wallet;
     if (wallet) {
-      wallet.off('disconnect', this._disconnected);
+      wallet.on('disconnect', this._disconnected);
 
       this._wallet = null;
       this._publicKey = null;
