@@ -7,6 +7,7 @@ import {
   BackpackWalletAdapter,
   LedgerWalletAdapter,
   PhantomWalletAdapter,
+  SolflareWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import {
   OKXWalletAdapter
@@ -52,6 +53,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       new BackpackWalletAdapter(),
       new PhantomWalletAdapter(),
       new LedgerWalletAdapter(),
+      new SolflareWalletAdapter(),
     ],
     []
   );
