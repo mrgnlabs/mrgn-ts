@@ -33,15 +33,11 @@ const AssetsList: FC = () => {
   const zoomLevel = useRecoilValue(lendZoomLevel);
   const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const globalBankTokenLength = useMemo(
-    () => extendedBankInfos.filter((b) => b.bank.config.assetWeightInit.toNumber() > 0).length,
-    [extendedBankInfos]
-  );
 
   useHotkeys(
     extendedBankInfos
       .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
-      .map((_, i) => `meta + ${i + 1 > 10 ? `shift + ${i + 1 - 10}` : i + 1}`)
+      .map((_, i) => `meta + ${i + 1}`)
       .join(", "),
     (_, handler) => {
       const globalBankTokenNames = extendedBankInfos
@@ -49,22 +45,9 @@ const AssetsList: FC = () => {
         .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
         .map((b) => b.tokenName);
 
-      const isolatedBankTokenNames = extendedBankInfos
-        .filter((b) => b.bank.config.assetWeightInit.toNumber() === 0)
-        .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
-        .map((b) => b.tokenName);
-
       const keyPressed = handler.keys?.join("");
       if (Number(keyPressed) >= 1 && Number(keyPressed) <= globalBankTokenNames.length) {
         inputRefs.current[globalBankTokenNames[Number(keyPressed) - 1]]?.querySelector("input")!.focus();
-        setShowBadges(false);
-      } else if (
-        Number(keyPressed) >= 1 &&
-        Number(keyPressed) <= globalBankTokenNames.length + isolatedBankTokenNames.length
-      ) {
-        inputRefs.current[isolatedBankTokenNames[Number(keyPressed) - globalBankTokenNames.length - 1]]
-          ?.querySelector("input")!
-          .focus();
         setShowBadges(false);
       }
     },
@@ -302,8 +285,9 @@ const AssetsList: FC = () => {
                         marginfiClient={mfiClient}
                         reloadBanks={reload}
                         inputRefs={inputRefs}
-                        showBadges={showBadges}
-                        badgeContent={`${i + 1 >= 10 ? `shift + ${i + 1 - 10}` : i + 1}`}
+						hasHotkey={true}
+                        showHotkeyBadges={showBadges}
+                        badgeContent={`${i + 1}`}
                       />
                     ))
                 ) : (
@@ -346,8 +330,7 @@ const AssetsList: FC = () => {
                         marginfiClient={mfiClient}
                         reloadBanks={reload}
                         inputRefs={inputRefs}
-                        showBadges={showBadges}
-                        badgeContent={`${globalBankTokenLength + i + 1 >= 10 ? `shift + ${globalBankTokenLength + i + 1 - 10}` : globalBankTokenLength + i + 1}`}
+						hasHotkey={false}
                       />
                     ))
                 ) : (
