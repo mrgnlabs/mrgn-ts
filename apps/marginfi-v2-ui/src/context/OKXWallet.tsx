@@ -81,8 +81,7 @@ export class OKXWalletAdapter extends BaseMessageSignerWalletAdapter {
   }
 
   get connected() {
-    return false;
-    // return !!this._wallet?.isConnected;
+    return !!this._wallet?.isConnected;
   }
 
   get readyState() {
