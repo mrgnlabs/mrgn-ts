@@ -49,9 +49,9 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   const wallets = useMemo(
     () => [
       new OKXWalletAdapter(),
-      // new BackpackWalletAdapter(),
-      // new PhantomWalletAdapter(),
-      // new LedgerWalletAdapter(),
+      new BackpackWalletAdapter(),
+      new PhantomWalletAdapter(),
+      new LedgerWalletAdapter(),
     ],
     []
   );
