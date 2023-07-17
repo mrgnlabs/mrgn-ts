@@ -58,6 +58,17 @@ const AssetsList: FC = () => {
     "meta",
     () => {
       setShowBadges(true);
+	  setTimeout(() => {
+		setShowBadges(false);
+	  }, 2000);
+    },
+    { enableOnFormTags: true }
+  );
+
+  useHotkeys(
+    "meta + shift + l",
+    () => {
+		setIsInLendingMode(!isInLendingMode);
     },
     { enableOnFormTags: true }
   );
