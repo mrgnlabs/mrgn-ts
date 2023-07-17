@@ -96,7 +96,6 @@ export class OKXWalletAdapter extends BaseMessageSignerWalletAdapter {
 
       this._connecting = true;
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const wallet = window.okxwallet?.solana!;
 
       let resp;
@@ -109,11 +108,17 @@ export class OKXWalletAdapter extends BaseMessageSignerWalletAdapter {
       if (!resp.publicKey) throw new WalletAccountError();
 
       let publicKey: PublicKey;
-      try {
-        publicKey = new PublicKey(wallet.publicKey.toBytes());
-      } catch (error: any) {
-        throw new WalletPublicKeyError(error?.message, error);
+
+      if (wallet?.publicKey?.toBytes()) {
+        try {
+          publicKey = new PublicKey(wallet?.publicKey?.toBytes());
+        } catch (error: any) {
+          throw new WalletPublicKeyError(error?.message, error);
+        }
+      } else {
+        throw new WalletPublicKeyError("AHH");
       }
+
 
       wallet.on('disconnect', this._disconnected);
 
