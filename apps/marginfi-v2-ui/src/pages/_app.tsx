@@ -8,6 +8,7 @@ import {
   LedgerWalletAdapter,
   PhantomWalletAdapter,
   SolflareWalletAdapter,
+  GlowWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import {
   OKXWalletAdapter
@@ -54,6 +55,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       new PhantomWalletAdapter(),
       new LedgerWalletAdapter(),
       new SolflareWalletAdapter(),
+      new GlowWalletAdapter(),
     ],
     []
   );
