@@ -94,7 +94,7 @@ const Navbar: FC = () => {
           break;
       }
     },
-    { preventDefault: true, enableOnFormTags: true, ignoreModifiers: true }
+    { preventDefault: true, enableOnFormTags: true }
   );
 
   useHotkeys(
