@@ -529,33 +529,21 @@ const AssetRow: FC<{
             )}
       </TableCell>
 
-      <TableCell className="border-none p-0 w-full xl:px-4" colSpan={2}>
-        {hasHotkey && (
-          <Badge
-            anchorOrigin={{
-              vertical: "bottom",
-              horizontal: "right",
-            }}
-            sx={{
-              "& .MuiBadge-badge": {
-                backgroundColor: "rgb(220, 232, 93)",
-                color: "#1C2125",
-              },
-            }}
-            badgeContent={badgeContent}
-            invisible={!showHotkeyBadges}
-          >
-            <AssetRowInputBox
-              tokenName={bankInfo.tokenName}
-              value={borrowOrLendAmount}
-              setValue={setBorrowOrLendAmount}
-              maxValue={maxAmount}
-              maxDecimals={bankInfo.tokenMintDecimals}
-              inputRefs={inputRefs}
-            />
-          </Badge>
-        )}
-        {!hasHotkey && (
+      <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
+        <Badge
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
+          }}
+          sx={{
+            "& .MuiBadge-badge": {
+              backgroundColor: "rgb(220, 232, 93)",
+              color: "#1C2125",
+            },
+          }}
+          badgeContent={hasHotkey ? badgeContent : ""}
+          invisible={hasHotkey ? !showHotkeyBadges : true}
+        >
           <AssetRowInputBox
             tokenName={bankInfo.tokenName}
             value={borrowOrLendAmount}
@@ -564,7 +552,7 @@ const AssetRow: FC<{
             maxDecimals={bankInfo.tokenMintDecimals}
             inputRefs={inputRefs}
           />
-        )}
+        </Badge>
       </TableCell>
 
       <TableCell className="text-white border-none font-aeonik p-0">
