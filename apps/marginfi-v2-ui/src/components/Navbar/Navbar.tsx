@@ -8,7 +8,7 @@ import { groupedNumberFormatterDyn, numeralFormatter } from "~/utils/formatters"
 import { useHotkeys } from "react-hotkeys-hook";
 import { useUserAccounts } from "~/context";
 import { useRecoilState } from "recoil";
-import { showBadgesState } from "../../state";
+import { showBadgesState } from "~/state";
 
 // Firebase
 import { initializeApp } from "firebase/app";
@@ -94,13 +94,16 @@ const Navbar: FC = () => {
           break;
       }
     },
-    { preventDefault: true, enableOnFormTags: true, ignoreModifiers: true }
+    { preventDefault: true, enableOnFormTags: true }
   );
 
   useHotkeys(
     "meta",
     () => {
       setShowBadges(true);
+	  setTimeout(() => {
+		setShowBadges(false);
+	  }, 2000);
     },
     { enableOnFormTags: true }
   );

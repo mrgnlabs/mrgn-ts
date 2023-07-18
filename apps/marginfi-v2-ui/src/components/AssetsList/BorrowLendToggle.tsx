@@ -1,5 +1,7 @@
-import { styled, Switch, SwitchProps } from "@mui/material";
+import { Badge, styled, Switch, SwitchProps } from "@mui/material";
 import { Dispatch, SetStateAction } from "react";
+import { useRecoilState } from "recoil";
+import { showBadgesState } from "~/state";
 
 type PaddingConfigs = {
   left: string;
@@ -26,18 +28,34 @@ const BorrowLendToggle = styled(({
   },
   ...switchProps
 }: BorrowLendToggleProps) => {
+  const [showBadges] = useRecoilState(showBadgesState);
   const handleChange = () => {
     setIsInLendingMode((prev) => !prev);
   };
 
   return (
-    <Switch
-      focusVisibleClassName=".Mui-focusVisible"
-      disableRipple
-      {...switchProps}
-      checked={!isInLendingMode}
-      onChange={handleChange}
-    />
+    <Badge
+      anchorOrigin={{
+        vertical: "bottom",
+        horizontal: "right",
+      }}
+      sx={{
+        "& .MuiBadge-badge": {
+          backgroundColor: "rgb(220, 232, 93)",
+          color: "#1C2125",
+        },
+      }}
+      badgeContent={"shift + l"}
+      invisible={!showBadges}
+    >
+      <Switch
+        focusVisibleClassName=".Mui-focusVisible"
+        disableRipple
+        {...switchProps}
+        checked={!isInLendingMode}
+        onChange={handleChange}
+      />
+    </Badge>
   );
 })(({
   disabled,
