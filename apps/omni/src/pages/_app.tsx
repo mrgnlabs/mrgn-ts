@@ -25,7 +25,7 @@ import {
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-
+import { NightlyConnectAdapter } from "@nightlylabs/wallet-selector-solana";
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
 require("~/styles/globals.css");
@@ -45,6 +45,17 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   const wallets = useMemo(
     () => [
+      NightlyConnectAdapter.buildLazy(
+        {
+          appMetadata: {
+            name: "marginfi ",
+            description: "The lending foundation for DeFi 2.0 on @solana",
+            icon: "https://www.marginfi.com/marginfi_logo.png",
+            additionalInfo: "Connecting liquidity across DeFi",
+          },
+        },
+        true
+      ),
       new PhantomWalletAdapter(),
       new SolletWalletAdapter(),
       new LedgerWalletAdapter(),

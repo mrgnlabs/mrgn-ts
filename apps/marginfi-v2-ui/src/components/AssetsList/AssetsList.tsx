@@ -8,8 +8,8 @@ import Typography from "@mui/material/Typography";
 import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
-import { lendZoomLevel, showBadgesState } from '~/state';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { lendZoomLevel, showBadgesState } from "~/state";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { useHotkeys } from "react-hotkeys-hook";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
@@ -33,7 +33,6 @@ const AssetsList: FC = () => {
   const zoomLevel = useRecoilValue(lendZoomLevel);
   const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-
   useHotkeys(
     extendedBankInfos
       .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
@@ -51,16 +50,16 @@ const AssetsList: FC = () => {
         setShowBadges(false);
       }
     },
-	{ preventDefault: true, enableOnFormTags: true }
+    { preventDefault: true, enableOnFormTags: true }
   );
 
   useHotkeys(
     "meta",
     () => {
       setShowBadges(true);
-	  setTimeout(() => {
-		setShowBadges(false);
-	  }, 2000);
+      setTimeout(() => {
+        setShowBadges(false);
+      }, 2000);
     },
     { enableOnFormTags: true }
   );
@@ -68,7 +67,7 @@ const AssetsList: FC = () => {
   useHotkeys(
     "meta + shift + l",
     () => {
-		setIsInLendingMode(!isInLendingMode);
+      setIsInLendingMode(!isInLendingMode);
     },
     { enableOnFormTags: true }
   );
@@ -296,7 +295,7 @@ const AssetsList: FC = () => {
                         marginfiClient={mfiClient}
                         reloadBanks={reload}
                         inputRefs={inputRefs}
-						hasHotkey={true}
+                        hasHotkey={true}
                         showHotkeyBadges={showBadges}
                         badgeContent={`${i + 1}`}
                       />
@@ -341,7 +340,7 @@ const AssetsList: FC = () => {
                         marginfiClient={mfiClient}
                         reloadBanks={reload}
                         inputRefs={inputRefs}
-						hasHotkey={false}
+                        hasHotkey={false}
                       />
                     ))
                 ) : (
