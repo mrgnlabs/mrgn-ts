@@ -16,7 +16,7 @@ import { MARGINFI_IDL } from "./idl";
 import { getConfig } from "./config";
 import MarginfiGroup from "./group";
 import instructions from "./instructions";
-import MarginfiAccount, { MarginfiAccountData } from "./account";
+import MarginfiAccount, { MarginRequirementType, MarginfiAccountData } from "./account";
 import {
   DEFAULT_COMMITMENT,
   DEFAULT_CONFIRM_OPTS,
@@ -227,7 +227,7 @@ class MarginfiClient {
     const marginfiGroup = await MarginfiGroup.fetch(this.config, this.program);
     const _authority = authority ? translateAddress(authority) : this.provider.wallet.publicKey;
 
-    return (
+    const marginfiAccounts = (
       await this.program.account.marginfiAccount.all([
         {
           memcmp: {
@@ -243,6 +243,16 @@ class MarginfiClient {
         },
       ])
     ).map((a) => MarginfiAccount.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, marginfiGroup));
+
+    marginfiAccounts.sort((accountA, accountB) => {
+      const assetsValueA = accountA.getHealthComponents(MarginRequirementType.Equity).assets;
+      const assetsValueB = accountB.getHealthComponents(MarginRequirementType.Equity).assets;
+
+      if (assetsValueA.eq(assetsValueB)) return 0;
+      return assetsValueA.gt(assetsValueB) ? -1 : 1;
+    });
+
+    return marginfiAccounts;
   }
 
   /**
@@ -276,8 +286,6 @@ class MarginfiClient {
     opts?: TransactionOptions
   ): Promise<TransactionSignature> {
     let signature: TransactionSignature = "";
-
-    console.log("client.ts");
 
     try {
       let versionedTransaction: VersionedTransaction;
