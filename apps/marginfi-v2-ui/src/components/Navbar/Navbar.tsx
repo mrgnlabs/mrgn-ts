@@ -8,7 +8,7 @@ import { groupedNumberFormatterDyn, numeralFormatter } from "~/utils/formatters"
 import { useHotkeys } from "react-hotkeys-hook";
 import { useUserAccounts } from "~/context";
 import { useRecoilState } from "recoil";
-import { showBadgesState } from "../../state";
+import { showBadgesState } from "~/state";
 
 // Firebase
 import { initializeApp } from "firebase/app";
@@ -94,13 +94,16 @@ const Navbar: FC = () => {
           break;
       }
     },
-    { preventDefault: true, enableOnFormTags: true, ignoreModifiers: true }
+    { preventDefault: true, enableOnFormTags: true }
   );
 
   useHotkeys(
     "meta",
     () => {
       setShowBadges(true);
+      setTimeout(() => {
+        setShowBadges(false);
+      }, 2000);
     },
     { enableOnFormTags: true }
   );
@@ -140,25 +143,25 @@ const Navbar: FC = () => {
       <nav className="fixed w-full top-0 h-[64px] z-20 backdrop-blur-md">
         <div className="w-full top-0 flex justify-between items-center h-16 text-2xl z-10 border-b-[0.5px] border-[#1C2125] px-4">
           <div className="h-full w-1/2 flex justify-start items-center z-10 text-base font-[300] gap-4 lg:gap-8">
-              <Link
-                href={"https://app.marginfi.com"}
-                className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center"
-              >
-                <Image src="/marginfi_logo.png" alt="marginfi logo" height={35.025} width={31.0125} />
-              </Link>
+            <Link
+              href={"https://app.marginfi.com"}
+              className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center"
+            >
+              <Image src="/marginfi_logo.png" alt="marginfi logo" height={35.025} width={31.0125} />
+            </Link>
 
             <Badge
               anchorOrigin={{
                 vertical: "bottom",
                 horizontal: "right",
               }}
-    		sx={{
-				'& .MuiBadge-badge': {
-					backgroundColor: "rgb(220, 232, 93)",
-					color: "#1C2125",
-				}
-			  }}          
-			  badgeContent={"l"}
+              sx={{
+                '& .MuiBadge-badge': {
+                  backgroundColor: "rgb(220, 232, 93)",
+                  color: "#1C2125",
+                }
+              }}
+              badgeContent={"l"}
               invisible={!showBadges}
             >
               <Link href={"/"} className="glow-on-hover hidden md:block">
@@ -171,12 +174,12 @@ const Navbar: FC = () => {
                 vertical: "bottom",
                 horizontal: "right",
               }}
-			  sx={{
-				'& .MuiBadge-badge': {
-					backgroundColor: "rgb(220, 232, 93)",
-					color: "#1C2125",
-				}
-			  }}
+              sx={{
+                '& .MuiBadge-badge': {
+                  backgroundColor: "rgb(220, 232, 93)",
+                  color: "#1C2125",
+                }
+              }}
               badgeContent={"s"}
               invisible={!showBadges}
             >
@@ -190,12 +193,12 @@ const Navbar: FC = () => {
                 vertical: "bottom",
                 horizontal: "right",
               }}
-			  sx={{
-				'& .MuiBadge-badge': {
-					backgroundColor: "rgb(220, 232, 93)",
-					color: "#1C2125",
-				}
-			  }}
+              sx={{
+                '& .MuiBadge-badge': {
+                  backgroundColor: "rgb(220, 232, 93)",
+                  color: "#1C2125",
+                }
+              }}
               badgeContent={"e"}
               invisible={!showBadges}
             >
@@ -209,12 +212,12 @@ const Navbar: FC = () => {
                 vertical: "bottom",
                 horizontal: "right",
               }}
-			  sx={{
-				'& .MuiBadge-badge': {
-					backgroundColor: "rgb(220, 232, 93)",
-					color: "#1C2125",
-				}
-			  }}
+              sx={{
+                '& .MuiBadge-badge': {
+                  backgroundColor: "rgb(220, 232, 93)",
+                  color: "#1C2125",
+                }
+              }}
               badgeContent={"o"}
               invisible={!showBadges}
             >
@@ -236,8 +239,7 @@ const Navbar: FC = () => {
               }}
             >
               {
-                wallet.connected && selectedAccount && extendedBankInfos &&
-                  accountSummary.outstandingUxpEmissions === 0 ?
+                accountSummary.outstandingUxpEmissions === 0 ?
                   `Lend UXD to earn UXP`
                   :
                   `Claim ${accountSummary.outstandingUxpEmissions < 1 ?
@@ -249,11 +251,10 @@ const Navbar: FC = () => {
             </div>
             {
               <Link href={"/points"} className="glow whitespace-nowrap">
-                {`${
-                  wallet.connected && user && points && points.total && points.total > 0
-                    ? groupedNumberFormatterDyn.format(Math.round(points.total))
-                    : 0
-                } points`}
+                {`${wallet.connected && user && points && points.total && points.total > 0
+                  ? groupedNumberFormatterDyn.format(Math.round(points.total))
+                  : 0
+                  } points`}
               </Link>
             }
 
