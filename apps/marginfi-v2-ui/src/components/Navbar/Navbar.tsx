@@ -77,7 +77,7 @@ const Navbar: FC = () => {
   const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
   const router = useRouter();
   useHotkeys(
-    "l, s, e, o",
+    "l, s, b, e, o",
     (_, handler: HotkeysEvent) => {
       switch (handler.keys?.join("")) {
         case "l":
@@ -85,6 +85,9 @@ const Navbar: FC = () => {
           break;
         case "s":
           router.push("/swap");
+          break;
+        case "b":
+          router.push("/bridge");
           break;
         case "e":
           router.push("/earn");
@@ -185,6 +188,25 @@ const Navbar: FC = () => {
             >
               <Link href={"/swap"} className="glow-on-hover">
                 swap
+              </Link>
+            </Badge>
+
+            <Badge
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right",
+                }}
+                sx={{
+                  '& .MuiBadge-badge': {
+                    backgroundColor: "rgb(220, 232, 93)",
+                    color: "#1C2125",
+                  }
+                }}
+                badgeContent={"s"}
+                invisible={!showBadges}
+            >
+              <Link href={"/bridge"} className="glow-on-hover">
+                bridge
               </Link>
             </Badge>
 
