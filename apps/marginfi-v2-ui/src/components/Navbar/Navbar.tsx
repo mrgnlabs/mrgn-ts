@@ -1,10 +1,10 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import AirdropZone from "./AirdropZone";
 import { WalletButton } from "./WalletButton";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { groupedNumberFormatterDyn, numeralFormatter } from "~/utils/formatters";
+import { groupedNumberFormatterDyn, numeralFormatter, percentFormatter } from "~/utils/formatters";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useUserAccounts } from "~/context";
 import { useRecoilState } from "recoil";
@@ -125,6 +125,14 @@ const Navbar: FC = () => {
     return () => unsubscribe();
   }, [auth]);
 
+  const netApy = useMemo(() => {
+	if (selectedAccount) {
+		return selectedAccount.computeNetApy();
+	} else {
+		return null;
+	}
+  }, [selectedAccount]);
+
   useEffect(() => {
     if (user && wallet.publicKey?.toBase58()) {
       const fetchData = async () => {
@@ -230,6 +238,11 @@ const Navbar: FC = () => {
           <div
             className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[300] gap-4 lg:gap-8"
           >
+			<div
+              className="glow-on-hover whitespace-nowrap hidden md:block"
+            >
+              Net APY: {netApy ? percentFormatter.format(netApy) : "0.00"}
+            </div>
             <div
               className="glow-uxd whitespace-nowrap cursor-pointer hidden md:block"
               onClick={() => {
