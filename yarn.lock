@@ -11263,6 +11263,8 @@ dotenv@16.0.3:
 
 download-git-repo@latest:
   version "3.0.2"
+  resolved "https://registry.npmjs.org/download-git-repo/-/download-git-repo-3.0.2.tgz"
+  integrity sha512-N8hWXD4hXqmEcNoR8TBYFntaOcYvEQ7Bz90mgm3bZRTuteGQqwT32VDMnTyD0KTEvb8BWrMc1tVmzuV9u/WrAg==
   dependencies:
     download "^7.1.0"
     git-clone "^0.1.0"
@@ -18754,7 +18756,7 @@ react-devtools-core@^4.26.1:
     shell-quote "^1.6.1"
     ws "^7"
 
-react-dom@*, "react-dom@^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0", "react-dom@^17.0.0 || ^18.0.0", "react-dom@^17.0.2 || ^18", "react-dom@^17.0.2 || ^18.0.0", react-dom@^18.2.0, "react-dom@>= 15.0.0", "react-dom@>= 18.0.0", react-dom@>=16, react-dom@>=16.6.0, react-dom@>=17.0.2, react-dom@18.2.0:
+react-dom@*, "react-dom@^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0", "react-dom@^17.0.0 || ^18.0.0", "react-dom@^17.0.2 || ^18", "react-dom@^17.0.2 || ^18.0.0", react-dom@^18.2.0, "react-dom@>= 15.0.0", "react-dom@>= 18.0.0", react-dom@>=16, react-dom@>=16.6.0, react-dom@>=16.8.1, react-dom@>=17.0.2, react-dom@18.2.0:
   version "18.2.0"
   resolved "https://registry.npmjs.org/react-dom/-/react-dom-18.2.0.tgz"
   integrity sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==
@@ -18784,7 +18786,7 @@ react-freeze@^1.0.0:
 
 react-hotkeys-hook@^4.4.1:
   version "4.4.1"
-  resolved "https://registry.yarnpkg.com/react-hotkeys-hook/-/react-hotkeys-hook-4.4.1.tgz#1f7a7a1c9c21d4fa3280bf340fcca8fd77d81994"
+  resolved "https://registry.npmjs.org/react-hotkeys-hook/-/react-hotkeys-hook-4.4.1.tgz"
   integrity sha512-sClBMBioFEgFGYLTWWRKvhxcCx1DRznd+wkFHwQZspnRBkHTgruKIHptlK/U/2DPX8BhHoRGzpMVWUXMmdZlmw==
 
 "react-is@^16.12.0 || ^17.0.0 || ^18.0.0", react-is@^18.0.0, react-is@^18.2.0:
@@ -19003,7 +19005,7 @@ react-xnft@^0.2.0-latest.3375:
     react "18.2.0"
     react-reconciler "^0.26.0"
 
-react@*, "react@^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0", "react@^0.14.0 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0", "react@^16.0.0 || ^17.0.0 || ^18.0.0", "react@^16.8.0 || ^17.0.0 || ^18.0.0", react@^16.8||^17||^18, "react@^17.0.0 || ^18.0.0", react@^17.0.2, "react@^17.0.2 || ^18", "react@^17.0.2 || ^18.0.0", react@^18.2.0, "react@>= 15.0.0", "react@>= 16.8.0 || 17.x.x || ^18.0.0-0", "react@>= 18.0.0", "react@>=15.3.2 <=18", react@>=16, react@>=16.13.1, react@>=16.6.0, react@>=16.8, react@>=16.8.0, react@>=17.0.0, react@>=17.0.2, react@18.2.0:
+react@*, "react@^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0", "react@^0.14.0 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0", "react@^16.0.0 || ^17.0.0 || ^18.0.0", "react@^16.8.0 || ^17.0.0 || ^18.0.0", react@^16.8||^17||^18, "react@^17.0.0 || ^18.0.0", react@^17.0.2, "react@^17.0.2 || ^18", "react@^17.0.2 || ^18.0.0", react@^18.2.0, "react@>= 15.0.0", "react@>= 16.8.0 || 17.x.x || ^18.0.0-0", "react@>= 18.0.0", "react@>=15.3.2 <=18", react@>=16, react@>=16.13.1, react@>=16.6.0, react@>=16.8, react@>=16.8.0, react@>=16.8.1, react@>=17.0.0, react@>=17.0.2, react@18.2.0:
   version "18.2.0"
   resolved "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
   integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==

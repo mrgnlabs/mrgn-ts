@@ -39,11 +39,7 @@ const AppSettings: FC = () => {
       {" "}
       <div className="relative flex items-center justify-center overflow-hidden">
         <div className="relative">
-          <a
-            href="#modal"
-            target="_self"
-            className="inline-flex items-center  px-4 py-2  text-white shadow-sm  focus:outline-none focus:ring-2  focus:ring-offset-2"
-          >
+          <a href="#modal" target="_self" className="inline-flex items-center  px-4 py-2  text-white">
             <SettingsIcon
               sx={{
                 fontSize: "18px",

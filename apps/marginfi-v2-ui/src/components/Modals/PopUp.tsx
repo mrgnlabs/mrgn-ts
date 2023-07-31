@@ -34,7 +34,7 @@ const PopUp = () => {
         id={id}
         open={open}
         anchorReference="anchorPosition"
-        anchorPosition={{ top: 530, left: 235 }}
+        anchorPosition={{ top: 530, left: 55 }}
         onClose={handleClose}
         anchorOrigin={{
           vertical: "bottom",
