@@ -52,6 +52,14 @@
       {
         "label": "bSOL",
         "address": "6hS9i46WyTq1KXcoa2Chas2Txh9TJAVr6n1t3tnrE23K"
+      },
+      {
+        "label": "KIN",
+        "address": "GZK3yC3Kfn1ykFhLryzeKqemRNZ3wpZgWhbh5b5ygGML"
+      },
+      {
+        "label": "DUST",
+        "address": "GZcUY6egnYuXHGWPukTo8iKEZiv5CVKXutcphRuKryNE"
       }
     ]
   },
