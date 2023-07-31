@@ -8,9 +8,11 @@ import {
   LedgerWalletAdapter,
   PhantomWalletAdapter,
   SolflareWalletAdapter,
-  SolletWalletAdapter,
-  TorusWalletAdapter,
+  GlowWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
+import {
+  OKXWalletAdapter
+} from "~/context/OKXWallet";
 import { init, push } from "@socialgouv/matomo-next";
 import config from "../config";
 import { Navbar, Footer } from "~/components";
@@ -48,12 +50,12 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   const wallets = useMemo(
     () => [
+      new OKXWalletAdapter(),
+      new BackpackWalletAdapter(),
       new PhantomWalletAdapter(),
-      new SolletWalletAdapter(),
       new LedgerWalletAdapter(),
       new SolflareWalletAdapter(),
-      new TorusWalletAdapter(),
-      new BackpackWalletAdapter(),
+      new GlowWalletAdapter(),
     ],
     []
   );
@@ -74,13 +76,13 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                       <link rel="icon" href="/favicon.ico" />
                     </Head>
                     <RecoilRoot>
-                    <Navbar />
-                    <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
-                      <Component {...pageProps} />
-                      <Analytics />
-                    </div>
-                    <Footer />
-                    <ToastContainer position="bottom-left" theme="dark" />
+                      <Navbar />
+                      <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
+                        <Component {...pageProps} />
+                        <Analytics />
+                      </div>
+                      <Footer />
+                      <ToastContainer position="bottom-left" theme="dark" />
                     </RecoilRoot>
                   </UserAccountsProvider>
                 </TokenAccountsProvider>
