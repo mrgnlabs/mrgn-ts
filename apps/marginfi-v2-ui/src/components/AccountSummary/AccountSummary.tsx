@@ -399,6 +399,7 @@ const AccountSummary: FC = () => {
 
                         <div className="hidden sm:block xl:hidden">
                           {
+                            
                             Math.round(accountSummary.borrowingAmountUnbiased) > 10000 ?
                               usdFormatterDyn.format(Math.round(accountSummary.borrowingAmountUnbiased))
                               :

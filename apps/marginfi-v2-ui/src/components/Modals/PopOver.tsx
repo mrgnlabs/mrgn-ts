@@ -6,11 +6,10 @@ interface PopOverProps {
   title: string;
   top: number;
   left: number;
-  solPrice?: string;
   solanaTransactionPerSecond?: string;
 }
 
-const MouseOverPopover: React.FC<PopOverProps> = ({ title, top, left, solPrice, solanaTransactionPerSecond }) => {
+const MouseOverPopover: React.FC<PopOverProps> = ({ title, top, left, solanaTransactionPerSecond }) => {
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 
   const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -35,7 +34,7 @@ const MouseOverPopover: React.FC<PopOverProps> = ({ title, top, left, solPrice, 
           fontWeight: "100",
         }}
       >
-        {solPrice || solanaTransactionPerSecond}
+        {solanaTransactionPerSecond}
       </Typography>
       <Popover
         id="mouse-over-popover"
