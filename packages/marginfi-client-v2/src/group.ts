@@ -203,8 +203,9 @@ class MarginfiGroup {
     return this._banks.get(_publicKey.toString()) ?? null;
   }
 
-  getBankByMint(mint: PublicKey): Bank | null {
-    return [...this._banks.values()].find((bank) => bank.mint.equals(mint)) ?? null;
+  getBankByMint(mint: Address): Bank | null {
+    const _mint = translateAddress(mint);
+    return [...this._banks.values()].find((bank) => bank.mint.equals(_mint)) ?? null;
   }
 }
 
