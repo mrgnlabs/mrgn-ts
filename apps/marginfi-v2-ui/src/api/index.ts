@@ -36,7 +36,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
 
   let outstandingUxpEmissions = new BigNumber(0);
 
-  const uxpBank = bankInfos.find((bank) => bank.tokenName === "UXD");
+  const uxpBank = bankInfos.find((bank) => bank.tokenSymbol === "UXD");
   const uxpBalance = marginfiAccount.activeBalances.find((balance) =>
     balance.bankPk.equals(uxpBank?.address ?? PublicKey.default)
   );
@@ -59,7 +59,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
   };
 }
 
-function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata, priceMap: TokenPriceMap): BankInfo {
+function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata, priceMap: TokenPriceMap, tokenSymbol: string): BankInfo {
   const { lendingRate, borrowingRate } = bank.getInterestRates();
   const totalPoolDeposits = nativeToUi(bank.totalAssets, bank.mintDecimals);
   const totalPoolBorrows = nativeToUi(bank.totalLiabilities, bank.mintDecimals);
@@ -88,7 +88,7 @@ function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata, priceMap: TokenP
   return {
     address: bank.publicKey,
     tokenIcon: tokenMetadata.icon,
-    tokenName: bank.label,
+    tokenSymbol,
     tokenPrice: bank.getPrice(PriceBias.None).toNumber(),
     tokenMint: bank.mint,
     tokenMintDecimals: bank.mintDecimals,

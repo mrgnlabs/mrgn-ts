@@ -23,7 +23,6 @@ export interface MarginfiConfig {
   cluster: string;
   programId: PublicKey;
   groupPk: PublicKey;
-  banks: BankAddress[];
 }
 
 export interface BankAddress {

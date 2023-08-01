@@ -74,22 +74,22 @@ const AssetRow: FC<{
     if (marginfiClient === null) throw Error("Marginfi client not ready");
 
     if (currentAction === ActionType.Deposit && bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit) {
-      toast.error(`${bankInfo.tokenName} deposit limit has been been reached. Additional deposits are not currently available.`)
+      toast.error(`${bankInfo.tokenSymbol} deposit limit has been been reached. Additional deposits are not currently available.`)
       return;
     }
 
     if (currentAction === ActionType.Borrow && bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit) {
-      toast.error(`${bankInfo.tokenName} borrow limit has been been reached. Additional borrows are not currently available.`)
+      toast.error(`${bankInfo.tokenSymbol} borrow limit has been been reached. Additional borrows are not currently available.`)
       return;
     }
 
     if (currentAction === ActionType.Deposit && bankInfo.maxDeposit === 0) {
-      toast.error(`You don't have any ${bankInfo.tokenName} to lend in your wallet.`);
+      toast.error(`You don't have any ${bankInfo.tokenSymbol} to lend in your wallet.`);
       return;
     }
 
     if (currentAction === ActionType.Borrow && bankInfo.maxBorrow === 0) {
-      toast.error(`You cannot borrow any ${bankInfo.tokenName} right now.`);
+      toast.error(`You cannot borrow any ${bankInfo.tokenSymbol} right now.`);
       return;
     }
 
@@ -145,7 +145,7 @@ const AssetRow: FC<{
 
         _marginfiAccount = await marginfiClient.createMarginfiAccount();
         toast.update(BORROW_OR_LEND_TOAST_ID, {
-          render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenName}`,
+          render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenSymbol}`,
         });
       }
     } catch (error: any) {
@@ -169,14 +169,14 @@ const AssetRow: FC<{
         await _marginfiAccount.deposit(borrowOrLendAmount, bankInfo.bank);
 
         toast.update(BORROW_OR_LEND_TOAST_ID, {
-          render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenName} 👍`,
+          render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenSymbol} 👍`,
           type: toast.TYPE.SUCCESS,
           autoClose: 2000,
           isLoading: false,
         });
       }
 
-      toast.loading(`${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenName}`, {
+      toast.loading(`${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenSymbol}`, {
         toastId: BORROW_OR_LEND_TOAST_ID,
       });
       if (_marginfiAccount === null) {
@@ -195,7 +195,7 @@ const AssetRow: FC<{
       }
 
       toast.update(BORROW_OR_LEND_TOAST_ID, {
-        render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenName} 👍`,
+        render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenSymbol} 👍`,
         type: toast.TYPE.SUCCESS,
         autoClose: 2000,
         isLoading: false,
@@ -238,14 +238,14 @@ const AssetRow: FC<{
   return (
     <TableRow className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl">
       <TableCell
-        className={`text-white p-0 font-aeonik border-[1.5px] border-${bankInfo.tokenName}`}
+        className={`text-white p-0 font-aeonik border-[1.5px] border-${bankInfo.tokenSymbol}`}
         style={{
           fontWeight: 300,
         }}
       >
         <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
-          {bankInfo.tokenIcon && <Image src={bankInfo.tokenIcon} alt={bankInfo.tokenName} height={25} width={25} />}
-          <div className="font-aeonik hidden lg:block">{bankInfo.tokenName}</div>
+          {bankInfo.tokenIcon && <Image src={bankInfo.tokenIcon} alt={bankInfo.tokenSymbol} height={25} width={25} />}
+          <div className="font-aeonik hidden lg:block">{bankInfo.tokenSymbol}</div>
         </div>
       </TableCell>
       <TableCell
@@ -261,7 +261,7 @@ const AssetRow: FC<{
               <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                 Wide oracle price bands
               </Typography>
-              {`${bankInfo.tokenName} price estimates is
+              {`${bankInfo.tokenSymbol} price estimates is
                 ${usdFormatter.format(bankInfo.tokenPrice)} ± ${Math.max(
                 bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
                 bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
@@ -331,7 +331,7 @@ const AssetRow: FC<{
         }}
       >
         <div className="h-full w-full flex justify-end items-center gap-3">
-          {bankInfo.tokenName === "UXD" && isInLendingMode && (
+          {bankInfo.tokenSymbol === "UXD" && isInLendingMode && (
             <div className="w-1/2 flex justify-center sm:justify-end">
               <HtmlTooltip
                 title={
@@ -402,7 +402,7 @@ const AssetRow: FC<{
                   ? "Approaching Limit"
                   : null}
               </Typography>
-              {`${bankInfo.tokenName} ${isInLendingMode ? "deposits" : "borrows"} are at ${percentFormatter.format(
+              {`${bankInfo.tokenSymbol} ${isInLendingMode ? "deposits" : "borrows"} are at ${percentFormatter.format(
                 isInLendingMode
                   ? bankInfo.totalPoolDeposits / bankInfo.bank.config.depositLimit
                   : bankInfo.totalPoolBorrows / bankInfo.bank.config.borrowLimit
@@ -545,7 +545,7 @@ const AssetRow: FC<{
           invisible={hasHotkey ? !showHotkeyBadges : true}
         >
           <AssetRowInputBox
-            tokenName={bankInfo.tokenName}
+            tokenName={bankInfo.tokenSymbol}
             value={borrowOrLendAmount}
             setValue={setBorrowOrLendAmount}
             maxValue={maxAmount}

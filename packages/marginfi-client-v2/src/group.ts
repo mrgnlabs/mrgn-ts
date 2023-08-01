@@ -72,7 +72,6 @@ class MarginfiGroup {
       bankAccountsData.map(async (accountData) => {
         let bankData = accountData.account as any as BankData;
         return new Bank(
-          config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
           accountData.publicKey,
           bankData,
           await getOraclePriceData(program.provider.connection, bankData.config.oracleSetup, bankData.config.oracleKeys)
@@ -170,25 +169,14 @@ class MarginfiGroup {
   async reload(commitment?: Commitment) {
     const rawData = await MarginfiGroup._fetchAccountData(this._config, this._program, commitment);
 
-    const bankAddresses = this._config.banks.map((b) => b.address);
-
     let bankAccountsData = await this._program.account.bank.all([
       { memcmp: { offset: 8 + 32 + 1, bytes: this._config.groupPk.toBase58() } },
     ]);
-
-    let nullAccounts = [];
-    for (let i = 0; i < bankAccountsData.length; i++) {
-      if (bankAccountsData[i] === null) nullAccounts.push(bankAddresses[i]);
-    }
-    if (nullAccounts.length > 0) {
-      throw Error(`Failed to fetch banks ${nullAccounts}`);
-    }
 
     const banks = await Promise.all(
       bankAccountsData.map(async (accountData) => {
         let bankData = accountData.account as any as BankData;
         return new Bank(
-          this._config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
           accountData.publicKey,
           bankData,
           await getOraclePriceData(
@@ -205,13 +193,6 @@ class MarginfiGroup {
       acc.set(current.publicKey.toBase58(), current);
       return acc;
     }, new Map<string, Bank>());
-  }
-
-  /**
-   * Get bank by label.
-   */
-  getBankByLabel(label: string): Bank | null {
-    return [...this._banks.values()].find((bank) => bank.label === label) ?? null;
   }
 
   /**

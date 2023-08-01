@@ -236,7 +236,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
               }
               label={
                 <div className="w-[295px] flex justify-between items-center">
-                  <div>{campaign.bank.label}</div>
+                  <div>{campaign.bank.mint.toBase58()}</div>
                   <div className="flex gap-4 justify-center items-center">
                     <div
                       className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
@@ -244,7 +244,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
                       Min. APY: {percentFormatterDyn.format(computeGuaranteedApyForCampaign(campaign))}
                     </div>
                     <div className="ml-[2px] w-[40px]">
-                      <Image src={meta.icon} alt={campaign.bank.label} height={meta.size} width={meta.size} />
+                      <Image src={meta.icon} alt={campaign.bank.mint.toBase58()} height={meta.size} width={meta.size} />
                     </div>
                   </div>
                 </div>
@@ -289,8 +289,8 @@ const Pro = () => {
         };
       })
       .sort((c1, c2) => {
-        if (c1.campaign.bank.label < c2.campaign.bank.label) return 1;
-        if (c1.campaign.bank.label > c2.campaign.bank.label) return -1;
+        if (c1.campaign.bank.mint.toBase58() < c2.campaign.bank.mint.toBase58()) return 1;
+        if (c1.campaign.bank.mint.toBase58() > c2.campaign.bank.mint.toBase58()) return -1;
         return 0;
       });
   }, [lipClient, lipAccount]);

@@ -43,7 +43,7 @@ const AssetsList: FC = () => {
       const globalBankTokenNames = extendedBankInfos
         .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
         .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
-        .map((b) => b.tokenName);
+        .map((b) => b.tokenSymbol);
 
       const keyPressed = handler.keys?.join("");
       if (Number(keyPressed) >= 1 && Number(keyPressed) <= globalBankTokenNames.length) {
@@ -287,7 +287,7 @@ const AssetsList: FC = () => {
                     .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
                     .map((bankInfo, i) => (
                       <AssetRow
-                        key={bankInfo.tokenName}
+                        key={bankInfo.tokenSymbol}
                         nativeSolBalance={nativeSolBalance}
                         bankInfo={bankInfo}
                         isInLendingMode={isInLendingMode}
@@ -332,7 +332,7 @@ const AssetsList: FC = () => {
                     .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
                     .map((bankInfo, i) => (
                       <AssetRow
-                        key={bankInfo.tokenName}
+                        key={bankInfo.tokenSymbol}
                         nativeSolBalance={nativeSolBalance}
                         bankInfo={bankInfo}
                         isInLendingMode={isInLendingMode}

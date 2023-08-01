@@ -168,13 +168,13 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
   return (
     <TableRow className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl">
       <TableCell
-        className={`text-white p-0 font-aeonik border-[1px] border-${activeBankInfo.tokenName}`}
+        className={`text-white p-0 font-aeonik border-[1px] border-${activeBankInfo.tokenSymbol}`}
       >
         <div className="flex justify-center items-center px-4 gap-2">
           {activeBankInfo.tokenIcon && (
-            <Image src={activeBankInfo.tokenIcon} alt={activeBankInfo.tokenName} height={25} width={25} />
+            <Image src={activeBankInfo.tokenIcon} alt={activeBankInfo.tokenSymbol} height={25} width={25} />
           )}
-          <div className="font-aeonik">{activeBankInfo.tokenName}</div>
+          <div className="font-aeonik">{activeBankInfo.tokenSymbol}</div>
         </div>
       </TableCell>
 
