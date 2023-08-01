@@ -1,7 +1,6 @@
 import { OpenAI } from "langchain";
 import { initializeAgentExecutor } from "langchain/agents";
 import { AccountsTool, BanksTool, WalletBalancesTool, TokenInfoTool, TokenPriceTool, getOmniQaTool } from "./tools";
-import config from "~/config";
 
 const getGeneralAgent = async ({ walletPublicKey }: { walletPublicKey: string }) => {
   // Get base OpenAI model
@@ -13,13 +12,18 @@ const getGeneralAgent = async ({ walletPublicKey }: { walletPublicKey: string })
     verbose: true,
   });
 
+  const rpcEndpoint = process.env.PRIVATE_RPC_ENDPOINT;
+  if (!rpcEndpoint) {
+    throw new Error("PRIVATE_RPC_ENDPOINT env var is missing");
+  }
+
   const tools = [
-    new BanksTool(config.rpcEndpoint),
+    new BanksTool(rpcEndpoint),
     new TokenInfoTool(),
-    // new DecodedAccountsTool(config.rpcEndpoint),
-    new TokenPriceTool(config.rpcEndpoint),
-    new AccountsTool(walletPublicKey, config.rpcEndpoint),
-    new WalletBalancesTool(walletPublicKey, config.rpcEndpoint),
+    // new DecodedAccountsTool(rpcEndpoint),
+    new TokenPriceTool(rpcEndpoint),
+    new AccountsTool(walletPublicKey, rpcEndpoint),
+    new WalletBalancesTool(walletPublicKey, rpcEndpoint),
     await getOmniQaTool(),
     // new MarginfiGlossary(),
   ];
