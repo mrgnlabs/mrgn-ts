@@ -41,7 +41,7 @@ const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
     });
 
     if (y === "y") {
-      await marginfiAccount.deposit(balance, client.group.getBankByLabel("USDC")!);
+      await marginfiAccount.deposit(balance, client.group.getBankByMint(USDC_MINT)!);
       console.log("Deposited %s USDC", balance);
     } else {
       console.log("Not depositing, your liquidator account will be empty");
