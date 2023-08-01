@@ -7,6 +7,7 @@ import Script from 'next/script';
 import {BorrowLendToggle} from '~/components/AssetsList/BorrowLendToggle';
 import {Transaction} from "@solana/web3.js";
 import {useWalletModal} from "@solana/wallet-adapter-react-ui";
+import { toast } from "react-toastify";
 
 type MayanWidgetChainName = 'solana' | 'ethereum' | 'bsc' | 'polygon' | 'avalanche' | 'arbitrum' | 'aptos';
 
@@ -73,12 +74,27 @@ type SolanaWalletData = {
 type MayanWidgetSolanaConfigType = MayanWidgetConfigType & {
     solanaWallet: SolanaWalletData,
 }
+
+type MayanSwapInfo = {
+    hash: string,
+    fromChain: MayanWidgetChainName,
+    toChain: MayanWidgetChainName,
+    fromToken: string,
+    toToken: string,
+    fromAmount: number
+}
 declare global {
     interface Window {
         MayanSwap: {
             init: (id: string, config: MayanWidgetConfigType) => void;
             updateSolanaWallet: (newData: SolanaWalletData) => void;
             updateConfig: (newConfig: MayanWidgetConfigType | MayanWidgetSolanaConfigType) => void;
+            setSwapInitiateListener(callback: (swap: MayanSwapInfo) => void): void;
+            removeSwapInitiateListener(): void;
+            setSwapCompleteListener(callback: (swap: MayanSwapInfo) => void): void;
+            removeSwapCompleteListener(): void;
+            setSwapRefundListener(callback: (swap: MayanSwapInfo) => void): void;
+            removeSwapRefundListener(): void;
         };
     }
 }
@@ -192,6 +208,29 @@ const BridgePage = () => {
             }
         };
         window.MayanSwap.init('swap_widget', config);
+        window.MayanSwap.setSwapInitiateListener((data: MayanSwapInfo) => {
+            toast.loading("Cross-chain swap/bridge in progress", {
+                toastId: data.hash,
+            });
+        });
+        window.MayanSwap.setSwapCompleteListener((data: MayanSwapInfo) => {
+            toast.update(data.hash, {
+                render: "Cross-chain swap/bridge done",
+                toastId: data.hash,
+                type: toast.TYPE.SUCCESS,
+                autoClose: 5000,
+                isLoading: false,
+            });
+        });
+        window.MayanSwap.setSwapRefundListener((data: MayanSwapInfo) => {
+            toast.update(data.hash, {
+                render: "Cross-chain swap/bridge refunded",
+                toastId: data.hash,
+                type: toast.TYPE.WARNING,
+                autoClose: 5000,
+                isLoading: false,
+            });
+        });
         setIsLoaded(true);
     };
 
@@ -220,8 +259,8 @@ const BridgePage = () => {
             <div
                 className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-7xl">
                 <Script
-                    src="https://cdn.mayan.finance/widget_solana-0-4-4.js"
-                    integrity="sha256-iEWaxRaFDUyaXRPbLpiJEZGNcYWKsXHOyP1ox+0tWZk="
+                    src="https://cdn.mayan.finance/widget_solana-0-4-5.js"
+                    integrity="sha256-mTVQLKvE422WDwtZQUcz/9u5ZK3T1vMfSO0omQvla0E="
                     crossOrigin="anonymous"
                     onReady={handleLoadMayanWidget}
                 />
