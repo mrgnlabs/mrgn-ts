@@ -14,7 +14,7 @@ import Image from "next/image";
 import LipAccount, { Campaign } from "@mrgnlabs/lip-client/src/account";
 import config from "~/config";
 import { computeGuaranteedApyForCampaign } from "@mrgnlabs/lip-client/src/utils";
-import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { nativeToUi, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { floor } from "~/utils";
 
 const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (
@@ -236,7 +236,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
               }
               label={
                 <div className="w-[295px] flex justify-between items-center">
-                  <div>{campaign.bank.mint.toBase58()}</div>
+                  <div>{campaign.bank.mint.toBase58() === "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263" ? "BONK" : shortenAddress(campaign.bank.mint)}</div>
                   <div className="flex gap-4 justify-center items-center">
                     <div
                       className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
