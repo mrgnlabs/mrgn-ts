@@ -614,7 +614,6 @@ export class MarginfiAccount {
       bankAccountsData.map(async (accountData) => {
         let bankData = accountData.account as any as BankData;
         return new Bank(
-          this._config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
           accountData.publicKey,
           bankData,
           await getOraclePriceData(
@@ -880,8 +879,7 @@ export class MarginfiAccount {
         console.log(`Bank ${lendingAccount.bankPk} not found`);
         continue;
       }
-      const utpStr = `\n  Bank ${bank.label}:
-      Address: ${bank.publicKey.toBase58()}
+      const utpStr = `\n  Bank ${bank.publicKey.toBase58()}:
       Mint: ${bank.mint.toBase58()}
       Equity: ${lendingAccount.getUsdValue(bank, MarginRequirementType.Equity)}`;
       str = str.concat(utpStr);
@@ -1104,7 +1102,7 @@ export class Balance {
     let { assets: assetsUsd, liabilities: liabsUsd } = this.getUsdValue(bank, MarginRequirementType.Equity);
 
     return `
-${bank.label} Balance:
+${bank.publicKey} Balance:
 - Deposits: ${assetsQt.toFixed(5)} (${assetsUsd.toFixed(5)} USD)
 - Borrows: ${liabsQt.toFixed(5)} (${liabsUsd.toFixed(5)} USD)
 `;

@@ -18,7 +18,7 @@ interface AccountSummary {
 interface BankInfo {
   address: PublicKey;
   tokenIcon?: string;
-  tokenName: string;
+  tokenSymbol: string;
   tokenMint: PublicKey;
   tokenMintDecimals: number;
   tokenPrice: number;
@@ -44,6 +44,12 @@ interface TokenMetadata {
   icon?: string;
 }
 
+interface BankMetadata {
+  tokenAddress: string;
+  tokenName: string;
+  tokenSymbol: string;
+}
+
 interface TokenPriceMap {
   [key: string]: {
     price: BigNumber;
@@ -52,6 +58,7 @@ interface TokenPriceMap {
 }
 
 type TokenMetadataMap = { [symbol: string]: TokenMetadata };
+type BankMetadataMap = { [address: string]: BankMetadata };
 
 interface TokenAccount {
   mint: PublicKey;
@@ -94,6 +101,8 @@ export type {
   UserPosition,
   TokenMetadata,
   TokenMetadataMap,
+  BankMetadata,
+  BankMetadataMap,
   TokenAccount,
   TokenAccountMap,
   ActiveBankInfo,

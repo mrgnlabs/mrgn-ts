@@ -2,10 +2,16 @@
   "name": "@mrgnlabs/mrgn-ts",
   "version": "0.0.0",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "nohoist": [
+      "**/expo*",
+      "**/@expo*"
+    ]
+  },
   "scripts": {
     "clean": "turbo run clean --parallel && rimraf node_modules",
     "build": "turbo run build",

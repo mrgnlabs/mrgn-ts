@@ -82,7 +82,7 @@ class LipClient {
     const campaigns = await LipClient._fetchAccountData(program, marginfiClient);
     console.log(
       "all campaigns",
-      campaigns.map((c) => c.bank.label + " " + c.publicKey.toBase58())
+      campaigns.map((c) => c.bank.mint.toBase58() + " " + c.publicKey.toBase58())
     );
 
     return new LipClient(config, program, wallet, marginfiClient, campaigns);
@@ -114,10 +114,7 @@ class LipClient {
 
     const banks = await Promise.all(
       banksData.map(async (bd, index) => {
-        const bankConfig = marginfiClient.config.banks.find((bc) => bc.address.equals(relevantBankPks[index]));
-        if (!bankConfig) throw new Error(`Bank config not found for ${relevantBankPks[index]}`);
         return new Bank(
-          bankConfig.label,
           relevantBankPks[index],
           bd as BankData,
           await getOraclePriceData(

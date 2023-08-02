@@ -233,8 +233,8 @@ const Navbar: FC = () => {
             <div
               className="glow-uxd whitespace-nowrap cursor-pointer hidden md:block"
               onClick={() => {
-                if (selectedAccount && extendedBankInfos?.find((b) => b.tokenName === "UXD")?.bank) {
-                  selectedAccount!.withdrawEmissions(extendedBankInfos.find((b) => b.tokenName === "UXD")!.bank);
+                if (selectedAccount && extendedBankInfos?.find((b) => b.tokenSymbol === "UXD")?.bank) {
+                  selectedAccount!.withdrawEmissions(extendedBankInfos.find((b) => b.tokenSymbol === "UXD")!.bank);
                 }
               }}
             >
