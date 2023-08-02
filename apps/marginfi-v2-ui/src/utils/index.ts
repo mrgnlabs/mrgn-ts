@@ -43,6 +43,8 @@ export type BankMetadataListRaw = Infer<typeof BankMetadataList>;
 function parseTokenMetadata(tokenMetadataRaw: TokenMetadataRaw): TokenMetadata {
   return {
     icon: tokenMetadataRaw.logoURI,
+    name: tokenMetadataRaw.name,
+    symbol: tokenMetadataRaw.symbol,
   };
 }
 

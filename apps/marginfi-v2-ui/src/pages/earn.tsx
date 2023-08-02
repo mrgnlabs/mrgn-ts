@@ -1,9 +1,9 @@
 import React, { FC, MouseEventHandler, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
-import { useProgram } from "~/context";
-import { Button, ButtonProps, CircularProgress, InputAdornment, LinearProgress, TextField } from "@mui/material";
-import { percentFormatterDyn, usdFormatter } from "~/utils/formatters";
+import { useBankMetadata, useProgram } from "~/context";
+import { Button, ButtonProps, Card, CircularProgress, InputAdornment, LinearProgress, TextField } from "@mui/material";
+import { groupedNumberFormatterDyn, percentFormatterDyn, usdFormatter } from "~/utils/formatters";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import dynamic from "next/dynamic";
 import Radio from "@mui/material/Radio";
@@ -11,11 +11,14 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import Image from "next/image";
-import LipAccount, { Campaign } from "@mrgnlabs/lip-client/src/account";
+import LipAccount, { Campaign, LipPosition } from "@mrgnlabs/lip-client/src/account";
 import config from "~/config";
 import { computeGuaranteedApyForCampaign } from "@mrgnlabs/lip-client/src/utils";
 import { nativeToUi, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { floor } from "~/utils";
+import { BankMetadataMap } from "~/types";
+import { Bank } from "@mrgnlabs/marginfi-client-v2";
+import { Countdown } from "~/components/Countdown";
 
 const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (
   <>
@@ -201,9 +204,10 @@ interface WhitelistedCampaignWithMeta {
 interface AssetSelectionProps {
   setSelectedCampaign: (campaign: WhitelistedCampaignWithMeta) => void;
   whitelistedCampaigns: WhitelistedCampaignWithMeta[];
+  bankMetadataMap?: BankMetadataMap;
 }
 
-const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSelectedCampaign }) => {
+const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSelectedCampaign, bankMetadataMap }) => {
   if (whitelistedCampaigns.length === 0) return null;
   const defaultCampaign = whitelistedCampaigns[0];
 
@@ -236,7 +240,9 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
               }
               label={
                 <div className="w-[295px] flex justify-between items-center">
-                  <div>{campaign.bank.mint.toBase58() === "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263" ? "BONK" : shortenAddress(campaign.bank.mint)}</div>
+                  <div>
+                    {getTokenSymbol(campaign.bank, bankMetadataMap || {})}
+                  </div>
                   <div className="flex gap-4 justify-center items-center">
                     <div
                       className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
@@ -268,6 +274,7 @@ const Pro = () => {
   const [reloading, setReloading] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<WhitelistedCampaignWithMeta | null>(null);
   const [amount, setAmount] = useState(0);
+  const { bankMetadataMap } = useBankMetadata();
   const [progressPercent, setProgressPercent] = useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
   const { lipClient, mfiClient } = useProgram();
@@ -293,7 +300,8 @@ const Pro = () => {
         if (c1.campaign.bank.mint.toBase58() > c2.campaign.bank.mint.toBase58()) return -1;
         return 0;
       });
-  }, [lipClient, lipAccount]);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lipClient, lipAccount]); // the extra `lipAccount` dependency is on purpose
 
   const maxDepositAmount = useMemo(
     () =>
@@ -387,6 +395,15 @@ const Pro = () => {
     }
   }, [lipAccount, lipClient, mfiClient, setInitialFetchDone]);
 
+  const closeLipPosition = useCallback(async (position: LipPosition) => {
+    lipAccount?.closePosition(position)
+  }, [lipAccount]);
+
+  const positions = useMemo(() => {
+    if (!lipAccount) return [];
+    return lipAccount.getPositions();
+  }, [lipAccount]);
+
   return (
     <>
       <PageHeader />
@@ -442,6 +459,7 @@ const Pro = () => {
             <AssetSelection
               whitelistedCampaigns={whitelistedCampaignsWithMeta}
               setSelectedCampaign={setSelectedCampaign}
+              bankMetadataMap={bankMetadataMap}
             />
           </div>
 
@@ -471,7 +489,98 @@ const Pro = () => {
           </div>
         </div>
       </div>
+      <div className="w-[900px] mb-[30px] grid grid-cols-3 gap-4">
+        {positions.map((position, index) => (
+          <DepositTile
+            key={index}
+            position={position}
+            closePositionCb={closeLipPosition}
+            bankMetadataMap={bankMetadataMap || {}}
+          />
+        ))}
+      </div>
     </>
+  );
+};
+
+function getTokenSymbol(bank: Bank, bankMetadataMap: BankMetadataMap): string {
+  const bankMetadata = bankMetadataMap[bank.publicKey.toBase58()];
+  if (!bankMetadata) {
+    console.log("Bank metadata not found for %s", bank.publicKey.toBase58());
+    return shortenAddress(bank.mint);
+  }
+
+  return bankMetadata.tokenSymbol;
+}
+
+interface DepositTileProps {
+  position: LipPosition;
+  closePositionCb: (position: LipPosition) => void;
+  bankMetadataMap: BankMetadataMap;
+}
+
+const DepositTile: FC<DepositTileProps> = ({ position, closePositionCb, bankMetadataMap }) => {
+  const secondsRemaining = useMemo(() => {
+    const now = new Date();
+    const endDate = position.endDate;
+    const secondsRemaining = (endDate.getTime() - now.getTime()) / 1000;
+    return secondsRemaining;
+  }, [position.endDate]);
+  return (
+    <div className="w-full flex justify-center">
+      <Card className="w-full max-w-[300px] p-[10px] flex flex-col justify-start content-start">
+        <div className="w-full h-[50px] flex justify-center">
+          {secondsRemaining > 0 ? (
+            <Countdown targetDate={position.endDate} />
+          ) : (
+            <div className="text-[#51b56a] font-bold">READY</div>
+          )}
+        </div>
+        <div className="w-full flex justify-between">
+          <b>Start date:</b>
+          {position.startDate.toLocaleString()}
+        </div>
+        <div className="w-full flex justify-between">
+          <b>Campaign:</b>
+          <a
+            href={`https://solscan.io/account/${position.campaign.publicKey.toBase58()}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {shortenAddress(position.campaign.publicKey)}
+            <style jsx>{`
+              a:hover {
+                text-decoration: underline;
+              }
+            `}</style>
+          </a>
+        </div>
+        <div className="w-full flex justify-between">
+          <b>Lockup:</b>
+          {Math.floor(position.lockupPeriodInDays)} days
+        </div>
+        <div className="w-full flex justify-between">
+          <b>Asset:</b>
+          {getTokenSymbol(position.campaign.bank, bankMetadataMap)}
+        </div>
+        <div className="w-full flex justify-between">
+          <b>Amount:</b>
+          {groupedNumberFormatterDyn.format(position.amount)} {getTokenSymbol(position.campaign.bank, bankMetadataMap)}
+        </div>
+        <div className="w-full flex justify-between">
+          <b>Value:</b>
+          {usdFormatter.format(position.usdValue)}
+        </div>
+        <Button
+          variant="contained"
+          className="mt-[5px] bg-[#51b56a]"
+          onClick={() => closePositionCb(position)}
+          disabled={secondsRemaining > 0}
+        >
+          Withdraw
+        </Button>
+      </Card>
+    </div>
   );
 };
 

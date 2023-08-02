@@ -148,6 +148,25 @@ class LipClient {
   // --- Getters
 
   /**
+   * Retrieves all deposit accounts.
+   *
+   * @returns Deposit instances
+   */
+  async getAllDepositsPerOwner(): Promise<{ [owner: string]: DepositData[] }> {
+    const allAccounts = (await this.program.account.deposit.all()).map(
+      ({ account }) => account as unknown as DepositData
+    );
+    const accountsPerOwner = allAccounts.reduce((acc, account) => {
+      const owner = account.owner.toBase58();
+      if (!acc[owner]) acc[owner] = [];
+      acc[owner].push(account);
+      return acc;
+    }, {} as { [owner: string]: DepositData[] });
+
+    return accountsPerOwner;
+  }
+
+  /**
    * Retrieves all deposit accounts for specified owner.
    *
    * @returns Deposit instances
@@ -164,7 +183,7 @@ class LipClient {
           },
         },
       ])
-    ).map(({ account }) => account as unknown as DepositData);
+    ).map(({ publicKey, account }) => ({address: publicKey, ...(account as Object)} as DepositData));
   }
 
   // --- Others

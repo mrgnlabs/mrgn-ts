@@ -1,10 +1,34 @@
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
-import { PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { LIP_IDL } from ".";
 import LipClient from "./client";
-import { Bank, MarginfiClient, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { Bank, BankVaultType, MarginfiClient, PriceBias, getBankVaultAuthority } from "@mrgnlabs/marginfi-client-v2";
+import {
+  InstructionsWrapper,
+  createAssociatedTokenAccountIdempotentInstruction,
+  getAssociatedTokenAddressSync,
+  nativeToUi,
+  shortenAddress,
+} from "@mrgnlabs/mrgn-common";
+import instructions from "./instructions";
+import {
+  getCampaignRewardVault,
+  getCampaignRewardVaultAuthority,
+  getMarginfiAccount,
+  getMfiPdaSigner,
+  getTempTokenAccountAuthority,
+} from "./utils";
+
+export interface LipPosition {
+  address: PublicKey;
+  amount: number;
+  usdValue: number;
+  campaign: Campaign;
+  startDate: Date;
+  endDate: Date;
+  lockupPeriodInDays: number;
+}
 
 /**
  * Wrapper class around a specific LIP account.
@@ -34,8 +58,95 @@ class LipAccount {
     return lipAccount;
   }
 
+  getPositions(): LipPosition[] {
+    return this.deposits
+      .map((d) => {
+        const campaign = this.campaigns.find((c) => d.campaign.equals(c.publicKey));
+        if (!campaign) throw Error("Campaign not found");
+        const endDate = new Date(d.startDate);
+        endDate.setSeconds(endDate.getSeconds() + campaign.lockupPeriod.toNumber());
+        console.log(
+          shortenAddress(d.campaign),
+          endDate,
+          d.startDate,
+          campaign.lockupPeriod.toNumber(),
+          campaign.lockupPeriod.toNumber() / (24 * 60 * 60)
+        );
+        return {
+          address: d.address,
+          amount: d.amount,
+          usdValue: d.usdValue,
+          campaign: campaign,
+          startDate: d.startDate,
+          endDate,
+          lockupPeriodInDays: campaign.lockupPeriod.toNumber() / (24 * 60 * 60),
+        };
+      })
+      .sort((a, b) => a.endDate.getTime() - b.endDate.getTime());
+  }
+
   getTotalBalance() {
     return this.deposits.reduce((acc, d) => acc.plus(d.usdValue), new BigNumber(0));
+  }
+
+  async makeClosePositionIx(lipPosition: LipPosition): Promise<InstructionsWrapper> {
+    let ixs = [];
+
+    const userAta = getAssociatedTokenAddressSync(lipPosition.campaign.bank.mint, this.client.wallet.publicKey);
+    const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
+      this.client.wallet.publicKey,
+      userAta,
+      this.client.wallet.publicKey,
+      lipPosition.campaign.bank.mint
+    );
+    ixs.push(createAtaIdempotentIx);
+
+    const [campaignRewardVault] = getCampaignRewardVault(lipPosition.campaign.publicKey, this.client.program.programId);
+    const [campaignRewardVaultAuthority] = getCampaignRewardVaultAuthority(
+      lipPosition.campaign.publicKey,
+      this.client.program.programId);
+    const [marginfiAccount] = getMarginfiAccount(lipPosition.address, this.client.program.programId);
+    const [marginfiBankVaultAuthority] = getBankVaultAuthority(
+      BankVaultType.LiquidityVault,
+      lipPosition.campaign.bank.publicKey,
+      this.mfiClient.programId);
+    const [mfiPdaSigner] = getMfiPdaSigner(lipPosition.address, this.client.program.programId);
+    const [tempTokenAccountAuthority] = getTempTokenAccountAuthority(lipPosition.address, this.client.program.programId);
+
+    const tempTokenAccount = Keypair.generate();
+
+    const endDepositIx = await instructions.makeEndDepositIx(this.client.program, {
+      marginfiGroup: this.mfiClient.group.publicKey,
+      signer: this.client.wallet.publicKey,
+      assetMint: lipPosition.campaign.bank.mint,
+      campaign: lipPosition.campaign.publicKey,
+      campaignRewardVault,
+      deposit: lipPosition.address,
+      campaignRewardVaultAuthority,
+      destinationAccount: userAta,
+      marginfiAccount,
+      marginfiBank: lipPosition.campaign.bank.publicKey,
+      marginfiBankVault: lipPosition.campaign.bank.liquidityVault,
+      marginfiProgram: this.mfiClient.programId,
+      marginfiBankVaultAuthority,
+      mfiPdaSigner,
+      tempTokenAccount: tempTokenAccount.publicKey,
+      tempTokenAccountAuthority,
+    });
+    ixs.push(endDepositIx);
+
+    return { instructions: ixs, keys: [tempTokenAccount] };
+  }
+
+  async closePosition(deposit: LipPosition) {
+    const tx = new Transaction();
+
+    const ixs = await this.makeClosePositionIx(deposit);
+    tx.add(...ixs.instructions);
+
+    const sig = await this.client.processTransaction(tx, [], { dryRun: false });
+    await this.reload();
+    return sig;
   }
 
   /**
@@ -95,12 +206,18 @@ export default LipAccount;
 // Client types
 
 export class Deposit {
+  address: PublicKey;
   amount: number;
   usdValue: number;
+  campaign: PublicKey;
+  startDate: Date;
 
   constructor(data: DepositData, bank: Bank) {
+    this.address = data.address;
     this.amount = nativeToUi(data.amount, bank.mintDecimals);
     this.usdValue = this.getUsdValue(this.amount, bank);
+    this.campaign = data.campaign;
+    this.startDate = new Date(data.startTime * 1000);
   }
 
   public getUsdValue(amount: number, bank: Bank): number {
@@ -111,6 +228,7 @@ export class Deposit {
 // On-chain types
 
 export interface DepositData {
+  address: PublicKey;
   owner: PublicKey;
   amount: BN;
   startTime: number;
@@ -129,44 +247,6 @@ export interface CampaignData {
 export interface Campaign extends CampaignData {
   bank: Bank;
 }
-
-// {
-//   "name": "admin",
-//   "type": "publicKey",
-// },
-// {
-//   "name": "lockupPeriod",
-//   "type": "u64",
-// },
-// {
-//   "name": "active",
-//   "type": "bool",
-// },
-// {
-//   "name": "maxDeposits",
-//   "type": "u64",
-// },
-// {
-//   "name": "remainingCapacity",
-//   "type": "u64",
-// },
-// {
-//   "name": "maxRewards",
-//   "type": "u64",
-// },
-// {
-//   "name": "marginfiBankPk",
-//   "type": "publicKey",
-// },
-// {
-//   "name": "padding",
-//   "type": {
-//   "array": [
-//     "u64",
-//     16,
-//   ],
-// },
-// },
 
 export enum AccountType {
   Deposit = "deposit",
