@@ -245,19 +245,23 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
             setCampaignBank(bank);
           }}
         >
-          {availableBanks.map((b) => (
+          {availableBanks.map((b) => {
+            let assetIcon = assetIcons[b.publicKey.toBase58()];
+            if (!assetIcon) assetIcon = assetIcons["CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"];
+
+            return (
             <MenuItem key={b.publicKey.toBase58()} value={b.publicKey.toBase58()}>
               <div className="flex gap-4 items-center">
                 <Image
-                  src={assetIcons[b.mint.toBase58()].icon}
-                  alt={b.mint.toBase58()}
-                  height={assetIcons[b.mint.toBase58()].size}
-                  width={assetIcons[b.mint.toBase58()].size}
+                  src={assetIcon.icon}
+                  alt={b.publicKey.toBase58()}
+                  height={assetIcon.size}
+                  width={assetIcon.size}
                 />
-                <div>{b.mint.toBase58()}</div>
+                <div>{b.publicKey.toBase58()}</div>
               </div>
             </MenuItem>
-          ))}
+          )})}
         </Select>
       </div>
       <div className="flex justify-between">
@@ -277,7 +281,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
             value={lockupPeriodInDays}
             setValue={setLockupPeriodInDays}
             loadingSafetyCheck={() => { }}
-            maxDecimals={3}
+            maxDecimals={4}
             disabled={!wallet.connected}
           />
         </div>
@@ -288,7 +292,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           value={depositCapacity}
           setValue={setDepositCapacity}
           loadingSafetyCheck={() => { }}
-          maxDecimals={2}
+          maxDecimals={3}
           disabled={!wallet.connected}
         />
       </div>

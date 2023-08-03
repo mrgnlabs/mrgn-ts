@@ -144,7 +144,7 @@ class LipAccount {
     const ixs = await this.makeClosePositionIx(deposit);
     tx.add(...ixs.instructions);
 
-    const sig = await this.client.processTransaction(tx, [], { dryRun: false });
+    const sig = await this.client.processTransaction(tx, ixs.keys, { dryRun: false });
     await this.reload();
     return sig;
   }

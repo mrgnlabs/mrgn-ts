@@ -18,7 +18,7 @@ const Countdown: FC<{ targetDate: Date }> = ({
 
   const update = useCallback(() => {
     const now = new Date();
-    const secondsRemaining = (targetDate.getTime() - now.getTime()) / 1000;
+    const secondsRemaining = Math.max(0, (targetDate.getTime() - now.getTime()) / 1000);
 
     const seconds = Math.floor(secondsRemaining);
     const minutes = Math.floor(seconds / 60);

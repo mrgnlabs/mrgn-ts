@@ -19,6 +19,7 @@ import { floor } from "~/utils";
 import { BankMetadataMap } from "~/types";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import { Countdown } from "~/components/Countdown";
+import { toast } from "react-toastify";
 
 const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (
   <>
@@ -240,9 +241,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
               }
               label={
                 <div className="w-[295px] flex justify-between items-center">
-                  <div>
-                    {getTokenSymbol(campaign.bank, bankMetadataMap || {})}
-                  </div>
+                  <div>{getTokenSymbol(campaign.bank, bankMetadataMap || {})}</div>
                   <div className="flex gap-4 justify-center items-center">
                     <div
                       className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
@@ -395,9 +394,35 @@ const Pro = () => {
     }
   }, [lipAccount, lipClient, mfiClient, setInitialFetchDone]);
 
-  const closeLipPosition = useCallback(async (position: LipPosition) => {
-    lipAccount?.closePosition(position)
-  }, [lipAccount]);
+  const closeLipPosition = useCallback(
+    async (position: LipPosition) => {
+      if (!lipAccount) return;
+      toast.loading(`Closing deposit`, {
+        toastId: "close-position",
+      });
+      try {
+        await lipAccount.closePosition(position);
+        toast.update("close-position", {
+          render: `Closing deposit 👍`,
+          type: toast.TYPE.SUCCESS,
+          autoClose: 2000,
+          isLoading: false,
+        });
+      } catch (e) {
+        console.error(e);
+        toast.update("close-position", {
+          render: `Error closing deposit: ${e}`,
+          type: toast.TYPE.ERROR,
+          autoClose: 2000,
+          isLoading: false,
+        });
+      }
+      setReloading(true);
+      setLipAccount(await lipAccount.reloadAndClone());
+      setReloading(false);
+    },
+    [lipAccount]
+  );
 
   const positions = useMemo(() => {
     if (!lipAccount) return [];
@@ -520,17 +545,23 @@ interface DepositTileProps {
 }
 
 const DepositTile: FC<DepositTileProps> = ({ position, closePositionCb, bankMetadataMap }) => {
-  const secondsRemaining = useMemo(() => {
-    const now = new Date();
-    const endDate = position.endDate;
-    const secondsRemaining = (endDate.getTime() - now.getTime()) / 1000;
-    return secondsRemaining;
+  const [isEnded, setIsEnded] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const secondsRemaining = (position.endDate.getTime() - new Date().getTime()) / 1000;
+      if (secondsRemaining <= 0) {
+        setIsEnded(true);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
   }, [position.endDate]);
+
   return (
     <div className="w-full flex justify-center">
       <Card className="w-full max-w-[300px] p-[10px] flex flex-col justify-start content-start">
         <div className="w-full h-[50px] flex justify-center">
-          {secondsRemaining > 0 ? (
+          {!isEnded ? (
             <Countdown targetDate={position.endDate} />
           ) : (
             <div className="text-[#51b56a] font-bold">READY</div>
@@ -575,7 +606,7 @@ const DepositTile: FC<DepositTileProps> = ({ position, closePositionCb, bankMeta
           variant="contained"
           className="mt-[5px] bg-[#51b56a]"
           onClick={() => closePositionCb(position)}
-          disabled={secondsRemaining > 0}
+          disabled={!isEnded}
         >
           Withdraw
         </Button>
