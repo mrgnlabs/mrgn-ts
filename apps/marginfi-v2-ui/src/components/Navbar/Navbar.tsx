@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import AirdropZone from "./AirdropZone";
@@ -76,6 +76,8 @@ const Navbar: FC = () => {
   const [user, setUser] = useState<null | string>(null);
   const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
   const router = useRouter();
+  const enableOnFormTags = useMemo(() => router.pathname !== "/swap", [router]);
+
   useHotkeys(
     "l, s, e, o",
     (_, handler: HotkeysEvent) => {
@@ -94,7 +96,7 @@ const Navbar: FC = () => {
           break;
       }
     },
-    { preventDefault: true, enableOnFormTags: true }
+    { preventDefault: true, enableOnFormTags }
   );
 
   useHotkeys(
