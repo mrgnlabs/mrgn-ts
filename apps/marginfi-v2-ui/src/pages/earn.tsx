@@ -438,7 +438,7 @@ const Pro = () => {
             <div className="flex flex-col gap-1 w-full justify-center">
               {wallet.connected && (
                 <div className="text-2xl flex justify-center gap-2" style={{ fontWeight: 400 }}>
-                  Your deposits:
+                  Your total deposits:
                   <span style={{ color: "#51B56A" }}>
                     {
                       // Since users will only be able to deposit to the LIP,
@@ -514,7 +514,10 @@ const Pro = () => {
           </div>
         </div>
       </div>
-      <div className="w-[900px] mb-[30px] grid grid-cols-3 gap-4">
+      <div className="text-2xl flex justify-center gap-2 mb-[40px]" style={{ fontWeight: 400 }}>
+        Your deposits
+      </div>
+      <div className="w-full max-w-[1000px] flex flex-wrap justify-center mb-[30px] gap-10">
         {positions.map((position, index) => (
           <DepositTile
             key={index}
@@ -558,16 +561,16 @@ const DepositTile: FC<DepositTileProps> = ({ position, closePositionCb, bankMeta
   }, [position.endDate]);
 
   return (
-    <div className="w-full flex justify-center">
-      <Card className="w-full max-w-[300px] p-[10px] flex flex-col justify-start content-start">
+    <div className=" w-[350px] flex justify-center">
+      <Card className="w-full p-[20px] flex flex-col justify-start content-start bg-[#1C2125] text-white">
         <div className="w-full h-[50px] flex justify-center">
           {!isEnded ? (
             <Countdown targetDate={position.endDate} />
           ) : (
-            <div className="text-[#51b56a] font-bold">READY</div>
+            <div className="flex items-center text-[#51b56a] font-bold">READY</div>
           )}
         </div>
-        <div className="w-full flex justify-between">
+        <div className="w-full flex justify-between mt-[10px]">
           <b>Start date:</b>
           {position.startDate.toLocaleString()}
         </div>
@@ -587,7 +590,7 @@ const DepositTile: FC<DepositTileProps> = ({ position, closePositionCb, bankMeta
           </a>
         </div>
         <div className="w-full flex justify-between">
-          <b>Lockup:</b>
+          <b>Lock-up:</b>
           {Math.floor(position.lockupPeriodInDays)} days
         </div>
         <div className="w-full flex justify-between">
@@ -604,9 +607,10 @@ const DepositTile: FC<DepositTileProps> = ({ position, closePositionCb, bankMeta
         </div>
         <Button
           variant="contained"
-          className="mt-[5px] bg-[#51b56a]"
-          onClick={() => closePositionCb(position)}
-          disabled={!isEnded}
+          className="mt-[15px] bg-[#51b56a] text-white"
+          onClick={() => (isEnded ? closePositionCb(position) : () => {})}
+          disableRipple={!isEnded}
+          style={{ cursor: isEnded ? "pointer" : "not-allowed", opacity: isEnded ? 1 : 0.5 }}
         >
           Withdraw
         </Button>
