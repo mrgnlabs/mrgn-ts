@@ -42,6 +42,8 @@ interface UserPosition {
 
 interface TokenMetadata {
   icon?: string;
+  name: string;
+  symbol: string;
 }
 
 interface BankMetadata {
