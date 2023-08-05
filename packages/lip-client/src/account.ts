@@ -65,13 +65,6 @@ class LipAccount {
         if (!campaign) throw Error("Campaign not found");
         const endDate = new Date(d.startDate);
         endDate.setSeconds(endDate.getSeconds() + campaign.lockupPeriod.toNumber());
-        console.log(
-          shortenAddress(d.campaign),
-          endDate,
-          d.startDate,
-          campaign.lockupPeriod.toNumber(),
-          campaign.lockupPeriod.toNumber() / (24 * 60 * 60)
-        );
         return {
           address: d.address,
           amount: d.amount,
