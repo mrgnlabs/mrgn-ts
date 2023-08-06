@@ -133,15 +133,7 @@ class LipClient {
     // LipClient takes in a list of campaigns, which is
     // campaigns we've found + bank information we've constructed.
     return allCampaigns.map((campaign, i) => {
-      return {
-        bank: banks[i],
-        maxRewards: campaign.maxRewards,
-        maxDeposits: campaign.maxDeposits,
-        lockupPeriod: campaign.lockupPeriod,
-        publicKey: campaign.publicKey,
-        marginfiBankPk: banks[i].publicKey,
-        remainingCapacity: campaign.remainingCapacity,
-      };
+      return new Campaign(banks[i], campaign);
     });
   }
 

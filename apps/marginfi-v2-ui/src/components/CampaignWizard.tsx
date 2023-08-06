@@ -342,10 +342,9 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
             {campaignBank
               ? percentFormatterDyn.format(
                 computeGuaranteedApy(
-                  contractInputs.lockupPeriod,
-                  contractInputs.maxDeposits,
-                  contractInputs.maxRewards,
-                  campaignBank
+                  contractInputs.lockupPeriod.toNumber(),
+                  contractInputs.maxDeposits.toNumber(),
+                  contractInputs.maxRewards.toNumber(),
                 )
               )
               : 0}

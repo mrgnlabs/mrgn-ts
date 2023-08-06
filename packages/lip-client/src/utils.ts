@@ -13,14 +13,8 @@ export function calculateApyFromInterest(principal: number, durationInYears: num
   return interest / (principal * durationInYears);
 }
 
-export function computeGuaranteedApyForCampaign(campaign: Campaign): number {
-  return computeGuaranteedApy(campaign.lockupPeriod, campaign.maxDeposits, campaign.maxRewards, campaign.bank);
-}
-
-export function computeGuaranteedApy(lockupPeriodInSeconds: BN, maxDeposits: BN, maxRewards: BN, bank: Bank): number {
-  const principal = nativeToUi(maxDeposits, bank.mintDecimals);
-  const durationInYears = lockupPeriodInSeconds.toNumber() / 365 / 24 / 60 / 60;
-  const interest = nativeToUi(maxRewards, bank.mintDecimals);
+export function computeGuaranteedApy(duration: number, principal: number, interest: number): number {
+  const durationInYears = duration / 365 / 24 / 60 / 60;
   // @todo this needs to be cleaned up, works cleanly when there is no effective compounding right now
   return calculateApyFromInterest(principal, durationInYears, interest);
 }
