@@ -9,10 +9,10 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
   nativeToUi,
-  shortenAddress,
 } from "@mrgnlabs/mrgn-common";
 import instructions from "./instructions";
 import {
+  computeGuaranteedApy,
   getCampaignRewardVault,
   getCampaignRewardVaultAuthority,
   getMarginfiAccount,
@@ -23,6 +23,7 @@ import {
 export interface LipPosition {
   address: PublicKey;
   amount: number;
+  maturityAmount: number;
   usdValue: number;
   campaign: Campaign;
   startDate: Date;
@@ -64,15 +65,16 @@ class LipAccount {
         const campaign = this.campaigns.find((c) => d.campaign.equals(c.publicKey));
         if (!campaign) throw Error("Campaign not found");
         const endDate = new Date(d.startDate);
-        endDate.setSeconds(endDate.getSeconds() + campaign.lockupPeriod.toNumber());
+        endDate.setSeconds(endDate.getSeconds() + campaign.lockupPeriod);
         return {
           address: d.address,
           amount: d.amount,
+          maturityAmount: d.amount + (d.amount / campaign.maxDeposits) * campaign.maxRewards,
           usdValue: d.usdValue,
           campaign: campaign,
           startDate: d.startDate,
           endDate,
-          lockupPeriodInDays: campaign.lockupPeriod.toNumber() / (24 * 60 * 60),
+          lockupPeriodInDays: campaign.lockupPeriod / (24 * 60 * 60),
         };
       })
       .sort((a, b) => a.endDate.getTime() - b.endDate.getTime());
@@ -97,14 +99,19 @@ class LipAccount {
     const [campaignRewardVault] = getCampaignRewardVault(lipPosition.campaign.publicKey, this.client.program.programId);
     const [campaignRewardVaultAuthority] = getCampaignRewardVaultAuthority(
       lipPosition.campaign.publicKey,
-      this.client.program.programId);
+      this.client.program.programId
+    );
     const [marginfiAccount] = getMarginfiAccount(lipPosition.address, this.client.program.programId);
     const [marginfiBankVaultAuthority] = getBankVaultAuthority(
       BankVaultType.LiquidityVault,
       lipPosition.campaign.bank.publicKey,
-      this.mfiClient.programId);
+      this.mfiClient.programId
+    );
     const [mfiPdaSigner] = getMfiPdaSigner(lipPosition.address, this.client.program.programId);
-    const [tempTokenAccountAuthority] = getTempTokenAccountAuthority(lipPosition.address, this.client.program.programId);
+    const [tempTokenAccountAuthority] = getTempTokenAccountAuthority(
+      lipPosition.address,
+      this.client.program.programId
+    );
 
     const tempTokenAccount = Keypair.generate();
 
@@ -218,6 +225,28 @@ export class Deposit {
   }
 }
 
+export class Campaign {
+  publicKey: PublicKey;
+  maxDeposits: number;
+  maxRewards: number;
+  lockupPeriod: number;
+  remainingCapacity: number;
+  guaranteedApy: number;
+
+  constructor(readonly bank: Bank, data: CampaignData) {
+    this.publicKey = data.publicKey;
+    this.maxDeposits = nativeToUi(data.maxDeposits, bank.mintDecimals);
+    this.maxRewards = nativeToUi(data.maxRewards, bank.mintDecimals);
+    this.lockupPeriod = data.lockupPeriod.toNumber();
+    this.remainingCapacity = nativeToUi(data.remainingCapacity, bank.mintDecimals);
+    this.guaranteedApy = this.computeGuaranteedApyForCampaign();
+  }
+
+  computeGuaranteedApyForCampaign(): number {
+    return computeGuaranteedApy(this.lockupPeriod, this.maxDeposits, this.maxRewards);
+  }
+}
+
 // On-chain types
 
 export interface DepositData {
@@ -235,10 +264,6 @@ export interface CampaignData {
   maxRewards: BN;
   lockupPeriod: BN;
   remainingCapacity: BN;
-}
-
-export interface Campaign extends CampaignData {
-  bank: Bank;
 }
 
 export enum AccountType {

@@ -3,7 +3,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
 import { useBankMetadata, useProgram } from "~/context";
 import { Button, ButtonProps, Card, CircularProgress, InputAdornment, LinearProgress, TextField } from "@mui/material";
-import { groupedNumberFormatterDyn, percentFormatterDyn, usdFormatter } from "~/utils/formatters";
+import { groupedNumberFormatterDyn, percentFormatterDyn, usdFormatter, usdFormatterDyn } from "~/utils/formatters";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import dynamic from "next/dynamic";
 import Radio from "@mui/material/Radio";
@@ -13,13 +13,13 @@ import FormControl from "@mui/material/FormControl";
 import Image from "next/image";
 import LipAccount, { Campaign, LipPosition } from "@mrgnlabs/lip-client/src/account";
 import config from "~/config";
-import { computeGuaranteedApyForCampaign } from "@mrgnlabs/lip-client/src/utils";
-import { nativeToUi, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { floor } from "~/utils";
 import { BankMetadataMap } from "~/types";
-import { Bank } from "@mrgnlabs/marginfi-client-v2";
+import { Bank, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { Countdown } from "~/components/Countdown";
 import { toast } from "react-toastify";
+import BigNumber from "bignumber.js";
 
 const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (
   <>
@@ -246,7 +246,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
                     <div
                       className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
                     >
-                      Min. APY: {percentFormatterDyn.format(computeGuaranteedApyForCampaign(campaign))}
+                      Min. APY: {percentFormatterDyn.format(campaign.computeGuaranteedApyForCampaign())}
                     </div>
                     <div className="ml-[2px] w-[40px]">
                       <Image src={meta.icon} alt={campaign.bank.mint.toBase58()} height={meta.size} width={meta.size} />
@@ -303,10 +303,7 @@ const Pro = () => {
   }, [lipClient, lipAccount]); // the extra `lipAccount` dependency is on purpose
 
   const maxDepositAmount = useMemo(
-    () =>
-      selectedCampaign
-        ? nativeToUi(selectedCampaign.campaign.remainingCapacity, selectedCampaign.campaign.bank.mintDecimals)
-        : 0,
+    () => (selectedCampaign ? selectedCampaign.campaign.remainingCapacity : 0),
     [selectedCampaign]
   );
 
@@ -575,6 +572,10 @@ const DepositTile: FC<DepositTileProps> = ({ position, closePositionCb, bankMeta
           {position.startDate.toLocaleString()}
         </div>
         <div className="w-full flex justify-between">
+          <b>End date:</b>
+          {position.endDate.toLocaleString()}
+        </div>
+        <div className="w-full flex justify-between">
           <b>Campaign:</b>
           <a
             href={`https://solscan.io/account/${position.campaign.publicKey.toBase58()}`}
@@ -594,16 +595,31 @@ const DepositTile: FC<DepositTileProps> = ({ position, closePositionCb, bankMeta
           {Math.floor(position.lockupPeriodInDays)} days
         </div>
         <div className="w-full flex justify-between">
+          <b>Minimum APY:</b>
+          {percentFormatterDyn.format(position.campaign.guaranteedApy)}
+        </div>
+        <div className="w-full flex justify-between">
           <b>Asset:</b>
           {getTokenSymbol(position.campaign.bank, bankMetadataMap)}
         </div>
-        <div className="w-full flex justify-between">
-          <b>Amount:</b>
-          {groupedNumberFormatterDyn.format(position.amount)} {getTokenSymbol(position.campaign.bank, bankMetadataMap)}
+        <div className="w-full flex justify-center items-center py-[20px]">
+          <hr className="w-[50%]"/>
         </div>
         <div className="w-full flex justify-between">
-          <b>Value:</b>
-          {usdFormatter.format(position.usdValue)}
+          <b>Amount locked:</b>
+          {groupedNumberFormatterDyn.format(position.amount)} {getTokenSymbol(position.campaign.bank, bankMetadataMap)}{" "}
+          ({usdFormatterDyn.format(position.usdValue)})
+        </div>
+        <div className="w-full flex justify-between">
+          <b>Minimum payout:</b>
+          {groupedNumberFormatterDyn.format(position.maturityAmount)}{" "}
+          {getTokenSymbol(position.campaign.bank, bankMetadataMap)} (
+          {usdFormatterDyn.format(
+            position.campaign.bank
+              .getUsdValue(new BigNumber(position.maturityAmount), PriceBias.None, undefined, false)
+              .toNumber()
+          )}
+          )
         </div>
         <Button
           variant="contained"
