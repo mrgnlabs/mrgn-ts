@@ -1,4 +1,4 @@
-import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, FC, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
 import { computeAccountSummary, DEFAULT_ACCOUNT_SUMMARY, makeExtendedBankInfo } from "~/api";
 import { AccountSummary, ActiveBankInfo, ExtendedBankInfo, isActiveBankInfo, TokenAccountMap } from "~/types";
@@ -34,7 +34,6 @@ const UserAccountsProvider: FC<{
   const [activeBankInfos, setActiveBankInfos] = useState<ActiveBankInfo[]>([]);
   const [userAccounts, setUserAccounts] = useState<MarginfiAccount[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<MarginfiAccount | null>(null);
-  const [accountSummary, setAccountSummary] = useState<AccountSummary>(DEFAULT_ACCOUNT_SUMMARY);
 
   const fetchUserData = useCallback(async (): Promise<{
     userAccounts: MarginfiAccount[];
@@ -83,19 +82,7 @@ const UserAccountsProvider: FC<{
     return () => clearInterval(id);
   }, [reload]);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (selectedAccount === null) {
-        setAccountSummary(DEFAULT_ACCOUNT_SUMMARY);
-        return;
-      }
-      setAccountSummary(computeAccountSummary(selectedAccount, bankInfos));
-    }, 50);
-
-    return () => {
-      clearInterval(intervalId); // Clean up the interval when the component unmounts or the dependency changes
-    };
-  }, [selectedAccount]);
+  const accountSummary = useMemo(() => selectedAccount ? computeAccountSummary(selectedAccount, bankInfos) : DEFAULT_ACCOUNT_SUMMARY, [selectedAccount, bankInfos])
 
   return (
     <UserAccountsContext.Provider
