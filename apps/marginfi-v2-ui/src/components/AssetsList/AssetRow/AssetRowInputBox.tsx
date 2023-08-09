@@ -53,9 +53,9 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({ value, setValue, maxValue, max
         max={maxValue}
         InputProps={{
           className: "font-aeonik bg-[#1C2125] text-[#e1e1e1] p-0 m-0 text-sm h-11",
-          endAdornment: <MaxInputAdornment onClick={onMaxClick} />,
+          endAdornment: <MaxInputAdornment onClick={onMaxClick} disabled={disabled} />,
         }}
-		getInputRef={(el: any) => (inputRefs.current[tokenName] = el)}
+		    getInputRef={(el: any) => (inputRefs.current[tokenName] = el)}
       />
     </div>
   );
@@ -66,7 +66,8 @@ const MaxInputAdornment: FC<{
   onClick: MouseEventHandler<HTMLDivElement>;
   disabled?: boolean;
 }> = ({ onClick, disabled }) => (
-  <InputAdornment position="end" classes={{ root: "max-w-[40px] h-full" }}>
+  <InputAdornment position="end" classes={{ root: "w-[40px] h-full" }}>
+    {!disabled && (
     <div
       className={`font-aeonik p-0 pr-4 text-[#868E95] text-sm lowercase h-9 font-light flex justify-center items-center hover:bg-transparent ${
         disabled ? "cursor-default" : "cursor-pointer"
@@ -74,7 +75,7 @@ const MaxInputAdornment: FC<{
       onClick={onClick}
     >
       max
-    </div>
+    </div>)}
   </InputAdornment>
 );
 

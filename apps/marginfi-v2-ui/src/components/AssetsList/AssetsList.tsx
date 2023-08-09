@@ -296,7 +296,7 @@ const AssetsList: FC = () => {
                         marginfiClient={mfiClient}
                         reloadBanks={reload}
                         inputRefs={inputRefs}
-						hasHotkey={true}
+						            hasHotkey={true}
                         showHotkeyBadges={showBadges}
                         badgeContent={`${i + 1}`}
                       />

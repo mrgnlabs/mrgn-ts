@@ -8,6 +8,7 @@ import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
 import { ActiveBankInfo } from "~/types";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { isWholePosition } from "~/utils";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const WITHDRAW_OR_REPAY_TOAST_ID = "withdraw-or-repay";
@@ -22,8 +23,7 @@ interface UserPositionRowProps {
 const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAccount, reloadPositions }) => {
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
 
-  const position = useMemo(() => activeBankInfo.position, [activeBankInfo.position]);
-  const isDust = useMemo(() => position.usdValue < nativeToUi(1, activeBankInfo.tokenMintDecimals), [position.usdValue, activeBankInfo.tokenMintDecimals]);
+  const isDust = useMemo(() => activeBankInfo.position.usdValue < nativeToUi(1, activeBankInfo.tokenMintDecimals), [activeBankInfo]);
 
   const closeBalance = useCallback(async () => {
     if (!marginfiAccount) {
@@ -36,7 +36,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
     });
 
     try {
-      if (position.isLending) {
+      if (activeBankInfo.position.isLending) {
         await marginfiAccount.withdraw(
           0,
           activeBankInfo.bank,
@@ -87,7 +87,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [activeBankInfo.bank, marginfiAccount, position, reloadPositions]);
+  }, [activeBankInfo, marginfiAccount, reloadPositions]);
 
   const withdrawOrRepay = useCallback(async () => {
     if (!marginfiAccount) {
@@ -99,38 +99,38 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       return;
     }
 
-    toast.loading(`${position.isLending ? "Withdrawing" : "Repaying"} ${withdrawOrRepayAmount}`, {
+    toast.loading(`${activeBankInfo.position.isLending ? "Withdrawing" : "Repaying"} ${withdrawOrRepayAmount}`, {
       toastId: WITHDRAW_OR_REPAY_TOAST_ID,
     });
 
     try {
-      if (position.isLending) {
+      if (activeBankInfo.position.isLending) {
         await marginfiAccount.withdraw(
           withdrawOrRepayAmount,
           activeBankInfo.bank,
-          position && withdrawOrRepayAmount === activeBankInfo.maxWithdraw
+          isWholePosition(activeBankInfo, withdrawOrRepayAmount)
         );
       } else {
         await marginfiAccount.repay(
           withdrawOrRepayAmount,
           activeBankInfo.bank,
-          position && withdrawOrRepayAmount === activeBankInfo.maxRepay
+          isWholePosition(activeBankInfo, withdrawOrRepayAmount)
         );
       }
       toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
-        render: position.isLending ? "Withdrawing 👍" : "Repaying 👍",
+        render: activeBankInfo.position.isLending ? "Withdrawing 👍" : "Repaying 👍",
         type: toast.TYPE.SUCCESS,
         autoClose: 2000,
         isLoading: false,
       });
     } catch (error: any) {
       toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
-        render: `Error while ${position.isLending ? "withdrawing" : "repaying"}: ${error.message}`,
+        render: `Error while ${activeBankInfo.position.isLending ? "withdrawing" : "repaying"}: ${error.message}`,
         type: toast.TYPE.ERROR,
         autoClose: 5000,
         isLoading: false,
       });
-      console.log(`Error while ${position.isLending ? "withdrawing" : "repaying"}`);
+      console.log(`Error while ${activeBankInfo.position.isLending ? "withdrawing" : "repaying"}`);
       console.log(error);
     }
 
@@ -156,11 +156,8 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       console.log(error);
     }
   }, [
-    activeBankInfo.bank,
-    activeBankInfo.maxRepay,
-    activeBankInfo.maxWithdraw,
+    activeBankInfo,
     marginfiAccount,
-    position,
     reloadPositions,
     withdrawOrRepayAmount,
   ]);
@@ -183,7 +180,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {groupedNumberFormatter.format(position.amount)}
+        {groupedNumberFormatter.format(activeBankInfo.position.amount)}
       </TableCell>
 
       <TableCell
@@ -191,7 +188,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {usdFormatter.format(position.weightedUSDValue)}
+        {usdFormatter.format(activeBankInfo.position.weightedUSDValue)}
       </TableCell>
 
       <TableCell
@@ -199,14 +196,14 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {usdFormatter.format(position.usdValue)}
+        {usdFormatter.format(activeBankInfo.position.usdValue)}
       </TableCell>
 
       <TableCell className="p-0 w-full pl-4 sm:pl-0 border-none" align="center" colSpan={2}>
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
-          maxValue={position.isLending ? activeBankInfo.maxWithdraw : activeBankInfo.maxRepay}
+          maxValue={activeBankInfo.position.isLending ? activeBankInfo.maxWithdraw : activeBankInfo.maxRepay}
           maxDecimals={activeBankInfo.tokenMintDecimals}
           disabled={isDust}
         />
@@ -215,7 +212,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       <TableCell className="text-white font-aeonik p-0 border-none" align="right">
         <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
           <UserPositionRowAction onClick={isDust ? closeBalance : withdrawOrRepay}>
-            {isDust ? "Close" : position.isLending ? "Withdraw" : "Repay"}
+            {isDust ? "Close" : activeBankInfo.position.isLending ? "Withdraw" : "Repay"}
           </UserPositionRowAction>
         </div>
       </TableCell>
