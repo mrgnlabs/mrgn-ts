@@ -76,7 +76,6 @@ const AssetRow: FC<{
   }, [bankInfo.maxBorrow, bankInfo.maxDeposit, bankInfo.maxRepay, bankInfo.maxWithdraw, currentAction]);
 
   const closeBalance = useCallback(async () => {
-    console.log("closinggg")
     if (!marginfiAccount) {
       toast.error("marginfi account not ready.");
       return;
@@ -99,7 +98,6 @@ const AssetRow: FC<{
           true
         );
       } else {
-        console.log('closing')
         await marginfiAccount.repay(
           0,
           bankInfo.bank,

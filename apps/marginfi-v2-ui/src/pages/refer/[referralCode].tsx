@@ -6,7 +6,7 @@ export default function ReferralPage() {
 
   // redirect to your app, passing along the referral code
   if (typeof window !== 'undefined') {
-    window.location.href = `https://mfi.gg/?referralCode=${referralCode}`
+    window.location.href = `${window.location.origin}/points?referralCode=${referralCode}`
   }
 
   return null

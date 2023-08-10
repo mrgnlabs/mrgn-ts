@@ -79,10 +79,6 @@ class LipClient {
     });
     const program = new Program(LIP_IDL, config.programId, provider) as any as LipProgram;
     const campaigns = await LipClient._fetchAccountData(program, marginfiClient);
-    console.log(
-      "all campaigns",
-      campaigns.map((c) => c.bank.mint.toBase58() + " " + c.publicKey.toBase58())
-    );
 
     return new LipClient(config, program, wallet, marginfiClient, campaigns);
   }
@@ -96,7 +92,6 @@ class LipClient {
   // First, we find all campaigns, then use their banks to pull relevant asset prices.
   private static async _fetchAccountData(program: LipProgram, marginfiClient: MarginfiClient): Promise<Campaign[]> {
     // 1. Fetch all campaigns that exist
-    console.log("fetching campaigns");
     const allCampaigns = (await program.account.campaign.all()).map((c) => ({
       ...c.account,
       publicKey: c.publicKey,
@@ -104,7 +99,6 @@ class LipClient {
     // 2. Get relevant banks for all campaigns
     const relevantBankPks = allCampaigns.map((d) => d.marginfiBankPk);
     // 3. Fetch all banks
-    console.log("fetching banks");
     const banksWithNulls = await marginfiClient.program.account.bank.fetchMultiple(relevantBankPks);
     // 4. Filter out banks that aren't found
     // This shouldn't happen, but is a workaround in case it does.

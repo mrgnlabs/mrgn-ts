@@ -14,6 +14,7 @@ import { floor } from "~/utils";
 import { getMint, nativeToUi } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { Connection, PublicKey } from "@solana/web3.js";
+import * as firebaseApi from "./firebase";
 
 const DEFAULT_ACCOUNT_SUMMARY = {
   balance: 0,
@@ -59,7 +60,12 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
   };
 }
 
-function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata, priceMap: TokenPriceMap, tokenSymbol: string): BankInfo {
+function makeBankInfo(
+  bank: Bank,
+  tokenMetadata: TokenMetadata,
+  priceMap: TokenPriceMap,
+  tokenSymbol: string
+): BankInfo {
   const { lendingRate, borrowingRate } = bank.getInterestRates();
   const totalPoolDeposits = nativeToUi(bank.totalAssets, bank.mintDecimals);
   const totalPoolBorrows = nativeToUi(bank.totalLiabilities, bank.mintDecimals);
@@ -192,14 +198,14 @@ function makeExtendedBankInfo(
 
   return !!position
     ? {
-      ...base,
-      hasActivePosition: true,
-      position,
-    }
+        ...base,
+        hasActivePosition: true,
+        position,
+      }
     : {
-      ...base,
-      hasActivePosition: false,
-    };
+        ...base,
+        hasActivePosition: false,
+      };
 }
 
 function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {
@@ -217,4 +223,4 @@ function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {
   };
 }
 
-export { DEFAULT_ACCOUNT_SUMMARY, computeAccountSummary, makeBankInfo, makeExtendedBankInfo };
+export { DEFAULT_ACCOUNT_SUMMARY, computeAccountSummary, makeBankInfo, makeExtendedBankInfo, firebaseApi };

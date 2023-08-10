@@ -11,34 +11,20 @@ import { useRecoilState } from "recoil";
 import { showBadgesState } from "~/state";
 
 // Firebase
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
 import { Badge } from "@mui/material";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBPAKOn7YKvEHg6iXTRbyZws3G4kPhWjtQ",
-  authDomain: "marginfi-dev.firebaseapp.com",
-  projectId: "marginfi-dev",
-  storageBucket: "marginfi-dev.appspot.com",
-  messagingSenderId: "509588742572",
-  appId: "1:509588742572:web:18d74a3ace2f3aa2071a09",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+import { firebaseDb } from "~/api/firebase";
+import { useFirebaseAccount } from "~/context/FirebaseAccount";
 
 const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
   if (!wallet) return;
 
-  const docRef = doc(db, "points", wallet);
+  const docRef = doc(firebaseDb, "points", wallet);
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
     const pointsData = docSnap.data();
-    console.log("found points for user");
     const points = {
       owner: pointsData.owner,
       deposit_points: pointsData.total_deposit_points.toFixed(4),
@@ -51,7 +37,6 @@ const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
     return points;
   } else {
     // docSnap.data() will be undefined in this case
-    console.log("No points record for this wallet.");
     // return a points object with all fields set to zero
     return {
       owner: wallet,
@@ -72,8 +57,8 @@ type Points = {
 // @todo implement second pretty navbar row
 const Navbar: FC = () => {
   const wallet = useWallet();
+  const { initialUserFetchDone: initialFetchDone, currentUser } = useFirebaseAccount();
   const [points, setPoints] = useState<Points>(null);
-  const [user, setUser] = useState<null | string>(null);
   const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
   
@@ -149,15 +134,7 @@ const Navbar: FC = () => {
   const { accountSummary, selectedAccount, extendedBankInfos } = useUserAccounts();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user?.uid || null);
-    });
-
-    return () => unsubscribe();
-  }, [auth]);
-
-  useEffect(() => {
-    if (user && wallet.publicKey?.toBase58()) {
+    if (initialFetchDone && currentUser && wallet.publicKey?.toBase58()) {
       const fetchData = async () => {
         const pointsData = await getPoints({ wallet: wallet.publicKey?.toBase58() });
         if (pointsData) {
@@ -167,7 +144,7 @@ const Navbar: FC = () => {
 
       fetchData();
     }
-  }, [user, wallet.publicKey?.toBase58()]);
+  }, [initialFetchDone, currentUser, wallet.publicKey]);
 
   return (
     <header>
@@ -186,10 +163,10 @@ const Navbar: FC = () => {
                 horizontal: "right",
               }}
               sx={{
-                '& .MuiBadge-badge': {
+                "& .MuiBadge-badge": {
                   backgroundColor: "rgb(220, 232, 93)",
                   color: "#1C2125",
-                }
+                },
               }}
               badgeContent={"l"}
               invisible={!showBadges}
@@ -205,10 +182,10 @@ const Navbar: FC = () => {
                 horizontal: "right",
               }}
               sx={{
-                '& .MuiBadge-badge': {
+                "& .MuiBadge-badge": {
                   backgroundColor: "rgb(220, 232, 93)",
                   color: "#1C2125",
-                }
+                },
               }}
               badgeContent={"s"}
               invisible={!showBadges}
@@ -242,10 +219,10 @@ const Navbar: FC = () => {
                 horizontal: "right",
               }}
               sx={{
-                '& .MuiBadge-badge': {
+                "& .MuiBadge-badge": {
                   backgroundColor: "rgb(220, 232, 93)",
                   color: "#1C2125",
-                }
+                },
               }}
               badgeContent={"e"}
               invisible={!showBadges}
@@ -261,10 +238,10 @@ const Navbar: FC = () => {
                 horizontal: "right",
               }}
               sx={{
-                '& .MuiBadge-badge': {
+                "& .MuiBadge-badge": {
                   backgroundColor: "rgb(220, 232, 93)",
                   color: "#1C2125",
-                }
+                },
               }}
               badgeContent={"o"}
               invisible={!showBadges}
@@ -275,9 +252,7 @@ const Navbar: FC = () => {
             </Badge>
             {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && wallet.connected && <AirdropZone />}
           </div>
-          <div
-            className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[300] gap-4 lg:gap-8"
-          >
+          <div className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[300] gap-4 lg:gap-8">
             <div
               className="glow-uxd whitespace-nowrap cursor-pointer hidden md:block"
               onClick={() => {
@@ -286,25 +261,20 @@ const Navbar: FC = () => {
                 }
               }}
             >
-              {
-                accountSummary.outstandingUxpEmissions === 0 ?
-                  `Lend UXD to earn UXP`
-                  :
-                  `Claim ${accountSummary.outstandingUxpEmissions < 1 ?
-                    accountSummary.outstandingUxpEmissions.toExponential(5)
-                    :
-                    numeralFormatter(accountSummary.outstandingUxpEmissions)
-                  } UXP`
-              }
+              {accountSummary.outstandingUxpEmissions === 0
+                ? `Lend UXD to earn UXP`
+                : `Claim ${
+                    accountSummary.outstandingUxpEmissions < 1
+                      ? accountSummary.outstandingUxpEmissions.toExponential(5)
+                      : numeralFormatter(accountSummary.outstandingUxpEmissions)
+                  } UXP`}
             </div>
-            {
-              <Link href={"/points"} className="glow whitespace-nowrap">
-                {`${wallet.connected && user && points && points.total && points.total > 0
-                  ? groupedNumberFormatterDyn.format(Math.round(points.total))
-                  : 0
-                  } points`}
-              </Link>
-            }
+
+            <Link href={"/points"} className="glow whitespace-nowrap">
+              {wallet.connected && currentUser
+                ? `${points?.total ? groupedNumberFormatterDyn.format(Math.round(points.total)) : 0} points`
+                : "P...P...POINTS!"}
+            </Link>
 
             <Link
               href={"https://marginfi.canny.io/mrgnlend"}

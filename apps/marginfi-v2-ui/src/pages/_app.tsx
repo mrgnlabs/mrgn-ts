@@ -29,6 +29,7 @@ import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { RecoilRoot } from 'recoil';
+import { FirebaseAccountProvider } from "~/context/FirebaseAccount";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -71,6 +72,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                 <BanksStateProvider>
                   <TokenAccountsProvider>
                     <UserAccountsProvider>
+                    <FirebaseAccountProvider>
                       <Head>
                         <title>marginfi</title>
                         <meta name="description" content="marginfi v2 UI" />
@@ -86,6 +88,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                         <Footer />
                         <ToastContainer position="bottom-left" theme="dark" />
                       </RecoilRoot>
+                    </FirebaseAccountProvider>
                     </UserAccountsProvider>
                   </TokenAccountsProvider>
                 </BanksStateProvider>

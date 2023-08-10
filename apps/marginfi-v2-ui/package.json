@@ -29,6 +29,7 @@
     "@vercel/analytics": "^1.0.0",
     "bignumber.js": "^9.1.1",
     "bn.js": "^5.2.1",
+    "bs58": "^5.0.0",
     "firebase": "^9.22.1",
     "firebase-admin": "^11.9.0",
     "next": "13.1.1",
