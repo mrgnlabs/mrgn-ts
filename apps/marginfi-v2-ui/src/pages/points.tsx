@@ -15,18 +15,7 @@ import {
   TextField,
   Checkbox,
 } from "@mui/material";
-import {
-  collection,
-  doc,
-  query,
-  orderBy,
-  startAfter,
-  limit,
-  getDocs,
-  getDoc,
-  Query,
-  DocumentData,
-} from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { FC, useEffect, useState } from "react";
 import { PageHeader } from "~/components/PageHeader";
@@ -43,6 +32,7 @@ import { firebaseApi } from "~/api";
 import { WalletButton } from "~/components/Navbar/WalletButton";
 import { grey } from "@mui/material/colors";
 import { toast } from "react-toastify";
+import { LeaderboardRow, fetchLeaderboardData, fetchUserRank } from "~/api/points";
 
 type UserData = {
   userTotalPoints?: number;
@@ -51,17 +41,6 @@ type UserData = {
   userReferralPoints?: number;
   userReferralLink?: string;
   userRank?: number;
-};
-
-type LeaderboardRow = {
-  id: string;
-  total_activity_deposit_points: number;
-  total_activity_borrow_points: number;
-  total_referral_deposit_points: number;
-  total_referral_borrow_points: number;
-  total_deposit_points: number;
-  total_borrow_points: number;
-  socialPoints: number;
 };
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
@@ -89,42 +68,7 @@ const Points: FC = () => {
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
 
   useEffect(() => {
-    const fetchLeaderboardData = async (rowCap = 100) => {
-      const pageSize = 50;
-      const pointsCollection = collection(firebaseDb, "points");
-
-      const leaderboardMap = new Map();
-      let initialQueryCursor = null;
-      do {
-        let pointsQuery: Query<DocumentData>;
-        if (initialQueryCursor) {
-          pointsQuery = query(
-            pointsCollection,
-            orderBy("total_points", "desc"),
-            startAfter(initialQueryCursor),
-            limit(pageSize)
-          );
-        } else {
-          pointsQuery = query(pointsCollection, orderBy("total_points", "desc"), limit(pageSize));
-        }
-
-        const querySnapshot = await getDocs(pointsQuery);
-        const leaderboardSlice = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        const leaderboardSliceFiltered = leaderboardSlice.filter(
-          (item) => item.id !== null && item.id !== undefined && item.id != "None"
-        );
-
-        for (const row of leaderboardSliceFiltered) {
-          leaderboardMap.set(row.id, row);
-        }
-
-        initialQueryCursor = querySnapshot.docs.length > 0 ? querySnapshot.docs[querySnapshot.docs.length - 1] : null;
-      } while (initialQueryCursor !== null && leaderboardMap.size < rowCap);
-
-      setLeaderboardData([...leaderboardMap.values()].slice(0, 100));
-    };
-
-    fetchLeaderboardData();
+    fetchLeaderboardData().then(setLeaderboardData); // TODO: cache leaderboard and avoid call
   }, [wallet.connected, wallet.publicKey]); // Dependency array to re-fetch when these variables change
 
   useEffect(() => {
@@ -136,7 +80,6 @@ const Points: FC = () => {
         const userReferralData = userDoc.data();
 
         let userReferralCode = "";
-
         if (userReferralData && Array.isArray(userReferralData?.referralCode)) {
           const uuidPattern = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-\b[0-9a-fA-F]{12}$/;
           userReferralCode = userReferralData.referralCode.find((code) => !uuidPattern.test(code));
@@ -159,8 +102,7 @@ const Points: FC = () => {
         const userReferralPoints =
           userPointsData?.total_referral_deposit_points + userPointsData?.total_referral_borrow_points;
 
-        // get user rank
-        const userRank = leaderboardData.findIndex((user) => user.id === wallet.publicKey?.toBase58()) + 1;
+        const userRank = await fetchUserRank(userPointsData?.total_points ?? 0);
 
         setUserData({
           userTotalPoints,
