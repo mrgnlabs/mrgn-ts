@@ -99,7 +99,7 @@ declare global {
     }
 }
 const tokens = [
-    '0x0000000000000000000000000000000000000000', // SOL
+    'So11111111111111111111111111111111111111112', // SOL
     '7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT', // UXD
     'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So', // mSOL
     'J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn', // jitoSOL
