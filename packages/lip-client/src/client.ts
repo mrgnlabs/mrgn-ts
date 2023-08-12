@@ -21,7 +21,6 @@ import { DEPOSIT_MFI_AUTH_SIGNER_SEED, MARGINFI_ACCOUNT_SEED } from "./constants
 import { Bank, BankData, getOraclePriceData, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Address, translateAddress } from "@coral-xyz/anchor";
 import { Campaign, DepositData } from "./account";
-import { parsePriceData } from "@pythnetwork/client";
 import {
   Amount,
   createAssociatedTokenAccountIdempotentInstruction,
