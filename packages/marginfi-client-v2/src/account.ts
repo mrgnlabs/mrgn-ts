@@ -449,7 +449,12 @@ export class MarginfiAccount {
   async borrow(amount: Amount, bank: Bank): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
-    const tx = new Transaction();
+
+    let ixs = [];
+
+    if (this.activeBalances.length >= 4) {
+      ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
+    }
 
     const userAta = await associatedAddress({
       mint: bank.mint,
@@ -461,12 +466,14 @@ export class MarginfiAccount {
       this.client.provider.wallet.publicKey,
       bank.mint
     );
-    tx.add(createAtaIdempotentIx);
+    ixs.push(createAtaIdempotentIx);
 
-    const ixs = await this.makeBorrowIx(amount, bank);
-    tx.add(...ixs.instructions);
+    const ixw = await this.makeBorrowIx(amount, bank);
+    ixs.push(...ixw.instructions);
+
+    const tx = new Transaction().add(...ixs);
     const sig = await this.client.processTransaction(tx);
-    debug("Withdrawing successful %s", sig);
+    debug("Borrowing successful %s", sig);
     await this.reload();
     return sig;
   }
