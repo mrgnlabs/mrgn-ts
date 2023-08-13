@@ -135,7 +135,7 @@ const rpcs = {
     ethereum: 'https://snowy-solemn-sea.discover.quiknode.pro',
     bsc: 'https://necessary-fabled-friday.bsc.quiknode.pro',
     polygon: 'https://cosmological-palpable-season.matic.quiknode.pro',
-    avalanche: 'https://holy-empty-borough.avalanche-mainnet.quiknode.pro/',
+    avalanche: 'https://holy-empty-borough.avalanche-mainnet.quiknode.pro/ext/bc/C/rpc/',
     arbitrum: 'https://indulgent-light-scion.arbitrum-mainnet.quiknode.pro',
 }
 const referrerAddress = 'GhQ3NxahWcddaMa71rkDp1FdTfs2jBpjzCq3kzkv1mNZ';
