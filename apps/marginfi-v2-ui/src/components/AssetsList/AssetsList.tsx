@@ -58,7 +58,7 @@ const AssetsList: FC = () => {
         const globalBankTokenNames = extendedBankInfos
           .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
           .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
-          .map((b) => b.tokenName);
+          .map((b) => b.tokenSymbol);
 
         const keyPressed = handler.keys?.join("");
         if (Number(keyPressed) >= 1 && Number(keyPressed) <= globalBankTokenNames.length) {
