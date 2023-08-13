@@ -466,10 +466,19 @@ const Signup: FC<{ referralCode?: string }> = ({ referralCode }) => {
   const wallet = useWallet();
   const [manualCode, setManualCode] = useState("");
   const [useAuthTx, setUseAuthTx] = useState(false);
+  const [useManualCode, setUseManualCode] = useState(false);
+
   const finalReferralCode = useMemo(
-    () => (manualCode.length > 0 ? manualCode : referralCode),
-    [referralCode, manualCode]
+    () => (useManualCode ? manualCode : referralCode),
+    [useManualCode, manualCode, referralCode]
   );
+
+  useEffect(() => {
+    if (manualCode.length > 0) {
+      setUseManualCode((current) => current || true);
+    }
+  }, [manualCode]);
+
   const signup = useCallback(async () => {
     toast.info("Logging in...");
     const blockhashInfo = await connection.getLatestBlockhash();
@@ -485,41 +494,30 @@ const Signup: FC<{ referralCode?: string }> = ({ referralCode }) => {
   return (
     <Card className="w-2/3 bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
       <CardContent>
-        <div className="w-full flex flex-col gap-10 justify-evenly items-center p-4 text-base text-white font-aeonik font-[400] rounded-xl text-center">
+        <div className="w-full flex flex-col justify-evenly items-center p-2 text-base text-white font-aeonik font-[400] rounded-xl text-center">
           <div>
             <span className="text-2xl font-[500]">Access upgraded features</span>
             <br />
             <br />
-            Prove you own this wallet by signing a message in your wallet. It is free and does not involve the network.
+            Prove you own this wallet by signing a message.
+            <br />
+            Optionally enter a referral code below.
           </div>
-          <div className="w-full h-[40px] flex justify-center gap-5 items-center">
+          <div className="w-full flex justify-center items-center">
             {wallet.connected ? (
               <div>
-                <div className="flex justify-center items-center gap-8">
-                  <TextField
-                    size="small"
-                    id="outlined-basic"
-                    variant="outlined"
-                    value={finalReferralCode}
-                    className="font-aeonik bg-white text-red rounded h-full"
-                    style={{
-                      color: "white",
-                    }}
-                    onChange={(event) => {
-                      setManualCode(event.target.value);
-                    }}
-                  />
-                  <Button
-                    size="large"
-                    className={`text-black bg-white h-full p-0 font-aeonik rounded`}
-                    style={{
-                      fontWeight: 300,
-                    }}
-                    onClick={signup}
-                  >
-                    Signup
-                  </Button>
-                </div>
+                <TextField
+                  size="medium"
+                  variant="outlined"
+                  value={finalReferralCode}
+                  InputProps={{
+                    className: "font-aeonik text-[#e1e1e1] text-center border border-[#4E5257] h-11 mt-[20px]",
+                  }}
+                  inputProps={{ className: "text-center" }}
+                  onChange={(event) => {
+                    setManualCode(event.target.value);
+                  }}
+                />
                 <div
                   className="flex justify-center items-center cursor-pointer"
                   onClick={() => setUseAuthTx((current) => !current)}
@@ -533,8 +531,34 @@ const Signup: FC<{ referralCode?: string }> = ({ referralCode }) => {
                       },
                     }}
                   />
-                  Use tx signing instead of memo
+                  <span className="mr-[8px]">Use tx signing</span>
+                  <HtmlTooltip
+                    title={
+                      <>
+                        <div className="flex flex-col gap-2 pb-2">
+                          Certain hardware wallet versions do not support memo signing.
+                        </div>
+                        <div className="flex flex-col gap-2 pb-2">
+                          Use this option if you are unable to proceed with memo signing. It is free as well and will
+                          not involve the network.
+                        </div>
+                      </>
+                    }
+                    placement="top"
+                  >
+                    <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                  </HtmlTooltip>
                 </div>
+                <Button
+                  size="large"
+                  className={`bg-white text-black normal-case text-[10px] sm:text-sm mx-2 mt-[20px] sm:mx-0 w-14 sm:w-32 h-11 rounded-md max-w-[115px]`}
+                  style={{
+                    fontWeight: 300,
+                  }}
+                  onClick={signup}
+                >
+                  Signup
+                </Button>
               </div>
             ) : (
               <WalletButton />
@@ -565,28 +589,16 @@ const Login: FC = () => {
   return (
     <Card className="w-2/3 bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
       <CardContent>
-        <div className="w-full flex flex-col gap-10 justify-evenly items-center p-4 text-base text-white font-aeonik font-[400] rounded-xl text-center">
+        <div className="w-full flex flex-col justify-evenly items-center p-2 text-base text-white font-aeonik font-[400] rounded-xl text-center">
           <div>
             <span className="text-2xl font-[500]">Access upgraded features</span>
             <br />
             <br />
-            Prove you own this wallet by signing a message in your wallet. It is free and does not involve the network.
+            Prove you own this wallet by signing a message.
           </div>
-          <div className="w-full h-[40px] flex justify-center gap-5 items-center">
+          <div className="w-full flex justify-center items-center mt-[20px]">
             {wallet.connected ? (
               <div>
-                <div className="flex justify-center items-center gap-8">
-                  <Button
-                    size="large"
-                    className={`text-black bg-white h-full p-0 font-aeonik rounded`}
-                    style={{
-                      fontWeight: 300,
-                    }}
-                    onClick={login}
-                  >
-                    Login
-                  </Button>
-                </div>
                 <div
                   className="flex justify-center items-center cursor-pointer"
                   onClick={() => setUseAuthTx((current) => !current)}
@@ -600,8 +612,34 @@ const Login: FC = () => {
                       },
                     }}
                   />
-                  Use tx signing instead of memo
+                  <span className="mr-[8px]">Use tx signing</span>
+                  <HtmlTooltip
+                    title={
+                      <>
+                        <div className="flex flex-col gap-2 pb-2">
+                          Certain hardware wallet versions do not support memo signing.
+                        </div>
+                        <div className="flex flex-col gap-2 pb-2">
+                          Use this option if you are unable to proceed with memo signing. It is free as well and will
+                          not involve the network.
+                        </div>
+                      </>
+                    }
+                    placement="top"
+                  >
+                    <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                  </HtmlTooltip>
                 </div>
+                <Button
+                  size="large"
+                  className={`bg-white text-black normal-case text-[10px] sm:text-sm mx-2 mt-[20px] sm:mx-0 w-14 sm:w-32 h-11 rounded-md max-w-[115px]`}
+                  style={{
+                    fontWeight: 300,
+                  }}
+                  onClick={login}
+                >
+                  Login
+                </Button>
               </div>
             ) : (
               <WalletButton />

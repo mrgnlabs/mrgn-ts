@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "clean": "rimraf dist node_modules",
-    "dev": "next dev --port 3004",
+    "dev": "RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED=false next dev --port 3004",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
