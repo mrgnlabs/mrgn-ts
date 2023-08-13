@@ -1,14 +1,16 @@
-import { useRouter } from 'next/router'
+import { useRouter } from "next/router";
+import { useEffect, useMemo } from "react";
 
 export default function ReferralPage() {
-  const router = useRouter()
-  const { referralCode } = router.query
+  const router = useRouter();
+  const { referralCode } = useMemo(() => router.query, [router]);
 
-  // redirect to your app, passing along the referral code
-  if (typeof window !== 'undefined') {
-    const newUrl = `${window.location.origin}/points?referralCode=${referralCode}`;
-    window.location.replace(newUrl);
-  }
+  useEffect(() => {
+    if (typeof window !== "undefined" && referralCode) {
+      const newUrl = `${window.location.origin}/points?referralCode=${referralCode}`;
+      router.push(newUrl);
+    }
+  }, [referralCode, router]);
 
-  return null
+  return null;
 }
