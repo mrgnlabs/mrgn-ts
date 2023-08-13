@@ -122,8 +122,8 @@ const appIdentity = {
 };
 
 const colors: MayanWidgetColors = {
-    mainBox: '#010101',
-    background: '#050606',
+    mainBox: '#0F1111',
+    background: '#0F1111',
 };
 
 const rpcs = {
