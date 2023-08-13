@@ -76,6 +76,17 @@ const Navbar: FC = () => {
   const [user, setUser] = useState<null | string>(null);
   const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
+  
+
+  const router = useRouter();
+  const [currentRoute, setCurrentRoute] = useState(router.pathname)
+
+  useEffect(
+    () => {
+      setCurrentRoute(router.pathname)
+    },
+    [router.pathname]
+  );
 
   // Enter hotkey mode
   useHotkeys("meta+k", () => {
@@ -88,8 +99,11 @@ const Navbar: FC = () => {
     }, 5000);
   }, { preventDefault: true, enableOnFormTags: true });
 
+  
+
   // Navigation in hotkey mode
   useHotkeys("l, s, b, e, o", (_, handler: HotkeysEvent) => {
+
     if (isHotkeyMode) {
       switch (handler.keys?.join("")) {
         case "l":
@@ -111,9 +125,7 @@ const Navbar: FC = () => {
       setIsHotkeyMode(false);
       setShowBadges(false);
     }
-  }, { preventDefault: true, enableOnFormTags: true });
-
-  const router = useRouter();
+  }, { preventDefault: currentRoute == "/" ? true : false, enableOnFormTags: true });
 
   useHotkeys(
     "meta+k",

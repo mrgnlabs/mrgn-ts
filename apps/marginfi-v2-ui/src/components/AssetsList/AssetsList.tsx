@@ -68,7 +68,7 @@ const AssetsList: FC = () => {
         }
       }
     },
-    { preventDefault: true, enableOnFormTags: true }
+    { preventDefault: false, enableOnFormTags: true }
   );
 
   // Toggle lending mode in hotkey mode
