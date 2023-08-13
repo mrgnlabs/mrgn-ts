@@ -76,3 +76,9 @@ a {
   text-shadow: 0 0 10px #05FFFF, 0 0 30px #05FFFF;
   color: #05FFFF !important;
 }
+
+#MAYAN_SWAP_PV_ROOT {
+  width: 420px;
+  padding-left: 0px;
+  padding-right: 0px;
+}

@@ -8,6 +8,10 @@ import {BorrowLendToggle} from '~/components/AssetsList/BorrowLendToggle';
 import {Transaction} from "@solana/web3.js";
 import {useWalletModal} from "@solana/wallet-adapter-react-ui";
 import { toast } from "react-toastify";
+import { useRecoilState } from 'recoil';
+import { showBadgesState } from '~/state';
+import { useHotkeys } from "react-hotkeys-hook";
+import { PageHeaderBridge } from '~/components/PageHeader';
 
 type MayanWidgetChainName = 'solana' | 'ethereum' | 'bsc' | 'polygon' | 'avalanche' | 'arbitrum' | 'aptos';
 
@@ -99,7 +103,7 @@ declare global {
     }
 }
 const tokens = [
-    'So11111111111111111111111111111111111111112', // SOL
+    '0x0000000000000000000000000000000000000000', // SOL
     '7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT', // UXD
     'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So', // mSOL
     'J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn', // jitoSOL
@@ -116,14 +120,14 @@ const tokens = [
 ];
 
 const appIdentity = {
-    name: 'mayan on marginfi',
+    name: 'Mayan',
     icon: './marginfi_logo.png',
     uri: 'https://app.marginfi.com/',
 };
 
 const colors: MayanWidgetColors = {
-    mainBox: '#010101',
-    background: '#050606',
+    mainBox: '#0F1111',
+    background: '#0F1111',
 };
 
 const rpcs = {
@@ -145,31 +149,31 @@ const configs: MayanWidgetConfigType[] = [
         tokens: {
             to: {
                 solana: tokens,
-
             }
         },
-        sourceChains: ['ethereum', 'arbitrum', 'bsc', 'avalanche'],
-        destinationChains: ['solana'],
+        sourceChains: ['solana', 'polygon', 'ethereum', 'arbitrum', 'bsc', 'avalanche', 'aptos'],
+        destinationChains: ['solana', 'polygon', 'ethereum', 'arbitrum', 'bsc', 'avalanche', 'aptos'],
     },
-    {
-        colors,
-        appIdentity,
-        rpcs,
-        referrerAddress,
-        tokens: {
-            from: {
-                solana: tokens,
-            }
-        },
-        sourceChains: ['solana'],
-        destinationChains: ['ethereum', 'arbitrum', 'bsc', 'polygon', 'avalanche'],
-    }
 ];
 const BridgePage = () => {
     const {publicKey, signTransaction, connect, disconnect, wallet} = useWallet();
     const {setVisible, visible} = useWalletModal();
     const [isBridgeIn, setIsBridgeIn] = useState<boolean>(true);
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
+    const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
+    const [isHotkeyMode, setIsHotkeyMode] = useState(false);
+    
+
+    // Enter hotkey mode
+    useHotkeys("meta + k", () => {
+        setIsHotkeyMode(true);
+        setShowBadges(true);
+        
+        setTimeout(() => {
+        setIsHotkeyMode(false);
+        setShowBadges(false);
+        }, 5000);
+    }, { preventDefault: true, enableOnFormTags: true });
 
     const handleConnect = useCallback(async () => {
         try {
@@ -252,20 +256,30 @@ const BridgePage = () => {
         setIsBridgeIn(prevState => !prevState);
     }
 
+    useEffect(
+        () => {
+            handleUpdateConfig
+        }
+        , []
+    )
+
 
     return (
         <>
+            <PageHeaderBridge />
             <div
-                className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-7xl">
+                className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-7xl"
+            >
+                <div className="text-[#fff] text-3xl min-w-[600px] text-center">
+                    Zero fees. <span className="text-[#DCE85D]">Always.</span>
+                </div>
                 <Script
                     src="https://cdn.mayan.finance/widget_solana-0-4-5.js"
                     integrity="sha256-mTVQLKvE422WDwtZQUcz/9u5ZK3T1vMfSO0omQvla0E="
                     crossOrigin="anonymous"
                     onReady={handleLoadMayanWidget}
                 />
-                <BorrowLendToggle isInLendingMode={isBridgeIn} setIsInLendingMode={handleUpdateConfig} leftTitle="In"
-                                  rightTitle="Out" paddingConfigs={{left: "38px", right: "32px"}}/>
-                <div id="swap_widget"></div>
+                <div className="max-h-[500px] overflow-hidden" id="swap_widget"></div>
             </div>
         </>
     );
