@@ -38,12 +38,6 @@ const PageHeaderSwap: FC = () => {
         <span className="text-sm h-[48px] pt-[32px] bg-jup-gradient-colors bg-clip-text text-transparent">
           Jupiter
         </span>
-        <span className="text-sm h-[48px] pt-[32px] bg-white bg-clip-text text-transparent">
-          and
-        </span>
-        <span className="text-sm mt-[6px] h-[54px] pt-[32px] bg-mayan-gradient-colors bg-clip-text text-transparent z-100">
-          Mayan
-        </span>
       </div>
     </div>
   );
