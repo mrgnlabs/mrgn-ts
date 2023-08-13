@@ -132,11 +132,11 @@ const colors: MayanWidgetColors = {
 
 const rpcs = {
     solana: config.rpcEndpoint,
-    ethereum: 'https://snowy-solemn-sea.discover.quiknode.pro',
-    bsc: 'https://necessary-fabled-friday.bsc.quiknode.pro',
-    polygon: 'https://cosmological-palpable-season.matic.quiknode.pro',
-    avalanche: 'https://holy-empty-borough.avalanche-mainnet.quiknode.pro/ext/bc/C/rpc/',
-    arbitrum: 'https://indulgent-light-scion.arbitrum-mainnet.quiknode.pro',
+    ethereum: process.env.NEXT_PUBLIC_ETHEREUM_RPC_ENDPOINT,
+    bsc: process.env.NEXT_PUBLIC_BSC_ENDPOINT,
+    polygon: process.env.NEXT_PUBLIC_POLYGON_ENDPOINT,
+    avalanche: process.env.NEXT_PUBLIC_AVALANCE_ENDPOINT,
+    arbitrum: process.env.NEXT_PUBLIC_ARBITRUM_ENDPOINT,
 }
 const referrerAddress = 'GhQ3NxahWcddaMa71rkDp1FdTfs2jBpjzCq3kzkv1mNZ';
 
