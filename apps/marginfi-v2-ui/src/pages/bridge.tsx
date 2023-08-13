@@ -8,6 +8,10 @@ import {BorrowLendToggle} from '~/components/AssetsList/BorrowLendToggle';
 import {Transaction} from "@solana/web3.js";
 import {useWalletModal} from "@solana/wallet-adapter-react-ui";
 import { toast } from "react-toastify";
+import { useRecoilState } from 'recoil';
+import { showBadgesState } from '~/state';
+import { useHotkeys } from "react-hotkeys-hook";
+import { PageHeaderBridge } from '~/components/PageHeader';
 
 type MayanWidgetChainName = 'solana' | 'ethereum' | 'bsc' | 'polygon' | 'avalanche' | 'arbitrum' | 'aptos';
 
@@ -145,31 +149,31 @@ const configs: MayanWidgetConfigType[] = [
         tokens: {
             to: {
                 solana: tokens,
-
             }
         },
-        sourceChains: ['ethereum', 'arbitrum', 'bsc', 'avalanche'],
-        destinationChains: ['solana'],
+        sourceChains: ['solana', 'polygon', 'ethereum', 'arbitrum', 'bsc', 'avalanche', 'aptos'],
+        destinationChains: ['solana', 'polygon', 'ethereum', 'arbitrum', 'bsc', 'avalanche', 'aptos'],
     },
-    {
-        colors,
-        appIdentity,
-        rpcs,
-        referrerAddress,
-        tokens: {
-            from: {
-                solana: tokens,
-            }
-        },
-        sourceChains: ['solana'],
-        destinationChains: ['ethereum', 'arbitrum', 'bsc', 'polygon', 'avalanche'],
-    }
 ];
 const BridgePage = () => {
     const {publicKey, signTransaction, connect, disconnect, wallet} = useWallet();
     const {setVisible, visible} = useWalletModal();
     const [isBridgeIn, setIsBridgeIn] = useState<boolean>(true);
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
+    const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
+    const [isHotkeyMode, setIsHotkeyMode] = useState(false);
+    
+
+    // Enter hotkey mode
+    useHotkeys("meta + k", () => {
+        setIsHotkeyMode(true);
+        setShowBadges(true);
+        
+        setTimeout(() => {
+        setIsHotkeyMode(false);
+        setShowBadges(false);
+        }, 5000);
+    }, { preventDefault: true, enableOnFormTags: true });
 
     const handleConnect = useCallback(async () => {
         try {
@@ -252,9 +256,17 @@ const BridgePage = () => {
         setIsBridgeIn(prevState => !prevState);
     }
 
+    useEffect(
+        () => {
+            handleUpdateConfig
+        }
+        , []
+    )
+
 
     return (
         <>
+            <PageHeaderBridge />
             <div
                 className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-7xl">
                 <Script
@@ -263,8 +275,6 @@ const BridgePage = () => {
                     crossOrigin="anonymous"
                     onReady={handleLoadMayanWidget}
                 />
-                <BorrowLendToggle isInLendingMode={isBridgeIn} setIsInLendingMode={handleUpdateConfig} leftTitle="In"
-                                  rightTitle="Out" paddingConfigs={{left: "38px", right: "32px"}}/>
                 <div id="swap_widget"></div>
             </div>
         </>
