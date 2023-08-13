@@ -91,10 +91,7 @@ const Footer: FC = () => {
           </SvgIcon>
           </div>
         </div>
-        <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] pr-4">
-          <div className="h-full flex justify-center items-center font-bold">
-            X
-          </div>
+        <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] pr-6">
           <Switch
             onChange={denominationOnChange}
             sx={{
@@ -115,7 +112,7 @@ const Footer: FC = () => {
             checked={denomination}
           />
           <div className="h-full flex justify-center items-center font-bold">
-            $
+            Show $
           </div>
         </div>
         <div className="flex gap-4 items-center justify-center pt-1 border-r border-[#4E5257] pr-4">
