@@ -45,7 +45,7 @@ const BorrowLendToggle = styled(({
           color: "#1C2125",
         },
       }}
-      badgeContent={"shift + l"}
+      badgeContent={"q"}
       invisible={!showBadges}
     >
       <Switch

@@ -72,7 +72,7 @@ const AssetsList: FC = () => {
   );
 
   // Toggle lending mode in hotkey mode
-  useHotkeys("t", () => {
+  useHotkeys("q", () => {
     if (isHotkeyMode) {
       setIsInLendingMode(prevMode => !prevMode);
       setIsHotkeyMode(false);
