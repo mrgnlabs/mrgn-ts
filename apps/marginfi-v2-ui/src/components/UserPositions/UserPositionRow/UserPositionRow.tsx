@@ -166,7 +166,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
   ]);
 
   return (
-    <TableRow className="h-full w-full bg-[#0D0F11] border border-[#1E2122] rounded-2xl">
+    <TableRow className="h-full w-full bg-[#171C1F] border border-[#1E2122] rounded-2xl">
       <TableCell
         className={`text-white p-0 font-aeonik border-[1px] border-${activeBankInfo.tokenSymbol}`}
       >
