@@ -6,7 +6,8 @@ export default function ReferralPage() {
 
   // redirect to your app, passing along the referral code
   if (typeof window !== 'undefined') {
-    window.location.href = `${window.location.origin}/points?referralCode=${referralCode}`
+    const newUrl = `${window.location.origin}/points?referralCode=${referralCode}`;
+    window.location.replace(newUrl);
   }
 
   return null
