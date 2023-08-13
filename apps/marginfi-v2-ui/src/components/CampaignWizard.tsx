@@ -185,35 +185,35 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
   // @todo Move to config?
   // Not sure how worth it given LIP campaign creation's small user base
   const assetIcons: { [key: string]: { [key: string]: any } } = {
-    SOL: {
+    "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh": {
       icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
       size: 30,
     },
-    USDC: {
+    "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB": {
       icon: "https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=024",
       size: 30,
     },
-    mSOL: {
+    "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE": {
       icon: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png",
       size: 30,
     },
-    BONK: {
+    "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM": {
       icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/23095.png",
       size: 30,
     },
-    USDT: {
+    "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV": {
       icon: "https://cryptologos.cc/logos/tether-usdt-logo.png?v=024",
       size: 30,
     },
-    ETH: {
+    "BkUyfXjbBBALcfZvw76WAFRvYQ21xxMWWeoPtJrUqG3z": {
       icon: "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/ETH_wh.png",
       size: 30,
     },
-    WBTC: {
+    "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a": {
       icon: "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/WBTC_wh.png",
       size: 30,
     },
-    JitoSOL: {
+    "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8": {
       icon: "https://storage.googleapis.com/token-metadata/JitoSOL-256.png",
       size: 30,
     },
@@ -245,19 +245,23 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
             setCampaignBank(bank);
           }}
         >
-          {availableBanks.map((b) => (
+          {availableBanks.map((b) => {
+            let assetIcon = assetIcons[b.publicKey.toBase58()];
+            if (!assetIcon) assetIcon = assetIcons["CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"];
+
+            return (
             <MenuItem key={b.publicKey.toBase58()} value={b.publicKey.toBase58()}>
               <div className="flex gap-4 items-center">
                 <Image
-                  src={assetIcons[b.label].icon}
-                  alt={b.label}
-                  height={assetIcons[b.label].size}
-                  width={assetIcons[b.label].size}
+                  src={assetIcon.icon}
+                  alt={b.publicKey.toBase58()}
+                  height={assetIcon.size}
+                  width={assetIcon.size}
                 />
-                <div>{b.label}</div>
+                <div>{b.publicKey.toBase58()}</div>
               </div>
             </MenuItem>
-          ))}
+          )})}
         </Select>
       </div>
       <div className="flex justify-between">
@@ -277,7 +281,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
             value={lockupPeriodInDays}
             setValue={setLockupPeriodInDays}
             loadingSafetyCheck={() => { }}
-            maxDecimals={3}
+            maxDecimals={4}
             disabled={!wallet.connected}
           />
         </div>
@@ -288,7 +292,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           value={depositCapacity}
           setValue={setDepositCapacity}
           loadingSafetyCheck={() => { }}
-          maxDecimals={2}
+          maxDecimals={3}
           disabled={!wallet.connected}
         />
       </div>
@@ -313,7 +317,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
               fontWeight: "bold",
             }}
           >
-            {groupedNumberFormatterDyn.format(depositCapacity)} {campaignBank?.label || "none"}
+            {groupedNumberFormatterDyn.format(depositCapacity)}
           </span>
         </div>
         <div className="flex justify-between text-[rgb(227, 227, 227)]">
@@ -324,7 +328,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
               fontWeight: "bold",
             }}
           >
-            {groupedNumberFormatterDyn.format(maxRewards)} {campaignBank?.label || "none"}
+            {groupedNumberFormatterDyn.format(maxRewards)}
           </span>
         </div>
         <div className="flex justify-between text-[rgb(227, 227, 227)]">
@@ -338,10 +342,9 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
             {campaignBank
               ? percentFormatterDyn.format(
                 computeGuaranteedApy(
-                  contractInputs.lockupPeriod,
-                  contractInputs.maxDeposits,
-                  contractInputs.maxRewards,
-                  campaignBank
+                  contractInputs.lockupPeriod.toNumber(),
+                  contractInputs.maxDeposits.toNumber(),
+                  contractInputs.maxRewards.toNumber(),
                 )
               )
               : 0}

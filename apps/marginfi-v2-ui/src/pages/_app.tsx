@@ -23,6 +23,7 @@ import {
   TokenAccountsProvider,
   TokenMetadataProvider,
   UserAccountsProvider,
+  BankMetadataProvider
 } from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
@@ -65,29 +66,31 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <ProgramProvider>
-            <TokenMetadataProvider>
-              <BanksStateProvider>
-                <TokenAccountsProvider>
-                  <UserAccountsProvider>
-                    <Head>
-                      <title>marginfi</title>
-                      <meta name="description" content="marginfi v2 UI" />
-                      <meta name="viewport" content="width=device-width, initial-scale=1" />
-                      <link rel="icon" href="/favicon.ico" />
-                    </Head>
-                    <RecoilRoot>
-                      <Navbar />
-                      <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
-                        <Component {...pageProps} />
-                        <Analytics />
-                      </div>
-                      <Footer />
-                      <ToastContainer position="bottom-left" theme="dark" />
-                    </RecoilRoot>
-                  </UserAccountsProvider>
-                </TokenAccountsProvider>
-              </BanksStateProvider>
-            </TokenMetadataProvider>
+            <BankMetadataProvider>
+              <TokenMetadataProvider>
+                <BanksStateProvider>
+                  <TokenAccountsProvider>
+                    <UserAccountsProvider>
+                      <Head>
+                        <title>marginfi</title>
+                        <meta name="description" content="marginfi v2 UI" />
+                        <meta name="viewport" content="width=device-width, initial-scale=1" />
+                        <link rel="icon" href="/favicon.ico" />
+                      </Head>
+                      <RecoilRoot>
+                        <Navbar />
+                        <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
+                          <Component {...pageProps} />
+                          <Analytics />
+                        </div>
+                        <Footer />
+                        <ToastContainer position="bottom-left" theme="dark" />
+                      </RecoilRoot>
+                    </UserAccountsProvider>
+                  </TokenAccountsProvider>
+                </BanksStateProvider>
+              </TokenMetadataProvider>
+            </BankMetadataProvider>
           </ProgramProvider>
         </WalletModalProvider>
       </WalletProvider>

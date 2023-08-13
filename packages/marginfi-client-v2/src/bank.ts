@@ -13,8 +13,6 @@ import { AggregatorAccount, SwitchboardProgram } from "@switchboard-xyz/solana.j
 class Bank {
   public readonly publicKey: PublicKey;
 
-  public readonly label: string;
-
   public group: PublicKey;
   public mint: PublicKey;
   public mintDecimals: number;
@@ -49,8 +47,7 @@ class Bank {
 
   private priceData: OraclePriceData;
 
-  constructor(label: string, address: PublicKey, rawData: BankData, priceData: OraclePriceData) {
-    this.label = label;
+  constructor(address: PublicKey, rawData: BankData, priceData: OraclePriceData) {
     this.publicKey = address;
 
     this.mint = rawData.mint;
@@ -116,7 +113,7 @@ class Bank {
 
   public describe(): string {
     return `
-Bank: ${this.label}, address: ${this.publicKey.toBase58()}
+Bank address: ${this.publicKey.toBase58()}
 Mint: ${this.mint.toBase58()}, decimals: ${this.mintDecimals}
 
 Total deposits: ${nativeToUi(this.totalAssets, this.mintDecimals)}

@@ -5,6 +5,7 @@ import { makeBankInfo } from "~/api";
 import { toast } from "react-toastify";
 import { useProgram } from "~/context/Program";
 import { BankInfo } from "~/types";
+import { useBankMetadata } from "./BankMetadata";
 
 // @ts-ignore - Safe because context hook checks for null
 const BanksContext = createContext<BanksState>();
@@ -21,13 +22,14 @@ const BanksStateProvider: FC<{
 }> = ({ children }) => {
   const { mfiClientReadonly } = useProgram();
   const { tokenMetadataMap } = useTokenMetadata();
+  const { bankMetadataMap } = useBankMetadata();
 
   const [fetching, setFetching] = useState<boolean>(true);
   const [banks, setBanks] = useState<Bank[]>([]);
   const [bankInfos, setBankInfos] = useState<BankInfo[]>([]);
 
   const reload = useCallback(async () => {
-    if (mfiClientReadonly === null) return;
+    if (mfiClientReadonly === null || !tokenMetadataMap || !bankMetadataMap) return;
 
     setFetching(true);
     try {
@@ -36,11 +38,15 @@ const BanksStateProvider: FC<{
       setBanks(banks);
       setBankInfos(
         banks.map((bank) => {
-          const tokenMetadata = tokenMetadataMap[bank.label];
-          if (tokenMetadata === undefined) {
-            throw new Error(`Token metadata not found for ${bank.label}`);
+          const bankMetadata = bankMetadataMap[bank.publicKey.toBase58()];
+          if (bankMetadata === undefined) {
+            throw new Error(`Bank metadata not found for ${bank.publicKey.toBase58()}`);
           }
-          return makeBankInfo(bank, tokenMetadata);
+          const tokenMetadata = tokenMetadataMap[bankMetadata.tokenSymbol];
+          if (tokenMetadata === undefined) {
+            throw new Error(`Token metadata not found for ${bankMetadata.tokenSymbol}`);
+          }
+          return makeBankInfo(bank, tokenMetadata, bankMetadata.tokenSymbol);
         })
       );
     } catch (e: any) {
@@ -48,7 +54,7 @@ const BanksStateProvider: FC<{
     } finally {
       setFetching(false);
     }
-  }, [mfiClientReadonly, tokenMetadataMap]);
+  }, [mfiClientReadonly, tokenMetadataMap, bankMetadataMap]);
 
   useEffect(() => {
     reload();

@@ -286,7 +286,7 @@ const AssetsList: FC = () => {
                     .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
                     .map((bankInfo, i) => (
                       <AssetRow
-                        key={bankInfo.tokenName}
+                        key={bankInfo.tokenSymbol}
                         nativeSolBalance={nativeSolBalance}
                         bankInfo={bankInfo}
                         isInLendingMode={isInLendingMode}
@@ -331,7 +331,7 @@ const AssetsList: FC = () => {
                     .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
                     .map((bankInfo, i) => (
                       <AssetRow
-                        key={bankInfo.tokenName}
+                        key={bankInfo.tokenSymbol}
                         nativeSolBalance={nativeSolBalance}
                         bankInfo={bankInfo}
                         isInLendingMode={isInLendingMode}

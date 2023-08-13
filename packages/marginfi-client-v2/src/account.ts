@@ -15,7 +15,6 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
-import { parsePriceData } from "@pythnetwork/client";
 import {
   AccountInfo,
   AccountMeta,
@@ -280,9 +279,16 @@ export class MarginfiAccount {
   async repay(amount: Amount, bank: Bank, repayAll: boolean = false): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:repay`);
     debug("Repaying %s %s into marginfi account, repay all: %s", amount, bank.mint, repayAll);
-    const ixs = await this.makeRepayIx(amount, bank, repayAll);
-    const tx = new Transaction();
+    
+    let ixs = [];
 
+    if (this.activeBalances.length >= 4) {
+      ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
+    }
+
+    const ixws = await this.makeRepayIx(amount, bank, repayAll);
+    ixs.push(...ixws.instructions);
+    
     if (repayAll && !bank.emissionsMint.equals(PublicKey.default)) {
       const userAta = await associatedAddress({
         mint: bank.emissionsMint,
@@ -295,11 +301,11 @@ export class MarginfiAccount {
         bank.emissionsMint
       );
 
-      tx.add(createAtaIdempotentIx);
-      tx.add(...(await this.makeWithdrawEmissionsIx(bank)).instructions);
+      ixs.push(createAtaIdempotentIx);
+      ixs.push(...(await this.makeWithdrawEmissionsIx(bank)).instructions);
     }
 
-    tx.add(...ixs.instructions);
+    const tx = new Transaction().add(...ixs);
     const sig = await this.client.processTransaction(tx);
     debug("Depositing successful %s", sig);
     await this.reload();
@@ -351,7 +357,12 @@ export class MarginfiAccount {
   async withdraw(amount: Amount, bank: Bank, withdrawAll: boolean = false): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
-    const tx = new Transaction();
+
+    let ixs = [];
+
+    if (this.activeBalances.length >= 4) {
+      ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
+    }
 
     if (withdrawAll && !bank.emissionsMint.equals(PublicKey.default)) {
       const userAta = await associatedAddress({
@@ -365,8 +376,8 @@ export class MarginfiAccount {
         bank.emissionsMint
       );
 
-      tx.add(createAtaIdempotentIx);
-      tx.add(...(await this.makeWithdrawEmissionsIx(bank)).instructions);
+      ixs.push(createAtaIdempotentIx);
+      ixs.push(...(await this.makeWithdrawEmissionsIx(bank)).instructions);
     }
 
     const userAta = await associatedAddress({
@@ -379,11 +390,12 @@ export class MarginfiAccount {
       this.client.provider.wallet.publicKey,
       bank.mint
     );
-    tx.add(createAtaIdempotentIx);
+    ixs.push(createAtaIdempotentIx);
 
-    const ixs = await this.makeWithdrawIx(amount, bank, withdrawAll);
-    tx.add(...ixs.instructions);
+    const ixw = await this.makeWithdrawIx(amount, bank, withdrawAll);
+    ixs.push(...ixw.instructions);
 
+    const tx = new Transaction().add(...ixs);
     const sig = await this.client.processTransaction(tx);
     debug("Withdrawing successful %s", sig);
     await this.reload();
@@ -437,7 +449,12 @@ export class MarginfiAccount {
   async borrow(amount: Amount, bank: Bank): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
-    const tx = new Transaction();
+
+    let ixs = [];
+
+    if (this.activeBalances.length >= 4) {
+      ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
+    }
 
     const userAta = await associatedAddress({
       mint: bank.mint,
@@ -449,12 +466,14 @@ export class MarginfiAccount {
       this.client.provider.wallet.publicKey,
       bank.mint
     );
-    tx.add(createAtaIdempotentIx);
+    ixs.push(createAtaIdempotentIx);
 
-    const ixs = await this.makeBorrowIx(amount, bank);
-    tx.add(...ixs.instructions);
+    const ixw = await this.makeBorrowIx(amount, bank);
+    ixs.push(...ixw.instructions);
+
+    const tx = new Transaction().add(...ixs);
     const sig = await this.client.processTransaction(tx);
-    debug("Withdrawing successful %s", sig);
+    debug("Borrowing successful %s", sig);
     await this.reload();
     return sig;
   }
@@ -614,7 +633,6 @@ export class MarginfiAccount {
       bankAccountsData.map(async (accountData) => {
         let bankData = accountData.account as any as BankData;
         return new Bank(
-          this._config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
           accountData.publicKey,
           bankData,
           await getOraclePriceData(
@@ -880,8 +898,7 @@ export class MarginfiAccount {
         console.log(`Bank ${lendingAccount.bankPk} not found`);
         continue;
       }
-      const utpStr = `\n  Bank ${bank.label}:
-      Address: ${bank.publicKey.toBase58()}
+      const utpStr = `\n  Bank ${bank.publicKey.toBase58()}:
       Mint: ${bank.mint.toBase58()}
       Equity: ${lendingAccount.getUsdValue(bank, MarginRequirementType.Equity)}`;
       str = str.concat(utpStr);
@@ -1104,7 +1121,7 @@ export class Balance {
     let { assets: assetsUsd, liabilities: liabsUsd } = this.getUsdValue(bank, MarginRequirementType.Equity);
 
     return `
-${bank.label} Balance:
+${bank.publicKey} Balance:
 - Deposits: ${assetsQt.toFixed(5)} (${assetsUsd.toFixed(5)} USD)
 - Borrows: ${liabsQt.toFixed(5)} (${liabsUsd.toFixed(5)} USD)
 `;

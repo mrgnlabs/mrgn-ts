@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "homepage": ".",
   "scripts": {
-    "build": "npx expo build:web",
+    "clean": "rimraf dist node_modules",
+    "build": "expo export:web",
     "start": "yarn build && npx xnft web",
     "bundle": "yarn build && npx xnft bundle",
     "dev": "expo start --web & npx xnft --iframe http://localhost:19006"
@@ -20,7 +21,6 @@
     "@solana/web3.js": "^1.73.0",
     "commander": "^9.4.1",
     "expo": "~48.0.7",
-    "expo-cli": "^6.3.2",
     "expo-constants": "~14.2.1",
     "expo-linking": "~4.0.1",
     "expo-status-bar": "~1.4.4",
@@ -38,7 +38,7 @@
     "react-xnft": "^0.2.0-latest.3375",
     "recoil": "*",
     "twrnc": "*",
-    "uuid": "*"
+    "uuid": "9.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.21.3",

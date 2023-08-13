@@ -233,7 +233,6 @@ class MarginfiAccountReadonly {
       bankAccountsData.map(async (accountData) => {
         let bankData = accountData.account as any as BankData;
         return new Bank(
-          this._config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
           accountData.publicKey,
           bankData,
           await getOraclePriceData(
