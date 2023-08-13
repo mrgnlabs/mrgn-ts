@@ -75,16 +75,31 @@ const Navbar: FC = () => {
   const [points, setPoints] = useState<Points>(null);
   const [user, setUser] = useState<null | string>(null);
   const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
-  const router = useRouter();
-  useHotkeys(
-    "l, s, e, o",
-    (_, handler: HotkeysEvent) => {
+  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
+
+  // Enter hotkey mode
+  useHotkeys("meta+k", () => {
+    setIsHotkeyMode(true);
+    setShowBadges(true);
+    
+    setTimeout(() => {
+      setIsHotkeyMode(false);
+      setShowBadges(false);
+    }, 5000);
+  }, { preventDefault: true, enableOnFormTags: true });
+
+  // Navigation in hotkey mode
+  useHotkeys("l, s, b, e, o", (_, handler: HotkeysEvent) => {
+    if (isHotkeyMode) {
       switch (handler.keys?.join("")) {
         case "l":
           router.push("/");
           break;
         case "s":
           router.push("/swap");
+          break;
+        case "b":
+          router.push("/bridge");
           break;
         case "e":
           router.push("/earn");
@@ -93,28 +108,32 @@ const Navbar: FC = () => {
           router.push("https://omni.marginfi.com");
           break;
       }
-    },
-    { preventDefault: true, enableOnFormTags: true }
-  );
+      setIsHotkeyMode(false);
+      setShowBadges(false);
+    }
+  }, { preventDefault: true, enableOnFormTags: true });
+
+  const router = useRouter();
 
   useHotkeys(
-    "meta",
+    "meta+k",
     () => {
       setShowBadges(true);
       setTimeout(() => {
         setShowBadges(false);
-      }, 2000);
+      }, 5000);
     },
     { enableOnFormTags: true }
   );
 
   useHotkeys(
-    "meta",
+    "meta+k",
     () => {
       setShowBadges(false);
     },
     { keyup: true, enableOnFormTags: true }
   );
+
   const { accountSummary, selectedAccount, extendedBankInfos } = useUserAccounts();
 
   useEffect(() => {
@@ -140,7 +159,7 @@ const Navbar: FC = () => {
 
   return (
     <header>
-      <nav className="fixed w-full top-0 h-[64px] z-20 backdrop-blur-md">
+      <nav className="fixed w-full top-0 h-[64px] z-20 bg-[#0F1111]">
         <div className="w-full top-0 flex justify-between items-center h-16 text-2xl z-10 border-b-[0.5px] border-[#1C2125] px-4">
           <div className="h-full w-1/2 flex justify-start items-center z-10 text-base font-[300] gap-4 lg:gap-8">
             <Link
@@ -149,7 +168,6 @@ const Navbar: FC = () => {
             >
               <Image src="/marginfi_logo.png" alt="marginfi logo" height={35.025} width={31.0125} />
             </Link>
-
             <Badge
               anchorOrigin={{
                 vertical: "bottom",
@@ -185,6 +203,24 @@ const Navbar: FC = () => {
             >
               <Link href={"/swap"} className="glow-on-hover">
                 swap
+              </Link>
+            </Badge>
+            <Badge
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right",
+                }}
+                sx={{
+                  '& .MuiBadge-badge': {
+                    backgroundColor: "rgb(220, 232, 93)",
+                    color: "#1C2125",
+                  }
+                }}
+                badgeContent={"b"}
+                invisible={!showBadges}
+            >
+              <Link href={"/bridge"} className="glow-on-hover">
+                bridge
               </Link>
             </Badge>
 

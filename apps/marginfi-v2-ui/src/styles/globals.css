@@ -29,8 +29,7 @@ body {
 
 body {
   color: rgb(255, 255, 255);
-  background-image: radial-gradient(farthest-side at 10% 10%, #171c1f 10%, #010101 80%);
-  background-color: #010101;
+  background-color: #0F1111;
   background-size: cover;
   background-repeat: no-repeat;
   font-family: "Aeonik Pro";
@@ -63,7 +62,9 @@ a {
 
 .glow-on-hover:hover {
   text-shadow: 0 0 10px #DCE85D, 0 0 30px #DCE85D;
+  filter: drop-shadow(0 0 10px #DCE85D) drop-shadow(0 0 30px #DCE85D);
   color: #DCE85D !important;
+  fill: #DCE85D !important;
 }
 
 .glow {

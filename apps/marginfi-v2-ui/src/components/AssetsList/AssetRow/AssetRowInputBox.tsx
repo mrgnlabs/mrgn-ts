@@ -52,7 +52,7 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({ value, setValue, maxValue, max
         size="small"
         max={maxValue}
         InputProps={{
-          className: "font-aeonik bg-[#1C2125] text-[#e1e1e1] p-0 m-0 text-sm h-11",
+          className: "font-aeonik text-[#e1e1e1] border border-[#4E5257] p-0 m-0 text-sm h-11",
           endAdornment: <MaxInputAdornment onClick={onMaxClick} />,
         }}
 		getInputRef={(el: any) => (inputRefs.current[tokenName] = el)}
