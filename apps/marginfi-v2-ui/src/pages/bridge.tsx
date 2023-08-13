@@ -120,7 +120,7 @@ const tokens = [
 ];
 
 const appIdentity = {
-    name: 'mayan on marginfi',
+    name: 'Mayan',
     icon: './marginfi_logo.png',
     uri: 'https://app.marginfi.com/',
 };
@@ -268,14 +268,18 @@ const BridgePage = () => {
         <>
             <PageHeaderBridge />
             <div
-                className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-7xl">
+                className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-7xl"
+            >
+                <div className="text-[#fff] text-3xl min-w-[600px] text-center">
+                    Zero fees. <span className="text-[#DCE85D]">Always.</span>
+                </div>
                 <Script
                     src="https://cdn.mayan.finance/widget_solana-0-4-5.js"
                     integrity="sha256-mTVQLKvE422WDwtZQUcz/9u5ZK3T1vMfSO0omQvla0E="
                     crossOrigin="anonymous"
                     onReady={handleLoadMayanWidget}
                 />
-                <div id="swap_widget"></div>
+                <div className="max-h-[500px] overflow-hidden" id="swap_widget"></div>
             </div>
         </>
     );
