@@ -29,6 +29,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
         <meta name="description" content="marginfi v2 UI" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+        <link rel="manifest" href="/manifest.json" />
       </Head>
       <Navbar />
       <div className="w-full min-h-[100vh] flex flex-col justify-center items-start ml-10 md:ml-24 2xl:ml-48">

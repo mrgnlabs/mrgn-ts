@@ -1,4 +1,9 @@
-module.exports = {
+const withPWA = require('next-pwa')({
+  dest: 'public'
+})
+const isProduction = process.env.NODE_ENV === "production";
+
+const config = {
   /**
    * Dynamic configuration available for the browser and server.
    * Note: requires `ssr: true` or a `getInitialProps` in `_app.tsx`
@@ -7,14 +12,10 @@ module.exports = {
   publicRuntimeConfig: {
     NODE_ENV: process.env.NODE_ENV,
   },
-  transpilePackages: [
-    "@mrgnlabs/marginfi-client-v2",
-    "@mrgnlabs/mrgn-common",
-    "@mrgnlabs/lip-client",
-  ],
+  transpilePackages: ["@mrgnlabs/marginfi-client-v2", "@mrgnlabs/mrgn-common", "@mrgnlabs/lip-client"],
   reactStrictMode: true,
   webpack: (config) => {
-    config.resolve.fallback = { fs: false, path: false, net: false, tls: false, "child_process": false, request: false };
+    config.resolve.fallback = { fs: false, path: false, net: false, tls: false, child_process: false, request: false };
     return config;
   },
   images: {
@@ -60,7 +61,10 @@ module.exports = {
         hostname: "shdw-drive.genesysgo.net",
         port: "",
         pathname: "/6tcnBSybPG7piEDShBcrVtYJDPSvGrDbVvXmXKpzBvWP/**",
-      }
+      },
     ],
   },
 };
+
+module.exports = withPWA(config);
+

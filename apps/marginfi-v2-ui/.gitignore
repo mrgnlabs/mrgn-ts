@@ -39,3 +39,7 @@ next-env.d.ts
 
 # turbo
 .turbo
+
+# PWA
+public/sw.js
+public/workbox-*.js
