@@ -19,7 +19,7 @@
     "start": "turbo run start --parallel",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/src/**/*.{ts,tsx,md,json}\"",
-    "publish-packages": "turbo run build lint test && changeset version && changeset publish"
+    "release": "turbo run build && changeset version && changeset publish"
   },
   "devDependencies": {
     "@mrgnlabs/eslint-config-custom": "*",

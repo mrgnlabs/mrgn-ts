@@ -13,6 +13,7 @@ interface AccountSummary {
   borrowingAmountUnbiased: number;
   lendingAmountWithBiasAndWeighted: number;
   borrowingAmountWithBiasAndWeighted: number;
+  freeCollateral: number;
 }
 
 interface BankInfo {

@@ -28,6 +28,7 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   apy: 0,
   positions: [],
   outstandingUxpEmissions: 0,
+  freeCollateral: 0,
 };
 
 function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: BankInfo[]): AccountSummary {
@@ -36,6 +37,8 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
   const equityComponentsWithBiasAndWeighted = marginfiAccount.getHealthComponents(MarginRequirementType.Maint);
 
   let outstandingUxpEmissions = new BigNumber(0);
+
+  const freeCollateral  = marginfiAccount.getFreeCollateral();
 
   const uxpBank = bankInfos.find((bank) => bank.tokenSymbol === "UXD");
   const uxpBalance = marginfiAccount.activeBalances.find((balance) =>
@@ -57,6 +60,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
     borrowingAmountWithBiasAndWeighted: equityComponentsWithBiasAndWeighted.liabilities.toNumber(),
     apy: marginfiAccount.computeNetApy(),
     outstandingUxpEmissions: outstandingUxpEmissions.toNumber(),
+    freeCollateral: freeCollateral.toNumber(),
   };
 }
 
