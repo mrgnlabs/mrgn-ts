@@ -3,8 +3,14 @@
   "short_name": "marginfi",
   "icons": [
     {
-      "src": "/marginfi_logo.png",
-      "sizes": "61x54",
+      "src": "/mrgn_logo_192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/mrgn_logo_512.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ],
