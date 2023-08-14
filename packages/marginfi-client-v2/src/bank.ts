@@ -80,6 +80,7 @@ class Bank {
       liabilityWeightMaint: wrappedI80F48toBigNumber(rawData.config.liabilityWeightMaint),
       depositLimit: nativeToUi(rawData.config.depositLimit, this.mintDecimals),
       borrowLimit: nativeToUi(rawData.config.borrowLimit, this.mintDecimals),
+      riskTier: "collateral" in rawData.config.riskTier ? RiskTier.Collateral : RiskTier.Isolated,
       oracleSetup: rawData.config.oracleSetup,
       oracleKeys: rawData.config.oracleKeys,
       interestRateConfig: {
@@ -308,6 +309,11 @@ export { Bank };
 
 // Client types
 
+export enum RiskTier {
+  Collateral = "Collateral",
+  Isolated = "Isolated",
+}
+
 export interface BankConfig {
   assetWeightInit: BigNumber;
   assetWeightMaint: BigNumber;
@@ -317,6 +323,8 @@ export interface BankConfig {
 
   depositLimit: number;
   borrowLimit: number;
+
+  riskTier: RiskTier;
 
   interestRateConfig: InterestRateConfig;
 
@@ -390,6 +398,7 @@ export interface BankConfigData {
 
   depositLimit: BN;
   borrowLimit: BN;
+  riskTier: RiskTierData;
 
   interestRateConfig: InterestRateConfigData;
 
@@ -409,6 +418,8 @@ export interface InterestRateConfigData {
   protocolFixedFeeApr: WrappedI80F48;
   protocolIrFee: WrappedI80F48;
 }
+
+export type RiskTierData = { collateral: {} } | { isolated: {} };
 
 export enum PriceBias {
   Lowest = 0,
