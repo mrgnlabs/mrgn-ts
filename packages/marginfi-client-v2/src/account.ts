@@ -804,7 +804,7 @@ export class MarginfiAccount {
   /**
    * Calculate the maximum amount that can be withdrawn form a bank without borrowing.
    */
-  public getMaxWithdrawForBank(bank: Bank): BigNumber {
+  public getMaxWithdrawForBank(bank: Bank, volatilityFactor: number = 0.95): BigNumber {
     const assetWeight = bank.getAssetWeight(MarginRequirementType.Init);
     const balance = this.getBalance(bank.publicKey);
 
@@ -817,7 +817,12 @@ export class MarginfiAccount {
         MarginRequirementType.Init,
         PriceBias.Lowest
       );
-      const untiedCollateralForBank = BigNumber.min(collateralForBank, freeCollateral);
+      let untiedCollateralForBank: BigNumber;
+      if (collateralForBank.lte(freeCollateral)) {
+        untiedCollateralForBank = collateralForBank;
+      } else {
+        untiedCollateralForBank = freeCollateral.times(volatilityFactor);
+      }
 
       const priceLowestBias = bank.getPrice(PriceBias.Lowest);
 
