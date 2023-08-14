@@ -1,7 +1,7 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 import { array, assert, Infer, number, object, string } from "superstruct";
-import { BankMetadata, TokenMetadata } from "~/types";
+import { ActiveBankInfo, BankMetadata, TokenMetadata } from "~/types";
 import tokenInfos from "../assets/token_info.json";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
@@ -148,4 +148,11 @@ export function makeAirdropCollateralIx(
     data: Buffer.from([1, ...new BN(amount).toArray("le", 8)]),
     keys,
   });
+}
+
+export function isWholePosition(positionWithBank: ActiveBankInfo, amount: number): boolean {
+  const positionTokenAmount =
+    Math.floor(positionWithBank.position.amount * Math.pow(10, positionWithBank.tokenMintDecimals)) /
+    Math.pow(10, positionWithBank.tokenMintDecimals);
+  return amount >= positionTokenAmount;
 }

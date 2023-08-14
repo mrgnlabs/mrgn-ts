@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FC, createContext, useContext } from "react";
 import { loadTokenMetadatas } from "~/utils";
 import { TokenMetadataMap } from "~/types";

@@ -14,7 +14,7 @@ module.exports = {
   ],
   reactStrictMode: true,
   webpack: (config) => {
-    config.resolve.fallback = { fs: false, path: false };
+    config.resolve.fallback = { fs: false, path: false, net: false, tls: false, "child_process": false, request: false };
     return config;
   },
   images: {

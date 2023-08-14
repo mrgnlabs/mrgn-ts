@@ -15,9 +15,11 @@ import Typography from "@mui/material/Typography";
 import { lendZoomLevel, denominationUSD } from '~/state';
 import { useRecoilValue } from 'recoil';
 import Badge from '@mui/material/Badge';
+import { isWholePosition } from "~/utils";
+import { nativeToUi } from "@mrgnlabs/mrgn-common";
 
+const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
-const LIMIT_REACHED_ID = "limit-reached";
 const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 const ACCOUNT_DETECTION_ERROR_TOAST_ID = "account-detection-error";
 
@@ -45,8 +47,11 @@ const AssetRow: FC<{
   hasHotkey: boolean;
   showHotkeyBadges?: boolean;
   badgeContent?: string;
-}> = ({ bankInfo, nativeSolBalance, isInLendingMode, isConnected, marginfiAccount, marginfiClient, reloadBanks, inputRefs, hasHotkey, showHotkeyBadges, badgeContent }) => {
+}> = ({ bankInfo, nativeSolBalance, isInLendingMode, marginfiAccount, marginfiClient, reloadBanks, inputRefs, hasHotkey, showHotkeyBadges, badgeContent }) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
+
+  const isDust = useMemo(() => bankInfo.hasActivePosition && bankInfo.position.usdValue < nativeToUi(1, bankInfo.tokenMintDecimals), [bankInfo]);
+
   const zoomLevel = useRecoilValue(lendZoomLevel);
   const showUSD = useRecoilValue(denominationUSD);
 
@@ -69,6 +74,75 @@ const AssetRow: FC<{
         return bankInfo.maxRepay;
     }
   }, [bankInfo.maxBorrow, bankInfo.maxDeposit, bankInfo.maxRepay, bankInfo.maxWithdraw, currentAction]);
+
+  const closeBalance = useCallback(async () => {
+    if (!marginfiAccount) {
+      toast.error("marginfi account not ready.");
+      return;
+    }
+
+    if (!bankInfo.hasActivePosition) {
+      toast.error("no position to close.");
+      return;
+    }
+
+    toast.loading("Closing dust balance", {
+      toastId: CLOSE_BALANCE_TOAST_ID,
+    });
+
+    try {
+      if (bankInfo.position.isLending) {
+        await marginfiAccount.withdraw(
+          0,
+          bankInfo.bank,
+          true
+        );
+      } else {
+        await marginfiAccount.repay(
+          0,
+          bankInfo.bank,
+          true
+        );
+      }
+      toast.update(CLOSE_BALANCE_TOAST_ID, {
+        render: "Closing 👍",
+        type: toast.TYPE.SUCCESS,
+        autoClose: 2000,
+        isLoading: false,
+      });
+    } catch (error: any) {
+      toast.update(CLOSE_BALANCE_TOAST_ID, {
+        render: `Error while closing balance: ${error.message}`,
+        type: toast.TYPE.ERROR,
+        autoClose: 5000,
+        isLoading: false,
+      });
+      console.log(`Error while closing balance`);
+      console.log(error);
+    }
+
+    setBorrowOrLendAmount(0);
+
+    toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
+    try {
+      await reloadBanks();
+      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
+        render: "Refreshing state 👍",
+        type: toast.TYPE.SUCCESS,
+        autoClose: 2000,
+        isLoading: false,
+      });
+    } catch (error: any) {
+      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
+        render: `Error while reloading state: ${error.message}`,
+        type: toast.TYPE.ERROR,
+        autoClose: 5000,
+        isLoading: false,
+      });
+      console.log("Error while reloading state");
+      console.log(error);
+    }
+  }, [bankInfo, marginfiAccount, reloadBanks]);
 
   const borrowOrLend = useCallback(async () => {
     if (marginfiClient === null) throw Error("Marginfi client not ready");
@@ -162,9 +236,6 @@ const AssetRow: FC<{
 
     // -------- Perform relevant operation
     try {
-      let ixs: TransactionInstruction[] = [];
-      let signers: Keypair[] = [];
-
       if (currentAction === ActionType.Deposit) {
         await _marginfiAccount.deposit(borrowOrLendAmount, bankInfo.bank);
 
@@ -187,11 +258,9 @@ const AssetRow: FC<{
       if (currentAction === ActionType.Borrow) {
         await _marginfiAccount.borrow(borrowOrLendAmount, bankInfo.bank);
       } else if (currentAction === ActionType.Repay) {
-        const repayAll = isActiveBankInfo(bankInfo) ? borrowOrLendAmount === bankInfo.position.amount : false;
-        await _marginfiAccount.repay(borrowOrLendAmount, bankInfo.bank, repayAll);
+        await _marginfiAccount.repay(borrowOrLendAmount, bankInfo.bank, bankInfo.hasActivePosition && isWholePosition(bankInfo, borrowOrLendAmount));
       } else if (currentAction === ActionType.Withdraw) {
-        const withdrawAll = isActiveBankInfo(bankInfo) ? borrowOrLendAmount === bankInfo.position.amount : false;
-        await _marginfiAccount.withdraw(borrowOrLendAmount, bankInfo.bank, withdrawAll);
+        await _marginfiAccount.withdraw(borrowOrLendAmount, bankInfo.bank, bankInfo.hasActivePosition && isWholePosition(bankInfo, borrowOrLendAmount));
       }
 
       toast.update(BORROW_OR_LEND_TOAST_ID, {
@@ -551,7 +620,8 @@ const AssetRow: FC<{
             maxValue={maxAmount}
             maxDecimals={bankInfo.tokenMintDecimals}
             inputRefs={inputRefs}
-          />
+            disabled={isDust}
+            />
         </Badge>
       </TableCell>
 
@@ -567,9 +637,9 @@ const AssetRow: FC<{
                   ? "rgb(227, 227, 227)"
                   : "rgba(0,0,0,0)"
               }
-              onClick={borrowOrLend}
+              onClick={isDust ? closeBalance : borrowOrLend}
             >
-              {currentAction}
+              {isDust ? "Close" : currentAction}
             </AssetRowAction>
           </div>
         </Tooltip>

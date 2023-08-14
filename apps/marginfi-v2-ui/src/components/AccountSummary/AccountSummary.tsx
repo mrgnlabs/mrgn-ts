@@ -1,28 +1,16 @@
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo, useState, useEffect } from "react";
-import { usdFormatter, percentFormatter, numeralFormatter, usdFormatterDyn, groupedNumberFormatter } from "~/utils/formatters";
+import { usdFormatter, percentFormatter, numeralFormatter, usdFormatterDyn } from "~/utils/formatters";
 import { useUserAccounts } from "~/context";
 import { Card, CardContent, Typography, Skeleton } from '@mui/material';
-import { getFirestore, collection, getDocs } from "firebase/firestore";
-import { initializeApp } from "firebase/app";
+import { collection, getDocs } from "firebase/firestore";
 import { ExtendedBankInfo } from "~/types";
 import Image from "next/image";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Link from 'next/link';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBPAKOn7YKvEHg6iXTRbyZws3G4kPhWjtQ",
-  authDomain: "marginfi-dev.firebaseapp.com",
-  projectId: "marginfi-dev",
-  storageBucket: "marginfi-dev.appspot.com",
-  messagingSenderId: "509588742572",
-  appId: "1:509588742572:web:18d74a3ace2f3aa2071a09"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+import { firebaseDb } from "~/api/firebase";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -61,7 +49,7 @@ const AccountSummary: FC = () => {
 
   useEffect(() => {
     const calculateTotalPoints = async () => {
-      const pointsCollection = collection(db, 'points');
+      const pointsCollection = collection(firebaseDb, 'points');
       const pointSnapshot = await getDocs(pointsCollection);
       let totalPoints = 0;
 
@@ -470,7 +458,6 @@ const AccountSummary: FC = () => {
             </Card>
           </>
         }
-
       </div>
     </div>
   );
