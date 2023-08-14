@@ -279,7 +279,7 @@ export class MarginfiAccount {
   async repay(amount: Amount, bank: Bank, repayAll: boolean = false): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:repay`);
     debug("Repaying %s %s into marginfi account, repay all: %s", amount, bank.mint, repayAll);
-    
+
     let ixs = [];
 
     if (this.activeBalances.length >= 4) {
@@ -288,7 +288,7 @@ export class MarginfiAccount {
 
     const ixws = await this.makeRepayIx(amount, bank, repayAll);
     ixs.push(...ixws.instructions);
-    
+
     if (repayAll && !bank.emissionsMint.equals(PublicKey.default)) {
       const userAta = await associatedAddress({
         mint: bank.emissionsMint,
@@ -812,10 +812,12 @@ export class MarginfiAccount {
       return balance.getQuantityUi(bank).assets;
     } else {
       const freeCollateral = this.getFreeCollateral();
-      const untiedCollateralForBank = BigNumber.min(
-        bank.getAssetUsdValue(balance.assetShares, MarginRequirementType.Init, PriceBias.Lowest),
-        freeCollateral
+      const collateralForBank = bank.getAssetUsdValue(
+        balance.assetShares,
+        MarginRequirementType.Init,
+        PriceBias.Lowest
       );
+      const untiedCollateralForBank = BigNumber.min(collateralForBank, freeCollateral);
 
       const priceLowestBias = bank.getPrice(PriceBias.Lowest);
 
