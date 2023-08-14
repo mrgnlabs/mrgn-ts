@@ -6,7 +6,6 @@ import { ActionType, Emissions, ExtendedBankInfo, isActiveBankInfo } from "~/typ
 import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { MarginfiAccount, MarginfiClient, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { Keypair, TransactionInstruction } from "@solana/web3.js";
 import { numeralFormatter, usdFormatter, percentFormatter, groupedNumberFormatterDyn } from "~/utils/formatters";
 import { WSOL_MINT } from "~/config";
 import { styled } from "@mui/material/styles";
@@ -16,7 +15,7 @@ import { lendZoomLevel, denominationUSD } from '~/state';
 import { useRecoilValue } from 'recoil';
 import Badge from '@mui/material/Badge';
 import { isWholePosition } from "~/utils";
-import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { uiToNative } from "@mrgnlabs/mrgn-common";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
@@ -49,8 +48,7 @@ const AssetRow: FC<{
   badgeContent?: string;
 }> = ({ bankInfo, nativeSolBalance, isInLendingMode, marginfiAccount, marginfiClient, reloadBanks, inputRefs, hasHotkey, showHotkeyBadges, badgeContent }) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
-
-  const isDust = useMemo(() => bankInfo.hasActivePosition && bankInfo.position.usdValue < nativeToUi(1, bankInfo.tokenMintDecimals), [bankInfo]);
+  const isDust = useMemo(() =>  bankInfo.hasActivePosition && uiToNative(bankInfo.position.amount, bankInfo.tokenMintDecimals).isZero(), [bankInfo]);
 
   const zoomLevel = useRecoilValue(lendZoomLevel);
   const showUSD = useRecoilValue(denominationUSD);
@@ -534,12 +532,12 @@ const AssetRow: FC<{
               ? groupedNumberFormatterDyn.format(
                   isInLendingMode
                     ? bankInfo.totalPoolDeposits
-                    : Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows
+                    : Math.max(0, Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows)
                 )
               : numeralFormatter(
                   isInLendingMode
                     ? bankInfo.totalPoolDeposits
-                    : Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows
+                    : Math.max(0, Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows)
                 )}
           </Badge>
         </HtmlTooltip>

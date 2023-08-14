@@ -7,7 +7,7 @@ import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
 import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
 import { ActiveBankInfo } from "~/types";
-import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { uiToNative } from "@mrgnlabs/mrgn-common";
 import { isWholePosition } from "~/utils";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
@@ -23,7 +23,7 @@ interface UserPositionRowProps {
 const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAccount, reloadPositions }) => {
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
 
-  const isDust = useMemo(() => activeBankInfo.position.usdValue < nativeToUi(1, activeBankInfo.tokenMintDecimals), [activeBankInfo]);
+  const isDust = useMemo(() =>  uiToNative(activeBankInfo.position.amount, activeBankInfo.tokenMintDecimals).isZero(), [activeBankInfo]);
 
   const closeBalance = useCallback(async () => {
     if (!marginfiAccount) {

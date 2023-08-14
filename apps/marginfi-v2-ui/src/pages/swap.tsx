@@ -1,32 +1,22 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import config from "~/config";
 import { PageHeaderSwap } from "~/components/PageHeader";
-import Script from 'next/script';
-import { BorrowLendToggle } from '~/components/AssetsList/BorrowLendToggle';
 
 const SwapPage = () => {
-  const wallet = useWallet();
-  const { wallet: jupWallet } = useWallet();
+  const { wallet } = useWallet();
 
-  const handleJupiterLoad = () => {
+  useEffect(() => {
     if (wallet) {
-      // @ts-ignore
       window.Jupiter.init({
         displayMode: "integrated",
         integratedTargetId: "integrated-terminal",
         endpoint: config.rpcEndpoint,
-        passThroughWallet: jupWallet,
+        passThroughWallet: wallet,
       });
-    }
-  };
-
-
-
-  useEffect(() => {
-    handleJupiterLoad();
+    };
   }, [wallet]);
 
   return (

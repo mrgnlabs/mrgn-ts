@@ -1,8 +1,10 @@
 import { PublicKey } from "@solana/web3.js";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import BigNumber from "bignumber.js";
+import { Transaction } from "@solana/web3.js";
 
-interface AccountSummary {
+
+export interface AccountSummary {
   balance: number;
   lendingAmount: number;
   borrowingAmount: number;
@@ -15,7 +17,7 @@ interface AccountSummary {
   borrowingAmountWithBiasAndWeighted: number;
 }
 
-interface BankInfo {
+export interface BankInfo {
   address: PublicKey;
   tokenIcon?: string;
   tokenSymbol: string;
@@ -33,44 +35,44 @@ interface BankInfo {
   bank: Bank;
 }
 
-interface UserPosition {
+export interface UserPosition {
   isLending: boolean;
   amount: number;
   usdValue: number;
   weightedUSDValue: number;
 }
 
-interface TokenMetadata {
+export interface TokenMetadata {
   icon?: string;
   name: string;
   symbol: string;
 }
 
-interface BankMetadata {
+export interface BankMetadata {
   tokenAddress: string;
   tokenName: string;
   tokenSymbol: string;
 }
 
-interface TokenPriceMap {
+export interface TokenPriceMap {
   [key: string]: {
     price: BigNumber;
     decimals: number;
   };
 }
 
-type TokenMetadataMap = { [symbol: string]: TokenMetadata };
-type BankMetadataMap = { [address: string]: BankMetadata };
+export type TokenMetadataMap = { [symbol: string]: TokenMetadata };
+export type BankMetadataMap = { [address: string]: BankMetadata };
 
-interface TokenAccount {
+export interface TokenAccount {
   mint: PublicKey;
   created: boolean;
   balance: number;
 }
 
-type TokenAccountMap = Map<string, TokenAccount>;
+export type TokenAccountMap = Map<string, TokenAccount>;
 
-enum ActionType {
+export enum ActionType {
   Deposit = "Supply",
   Borrow = "Borrow",
   Repay = "Repay",
@@ -85,11 +87,11 @@ export interface BankInfoForAccountBase extends BankInfo {
   maxBorrow: number;
 }
 
-type ActiveBankInfo = BankInfoForAccountBase & { hasActivePosition: true; position: UserPosition };
-type InactiveBankInfo = BankInfoForAccountBase & { hasActivePosition: false };
-type ExtendedBankInfo = ActiveBankInfo | InactiveBankInfo;
+export type ActiveBankInfo = BankInfoForAccountBase & { hasActivePosition: true; position: UserPosition };
+export type InactiveBankInfo = BankInfoForAccountBase & { hasActivePosition: false };
+export type ExtendedBankInfo = ActiveBankInfo | InactiveBankInfo;
 
-const isActiveBankInfo = (bankInfo: ExtendedBankInfo): bankInfo is ActiveBankInfo => bankInfo.hasActivePosition;
+export const isActiveBankInfo = (bankInfo: ExtendedBankInfo): bankInfo is ActiveBankInfo => bankInfo.hasActivePosition;
 
 export enum Emissions {
   Inactive,
@@ -97,20 +99,85 @@ export enum Emissions {
   Borrowing,
 }
 
-export type {
-  AccountSummary,
-  BankInfo,
-  UserPosition,
-  TokenMetadata,
-  TokenMetadataMap,
-  BankMetadata,
-  BankMetadataMap,
-  TokenAccount,
-  TokenAccountMap,
-  ActiveBankInfo,
-  InactiveBankInfo,
-  ExtendedBankInfo,
-  TokenPriceMap,
+// ---------------------
+// Mayan types
+// ---------------------
+
+export type MayanWidgetChainName = "solana" | "ethereum" | "bsc" | "polygon" | "avalanche" | "arbitrum" | "aptos";
+
+// visit the Figma link below to see the color palette
+// https://www.figma.com/community/file/1236300242311853150/Mayan-Widget
+export type MayanWidgetColors = {
+  N000?: string;
+  N100?: string;
+  N300?: string;
+  N500?: string;
+  N600?: string;
+  N700?: string;
+  N900?: string;
+  tLightBlue?: string;
+  green?: string;
+  lightGreen?: string;
+  red?: string;
+  lightRed?: string;
+  lightYellow?: string;
+  primary?: string;
+  primaryGradient?: string;
+  tWhiteLight?: string;
+  tWhiteBold?: string;
+  tBlack?: string;
+  mainBox?: string;
+  background?: string;
+  darkPrimary?: string;
+  alwaysWhite?: string;
+  tableBg?: string;
+  transparentBg?: string;
+  transparentBgDark?: string;
+  buttonBackground?: string;
+  toastBgRed?: string;
+  toastBgNatural?: string;
+  toastBgGreen?: string;
+};
+export type MayanWidgetConfigType = {
+  appIdentity: {
+    uri: string;
+    icon: string; //should be relative
+    name: string;
+  }; //use for  Wallet Adapter
+  rpcs?: { [index in MayanWidgetChainName]?: string };
+  sourceChains?: MayanWidgetChainName[];
+  destinationChains?: MayanWidgetChainName[];
+  tokens?: {
+    from?: { [index in MayanWidgetChainName]?: string[] };
+    to?: { [index in MayanWidgetChainName]?: string[] };
+    featured?: { [index in MayanWidgetChainName]?: string[] };
+  };
+  defaultGasDrop?: { [index in MayanWidgetChainName]?: number };
+  referrerAddress?: string;
+  colors?: MayanWidgetColors;
 };
 
-export { ActionType, isActiveBankInfo };
+export type TransactionSigner = (transaction: Transaction) => Promise<Transaction> | null | undefined;
+export type SolanaWalletData = {
+  publicKey?: string | null;
+  signTransaction?: TransactionSigner | null;
+  onClickOnConnect: () => void;
+  onClickOnDisconnect: () => void;
+};
+
+export type MayanWidgetSolanaConfigType = MayanWidgetConfigType & {
+  solanaWallet: SolanaWalletData;
+};
+
+export type MayanSwapInfo = {
+  hash: string;
+  fromChain: MayanWidgetChainName;
+  toChain: MayanWidgetChainName;
+  fromToken: string;
+  toToken: string;
+  fromAmount: number;
+};
+
+// ---------------------
+// End mayan types
+// ---------------------
