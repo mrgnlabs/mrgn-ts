@@ -14,6 +14,7 @@ import {
   Skeleton,
   TextField,
   Checkbox,
+  CircularProgress,
 } from "@mui/material";
 import { doc, getDoc } from "firebase/firestore";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -58,7 +59,7 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 const Points: FC = () => {
   const wallet = useWallet();
   const { query: routerQuery } = useRouter();
-  const { currentUser, existingUser } = useFirebaseAccount();
+  const { currentUser, existingUser, initialUserFetchDone } = useFirebaseAccount();
 
   const [userData, setUserData] = useState<UserData>();
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[]>([]);
@@ -122,7 +123,9 @@ const Points: FC = () => {
     <>
       <PageHeader text="points" />
       <div className="flex flex-col items-center w-full sm:w-4/5 max-w-7xl gap-5 py-[64px] sm:py-[32px]">
-        {currentUser ? (
+        {!wallet.connected ? (
+          <ConnectWallet />
+        ) : currentUser ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-2/3">
               <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
@@ -261,6 +264,8 @@ const Points: FC = () => {
               </Card>
             </div>
           </>
+        ) : !initialUserFetchDone ? (
+          <CheckingUser />
         ) : existingUser ? (
           <Login />
         ) : (
@@ -461,6 +466,38 @@ const Points: FC = () => {
   );
 };
 
+const ConnectWallet: FC = () => (
+  <Card className="w-2/3 bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+    <CardContent>
+      <div className="w-full flex flex-col justify-evenly items-center p-2 text-base text-white font-aeonik font-[400] rounded-xl text-center">
+        <div>
+          <span className="text-2xl font-[500]">Access upgraded features</span>
+          <br />
+          <br />
+        </div>
+        <div className="w-full flex justify-center items-center">
+          <WalletButton />
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const CheckingUser: FC = () => (
+  <Card className="w-2/3 bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+    <CardContent>
+      <div className="w-full flex flex-col justify-evenly items-center p-2 text-base text-white font-aeonik font-[400] rounded-xl text-center">
+        <div>
+          <span className="text-2xl font-[500]">Access upgraded features</span>
+          <br />
+          <br />
+        </div>
+        <div className="flex gap-3 justify-center items-center"><div className="w-full flex justify-center items-center">Retrieving data</div><CircularProgress size="20px" sx={{color: "#e1e1e1"}} /></div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
 const Signup: FC<{ referralCode?: string }> = ({ referralCode }) => {
   const { connection } = useConnection();
   const wallet = useWallet();
@@ -594,7 +631,7 @@ const Login: FC = () => {
             <span className="text-2xl font-[500]">Access upgraded features</span>
             <br />
             <br />
-            Prove you own this wallet by signing a message.
+            Login to your points account by signing a message.
           </div>
           <div className="w-full flex justify-center items-center mt-[20px]">
             {wallet.connected ? (

@@ -28,7 +28,6 @@ const FirebaseAccountProvider: FC<{
     const unsubscribe = onAuthStateChanged(firebaseAuth, (currentUser) => {
       console.log("auth changed:", currentUser?.uid);
       setCurrentUser(currentUser);
-      setInitialUserFetchDone(true);
     });
     return () => unsubscribe();
   }, []);
