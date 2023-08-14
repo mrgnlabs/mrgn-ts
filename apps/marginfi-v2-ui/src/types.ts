@@ -15,6 +15,7 @@ export interface AccountSummary {
   borrowingAmountUnbiased: number;
   lendingAmountWithBiasAndWeighted: number;
   borrowingAmountWithBiasAndWeighted: number;
+  freeCollateral: number;
 }
 
 export interface BankInfo {
