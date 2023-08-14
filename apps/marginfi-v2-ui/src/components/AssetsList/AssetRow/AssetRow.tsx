@@ -532,12 +532,12 @@ const AssetRow: FC<{
               ? groupedNumberFormatterDyn.format(
                   isInLendingMode
                     ? bankInfo.totalPoolDeposits
-                    : Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows
+                    : Math.max(0, Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows)
                 )
               : numeralFormatter(
                   isInLendingMode
                     ? bankInfo.totalPoolDeposits
-                    : Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows
+                    : Math.max(0, Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows)
                 )}
           </Badge>
         </HtmlTooltip>
