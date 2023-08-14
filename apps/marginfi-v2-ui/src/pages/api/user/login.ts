@@ -39,11 +39,11 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: an
   } catch (error: any) {
     let status;
     switch (error.message) {
-      case "Invalid signup tx":
-      case "Invalid signup payload":
+      case "Invalid login tx":
+      case "Invalid login payload":
         status = STATUS_BAD_REQUEST;
         break;
-      case "Invalid signup payload":
+      case "Invalid login payload":
         status = STATUS_UNAUTHORIZED;
         break;
       default:
@@ -87,7 +87,7 @@ export function validateAndUnpackLoginData(
     }
 
     const memoIx = tx.instructions.find((x) => x.programId.equals(MEMO_PROGRAM_ID));
-    const isValidSignupTx =
+    const isValidLoginTx =
       !!tx.feePayer &&
       memoIx !== undefined &&
       memoIx.keys.length === 1 &&
@@ -95,13 +95,13 @@ export function validateAndUnpackLoginData(
       tx.signatures.length === 1 &&
       memoIx.keys[0].pubkey.equals(tx.feePayer);
 
-    if (!isValidSignupTx) throw new Error("Invalid signup tx");
+    if (!isValidLoginTx) throw new Error("Invalid login tx");
 
     const authData = JSON.parse(memoIx.data.toString("utf8"));
     signerWallet = tx.feePayer!;
 
     if (!is(authData, LoginPayload)) {
-      throw new Error("Invalid signup payload");
+      throw new Error("Invalid login payload");
     }
   } else {
     const { data, signature, signer } = JSON.parse(signedAuthDataRaw);
