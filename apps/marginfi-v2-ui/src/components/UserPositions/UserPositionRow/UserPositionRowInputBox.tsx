@@ -40,7 +40,7 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({ value, setV
       size="small"
       max={maxValue}
       InputProps={{
-        className: "font-aeonik bg-[#1C2125] text-[#e1e1e1] p-0 m-0 text-sm h-11 ml-2",
+        className: "font-aeonik bg-[#1C2125] text-[#e1e1e1] p-0 m-0 text-sm h-11 ml-2 border border-[#4E5257]",
         endAdornment: <MaxInputAdornment onClick={onClick} disabled={disabled} />,
       }}
       disabled={disabled}
