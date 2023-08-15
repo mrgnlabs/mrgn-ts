@@ -168,7 +168,7 @@ function makeExtendedBankInfo(
   const isWrappedSol = bankInfo.tokenMint.equals(WSOL_MINT);
   const positionRaw = marginfiAccount?.activeBalances.find((balance) => balance.bankPk.equals(bankInfo.address));
   const hasActivePosition = !!positionRaw;
-  const position = hasActivePosition ? makeUserPosition(positionRaw, bankInfo) : null;
+  const position = marginfiAccount && hasActivePosition ? makeUserPosition(positionRaw, bankInfo, marginfiAccount) : null;
 
   const tokenBalance = tokenAccount.balance;
 
@@ -219,11 +219,12 @@ function makeExtendedBankInfo(
       };
 }
 
-function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {
+function makeUserPosition(balance: Balance, bankInfo: BankInfo, account: MarginfiAccount): UserPosition {
   const amounts = balance.getQuantity(bankInfo.bank);
   const usdValues = balance.getUsdValue(bankInfo.bank, MarginRequirementType.Equity);
   const weightedUSDValues = balance.getUsdValueWithPriceBias(bankInfo.bank, MarginRequirementType.Maint);
   const isLending = usdValues.liabilities.isZero();
+  const liquidationPrice = account.getLiquidationPriceForBank(bankInfo.bank);
   return {
     amount: isLending
       ? nativeToUi(amounts.assets.toNumber(), bankInfo.tokenMintDecimals)
@@ -231,6 +232,7 @@ function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {
     usdValue: isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber(),
     weightedUSDValue: isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber(),
     isLending,
+    liquidationPrice
   };
 }
 

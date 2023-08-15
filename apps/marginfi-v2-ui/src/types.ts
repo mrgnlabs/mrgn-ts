@@ -40,6 +40,7 @@ export interface UserPosition {
   amount: number;
   usdValue: number;
   weightedUSDValue: number;
+  liquidationPrice: number | null;
 }
 
 export interface TokenMetadata {

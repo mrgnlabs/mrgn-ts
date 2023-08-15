@@ -678,11 +678,17 @@ export class MarginfiAccount {
     return [marginfiGroupAi, marginfiAccountAi];
   }
 
-  public getHealthComponents(marginReqType: MarginRequirementType): {
+  public getHealthComponents(
+    marginReqType: MarginRequirementType,
+    excludedBanks: PublicKey[] = []
+  ): {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    const [assets, liabilities] = this.activeBalances
+    const filteredBalances = this.activeBalances.filter(
+      (accountBalance) => !excludedBanks.find(b => b.equals(accountBalance.bankPk))
+    );
+    const [assets, liabilities] = filteredBalances
       .map((accountBalance) => {
         const bank = this._group.banks.get(accountBalance.bankPk.toBase58());
         if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
@@ -830,6 +836,33 @@ export class MarginfiAccount {
       const priceLowestBias = bank.getPrice(PriceBias.Lowest);
 
       return untiedCollateralForBank.div(priceLowestBias.times(assetWeight));
+    }
+  }
+
+  /**
+   * Calculate the price at which the user position for the given bank will lead to liquidation, all other prices constant.
+   */
+  public getLiquidationPriceForBank(bank: Bank): number | null {
+    const balance = this.getBalance(bank.publicKey);
+
+    if (!balance.active) return null;
+
+    const isLending = balance.liabilityShares.isZero();
+    const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Maint, [bank.publicKey]);
+    const { assets: assetQuantityUi, liabilities: liabQuantitiesUi } = balance.getQuantityUi(bank);
+
+    if (isLending) {
+      if (liabilities.eq(0)) return null;
+
+      const assetWeight = bank.getAssetWeight(MarginRequirementType.Maint);
+      const priceConfidence = bank.getPrice(PriceBias.None).minus(bank.getPrice(PriceBias.Lowest));
+      const liquidationPrice = liabilities.minus(assets).div(assetQuantityUi.times(assetWeight)).plus(priceConfidence);
+      return liquidationPrice.toNumber();
+    } else {
+      const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maint);
+      const priceConfidence = bank.getPrice(PriceBias.Highest).minus(bank.getPrice(PriceBias.None));
+      const liquidationPrice = assets.minus(liabilities).div(liabQuantitiesUi.times(liabWeight)).minus(priceConfidence);
+      return liquidationPrice.toNumber();
     }
   }
 
