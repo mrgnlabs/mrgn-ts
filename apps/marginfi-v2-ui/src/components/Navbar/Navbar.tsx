@@ -227,8 +227,9 @@ const Navbar: FC = () => {
               }}
               badgeContent={"e"}
               invisible={!showBadges}
+              className="hidden md:block"
             >
-              <Link href={"/earn"} className="glow-on-hover">
+              <Link href={"/earn"} className="glow-on-hover hidden md:block">
                 earn
               </Link>
             </Badge>
@@ -246,8 +247,9 @@ const Navbar: FC = () => {
               }}
               badgeContent={"o"}
               invisible={!showBadges}
+              className="hidden md:block"
             >
-              <Link href={"https://omni.marginfi.com"} className="glow-on-hover">
+              <Link href={"https://omni.marginfi.com"} className="glow-on-hover hidden md:block">
                 omni
               </Link>
             </Badge>

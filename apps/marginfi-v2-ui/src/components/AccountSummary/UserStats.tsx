@@ -33,14 +33,14 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
   }, [healthFactor]);
 
   return (
-    <Card className="bg-[#131619] font-[500] h-full rounded-xl p-[10px]" elevation={0}>
+    <div className="font-[500] h-full rounded-xl p-[10px]">
       <span className="w-full h-full flex justify-start text-xl text-white">Your account</span>
       <div className={styles["hide-scrollbar"]}>
-        <div className="flex gap-4 h-full w-full min-w-[650px] 2xl:min-w-0 mt-[20px]">
-          <div className="h-full min-w-[110px]">
+        <div className="flex gap-4 h-full w-full min-w-1/2 mt-[20px]">
+          <div className="h-full hidden lg:flex w-1/5 min-w-1/5">
             <div>
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
-                Account Balance
+                Account
                 <div className="self-center">
                   <MrgnTooltip
                     title={
@@ -64,7 +64,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                   </MrgnTooltip>
                 </div>
               </Typography>
-              <Typography color="#fff" className="font-aeonik font-[500] text-xl" component="div">
+              <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
                 {accountSummary.balanceUnbiased ? (
                   <>
                     <div className="sm:hidden">{`$${numeralFormatter(accountSummary.balanceUnbiased)}`}</div>
@@ -83,8 +83,10 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
               </Typography>
             </div>
           </div>
-          <DividerLine />
-          <div className="h-full min-w-[90px]">
+          <div className="hidden md:flex">
+            <DividerLine />
+          </div>
+          <div className="h-full w-1/4 md:w-1/5">
             <div>
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
                 Supplying
@@ -113,7 +115,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                   </MrgnTooltip>
                 </div>
               </Typography>
-              <Typography color="#fff" className="font-aeonik font-[500] text-xl" component="div">
+              <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
                 {accountSummary.lendingAmountUnbiased ? (
                   <>
                     <div className="sm:hidden">{`$${numeralFormatter(accountSummary.lendingAmountUnbiased)}`}</div>
@@ -133,7 +135,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
             </div>
           </div>
           <DividerLine />
-          <div className="h-full min-w-[90px]">
+          <div className="h-full w-1/4 md:w-1/5">
             <div>
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
                 Borrowing
@@ -162,7 +164,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                   </MrgnTooltip>
                 </div>
               </Typography>
-              <Typography color="#fff" className="font-aeonik font-[500] text-xl" component="div">
+              <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
                 {accountSummary.borrowingAmountUnbiased !== undefined &&
                 accountSummary.borrowingAmountUnbiased !== null ? (
                   <>
@@ -183,10 +185,10 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
             </div>
           </div>
           <DividerLine />
-          <div className="h-full w-[100px] min-w-[90px]">
+          <div className="h-full w-1/4 md:w-1/5">
             <div>
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
-                Health Factor
+                Health
                 <div className="self-center">
                   <MrgnTooltip
                     title={
@@ -217,7 +219,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                 </div>
                 <div className="self-center"></div>
               </Typography>
-              <Typography color={healthColor} className="font-aeonik font-[500] text-xl" component="div">
+              <Typography color={healthColor} className="font-aeonik font-[500] text-lg md:text-xl" component="div">
                 {healthFactor ? (
                   percentFormatter.format(healthFactor)
                 ) : (
@@ -227,10 +229,10 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
             </div>
           </div>
           <DividerLine />
-          <div className="h-full w-[100px] min-w-[90px]">
+          <div className="h-full w-1/4 md:w-1/5">
             <div>
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
-                Free Collateral
+                Free
                 <div className="self-center">
                   <MrgnTooltip
                     title={
@@ -243,7 +245,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                             Free collateral indicates how much of your collateral is available to open additional
                             borrows or withdraw existing collateral.
                           </div>
-                          <div>It is computed from the weighted deposits and weighted borrows</div>
+                          <div>It is computed from the weighted deposits and weighted borrows.</div>
                         </div>
                       </React.Fragment>
                     }
@@ -256,7 +258,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
               </Typography>
               <Typography
                 color={accountSummary.signedFreeCollateral >= 0 ? "#fff" : "#B8B45F"}
-                className="font-aeonik font-[500] text-xl"
+                className="font-aeonik font-[500] text-lg md:text-xl"
                 component="div"
               >
                 {usdFormatter.format(accountSummary.signedFreeCollateral)}
@@ -265,7 +267,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 

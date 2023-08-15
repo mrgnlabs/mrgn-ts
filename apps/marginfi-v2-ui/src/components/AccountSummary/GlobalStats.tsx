@@ -18,17 +18,17 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
     <div className="h-full rounded-xl font-[500] p-[10px]">
       <span className="w-full flex justify-start text-xl">Global stats</span>
       <div className={styles["hide-scrollbar"]}>
-        <div className="flex gap-4 w-full min-w-[550px] 2xl:min-w-0 mt-[20px]">
-          <div className="h-full min-w-[110px]">
+        <div className="flex gap-4 w-full min-w-1/2 mt-[20px]">
+          <div className="h-full w-1/4">
             <div>
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
-                Global Supplied
+                Supplied
                 <div className="self-center">
                   <MrgnTooltip
                     title={
                       <>
                         <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                          Global Supplied
+                          Supplied
                         </Typography>
                         Total value supplied across all assets in the marginfi protocol.
                       </>
@@ -39,7 +39,7 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
                   </MrgnTooltip>
                 </div>
               </Typography>
-              <Typography color="#fff" className="font-aeonik font-[500] text-xl" component="div">
+              <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
                 {globalDeposits ? (
                   `$${numeralFormatter(globalDeposits)}`
                 ) : (
@@ -49,10 +49,10 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
             </div>
           </div>
           <DividerLine />
-          <div className="h-full min-w-[110px]">
+          <div className="h-full w-1/4">
             <div>
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
-                Global Borrowed
+                Borrowed
                 <div className="self-center">
                   <MrgnTooltip
                     title={
@@ -69,7 +69,7 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
                   </MrgnTooltip>
                 </div>
               </Typography>
-              <Typography color="#fff" className="font-aeonik font-[500] text-xl" component="div">
+              <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
                 {globalBorrows ? (
                   `$${numeralFormatter(globalBorrows)}`
                 ) : (
@@ -79,10 +79,10 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
             </div>
           </div>
           <DividerLine />
-          <div className="h-full min-w-[90px]">
+          <div className="h-full w-1/4">
             <div>
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
-                Global TVL
+                TVL
                 <div className="self-center">
                   <MrgnTooltip
                     title={
@@ -102,7 +102,7 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
                   </MrgnTooltip>
                 </div>
               </Typography>
-              <Typography color="#fff" className="font-aeonik font-[500] text-xl" component="div">
+              <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
                 {globalTVL ? (
                   `$${numeralFormatter(globalTVL)}`
                 ) : (
@@ -112,10 +112,10 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
             </div>
           </div>
           <DividerLine />
-          <div className="h-full min-w-[90px]">
+          <div className="h-full w-1/4">
             <div>
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
-                Global Points
+                Points
                 <div className="self-center">
                   <MrgnTooltip
                     title={
@@ -140,7 +140,7 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
                   </MrgnTooltip>
                 </div>
               </Typography>
-              <Typography color="#fff" className="font-aeonik font-[500] text-xl" component="div">
+              <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
                 {globalPoints ? (
                   numeralFormatter(globalPoints)
                 ) : (
