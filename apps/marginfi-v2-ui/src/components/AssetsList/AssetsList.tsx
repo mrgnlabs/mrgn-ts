@@ -174,7 +174,7 @@ const AssetsList: FC = () => {
                           </Typography>
                           {isInLendingMode
                             ? "How much your assets count for collateral, relative to their USD value. The higher the weight, the more collateral you can borrow against it."
-                            : "How much you can borrow against the marginfi value of your collateral. The higher the LTV, the more you can borrow against your collateral."}
+                            : "How much you can borrow against your free collateral. The higher the LTV, the more you can borrow against your free collateral."}
                         </React.Fragment>
                       }
                       placement="top"
