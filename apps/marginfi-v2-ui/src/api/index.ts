@@ -16,6 +16,8 @@ import BigNumber from "bignumber.js";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as firebaseApi from "./firebase";
 
+const VOLATILITY_FACTOR = 0.95;
+
 const DEFAULT_ACCOUNT_SUMMARY = {
   balance: 0,
   lendingAmount: 0,
@@ -175,11 +177,11 @@ function makeExtendedBankInfo(
     bankInfo.tokenMintDecimals
   );
   const maxWithdraw = floor(
-    Math.min((marginfiAccount?.getMaxWithdrawForBank(bankInfo.bank).toNumber() ?? 0), bankInfo.availableLiquidity),
+    Math.min((marginfiAccount?.getMaxWithdrawForBank(bankInfo.bank, VOLATILITY_FACTOR).toNumber() ?? 0), bankInfo.availableLiquidity),
     bankInfo.tokenMintDecimals
   );
   const maxBorrow = floor(
-    Math.min((marginfiAccount?.getMaxBorrowForBank(bankInfo.bank).toNumber() ?? 0) * 0.95, bankInfo.availableLiquidity),
+    Math.min((marginfiAccount?.getMaxBorrowForBank(bankInfo.bank).toNumber() ?? 0) * VOLATILITY_FACTOR, bankInfo.availableLiquidity),
     bankInfo.tokenMintDecimals
   );
   let maxRepay: number;

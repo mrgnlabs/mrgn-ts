@@ -276,13 +276,6 @@ const Navbar: FC = () => {
                 : "P...P...POINTS!"}
             </Link>
 
-            <Link
-              href={"https://marginfi.canny.io/mrgnlend"}
-              className="glow-on-hover whitespace-nowrap hidden md:block"
-            >
-              build marginfi
-            </Link>
-
             <WalletButton />
           </div>
         </div>

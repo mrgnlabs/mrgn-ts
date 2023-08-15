@@ -804,7 +804,7 @@ export class MarginfiAccount {
   /**
    * Calculate the maximum amount that can be withdrawn form a bank without borrowing.
    */
-  public getMaxWithdrawForBank(bank: Bank, volatilityFactor: number = 0.95): BigNumber {
+  public getMaxWithdrawForBank(bank: Bank, volatilityFactor: number = 1): BigNumber {
     const assetWeight = bank.getAssetWeight(MarginRequirementType.Init);
     const balance = this.getBalance(bank.publicKey);
 
