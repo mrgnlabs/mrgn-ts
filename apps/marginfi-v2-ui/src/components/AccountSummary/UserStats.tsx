@@ -257,11 +257,11 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                   <div className="self-center"></div>
                 </Typography>
                 <Typography
-                  color={accountSummary.freeCollateral >= 0 ? "#fff" : "#B8B45F"}
+                  color={accountSummary.signedFreeCollateral >= 0 ? "#fff" : "#B8B45F"}
                   className="font-aeonik font-[500] text-xl"
                   component="div"
                 >
-                  {usdFormatter.format(accountSummary.freeCollateral)}
+                  {usdFormatter.format(accountSummary.signedFreeCollateral)}
                 </Typography>
               </div>
             </div>
