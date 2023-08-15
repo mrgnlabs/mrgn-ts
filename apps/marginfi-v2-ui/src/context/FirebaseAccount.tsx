@@ -4,8 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { FC, createContext, useContext } from "react";
 import { toast } from "react-toastify";
 import { firebaseApi } from "~/api";
-import { firebaseAuth } from "~/api/firebase";
-import { UserData } from "~/pages/api/user/get";
+import { UserData, firebaseAuth } from "~/api/firebase";
 
 // @ts-ignore - Safe because context hook checks for null
 const FirebaseAccountContext = createContext<FirebaseAccountState>();

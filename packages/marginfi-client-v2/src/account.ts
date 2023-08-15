@@ -709,10 +709,10 @@ export class MarginfiAccount {
     return this.activeBalances.find((b) => b.bankPk.equals(bankPk)) ?? Balance.newEmpty(bankPk);
   }
 
-  public getFreeCollateral(): BigNumber {
+  public getFreeCollateral(clamped: boolean = true): BigNumber {
     const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Init);
-
-    return BigNumber.max(0, assets.minus(liabilities));
+    const signedFreeCollateral = assets.minus(liabilities);
+    return clamped ? BigNumber.max(0, signedFreeCollateral) : signedFreeCollateral;
   }
 
   public getHealthComponentsWithoutBias(marginReqType: MarginRequirementType): {
