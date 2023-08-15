@@ -45,7 +45,7 @@ const FirebaseAccountProvider: FC<{
   useEffect(() => {
     if (!wallet.publicKey) return;
     const walletAddress = wallet.publicKey.toBase58();
-    
+
     checkForUser(walletAddress);
   }, [wallet.publicKey, checkForUser]);
 
@@ -53,7 +53,7 @@ const FirebaseAccountProvider: FC<{
   useEffect(() => {
     (async function () {
       const disconnected = !wallet.connected;
-      const mismatchingId = wallet.publicKey && currentUser?.uid && (wallet.publicKey.toBase58() !== currentUser.uid)
+      const mismatchingId = wallet.publicKey && currentUser?.uid && wallet.publicKey.toBase58() !== currentUser.uid;
       if (disconnected || mismatchingId) {
         try {
           await signOut(firebaseAuth);

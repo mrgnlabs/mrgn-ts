@@ -603,7 +603,7 @@ const DepositTile: FC<DepositTileProps> = ({ position, closePositionCb, bankMeta
           {getTokenSymbol(position.campaign.bank, bankMetadataMap)}
         </div>
         <div className="w-full flex justify-center items-center py-[20px]">
-          <hr className="w-[50%]"/>
+          <hr className="w-[50%]" />
         </div>
         <div className="w-full flex justify-between">
           <b>Amount locked:</b>

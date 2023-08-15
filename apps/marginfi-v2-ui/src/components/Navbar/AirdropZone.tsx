@@ -59,7 +59,9 @@ const AirdropZone: FC = () => {
 
   return (
     <div>
-      <span className="glow-on-hover" onClick={open}>Airdrop</span>
+      <span className="glow-on-hover" onClick={open}>
+        Airdrop
+      </span>
       <Modal open={isOpen} onClose={close} aria-labelledby="title" aria-describedby="description">
         <div id={styles["container"]}>
           <div id={styles["overlay"]}>

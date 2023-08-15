@@ -177,11 +177,17 @@ function makeExtendedBankInfo(
     bankInfo.tokenMintDecimals
   );
   const maxWithdraw = floor(
-    Math.min((marginfiAccount?.getMaxWithdrawForBank(bankInfo.bank, VOLATILITY_FACTOR).toNumber() ?? 0), bankInfo.availableLiquidity),
+    Math.min(
+      marginfiAccount?.getMaxWithdrawForBank(bankInfo.bank, VOLATILITY_FACTOR).toNumber() ?? 0,
+      bankInfo.availableLiquidity
+    ),
     bankInfo.tokenMintDecimals
   );
   const maxBorrow = floor(
-    Math.min((marginfiAccount?.getMaxBorrowForBank(bankInfo.bank).toNumber() ?? 0) * VOLATILITY_FACTOR, bankInfo.availableLiquidity),
+    Math.min(
+      (marginfiAccount?.getMaxBorrowForBank(bankInfo.bank).toNumber() ?? 0) * VOLATILITY_FACTOR,
+      bankInfo.availableLiquidity
+    ),
     bankInfo.tokenMintDecimals
   );
   let maxRepay: number;

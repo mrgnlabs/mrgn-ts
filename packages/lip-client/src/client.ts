@@ -168,7 +168,7 @@ class LipClient {
           },
         },
       ])
-    ).map(({ publicKey, account }) => ({address: publicKey, ...(account as Object)} as DepositData));
+    ).map(({ publicKey, account }) => ({ address: publicKey, ...(account as Object) } as DepositData));
   }
 
   // --- Others

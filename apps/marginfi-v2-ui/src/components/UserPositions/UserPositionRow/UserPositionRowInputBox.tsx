@@ -10,7 +10,13 @@ interface UserPositionRowInputBoxProps {
   disabled?: boolean;
 }
 
-const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({ value, setValue, maxValue, maxDecimals, disabled }) => {
+const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
+  value,
+  setValue,
+  maxValue,
+  maxDecimals,
+  disabled,
+}) => {
   const onClick = () => {
     if (maxValue !== undefined) {
       setValue(maxValue);
@@ -55,12 +61,13 @@ const MaxInputAdornment: FC<{
 }> = ({ onClick, disabled }) => (
   <InputAdornment position="end" classes={{ root: "w-[40px] h-full" }}>
     {!disabled && (
-    <div
-      className="font-aeonik p-0 pr-4 text-[#868E95] text-sm lowercase h-9 font-light flex justify-center items-center hover:bg-transparent cursor-pointer"
-      onClick={onClick}
-    >
-      max
-    </div>)}
+      <div
+        className="font-aeonik p-0 pr-4 text-[#868E95] text-sm lowercase h-9 font-light flex justify-center items-center hover:bg-transparent cursor-pointer"
+        onClick={onClick}
+      >
+        max
+      </div>
+    )}
   </InputAdornment>
 );
 

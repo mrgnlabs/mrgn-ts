@@ -39,7 +39,7 @@ const BanksStateProvider: FC<{
     }
     // If no match is found, throw an error
     throw new Error(`Token metadata not found for ${tokenSymbol}`);
-  }
+  };
 
   const reload = useCallback(async () => {
     if (mfiClientReadonly === null || !tokenMetadataMap || !bankMetadataMap) return;
@@ -52,18 +52,17 @@ const BanksStateProvider: FC<{
       const priceMap = await buildEmissionsPriceMap(banks, connection);
 
       setBankInfos(
-        banks
-          .map((bank) => {
-            const bankMetadata = bankMetadataMap[bank.publicKey.toBase58()];
-            if (bankMetadata === undefined) {
-              throw new Error(`Bank metadata not found for ${bank.publicKey.toBase58()}`);
-            }
-            const tokenMetadata = findMetadataInsensitive(tokenMetadataMap, bankMetadata.tokenSymbol);
-            if (tokenMetadata === undefined) {
-              throw new Error(`Token metadata not found for ${bankMetadata.tokenSymbol}`);
-            }
-            return makeBankInfo(bank, tokenMetadata, priceMap, bankMetadata.tokenSymbol);
-          })
+        banks.map((bank) => {
+          const bankMetadata = bankMetadataMap[bank.publicKey.toBase58()];
+          if (bankMetadata === undefined) {
+            throw new Error(`Bank metadata not found for ${bank.publicKey.toBase58()}`);
+          }
+          const tokenMetadata = findMetadataInsensitive(tokenMetadataMap, bankMetadata.tokenSymbol);
+          if (tokenMetadata === undefined) {
+            throw new Error(`Token metadata not found for ${bankMetadata.tokenSymbol}`);
+          }
+          return makeBankInfo(bank, tokenMetadata, priceMap, bankMetadata.tokenSymbol);
+        })
       );
     } catch (e: any) {
       toast.error(e);
