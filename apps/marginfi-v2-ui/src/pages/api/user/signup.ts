@@ -100,7 +100,7 @@ export function validateAndUnpackSignupData(
 
     authData = JSON.parse(memoIx.data.toString("utf8"));
     signerWallet = tx.feePayer!;
-  
+
     if (!is(authData, SignupPayloadStruct)) {
       throw new Error("Invalid signup payload");
     }

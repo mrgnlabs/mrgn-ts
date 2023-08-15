@@ -492,7 +492,10 @@ const CheckingUser: FC = () => (
           <br />
           <br />
         </div>
-        <div className="flex gap-3 justify-center items-center"><div className="w-full flex justify-center items-center">Retrieving data</div><CircularProgress size="20px" sx={{color: "#e1e1e1"}} /></div>
+        <div className="flex gap-3 justify-center items-center">
+          <div className="w-full flex justify-center items-center">Retrieving data</div>
+          <CircularProgress size="20px" sx={{ color: "#e1e1e1" }} />
+        </div>
       </div>
     </CardContent>
   </Card>

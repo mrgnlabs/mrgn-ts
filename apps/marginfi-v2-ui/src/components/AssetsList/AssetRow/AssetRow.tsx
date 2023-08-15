@@ -11,9 +11,9 @@ import { WSOL_MINT } from "~/config";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { lendZoomLevel, denominationUSD } from '~/state';
-import { useRecoilValue } from 'recoil';
-import Badge from '@mui/material/Badge';
+import { lendZoomLevel, denominationUSD } from "~/state";
+import { useRecoilValue } from "recoil";
+import Badge from "@mui/material/Badge";
 import { isWholePosition } from "~/utils";
 import { uiToNative } from "@mrgnlabs/mrgn-common";
 
@@ -46,9 +46,23 @@ const AssetRow: FC<{
   hasHotkey: boolean;
   showHotkeyBadges?: boolean;
   badgeContent?: string;
-}> = ({ bankInfo, nativeSolBalance, isInLendingMode, marginfiAccount, marginfiClient, reloadBanks, inputRefs, hasHotkey, showHotkeyBadges, badgeContent }) => {
+}> = ({
+  bankInfo,
+  nativeSolBalance,
+  isInLendingMode,
+  marginfiAccount,
+  marginfiClient,
+  reloadBanks,
+  inputRefs,
+  hasHotkey,
+  showHotkeyBadges,
+  badgeContent,
+}) => {
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
-  const isDust = useMemo(() =>  bankInfo.hasActivePosition && uiToNative(bankInfo.position.amount, bankInfo.tokenMintDecimals).isZero(), [bankInfo]);
+  const isDust = useMemo(
+    () => bankInfo.hasActivePosition && uiToNative(bankInfo.position.amount, bankInfo.tokenMintDecimals).isZero(),
+    [bankInfo]
+  );
 
   const zoomLevel = useRecoilValue(lendZoomLevel);
   const showUSD = useRecoilValue(denominationUSD);
@@ -90,17 +104,9 @@ const AssetRow: FC<{
 
     try {
       if (bankInfo.position.isLending) {
-        await marginfiAccount.withdraw(
-          0,
-          bankInfo.bank,
-          true
-        );
+        await marginfiAccount.withdraw(0, bankInfo.bank, true);
       } else {
-        await marginfiAccount.repay(
-          0,
-          bankInfo.bank,
-          true
-        );
+        await marginfiAccount.repay(0, bankInfo.bank, true);
       }
       toast.update(CLOSE_BALANCE_TOAST_ID, {
         render: "Closing 👍",
@@ -146,12 +152,16 @@ const AssetRow: FC<{
     if (marginfiClient === null) throw Error("Marginfi client not ready");
 
     if (currentAction === ActionType.Deposit && bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit) {
-      toast.error(`${bankInfo.tokenSymbol} deposit limit has been been reached. Additional deposits are not currently available.`)
+      toast.error(
+        `${bankInfo.tokenSymbol} deposit limit has been been reached. Additional deposits are not currently available.`
+      );
       return;
     }
 
     if (currentAction === ActionType.Borrow && bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit) {
-      toast.error(`${bankInfo.tokenSymbol} borrow limit has been been reached. Additional borrows are not currently available.`)
+      toast.error(
+        `${bankInfo.tokenSymbol} borrow limit has been been reached. Additional borrows are not currently available.`
+      );
       return;
     }
 
@@ -256,9 +266,17 @@ const AssetRow: FC<{
       if (currentAction === ActionType.Borrow) {
         await _marginfiAccount.borrow(borrowOrLendAmount, bankInfo.bank);
       } else if (currentAction === ActionType.Repay) {
-        await _marginfiAccount.repay(borrowOrLendAmount, bankInfo.bank, bankInfo.hasActivePosition && isWholePosition(bankInfo, borrowOrLendAmount));
+        await _marginfiAccount.repay(
+          borrowOrLendAmount,
+          bankInfo.bank,
+          bankInfo.hasActivePosition && isWholePosition(bankInfo, borrowOrLendAmount)
+        );
       } else if (currentAction === ActionType.Withdraw) {
-        await _marginfiAccount.withdraw(borrowOrLendAmount, bankInfo.bank, bankInfo.hasActivePosition && isWholePosition(bankInfo, borrowOrLendAmount));
+        await _marginfiAccount.withdraw(
+          borrowOrLendAmount,
+          bankInfo.bank,
+          bankInfo.hasActivePosition && isWholePosition(bankInfo, borrowOrLendAmount)
+        );
       }
 
       toast.update(BORROW_OR_LEND_TOAST_ID, {
@@ -532,12 +550,20 @@ const AssetRow: FC<{
               ? groupedNumberFormatterDyn.format(
                   isInLendingMode
                     ? bankInfo.totalPoolDeposits
-                    : Math.max(0, Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows)
+                    : Math.max(
+                        0,
+                        Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) -
+                          bankInfo.totalPoolBorrows
+                      )
                 )
               : numeralFormatter(
                   isInLendingMode
                     ? bankInfo.totalPoolDeposits
-                    : Math.max(0, Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows)
+                    : Math.max(
+                        0,
+                        Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) -
+                          bankInfo.totalPoolBorrows
+                      )
                 )}
           </Badge>
         </HtmlTooltip>
@@ -619,7 +645,7 @@ const AssetRow: FC<{
             maxDecimals={bankInfo.tokenMintDecimals}
             inputRefs={inputRefs}
             disabled={isDust}
-            />
+          />
         </Badge>
       </TableCell>
 

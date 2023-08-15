@@ -16,7 +16,7 @@ const SwapPage = () => {
         endpoint: config.rpcEndpoint,
         passThroughWallet: wallet,
       });
-    };
+    }
   }, [wallet]);
 
   return (

@@ -61,56 +61,57 @@ const Navbar: FC = () => {
   const [points, setPoints] = useState<Points>(null);
   const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
-  
 
   const router = useRouter();
-  const [currentRoute, setCurrentRoute] = useState(router.pathname)
+  const [currentRoute, setCurrentRoute] = useState(router.pathname);
 
-  useEffect(
-    () => {
-      setCurrentRoute(router.pathname)
-    },
-    [router.pathname]
-  );
+  useEffect(() => {
+    setCurrentRoute(router.pathname);
+  }, [router.pathname]);
 
   // Enter hotkey mode
-  useHotkeys("meta+k", () => {
-    setIsHotkeyMode(true);
-    setShowBadges(true);
-    
-    setTimeout(() => {
-      setIsHotkeyMode(false);
-      setShowBadges(false);
-    }, 5000);
-  }, { preventDefault: true, enableOnFormTags: true });
+  useHotkeys(
+    "meta+k",
+    () => {
+      setIsHotkeyMode(true);
+      setShowBadges(true);
 
-  
+      setTimeout(() => {
+        setIsHotkeyMode(false);
+        setShowBadges(false);
+      }, 5000);
+    },
+    { preventDefault: true, enableOnFormTags: true }
+  );
 
   // Navigation in hotkey mode
-  useHotkeys("l, s, b, e, o", (_, handler: HotkeysEvent) => {
-
-    if (isHotkeyMode) {
-      switch (handler.keys?.join("")) {
-        case "l":
-          router.push("/");
-          break;
-        case "s":
-          router.push("/swap");
-          break;
-        case "b":
-          router.push("/bridge");
-          break;
-        case "e":
-          router.push("/earn");
-          break;
-        case "o":
-          router.push("https://omni.marginfi.com");
-          break;
+  useHotkeys(
+    "l, s, b, e, o",
+    (_, handler: HotkeysEvent) => {
+      if (isHotkeyMode) {
+        switch (handler.keys?.join("")) {
+          case "l":
+            router.push("/");
+            break;
+          case "s":
+            router.push("/swap");
+            break;
+          case "b":
+            router.push("/bridge");
+            break;
+          case "e":
+            router.push("/earn");
+            break;
+          case "o":
+            router.push("https://omni.marginfi.com");
+            break;
+        }
+        setIsHotkeyMode(false);
+        setShowBadges(false);
       }
-      setIsHotkeyMode(false);
-      setShowBadges(false);
-    }
-  }, { preventDefault: currentRoute == "/" ? true : false, enableOnFormTags: true });
+    },
+    { preventDefault: currentRoute == "/" ? true : false, enableOnFormTags: true }
+  );
 
   useHotkeys(
     "meta+k",
@@ -195,18 +196,18 @@ const Navbar: FC = () => {
               </Link>
             </Badge>
             <Badge
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                sx={{
-                  '& .MuiBadge-badge': {
-                    backgroundColor: "rgb(220, 232, 93)",
-                    color: "#1C2125",
-                  }
-                }}
-                badgeContent={"b"}
-                invisible={!showBadges}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              sx={{
+                "& .MuiBadge-badge": {
+                  backgroundColor: "rgb(220, 232, 93)",
+                  color: "#1C2125",
+                },
+              }}
+              badgeContent={"b"}
+              invisible={!showBadges}
             >
               <Link href={"/bridge"} className="glow-on-hover">
                 bridge
