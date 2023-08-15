@@ -286,9 +286,6 @@ export class MarginfiAccount {
       ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
     }
 
-    const ixws = await this.makeRepayIx(amount, bank, repayAll);
-    ixs.push(...ixws.instructions);
-
     if (repayAll && !bank.emissionsMint.equals(PublicKey.default)) {
       const userAta = await associatedAddress({
         mint: bank.emissionsMint,
@@ -304,6 +301,9 @@ export class MarginfiAccount {
       ixs.push(createAtaIdempotentIx);
       ixs.push(...(await this.makeWithdrawEmissionsIx(bank)).instructions);
     }
+
+    const ixws = await this.makeRepayIx(amount, bank, repayAll);
+    ixs.push(...ixws.instructions);
 
     const tx = new Transaction().add(...ixs);
     const sig = await this.client.processTransaction(tx);
