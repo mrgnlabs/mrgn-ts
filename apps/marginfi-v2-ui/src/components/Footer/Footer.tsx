@@ -28,11 +28,9 @@ const Footer: FC = () => {
   const footerConfig = useMemo(() => {
     if (router.pathname === "/") return ROOT_CONFIG;
 
-    const pageConfigKey = Object.keys(DISPLAY_TABLE).find((path) => {
-      console.log(router.pathname.substring(1))
-      console.log(path.substring(1))
-      return router.pathname.substring(1).startsWith(path.substring(1));
-    });
+    const pageConfigKey = Object.keys(DISPLAY_TABLE).find((path) =>
+      router.pathname.substring(1).startsWith(path.substring(1))
+    );
     if (pageConfigKey) {
       return DISPLAY_TABLE[pageConfigKey];
     }
