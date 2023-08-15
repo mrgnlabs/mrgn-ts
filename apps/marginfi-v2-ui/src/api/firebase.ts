@@ -1,7 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithCustomToken } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { UserData } from "~/pages/api/user/get";
 import {
   STATUS_BAD_REQUEST,
   STATUS_INTERNAL_ERROR,
@@ -15,8 +14,7 @@ import { BlockhashWithExpiryBlockHeight, Transaction } from "@solana/web3.js";
 import { createMemoInstruction } from "@mrgnlabs/mrgn-common";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import base58 from "bs58";
-import { SignupPayload } from "~/pages/api/user/signup";
-import { LoginPayload } from "~/pages/api/user/login";
+import { object, string, optional, Infer } from "superstruct";
 
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyBPAKOn7YKvEHg6iXTRbyZws3G4kPhWjtQ",
@@ -30,6 +28,21 @@ const FIREBASE_CONFIG = {
 const firebaseApp = initializeApp(FIREBASE_CONFIG);
 const firebaseDb = getFirestore(firebaseApp);
 const firebaseAuth = getAuth(firebaseApp);
+
+export interface UserData {
+  id: string;
+}
+
+export const SignupPayloadStruct = object({
+  uuid: string(),
+  referralCode: optional(string()),
+});
+export type SignupPayload = Infer<typeof SignupPayloadStruct>;
+
+export const LoginPayloadStruct = object({
+  uuid: string(),
+});
+export type LoginPayload = Infer<typeof LoginPayloadStruct>;
 
 async function getUser(walletAddress: string): Promise<UserData | undefined> {
   const response = await fetch("/api/user/get", {

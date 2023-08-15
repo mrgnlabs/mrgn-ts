@@ -11,11 +11,12 @@ import {
   initFirebaseIfNeeded,
   logSignupAttempt,
 } from "./utils";
-import { object, string, optional, Infer, is } from "superstruct";
+import { is } from "superstruct";
 import { MEMO_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import base58 from "bs58";
 import nacl from "tweetnacl";
+import { SignupPayload, SignupPayloadStruct } from "~/api/firebase";
 
 initFirebaseIfNeeded();
 
@@ -23,12 +24,6 @@ export interface SignupRequest {
   method: SigningMethod;
   signedAuthDataRaw: string;
 }
-
-const SignupPayload = object({
-  uuid: string(),
-  referralCode: optional(string()),
-});
-export type SignupPayload = Infer<typeof SignupPayload>;
 
 export default async function handler(req: NextApiRequest<SignupRequest>, res: any) {
   const { method, signedAuthDataRaw } = req.body;
@@ -46,7 +41,7 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
       case "Invalid signup payload":
         status = STATUS_BAD_REQUEST;
         break;
-      case "Invalid signup payload":
+      case "Invalid signature":
         status = STATUS_UNAUTHORIZED;
         break;
       default:
@@ -106,7 +101,7 @@ export function validateAndUnpackSignupData(
     authData = JSON.parse(memoIx.data.toString("utf8"));
     signerWallet = tx.feePayer!;
   
-    if (!is(authData, SignupPayload)) {
+    if (!is(authData, SignupPayloadStruct)) {
       throw new Error("Invalid signup payload");
     }
   } else {
