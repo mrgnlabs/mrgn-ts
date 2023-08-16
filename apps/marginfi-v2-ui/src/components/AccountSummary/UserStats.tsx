@@ -65,7 +65,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {accountSummary.balanceUnbiased ? (
+                
                   <>
                     <div className="sm:hidden">{`$${numeralFormatter(accountSummary.balanceUnbiased)}`}</div>
 
@@ -77,9 +77,6 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
 
                     <div className="hidden xl:block">{usdFormatter.format(accountSummary.balanceUnbiased)}</div>
                   </>
-                ) : (
-                  <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
-                )}
               </Typography>
             </div>
           </div>
@@ -116,7 +113,6 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {accountSummary.lendingAmountUnbiased ? (
                   <>
                     <div className="sm:hidden">{`$${numeralFormatter(accountSummary.lendingAmountUnbiased)}`}</div>
 
@@ -128,9 +124,6 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
 
                     <div className="hidden xl:block">{usdFormatter.format(accountSummary.lendingAmountUnbiased)}</div>
                   </>
-                ) : (
-                  <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
-                )}
               </Typography>
             </div>
           </div>

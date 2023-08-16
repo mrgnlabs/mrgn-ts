@@ -178,7 +178,7 @@ function makeExtendedBankInfo(
   );
   const maxWithdraw = floor(
     Math.min(
-      marginfiAccount?.getMaxWithdrawForBank(bankInfo.bank, VOLATILITY_FACTOR).toNumber() ?? 0,
+      marginfiAccount?.getMaxWithdrawForBank(bankInfo.address, VOLATILITY_FACTOR).toNumber() ?? 0,
       bankInfo.availableLiquidity
     ),
     bankInfo.tokenMintDecimals
