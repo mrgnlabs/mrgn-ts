@@ -51,10 +51,10 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   const wallets = useMemo(
     () => [
-      NightlyConnectAdapter.buildLazy(
+      NightlyConnectAdapter.buildWithInitOnConnect(
         {
           appMetadata: {
-            name: "marginfi ",
+            name: "marginfi",
             description: "The lending foundation for DeFi 2.0 on @solana",
             icon: "https://www.marginfi.com/marginfi_logo.png",
             additionalInfo: "Connecting liquidity across DeFi",
