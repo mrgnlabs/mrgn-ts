@@ -50,8 +50,10 @@ const AccountSummary: FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col 2xl:flex-row w-full h-full justify-between items-center">
-      <div className="w-full 2xl:w-fit">
+    <div
+      className="flex flex-col lg:flex-row w-full h-full justify-between items-center"
+    >
+      <div className="hidden lg:block w-full">
         <GlobalStats
           globalTVL={globalTVL}
           globalPoints={globalPoints}
@@ -60,7 +62,7 @@ const AccountSummary: FC = () => {
         />
       </div>
 
-      <div className="w-full 2xl:w-fit mt-[20px] 2xl:mt-0 ml-0 2xl:ml-[20px]">
+      <div className="w-full">
         {wallet.connected && <UserStats accountSummary={accountSummary} healthFactor={healthFactor} />}
       </div>
     </div>
