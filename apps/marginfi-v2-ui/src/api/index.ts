@@ -168,7 +168,8 @@ function makeExtendedBankInfo(
   const isWrappedSol = bankInfo.tokenMint.equals(WSOL_MINT);
   const positionRaw = marginfiAccount?.activeBalances.find((balance) => balance.bankPk.equals(bankInfo.address));
   const hasActivePosition = !!positionRaw;
-  const position = marginfiAccount && hasActivePosition ? makeUserPosition(positionRaw, bankInfo, marginfiAccount) : null;
+  const position =
+    marginfiAccount && hasActivePosition ? makeUserPosition(positionRaw, bankInfo, marginfiAccount) : null;
 
   const tokenBalance = tokenAccount.balance;
 
@@ -232,7 +233,7 @@ function makeUserPosition(balance: Balance, bankInfo: BankInfo, account: Marginf
     usdValue: isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber(),
     weightedUSDValue: isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber(),
     isLending,
-    liquidationPrice
+    liquidationPrice,
   };
 }
 
