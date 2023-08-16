@@ -113,7 +113,7 @@ const AiUI: FC = () => {
     const amountFloat = parseFloat(amount);
 
     // Types:
-    const bankInfo = extendedBankInfos.find((bank) => bank.tokenName.toUpperCase() === tokenSymbol);
+    const bankInfo = extendedBankInfos.find((bank) => bank.tokenSymbol.toUpperCase() === tokenSymbol);
     if (!bankInfo) {
       throw new Error(`Bank info was not found, tokenSymbol: ${tokenSymbol} bankInfo: ${bankInfo}`);
     }
@@ -162,11 +162,11 @@ const AiUI: FC = () => {
           break;
 
         case "stake":
-          mSOLBank = extendedBankInfos.find((bank) => bank.tokenName === "mSOL");
+          mSOLBank = extendedBankInfos.find((bank) => bank.tokenSymbol === "mSOL");
           if (!mSOLBank) {
             throw new Error("mSOL bank info was not found");
           }
-          SOLBank = extendedBankInfos.find((bank) => bank.tokenName === "SOL");
+          SOLBank = extendedBankInfos.find((bank) => bank.tokenSymbol === "SOL");
           if (!SOLBank) {
             throw new Error("SOL bank info was not found");
           }
@@ -185,11 +185,11 @@ const AiUI: FC = () => {
           break;
 
         case "unstake":
-          mSOLBank = extendedBankInfos.find((bank) => bank.tokenName === "mSOL");
+          mSOLBank = extendedBankInfos.find((bank) => bank.tokenSymbol === "mSOL");
           if (!mSOLBank) {
             throw new Error("mSOL bank info was not found");
           }
-          SOLBank = extendedBankInfos.find((bank) => bank.tokenName === "SOL");
+          SOLBank = extendedBankInfos.find((bank) => bank.tokenSymbol === "SOL");
           if (!SOLBank) {
             throw new Error("SOL bank info was not found");
           }

@@ -13,8 +13,6 @@ import { AggregatorAccount, SwitchboardProgram } from "@switchboard-xyz/solana.j
 class Bank {
   public readonly publicKey: PublicKey;
 
-  public readonly label: string;
-
   public group: PublicKey;
   public mint: PublicKey;
   public mintDecimals: number;
@@ -49,8 +47,7 @@ class Bank {
 
   private priceData: OraclePriceData;
 
-  constructor(label: string, address: PublicKey, rawData: BankData, priceData: OraclePriceData) {
-    this.label = label;
+  constructor(address: PublicKey, rawData: BankData, priceData: OraclePriceData) {
     this.publicKey = address;
 
     this.mint = rawData.mint;
@@ -83,6 +80,7 @@ class Bank {
       liabilityWeightMaint: wrappedI80F48toBigNumber(rawData.config.liabilityWeightMaint),
       depositLimit: nativeToUi(rawData.config.depositLimit, this.mintDecimals),
       borrowLimit: nativeToUi(rawData.config.borrowLimit, this.mintDecimals),
+      riskTier: "collateral" in rawData.config.riskTier ? RiskTier.Collateral : RiskTier.Isolated,
       oracleSetup: rawData.config.oracleSetup,
       oracleKeys: rawData.config.oracleKeys,
       interestRateConfig: {
@@ -116,7 +114,7 @@ class Bank {
 
   public describe(): string {
     return `
-Bank: ${this.label}, address: ${this.publicKey.toBase58()}
+Bank address: ${this.publicKey.toBase58()}
 Mint: ${this.mint.toBase58()}, decimals: ${this.mintDecimals}
 
 Total deposits: ${nativeToUi(this.totalAssets, this.mintDecimals)}
@@ -311,6 +309,11 @@ export { Bank };
 
 // Client types
 
+export enum RiskTier {
+  Collateral = "Collateral",
+  Isolated = "Isolated",
+}
+
 export interface BankConfig {
   assetWeightInit: BigNumber;
   assetWeightMaint: BigNumber;
@@ -320,6 +323,8 @@ export interface BankConfig {
 
   depositLimit: number;
   borrowLimit: number;
+
+  riskTier: RiskTier;
 
   interestRateConfig: InterestRateConfig;
 
@@ -393,6 +398,7 @@ export interface BankConfigData {
 
   depositLimit: BN;
   borrowLimit: BN;
+  riskTier: RiskTierData;
 
   interestRateConfig: InterestRateConfigData;
 
@@ -412,6 +418,8 @@ export interface InterestRateConfigData {
   protocolFixedFeeApr: WrappedI80F48;
   protocolIrFee: WrappedI80F48;
 }
+
+export type RiskTierData = { collateral: {} } | { isolated: {} };
 
 export enum PriceBias {
   Lowest = 0,

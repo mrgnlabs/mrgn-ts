@@ -2,15 +2,7 @@ import * as React from "react";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 
-export const SigningDialogBox = ({
-  open,
-  setOpen,
-  onConfirm,
-}: {
-  open: boolean;
-  setOpen: (value: boolean) => void;
-  onConfirm: () => void;
-}) => {
+export const SigningDialogBox = ({ open, setOpen }: { open: boolean; setOpen: (value: boolean) => void }) => {
   const handleClose = () => {
     setOpen(false);
   };
@@ -31,10 +23,7 @@ export const SigningDialogBox = ({
           Prove you own this wallet by signing a message in your wallet. It is free and does not involve the network.
         </div>
         <Button
-          onClick={() => {
-            setOpen(false);
-            onConfirm();
-          }}
+          onClick={handleClose}
           autoFocus
           className="bg-transparent font-aeonik text-white text-base font-xl glow-on-hover"
         >

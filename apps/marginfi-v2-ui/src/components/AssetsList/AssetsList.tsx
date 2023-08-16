@@ -33,51 +33,59 @@ const AssetsList: FC = () => {
   const zoomLevel = useRecoilValue(lendZoomLevel);
   const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  useHotkeys(
-    extendedBankInfos
-      .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
-      .map((_, i) => `meta + ${i + 1}`)
-      .join(", "),
-    (_, handler) => {
-      const globalBankTokenNames = extendedBankInfos
-        .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
-        .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
-        .map((b) => b.tokenName);
 
-      const keyPressed = handler.keys?.join("");
-      if (Number(keyPressed) >= 1 && Number(keyPressed) <= globalBankTokenNames.length) {
-        inputRefs.current[globalBankTokenNames[Number(keyPressed) - 1]]?.querySelector("input")!.focus();
+  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
+
+  // Enter hotkey mode
+  useHotkeys(
+    "meta + k",
+    () => {
+      setIsHotkeyMode(true);
+      setShowBadges(true);
+
+      setTimeout(() => {
+        setIsHotkeyMode(false);
         setShowBadges(false);
-      }
+      }, 5000);
     },
     { preventDefault: true, enableOnFormTags: true }
   );
 
+  // Handle number keys in hotkey mode
   useHotkeys(
-    "meta",
+    extendedBankInfos
+      .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
+      .map((_, i) => `${i + 1}`)
+      .join(", "),
+    (_, handler) => {
+      if (isHotkeyMode) {
+        const globalBankTokenNames = extendedBankInfos
+          .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
+          .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
+          .map((b) => b.tokenSymbol);
+
+        const keyPressed = handler.keys?.join("");
+        if (Number(keyPressed) >= 1 && Number(keyPressed) <= globalBankTokenNames.length) {
+          inputRefs.current[globalBankTokenNames[Number(keyPressed) - 1]]?.querySelector("input")!.focus();
+          setIsHotkeyMode(false);
+          setShowBadges(false);
+        }
+      }
+    },
+    { preventDefault: false, enableOnFormTags: true }
+  );
+
+  // Toggle lending mode in hotkey mode
+  useHotkeys(
+    "q",
     () => {
-      setShowBadges(true);
-      setTimeout(() => {
+      if (isHotkeyMode) {
+        setIsInLendingMode((prevMode) => !prevMode);
+        setIsHotkeyMode(false);
         setShowBadges(false);
-      }, 2000);
+      }
     },
     { enableOnFormTags: true }
-  );
-
-  useHotkeys(
-    "meta + shift + l",
-    () => {
-      setIsInLendingMode(!isInLendingMode);
-    },
-    { enableOnFormTags: true }
-  );
-
-  useHotkeys(
-    "meta",
-    () => {
-      setShowBadges(false);
-    },
-    { keyup: true, enableOnFormTags: true }
   );
 
   // Hack required to circumvent rehydration error
@@ -174,7 +182,7 @@ const AssetsList: FC = () => {
                           </Typography>
                           {isInLendingMode
                             ? "How much your assets count for collateral, relative to their USD value. The higher the weight, the more collateral you can borrow against it."
-                            : "How much you can borrow against the marginfi value of your collateral. The higher the LTV, the more you can borrow against your collateral."}
+                            : "How much you can borrow against your free collateral. The higher the LTV, the more you can borrow against your free collateral."}
                         </React.Fragment>
                       }
                       placement="top"
@@ -286,7 +294,7 @@ const AssetsList: FC = () => {
                     .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
                     .map((bankInfo, i) => (
                       <AssetRow
-                        key={bankInfo.tokenName}
+                        key={bankInfo.tokenSymbol}
                         nativeSolBalance={nativeSolBalance}
                         bankInfo={bankInfo}
                         isInLendingMode={isInLendingMode}
@@ -331,7 +339,7 @@ const AssetsList: FC = () => {
                     .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
                     .map((bankInfo, i) => (
                       <AssetRow
-                        key={bankInfo.tokenName}
+                        key={bankInfo.tokenSymbol}
                         nativeSolBalance={nativeSolBalance}
                         bankInfo={bankInfo}
                         isInLendingMode={isInLendingMode}
