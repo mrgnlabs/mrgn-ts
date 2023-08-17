@@ -76,7 +76,7 @@ const CampaignWizardInputBox: FC<CampaignWizardInputBox> = ({
   );
 };
 
-interface CampaignWizardProps { }
+interface CampaignWizardProps {}
 
 const CampaignWizard: FC<CampaignWizardProps> = () => {
   const [guaranteedApy, setGuaranteedApy] = useState(0);
@@ -185,7 +185,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
   // @todo Move to config?
   // Not sure how worth it given LIP campaign creation's small user base
   const assetIcons: { [key: string]: { [key: string]: any } } = {
-    "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh": {
+    CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh: {
       icon: "https://cryptologos.cc/logos/solana-sol-logo.png?v=024",
       size: 30,
     },
@@ -197,23 +197,23 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
       icon: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png",
       size: 30,
     },
-    "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM": {
+    DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM: {
       icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/23095.png",
       size: 30,
     },
-    "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV": {
+    HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV: {
       icon: "https://cryptologos.cc/logos/tether-usdt-logo.png?v=024",
       size: 30,
     },
-    "BkUyfXjbBBALcfZvw76WAFRvYQ21xxMWWeoPtJrUqG3z": {
+    BkUyfXjbBBALcfZvw76WAFRvYQ21xxMWWeoPtJrUqG3z: {
       icon: "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/ETH_wh.png",
       size: 30,
     },
-    "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a": {
+    BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a: {
       icon: "https://raw.githubusercontent.com/certusone/wormhole-token-list/main/assets/WBTC_wh.png",
       size: 30,
     },
-    "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8": {
+    Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8: {
       icon: "https://storage.googleapis.com/token-metadata/JitoSOL-256.png",
       size: 30,
     },
@@ -250,18 +250,19 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
             if (!assetIcon) assetIcon = assetIcons["CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"];
 
             return (
-            <MenuItem key={b.publicKey.toBase58()} value={b.publicKey.toBase58()}>
-              <div className="flex gap-4 items-center">
-                <Image
-                  src={assetIcon.icon}
-                  alt={b.publicKey.toBase58()}
-                  height={assetIcon.size}
-                  width={assetIcon.size}
-                />
-                <div>{b.publicKey.toBase58()}</div>
-              </div>
-            </MenuItem>
-          )})}
+              <MenuItem key={b.publicKey.toBase58()} value={b.publicKey.toBase58()}>
+                <div className="flex gap-4 items-center">
+                  <Image
+                    src={assetIcon.icon}
+                    alt={b.publicKey.toBase58()}
+                    height={assetIcon.size}
+                    width={assetIcon.size}
+                  />
+                  <div>{b.publicKey.toBase58()}</div>
+                </div>
+              </MenuItem>
+            );
+          })}
         </Select>
       </div>
       <div className="flex justify-between">
@@ -269,7 +270,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
         <CampaignWizardInputBox
           value={guaranteedApy * 100}
           setValue={(value) => setGuaranteedApy(value / 100)}
-          loadingSafetyCheck={() => { }}
+          loadingSafetyCheck={() => {}}
           maxDecimals={2}
           disabled={!wallet.connected}
         />
@@ -280,7 +281,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           <CampaignWizardInputBox
             value={lockupPeriodInDays}
             setValue={setLockupPeriodInDays}
-            loadingSafetyCheck={() => { }}
+            loadingSafetyCheck={() => {}}
             maxDecimals={4}
             disabled={!wallet.connected}
           />
@@ -291,7 +292,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
         <CampaignWizardInputBox
           value={depositCapacity}
           setValue={setDepositCapacity}
-          loadingSafetyCheck={() => { }}
+          loadingSafetyCheck={() => {}}
           maxDecimals={3}
           disabled={!wallet.connected}
         />
@@ -341,12 +342,12 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           >
             {campaignBank
               ? percentFormatterDyn.format(
-                computeGuaranteedApy(
-                  contractInputs.lockupPeriod.toNumber(),
-                  contractInputs.maxDeposits.toNumber(),
-                  contractInputs.maxRewards.toNumber(),
+                  computeGuaranteedApy(
+                    contractInputs.lockupPeriod.toNumber(),
+                    contractInputs.maxDeposits.toNumber(),
+                    contractInputs.maxRewards.toNumber()
+                  )
                 )
-              )
               : 0}
           </span>
         </div>

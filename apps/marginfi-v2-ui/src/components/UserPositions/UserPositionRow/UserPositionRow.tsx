@@ -23,7 +23,10 @@ interface UserPositionRowProps {
 const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAccount, reloadPositions }) => {
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
 
-  const isDust = useMemo(() =>  uiToNative(activeBankInfo.position.amount, activeBankInfo.tokenMintDecimals).isZero(), [activeBankInfo]);
+  const isDust = useMemo(
+    () => uiToNative(activeBankInfo.position.amount, activeBankInfo.tokenMintDecimals).isZero(),
+    [activeBankInfo]
+  );
 
   const closeBalance = useCallback(async () => {
     if (!marginfiAccount) {
@@ -37,17 +40,9 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
 
     try {
       if (activeBankInfo.position.isLending) {
-        await marginfiAccount.withdraw(
-          0,
-          activeBankInfo.bank,
-          true
-        );
+        await marginfiAccount.withdraw(0, activeBankInfo.bank, true);
       } else {
-        await marginfiAccount.repay(
-          0,
-          activeBankInfo.bank,
-          true
-        );
+        await marginfiAccount.repay(0, activeBankInfo.bank, true);
       }
       toast.update(CLOSE_BALANCE_TOAST_ID, {
         render: "Closing 👍",
@@ -155,18 +150,11 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [
-    activeBankInfo,
-    marginfiAccount,
-    reloadPositions,
-    withdrawOrRepayAmount,
-  ]);
+  }, [activeBankInfo, marginfiAccount, reloadPositions, withdrawOrRepayAmount]);
 
   return (
     <TableRow className="h-full w-full bg-[#171C1F] border border-[#1E2122] rounded-2xl">
-      <TableCell
-        className={`text-white p-0 font-aeonik border-[1px] border-${activeBankInfo.tokenSymbol}`}
-      >
+      <TableCell className={`text-white p-0 font-aeonik border-[1px] border-none`}>
         <div className="flex justify-center items-center px-4 gap-2">
           {activeBankInfo.tokenIcon && (
             <Image src={activeBankInfo.tokenIcon} alt={activeBankInfo.tokenSymbol} height={25} width={25} />

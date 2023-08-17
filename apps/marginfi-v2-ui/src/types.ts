@@ -3,7 +3,6 @@ import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import BigNumber from "bignumber.js";
 import { Transaction } from "@solana/web3.js";
 
-
 export interface AccountSummary {
   balance: number;
   lendingAmount: number;
@@ -15,7 +14,7 @@ export interface AccountSummary {
   borrowingAmountUnbiased: number;
   lendingAmountWithBiasAndWeighted: number;
   borrowingAmountWithBiasAndWeighted: number;
-  freeCollateral: number;
+  signedFreeCollateral: number;
 }
 
 export interface BankInfo {

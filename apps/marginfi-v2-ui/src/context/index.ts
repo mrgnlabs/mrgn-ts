@@ -17,5 +17,5 @@ export {
   useTokenMetadata,
   TokenMetadataProvider,
   BankMetadataProvider,
-  useBankMetadata
+  useBankMetadata,
 };

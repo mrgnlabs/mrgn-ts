@@ -61,21 +61,21 @@ async function fetchLeaderboardData(rowCap = 100, pageSize = 50): Promise<Leader
 // as the the count of users with more points inclusive of corrupted rows - the count of corrupted rows
 async function fetchUserRank(userPoints: number): Promise<number> {
   const q1 = query(
-    collection(firebaseDb, 'points'),
-    where('owner', '==', null),
-    where('total_points', '>', userPoints),
+    collection(firebaseDb, "points"),
+    where("owner", "==", null),
+    where("total_points", ">", userPoints),
     orderBy("total_points", "desc")
   );
   const querySnapshot1 = await getCountFromServer(q1);
-  const nullGreaterDocsCount =  querySnapshot1.data().count;
+  const nullGreaterDocsCount = querySnapshot1.data().count;
 
   const q2 = query(
-    collection(firebaseDb, 'points'),
-    where('total_points', '>', userPoints),
+    collection(firebaseDb, "points"),
+    where("total_points", ">", userPoints),
     orderBy("total_points", "desc")
   );
   const querySnapshot2 = await getCountFromServer(q2);
-  const allGreaterDocsCount =  querySnapshot2.data().count;
+  const allGreaterDocsCount = querySnapshot2.data().count;
 
   return allGreaterDocsCount - nullGreaterDocsCount;
 }

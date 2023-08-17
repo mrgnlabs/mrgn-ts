@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import { FC} from "react";
+import { FC } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 const WalletMultiButtonDynamic = dynamic(

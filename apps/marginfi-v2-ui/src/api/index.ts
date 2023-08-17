@@ -16,6 +16,8 @@ import BigNumber from "bignumber.js";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as firebaseApi from "./firebase";
 
+const VOLATILITY_FACTOR = 0.95;
+
 const DEFAULT_ACCOUNT_SUMMARY = {
   balance: 0,
   lendingAmount: 0,
@@ -28,7 +30,7 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   apy: 0,
   positions: [],
   outstandingUxpEmissions: 0,
-  freeCollateral: 0,
+  signedFreeCollateral: 0,
 };
 
 function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: BankInfo[]): AccountSummary {
@@ -38,7 +40,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
 
   let outstandingUxpEmissions = new BigNumber(0);
 
-  const freeCollateral = marginfiAccount.getFreeCollateral();
+  const signedFreeCollateral = marginfiAccount.getFreeCollateral(false);
 
   const uxpBank = bankInfos.find((bank) => bank.tokenSymbol === "UXD");
   const uxpBalance = marginfiAccount.activeBalances.find((balance) =>
@@ -60,7 +62,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
     borrowingAmountWithBiasAndWeighted: equityComponentsWithBiasAndWeighted.liabilities.toNumber(),
     apy: marginfiAccount.computeNetApy(),
     outstandingUxpEmissions: outstandingUxpEmissions.toNumber(),
-    freeCollateral: freeCollateral.toNumber(),
+    signedFreeCollateral: signedFreeCollateral.toNumber(),
   };
 }
 
@@ -175,11 +177,17 @@ function makeExtendedBankInfo(
     bankInfo.tokenMintDecimals
   );
   const maxWithdraw = floor(
-    Math.min((marginfiAccount?.getMaxWithdrawForBank(bankInfo.bank).toNumber() ?? 0), bankInfo.availableLiquidity),
+    Math.min(
+      marginfiAccount?.getMaxWithdrawForBank(bankInfo.address, VOLATILITY_FACTOR).toNumber() ?? 0,
+      bankInfo.availableLiquidity
+    ),
     bankInfo.tokenMintDecimals
   );
   const maxBorrow = floor(
-    Math.min((marginfiAccount?.getMaxBorrowForBank(bankInfo.bank).toNumber() ?? 0) * 0.95, bankInfo.availableLiquidity),
+    Math.min(
+      (marginfiAccount?.getMaxBorrowForBank(bankInfo.bank).toNumber() ?? 0) * VOLATILITY_FACTOR,
+      bankInfo.availableLiquidity
+    ),
     bankInfo.tokenMintDecimals
   );
   let maxRepay: number;

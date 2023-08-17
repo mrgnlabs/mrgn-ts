@@ -7,12 +7,9 @@ import {
   getFirebaseUserByWallet,
   initFirebaseIfNeeded,
 } from "./utils";
+import { UserData } from "~/api/firebase";
 
 initFirebaseIfNeeded();
-
-export interface UserData {
-  id: string;
-}
 
 export interface UserGetRequest {
   wallet: string;

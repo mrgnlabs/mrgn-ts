@@ -8,8 +8,8 @@ import Typography from "@mui/material/Typography";
 import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
-import { lendZoomLevel, showBadgesState } from '~/state';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { lendZoomLevel, showBadgesState } from "~/state";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { useHotkeys } from "react-hotkeys-hook";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
@@ -37,15 +37,19 @@ const AssetsList: FC = () => {
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
 
   // Enter hotkey mode
-  useHotkeys("meta + k", () => {
-    setIsHotkeyMode(true);
-    setShowBadges(true);
-    
-    setTimeout(() => {
-      setIsHotkeyMode(false);
-      setShowBadges(false);
-    }, 5000);
-  }, { preventDefault: true, enableOnFormTags: true });
+  useHotkeys(
+    "meta + k",
+    () => {
+      setIsHotkeyMode(true);
+      setShowBadges(true);
+
+      setTimeout(() => {
+        setIsHotkeyMode(false);
+        setShowBadges(false);
+      }, 5000);
+    },
+    { preventDefault: true, enableOnFormTags: true }
+  );
 
   // Handle number keys in hotkey mode
   useHotkeys(
@@ -72,13 +76,17 @@ const AssetsList: FC = () => {
   );
 
   // Toggle lending mode in hotkey mode
-  useHotkeys("q", () => {
-    if (isHotkeyMode) {
-      setIsInLendingMode(prevMode => !prevMode);
-      setIsHotkeyMode(false);
-      setShowBadges(false);
-    }
-  }, { enableOnFormTags: true });
+  useHotkeys(
+    "q",
+    () => {
+      if (isHotkeyMode) {
+        setIsInLendingMode((prevMode) => !prevMode);
+        setIsHotkeyMode(false);
+        setShowBadges(false);
+      }
+    },
+    { enableOnFormTags: true }
+  );
 
   // Hack required to circumvent rehydration error
   const [hasMounted, setHasMounted] = React.useState(false);
@@ -174,7 +182,7 @@ const AssetsList: FC = () => {
                           </Typography>
                           {isInLendingMode
                             ? "How much your assets count for collateral, relative to their USD value. The higher the weight, the more collateral you can borrow against it."
-                            : "How much you can borrow against the marginfi value of your collateral. The higher the LTV, the more you can borrow against your collateral."}
+                            : "How much you can borrow against your free collateral. The higher the LTV, the more you can borrow against your free collateral."}
                         </React.Fragment>
                       }
                       placement="top"
@@ -295,7 +303,7 @@ const AssetsList: FC = () => {
                         marginfiClient={mfiClient}
                         reloadBanks={reload}
                         inputRefs={inputRefs}
-						            hasHotkey={true}
+                        hasHotkey={true}
                         showHotkeyBadges={showBadges}
                         badgeContent={`${i + 1}`}
                       />
@@ -340,7 +348,7 @@ const AssetsList: FC = () => {
                         marginfiClient={mfiClient}
                         reloadBanks={reload}
                         inputRefs={inputRefs}
-						hasHotkey={false}
+                        hasHotkey={false}
                       />
                     ))
                 ) : (

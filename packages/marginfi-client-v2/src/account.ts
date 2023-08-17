@@ -286,9 +286,6 @@ export class MarginfiAccount {
       ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
     }
 
-    const ixws = await this.makeRepayIx(amount, bank, repayAll);
-    ixs.push(...ixws.instructions);
-
     if (repayAll && !bank.emissionsMint.equals(PublicKey.default)) {
       const userAta = await associatedAddress({
         mint: bank.emissionsMint,
@@ -304,6 +301,9 @@ export class MarginfiAccount {
       ixs.push(createAtaIdempotentIx);
       ixs.push(...(await this.makeWithdrawEmissionsIx(bank)).instructions);
     }
+
+    const ixws = await this.makeRepayIx(amount, bank, repayAll);
+    ixs.push(...ixws.instructions);
 
     const tx = new Transaction().add(...ixs);
     const sig = await this.client.processTransaction(tx);
@@ -709,10 +709,10 @@ export class MarginfiAccount {
     return this.activeBalances.find((b) => b.bankPk.equals(bankPk)) ?? Balance.newEmpty(bankPk);
   }
 
-  public getFreeCollateral(): BigNumber {
+  public getFreeCollateral(clamped: boolean = true): BigNumber {
     const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Init);
-
-    return BigNumber.max(0, assets.minus(liabilities));
+    const signedFreeCollateral = assets.minus(liabilities);
+    return clamped ? BigNumber.max(0, signedFreeCollateral) : signedFreeCollateral;
   }
 
   public getHealthComponentsWithoutBias(marginReqType: MarginRequirementType): {
@@ -804,7 +804,10 @@ export class MarginfiAccount {
   /**
    * Calculate the maximum amount that can be withdrawn form a bank without borrowing.
    */
-  public getMaxWithdrawForBank(bank: Bank, volatilityFactor: number = 0.95): BigNumber {
+  public getMaxWithdrawForBank(bankPk: PublicKey, volatilityFactor: number = 1): BigNumber {
+    const bank = this._group.getBankByPk(bankPk);
+    if (!bank) throw Error(`Bank ${bankPk.toBase58()} not found`)
+
     const assetWeight = bank.getAssetWeight(MarginRequirementType.Init);
     const balance = this.getBalance(bank.publicKey);
 

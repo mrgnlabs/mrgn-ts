@@ -19,5 +19,5 @@ export {
   TokenMetadataProvider,
   JupiterApiProvider,
   BankMetadataProvider,
-  useBankMetadata
+  useBankMetadata,
 };

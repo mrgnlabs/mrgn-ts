@@ -82,7 +82,10 @@ const UserAccountsProvider: FC<{
     return () => clearInterval(id);
   }, [reload]);
 
-  const accountSummary = useMemo(() => selectedAccount ? computeAccountSummary(selectedAccount, bankInfos) : DEFAULT_ACCOUNT_SUMMARY, [selectedAccount, bankInfos])
+  const accountSummary = useMemo(
+    () => (selectedAccount ? computeAccountSummary(selectedAccount, bankInfos) : DEFAULT_ACCOUNT_SUMMARY),
+    [selectedAccount, bankInfos]
+  );
 
   return (
     <UserAccountsContext.Provider
