@@ -49,19 +49,23 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
   return (
     <div className="flex justify-center">
       <NumericFormat
-        value={value}
-        placeholder="0"
+        value={maxValue ? value : ""}
+        placeholder={maxValue ? "0" : undefined}
         allowNegative={false}
         decimalScale={maxDecimals}
-        disabled={disabled}
+        disabled={disabled || !maxValue}
         onValueChange={onChange}
         thousandSeparator=","
         customInput={TextField}
         size="small"
-        max={maxValue}
+        isAllowed={(values) => {
+          const { floatValue } = values;
+          if (!maxValue) return false;
+          return floatValue ? floatValue < maxValue : true;
+        }}
         InputProps={{
           className: "font-aeonik text-[#e1e1e1] border border-[#4E5257] p-0 m-0 text-sm h-11",
-          endAdornment: <MaxInputAdornment onClick={onMaxClick} disabled={disabled} />,
+          endAdornment: <MaxInputAdornment onClick={onMaxClick} disabled={disabled || !maxValue} />,
         }}
         getInputRef={(el: any) => (inputRefs.current[tokenName] = el)}
       />
