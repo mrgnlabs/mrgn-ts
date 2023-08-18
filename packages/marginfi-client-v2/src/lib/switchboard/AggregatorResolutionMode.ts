@@ -54,10 +54,7 @@ export function fromJSON(obj: any) {
   }
 }
 export function layout(property: any) {
-  const ret = borsh.rustEnum([
-    borsh.struct([], "ModeRoundResolution"),
-    borsh.struct([], "ModeSlidingResolution"),
-  ]);
+  const ret = borsh.rustEnum([borsh.struct([], "ModeRoundResolution"), borsh.struct([], "ModeSlidingResolution")]);
   if (property !== undefined) {
     return ret.replicate(property);
   }

@@ -1,2 +1,2 @@
-export * from "./aggregatorAccountData"
-export * from "./aggregatorAccount"
+export * from "./aggregatorAccountData";
+export * from "./aggregatorAccount";

@@ -139,7 +139,11 @@ class MarginfiGroup {
   }
 
   // NOTE: 2 RPC calls
-  static async fetchData(program: MarginfiProgram, groupAddress: PublicKey, commitment?: Commitment): Promise<{ data: MarginfiGroupData; banks: Bank[]}> {
+  static async fetchData(
+    program: MarginfiProgram,
+    groupAddress: PublicKey,
+    commitment?: Commitment
+  ): Promise<{ data: MarginfiGroupData; banks: Bank[] }> {
     // Fetch & shape all accounts of Bank type (~ bank discobery, )
     let bankAccountsData = await program.account.bank.all([
       { memcmp: { offset: 8 + 32 + 1, bytes: groupAddress.toBase58() } },

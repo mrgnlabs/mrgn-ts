@@ -507,7 +507,10 @@ class Liquidator {
 
     // MAX collateral amount to liquidate for given banks and the trader marginfi account balances
     // this doesn't account for liquidators liquidation capacity
-    const maxCollateralAmountToLiquidate = marginfiAccount.computeMaxLiquidatableAssetAmount(collateralBank.publicKey, liabBank.publicKey);
+    const maxCollateralAmountToLiquidate = marginfiAccount.computeMaxLiquidatableAssetAmount(
+      collateralBank.publicKey,
+      liabBank.publicKey
+    );
 
     debug("Max collateral amount to liquidate: %d", maxCollateralAmountToLiquidate);
 

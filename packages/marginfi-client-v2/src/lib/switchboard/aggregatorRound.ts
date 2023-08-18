@@ -49,9 +49,7 @@ export class AggregatorRound {
     this.minResponse = new SwitchboardDecimal({ ...fields.minResponse });
     this.maxResponse = new SwitchboardDecimal({ ...fields.maxResponse });
     this.oraclePubkeysData = fields.oraclePubkeysData;
-    this.mediansData = fields.mediansData.map(
-      (item: any) => new SwitchboardDecimal({ ...item })
-    );
+    this.mediansData = fields.mediansData.map((item: any) => new SwitchboardDecimal({ ...item }));
     this.currentPayout = fields.currentPayout;
     this.mediansFulfilled = fields.mediansFulfilled;
     this.errorsFulfilled = fields.errorsFulfilled;
@@ -89,11 +87,7 @@ export class AggregatorRound {
       minResponse: SwitchboardDecimal.fromDecoded(obj.minResponse),
       maxResponse: SwitchboardDecimal.fromDecoded(obj.maxResponse),
       oraclePubkeysData: obj.oraclePubkeysData,
-      mediansData: obj.mediansData.map(
-        (
-          item: any
-        ) => SwitchboardDecimal.fromDecoded(item)
-      ),
+      mediansData: obj.mediansData.map((item: any) => SwitchboardDecimal.fromDecoded(item)),
       currentPayout: obj.currentPayout,
       mediansFulfilled: obj.mediansFulfilled,
       errorsFulfilled: obj.errorsFulfilled,
@@ -111,9 +105,7 @@ export class AggregatorRound {
       minResponse: SwitchboardDecimal.toEncodable(fields.minResponse),
       maxResponse: SwitchboardDecimal.toEncodable(fields.maxResponse),
       oraclePubkeysData: fields.oraclePubkeysData,
-      mediansData: fields.mediansData.map((item: any) =>
-        SwitchboardDecimal.toEncodable(item)
-      ),
+      mediansData: fields.mediansData.map((item: any) => SwitchboardDecimal.toEncodable(item)),
       currentPayout: fields.currentPayout,
       mediansFulfilled: fields.mediansFulfilled,
       errorsFulfilled: fields.errorsFulfilled,
@@ -130,9 +122,7 @@ export class AggregatorRound {
       stdDeviation: this.stdDeviation.toJSON(),
       minResponse: this.minResponse.toJSON(),
       maxResponse: this.maxResponse.toJSON(),
-      oraclePubkeysData: this.oraclePubkeysData.map((item: any) =>
-        item.toString()
-      ),
+      oraclePubkeysData: this.oraclePubkeysData.map((item: any) => item.toString()),
       mediansData: this.mediansData.map((item: any) => item.toJSON()),
       currentPayout: this.currentPayout.map((item: any) => item.toString()),
       mediansFulfilled: this.mediansFulfilled,
@@ -150,18 +140,13 @@ export class AggregatorRound {
       stdDeviation: SwitchboardDecimal.fromJSON(obj.stdDeviation),
       minResponse: SwitchboardDecimal.fromJSON(obj.minResponse),
       maxResponse: SwitchboardDecimal.fromJSON(obj.maxResponse),
-      oraclePubkeysData: obj.oraclePubkeysData.map(
-        (item: PublicKeyInitData) => new PublicKey(item)
-      ),
+      oraclePubkeysData: obj.oraclePubkeysData.map((item: PublicKeyInitData) => new PublicKey(item)),
       mediansData: obj.mediansData.map(
-        (item: {
-          mantissa: string | number | BN | number[] | Uint8Array | Buffer;
-          scale: any;
-        }) => SwitchboardDecimal.fromJSON(item)
+        (item: { mantissa: string | number | BN | number[] | Uint8Array | Buffer; scale: any }) =>
+          SwitchboardDecimal.fromJSON(item)
       ),
       currentPayout: obj.currentPayout.map(
-        (item: string | number | BN | number[] | Uint8Array | Buffer) =>
-          new BN(item)
+        (item: string | number | BN | number[] | Uint8Array | Buffer) => new BN(item)
       ),
       mediansFulfilled: obj.mediansFulfilled,
       errorsFulfilled: obj.errorsFulfilled,

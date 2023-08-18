@@ -6,6 +6,7 @@ import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
+import { ActiveBankInfo } from "~/types";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -20,8 +21,13 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 const UserPositions: FC = () => {
-  const { selectedAccount, activeBankInfos, reload } = useUserAccounts();
+  const { selectedAccount, extendedBankInfos, reload } = useUserAccounts();
   const { tokenAccountMap } = useTokenAccounts();
+
+  const activeBankInfos = useMemo(
+    () => extendedBankInfos.filter((balance) => balance.hasActivePosition),
+    [extendedBankInfos]
+  ) as ActiveBankInfo[];
 
   const { lendPositions, borrowPositions } = useMemo(
     () => ({

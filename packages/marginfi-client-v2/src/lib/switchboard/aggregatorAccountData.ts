@@ -180,23 +180,15 @@ export class AggregatorAccountData {
       nextAllowedUpdateTime: dec.nextAllowedUpdateTime,
       isLocked: dec.isLocked,
       crankPubkey: dec.crankPubkey,
-      latestConfirmedRound: AggregatorRound.fromDecoded(
-        dec.latestConfirmedRound
-      ),
+      latestConfirmedRound: AggregatorRound.fromDecoded(dec.latestConfirmedRound),
       currentRound: AggregatorRound.fromDecoded(dec.currentRound),
       jobPubkeysData: dec.jobPubkeysData,
-      jobHashes: dec.jobHashes.map(
-        (
-          item: any
-        ) => Hash.fromDecoded(item)
-      ),
+      jobHashes: dec.jobHashes.map((item: any) => Hash.fromDecoded(item)),
       jobPubkeysSize: dec.jobPubkeysSize,
       jobsChecksum: dec.jobsChecksum,
       authority: dec.authority,
       historyBuffer: dec.historyBuffer,
-      previousConfirmedRoundResult: SwitchboardDecimal.fromDecoded(
-        dec.previousConfirmedRoundResult
-      ),
+      previousConfirmedRoundResult: SwitchboardDecimal.fromDecoded(dec.previousConfirmedRoundResult),
       previousConfirmedRoundSlot: dec.previousConfirmedRoundSlot,
       disableCrank: dec.disableCrank,
       jobWeights: dec.jobWeights,

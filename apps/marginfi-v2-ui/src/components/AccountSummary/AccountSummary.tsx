@@ -50,9 +50,7 @@ const AccountSummary: FC = () => {
   }, []);
 
   return (
-    <div
-      className="flex flex-col lg:flex-row w-full h-full justify-between items-center"
-    >
+    <div className="flex flex-col lg:flex-row w-full h-full justify-between items-center">
       <div className="hidden lg:block w-full">
         <GlobalStats
           globalTVL={globalTVL}

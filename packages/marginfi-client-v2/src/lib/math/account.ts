@@ -6,7 +6,7 @@ import { PublicKey } from "@solana/web3.js";
 export function computeFreeCollateral(
   activeBalances: Balance[],
   banks: Map<string, Bank>,
-  opts?: {clamped?: boolean}
+  opts?: { clamped?: boolean }
 ): BigNumber {
   const _clamped = opts?.clamped ?? true;
 

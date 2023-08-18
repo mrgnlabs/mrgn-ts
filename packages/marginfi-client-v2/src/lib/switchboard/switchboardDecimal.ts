@@ -35,10 +35,7 @@ export class SwitchboardDecimal {
       scale: this.scale,
     };
   }
-  static fromJSON(obj: {
-    mantissa: string | number | BN | number[] | Uint8Array | Buffer;
-    scale: any;
-  }) {
+  static fromJSON(obj: { mantissa: string | number | BN | number[] | Uint8Array | Buffer; scale: any }) {
     return new SwitchboardDecimal({
       mantissa: new BN(obj.mantissa),
       scale: obj.scale,
@@ -52,10 +49,7 @@ export class SwitchboardDecimal {
    * @param obj raw object to convert from
    * @return SwitchboardDecimal
    */
-  static from(obj: {
-    mantissa: string | number | BN | number[] | Uint8Array | Buffer;
-    scale: any;
-  }) {
+  static from(obj: { mantissa: string | number | BN | number[] | Uint8Array | Buffer; scale: any }) {
     return new SwitchboardDecimal({
       mantissa: new BN(obj.mantissa),
       scale: obj.scale,
@@ -69,9 +63,7 @@ export class SwitchboardDecimal {
   static fromBig(big: {
     round: (arg0: number) => any;
     c: {
-      join: (
-        arg0: string
-      ) => string | number | BN | number[] | Uint8Array | Buffer;
+      join: (arg0: string) => string | number | BN | number[] | Uint8Array | Buffer;
       slice: (arg0: number) => { (): any; new (): any; length: number };
     };
     e: number;

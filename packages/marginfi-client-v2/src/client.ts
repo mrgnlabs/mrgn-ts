@@ -33,6 +33,7 @@ import {
 class MarginfiClient {
   public readonly programId: PublicKey;
   private _group: MarginfiGroup;
+  public readonly isReadOnly: boolean = true;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -49,6 +50,7 @@ class MarginfiClient {
   ) {
     this.programId = config.programId;
     this._group = group;
+    this.isReadOnly = wallet.publicKey === undefined;
   }
 
   /**

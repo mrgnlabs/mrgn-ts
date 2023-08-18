@@ -102,8 +102,8 @@ class LipClient {
     // LipClient takes in a list of campaigns, which is
     // campaigns we've found + bank information we've constructed.
     return allCampaigns.map((campaign, i) => {
-      const bank = marginfiClient.group.getBankByPk(campaign.marginfiBankPk)
-      if (!bank) throw new Error(`Bank ${campaign.marginfiBankPk} not found for campaign ${campaign.publicKey}`)
+      const bank = marginfiClient.group.getBankByPk(campaign.marginfiBankPk);
+      if (!bank) throw new Error(`Bank ${campaign.marginfiBankPk} not found for campaign ${campaign.publicKey}`);
       return new Campaign(bank, campaign);
     });
   }

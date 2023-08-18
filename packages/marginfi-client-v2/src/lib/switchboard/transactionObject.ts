@@ -48,22 +48,12 @@ export class TransactionObject {
     this.computeUnitPrice = options?.computeUnitPrice ?? 0;
     this.computeUnitLimit = options?.computeUnitLimit ?? 0;
     const instructions = [...ixns];
-    const computeLimitIxn = TransactionObject.getComputeUnitLimitIxn(
-      options?.computeUnitLimit
-    );
-    if (
-      computeLimitIxn !== undefined &&
-      instructions.findIndex((ixn) => ixnsEqual(ixn, computeLimitIxn)) === -1
-    ) {
+    const computeLimitIxn = TransactionObject.getComputeUnitLimitIxn(options?.computeUnitLimit);
+    if (computeLimitIxn !== undefined && instructions.findIndex((ixn) => ixnsEqual(ixn, computeLimitIxn)) === -1) {
       instructions.unshift(computeLimitIxn);
     }
-    const priorityTxn = TransactionObject.getComputeUnitPriceIxn(
-      options?.computeUnitPrice
-    );
-    if (
-      priorityTxn !== undefined &&
-      instructions.findIndex((ixn) => ixnsEqual(ixn, priorityTxn)) === -1
-    ) {
+    const priorityTxn = TransactionObject.getComputeUnitPriceIxn(options?.computeUnitPrice);
+    if (priorityTxn !== undefined && instructions.findIndex((ixn) => ixnsEqual(ixn, priorityTxn)) === -1) {
       instructions.unshift(priorityTxn);
     }
     this.ixns = instructions;
@@ -76,12 +66,7 @@ export class TransactionObject {
     return new TransactionObject(payer, [...preIxns, ...postIxns], [], options);
   }
   verify() {
-    return TransactionObject.verify(
-      this.payer,
-      this.ixns,
-      this.signers,
-      this.enableDurableNonce
-    );
+    return TransactionObject.verify(this.payer, this.ixns, this.signers, this.enableDurableNonce);
   }
   static getComputeUnitLimitIxn(computeUnitLimit: number) {
     if (computeUnitLimit && computeUnitLimit > 0) {
@@ -112,21 +97,12 @@ export class TransactionObject {
     const newSigners = [...this.signers];
     if (signers) {
       signers.forEach((s: { publicKey: any }) => {
-        if (
-          newSigners.findIndex((signer) =>
-            signer.publicKey.equals(s.publicKey)
-          ) === -1
-        ) {
+        if (newSigners.findIndex((signer) => signer.publicKey.equals(s.publicKey)) === -1) {
           newSigners.push(s);
         }
       });
     }
-    TransactionObject.verify(
-      this.payer,
-      newIxns,
-      newSigners,
-      this.enableDurableNonce
-    );
+    TransactionObject.verify(this.payer, newIxns, newSigners, this.enableDurableNonce);
     this.ixns = newIxns;
     this.signers = newSigners;
     return this;
@@ -137,21 +113,12 @@ export class TransactionObject {
     const newSigners = [...this.signers];
     if (signers) {
       signers.forEach((s: any) => {
-        if (
-          newSigners.findIndex((signer) =>
-            signer.publicKey.equals(s.publicKey)
-          ) === -1
-        ) {
+        if (newSigners.findIndex((signer) => signer.publicKey.equals(s.publicKey)) === -1) {
           newSigners.push(s);
         }
       });
     }
-    TransactionObject.verify(
-      this.payer,
-      newIxns,
-      newSigners,
-      this.enableDurableNonce
-    );
+    TransactionObject.verify(this.payer, newIxns, newSigners, this.enableDurableNonce);
     this.ixns = newIxns;
     this.signers = newSigners;
     return this;
@@ -169,21 +136,12 @@ export class TransactionObject {
     const newSigners = [...this.signers];
     if (signers) {
       signers.forEach((s: { publicKey: any }) => {
-        if (
-          newSigners.findIndex((signer) =>
-            signer.publicKey.equals(s.publicKey)
-          ) === -1
-        ) {
+        if (newSigners.findIndex((signer) => signer.publicKey.equals(s.publicKey)) === -1) {
           newSigners.push(s);
         }
       });
     }
-    TransactionObject.verify(
-      this.payer,
-      newIxns,
-      newSigners,
-      this.enableDurableNonce
-    );
+    TransactionObject.verify(this.payer, newIxns, newSigners, this.enableDurableNonce);
     this.ixns = newIxns;
     this.signers = newSigners;
     return this;
@@ -207,15 +165,11 @@ export class TransactionObject {
       throw new Error("errors.TransactionInstructionOverflowError(ixnLength)");
     }
     const uniqueAccounts = ixns.reduce((accounts: any, ixn: any) => {
-      ixn.keys.forEach((a: { pubkey: { toBase58: () => any } }) =>
-        accounts.add(a.pubkey.toBase58())
-      );
+      ixn.keys.forEach((a: { pubkey: { toBase58: () => any } }) => accounts.add(a.pubkey.toBase58()));
       return accounts;
     }, new Set());
     if (uniqueAccounts.size > 32) {
-      throw new Error(
-        "errors.TransactionAccountOverflowError(uniqueAccounts.size)"
-      );
+      throw new Error("errors.TransactionAccountOverflowError(uniqueAccounts.size)");
     }
     const padding = enableDurableNonce ? 96 : 0;
     // verify serialized size
@@ -246,19 +200,14 @@ export class TransactionObject {
       }
       return bytes;
     };
-    const reqSigners = ixns.reduce(
-      (signers: { add: (arg0: any) => void }, ixn: { keys: any[] }) => {
-        ixn.keys.map(
-          (a: { isSigner: any; pubkey: { toBase58: () => any } }) => {
-            if (a.isSigner) {
-              signers.add(a.pubkey.toBase58());
-            }
-          }
-        );
-        return signers;
-      },
-      new Set()
-    );
+    const reqSigners = ixns.reduce((signers: { add: (arg0: any) => void }, ixn: { keys: any[] }) => {
+      ixn.keys.map((a: { isSigner: any; pubkey: { toBase58: () => any } }) => {
+        if (a.isSigner) {
+          signers.add(a.pubkey.toBase58());
+        }
+      });
+      return signers;
+    }, new Set());
     // need to include the payer as a signer
     if (!reqSigners.has(payer.toBase58())) {
       reqSigners.add(payer.toBase58());
@@ -268,10 +217,7 @@ export class TransactionObject {
       blockhash: "1".repeat(32),
       lastValidBlockHeight: 200000000,
     }).add(...ixns);
-    const txnSize =
-      txn.serializeMessage().length +
-      reqSigners.size * 64 +
-      encodeLength(reqSigners.size).length;
+    const txnSize = txn.serializeMessage().length + reqSigners.size * 64 + encodeLength(reqSigners.size).length;
     return txnSize;
   }
   get size() {
@@ -287,25 +233,16 @@ export class TransactionObject {
     }
     return this.add(otherObject.ixns, otherObject.signers);
   }
-  static verifySigners(
-    payer: { toBase58: () => any },
-    ixns: any[],
-    signers: any[]
-  ) {
+  static verifySigners(payer: { toBase58: () => any }, ixns: any[], signers: any[]) {
     // get all required signers
-    const reqSigners = ixns.reduce(
-      (signers: { add: (arg0: any) => void }, ixn: { keys: any[] }) => {
-        ixn.keys.map(
-          (a: { isSigner: any; pubkey: { toBase58: () => any } }) => {
-            if (a.isSigner) {
-              signers.add(a.pubkey.toBase58());
-            }
-          }
-        );
-        return signers;
-      },
-      new Set()
-    );
+    const reqSigners = ixns.reduce((signers: { add: (arg0: any) => void }, ixn: { keys: any[] }) => {
+      ixn.keys.map((a: { isSigner: any; pubkey: { toBase58: () => any } }) => {
+        if (a.isSigner) {
+          signers.add(a.pubkey.toBase58());
+        }
+      });
+      return signers;
+    }, new Set());
     if (reqSigners.has(payer.toBase58())) {
       reqSigners.delete(payer.toBase58());
     }
@@ -315,20 +252,13 @@ export class TransactionObject {
       }
     });
     if (reqSigners.size > 0) {
-      throw new Error(
-        "new errors.TransactionMissingSignerError(Array.from(reqSigners))"
-      );
+      throw new Error("new errors.TransactionMissingSignerError(Array.from(reqSigners))");
     }
   }
   /**
    * Convert the TransactionObject into a Solana Transaction
    */
-  toTxn(options: {
-    nonceInfo: any;
-    minContextSlot: any;
-    blockhash: any;
-    lastValidBlockHeight: any;
-  }) {
+  toTxn(options: { nonceInfo: any; minContextSlot: any; blockhash: any; lastValidBlockHeight: any }) {
     if ("nonceInfo" in options) {
       const txn = new Transaction({
         feePayer: this.payer,

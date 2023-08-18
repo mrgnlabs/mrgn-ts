@@ -9,10 +9,7 @@ export class Account {
    */
   constructor(program: any, publicKey: anchor.web3.PublicKey) {
     this.program = program;
-    this.publicKey =
-      typeof publicKey === "string"
-        ? new anchor.web3.PublicKey(publicKey)
-        : publicKey;
+    this.publicKey = typeof publicKey === "string" ? new anchor.web3.PublicKey(publicKey) : publicKey;
   }
 }
 export const BUFFER_DISCRIMINATOR = Buffer.from([

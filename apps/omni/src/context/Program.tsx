@@ -24,17 +24,8 @@ const ProgramProvider: FC<{
 
   useEffect(() => {
     (async function () {
-      const client = await MarginfiClient.fetch(
-        config.mfiConfig,
-        anchorWallet ?? {} as any,
-        connection
-      );
-      const lipClient = await LipClient.fetch(
-        config.lipConfig,
-        anchorWallet ?? {} as any,
-        connection,
-        client
-      );
+      const client = await MarginfiClient.fetch(config.mfiConfig, anchorWallet ?? ({} as any), connection);
+      const lipClient = await LipClient.fetch(config.lipConfig, anchorWallet ?? ({} as any), connection, client);
       setMfiClient(client);
       setLipClient(lipClient);
     })();
