@@ -88,7 +88,7 @@ const BridgePage = () => {
     { preventDefault: true, enableOnFormTags: true }
   );
 
-  const handleConnect = useCallback(async () => {
+  const handleConnect = async () => {
     try {
       if (!wallet) {
         setVisible(!visible);
@@ -98,7 +98,7 @@ const BridgePage = () => {
     } catch (err) {
       console.error(err);
     }
-  }, [connect, setVisible, wallet, visible, publicKey]);
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined" && typeof window.MayanSwap !== "undefined") {
@@ -109,7 +109,7 @@ const BridgePage = () => {
         onClickOnDisconnect: disconnect,
       });
     }
-  }, [publicKey, signTransaction, handleConnect, disconnect]);
+  }, [publicKey, signTransaction, disconnect, setVisible, visible, wallet, connect]);
 
   const handleLoadMayanWidget = () => {
     const configIndex = isBridgeIn ? 0 : 1;
@@ -185,7 +185,7 @@ const BridgePage = () => {
           crossOrigin="anonymous"
           onReady={handleLoadMayanWidget}
         />
-        <div className="max-h-[500px] overflow-hidden" id="swap_widget"></div>
+        <div className="max-h-[500px]" id="swap_widget"></div>
       </div>
     </>
   );
