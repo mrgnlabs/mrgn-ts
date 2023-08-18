@@ -50,10 +50,10 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
     <div className="flex justify-center">
       <NumericFormat
         value={maxValue ? value : ""}
-        placeholder={maxValue ? "0" : undefined}
+        placeholder="0"
         allowNegative={false}
         decimalScale={maxDecimals}
-        disabled={disabled || !maxValue}
+        disabled={disabled}
         onValueChange={onChange}
         thousandSeparator=","
         customInput={TextField}
