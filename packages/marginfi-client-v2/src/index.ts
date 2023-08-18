@@ -1,5 +1,4 @@
 import MarginfiClient from "./client";
-import MarginfiClientReadonly from "./clientReadonly";
 import MarginfiGroup from "./group";
 import MarginfiAccount from "./account";
 
@@ -13,4 +12,4 @@ export * from "./bank";
 export * from "./idl";
 export * from "./types";
 export * from "./utils";
-export { MarginfiAccount, MarginfiClient, MarginfiClientReadonly, MarginfiGroup };
+export { MarginfiAccount, MarginfiClient, MarginfiGroup };

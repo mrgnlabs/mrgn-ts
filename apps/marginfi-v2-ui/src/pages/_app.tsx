@@ -54,6 +54,8 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       new LedgerWalletAdapter(),
       new SolflareWalletAdapter(),
       new GlowWalletAdapter(),
+      new PhantomWalletAdapter(),
+      new BackpackWalletAdapter(),
     ],
     []
   );

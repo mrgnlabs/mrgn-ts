@@ -13,7 +13,7 @@ const DEFAULT_ACCOUNT_SUMMARY = {
 };
 
 function computeAccountSummary(marginfiAccount: MarginfiAccount): AccountSummary {
-  const equityComponents = marginfiAccount.getHealthComponents(MarginRequirementType.Equity);
+  const equityComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Equity);
 
   return {
     balance: equityComponents.assets.minus(equityComponents.liabilities).toNumber(),

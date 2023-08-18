@@ -15,7 +15,7 @@ const AccountSummary: FC = () => {
 
   const healthFactor = useMemo(() => {
     if (selectedAccount) {
-      const { assets, liabilities } = selectedAccount.getHealthComponents(MarginRequirementType.Maint);
+      const { assets, liabilities } = selectedAccount.computeHealthComponents(MarginRequirementType.Maint);
       return assets.isZero() ? 1 : assets.minus(liabilities).dividedBy(assets).toNumber();
     } else {
       return null;

@@ -1,5 +1,5 @@
 import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
-import { MarginfiClient, MarginfiClientReadonly } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import config from "~/config";
 import { LipClient } from "@mrgnlabs/lip-client";
@@ -8,7 +8,6 @@ import { LipClient } from "@mrgnlabs/lip-client";
 const ProgramContext = createContext<ProgramState>();
 
 interface ProgramState {
-  mfiClientReadonly: MarginfiClientReadonly | null;
   mfiClient: MarginfiClient | null;
   lipClient: LipClient | null;
   reload: () => Promise<void>;
@@ -22,28 +21,17 @@ const ProgramProvider: FC<{
 
   const [mfiClient, setMfiClient] = useState<MarginfiClient | null>(null);
   const [lipClient, setLipClient] = useState<LipClient | null>(null);
-  const [mfiClientReadonly, setMfiClientReadonly] = useState<MarginfiClientReadonly | null>(null);
 
   useEffect(() => {
     (async function () {
-      const roClient = await MarginfiClientReadonly.fetch(config.mfiConfig, connection);
-      setMfiClientReadonly(roClient);
-
-      if (!anchorWallet) {
-        setMfiClient(null);
-        return;
-      }
-
       const client = await MarginfiClient.fetch(
         config.mfiConfig,
-        //@ts-ignore
-        anchorWallet,
+        anchorWallet ?? {} as any,
         connection
       );
       const lipClient = await LipClient.fetch(
         config.lipConfig,
-        //@ts-ignore
-        anchorWallet,
+        anchorWallet ?? {} as any,
         connection,
         client
       );
@@ -61,7 +49,6 @@ const ProgramProvider: FC<{
   return (
     <ProgramContext.Provider
       value={{
-        mfiClientReadonly,
         mfiClient,
         lipClient,
         reload,

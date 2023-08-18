@@ -2,7 +2,6 @@ import { AnchorProvider, Program } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 import {
-  AccountInfo,
   ConfirmOptions,
   Connection,
   Keypair,
@@ -18,7 +17,7 @@ import { LipConfig, LipProgram } from "./types";
 import { LIP_IDL } from "./idl";
 import instructions from "./instructions";
 import { DEPOSIT_MFI_AUTH_SIGNER_SEED, MARGINFI_ACCOUNT_SEED } from "./constants";
-import { Bank, BankData, getOraclePriceData, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { Bank, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Address, translateAddress } from "@coral-xyz/anchor";
 import { Campaign, DepositData } from "./account";
 import {
@@ -96,37 +95,16 @@ class LipClient {
       ...c.account,
       publicKey: c.publicKey,
     }));
-    // 2. Get relevant banks for all campaigns
-    const relevantBankPks = allCampaigns.map((d) => d.marginfiBankPk);
-    // 3. Fetch all banks
-    const banksWithNulls = await marginfiClient.program.account.bank.fetchMultiple(relevantBankPks);
-    // 4. Filter out banks that aren't found
-    // This shouldn't happen, but is a workaround in case it does.
-    const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
-    if (banksData.length !== banksWithNulls.length) throw new Error("Some banks were not found");
 
-    const banks = await Promise.all(
-      banksData.map(async (bd, index) => {
-        return new Bank(
-          relevantBankPks[index],
-          bd as BankData,
-          await getOraclePriceData(
-            program.provider.connection,
-            (bd as BankData).config.oracleSetup,
-            (bd as BankData).config.oracleKeys
-          )
-        );
-      })
-    );
-
-    if (banks.length !== allCampaigns.length) {
-      return Promise.reject("Some of the banks were not found");
-    }
+    // 2. Refresh mfi banks
+    await marginfiClient.group.reload();
 
     // LipClient takes in a list of campaigns, which is
     // campaigns we've found + bank information we've constructed.
     return allCampaigns.map((campaign, i) => {
-      return new Campaign(banks[i], campaign);
+      const bank = marginfiClient.group.getBankByPk(campaign.marginfiBankPk)
+      if (!bank) throw new Error(`Bank ${campaign.marginfiBankPk} not found for campaign ${campaign.publicKey}`)
+      return new Campaign(bank, campaign);
     });
   }
 

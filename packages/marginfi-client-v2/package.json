@@ -21,7 +21,6 @@
     "@pythnetwork/client": "^2.9.0",
     "@solana/wallet-adapter-base": "^0.9.20",
     "@solana/web3.js": "^1.71.0",
-    "@switchboard-xyz/solana.js": "2.2.0",
     "bignumber.js": "^9.1.1",
     "decimal.js": "^10.4.3",
     "superstruct": "^1.0.3"

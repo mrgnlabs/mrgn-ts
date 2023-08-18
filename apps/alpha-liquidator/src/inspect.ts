@@ -19,15 +19,15 @@ import { env_config } from "./config";
 
   console.log("Account", accountPk);
 
-  const { assets, liabilities } = account.getHealthComponents(MarginRequirementType.Equity);
+  const { assets, liabilities } = account.computeHealthComponents(MarginRequirementType.Equity);
   console.log("Assets %s", assets);
   console.log("Liabilities %s", liabilities);
 
-  const { assets: assets2, liabilities: liabilities2 } = account.getHealthComponents(MarginRequirementType.Init);
+  const { assets: assets2, liabilities: liabilities2 } = account.computeHealthComponents(MarginRequirementType.Init);
   console.log("Assets (Init) %s", assets2);
   console.log("Liabilities (Init) %s", liabilities2);
 
-  const { assets: assets3, liabilities: liabilities3 } = account.getHealthComponents(MarginRequirementType.Maint);
+  const { assets: assets3, liabilities: liabilities3 } = account.computeHealthComponents(MarginRequirementType.Maint);
   console.log("Assets (Maint) %s", assets3);
   console.log("Liabilities (Maint) %s", liabilities3);
 

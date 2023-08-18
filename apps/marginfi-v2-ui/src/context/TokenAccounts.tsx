@@ -21,7 +21,7 @@ const TokenAccountsProvider: FC<{
 }> = ({ children }) => {
   const { connection } = useConnection();
   const wallet = useWallet();
-  const { banks } = useBanks();
+  const { bankInfos } = useBanks();
 
   const [fetching, setFetching] = useState<boolean>(false);
   const [nativeSol, setNativeSol] = useState<number>(0);
@@ -32,9 +32,9 @@ const TokenAccountsProvider: FC<{
     tokenAccountMap: TokenAccountMap;
   }> => {
     // Get relevant addresses
-    const mintList = banks.map((bank) => ({
-      address: bank.mint,
-      decimals: bank.mintDecimals,
+    const mintList = bankInfos.map((bank) => ({
+      address: bank.tokenMint,
+      decimals: bank.tokenMintDecimals,
     }));
 
     if (wallet.publicKey === null) {
@@ -81,7 +81,7 @@ const TokenAccountsProvider: FC<{
     });
 
     return { nativeSolBalance, tokenAccountMap: new Map(ataList.map((ata) => [ata.mint.toString(), ata])) };
-  }, [banks, connection, wallet.publicKey]);
+  }, [bankInfos, connection, wallet.publicKey]);
 
   const reload = useCallback(async () => {
     setFetching(true);

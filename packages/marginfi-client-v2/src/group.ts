@@ -1,9 +1,8 @@
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { Commitment, PublicKey } from "@solana/web3.js";
-import { Bank, BankData, getOraclePriceData } from "./bank";
+import { Bank, BankData, parseOraclePriceData } from "./bank";
 import { MARGINFI_IDL } from "./idl";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
-import { DEFAULT_COMMITMENT } from "@mrgnlabs/mrgn-common";
 
 /**
  * Wrapper class around a specific marginfi group.
@@ -60,25 +59,8 @@ class MarginfiGroup {
   static async fetch(config: MarginfiConfig, program: MarginfiProgram, commitment?: Commitment) {
     const debug = require("debug")(`mfi:margin-group`);
     debug("Loading Marginfi Group %s", config.groupPk);
-
-    const accountData = await MarginfiGroup._fetchAccountData(config, program, commitment);
-
-    const bankAccountsData = await program.account.bank.all([
-      { memcmp: { offset: 8 + 32 + 1, bytes: config.groupPk.toBase58() } },
-    ]);
-
-    const banks = await Promise.all(
-      bankAccountsData.map(async (accountData) => {
-        let bankData = accountData.account as any as BankData;
-        return new Bank(
-          accountData.publicKey,
-          bankData,
-          await getOraclePriceData(program.provider.connection, bankData.config.oracleSetup, bankData.config.oracleKeys)
-        );
-      })
-    );
-
-    return new MarginfiGroup(config, program, accountData, banks);
+    const { data, banks } = await MarginfiGroup.fetchData(program, config.groupPk, commitment);
+    return new MarginfiGroup(config, program, data, banks);
   }
 
   /**
@@ -122,25 +104,6 @@ class MarginfiGroup {
   // --- Others
 
   /**
-   * Fetch marginfi group account data according to the config.
-   * Check sanity against provided config.
-   *
-   * @param config marginfi config
-   * @param program marginfi Anchor program
-   * @param commitment Commitment level override
-   * @return Decoded marginfi group account data struct
-   */
-  private static async _fetchAccountData(
-    config: MarginfiConfig,
-    program: MarginfiProgram,
-    commitment?: Commitment
-  ): Promise<MarginfiGroupData> {
-    const mergedCommitment = commitment ?? program.provider.connection.commitment ?? DEFAULT_COMMITMENT;
-
-    return (await program.account.marginfiGroup.fetch(config.groupPk, mergedCommitment)) as any;
-  }
-
-  /**
    * Decode marginfi group account data according to the Anchor IDL.
    *
    * @param encoded Raw data buffer
@@ -166,32 +129,46 @@ class MarginfiGroup {
    * Update instance data by fetching and storing the latest on-chain state.
    */
   async reload(commitment?: Commitment) {
-    const rawData = await MarginfiGroup._fetchAccountData(this._config, this._program, commitment);
-
-    let bankAccountsData = await this._program.account.bank.all([
-      { memcmp: { offset: 8 + 32 + 1, bytes: this._config.groupPk.toBase58() } },
-    ]);
-
-    const banks = await Promise.all(
-      bankAccountsData.map(async (accountData) => {
-        let bankData = accountData.account as any as BankData;
-        return new Bank(
-          accountData.publicKey,
-          bankData,
-          await getOraclePriceData(
-            this._program.provider.connection,
-            bankData.config.oracleSetup,
-            bankData.config.oracleKeys
-          )
-        );
-      })
-    );
-
-    this._admin = rawData.admin;
-    this._banks = banks.reduce((acc, current) => {
+    const { data, banks } = await MarginfiGroup.fetchData(this._program, this.publicKey, commitment);
+    const banksMap = banks.reduce((acc, current) => {
       acc.set(current.publicKey.toBase58(), current);
       return acc;
     }, new Map<string, Bank>());
+    this._admin = data.admin;
+    this._banks = banksMap;
+  }
+
+  // NOTE: 2 RPC calls
+  static async fetchData(program: MarginfiProgram, groupAddress: PublicKey, commitment?: Commitment): Promise<{ data: MarginfiGroupData; banks: Bank[]}> {
+    // Fetch & shape all accounts of Bank type (~ bank discobery, )
+    let bankAccountsData = await program.account.bank.all([
+      { memcmp: { offset: 8 + 32 + 1, bytes: groupAddress.toBase58() } },
+    ]);
+    const bankDatasKeyed = bankAccountsData.map((account) => ({
+      address: account.publicKey,
+      data: account.account as any as BankData,
+    }));
+
+    // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
+    const [groupAi, ...priceFeedAis] = await program.provider.connection.getMultipleAccountsInfo(
+      [groupAddress, ...bankDatasKeyed.map((b) => b.data.config.oracleKeys[0])],
+      commitment
+    ); // NOTE: This will break if/when we start having more than 1 oracle key per bank
+
+    // Unpack raw data for group and oracles, and build the `Bank`s map
+    if (!groupAi) throw new Error("Failed to fetch the on-chain group data");
+    const groupData = await MarginfiGroup.decode(groupAi.data);
+    const banks = bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
+      const priceDataRaw = priceFeedAis[index];
+      if (!priceDataRaw) throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
+      const priceData = parseOraclePriceData(bankData.config.oracleSetup, priceDataRaw.data);
+      return new Bank(bankAddress, bankData, priceData);
+    }, new Map<string, Bank>());
+
+    return {
+      data: groupData,
+      banks,
+    };
   }
 
   /**

@@ -34,13 +34,13 @@ const DEFAULT_ACCOUNT_SUMMARY = {
 };
 
 function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: BankInfo[]): AccountSummary {
-  const equityComponents = marginfiAccount.getHealthComponents(MarginRequirementType.Equity);
-  const equityComponentsUnbiased = marginfiAccount.getHealthComponentsWithoutBias(MarginRequirementType.Equity);
-  const equityComponentsWithBiasAndWeighted = marginfiAccount.getHealthComponents(MarginRequirementType.Maint);
+  const equityComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Equity);
+  const equityComponentsUnbiased = marginfiAccount.computeHealthComponentsWithoutBias(MarginRequirementType.Equity);
+  const equityComponentsWithBiasAndWeighted = marginfiAccount.computeHealthComponents(MarginRequirementType.Maint);
 
   let outstandingUxpEmissions = new BigNumber(0);
 
-  const signedFreeCollateral = marginfiAccount.getFreeCollateral(false);
+  const signedFreeCollateral = marginfiAccount.computeFreeCollateral({ clamped: false });
 
   const uxpBank = bankInfos.find((bank) => bank.tokenSymbol === "UXD");
   const uxpBalance = marginfiAccount.activeBalances.find((balance) =>
@@ -178,14 +178,16 @@ function makeExtendedBankInfo(
   );
   const maxWithdraw = floor(
     Math.min(
-      marginfiAccount?.getMaxWithdrawForBank(bankInfo.address, VOLATILITY_FACTOR).toNumber() ?? 0,
+      marginfiAccount
+        ?.computeMaxWithdrawForBank(bankInfo.address, { volatilityFactor: VOLATILITY_FACTOR })
+        .toNumber() ?? 0,
       bankInfo.availableLiquidity
     ),
     bankInfo.tokenMintDecimals
   );
   const maxBorrow = floor(
     Math.min(
-      (marginfiAccount?.getMaxBorrowForBank(bankInfo.bank).toNumber() ?? 0) * VOLATILITY_FACTOR,
+      (marginfiAccount?.computeMaxBorrowForBank(bankInfo.bank.publicKey).toNumber() ?? 0) * VOLATILITY_FACTOR,
       bankInfo.availableLiquidity
     ),
     bankInfo.tokenMintDecimals

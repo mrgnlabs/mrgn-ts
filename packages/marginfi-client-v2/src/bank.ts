@@ -5,7 +5,8 @@ import { MarginRequirementType } from "./account";
 import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS } from "./constants";
 import { parsePriceData } from "@pythnetwork/client";
 import { getMint, nativeToUi, WrappedI80F48, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
-import { AggregatorAccount, SwitchboardProgram } from "@switchboard-xyz/solana.js";
+import { AggregatorAccountData } from "./lib/switchboard/aggregatorAccountData";
+import { AggregatorAccount } from "./lib/switchboard";
 
 /**
  * Wrapper class around a specific marginfi group.
@@ -153,7 +154,10 @@ LTVs:
   }
 
   public async reloadPriceData(connection: Connection) {
-    this.priceData = await getOraclePriceData(connection, this.config.oracleSetup, this.config.oracleKeys);
+    const oracleKey = this.config.oracleKeys[0]; // NOTE: This will break if/when we start having more than 1 oracle key per bank
+    const account = await connection.getAccountInfo(oracleKey);
+    if (!account) throw new Error(`Failed to fetch oracle account ${oracleKey.toBase58()}`);
+    this.priceData = await parseOraclePriceData(this.config.oracleSetup, account.data);
   }
 
   public getAssetQuantity(assetShares: BigNumber): BigNumber {
@@ -434,15 +438,10 @@ export interface OraclePriceData {
   highestPrice: BigNumber;
 }
 
-export async function getOraclePriceData(
-  connection: Connection,
-  oracleSetup: OracleSetup,
-  oracleKeys: PublicKey[]
-): Promise<OraclePriceData> {
+export function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): OraclePriceData {
   switch (oracleSetup) {
     case OracleSetup.PythEma:
-      const account = await connection.getAccountInfo(oracleKeys[0]!);
-      const pythPriceData = parsePriceData(account!.data);
+      const pythPriceData = parsePriceData(rawData);
 
       const pythPrice = new BigNumber(pythPriceData.emaPrice.value);
       const pythConfInterval = new BigNumber(pythPriceData.emaConfidence.value);
@@ -457,13 +456,10 @@ export async function getOraclePriceData(
       };
 
     case OracleSetup.SwitchboardV2:
-      const swbProgram = await SwitchboardProgram.load("mainnet-beta", connection);
-      const aggAccount = new AggregatorAccount(swbProgram, oracleKeys[0]);
+      const aggData = AggregatorAccountData.decode(rawData);
 
-      const aggData = await aggAccount.loadData();
       const swbPrice = new BigNumber(AggregatorAccount.decodeLatestValue(aggData)!.toString());
       const swbConfidence = new BigNumber(aggData.latestConfirmedRound.stdDeviation.toBig().toString());
-
       const swbLowestPrice = swbPrice.minus(swbConfidence.times(SWB_PRICE_CONF_INTERVALS));
       const swbHighestPrice = swbPrice.plus(swbConfidence.times(SWB_PRICE_CONF_INTERVALS));
 

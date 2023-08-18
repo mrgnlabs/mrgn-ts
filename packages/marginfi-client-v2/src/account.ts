@@ -1,6 +1,5 @@
 import {
   Amount,
-  aprToApy,
   createAssociatedTokenAccountIdempotentInstruction,
   createCloseAccountInstruction,
   createSyncNativeInstruction,
@@ -8,7 +7,6 @@ import {
   InstructionsWrapper,
   NATIVE_MINT,
   nativeToUi,
-  shortenAddress,
   uiToNative,
   WrappedI80F48,
   wrappedI80F48toBigNumber,
@@ -16,7 +14,6 @@ import {
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import {
-  AccountInfo,
   AccountMeta,
   Commitment,
   ComputeBudgetProgram,
@@ -27,11 +24,21 @@ import {
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { MarginfiClient } from ".";
-import { Bank, BankData, getOraclePriceData, PriceBias } from "./bank";
+import { Bank, PriceBias } from "./bank";
 import MarginfiGroup from "./group";
 import { MARGINFI_IDL } from "./idl";
 import instructions from "./instructions";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
+import {
+  computeFreeCollateral,
+  computeHealthComponents,
+  computeHealthComponentsWithoutBias,
+  computeMaxBorrowForBank,
+  computeMaxLiquidatableAssetAmount,
+  computeMaxWithdrawForBank,
+  computeNetApy,
+  getBalance,
+} from "./lib/math/account";
 
 /**
  * Wrapper class around a specific marginfi account.
@@ -42,6 +49,10 @@ export class MarginfiAccount {
   private _group: MarginfiGroup;
   private _authority: PublicKey;
   private _lendingBalances: Balance[];
+
+  // --------------------------------------------------------------------------
+  // Factories
+  // --------------------------------------------------------------------------
 
   /**
    * @internal
@@ -59,41 +70,6 @@ export class MarginfiAccount {
 
     this._lendingBalances = rawData.lendingAccount.balances.map((la) => new Balance(la));
   }
-
-  // --- Getters / Setters
-
-  /**
-   * Marginfi account authority address
-   */
-  get authority(): PublicKey {
-    return this._authority;
-  }
-
-  /**
-   * Marginfi group address
-   */
-  get group(): MarginfiGroup {
-    return this._group;
-  }
-
-  /**
-   * Marginfi group address
-   */
-  get activeBalances(): Balance[] {
-    return this._lendingBalances.filter((la) => la.active);
-  }
-
-  /** @internal */
-  private get _program() {
-    return this.client.program;
-  }
-
-  /** @internal */
-  private get _config() {
-    return this.client.config;
-  }
-
-  // --- Factories
 
   /**
    * MarginfiAccount network factory
@@ -177,6 +153,98 @@ export class MarginfiAccount {
 
     return MarginfiAccount.fromAccountData(marginfiAccountPk, client, marginfiAccountData, marginfiGroup);
   }
+
+  // --------------------------------------------------------------------------
+  // Attributes
+  // --------------------------------------------------------------------------
+
+  /**
+   * Marginfi account authority address
+   */
+  get authority(): PublicKey {
+    return this._authority;
+  }
+
+  /**
+   * Marginfi group address
+   */
+  get group(): MarginfiGroup {
+    return this._group;
+  }
+
+  /** @internal */
+  private get _program() {
+    return this.client.program;
+  }
+
+  /** @internal */
+  private get _config() {
+    return this.client.config;
+  }
+
+  /**
+   * Marginfi group address
+   */
+  get activeBalances(): Balance[] {
+    return this._lendingBalances.filter((la) => la.active);
+  }
+
+  public getBalance(bankPk: PublicKey): Balance {
+    return getBalance(this.activeBalances, bankPk);
+  }
+
+  public canBeLiquidated(): boolean {
+    const { assets, liabilities } = computeHealthComponents(
+      this.activeBalances,
+      this.group.banks,
+      MarginRequirementType.Maint
+    );
+
+    return assets.lt(liabilities);
+  }
+
+  public computeHealthComponents(marginRequirement: MarginRequirementType): {
+    assets: BigNumber;
+    liabilities: BigNumber;
+  } {
+    return computeHealthComponents(this.activeBalances, this.group.banks, marginRequirement);
+  }
+
+  public computeFreeCollateral(opts?: { clamped?: boolean }): BigNumber {
+    return computeFreeCollateral(this.activeBalances, this.group.banks, opts);
+  }
+
+  public computeHealthComponentsWithoutBias(marginRequirement: MarginRequirementType): {
+    assets: BigNumber;
+    liabilities: BigNumber;
+  } {
+    return computeHealthComponentsWithoutBias(this.activeBalances, this.group.banks, marginRequirement);
+  }
+
+  public computeMaxBorrowForBank(bankAddress: PublicKey): BigNumber {
+    return computeMaxBorrowForBank(this.activeBalances, this.group.banks, bankAddress);
+  }
+
+  public computeMaxWithdrawForBank(bankAddress: PublicKey, opts?: { volatilityFactor?: number }): BigNumber {
+    return computeMaxWithdrawForBank(this.activeBalances, this.group.banks, bankAddress, opts);
+  }
+
+  public computeMaxLiquidatableAssetAmount(assetBankAddress: PublicKey, liabilityBankAddress: PublicKey): BigNumber {
+    return computeMaxLiquidatableAssetAmount(
+      this.activeBalances,
+      this.group.banks,
+      assetBankAddress,
+      liabilityBankAddress
+    );
+  }
+
+  public computeNetApy(): number {
+    return computeNetApy(this.activeBalances, this.group.banks);
+  }
+
+  // --------------------------------------------------------------------------
+  // User actions
+  // --------------------------------------------------------------------------
 
   /**
    * Create transaction instruction to deposit collateral into the marginfi account.
@@ -516,7 +584,61 @@ export class MarginfiAccount {
     return sig;
   }
 
-  // --- Others
+  public async makeLendingAccountLiquidateIx(
+    liquidateeMarginfiAccount: MarginfiAccount,
+    assetBank: Bank,
+    assetQuantityUi: Amount,
+    liabBank: Bank
+  ): Promise<InstructionsWrapper> {
+    const ix = await instructions.makeLendingAccountLiquidateIx(
+      this._program,
+      {
+        marginfiGroup: this._config.groupPk,
+        signer: this.client.provider.wallet.publicKey,
+        assetBank: assetBank.publicKey,
+        liabBank: liabBank.publicKey,
+        liquidatorMarginfiAccount: this.publicKey,
+        liquidateeMarginfiAccount: liquidateeMarginfiAccount.publicKey,
+      },
+      { assetAmount: uiToNative(assetQuantityUi, assetBank.mintDecimals) },
+      [
+        {
+          pubkey: assetBank.config.oracleKeys[0],
+          isSigner: false,
+          isWritable: false,
+        },
+        {
+          pubkey: liabBank.config.oracleKeys[0],
+          isSigner: false,
+          isWritable: false,
+        },
+        ...this.getHealthCheckAccounts([assetBank, liabBank]),
+        ...liquidateeMarginfiAccount.getHealthCheckAccounts(),
+      ]
+    );
+
+    return { instructions: [ix], keys: [] };
+  }
+
+  public async lendingAccountLiquidate(
+    liquidateeMarginfiAccount: MarginfiAccount,
+    assetBank: Bank,
+    assetQuantityUi: Amount,
+    liabBank: Bank
+  ): Promise<string> {
+    const ixw = await this.makeLendingAccountLiquidateIx(
+      liquidateeMarginfiAccount,
+      assetBank,
+      assetQuantityUi,
+      liabBank
+    );
+    const tx = new Transaction().add(...ixw.instructions, ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
+    return this.client.processTransaction(tx);
+  }
+
+  // --------------------------------------------------------------------------
+  // Helpers
+  // --------------------------------------------------------------------------
 
   getHealthCheckAccounts(mandatoryBanks: Bank[] = [], excludedBanks: Bank[] = []): AccountMeta[] {
     const mandatoryBanksSet = new Set(mandatoryBanks.map((b) => b.publicKey.toBase58()));
@@ -618,33 +740,15 @@ export class MarginfiAccount {
    */
   async reload() {
     require("debug")(`mfi:margin-account:${this.publicKey.toBase58().toString()}:loader`)("Reloading account data");
-    const [marginfiGroupAi, marginfiAccountAi] = await this._loadGroupAndAccountAi();
+    const marginfiAccountAi = await this._program.account.marginfiAccount.getAccountInfo(this.publicKey);
+    if (!marginfiAccountAi) throw new Error(`Failed to fetch data for marginfi account ${this.publicKey.toBase58()}`);
     const marginfiAccountData = MarginfiAccount.decode(marginfiAccountAi.data);
     if (!marginfiAccountData.group.equals(this._config.groupPk))
       throw Error(
         `Marginfi account tied to group ${marginfiAccountData.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`
       );
 
-    const bankAccountsData = await this._program.account.bank.all([
-      { memcmp: { offset: 8 + 32 + 1, bytes: this._config.groupPk.toBase58() } },
-    ]);
-
-    const banks = await Promise.all(
-      bankAccountsData.map(async (accountData) => {
-        let bankData = accountData.account as any as BankData;
-        return new Bank(
-          accountData.publicKey,
-          bankData,
-          await getOraclePriceData(
-            this._program.provider.connection,
-            bankData.config.oracleSetup,
-            bankData.config.oracleKeys
-          )
-        );
-      })
-    );
-
-    this._group = MarginfiGroup.fromAccountDataRaw(this._config, this._program, marginfiGroupAi.data, banks);
+    this._group.reload();
     this._updateFromAccountData(marginfiAccountData);
   }
 
@@ -659,241 +763,15 @@ export class MarginfiAccount {
     this._lendingBalances = data.lendingAccount.balances.map((la) => new Balance(la));
   }
 
-  private async _loadGroupAndAccountAi(): Promise<AccountInfo<Buffer>[]> {
-    const debug = require("debug")(`mfi:margin-account:${this.publicKey.toString()}:loader`);
-    debug("Loading marginfi account %s, and group %s", this.publicKey, this._config.groupPk);
-
-    let [marginfiGroupAi, marginfiAccountAi] = await this.client.provider.connection.getMultipleAccountsInfo(
-      [this._config.groupPk, this.publicKey],
-      DEFAULT_COMMITMENT
-    );
-
-    if (!marginfiAccountAi) {
-      throw Error("Marginfi account no found");
-    }
-    if (!marginfiGroupAi) {
-      throw Error("Marginfi Group Account no found");
-    }
-
-    return [marginfiGroupAi, marginfiAccountAi];
-  }
-
-  public getHealthComponents(marginReqType: MarginRequirementType): {
-    assets: BigNumber;
-    liabilities: BigNumber;
-  } {
-    const [assets, liabilities] = this.activeBalances
-      .map((accountBalance) => {
-        const bank = this._group.banks.get(accountBalance.bankPk.toBase58());
-        if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
-        const { assets, liabilities } = accountBalance.getUsdValueWithPriceBias(bank, marginReqType);
-        return [assets, liabilities];
-      })
-      .reduce(
-        ([asset, liability], [d, l]) => {
-          return [asset.plus(d), liability.plus(l)];
-        },
-        [new BigNumber(0), new BigNumber(0)]
-      );
-
-    return { assets, liabilities };
-  }
-
-  public canBeLiquidated(): boolean {
-    const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Maint);
-
-    return assets.lt(liabilities);
-  }
-
-  public getBalance(bankPk: PublicKey): Balance {
-    return this.activeBalances.find((b) => b.bankPk.equals(bankPk)) ?? Balance.newEmpty(bankPk);
-  }
-
-  public getFreeCollateral(clamped: boolean = true): BigNumber {
-    const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Init);
-    const signedFreeCollateral = assets.minus(liabilities);
-    return clamped ? BigNumber.max(0, signedFreeCollateral) : signedFreeCollateral;
-  }
-
-  public getHealthComponentsWithoutBias(marginReqType: MarginRequirementType): {
-    assets: BigNumber;
-    liabilities: BigNumber;
-  } {
-    const [assets, liabilities] = this.activeBalances
-      .map((accountBalance) => {
-        const bank = this._group.banks.get(accountBalance.bankPk.toBase58());
-        if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
-        const { assets, liabilities } = accountBalance.getUsdValue(bank, marginReqType);
-        return [assets, liabilities];
-      })
-      .reduce(
-        ([asset, liability], [d, l]) => {
-          return [asset.plus(d), liability.plus(l)];
-        },
-        [new BigNumber(0), new BigNumber(0)]
-      );
-
-    return { assets, liabilities };
-  }
-
-  public computeNetApy(): number {
-    const { assets, liabilities } = this.getHealthComponentsWithoutBias(MarginRequirementType.Equity);
-    const totalUsdValue = assets.minus(liabilities);
-    const apr = this.activeBalances
-      .reduce((weightedApr, balance) => {
-        const bank = this._group.getBankByPk(balance.bankPk);
-        if (!bank) throw Error(`Bank ${balance.bankPk.toBase58()} not found`);
-        return weightedApr
-          .minus(
-            bank
-              .getInterestRates()
-              .borrowingRate.times(balance.getUsdValue(bank, MarginRequirementType.Equity).liabilities)
-              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
-          )
-          .plus(
-            bank
-              .getInterestRates()
-              .lendingRate.times(balance.getUsdValue(bank, MarginRequirementType.Equity).assets)
-              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
-          );
-      }, new BigNumber(0))
-      .toNumber();
-
-    return aprToApy(apr);
-  }
-
-  /**
-   * Calculate the maximum amount of asset that can be withdrawn from a bank given existing deposits of the asset
-   * and the untied collateral of the margin account.
-   *
-   * fc = free collateral
-   * ucb = untied collateral for bank
-   *
-   * q = (min(fc, ucb) / (price_lowest_bias * deposit_weight)) + (fc - min(fc, ucb)) / (price_highest_bias * liab_weight)
-   *
-   *
-   *
-   * NOTE FOR LIQUIDATORS
-   * This function doesn't take into account the collateral received when liquidating an account.
-   */
-  public getMaxBorrowForBank(bank: Bank): BigNumber {
-    const balance = this.getBalance(bank.publicKey);
-
-    const freeCollateral = this.getFreeCollateral();
-    const untiedCollateralForBank = BigNumber.min(
-      bank.getAssetUsdValue(balance.assetShares, MarginRequirementType.Init, PriceBias.Lowest),
-      freeCollateral
-    );
-
-    const priceLowestBias = bank.getPrice(PriceBias.Lowest);
-    const priceHighestBias = bank.getPrice(PriceBias.Highest);
-    const assetWeight = bank.getAssetWeight(MarginRequirementType.Init);
-    const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Init);
-
-    if (assetWeight.eq(0)) {
-      return balance
-        .getQuantityUi(bank)
-        .assets.plus(freeCollateral.minus(untiedCollateralForBank).div(priceHighestBias.times(liabWeight)));
-    } else {
-      return untiedCollateralForBank
-        .div(priceLowestBias.times(assetWeight))
-        .plus(freeCollateral.minus(untiedCollateralForBank).div(priceHighestBias.times(liabWeight)));
-    }
-  }
-
-  /**
-   * Calculate the maximum amount that can be withdrawn form a bank without borrowing.
-   */
-  public getMaxWithdrawForBank(bankPk: PublicKey, volatilityFactor: number = 1): BigNumber {
-    const bank = this._group.getBankByPk(bankPk);
-    if (!bank) throw Error(`Bank ${bankPk.toBase58()} not found`)
-
-    const assetWeight = bank.getAssetWeight(MarginRequirementType.Init);
-    const balance = this.getBalance(bank.publicKey);
-
-    if (assetWeight.eq(0)) {
-      return balance.getQuantityUi(bank).assets;
-    } else {
-      const freeCollateral = this.getFreeCollateral();
-      const collateralForBank = bank.getAssetUsdValue(
-        balance.assetShares,
-        MarginRequirementType.Init,
-        PriceBias.Lowest
-      );
-      let untiedCollateralForBank: BigNumber;
-      if (collateralForBank.lte(freeCollateral)) {
-        untiedCollateralForBank = collateralForBank;
-      } else {
-        untiedCollateralForBank = freeCollateral.times(volatilityFactor);
-      }
-
-      const priceLowestBias = bank.getPrice(PriceBias.Lowest);
-
-      return untiedCollateralForBank.div(priceLowestBias.times(assetWeight));
-    }
-  }
-
-  public async makeLendingAccountLiquidateIx(
-    liquidateeMarginfiAccount: MarginfiAccount,
-    assetBank: Bank,
-    assetQuantityUi: Amount,
-    liabBank: Bank
-  ): Promise<InstructionsWrapper> {
-    const ix = await instructions.makeLendingAccountLiquidateIx(
-      this._program,
-      {
-        marginfiGroup: this._config.groupPk,
-        signer: this.client.provider.wallet.publicKey,
-        assetBank: assetBank.publicKey,
-        liabBank: liabBank.publicKey,
-        liquidatorMarginfiAccount: this.publicKey,
-        liquidateeMarginfiAccount: liquidateeMarginfiAccount.publicKey,
-      },
-      { assetAmount: uiToNative(assetQuantityUi, assetBank.mintDecimals) },
-      [
-        {
-          pubkey: assetBank.config.oracleKeys[0],
-          isSigner: false,
-          isWritable: false,
-        },
-        {
-          pubkey: liabBank.config.oracleKeys[0],
-          isSigner: false,
-          isWritable: false,
-        },
-        ...this.getHealthCheckAccounts([assetBank, liabBank]),
-        ...liquidateeMarginfiAccount.getHealthCheckAccounts(),
-      ]
-    );
-
-    return { instructions: [ix], keys: [] };
-  }
-
-  public async lendingAccountLiquidate(
-    liquidateeMarginfiAccount: MarginfiAccount,
-    assetBank: Bank,
-    assetQuantityUi: Amount,
-    liabBank: Bank
-  ): Promise<string> {
-    const ixw = await this.makeLendingAccountLiquidateIx(
-      liquidateeMarginfiAccount,
-      assetBank,
-      assetQuantityUi,
-      liabBank
-    );
-    const tx = new Transaction().add(...ixw.instructions, ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
-    return this.client.processTransaction(tx);
-  }
-
   public toString() {
-    const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Equity);
+    const { assets, liabilities } = this.computeHealthComponents(MarginRequirementType.Equity);
 
     let str = `-----------------
   Marginfi account:
     Address: ${this.publicKey.toBase58()}
     Group: ${this.group.publicKey.toBase58()}
     Authority: ${this.authority.toBase58()}
-    Equity: ${this.getHealthComponents(MarginRequirementType.Equity).assets.toFixed(6)}
+    Equity: ${this.computeHealthComponents(MarginRequirementType.Equity).assets.toFixed(6)}
     Equity: ${assets.minus(liabilities).toFixed(6)}
     Assets: ${assets.toFixed(6)},
     Liabilities: ${liabilities.toFixed(6)}`;
@@ -917,55 +795,8 @@ export class MarginfiAccount {
     return str;
   }
 
-  // Calculate the max amount of collateral to liquidate to bring an account maint health to 0 (assuming negative health).
-  //
-  // The asset amount is bounded by 2 constraints,
-  // (1) the amount of liquidated collateral cannot be more than the balance,
-  // (2) the amount of covered liablity cannot be more than existing liablity.
-  public getMaxLiquidatableAssetAmount(assetBank: Bank, liabBank: Bank): BigNumber {
-    const debug = require("debug")("mfi:getMaxLiquidatableAssetAmount");
-    const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Maint);
-    const currentHealth = assets.minus(liabilities);
-
-    const priceAssetLower = assetBank.getPrice(PriceBias.Lowest);
-    const priceAssetMarket = assetBank.getPrice(PriceBias.None);
-    const assetMaintWeight = assetBank.config.assetWeightMaint;
-
-    const liquidationDiscount = new BigNumber(1 - 0.05);
-
-    const priceLiabHighest = liabBank.getPrice(PriceBias.Highest);
-    const priceLiabMarket = liabBank.getPrice(PriceBias.None);
-    const liabMaintWeight = liabBank.config.liabilityWeightMaint;
-
-    // MAX amount of asset to liquidate to bring account maint health to 0, regardless of existing balances
-    const maxLiquidatableUnboundedAssetAmount = currentHealth.div(
-      priceAssetLower
-        .times(assetMaintWeight)
-        .minus(
-          priceAssetMarket
-            .times(liquidationDiscount)
-            .times(priceLiabHighest)
-            .times(liabMaintWeight)
-            .div(priceLiabMarket)
-        )
-    );
-
-    // MAX asset amount bounded by available asset amount
-    const assetBalanceBound = this.getBalance(assetBank.publicKey).getQuantityUi(assetBank).assets;
-
-    const liabBalance = this.getBalance(liabBank.publicKey).getQuantityUi(liabBank).liabilities;
-    // MAX asset amount bounded by availalbe liability amount
-    const liabBalanceBound = liabBalance.times(priceLiabMarket).div(priceAssetMarket.times(liquidationDiscount));
-
-    debug("maxLiquidatableUnboundedAssetAmount", maxLiquidatableUnboundedAssetAmount.toFixed(6));
-    debug("assetBalanceBound", assetBalanceBound.toFixed(6));
-    debug("liabBalanceBound", liabBalanceBound.toFixed(6));
-
-    return BigNumber.min(assetBalanceBound, liabBalanceBound, maxLiquidatableUnboundedAssetAmount);
-  }
-
   public describe(): string {
-    const { assets, liabilities } = this.getHealthComponents(MarginRequirementType.Equity);
+    const { assets, liabilities } = this.computeHealthComponents(MarginRequirementType.Equity);
     return `
 - Marginfi account: ${this.publicKey}
 - Total deposits: $${assets.toFixed(6)}
@@ -1028,7 +859,7 @@ export class Balance {
   bankPk: PublicKey;
   assetShares: BigNumber;
   liabilityShares: BigNumber;
-  private emissionsOutstanding: BigNumber;
+  emissionsOutstanding: BigNumber;
   lastUpdate: number;
 
   constructor(data: BalanceData) {

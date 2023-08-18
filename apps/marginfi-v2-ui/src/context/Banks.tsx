@@ -14,20 +14,18 @@ const BanksContext = createContext<BanksState>();
 interface BanksState {
   fetching: boolean;
   reload: () => Promise<void>;
-  banks: Bank[];
   bankInfos: BankInfo[];
 }
 
 const BanksStateProvider: FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { mfiClientReadonly } = useProgram();
+  const { mfiClient } = useProgram();
   const { tokenMetadataMap } = useTokenMetadata();
   const { bankMetadataMap } = useBankMetadata();
   const { connection } = useConnection();
 
   const [fetching, setFetching] = useState<boolean>(true);
-  const [banks, setBanks] = useState<Bank[]>([]);
   const [bankInfos, setBankInfos] = useState<BankInfo[]>([]);
 
   const findMetadataInsensitive = (tokenMetadataMap: any, tokenSymbol: string) => {
@@ -42,13 +40,12 @@ const BanksStateProvider: FC<{
   };
 
   const reload = useCallback(async () => {
-    if (mfiClientReadonly === null || !tokenMetadataMap || !bankMetadataMap) return;
+    if (mfiClient === null || !tokenMetadataMap || !bankMetadataMap) return;
 
     setFetching(true);
     try {
-      await mfiClientReadonly.group.reload();
-      const banks = [...mfiClientReadonly.group.banks.values()];
-      setBanks(banks);
+      await mfiClient.group.reload();
+      const banks = [...mfiClient.group.banks.values()];
       const priceMap = await buildEmissionsPriceMap(banks, connection);
 
       setBankInfos(
@@ -69,7 +66,7 @@ const BanksStateProvider: FC<{
     } finally {
       setFetching(false);
     }
-  }, [connection, mfiClientReadonly, tokenMetadataMap, bankMetadataMap]);
+  }, [connection, mfiClient, tokenMetadataMap, bankMetadataMap]);
 
   useEffect(() => {
     reload();
@@ -87,7 +84,6 @@ const BanksStateProvider: FC<{
       value={{
         fetching,
         reload,
-        banks,
         bankInfos,
       }}
     >

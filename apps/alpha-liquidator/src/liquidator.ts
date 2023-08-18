@@ -151,7 +151,7 @@ class Liquidator {
       .filter(({ assets, bank }) => !bank.mint.equals(USDC_MINT) && assets.gt(DUST_THRESHOLD));
 
     for (let { bank } of balancesWithNonUsdcDeposits) {
-      let maxWithdrawAmount = this.account.getMaxWithdrawForBank(bank.publicKey);
+      let maxWithdrawAmount = this.account.computeMaxWithdrawForBank(bank.publicKey);
 
       if (maxWithdrawAmount.eq(0)) {
         debug("No untied %s to withdraw", this.getTokenSymbol(bank));
@@ -205,8 +205,7 @@ class Liquidator {
 
       await this.group.reload();
       const usdcBank = this.group.getBankByMint(USDC_MINT)!;
-      await usdcBank.reloadPriceData(this.connection);
-      const availableUsdcLiquidity = this.account.getMaxBorrowForBank(usdcBank);
+      const availableUsdcLiquidity = this.account.computeMaxBorrowForBank(usdcBank.publicKey);
 
       await bank.reloadPriceData(this.connection);
       const baseLiabUsdcValue = bank.getLiabilityUsdValue(
@@ -426,7 +425,7 @@ class Liquidator {
     debug("Processing account %s", account);
     const marginfiAccount = await MarginfiAccount.fetch(account, client);
     if (marginfiAccount.canBeLiquidated()) {
-      const { assets, liabilities } = marginfiAccount.getHealthComponents(MarginRequirementType.Maint);
+      const { assets, liabilities } = marginfiAccount.computeHealthComponents(MarginRequirementType.Maint);
 
       const maxLiabilityPaydown = assets.minus(liabilities);
       debug("Account can be liquidated, account health: %d", maxLiabilityPaydown);
@@ -450,7 +449,7 @@ class Liquidator {
         continue;
       }
 
-      const maxLiabCoverage = liquidatorAccount.getMaxBorrowForBank(bank);
+      const maxLiabCoverage = liquidatorAccount.computeMaxBorrowForBank(bank.publicKey);
       const liquidatorLiabPayoffCapacityUsd = bank.getUsdValue(maxLiabCoverage, PriceBias.None, undefined, false);
       debug("Max borrow for bank: %d ($%d)", maxLiabCoverage, liquidatorLiabPayoffCapacityUsd);
       const { liabilities: liquidateeLiabUsdValue } = balance.getUsdValue(bank, MarginRequirementType.Equity);
@@ -508,12 +507,12 @@ class Liquidator {
 
     // MAX collateral amount to liquidate for given banks and the trader marginfi account balances
     // this doesn't account for liquidators liquidation capacity
-    const maxCollateralAmountToLiquidate = marginfiAccount.getMaxLiquidatableAssetAmount(collateralBank, liabBank);
+    const maxCollateralAmountToLiquidate = marginfiAccount.computeMaxLiquidatableAssetAmount(collateralBank.publicKey, liabBank.publicKey);
 
     debug("Max collateral amount to liquidate: %d", maxCollateralAmountToLiquidate);
 
     // MAX collateral amount to liquidate given liquidators current margin account
-    const liquidatorMaxLiquidationCapacityLiabAmount = liquidatorAccount.getMaxBorrowForBank(liabBank);
+    const liquidatorMaxLiquidationCapacityLiabAmount = liquidatorAccount.computeMaxBorrowForBank(liabBank.publicKey);
     const liquidatorMaxLiquidationCapacityUsd = liabBank.getUsdValue(
       liquidatorMaxLiquidationCapacityLiabAmount,
       PriceBias.None,

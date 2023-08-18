@@ -20,7 +20,7 @@ interface BanksState {
 const BanksStateProvider: FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { mfiClientReadonly } = useProgram();
+  const { mfiClient } = useProgram();
   const { tokenMetadataMap } = useTokenMetadata();
   const { bankMetadataMap } = useBankMetadata();
 
@@ -29,12 +29,12 @@ const BanksStateProvider: FC<{
   const [bankInfos, setBankInfos] = useState<BankInfo[]>([]);
 
   const reload = useCallback(async () => {
-    if (mfiClientReadonly === null || !tokenMetadataMap || !bankMetadataMap) return;
+    if (mfiClient === null || !tokenMetadataMap || !bankMetadataMap) return;
 
     setFetching(true);
     try {
-      await mfiClientReadonly.group.reload();
-      const banks = [...mfiClientReadonly.group.banks.values()];
+      await mfiClient.group.reload();
+      const banks = [...mfiClient.group.banks.values()];
       setBanks(banks);
       setBankInfos(
         banks.map((bank) => {
@@ -54,7 +54,7 @@ const BanksStateProvider: FC<{
     } finally {
       setFetching(false);
     }
-  }, [mfiClientReadonly, tokenMetadataMap, bankMetadataMap]);
+  }, [mfiClient, tokenMetadataMap, bankMetadataMap]);
 
   useEffect(() => {
     reload();

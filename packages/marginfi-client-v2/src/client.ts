@@ -26,11 +26,6 @@ import {
   TransactionOptions,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
-import { OraclePriceData, OracleSetup } from "./bank";
-import { parsePriceData } from "@pythnetwork/client";
-import { BigNumber } from "bignumber.js";
-import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS } from "./constants";
-import { AggregatorAccount, SwitchboardProgram } from "@switchboard-xyz/solana.js";
 
 /**
  * Entrypoint to interact with the marginfi contract.
@@ -38,6 +33,10 @@ import { AggregatorAccount, SwitchboardProgram } from "@switchboard-xyz/solana.j
 class MarginfiClient {
   public readonly programId: PublicKey;
   private _group: MarginfiGroup;
+
+  // --------------------------------------------------------------------------
+  // Factories
+  // --------------------------------------------------------------------------
 
   /**
    * @internal
@@ -51,8 +50,6 @@ class MarginfiClient {
     this.programId = config.programId;
     this._group = group;
   }
-
-  // --- Factories
 
   /**
    * MarginfiClient factory
@@ -125,7 +122,9 @@ class MarginfiClient {
     });
   }
 
-  // --- Getters and setters
+  // --------------------------------------------------------------------------
+  // Attributes
+  // --------------------------------------------------------------------------
 
   /**
    * Marginfi account group address
@@ -136,55 +135,6 @@ class MarginfiClient {
 
   get provider(): AnchorProvider {
     return this.program.provider as AnchorProvider;
-  }
-
-  // --- Others
-
-  /**
-   * Create transaction instruction to create a new marginfi account under the authority of the user.
-   *
-   * @returns transaction instruction
-   */
-  async makeCreateMarginfiAccountIx(marginfiAccountKeypair?: Keypair): Promise<InstructionsWrapper> {
-    const dbg = require("debug")("mfi:client");
-    const accountKeypair = marginfiAccountKeypair || Keypair.generate();
-
-    dbg("Generating marginfi account ix for %s", accountKeypair.publicKey);
-
-    const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
-      marginfiGroupPk: this._group.publicKey,
-      marginfiAccountPk: accountKeypair.publicKey,
-      authorityPk: this.provider.wallet.publicKey,
-      feePayerPk: this.provider.wallet.publicKey,
-    });
-
-    const ixs = [initMarginfiAccountIx];
-
-    return {
-      instructions: ixs,
-      keys: [accountKeypair],
-    };
-  }
-
-  /**
-   * Create a new marginfi account under the authority of the user.
-   *
-   * @returns MarginfiAccount instance
-   */
-  async createMarginfiAccount(opts?: TransactionOptions): Promise<MarginfiAccount> {
-    const dbg = require("debug")("mfi:client");
-
-    const accountKeypair = Keypair.generate();
-
-    const ixs = await this.makeCreateMarginfiAccountIx(accountKeypair);
-    const tx = new Transaction().add(...ixs.instructions);
-    const sig = await this.processTransaction(tx, ixs.keys, opts);
-
-    dbg("Created Marginfi account %s", sig);
-
-    return opts?.dryRun
-      ? Promise.resolve(undefined as unknown as MarginfiAccount)
-      : MarginfiAccount.fetch(accountKeypair.publicKey, this, opts?.commitment);
   }
 
   /**
@@ -245,8 +195,8 @@ class MarginfiClient {
     ).map((a) => MarginfiAccount.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, marginfiGroup));
 
     marginfiAccounts.sort((accountA, accountB) => {
-      const assetsValueA = accountA.getHealthComponents(MarginRequirementType.Equity).assets;
-      const assetsValueB = accountB.getHealthComponents(MarginRequirementType.Equity).assets;
+      const assetsValueA = accountA.computeHealthComponents(MarginRequirementType.Equity).assets;
+      const assetsValueB = accountB.computeHealthComponents(MarginRequirementType.Equity).assets;
 
       if (assetsValueA.eq(assetsValueB)) return 0;
       return assetsValueA.gt(assetsValueB) ? -1 : 1;
@@ -279,6 +229,61 @@ class MarginfiClient {
       })
     ).map((a) => a.pubkey);
   }
+
+  // --------------------------------------------------------------------------
+  // User actions
+  // --------------------------------------------------------------------------
+
+  /**
+   * Create transaction instruction to create a new marginfi account under the authority of the user.
+   *
+   * @returns transaction instruction
+   */
+  async makeCreateMarginfiAccountIx(marginfiAccountKeypair?: Keypair): Promise<InstructionsWrapper> {
+    const dbg = require("debug")("mfi:client");
+    const accountKeypair = marginfiAccountKeypair || Keypair.generate();
+
+    dbg("Generating marginfi account ix for %s", accountKeypair.publicKey);
+
+    const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
+      marginfiGroupPk: this._group.publicKey,
+      marginfiAccountPk: accountKeypair.publicKey,
+      authorityPk: this.provider.wallet.publicKey,
+      feePayerPk: this.provider.wallet.publicKey,
+    });
+
+    const ixs = [initMarginfiAccountIx];
+
+    return {
+      instructions: ixs,
+      keys: [accountKeypair],
+    };
+  }
+
+  /**
+   * Create a new marginfi account under the authority of the user.
+   *
+   * @returns MarginfiAccount instance
+   */
+  async createMarginfiAccount(opts?: TransactionOptions): Promise<MarginfiAccount> {
+    const dbg = require("debug")("mfi:client");
+
+    const accountKeypair = Keypair.generate();
+
+    const ixs = await this.makeCreateMarginfiAccountIx(accountKeypair);
+    const tx = new Transaction().add(...ixs.instructions);
+    const sig = await this.processTransaction(tx, ixs.keys, opts);
+
+    dbg("Created Marginfi account %s", sig);
+
+    return opts?.dryRun
+      ? Promise.resolve(undefined as unknown as MarginfiAccount)
+      : MarginfiAccount.fetch(accountKeypair.publicKey, this, opts?.commitment);
+  }
+
+  // --------------------------------------------------------------------------
+  // Helpers
+  // --------------------------------------------------------------------------
 
   async processTransaction(
     transaction: Transaction | VersionedTransaction,
