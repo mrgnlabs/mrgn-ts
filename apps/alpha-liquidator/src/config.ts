@@ -60,16 +60,21 @@ let envSchema = z.object({
     .default("false")
     .transform((s) => s === "true" || s === "1"),
   SENTRY_DSN: z.string().optional(),
-  SLEEP_INTERVAL: z.string().default("10000").transform((s) => parseInt(s, 10)),
+  SLEEP_INTERVAL: z
+    .string()
+    .default("10000")
+    .transform((s) => parseInt(s, 10)),
   WALLET_KEYPAIR: z.string().transform((keypairStr) => {
     if (fs.existsSync(resolveHome(keypairStr))) {
       return loadKeypair(keypairStr);
     } else {
-      console.log(keypairStr);
       return Keypair.fromSecretKey(new Uint8Array(JSON.parse(keypairStr)));
     }
   }),
-  MIN_LIQUIDATION_AMOUNT_USD_UI: z.string().default("0.1").transform((s) => new BigNumber(s)),
+  MIN_LIQUIDATION_AMOUNT_USD_UI: z
+    .string()
+    .default("0.1")
+    .transform((s) => new BigNumber(s)),
 });
 
 type EnvSchema = z.infer<typeof envSchema>;

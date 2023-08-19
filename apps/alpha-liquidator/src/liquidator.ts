@@ -1,4 +1,4 @@
-import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import {
   Bank,
   MarginfiAccount,
@@ -11,9 +11,7 @@ import { nativeToUi, NodeWallet, shortenAddress, sleep, uiToNative } from "@mrgn
 import BigNumber from "bignumber.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { NATIVE_MINT } from "@solana/spl-token";
-import { Jupiter } from "@jup-ag/core";
 import { captureException, captureMessage, env_config } from "./config";
-import JSBI from "jsbi";
 import BN from "bn.js";
 import { BankMetadataMap, loadBankMetadatas } from "./utils/bankMetadata";
 
@@ -40,7 +38,6 @@ class Liquidator {
     readonly account: MarginfiAccount,
     readonly client: MarginfiClient,
     readonly wallet: NodeWallet,
-    readonly jupiter: Jupiter,
     readonly account_whitelist: PublicKey[] | undefined,
     readonly account_blacklist: PublicKey[] | undefined
   ) {
@@ -112,30 +109,46 @@ class Liquidator {
 
     debug("Swapping %s %s to %s", amountIn, mintIn.toBase58(), mintOut.toBase58());
 
-    const { routesInfos } = await this.jupiter.computeRoutes({
-      inputMint: mintIn,
-      outputMint: mintOut,
-      amount: JSBI.BigInt(amountIn.toString()),
-      slippageBps: SLIPPAGE_BPS,
-      forceFetch: true,
+    const { data } = await (
+      await fetch(`https://quote-api.jup.ag/v6/quote?inputMint=${mintIn.toBase58()}&outputMint=${mintOut.toBase58()}&amount=${amountIn.toString()}&slippageBps=${SLIPPAGE_BPS}`)
+    ).json();
+
+    const transactionResponse = await (
+      await fetch('https://quote-api.jup.ag/v6/swap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          // quoteResponse from /quote api
+          quoteResponse: data,
+          // user public key to be used for the swap
+          userPublicKey: this.wallet.publicKey.toString(),
+          // auto wrap and unwrap SOL. default is true
+          wrapUnwrapSOL: true,
+          // feeAccount is optional. Use if you want to charge a fee.  feeBps must have been passed in /quote API.
+          // feeAccount: "fee_account_public_key"
+        })
+      })
+    ).json();
+
+    const { swapTransaction } = transactionResponse;
+
+    const swapTransactionBuf = Buffer.from(swapTransaction, 'base64');
+
+    const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
+
+    transaction.sign([this.wallet.payer]);
+
+    const rawTransaction = transaction.serialize()
+    const txid = await this.connection.sendRawTransaction(rawTransaction, {
+      skipPreflight: true,
+      maxRetries: 2
     });
 
-    const route = routesInfos[0];
+    debug("Swap transaction sent: %s", txid);
 
-    const { execute } = await this.jupiter.exchange({ routeInfo: route });
-
-    const result = await execute();
-
-    // @ts-ignore
-    if (result.error && false) {
-      // @ts-ignore
-      debug("Error: %s", result.error);
-      // @ts-ignore
-      throw new Error(result.error);
-    }
-
-    // @ts-ignore
-    debug("Trade successful %s", result.txid);
+    await this.connection.confirmTransaction(txid);
   }
 
   /**
@@ -295,10 +308,10 @@ class Liquidator {
     const nativeAmount = nativeToUi(
       mint.equals(NATIVE_MINT)
         ? Math.max(
-            (await this.connection.getBalance(this.wallet.publicKey)) -
-              (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
-            0
-          )
+          (await this.connection.getBalance(this.wallet.publicKey)) -
+          (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
+          0
+        )
         : 0,
       9
     );
@@ -384,7 +397,7 @@ class Liquidator {
     if (lendingAccountToRebalanceExists) {
       debug("Lending accounts to rebalance:");
       lendingAccountToRebalance.forEach(({ bank, assets, liabilities }) => {
-        debug(`Bank: ${this.getTokenSymbol(bank)}, Assets: ${assets}, Liabilities: ${liabilities}`);
+        debug(`Bank: ${this.getTokenSymbol(bank)}, Assets: ${assets}, Liabilities: ${liabilities} `);
       });
     }
 

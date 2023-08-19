@@ -10,8 +10,7 @@
     "watch": "tsc-watch -p tsconfig.json --onCompilationComplete 'yarn build' --onSuccess 'yarn serve'",
     "setup": "ts-node src/setup.ts",
     "inspect": "ts-node src/inspect.ts",
-    "serve": "pm2-runtime scripts/pm2.config.js",
-    "start": "ts-node src/runLiquidatorOnlyJup.ts"
+    "start": "ts-node src/runLiquidatorJupApi.ts"
   },
   "license": "MIT",
   "dependencies": {
@@ -33,7 +32,7 @@
     "bn.js": "5.2.1",
     "cookie": "^0.4.1",
     "cron": "~2.0.0",
-    "cross-fetch": "3.1.5",
+    "cross-fetch": "^4.0.0",
     "decimal.js": "10.4.2",
     "dotenv": "^16.0.3",
     "fetch-retry": "~5.0.3",
