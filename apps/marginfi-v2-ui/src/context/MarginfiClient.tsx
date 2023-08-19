@@ -29,7 +29,6 @@ const MarginfiClientFC: FC<{
   const [bankInfos, setBankInfos] = useState<BankInfo[]>([]);
 
   const reload = useCallback(async () => {
-    console.log("reloading marginfi client")
     const mfiClient = await MarginfiClient.fetch(config.mfiConfig, anchorWallet ?? ({} as any), connection);
     setMfiClient(mfiClient);
   }, [anchorWallet, connection]);

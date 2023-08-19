@@ -54,8 +54,6 @@ const UserAccountsProvider: FC<{
       return;
     }
 
-    console.log("reloading user accounts");
-
     try {
       const { tokenAccountMap, nativeSolBalance } = await fetchTokenAccounts(connection, wallet.publicKey, bankInfos);
 
