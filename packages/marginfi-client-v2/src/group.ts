@@ -1,6 +1,5 @@
 import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
-import { parsePriceData } from "@pythnetwork/client";
-import { Cluster, Commitment, PublicKey } from "@solana/web3.js";
+import { Commitment, PublicKey } from "@solana/web3.js";
 import { Bank, BankData, getOraclePriceData } from "./bank";
 import { MARGINFI_IDL } from "./idl";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "./types";
@@ -72,7 +71,6 @@ class MarginfiGroup {
       bankAccountsData.map(async (accountData) => {
         let bankData = accountData.account as any as BankData;
         return new Bank(
-          config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
           accountData.publicKey,
           bankData,
           await getOraclePriceData(program.provider.connection, bankData.config.oracleSetup, bankData.config.oracleKeys)
@@ -170,25 +168,14 @@ class MarginfiGroup {
   async reload(commitment?: Commitment) {
     const rawData = await MarginfiGroup._fetchAccountData(this._config, this._program, commitment);
 
-    const bankAddresses = this._config.banks.map((b) => b.address);
-
     let bankAccountsData = await this._program.account.bank.all([
       { memcmp: { offset: 8 + 32 + 1, bytes: this._config.groupPk.toBase58() } },
     ]);
-
-    let nullAccounts = [];
-    for (let i = 0; i < bankAccountsData.length; i++) {
-      if (bankAccountsData[i] === null) nullAccounts.push(bankAddresses[i]);
-    }
-    if (nullAccounts.length > 0) {
-      throw Error(`Failed to fetch banks ${nullAccounts}`);
-    }
 
     const banks = await Promise.all(
       bankAccountsData.map(async (accountData) => {
         let bankData = accountData.account as any as BankData;
         return new Bank(
-          this._config.banks.find((b) => b.address.equals(accountData.publicKey))?.label || "Unknown",
           accountData.publicKey,
           bankData,
           await getOraclePriceData(
@@ -208,13 +195,6 @@ class MarginfiGroup {
   }
 
   /**
-   * Get bank by label.
-   */
-  getBankByLabel(label: string): Bank | null {
-    return [...this._banks.values()].find((bank) => bank.label === label) ?? null;
-  }
-
-  /**
    * Update instance data by fetching and storing the latest on-chain state.
    */
   getBankByPk(publicKey: Address): Bank | null {
@@ -222,8 +202,9 @@ class MarginfiGroup {
     return this._banks.get(_publicKey.toString()) ?? null;
   }
 
-  getBankByMint(mint: PublicKey): Bank | null {
-    return [...this._banks.values()].find((bank) => bank.mint.equals(mint)) ?? null;
+  getBankByMint(mint: Address): Bank | null {
+    const _mint = translateAddress(mint);
+    return [...this._banks.values()].find((bank) => bank.mint.equals(_mint)) ?? null;
   }
 }
 

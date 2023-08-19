@@ -1,7 +1,7 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 import { array, assert, Infer, number, object, string } from "superstruct";
-import { TokenMetadata } from "~/types";
+import { BankMetadata, TokenMetadata } from "~/types";
 import tokenInfos from "../assets/token_info.json";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
@@ -31,6 +31,17 @@ const TokenMetadataList = array(TokenMetadataRaw);
 export type TokenMetadataRaw = Infer<typeof TokenMetadataRaw>;
 export type TokenMetadataListRaw = Infer<typeof TokenMetadataList>;
 
+const BankMetadataRaw = object({
+  bankAddress: string(),
+  tokenAddress: string(),
+  tokenName: string(),
+  tokenSymbol: string(),
+});
+const BankMetadataList = array(BankMetadataRaw);
+
+export type BankMetadataRaw = Infer<typeof BankMetadataRaw>;
+export type BankMetadataListRaw = Infer<typeof BankMetadataList>;
+
 function parseTokenMetadata(tokenMetadataRaw: TokenMetadataRaw): TokenMetadata {
   return {
     icon: tokenMetadataRaw.logoURI,
@@ -51,11 +62,52 @@ function parseTokenMetadatas(tokenMetadataListRaw: TokenMetadataListRaw): {
   );
 }
 
+function parseBankMetadata(bankMetadataRaw: BankMetadataRaw): BankMetadata {
+  return {
+    tokenAddress: bankMetadataRaw.tokenAddress,
+    tokenName: bankMetadataRaw.tokenName,
+    tokenSymbol: bankMetadataRaw.tokenSymbol,
+  };
+}
+
+function parseBankMetadatas(bankMetadataListRaw: BankMetadataListRaw): {
+  [symbol: string]: BankMetadata;
+} {
+  return bankMetadataListRaw.reduce(
+    (config, current, _) => ({
+      [current.bankAddress]: parseBankMetadata(current),
+      ...config,
+    }),
+    {} as {
+      [address: string]: BankMetadata;
+    }
+  );
+}
+
 export function loadTokenMetadatas(): {
   [symbol: string]: TokenMetadata;
 } {
   assert(tokenInfos, TokenMetadataList);
   return parseTokenMetadatas(tokenInfos);
+}
+
+export async function loadBankMetadatas(): Promise<{
+  [address: string]: BankMetadata;
+}> {
+  const response = await fetch(`https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json`, {
+    headers: {
+      Accept: "application/json",
+    },
+    method: "GET",
+  });
+
+  if (response.status === 200) {
+    const responseData = await response.json();
+    assert(responseData, BankMetadataList);
+    return parseBankMetadatas(responseData);
+  } else {
+    throw new Error("Failed to fetch bank metadata");
+  }
 }
 
 // ================ development utils ================

@@ -12,20 +12,11 @@ const MarginfiConfigRaw = object({
   cluster: string(),
   program: string(),
   group: string(),
-  banks: array(BankConfigRaw),
 });
 const ConfigRaw = array(MarginfiConfigRaw);
 
-export type BankConfigRaw = Infer<typeof BankConfigRaw>;
 export type MarginfiConfigRaw = Infer<typeof MarginfiConfigRaw>;
 export type ConfigRaw = Infer<typeof ConfigRaw>;
-
-function parseBankConfig(bankConfigRaw: BankConfigRaw): BankAddress {
-  return {
-    label: bankConfigRaw.label,
-    address: new PublicKey(bankConfigRaw.address),
-  };
-}
 
 function parseConfig(configRaw: MarginfiConfigRaw): MarginfiConfig {
   return {
@@ -33,7 +24,6 @@ function parseConfig(configRaw: MarginfiConfigRaw): MarginfiConfig {
     cluster: configRaw.cluster,
     programId: new PublicKey(configRaw.program),
     groupPk: new PublicKey(configRaw.group),
-    banks: configRaw.banks.map((raw) => parseBankConfig(raw)),
   };
 }
 
@@ -82,7 +72,6 @@ function getMarginfiConfig(
         programId: overrides?.programId || defaultConfig.programId,
         groupPk: overrides?.groupPk || defaultConfig.groupPk,
         cluster: overrides?.cluster || defaultConfig.cluster,
-        banks: overrides?.banks || defaultConfig.banks,
       };
     default:
       throw Error(`Unknown environment ${environment}`);

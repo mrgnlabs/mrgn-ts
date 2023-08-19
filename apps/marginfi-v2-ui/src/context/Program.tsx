@@ -25,7 +25,7 @@ const ProgramProvider: FC<{
   const [mfiClientReadonly, setMfiClientReadonly] = useState<MarginfiClientReadonly | null>(null);
 
   useEffect(() => {
-    (async function() {
+    (async function () {
       const roClient = await MarginfiClientReadonly.fetch(config.mfiConfig, connection);
       setMfiClientReadonly(roClient);
 

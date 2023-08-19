@@ -1,7 +1,7 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 import { array, assert, Infer, number, object, string } from "superstruct";
-import { TokenMetadata } from "~/types";
+import { ActiveBankInfo, BankMetadata, TokenMetadata } from "~/types";
 import tokenInfos from "../assets/token_info.json";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
@@ -22,18 +22,29 @@ const TokenMetadataRaw = object({
   name: string(),
   symbol: string(),
   logoURI: string(),
-  extensions: object({
-    coingeckoId: string(),
-  }),
+  extensions: object(),
 });
 const TokenMetadataList = array(TokenMetadataRaw);
 
 export type TokenMetadataRaw = Infer<typeof TokenMetadataRaw>;
 export type TokenMetadataListRaw = Infer<typeof TokenMetadataList>;
 
+const BankMetadataRaw = object({
+  bankAddress: string(),
+  tokenAddress: string(),
+  tokenName: string(),
+  tokenSymbol: string(),
+});
+const BankMetadataList = array(BankMetadataRaw);
+
+export type BankMetadataRaw = Infer<typeof BankMetadataRaw>;
+export type BankMetadataListRaw = Infer<typeof BankMetadataList>;
+
 function parseTokenMetadata(tokenMetadataRaw: TokenMetadataRaw): TokenMetadata {
   return {
     icon: tokenMetadataRaw.logoURI,
+    name: tokenMetadataRaw.name,
+    symbol: tokenMetadataRaw.symbol,
   };
 }
 
@@ -51,6 +62,28 @@ function parseTokenMetadatas(tokenMetadataListRaw: TokenMetadataListRaw): {
   );
 }
 
+function parseBankMetadata(bankMetadataRaw: BankMetadataRaw): BankMetadata {
+  return {
+    tokenAddress: bankMetadataRaw.tokenAddress,
+    tokenName: bankMetadataRaw.tokenName,
+    tokenSymbol: bankMetadataRaw.tokenSymbol,
+  };
+}
+
+function parseBankMetadatas(bankMetadataListRaw: BankMetadataListRaw): {
+  [symbol: string]: BankMetadata;
+} {
+  return bankMetadataListRaw.reduce(
+    (config, current, _) => ({
+      [current.bankAddress]: parseBankMetadata(current),
+      ...config,
+    }),
+    {} as {
+      [address: string]: BankMetadata;
+    }
+  );
+}
+
 export async function loadTokenMetadatas(): Promise<{
   [symbol: string]: TokenMetadata;
 }> {
@@ -61,14 +94,32 @@ export async function loadTokenMetadatas(): Promise<{
     method: "GET",
   });
 
-  const responseBody = await response.json();
-  if (responseBody.success) {
-    const responseData = responseBody.data.value;
+  if (response.status === 200) {
+    const responseData = await response.json();
     assert(responseData, TokenMetadataList);
     return parseTokenMetadatas(responseData);
   } else {
     assert(tokenInfos, TokenMetadataList);
     return parseTokenMetadatas(tokenInfos);
+  }
+}
+
+export async function loadBankMetadatas(): Promise<{
+  [address: string]: BankMetadata;
+}> {
+  const response = await fetch(`https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json`, {
+    headers: {
+      Accept: "application/json",
+    },
+    method: "GET",
+  });
+
+  if (response.status === 200) {
+    const responseData = await response.json();
+    assert(responseData, BankMetadataList);
+    return parseBankMetadatas(responseData);
+  } else {
+    throw new Error("Failed to fetch bank metadata");
   }
 }
 
@@ -97,4 +148,11 @@ export function makeAirdropCollateralIx(
     data: Buffer.from([1, ...new BN(amount).toArray("le", 8)]),
     keys,
   });
+}
+
+export function isWholePosition(positionWithBank: ActiveBankInfo, amount: number): boolean {
+  const positionTokenAmount =
+    Math.floor(positionWithBank.position.amount * Math.pow(10, positionWithBank.tokenMintDecimals)) /
+    Math.pow(10, positionWithBank.tokenMintDecimals);
+  return amount >= positionTokenAmount;
 }

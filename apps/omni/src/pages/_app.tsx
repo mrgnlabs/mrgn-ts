@@ -21,9 +21,9 @@ import {
   TokenMetadataProvider,
   UserAccountsProvider,
   JupiterApiProvider,
+  BankMetadataProvider,
 } from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
-import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 
 // Use require instead of import since order matters
@@ -60,31 +60,33 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <ProgramProvider>
-            <TokenMetadataProvider>
-              <BanksStateProvider>
-                <TokenAccountsProvider>
-                  <UserAccountsProvider>
-                    <JupiterApiProvider>
-                      <Head>
-                        <title>omni</title>
-                        <meta
-                          name="description"
-                          content="Omni, an autonomous agent that helps humans interact with the Solana blockchain."
-                        />
-                        <meta name="viewport" content="width=device-width, initial-scale=1" />
-                        <link rel="icon" href="/favicon.ico" />
-                      </Head>
-                      <Navbar />
-                      <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
-                        <Component {...pageProps} />
-                        <Analytics />
-                      </div>
-                      <Footer />
-                    </JupiterApiProvider>
-                  </UserAccountsProvider>
-                </TokenAccountsProvider>
-              </BanksStateProvider>
-            </TokenMetadataProvider>
+            <BankMetadataProvider>
+              <TokenMetadataProvider>
+                <BanksStateProvider>
+                  <TokenAccountsProvider>
+                    <UserAccountsProvider>
+                      <JupiterApiProvider>
+                        <Head>
+                          <title>omni</title>
+                          <meta
+                            name="description"
+                            content="Omni, an autonomous agent that helps humans interact with the Solana blockchain."
+                          />
+                          <meta name="viewport" content="width=device-width, initial-scale=1" />
+                          <link rel="icon" href="/favicon.ico" />
+                        </Head>
+                        <Navbar />
+                        <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
+                          <Component {...pageProps} />
+                          <Analytics />
+                        </div>
+                        <Footer />
+                      </JupiterApiProvider>
+                    </UserAccountsProvider>
+                  </TokenAccountsProvider>
+                </BanksStateProvider>
+              </TokenMetadataProvider>
+            </BankMetadataProvider>
           </ProgramProvider>
         </WalletModalProvider>
       </WalletProvider>

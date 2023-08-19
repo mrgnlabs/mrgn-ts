@@ -8,9 +8,9 @@ import {
   LedgerWalletAdapter,
   PhantomWalletAdapter,
   SolflareWalletAdapter,
-  SolletWalletAdapter,
-  TorusWalletAdapter,
+  GlowWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
+import { OKXWalletAdapter } from "~/context/OKXWallet";
 import { init, push } from "@socialgouv/matomo-next";
 import config from "../config";
 import { Navbar, Footer } from "~/components";
@@ -21,11 +21,13 @@ import {
   TokenAccountsProvider,
   TokenMetadataProvider,
   UserAccountsProvider,
+  BankMetadataProvider,
 } from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-import { RecoilRoot } from 'recoil';
+import { RecoilRoot } from "recoil";
+import { FirebaseAccountProvider } from "~/context/FirebaseAccount";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -48,12 +50,10 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   const wallets = useMemo(
     () => [
-      new PhantomWalletAdapter(),
-      new SolletWalletAdapter(),
+      new OKXWalletAdapter(),
       new LedgerWalletAdapter(),
       new SolflareWalletAdapter(),
-      new TorusWalletAdapter(),
-      new BackpackWalletAdapter(),
+      new GlowWalletAdapter(),
     ],
     []
   );
@@ -63,29 +63,33 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <ProgramProvider>
-            <TokenMetadataProvider>
-              <BanksStateProvider>
-                <TokenAccountsProvider>
-                  <UserAccountsProvider>
-                    <Head>
-                      <title>marginfi</title>
-                      <meta name="description" content="marginfi v2 UI" />
-                      <meta name="viewport" content="width=device-width, initial-scale=1" />
-                      <link rel="icon" href="/favicon.ico" />
-                    </Head>
-                    <RecoilRoot>
-                    <Navbar />
-                    <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
-                      <Component {...pageProps} />
-                      <Analytics />
-                    </div>
-                    <Footer />
-                    <ToastContainer position="bottom-left" theme="dark" />
-                    </RecoilRoot>
-                  </UserAccountsProvider>
-                </TokenAccountsProvider>
-              </BanksStateProvider>
-            </TokenMetadataProvider>
+            <BankMetadataProvider>
+              <TokenMetadataProvider>
+                <BanksStateProvider>
+                  <TokenAccountsProvider>
+                    <UserAccountsProvider>
+                      <FirebaseAccountProvider>
+                        <Head>
+                          <title>marginfi</title>
+                          <meta name="description" content="marginfi v2 UI" />
+                          <meta name="viewport" content="width=device-width, initial-scale=1" />
+                          <link rel="icon" href="/favicon.ico" />
+                        </Head>
+                        <RecoilRoot>
+                          <Navbar />
+                          <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
+                            <Component {...pageProps} />
+                            <Analytics />
+                          </div>
+                          <Footer />
+                          <ToastContainer position="bottom-left" theme="dark" />
+                        </RecoilRoot>
+                      </FirebaseAccountProvider>
+                    </UserAccountsProvider>
+                  </TokenAccountsProvider>
+                </BanksStateProvider>
+              </TokenMetadataProvider>
+            </BankMetadataProvider>
           </ProgramProvider>
         </WalletModalProvider>
       </WalletProvider>

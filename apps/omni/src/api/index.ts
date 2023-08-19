@@ -23,7 +23,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount): AccountSummary
   };
 }
 
-function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata): BankInfo {
+function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata, tokenSymbol: string): BankInfo {
   const { lendingRate, borrowingRate } = bank.getInterestRates();
   const totalPoolDeposits = nativeToUi(bank.totalAssets, bank.mintDecimals);
   const totalPoolBorrows = nativeToUi(bank.totalLiabilities, bank.mintDecimals);
@@ -33,7 +33,7 @@ function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata): BankInfo {
   return {
     address: bank.publicKey,
     tokenIcon: tokenMetadata.icon,
-    tokenName: bank.label,
+    tokenSymbol,
     tokenPrice: bank.getPrice(PriceBias.None).toNumber(),
     tokenMint: bank.mint,
     tokenMintDecimals: bank.mintDecimals,

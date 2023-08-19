@@ -21,7 +21,6 @@ import { DEPOSIT_MFI_AUTH_SIGNER_SEED, MARGINFI_ACCOUNT_SEED } from "./constants
 import { Bank, BankData, getOraclePriceData, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Address, translateAddress } from "@coral-xyz/anchor";
 import { Campaign, DepositData } from "./account";
-import { parsePriceData } from "@pythnetwork/client";
 import {
   Amount,
   createAssociatedTokenAccountIdempotentInstruction,
@@ -80,10 +79,6 @@ class LipClient {
     });
     const program = new Program(LIP_IDL, config.programId, provider) as any as LipProgram;
     const campaigns = await LipClient._fetchAccountData(program, marginfiClient);
-    console.log(
-      "all campaigns",
-      campaigns.map((c) => c.bank.label + " " + c.publicKey.toBase58())
-    );
 
     return new LipClient(config, program, wallet, marginfiClient, campaigns);
   }
@@ -97,7 +92,6 @@ class LipClient {
   // First, we find all campaigns, then use their banks to pull relevant asset prices.
   private static async _fetchAccountData(program: LipProgram, marginfiClient: MarginfiClient): Promise<Campaign[]> {
     // 1. Fetch all campaigns that exist
-    console.log("fetching campaigns");
     const allCampaigns = (await program.account.campaign.all()).map((c) => ({
       ...c.account,
       publicKey: c.publicKey,
@@ -105,7 +99,6 @@ class LipClient {
     // 2. Get relevant banks for all campaigns
     const relevantBankPks = allCampaigns.map((d) => d.marginfiBankPk);
     // 3. Fetch all banks
-    console.log("fetching banks");
     const banksWithNulls = await marginfiClient.program.account.bank.fetchMultiple(relevantBankPks);
     // 4. Filter out banks that aren't found
     // This shouldn't happen, but is a workaround in case it does.
@@ -114,10 +107,7 @@ class LipClient {
 
     const banks = await Promise.all(
       banksData.map(async (bd, index) => {
-        const bankConfig = marginfiClient.config.banks.find((bc) => bc.address.equals(relevantBankPks[index]));
-        if (!bankConfig) throw new Error(`Bank config not found for ${relevantBankPks[index]}`);
         return new Bank(
-          bankConfig.label,
           relevantBankPks[index],
           bd as BankData,
           await getOraclePriceData(
@@ -136,19 +126,30 @@ class LipClient {
     // LipClient takes in a list of campaigns, which is
     // campaigns we've found + bank information we've constructed.
     return allCampaigns.map((campaign, i) => {
-      return {
-        bank: banks[i],
-        maxRewards: campaign.maxRewards,
-        maxDeposits: campaign.maxDeposits,
-        lockupPeriod: campaign.lockupPeriod,
-        publicKey: campaign.publicKey,
-        marginfiBankPk: banks[i].publicKey,
-        remainingCapacity: campaign.remainingCapacity,
-      };
+      return new Campaign(banks[i], campaign);
     });
   }
 
   // --- Getters
+
+  /**
+   * Retrieves all deposit accounts.
+   *
+   * @returns Deposit instances
+   */
+  async getAllDepositsPerOwner(): Promise<{ [owner: string]: DepositData[] }> {
+    const allAccounts = (await this.program.account.deposit.all()).map(
+      ({ account }) => account as unknown as DepositData
+    );
+    const accountsPerOwner = allAccounts.reduce((acc, account) => {
+      const owner = account.owner.toBase58();
+      if (!acc[owner]) acc[owner] = [];
+      acc[owner].push(account);
+      return acc;
+    }, {} as { [owner: string]: DepositData[] });
+
+    return accountsPerOwner;
+  }
 
   /**
    * Retrieves all deposit accounts for specified owner.
@@ -167,7 +168,7 @@ class LipClient {
           },
         },
       ])
-    ).map(({ account }) => account as unknown as DepositData);
+    ).map(({ publicKey, account }) => ({ address: publicKey, ...(account as Object) } as DepositData));
   }
 
   // --- Others

@@ -1,12 +1,13 @@
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import {
+  Bank,
   MarginfiAccount,
   MarginfiClient,
   MarginRequirementType,
   PriceBias,
   USDC_DECIMALS,
 } from "@mrgnlabs/marginfi-client-v2";
-import { nativeToUi, NodeWallet, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
+import { nativeToUi, NodeWallet, shortenAddress, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { NATIVE_MINT } from "@solana/spl-token";
@@ -14,6 +15,7 @@ import { Jupiter } from "@jup-ag/core";
 import { captureException, captureMessage, env_config } from "./config";
 import JSBI from "jsbi";
 import BN from "bn.js";
+import { BankMetadataMap, loadBankMetadatas } from "./utils/bankMetadata";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(0.1);
@@ -31,6 +33,8 @@ function getDebugLogger(context: string) {
 }
 
 class Liquidator {
+  private bankMetadataMap: BankMetadataMap;
+
   constructor(
     readonly connection: Connection,
     readonly account: MarginfiAccount,
@@ -39,7 +43,9 @@ class Liquidator {
     readonly jupiter: Jupiter,
     readonly account_whitelist: PublicKey[] | undefined,
     readonly account_blacklist: PublicKey[] | undefined
-  ) { }
+  ) {
+    this.bankMetadataMap = {};
+  }
 
   get group() {
     return this.client.group;
@@ -58,6 +64,14 @@ class Liquidator {
     if (this.account_whitelist) {
       console.log("Whitelist: %s", this.account_whitelist);
     }
+
+    setInterval(async () => {
+      try {
+        this.bankMetadataMap = await loadBankMetadatas();
+      } catch (e) {
+        console.error("Failed to refresh bank metadata");
+      }
+    }, 10 * 60 * 1000); // refresh cache every 10 minutes
 
     console.log("Liquidating on %s banks", this.group.banks.size);
 
@@ -144,14 +158,14 @@ class Liquidator {
       .filter(({ assets, bank }) => !bank.mint.equals(USDC_MINT) && assets.gt(DUST_THRESHOLD));
 
     for (let { bank } of balancesWithNonUsdcDeposits) {
-      let maxWithdrawAmount = this.account.getMaxWithdrawForBank(bank);
+      let maxWithdrawAmount = this.account.getMaxWithdrawForBank(bank.publicKey);
 
       if (maxWithdrawAmount.eq(0)) {
-        debug("No untied %s to withdraw", bank.label);
+        debug("No untied %s to withdraw", this.getTokenSymbol(bank));
         continue;
       }
 
-      debug("Withdrawing %d %s", maxWithdrawAmount, bank.label);
+      debug("Withdrawing %d %s", maxWithdrawAmount, this.getTokenSymbol(bank));
       let withdrawSig = await this.account.withdraw(maxWithdrawAmount, bank);
 
       debug("Withdraw tx: %s", withdrawSig);
@@ -193,7 +207,7 @@ class Liquidator {
       .filter(({ liabilities, bank }) => liabilities.gt(new BigNumber(0)) && !bank.mint.equals(USDC_MINT));
 
     for (let { liabilities, bank } of balancesWithNonUsdcLiabilities) {
-      debug("Repaying %d %si", nativeToUi(liabilities, bank.mintDecimals), bank.label);
+      debug("Repaying %d %si", nativeToUi(liabilities, bank.mintDecimals), this.getTokenSymbol(bank));
       let availableUsdcInTokenAccount = await this.getTokenAccountBalance(USDC_MINT);
 
       await this.group.reload();
@@ -231,7 +245,7 @@ class Liquidator {
 
       usdcBuyingPower = BigNumber.min(availableUsdcInTokenAccount, liabUsdcValue);
 
-      debug("Swapping %d USDC to %s", usdcBuyingPower, bank.label);
+      debug("Swapping %d USDC to %s", usdcBuyingPower, this.getTokenSymbol(bank));
 
       await this.swap(USDC_MINT, bank.mint, uiToNative(usdcBuyingPower, USDC_DECIMALS));
 
@@ -281,10 +295,10 @@ class Liquidator {
     const nativeAmount = nativeToUi(
       mint.equals(NATIVE_MINT)
         ? Math.max(
-          (await this.connection.getBalance(this.wallet.publicKey)) -
-          (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
-          0
-        )
+            (await this.connection.getBalance(this.wallet.publicKey)) -
+              (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
+            0
+          )
         : 0,
       9
     );
@@ -318,16 +332,16 @@ class Liquidator {
       const { liabilities } = balance.getQuantityUi(bank);
 
       if (liabilities.gt(0)) {
-        debug("Account has %d liabilities in %s", liabilities, bank.label);
+        debug("Account has %d liabilities in %s", liabilities, this.getTokenSymbol(bank));
         const depositAmount = BigNumber.min(amount, liabilities);
 
-        debug("Paying off %d %s liabilities", depositAmount, bank.label);
+        debug("Paying off %d %s liabilities", depositAmount, this.getTokenSymbol(bank));
         await this.account.repay(depositAmount, bank, amount.gte(liabilities));
 
         amount = await this.getTokenAccountBalance(bank.mint);
       }
 
-      debug("Swapping %d %s to USDC", amount, bank.label);
+      debug("Swapping %d %s to USDC", amount, this.getTokenSymbol(bank));
 
       await this.swap(bank.mint, USDC_MINT, uiToNative(amount, bank.mintDecimals));
     }
@@ -370,7 +384,7 @@ class Liquidator {
     if (lendingAccountToRebalanceExists) {
       debug("Lending accounts to rebalance:");
       lendingAccountToRebalance.forEach(({ bank, assets, liabilities }) => {
-        debug(`Bank: ${bank.label}, Assets: ${assets}, Liabilities: ${liabilities}`);
+        debug(`Bank: ${this.getTokenSymbol(bank)}, Assets: ${assets}, Liabilities: ${liabilities}`);
       });
     }
 
@@ -441,7 +455,7 @@ class Liquidator {
       const bank = group.getBankByPk(balance.bankPk)!;
 
       if (EXCLUDE_ISOLATED_BANKS && bank.config.assetWeightInit.isEqualTo(0)) {
-        debug("Skipping isolated bank %s", bank.label);
+        debug("Skipping isolated bank %s", this.getTokenSymbol(bank));
         continue;
       }
 
@@ -478,7 +492,7 @@ class Liquidator {
       const bank = group.getBankByPk(balance.bankPk)!;
 
       if (EXCLUDE_ISOLATED_BANKS && bank.config.assetWeightInit.isEqualTo(0)) {
-        debug("Skipping isolated bank %s", bank.label);
+        debug("Skipping isolated bank %s", this.getTokenSymbol(bank));
         continue;
       }
 
@@ -542,8 +556,8 @@ class Liquidator {
     console.log(
       "Liquidating %d %s for %s",
       slippageAdjustedCollateralAmountToLiquidate,
-      collateralBank.label,
-      liabBank.label
+      this.getTokenSymbol(collateralBank),
+      this.getTokenSymbol(liabBank)
     );
 
     const sig = await liquidatorAccount.lendingAccountLiquidate(
@@ -555,6 +569,16 @@ class Liquidator {
     console.log("Liquidation tx: %s", sig);
 
     return true;
+  }
+
+  getTokenSymbol(bank: Bank): string {
+    const bankMetadata = this.bankMetadataMap[bank.publicKey.toBase58()];
+    if (!bankMetadata) {
+      console.log("Bank metadata not found for %s", bank.publicKey.toBase58());
+      return shortenAddress(bank.mint.toBase58());
+    }
+
+    return bankMetadata.tokenSymbol;
   }
 }
 
