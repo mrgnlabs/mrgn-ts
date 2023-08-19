@@ -192,6 +192,24 @@ class MarginfiClient {
    *
    * @returns Account addresses
    */
+  async getAllMarginfiAccounts(): Promise<MarginfiAccount[]> {
+    return (
+      await this.program.account.marginfiAccount.all([
+        {
+          memcmp: {
+            bytes: this._group.publicKey.toBase58(),
+            offset: 8, // marginfiGroup is the first field in the account, so only offset is the discriminant
+          },
+        },
+      ])
+    ).map((a) => MarginfiAccount.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, this.group));
+  }
+
+  /**
+   * Retrieves the addresses of all marginfi accounts in the underlying group.
+   *
+   * @returns Account addresses
+   */
   async getAllMarginfiAccountAddresses(): Promise<PublicKey[]> {
     return (
       await this.program.provider.connection.getProgramAccounts(this.programId, {

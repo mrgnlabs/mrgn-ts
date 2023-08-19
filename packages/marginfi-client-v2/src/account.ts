@@ -861,7 +861,7 @@ export class MarginfiAccount {
           isSigner: false,
           isWritable: false,
         },
-        ...this.getHealthCheckAccounts([assetBank, liabBank]),
+        ...this.getHealthCheckAccounts([liabBank, assetBank]),
         ...liquidateeMarginfiAccount.getHealthCheckAccounts(),
       ]
     );

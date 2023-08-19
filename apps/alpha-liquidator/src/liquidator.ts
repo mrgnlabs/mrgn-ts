@@ -19,8 +19,10 @@ import { BankMetadataMap, loadBankMetadatas } from "./utils/bankMetadata";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(0.1);
-const DUST_THRESHOLD_VALUE_UI = new BigNumber(0);
+const MIN_LIQUIDATION_AMOUNT_USD_UI = env_config.MIN_LIQUIDATION_AMOUNT_USD_UI;
+
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+
 const MIN_SOL_BALANCE = env_config.MIN_SOL_BALANCE * LAMPORTS_PER_SOL;
 const SLIPPAGE_BPS = 10000;
 
@@ -80,6 +82,7 @@ class Liquidator {
 
   private async mainLoop() {
     const debug = getDebugLogger("main-loop");
+    drawSpinner("Scanning")
     try {
       await this.swapNonUsdcInTokenAccounts();
       while (true) {
@@ -89,7 +92,10 @@ class Liquidator {
           continue;
         }
 
-        await this.liquidationStage();
+        // Don't sleep after liquidating an account, start rebalance immediately
+        if (!await this.liquidationStage()) {
+          await sleep(env_config.SLEEP_INTERVAL);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -111,6 +117,7 @@ class Liquidator {
       outputMint: mintOut,
       amount: JSBI.BigInt(amountIn.toString()),
       slippageBps: SLIPPAGE_BPS,
+      forceFetch: true,
     });
 
     const route = routesInfos[0];
@@ -120,7 +127,7 @@ class Liquidator {
     const result = await execute();
 
     // @ts-ignore
-    if (result.error) {
+    if (result.error && false) {
       // @ts-ignore
       debug("Error: %s", result.error);
       // @ts-ignore
@@ -368,7 +375,7 @@ class Liquidator {
         return { bank, assets, liabilities };
       })
       .filter(({ bank, assets, liabilities }) => {
-        return (assets.gt(DUST_THRESHOLD_VALUE_UI) && !bank.mint.equals(USDC_MINT)) || liabilities.gt(new BigNumber(0));
+        return (assets.gt(DUST_THRESHOLD) && !bank.mint.equals(USDC_MINT)) || liabilities.gt(new BigNumber(0));
       });
 
     const lendingAccountToRebalanceExists = lendingAccountToRebalance.length > 0;
@@ -384,47 +391,49 @@ class Liquidator {
     return lendingAccountToRebalanceExists;
   }
 
-  private async liquidationStage() {
+  private async liquidationStage(): Promise<boolean> {
     const debug = getDebugLogger("liquidation-stage");
     debug("Started liquidation stage");
-    const allAccounts = await this.client.getAllMarginfiAccountAddresses();
-    const targetAccounts = allAccounts.filter((address) => {
+    const allAccounts = await this.client.getAllMarginfiAccounts();
+    const targetAccounts = allAccounts.filter((account) => {
       if (this.account_whitelist) {
-        return this.account_whitelist.find((whitelistedAddress) => whitelistedAddress.equals(address)) !== undefined;
+        return this.account_whitelist.find((whitelistedAddress) => whitelistedAddress.equals(account.publicKey)) !== undefined;
       } else if (this.account_blacklist) {
-        return this.account_blacklist.find((whitelistedAddress) => whitelistedAddress.equals(address)) === undefined;
+        return this.account_blacklist.find((whitelistedAddress) => whitelistedAddress.equals(account.publicKey)) === undefined;
       }
       return true;
     });
-    const addresses = shuffle(targetAccounts);
+
+    const accounts = shuffle(targetAccounts);
     debug("Found %s accounts in total", allAccounts.length);
     debug("Monitoring %s accounts", targetAccounts.length);
 
-    for (let i = 0; i < addresses.length; i++) {
-      const liquidatedAccount = await this.processAccount(addresses[i]);
+    for (let i = 0; i < accounts.length; i++) {
+      const liquidatedAccount = await this.processAccount(accounts[i]);
 
-      debug("Account %s liquidated: %s", addresses[i], liquidatedAccount);
+      debug("Account %s liquidated: %s", accounts[i], liquidatedAccount);
 
       if (liquidatedAccount) {
         debug("Account liquidated, stopping to rebalance");
-        break;
+        return true;
       }
     }
+
+    return false;
   }
 
-  private async processAccount(account: PublicKey): Promise<boolean> {
-    const client = this.client;
+  private async processAccount(marginfiAccount: MarginfiAccount): Promise<boolean> {
     const group = this.group;
     const liquidatorAccount = this.account;
 
-    if (account.equals(liquidatorAccount.publicKey)) {
+    if (marginfiAccount.publicKey.equals(liquidatorAccount.publicKey)) {
       return false;
     }
 
-    const debug = getDebugLogger(`process-account:${account.toBase58()}`);
+    const debug = getDebugLogger(`process-account:${marginfiAccount.publicKey.toBase58()}`);
 
-    debug("Processing account %s", account);
-    const marginfiAccount = await MarginfiAccount.fetch(account, client);
+    debug("Processing account %s", marginfiAccount.publicKey);
+
     if (marginfiAccount.canBeLiquidated()) {
       const { assets, liabilities } = marginfiAccount.getHealthComponents(MarginRequirementType.Maint);
 
@@ -435,7 +444,7 @@ class Liquidator {
       return false;
     }
 
-    captureMessage(`Liquidating account ${account.toBase58()}`);
+    captureMessage(`Liquidating account ${marginfiAccount.publicKey.toBase58()}`);
 
     let maxLiabilityPaydownUsdValue = new BigNumber(0);
     let bestLiabAccountIndex = 0;
@@ -469,7 +478,7 @@ class Liquidator {
       group.getBankByPk(marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk)!.mint
     );
 
-    if (maxLiabilityPaydownUsdValue.lt(DUST_THRESHOLD_UI)) {
+    if (maxLiabilityPaydownUsdValue.lt(MIN_LIQUIDATION_AMOUNT_USD_UI)) {
       debug("No liability to liquidate");
       return false;
     }
@@ -539,12 +548,12 @@ class Liquidator {
 
     const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.75);
 
-    if (slippageAdjustedCollateralAmountToLiquidate.lt(DUST_THRESHOLD_UI)) {
+    if (slippageAdjustedCollateralAmountToLiquidate.lt(MIN_LIQUIDATION_AMOUNT_USD_UI)) {
       debug("No collateral to liquidate");
       return false;
     }
 
-    debug(
+    console.log(
       "Liquidating %d %s for %s",
       slippageAdjustedCollateralAmountToLiquidate,
       this.getTokenSymbol(collateralBank),
@@ -557,7 +566,7 @@ class Liquidator {
       slippageAdjustedCollateralAmountToLiquidate,
       liabBank
     );
-    debug("Liquidation tx: %s", sig);
+    console.log("Liquidation tx: %s", sig);
 
     return true;
   }
@@ -583,3 +592,17 @@ const shuffle = ([...arr]) => {
 };
 
 export { Liquidator };
+
+function drawSpinner(message: string) {
+  if (!!process.env.DEBUG) {
+    // Don't draw spinner when logging is enabled
+    return;
+  }
+  const spinnerFrames = ['-', '\\', '|', '/'];
+  let frameIndex = 0;
+
+  setInterval(() => {
+    process.stdout.write(`\r${message} ${spinnerFrames[frameIndex]}`);
+    frameIndex = (frameIndex + 1) % spinnerFrames.length;
+  }, 100);
+}
