@@ -82,7 +82,8 @@ const UserAccountsProvider: FC<{
     }
 
     setFetching(false);
-  }, [bankInfos, mfiClient, connection, nativeSolBalance, wallet.publicKey]);
+  }, [bankInfos, connection, nativeSolBalance, wallet.publicKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ^ omit mfiClient since we know bankInfos are updated right after (useMemo)
 
   useEffect(() => {
     reload();
