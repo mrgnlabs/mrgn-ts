@@ -316,7 +316,7 @@ const Pro = () => {
 
   useEffect(() => {
     reload();
-    const id = setInterval(reload, 10_000);
+    const id = setInterval(reload, 60_000);
     return () => clearInterval(id);
   }, [reload]);
 
