@@ -1,6 +1,6 @@
 import React, { FC, useMemo } from "react";
 import { Card, Table, TableBody, TableContainer, TableHead, TableCell, Typography } from "@mui/material";
-import { useTokenAccounts, useUserAccounts } from "~/context";
+import { useUserAccounts } from "~/context";
 import UserPositionRow from "./UserPositionRow";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
@@ -21,8 +21,7 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 const UserPositions: FC = () => {
-  const { selectedAccount, extendedBankInfos, reload } = useUserAccounts();
-  const { tokenAccountMap } = useTokenAccounts();
+  const { selectedAccount, extendedBankInfos, tokenAccountMap, reload } = useUserAccounts();
 
   const activeBankInfos = useMemo(
     () => extendedBankInfos.filter((balance) => balance.hasActivePosition),

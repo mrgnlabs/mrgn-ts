@@ -55,10 +55,12 @@ export interface BankMetadata {
 }
 
 export interface TokenPriceMap {
-  [key: string]: {
+  [key: string]: TokenPrice;
+}
+
+export interface TokenPrice {
     price: BigNumber;
     decimals: number;
-  };
 }
 
 export type TokenMetadataMap = { [symbol: string]: TokenMetadata };

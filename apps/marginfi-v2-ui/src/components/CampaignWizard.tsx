@@ -3,7 +3,7 @@ import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import BN from "bn.js";
 import { uiToNative } from "@mrgnlabs/mrgn-common";
-import { useProgram } from "~/context";
+import { useMarginfiClient } from "~/context";
 import { ProAction } from "~/pages/earn";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { groupedNumberFormatterDyn, percentFormatterDyn } from "~/utils/formatters";
@@ -85,7 +85,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
   const [campaignBank, setCampaignBank] = useState<Bank | null>(null);
 
   const wallet = useWallet();
-  const { lipClient, mfiClient, reload: reloadLipClient } = useProgram();
+  const { lipClient, mfiClient, reload: reloadLipClient } = useMarginfiClient();
 
   const availableBanks = useMemo(() => {
     if (!mfiClient) return [];

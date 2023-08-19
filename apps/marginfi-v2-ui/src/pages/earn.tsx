@@ -1,7 +1,7 @@
 import React, { FC, MouseEventHandler, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
-import { useBankMetadata, useProgram } from "~/context";
+import { useBankMetadata, useMarginfiClient } from "~/context";
 import { Button, ButtonProps, Card, CircularProgress, InputAdornment, LinearProgress, TextField } from "@mui/material";
 import { groupedNumberFormatterDyn, percentFormatterDyn, usdFormatter, usdFormatterDyn } from "~/utils/formatters";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
@@ -276,7 +276,7 @@ const Pro = () => {
   const { bankMetadataMap } = useBankMetadata();
   const [progressPercent, setProgressPercent] = useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
-  const { lipClient, mfiClient } = useProgram();
+  const { lipClient, mfiClient } = useMarginfiClient();
 
   const whitelistedCampaignsWithMeta = useMemo(() => {
     if (!lipClient) return [];

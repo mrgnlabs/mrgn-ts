@@ -176,7 +176,6 @@ class MarginfiClient {
    * @returns MarginfiAccount instances
    */
   async getMarginfiAccountsForAuthority(authority?: Address): Promise<MarginfiAccount[]> {
-    const marginfiGroup = await MarginfiGroup.fetch(this.config, this.program);
     const _authority = authority ? translateAddress(authority) : this.provider.wallet.publicKey;
 
     const marginfiAccounts = (
@@ -194,7 +193,7 @@ class MarginfiClient {
           },
         },
       ])
-    ).map((a) => MarginfiAccount.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, marginfiGroup));
+    ).map((a) => MarginfiAccount.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, this._group));
 
     marginfiAccounts.sort((accountA, accountB) => {
       const assetsValueA = accountA.computeHealthComponents(MarginRequirementType.Equity).assets;

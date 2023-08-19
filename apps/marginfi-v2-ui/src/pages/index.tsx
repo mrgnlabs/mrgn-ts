@@ -1,12 +1,19 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { AccountSummary, AssetsList, MultipleAccountsFoundWarning, UserPositions } from "~/components";
 import { PageHeader } from "~/components/PageHeader";
-import { useUserAccounts } from "~/context";
+import { useMarginfiClient, useUserAccounts } from "~/context";
 
 const Home = () => {
   const wallet = useWallet();
   const { userAccounts } = useUserAccounts();
+  const { reload } = useMarginfiClient();
+
+  useEffect(() => {
+    reload();
+    const id = setInterval(reload, 10_000);
+    return () => clearInterval(id);
+  }, [reload]);
 
   return (
     <>

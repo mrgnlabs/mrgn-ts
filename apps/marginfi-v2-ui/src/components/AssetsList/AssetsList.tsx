@@ -5,7 +5,7 @@ import { Card, Skeleton, Table, TableHead, TableBody, TableContainer, TableRow, 
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { useBanks, useProgram, useUserAccounts } from "~/context";
+import { useMarginfiClient, useUserAccounts } from "~/context";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
 import { lendZoomLevel, showBadgesState } from "~/state";
@@ -26,8 +26,7 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 
 const AssetsList: FC = () => {
   const [isInLendingMode, setIsInLendingMode] = useState(true);
-  const { mfiClient } = useProgram();
-  const { reload } = useBanks();
+  const { mfiClient, reload } = useMarginfiClient();
   const { extendedBankInfos, selectedAccount, nativeSolBalance } = useUserAccounts();
   const wallet = useWallet();
   const zoomLevel = useRecoilValue(lendZoomLevel);

@@ -16,9 +16,7 @@ import config from "../config";
 import { Navbar, Footer } from "~/components";
 
 import {
-  BanksStateProvider,
-  ProgramProvider,
-  TokenAccountsProvider,
+  MarginfiClientProvider,
   TokenMetadataProvider,
   UserAccountsProvider,
   BankMetadataProvider,
@@ -64,35 +62,31 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     <ConnectionProvider endpoint={config.rpcEndpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <ProgramProvider>
-            <BankMetadataProvider>
-              <TokenMetadataProvider>
-                <BanksStateProvider>
-                  <TokenAccountsProvider>
-                    <UserAccountsProvider>
-                      <FirebaseAccountProvider>
-                        <Head>
-                          <title>marginfi</title>
-                          <meta name="description" content="marginfi v2 UI" />
-                          <meta name="viewport" content="width=device-width, initial-scale=1" />
-                          <link rel="icon" href="/favicon.ico" />
-                        </Head>
-                        <RecoilRoot>
-                          <Navbar />
-                          <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
-                            <Component {...pageProps} />
-                            <Analytics />
-                          </div>
-                          <Footer />
-                          <ToastContainer position="bottom-left" theme="dark" />
-                        </RecoilRoot>
-                      </FirebaseAccountProvider>
-                    </UserAccountsProvider>
-                  </TokenAccountsProvider>
-                </BanksStateProvider>
-              </TokenMetadataProvider>
-            </BankMetadataProvider>
-          </ProgramProvider>
+          <BankMetadataProvider>
+            <TokenMetadataProvider>
+              <MarginfiClientProvider>
+                  <UserAccountsProvider>
+                    <FirebaseAccountProvider>
+                      <Head>
+                        <title>marginfi</title>
+                        <meta name="description" content="marginfi v2 UI" />
+                        <meta name="viewport" content="width=device-width, initial-scale=1" />
+                        <link rel="icon" href="/favicon.ico" />
+                      </Head>
+                      <RecoilRoot>
+                        <Navbar />
+                        <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
+                          <Component {...pageProps} />
+                          <Analytics />
+                        </div>
+                        <Footer />
+                        <ToastContainer position="bottom-left" theme="dark" />
+                      </RecoilRoot>
+                    </FirebaseAccountProvider>
+                  </UserAccountsProvider>
+              </MarginfiClientProvider>
+            </TokenMetadataProvider>
+          </BankMetadataProvider>
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>

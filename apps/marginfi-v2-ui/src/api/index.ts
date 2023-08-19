@@ -5,16 +5,19 @@ import {
   Emissions,
   ExtendedBankInfo,
   TokenAccount,
+  TokenAccountMap,
   TokenMetadata,
+  TokenPrice,
   TokenPriceMap,
   UserPosition,
 } from "~/types";
 import { WSOL_MINT } from "~/config";
 import { floor } from "~/utils";
-import { getMint, nativeToUi } from "@mrgnlabs/mrgn-common";
+import { getAssociatedTokenAddressSync, getMint, nativeToUi, unpackAccount } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as firebaseApi from "./firebase";
+import BN from "bn.js";
 
 const VOLATILITY_FACTOR = 0.95;
 
@@ -69,8 +72,9 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
 function makeBankInfo(
   bank: Bank,
   tokenMetadata: TokenMetadata,
-  priceMap: TokenPriceMap,
-  tokenSymbol: string
+  tokenSymbol: string,
+  tokenData: TokenPrice,
+  emissionTokenData?: TokenPrice
 ): BankInfo {
   const { lendingRate, borrowingRate } = bank.getInterestRates();
   const totalPoolDeposits = nativeToUi(bank.totalAssets, bank.mintDecimals);
@@ -81,12 +85,10 @@ function makeBankInfo(
   let emissionsRate: number = 0;
   let emissions = Emissions.Inactive;
 
-  if (bank.emissionsActiveLending || bank.emissionsActiveBorrowing) {
-    const bankTokenData = priceMap[bank.mint.toBase58()];
-    const emissionsTokenData = priceMap[bank.emissionsMint.toBase58()];
-    const emissionsRateAmount = new BigNumber(nativeToUi(bank.emissionsRate, emissionsTokenData.decimals));
-    const emissionsRateValue = emissionsRateAmount.times(emissionsTokenData.price);
-    const emissionsRateAdditionalyApy = emissionsRateValue.div(bankTokenData.price);
+  if ((bank.emissionsActiveLending || bank.emissionsActiveBorrowing) && emissionTokenData) {
+    const emissionsRateAmount = new BigNumber(nativeToUi(bank.emissionsRate, emissionTokenData.decimals));
+    const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
+    const emissionsRateAdditionalyApy = emissionsRateValue.div(tokenData.price);
 
     emissionsRate = emissionsRateAdditionalyApy.toNumber();
 
@@ -236,4 +238,64 @@ function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {
   };
 }
 
-export { DEFAULT_ACCOUNT_SUMMARY, computeAccountSummary, makeBankInfo, makeExtendedBankInfo, firebaseApi };
+async function fetchTokenAccounts(
+  connection: Connection,
+  walletAddress: PublicKey,
+  bankInfos: BankInfo[]
+): Promise<{
+  nativeSolBalance: number;
+  tokenAccountMap: TokenAccountMap;
+}> {
+  // Get relevant addresses
+  const mintList = bankInfos.map((bank) => ({
+    address: bank.tokenMint,
+    decimals: bank.tokenMintDecimals,
+  }));
+
+  if (walletAddress === null) {
+    const emptyTokenAccountMap = new Map(
+      mintList.map(({ address }) => [
+        address.toBase58(),
+        {
+          created: false,
+          mint: address,
+          balance: 0,
+        },
+      ])
+    );
+
+    return {
+      nativeSolBalance: 0,
+      tokenAccountMap: emptyTokenAccountMap,
+    };
+  }
+
+  const ataAddresses = mintList.map((mint) => getAssociatedTokenAddressSync(mint.address, walletAddress!));
+
+  // Fetch relevant accounts
+  const accountsAiList = await connection.getMultipleAccountsInfo([walletAddress, ...ataAddresses]);
+
+  // Decode account buffers
+  const [walletAi, ...ataAiList] = accountsAiList;
+  const nativeSolBalance = walletAi?.lamports ? walletAi.lamports / 1e9 : 0;
+
+  const ataList: TokenAccount[] = ataAiList.map((ai, index) => {
+    if (!ai) {
+      return {
+        created: false,
+        mint: mintList[index].address,
+        balance: 0,
+      };
+    }
+    const decoded = unpackAccount(ataAddresses[index], ai);
+    return {
+      created: true,
+      mint: decoded.mint,
+      balance: nativeToUi(new BN(decoded.amount.toString()), mintList[index].decimals),
+    };
+  });
+
+  return { nativeSolBalance, tokenAccountMap: new Map(ataList.map((ata) => [ata.mint.toString(), ata])) };
+}
+
+export { DEFAULT_ACCOUNT_SUMMARY, computeAccountSummary, makeBankInfo, makeExtendedBankInfo, firebaseApi, fetchTokenAccounts };
