@@ -12,10 +12,8 @@ import { BankInfo, TokenPrice } from "~/types";
 const MarginfiClientContext = createContext<MarginfiClientState>();
 
 interface MarginfiClientState {
-  fetching: boolean;
   reload: () => Promise<void>;
   mfiClient: MarginfiClient | null;
-  lipClient: LipClient | null;
   bankInfos: BankInfo[];
 }
 
@@ -27,17 +25,13 @@ const MarginfiClientFC: FC<{
   const { tokenMetadataMap } = useTokenMetadata();
   const { bankMetadataMap } = useBankMetadata();
 
-  const [fetching, setFetching] = useState<boolean>(true);
   const [mfiClient, setMfiClient] = useState<MarginfiClient | null>(null);
-  const [lipClient, setLipClient] = useState<LipClient | null>(null);
   const [bankInfos, setBankInfos] = useState<BankInfo[]>([]);
 
   const reload = useCallback(async () => {
     console.log("reloading marginfi client")
     const mfiClient = await MarginfiClient.fetch(config.mfiConfig, anchorWallet ?? ({} as any), connection);
     setMfiClient(mfiClient);
-    // const lipClient = await LipClient.fetch(config.lipConfig, anchorWallet ?? ({} as any), connection, mfiClient);
-    // setLipClient(lipClient);
   }, [anchorWallet, connection]);
 
   const buildBankInfos = useCallback(async () => {
@@ -75,10 +69,8 @@ const MarginfiClientFC: FC<{
   return (
     <MarginfiClientContext.Provider
       value={{
-        fetching,
         reload,
         mfiClient,
-        lipClient,
         bankInfos,
       }}
     >

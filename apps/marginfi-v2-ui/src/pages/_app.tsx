@@ -20,6 +20,7 @@ import {
   TokenMetadataProvider,
   UserAccountsProvider,
   BankMetadataProvider,
+  LipClientProvider,
 } from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
@@ -65,6 +66,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
           <BankMetadataProvider>
             <TokenMetadataProvider>
               <MarginfiClientProvider>
+                <LipClientProvider>
                   <UserAccountsProvider>
                     <FirebaseAccountProvider>
                       <Head>
@@ -84,6 +86,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                       </RecoilRoot>
                     </FirebaseAccountProvider>
                   </UserAccountsProvider>
+                </LipClientProvider>
               </MarginfiClientProvider>
             </TokenMetadataProvider>
           </BankMetadataProvider>

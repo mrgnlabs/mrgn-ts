@@ -1,7 +1,7 @@
 import React, { FC, MouseEventHandler, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
-import { useBankMetadata, useMarginfiClient } from "~/context";
+import { useBankMetadata, useLipClient, useMarginfiClient } from "~/context";
 import { Button, ButtonProps, Card, CircularProgress, InputAdornment, LinearProgress, TextField } from "@mui/material";
 import { groupedNumberFormatterDyn, percentFormatterDyn, usdFormatter, usdFormatterDyn } from "~/utils/formatters";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
@@ -276,7 +276,8 @@ const Pro = () => {
   const { bankMetadataMap } = useBankMetadata();
   const [progressPercent, setProgressPercent] = useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
-  const { lipClient, mfiClient } = useMarginfiClient();
+  const { mfiClient, reload } = useMarginfiClient();
+  const { lipClient } = useLipClient();
 
   const whitelistedCampaignsWithMeta = useMemo(() => {
     if (!lipClient) return [];
@@ -312,6 +313,12 @@ const Pro = () => {
     { value: 50, label: "SELECT", color: progressPercent >= 50 ? "#51B56A" : "#484848" },
     { value: 100, label: "READY", color: progressPercent >= 100 ? "#51B56A" : "#484848" },
   ];
+
+  useEffect(() => {
+    reload();
+    const id = setInterval(reload, 10_000);
+    return () => clearInterval(id);
+  }, [reload]);
 
   useEffect(() => {
     if (!selectedCampaign) return;

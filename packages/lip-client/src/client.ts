@@ -58,8 +58,6 @@ class LipClient {
 
   static async fetch(
     config: LipConfig,
-    wallet: Wallet,
-    connection: Connection,
     marginfiClient: MarginfiClient,
     opts?: ConfirmOptions
   ) {
@@ -68,18 +66,18 @@ class LipClient {
       "Loading Lip Client\n\tprogram: %s\n\tenv: %s\n\turl: %s",
       config.programId,
       config.environment,
-      connection.rpcEndpoint
+      marginfiClient.provider.connection.rpcEndpoint
     );
 
-    const provider = new AnchorProvider(connection, wallet, {
+    const provider = new AnchorProvider(marginfiClient.provider.connection, marginfiClient.wallet, {
       ...AnchorProvider.defaultOptions(),
-      commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
+      commitment: marginfiClient.provider.connection.commitment ?? AnchorProvider.defaultOptions().commitment,
       ...opts,
     });
     const program = new Program(LIP_IDL, config.programId, provider) as any as LipProgram;
     const campaigns = await LipClient._fetchAccountData(program, marginfiClient);
 
-    return new LipClient(config, program, wallet, marginfiClient, campaigns);
+    return new LipClient(config, program, marginfiClient.wallet, marginfiClient, campaigns);
   }
 
   async reload() {
