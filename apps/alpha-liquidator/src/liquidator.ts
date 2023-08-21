@@ -109,9 +109,9 @@ class Liquidator {
 
     debug("Swapping %s %s to %s", amountIn, mintIn.toBase58(), mintOut.toBase58());
 
-    const { data } = await (
-      await fetch(`https://quote-api.jup.ag/v6/quote?inputMint=${mintIn.toBase58()}&outputMint=${mintOut.toBase58()}&amount=${amountIn.toString()}&slippageBps=${SLIPPAGE_BPS}`)
-    ).json();
+    const swapUrl = `https://quote-api.jup.ag/v6/quote?inputMint=${mintIn.toBase58()}&outputMint=${mintOut.toBase58()}&amount=${amountIn.toString()}&slippageBps=${SLIPPAGE_BPS}`;
+    const quoteApiResponse = await fetch(swapUrl);
+    const data = await quoteApiResponse.json();
 
     const transactionResponse = await (
       await fetch('https://quote-api.jup.ag/v6/swap', {
@@ -135,7 +135,6 @@ class Liquidator {
     const { swapTransaction } = transactionResponse;
 
     const swapTransactionBuf = Buffer.from(swapTransaction, 'base64');
-
     const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
 
     transaction.sign([this.wallet.payer]);
