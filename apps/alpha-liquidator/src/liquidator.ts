@@ -1,7 +1,6 @@
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import {
   MarginRequirementType,
-  MarginfiAccount,
   MarginfiAccountProxy,
   MarginfiClient,
   PriceBias,
@@ -46,17 +45,13 @@ class Liquidator {
     this.bankMetadataMap = {};
   }
 
-  get group() {
-    return this.client.group;
-  }
-
   async start() {
     console.log("Starting liquidator");
 
     console.log("Wallet: %s", this.account.authority);
     console.log("Liquidator account: %s", this.account.address);
     console.log("Program id: %s", this.client.program.programId);
-    console.log("Group: %s", this.group.publicKey);
+    console.log("Group: %s", this.client.groupAddress);
     if (this.account_blacklist) {
       console.log("Blacklist: %s", this.account_blacklist);
     }
@@ -72,7 +67,7 @@ class Liquidator {
       }
     }, 10 * 60 * 1000); // refresh cache every 10 minutes
 
-    console.log("Liquidating on %s banks", this.group.banks.size);
+    console.log("Liquidating on %s banks", this.client.banks.size);
 
     console.log("Start with DEBUG=mfi:* to see more logs");
 
@@ -144,15 +139,16 @@ class Liquidator {
     debug("Starting non-usdc deposit sell step (1/3)");
     let balancesWithNonUsdcDeposits = this.account.activeBalances
       .map((balance) => {
-        let bank = this.group.getBankByPk(balance.bankPk)!;
+        let bank = this.client.getBankByPk(balance.bankPk)!;
+        let priceInfo = this.client.getPriceInfoByBank(balance.bankPk)!;
         let { assets } = balance.computeQuantity(bank);
 
-        return { assets, bank };
+        return { assets, bank, priceInfo };
       })
       .filter(({ assets, bank }) => !bank.mint.equals(USDC_MINT) && assets.gt(DUST_THRESHOLD));
 
-    for (let { bank } of balancesWithNonUsdcDeposits) {
-      let maxWithdrawAmount = this.account.computeMaxWithdrawForBank(bank.address);
+    for (let { bank, priceInfo } of balancesWithNonUsdcDeposits) {
+        let maxWithdrawAmount = this.account.computeMaxWithdrawForBank(bank.address);
 
       if (maxWithdrawAmount.eq(0)) {
         debug("No untied %s to withdraw", this.getTokenSymbol(bank));
@@ -193,7 +189,7 @@ class Liquidator {
     debug("Starting debt repayment step (2/3)");
     const balancesWithNonUsdcLiabilities = this.account.activeBalances
       .map((balance) => {
-        let bank = this.group.getBankByPk(balance.bankPk)!;
+        let bank = this.client.getBankByPk(balance.bankPk)!;
         let { liabilities } = balance.computeQuantity(bank);
 
         return { liabilities, bank };
@@ -204,12 +200,14 @@ class Liquidator {
       debug("Repaying %d %si", nativeToUi(liabilities, bank.mintDecimals), this.getTokenSymbol(bank));
       let availableUsdcInTokenAccount = await this.getTokenAccountBalance(USDC_MINT);
 
-      await this.group.reload();
-      const usdcBank = this.group.getBankByMint(USDC_MINT)!;
+      await this.client.reload();
+
+      const usdcBank = this.client.getBankByMint(USDC_MINT)!;
+      const priceInfo = this.client.getPriceInfoByBank(bank.address)!;
       const availableUsdcLiquidity = this.account.computeMaxBorrowForBank(usdcBank.address);
 
-      await bank.reloadPriceData(this.connection);
-      const baseLiabUsdcValue = bank.getLiabilityUsdValue(
+      const baseLiabUsdcValue = bank.computeLiabilityUsdValue(
+        priceInfo,
         liabilities,
         MarginRequirementType.Equity,
         // We might need to use a Higher price bias to account for worst case scenario.
@@ -229,7 +227,7 @@ class Liquidator {
       if (missingUsdc.gt(0)) {
         const usdcToWithdraw = BigNumber.min(missingUsdc, availableUsdcLiquidity);
         debug("Withdrawing %d USDC", usdcToWithdraw);
-        const withdrawSig = await this.account.withdraw(usdcToWithdraw, usdcBank);
+        const withdrawSig = await this.account.withdraw(usdcToWithdraw, usdcBank.address);
         debug("Withdraw tx: %s", withdrawSig);
         await this.account.reload();
       }
@@ -247,7 +245,7 @@ class Liquidator {
 
       debug("Got %s of %s, depositing to marginfi", liabBalance, bank.mint);
 
-      const depositSig = await this.account.repay(liabBalance, bank, liabBalance.gte(liabsUi));
+      const depositSig = await this.account.repay(liabBalance, bank.address, liabBalance.gte(liabsUi));
       debug("Deposit tx: %s", depositSig);
     }
   }
@@ -269,8 +267,8 @@ class Liquidator {
 
     const usdcBalance = await this.getTokenAccountBalance(USDC_MINT);
 
-    const usdcBank = this.group.getBankByMint(USDC_MINT)!;
-    const depositTx = await this.account.deposit(usdcBalance, usdcBank);
+    const usdcBank = this.client.getBankByMint(USDC_MINT)!;
+    const depositTx = await this.account.deposit(usdcBalance, usdcBank.address);
     debug("Deposit tx: %s", depositTx);
   }
 
@@ -308,7 +306,8 @@ class Liquidator {
   private async swapNonUsdcInTokenAccounts() {
     const debug = getDebugLogger("swap-non-usdc-in-token-accounts");
     debug("Swapping any remaining non-usdc to usdc");
-    const banks = this.group.banks.values();
+    const banks = this.client.banks.values();
+    const usdcBank = this.client.getBankByMint(USDC_MINT)!;
     for (let bankInterEntry = banks.next(); !bankInterEntry.done; bankInterEntry = banks.next()) {
       const bank = bankInterEntry.value;
       if (bank.mint.equals(USDC_MINT) || bank.mint.equals(NATIVE_MINT)) {
@@ -321,15 +320,15 @@ class Liquidator {
         continue;
       }
 
-      const balance = this.account.getBalance(bank.publicKey);
-      const { liabilities } = balance.getQuantityUi(bank);
+      const balance = this.account.getBalance(bank.address);
+      const { liabilities } = balance.computeQuantityUi(bank);
 
       if (liabilities.gt(0)) {
         debug("Account has %d liabilities in %s", liabilities, this.getTokenSymbol(bank));
         const depositAmount = BigNumber.min(amount, liabilities);
 
         debug("Paying off %d %s liabilities", depositAmount, this.getTokenSymbol(bank));
-        await this.account.repay(depositAmount, bank, amount.gte(liabilities));
+        await this.account.repay(depositAmount, bank.address, amount.gte(liabilities));
 
         amount = await this.getTokenAccountBalance(bank.mint);
       }
@@ -348,7 +347,7 @@ class Liquidator {
 
     debug("Depositing %d USDC", usdcBalance);
 
-    const tx = await this.account.deposit(usdcBalance, this.group.getBankByMint(USDC_MINT)!);
+    const tx = await this.account.deposit(usdcBalance, usdcBank.address);
 
     debug("Deposit tx: %s", tx);
   }
@@ -357,13 +356,13 @@ class Liquidator {
     const debug = getDebugLogger("rebalance-check");
 
     debug("Checking if liquidator needs to be rebalanced");
-    await this.group.reload();
+    await this.client.reload();
     await this.account.reload();
 
     const lendingAccountToRebalance = this.account.activeBalances
       .map((lendingAccount) => {
-        const bank = this.group.getBankByPk(lendingAccount.bankPk)!;
-        const { assets, liabilities } = lendingAccount.getQuantity(bank);
+        const bank = this.client.getBankByPk(lendingAccount.bankPk)!;
+        const { assets, liabilities } = lendingAccount.computeQuantity(bank);
 
         return { bank, assets, liabilities };
       })
@@ -414,19 +413,19 @@ class Liquidator {
 
   private async processAccount(account: PublicKey): Promise<boolean> {
     const client = this.client;
-    const group = this.group;
+    const group = this.client;
     const liquidatorAccount = this.account;
 
-    if (account.equals(liquidatorAccount.publicKey)) {
+    if (account.equals(liquidatorAccount.address)) {
       return false;
     }
 
     const debug = getDebugLogger(`process-account:${account.toBase58()}`);
 
     debug("Processing account %s", account);
-    const marginfiAccount = await MarginfiAccount.fetch(account, client);
+    const marginfiAccount = await MarginfiAccountProxy.fetch(account, client);
     if (marginfiAccount.canBeLiquidated()) {
-      const { assets, liabilities } = marginfiAccount.computeHealthComponents(MarginRequirementType.Maint);
+      const { assets, liabilities } = marginfiAccount.computeHealthComponents(MarginRequirementType.Maintenance);
 
       const maxLiabilityPaydown = assets.minus(liabilities);
       debug("Account can be liquidated, account health: %d", maxLiabilityPaydown);
@@ -444,16 +443,27 @@ class Liquidator {
     for (let i = 0; i < marginfiAccount.activeBalances.length; i++) {
       const balance = marginfiAccount.activeBalances[i];
       const bank = group.getBankByPk(balance.bankPk)!;
+      const priceInfo = group.getPriceInfoByBank(balance.bankPk)!;
 
       if (EXCLUDE_ISOLATED_BANKS && bank.config.assetWeightInit.isEqualTo(0)) {
         debug("Skipping isolated bank %s", this.getTokenSymbol(bank));
         continue;
       }
 
-      const maxLiabCoverage = liquidatorAccount.computeMaxBorrowForBank(bank.publicKey);
-      const liquidatorLiabPayoffCapacityUsd = bank.getUsdValue(maxLiabCoverage, PriceBias.None, undefined, false);
+      const maxLiabCoverage = liquidatorAccount.computeMaxBorrowForBank(bank.address);
+      const liquidatorLiabPayoffCapacityUsd = bank.computeUsdValue(
+        priceInfo,
+        maxLiabCoverage,
+        PriceBias.None,
+        undefined,
+        false
+      );
       debug("Max borrow for bank: %d ($%d)", maxLiabCoverage, liquidatorLiabPayoffCapacityUsd);
-      const { liabilities: liquidateeLiabUsdValue } = balance.getUsdValue(bank, MarginRequirementType.Equity);
+      const { liabilities: liquidateeLiabUsdValue } = balance.computeUsdValue(
+        bank,
+        priceInfo,
+        MarginRequirementType.Equity
+      );
 
       debug("Balance: liab: $%d, max coverage: %d", liquidateeLiabUsdValue, liquidatorLiabPayoffCapacityUsd);
 
@@ -481,13 +491,14 @@ class Liquidator {
     for (let i = 0; i < marginfiAccount.activeBalances.length; i++) {
       const balance = marginfiAccount.activeBalances[i];
       const bank = group.getBankByPk(balance.bankPk)!;
+      const priceInfo = group.getPriceInfoByBank(balance.bankPk)!;
 
       if (EXCLUDE_ISOLATED_BANKS && bank.config.assetWeightInit.isEqualTo(0)) {
         debug("Skipping isolated bank %s", this.getTokenSymbol(bank));
         continue;
       }
 
-      const { assets: collateralUsdValue } = balance.getUsdValue(bank, MarginRequirementType.Equity);
+      const { assets: collateralUsdValue } = balance.computeUsdValue(bank, priceInfo, MarginRequirementType.Equity);
       if (collateralUsdValue.gt(maxCollateralUsd)) {
         maxCollateralUsd = collateralUsdValue;
         bestCollateralIndex = i;
@@ -502,28 +513,32 @@ class Liquidator {
 
     const collateralBankPk = marginfiAccount.activeBalances[bestCollateralIndex].bankPk;
     const collateralBank = group.getBankByPk(collateralBankPk)!;
+    const collateralPriceInfo = group.getPriceInfoByBank(collateralBankPk)!;
 
     const liabBankPk = marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk;
     const liabBank = group.getBankByPk(liabBankPk)!;
+    const liabPriceInfo = group.getPriceInfoByBank(liabBankPk)!;
 
     // MAX collateral amount to liquidate for given banks and the trader marginfi account balances
     // this doesn't account for liquidators liquidation capacity
     const maxCollateralAmountToLiquidate = marginfiAccount.computeMaxLiquidatableAssetAmount(
-      collateralBank.publicKey,
-      liabBank.publicKey
+      collateralBank.address,
+      liabBank.address
     );
 
     debug("Max collateral amount to liquidate: %d", maxCollateralAmountToLiquidate);
 
     // MAX collateral amount to liquidate given liquidators current margin account
-    const liquidatorMaxLiquidationCapacityLiabAmount = liquidatorAccount.computeMaxBorrowForBank(liabBank.publicKey);
-    const liquidatorMaxLiquidationCapacityUsd = liabBank.getUsdValue(
+    const liquidatorMaxLiquidationCapacityLiabAmount = liquidatorAccount.computeMaxBorrowForBank(liabBank.address);
+    const liquidatorMaxLiquidationCapacityUsd = liabBank.computeUsdValue(
+      liabPriceInfo,
       liquidatorMaxLiquidationCapacityLiabAmount,
       PriceBias.None,
       undefined,
       false
     );
-    const liquidatorMaxLiqCapacityAssetAmount = collateralBank.getQuantityFromUsdValue(
+    const liquidatorMaxLiqCapacityAssetAmount = collateralBank.computeQuantityFromUsdValue(
+      collateralPriceInfo,
       liquidatorMaxLiquidationCapacityUsd,
       PriceBias.None
     );
@@ -555,10 +570,10 @@ class Liquidator {
     );
 
     const sig = await liquidatorAccount.lendingAccountLiquidate(
-      marginfiAccount,
-      collateralBank,
+      marginfiAccount.data,
+      collateralBank.address,
       slippageAdjustedCollateralAmountToLiquidate,
-      liabBank
+      liabBank.address
     );
     debug("Liquidation tx: %s", sig);
 
@@ -566,9 +581,9 @@ class Liquidator {
   }
 
   getTokenSymbol(bank: Bank): string {
-    const bankMetadata = this.bankMetadataMap[bank.publicKey.toBase58()];
+    const bankMetadata = this.bankMetadataMap[bank.address.toBase58()];
     if (!bankMetadata) {
-      console.log("Bank metadata not found for %s", bank.publicKey.toBase58());
+      console.log("Bank metadata not found for %s", bank.address.toBase58());
       return shortenAddress(bank.mint.toBase58());
     }
 

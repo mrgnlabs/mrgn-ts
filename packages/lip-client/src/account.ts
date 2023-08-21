@@ -57,7 +57,7 @@ class LipAccount {
 
   getTotalBalance() {
     return this.deposits.reduce((acc, deposit) => {
-      const priceInfo = this.mfiClient.group.priceInfos.get(deposit.campaign.bank.address.toBase58());
+      const priceInfo = this.mfiClient.priceInfos.get(deposit.campaign.bank.address.toBase58());
       if (!priceInfo) throw Error("Price info not found");
 
       return acc.plus(deposit.computeUsdValue(priceInfo, deposit.campaign.bank));
@@ -96,7 +96,7 @@ class LipAccount {
     const tempTokenAccount = Keypair.generate();
 
     const endDepositIx = await instructions.makeEndDepositIx(this.client.program, {
-      marginfiGroup: this.mfiClient.group.publicKey,
+      marginfiGroup: this.mfiClient.groupAddress,
       signer: this.client.wallet.publicKey,
       assetMint: deposit.campaign.bank.mint,
       campaign: deposit.campaign.publicKey,
@@ -155,7 +155,7 @@ class LipAccount {
       const campaign = lipClient.campaigns.find((c) => deposit.campaign.equals(c.publicKey));
       if (!campaign) throw Error("Campaign not found");
 
-      const bank = lipClient.mfiClient.group.banks.get(campaign.bank.address.toBase58());
+      const bank = lipClient.mfiClient.banks.get(campaign.bank.address.toBase58());
       if (!bank) throw Error("Bank not found");
 
       return Deposit.fromAccountParsed(deposit, bank, campaign);

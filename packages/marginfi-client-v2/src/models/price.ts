@@ -17,7 +17,7 @@ enum PriceBias {
   Highest = 2,
 }
 
-function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): PriceInfo {
+function parsePriceInfo(oracleSetup: OracleSetup, rawData: Buffer): PriceInfo {
   switch (oracleSetup) {
     case OracleSetup.PythEma:
       const pythPriceData = parsePriceData(rawData);
@@ -55,6 +55,6 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): PriceI
   }
 }
 
-export { parseOraclePriceData, PriceBias };
+export { parsePriceInfo, PriceBias };
 
 export type { PriceInfo };

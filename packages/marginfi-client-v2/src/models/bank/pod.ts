@@ -312,6 +312,11 @@ class Bank {
       .dividedBy(scaleToBase ? 10 ** this.mintDecimals : 1);
   }
 
+  computeQuantityFromUsdValue(priceInfo: PriceInfo, usdValue: BigNumber, priceBias: PriceBias): BigNumber {
+    const price = this.getPrice(priceInfo, priceBias);
+    return usdValue.div(price);
+  }
+
   getPrice(priceInfo: PriceInfo, priceBias: PriceBias = PriceBias.None): BigNumber {
     switch (priceBias) {
       case PriceBias.Lowest:

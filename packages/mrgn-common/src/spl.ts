@@ -61,7 +61,7 @@ export const MultisigLayout = struct<RawMultisig>([
 /** Byte length of a multisig */
 export const MULTISIG_SIZE = MultisigLayout.span;
 
-export enum AccountType {
+export enum SplAccountType {
   Uninitialized,
   Mint,
   Account,
@@ -340,7 +340,7 @@ export function unpackAccount(
   let tlvData = Buffer.alloc(0);
   if (info.data.length > ACCOUNT_SIZE) {
     if (info.data.length === MULTISIG_SIZE) throw new TokenInvalidAccountSizeError();
-    if (info.data[ACCOUNT_SIZE] != AccountType.Account) throw new TokenInvalidAccountError();
+    if (info.data[ACCOUNT_SIZE] != SplAccountType.Account) throw new TokenInvalidAccountError();
     tlvData = info.data.slice(ACCOUNT_SIZE + ACCOUNT_TYPE_SIZE);
   }
 

@@ -2,8 +2,7 @@ import { Amount, DEFAULT_COMMITMENT, InstructionsWrapper, shortenAddress } from 
 import { Address, BorshCoder, translateAddress } from "@project-serum/anchor";
 import { AccountMeta, Commitment, PublicKey, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { MarginfiClient } from "../..";
-import { MarginfiGroupProxy } from "~/models/group";
+import { MarginfiClient, MarginfiGroup } from "../..";
 import { MARGINFI_IDL } from "../../idl";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, Balance, MarginRequirementType, MarginfiAccountRaw } from "./pod";
@@ -12,7 +11,6 @@ import { Bank } from "../bank";
 class MarginfiAccountProxy {
   public readonly address: PublicKey;
 
-  private _group: MarginfiGroupProxy;
   private _marginfiAccount: MarginfiAccount;
 
   // --------------------------------------------------------------------------
@@ -22,23 +20,11 @@ class MarginfiAccountProxy {
   /**
    * @internal
    */
-  private constructor(marginfiAccountPk: PublicKey, readonly client: MarginfiClient, marginfiAccount: MarginfiAccount) {
+  private constructor(marginfiAccountPk: PublicKey, private readonly client: MarginfiClient, marginfiAccount: MarginfiAccount) {
     this.address = marginfiAccountPk;
-
-    this._group = client.group;
     this._marginfiAccount = marginfiAccount;
   }
 
-  /**
-   * MarginfiAccount network factory
-   *
-   * Fetch account data according to the config and instantiate the corresponding MarginfiAccount.
-   *
-   * @param marginfiAccountPk Address of the target account
-   * @param client marginfi client
-   * @param commitment Commitment level override
-   * @returns MarginfiAccount instance
-   */
   static async fetch(
     marginfiAccountPk: Address,
     client: MarginfiClient,
@@ -50,7 +36,6 @@ class MarginfiAccountProxy {
     const accountData = await MarginfiAccountProxy._fetchAccountData(_marginfiAccountPk, config, program, commitment);
     const marginfiAccount = new MarginfiAccount(_marginfiAccountPk, accountData);
 
-    await client.group.reload();
     const marginfiAccountProxy = new MarginfiAccountProxy(_marginfiAccountPk, client, marginfiAccount);
 
     require("debug")("mfi:margin-account")("Loaded marginfi account %s", _marginfiAccountPk);
@@ -58,19 +43,7 @@ class MarginfiAccountProxy {
     return marginfiAccountProxy;
   }
 
-  /**
-   * MarginfiAccount local factory (decoded)
-   *
-   * Instantiate a MarginfiAccount according to the provided decoded data.
-   * Check sanity against provided config.
-   *
-   * @param marginfiAccountPk Address of the target account
-   * @param client marginfi client
-   * @param accountData Decoded marginfi marginfi account data
-   * @param marginfiGroup MarginfiGroup instance
-   * @returns MarginfiAccount instance
-   */
-  static fromAccountData(marginfiAccountPk: Address, client: MarginfiClient, accountData: MarginfiAccountRaw) {
+  static fromAccountParsed(marginfiAccountPk: Address, client: MarginfiClient, accountData: MarginfiAccountRaw) {
     if (!accountData.group.equals(client.config.groupPk))
       throw Error(
         `Marginfi account tied to group ${accountData.group.toBase58()}. Expected: ${client.config.groupPk.toBase58()}`
@@ -81,21 +54,9 @@ class MarginfiAccountProxy {
     return new MarginfiAccountProxy(_marginfiAccountPk, client, marginfiAccount);
   }
 
-  /**
-   * MarginfiAccount local factory (encoded)
-   *
-   * Instantiate a MarginfiAccount according to the provided encoded data.
-   * Check sanity against provided config.
-   *
-   * @param marginfiAccountPk Address of the target account
-   * @param client marginfi client
-   * @param marginfiAccountRawData Encoded marginfi marginfi account data
-   * @param marginfiGroup MarginfiGroup instance
-   * @returns MarginfiAccount instance
-   */
   static fromAccountDataRaw(marginfiAccountPk: PublicKey, client: MarginfiClient, marginfiAccountRawData: Buffer) {
     const marginfiAccountData = MarginfiAccountProxy.decode(marginfiAccountRawData);
-    return MarginfiAccountProxy.fromAccountData(marginfiAccountPk, client, marginfiAccountData);
+    return MarginfiAccountProxy.fromAccountParsed(marginfiAccountPk, client, marginfiAccountData);
   }
 
   // --------------------------------------------------------------------------
@@ -106,12 +67,16 @@ class MarginfiAccountProxy {
     return this._marginfiAccount.authority;
   }
 
-  get group(): MarginfiGroupProxy {
-    return this._group;
+  get group(): MarginfiGroup {
+    return this.client.group;
   }
 
   get balances(): Balance[] {
     return this._marginfiAccount.balances;
+  }
+
+  get data(): MarginfiAccount {
+    return this._marginfiAccount;
   }
 
   /** @internal */
@@ -124,9 +89,6 @@ class MarginfiAccountProxy {
     return this.client.config;
   }
 
-  /**
-   * Marginfi group address
-   */
   get activeBalances(): Balance[] {
     return this._marginfiAccount.balances.filter((la) => la.active);
   }
@@ -137,8 +99,8 @@ class MarginfiAccountProxy {
 
   public canBeLiquidated(): boolean {
     const { assets, liabilities } = this._marginfiAccount.computeHealthComponents(
-      this.group.banks,
-      this.group.priceInfos,
+      this.client.banks,
+      this.client.priceInfos,
       MarginRequirementType.Maintenance
     );
 
@@ -149,11 +111,11 @@ class MarginfiAccountProxy {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    return this._marginfiAccount.computeHealthComponents(this.group.banks, this.group.priceInfos, marginRequirement);
+    return this._marginfiAccount.computeHealthComponents(this.client.banks, this.client.priceInfos, marginRequirement);
   }
 
   public computeFreeCollateral(opts?: { clamped?: boolean }): BigNumber {
-    return this._marginfiAccount.computeFreeCollateral(this.group.banks, this.group.priceInfos, opts);
+    return this._marginfiAccount.computeFreeCollateral(this.client.banks, this.client.priceInfos, opts);
   }
 
   public computeHealthComponentsWithoutBias(marginRequirement: MarginRequirementType): {
@@ -161,31 +123,31 @@ class MarginfiAccountProxy {
     liabilities: BigNumber;
   } {
     return this._marginfiAccount.computeHealthComponentsWithoutBias(
-      this.group.banks,
-      this.group.priceInfos,
+      this.client.banks,
+      this.client.priceInfos,
       marginRequirement
     );
   }
 
   public computeMaxBorrowForBank(bankAddress: PublicKey): BigNumber {
-    return this._marginfiAccount.computeMaxBorrowForBank(this.group.banks, this.group.priceInfos, bankAddress);
+    return this._marginfiAccount.computeMaxBorrowForBank(this.client.banks, this.client.priceInfos, bankAddress);
   }
 
   public computeMaxWithdrawForBank(bankAddress: PublicKey, opts?: { volatilityFactor?: number }): BigNumber {
-    return this._marginfiAccount.computeMaxWithdrawForBank(this.group.banks, this.group.priceInfos, bankAddress, opts);
+    return this._marginfiAccount.computeMaxWithdrawForBank(this.client.banks, this.client.priceInfos, bankAddress, opts);
   }
 
   public computeMaxLiquidatableAssetAmount(assetBankAddress: PublicKey, liabilityBankAddress: PublicKey): BigNumber {
     return this._marginfiAccount.computeMaxLiquidatableAssetAmount(
-      this.group.banks,
-      this.group.priceInfos,
+      this.client.banks,
+      this.client.priceInfos,
       assetBankAddress,
       liabilityBankAddress
     );
   }
 
   public computeNetApy(): number {
-    return this._marginfiAccount.computeNetApy(this.group.banks, this.group.priceInfos);
+    return this._marginfiAccount.computeNetApy(this.client.banks, this.client.priceInfos);
   }
 
   // --------------------------------------------------------------------------
@@ -193,7 +155,7 @@ class MarginfiAccountProxy {
   // --------------------------------------------------------------------------
 
   async makeDepositIx(amount: Amount, bankAddress: PublicKey): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeDepositIxForAccount(this._program, this._group.banks, amount, bankAddress);
+    return this._marginfiAccount.makeDepositIxForAccount(this._program, this.client.banks, amount, bankAddress);
   }
 
   async deposit(amount: Amount, bankAddress: PublicKey): Promise<string> {
@@ -207,7 +169,7 @@ class MarginfiAccountProxy {
   }
 
   async makeRepayIx(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeRepayIxForAccount(this._program, this._group.banks, amount, bankAddress, repayAll);
+    return this._marginfiAccount.makeRepayIxForAccount(this._program, this.client.banks, amount, bankAddress, repayAll);
   }
 
   async repay(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<string> {
@@ -228,7 +190,7 @@ class MarginfiAccountProxy {
   ): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeWithdrawIxForAccount(
       this._program,
-      this._group.banks,
+      this.client.banks,
       amount,
       bankAddress,
       withdrawAll
@@ -250,7 +212,7 @@ class MarginfiAccountProxy {
     bankAddress: PublicKey,
     opt?: { remainingAccountsBankOverride?: Bank[] } | undefined
   ): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeBorrowIxForAccount(this._program, this._group.banks, amount, bankAddress, opt);
+    return this._marginfiAccount.makeBorrowIxForAccount(this._program, this.client.banks, amount, bankAddress, opt);
   }
 
   async borrow(amount: Amount, bankAddress: PublicKey): Promise<string> {
@@ -264,7 +226,7 @@ class MarginfiAccountProxy {
   }
 
   async makeWithdrawEmissionsIx(bankAddress: PublicKey): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeWithdrawEmissionsIxForAccount(this._program, this._group.banks, bankAddress);
+    return this._marginfiAccount.makeWithdrawEmissionsIxForAccount(this._program, this.client.banks, bankAddress);
   }
 
   async withdrawEmissions(bankAddress: PublicKey): Promise<string> {
@@ -286,7 +248,7 @@ class MarginfiAccountProxy {
     return this._marginfiAccount.makeLendingAccountLiquidateIxForAccount(
       liquidateeMarginfiAccount,
       this._program,
-      this._group.banks,
+      this.client.banks,
       assetBankAddress,
       assetQuantityUi,
       liabBankAddress
@@ -318,7 +280,7 @@ class MarginfiAccountProxy {
   // --------------------------------------------------------------------------
 
   getHealthCheckAccounts(mandatoryBanks: Bank[] = [], excludedBanks: Bank[] = []): AccountMeta[] {
-    return this._marginfiAccount.getHealthCheckAccounts(this._group.banks, mandatoryBanks, excludedBanks);
+    return this._marginfiAccount.getHealthCheckAccounts(this.client.banks, mandatoryBanks, excludedBanks);
   }
 
   private static async _fetchAccountData(
@@ -340,51 +302,30 @@ class MarginfiAccountProxy {
     return data;
   }
 
-  /**
-   * Decode marginfi account data according to the Anchor IDL.
-   *
-   * @param encoded Raw data buffer
-   * @returns Decoded marginfi account data struct
-   */
   static decode(encoded: Buffer): MarginfiAccountRaw {
     const coder = new BorshCoder(MARGINFI_IDL);
     return coder.accounts.decode(AccountType.MarginfiAccount, encoded);
   }
 
-  /**
-   * Decode marginfi account data according to the Anchor IDL.
-   *
-   * @param decoded Marginfi account data struct
-   * @returns Raw data buffer
-   */
   static async encode(decoded: MarginfiAccountRaw): Promise<Buffer> {
     const coder = new BorshCoder(MARGINFI_IDL);
     return await coder.accounts.encode(AccountType.MarginfiAccount, decoded);
   }
 
-  /**
-   * Update instance data by fetching and storing the latest on-chain state.
-   */
   async reload() {
     require("debug")(`mfi:margin-account:${this.address.toBase58().toString()}:loader`)("Reloading account data");
     const marginfiAccountAi = await this._program.account.marginfiAccount.getAccountInfo(this.address);
     if (!marginfiAccountAi) throw new Error(`Failed to fetch data for marginfi account ${this.address.toBase58()}`);
-    const marginfiAccountData = MarginfiAccountProxy.decode(marginfiAccountAi.data);
-    if (!marginfiAccountData.group.equals(this._config.groupPk))
+    const marginfiAccountParsed = MarginfiAccountProxy.decode(marginfiAccountAi.data);
+    if (!marginfiAccountParsed.group.equals(this._config.groupPk))
       throw Error(
-        `Marginfi account tied to group ${marginfiAccountData.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`
+        `Marginfi account tied to group ${marginfiAccountParsed.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`
       );
 
-    this._group.reload();
-    this._updateFromAccountData(marginfiAccountData);
+    this._updateFromAccountParsed(marginfiAccountParsed);
   }
 
-  /**
-   * Update instance data from provided data struct.
-   *
-   * @param data Marginfi account data struct
-   */
-  private _updateFromAccountData(data: MarginfiAccountRaw) {
+  private _updateFromAccountParsed(data: MarginfiAccountRaw) {
     this._marginfiAccount = new MarginfiAccount(this.address, data);
   }
 
@@ -394,7 +335,7 @@ class MarginfiAccountProxy {
     let str = `-----------------
   Marginfi account:
     Address: ${this.address.toBase58()}
-    Group: ${this.group.publicKey.toBase58()}
+    Group: ${this.client.groupAddress.toBase58()}
     Authority: ${this.authority.toBase58()}
     Equity: ${this.computeHealthComponents(MarginRequirementType.Equity).assets.toFixed(6)}
     Equity: ${assets.minus(liabilities).toFixed(6)}
@@ -405,12 +346,12 @@ class MarginfiAccountProxy {
       str = str.concat("\n-----------------\nBalances:");
     }
     for (let balance of this.activeBalances) {
-      const bank = this._group.getBankByPk(balance.bankPk);
+      const bank = this.client.getBankByPk(balance.bankPk);
       if (!bank) {
         console.log(`Bank ${balance.bankPk} not found`);
         continue;
       }
-      const priceInfo = this._group.getPriceInfoByBank(balance.bankPk);
+      const priceInfo = this.client.getPriceInfoByBank(balance.bankPk);
       if (!priceInfo) {
         console.log(`Price info for bank ${balance.bankPk} not found`);
         continue;
@@ -433,8 +374,8 @@ class MarginfiAccountProxy {
 - Equity: $${assets.minus(liabilities).toFixed(6)}
 - Health: ${assets.minus(liabilities).div(assets).times(100).toFixed(2)}%
 - Balances:  ${this.activeBalances.map((balance) => {
-      const bank = this._group.getBankByPk(balance.bankPk)!;
-      const priceInfo = this._group.getPriceInfoByBank(balance.bankPk)!;
+      const bank = this.client.getBankByPk(balance.bankPk)!;
+      const priceInfo = this.client.getPriceInfoByBank(balance.bankPk)!;
       return balance.describe(bank, priceInfo);
     })}`;
   }

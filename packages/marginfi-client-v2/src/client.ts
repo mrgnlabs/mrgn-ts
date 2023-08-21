@@ -1,6 +1,7 @@
 import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@project-serum/anchor";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 import {
+  Commitment,
   ConfirmOptions,
   Connection,
   Keypair,
@@ -15,7 +16,7 @@ import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "~/typ
 import { MARGINFI_IDL } from "~/idl";
 import { getConfig } from "~/config";
 import instructions from "~/instructions";
-import { MarginRequirementType, MarginfiAccountProxy, MarginfiAccountRaw } from "~/models/account";
+import { MarginRequirementType, MarginfiAccountRaw } from "~/models/account";
 import {
   DEFAULT_COMMITMENT,
   DEFAULT_CONFIRM_OPTS,
@@ -25,15 +26,20 @@ import {
   TransactionOptions,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
-import { MarginfiGroupProxy } from "./models/group";
+import { MarginfiGroup } from "./models/group";
+import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, PriceInfo } from ".";
+import { MarginfiAccountProxy } from "./models/account/proxy";
+
+export type BankMap = Map<string, Bank>;
+export type PriceInfoMap = Map<string, PriceInfo>;
 
 /**
  * Entrypoint to interact with the marginfi contract.
  */
 class MarginfiClient {
-  public readonly programId: PublicKey;
-  private _group: MarginfiGroupProxy;
-  public readonly isReadOnly: boolean = true;
+  public group: MarginfiGroup;
+  public banks: BankMap;
+  public priceInfos: PriceInfoMap;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -46,11 +52,13 @@ class MarginfiClient {
     readonly config: MarginfiConfig,
     readonly program: MarginfiProgram,
     readonly wallet: Wallet,
-    group: MarginfiGroupProxy
+     group: MarginfiGroup,
+   banks: BankMap,
+     priceInfos: PriceInfoMap,
   ) {
-    this.programId = config.programId;
-    this._group = group;
-    this.isReadOnly = wallet.publicKey === undefined;
+    this.group = group;
+    this.banks = banks;
+    this.priceInfos = priceInfos;
   }
 
   /**
@@ -79,9 +87,10 @@ class MarginfiClient {
       ...opts,
     });
     const program = new Program(MARGINFI_IDL, config.programId, provider) as any as MarginfiProgram;
-    const groupProxy = await MarginfiGroupProxy.fetch(config, program, opts?.commitment);
 
-    return new MarginfiClient(config, program, wallet, groupProxy);
+    const { marginfiGroup, banks, priceInfos } = await this.fetchGroupData(program, config.groupPk, opts?.commitment);
+
+    return new MarginfiClient(config, program, wallet, marginfiGroup, banks, priceInfos);
   }
 
   static async fromEnv(
@@ -125,19 +134,80 @@ class MarginfiClient {
     });
   }
 
+  // NOTE: 2 RPC calls
+  static async fetchGroupData(
+    program: MarginfiProgram,
+    groupAddress: PublicKey,
+    commitment?: Commitment
+  ): Promise<{ marginfiGroup: MarginfiGroup; banks: Map<string, Bank>; priceInfos: Map<string, PriceInfo> }> {
+    // Fetch & shape all accounts of Bank type (~ bank discovery)
+    let bankAccountsData = await program.account.bank.all([
+      { memcmp: { offset: 8 + 32 + 1, bytes: groupAddress.toBase58() } },
+    ]);
+    const bankDatasKeyed = bankAccountsData.map((account) => ({
+      address: account.publicKey,
+      data: account.account as any as BankRaw,
+    }));
+
+    // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
+    const [groupAi, ...priceFeedAis] = await program.provider.connection.getMultipleAccountsInfo(
+      [groupAddress, ...bankDatasKeyed.map((b) => b.data.config.oracleKeys[0])],
+      commitment
+    ); // NOTE: This will break if/when we start having more than 1 oracle key per bank
+
+    // Unpack raw data for group and oracles, and build the `Bank`s map
+    if (!groupAi) throw new Error("Failed to fetch the on-chain group data");
+    const marginfiGroup = MarginfiGroup.fromBuffer(groupAi.data);
+
+    const banks = new Map(
+      bankDatasKeyed.map(({ address, data }) => [address.toBase58(), Bank.fromAccountParsed(address, data)])
+    );
+
+    const priceInfos = new Map(
+      bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
+        const priceDataRaw = priceFeedAis[index];
+        if (!priceDataRaw) throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
+        const oracleSetup = parseOracleSetup(bankData.config.oracleSetup);
+        return [bankAddress.toBase58(), parsePriceInfo(oracleSetup, priceDataRaw.data)];
+      })
+    );
+
+    return {
+      marginfiGroup,
+      banks,
+      priceInfos,
+    };
+  }
+
+  async reload() {
+    const { marginfiGroup, banks, priceInfos } = await MarginfiClient.fetchGroupData(
+      this.program,
+      this.config.groupPk,
+      this.program.provider.connection.commitment
+    );
+    this.group = marginfiGroup;
+    this.banks = banks;
+    this.priceInfos = priceInfos;
+  }
+
   // --------------------------------------------------------------------------
   // Attributes
   // --------------------------------------------------------------------------
 
-  /**
-   * Marginfi account group address
-   */
-  get group(): MarginfiGroupProxy {
-    return this._group;
+  get groupAddress(): PublicKey {
+    return this.config.groupPk;
   }
 
   get provider(): AnchorProvider {
     return this.program.provider as AnchorProvider;
+  }
+
+  get programId(): PublicKey {
+    return this.program.programId;
+  }
+
+  get isReadOnly(): boolean {
+    return this.wallet.publicKey === undefined;
   }
 
   /**
@@ -156,7 +226,7 @@ class MarginfiClient {
         filters: [
           {
             memcmp: {
-              bytes: this._group.publicKey.toBase58(),
+              bytes: this.groupAddress.toBase58(),
               offset: 8, // marginfiGroup is the second field in the account after the authority, so offset by the discriminant and a pubkey
             },
           },
@@ -183,7 +253,7 @@ class MarginfiClient {
       await this.program.account.marginfiAccount.all([
         {
           memcmp: {
-            bytes: this._group.publicKey.toBase58(),
+            bytes: this.groupAddress.toBase58(),
             offset: 8, // marginfiGroup is the first field in the account, so only offset is the discriminant
           },
         },
@@ -194,7 +264,7 @@ class MarginfiClient {
           },
         },
       ])
-    ).map((a) => MarginfiAccountProxy.fromAccountData(a.publicKey, this, a.account as MarginfiAccountRaw));
+    ).map((a) => MarginfiAccountProxy.fromAccountParsed(a.publicKey, this, a.account as MarginfiAccountRaw));
 
     marginfiAccounts.sort((accountA, accountB) => {
       const assetsValueA = accountA.computeHealthComponents(MarginRequirementType.Equity).assets;
@@ -232,6 +302,20 @@ class MarginfiClient {
     ).map((a) => a.pubkey);
   }
 
+  getBankByPk(bankAddress: Address): Bank | null {
+    let _bankAddress = translateAddress(bankAddress);
+    return this.banks.get(_bankAddress.toString()) ?? null;
+  }
+
+  getBankByMint(mint: Address): Bank | null {
+    const _mint = translateAddress(mint);
+    return [...this.banks.values()].find((bank) => bank.mint.equals(_mint)) ?? null;
+  }
+
+  getPriceInfoByBank(bankAddress: Address): PriceInfo | null {
+    let _bankAddress = translateAddress(bankAddress);
+    return this.priceInfos.get(_bankAddress.toString()) ?? null;
+  }
   // --------------------------------------------------------------------------
   // User actions
   // --------------------------------------------------------------------------
@@ -248,7 +332,7 @@ class MarginfiClient {
     dbg("Generating marginfi account ix for %s", accountKeypair.publicKey);
 
     const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
-      marginfiGroupPk: this._group.publicKey,
+      marginfiGroupPk: this.groupAddress,
       marginfiAccountPk: accountKeypair.publicKey,
       authorityPk: this.provider.wallet.publicKey,
       feePayerPk: this.provider.wallet.publicKey,

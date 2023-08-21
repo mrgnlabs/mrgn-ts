@@ -95,12 +95,12 @@ class LipClient {
     }));
 
     // 2. Refresh mfi banks
-    await marginfiClient.group.reload();
+    await marginfiClient.reload();
 
     // LipClient takes in a list of campaigns, which is
     // campaigns we've found + bank information we've constructed.
     return allCampaigns.map((campaign, i) => {
-      const bank = marginfiClient.group.getBankByPk(campaign.marginfiBankPk);
+      const bank = marginfiClient.getBankByPk(campaign.marginfiBankPk);
       if (!bank) throw new Error(`Bank ${campaign.marginfiBankPk} not found for campaign ${campaign.publicKey}`);
       return new Campaign(bank, campaign);
     });
@@ -191,7 +191,7 @@ class LipClient {
           fundingAccount: userTokenAtaPk,
           tempTokenAccount: tempTokenAccountKeypair.publicKey,
           assetMint: bank.mint,
-          marginfiGroup: this.mfiClient.group.publicKey,
+          marginfiGroup: this.mfiClient.groupAddress,
           marginfiBank: bank.address,
           marginfiAccount: PublicKey.findProgramAddressSync(
             [MARGINFI_ACCOUNT_SEED, depositKeypair.publicKey.toBuffer()],
