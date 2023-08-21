@@ -11,12 +11,11 @@ import {
   TransactionSignature,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "./types";
-import { MARGINFI_IDL } from "./idl";
-import { getConfig } from "./config";
-import MarginfiGroup from "./group";
-import instructions from "./instructions";
-import MarginfiAccount, { MarginRequirementType, MarginfiAccountData } from "./account";
+import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "~/types";
+import { MARGINFI_IDL } from "~/idl";
+import { getConfig } from "~/config";
+import instructions from "~/instructions";
+import { MarginRequirementType, MarginfiAccountProxy, MarginfiAccountRaw } from "~/models/account";
 import {
   DEFAULT_COMMITMENT,
   DEFAULT_CONFIRM_OPTS,
@@ -26,13 +25,14 @@ import {
   TransactionOptions,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
+import { MarginfiGroupProxy } from "./models/group";
 
 /**
  * Entrypoint to interact with the marginfi contract.
  */
 class MarginfiClient {
   public readonly programId: PublicKey;
-  private _group: MarginfiGroup;
+  private _group: MarginfiGroupProxy;
   public readonly isReadOnly: boolean = true;
 
   // --------------------------------------------------------------------------
@@ -46,7 +46,7 @@ class MarginfiClient {
     readonly config: MarginfiConfig,
     readonly program: MarginfiProgram,
     readonly wallet: Wallet,
-    group: MarginfiGroup
+    group: MarginfiGroupProxy
   ) {
     this.programId = config.programId;
     this._group = group;
@@ -78,9 +78,10 @@ class MarginfiClient {
       commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
       ...opts,
     });
-
     const program = new Program(MARGINFI_IDL, config.programId, provider) as any as MarginfiProgram;
-    return new MarginfiClient(config, program, wallet, await MarginfiGroup.fetch(config, program, opts?.commitment));
+    const groupProxy = await MarginfiGroupProxy.fetch(config, program, opts?.commitment);
+
+    return new MarginfiClient(config, program, wallet, groupProxy);
   }
 
   static async fromEnv(
@@ -131,7 +132,7 @@ class MarginfiClient {
   /**
    * Marginfi account group address
    */
-  get group(): MarginfiGroup {
+  get group(): MarginfiGroupProxy {
     return this._group;
   }
 
@@ -175,7 +176,7 @@ class MarginfiClient {
    *
    * @returns MarginfiAccount instances
    */
-  async getMarginfiAccountsForAuthority(authority?: Address): Promise<MarginfiAccount[]> {
+  async getMarginfiAccountsForAuthority(authority?: Address): Promise<MarginfiAccountProxy[]> {
     const _authority = authority ? translateAddress(authority) : this.provider.wallet.publicKey;
 
     const marginfiAccounts = (
@@ -193,7 +194,7 @@ class MarginfiClient {
           },
         },
       ])
-    ).map((a) => MarginfiAccount.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, this._group));
+    ).map((a) => MarginfiAccountProxy.fromAccountData(a.publicKey, this, a.account as MarginfiAccountRaw));
 
     marginfiAccounts.sort((accountA, accountB) => {
       const assetsValueA = accountA.computeHealthComponents(MarginRequirementType.Equity).assets;
@@ -266,7 +267,7 @@ class MarginfiClient {
    *
    * @returns MarginfiAccount instance
    */
-  async createMarginfiAccount(opts?: TransactionOptions): Promise<MarginfiAccount> {
+  async createMarginfiAccount(opts?: TransactionOptions): Promise<MarginfiAccountProxy> {
     const dbg = require("debug")("mfi:client");
 
     const accountKeypair = Keypair.generate();
@@ -278,8 +279,8 @@ class MarginfiClient {
     dbg("Created Marginfi account %s", sig);
 
     return opts?.dryRun
-      ? Promise.resolve(undefined as unknown as MarginfiAccount)
-      : MarginfiAccount.fetch(accountKeypair.publicKey, this, opts?.commitment);
+      ? Promise.resolve(undefined as unknown as MarginfiAccountProxy)
+      : MarginfiAccountProxy.fetch(accountKeypair.publicKey, this, opts?.commitment);
   }
 
   // --------------------------------------------------------------------------

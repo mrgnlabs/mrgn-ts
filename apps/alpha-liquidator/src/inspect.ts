@@ -1,9 +1,9 @@
 import {
-  MarginfiAccount,
   MarginRequirementType,
   Environment,
   getConfig,
   MarginfiClient,
+  MarginfiAccountProxy,
 } from "@mrgnlabs/marginfi-client-v2";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
 import { Connection, Keypair } from "@solana/web3.js";
@@ -15,7 +15,7 @@ import { env_config } from "./config";
   const client = await MarginfiClient.fetch(config, new NodeWallet(Keypair.generate()), connection);
 
   const accountPk = process.argv[2];
-  const account = await MarginfiAccount.fetch(accountPk, client);
+  const account = await MarginfiAccountProxy.fetch(accountPk, client);
 
   console.log("Account", accountPk);
 
@@ -23,11 +23,11 @@ import { env_config } from "./config";
   console.log("Assets %s", assets);
   console.log("Liabilities %s", liabilities);
 
-  const { assets: assets2, liabilities: liabilities2 } = account.computeHealthComponents(MarginRequirementType.Init);
+  const { assets: assets2, liabilities: liabilities2 } = account.computeHealthComponents(MarginRequirementType.Initial);
   console.log("Assets (Init) %s", assets2);
   console.log("Liabilities (Init) %s", liabilities2);
 
-  const { assets: assets3, liabilities: liabilities3 } = account.computeHealthComponents(MarginRequirementType.Maint);
+  const { assets: assets3, liabilities: liabilities3 } = account.computeHealthComponents(MarginRequirementType.Maintenance);
   console.log("Assets (Maint) %s", assets3);
   console.log("Liabilities (Maint) %s", liabilities3);
 

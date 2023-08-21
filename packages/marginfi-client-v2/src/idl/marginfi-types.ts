@@ -1825,6 +1825,9 @@ export type Marginfi = {
           },
           {
             name: "Maintenance";
+          },
+          {
+            name: "Equity";
           }
         ];
       };
@@ -4298,6 +4301,9 @@ export const IDL: Marginfi = {
           {
             name: "Maintenance",
           },
+          {
+            name: "Equity"
+          }
         ],
       },
     },

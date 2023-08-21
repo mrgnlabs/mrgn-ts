@@ -1,4 +1,4 @@
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import {
   PDA_BANK_FEE_VAULT_AUTH_SEED,
   PDA_BANK_FEE_VAULT_SEED,
@@ -8,6 +8,17 @@ import {
   PDA_BANK_LIQUIDITY_VAULT_SEED,
 } from "./constants";
 import { BankVaultType } from "./types";
+import {
+  Amount,
+  NATIVE_MINT,
+  createAssociatedTokenAccountIdempotentInstruction,
+  uiToNative,
+  createSyncNativeInstruction,
+  createCloseAccountInstruction,
+  getAssociatedTokenAddressSync,
+} from "@mrgnlabs/mrgn-common";
+import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
+import BigNumber from "bignumber.js";
 
 export function getBankVaultSeeds(type: BankVaultType): Buffer {
   switch (type) {
@@ -44,4 +55,24 @@ export function getBankVaultAuthority(
   programId: PublicKey
 ): [PublicKey, number] {
   return PublicKey.findProgramAddressSync([getBankVaultAuthoritySeeds(bankVaultType), bankPk.toBuffer()], programId);
+}
+
+export function makeWrapSolIxs(walletAddress: PublicKey, amount: BigNumber): TransactionInstruction[] {
+  const address = getAssociatedTokenAddressSync(NATIVE_MINT, walletAddress);
+  const ixs = [createAssociatedTokenAccountIdempotentInstruction(walletAddress, address, walletAddress, NATIVE_MINT)];
+
+  if (amount.gt(0)) {
+    const nativeAmount = uiToNative(amount, 9).toNumber() + 10000;
+    ixs.push(
+      SystemProgram.transfer({ fromPubkey: walletAddress, toPubkey: address, lamports: nativeAmount }),
+      createSyncNativeInstruction(address)
+    );
+  }
+
+  return ixs;
+}
+
+export function makeUnwrapSolIx(walletAddress: PublicKey): TransactionInstruction {
+  const address = getAssociatedTokenAddressSync(NATIVE_MINT, walletAddress);
+  return createCloseAccountInstruction(address, walletAddress, walletAddress);
 }

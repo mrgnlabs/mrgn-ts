@@ -192,7 +192,7 @@ class LipClient {
           tempTokenAccount: tempTokenAccountKeypair.publicKey,
           assetMint: bank.mint,
           marginfiGroup: this.mfiClient.group.publicKey,
-          marginfiBank: bank.publicKey,
+          marginfiBank: bank.address,
           marginfiAccount: PublicKey.findProgramAddressSync(
             [MARGINFI_ACCOUNT_SEED, depositKeypair.publicKey.toBuffer()],
             this.programId

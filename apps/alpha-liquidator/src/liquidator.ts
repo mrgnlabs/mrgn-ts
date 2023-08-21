@@ -1,9 +1,9 @@
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import {
-  Bank,
-  MarginfiAccount,
-  MarginfiClient,
   MarginRequirementType,
+  MarginfiAccount,
+  MarginfiAccountProxy,
+  MarginfiClient,
   PriceBias,
   USDC_DECIMALS,
 } from "@mrgnlabs/marginfi-client-v2";
@@ -16,6 +16,7 @@ import { captureException, captureMessage, env_config } from "./config";
 import JSBI from "jsbi";
 import BN from "bn.js";
 import { BankMetadataMap, loadBankMetadatas } from "./utils/bankMetadata";
+import { Bank } from "@mrgnlabs/marginfi-client-v2/dist/models/bank";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(0.1);
@@ -24,7 +25,7 @@ const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const MIN_SOL_BALANCE = env_config.MIN_SOL_BALANCE * LAMPORTS_PER_SOL;
 const SLIPPAGE_BPS = 10000;
 
-const EXCLUDE_ISOLATED_BANKS: boolean = process.env.EXCLUDE_ISOLATED_BANKS === "true";
+const EXCLUDE_ISOLATED_BANKS: boolean = process.env.EXCLUDE_ISOLATED_BANKS === "true"; // eslint-disable-line
 
 function getDebugLogger(context: string) {
   return require("debug")(`mfi:liquidator:${context}`);
@@ -35,7 +36,7 @@ class Liquidator {
 
   constructor(
     readonly connection: Connection,
-    readonly account: MarginfiAccount,
+    readonly account: MarginfiAccountProxy,
     readonly client: MarginfiClient,
     readonly wallet: NodeWallet,
     readonly jupiter: Jupiter,
@@ -53,7 +54,7 @@ class Liquidator {
     console.log("Starting liquidator");
 
     console.log("Wallet: %s", this.account.authority);
-    console.log("Liquidator account: %s", this.account.publicKey);
+    console.log("Liquidator account: %s", this.account.address);
     console.log("Program id: %s", this.client.program.programId);
     console.log("Group: %s", this.group.publicKey);
     if (this.account_blacklist) {
@@ -144,14 +145,14 @@ class Liquidator {
     let balancesWithNonUsdcDeposits = this.account.activeBalances
       .map((balance) => {
         let bank = this.group.getBankByPk(balance.bankPk)!;
-        let { assets } = balance.getQuantity(bank);
+        let { assets } = balance.computeQuantity(bank);
 
         return { assets, bank };
       })
       .filter(({ assets, bank }) => !bank.mint.equals(USDC_MINT) && assets.gt(DUST_THRESHOLD));
 
     for (let { bank } of balancesWithNonUsdcDeposits) {
-      let maxWithdrawAmount = this.account.computeMaxWithdrawForBank(bank.publicKey);
+      let maxWithdrawAmount = this.account.computeMaxWithdrawForBank(bank.address);
 
       if (maxWithdrawAmount.eq(0)) {
         debug("No untied %s to withdraw", this.getTokenSymbol(bank));
@@ -159,7 +160,7 @@ class Liquidator {
       }
 
       debug("Withdrawing %d %s", maxWithdrawAmount, this.getTokenSymbol(bank));
-      let withdrawSig = await this.account.withdraw(maxWithdrawAmount, bank);
+      let withdrawSig = await this.account.withdraw(maxWithdrawAmount, bank.address);
 
       debug("Withdraw tx: %s", withdrawSig);
 
@@ -193,7 +194,7 @@ class Liquidator {
     const balancesWithNonUsdcLiabilities = this.account.activeBalances
       .map((balance) => {
         let bank = this.group.getBankByPk(balance.bankPk)!;
-        let { liabilities } = balance.getQuantity(bank);
+        let { liabilities } = balance.computeQuantity(bank);
 
         return { liabilities, bank };
       })
@@ -205,7 +206,7 @@ class Liquidator {
 
       await this.group.reload();
       const usdcBank = this.group.getBankByMint(USDC_MINT)!;
-      const availableUsdcLiquidity = this.account.computeMaxBorrowForBank(usdcBank.publicKey);
+      const availableUsdcLiquidity = this.account.computeMaxBorrowForBank(usdcBank.address);
 
       await bank.reloadPriceData(this.connection);
       const baseLiabUsdcValue = bank.getLiabilityUsdValue(
