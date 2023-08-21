@@ -1,2 +1,2 @@
-export * from "./pod"
+export * from "./pure"
 export * from "./proxy"

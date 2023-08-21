@@ -2,8 +2,8 @@ import { WrappedI80F48, nativeToUi, wrappedI80F48toBigNumber } from "@mrgnlabs/m
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
-import { MarginRequirementType } from "../account";
-import { PriceBias, PriceInfo } from "../price";
+import { MarginRequirementType } from "./account";
+import { PriceBias, PriceInfo } from "./price";
 
 // ----------------------------------------------------------------------------
 // On-chain types

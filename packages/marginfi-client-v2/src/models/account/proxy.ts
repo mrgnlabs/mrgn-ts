@@ -5,8 +5,9 @@ import BigNumber from "bignumber.js";
 import { MarginfiClient, MarginfiGroup } from "../..";
 import { MARGINFI_IDL } from "../../idl";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
-import { MarginfiAccount, Balance, MarginRequirementType, MarginfiAccountRaw } from "./pod";
+import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
 import { Bank } from "../bank";
+import { Balance } from "../balance";
 
 class MarginfiAccountProxy {
   public readonly address: PublicKey;
