@@ -14,7 +14,7 @@ import { useRouter } from "next/router";
 import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
 import { Badge } from "@mui/material";
 import { firebaseDb } from "~/api/firebase";
-import { useFirebaseAccount } from "~/context/FirebaseAccount";
+import { useFirebaseAccount } from "../useFirebaseAccount";
 
 const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
   if (!wallet) return;
@@ -54,16 +54,20 @@ type Points = {
 
 // @todo implement second pretty navbar row
 const Navbar: FC = () => {
+  useFirebaseAccount();
+
   const wallet = useWallet();
-  const { initialUserFetchDone: initialFetchDone, currentUser } = useFirebaseAccount();
   const router = useRouter();
-  const [showBadges, setShowBadges, accountSummary, selectedAccount, extendedBankInfos] = useStore((state) => [
-    state.showBadges,
-    state.setShowBadges,
-    state.accountSummary,
-    state.selectedAccount,
-    state.extendedBankInfos,
-  ]);
+  const [showBadges, setShowBadges, accountSummary, selectedAccount, extendedBankInfos, currentFirebaseUser, hasUser] =
+    useStore((state) => [
+      state.showBadges,
+      state.setShowBadges,
+      state.accountSummary,
+      state.selectedAccount,
+      state.extendedBankInfos,
+      state.currentFirebaseUser,
+      state.hasUser,
+    ]);
 
   const [points, setPoints] = useState<Points>(null);
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
@@ -137,7 +141,7 @@ const Navbar: FC = () => {
   );
 
   useEffect(() => {
-    if (initialFetchDone && currentUser && wallet.publicKey?.toBase58()) {
+    if (hasUser !== null && currentFirebaseUser && wallet.publicKey?.toBase58()) {
       const fetchData = async () => {
         const pointsData = await getPoints({ wallet: wallet.publicKey?.toBase58() });
         if (pointsData) {
@@ -147,7 +151,7 @@ const Navbar: FC = () => {
 
       fetchData();
     }
-  }, [initialFetchDone, currentUser, wallet.publicKey]);
+  }, [hasUser, currentFirebaseUser, wallet.publicKey]);
 
   return (
     <header>
@@ -278,7 +282,7 @@ const Navbar: FC = () => {
             </div>
 
             <Link href={"/points"} className="glow whitespace-nowrap">
-              {wallet.connected && currentUser
+              {wallet.connected && currentFirebaseUser
                 ? `${points?.total ? groupedNumberFormatterDyn.format(Math.round(points.total)) : 0} points`
                 : "P...P...POINTS!"}
             </Link>

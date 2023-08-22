@@ -38,7 +38,7 @@ class AccountsTool extends Tool {
     const accounts = await client.getMarginfiAccountsForAuthority(new PublicKey(this.walletPublicKey));
     const marginfiAccount = accounts[0];
     if (!marginfiAccount) return `No account was found for wallet ${this.walletPublicKey}`;
-    return marginfiAccount.describe(client.banks, client.oraclePrices);
+    return marginfiAccount.describe();
   }
 
   async _call(): Promise<string> {

@@ -15,10 +15,11 @@ import { init, push } from "@socialgouv/matomo-next";
 import config from "~/config";
 import { Navbar, Footer } from "~/components";
 
-import { LipClientProvider, FirebaseAccountProvider } from "~/context";
+import { LipClientProvider } from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
+import { useFirebaseAccount } from "~/components/useFirebaseAccount";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -56,7 +57,6 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <LipClientProvider>
-            <FirebaseAccountProvider>
               <Head>
                 <title>marginfi</title>
                 <meta name="description" content="marginfi v2 UI" />
@@ -70,7 +70,6 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
               </div>
               <Footer />
               <ToastContainer position="bottom-left" theme="dark" />
-            </FirebaseAccountProvider>
           </LipClientProvider>
         </WalletModalProvider>
       </WalletProvider>

@@ -27,13 +27,13 @@ import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import { firebaseDb } from "~/api/firebase";
-import { useFirebaseAccount } from "~/context/FirebaseAccount";
 import { useRouter } from "next/router";
 import { firebaseApi } from "~/api";
 import { WalletButton } from "~/components/Navbar/WalletButton";
 import { grey } from "@mui/material/colors";
 import { toast } from "react-toastify";
 import { LeaderboardRow, fetchLeaderboardData, fetchUserRank } from "~/api/points";
+import { useStore } from "~/store";
 
 type UserData = {
   userTotalPoints?: number;
@@ -59,13 +59,13 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 const Points: FC = () => {
   const wallet = useWallet();
   const { query: routerQuery } = useRouter();
-  const { currentUser, existingUser, initialUserFetchDone } = useFirebaseAccount();
+  const [currentFirebaseUser, hasUser] = useStore((state) => [state.currentFirebaseUser, state.hasUser]);
 
   const [userData, setUserData] = useState<UserData>();
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[]>([]);
   const [usingCustomReferralCode, setUsingCustomReferralCode] = useState(false);
 
-  const currentUserId = useMemo(() => currentUser?.uid, [currentUser]);
+  const currentUserId = useMemo(() => currentFirebaseUser?.uid, [currentFirebaseUser]);
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
 
   useEffect(() => {
@@ -116,7 +116,7 @@ const Points: FC = () => {
       }
     };
 
-    fetchuserData().catch((e) => console.log(e));
+    fetchuserData().catch(console.log);
   }, [currentUserId, leaderboardData, setUsingCustomReferralCode, wallet.publicKey]);
 
   return (
@@ -125,7 +125,7 @@ const Points: FC = () => {
       <div className="flex flex-col items-center w-full sm:w-4/5 max-w-7xl gap-5 py-[64px] sm:py-[32px]">
         {!wallet.connected ? (
           <ConnectWallet />
-        ) : currentUser ? (
+        ) : currentFirebaseUser ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-2/3">
               <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
@@ -264,9 +264,9 @@ const Points: FC = () => {
               </Card>
             </div>
           </>
-        ) : !initialUserFetchDone ? (
+        ) : hasUser === null ? (
           <CheckingUser />
-        ) : existingUser ? (
+        ) : hasUser ? (
           <Login />
         ) : (
           <Signup referralCode={referralCode} />
@@ -287,7 +287,7 @@ const Points: FC = () => {
           >
             How do points work?
           </Button>
-          {currentUser && (
+          {currentFirebaseUser && (
             <Button
               className={`normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap min-w-[260px] max-w-[260px]`}
               style={{

@@ -15,6 +15,7 @@ import { AccountSummary, BankMetadataMap, ExtendedBankInfo, TokenAccountMap, Tok
 import { findMetadataInsensitive, loadBankMetadatas, loadTokenMetadatas } from "~/utils";
 
 interface MrgnlendSlice {
+  // State
   marginfiClient: MarginfiClient | null;
   bankMetadataMap: BankMetadataMap;
   tokenMetadataMap: TokenMetadataMap;
@@ -23,10 +24,13 @@ interface MrgnlendSlice {
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
   accountSummary: AccountSummary;
+
+  // Actions
   reloadMrgnlendState: (connection?: Connection, anchorWallet?: AnchorWallet) => Promise<void>;
 }
 
 const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = (set, get) => ({
+  // State
   marginfiClient: null,
   bankMetadataMap: {},
   tokenMetadataMap: {},
@@ -35,6 +39,8 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
   selectedAccount: null,
   nativeSolBalance: 0,
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
+
+  // Actions
   reloadMrgnlendState: async (_connection?: Connection, _wallet?: Wallet) => {
     console.log("called", { connection: !!_connection, anchorWallet: !!_wallet });
 
@@ -107,7 +113,6 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
 
     let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
     if (wallet) {
-      console.log("selected", selectedAccount?.address.toBase58());
       accountSummary = computeAccountSummary(selectedAccount!, extendedBankInfos);
     }
 
