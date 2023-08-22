@@ -5,10 +5,14 @@ import { Button, ButtonProps, InputAdornment, TextField, Skeleton } from "@mui/m
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import styles from "~/components/AccountSummary/style.module.css";
 import { Typography } from "@mui/material";
 import { numeralFormatter } from "~/utils/formatters";
+import { depositSol } from '@solana/spl-stake-pool';
+import { useProgram } from '~/context';
+
+const LST_POOL = new PublicKey("ADD");
 
 const WalletMultiButtonDynamic = dynamic(
   async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
@@ -135,6 +139,7 @@ const Pro = () => {
   const { connection } = useConnection();
   const [amount, setAmount] = useState(0);
   const [stakeTVL, setStakeTVL] = useState(null);
+  const { mfiClient } = useProgram();
 
   useEffect(() => {
     const fetchTVL = async () => {
@@ -150,9 +155,21 @@ const Pro = () => {
 
   const maxDepositAmount = useMemo(() => 1, []);
 
-  const depositAction = useCallback(async () => {
-    // Your deposit action logic
-  }, []);
+  const depositAction = async (pubkey: PublicKey) => {
+    if ((!wallet) || !(mfiClient)) return;
+    
+    const depositTx = await depositSol(
+      connection,
+      LST_POOL,
+      pubkey,
+      0.1 * LAMPORTS_PER_SOL,
+    );
+
+    //@ts-ignore
+    const tx = await wallet.signTransaction(depositTx);
+
+    mfiClient.processTransaction(tx, depositTx.signers)
+  }
 
   return (
     <>

@@ -1449,6 +1449,27 @@
     human-id "^1.0.2"
     prettier "^2.7.1"
 
+"@coral-xyz/anchor@0.28.0", "@coral-xyz/anchor@^0.28.0":
+  version "0.28.0"
+  resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.28.0.tgz#8345c3c9186a91f095f704d7b90cd256f7e8b2dc"
+  integrity sha512-kQ02Hv2ZqxtWP30WN1d4xxT4QqlOXYDxmEd3k/bbneqhV3X5QMO4LAtoUFs7otxyivOgoqam5Il5qx81FuI4vw==
+  dependencies:
+    "@coral-xyz/borsh" "^0.28.0"
+    "@solana/web3.js" "^1.68.0"
+    base64-js "^1.5.1"
+    bn.js "^5.1.2"
+    bs58 "^4.0.1"
+    buffer-layout "^1.2.2"
+    camelcase "^6.3.0"
+    cross-fetch "^3.1.5"
+    crypto-hash "^1.3.0"
+    eventemitter3 "^4.0.7"
+    js-sha256 "^0.9.0"
+    pako "^2.0.3"
+    snake-case "^3.0.4"
+    superstruct "^0.15.4"
+    toml "^3.0.0"
+
 "@coral-xyz/anchor@^0.26.0":
   version "0.26.0"
   resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.26.0.tgz#c8e4f7177e93441afd030f22d777d54d0194d7d1"
@@ -1476,27 +1497,6 @@
   integrity sha512-+P/vPdORawvg3A9Wj02iquxb4T0C5m4P6aZBVYysKl4Amk+r6aMPZkUhilBkD6E4Nuxnoajv3CFykUfkGE0n5g==
   dependencies:
     "@coral-xyz/borsh" "^0.27.0"
-    "@solana/web3.js" "^1.68.0"
-    base64-js "^1.5.1"
-    bn.js "^5.1.2"
-    bs58 "^4.0.1"
-    buffer-layout "^1.2.2"
-    camelcase "^6.3.0"
-    cross-fetch "^3.1.5"
-    crypto-hash "^1.3.0"
-    eventemitter3 "^4.0.7"
-    js-sha256 "^0.9.0"
-    pako "^2.0.3"
-    snake-case "^3.0.4"
-    superstruct "^0.15.4"
-    toml "^3.0.0"
-
-"@coral-xyz/anchor@^0.28.0":
-  version "0.28.0"
-  resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.28.0.tgz#8345c3c9186a91f095f704d7b90cd256f7e8b2dc"
-  integrity sha512-kQ02Hv2ZqxtWP30WN1d4xxT4QqlOXYDxmEd3k/bbneqhV3X5QMO4LAtoUFs7otxyivOgoqam5Il5qx81FuI4vw==
-  dependencies:
-    "@coral-xyz/borsh" "^0.28.0"
     "@solana/web3.js" "^1.68.0"
     base64-js "^1.5.1"
     bn.js "^5.1.2"
@@ -3417,27 +3417,28 @@
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-4.0.1-alpha.0.tgz#6c9fd02e607830206802b5e372fd0c2ec5a6a0c1"
   integrity sha512-H9hyf9K7sXMPd0++/hQ5Fs2eVgi2w9wtJP0YmGFLJMjF8zHYDYqQ0ZCdgmLLSp/vrEjmOHbbiLJT2psuV5W+bw==
 
-"@jup-ag/common@4.0.0-beta.20":
-  version "4.0.0-beta.20"
-  resolved "https://registry.yarnpkg.com/@jup-ag/common/-/common-4.0.0-beta.20.tgz#56f9e9680c84f5d72ea84874f5e4a6da62e0359c"
-  integrity sha512-TmyOqlRI22R5SuS7CKETdJAwWYJLQTtHb+h45i/vBqo/p4BiJxwQVXZf+Y9SYswnfppynQtp0XeW0GMCDGvtyA==
+"@jup-ag/common@4.0.0-beta.21":
+  version "4.0.0-beta.21"
+  resolved "https://registry.yarnpkg.com/@jup-ag/common/-/common-4.0.0-beta.21.tgz#416b3fc75a3e0a3055dfb5fc404cb71edcd6a60b"
+  integrity sha512-C6W+bDfCDSQ0hEehmEHDVsRTQfXp/UBXWHZ0sFUM8wtv2JSPgTe4HG3ZoZzuMzwukVOQxKPRzxzeywWbZyJ8mg==
   dependencies:
+    "@coral-xyz/anchor" "0.28.0"
     "@jup-ag/api" "4.0.1-alpha.0"
     "@mercurial-finance/optimist" "0.2.1"
-    "@project-serum/anchor" "0.24.2"
     "@solana/spl-token" "0.1.8"
     "@solana/wallet-adapter-base" "0.9.22"
-    "@solana/web3.js" "~1.75.0"
+    "@solana/web3.js" "~1.77.3"
     "@types/jest" "27.0.2"
     bs58 "^4.0.1"
     jsbi "4.3.0"
 
-"@jup-ag/core@^4.0.0-beta.18":
-  version "4.0.0-beta.20"
-  resolved "https://registry.yarnpkg.com/@jup-ag/core/-/core-4.0.0-beta.20.tgz#9b67ae4f71fc0d438a366a86050ba5ddbe62adb6"
-  integrity sha512-39o+50WzDAFwNq1t/HqdmQ+hI95JvIEPAzds9E9fxa4NpsiuslaTGju1O312Za3Ko5HveV+yF7+Y9w8ny1I5Hw==
+"@jup-ag/core@^4.0.0-beta.20":
+  version "4.0.0-beta.21"
+  resolved "https://registry.yarnpkg.com/@jup-ag/core/-/core-4.0.0-beta.21.tgz#fefb14871222dd2435271e566a4c5a260158dc0b"
+  integrity sha512-GoVlnv6FC9T1Oh8BjNDM0lNuRSLiunJG0SgsRcMGdOZvscwqz6EP5kVOZ6c8k8eMLDz0stOYO+SP4dOqWg6MlQ==
   dependencies:
-    "@jup-ag/common" "4.0.0-beta.20"
+    "@coral-xyz/anchor" "0.28.0"
+    "@jup-ag/common" "4.0.0-beta.21"
     "@jup-ag/crema-sdk-v2" "2.1.6"
     "@jup-ag/cykura-sdk" "0.1.25"
     "@jup-ag/cykura-sdk-core" "0.1.8"
@@ -3448,14 +3449,13 @@
     "@jup-ag/invariant" "0.9.35"
     "@jup-ag/lifinity-sdk" "0.1.72"
     "@jup-ag/lifinity-sdk-v2" "1.0.8"
-    "@jup-ag/math" "4.0.0-beta.20"
+    "@jup-ag/math" "4.0.0-beta.21"
     "@jup-ag/phoenix-sdk" "1.4.4"
     "@jup-ag/raydium-clmm-sdk" "1.0.6"
     "@jup-ag/whirlpools-sdk" "0.7.2"
     "@mercurial-finance/dynamic-amm-sdk" "0.3.10"
     "@mercurial-finance/optimist" "0.2.1"
     "@noble/hashes" "1.1.2"
-    "@project-serum/anchor" "0.24.2"
     "@project-serum/serum" "0.13.65"
     "@pythnetwork/client" "2.7.3"
     "@saberhq/stableswap-sdk" "1.13.6"
@@ -3560,10 +3560,10 @@
     "@solana/web3.js" "1.31.0"
     decimal.js "^10.3.1"
 
-"@jup-ag/math@4.0.0-beta.20":
-  version "4.0.0-beta.20"
-  resolved "https://registry.yarnpkg.com/@jup-ag/math/-/math-4.0.0-beta.20.tgz#6df41a9879c4f6d76770358e0fc570563c26f982"
-  integrity sha512-k9l20K2LVGMnlkYi1RWWt2IYq4hu6d0iLTvx/6p6GfWnyqNIGJVLbFW4zhzsPX5foZ/tkeNONo5hulZrPtTQ6g==
+"@jup-ag/math@4.0.0-beta.21":
+  version "4.0.0-beta.21"
+  resolved "https://registry.yarnpkg.com/@jup-ag/math/-/math-4.0.0-beta.21.tgz#30df494670dcf2fd68d68d39d508a87a08d2975f"
+  integrity sha512-5dPbmOkOvCbWGl2YCaDfNxTT54YIVc7NOVgybhgSwOu7evUNKBMUPEzEJZy2vexyxqOzHk+U5pO4hj+lzf8Bgg==
   dependencies:
     decimal.js "10.4.2"
     jsbi "4.3.0"
@@ -5523,6 +5523,18 @@
   dependencies:
     buffer "~6.0.3"
 
+"@solana/spl-stake-pool@^0.6.5":
+  version "0.6.5"
+  resolved "https://registry.yarnpkg.com/@solana/spl-stake-pool/-/spl-stake-pool-0.6.5.tgz#edb9985df9a7c5b772e379c0435545506fc526a7"
+  integrity sha512-gAYjX4LlRem3Bje1csZOOBStX8wAH8b8tu4sublUTIoJxLMdEbXqnwc8RJ2lAsmFkjxxomEM9Hk65F8jcvv15A==
+  dependencies:
+    "@project-serum/borsh" "^0.2.2"
+    "@solana/buffer-layout" "^4.0.0"
+    "@solana/spl-token" "^0.1.8"
+    "@solana/web3.js" "^1.30.2"
+    bn.js "^5.2.0"
+    buffer "^6.0.3"
+
 "@solana/spl-token-registry@0.2.1105":
   version "0.2.1105"
   resolved "https://registry.yarnpkg.com/@solana/spl-token-registry/-/spl-token-registry-0.2.1105.tgz#460fc363096aa59c5150f67736cddc1d5a810e8a"
@@ -6142,15 +6154,14 @@
     rpc-websockets "^7.5.0"
     superstruct "^0.14.2"
 
-"@solana/web3.js@~1.75.0":
-  version "1.75.0"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.75.0.tgz#824c6f78865007bca758ca18f268d6f7363b42e5"
-  integrity sha512-rHQgdo1EWfb+nPUpHe4O7i8qJPELHKNR5PAZRK+a7XxiykqOfbaAlPt5boDWAGPnYbSv0ziWZv5mq9DlFaQCxg==
+"@solana/web3.js@~1.77.3":
+  version "1.77.3"
+  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.77.3.tgz#2cbeaa1dd24f8fa386ac924115be82354dfbebab"
+  integrity sha512-PHaO0BdoiQRPpieC1p31wJsBaxwIOWLh8j2ocXNKX8boCQVldt26Jqm2tZE4KlrvnCIV78owPLv1pEUgqhxZ3w==
   dependencies:
     "@babel/runtime" "^7.12.5"
-    "@noble/ed25519" "^1.7.0"
-    "@noble/hashes" "^1.1.2"
-    "@noble/secp256k1" "^1.6.3"
+    "@noble/curves" "^1.0.0"
+    "@noble/hashes" "^1.3.0"
     "@solana/buffer-layout" "^4.0.0"
     agentkeepalive "^4.2.1"
     bigint-buffer "^1.1.5"
@@ -6159,7 +6170,7 @@
     bs58 "^4.0.1"
     buffer "6.0.3"
     fast-stable-stringify "^1.0.0"
-    jayson "^3.4.4"
+    jayson "^4.1.0"
     node-fetch "^2.6.7"
     rpc-websockets "^7.5.1"
     superstruct "^0.14.2"
