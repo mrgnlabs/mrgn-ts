@@ -14,7 +14,7 @@ interface LipClientState {
 const LipClientFC: FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const [mfiClient] = useStore(state => [state.marginfiClient]);
+  const [mfiClient] = useStore((state) => [state.marginfiClient]);
   const [lipClient, setLipClient] = useState<LipClient | null>(null);
 
   const reload = useCallback(async () => {

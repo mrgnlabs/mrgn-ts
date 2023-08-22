@@ -35,26 +35,26 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
   };
 
   return (
-      <NumericFormat
-        value={maxValue ? value : ""}
-        placeholder="0"
-        allowNegative={false}
-        decimalScale={maxDecimals}
-        disabled={disabled}
-        onValueChange={onChange}
-        thousandSeparator=","
-        customInput={TextField}
-        size="small"
-        isAllowed={(values) => {
-          const { floatValue } = values;
-          if (!maxValue) return false;
-          return floatValue ? floatValue < maxValue : true;
-        }}
-        InputProps={{
-          className: "font-aeonik text-[#e1e1e1] border border-[#4E5257] p-0 m-0 text-sm h-11",
-          endAdornment: <MaxInputAdornment onClick={onMaxClick} disabled={disabled || !maxValue} />,
-        }}
-      />
+    <NumericFormat
+      value={maxValue ? value : ""}
+      placeholder="0"
+      allowNegative={false}
+      decimalScale={maxDecimals}
+      disabled={disabled}
+      onValueChange={onChange}
+      thousandSeparator=","
+      customInput={TextField}
+      size="small"
+      isAllowed={(values) => {
+        const { floatValue } = values;
+        if (!maxValue) return false;
+        return floatValue ? floatValue < maxValue : true;
+      }}
+      InputProps={{
+        className: "font-aeonik text-[#e1e1e1] border border-[#4E5257] p-0 m-0 text-sm h-11",
+        endAdornment: <MaxInputAdornment onClick={onMaxClick} disabled={disabled || !maxValue} />,
+      }}
+    />
   );
 };
 

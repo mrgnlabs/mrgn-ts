@@ -1,8 +1,15 @@
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { Wallet } from "@mrgnlabs/mrgn-common";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 import { Connection } from "@solana/web3.js";
 import { StateCreator } from "zustand";
-import { DEFAULT_ACCOUNT_SUMMARY, buildEmissionsPriceMap, fetchTokenAccounts, makeExtendedBankInfo } from "~/api";
+import {
+  DEFAULT_ACCOUNT_SUMMARY,
+  buildEmissionsPriceMap,
+  computeAccountSummary,
+  fetchTokenAccounts,
+  makeExtendedBankInfo,
+} from "~/api";
 import config from "~/config";
 import { AccountSummary, BankMetadataMap, ExtendedBankInfo, TokenAccountMap, TokenMetadataMap } from "~/types";
 import { findMetadataInsensitive, loadBankMetadatas, loadTokenMetadatas } from "~/utils";
@@ -16,10 +23,10 @@ interface MrgnlendSlice {
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
   accountSummary: AccountSummary;
-  reloadMrgnlendState: (connection: Connection, anchorWallet?: AnchorWallet) => Promise<void>;
+  reloadMrgnlendState: (connection?: Connection, anchorWallet?: AnchorWallet) => Promise<void>;
 }
 
-const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = (set) => ({
+const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = (set, get) => ({
   marginfiClient: null,
   bankMetadataMap: {},
   tokenMetadataMap: {},
@@ -28,12 +35,16 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
   selectedAccount: null,
   nativeSolBalance: 0,
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
-  reloadMrgnlendState: async (connection: Connection, anchorWallet?: AnchorWallet) => {
-    console.log("called", {connection: !!connection, anchorWallet: !!anchorWallet})
-    const walletAddress = anchorWallet?.publicKey;
+  reloadMrgnlendState: async (_connection?: Connection, _wallet?: Wallet) => {
+    console.log("called", { connection: !!_connection, anchorWallet: !!_wallet });
+
+    const connection = _connection ?? get().marginfiClient?.provider.connection;
+    if (!connection) throw new Error("Connection not found");
+
+    const wallet = _wallet ?? get().marginfiClient?.provider?.wallet;
 
     const [marginfiClient, bankMetadataMap, tokenMetadataMap] = await Promise.all([
-      MarginfiClient.fetch(config.mfiConfig, anchorWallet ?? ({} as any), connection),
+      MarginfiClient.fetch(config.mfiConfig, wallet ?? ({} as any), connection),
       loadBankMetadatas(),
       loadTokenMetadatas(),
     ]);
@@ -45,14 +56,14 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
     let tokenAccountMap: TokenAccountMap;
     let marginfiAccounts: MarginfiAccountWrapper[] = [];
     let selectedAccount: MarginfiAccountWrapper | null = null;
-    if (walletAddress) {
+    if (wallet) {
       const [tokenData, marginfiAccountWrappers] = await Promise.all([
         fetchTokenAccounts(
           connection,
-          anchorWallet.publicKey,
+          wallet.publicKey,
           banks.map((bank) => ({ mint: bank.mint, mintDecimals: bank.mintDecimals }))
         ),
-        marginfiClient.getMarginfiAccountsForAuthority(walletAddress),
+        marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey),
       ]);
 
       nativeSolBalance = tokenData.nativeSolBalance;
@@ -74,7 +85,7 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
       const emissionTokenPriceData = priceMap[bank.emissionsMint.toBase58()];
 
       let userData;
-      if (walletAddress) {
+      if (wallet) {
         const tokenAccount = tokenAccountMap!.get(bank.mint.toBase58());
         if (!tokenAccount) throw new Error(`Token account not found for ${bank.mint.toBase58()}`);
         userData = {
@@ -94,7 +105,22 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
       );
     });
 
-    set({ marginfiClient, bankMetadataMap, tokenMetadataMap, extendedBankInfos, marginfiAccountCount: marginfiAccounts.length, selectedAccount, nativeSolBalance });
+    let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
+    if (wallet) {
+      console.log("selected", selectedAccount?.address.toBase58());
+      accountSummary = computeAccountSummary(selectedAccount!, extendedBankInfos);
+    }
+
+    set({
+      marginfiClient,
+      bankMetadataMap,
+      tokenMetadataMap,
+      extendedBankInfos,
+      marginfiAccountCount: marginfiAccounts.length,
+      selectedAccount,
+      nativeSolBalance,
+      accountSummary,
+    });
   },
 });
 

@@ -25,14 +25,16 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 const AssetsList: FC = () => {
   // const { selectedAccount, nativeSolBalance } = useStore();
   const wallet = useWallet();
-  const [extendedBankInfos, nativeSolBalance, selectedAccount, lendZoomLevel, showBadges, setShowBadges] = useStore((state) => [
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-    state.selectedAccount,
-    state.lendZoomLevel,
-    state.showBadges,
-    state.setShowBadges,
-  ]);
+  const [extendedBankInfos, nativeSolBalance, selectedAccount, lendZoomLevel, showBadges, setShowBadges] = useStore(
+    (state) => [
+      state.extendedBankInfos,
+      state.nativeSolBalance,
+      state.selectedAccount,
+      state.lendZoomLevel,
+      state.showBadges,
+      state.setShowBadges,
+    ]
+  );
 
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [isInLendingMode, setIsInLendingMode] = useState(true);

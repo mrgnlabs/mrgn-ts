@@ -167,3 +167,5 @@ export const findMetadataInsensitive = (tokenMetadataMap: TokenMetadataMap, toke
   // If no match is found, throw an error
   throw new Error(`Token metadata not found for ${tokenSymbol}`);
 };
+
+export { OKXWalletAdapter } from "./OKXWalletAdapter";

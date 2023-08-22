@@ -41,8 +41,8 @@ export interface TokenPriceMap {
 }
 
 export interface TokenPrice {
-    price: BigNumber;
-    decimals: number;
+  price: BigNumber;
+  decimals: number;
 }
 
 export type TokenMetadataMap = { [symbol: string]: TokenMetadata };

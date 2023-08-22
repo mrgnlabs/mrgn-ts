@@ -246,7 +246,7 @@ const UserPositions: FC = () => {
                       key={index}
                       activeBankInfo={bankInfo}
                       marginfiAccount={selectedAccount}
-                    reloadPositions={() => reloadMrgnlendState(connection, wallet)}
+                      reloadPositions={() => reloadMrgnlendState(connection, wallet)}
                     />
                   ))}
                 </TableBody>

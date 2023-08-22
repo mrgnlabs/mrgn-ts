@@ -69,7 +69,6 @@ const Navbar: FC = () => {
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(router.pathname);
 
-
   useEffect(() => {
     setCurrentRoute(router.pathname);
   }, [router.pathname]);

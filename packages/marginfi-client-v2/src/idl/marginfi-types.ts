@@ -4302,8 +4302,8 @@ export const IDL: Marginfi = {
             name: "Maintenance",
           },
           {
-            name: "Equity"
-          }
+            name: "Equity",
+          },
         ],
       },
     },

@@ -148,7 +148,7 @@ class Liquidator {
       .filter(({ assets, bank }) => !bank.mint.equals(USDC_MINT) && assets.gt(DUST_THRESHOLD));
 
     for (let { bank } of balancesWithNonUsdcDeposits) {
-        let maxWithdrawAmount = this.account.computeMaxWithdrawForBank(bank.address);
+      let maxWithdrawAmount = this.account.computeMaxWithdrawForBank(bank.address);
 
       if (maxWithdrawAmount.eq(0)) {
         debug("No untied %s to withdraw", this.getTokenSymbol(bank));

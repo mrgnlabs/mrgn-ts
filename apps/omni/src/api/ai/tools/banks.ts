@@ -21,7 +21,7 @@ class BanksTool extends Tool {
 
     const allBanksInformation = [...banks.values()].map((bank) => {
       const priceInfo = client.getOraclePriceByBank(bank.address)!;
-      return bank.describe(priceInfo)
+      return bank.describe(priceInfo);
     });
 
     return JSON.stringify(allBanksInformation);

@@ -27,7 +27,9 @@ import { env_config } from "./config";
   console.log("Assets (Init) %s", assets2);
   console.log("Liabilities (Init) %s", liabilities2);
 
-  const { assets: assets3, liabilities: liabilities3 } = account.computeHealthComponents(MarginRequirementType.Maintenance);
+  const { assets: assets3, liabilities: liabilities3 } = account.computeHealthComponents(
+    MarginRequirementType.Maintenance
+  );
   console.log("Assets (Maint) %s", assets3);
   console.log("Liabilities (Maint) %s", liabilities3);
 

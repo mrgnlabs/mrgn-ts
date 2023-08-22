@@ -56,11 +56,7 @@ class LipClient {
 
   // --- Factories
 
-  static async fetch(
-    config: LipConfig,
-    marginfiClient: MarginfiClient,
-    opts?: ConfirmOptions
-  ) {
+  static async fetch(config: LipConfig, marginfiClient: MarginfiClient, opts?: ConfirmOptions) {
     const debug = require("debug")("lip:client");
     debug(
       "Loading Lip Client\n\tprogram: %s\n\tenv: %s\n\turl: %s",
@@ -103,7 +99,8 @@ class LipClient {
       const bank = marginfiClient.getBankByPk(campaign.marginfiBankPk);
       if (!bank) throw new Error(`Bank ${campaign.marginfiBankPk} not found for campaign ${campaign.publicKey}`);
       const oraclePrice = marginfiClient.getOraclePriceByBank(campaign.marginfiBankPk);
-      if (!oraclePrice) throw new Error(`Oracle price ${campaign.marginfiBankPk} not found for campaign ${campaign.publicKey}`);
+      if (!oraclePrice)
+        throw new Error(`Oracle price ${campaign.marginfiBankPk} not found for campaign ${campaign.publicKey}`);
       return new Campaign(bank, oraclePrice, campaign);
     });
   }

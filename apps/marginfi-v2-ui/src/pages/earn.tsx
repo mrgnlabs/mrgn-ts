@@ -1,7 +1,7 @@
 import React, { FC, MouseEventHandler, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
-import { useBankMetadata, useLipClient, useMarginfiClient } from "~/context";
+import { useLipClient } from "~/context";
 import { Button, ButtonProps, Card, CircularProgress, InputAdornment, LinearProgress, TextField } from "@mui/material";
 import { groupedNumberFormatterDyn, percentFormatterDyn, usdFormatter, usdFormatterDyn } from "~/utils/formatters";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
@@ -271,16 +271,21 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
 const Pro = () => {
   const wallet = useWallet();
   const anchorWallet = useAnchorWallet();
-  const {connection} = useConnection();
+  const { connection } = useConnection();
+  const { lipClient } = useLipClient();
+
+  const [mfiClient, bankMetadataMap, reloadMrgnlendState] = useStore((state) => [
+    state.marginfiClient,
+    state.bankMetadataMap,
+    state.reloadMrgnlendState,
+  ]);
+
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [reloading, setReloading] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<WhitelistedCampaignWithMeta | null>(null);
   const [amount, setAmount] = useState(0);
-  const { bankMetadataMap } = useBankMetadata();
   const [progressPercent, setProgressPercent] = useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
-  const [mfiClient, reloadMrgnlendState] = useStore((state) => [state.marginfiClient, state.reloadMrgnlendState]);
-  const { lipClient } = useLipClient();
 
   const whitelistedCampaignsWithMeta = useMemo(() => {
     if (!lipClient) return [];
@@ -319,7 +324,7 @@ const Pro = () => {
 
   useEffect(() => {
     reloadMrgnlendState(connection, anchorWallet);
-    const id = setInterval(() => reloadMrgnlendState(connection, anchorWallet), 60_000);
+    const id = setInterval(reloadMrgnlendState, 60_000);
     return () => clearInterval(id);
   }, [anchorWallet, connection, reloadMrgnlendState]);
 

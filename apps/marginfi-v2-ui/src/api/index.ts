@@ -21,7 +21,7 @@ import {
 } from "~/types";
 import { WSOL_MINT } from "~/config";
 import { floor } from "~/utils";
-import { getAssociatedTokenAddressSync, getMint, nativeToUi, unpackAccount } from "@mrgnlabs/mrgn-common";
+import { MintLayout, getAssociatedTokenAddressSync, getMint, nativeToUi, unpackAccount } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as firebaseApi from "./firebase";
@@ -44,7 +44,7 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   signedFreeCollateral: 0,
 };
 
-function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, bankInfos: BankInfo[]): AccountSummary {
+function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, bankInfos: ExtendedBankInfo[]): AccountSummary {
   const equityComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Equity);
   const equityComponentsUnbiased = marginfiAccount.computeHealthComponentsWithoutBias(MarginRequirementType.Equity);
   const equityComponentsWithBiasAndWeighted = marginfiAccount.computeHealthComponents(
@@ -131,14 +131,23 @@ function makeBankInfo(
 }
 
 const BIRDEYE_API = "https://public-api.birdeye.so";
-async function fetchBirdeyePrice(tokenPubkey: PublicKey): Promise<BigNumber> {
-  const response = await fetch(`${BIRDEYE_API}/public/price?address=${tokenPubkey.toBase58()}`, {
+async function fetchBirdeyePrices(mints: PublicKey[]): Promise<BigNumber[]> {
+  const mintList = mints.map((mint) => mint.toBase58()).join(",");
+  const response = await fetch(`${BIRDEYE_API}/public/multi_price?list_address=${mintList}`, {
     headers: { Accept: "application/json" },
   });
 
   const responseBody = await response.json();
   if (responseBody.success) {
-    return new BigNumber(responseBody.data.value);
+    const prices = new Map(
+      Object.entries(responseBody.data).map(([mint, priceData]: [string, any]) => [mint, BigNumber(priceData.value)])
+    );
+
+    return mints.map((mint) => {
+      const price = prices.get(mint.toBase58());
+      if (!price) throw new Error(`Failed to fetch price for ${mint.toBase58()}`);
+      return price;
+    });
   }
 
   throw new Error("Failed to fetch price");
@@ -146,27 +155,21 @@ async function fetchBirdeyePrice(tokenPubkey: PublicKey): Promise<BigNumber> {
 
 export async function buildEmissionsPriceMap(banks: Bank[], connection: Connection): Promise<TokenPriceMap> {
   const banksWithEmissions = banks.filter((bank) => !bank.emissionsMint.equals(PublicKey.default));
+  const emissionsMints = banksWithEmissions.map((bank) => bank.emissionsMint);
 
-  const emissionsPrices = banksWithEmissions.map(async (bank) => ({
+  const birdeyePrices = await fetchBirdeyePrices(emissionsMints);
+  const mintAis = await connection.getMultipleAccountsInfo(emissionsMints);
+  const mint = mintAis.map((ai) => MintLayout.decode(ai!.data));
+
+  const emissionsPrices = banksWithEmissions.map((bank, i) => ({
     mint: bank.emissionsMint,
-    price: await fetchBirdeyePrice(bank.emissionsMint),
-    decimals: (await getMint(connection, bank.emissionsMint)).decimals,
+    price: birdeyePrices[i],
+    decimals: mint[0].decimals,
   }));
-
-  const bankPrices = banksWithEmissions.map(async (bank) => ({
-    mint: bank.mint,
-    price: await fetchBirdeyePrice(bank.mint),
-    decimals: bank.mintDecimals,
-  }));
-
-  const prices: { mint: PublicKey; price: BigNumber; decimals: number }[] = await Promise.all([
-    ...emissionsPrices,
-    ...bankPrices,
-  ]);
 
   const tokenMap: TokenPriceMap = {};
 
-  for (let { mint, price, decimals } of prices) {
+  for (let { mint, price, decimals } of emissionsPrices) {
     tokenMap[mint.toBase58()] = { price, decimals };
   }
 
@@ -185,12 +188,10 @@ function makeExtendedBankInfo(
     tokenAccount: TokenAccount;
   }
 ): ExtendedBankInfo {
+  // Aggregate user-agnostic bank info
   const bankInfo = makeBankInfo(bank, oraclePrice, tokenMetadata, tokenSymbol, emissionTokenPrice);
 
-  const positionRaw = userData?.marginfiAccount.activeBalances.find((balance) =>
-    balance.bankPk.equals(bankInfo.address)
-  );
-  if (!userData || !positionRaw) {
+  if (!userData) {
     return {
       ...bankInfo,
       ...{
@@ -204,25 +205,47 @@ function makeExtendedBankInfo(
     };
   }
 
+  // Calculate user-specific info relevant regardless of whether they have an active position in this bank
   const isWrappedSol = bankInfo.tokenMint.equals(WSOL_MINT);
-  const position = makeUserPosition(positionRaw, bankInfo, oraclePrice);
-
   const maxDeposit = floor(
-    isWrappedSol ? Math.max(userData.tokenAccount.balance + userData.nativeSolBalance, 0) : userData.tokenAccount.balance,
-    bankInfo.tokenMintDecimals
-  );
-  const maxWithdraw = floor(
-    Math.min(
-      userData.marginfiAccount
-        .computeMaxWithdrawForBank(bankInfo.address, { volatilityFactor: VOLATILITY_FACTOR })
-        .toNumber(),
-      bankInfo.availableLiquidity
-    ),
+    isWrappedSol
+      ? Math.max(userData.tokenAccount.balance + userData.nativeSolBalance, 0)
+      : userData.tokenAccount.balance,
     bankInfo.tokenMintDecimals
   );
   const maxBorrow = floor(
     Math.min(
       userData.marginfiAccount.computeMaxBorrowForBank(bankInfo.bank.address).toNumber() * VOLATILITY_FACTOR,
+      bankInfo.availableLiquidity
+    ),
+    bankInfo.tokenMintDecimals
+  );
+
+  const positionRaw = userData.marginfiAccount.activeBalances.find((balance) =>
+    balance.bankPk.equals(bankInfo.address)
+  );
+  if (!positionRaw) {
+    return {
+      ...bankInfo,
+      ...{
+        hasActivePosition: false,
+        tokenAccount: { mint: bankInfo.tokenMint, created: false, balance: 0 },
+        maxDeposit,
+        maxRepay: 0,
+        maxWithdraw: 0,
+        maxBorrow,
+      },
+    };
+  }
+
+  // Calculate user-specific info relevant to their active position in this bank
+  const position = makeUserPosition(positionRaw, bankInfo, oraclePrice);
+
+  const maxWithdraw = floor(
+    Math.min(
+      userData.marginfiAccount
+        .computeMaxWithdrawForBank(bankInfo.address, { volatilityFactor: VOLATILITY_FACTOR })
+        .toNumber(),
       bankInfo.availableLiquidity
     ),
     bankInfo.tokenMintDecimals

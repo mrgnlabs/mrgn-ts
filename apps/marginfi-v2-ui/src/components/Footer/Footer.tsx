@@ -63,7 +63,7 @@ const HotkeysInfo: FC = () => {
 };
 
 const LendZoomControl: FC = () => {
-  const setLendZoomLevel = useStore(state => state.setLendZoomLevel);
+  const setLendZoomLevel = useStore((state) => state.setLendZoomLevel);
 
   return (
     <div className="flex gap-4 items-center justify-center border-r border-[#4E5257] pr-4">
@@ -102,7 +102,7 @@ const LendZoomControl: FC = () => {
 };
 
 const LendUnitControl: FC = () => {
-  const [denomination, setDenominationUSD] = useStore(state => [state.denominationUSD, state.setDenominationUSD]);
+  const [denomination, setDenominationUSD] = useStore((state) => [state.denominationUSD, state.setDenominationUSD]);
 
   return (
     <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] pr-6">

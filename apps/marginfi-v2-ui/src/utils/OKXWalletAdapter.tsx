@@ -34,9 +34,9 @@ interface OKXWindow extends Window {
 
 declare const window: OKXWindow;
 
-export interface OKXWalletAdapterConfig {}
+interface OKXWalletAdapterConfig {}
 
-export const OKXWalletName = "OKX Wallet" as WalletName<"OKX Wallet">;
+const OKXWalletName = "OKX Wallet" as WalletName<"OKX Wallet">;
 
 //@ts-ignore
 export class OKXWalletAdapter extends BaseMessageSignerWalletAdapter {
@@ -54,7 +54,7 @@ export class OKXWalletAdapter extends BaseMessageSignerWalletAdapter {
       ? WalletReadyState.Unsupported
       : WalletReadyState.Loadable;
 
-  constructor(config: OKXWalletAdapterConfig = {}) {
+  constructor(_config: OKXWalletAdapterConfig = {}) {
     super();
     this._connecting = false;
     this._wallet = null;

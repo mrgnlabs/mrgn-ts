@@ -88,10 +88,7 @@ class LipAccount {
       this.mfiClient.programId
     );
     const [mfiPdaSigner] = getMfiPdaSigner(deposit.address, this.client.program.programId);
-    const [tempTokenAccountAuthority] = getTempTokenAccountAuthority(
-      deposit.address,
-      this.client.program.programId
-    );
+    const [tempTokenAccountAuthority] = getTempTokenAccountAuthority(deposit.address, this.client.program.programId);
 
     const tempTokenAccount = Keypair.generate();
 
@@ -217,7 +214,9 @@ export class Deposit {
   }
 
   public computeUsdValue(oraclePrice: OraclePrice, bank: Bank): number {
-    return bank.computeUsdValue(oraclePrice, BigNumber(this.amount), PriceBias.None, new BigNumber(1), false).toNumber();
+    return bank
+      .computeUsdValue(oraclePrice, BigNumber(this.amount), PriceBias.None, new BigNumber(1), false)
+      .toNumber();
   }
 
   static fromAccountParsed(data: DepositData, bank: Bank, campaign: Campaign): Deposit {

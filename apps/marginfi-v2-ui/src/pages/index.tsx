@@ -7,12 +7,15 @@ import { useStore } from "~/store";
 const Home = () => {
   const wallet = useWallet();
   const anchorWallet = useAnchorWallet();
-  const {connection} = useConnection();
-  const [reloadMrgnlendState, marginfiAccountCount] = useStore(state => [state.reloadMrgnlendState, state.marginfiAccountCount]);
+  const { connection } = useConnection();
+  const [reloadMrgnlendState, marginfiAccountCount] = useStore((state) => [
+    state.reloadMrgnlendState,
+    state.marginfiAccountCount,
+  ]);
 
   useEffect(() => {
     reloadMrgnlendState(connection, anchorWallet);
-    const id = setInterval(() => reloadMrgnlendState(connection, anchorWallet), 30_000);
+    const id = setInterval(reloadMrgnlendState, 30_000);
     return () => clearInterval(id);
   }, [anchorWallet, connection, reloadMrgnlendState]);
 

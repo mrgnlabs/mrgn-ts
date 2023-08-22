@@ -86,7 +86,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
   const [campaignBank, setCampaignBank] = useState<Bank | null>(null);
 
   const wallet = useWallet();
-  const [mfiClient] = useStore(state => [state.marginfiClient]);
+  const [mfiClient] = useStore((state) => [state.marginfiClient]);
   const { lipClient, reload: reloadLipClient } = useLipClient();
 
   const availableBanks = useMemo(() => {
@@ -241,7 +241,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           variant="outlined"
           classes={{ standard: "test-white" }}
           value={campaignBank.address.toBase58()}
-          onChange={event => {
+          onChange={(event) => {
             const bank = availableBanks.find((b) => b.address.toBase58() === event.target.value);
             if (!bank) throw new Error("Bank not found");
             setCampaignBank(bank);

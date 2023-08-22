@@ -10,23 +10,15 @@ import {
   SolflareWalletAdapter,
   GlowWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-import { OKXWalletAdapter } from "~/context/OKXWallet";
+import { OKXWalletAdapter } from "~/utils";
 import { init, push } from "@socialgouv/matomo-next";
-import config from "../config";
+import config from "~/config";
 import { Navbar, Footer } from "~/components";
 
-import {
-  // MarginfiClientProvider,
-  // TokenMetadataProvider,
-  // UserAccountsProvider,
-  // BankMetadataProvider,
-  LipClientProvider,
-} from "~/context";
+import { LipClientProvider, FirebaseAccountProvider } from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-import { RecoilRoot } from "recoil";
-import { FirebaseAccountProvider } from "~/context/FirebaseAccount";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -63,33 +55,23 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     <ConnectionProvider endpoint={config.rpcEndpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          {/* <BankMetadataProvider>
-            <TokenMetadataProvider>
-              <MarginfiClientProvider> */}
-                <LipClientProvider>
-                  {/* <UserAccountsProvider> */}
-                    <FirebaseAccountProvider>
-                      <Head>
-                        <title>marginfi</title>
-                        <meta name="description" content="marginfi v2 UI" />
-                        <meta name="viewport" content="width=device-width, initial-scale=1" />
-                        <link rel="icon" href="/favicon.ico" />
-                      </Head>
-                      <RecoilRoot>
-                        <Navbar />
-                        <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
-                          <Component {...pageProps} />
-                          <Analytics />
-                        </div>
-                        <Footer />
-                        <ToastContainer position="bottom-left" theme="dark" />
-                      </RecoilRoot>
-                    </FirebaseAccountProvider>
-                  {/* </UserAccountsProvider> */}
-                </LipClientProvider>
-              {/* </MarginfiClientProvider>
-            </TokenMetadataProvider>
-          </BankMetadataProvider> */}
+          <LipClientProvider>
+            <FirebaseAccountProvider>
+              <Head>
+                <title>marginfi</title>
+                <meta name="description" content="marginfi v2 UI" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <link rel="icon" href="/favicon.ico" />
+              </Head>
+              <Navbar />
+              <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
+                <Component {...pageProps} />
+                <Analytics />
+              </div>
+              <Footer />
+              <ToastContainer position="bottom-left" theme="dark" />
+            </FirebaseAccountProvider>
+          </LipClientProvider>
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>

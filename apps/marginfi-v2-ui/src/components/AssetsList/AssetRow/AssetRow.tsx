@@ -53,15 +53,13 @@ const AssetRow: FC<{
   showHotkeyBadges,
   badgeContent,
 }) => {
-  const { connection } = useConnection();
-  const wallet = useAnchorWallet();
   const [lendZoomLevel, denominationUSD, mfiClient, reloadMrgnlendState] = useStore((state) => [
     state.lendZoomLevel,
     state.denominationUSD,
     state.marginfiClient,
     state.reloadMrgnlendState,
   ]);
-  
+
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
 
   const isDust = useMemo(
@@ -129,7 +127,7 @@ const AssetRow: FC<{
 
     toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
-      await reloadMrgnlendState(connection, wallet);
+      await reloadMrgnlendState();
       toast.update(REFRESH_ACCOUNT_TOAST_ID, {
         render: "Refreshing state 👍",
         type: toast.TYPE.SUCCESS,
@@ -146,7 +144,7 @@ const AssetRow: FC<{
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [bankInfo, connection, marginfiAccount, reloadMrgnlendState, wallet]);
+  }, [bankInfo, marginfiAccount, reloadMrgnlendState]);
 
   const borrowOrLend = useCallback(async () => {
     if (mfiClient === null) throw Error("Marginfi client not ready");
@@ -270,7 +268,7 @@ const AssetRow: FC<{
     // -------- Refresh state
     toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
-      await reloadMrgnlendState(connection, wallet);
+      await reloadMrgnlendState();
       toast.update(REFRESH_ACCOUNT_TOAST_ID, {
         render: "Refreshing state 👍",
         type: toast.TYPE.SUCCESS,
@@ -287,16 +285,7 @@ const AssetRow: FC<{
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [
-    bankInfo,
-    borrowOrLendAmount,
-    connection,
-    currentAction,
-    marginfiAccount,
-    mfiClient,
-    reloadMrgnlendState,
-    wallet,
-  ]);
+  }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, mfiClient, reloadMrgnlendState]);
 
   return (
     <TableRow className="h-full w-full bg-[#171C1F] border border-[#1E2122] rounded-2xl">
@@ -596,7 +585,9 @@ const AssetRow: FC<{
                 : bankInfo.tokenAccount.balance) * bankInfo.tokenPrice
             )
           : numeralFormatter(
-              bankInfo.tokenMint.equals(WSOL_MINT) ? bankInfo.tokenAccount.balance + nativeSolBalance : bankInfo.tokenAccount.balance
+              bankInfo.tokenMint.equals(WSOL_MINT)
+                ? bankInfo.tokenAccount.balance + nativeSolBalance
+                : bankInfo.tokenAccount.balance
             )}
       </TableCell>
 

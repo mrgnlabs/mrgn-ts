@@ -116,7 +116,11 @@ class MarginfiAccountWrapper {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    return this._marginfiAccount.computeHealthComponents(this.client.banks, this.client.oraclePrices, marginRequirement);
+    return this._marginfiAccount.computeHealthComponents(
+      this.client.banks,
+      this.client.oraclePrices,
+      marginRequirement
+    );
   }
 
   public computeFreeCollateral(opts?: { clamped?: boolean }): BigNumber {
