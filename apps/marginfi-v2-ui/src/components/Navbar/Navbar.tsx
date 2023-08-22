@@ -194,7 +194,7 @@ const Navbar: FC = () => {
               badgeContent={"t"}
               invisible={!showBadges}
             >
-              <Link href={"/stake"} className="glow-on-hover hidden md:block">
+              <Link href={"/stake"} className="glow-on-hover">
                 stake
               </Link>
             </Badge>
@@ -231,7 +231,7 @@ const Navbar: FC = () => {
               badgeContent={"b"}
               invisible={!showBadges}
             >
-              <Link href={"/bridge"} className="glow-on-hover">
+              <Link href={"/bridge"} className="glow-on-hover hidden md:block">
                 bridge
               </Link>
             </Badge>
