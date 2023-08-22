@@ -7,8 +7,6 @@ import config from "~/config";
 import { AccountSummary, BankMetadataMap, ExtendedBankInfo, TokenAccountMap, TokenMetadataMap } from "~/types";
 import { findMetadataInsensitive, loadBankMetadatas, loadTokenMetadatas } from "~/utils";
 
-type ZoomLevel = 1 | 2 | 3;
-
 interface MrgnlendSlice {
   initialized: boolean;
   marginfiClient: MarginfiClient | null;
@@ -61,6 +59,7 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
   //   set(() => ({ marginfiClient, bankMetadataMap, tokenMetadataMap, extendedBankInfos, initialized: true }));
   // },
   reloadMrgnlendState: async (connection: Connection, anchorWallet?: AnchorWallet) => {
+    console.log("called", {connection: !!connection, anchorWallet: !!anchorWallet})
     const walletAddress = anchorWallet?.publicKey;
 
     const [marginfiClient, bankMetadataMap, tokenMetadataMap] = await Promise.all([
@@ -130,4 +129,4 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
 });
 
 export { createMrgnlendSlice };
-export type { ZoomLevel, MrgnlendSlice };
+export type { MrgnlendSlice };
