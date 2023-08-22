@@ -1,10 +1,11 @@
-import React, { FC, MouseEventHandler, ReactNode, useCallback, useMemo, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
+import React, { FC, MouseEventHandler, ReactNode, useCallback, useMemo, useState, useEffect } from "react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
 import { Button, ButtonProps, InputAdornment, TextField } from "@mui/material";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { PublicKey } from "@solana/web3.js";
 
 const WalletMultiButtonDynamic = dynamic(
   async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
@@ -128,7 +129,21 @@ export const MaxInputAdornment: FC<{
 
 const Pro = () => {
   const wallet = useWallet();
+  const { connection } = useConnection();
   const [amount, setAmount] = useState(0);
+  const [stakeTVL, setStakeTVL] = useState(null);
+
+  useEffect(() => {
+    const fetchTVL = async () => {
+      const account = await connection.getAccountInfo(new PublicKey('Jito4APyf642JPZPx3hGc6WWJ8zPKtRbRs4P815Awbb'));
+      if (account) {
+        // @TODO: Fix
+        setStakeTVL(Number(account.data.readBigUint64LE(258)) / 1e9);
+      }
+    };
+
+    fetchTVL();
+  }, [connection]);
 
   const maxDepositAmount = useMemo(
     () => 1,
@@ -172,7 +187,7 @@ const Pro = () => {
                 8%
               </div>
               <div className="text-[#fff] text-2xl">
-                $1M
+                {`${stakeTVL ? stakeTVL : ''}`}
               </div>
               <div className="text-[#fff] text-2xl">
                 0%
