@@ -1,11 +1,14 @@
 import React, { FC, MouseEventHandler, ReactNode, useCallback, useMemo, useState, useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
-import { Button, ButtonProps, InputAdornment, TextField } from "@mui/material";
+import { Button, ButtonProps, InputAdornment, TextField, Skeleton } from "@mui/material";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { PublicKey } from "@solana/web3.js";
+import styles from "~/components/AccountSummary/style.module.css";
+import { Typography } from "@mui/material";
+import { numeralFormatter } from "~/utils/formatters";
 
 const WalletMultiButtonDynamic = dynamic(
   async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
@@ -145,60 +148,79 @@ const Pro = () => {
     fetchTVL();
   }, [connection]);
 
-  const maxDepositAmount = useMemo(
-    () => 1,
-    []
-  )
+  const maxDepositAmount = useMemo(() => 1, []);
 
   const depositAction = useCallback(async () => {
-
+    // Your deposit action logic
   }, []);
 
   return (
     <>
-      <PageHeader text="stake"/>
-      <div className="h-full flex flex-col justify-start items-center content-start py-[72px] sm:py-[48px] w-4/5 max-w-7xl gap-4">
-        <div className="w-[360px] flex flex-col items-center gap-6">
+      <PageHeader text="stake" />
+      <div className="h-full rounded-xl font-[500] p-[72px] sm:p-[48px]">
+        
+        <div className="flex flex-col gap-4">
+        <div className="text-[#D9D9D9] text-5xl font-[500] text-center w-full flex justify-center gap-2">
+          <Image src="/lst_logo.png" alt="lst" height={48} width={48}/>
+          $LST
+        </div>
+        <div className="text-[#fff] text-xl text-center">
+          <span className="text-[#DCE85D]">It's in the name.</span>
+        </div>
+        </div>
 
-          <div className="text-[#D9D9D9] text-5xl font-[500] text-center w-full flex justify-center gap-2">
-            <Image src="/lst_logo.png" alt="lst" height={48} width={48}/>
-            $LST
-          </div>
-          <div className="text-[#fff] text-xl text-center">
-            <span className="text-[#DCE85D]">It's in the name.</span>
-          </div>
+        <div className="w-full pl-2">
+        <div className={styles["hide-scrollbar"]}>
+          <div className="flex gap-4 w-full min-w-1/2 mt-[20px]">
 
-          <div className="flex justify-center w-full pl-6">
-            <div className="grid grid-cols-4 gap-1 mx-auto w-full">
-              <div className="text-[#fff] text-sm">
+            <div className="h-full w-1/4">
+              <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
                 APY
-              </div>
-              <div className="text-[#fff] text-sm">
-                TVL
-              </div>
-              <div className="text-[#fff] text-sm">
-                FEES
-              </div>
-              <div className="text-[#fff] text-sm">
-                POINTS
-              </div>
-
-              <div className="text-[#fff] text-2xl">
+              </Typography>
+              <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl">
                 8%
-              </div>
-              <div className="text-[#fff] text-2xl">
-                {`${stakeTVL ? stakeTVL : ''}`}
-              </div>
-              <div className="text-[#fff] text-2xl">
+              </Typography>
+            </div>
+            <DividerLine />
+
+            <div className="h-full w-1/4">
+              <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+                TVL
+              </Typography>
+              <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl">
+                {/* TODO: FIX THE WIDTH WHEN IT'S NOT LOADED? */}
+                {stakeTVL ? (
+                  `$${numeralFormatter(stakeTVL)}`
+                ) : (
+                  <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
+                )}
+              </Typography>
+            </div>
+            <DividerLine />
+
+            <div className="h-full w-1/4">
+              <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+                FEES
+              </Typography>
+              <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl">
                 0%
-              </div>
-              <div className="text-[#fff] text-2xl">
+              </Typography>
+            </div>
+            <DividerLine />
+
+            <div className="h-full w-1/4">
+              <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+                POINTS
+              </Typography>
+              <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl">
                 100M
-              </div>
+              </Typography>
             </div>
           </div>
+        </div>
+        </div>
 
-        <div className="flex justify-center">
+        <div className="flex justify-center mt-4">
           <ProInputBox
             value={amount}
             setValue={setAmount}
@@ -209,17 +231,17 @@ const Pro = () => {
           />
         </div>
 
-        <div className="flex justify-center">
-          <ProAction
-            onClick={depositAction}
-          >
+        <div className="flex justify-center mt-4">
+          <ProAction onClick={depositAction}>
             Mint
           </ProAction>
         </div>
       </div>
-    </div>
-  </>
+    </>
   );
 };
+
+const DividerLine = () => <div className={styles['divider-line']}></div>; // Make sure the DividerLine styling exists in your styles.module.css
+
 
 export default Pro;
