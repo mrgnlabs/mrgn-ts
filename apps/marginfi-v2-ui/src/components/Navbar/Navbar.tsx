@@ -278,27 +278,31 @@ const Navbar: FC = () => {
             {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && wallet.connected && <AirdropZone />}
           </div>
           <div className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[300] gap-4 lg:gap-8">
-            <div
-              className="glow-uxd whitespace-nowrap cursor-pointer hidden md:block"
-              onClick={() => {
-                if (selectedAccount && extendedBankInfos?.find((b) => b.tokenSymbol === "UXD")?.bank) {
-                  selectedAccount!.withdrawEmissions(extendedBankInfos.find((b) => b.tokenSymbol === "UXD")!.bank);
-                }
-              }}
-            >
-              {accountSummary.outstandingUxpEmissions === 0
-                ? `Lend UXD to earn UXP`
-                : `Claim ${
-                    accountSummary.outstandingUxpEmissions < 1
-                      ? accountSummary.outstandingUxpEmissions.toExponential(5)
-                      : numeralFormatter(accountSummary.outstandingUxpEmissions)
-                  } UXP`}
-            </div>
-
-            <Link href={"/points"} className="glow whitespace-nowrap">
+            {
+              currentRoute === "/" &&
+              (
+                <div
+                  className="glow-uxd whitespace-nowrap cursor-pointer hidden md:block"
+                  onClick={() => {
+                    if (selectedAccount && extendedBankInfos?.find((b) => b.tokenSymbol === "UXD")?.bank) {
+                      selectedAccount!.withdrawEmissions(extendedBankInfos.find((b) => b.tokenSymbol === "UXD")!.bank);
+                    }
+                  }}
+                >
+                  {accountSummary.outstandingUxpEmissions === 0
+                    ? `Lend UXD to earn UXP`
+                    : `Claim ${
+                        accountSummary.outstandingUxpEmissions < 1
+                          ? accountSummary.outstandingUxpEmissions.toExponential(5)
+                          : numeralFormatter(accountSummary.outstandingUxpEmissions)
+                      } UXP`}
+                </div>
+              )
+            }
+            <Link href={"/points"} className="glow whitespace-nowrap hidden md:block">
               {wallet.connected && currentUser
                 ? `${points?.total ? groupedNumberFormatterDyn.format(Math.round(points.total)) : 0} points`
-                : "P...P...POINTS!"}
+                : "🎁"}
             </Link>
 
             <WalletButton />
