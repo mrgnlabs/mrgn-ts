@@ -429,89 +429,10 @@ const Pro = () => {
   return (
     <>
       <PageHeader />
-      <div className="h-full flex flex-col justify-start items-center content-start py-[48px] w-4/5 max-w-7xl gap-4">
-        <div className="w-[360px] flex flex-col items-center gap-6">
-          <div className="w-[300px] h-[100px] flex flex-col gap-5 justify-center">
-            <div className="flex flex-col gap-1 w-full justify-center">
-              {wallet.connected && (
-                <div className="text-2xl flex justify-center gap-2" style={{ fontWeight: 400 }}>
-                  Your total deposits:
-                  <span style={{ color: "#51B56A" }}>
-                    {
-                      // Since users will only be able to deposit to the LIP,
-                      // the balance of their account should match total deposits.
-                    }
-                    {usdFormatter.format(lipAccount?.getTotalBalance().toNumber() || 0)}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="relative col-span-full flex flex-col justify-center items-center">
-              <LinearProgress
-                className="h-1 w-[300px] rounded-lg"
-                variant="determinate"
-                color="inherit"
-                value={progressPercent}
-                sx={{
-                  backgroundColor: "#484848",
-                  "& .MuiLinearProgress-bar": {
-                    backgroundColor: "#51B56A",
-                  },
-                }}
-              />
-              <div className="flex absolute w-[300px] justify-between">
-                <Marks marks={marks} />
-              </div>
-            </div>
-          </div>
-
-          <div className="w-[300px] flex flex-col my-4 justify-cen dter font-[rgb(227, 227, 227)]">
-            <div className="flex justify-center gap-2 text-[#484848] text-xl" style={{ fontWeight: 400 }}>
-              FUNDS WILL BE LOCKED FOR:
-            </div>
-            <div className="flex justify-center gap-2 text-2xl d" style={{ fontWeight: 400, letterSpacing: "0.2em" }}>
-              ⚠️<span style={{ color: "yellow" }}>6 MONTHS</span>⚠️
-            </div>
-            <div className="flex justify-center gap-2 text-[#484848] text-xl" style={{ fontWeight: 400 }}>
-              FROM DEPOSIT DATE
-            </div>
-          </div>
-
-          <div className="flex justify-center">
-            <AssetSelection
-              whitelistedCampaigns={whitelistedCampaignsWithMeta}
-              setSelectedCampaign={setSelectedCampaign}
-              bankMetadataMap={bankMetadataMap}
-            />
-          </div>
-
-          <div className="flex justify-center">
-            <ProInputBox
-              value={amount}
-              setValue={setAmount}
-              maxValue={maxDepositAmount}
-              loadingSafetyCheck={loadingSafetyCheck}
-              maxDecimals={2}
-              disabled={!wallet.connected}
-            />
-          </div>
-
-          <div className="flex justify-center">
-            {
-              // You can only deposit right now.
-              // All funds will be locked up for 6 months, each from the date of its *own* deposit.
-            }
-            <ProAction
-              onClick={depositAction}
-              spinning={!initialFetchDone || reloading}
-              disabled={!initialFetchDone || reloading}
-            >
-              Deposit
-            </ProAction>
-          </div>
-        </div>
+      <div className="text-base flex justify-center gap-2 my-[32px]" style={{ fontWeight: 400 }}>
+        New deposits for the earn program are no longer available. You may withdraw your existing deposits below.
       </div>
-      <div className="text-2xl flex justify-center gap-2 mb-[40px]" style={{ fontWeight: 400 }}>
+      <div className="text-2xl flex justify-center gap-2 mb-[32px]" style={{ fontWeight: 400 }}>
         Your deposits
       </div>
       <div className="w-full max-w-[1000px] flex flex-wrap justify-center mb-[30px] gap-10">
