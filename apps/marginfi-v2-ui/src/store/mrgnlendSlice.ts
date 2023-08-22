@@ -8,7 +8,6 @@ import { AccountSummary, BankMetadataMap, ExtendedBankInfo, TokenAccountMap, Tok
 import { findMetadataInsensitive, loadBankMetadatas, loadTokenMetadatas } from "~/utils";
 
 interface MrgnlendSlice {
-  initialized: boolean;
   marginfiClient: MarginfiClient | null;
   bankMetadataMap: BankMetadataMap;
   tokenMetadataMap: TokenMetadataMap;
@@ -17,12 +16,10 @@ interface MrgnlendSlice {
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
   accountSummary: AccountSummary;
-  // initializeMrgnlendState: (connection: Connection) => Promise<void>;
   reloadMrgnlendState: (connection: Connection, anchorWallet?: AnchorWallet) => Promise<void>;
 }
 
 const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = (set) => ({
-  initialized: false,
   marginfiClient: null,
   bankMetadataMap: {},
   tokenMetadataMap: {},
@@ -31,33 +28,6 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
   selectedAccount: null,
   nativeSolBalance: 0,
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
-  // initializeMrgnlendState: async (connection: Connection) => {
-  //   const [marginfiClient, bankMetadataMap, tokenMetadataMap] = await Promise.all([
-  //     MarginfiClient.fetch(config.mfiConfig, {} as any, connection),
-  //     loadBankMetadatas(),
-  //     loadTokenMetadatas(),
-  //   ]);
-  //   const banks = [...marginfiClient.banks.values()];
-
-  //   const priceMap = await buildEmissionsPriceMap(banks, connection);
-
-  //   const extendedBankInfos = banks.map((bank) => {
-  //     const bankMetadata = bankMetadataMap[bank.address.toBase58()];
-  //     if (bankMetadata === undefined) throw new Error(`Bank metadata not found for ${bank.address.toBase58()}`);
-
-  //     const tokenMetadata = findMetadataInsensitive(tokenMetadataMap, bankMetadata.tokenSymbol);
-  //     if (!tokenMetadata) throw new Error(`Token metadata not found for ${bankMetadata.tokenSymbol}`);
-
-  //     const oraclePrice = marginfiClient.getOraclePriceByBank(bank.address);
-  //     if (!oraclePrice) throw new Error(`Price info not found for bank ${bank.address.toBase58()}`);
-
-  //     const emissionTokenPriceData = priceMap[bank.emissionsMint.toBase58()];
-
-  //     return makeExtendedBankInfo(bank, oraclePrice, tokenMetadata, bankMetadata.tokenSymbol, emissionTokenPriceData);
-  //   });
-
-  //   set(() => ({ marginfiClient, bankMetadataMap, tokenMetadataMap, extendedBankInfos, initialized: true }));
-  // },
   reloadMrgnlendState: async (connection: Connection, anchorWallet?: AnchorWallet) => {
     console.log("called", {connection: !!connection, anchorWallet: !!anchorWallet})
     const walletAddress = anchorWallet?.publicKey;
@@ -71,10 +41,10 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
 
     const priceMap = await buildEmissionsPriceMap(banks, connection);
 
-    let nativeSolBalance: number;
+    let nativeSolBalance: number = 0;
     let tokenAccountMap: TokenAccountMap;
-    let marginfiAccounts: MarginfiAccountWrapper[];
-    let selectedAccount: MarginfiAccountWrapper;
+    let marginfiAccounts: MarginfiAccountWrapper[] = [];
+    let selectedAccount: MarginfiAccountWrapper | null = null;
     if (walletAddress) {
       const [tokenData, marginfiAccountWrappers] = await Promise.all([
         fetchTokenAccounts(
@@ -124,7 +94,7 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
       );
     });
 
-    set({ marginfiClient, bankMetadataMap, tokenMetadataMap, extendedBankInfos, initialized: true });
+    set({ marginfiClient, bankMetadataMap, tokenMetadataMap, extendedBankInfos, marginfiAccountCount: marginfiAccounts.length, selectedAccount, nativeSolBalance });
   },
 });
 
