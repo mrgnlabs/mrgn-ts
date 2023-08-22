@@ -1,8 +1,8 @@
 import { BorshCoder } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
-import { MARGINFI_IDL } from "~/idl";
-import { AccountType } from "~/types";
+import { MARGINFI_IDL } from "../idl";
+import { AccountType } from "../types";
 
 // ----------------------------------------------------------------------------
 // On-chain types

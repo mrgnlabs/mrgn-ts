@@ -77,7 +77,7 @@ interface InterestRateConfigRaw {
   protocolIrFee: WrappedI80F48;
 }
 
-type OracleSetupRaw = { none: {} } | { pyth: {} } | { switchboard: {} };
+type OracleSetupRaw = number;
 
 export type { BankRaw, BankConfigRaw, RiskTierRaw, InterestRateConfigRaw, OracleSetupRaw };
 
@@ -507,12 +507,12 @@ function parseRiskTier(riskTierRaw: RiskTierRaw): RiskTier {
 }
 
 function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
-  switch (Object.keys(oracleSetupRaw)[0].toLowerCase()) {
-    case "none":
+  switch (oracleSetupRaw) {
+    case 0:
       return OracleSetup.None;
-    case "pyth":
+    case 1:
       return OracleSetup.PythEma;
-    case "switchboard":
+    case 2:
       return OracleSetup.SwitchboardV2;
     default:
       throw new Error(`Invalid oracle setup "${oracleSetupRaw}"`);

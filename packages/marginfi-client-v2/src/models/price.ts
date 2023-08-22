@@ -1,6 +1,6 @@
 import { parsePriceData } from "@pythnetwork/client";
 import BigNumber from "bignumber.js";
-import { AggregatorAccountData, AggregatorAccount } from "~/vendor/switchboard";
+import { AggregatorAccountData, AggregatorAccount } from "../vendor/switchboard";
 import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS } from "..";
 import { OracleSetup } from "./bank";
 

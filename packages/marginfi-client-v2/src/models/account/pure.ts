@@ -12,9 +12,9 @@ import { AccountMeta, ComputeBudgetProgram, PublicKey, TransactionInstruction } 
 import BigNumber from "bignumber.js";
 import { Bank } from "../bank";
 import { PriceBias, PriceInfo } from "../price";
-import instructions from "~/instructions";
-import { MarginfiProgram } from "~/types";
-import { makeWrapSolIxs, makeUnwrapSolIx } from "~/utils";
+import instructions from "../../instructions";
+import { MarginfiProgram } from "../../types";
+import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
 import { Balance, BalanceRaw } from "../balance";
 
 // ----------------------------------------------------------------------------

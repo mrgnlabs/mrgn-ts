@@ -2,12 +2,7 @@
   "extends": "@mrgnlabs/tsconfig/base.json",
   "compilerOptions": {
     "resolveJsonModule": true,
-    "outDir": "dist",
-    "paths": {
-      "~/*": [
-        "./src/*"
-      ]
-    }
+    "outDir": "dist"
   },
   "include": [
     "."
