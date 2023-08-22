@@ -235,7 +235,7 @@ const Pro = () => {
                 POINTS
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl">
-                100M
+                0M
               </Typography>
             </div>
           </div>
