@@ -86,12 +86,15 @@ const Navbar: FC = () => {
 
   // Navigation in hotkey mode
   useHotkeys(
-    "l, s, b, e, o",
+    "l, t, s, b, e, o",
     (_, handler: HotkeysEvent) => {
       if (isHotkeyMode) {
         switch (handler.keys?.join("")) {
           case "l":
             router.push("/");
+            break;
+          case "t":
+            router.push("/stake");
             break;
           case "s":
             router.push("/swap");
@@ -174,6 +177,25 @@ const Navbar: FC = () => {
             >
               <Link href={"/"} className="glow-on-hover hidden md:block">
                 lend
+              </Link>
+            </Badge>
+
+            <Badge
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              sx={{
+                "& .MuiBadge-badge": {
+                  backgroundColor: "rgb(220, 232, 93)",
+                  color: "#1C2125",
+                },
+              }}
+              badgeContent={"t"}
+              invisible={!showBadges}
+            >
+              <Link href={"/stake"} className="glow-on-hover hidden md:block">
+                stake
               </Link>
             </Badge>
 
