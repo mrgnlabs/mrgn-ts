@@ -4,7 +4,7 @@ import { AggregatorAccountData, AggregatorAccount } from "../vendor/switchboard"
 import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS } from "..";
 import { OracleSetup } from "./bank";
 
-interface PriceInfo {
+interface OraclePrice {
   price: BigNumber;
   confidenceInterval: BigNumber;
   lowestPrice: BigNumber;
@@ -17,7 +17,7 @@ enum PriceBias {
   Highest = 2,
 }
 
-function parsePriceInfo(oracleSetup: OracleSetup, rawData: Buffer): PriceInfo {
+function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): OraclePrice {
   switch (oracleSetup) {
     case OracleSetup.PythEma:
       const pythPriceData = parsePriceData(rawData);
@@ -55,6 +55,6 @@ function parsePriceInfo(oracleSetup: OracleSetup, rawData: Buffer): PriceInfo {
   }
 }
 
-export { parsePriceInfo, PriceBias };
+export { parseOraclePriceData as parsePriceInfo, PriceBias };
 
-export type { PriceInfo };
+export type { OraclePrice };

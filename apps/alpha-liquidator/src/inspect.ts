@@ -3,7 +3,7 @@ import {
   Environment,
   getConfig,
   MarginfiClient,
-  MarginfiAccountProxy,
+  MarginfiAccountWrapper,
 } from "@mrgnlabs/marginfi-client-v2";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
 import { Connection, Keypair } from "@solana/web3.js";
@@ -15,7 +15,7 @@ import { env_config } from "./config";
   const client = await MarginfiClient.fetch(config, new NodeWallet(Keypair.generate()), connection);
 
   const accountPk = process.argv[2];
-  const account = await MarginfiAccountProxy.fetch(accountPk, client);
+  const account = await MarginfiAccountWrapper.fetch(accountPk, client);
 
   console.log("Account", accountPk);
 

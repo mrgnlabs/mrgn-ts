@@ -1,7 +1,7 @@
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import {
   MarginRequirementType,
-  MarginfiAccountProxy,
+  MarginfiAccountWrapper,
   MarginfiClient,
   PriceBias,
   USDC_DECIMALS,
@@ -35,7 +35,7 @@ class Liquidator {
 
   constructor(
     readonly connection: Connection,
-    readonly account: MarginfiAccountProxy,
+    readonly account: MarginfiAccountWrapper,
     readonly client: MarginfiClient,
     readonly wallet: NodeWallet,
     readonly jupiter: Jupiter,
@@ -140,14 +140,14 @@ class Liquidator {
     let balancesWithNonUsdcDeposits = this.account.activeBalances
       .map((balance) => {
         let bank = this.client.getBankByPk(balance.bankPk)!;
-        let priceInfo = this.client.getPriceInfoByBank(balance.bankPk)!;
+        let priceInfo = this.client.getOraclePriceByBank(balance.bankPk)!;
         let { assets } = balance.computeQuantity(bank);
 
         return { assets, bank, priceInfo };
       })
       .filter(({ assets, bank }) => !bank.mint.equals(USDC_MINT) && assets.gt(DUST_THRESHOLD));
 
-    for (let { bank, priceInfo } of balancesWithNonUsdcDeposits) {
+    for (let { bank } of balancesWithNonUsdcDeposits) {
         let maxWithdrawAmount = this.account.computeMaxWithdrawForBank(bank.address);
 
       if (maxWithdrawAmount.eq(0)) {
@@ -203,7 +203,7 @@ class Liquidator {
       await this.client.reload();
 
       const usdcBank = this.client.getBankByMint(USDC_MINT)!;
-      const priceInfo = this.client.getPriceInfoByBank(bank.address)!;
+      const priceInfo = this.client.getOraclePriceByBank(bank.address)!;
       const availableUsdcLiquidity = this.account.computeMaxBorrowForBank(usdcBank.address);
 
       const baseLiabUsdcValue = bank.computeLiabilityUsdValue(
@@ -423,7 +423,7 @@ class Liquidator {
     const debug = getDebugLogger(`process-account:${account.toBase58()}`);
 
     debug("Processing account %s", account);
-    const marginfiAccount = await MarginfiAccountProxy.fetch(account, client);
+    const marginfiAccount = await MarginfiAccountWrapper.fetch(account, client);
     if (marginfiAccount.canBeLiquidated()) {
       const { assets, liabilities } = marginfiAccount.computeHealthComponents(MarginRequirementType.Maintenance);
 
@@ -443,7 +443,7 @@ class Liquidator {
     for (let i = 0; i < marginfiAccount.activeBalances.length; i++) {
       const balance = marginfiAccount.activeBalances[i];
       const bank = group.getBankByPk(balance.bankPk)!;
-      const priceInfo = group.getPriceInfoByBank(balance.bankPk)!;
+      const priceInfo = group.getOraclePriceByBank(balance.bankPk)!;
 
       if (EXCLUDE_ISOLATED_BANKS && bank.config.assetWeightInit.isEqualTo(0)) {
         debug("Skipping isolated bank %s", this.getTokenSymbol(bank));
@@ -491,7 +491,7 @@ class Liquidator {
     for (let i = 0; i < marginfiAccount.activeBalances.length; i++) {
       const balance = marginfiAccount.activeBalances[i];
       const bank = group.getBankByPk(balance.bankPk)!;
-      const priceInfo = group.getPriceInfoByBank(balance.bankPk)!;
+      const priceInfo = group.getOraclePriceByBank(balance.bankPk)!;
 
       if (EXCLUDE_ISOLATED_BANKS && bank.config.assetWeightInit.isEqualTo(0)) {
         debug("Skipping isolated bank %s", this.getTokenSymbol(bank));
@@ -513,11 +513,11 @@ class Liquidator {
 
     const collateralBankPk = marginfiAccount.activeBalances[bestCollateralIndex].bankPk;
     const collateralBank = group.getBankByPk(collateralBankPk)!;
-    const collateralPriceInfo = group.getPriceInfoByBank(collateralBankPk)!;
+    const collateralPriceInfo = group.getOraclePriceByBank(collateralBankPk)!;
 
     const liabBankPk = marginfiAccount.activeBalances[bestLiabAccountIndex].bankPk;
     const liabBank = group.getBankByPk(liabBankPk)!;
-    const liabPriceInfo = group.getPriceInfoByBank(liabBankPk)!;
+    const liabPriceInfo = group.getOraclePriceByBank(liabBankPk)!;
 
     // MAX collateral amount to liquidate for given banks and the trader marginfi account balances
     // this doesn't account for liquidators liquidation capacity

@@ -1,4 +1,12 @@
-import { Balance, Bank, MarginfiAccount, MarginRequirementType, PriceBias } from "@mrgnlabs/marginfi-client-v2";
+import {
+  Balance,
+  Bank,
+  MarginfiAccountWrapper,
+  MarginRequirementType,
+  OraclePrice,
+  PriceBias,
+  OraclePriceMap,
+} from "@mrgnlabs/marginfi-client-v2";
 import {
   AccountSummary,
   BankInfo,
@@ -36,10 +44,12 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   signedFreeCollateral: 0,
 };
 
-function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: BankInfo[]): AccountSummary {
+function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, bankInfos: BankInfo[]): AccountSummary {
   const equityComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Equity);
   const equityComponentsUnbiased = marginfiAccount.computeHealthComponentsWithoutBias(MarginRequirementType.Equity);
-  const equityComponentsWithBiasAndWeighted = marginfiAccount.computeHealthComponents(MarginRequirementType.Maint);
+  const equityComponentsWithBiasAndWeighted = marginfiAccount.computeHealthComponents(
+    MarginRequirementType.Maintenance
+  );
 
   let outstandingUxpEmissions = new BigNumber(0);
 
@@ -51,7 +61,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
   );
 
   if (uxpBalance) {
-    outstandingUxpEmissions = uxpBalance.getTotalOutstandingEmissions(uxpBank!.bank).div(new BigNumber(10).pow(9));
+    outstandingUxpEmissions = uxpBalance.computeTotalOutstandingEmissions(uxpBank!.bank).div(new BigNumber(10).pow(9));
   }
 
   return {
@@ -71,14 +81,14 @@ function computeAccountSummary(marginfiAccount: MarginfiAccount, bankInfos: Bank
 
 function makeBankInfo(
   bank: Bank,
+  oraclePrice: OraclePrice,
   tokenMetadata: TokenMetadata,
   tokenSymbol: string,
-  tokenData: TokenPrice,
   emissionTokenData?: TokenPrice
 ): BankInfo {
-  const { lendingRate, borrowingRate } = bank.getInterestRates();
-  const totalPoolDeposits = nativeToUi(bank.totalAssets, bank.mintDecimals);
-  const totalPoolBorrows = nativeToUi(bank.totalLiabilities, bank.mintDecimals);
+  const { lendingRate, borrowingRate } = bank.computeInterestRates();
+  const totalPoolDeposits = nativeToUi(bank.getTotalAssetQuantity(), bank.mintDecimals);
+  const totalPoolBorrows = nativeToUi(bank.getTotalLiabilityQuantity(), bank.mintDecimals);
   const liquidity = totalPoolDeposits - totalPoolBorrows;
   const utilizationRate = totalPoolDeposits > 0 ? (totalPoolBorrows / totalPoolDeposits) * 100 : 0;
 
@@ -88,7 +98,7 @@ function makeBankInfo(
   if ((bank.emissionsActiveLending || bank.emissionsActiveBorrowing) && emissionTokenData) {
     const emissionsRateAmount = new BigNumber(nativeToUi(bank.emissionsRate, emissionTokenData.decimals));
     const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
-    const emissionsRateAdditionalyApy = emissionsRateValue.div(tokenData.price);
+    const emissionsRateAdditionalyApy = emissionsRateValue.div(oraclePrice.price);
 
     emissionsRate = emissionsRateAdditionalyApy.toNumber();
 
@@ -100,10 +110,13 @@ function makeBankInfo(
   }
 
   return {
-    address: bank.publicKey,
+    bank,
+    oraclePrice,
+
+    address: bank.address,
     tokenIcon: tokenMetadata.icon,
     tokenSymbol,
-    tokenPrice: bank.getPrice(PriceBias.None).toNumber(),
+    tokenPrice: bank.getPrice(oraclePrice, PriceBias.None).toNumber(),
     tokenMint: bank.mint,
     tokenMintDecimals: bank.mintDecimals,
     lendingRate: isNaN(lendingRate.toNumber()) ? 0 : lendingRate.toNumber(),
@@ -114,7 +127,6 @@ function makeBankInfo(
     totalPoolBorrows,
     availableLiquidity: liquidity,
     utilizationRate,
-    bank,
   };
 }
 
@@ -162,34 +174,55 @@ export async function buildEmissionsPriceMap(banks: Bank[], connection: Connecti
 }
 
 function makeExtendedBankInfo(
-  bankInfo: BankInfo,
-  tokenAccount: TokenAccount,
-  nativeSolBalance: number,
-  marginfiAccount: MarginfiAccount | null
+  bank: Bank,
+  oraclePrice: OraclePrice,
+  tokenMetadata: TokenMetadata,
+  tokenSymbol: string,
+  emissionTokenPrice?: TokenPrice,
+  userData?: {
+    nativeSolBalance: number;
+    marginfiAccount: MarginfiAccountWrapper;
+    tokenAccount: TokenAccount;
+  }
 ): ExtendedBankInfo {
-  const isWrappedSol = bankInfo.tokenMint.equals(WSOL_MINT);
-  const positionRaw = marginfiAccount?.activeBalances.find((balance) => balance.bankPk.equals(bankInfo.address));
-  const hasActivePosition = !!positionRaw;
-  const position = hasActivePosition ? makeUserPosition(positionRaw, bankInfo) : null;
+  const bankInfo = makeBankInfo(bank, oraclePrice, tokenMetadata, tokenSymbol, emissionTokenPrice);
 
-  const tokenBalance = tokenAccount.balance;
+  const positionRaw = userData?.marginfiAccount.activeBalances.find((balance) =>
+    balance.bankPk.equals(bankInfo.address)
+  );
+  if (!userData || !positionRaw) {
+    return {
+      ...bankInfo,
+      ...{
+        hasActivePosition: false,
+        tokenAccount: { mint: bankInfo.tokenMint, created: false, balance: 0 },
+        maxDeposit: 0,
+        maxRepay: 0,
+        maxWithdraw: 0,
+        maxBorrow: 0,
+      },
+    };
+  }
+
+  const isWrappedSol = bankInfo.tokenMint.equals(WSOL_MINT);
+  const position = makeUserPosition(positionRaw, bankInfo, oraclePrice);
 
   const maxDeposit = floor(
-    isWrappedSol ? Math.max(tokenBalance + nativeSolBalance, 0) : tokenBalance,
+    isWrappedSol ? Math.max(userData.tokenAccount.balance + userData.nativeSolBalance, 0) : userData.tokenAccount.balance,
     bankInfo.tokenMintDecimals
   );
   const maxWithdraw = floor(
     Math.min(
-      marginfiAccount
-        ?.computeMaxWithdrawForBank(bankInfo.address, { volatilityFactor: VOLATILITY_FACTOR })
-        .toNumber() ?? 0,
+      userData.marginfiAccount
+        .computeMaxWithdrawForBank(bankInfo.address, { volatilityFactor: VOLATILITY_FACTOR })
+        .toNumber(),
       bankInfo.availableLiquidity
     ),
     bankInfo.tokenMintDecimals
   );
   const maxBorrow = floor(
     Math.min(
-      (marginfiAccount?.computeMaxBorrowForBank(bankInfo.bank.publicKey).toNumber() ?? 0) * VOLATILITY_FACTOR,
+      userData.marginfiAccount.computeMaxBorrowForBank(bankInfo.bank.address).toNumber() * VOLATILITY_FACTOR,
       bankInfo.availableLiquidity
     ),
     bankInfo.tokenMintDecimals
@@ -201,32 +234,28 @@ function makeExtendedBankInfo(
     maxRepay = !!position ? Math.min(position.amount, maxDeposit) : maxDeposit;
   }
 
-  const base = {
+  return {
     ...bankInfo,
-    hasActivePosition,
-    tokenBalance,
-    maxDeposit,
-    maxRepay,
-    maxWithdraw,
-    maxBorrow,
+    ...{
+      hasActivePosition: true,
+      tokenAccount: userData.tokenAccount,
+      maxDeposit,
+      maxRepay,
+      maxWithdraw,
+      maxBorrow,
+      position,
+    },
   };
-
-  return !!position
-    ? {
-        ...base,
-        hasActivePosition: true,
-        position,
-      }
-    : {
-        ...base,
-        hasActivePosition: false,
-      };
 }
 
-function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {
-  const amounts = balance.getQuantity(bankInfo.bank);
-  const usdValues = balance.getUsdValue(bankInfo.bank, MarginRequirementType.Equity);
-  const weightedUSDValues = balance.getUsdValueWithPriceBias(bankInfo.bank, MarginRequirementType.Maint);
+function makeUserPosition(balance: Balance, bankInfo: BankInfo, oraclePrice: OraclePrice): UserPosition {
+  const amounts = balance.computeQuantity(bankInfo.bank);
+  const usdValues = balance.computeUsdValue(bankInfo.bank, oraclePrice, MarginRequirementType.Equity);
+  const weightedUSDValues = balance.getUsdValueWithPriceBias(
+    bankInfo.bank,
+    oraclePrice,
+    MarginRequirementType.Maintenance
+  );
   const isLending = usdValues.liabilities.isZero();
   return {
     amount: isLending
@@ -241,15 +270,15 @@ function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {
 async function fetchTokenAccounts(
   connection: Connection,
   walletAddress: PublicKey,
-  bankInfos: BankInfo[]
+  bankInfos: { mint: PublicKey; mintDecimals: number }[]
 ): Promise<{
   nativeSolBalance: number;
   tokenAccountMap: TokenAccountMap;
 }> {
   // Get relevant addresses
   const mintList = bankInfos.map((bank) => ({
-    address: bank.tokenMint,
-    decimals: bank.tokenMintDecimals,
+    address: bank.mint,
+    decimals: bank.mintDecimals,
   }));
 
   if (walletAddress === null) {
@@ -298,4 +327,11 @@ async function fetchTokenAccounts(
   return { nativeSolBalance, tokenAccountMap: new Map(ataList.map((ata) => [ata.mint.toString(), ata])) };
 }
 
-export { DEFAULT_ACCOUNT_SUMMARY, computeAccountSummary, makeBankInfo, makeExtendedBankInfo, firebaseApi, fetchTokenAccounts };
+export {
+  DEFAULT_ACCOUNT_SUMMARY,
+  computeAccountSummary,
+  makeBankInfo,
+  makeExtendedBankInfo,
+  firebaseApi,
+  fetchTokenAccounts,
+};

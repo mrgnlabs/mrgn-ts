@@ -1,21 +1,25 @@
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC, useMemo, useState, useEffect } from "react";
-import { useUserAccounts } from "~/context";
 import { collection, getDocs } from "firebase/firestore";
 import { ExtendedBankInfo } from "~/types";
 import { firebaseDb } from "~/api/firebase";
 import { GlobalStats } from "./GlobalStats";
 import { UserStats } from "./UserStats";
+import { useStore } from "~/store";
 
 const AccountSummary: FC = () => {
-  const { accountSummary, selectedAccount, extendedBankInfos } = useUserAccounts();
+  const [accountSummary, selectedAccount, extendedBankInfos] = useStore((state) => [
+    state.accountSummary,
+    state.selectedAccount,
+    state.extendedBankInfos,
+  ]);
   const wallet = useWallet();
   const [globalPoints, setGlobalPoints] = useState<number | null>(null);
 
   const healthFactor = useMemo(() => {
     if (selectedAccount) {
-      const { assets, liabilities } = selectedAccount.computeHealthComponents(MarginRequirementType.Maint);
+      const { assets, liabilities } = selectedAccount.computeHealthComponents(MarginRequirementType.Maintenance);
       return assets.isZero() ? 1 : assets.minus(liabilities).dividedBy(assets).toNumber();
     } else {
       return null;

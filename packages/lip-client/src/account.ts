@@ -7,7 +7,7 @@ import {
   BankVaultType,
   MarginfiClient,
   PriceBias,
-  PriceInfo,
+  OraclePrice,
   getBankVaultAuthority,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
@@ -57,10 +57,10 @@ class LipAccount {
 
   getTotalBalance() {
     return this.deposits.reduce((acc, deposit) => {
-      const priceInfo = this.mfiClient.priceInfos.get(deposit.campaign.bank.address.toBase58());
-      if (!priceInfo) throw Error("Price info not found");
+      const oraclePrice = this.mfiClient.oraclePrices.get(deposit.campaign.bank.address.toBase58());
+      if (!oraclePrice) throw Error("Price info not found");
 
-      return acc.plus(deposit.computeUsdValue(priceInfo, deposit.campaign.bank));
+      return acc.plus(deposit.computeUsdValue(oraclePrice, deposit.campaign.bank));
     }, new BigNumber(0));
   }
 
@@ -192,11 +192,8 @@ export default LipAccount;
 export class Deposit {
   public address: PublicKey;
   public amount: number;
-  // public maturityAmount: number;
   public campaign: Campaign;
   public startDate: Date;
-  // public endDate: Date;
-  // public lockupPeriodInDays: number;
 
   constructor(address: PublicKey, amount: number, campaign: Campaign, startDate: Date) {
     this.address = address;
@@ -215,8 +212,12 @@ export class Deposit {
     return this.amount + (this.amount / this.campaign.maxDeposits) * this.campaign.maxRewards;
   }
 
-  public computeUsdValue(priceInfo: PriceInfo, bank: Bank): number {
-    return bank.computeUsdValue(priceInfo, BigNumber(this.amount), PriceBias.None, new BigNumber(1), false).toNumber();
+  get lockupPeriodInDays(): number {
+    return this.campaign.lockupPeriod / 60 / 60 / 24;
+  }
+
+  public computeUsdValue(oraclePrice: OraclePrice, bank: Bank): number {
+    return bank.computeUsdValue(oraclePrice, BigNumber(this.amount), PriceBias.None, new BigNumber(1), false).toNumber();
   }
 
   static fromAccountParsed(data: DepositData, bank: Bank, campaign: Campaign): Deposit {
@@ -237,7 +238,7 @@ export class Campaign {
   remainingCapacity: number;
   guaranteedApy: number;
 
-  constructor(readonly bank: Bank, data: CampaignData) {
+  constructor(readonly bank: Bank, readonly oraclePrice: OraclePrice, data: CampaignData) {
     this.publicKey = data.publicKey;
     this.maxDeposits = nativeToUi(data.maxDeposits, bank.mintDecimals);
     this.maxRewards = nativeToUi(data.maxRewards, bank.mintDecimals);

@@ -6,9 +6,7 @@ import { WalletButton } from "./WalletButton";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { groupedNumberFormatterDyn, numeralFormatter } from "~/utils/formatters";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useUserAccounts } from "~/context";
-import { useRecoilState } from "recoil";
-import { showBadgesState } from "~/state";
+import { useStore } from "~/store";
 
 // Firebase
 import { doc, getDoc } from "firebase/firestore";
@@ -58,12 +56,19 @@ type Points = {
 const Navbar: FC = () => {
   const wallet = useWallet();
   const { initialUserFetchDone: initialFetchDone, currentUser } = useFirebaseAccount();
-  const [points, setPoints] = useState<Points>(null);
-  const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
-  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
-
   const router = useRouter();
+  const [showBadges, setShowBadges, accountSummary, selectedAccount, extendedBankInfos] = useStore((state) => [
+    state.showBadges,
+    state.setShowBadges,
+    state.accountSummary,
+    state.selectedAccount,
+    state.extendedBankInfos,
+  ]);
+
+  const [points, setPoints] = useState<Points>(null);
+  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(router.pathname);
+
 
   useEffect(() => {
     setCurrentRoute(router.pathname);
@@ -131,8 +136,6 @@ const Navbar: FC = () => {
     },
     { keyup: true, enableOnFormTags: true }
   );
-
-  const { accountSummary, selectedAccount, extendedBankInfos } = useUserAccounts();
 
   useEffect(() => {
     if (initialFetchDone && currentUser && wallet.publicKey?.toBase58()) {
@@ -260,7 +263,9 @@ const Navbar: FC = () => {
               className="glow-uxd whitespace-nowrap cursor-pointer hidden md:block"
               onClick={() => {
                 if (selectedAccount && extendedBankInfos?.find((b) => b.tokenSymbol === "UXD")?.bank) {
-                  selectedAccount!.withdrawEmissions(extendedBankInfos.find((b) => b.tokenSymbol === "UXD")!.bank);
+                  selectedAccount!.withdrawEmissions(
+                    extendedBankInfos.find((b) => b.tokenSymbol === "UXD")!.bank.address
+                  );
                 }
               }}
             >

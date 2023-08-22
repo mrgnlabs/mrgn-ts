@@ -3,7 +3,7 @@ import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
 import { MarginRequirementType } from "./account";
-import { PriceBias, PriceInfo } from "./price";
+import { PriceBias, OraclePrice } from "./price";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -277,54 +277,54 @@ class Bank {
   }
 
   computeAssetUsdValue(
-    priceInfo: PriceInfo,
+    oraclePrice: OraclePrice,
     assetShares: BigNumber,
     marginRequirementType: MarginRequirementType,
     priceBias: PriceBias
   ): BigNumber {
     const assetQuantity = this.getAssetQuantity(assetShares);
     const assetWeight = this.getAssetWeight(marginRequirementType);
-    return this.computeUsdValue(priceInfo, assetQuantity, priceBias, assetWeight);
+    return this.computeUsdValue(oraclePrice, assetQuantity, priceBias, assetWeight);
   }
 
   computeLiabilityUsdValue(
-    priceInfo: PriceInfo,
+    oraclePrice: OraclePrice,
     liabilityShares: BigNumber,
     marginRequirementType: MarginRequirementType,
     priceBias: PriceBias
   ): BigNumber {
     const liabilityQuantity = this.getLiabilityQuantity(liabilityShares);
     const liabilityWeight = this.getLiabilityWeight(marginRequirementType);
-    return this.computeUsdValue(priceInfo, liabilityQuantity, priceBias, liabilityWeight);
+    return this.computeUsdValue(oraclePrice, liabilityQuantity, priceBias, liabilityWeight);
   }
 
   computeUsdValue(
-    priceInfo: PriceInfo,
+    oraclePrice: OraclePrice,
     quantity: BigNumber,
     priceBias: PriceBias,
     weight?: BigNumber,
     scaleToBase: boolean = true
   ): BigNumber {
-    const price = this.getPrice(priceInfo, priceBias);
+    const price = this.getPrice(oraclePrice, priceBias);
     return quantity
       .times(price)
       .times(weight ?? 1)
       .dividedBy(scaleToBase ? 10 ** this.mintDecimals : 1);
   }
 
-  computeQuantityFromUsdValue(priceInfo: PriceInfo, usdValue: BigNumber, priceBias: PriceBias): BigNumber {
-    const price = this.getPrice(priceInfo, priceBias);
+  computeQuantityFromUsdValue(oraclePrice: OraclePrice, usdValue: BigNumber, priceBias: PriceBias): BigNumber {
+    const price = this.getPrice(oraclePrice, priceBias);
     return usdValue.div(price);
   }
 
-  getPrice(priceInfo: PriceInfo, priceBias: PriceBias = PriceBias.None): BigNumber {
+  getPrice(oraclePrice: OraclePrice, priceBias: PriceBias = PriceBias.None): BigNumber {
     switch (priceBias) {
       case PriceBias.Lowest:
-        return priceInfo.lowestPrice;
+        return oraclePrice.lowestPrice;
       case PriceBias.Highest:
-        return priceInfo.highestPrice;
+        return oraclePrice.highestPrice;
       case PriceBias.None:
-        return priceInfo.price;
+        return oraclePrice.price;
     }
   }
 
@@ -392,6 +392,44 @@ class Bank {
     const assets = this.getTotalAssetQuantity();
     const liabilities = this.getTotalLiabilityQuantity();
     return liabilities.div(assets);
+  }
+
+  describe(oraclePrice: OraclePrice): string {
+    return `
+Bank address: ${this.address.toBase58()}
+Mint: ${this.mint.toBase58()}, decimals: ${this.mintDecimals}
+
+Total deposits: ${nativeToUi(this.getTotalAssetQuantity(), this.mintDecimals)}
+Total borrows: ${nativeToUi(this.getTotalLiabilityQuantity(), this.mintDecimals)}
+
+Total assets (USD value): ${this.computeAssetUsdValue(
+      oraclePrice,
+      this.totalAssetShares,
+      MarginRequirementType.Equity,
+      PriceBias.None
+    )}
+Total liabilities (USD value): ${this.computeLiabilityUsdValue(
+      oraclePrice,
+      this.totalLiabilityShares,
+      MarginRequirementType.Equity,
+      PriceBias.None
+    )}
+
+Asset price (USD): ${this.getPrice(oraclePrice, PriceBias.None)}
+
+Config:
+- Asset weight init: ${this.config.assetWeightInit.toFixed(2)}
+- Asset weight maint: ${this.config.assetWeightMaint.toFixed(2)}
+- Liability weight init: ${this.config.liabilityWeightInit.toFixed(2)}
+- Liability weight maint: ${this.config.liabilityWeightMaint.toFixed(2)}
+
+- Deposit limit: ${this.config.depositLimit}
+- Borrow limit: ${this.config.borrowLimit}
+
+LTVs:
+- Initial: ${new BigNumber(1).div(this.config.liabilityWeightInit).times(100).toFixed(2)}%
+- Maintenance: ${new BigNumber(1).div(this.config.liabilityWeightMaint).times(100).toFixed(2)}%
+`;
   }
 }
 

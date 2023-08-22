@@ -1,12 +1,13 @@
 import React, { FC, useMemo } from "react";
 import { Card, Table, TableBody, TableContainer, TableHead, TableCell, Typography } from "@mui/material";
-import { useUserAccounts } from "~/context";
 import UserPositionRow from "./UserPositionRow";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
 import { ActiveBankInfo } from "~/types";
+import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useStore } from "~/store";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -21,7 +22,13 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 const UserPositions: FC = () => {
-  const { selectedAccount, extendedBankInfos, tokenAccountMap, reload } = useUserAccounts();
+  const { connection } = useConnection();
+  const wallet = useAnchorWallet();
+  const [selectedAccount, extendedBankInfos, reloadMrgnlendState] = useStore((state) => [
+    state.selectedAccount,
+    state.extendedBankInfos,
+    state.reloadMrgnlendState,
+  ]);
 
   const activeBankInfos = useMemo(
     () => extendedBankInfos.filter((balance) => balance.hasActivePosition),
@@ -36,23 +43,9 @@ const UserPositions: FC = () => {
     [activeBankInfos]
   );
 
-  const { lentAssetInfos, borrowedAssetInfos } = useMemo(
-    () => ({
-      lentAssetInfos: lendPositions.map((bankInfo) => ({
-        bankInfo,
-        tokenBalance: tokenAccountMap.get(bankInfo.bank.mint.toBase58())?.balance || 0,
-      })),
-      borrowedAssetInfos: borrowPositions.map((bankInfo) => ({
-        bankInfo,
-        tokenBalance: tokenAccountMap.get(bankInfo.bank.mint.toBase58())?.balance || 0,
-      })),
-    }),
-    [borrowPositions, lendPositions, tokenAccountMap]
-  );
-
   return (
     <>
-      {lentAssetInfos.length > 0 && selectedAccount && (
+      {lendPositions.length > 0 && selectedAccount && (
         <Card elevation={0} className="bg-transparent w-full p-0 grid">
           <div className="font-aeonik font-normal text-2xl my-0 lg:mt-2 mb-[-20px] text-white">Lending</div>
           <TableContainer>
@@ -142,12 +135,12 @@ const UserPositions: FC = () => {
                 <TableCell className="border-none"></TableCell>
               </TableHead>
               <TableBody>
-                {lentAssetInfos.map(({ bankInfo }, index) => (
+                {lendPositions.map((bankInfo, index) => (
                   <UserPositionRow
                     key={index}
                     activeBankInfo={bankInfo}
                     marginfiAccount={selectedAccount}
-                    reloadPositions={reload}
+                    reloadPositions={() => reloadMrgnlendState(connection, wallet)}
                   />
                 ))}
               </TableBody>
@@ -156,7 +149,7 @@ const UserPositions: FC = () => {
         </Card>
       )}
       <div>
-        {borrowedAssetInfos.length > 0 && selectedAccount && (
+        {borrowPositions.length > 0 && selectedAccount && (
           <Card elevation={0} className="bg-transparent w-full p-0 grid">
             <div className="font-aeonik font-normal text-2xl my-0 lg:mt-2 mb-[-20px] text-white">Borrowing</div>
             <TableContainer>
@@ -248,12 +241,12 @@ const UserPositions: FC = () => {
                   <TableCell className="border-none"></TableCell>
                 </TableHead>
                 <TableBody>
-                  {borrowedAssetInfos.map(({ bankInfo }, index) => (
+                  {borrowPositions.map((bankInfo, index) => (
                     <UserPositionRow
                       key={index}
                       activeBankInfo={bankInfo}
                       marginfiAccount={selectedAccount}
-                      reloadPositions={reload}
+                    reloadPositions={() => reloadMrgnlendState(connection, wallet)}
                     />
                   ))}
                 </TableBody>

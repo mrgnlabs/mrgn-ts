@@ -16,10 +16,10 @@ import config from "../config";
 import { Navbar, Footer } from "~/components";
 
 import {
-  MarginfiClientProvider,
-  TokenMetadataProvider,
-  UserAccountsProvider,
-  BankMetadataProvider,
+  // MarginfiClientProvider,
+  // TokenMetadataProvider,
+  // UserAccountsProvider,
+  // BankMetadataProvider,
   LipClientProvider,
 } from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
@@ -63,11 +63,11 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     <ConnectionProvider endpoint={config.rpcEndpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <BankMetadataProvider>
+          {/* <BankMetadataProvider>
             <TokenMetadataProvider>
-              <MarginfiClientProvider>
+              <MarginfiClientProvider> */}
                 <LipClientProvider>
-                  <UserAccountsProvider>
+                  {/* <UserAccountsProvider> */}
                     <FirebaseAccountProvider>
                       <Head>
                         <title>marginfi</title>
@@ -85,11 +85,11 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                         <ToastContainer position="bottom-left" theme="dark" />
                       </RecoilRoot>
                     </FirebaseAccountProvider>
-                  </UserAccountsProvider>
+                  {/* </UserAccountsProvider> */}
                 </LipClientProvider>
-              </MarginfiClientProvider>
+              {/* </MarginfiClientProvider>
             </TokenMetadataProvider>
-          </BankMetadataProvider>
+          </BankMetadataProvider> */}
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>

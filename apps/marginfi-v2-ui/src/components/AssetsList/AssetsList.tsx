@@ -5,11 +5,9 @@ import { Card, Skeleton, Table, TableHead, TableBody, TableContainer, TableRow, 
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { useMarginfiClient, useUserAccounts } from "~/context";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
-import { lendZoomLevel, showBadgesState } from "~/state";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useStore } from "~/store";
 import { useHotkeys } from "react-hotkeys-hook";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
@@ -25,14 +23,19 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 const AssetsList: FC = () => {
-  const [isInLendingMode, setIsInLendingMode] = useState(true);
-  const { mfiClient, reload } = useMarginfiClient();
-  const { extendedBankInfos, selectedAccount, nativeSolBalance } = useUserAccounts();
+  // const { selectedAccount, nativeSolBalance } = useStore();
   const wallet = useWallet();
-  const zoomLevel = useRecoilValue(lendZoomLevel);
-  const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
-  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [extendedBankInfos, nativeSolBalance, selectedAccount, lendZoomLevel, showBadges, setShowBadges] = useStore((state) => [
+    state.extendedBankInfos,
+    state.nativeSolBalance,
+    state.selectedAccount,
+    state.lendZoomLevel,
+    state.showBadges,
+    state.setShowBadges,
+  ]);
 
+  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [isInLendingMode, setIsInLendingMode] = useState(true);
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
 
   // Enter hotkey mode
@@ -219,7 +222,7 @@ const AssetsList: FC = () => {
                 {/* [START]: ZOOM-BASED COLUMNS */}
                 {/*******************************/}
 
-                {zoomLevel < 2 && (
+                {lendZoomLevel < 2 && (
                   <TableCell
                     className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
@@ -245,7 +248,7 @@ const AssetsList: FC = () => {
                   </TableCell>
                 )}
 
-                {zoomLevel < 3 && (
+                {lendZoomLevel < 3 && (
                   <TableCell
                     className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
@@ -299,8 +302,6 @@ const AssetsList: FC = () => {
                         isInLendingMode={isInLendingMode}
                         isConnected={wallet.connected}
                         marginfiAccount={selectedAccount}
-                        marginfiClient={mfiClient}
-                        reloadBanks={reload}
                         inputRefs={inputRefs}
                         hasHotkey={true}
                         showHotkeyBadges={showBadges}
@@ -344,8 +345,6 @@ const AssetsList: FC = () => {
                         isInLendingMode={isInLendingMode}
                         isConnected={wallet.connected}
                         marginfiAccount={selectedAccount}
-                        marginfiClient={mfiClient}
-                        reloadBanks={reload}
                         inputRefs={inputRefs}
                         hasHotkey={false}
                       />

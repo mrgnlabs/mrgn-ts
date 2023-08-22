@@ -1,4 +1,4 @@
-import { getConfig, MarginfiAccountProxy, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { getConfig, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { getAssociatedTokenAddressSync, NodeWallet } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
@@ -17,7 +17,7 @@ const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
       resolve(data.toString().trim());
     });
   });
-  let marginfiAccount: MarginfiAccountProxy;
+  let marginfiAccount: MarginfiAccountWrapper;
   if (y === "y") {
     console.log("Creating marginfi account");
     marginfiAccount = await client.createMarginfiAccount();

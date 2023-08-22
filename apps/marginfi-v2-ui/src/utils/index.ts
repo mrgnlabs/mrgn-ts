@@ -1,7 +1,7 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 import { array, assert, Infer, number, object, string } from "superstruct";
-import { ActiveBankInfo, BankMetadata, TokenMetadata } from "~/types";
+import { ActiveBankInfo, BankMetadata, TokenMetadata, TokenMetadataMap } from "~/types";
 import tokenInfos from "../assets/token_info.json";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
@@ -150,9 +150,20 @@ export function makeAirdropCollateralIx(
   });
 }
 
-export function isWholePosition(positionWithBank: ActiveBankInfo, amount: number): boolean {
+export function isWholePosition(activeBankInfo: ActiveBankInfo, amount: number): boolean {
   const positionTokenAmount =
-    Math.floor(positionWithBank.position.amount * Math.pow(10, positionWithBank.tokenMintDecimals)) /
-    Math.pow(10, positionWithBank.tokenMintDecimals);
+    Math.floor(activeBankInfo.position.amount * Math.pow(10, activeBankInfo.tokenMintDecimals)) /
+    Math.pow(10, activeBankInfo.tokenMintDecimals);
   return amount >= positionTokenAmount;
 }
+
+export const findMetadataInsensitive = (tokenMetadataMap: TokenMetadataMap, tokenSymbol: string): TokenMetadata => {
+  const lowerCaseLabel = tokenSymbol.toLowerCase();
+  for (let key in tokenMetadataMap) {
+    if (key.toLowerCase() === lowerCaseLabel) {
+      return tokenMetadataMap[key];
+    }
+  }
+  // If no match is found, throw an error
+  throw new Error(`Token metadata not found for ${tokenSymbol}`);
+};

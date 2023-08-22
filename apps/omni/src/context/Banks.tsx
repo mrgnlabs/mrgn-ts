@@ -33,20 +33,24 @@ const BanksStateProvider: FC<{
 
     setFetching(true);
     try {
-      await mfiClient.group.reload();
-      const banks = [...mfiClient.group.banks.values()];
+      await mfiClient.reload();
+      const banks = [...mfiClient.banks.values()];
       setBanks(banks);
       setBankInfos(
         banks.map((bank) => {
-          const bankMetadata = bankMetadataMap[bank.publicKey.toBase58()];
+          const bankMetadata = bankMetadataMap[bank.address.toBase58()];
           if (bankMetadata === undefined) {
-            throw new Error(`Bank metadata not found for ${bank.publicKey.toBase58()}`);
+            throw new Error(`Bank metadata not found for ${bank.address.toBase58()}`);
           }
           const tokenMetadata = tokenMetadataMap[bankMetadata.tokenSymbol];
           if (tokenMetadata === undefined) {
             throw new Error(`Token metadata not found for ${bankMetadata.tokenSymbol}`);
           }
-          return makeBankInfo(bank, tokenMetadata, bankMetadata.tokenSymbol);
+          const priceInfo = mfiClient.getPriceInfoByBank(bank.address);
+          if (!priceInfo) {
+            throw new Error(`Price info not found for ${bank.address.toBase58()}`);
+          }
+          return makeBankInfo(bank, priceInfo, tokenMetadata, bankMetadata.tokenSymbol);
         })
       );
     } catch (e: any) {

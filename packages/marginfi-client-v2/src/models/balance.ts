@@ -1,7 +1,7 @@
 import { WrappedI80F48, wrappedI80F48toBigNumber, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { PriceInfo, MarginRequirementType, PriceBias } from "..";
+import { OraclePrice, MarginRequirementType, PriceBias } from "..";
 import { Bank } from "./bank";
 
 // ----------------------------------------------------------------------------
@@ -64,12 +64,12 @@ class Balance {
 
   computeUsdValue(
     bank: Bank,
-    priceInfo: PriceInfo,
+    oraclePrice: OraclePrice,
     marginRequirementType: MarginRequirementType = MarginRequirementType.Equity
   ): { assets: BigNumber; liabilities: BigNumber } {
-    const assetsValue = bank.computeAssetUsdValue(priceInfo, this.assetShares, marginRequirementType, PriceBias.None);
+    const assetsValue = bank.computeAssetUsdValue(oraclePrice, this.assetShares, marginRequirementType, PriceBias.None);
     const liabilitiesValue = bank.computeAssetUsdValue(
-      priceInfo,
+      oraclePrice,
       this.liabilityShares,
       marginRequirementType,
       PriceBias.None
@@ -79,12 +79,12 @@ class Balance {
 
   getUsdValueWithPriceBias(
     bank: Bank,
-    priceInfo: PriceInfo,
+    oraclePrice: OraclePrice,
     marginRequirementType: MarginRequirementType = MarginRequirementType.Equity
   ): { assets: BigNumber; liabilities: BigNumber } {
-    const assetsValue = bank.computeAssetUsdValue(priceInfo, this.assetShares, marginRequirementType, PriceBias.Lowest);
+    const assetsValue = bank.computeAssetUsdValue(oraclePrice, this.assetShares, marginRequirementType, PriceBias.Lowest);
     const liabilitiesValue = bank.computeAssetUsdValue(
-      priceInfo,
+      oraclePrice,
       this.liabilityShares,
       marginRequirementType,
       PriceBias.Highest
@@ -145,11 +145,11 @@ class Balance {
     return new BigNumber(0);
   }
 
-  describe(bank: Bank, priceInfo: PriceInfo): string {
+  describe(bank: Bank, oraclePrice: OraclePrice): string {
     let { assets: assetsQt, liabilities: liabsQt } = this.computeQuantityUi(bank);
     let { assets: assetsUsd, liabilities: liabsUsd } = this.computeUsdValue(
       bank,
-      priceInfo,
+      oraclePrice,
       MarginRequirementType.Equity
     );
 

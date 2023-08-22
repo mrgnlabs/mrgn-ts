@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import config from "~/config";
 import Script from "next/script";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { toast } from "react-toastify";
-import { useRecoilState } from "recoil";
-import { showBadgesState } from "~/state";
 import { useHotkeys } from "react-hotkeys-hook";
 import { PageHeaderBridge } from "~/components/PageHeader";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
+import { useStore } from "~/store";
 
 const tokens = [
   "0x0000000000000000000000000000000000000000", // SOL
@@ -69,19 +68,15 @@ const BridgePage = () => {
   const { publicKey, signTransaction, connect, disconnect, wallet } = useWallet();
   const { setVisible, visible } = useWalletModal();
   const [isBridgeIn, setIsBridgeIn] = useState<boolean>(true);
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
-  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
+  const setShowBadges = useStore((state) => state.setShowBadges);
 
   // Enter hotkey mode
   useHotkeys(
     "meta + k",
     () => {
-      setIsHotkeyMode(true);
       setShowBadges(true);
 
       setTimeout(() => {
-        setIsHotkeyMode(false);
         setShowBadges(false);
       }, 5000);
     },
@@ -146,7 +141,6 @@ const BridgePage = () => {
         isLoading: false,
       });
     });
-    setIsLoaded(true);
   };
 
   const handleUpdateConfig = () => {

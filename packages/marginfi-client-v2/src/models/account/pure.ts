@@ -11,11 +11,12 @@ import {
 import { AccountMeta, ComputeBudgetProgram, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { Bank } from "../bank";
-import { PriceBias, PriceInfo } from "../price";
+import { PriceBias, OraclePrice } from "../price";
 import instructions from "../../instructions";
 import { MarginfiProgram } from "../../types";
 import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
 import { Balance, BalanceRaw } from "../balance";
+import { BankMap, OraclePriceMap } from "../..";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -66,7 +67,7 @@ class MarginfiAccount {
 
   computeFreeCollateral(
     banks: Map<string, Bank>,
-    priceInfos: Map<string, PriceInfo>,
+    priceInfos: Map<string, OraclePrice>,
     opts?: { clamped?: boolean }
   ): BigNumber {
     const _clamped = opts?.clamped ?? true;
@@ -79,7 +80,7 @@ class MarginfiAccount {
 
   computeHealthComponents(
     banks: Map<string, Bank>,
-    priceInfos: Map<string, PriceInfo>,
+    priceInfos: Map<string, OraclePrice>,
     marginReqType: MarginRequirementType
   ): {
     assets: BigNumber;
@@ -108,7 +109,7 @@ class MarginfiAccount {
 
   computeHealthComponentsWithoutBias(
     banks: Map<string, Bank>,
-    priceInfos: Map<string, PriceInfo>,
+    priceInfos: Map<string, OraclePrice>,
     marginReqType: MarginRequirementType
   ): {
     assets: BigNumber;
@@ -135,7 +136,7 @@ class MarginfiAccount {
     return { assets, liabilities };
   }
 
-  computeNetApy(banks: Map<string, Bank>, priceInfos: Map<string, PriceInfo>): number {
+  computeNetApy(banks: Map<string, Bank>, priceInfos: Map<string, OraclePrice>): number {
     const { assets, liabilities } = this.computeHealthComponentsWithoutBias(
       banks,
       priceInfos,
@@ -185,7 +186,7 @@ class MarginfiAccount {
    */
   computeMaxBorrowForBank(
     banks: Map<string, Bank>,
-    priceInfos: Map<string, PriceInfo>,
+    priceInfos: Map<string, OraclePrice>,
     bankAddress: PublicKey
   ): BigNumber {
     const bank = banks.get(bankAddress.toBase58());
@@ -222,7 +223,7 @@ class MarginfiAccount {
    */
   computeMaxWithdrawForBank(
     banks: Map<string, Bank>,
-    priceInfos: Map<string, PriceInfo>,
+    priceInfos: Map<string, OraclePrice>,
     bankAddress: PublicKey,
     opts?: { volatilityFactor?: number }
   ): BigNumber {
@@ -266,7 +267,7 @@ class MarginfiAccount {
   // (2) the amount of covered liablity cannot be more than existing liablity.
   computeMaxLiquidatableAssetAmount(
     banks: Map<string, Bank>,
-    priceInfos: Map<string, PriceInfo>,
+    priceInfos: Map<string, OraclePrice>,
     assetBankAddress: PublicKey,
     liabilityBankAddress: PublicKey
   ): BigNumber {
@@ -376,7 +377,7 @@ class MarginfiAccount {
   // Actions
   // ----------------------------------------------------------------------------
 
-  async makeDepositIxForAccount(
+  async makeDepositIx(
     program: MarginfiProgram,
     banks: Map<string, Bank>,
     amount: Amount,
@@ -407,7 +408,7 @@ class MarginfiAccount {
     };
   }
 
-  async makeRepayIxForAccount(
+  async makeRepayIx(
     program: MarginfiProgram,
     banks: Map<string, Bank>,
     amount: Amount,
@@ -436,7 +437,7 @@ class MarginfiAccount {
       );
 
       ixs.push(createAtaIdempotentIx);
-      ixs.push(...(await this.makeWithdrawEmissionsIxForAccount(program, banks, bankAddress)).instructions);
+      ixs.push(...(await this.makeWithdrawEmissionsIx(program, banks, bankAddress)).instructions);
     }
 
     // Add repay-related instructions
@@ -465,7 +466,7 @@ class MarginfiAccount {
     };
   }
 
-  async makeWithdrawIxForAccount(
+  async makeWithdrawIx(
     program: MarginfiProgram,
     banks: Map<string, Bank>,
     amount: Amount,
@@ -494,7 +495,7 @@ class MarginfiAccount {
       );
 
       ixs.push(createAtaIdempotentIx);
-      ixs.push(...(await this.makeWithdrawEmissionsIxForAccount(program, banks, bankAddress)).instructions);
+      ixs.push(...(await this.makeWithdrawEmissionsIx(program, banks, bankAddress)).instructions);
     }
 
     const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority);
@@ -531,7 +532,7 @@ class MarginfiAccount {
     };
   }
 
-  async makeBorrowIxForAccount(
+  async makeBorrowIx(
     program: MarginfiProgram,
     banks: Map<string, Bank>,
     amount: Amount,
@@ -584,7 +585,7 @@ class MarginfiAccount {
     };
   }
 
-  async makeWithdrawEmissionsIxForAccount(
+  async makeWithdrawEmissionsIx(
     program: MarginfiProgram,
     banks: Map<string, Bank>,
     bankAddress: PublicKey
@@ -616,7 +617,7 @@ class MarginfiAccount {
     return { instructions: ixs, keys: [] };
   }
 
-  async makeLendingAccountLiquidateIxForAccount(
+  async makeLendingAccountLiquidateIx(
     liquidateeMarginfiAccount: MarginfiAccount,
     program: MarginfiProgram,
     banks: Map<string, Bank>,
@@ -665,6 +666,21 @@ class MarginfiAccount {
 
   wrapInstructionForWSol(ix: TransactionInstruction, amount: Amount = new BigNumber(0)): TransactionInstruction[] {
     return [...makeWrapSolIxs(this.authority, new BigNumber(amount)), ix, makeUnwrapSolIx(this.authority)];
+  }
+
+  public describe(banks: BankMap, priceInfos: OraclePriceMap): string {
+    const { assets, liabilities } = this.computeHealthComponents(banks, priceInfos, MarginRequirementType.Equity);
+    return `
+- Marginfi account: ${this.address}
+- Total deposits: $${assets.toFixed(6)}
+- Total liabilities: $${liabilities.toFixed(6)}
+- Equity: $${assets.minus(liabilities).toFixed(6)}
+- Health: ${assets.minus(liabilities).div(assets).times(100).toFixed(2)}%
+- Balances:  ${this.activeBalances.map((balance) => {
+      const bank = banks.get(balance.bankPk.toBase58())!;
+      const priceInfo = priceInfos.get(balance.bankPk.toBase58())!;
+      return balance.describe(bank, priceInfo);
+    })}`;
   }
 }
 

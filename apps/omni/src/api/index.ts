@@ -1,8 +1,17 @@
-import { Balance, Bank, MarginfiAccount, MarginRequirementType, PriceBias } from "@mrgnlabs/marginfi-client-v2";
+import {
+  Bank,
+  BankMap,
+  MarginfiAccount,
+  MarginRequirementType,
+  PriceBias,
+  OraclePrice,
+  OraclePriceMap,
+} from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, BankInfo, ExtendedBankInfo, TokenAccount, TokenMetadata, UserPosition } from "~/types";
 import { WSOL_MINT } from "~/config";
 import { floor } from "~/utils";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { Balance } from "@mrgnlabs/marginfi-client-v2/dist/models/balance";
 
 const DEFAULT_ACCOUNT_SUMMARY = {
   balance: 0,
@@ -12,29 +21,33 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   positions: [],
 };
 
-function computeAccountSummary(marginfiAccount: MarginfiAccount): AccountSummary {
-  const equityComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Equity);
+function computeAccountSummary(
+  banks: BankMap,
+  priceInfos: OraclePriceMap,
+  marginfiAccount: MarginfiAccount
+): AccountSummary {
+  const equityComponents = marginfiAccount.computeHealthComponents(banks, priceInfos, MarginRequirementType.Equity);
 
   return {
     balance: equityComponents.assets.minus(equityComponents.liabilities).toNumber(),
     lendingAmount: equityComponents.assets.toNumber(),
     borrowingAmount: equityComponents.liabilities.toNumber(),
-    apy: marginfiAccount.computeNetApy(),
+    apy: marginfiAccount.computeNetApy(banks, priceInfos),
   };
 }
 
-function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata, tokenSymbol: string): BankInfo {
-  const { lendingRate, borrowingRate } = bank.getInterestRates();
-  const totalPoolDeposits = nativeToUi(bank.totalAssets, bank.mintDecimals);
-  const totalPoolBorrows = nativeToUi(bank.totalLiabilities, bank.mintDecimals);
+function makeBankInfo(bank: Bank, priceInfo: OraclePrice, tokenMetadata: TokenMetadata, tokenSymbol: string): BankInfo {
+  const { lendingRate, borrowingRate } = bank.computeInterestRates();
+  const totalPoolDeposits = nativeToUi(bank.getTotalAssetQuantity(), bank.mintDecimals);
+  const totalPoolBorrows = nativeToUi(bank.getTotalLiabilityQuantity(), bank.mintDecimals);
   const liquidity = totalPoolDeposits - totalPoolBorrows;
   const utilizationRate = totalPoolDeposits > 0 ? (totalPoolBorrows / totalPoolDeposits) * 100 : 0;
 
   return {
-    address: bank.publicKey,
+    address: bank.address,
     tokenIcon: tokenMetadata.icon,
     tokenSymbol,
-    tokenPrice: bank.getPrice(PriceBias.None).toNumber(),
+    tokenPrice: bank.getPrice(priceInfo, PriceBias.None).toNumber(),
     tokenMint: bank.mint,
     tokenMintDecimals: bank.mintDecimals,
     lendingRate: lendingRate.toNumber(),
@@ -49,6 +62,7 @@ function makeBankInfo(bank: Bank, tokenMetadata: TokenMetadata, tokenSymbol: str
 
 function makeExtendedBankInfo(
   bankInfo: BankInfo,
+  priceInfo: OraclePrice,
   tokenAccount: TokenAccount,
   nativeSolBalance: number,
   marginfiAccount: any
@@ -58,7 +72,7 @@ function makeExtendedBankInfo(
     balance.bankPk.equals(bankInfo.address)
   );
   const hasActivePosition = !!positionRaw;
-  const position = hasActivePosition ? makeUserPosition(positionRaw, bankInfo) : null;
+  const position = hasActivePosition ? makeUserPosition(positionRaw, bankInfo, priceInfo) : null;
 
   const tokenBalance = tokenAccount.balance;
 
@@ -104,9 +118,9 @@ function makeExtendedBankInfo(
       };
 }
 
-function makeUserPosition(balance: Balance, bankInfo: BankInfo): UserPosition {
-  const amounts = balance.getQuantity(bankInfo.bank);
-  const usdValues = balance.getUsdValue(bankInfo.bank, MarginRequirementType.Equity);
+function makeUserPosition(balance: Balance, bankInfo: BankInfo, priceInfo: OraclePrice): UserPosition {
+  const amounts = balance.computeQuantity(bankInfo.bank);
+  const usdValues = balance.computeUsdValue(bankInfo.bank, priceInfo, MarginRequirementType.Equity);
   const isLending = usdValues.liabilities.isZero();
   return {
     amount: isLending

@@ -27,11 +27,11 @@ import {
   Wallet,
 } from "@mrgnlabs/mrgn-common";
 import { MarginfiGroup } from "./models/group";
-import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, PriceInfo } from ".";
-import { MarginfiAccountProxy } from "./models/account/proxy";
+import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, OraclePrice, MarginfiAccount } from ".";
+import { MarginfiAccountWrapper } from "./models/account/wrapper";
 
 export type BankMap = Map<string, Bank>;
-export type PriceInfoMap = Map<string, PriceInfo>;
+export type OraclePriceMap = Map<string, OraclePrice>;
 
 /**
  * Entrypoint to interact with the marginfi contract.
@@ -39,7 +39,7 @@ export type PriceInfoMap = Map<string, PriceInfo>;
 class MarginfiClient {
   public group: MarginfiGroup;
   public banks: BankMap;
-  public priceInfos: PriceInfoMap;
+  public oraclePrices: OraclePriceMap;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -52,13 +52,13 @@ class MarginfiClient {
     readonly config: MarginfiConfig,
     readonly program: MarginfiProgram,
     readonly wallet: Wallet,
-     group: MarginfiGroup,
-   banks: BankMap,
-     priceInfos: PriceInfoMap,
+    group: MarginfiGroup,
+    banks: BankMap,
+    priceInfos: OraclePriceMap
   ) {
     this.group = group;
     this.banks = banks;
-    this.priceInfos = priceInfos;
+    this.oraclePrices = priceInfos;
   }
 
   /**
@@ -139,7 +139,7 @@ class MarginfiClient {
     program: MarginfiProgram,
     groupAddress: PublicKey,
     commitment?: Commitment
-  ): Promise<{ marginfiGroup: MarginfiGroup; banks: Map<string, Bank>; priceInfos: Map<string, PriceInfo> }> {
+  ): Promise<{ marginfiGroup: MarginfiGroup; banks: Map<string, Bank>; priceInfos: Map<string, OraclePrice> }> {
     // Fetch & shape all accounts of Bank type (~ bank discovery)
     let bankAccountsData = await program.account.bank.all([
       { memcmp: { offset: 8 + 32 + 1, bytes: groupAddress.toBase58() } },
@@ -187,7 +187,7 @@ class MarginfiClient {
     );
     this.group = marginfiGroup;
     this.banks = banks;
-    this.priceInfos = priceInfos;
+    this.oraclePrices = priceInfos;
   }
 
   // --------------------------------------------------------------------------
@@ -246,7 +246,7 @@ class MarginfiClient {
    *
    * @returns MarginfiAccount instances
    */
-  async getMarginfiAccountsForAuthority(authority?: Address): Promise<MarginfiAccountProxy[]> {
+  async getMarginfiAccountsForAuthority(authority?: Address): Promise<MarginfiAccountWrapper[]> {
     const _authority = authority ? translateAddress(authority) : this.provider.wallet.publicKey;
 
     const marginfiAccounts = (
@@ -264,7 +264,7 @@ class MarginfiClient {
           },
         },
       ])
-    ).map((a) => MarginfiAccountProxy.fromAccountParsed(a.publicKey, this, a.account as MarginfiAccountRaw));
+    ).map((a) => MarginfiAccountWrapper.fromAccountParsed(a.publicKey, this, a.account as MarginfiAccountRaw));
 
     marginfiAccounts.sort((accountA, accountB) => {
       const assetsValueA = accountA.computeHealthComponents(MarginRequirementType.Equity).assets;
@@ -312,9 +312,9 @@ class MarginfiClient {
     return [...this.banks.values()].find((bank) => bank.mint.equals(_mint)) ?? null;
   }
 
-  getPriceInfoByBank(bankAddress: Address): PriceInfo | null {
+  getOraclePriceByBank(bankAddress: Address): OraclePrice | null {
     let _bankAddress = translateAddress(bankAddress);
-    return this.priceInfos.get(_bankAddress.toString()) ?? null;
+    return this.oraclePrices.get(_bankAddress.toString()) ?? null;
   }
   // --------------------------------------------------------------------------
   // User actions
@@ -351,7 +351,7 @@ class MarginfiClient {
    *
    * @returns MarginfiAccount instance
    */
-  async createMarginfiAccount(opts?: TransactionOptions): Promise<MarginfiAccountProxy> {
+  async createMarginfiAccount(opts?: TransactionOptions): Promise<MarginfiAccountWrapper> {
     const dbg = require("debug")("mfi:client");
 
     const accountKeypair = Keypair.generate();
@@ -363,8 +363,8 @@ class MarginfiClient {
     dbg("Created Marginfi account %s", sig);
 
     return opts?.dryRun
-      ? Promise.resolve(undefined as unknown as MarginfiAccountProxy)
-      : MarginfiAccountProxy.fetch(accountKeypair.publicKey, this, opts?.commitment);
+      ? Promise.resolve(undefined as unknown as MarginfiAccountWrapper)
+      : MarginfiAccountWrapper.fetch(accountKeypair.publicKey, this, opts?.commitment);
   }
 
   // --------------------------------------------------------------------------

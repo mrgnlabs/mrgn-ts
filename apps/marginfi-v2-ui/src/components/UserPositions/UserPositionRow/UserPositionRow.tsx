@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { TableCell, TableRow } from "@mui/material";
 import { FC, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
@@ -16,7 +16,7 @@ const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 
 interface UserPositionRowProps {
   activeBankInfo: ActiveBankInfo;
-  marginfiAccount?: MarginfiAccount | null;
+  marginfiAccount?: MarginfiAccountWrapper | null;
   reloadPositions: () => Promise<void>;
 }
 
@@ -40,9 +40,9 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
 
     try {
       if (activeBankInfo.position.isLending) {
-        await marginfiAccount.withdraw(0, activeBankInfo.bank, true);
+        await marginfiAccount.withdraw(0, activeBankInfo.bank.address, true);
       } else {
-        await marginfiAccount.repay(0, activeBankInfo.bank, true);
+        await marginfiAccount.repay(0, activeBankInfo.bank.address, true);
       }
       toast.update(CLOSE_BALANCE_TOAST_ID, {
         render: "Closing 👍",
@@ -102,13 +102,13 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       if (activeBankInfo.position.isLending) {
         await marginfiAccount.withdraw(
           withdrawOrRepayAmount,
-          activeBankInfo.bank,
+          activeBankInfo.bank.address,
           isWholePosition(activeBankInfo, withdrawOrRepayAmount)
         );
       } else {
         await marginfiAccount.repay(
           withdrawOrRepayAmount,
-          activeBankInfo.bank,
+          activeBankInfo.bank.address,
           isWholePosition(activeBankInfo, withdrawOrRepayAmount)
         );
       }

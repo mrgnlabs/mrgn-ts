@@ -102,7 +102,9 @@ class LipClient {
     return allCampaigns.map((campaign, i) => {
       const bank = marginfiClient.getBankByPk(campaign.marginfiBankPk);
       if (!bank) throw new Error(`Bank ${campaign.marginfiBankPk} not found for campaign ${campaign.publicKey}`);
-      return new Campaign(bank, campaign);
+      const oraclePrice = marginfiClient.getOraclePriceByBank(campaign.marginfiBankPk);
+      if (!oraclePrice) throw new Error(`Oracle price ${campaign.marginfiBankPk} not found for campaign ${campaign.publicKey}`);
+      return new Campaign(bank, oraclePrice, campaign);
     });
   }
 

@@ -1,2 +1,2 @@
 export * from "./pure"
-export * from "./proxy"
+export * from "./wrapper"

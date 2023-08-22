@@ -17,9 +17,12 @@ class BanksTool extends Tool {
 
   async getBanks() {
     const client = await getClient(this.connection);
-    const banks = client.group.banks;
+    const banks = client.banks;
 
-    const allBanksInformation = [...banks.values()].map((bank) => bank.describe());
+    const allBanksInformation = [...banks.values()].map((bank) => {
+      const priceInfo = client.getOraclePriceByBank(bank.address)!;
+      return bank.describe(priceInfo)
+    });
 
     return JSON.stringify(allBanksInformation);
   }

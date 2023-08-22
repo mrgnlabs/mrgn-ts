@@ -3,7 +3,7 @@ import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import BN from "bn.js";
 import { uiToNative } from "@mrgnlabs/mrgn-common";
-import { useLipClient, useMarginfiClient } from "~/context";
+import { useLipClient } from "~/context";
 import { ProAction } from "~/pages/earn";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { groupedNumberFormatterDyn, percentFormatterDyn } from "~/utils/formatters";
@@ -14,10 +14,11 @@ import {
   createSyncNativeInstruction,
   NATIVE_MINT,
 } from "@mrgnlabs/mrgn-common/src/spl";
-import { MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
+import { MenuItem, Select, TextField } from "@mui/material";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import Image from "next/image";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
+import { useStore } from "~/store";
 
 interface CampaignWizardInputBox {
   value: number;
@@ -85,12 +86,12 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
   const [campaignBank, setCampaignBank] = useState<Bank | null>(null);
 
   const wallet = useWallet();
-  const { mfiClient } = useMarginfiClient();
+  const [mfiClient] = useStore(state => [state.marginfiClient]);
   const { lipClient, reload: reloadLipClient } = useLipClient();
 
   const availableBanks = useMemo(() => {
     if (!mfiClient) return [];
-    return [...mfiClient.group.banks.values()];
+    return [...mfiClient.banks.values()];
   }, [mfiClient]);
 
   useEffect(() => {
@@ -161,7 +162,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           campaign: campaignKeypair.publicKey,
           admin: lipClient.wallet.publicKey,
           fundingAccount: userTokenAtaPk,
-          marginfiBank: campaignBank.publicKey,
+          marginfiBank: campaignBank.address,
           assetMint: campaignBank.mint,
         })
         .instruction()
@@ -239,27 +240,27 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           id="campaign-bank-select"
           variant="outlined"
           classes={{ standard: "test-white" }}
-          value={campaignBank.publicKey.toBase58()}
-          onChange={(event: SelectChangeEvent<string>) => {
-            const bank = availableBanks.find((b) => b.publicKey.toBase58() === event.target.value);
+          value={campaignBank.address.toBase58()}
+          onChange={event => {
+            const bank = availableBanks.find((b) => b.address.toBase58() === event.target.value);
             if (!bank) throw new Error("Bank not found");
             setCampaignBank(bank);
           }}
         >
           {availableBanks.map((b) => {
-            let assetIcon = assetIcons[b.publicKey.toBase58()];
+            let assetIcon = assetIcons[b.address.toBase58()];
             if (!assetIcon) assetIcon = assetIcons["CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"];
 
             return (
-              <MenuItem key={b.publicKey.toBase58()} value={b.publicKey.toBase58()}>
+              <MenuItem key={b.address.toBase58()} value={b.address.toBase58()}>
                 <div className="flex gap-4 items-center">
                   <Image
                     src={assetIcon.icon}
-                    alt={b.publicKey.toBase58()}
+                    alt={b.address.toBase58()}
                     height={assetIcon.size}
                     width={assetIcon.size}
                   />
-                  <div>{b.publicKey.toBase58()}</div>
+                  <div>{b.address.toBase58()}</div>
                 </div>
               </MenuItem>
             );
