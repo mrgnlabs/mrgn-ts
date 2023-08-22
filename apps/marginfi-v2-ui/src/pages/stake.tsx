@@ -9,7 +9,7 @@ import { PublicKey, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import styles from "~/components/AccountSummary/style.module.css";
 import { Typography } from "@mui/material";
 import { numeralFormatter } from "~/utils/formatters";
-import { depositSol } from '@solana/spl-stake-pool';
+import { depositSol, stakePoolInfo } from '@solana/spl-stake-pool';
 import { useProgram } from '~/context';
 
 const LST_POOL = new PublicKey("ADD");
@@ -138,16 +138,20 @@ const Pro = () => {
   const wallet = useWallet();
   const { connection } = useConnection();
   const [amount, setAmount] = useState(0);
-  const [stakeTVL, setStakeTVL] = useState(null);
+  const [stakeTVL, setStakeTVL] = useState<number>(0);
   const { mfiClient } = useProgram();
 
+  // @TODO: Update more frequently than just on load?
   useEffect(() => {
     const fetchTVL = async () => {
-      const account = await connection.getAccountInfo(new PublicKey('Jito4APyf642JPZPx3hGc6WWJ8zPKtRbRs4P815Awbb'));
-      if (account) {
-        // @TODO: Fix
-        setStakeTVL(Number(account.data.readBigUint64LE(258)) / 1e9);
-      }
+      let { details } = await stakePoolInfo(
+        connection,
+        LST_POOL
+      )
+
+      setStakeTVL(
+        details.totalLamports.toNumber() * LAMPORTS_PER_SOL
+      )
     };
 
     fetchTVL();
@@ -206,7 +210,8 @@ const Pro = () => {
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl">
                 {/* TODO: FIX THE WIDTH WHEN IT'S NOT LOADED? */}
-                {stakeTVL ? (
+                {/* TODO: PRICE IN USD */}
+                {stakeTVL > 0 ? (
                   `$${numeralFormatter(stakeTVL)}`
                 ) : (
                   <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
