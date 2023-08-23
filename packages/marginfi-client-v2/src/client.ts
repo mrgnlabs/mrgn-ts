@@ -52,10 +52,10 @@ class MarginfiClient {
     readonly config: MarginfiConfig,
     readonly program: MarginfiProgram,
     readonly wallet: Wallet,
+    readonly isReadOnly: boolean,
     group: MarginfiGroup,
     banks: BankMap,
     priceInfos: OraclePriceMap,
-    private readonly isReadOnly: boolean
   ) {
     this.group = group;
     this.banks = banks;
@@ -97,7 +97,7 @@ class MarginfiClient {
 
     const { marginfiGroup, banks, priceInfos } = await this.fetchGroupData(program, config.groupPk, opts?.commitment);
 
-    return new MarginfiClient(config, program, wallet, marginfiGroup, banks, priceInfos, readOnly);
+    return new MarginfiClient(config, program, wallet, readOnly, marginfiGroup, banks, priceInfos);
   }
 
   static async fromEnv(

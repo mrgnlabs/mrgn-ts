@@ -34,11 +34,7 @@ interface MrgnlendSlice {
   accountSummary: AccountSummary;
 
   // Actions
-  reloadMrgnlendState: (args?: {
-    connection?: Connection;
-    wallet?: Wallet;
-    isOverride?: boolean;
-  }) => Promise<void>;
+  reloadMrgnlendState: (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => Promise<void>;
 }
 
 const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = (set, get) => ({
@@ -59,11 +55,7 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
 
   // Actions
-  reloadMrgnlendState: async (args?: {
-    connection?: Connection;
-    wallet?: Wallet;
-    isOverride?: boolean;
-  }) => {
+  reloadMrgnlendState: async (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => {
     console.log("called", { connection: !!args?.connection, anchorWallet: !!args?.wallet });
 
     const connection = args?.connection ?? get().marginfiClient?.provider.connection;
@@ -71,8 +63,9 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
 
     const wallet = args?.wallet ?? get().marginfiClient?.provider?.wallet;
 
+    const isReadOnly = args?.isOverride !== undefined ? args.isOverride : get().marginfiClient?.isReadOnly ?? false;
     const [marginfiClient, bankMetadataMap, tokenMetadataMap] = await Promise.all([
-      MarginfiClient.fetch(config.mfiConfig, wallet ?? ({} as any), connection, undefined, args?.isOverride),
+         MarginfiClient.fetch(config.mfiConfig, wallet ?? ({} as any), connection, undefined, isReadOnly),
       loadBankMetadatas(),
       loadTokenMetadatas(),
     ]);
