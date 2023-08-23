@@ -5,6 +5,7 @@ import { PageHeader } from "~/components/PageHeader";
 import { useStore } from "~/store";
 import { useWalletWithOverride } from "~/components/useWalletWithOverride";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import config from "~/config";
 
 const Home = () => {
   const walletContext = useWallet();
@@ -16,7 +17,7 @@ const Home = () => {
   ]);
 
   useEffect(() => {
-    reloadMrgnlendState({ connection, wallet, isOverride }).catch(console.error);
+    reloadMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
     const id = setInterval(() => reloadMrgnlendState().catch(console.error), 30_000);
     return () => clearInterval(id);
   }, [wallet, connection, reloadMrgnlendState, isOverride]);

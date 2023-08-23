@@ -1,5 +1,5 @@
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { Wallet, nativeToUi } from "@mrgnlabs/mrgn-common";
+import { MarginfiAccountWrapper, MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
+import { Wallet, getValueInsensitive, nativeToUi, loadBankMetadatas, loadTokenMetadatas, BankMetadataMap, TokenMetadataMap } from "@mrgnlabs/mrgn-common";
 import { Connection } from "@solana/web3.js";
 import { StateCreator } from "zustand";
 import {
@@ -8,11 +8,9 @@ import {
   computeAccountSummary,
   fetchTokenAccounts,
   makeExtendedBankInfo,
-} from "~/api";
-import { getPointsSummary } from "~/api/points";
-import config from "~/config";
-import { AccountSummary, BankMetadataMap, ExtendedBankInfo, TokenAccountMap, TokenMetadataMap } from "~/types";
-import { findMetadataInsensitive, loadBankMetadatas, loadTokenMetadatas } from "~/utils";
+} from "../lib";
+import { getPointsSummary } from "../lib/points";
+import { AccountSummary, ExtendedBankInfo, TokenAccountMap } from "../types";
 
 interface ProtocolStats {
   deposits: number;
@@ -34,7 +32,7 @@ interface MrgnlendSlice {
   accountSummary: AccountSummary;
 
   // Actions
-  reloadMrgnlendState: (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => Promise<void>;
+  reloadMrgnlendState: (args?: { marginfiConfig?: MarginfiConfig, connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => Promise<void>;
 }
 
 const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = (set, get) => ({
@@ -55,17 +53,18 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
 
   // Actions
-  reloadMrgnlendState: async (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => {
-    console.log("called", { connection: !!args?.connection, anchorWallet: !!args?.wallet });
-
+  reloadMrgnlendState: async (args?: { marginfiConfig?: MarginfiConfig, connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => {
     const connection = args?.connection ?? get().marginfiClient?.provider.connection;
     if (!connection) throw new Error("Connection not found");
 
     const wallet = args?.wallet ?? get().marginfiClient?.provider?.wallet;
 
+    const marginfiConfig = args?.marginfiConfig ?? get().marginfiClient?.config;
+    if (!marginfiConfig) throw new Error("Marginfi config must be provided at least once");
+
     const isReadOnly = args?.isOverride !== undefined ? args.isOverride : get().marginfiClient?.isReadOnly ?? false;
     const [marginfiClient, bankMetadataMap, tokenMetadataMap] = await Promise.all([
-         MarginfiClient.fetch(config.mfiConfig, wallet ?? ({} as any), connection, undefined, isReadOnly),
+         MarginfiClient.fetch(marginfiConfig, wallet ?? ({} as any), connection, undefined, isReadOnly),
       loadBankMetadatas(),
       loadTokenMetadatas(),
     ]);
@@ -97,7 +96,7 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
       const bankMetadata = bankMetadataMap[bank.address.toBase58()];
       if (bankMetadata === undefined) throw new Error(`Bank metadata not found for ${bank.address.toBase58()}`);
 
-      const tokenMetadata = findMetadataInsensitive(tokenMetadataMap, bankMetadata.tokenSymbol);
+      const tokenMetadata = getValueInsensitive(tokenMetadataMap, bankMetadata.tokenSymbol);
       if (!tokenMetadata) throw new Error(`Token metadata not found for ${bankMetadata.tokenSymbol}`);
 
       const oraclePrice = marginfiClient.getOraclePriceByBank(bank.address);

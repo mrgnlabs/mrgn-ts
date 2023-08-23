@@ -1,8 +1,7 @@
 import { User, signOut } from "firebase/auth";
 import { StateCreator } from "zustand";
-import { firebaseApi } from "~/api";
-import { firebaseAuth } from "~/api/firebase";
-import { DEFAULT_USER_POINTS_DATA, UserPointsData, getPointsDataForUser } from "~/api/points";
+import { firebaseApi } from "../lib";
+import { DEFAULT_USER_POINTS_DATA, UserPointsData, getPointsDataForUser } from "../lib/points";
 
 type ZoomLevel = 1 | 2 | 3;
 
@@ -55,7 +54,7 @@ const createUserProfileSlice: StateCreator<UserProfileSlice, [], [], UserProfile
     const disconnected = !isConnected && currentFirebaseUser;
     const mismatchingId = walletAddress && currentFirebaseUser?.uid && walletAddress !== currentFirebaseUser.uid;
     if (disconnected || mismatchingId) {
-      await signOut(firebaseAuth);
+      await signOut(firebaseApi.firebaseAuth);
       set(() => ({ currentFirebaseUser: null }));
     }
   },

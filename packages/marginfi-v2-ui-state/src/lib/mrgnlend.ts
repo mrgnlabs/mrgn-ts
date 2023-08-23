@@ -5,7 +5,6 @@ import {
   MarginRequirementType,
   OraclePrice,
   PriceBias,
-  OraclePriceMap,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   AccountSummary,
@@ -14,19 +13,17 @@ import {
   ExtendedBankInfo,
   TokenAccount,
   TokenAccountMap,
-  TokenMetadata,
   TokenPrice,
   TokenPriceMap,
-  UserPosition,
-} from "~/types";
-import { WSOL_MINT } from "~/config";
-import { floor } from "~/utils";
-import { MintLayout, getAssociatedTokenAddressSync, getMint, nativeToUi, unpackAccount } from "@mrgnlabs/mrgn-common";
+  UserPosition
+} from "../types";
+import { MintLayout, getAssociatedTokenAddressSync, nativeToUi, unpackAccount, floor, WSOL_MINT, TokenMetadata } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as firebaseApi from "./firebase";
 import BN from "bn.js";
 
+const FEE_MARGIN = 0.01;
 const VOLATILITY_FACTOR = 0.95;
 
 const DEFAULT_ACCOUNT_SUMMARY = {
@@ -216,9 +213,10 @@ function makeExtendedBankInfo(
 
   // Calculate user-specific info relevant regardless of whether they have an active position in this bank
   const isWrappedSol = bankInfo.tokenMint.equals(WSOL_MINT);
+
   const maxDeposit = floor(
     isWrappedSol
-      ? Math.max(userData.tokenAccount.balance + userData.nativeSolBalance, 0)
+      ? Math.max(userData.tokenAccount.balance + userData.nativeSolBalance - FEE_MARGIN, 0)
       : userData.tokenAccount.balance,
     bankInfo.tokenMintDecimals
   );

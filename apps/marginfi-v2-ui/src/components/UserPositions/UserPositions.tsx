@@ -5,9 +5,9 @@ import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
-import { ActiveBankInfo } from "~/types";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useStore } from "~/store";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -140,7 +140,7 @@ const UserPositions: FC = () => {
                     key={index}
                     activeBankInfo={bankInfo}
                     marginfiAccount={selectedAccount}
-                    reloadPositions={() => reloadMrgnlendState(connection, wallet)}
+                    reloadPositions={() => reloadMrgnlendState({ connection, wallet })}
                   />
                 ))}
               </TableBody>
@@ -246,7 +246,7 @@ const UserPositions: FC = () => {
                       key={index}
                       activeBankInfo={bankInfo}
                       marginfiAccount={selectedAccount}
-                      reloadPositions={() => reloadMrgnlendState(connection, wallet)}
+                      reloadPositions={() => reloadMrgnlendState({ connection, wallet })}
                     />
                   ))}
                 </TableBody>

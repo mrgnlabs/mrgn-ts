@@ -1,7 +1,7 @@
 {
-  "name": "@mrgnlabs/mrgn-common",
-  "version": "1.0.1",
-  "private": false,
+  "name": "@mrgnlabs/marginfi-v2-ui-state",
+  "version": "0.0.1",
+  "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
@@ -18,9 +18,11 @@
     "@solana/wallet-adapter-base": "^0.9.20",
     "@solana/web3.js": "^1.71.0",
     "bignumber.js": "^9.1.1",
+    "bs58": "^5.0.0",
     "decimal.js": "^10.4.3",
-    "numeral": "^2.0.6",
-    "superstruct": "^1.0.3"
+    "superstruct": "^1.0.3",
+    "uuid": "^9.0.0",
+    "zustand": "^4.4.1"
   },
   "devDependencies": {
     "@mrgnlabs/eslint-config-custom": "*",

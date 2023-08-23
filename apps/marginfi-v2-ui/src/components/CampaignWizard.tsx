@@ -2,23 +2,25 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import BN from "bn.js";
-import { uiToNative } from "@mrgnlabs/mrgn-common";
-import { useLipClient } from "~/context";
-import { ProAction } from "~/pages/earn";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { groupedNumberFormatterDyn, percentFormatterDyn } from "~/utils/formatters";
-import { calculateInterestFromApy, computeGuaranteedApy } from "@mrgnlabs/lip-client/src/utils";
-import { floor } from "~/utils";
 import {
+  uiToNative,
+  floor,
+  groupedNumberFormatterDyn,
+  percentFormatterDyn,
+  calculateInterestFromApy,
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
   NATIVE_MINT,
-} from "@mrgnlabs/mrgn-common/src/spl";
+} from "@mrgnlabs/mrgn-common";
+import { useLipClient } from "~/context";
+import { EarnAction } from "~/pages/earn";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { MenuItem, Select, TextField } from "@mui/material";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import Image from "next/image";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import { useStore } from "~/store";
+import { computeGuaranteedApy } from "@mrgnlabs/lip-client";
 
 interface CampaignWizardInputBox {
   value: number;
@@ -355,12 +357,12 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
         </div>
       </div>
       <div className="flex justify-center my-8">
-        <ProAction
+        <EarnAction
           onClick={createCampaign}
           disabled={mfiClient === null || !lipClient || !campaignBank || maxRewards === 0}
         >
           Create campaign
-        </ProAction>
+        </EarnAction>
       </div>
     </div>
   );

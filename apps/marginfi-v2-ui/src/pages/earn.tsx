@@ -1,9 +1,8 @@
 import React, { FC, MouseEventHandler, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
 import { useLipClient } from "~/context";
 import { Button, ButtonProps, Card, CircularProgress, InputAdornment, LinearProgress, TextField } from "@mui/material";
-import { groupedNumberFormatterDyn, percentFormatterDyn, usdFormatter, usdFormatterDyn } from "~/utils/formatters";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import dynamic from "next/dynamic";
 import Radio from "@mui/material/Radio";
@@ -13,9 +12,7 @@ import FormControl from "@mui/material/FormControl";
 import Image from "next/image";
 import LipAccount, { Campaign, Deposit } from "@mrgnlabs/lip-client/src/account";
 import config from "~/config";
-import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { floor } from "~/utils";
-import { BankMetadataMap } from "~/types";
+import { BankMetadataMap, floor, groupedNumberFormatterDyn, percentFormatterDyn, shortenAddress, usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { Bank, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { Countdown } from "~/components/Countdown";
 import { toast } from "react-toastify";
@@ -23,253 +20,7 @@ import BigNumber from "bignumber.js";
 import { useStore } from "~/store";
 import { useWalletWithOverride } from "~/components/useWalletWithOverride";
 
-const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (
-  <>
-    {marks.map((mark, index) => (
-      <div key={index} className="flex flex-col">
-        <div
-          key={index}
-          style={{
-            left: `${mark.value}%`,
-            position: "absolute",
-            width: 20,
-            height: 20,
-            borderRadius: "50%",
-            backgroundColor: `${mark.color}`,
-            top: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-          className="flex justify-center items-center"
-        >
-          <div
-            className="mt-12 text-xs text-[#484848]"
-            style={{
-              letterSpacing: "4px",
-            }}
-          >
-            {mark.label}
-          </div>
-        </div>
-      </div>
-    ))}
-  </>
-);
-
-// ================================
-// ACTION BUTTON
-// ================================
-
-const WalletMultiButtonDynamic = dynamic(
-  async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
-  { ssr: false }
-);
-
-interface ProActionProps extends ButtonProps {
-  children: ReactNode;
-  spinning?: boolean;
-}
-
-export const ProAction: FC<ProActionProps> = ({ children, spinning, disabled, ...otherProps }) => {
-  const walletContext = useWallet();
-
-  return walletContext.connected ? (
-    <Button
-      className={`bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] ${
-        disabled && "cursor-not-allowed"
-      }`}
-      style={{
-        backgroundColor: disabled || !walletContext.connected ? "gray" : "rgb(227, 227, 227)",
-        color: "black",
-        fontFamily: "Aeonik Pro",
-        zIndex: 10,
-      }}
-      {...otherProps}
-      disabled={disabled || !walletContext.connected}
-    >
-      {spinning ? <CircularProgress style={{ color: "#3CAB5F", width: "20px", height: "20px" }} /> : children}
-    </Button>
-  ) : (
-    <WalletMultiButtonDynamic
-      className="bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] flex justify-center items-center"
-      startIcon={undefined}
-    >
-      Connect
-    </WalletMultiButtonDynamic>
-  );
-};
-
-// ================================
-// ACTION BUTTON
-// ================================
-
-// ================================
-// INPUT BOX
-// ================================
-
-interface ProInputBox {
-  value: number;
-  setValue: (value: number) => void;
-  loadingSafetyCheck: () => void;
-  maxValue?: number;
-  maxDecimals?: number;
-  disabled?: boolean;
-}
-
-export const ProInputBox: FC<ProInputBox> = ({
-  value,
-  setValue,
-  loadingSafetyCheck,
-  maxValue,
-  maxDecimals,
-  disabled,
-}) => {
-  const onChange = useCallback(
-    (event: NumberFormatValues) => {
-      const updatedAmountStr = event.value;
-      if (updatedAmountStr !== "" && !/^\d*\.?\d*$/.test(updatedAmountStr)) return;
-
-      const updatedAmount = Number(updatedAmountStr);
-      if (maxValue !== undefined && updatedAmount > maxValue) {
-        loadingSafetyCheck();
-        setValue(maxValue);
-        return;
-      }
-
-      loadingSafetyCheck();
-      setValue(updatedAmount);
-    },
-    [maxValue, setValue, loadingSafetyCheck]
-  );
-
-  return (
-    // TODO: re-rendering after initial amount capping is messed up and lets anything you type through
-    <NumericFormat
-      value={value}
-      placeholder="0"
-      allowNegative={false}
-      decimalScale={maxDecimals}
-      disabled={disabled}
-      onValueChange={onChange}
-      thousandSeparator=","
-      customInput={TextField}
-      size="small"
-      max={maxValue}
-      InputProps={{
-        // @todo width is hacky here
-        className:
-          "font-aeonik min-w-[360px] h-12 px-0 bg-[#1C2125] text-[#e1e1e1] text-sm font-light rounded-lg self-center",
-        endAdornment: (
-          <MaxInputAdornment
-            onClick={() => {
-              if (maxValue !== undefined) {
-                setValue(maxValue);
-              }
-            }}
-          />
-        ),
-      }}
-    />
-  );
-};
-
-export const MaxInputAdornment: FC<{
-  onClick: MouseEventHandler<HTMLDivElement>;
-  disabled?: boolean;
-}> = ({ onClick, disabled }) => (
-  <InputAdornment position="end" classes={{ root: "max-w-[40px] h-full" }}>
-    <div
-      className={`font-aeonik p-0 pr-4 text-[#868E95] text-sm lowercase h-9 font-light flex justify-center items-center hover:bg-transparent ${
-        disabled ? "cursor-default" : "cursor-pointer"
-      }`}
-      onClick={onClick}
-    >
-      max
-    </div>
-  </InputAdornment>
-);
-
-// ================================
-// INPUT BOX
-// ================================
-
-// ================================
-// ASSET SELECTION
-// ================================
-
-interface WhitelistedCampaignWithMeta {
-  campaign: Campaign;
-  meta: {
-    icon: string;
-    size: number;
-  };
-}
-
-interface AssetSelectionProps {
-  setSelectedCampaign: (campaign: WhitelistedCampaignWithMeta) => void;
-  whitelistedCampaigns: WhitelistedCampaignWithMeta[];
-  bankMetadataMap?: BankMetadataMap;
-}
-
-const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSelectedCampaign, bankMetadataMap }) => {
-  if (whitelistedCampaigns.length === 0) return null;
-  const defaultCampaign = whitelistedCampaigns[0];
-
-  return (
-    <FormControl className="min-w-[360px] w-[360px]">
-      <RadioGroup
-        defaultValue={defaultCampaign.campaign.publicKey.toBase58()}
-        className="flex flex-col justify-center items-center gap-2"
-        onChange={(event) => {
-          const campaign = whitelistedCampaigns.find((b) => b.campaign.publicKey.toBase58() === event.target.value);
-          if (!campaign) throw new Error("Campaign not found");
-          setSelectedCampaign(campaign);
-        }}
-      >
-        {whitelistedCampaigns.map(({ campaign, meta }) => {
-          return (
-            <FormControlLabel
-              key={campaign.publicKey.toBase58()}
-              value={campaign.publicKey.toBase58()}
-              control={
-                <Radio
-                  className="bg-[#1E1E1E] mr-2"
-                  sx={{
-                    color: "#1E1E1E",
-                    "&.Mui-checked": {
-                      color: "#3CAB5F",
-                    },
-                  }}
-                />
-              }
-              label={
-                <div className="w-[295px] flex justify-between items-center">
-                  <div>{getTokenSymbol(campaign.bank, bankMetadataMap || {})}</div>
-                  <div className="flex gap-4 justify-center items-center">
-                    <div
-                      className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
-                    >
-                      Min. APY: {percentFormatterDyn.format(campaign.computeGuaranteedApyForCampaign())}
-                    </div>
-                    <div className="ml-[2px] w-[40px]">
-                      <Image src={meta.icon} alt={campaign.bank.mint.toBase58()} height={meta.size} width={meta.size} />
-                    </div>
-                  </div>
-                </div>
-              }
-              className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
-              style={{ border: "solid #1C2125 1px" }}
-            />
-          );
-        })}
-      </RadioGroup>
-    </FormControl>
-  );
-};
-// ================================
-// ASSET SELECTION
-// ================================
-
-const Pro = () => {
+const Earn = () => {
   const walletContext = useWallet();
   const {wallet, isOverride} = useWalletWithOverride();
   const { connection } = useConnection();
@@ -324,7 +75,7 @@ const Pro = () => {
   ];
 
   useEffect(() => {
-    reloadMrgnlendState({connection, wallet, isOverride});
+    reloadMrgnlendState({marginfiConfig: config.mfiConfig, connection, wallet, isOverride});
     const id = setInterval(reloadMrgnlendState, 60_000);
     return () => clearInterval(id);
   }, [wallet, connection, reloadMrgnlendState, isOverride]);
@@ -497,7 +248,7 @@ const Pro = () => {
           </div>
 
           <div className="flex justify-center">
-            <ProInputBox
+            <EarnInputBox
               value={amount}
               setValue={setAmount}
               maxValue={maxDepositAmount}
@@ -512,13 +263,13 @@ const Pro = () => {
               // You can only deposit right now.
               // All funds will be locked up for 6 months, each from the date of its *own* deposit.
             }
-            <ProAction
+            <EarnAction
               onClick={depositAction}
               spinning={!initialFetchDone || reloading}
               disabled={!initialFetchDone || reloading}
             >
               Deposit
-            </ProAction>
+            </EarnAction>
           </div>
         </div>
       </div>
@@ -542,16 +293,6 @@ const Pro = () => {
     </>
   );
 };
-
-function getTokenSymbol(bank: Bank, bankMetadataMap: BankMetadataMap): string {
-  const bankMetadata = bankMetadataMap[bank.address.toBase58()];
-  if (!bankMetadata) {
-    console.log("Bank metadata not found for %s", bank.address.toBase58());
-    return shortenAddress(bank.mint);
-  }
-
-  return bankMetadata.tokenSymbol;
-}
 
 interface DepositTileProps {
   deposit: Deposit;
@@ -656,4 +397,249 @@ const DepositTile: FC<DepositTileProps> = ({ deposit, closeDepositCb, bankMetada
   );
 };
 
-export default Pro;
+const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (
+  <>
+    {marks.map((mark, index) => (
+      <div key={index} className="flex flex-col">
+        <div
+          key={index}
+          style={{
+            left: `${mark.value}%`,
+            position: "absolute",
+            width: 20,
+            height: 20,
+            borderRadius: "50%",
+            backgroundColor: `${mark.color}`,
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+          className="flex justify-center items-center"
+        >
+          <div
+            className="mt-12 text-xs text-[#484848]"
+            style={{
+              letterSpacing: "4px",
+            }}
+          >
+            {mark.label}
+          </div>
+        </div>
+      </div>
+    ))}
+  </>
+);
+
+// ================================
+// ASSET SELECTION
+// ================================
+
+interface WhitelistedCampaignWithMeta {
+  campaign: Campaign;
+  meta: {
+    icon: string;
+    size: number;
+  };
+}
+
+interface AssetSelectionProps {
+  setSelectedCampaign: (campaign: WhitelistedCampaignWithMeta) => void;
+  whitelistedCampaigns: WhitelistedCampaignWithMeta[];
+  bankMetadataMap?: BankMetadataMap;
+}
+
+const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSelectedCampaign, bankMetadataMap }) => {
+  if (whitelistedCampaigns.length === 0) return null;
+  const defaultCampaign = whitelistedCampaigns[0];
+
+  return (
+    <FormControl className="min-w-[360px] w-[360px]">
+      <RadioGroup
+        defaultValue={defaultCampaign.campaign.publicKey.toBase58()}
+        className="flex flex-col justify-center items-center gap-2"
+        onChange={(event) => {
+          const campaign = whitelistedCampaigns.find((b) => b.campaign.publicKey.toBase58() === event.target.value);
+          if (!campaign) throw new Error("Campaign not found");
+          setSelectedCampaign(campaign);
+        }}
+      >
+        {whitelistedCampaigns.map(({ campaign, meta }) => {
+          return (
+            <FormControlLabel
+              key={campaign.publicKey.toBase58()}
+              value={campaign.publicKey.toBase58()}
+              control={
+                <Radio
+                  className="bg-[#1E1E1E] mr-2"
+                  sx={{
+                    color: "#1E1E1E",
+                    "&.Mui-checked": {
+                      color: "#3CAB5F",
+                    },
+                  }}
+                />
+              }
+              label={
+                <div className="w-[295px] flex justify-between items-center">
+                  <div>{getTokenSymbol(campaign.bank, bankMetadataMap || {})}</div>
+                  <div className="flex gap-4 justify-center items-center">
+                    <div
+                      className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
+                    >
+                      Min. APY: {percentFormatterDyn.format(campaign.computeGuaranteedApyForCampaign())}
+                    </div>
+                    <div className="ml-[2px] w-[40px]">
+                      <Image src={meta.icon} alt={campaign.bank.mint.toBase58()} height={meta.size} width={meta.size} />
+                    </div>
+                  </div>
+                </div>
+              }
+              className="w-full bg-[#000] ml-0 mr-0 rounded-[100px] p-1 h-12"
+              style={{ border: "solid #1C2125 1px" }}
+            />
+          );
+        })}
+      </RadioGroup>
+    </FormControl>
+  );
+};
+
+// ================================
+// INPUT BOX
+// ================================
+
+interface EarnInputBox {
+  value: number;
+  setValue: (value: number) => void;
+  loadingSafetyCheck: () => void;
+  maxValue?: number;
+  maxDecimals?: number;
+  disabled?: boolean;
+}
+
+export const EarnInputBox: FC<EarnInputBox> = ({
+  value,
+  setValue,
+  loadingSafetyCheck,
+  maxValue,
+  maxDecimals,
+  disabled,
+}) => {
+  const onChange = useCallback(
+    (event: NumberFormatValues) => {
+      const updatedAmountStr = event.value;
+      if (updatedAmountStr !== "" && !/^\d*\.?\d*$/.test(updatedAmountStr)) return;
+
+      const updatedAmount = Number(updatedAmountStr);
+      if (maxValue !== undefined && updatedAmount > maxValue) {
+        loadingSafetyCheck();
+        setValue(maxValue);
+        return;
+      }
+
+      loadingSafetyCheck();
+      setValue(updatedAmount);
+    },
+    [maxValue, setValue, loadingSafetyCheck]
+  );
+
+  return (
+    // TODO: re-rendering after initial amount capping is messed up and lets anything you type through
+    <NumericFormat
+      value={value}
+      placeholder="0"
+      allowNegative={false}
+      decimalScale={maxDecimals}
+      disabled={disabled}
+      onValueChange={onChange}
+      thousandSeparator=","
+      customInput={TextField}
+      size="small"
+      max={maxValue}
+      InputProps={{
+        // @todo width is hacky here
+        className:
+          "font-aeonik min-w-[360px] h-12 px-0 bg-[#1C2125] text-[#e1e1e1] text-sm font-light rounded-lg self-center",
+        endAdornment: (
+          <MaxInputAdornment
+            onClick={() => {
+              if (maxValue !== undefined) {
+                setValue(maxValue);
+              }
+            }}
+          />
+        ),
+      }}
+    />
+  );
+};
+
+export const MaxInputAdornment: FC<{
+  onClick: MouseEventHandler<HTMLDivElement>;
+  disabled?: boolean;
+}> = ({ onClick, disabled }) => (
+  <InputAdornment position="end" classes={{ root: "max-w-[40px] h-full" }}>
+    <div
+      className={`font-aeonik p-0 pr-4 text-[#868E95] text-sm lowercase h-9 font-light flex justify-center items-center hover:bg-transparent ${
+        disabled ? "cursor-default" : "cursor-pointer"
+      }`}
+      onClick={onClick}
+    >
+      max
+    </div>
+  </InputAdornment>
+);
+
+// ================================
+// ACTION BUTTON
+// ================================
+
+const WalletMultiButtonDynamic = dynamic(
+  async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
+  { ssr: false }
+);
+
+interface EarnActionProps extends ButtonProps {
+  children: ReactNode;
+  spinning?: boolean;
+}
+
+export const EarnAction: FC<EarnActionProps> = ({ children, spinning, disabled, ...otherProps }) => {
+  const walletContext = useWallet();
+
+  return walletContext.connected ? (
+    <Button
+      className={`bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] ${
+        disabled && "cursor-not-allowed"
+      }`}
+      style={{
+        backgroundColor: disabled || !walletContext.connected ? "gray" : "rgb(227, 227, 227)",
+        color: "black",
+        fontFamily: "Aeonik Pro",
+        zIndex: 10,
+      }}
+      {...otherProps}
+      disabled={disabled || !walletContext.connected}
+    >
+      {spinning ? <CircularProgress style={{ color: "#3CAB5F", width: "20px", height: "20px" }} /> : children}
+    </Button>
+  ) : (
+    <WalletMultiButtonDynamic
+      className="bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] flex justify-center items-center"
+      startIcon={undefined}
+    >
+      Connect
+    </WalletMultiButtonDynamic>
+  );
+};
+
+function getTokenSymbol(bank: Bank, bankMetadataMap: BankMetadataMap): string {
+  const bankMetadata = bankMetadataMap[bank.address.toBase58()];
+  if (!bankMetadata) {
+    console.log("Bank metadata not found for %s", bank.address.toBase58());
+    return shortenAddress(bank.mint);
+  }
+
+  return bankMetadata.tokenSymbol;
+}
+
+export default Earn;

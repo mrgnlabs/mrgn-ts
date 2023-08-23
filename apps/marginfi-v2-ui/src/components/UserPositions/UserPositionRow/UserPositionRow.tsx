@@ -3,12 +3,11 @@ import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { TableCell, TableRow } from "@mui/material";
 import { FC, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
 import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
-import { ActiveBankInfo } from "~/types";
-import { uiToNative } from "@mrgnlabs/mrgn-common";
+import { groupedNumberFormatter, uiToNative, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { isWholePosition } from "~/utils";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const WITHDRAW_OR_REPAY_TOAST_ID = "withdraw-or-repay";

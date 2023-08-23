@@ -4,7 +4,6 @@ import Image from "next/image";
 import AirdropZone from "./AirdropZone";
 import { WalletButton } from "./WalletButton";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { groupedNumberFormatterDyn, numeralFormatter } from "~/utils/formatters";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useStore } from "~/store";
 
@@ -13,6 +12,7 @@ import { useRouter } from "next/router";
 import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
 import { Badge } from "@mui/material";
 import { useFirebaseAccount } from "../useFirebaseAccount";
+import { groupedNumberFormatterDyn, numeralFormatter } from "@mrgnlabs/mrgn-common";
 
 // @todo implement second pretty navbar row
 const Navbar: FC = () => {

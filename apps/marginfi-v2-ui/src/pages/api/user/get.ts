@@ -1,13 +1,10 @@
 import { NextApiResponse } from "next";
 import {
   NextApiRequest,
-  STATUS_INTERNAL_ERROR,
-  STATUS_NOT_FOUND,
-  STATUS_OK,
   getFirebaseUserByWallet,
   initFirebaseIfNeeded,
 } from "./utils";
-import { UserData } from "~/api/firebase";
+import { STATUS_INTERNAL_ERROR, STATUS_NOT_FOUND, STATUS_OK, UserData } from "@mrgnlabs/marginfi-v2-ui-state";
 
 initFirebaseIfNeeded();
 

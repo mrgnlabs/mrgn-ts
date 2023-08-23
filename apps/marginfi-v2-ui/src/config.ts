@@ -85,5 +85,4 @@ const config = {
 };
 
 export default config;
-export const WSOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 export const WALLET_BALANCE_MARGIN_SOL = 0.1;

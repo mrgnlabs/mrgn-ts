@@ -9,7 +9,6 @@ import AutoStoriesOutlinedIcon from "@mui/icons-material/AutoStoriesOutlined";
 import InsightsIcon from "@mui/icons-material/Insights";
 import Link from "next/link";
 import { GitHub, QuestionMark } from "@mui/icons-material";
-import { ZoomLevel } from "~/store/userProfileSlice";
 
 type FooterConfig = { hotkeys: boolean; zoom: boolean; unit: boolean; links: boolean };
 

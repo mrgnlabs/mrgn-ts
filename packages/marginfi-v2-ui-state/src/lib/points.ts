@@ -114,7 +114,7 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
     getDoc(userPointsDoc),
     getDoc(userPublicProfileDoc),
   ]);
-  console.log(userPointsSnap.exists(), userPublicProfileSnap.exists());
+
   if (!userPointsSnap.exists() || !userPublicProfileSnap.exists()) {
     return {
       ...DEFAULT_USER_POINTS_DATA,

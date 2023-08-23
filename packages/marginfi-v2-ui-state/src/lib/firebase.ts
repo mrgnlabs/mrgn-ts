@@ -7,42 +7,29 @@ import {
   STATUS_NOT_FOUND,
   STATUS_OK,
   STATUS_UNAUTHORIZED,
-  SigningMethod,
-} from "~/pages/api/user/utils";
+} from "../constants";
+import { SigningMethod } from "../types";
 import { v4 as uuidv4 } from "uuid";
 import { BlockhashWithExpiryBlockHeight, Transaction } from "@solana/web3.js";
 import { createMemoInstruction } from "@mrgnlabs/mrgn-common";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import base58 from "bs58";
 import { object, string, optional, Infer } from "superstruct";
-
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBPAKOn7YKvEHg6iXTRbyZws3G4kPhWjtQ",
-  authDomain: "marginfi-dev.firebaseapp.com",
-  projectId: "marginfi-dev",
-  storageBucket: "marginfi-dev.appspot.com",
-  messagingSenderId: "509588742572",
-  appId: "1:509588742572:web:18d74a3ace2f3aa2071a09",
-};
+import { FIREBASE_CONFIG } from "../config";
 
 const firebaseApp = initializeApp(FIREBASE_CONFIG);
 const firebaseDb = getFirestore(firebaseApp);
 const firebaseAuth = getAuth(firebaseApp);
 
-export interface UserData {
+export { firebaseApp, firebaseDb, firebaseAuth };
+
+// ----------------------------------------------------------------------------
+// Points auth API
+// ----------------------------------------------------------------------------
+
+interface UserData {
   id: string;
 }
-
-export const SignupPayloadStruct = object({
-  uuid: string(),
-  referralCode: optional(string()),
-});
-export type SignupPayload = Infer<typeof SignupPayloadStruct>;
-
-export const LoginPayloadStruct = object({
-  uuid: string(),
-});
-export type LoginPayload = Infer<typeof LoginPayloadStruct>;
 
 async function getUser(walletAddress: string): Promise<UserData | undefined> {
   const response = await fetch("/api/user/get", {
@@ -67,19 +54,10 @@ async function getUser(walletAddress: string): Promise<UserData | undefined> {
   }
 }
 
-async function loginWithAuthData(signingMethod: SigningMethod, signedAuthDataRaw: string) {
-  const response = await fetch("/api/user/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ method: signingMethod, signedAuthDataRaw }),
-  });
-  const data = await response.json();
-
-  if (!data.token) throw new Error("Something went wrong during sign-in");
-  await signinFirebaseAuth(data.token);
-}
+const LoginPayloadStruct = object({
+  uuid: string(),
+});
+type LoginPayload = Infer<typeof LoginPayloadStruct>;
 
 async function login(
   wallet: WalletContextState,
@@ -93,6 +71,12 @@ async function login(
 
   return { signingMethod, signedAuthDataRaw };
 }
+
+const SignupPayloadStruct = object({
+  uuid: string(),
+  referralCode: optional(string()),
+});
+type SignupPayload = Infer<typeof SignupPayloadStruct>;
 
 async function signup(
   wallet: WalletContextState,
@@ -135,6 +119,27 @@ async function signup(
   await signinFirebaseAuth(data.token);
 
   return { signingMethod, signedAuthDataRaw };
+}
+
+export { getUser, signup, login };
+export type { UserData };
+
+// ----------------------------------------------------------------------------
+// Helpers
+// ----------------------------------------------------------------------------
+
+async function loginWithAuthData(signingMethod: SigningMethod, signedAuthDataRaw: string) {
+  const response = await fetch("/api/user/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ method: signingMethod, signedAuthDataRaw }),
+  });
+  const data = await response.json();
+
+  if (!data.token) throw new Error("Something went wrong during sign-in");
+  await signinFirebaseAuth(data.token);
 }
 
 async function signSignupMemo(wallet: WalletContextState, authData: SignupPayload): Promise<string> {
@@ -233,5 +238,3 @@ async function signinFirebaseAuth(token: string) {
     }
   }
 }
-
-export { firebaseApp, firebaseDb, firebaseAuth, getUser, signup, login, loginWithAuthData };

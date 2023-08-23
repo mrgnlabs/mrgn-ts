@@ -14,21 +14,21 @@ class CustomNumberFormat extends Intl.NumberFormat {
   }
 }
 
-export const groupedNumberFormatter = new CustomNumberFormat("en-US", {
+const groupedNumberFormatter = new CustomNumberFormat("en-US", {
   useGrouping: true,
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
-export const numeralFormatter = (value: number) => numeral(value).format("0.00a");
+const numeralFormatter = (value: number) => numeral(value).format("0.00a");
 
-export const groupedNumberFormatterDyn = new Intl.NumberFormat("en-US", {
+const groupedNumberFormatterDyn = new Intl.NumberFormat("en-US", {
   useGrouping: true,
   minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
 
-export const usdFormatter = new Intl.NumberFormat("en-US", {
+const usdFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
   minimumFractionDigits: 2,
@@ -36,7 +36,7 @@ export const usdFormatter = new Intl.NumberFormat("en-US", {
   signDisplay: "auto",
 });
 
-export const usdFormatterDyn = new Intl.NumberFormat("en-US", {
+const usdFormatterDyn = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
   minimumFractionDigits: 0,
@@ -44,14 +44,25 @@ export const usdFormatterDyn = new Intl.NumberFormat("en-US", {
   signDisplay: "auto",
 });
 
-export const percentFormatter = new Intl.NumberFormat("en-US", {
+const percentFormatter = new Intl.NumberFormat("en-US", {
   style: "percent",
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
-export const percentFormatterDyn = new Intl.NumberFormat("en-US", {
+const percentFormatterDyn = new Intl.NumberFormat("en-US", {
   style: "percent",
   minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
+
+export {
+  CustomNumberFormat,
+  groupedNumberFormatter,
+  groupedNumberFormatterDyn,
+  numeralFormatter,
+  percentFormatter,
+  percentFormatterDyn,
+  usdFormatter,
+  usdFormatterDyn,
+}

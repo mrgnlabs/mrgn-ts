@@ -1,12 +1,13 @@
+import { firebaseAuth } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
-import { firebaseAuth } from "~/api/firebase";
 import { useStore } from "~/store";
 
 const useFirebaseAccount = () => {
   const wallet = useWallet();
+  
   const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser, fetchPoints, resetPoints] = useStore((state) => [
     state.checkForFirebaseUser,
     state.setFirebaseUser,
