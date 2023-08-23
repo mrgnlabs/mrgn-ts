@@ -8,18 +8,21 @@ const useWalletWithOverride = () => {
   const anchorWallet = useAnchorWallet();
   const { query } = useRouter();
 
-  const wallet: Wallet | undefined = useMemo(() => {
+  const { wallet, isOverride }: { wallet: Wallet | undefined; isOverride: boolean } = useMemo(() => {
     const override = query?.wallet as string;
     if (anchorWallet && override) {
       return {
-        ...anchorWallet,
-        publicKey: new PublicKey(override),
+        wallet: {
+          ...anchorWallet,
+          publicKey: new PublicKey(override),
+        },
+        isOverride: true,
       };
     }
-    return anchorWallet;
+    return { wallet: anchorWallet, isOverride: false };
   }, [anchorWallet, query]);
 
-  return { wallet };
+  return { wallet, isOverride };
 };
 
 export { useWalletWithOverride };

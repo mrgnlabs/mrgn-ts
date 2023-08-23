@@ -271,7 +271,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
 
 const Pro = () => {
   const walletContext = useWallet();
-  const {wallet} = useWalletWithOverride();
+  const {wallet, isOverride} = useWalletWithOverride();
   const { connection } = useConnection();
   const { lipClient } = useLipClient();
 
@@ -324,10 +324,10 @@ const Pro = () => {
   ];
 
   useEffect(() => {
-    reloadMrgnlendState({connection, wallet});
+    reloadMrgnlendState({connection, wallet, isOverride});
     const id = setInterval(reloadMrgnlendState, 60_000);
     return () => clearInterval(id);
-  }, [wallet, connection, reloadMrgnlendState]);
+  }, [wallet, connection, reloadMrgnlendState, isOverride]);
 
   useEffect(() => {
     if (!selectedCampaign) return;

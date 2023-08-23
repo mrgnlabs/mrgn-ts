@@ -27,7 +27,7 @@ import {
   Wallet,
 } from "@mrgnlabs/mrgn-common";
 import { MarginfiGroup } from "./models/group";
-import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, OraclePrice, MarginfiAccount } from ".";
+import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, OraclePrice } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
 
 export type BankMap = Map<string, Bank>;
@@ -54,7 +54,8 @@ class MarginfiClient {
     readonly wallet: Wallet,
     group: MarginfiGroup,
     banks: BankMap,
-    priceInfos: OraclePriceMap
+    priceInfos: OraclePriceMap,
+    private readonly isReadOnly: boolean
   ) {
     this.group = group;
     this.banks = banks;
@@ -72,7 +73,13 @@ class MarginfiClient {
    * @param opts Solana web.js ConfirmOptions object
    * @returns MarginfiClient instance
    */
-  static async fetch(config: MarginfiConfig, wallet: Wallet, connection: Connection, opts?: ConfirmOptions) {
+  static async fetch(
+    config: MarginfiConfig,
+    wallet: Wallet,
+    connection: Connection,
+    opts?: ConfirmOptions,
+    readOnly: boolean = false
+  ) {
     const debug = require("debug")("mfi:client");
     debug(
       "Loading Marginfi Client\n\tprogram: %s\n\tenv: %s\n\tgroup: %s\n\turl: %s",
@@ -90,7 +97,7 @@ class MarginfiClient {
 
     const { marginfiGroup, banks, priceInfos } = await this.fetchGroupData(program, config.groupPk, opts?.commitment);
 
-    return new MarginfiClient(config, program, wallet, marginfiGroup, banks, priceInfos);
+    return new MarginfiClient(config, program, wallet, marginfiGroup, banks, priceInfos, readOnly);
   }
 
   static async fromEnv(
@@ -204,10 +211,6 @@ class MarginfiClient {
 
   get programId(): PublicKey {
     return this.program.programId;
-  }
-
-  get isReadOnly(): boolean {
-    return this.wallet.publicKey === undefined;
   }
 
   /**
@@ -399,10 +402,9 @@ class MarginfiClient {
         versionedTransaction = transaction;
       }
 
-      versionedTransaction = await this.wallet.signTransaction(versionedTransaction);
       if (signers) versionedTransaction.sign(signers);
 
-      if (opts?.dryRun) {
+      if (opts?.dryRun || this.isReadOnly) {
         const response = await connection.simulateTransaction(
           versionedTransaction,
           opts ?? { minContextSlot, sigVerify: false }
@@ -427,6 +429,8 @@ class MarginfiClient {
 
         return versionedTransaction.signatures[0].toString();
       } else {
+        versionedTransaction = await this.wallet.signTransaction(versionedTransaction);
+
         let mergedOpts: ConfirmOptions = {
           ...DEFAULT_CONFIRM_OPTS,
           commitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,

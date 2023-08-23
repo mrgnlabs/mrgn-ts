@@ -37,6 +37,7 @@ interface MrgnlendSlice {
   reloadMrgnlendState: (args?: {
     connection?: Connection;
     wallet?: Wallet;
+    isOverride?: boolean;
   }) => Promise<void>;
 }
 
@@ -61,6 +62,7 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
   reloadMrgnlendState: async (args?: {
     connection?: Connection;
     wallet?: Wallet;
+    isOverride?: boolean;
   }) => {
     console.log("called", { connection: !!args?.connection, anchorWallet: !!args?.wallet });
 
@@ -70,7 +72,7 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
     const wallet = args?.wallet ?? get().marginfiClient?.provider?.wallet;
 
     const [marginfiClient, bankMetadataMap, tokenMetadataMap] = await Promise.all([
-      MarginfiClient.fetch(config.mfiConfig, wallet ?? ({} as any), connection),
+      MarginfiClient.fetch(config.mfiConfig, wallet ?? ({} as any), connection, undefined, args?.isOverride),
       loadBankMetadatas(),
       loadTokenMetadatas(),
     ]);
