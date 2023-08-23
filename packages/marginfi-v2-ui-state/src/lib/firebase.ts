@@ -121,8 +121,8 @@ async function signup(
   return { signingMethod, signedAuthDataRaw };
 }
 
-export { getUser, signup, login };
-export type { UserData };
+export { getUser, signup, login, SignupPayloadStruct, LoginPayloadStruct };
+export type { UserData, SignupPayload };
 
 // ----------------------------------------------------------------------------
 // Helpers

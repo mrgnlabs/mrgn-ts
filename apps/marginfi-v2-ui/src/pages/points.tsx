@@ -20,27 +20,17 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { FC, useEffect, useState } from "react";
 import { PageHeader } from "~/components/PageHeader";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
-import { numeralFormatter, groupedNumberFormatterDyn } from "~/utils/formatters";
 import Link from "next/link";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { firebaseApi } from "~/api";
 import { WalletButton } from "~/components/Navbar/WalletButton";
 import { grey } from "@mui/material/colors";
 import { toast } from "react-toastify";
-import { LeaderboardRow, fetchLeaderboardData } from "~/api/points";
 import { useStore } from "~/store";
-
-type UserData = {
-  userTotalPoints?: number;
-  userLendingPoints?: number;
-  userBorrowingPoints?: number;
-  userReferralPoints?: number;
-  userReferralLink?: string;
-  userRank?: number;
-};
+import { LeaderboardRow, fetchLeaderboardData, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
+import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
