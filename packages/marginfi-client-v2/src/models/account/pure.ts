@@ -67,12 +67,12 @@ class MarginfiAccount {
 
   computeFreeCollateral(
     banks: Map<string, Bank>,
-    priceInfos: Map<string, OraclePrice>,
+    oraclePrices: Map<string, OraclePrice>,
     opts?: { clamped?: boolean }
   ): BigNumber {
     const _clamped = opts?.clamped ?? true;
 
-    const { assets, liabilities } = this.computeHealthComponents(banks, priceInfos, MarginRequirementType.Initial);
+    const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Initial);
     const signedFreeCollateral = assets.minus(liabilities);
 
     return _clamped ? BigNumber.max(0, signedFreeCollateral) : signedFreeCollateral;
@@ -80,7 +80,7 @@ class MarginfiAccount {
 
   computeHealthComponents(
     banks: Map<string, Bank>,
-    priceInfos: Map<string, OraclePrice>,
+    oraclePrices: Map<string, OraclePrice>,
     marginReqType: MarginRequirementType
   ): {
     assets: BigNumber;
@@ -91,7 +91,7 @@ class MarginfiAccount {
         const bank = banks.get(accountBalance.bankPk.toBase58());
         if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
 
-        const priceInfo = priceInfos.get(accountBalance.bankPk.toBase58());
+        const priceInfo = oraclePrices.get(accountBalance.bankPk.toBase58());
         if (!priceInfo) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
 
         const { assets, liabilities } = accountBalance.getUsdValueWithPriceBias(bank, priceInfo, marginReqType);
@@ -109,7 +109,7 @@ class MarginfiAccount {
 
   computeHealthComponentsWithoutBias(
     banks: Map<string, Bank>,
-    priceInfos: Map<string, OraclePrice>,
+    oraclePrices: Map<string, OraclePrice>,
     marginReqType: MarginRequirementType
   ): {
     assets: BigNumber;
@@ -120,7 +120,7 @@ class MarginfiAccount {
         const bank = banks.get(accountBalance.bankPk.toBase58());
         if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
 
-        const priceInfo = priceInfos.get(accountBalance.bankPk.toBase58());
+        const priceInfo = oraclePrices.get(accountBalance.bankPk.toBase58());
         if (!priceInfo) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
 
         const { assets, liabilities } = accountBalance.computeUsdValue(bank, priceInfo, marginReqType);
@@ -136,10 +136,10 @@ class MarginfiAccount {
     return { assets, liabilities };
   }
 
-  computeNetApy(banks: Map<string, Bank>, priceInfos: Map<string, OraclePrice>): number {
+  computeNetApy(banks: Map<string, Bank>, oraclePrices: Map<string, OraclePrice>): number {
     const { assets, liabilities } = this.computeHealthComponentsWithoutBias(
       banks,
-      priceInfos,
+      oraclePrices,
       MarginRequirementType.Equity
     );
     const totalUsdValue = assets.minus(liabilities);
@@ -148,7 +148,7 @@ class MarginfiAccount {
         const bank = banks.get(balance.bankPk.toBase58());
         if (!bank) throw Error(`Bank ${balance.bankPk.toBase58()} not found`);
 
-        const priceInfo = priceInfos.get(balance.bankPk.toBase58());
+        const priceInfo = oraclePrices.get(balance.bankPk.toBase58());
         if (!priceInfo) throw Error(`Bank ${shortenAddress(balance.bankPk)} not found`);
 
         return weightedApr
@@ -186,17 +186,17 @@ class MarginfiAccount {
    */
   computeMaxBorrowForBank(
     banks: Map<string, Bank>,
-    priceInfos: Map<string, OraclePrice>,
+    oraclePrices: Map<string, OraclePrice>,
     bankAddress: PublicKey
   ): BigNumber {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
-    const priceInfo = priceInfos.get(bankAddress.toBase58());
+    const priceInfo = oraclePrices.get(bankAddress.toBase58());
     if (!priceInfo) throw Error(`Price info for ${bankAddress.toBase58()} not found`);
 
     const balance = this.getBalance(bankAddress);
 
-    const freeCollateral = this.computeFreeCollateral(banks, priceInfos);
+    const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
     const untiedCollateralForBank = BigNumber.min(
       bank.computeAssetUsdValue(priceInfo, balance.assetShares, MarginRequirementType.Initial, PriceBias.Lowest),
       freeCollateral
@@ -223,13 +223,13 @@ class MarginfiAccount {
    */
   computeMaxWithdrawForBank(
     banks: Map<string, Bank>,
-    priceInfos: Map<string, OraclePrice>,
+    oraclePrices: Map<string, OraclePrice>,
     bankAddress: PublicKey,
     opts?: { volatilityFactor?: number }
   ): BigNumber {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
-    const priceInfo = priceInfos.get(bankAddress.toBase58());
+    const priceInfo = oraclePrices.get(bankAddress.toBase58());
     if (!priceInfo) throw Error(`Price info for ${bankAddress.toBase58()} not found`);
 
     const _volatilityFactor = opts?.volatilityFactor ?? 1;
@@ -240,7 +240,7 @@ class MarginfiAccount {
     if (assetWeight.eq(0)) {
       return balance.computeQuantityUi(bank).assets;
     } else {
-      const freeCollateral = this.computeFreeCollateral(banks, priceInfos);
+      const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
       const collateralForBank = bank.computeAssetUsdValue(
         priceInfo,
         balance.assetShares,
@@ -267,7 +267,7 @@ class MarginfiAccount {
   // (2) the amount of covered liablity cannot be more than existing liablity.
   computeMaxLiquidatableAssetAmount(
     banks: Map<string, Bank>,
-    priceInfos: Map<string, OraclePrice>,
+    oraclePrices: Map<string, OraclePrice>,
     assetBankAddress: PublicKey,
     liabilityBankAddress: PublicKey
   ): BigNumber {
@@ -275,15 +275,15 @@ class MarginfiAccount {
 
     const assetBank = banks.get(assetBankAddress.toBase58());
     if (!assetBank) throw Error(`Bank ${assetBankAddress.toBase58()} not found`);
-    const assetPriceInfo = priceInfos.get(assetBankAddress.toBase58());
+    const assetPriceInfo = oraclePrices.get(assetBankAddress.toBase58());
     if (!assetPriceInfo) throw Error(`Price info for ${assetBankAddress.toBase58()} not found`);
 
     const liabilityBank = banks.get(liabilityBankAddress.toBase58());
     if (!liabilityBank) throw Error(`Bank ${liabilityBankAddress.toBase58()} not found`);
-    const liabilityPriceInfo = priceInfos.get(liabilityBankAddress.toBase58());
+    const liabilityPriceInfo = oraclePrices.get(liabilityBankAddress.toBase58());
     if (!liabilityPriceInfo) throw Error(`Price info for ${liabilityBankAddress.toBase58()} not found`);
 
-    const { assets, liabilities } = this.computeHealthComponents(banks, priceInfos, MarginRequirementType.Maintenance);
+    const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Maintenance);
     const currentHealth = assets.minus(liabilities);
 
     const priceAssetLower = assetBank.getPrice(assetPriceInfo, PriceBias.Lowest);
@@ -668,8 +668,8 @@ class MarginfiAccount {
     return [...makeWrapSolIxs(this.authority, new BigNumber(amount)), ix, makeUnwrapSolIx(this.authority)];
   }
 
-  public describe(banks: BankMap, priceInfos: OraclePriceMap): string {
-    const { assets, liabilities } = this.computeHealthComponents(banks, priceInfos, MarginRequirementType.Equity);
+  public describe(banks: BankMap, oraclePrices: OraclePriceMap): string {
+    const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Equity);
     return `
 - Marginfi account: ${this.address}
 - Total deposits: $${assets.toFixed(6)}
@@ -678,7 +678,7 @@ class MarginfiAccount {
 - Health: ${assets.minus(liabilities).div(assets).times(100).toFixed(2)}%
 - Balances:  ${this.activeBalances.map((balance) => {
       const bank = banks.get(balance.bankPk.toBase58())!;
-      const priceInfo = priceInfos.get(balance.bankPk.toBase58())!;
+      const priceInfo = oraclePrices.get(balance.bankPk.toBase58())!;
       return balance.describe(bank, priceInfo);
     })}`;
   }

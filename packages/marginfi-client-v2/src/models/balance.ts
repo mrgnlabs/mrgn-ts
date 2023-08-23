@@ -68,7 +68,7 @@ class Balance {
     marginRequirementType: MarginRequirementType = MarginRequirementType.Equity
   ): { assets: BigNumber; liabilities: BigNumber } {
     const assetsValue = bank.computeAssetUsdValue(oraclePrice, this.assetShares, marginRequirementType, PriceBias.None);
-    const liabilitiesValue = bank.computeAssetUsdValue(
+    const liabilitiesValue = bank.computeLiabilityUsdValue(
       oraclePrice,
       this.liabilityShares,
       marginRequirementType,
@@ -88,7 +88,7 @@ class Balance {
       marginRequirementType,
       PriceBias.Lowest
     );
-    const liabilitiesValue = bank.computeAssetUsdValue(
+    const liabilitiesValue = bank.computeLiabilityUsdValue(
       oraclePrice,
       this.liabilityShares,
       marginRequirementType,
