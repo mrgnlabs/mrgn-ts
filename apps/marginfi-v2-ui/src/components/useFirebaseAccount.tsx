@@ -7,8 +7,7 @@ import { useStore } from "~/store";
 
 const useFirebaseAccount = () => {
   const wallet = useWallet();
-  const [currentFirebaseUser, checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser] = useStore((state) => [
-    state.currentFirebaseUser,
+  const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser] = useStore((state) => [
     state.checkForFirebaseUser,
     state.setFirebaseUser,
     state.signoutFirebaseUser,
@@ -30,7 +29,7 @@ const useFirebaseAccount = () => {
     signoutFirebaseUser(wallet.connected, wallet.publicKey?.toBase58()).catch((error) =>
       toast.error(`Error signing out: ${error}`)
     ),
-      [wallet, currentFirebaseUser];
+      [wallet];
   });
 };
 

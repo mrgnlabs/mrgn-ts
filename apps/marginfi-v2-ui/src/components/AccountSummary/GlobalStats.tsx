@@ -7,13 +7,13 @@ import { MrgnTooltip } from "~/components/Tooltip";
 import styles from "./style.module.css";
 
 interface GlobalStatsProps {
-  globalDeposits: number;
-  globalBorrows: number;
-  globalTVL: number;
-  globalPoints: number | null;
+  deposits: number;
+  borrows: number;
+  tvl: number;
+  pointsTotal: number | null;
 }
 
-const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, globalPoints, globalTVL }) => {
+const GlobalStats: FC<GlobalStatsProps> = ({ borrows, deposits, pointsTotal, tvl }) => {
   return (
     <div className="h-full rounded-xl font-[500] p-[10px]">
       <span className="w-full flex justify-start text-xl">Global stats</span>
@@ -40,8 +40,8 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {globalDeposits ? (
-                  `$${numeralFormatter(globalDeposits)}`
+                {deposits ? (
+                  `$${numeralFormatter(deposits)}`
                 ) : (
                   <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                 )}
@@ -70,8 +70,8 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {globalBorrows ? (
-                  `$${numeralFormatter(globalBorrows)}`
+                {borrows ? (
+                  `$${numeralFormatter(borrows)}`
                 ) : (
                   <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                 )}
@@ -103,8 +103,8 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {globalTVL ? (
-                  `$${numeralFormatter(globalTVL)}`
+                {tvl ? (
+                  `$${numeralFormatter(tvl)}`
                 ) : (
                   <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                 )}
@@ -141,8 +141,8 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {globalPoints ? (
-                  numeralFormatter(globalPoints)
+                {pointsTotal ? (
+                  numeralFormatter(pointsTotal)
                 ) : (
                   <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                 )}

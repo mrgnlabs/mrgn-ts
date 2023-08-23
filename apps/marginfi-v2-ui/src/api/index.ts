@@ -30,6 +30,7 @@ import BN from "bn.js";
 const VOLATILITY_FACTOR = 0.95;
 
 const DEFAULT_ACCOUNT_SUMMARY = {
+  healthFactor: 0,
   balance: 0,
   lendingAmount: 0,
   borrowingAmount: 0,
@@ -46,8 +47,8 @@ const DEFAULT_ACCOUNT_SUMMARY = {
 
 function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, bankInfos: ExtendedBankInfo[]): AccountSummary {
   const equityComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Equity);
-  const equityComponentsUnbiased = marginfiAccount.computeHealthComponentsWithoutBias(MarginRequirementType.Equity);
-  const equityComponentsWithBiasAndWeighted = marginfiAccount.computeHealthComponents(
+  const equityComponentsWithoutBias = marginfiAccount.computeHealthComponentsWithoutBias(MarginRequirementType.Equity);
+  const maintenanceComponentsWithBiasAndWeighted = marginfiAccount.computeHealthComponents(
     MarginRequirementType.Maintenance
   );
 
@@ -64,15 +65,23 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, bankInfo
     outstandingUxpEmissions = uxpBalance.computeTotalOutstandingEmissions(uxpBank!.bank).div(new BigNumber(10).pow(9));
   }
 
+  const healthFactor = maintenanceComponentsWithBiasAndWeighted.assets.isZero()
+    ? 1
+    : maintenanceComponentsWithBiasAndWeighted.assets
+        .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
+        .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
+        .toNumber();
+
   return {
+    healthFactor,
     balance: equityComponents.assets.minus(equityComponents.liabilities).toNumber(),
     lendingAmount: equityComponents.assets.toNumber(),
     borrowingAmount: equityComponents.liabilities.toNumber(),
-    balanceUnbiased: equityComponentsUnbiased.assets.minus(equityComponentsUnbiased.liabilities).toNumber(),
-    lendingAmountUnbiased: equityComponentsUnbiased.assets.toNumber(),
-    borrowingAmountUnbiased: equityComponentsUnbiased.liabilities.toNumber(),
-    lendingAmountWithBiasAndWeighted: equityComponentsWithBiasAndWeighted.assets.toNumber(),
-    borrowingAmountWithBiasAndWeighted: equityComponentsWithBiasAndWeighted.liabilities.toNumber(),
+    balanceUnbiased: equityComponentsWithoutBias.assets.minus(equityComponentsWithoutBias.liabilities).toNumber(),
+    lendingAmountUnbiased: equityComponentsWithoutBias.assets.toNumber(),
+    borrowingAmountUnbiased: equityComponentsWithoutBias.liabilities.toNumber(),
+    lendingAmountWithBiasAndWeighted: maintenanceComponentsWithBiasAndWeighted.assets.toNumber(),
+    borrowingAmountWithBiasAndWeighted: maintenanceComponentsWithBiasAndWeighted.liabilities.toNumber(),
     apy: marginfiAccount.computeNetApy(),
     outstandingUxpEmissions: outstandingUxpEmissions.toNumber(),
     signedFreeCollateral: signedFreeCollateral.toNumber(),

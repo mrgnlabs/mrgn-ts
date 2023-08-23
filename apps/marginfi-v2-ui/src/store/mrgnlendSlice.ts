@@ -1,7 +1,8 @@
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { Wallet } from "@mrgnlabs/mrgn-common";
+import { Wallet, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
-import { Connection } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { collection, getDocs } from "firebase/firestore";
 import { StateCreator } from "zustand";
 import {
   DEFAULT_ACCOUNT_SUMMARY,
@@ -10,9 +11,17 @@ import {
   fetchTokenAccounts,
   makeExtendedBankInfo,
 } from "~/api";
+import { firebaseDb } from "~/api/firebase";
 import config from "~/config";
 import { AccountSummary, BankMetadataMap, ExtendedBankInfo, TokenAccountMap, TokenMetadataMap } from "~/types";
 import { findMetadataInsensitive, loadBankMetadatas, loadTokenMetadatas } from "~/utils";
+
+interface ProtocolStats {
+  deposits: number;
+  borrows: number;
+  tvl: number;
+  pointsTotal: number;
+}
 
 interface MrgnlendSlice {
   // State
@@ -20,6 +29,7 @@ interface MrgnlendSlice {
   bankMetadataMap: BankMetadataMap;
   tokenMetadataMap: TokenMetadataMap;
   extendedBankInfos: ExtendedBankInfo[];
+  protocolStats: ProtocolStats;
   marginfiAccountCount: number;
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
@@ -35,6 +45,12 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
   bankMetadataMap: {},
   tokenMetadataMap: {},
   extendedBankInfos: [],
+  protocolStats: {
+    deposits: 0,
+    borrows: 0,
+    tvl: 0,
+    pointsTotal: 0,
+  },
   marginfiAccountCount: 0,
   selectedAccount: null,
   nativeSolBalance: 0,
@@ -111,6 +127,26 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
       );
     });
 
+    const { deposits, borrows } = extendedBankInfos.reduce(
+      (acc, bankInfo) => {
+        acc.deposits += nativeToUi(
+          bankInfo.bank.getTotalAssetQuantity().times(bankInfo.oraclePrice.price),
+          bankInfo.tokenMintDecimals
+        );
+        acc.borrows += nativeToUi(
+          bankInfo.bank.getTotalLiabilityQuantity().times(bankInfo.oraclePrice.price),
+          bankInfo.tokenMintDecimals
+        );
+        return acc;
+      },
+      { deposits: 0, borrows: 0 }
+    );
+
+    const pointsSummaryCollection = collection(firebaseDb, "points_summary");
+    const pointSummarySnapshot = await getDocs(pointsSummaryCollection);
+    console.log("points", pointSummarySnapshot.docs[0]?.data());
+    const pointSummary = pointSummarySnapshot.docs[0]?.data() ?? {points_total: 0};
+
     let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
     if (wallet) {
       accountSummary = computeAccountSummary(selectedAccount!, extendedBankInfos);
@@ -121,6 +157,12 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
       bankMetadataMap,
       tokenMetadataMap,
       extendedBankInfos,
+      protocolStats: {
+        deposits,
+        borrows,
+        tvl: deposits - borrows,
+        pointsTotal: pointSummary.points_total,
+      },
       marginfiAccountCount: marginfiAccounts.length,
       selectedAccount,
       nativeSolBalance,

@@ -9,41 +9,10 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useStore } from "~/store";
 
 // Firebase
-import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
 import { Badge } from "@mui/material";
-import { firebaseDb } from "~/api/firebase";
 import { useFirebaseAccount } from "../useFirebaseAccount";
-
-const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
-  if (!wallet) return;
-
-  const docRef = doc(firebaseDb, "points", wallet);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    const pointsData = docSnap.data();
-    const points = {
-      owner: pointsData.owner,
-      deposit_points: pointsData.total_deposit_points.toFixed(4),
-      borrow_points: pointsData.total_borrow_points.toFixed(4),
-      total:
-        pointsData.total_deposit_points +
-        pointsData.total_borrow_points +
-        (pointsData.socialPoints ? pointsData.socialPoints : 0),
-    };
-    return points;
-  } else {
-    // docSnap.data() will be undefined in this case
-    // return a points object with all fields set to zero
-    return {
-      owner: wallet,
-      deposit_points: 0,
-      borrow_points: 0,
-      total: 0,
-    };
-  }
-};
 
 type Points = {
   owner: string;
@@ -58,20 +27,35 @@ const Navbar: FC = () => {
 
   const wallet = useWallet();
   const router = useRouter();
-  const [showBadges, setShowBadges, accountSummary, selectedAccount, extendedBankInfos, currentFirebaseUser, hasUser] =
-    useStore((state) => [
-      state.showBadges,
-      state.setShowBadges,
-      state.accountSummary,
-      state.selectedAccount,
-      state.extendedBankInfos,
-      state.currentFirebaseUser,
-      state.hasUser,
-    ]);
+  const [
+    showBadges,
+    setShowBadges,
+    accountSummary,
+    selectedAccount,
+    extendedBankInfos,
+    currentFirebaseUser,
+    hasUser,
+    fetchPoints,
+  ] = useStore((state) => [
+    state.showBadges,
+    state.setShowBadges,
+    state.accountSummary,
+    state.selectedAccount,
+    state.extendedBankInfos,
+    state.currentFirebaseUser,
+    state.hasUser,
+    state.fetchPoints,
+  ]);
 
   const [points, setPoints] = useState<Points>(null);
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(router.pathname);
+
+  useEffect(() => {
+    const walletAddress = wallet.publicKey?.toBase58();
+    if (!walletAddress) return;
+    fetchPoints(walletAddress).catch(console.error);
+  }, [fetchPoints, wallet.publicKey]);
 
   useEffect(() => {
     setCurrentRoute(router.pathname);
@@ -139,19 +123,6 @@ const Navbar: FC = () => {
     },
     { keyup: true, enableOnFormTags: true }
   );
-
-  useEffect(() => {
-    if (hasUser !== null && currentFirebaseUser && wallet.publicKey?.toBase58()) {
-      const fetchData = async () => {
-        const pointsData = await getPoints({ wallet: wallet.publicKey?.toBase58() });
-        if (pointsData) {
-          setPoints(pointsData);
-        }
-      };
-
-      fetchData();
-    }
-  }, [hasUser, currentFirebaseUser, wallet.publicKey]);
 
   return (
     <header>

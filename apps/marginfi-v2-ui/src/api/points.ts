@@ -9,6 +9,8 @@ import {
   DocumentData,
   where,
   getCountFromServer,
+  doc,
+  getDoc,
 } from "firebase/firestore";
 import { firebaseDb } from "./firebase";
 
@@ -80,6 +82,33 @@ async function fetchUserRank(userPoints: number): Promise<number> {
   return allGreaterDocsCount - nullGreaterDocsCount;
 }
 
-export { fetchLeaderboardData, fetchUserRank };
+const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
+  if (!wallet) return;
+
+  const docRef = doc(firebaseDb, "points", wallet);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    const pointsData = docSnap.data();
+    const points = {
+      owner: pointsData.owner,
+      deposit_points: pointsData.total_deposit_points.toFixed(4),
+      borrow_points: pointsData.total_borrow_points.toFixed(4),
+      total:
+        pointsData.total_deposit_points +
+        pointsData.total_borrow_points +
+        (pointsData.socialPoints ? pointsData.socialPoints : 0),
+    };
+    return points;
+  } else {
+    return {
+      owner: wallet,
+      deposit_points: 0,
+      borrow_points: 0,
+      total: 0,
+    };
+  }
+};
+
+export { fetchLeaderboardData, fetchUserRank, getPoints };
 
 export type { LeaderboardRow };

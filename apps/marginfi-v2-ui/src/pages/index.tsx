@@ -14,8 +14,8 @@ const Home = () => {
   ]);
 
   useEffect(() => {
-    reloadMrgnlendState(connection, anchorWallet);
-    const id = setInterval(reloadMrgnlendState, 30_000);
+    reloadMrgnlendState(connection, anchorWallet).catch(console.error);
+    const id = setInterval(() => reloadMrgnlendState().catch(console.error), 30_000);
     return () => clearInterval(id);
   }, [anchorWallet, connection, reloadMrgnlendState]);
 

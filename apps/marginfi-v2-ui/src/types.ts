@@ -4,6 +4,7 @@ import BigNumber from "bignumber.js";
 import { Transaction } from "@solana/web3.js";
 
 export interface AccountSummary {
+  healthFactor: number;
   balance: number;
   lendingAmount: number;
   borrowingAmount: number;

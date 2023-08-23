@@ -2,8 +2,21 @@ import { User, signOut } from "firebase/auth";
 import { StateCreator } from "zustand";
 import { firebaseApi } from "~/api";
 import { firebaseAuth } from "~/api/firebase";
+import { getPoints } from "~/api/points";
 
 type ZoomLevel = 1 | 2 | 3;
+
+interface UserPointsSummary {
+  deposit_points: number;
+  borrow_points: number;
+  total: number;
+}
+
+const DEFAULT_USER_POINTS_SUMMARY: UserPointsSummary = {
+  deposit_points: 0,
+  borrow_points: 0,
+  total: 0,
+};
 
 interface UserProfileSlice {
   // State
@@ -12,6 +25,7 @@ interface UserProfileSlice {
   showBadges: boolean;
   currentFirebaseUser: User | null;
   hasUser: boolean | null;
+  pointsSummary: UserPointsSummary;
 
   // Actions
   setLendZoomLevel: (level: ZoomLevel) => void;
@@ -20,6 +34,7 @@ interface UserProfileSlice {
   checkForFirebaseUser: (walletAddress: string) => Promise<void>;
   setFirebaseUser: (user: User | null) => void;
   signoutFirebaseUser: (isConnected: boolean, walletAddress?: string) => Promise<void>;
+  fetchPoints: (walletAddress: string) => Promise<void>;
 }
 
 const createUserProfileSlice: StateCreator<UserProfileSlice, [], [], UserProfileSlice> = (set, get) => ({
@@ -29,13 +44,13 @@ const createUserProfileSlice: StateCreator<UserProfileSlice, [], [], UserProfile
   showBadges: false,
   currentFirebaseUser: null,
   hasUser: null,
+  pointsSummary: DEFAULT_USER_POINTS_SUMMARY,
 
   // Actions
   setLendZoomLevel: (level: ZoomLevel) => set(() => ({ lendZoomLevel: level })),
   setDenominationUSD: (checked: boolean) => set(() => ({ denominationUSD: checked })),
   setShowBadges: (checked: boolean) => set(() => ({ showBadges: checked })),
   checkForFirebaseUser: async (walletAddress: string) => {
-    console.log("checking")
     let user;
     try {
       user = await firebaseApi.getUser(walletAddress);
@@ -43,21 +58,18 @@ const createUserProfileSlice: StateCreator<UserProfileSlice, [], [], UserProfile
 
     set({ hasUser: !!user });
   },
-  setFirebaseUser: (user: User | null) => {
-    console.log("setting")
-    
-    set(() => ({ currentFirebaseUser: user }))},
+  setFirebaseUser: (user: User | null) => set(() => ({ currentFirebaseUser: user })),
   signoutFirebaseUser: async (isConnected: boolean, walletAddress?: string) => {
-    console.log("signout")
     const currentFirebaseUser = get().currentFirebaseUser;
 
-    const disconnected = !isConnected;
+    const disconnected = !isConnected && currentFirebaseUser;
     const mismatchingId = walletAddress && currentFirebaseUser?.uid && walletAddress !== currentFirebaseUser.uid;
     if (disconnected || mismatchingId) {
       await signOut(firebaseAuth);
       set(() => ({ currentFirebaseUser: null }));
     }
   },
+  fetchPoints: async (wallet: string) => set({ pointsSummary: await getPoints({ wallet }) }),
 });
 
 export { createUserProfileSlice };
