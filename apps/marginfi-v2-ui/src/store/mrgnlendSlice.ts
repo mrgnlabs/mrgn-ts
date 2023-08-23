@@ -144,7 +144,6 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
 
     const pointsSummaryCollection = collection(firebaseDb, "points_summary");
     const pointSummarySnapshot = await getDocs(pointsSummaryCollection);
-    console.log("points", pointSummarySnapshot.docs[0]?.data());
     const pointSummary = pointSummarySnapshot.docs[0]?.data() ?? {points_total: 0};
 
     let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
