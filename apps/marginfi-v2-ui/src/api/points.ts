@@ -7,10 +7,10 @@ import {
   getDocs,
   Query,
   DocumentData,
-  where,
-  getCountFromServer,
   doc,
   getDoc,
+  getCountFromServer,
+  where,
 } from "firebase/firestore";
 import { firebaseDb } from "./firebase";
 
@@ -68,47 +68,105 @@ async function fetchUserRank(userPoints: number): Promise<number> {
     where("total_points", ">", userPoints),
     orderBy("total_points", "desc")
   );
-  const querySnapshot1 = await getCountFromServer(q1);
-  const nullGreaterDocsCount = querySnapshot1.data().count;
-
   const q2 = query(
     collection(firebaseDb, "points"),
     where("total_points", ">", userPoints),
     orderBy("total_points", "desc")
   );
-  const querySnapshot2 = await getCountFromServer(q2);
+
+  const [querySnapshot1, querySnapshot2] = await Promise.all([getCountFromServer(q1), getCountFromServer(q2)]);
+
+  const nullGreaterDocsCount = querySnapshot1.data().count;
   const allGreaterDocsCount = querySnapshot2.data().count;
 
   return allGreaterDocsCount - nullGreaterDocsCount;
 }
 
-const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
-  if (!wallet) return;
+interface UserPointsData {
+  owner: string;
+  depositPoints: number;
+  borrowPoints: number;
+  referralPoints: number;
+  referralLink: string;
+  isCustomReferralLink: boolean;
+  userRank: number | null;
+  totalPoints: number;
+}
 
-  const docRef = doc(firebaseDb, "points", wallet);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    const pointsData = docSnap.data();
-    const points = {
-      owner: pointsData.owner,
-      deposit_points: pointsData.total_deposit_points.toFixed(4),
-      borrow_points: pointsData.total_borrow_points.toFixed(4),
-      total:
-        pointsData.total_deposit_points +
-        pointsData.total_borrow_points +
-        (pointsData.socialPoints ? pointsData.socialPoints : 0),
-    };
-    return points;
-  } else {
-    return {
-      owner: wallet,
-      deposit_points: 0,
-      borrow_points: 0,
-      total: 0,
-    };
-  }
+const DEFAULT_USER_POINTS_DATA: UserPointsData = {
+  owner: "",
+  depositPoints: 0,
+  borrowPoints: 0,
+  referralPoints: 0,
+  referralLink: "",
+  isCustomReferralLink: false,
+  userRank: null,
+  totalPoints: 0,
 };
 
-export { fetchLeaderboardData, fetchUserRank, getPoints };
+const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPointsData> => {
+  if (!wallet) return DEFAULT_USER_POINTS_DATA;
 
-export type { LeaderboardRow };
+  const userPointsDoc = doc(firebaseDb, "points", wallet);
+  const userPublicProfileDoc = doc(firebaseDb, "users_public", wallet);
+
+  const [userPointsSnap, userPublicProfileSnap] = await Promise.all([
+    getDoc(userPointsDoc),
+    getDoc(userPublicProfileDoc),
+  ]);
+  console.log(userPointsSnap.exists(), userPublicProfileSnap.exists());
+  if (!userPointsSnap.exists() || !userPublicProfileSnap.exists()) {
+    return {
+      ...DEFAULT_USER_POINTS_DATA,
+      owner: wallet,
+    };
+  }
+
+  const userReferralData = userPublicProfileSnap.data();
+  let userReferralCode = "";
+  let isCustomReferralLink;
+  if (userReferralData && Array.isArray(userReferralData?.referralCode)) {
+    const uuidPattern = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-\b[0-9a-fA-F]{12}$/;
+    userReferralCode = userReferralData.referralCode.find((code) => !uuidPattern.test(code));
+    isCustomReferralLink = true;
+  } else {
+    userReferralCode = userReferralData?.referralCode || "";
+    isCustomReferralLink = false;
+  }
+
+  const pointsData = userPointsSnap.data();
+
+  const depositPoints = pointsData.total_deposit_points.toFixed(4);
+  const borrowPoints = pointsData.total_borrow_points.toFixed(4);
+  const referralPoints = (pointsData.total_referral_deposit_points + pointsData.total_referral_borrow_points).toFixed(
+    4
+  );
+  const totalPoints =
+    pointsData.total_deposit_points +
+    pointsData.total_borrow_points +
+    (pointsData.socialPoints ? pointsData.socialPoints : 0);
+
+  const userRank = await fetchUserRank(totalPoints);
+
+  return {
+    owner: pointsData.owner,
+    depositPoints,
+    borrowPoints,
+    referralPoints,
+    referralLink: pointsData.referral_link,
+    isCustomReferralLink,
+    userRank,
+    totalPoints,
+  };
+};
+
+async function getPointsSummary() {
+  const pointsSummaryCollection = collection(firebaseDb, "points_summary");
+  const pointSummarySnapshot = await getDocs(pointsSummaryCollection);
+  const pointSummary = pointSummarySnapshot.docs[0]?.data() ?? { points_total: 0 };
+  return pointSummary;
+}
+
+export { fetchLeaderboardData, fetchUserRank, getPointsSummary, getPointsDataForUser, DEFAULT_USER_POINTS_DATA };
+
+export type { LeaderboardRow, UserPointsData };

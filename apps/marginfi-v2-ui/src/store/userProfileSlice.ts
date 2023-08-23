@@ -2,21 +2,9 @@ import { User, signOut } from "firebase/auth";
 import { StateCreator } from "zustand";
 import { firebaseApi } from "~/api";
 import { firebaseAuth } from "~/api/firebase";
-import { getPoints } from "~/api/points";
+import { DEFAULT_USER_POINTS_DATA, UserPointsData, getPointsDataForUser } from "~/api/points";
 
 type ZoomLevel = 1 | 2 | 3;
-
-interface UserPointsSummary {
-  deposit_points: number;
-  borrow_points: number;
-  total: number;
-}
-
-const DEFAULT_USER_POINTS_SUMMARY: UserPointsSummary = {
-  deposit_points: 0,
-  borrow_points: 0,
-  total: 0,
-};
 
 interface UserProfileSlice {
   // State
@@ -25,7 +13,7 @@ interface UserProfileSlice {
   showBadges: boolean;
   currentFirebaseUser: User | null;
   hasUser: boolean | null;
-  pointsSummary: UserPointsSummary;
+  userPointsData: UserPointsData;
 
   // Actions
   setLendZoomLevel: (level: ZoomLevel) => void;
@@ -35,6 +23,7 @@ interface UserProfileSlice {
   setFirebaseUser: (user: User | null) => void;
   signoutFirebaseUser: (isConnected: boolean, walletAddress?: string) => Promise<void>;
   fetchPoints: (walletAddress: string) => Promise<void>;
+  resetPoints: () => void;
 }
 
 const createUserProfileSlice: StateCreator<UserProfileSlice, [], [], UserProfileSlice> = (set, get) => ({
@@ -44,7 +33,7 @@ const createUserProfileSlice: StateCreator<UserProfileSlice, [], [], UserProfile
   showBadges: false,
   currentFirebaseUser: null,
   hasUser: null,
-  pointsSummary: DEFAULT_USER_POINTS_SUMMARY,
+  userPointsData: DEFAULT_USER_POINTS_DATA,
 
   // Actions
   setLendZoomLevel: (level: ZoomLevel) => set(() => ({ lendZoomLevel: level })),
@@ -58,7 +47,8 @@ const createUserProfileSlice: StateCreator<UserProfileSlice, [], [], UserProfile
 
     set({ hasUser: !!user });
   },
-  setFirebaseUser: (user: User | null) => set(() => ({ currentFirebaseUser: user })),
+  setFirebaseUser: (user: User | null) =>{
+    set(() => ({ currentFirebaseUser: user }))},
   signoutFirebaseUser: async (isConnected: boolean, walletAddress?: string) => {
     const currentFirebaseUser = get().currentFirebaseUser;
 
@@ -69,7 +59,8 @@ const createUserProfileSlice: StateCreator<UserProfileSlice, [], [], UserProfile
       set(() => ({ currentFirebaseUser: null }));
     }
   },
-  fetchPoints: async (wallet: string) => set({ pointsSummary: await getPoints({ wallet }) }),
+  fetchPoints: async (wallet: string) => set({ userPointsData: await getPointsDataForUser(wallet) }),
+  resetPoints: () => set({ userPointsData: DEFAULT_USER_POINTS_DATA }),
 });
 
 export { createUserProfileSlice };

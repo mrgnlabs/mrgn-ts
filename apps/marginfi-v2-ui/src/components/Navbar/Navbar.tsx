@@ -14,13 +14,6 @@ import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
 import { Badge } from "@mui/material";
 import { useFirebaseAccount } from "../useFirebaseAccount";
 
-type Points = {
-  owner: string;
-  deposit_points: number;
-  borrow_points: number;
-  total: number;
-} | null;
-
 // @todo implement second pretty navbar row
 const Navbar: FC = () => {
   useFirebaseAccount();
@@ -34,8 +27,8 @@ const Navbar: FC = () => {
     selectedAccount,
     extendedBankInfos,
     currentFirebaseUser,
-    hasUser,
-    fetchPoints,
+    userPointsData,
+    fetchPoints
   ] = useStore((state) => [
     state.showBadges,
     state.setShowBadges,
@@ -43,11 +36,10 @@ const Navbar: FC = () => {
     state.selectedAccount,
     state.extendedBankInfos,
     state.currentFirebaseUser,
-    state.hasUser,
+    state.userPointsData,
     state.fetchPoints,
   ]);
 
-  const [points, setPoints] = useState<Points>(null);
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(router.pathname);
 
@@ -254,7 +246,7 @@ const Navbar: FC = () => {
 
             <Link href={"/points"} className="glow whitespace-nowrap">
               {wallet.connected && currentFirebaseUser
-                ? `${points?.total ? groupedNumberFormatterDyn.format(Math.round(points.total)) : 0} points`
+                ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
                 : "P...P...POINTS!"}
             </Link>
 

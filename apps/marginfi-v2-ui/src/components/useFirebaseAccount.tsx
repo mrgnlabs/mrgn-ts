@@ -7,16 +7,27 @@ import { useStore } from "~/store";
 
 const useFirebaseAccount = () => {
   const wallet = useWallet();
-  const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser] = useStore((state) => [
+  const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser, fetchPoints, resetPoints] = useStore((state) => [
     state.checkForFirebaseUser,
     state.setFirebaseUser,
     state.signoutFirebaseUser,
+    state.fetchPoints,
+    state.resetPoints,
   ]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(firebaseAuth, (newUser) => setFirebaseUser(newUser));
+    // NOTE: if more point-specific logic is added, move this to a separate hook
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (newUser) => {
+      if (newUser) {
+        fetchPoints(newUser.uid).catch(console.error);
+        setFirebaseUser(newUser);
+      } else {
+        resetPoints();
+        setFirebaseUser(null);
+      }
+    });
     return () => unsubscribe();
-  }, [setFirebaseUser]);
+  }, [fetchPoints, setFirebaseUser, resetPoints]);
 
   // Wallet connection side effect (auto-login attempt)
   useEffect(() => {

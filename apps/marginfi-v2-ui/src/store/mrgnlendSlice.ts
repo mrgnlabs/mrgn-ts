@@ -2,7 +2,6 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import { Wallet, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 import { Connection, PublicKey } from "@solana/web3.js";
-import { collection, getDocs } from "firebase/firestore";
 import { StateCreator } from "zustand";
 import {
   DEFAULT_ACCOUNT_SUMMARY,
@@ -11,7 +10,7 @@ import {
   fetchTokenAccounts,
   makeExtendedBankInfo,
 } from "~/api";
-import { firebaseDb } from "~/api/firebase";
+import { getPointsSummary } from "~/api/points";
 import config from "~/config";
 import { AccountSummary, BankMetadataMap, ExtendedBankInfo, TokenAccountMap, TokenMetadataMap } from "~/types";
 import { findMetadataInsensitive, loadBankMetadatas, loadTokenMetadatas } from "~/utils";
@@ -142,14 +141,12 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
       { deposits: 0, borrows: 0 }
     );
 
-    const pointsSummaryCollection = collection(firebaseDb, "points_summary");
-    const pointSummarySnapshot = await getDocs(pointsSummaryCollection);
-    const pointSummary = pointSummarySnapshot.docs[0]?.data() ?? {points_total: 0};
-
     let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
     if (wallet) {
       accountSummary = computeAccountSummary(selectedAccount!, extendedBankInfos);
     }
+
+    const pointSummary = await getPointsSummary();
 
     set({
       marginfiClient,

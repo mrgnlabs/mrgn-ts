@@ -16,7 +16,6 @@ import {
   Checkbox,
   CircularProgress,
 } from "@mui/material";
-import { doc, getDoc } from "firebase/firestore";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { FC, useEffect, useState } from "react";
 import { PageHeader } from "~/components/PageHeader";
@@ -26,13 +25,12 @@ import Link from "next/link";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
-import { firebaseDb } from "~/api/firebase";
 import { useRouter } from "next/router";
 import { firebaseApi } from "~/api";
 import { WalletButton } from "~/components/Navbar/WalletButton";
 import { grey } from "@mui/material/colors";
 import { toast } from "react-toastify";
-import { LeaderboardRow, fetchLeaderboardData, fetchUserRank } from "~/api/points";
+import { LeaderboardRow, fetchLeaderboardData } from "~/api/points";
 import { useStore } from "~/store";
 
 type UserData = {
@@ -59,11 +57,13 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 const Points: FC = () => {
   const wallet = useWallet();
   const { query: routerQuery } = useRouter();
-  const [currentFirebaseUser, hasUser] = useStore((state) => [state.currentFirebaseUser, state.hasUser]);
+  const [currentFirebaseUser, hasUser, userPointsData] = useStore((state) => [
+    state.currentFirebaseUser,
+    state.hasUser,
+    state.userPointsData,
+  ]);
 
-  const [userData, setUserData] = useState<UserData>();
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[]>([]);
-  const [usingCustomReferralCode, setUsingCustomReferralCode] = useState(false);
 
   const currentUserId = useMemo(() => currentFirebaseUser?.uid, [currentFirebaseUser]);
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
@@ -71,53 +71,6 @@ const Points: FC = () => {
   useEffect(() => {
     fetchLeaderboardData().then(setLeaderboardData); // TODO: cache leaderboard and avoid call
   }, [wallet.connected, wallet.publicKey]); // Dependency array to re-fetch when these variables change
-
-  useEffect(() => {
-    const fetchuserData = async () => {
-      // Fetch user data
-      if (currentUserId && leaderboardData.length > 0) {
-        // get user referral code
-        const userDoc = await getDoc(doc(firebaseDb, "users_public", currentUserId));
-        const userReferralData = userDoc.data();
-
-        let userReferralCode = "";
-        if (userReferralData && Array.isArray(userReferralData?.referralCode)) {
-          const uuidPattern = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-\b[0-9a-fA-F]{12}$/;
-          userReferralCode = userReferralData.referralCode.find((code) => !uuidPattern.test(code));
-          setUsingCustomReferralCode(true);
-        } else {
-          userReferralCode = userReferralData?.referralCode || "";
-          setUsingCustomReferralCode(false);
-        }
-
-        // get user points
-        const userPointsDoc = await getDoc(doc(firebaseDb, "points", currentUserId));
-        const userPointsData = userPointsDoc.data();
-
-        const userTotalPoints =
-          userPointsData?.total_deposit_points +
-          userPointsData?.total_borrow_points +
-          (userPointsData?.socialPoints ? userPointsData?.socialPoints : 0);
-        const userLendingPoints = userPointsData?.total_activity_deposit_points;
-        const userBorrowingPoints = userPointsData?.total_activity_borrow_points;
-        const userReferralPoints =
-          userPointsData?.total_referral_deposit_points + userPointsData?.total_referral_borrow_points;
-
-        const userRank = await fetchUserRank(userPointsData?.total_points ?? 0);
-
-        setUserData({
-          userTotalPoints,
-          userLendingPoints,
-          userBorrowingPoints,
-          userReferralPoints,
-          userReferralLink: userReferralCode ? `https://mfi.gg/r/${userReferralCode}` : "",
-          userRank,
-        });
-      }
-    };
-
-    fetchuserData().catch(console.log);
-  }, [currentUserId, leaderboardData, setUsingCustomReferralCode, wallet.publicKey]);
 
   return (
     <>
@@ -149,8 +102,8 @@ const Points: FC = () => {
                     </div>
                   </Typography>
                   <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-                    {userData?.userTotalPoints && userData.userTotalPoints > 0 ? (
-                      numeralFormatter(userData.userTotalPoints)
+                    {userPointsData.totalPoints > 0 ? (
+                      numeralFormatter(userPointsData.totalPoints)
                     ) : (
                       <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                     )}
@@ -163,8 +116,8 @@ const Points: FC = () => {
                     Global Rank {/* TODO: fix that with dedicated query */}
                   </Typography>
                   <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-                    {userData?.userRank && userData?.userRank > 0 ? (
-                      `#${groupedNumberFormatterDyn.format(userData?.userRank)}`
+                    {userPointsData.userRank && userPointsData.userRank > 0 ? (
+                      `#${groupedNumberFormatterDyn.format(userPointsData.userRank)}`
                     ) : (
                       <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                     )}
@@ -194,8 +147,8 @@ const Points: FC = () => {
                     </div>
                   </Typography>
                   <Typography color="#fff" component="div" className="font-aeonik font-[500] text-2xl">
-                    {userData?.userLendingPoints && userData?.userLendingPoints > 0 ? (
-                      numeralFormatter(userData?.userLendingPoints)
+                    {userPointsData.depositPoints > 0 ? (
+                      numeralFormatter(userPointsData.depositPoints)
                     ) : (
                       <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                     )}
@@ -223,8 +176,8 @@ const Points: FC = () => {
                     </div>
                   </Typography>
                   <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-                    {userData?.userBorrowingPoints && userData?.userBorrowingPoints > 0 ? (
-                      numeralFormatter(userData?.userBorrowingPoints)
+                    {userPointsData.borrowPoints > 0 ? (
+                      numeralFormatter(userPointsData.borrowPoints)
                     ) : (
                       <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                     )}
@@ -252,13 +205,7 @@ const Points: FC = () => {
                     </div>
                   </Typography>
                   <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-                    {userData?.userReferralPoints && userData?.userReferralPoints > 0 ? (
-                      numeralFormatter(userData?.userReferralPoints)
-                    ) : userData?.userReferralPoints === 0 ? (
-                      "-"
-                    ) : (
-                      <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
-                    )}
+                    {userPointsData.referralPoints > 0 ? numeralFormatter(userPointsData.referralPoints) : "-"}
                   </Typography>
                 </CardContent>
               </Card>
@@ -291,23 +238,23 @@ const Points: FC = () => {
             <Button
               className={`normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap min-w-[260px] max-w-[260px]`}
               style={{
-                backgroundImage: usingCustomReferralCode
+                backgroundImage: userPointsData.isCustomReferralLink
                   ? "radial-gradient(ellipse at center, #fff 0%, #fff 10%, #DCE85D 60%, #DCE85D 100%)"
                   : "none",
-                backgroundColor: usingCustomReferralCode ? "transparent" : "rgb(227, 227, 227)",
+                backgroundColor: userPointsData.isCustomReferralLink ? "transparent" : "rgb(227, 227, 227)",
 
                 border: "none",
                 color: "black",
                 zIndex: 10,
               }}
               onClick={() => {
-                if (userData?.userReferralLink) {
-                  navigator.clipboard.writeText(userData.userReferralLink);
+                if (userPointsData.referralLink) {
+                  navigator.clipboard.writeText(userPointsData.referralLink);
                 }
               }}
             >
               {`${
-                usingCustomReferralCode ? userData?.userReferralLink?.replace("https://", "") : "Copy referral link"
+                userPointsData.isCustomReferralLink ? userPointsData.referralLink?.replace("https://", "") : "Copy referral link"
               }`}
               <FileCopyIcon />
             </Button>
