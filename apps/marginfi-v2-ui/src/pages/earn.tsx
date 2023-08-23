@@ -21,6 +21,7 @@ import { Countdown } from "~/components/Countdown";
 import { toast } from "react-toastify";
 import BigNumber from "bignumber.js";
 import { useStore } from "~/store";
+import { useWalletWithOverride } from "~/components/useWalletWithOverride";
 
 const Marks: FC<{ marks: { value: any; color: string; label: string }[] }> = ({ marks }) => (
   <>
@@ -69,21 +70,21 @@ interface ProActionProps extends ButtonProps {
 }
 
 export const ProAction: FC<ProActionProps> = ({ children, spinning, disabled, ...otherProps }) => {
-  const wallet = useWallet();
+  const walletContext = useWallet();
 
-  return wallet.connected ? (
+  return walletContext.connected ? (
     <Button
       className={`bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] ${
         disabled && "cursor-not-allowed"
       }`}
       style={{
-        backgroundColor: disabled || !wallet.connected ? "gray" : "rgb(227, 227, 227)",
+        backgroundColor: disabled || !walletContext.connected ? "gray" : "rgb(227, 227, 227)",
         color: "black",
         fontFamily: "Aeonik Pro",
         zIndex: 10,
       }}
       {...otherProps}
-      disabled={disabled || !wallet.connected}
+      disabled={disabled || !walletContext.connected}
     >
       {spinning ? <CircularProgress style={{ color: "#3CAB5F", width: "20px", height: "20px" }} /> : children}
     </Button>
@@ -269,8 +270,8 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
 // ================================
 
 const Pro = () => {
-  const wallet = useWallet();
-  const anchorWallet = useAnchorWallet();
+  const walletContext = useWallet();
+  const {wallet} = useWalletWithOverride();
   const { connection } = useConnection();
   const { lipClient } = useLipClient();
 
@@ -323,10 +324,10 @@ const Pro = () => {
   ];
 
   useEffect(() => {
-    reloadMrgnlendState(connection, anchorWallet);
+    reloadMrgnlendState({connection, wallet});
     const id = setInterval(reloadMrgnlendState, 60_000);
     return () => clearInterval(id);
-  }, [anchorWallet, connection, reloadMrgnlendState]);
+  }, [wallet, connection, reloadMrgnlendState]);
 
   useEffect(() => {
     if (!selectedCampaign) return;
@@ -355,31 +356,31 @@ const Pro = () => {
   useEffect(() => {
     (async function () {
       setInitialFetchDone(true);
-      if (!mfiClient || !lipClient || !wallet.publicKey) return;
-      const lipAccount = await LipAccount.fetch(wallet.publicKey, lipClient, mfiClient);
+      if (!mfiClient || !lipClient || !walletContext.publicKey) return;
+      const lipAccount = await LipAccount.fetch(walletContext.publicKey, lipClient, mfiClient);
       setLipAccount(lipAccount);
     })();
-  }, [lipClient, mfiClient, wallet.publicKey]);
+  }, [lipClient, mfiClient, walletContext.publicKey]);
 
   useEffect(() => {
-    if (wallet.connected) {
+    if (walletContext.connected) {
       setProgressPercent(50);
     } else {
       setProgressPercent(0);
     }
-  }, [wallet.connected]);
+  }, [walletContext.connected]);
 
   useEffect(() => {
     if (amount > 0) {
       setProgressPercent(100);
     } else {
-      if (wallet.connected) {
+      if (walletContext.connected) {
         setProgressPercent(50);
       } else {
         setProgressPercent(0);
       }
     }
-  }, [amount, wallet.connected]);
+  }, [amount, walletContext.connected]);
 
   const depositAction = useCallback(async () => {
     if (!lipAccount || !lipClient || !selectedCampaign || amount === 0 || whitelistedCampaignsWithMeta.length === 0)
@@ -443,7 +444,7 @@ const Pro = () => {
         <div className="w-[360px] flex flex-col items-center gap-6">
           <div className="w-[300px] h-[100px] flex flex-col gap-5 justify-center">
             <div className="flex flex-col gap-1 w-full justify-center">
-              {wallet.connected && (
+              {walletContext.connected && (
                 <div className="text-2xl flex justify-center gap-2" style={{ fontWeight: 400 }}>
                   Your total deposits:
                   <span style={{ color: "#51B56A" }}>
@@ -502,7 +503,7 @@ const Pro = () => {
               maxValue={maxDepositAmount}
               loadingSafetyCheck={loadingSafetyCheck}
               maxDecimals={2}
-              disabled={!wallet.connected}
+              disabled={!walletContext.connected}
             />
           </div>
 

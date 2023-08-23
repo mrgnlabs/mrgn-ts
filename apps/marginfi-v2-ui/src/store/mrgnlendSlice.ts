@@ -1,7 +1,6 @@
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Wallet, nativeToUi } from "@mrgnlabs/mrgn-common";
-import { AnchorWallet } from "@solana/wallet-adapter-react";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
 import { StateCreator } from "zustand";
 import {
   DEFAULT_ACCOUNT_SUMMARY,
@@ -35,7 +34,10 @@ interface MrgnlendSlice {
   accountSummary: AccountSummary;
 
   // Actions
-  reloadMrgnlendState: (connection?: Connection, anchorWallet?: AnchorWallet) => Promise<void>;
+  reloadMrgnlendState: (args?: {
+    connection?: Connection;
+    wallet?: Wallet;
+  }) => Promise<void>;
 }
 
 const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = (set, get) => ({
@@ -56,13 +58,16 @@ const createMrgnlendSlice: StateCreator<MrgnlendSlice, [], [], MrgnlendSlice> = 
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
 
   // Actions
-  reloadMrgnlendState: async (_connection?: Connection, _wallet?: Wallet) => {
-    console.log("called", { connection: !!_connection, anchorWallet: !!_wallet });
+  reloadMrgnlendState: async (args?: {
+    connection?: Connection;
+    wallet?: Wallet;
+  }) => {
+    console.log("called", { connection: !!args?.connection, anchorWallet: !!args?.wallet });
 
-    const connection = _connection ?? get().marginfiClient?.provider.connection;
+    const connection = args?.connection ?? get().marginfiClient?.provider.connection;
     if (!connection) throw new Error("Connection not found");
 
-    const wallet = _wallet ?? get().marginfiClient?.provider?.wallet;
+    const wallet = args?.wallet ?? get().marginfiClient?.provider?.wallet;
 
     const [marginfiClient, bankMetadataMap, tokenMetadataMap] = await Promise.all([
       MarginfiClient.fetch(config.mfiConfig, wallet ?? ({} as any), connection),
