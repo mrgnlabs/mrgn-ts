@@ -2,7 +2,6 @@ import Image from "next/image";
 import { TableCell, TableRow } from "@mui/material";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { ActionType } from "~/types";
 import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
 import { styled } from "@mui/material/styles";
@@ -11,8 +10,15 @@ import Typography from "@mui/material/Typography";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import Badge from "@mui/material/Badge";
 import { isWholePosition } from "~/utils";
-import { WSOL_MINT, groupedNumberFormatterDyn, numeralFormatter, percentFormatter, uiToNative, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, Emissions, isActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import {
+  WSOL_MINT,
+  groupedNumberFormatterDyn,
+  numeralFormatter,
+  percentFormatter,
+  uiToNative,
+  usdFormatter,
+} from "@mrgnlabs/mrgn-common";
+import { ExtendedBankInfo, Emissions, isActiveBankInfo, FEE_MARGIN, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
@@ -51,10 +57,7 @@ const AssetRow: FC<{
   showHotkeyBadges,
   badgeContent,
 }) => {
-  const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [
-    state.lendZoomLevel,
-    state.denominationUSD,
-  ]);
+  const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
   const [mfiClient, reloadMrgnlendState] = useMrgnlendStore((state) => [
     state.marginfiClient,
     state.reloadMrgnlendState,
@@ -180,6 +183,11 @@ const AssetRow: FC<{
 
     let _marginfiAccount = marginfiAccount;
 
+    if (nativeSolBalance < FEE_MARGIN) {
+      toast.error("Not enough sol for fee.");
+      return;
+    }
+
     // -------- Create marginfi account if needed
     try {
       if (_marginfiAccount === null) {
@@ -285,7 +293,7 @@ const AssetRow: FC<{
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, mfiClient, reloadMrgnlendState]);
+  }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, mfiClient, nativeSolBalance, reloadMrgnlendState]);
 
   return (
     <TableRow className="h-full w-full bg-[#171C1F] border border-[#1E2122] rounded-2xl">

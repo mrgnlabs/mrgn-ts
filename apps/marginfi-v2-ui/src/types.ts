@@ -1,12 +1,5 @@
 import { Transaction } from "@solana/web3.js";
 
-export enum ActionType {
-  Deposit = "Supply",
-  Borrow = "Borrow",
-  Repay = "Repay",
-  Withdraw = "Withdraw",
-}
-
 // ----------------------------------------------------------------------------
 // Mayan types
 // ----------------------------------------------------------------------------

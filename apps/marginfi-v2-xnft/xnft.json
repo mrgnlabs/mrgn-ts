@@ -1,0 +1,27 @@
+{
+  "name": "marginfi",
+  "kind": "app",
+  "version": "0.1.0",
+  "description": "Lending force of nature on Solana.",
+  "website": "https://marginfi.com",
+  "storage": "aws",
+  "contact": "https://t.me/mrgncommunity",
+  "icon": {
+    "sm": "./assets/icon.png",
+    "md": "./assets/icon.png",
+    "lg": "./assets/icon.png"
+  },
+  "screenshots": ["./assets/screenshot-1.png", "./assets/screenshot-2.png"],
+  "entrypoints": {
+    "default": {
+      "web": "./web-build/index.html"
+    }
+  },
+  "splash": [
+    {
+      "src": "./assets/icon.png",
+      "height": 64,
+      "width": 64
+    }
+  ]
+}

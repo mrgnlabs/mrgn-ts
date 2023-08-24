@@ -1,0 +1,21 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    // "jsx": "react",
+    "strict": true,
+    // "esModuleInterop": true,
+    "baseUrl": "./src",
+    "paths": {
+      "~/*": ["*"]
+      // "crypto": ["node_modules/crypto-browserify"],
+      // "contentful": ["./node_modules/contentful/dist/contentful.browser.js"]
+    },
+    // "diagnostics": true,
+
+    // "target": "es6",
+    // "module": "commonjs",
+
+  },
+  // "include": ["src/**/*.ts", "src/**/*.tsx", "src/*.tsx"],
+  // "exclude": ["node_modules", "dist"],
+}

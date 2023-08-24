@@ -4,11 +4,11 @@
   "version": "1.0.0",
   "homepage": ".",
   "scripts": {
-    "clean": "rimraf dist node_modules",
+    "clean": "rimraf dist node_modules .expo",
     "build": "expo export:web",
     "start": "yarn build && npx xnft web",
     "bundle": "yarn build && npx xnft bundle",
-    "dev": "expo start --web & npx xnft --iframe http://localhost:19006"
+    "dev": "BROWSER=none expo start --web & npx xnft --iframe http://localhost:19006"
   },
   "dependencies": {
     "@coral-xyz/common-public": "^0.2.0-latest.3375",

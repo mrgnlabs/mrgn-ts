@@ -86,7 +86,14 @@ enum Emissions {
   Borrowing,
 }
 
-export { isActiveBankInfo, Emissions };
+enum ActionType {
+  Deposit = "Supply",
+  Borrow = "Borrow",
+  Repay = "Repay",
+  Withdraw = "Withdraw",
+}
+
+export { isActiveBankInfo, Emissions, ActionType };
 export type {
   AccountSummary,
   UserPosition,
