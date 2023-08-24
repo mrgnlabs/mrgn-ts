@@ -6,7 +6,6 @@ import {
   StyleProp,
   ViewStyle,
 } from "react-native";
-
 import tw from "~/styles/tailwind";
 
 type Props = {

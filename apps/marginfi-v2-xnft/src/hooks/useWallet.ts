@@ -22,7 +22,7 @@ export function useWallet() {
         ),
       );
     }
-  }, [connection, window.xnft?.solana, setProvider]);
+  }, [connection, setProvider]);
 
   useEffect(() => {
     if (window.xnft?.publicKeys?.solana) {

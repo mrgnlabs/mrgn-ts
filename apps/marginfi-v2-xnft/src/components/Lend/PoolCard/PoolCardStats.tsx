@@ -1,8 +1,6 @@
 import React, { useMemo } from "react";
 import { View, Text } from "react-native";
 import tw from "~/styles/tailwind";
-
-import * as utils from "~/utils";
 import { Separator } from "~/components/Common";
 import { WSOL_MINT } from "~/config";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";

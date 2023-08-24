@@ -124,13 +124,13 @@ function createMrgnlendStore() {
         const emissionTokenPriceData = priceMap[bank.emissionsMint.toBase58()];
 
         let userData;
-        if (wallet) {
+        if (wallet && selectedAccount && nativeSolBalance) {
           const tokenAccount = tokenAccountMap!.get(bank.mint.toBase58());
           if (!tokenAccount) throw new Error(`Token account not found for ${bank.mint.toBase58()}`);
           userData = {
-            nativeSolBalance: nativeSolBalance!,
+            nativeSolBalance,
             tokenAccount,
-            marginfiAccount: selectedAccount!,
+            marginfiAccount: selectedAccount,
           };
         }
 
@@ -160,8 +160,8 @@ function createMrgnlendStore() {
       );
 
       let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
-      if (wallet) {
-        accountSummary = computeAccountSummary(selectedAccount!, extendedBankInfos);
+      if (wallet && selectedAccount) {
+        accountSummary = computeAccountSummary(selectedAccount, extendedBankInfos);
       }
 
       const pointSummary = await getPointsSummary();

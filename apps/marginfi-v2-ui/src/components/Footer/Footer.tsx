@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { useUserProfileStore } from "~/store";
 import Switch from "@mui/material/Switch";
 import { useRouter } from "next/router";
@@ -50,13 +50,15 @@ const Footer: FC = () => {
 };
 
 const HotkeysInfo: FC = () => {
-  const isMac = () => {
-    return typeof window !== "undefined" && window.navigator.userAgent.includes("Mac");
-  };
+  const [isMac, setIsMac] = useState(false)
+
+  useEffect(() => {
+    setIsMac(window.navigator.userAgent.includes("Mac"))
+  }, [])
 
   return (
     <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] px-4 font-[500]">
-      {isMac() ? "⌘" : "^"}+K to see hotkeys
+      {isMac ? "⌘" : "^"}+K to see hotkeys
     </div>
   );
 };

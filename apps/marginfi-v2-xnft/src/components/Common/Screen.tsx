@@ -5,9 +5,6 @@ type Props = {
   style?: StyleProp<ViewStyle>;
   children: JSX.Element | JSX.Element[] | null;
 };
-export function Screen({ style, children }: Props) {
-  return <View style={[styles.screen, style]}>{children}</View>;
-}
 
 const styles = StyleSheet.create({
   screen: {
@@ -15,3 +12,7 @@ const styles = StyleSheet.create({
     overflowX: "hidden",
   },
 });
+
+export function Screen({ style, children }: Props) {
+  return <View style={[styles.screen, style]}>{children}</View>;
+}

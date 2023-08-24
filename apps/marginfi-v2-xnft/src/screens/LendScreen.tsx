@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text } from "react-native";
 import { useRecoilValue } from "recoil";
 import tw from "~/styles/tailwind";
@@ -6,8 +6,13 @@ import { tabActiveAtom } from "~/consts";
 import { Screen, Toggle } from "~/components/Common";
 import { LendHeader, PoolCard, PoolCardSkeleton, TabSwitch } from "~/components/Lend";
 import { useMrgnlendStore } from "~/store";
+import config from "~/config";
+import { useConnection } from "~/hooks/useConnection";
+import { useWallet } from "~/hooks/useWallet";
 
 export function LendScreen() {
+  const {wallet} = useWallet();
+  const connection = useConnection();
   const [marginfiClient, reloadMrgnlendState, selectedAccount, accountSummary, extendedBankInfos, nativeSolBalance] =
     useMrgnlendStore((state) => [
       state.marginfiClient,
@@ -20,6 +25,13 @@ export function LendScreen() {
   const tabActive = useRecoilValue(tabActiveAtom);
   const [isFiltered, setIsFiltered] = useState(false);
   const togglePositions = () => setIsFiltered((previousState) => !previousState);
+
+  useEffect(() => {
+    if (!wallet || !connection) return;
+    reloadMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet }).catch(console.error);
+    const id = setInterval(() => reloadMrgnlendState().catch(console.error), 30_000);
+    return () => clearInterval(id);
+  }, [wallet, connection, reloadMrgnlendState]);
 
   const globalPools = useMemo(
     () =>

@@ -5,7 +5,6 @@ import ContentLoader, {
   IContentLoaderProps,
 } from "react-content-loader/native";
 import { View } from "react-native";
-
 import tw from "~/styles/tailwind";
 
 export const PoolCardSkeleton = (
