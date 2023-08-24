@@ -236,7 +236,7 @@ function makeExtendedBankInfo(
       ...bankInfo,
       ...{
         hasActivePosition: false,
-        tokenAccount: { mint: bankInfo.tokenMint, created: false, balance: 0 },
+        tokenAccount: userData.tokenAccount,
         maxDeposit,
         maxRepay: 0,
         maxWithdraw: 0,
