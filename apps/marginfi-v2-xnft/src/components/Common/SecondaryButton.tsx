@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     border: "1px solid #E2E8F0",
     textAlign: "center",
 
-    height: "40px",
+    height: 40,
 
     cursor: "pointer",
     borderRadius: 6,
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     lineHeight: 14,
     fontWeight: "600",
     color: "inherit",
-    paddingVertical: "13px",
-    paddingHorizontal: "16px",
+    paddingVertical: 13,
+    paddingHorizontal: 16,
   },
 });

@@ -1,13 +1,12 @@
 import { PublicKey } from "@solana/web3.js";
 import { getConfig } from "@mrgnlabs/marginfi-client-v2";
-import { getConfig as getLipConfig } from "@mrgnlabs/lip-client";
 import { ENV as ENVChainId } from "@solana/spl-token-registry";
 
 // ================
 // MAIN APP CONFIG
 // ================
 
-let mfiConfig, rpcEndpoint, devFaucetAddress, lipConfig, JUPITER_CHAIN_ID: number;
+let mfiConfig, rpcEndpoint, devFaucetAddress, JUPITER_CHAIN_ID: number;
 let campaignWhitelist: { icon: string; size: number; publicKey: string }[];
 
 const environment = process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT;
@@ -17,7 +16,6 @@ const groupOverride = process.env.NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE;
 switch (environment) {
   case "production":
     mfiConfig = getConfig(environment);
-    lipConfig = getLipConfig(environment);
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
@@ -38,7 +36,6 @@ switch (environment) {
     break;
   case "alpha":
     mfiConfig = getConfig(environment);
-    lipConfig = getLipConfig(environment);
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
@@ -47,7 +44,6 @@ switch (environment) {
     break;
   case "staging":
     mfiConfig = getConfig(environment);
-    lipConfig = getLipConfig(environment);
     JUPITER_CHAIN_ID = ENVChainId.Devnet;
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
@@ -57,7 +53,6 @@ switch (environment) {
     break;
   case "dev":
     mfiConfig = getConfig(environment);
-    lipConfig = getLipConfig(environment);
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
@@ -68,7 +63,6 @@ switch (environment) {
     break;
   default:
     mfiConfig = getConfig("dev");
-    lipConfig = getLipConfig("dev");
     rpcEndpoint = rpcEndpointOverride || "https://devnet.rpcpool.com/";
     devFaucetAddress = new PublicKey("57hG7dDLXUg6GYDzAw892V4qLm6FhKxd86vMLazyFL98");
     campaignWhitelist = [
@@ -90,7 +84,6 @@ const config = {
   mfiConfig,
   rpcEndpoint,
   devFaucetAddress,
-  lipConfig,
   campaignWhitelist,
 };
 

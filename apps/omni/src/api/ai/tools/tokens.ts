@@ -1,5 +1,5 @@
+import { loadTokenMetadatas } from "@mrgnlabs/mrgn-common";
 import { Tool } from "langchain/tools";
-import { loadTokenMetadatas } from "~/utils";
 
 class TokenInfoTool extends Tool {
   name = "token-info-tool";

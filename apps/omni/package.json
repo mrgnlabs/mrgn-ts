@@ -14,6 +14,9 @@
     "lint-fix": "yarn lint --fix"
   },
   "dependencies": {
+    "@mrgnlabs/marginfi-v2-ui-state": "*",
+    "@mrgnlabs/marginfi-client-v2": "*",
+    "@mrgnlabs/mrgn-common": "*",
     "@coral-xyz/anchor": "^0.27.0",
     "@coral-xyz/borsh": "^0.26.0",
     "@emotion/react": "^11.10.5",
@@ -21,9 +24,6 @@
     "@google-cloud/bigquery": "^6.2.0",
     "@jup-ag/api": "^4.0.1-alpha.0",
     "@marinade.finance/marinade-ts-sdk": "^4.0.6",
-    "@mrgnlabs/lip-client": "*",
-    "@mrgnlabs/marginfi-client-v2": "*",
-    "@mrgnlabs/mrgn-common": "*",
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.2",
     "@next/font": "13.1.1",

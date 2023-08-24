@@ -2,6 +2,7 @@
   "expo": {
     "name": "marginfi-xnft",
     "slug": "marginfi-xnft",
-    "entryPoint": "./src/App"
+    "entryPoint": "./src/App",
+    "bundler": "webpack"
   }
 }

@@ -73,9 +73,9 @@ const styles = StyleSheet.create({
     width: "100%",
     fontSize: 14,
     lineHeight: 14,
-    height: "40px",
-    paddingHorizontal: "12px",
-    paddingVertical: "8px",
+    height: 40,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderWidth: 0,
     color: "white",
     opacity: 0.6, // Default opacity

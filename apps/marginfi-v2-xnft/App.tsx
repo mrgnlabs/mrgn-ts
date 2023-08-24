@@ -31,7 +31,7 @@ function LogoTitle() {
       // flex: '1 1 0%',
       borderBottomColor: "rgb(39, 39, 41)",
       borderBottomWidth: 1,
-      height: "63px",
+      height: 63,
       position: "relative",
 
       // border-bottom-width: 1px
@@ -50,7 +50,7 @@ function LogoTitle() {
       color: "white",
       fontSize: 22,
       marginVertical: "auto",
-      paddingLeft: "22px",
+      paddingLeft: 22,
     },
   });
 

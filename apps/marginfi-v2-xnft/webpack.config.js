@@ -20,7 +20,9 @@ module.exports = async function (env, argv) {
     stream: require.resolve("stream-browserify"),
     buffer: require.resolve("buffer"),
   };
+
   config.devtool.sourceMap = "source-map";
+
   config.plugins.push(
     new webpack.ProvidePlugin({
       Buffer: ["buffer", "Buffer"],
