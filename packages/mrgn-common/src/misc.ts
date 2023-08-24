@@ -24,7 +24,7 @@ export function getValueInsensitive<T>(map: Record<string, T>, key: string): T {
     }
   }
   throw new Error(`Token metadata not found for ${key}`);
-};
+}
 
 /**
  * Transaction processing and error-handling helper.

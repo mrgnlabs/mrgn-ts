@@ -15,9 +15,7 @@ export const abbreviateNumber = (amount: number): string => {
     .find(function (item) {
       return amount >= item.value;
     });
-  return item
-    ? (amount / item.value).toFixed(2).replace(rx, "$1") + item.symbol
-    : "0";
+  return item ? (amount / item.value).toFixed(2).replace(rx, "$1") + item.symbol : "0";
 };
 
 export function countDecimalPlaces(num: number): number {

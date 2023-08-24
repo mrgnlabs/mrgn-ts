@@ -12,7 +12,15 @@ import FormControl from "@mui/material/FormControl";
 import Image from "next/image";
 import LipAccount, { Campaign, Deposit } from "@mrgnlabs/lip-client/src/account";
 import config from "~/config";
-import { BankMetadataMap, floor, groupedNumberFormatterDyn, percentFormatterDyn, shortenAddress, usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
+import {
+  BankMetadataMap,
+  floor,
+  groupedNumberFormatterDyn,
+  percentFormatterDyn,
+  shortenAddress,
+  usdFormatter,
+  usdFormatterDyn,
+} from "@mrgnlabs/mrgn-common";
 import { Bank, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { Countdown } from "~/components/Countdown";
 import { toast } from "react-toastify";
@@ -22,7 +30,7 @@ import { useMrgnlendStore } from "../store";
 
 const Earn = () => {
   const walletContext = useWallet();
-  const {wallet, isOverride} = useWalletWithOverride();
+  const { wallet, isOverride } = useWalletWithOverride();
   const { connection } = useConnection();
   const { lipClient } = useLipClient();
 
@@ -75,7 +83,7 @@ const Earn = () => {
   ];
 
   useEffect(() => {
-    reloadMrgnlendState({marginfiConfig: config.mfiConfig, connection, wallet, isOverride});
+    reloadMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride });
     const id = setInterval(reloadMrgnlendState, 60_000);
     return () => clearInterval(id);
   }, [wallet, connection, reloadMrgnlendState, isOverride]);

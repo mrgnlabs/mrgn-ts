@@ -8,7 +8,7 @@ const AccountSummary: FC = () => {
   const [accountSummary, protocolStats, selectedAccount] = useMrgnlendStore((state) => [
     state.accountSummary,
     state.protocolStats,
-    state.selectedAccount
+    state.selectedAccount,
   ]);
   const wallet = useWallet();
 
@@ -24,7 +24,9 @@ const AccountSummary: FC = () => {
       </div>
 
       <div className="w-full">
-        {wallet.connected && !!selectedAccount && <UserStats accountSummary={accountSummary} healthFactor={accountSummary.healthFactor} />}
+        {wallet.connected && !!selectedAccount && (
+          <UserStats accountSummary={accountSummary} healthFactor={accountSummary.healthFactor} />
+        )}
       </div>
     </div>
   );

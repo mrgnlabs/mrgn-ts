@@ -20,22 +20,12 @@ const Navbar: FC = () => {
 
   const wallet = useWallet();
   const router = useRouter();
-  const [
-    accountSummary,
-    selectedAccount,
-    extendedBankInfos,
-  ] = useMrgnlendStore((state) => [
+  const [accountSummary, selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
     state.accountSummary,
     state.selectedAccount,
     state.extendedBankInfos,
   ]);
-  const [
-    showBadges,
-    currentFirebaseUser,
-    userPointsData,
-    setShowBadges,
-    fetchPoints
-  ] = useUserProfileStore((state) => [
+  const [showBadges, currentFirebaseUser, userPointsData, setShowBadges, fetchPoints] = useUserProfileStore((state) => [
     state.showBadges,
     state.currentFirebaseUser,
     state.userPointsData,

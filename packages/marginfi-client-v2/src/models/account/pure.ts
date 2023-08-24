@@ -283,7 +283,11 @@ class MarginfiAccount {
     const liabilityPriceInfo = oraclePrices.get(liabilityBankAddress.toBase58());
     if (!liabilityPriceInfo) throw Error(`Price info for ${liabilityBankAddress.toBase58()} not found`);
 
-    const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Maintenance);
+    const { assets, liabilities } = this.computeHealthComponents(
+      banks,
+      oraclePrices,
+      MarginRequirementType.Maintenance
+    );
     const currentHealth = assets.minus(liabilities);
 
     const priceAssetLower = assetBank.getPrice(assetPriceInfo, PriceBias.Lowest);

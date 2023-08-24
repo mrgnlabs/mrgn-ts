@@ -13,23 +13,14 @@ type Props = {
   bankFilled: number;
 };
 
-export function PoolCardStats({
-  bankInfo,
-  isInLendingMode,
-  nativeSolBalance,
-  bankFilled,
-}: Props) {
+export function PoolCardStats({ bankInfo, isInLendingMode, nativeSolBalance, bankFilled }: Props) {
   const assetWeight = useMemo(() => {
     if (bankInfo.bank.config.assetWeightMaint.toNumber() <= 0) {
       return "-";
     }
     return isInLendingMode
-      ? (bankInfo.bank.config.assetWeightMaint.toNumber() * 100).toFixed(0) +
-          "%"
-      : (
-          (1 / bankInfo.bank.config.liabilityWeightInit.toNumber()) *
-          100
-        ).toFixed(0) + "%";
+      ? (bankInfo.bank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + "%"
+      : ((1 / bankInfo.bank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%";
   }, [isInLendingMode, bankInfo]);
 
   const bankAmount = useMemo(
@@ -37,12 +28,9 @@ export function PoolCardStats({
       numeralFormatter(
         isInLendingMode
           ? bankInfo.totalPoolDeposits
-          : Math.min(
-              bankInfo.totalPoolDeposits,
-              bankInfo.bank.config.borrowLimit,
-            ) - bankInfo.totalPoolBorrows,
+          : Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows
       ),
-    [isInLendingMode, bankInfo],
+    [isInLendingMode, bankInfo]
   );
 
   const userBalance = useMemo(
@@ -50,9 +38,9 @@ export function PoolCardStats({
       numeralFormatter(
         bankInfo.tokenMint.equals(WSOL_MINT)
           ? bankInfo.tokenAccount.balance + nativeSolBalance
-          : bankInfo.tokenAccount.balance,
+          : bankInfo.tokenAccount.balance
       ),
-    [bankInfo, nativeSolBalance],
+    [bankInfo, nativeSolBalance]
   );
 
   const isFilled = useMemo(() => bankFilled >= 0.9999, [bankFilled]);
@@ -63,28 +51,20 @@ export function PoolCardStats({
     <View style={tw`flex flex-row`}>
       <View style={tw`flex flex-col min-w-77px`}>
         <Text style={tw`font-normal text-sm text-tertiary`}>Weight</Text>
-        <Text style={tw`font-medium text-base text-primary`}>
-          {assetWeight}
-        </Text>
+        <Text style={tw`font-medium text-base text-primary`}>{assetWeight}</Text>
       </View>
       <Separator style={tw`mx-12px`} />
       <View style={tw`flex flex-col min-w-77px`}>
-        <Text style={tw`font-normal text-sm text-tertiary`}>
-          {isInLendingMode ? "Deposits" : "Available"}
-        </Text>
+        <Text style={tw`font-normal text-sm text-tertiary`}>{isInLendingMode ? "Deposits" : "Available"}</Text>
         <Text style={tw`font-medium text-base text-primary`}>{bankAmount}</Text>
         {isHigh && (
-          <Text style={tw`text-${isFilled ? "error" : "warning"}`}>
-            {percentFormatter.format(bankFilled)}
-          </Text>
+          <Text style={tw`text-${isFilled ? "error" : "warning"}`}>{percentFormatter.format(bankFilled)}</Text>
         )}
       </View>
       <Separator style={tw`mx-12px`} />
       <View style={tw`flex flex-col min-w-77px`}>
         <Text style={tw`font-normal text-sm text-tertiary`}>Your Balance</Text>
-        <Text style={tw`font-medium text-base text-primary`}>
-          {userBalance + " " + bankInfo.tokenSymbol}
-        </Text>
+        <Text style={tw`font-medium text-base text-primary`}>{userBalance + " " + bankInfo.tokenSymbol}</Text>
       </View>
     </View>
   );

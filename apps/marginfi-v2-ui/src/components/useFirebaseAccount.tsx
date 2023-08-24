@@ -7,14 +7,16 @@ import { useUserProfileStore } from "~/store";
 
 const useFirebaseAccount = () => {
   const wallet = useWallet();
-  
-  const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser, fetchPoints, resetPoints] = useUserProfileStore((state) => [
-    state.checkForFirebaseUser,
-    state.setFirebaseUser,
-    state.signoutFirebaseUser,
-    state.fetchPoints,
-    state.resetPoints,
-  ]);
+
+  const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser, fetchPoints, resetPoints] = useUserProfileStore(
+    (state) => [
+      state.checkForFirebaseUser,
+      state.setFirebaseUser,
+      state.signoutFirebaseUser,
+      state.fetchPoints,
+      state.resetPoints,
+    ]
+  );
 
   useEffect(() => {
     // NOTE: if more point-specific logic is added, move this to a separate hook

@@ -8,7 +8,7 @@ import {
 } from "@solana/web3.js";
 
 export const solanaSignAndConfirmTransaction = async (
-  transaction: Transaction | VersionedTransaction,
+  transaction: Transaction | VersionedTransaction
 ): Promise<string | undefined> => {
   let result = undefined;
   try {
@@ -25,17 +25,13 @@ export const solanaSignMessage = async (message: string) => {
   console.log("solana sign message", result);
 };
 
-export const solanaSendTransaction = async (
-  transaction: Transaction | VersionedTransaction,
-) => {
+export const solanaSendTransaction = async (transaction: Transaction | VersionedTransaction) => {
   const result = await window.xnft.solana.send(transaction);
   console.log("solana send transaction", result);
   return result;
 };
 
-export const solanaSignTransaction = async (
-  transaction: Transaction | VersionedTransaction,
-) => {
+export const solanaSignTransaction = async (transaction: Transaction | VersionedTransaction) => {
   const result = await window.xnft.solana.signTransaction(transaction);
   console.log("solana sign transaction", result);
   return result;
@@ -58,9 +54,7 @@ const solanaSendLegacyTransaction = async () => {
     ],
     recentBlockhash: blockhash,
   });
-  const transaction = new VersionedTransaction(
-    message.compileToLegacyMessage(),
-  );
+  const transaction = new VersionedTransaction(message.compileToLegacyMessage());
 
   const result = await window.xnft.solana.send(transaction, [], {
     minContextSlot,
@@ -68,9 +62,7 @@ const solanaSendLegacyTransaction = async () => {
   console.log("signature from legacy transaction ", result);
 };
 
-export const solanaSignAllTransactions = async (
-  transactions: Transaction | VersionedTransaction[],
-) => {
+export const solanaSignAllTransactions = async (transactions: Transaction | VersionedTransaction[]) => {
   // const transactions = [
   //   new Transaction().add(
   //     SystemProgram.transfer({
@@ -95,7 +87,7 @@ export const solanaSignAllTransactions = async (
 export async function generateTransaction(
   connection: Connection,
   wallet: PublicKey | null,
-  instructions: TransactionInstruction[],
+  instructions: TransactionInstruction[]
 ) {
   if (!wallet) {
     throw new Error("Wallet is not connected");
@@ -103,9 +95,7 @@ export async function generateTransaction(
 
   let transaction = new Transaction();
   instructions.forEach((instruction) => transaction.add(instruction));
-  transaction.recentBlockhash = (
-    await connection.getLatestBlockhash("max")
-  ).blockhash;
+  transaction.recentBlockhash = (await connection.getLatestBlockhash("max")).blockhash;
 
   return transaction;
 }

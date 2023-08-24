@@ -11,13 +11,7 @@ interface NumberInputProps {
   onValueChange: (value: string) => void;
 }
 
-export const NumberInput: React.FC<NumberInputProps> = ({
-  min,
-  max,
-  amount,
-  decimals,
-  onValueChange,
-}) => {
+export const NumberInput: React.FC<NumberInputProps> = ({ min, max, amount, decimals, onValueChange }) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChangeText = (text: string) => {

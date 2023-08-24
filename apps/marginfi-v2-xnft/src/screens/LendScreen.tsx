@@ -11,7 +11,7 @@ import { useConnection } from "~/hooks/useConnection";
 import { useWallet } from "~/hooks/useWallet";
 
 export function LendScreen() {
-  const {wallet} = useWallet();
+  const { wallet } = useWallet();
   const connection = useConnection();
   const [marginfiClient, reloadMrgnlendState, selectedAccount, accountSummary, extendedBankInfos, nativeSolBalance] =
     useMrgnlendStore((state) => [

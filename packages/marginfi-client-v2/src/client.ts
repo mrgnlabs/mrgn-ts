@@ -55,7 +55,7 @@ class MarginfiClient {
     readonly isReadOnly: boolean,
     group: MarginfiGroup,
     banks: BankMap,
-    priceInfos: OraclePriceMap,
+    priceInfos: OraclePriceMap
   ) {
     this.group = group;
     this.banks = banks;

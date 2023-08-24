@@ -56,19 +56,19 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <LipClientProvider>
-              <Head>
-                <title>marginfi</title>
-                <meta name="description" content="marginfi v2 UI" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <link rel="icon" href="/favicon.ico" />
-              </Head>
-              <Navbar />
-              <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
-                <Component {...pageProps} />
-                <Analytics />
-              </div>
-              <Footer />
-              <ToastContainer position="bottom-left" theme="dark" />
+            <Head>
+              <title>marginfi</title>
+              <meta name="description" content="marginfi v2 UI" />
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+              <link rel="icon" href="/favicon.ico" />
+            </Head>
+            <Navbar />
+            <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
+              <Component {...pageProps} />
+              <Analytics />
+            </div>
+            <Footer />
+            <ToastContainer position="bottom-left" theme="dark" />
           </LipClientProvider>
         </WalletModalProvider>
       </WalletProvider>

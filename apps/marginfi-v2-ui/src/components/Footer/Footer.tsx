@@ -50,11 +50,11 @@ const Footer: FC = () => {
 };
 
 const HotkeysInfo: FC = () => {
-  const [isMac, setIsMac] = useState(false)
+  const [isMac, setIsMac] = useState(false);
 
   useEffect(() => {
-    setIsMac(window.navigator.userAgent.includes("Mac"))
-  }, [])
+    setIsMac(window.navigator.userAgent.includes("Mac"));
+  }, []);
 
   return (
     <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] px-4 font-[500]">
@@ -103,7 +103,10 @@ const LendZoomControl: FC = () => {
 };
 
 const LendUnitControl: FC = () => {
-  const [denomination, setDenominationUSD] = useUserProfileStore((state) => [state.denominationUSD, state.setDenominationUSD]);
+  const [denomination, setDenominationUSD] = useUserProfileStore((state) => [
+    state.denominationUSD,
+    state.setDenominationUSD,
+  ]);
 
   return (
     <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] pr-6">

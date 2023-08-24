@@ -1,11 +1,5 @@
 import React, { useRef } from "react";
-import {
-  Text,
-  StyleSheet,
-  Pressable,
-  StyleProp,
-  ViewStyle,
-} from "react-native";
+import { Text, StyleSheet, Pressable, StyleProp, ViewStyle } from "react-native";
 
 type Props = {
   title: string;
@@ -14,12 +8,7 @@ type Props = {
   onPress: () => void;
 };
 
-export function SecondaryButton({
-  onPress,
-  title,
-  customStyles,
-  isDisabled = false,
-}: Props) {
+export function SecondaryButton({ onPress, title, customStyles, isDisabled = false }: Props) {
   const pressableRef = useRef<any>();
 
   return (

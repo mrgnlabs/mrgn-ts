@@ -21,7 +21,12 @@ const GlobalStats: FC<GlobalStatsProps> = ({ borrows, deposits, pointsTotal, tvl
         <div className="flex gap-4 w-full min-w-1/2 mt-[20px]">
           <div className="h-full w-1/4">
             <div>
-              <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom component="div">
+              <Typography
+                color="#868E95"
+                className="font-aeonik font-[300] text-xs flex gap-1"
+                gutterBottom
+                component="div"
+              >
                 Supplied
                 <div className="self-center">
                   <MrgnTooltip
@@ -51,7 +56,12 @@ const GlobalStats: FC<GlobalStatsProps> = ({ borrows, deposits, pointsTotal, tvl
           <DividerLine />
           <div className="h-full w-1/4">
             <div>
-              <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom component="div">
+              <Typography
+                color="#868E95"
+                className="font-aeonik font-[300] text-xs flex gap-1"
+                gutterBottom
+                component="div"
+              >
                 Borrowed
                 <div className="self-center">
                   <MrgnTooltip
@@ -81,7 +91,12 @@ const GlobalStats: FC<GlobalStatsProps> = ({ borrows, deposits, pointsTotal, tvl
           <DividerLine />
           <div className="h-full w-1/4">
             <div>
-              <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom component="div">
+              <Typography
+                color="#868E95"
+                className="font-aeonik font-[300] text-xs flex gap-1"
+                gutterBottom
+                component="div"
+              >
                 TVL
                 <div className="self-center">
                   <MrgnTooltip
@@ -114,7 +129,12 @@ const GlobalStats: FC<GlobalStatsProps> = ({ borrows, deposits, pointsTotal, tvl
           <DividerLine />
           <div className="h-full w-1/4">
             <div>
-              <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom component="div">
+              <Typography
+                color="#868E95"
+                className="font-aeonik font-[300] text-xs flex gap-1"
+                gutterBottom
+                component="div"
+              >
                 Points
                 <div className="self-center">
                   <MrgnTooltip

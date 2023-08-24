@@ -1,7 +1,7 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
-import {ActiveBankInfo} from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 // ================ development utils ================
 

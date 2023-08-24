@@ -73,8 +73,7 @@ export const SemiCircleProgress = ({ amount }: Props) => {
 
   return (
     <View style={[defaultStyles.exteriorCircle, styles.exteriorCircle]}>
-      <View
-        style={[defaultStyles.rotatingCircleWrap, styles.rotatingCircleWrap]}>
+      <View style={[defaultStyles.rotatingCircleWrap, styles.rotatingCircleWrap]}>
         <Animated.View
           style={[
             defaultStyles.rotatingCircle,

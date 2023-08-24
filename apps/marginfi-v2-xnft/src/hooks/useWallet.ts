@@ -14,13 +14,7 @@ export function useWallet() {
 
   useEffect(() => {
     if (connection && window.xnft?.solana) {
-      setProvider(
-        new AnchorProvider(
-          connection,
-          new XnftWallet(window.xnft.solana),
-          AnchorProvider.defaultOptions(),
-        ),
-      );
+      setProvider(new AnchorProvider(connection, new XnftWallet(window.xnft.solana), AnchorProvider.defaultOptions()));
     }
   }, [connection, setProvider]);
 

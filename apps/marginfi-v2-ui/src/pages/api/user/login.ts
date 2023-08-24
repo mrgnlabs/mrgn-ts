@@ -1,16 +1,19 @@
 import * as admin from "firebase-admin";
-import {
-  NextApiRequest,
-  getFirebaseUserByWallet,
-  initFirebaseIfNeeded,
-  logLoginAttempt,
-} from "./utils";
+import { NextApiRequest, getFirebaseUserByWallet, initFirebaseIfNeeded, logLoginAttempt } from "./utils";
 import { MEMO_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import base58 from "bs58";
 import { is } from "superstruct";
 import nacl from "tweetnacl";
-import { SigningMethod, STATUS_BAD_REQUEST, STATUS_UNAUTHORIZED, STATUS_INTERNAL_ERROR, STATUS_NOT_FOUND, STATUS_OK, LoginPayloadStruct } from "@mrgnlabs/marginfi-v2-ui-state";
+import {
+  SigningMethod,
+  STATUS_BAD_REQUEST,
+  STATUS_UNAUTHORIZED,
+  STATUS_INTERNAL_ERROR,
+  STATUS_NOT_FOUND,
+  STATUS_OK,
+  LoginPayloadStruct,
+} from "@mrgnlabs/marginfi-v2-ui-state";
 
 initFirebaseIfNeeded();
 

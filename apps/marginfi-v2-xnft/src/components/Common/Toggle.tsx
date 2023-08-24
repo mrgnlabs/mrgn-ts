@@ -15,12 +15,7 @@ export const Toggle = ({ isEnabled, toggleSwitch }: props) => {
   return (
     <TapGestureHandler onHandlerStateChange={toggleSwitch}>
       <Animated.View style={[styles.switchContainer, { width: thumbSize * 2 }]}>
-        <View
-          style={[
-            styles.track,
-            { backgroundColor: isEnabled ? "#FFFFFF" : "#27272A" },
-          ]}
-        />
+        <View style={[styles.track, { backgroundColor: isEnabled ? "#FFFFFF" : "#27272A" }]} />
         <Animated.View
           style={[
             styles.thumb,

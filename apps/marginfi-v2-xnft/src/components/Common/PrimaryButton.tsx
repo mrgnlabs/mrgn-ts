@@ -1,11 +1,5 @@
 import React, { useRef } from "react";
-import {
-  Text,
-  StyleSheet,
-  Pressable,
-  StyleProp,
-  ViewStyle,
-} from "react-native";
+import { Text, StyleSheet, Pressable, StyleProp, ViewStyle } from "react-native";
 import tw from "~/styles/tailwind";
 
 type Props = {
@@ -15,12 +9,7 @@ type Props = {
   onPress: () => void;
 };
 
-export function PrimaryButton({
-  onPress,
-  title,
-  customStyles,
-  isDisabled = false,
-}: Props) {
+export function PrimaryButton({ onPress, title, customStyles, isDisabled = false }: Props) {
   const pressableRef = useRef<any>();
   return (
     <Pressable

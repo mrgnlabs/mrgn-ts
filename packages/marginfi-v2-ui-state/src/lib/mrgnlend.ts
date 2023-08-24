@@ -15,9 +15,17 @@ import {
   TokenAccountMap,
   TokenPrice,
   TokenPriceMap,
-  UserPosition
+  UserPosition,
 } from "../types";
-import { MintLayout, getAssociatedTokenAddressSync, nativeToUi, unpackAccount, floor, WSOL_MINT, TokenMetadata } from "@mrgnlabs/mrgn-common";
+import {
+  MintLayout,
+  getAssociatedTokenAddressSync,
+  nativeToUi,
+  unpackAccount,
+  floor,
+  WSOL_MINT,
+  TokenMetadata,
+} from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as firebaseApi from "./firebase";
@@ -159,14 +167,15 @@ async function fetchBirdeyePrices(mints: PublicKey[]): Promise<BigNumber[]> {
   throw new Error("Failed to fetch price");
 }
 
-export async function buildEmissionsPriceMap(banks: Bank[], connection: Connection): Promise<TokenPriceMap> {
+export async function fetchEmissionsPriceMap(banks: Bank[], connection: Connection): Promise<TokenPriceMap> {
   const banksWithEmissions = banks.filter((bank) => !bank.emissionsMint.equals(PublicKey.default));
   const emissionsMints = banksWithEmissions.map((bank) => bank.emissionsMint);
 
-  const birdeyePrices = await fetchBirdeyePrices(emissionsMints);
-  const mintAis = await connection.getMultipleAccountsInfo(emissionsMints);
+  const [birdeyePrices, mintAis] = await Promise.all([
+    fetchBirdeyePrices(emissionsMints),
+    connection.getMultipleAccountsInfo(emissionsMints),
+  ]);
   const mint = mintAis.map((ai) => MintLayout.decode(ai!.data));
-
   const emissionsPrices = banksWithEmissions.map((bank, i) => ({
     mint: bank.emissionsMint,
     price: birdeyePrices[i],
@@ -174,7 +183,6 @@ export async function buildEmissionsPriceMap(banks: Bank[], connection: Connecti
   }));
 
   const tokenMap: TokenPriceMap = {};
-
   for (let { mint, price, decimals } of emissionsPrices) {
     tokenMap[mint.toBase58()] = { price, decimals };
   }

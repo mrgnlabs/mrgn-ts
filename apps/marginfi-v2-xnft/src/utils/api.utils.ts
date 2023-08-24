@@ -55,7 +55,7 @@ function parseTokenMetadatas(tokenMetadataListRaw: TokenMetadataListRaw): {
     }),
     {} as {
       [symbol: string]: TokenMetadata;
-    },
+    }
   );
 }
 
@@ -77,22 +77,19 @@ function parseBankMetadatas(bankMetadataListRaw: BankMetadataListRaw): {
     }),
     {} as {
       [address: string]: BankMetadata;
-    },
+    }
   );
 }
 
 export async function loadTokenMetadatas(): Promise<{
   [symbol: string]: TokenMetadata;
 }> {
-  const response = await fetch(
-    `https://storage.googleapis.com/mrgn-public/mrgn-token-metadata-cache.json`,
-    {
-      headers: {
-        Accept: "application/json",
-      },
-      method: "GET",
+  const response = await fetch(`https://storage.googleapis.com/mrgn-public/mrgn-token-metadata-cache.json`, {
+    headers: {
+      Accept: "application/json",
     },
-  );
+    method: "GET",
+  });
 
   const responseBody = await response.json();
 
@@ -109,15 +106,12 @@ export async function loadTokenMetadatas(): Promise<{
 export async function loadBankMetadatas(): Promise<{
   [address: string]: BankMetadata;
 }> {
-  const response = await fetch(
-    `https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json`,
-    {
-      headers: {
-        Accept: "application/json",
-      },
-      method: "GET",
+  const response = await fetch(`https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json`, {
+    headers: {
+      Accept: "application/json",
     },
-  );
+    method: "GET",
+  });
 
   if (response.status === 200) {
     const responseData = await response.json();
@@ -130,20 +124,15 @@ export async function loadBankMetadatas(): Promise<{
 
 // ================ development utils ================
 
-export const FAUCET_PROGRAM_ID = new PublicKey(
-  "4bXpkKSV8swHSnwqtzuboGPaPDeEgAn4Vt8GfarV5rZt",
-);
+export const FAUCET_PROGRAM_ID = new PublicKey("4bXpkKSV8swHSnwqtzuboGPaPDeEgAn4Vt8GfarV5rZt");
 
 export function makeAirdropCollateralIx(
   amount: number,
   mint: PublicKey,
   tokenAccount: PublicKey,
-  faucet: PublicKey,
+  faucet: PublicKey
 ): TransactionInstruction {
-  const [faucetPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("faucet")],
-    FAUCET_PROGRAM_ID,
-  );
+  const [faucetPda] = PublicKey.findProgramAddressSync([Buffer.from("faucet")], FAUCET_PROGRAM_ID);
 
   const keys = [
     { pubkey: faucetPda, isSigner: false, isWritable: false },

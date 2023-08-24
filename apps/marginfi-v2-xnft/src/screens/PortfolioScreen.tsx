@@ -25,7 +25,10 @@ export function PortfolioScreens() {
     state.protocolStats,
   ]);
 
-  const [userPointsData, currentFirebaseUser] = useUserProfileStore((state) => [state.userPointsData, state.currentFirebaseUser]);
+  const [userPointsData, currentFirebaseUser] = useUserProfileStore((state) => [
+    state.userPointsData,
+    state.currentFirebaseUser,
+  ]);
 
   const lendingPools = useMemo(
     () =>

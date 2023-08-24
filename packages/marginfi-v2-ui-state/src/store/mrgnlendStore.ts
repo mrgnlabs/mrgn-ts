@@ -11,7 +11,7 @@ import {
 import { Connection } from "@solana/web3.js";
 import {
   DEFAULT_ACCOUNT_SUMMARY,
-  buildEmissionsPriceMap,
+  fetchEmissionsPriceMap,
   computeAccountSummary,
   fetchTokenAccounts,
   makeExtendedBankInfo,
@@ -89,7 +89,7 @@ function createMrgnlendStore() {
       ]);
       const banks = [...marginfiClient.banks.values()];
 
-      const priceMap = await buildEmissionsPriceMap(banks, connection);
+      const priceMap = await fetchEmissionsPriceMap(banks, connection);
 
       let nativeSolBalance: number = 0;
       let tokenAccountMap: TokenAccountMap;

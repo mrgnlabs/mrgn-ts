@@ -22,21 +22,9 @@ export function PoolCardPosition({ bankInfo }: Props) {
       <View style={tw`flex flex-row justify-between `}>
         <Text style={tw`text-primary my-auto`}>Your position details</Text>
         <Pressable onPress={() => setIsCollapsed(!isCollapsed)}>
-          <View
-            style={[tw`h-18px`, !isCollapsed && styles.svgContainerCollapsed]}>
-            <svg
-              width="24"
-              height="12"
-              viewBox="0 0 24 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M6 9L12 15L18 9"
-                stroke="#E0E0E0"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+          <View style={[tw`h-18px`, !isCollapsed && styles.svgContainerCollapsed]}>
+            <svg width="24" height="12" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 9L12 15L18 9" stroke="#E0E0E0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </View>
         </Pressable>
@@ -45,14 +33,10 @@ export function PoolCardPosition({ bankInfo }: Props) {
         <View style={tw`flex flex-column gap-8px pt-8px`}>
           <View style={tw`flex flex-row justify-between`}>
             <Text style={tw`text-secondary my-auto`}>
-              {(bankInfo as ActiveBankInfo).position.isLending
-                ? "Lending"
-                : "Borrowing"}
+              {(bankInfo as ActiveBankInfo).position.isLending ? "Lending" : "Borrowing"}
             </Text>
             <Text style={tw`text-primary text-base my-auto`}>
-              {(bankInfo as ActiveBankInfo).position.amount.toFixed(
-                bankInfo.tokenMintDecimals,
-              ) +
+              {(bankInfo as ActiveBankInfo).position.amount.toFixed(bankInfo.tokenMintDecimals) +
                 " " +
                 bankInfo.tokenSymbol}
             </Text>
@@ -61,9 +45,7 @@ export function PoolCardPosition({ bankInfo }: Props) {
             <Text style={tw`text-secondary my-auto`}>USD value</Text>
             <Text style={tw`text-primary text-base my-auto`}>
               {" "}
-              {usdFormatter.format(
-                (bankInfo as ActiveBankInfo).position.usdValue,
-              )}
+              {usdFormatter.format((bankInfo as ActiveBankInfo).position.usdValue)}
             </Text>
           </View>
           {/* <View style={tw`flex flex-row justify-between`}>

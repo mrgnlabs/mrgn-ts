@@ -244,7 +244,9 @@ const Points: FC = () => {
               }}
             >
               {`${
-                userPointsData.isCustomReferralLink ? userPointsData.referralLink?.replace("https://", "") : "Copy referral link"
+                userPointsData.isCustomReferralLink
+                  ? userPointsData.referralLink?.replace("https://", "")
+                  : "Copy referral link"
               }`}
               <FileCopyIcon />
             </Button>
