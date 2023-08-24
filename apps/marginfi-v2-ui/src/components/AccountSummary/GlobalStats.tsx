@@ -23,7 +23,6 @@ const GlobalStats: FC<GlobalStatsProps> = ({ borrows, deposits, pointsTotal, tvl
             <div>
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom component="div">
                 Supplied
-              </Typography>
                 <div className="self-center">
                   <MrgnTooltip
                     title={
@@ -39,6 +38,7 @@ const GlobalStats: FC<GlobalStatsProps> = ({ borrows, deposits, pointsTotal, tvl
                     <Image src="/info_icon.png" alt="info" height={12} width={12} />
                   </MrgnTooltip>
                 </div>
+              </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
                 {deposits ? (
                   `$${numeralFormatter(deposits)}`
