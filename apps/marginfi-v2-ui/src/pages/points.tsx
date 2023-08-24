@@ -28,7 +28,7 @@ import { useRouter } from "next/router";
 import { WalletButton } from "~/components/Navbar/WalletButton";
 import { grey } from "@mui/material/colors";
 import { toast } from "react-toastify";
-import { useStore } from "~/store";
+import { useUserProfileStore } from "~/store";
 import { LeaderboardRow, fetchLeaderboardData, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 
@@ -47,7 +47,7 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 const Points: FC = () => {
   const wallet = useWallet();
   const { query: routerQuery } = useRouter();
-  const [currentFirebaseUser, hasUser, userPointsData] = useStore((state) => [
+  const [currentFirebaseUser, hasUser, userPointsData] = useUserProfileStore((state) => [
     state.currentFirebaseUser,
     state.hasUser,
     state.userPointsData,

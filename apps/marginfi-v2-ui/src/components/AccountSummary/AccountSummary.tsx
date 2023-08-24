@@ -2,10 +2,10 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC } from "react";
 import { GlobalStats } from "./GlobalStats";
 import { UserStats } from "./UserStats";
-import { useStore } from "~/store";
+import { useMrgnlendStore } from "~/store";
 
 const AccountSummary: FC = () => {
-  const [accountSummary, protocolStats] = useStore((state) => [
+  const [accountSummary, protocolStats] = useMrgnlendStore((state) => [
     state.accountSummary,
     state.protocolStats
   ]);

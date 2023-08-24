@@ -2,16 +2,16 @@ import React, { useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { AccountSummary, AssetsList, Banner, UserPositions } from "~/components";
 import { PageHeader } from "~/components/PageHeader";
-import { useStore } from "~/store";
 import { useWalletWithOverride } from "~/components/useWalletWithOverride";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import config from "~/config";
+import { useMrgnlendStore } from "../store";
 
 const Home = () => {
   const walletContext = useWallet();
   const { wallet, isOverride } = useWalletWithOverride();
   const { connection } = useConnection();
-  const [reloadMrgnlendState, marginfiAccountCount] = useStore((state) => [
+  const [reloadMrgnlendState, marginfiAccountCount] = useMrgnlendStore((state) => [
     state.reloadMrgnlendState,
     state.marginfiAccountCount,
   ]);

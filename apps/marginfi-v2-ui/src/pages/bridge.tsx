@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import config from "~/config";
 import Script from "next/script";
@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
 import { PageHeaderBridge } from "~/components/PageHeader";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
-import { useStore } from "~/store";
+import { useUserProfileStore } from "~/store";
 
 const tokens = [
   "0x0000000000000000000000000000000000000000", // SOL
@@ -68,7 +68,7 @@ const BridgePage = () => {
   const { publicKey, signTransaction, connect, disconnect, wallet } = useWallet();
   const { setVisible, visible } = useWalletModal();
   const [isBridgeIn, setIsBridgeIn] = useState<boolean>(true);
-  const setShowBadges = useStore((state) => state.setShowBadges);
+  const setShowBadges = useUserProfileStore((state) => state.setShowBadges);
 
   // Enter hotkey mode
   useHotkeys(
@@ -83,7 +83,7 @@ const BridgePage = () => {
     { preventDefault: true, enableOnFormTags: true }
   );
 
-  const handleConnect = async () => {
+  const handleConnect = useCallback(async () => {
     try {
       if (!wallet) {
         setVisible(!visible);
@@ -93,7 +93,7 @@ const BridgePage = () => {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, [connect, setVisible, visible, wallet]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && typeof window.MayanSwap !== "undefined") {
@@ -104,7 +104,7 @@ const BridgePage = () => {
         onClickOnDisconnect: disconnect,
       });
     }
-  }, [publicKey, signTransaction, disconnect, setVisible, visible, wallet, connect]);
+  }, [disconnect, handleConnect, publicKey, signTransaction]);
 
   const handleLoadMayanWidget = () => {
     const configIndex = isBridgeIn ? 0 : 1;
@@ -143,7 +143,7 @@ const BridgePage = () => {
     });
   };
 
-  const handleUpdateConfig = () => {
+  const handleUpdateConfig = useCallback(() => {
     const newConfigIndex = isBridgeIn ? 1 : 0;
     const config = {
       ...configs[newConfigIndex],
@@ -160,11 +160,11 @@ const BridgePage = () => {
       return;
     }
     setIsBridgeIn((prevState) => !prevState);
-  };
+  }, [disconnect, handleConnect, isBridgeIn, publicKey, signTransaction]);
 
   useEffect(() => {
     handleUpdateConfig;
-  }, []);
+  }, [handleUpdateConfig]);
 
   return (
     <>

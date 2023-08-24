@@ -5,7 +5,7 @@ import AirdropZone from "./AirdropZone";
 import { WalletButton } from "./WalletButton";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useStore } from "~/store";
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
 
 // Firebase
 import { useRouter } from "next/router";
@@ -21,22 +21,25 @@ const Navbar: FC = () => {
   const wallet = useWallet();
   const router = useRouter();
   const [
-    showBadges,
-    setShowBadges,
     accountSummary,
     selectedAccount,
     extendedBankInfos,
-    currentFirebaseUser,
-    userPointsData,
-    fetchPoints
-  ] = useStore((state) => [
-    state.showBadges,
-    state.setShowBadges,
+  ] = useMrgnlendStore((state) => [
     state.accountSummary,
     state.selectedAccount,
     state.extendedBankInfos,
+  ]);
+  const [
+    showBadges,
+    currentFirebaseUser,
+    userPointsData,
+    setShowBadges,
+    fetchPoints
+  ] = useUserProfileStore((state) => [
+    state.showBadges,
     state.currentFirebaseUser,
     state.userPointsData,
+    state.setShowBadges,
     state.fetchPoints,
   ]);
 

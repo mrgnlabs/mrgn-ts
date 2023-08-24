@@ -6,7 +6,7 @@ import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
-import { useStore } from "~/store";
+import { useMrgnlendStore } from "~/store";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
@@ -24,7 +24,7 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 const UserPositions: FC = () => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
-  const [selectedAccount, extendedBankInfos, reloadMrgnlendState] = useStore((state) => [
+  const [selectedAccount, extendedBankInfos, reloadMrgnlendState] = useMrgnlendStore((state) => [
     state.selectedAccount,
     state.extendedBankInfos,
     state.reloadMrgnlendState,

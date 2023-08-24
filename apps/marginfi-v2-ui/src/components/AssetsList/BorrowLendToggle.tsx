@@ -1,6 +1,6 @@
 import { Badge, styled, Switch, SwitchProps } from "@mui/material";
 import { Dispatch, SetStateAction } from "react";
-import { useStore } from "~/store";
+import { useUserProfileStore } from "~/store";
 
 type PaddingConfigs = {
   left: string;
@@ -27,7 +27,7 @@ const BorrowLendToggle = styled(
     },
     ...switchProps
   }: BorrowLendToggleProps) => {
-    const showBadges = useStore((state) => state.showBadges);
+    const showBadges = useUserProfileStore((state) => state.showBadges);
     const handleChange = () => {
       setIsInLendingMode((prev) => !prev);
     };

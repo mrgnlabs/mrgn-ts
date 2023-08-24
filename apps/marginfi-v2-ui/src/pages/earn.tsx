@@ -17,8 +17,8 @@ import { Bank, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { Countdown } from "~/components/Countdown";
 import { toast } from "react-toastify";
 import BigNumber from "bignumber.js";
-import { useStore } from "~/store";
 import { useWalletWithOverride } from "~/components/useWalletWithOverride";
+import { useMrgnlendStore } from "../store";
 
 const Earn = () => {
   const walletContext = useWallet();
@@ -26,7 +26,7 @@ const Earn = () => {
   const { connection } = useConnection();
   const { lipClient } = useLipClient();
 
-  const [mfiClient, bankMetadataMap, reloadMrgnlendState] = useStore((state) => [
+  const [mfiClient, bankMetadataMap, reloadMrgnlendState] = useMrgnlendStore((state) => [
     state.marginfiClient,
     state.bankMetadataMap,
     state.reloadMrgnlendState,

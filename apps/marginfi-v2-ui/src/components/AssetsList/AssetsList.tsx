@@ -7,7 +7,7 @@ import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
-import { useStore } from "~/store";
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useHotkeys } from "react-hotkeys-hook";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
@@ -25,11 +25,15 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 const AssetsList: FC = () => {
   // const { selectedAccount, nativeSolBalance } = useStore();
   const wallet = useWallet();
-  const [extendedBankInfos, nativeSolBalance, selectedAccount, lendZoomLevel, showBadges, setShowBadges] = useStore(
+  const [extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore(
     (state) => [
       state.extendedBankInfos,
       state.nativeSolBalance,
       state.selectedAccount,
+    ]
+  );
+  const [lendZoomLevel, showBadges, setShowBadges] = useUserProfileStore(
+    (state) => [
       state.lendZoomLevel,
       state.showBadges,
       state.setShowBadges,

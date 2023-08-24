@@ -1,5 +1,5 @@
 import { FC, useMemo } from "react";
-import { useStore } from "~/store";
+import { useUserProfileStore } from "~/store";
 import Switch from "@mui/material/Switch";
 import { useRouter } from "next/router";
 import SvgIcon from "@mui/material/SvgIcon";
@@ -62,7 +62,7 @@ const HotkeysInfo: FC = () => {
 };
 
 const LendZoomControl: FC = () => {
-  const setLendZoomLevel = useStore((state) => state.setLendZoomLevel);
+  const setLendZoomLevel = useUserProfileStore((state) => state.setLendZoomLevel);
 
   return (
     <div className="flex gap-4 items-center justify-center border-r border-[#4E5257] pr-4">
@@ -101,7 +101,7 @@ const LendZoomControl: FC = () => {
 };
 
 const LendUnitControl: FC = () => {
-  const [denomination, setDenominationUSD] = useStore((state) => [state.denominationUSD, state.setDenominationUSD]);
+  const [denomination, setDenominationUSD] = useUserProfileStore((state) => [state.denominationUSD, state.setDenominationUSD]);
 
   return (
     <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] pr-6">

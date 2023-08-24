@@ -3,12 +3,12 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
-import { useStore } from "~/store";
+import { useUserProfileStore } from "~/store";
 
 const useFirebaseAccount = () => {
   const wallet = useWallet();
   
-  const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser, fetchPoints, resetPoints] = useStore((state) => [
+  const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser, fetchPoints, resetPoints] = useUserProfileStore((state) => [
     state.checkForFirebaseUser,
     state.setFirebaseUser,
     state.signoutFirebaseUser,

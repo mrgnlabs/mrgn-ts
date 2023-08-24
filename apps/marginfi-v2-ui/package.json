@@ -43,7 +43,8 @@
     "sharp": "^0.31.3",
     "superstruct": "^1.0.3",
     "tweetnacl": "^1.0.3",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "zustand": "^4.4.1"
   },
   "devDependencies": {
     "@mrgnlabs/eslint-config-custom": "*",

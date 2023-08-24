@@ -8,7 +8,7 @@ import { AssetRowAction } from "./AssetRowAction";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { useStore } from "~/store";
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import Badge from "@mui/material/Badge";
 import { isWholePosition } from "~/utils";
 import { WSOL_MINT, groupedNumberFormatterDyn, numeralFormatter, percentFormatter, uiToNative, usdFormatter } from "@mrgnlabs/mrgn-common";
@@ -51,9 +51,11 @@ const AssetRow: FC<{
   showHotkeyBadges,
   badgeContent,
 }) => {
-  const [lendZoomLevel, denominationUSD, mfiClient, reloadMrgnlendState] = useStore((state) => [
+  const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [
     state.lendZoomLevel,
     state.denominationUSD,
+  ]);
+  const [mfiClient, reloadMrgnlendState] = useMrgnlendStore((state) => [
     state.marginfiClient,
     state.reloadMrgnlendState,
   ]);

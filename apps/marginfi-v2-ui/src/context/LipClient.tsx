@@ -1,7 +1,7 @@
 import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
 import config from "~/config";
 import { LipClient } from "@mrgnlabs/lip-client";
-import { useStore } from "~/store";
+import { useMrgnlendStore } from "~/store";
 
 // @ts-ignore - Safe because context hook checks for null
 const LipClientContext = createContext<LipClientState>();
@@ -14,7 +14,7 @@ interface LipClientState {
 const LipClientFC: FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const [mfiClient] = useStore((state) => [state.marginfiClient]);
+  const [mfiClient] = useMrgnlendStore((state) => [state.marginfiClient]);
   const [lipClient, setLipClient] = useState<LipClient | null>(null);
 
   const reload = useCallback(async () => {

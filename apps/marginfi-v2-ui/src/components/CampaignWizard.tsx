@@ -19,7 +19,7 @@ import { MenuItem, Select, TextField } from "@mui/material";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import Image from "next/image";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
-import { useStore } from "~/store";
+import { useMrgnlendStore } from "~/store";
 import { computeGuaranteedApy } from "@mrgnlabs/lip-client";
 
 interface CampaignWizardInputBox {
@@ -88,7 +88,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
   const [campaignBank, setCampaignBank] = useState<Bank | null>(null);
 
   const wallet = useWallet();
-  const [mfiClient] = useStore((state) => [state.marginfiClient]);
+  const [mfiClient] = useMrgnlendStore((state) => [state.marginfiClient]);
   const { lipClient, reload: reloadLipClient } = useLipClient();
 
   const availableBanks = useMemo(() => {
