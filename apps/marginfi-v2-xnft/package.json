@@ -4,21 +4,21 @@
   "name": "marginfi-v2-xnft",
   "version": "0.1.0",
   "scripts": {
-    "build": "expo export:web",
-    "start": "yarn build && npx xnft web",
-    "bundle": "yarn build && npx xnft bundle",
+    "build": "GENERATE_SOURCEMAP=false expo export:web",
+    "start": "GENERATE_SOURCEMAP=false yarn build && npx xnft web",
+    "bundle": "GENERATE_SOURCEMAP=false yarn build && npx xnft bundle",
     "dev": "GENERATE_SOURCEMAP=false BROWSER=none expo start -p 19001 --web & npx xnft --iframe http://localhost:19007",
     "clean": "rimraf dist node_modules .expo web-build"
   },
   "dependencies": {
-    "@mrgnlabs/marginfi-client-v2": "*",
-    "@mrgnlabs/marginfi-v2-ui-state": "*",
-    "@mrgnlabs/mrgn-common": "*",
     "@coral-xyz/anchor": "0.28.1-beta.1",
     "@coral-xyz/common": "0.7.0-latest.1142",
     "@expo-google-fonts/dev": "0.2.3",
     "@expo/vector-icons": "^13.0.0",
     "@miblanchard/react-native-slider": "^2.3.1",
+    "@mrgnlabs/marginfi-client-v2": "*",
+    "@mrgnlabs/marginfi-v2-ui-state": "*",
+    "@mrgnlabs/mrgn-common": "*",
     "@pythnetwork/client": "^2.19.0",
     "@react-navigation/bottom-tabs": "6.5.8",
     "@react-navigation/native": "6.1.7",
@@ -40,7 +40,7 @@
     "expo-linking": "~5.0.2",
     "expo-status-bar": "~1.6.0",
     "fast-glob": "^3.3.1",
-    "glob": "^10.3.3",
+    "glob": "^8.0.3",
     "jszip": "^3.10.1",
     "lucide-react": "^0.268.0",
     "numeral": "^2.0.6",
@@ -65,7 +65,8 @@
     "ts-loader": "^9.4.4",
     "twrnc": "3.6.4",
     "uuid": "9.0.0",
-    "webpack": "^5.88.2"
+    "webpack": "^5.88.2",
+    "zustand": "^4.4.1"
   },
   "devDependencies": {
     "@babel/core": "7.22.10",

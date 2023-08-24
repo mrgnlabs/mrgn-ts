@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "homepage": ".",
   "scripts": {
-    "build": "expo export:web",
-    "start": "yarn build && npx xnft web",
-    "bundle": "yarn build && npx xnft bundle",
+    "build": "GENERATE_SOURCEMAP=false expo export:web",
+    "start": "GENERATE_SOURCEMAP=false yarn build && npx xnft web",
+    "bundle": "GENERATE_SOURCEMAP=false yarn build && npx xnft bundle",
     "clean": "rimraf dist node_modules .expo"
   },
   "dependencies": {

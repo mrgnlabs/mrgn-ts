@@ -26,7 +26,6 @@ interface UserProfileState {
 }
 
 function createUserProfileStore() { 
-  console.log("createUserProfileStore")
   return create<UserProfileState>()((set, get) => ({
   // State
   lendZoomLevel: 3,
