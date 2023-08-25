@@ -12,12 +12,17 @@ const Home = () => {
   const { wallet, isOverride } = useWalletWithOverride();
   const { connection } = useConnection();
   const fetchMrgnlendState = useMrgnlendStore((state) => state.fetchMrgnlendState);
+  const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const marginfiAccountCount = useMrgnlendStore((state) => state.marginfiAccountCount);
   const selectedAccount = useMrgnlendStore((state) => state.selectedAccount);
 
   useEffect(() => {
+    setIsRefreshingStore(true);
     fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
-    const id = setInterval(() => fetchMrgnlendState().catch(console.error), 30_000);
+    const id = setInterval(() => {
+      setIsRefreshingStore(true);
+      fetchMrgnlendState().catch(console.error);
+    }, 30_000);
     return () => clearInterval(id);
   }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
   // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array

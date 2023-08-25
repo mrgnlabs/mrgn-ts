@@ -65,6 +65,7 @@ const AssetRow: FC<{
   badgeContent,
 }) => {
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
+  const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
 
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
@@ -134,6 +135,7 @@ const AssetRow: FC<{
 
     toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
+      setIsRefreshingStore(true);
       await fetchMrgnlendState();
       toast.update(REFRESH_ACCOUNT_TOAST_ID, {
         render: "Refreshing state 👍",
@@ -151,7 +153,7 @@ const AssetRow: FC<{
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [bank, marginfiAccount, fetchMrgnlendState]);
+  }, [bank, marginfiAccount, fetchMrgnlendState, setIsRefreshingStore]);
 
   const borrowOrLend = useCallback(async () => {
     if (mfiClient === null) throw Error("Marginfi client not ready");
@@ -283,6 +285,7 @@ const AssetRow: FC<{
     // -------- Refresh state
     toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
+      setIsRefreshingStore(true);
       await fetchMrgnlendState();
       toast.update(REFRESH_ACCOUNT_TOAST_ID, {
         render: "Refreshing state 👍",
@@ -300,7 +303,7 @@ const AssetRow: FC<{
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [bank, borrowOrLendAmount, currentAction, marginfiAccount, mfiClient, nativeSolBalance, fetchMrgnlendState]);
+  }, [bank, borrowOrLendAmount, currentAction, marginfiAccount, mfiClient, nativeSolBalance, fetchMrgnlendState, setIsRefreshingStore]);
 
   return (
     <TableRow className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]">

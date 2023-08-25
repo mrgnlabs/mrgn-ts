@@ -42,6 +42,7 @@ const Earn = () => {
   const { connection } = useConnection();
   const { lipClient } = useLipClient();
 
+  const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const [mfiClient, bankMetadataMap, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.marginfiClient,
     state.bankMetadataMap,
@@ -56,8 +57,12 @@ const Earn = () => {
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
 
   useEffect(() => {
+    setIsRefreshingStore(true);
     fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
-    const id = setInterval(() => fetchMrgnlendState().catch(console.error), 60_000);
+    const id = setInterval(() => {
+      setIsRefreshingStore(true);
+      fetchMrgnlendState().catch(console.error);
+    }, 30_000);
     return () => clearInterval(id);
   }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
   // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array

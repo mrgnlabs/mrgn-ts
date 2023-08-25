@@ -22,8 +22,7 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 const UserPositions: FC = () => {
-  const { connection } = useConnection();
-  const wallet = useAnchorWallet();
+  const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const [selectedAccount, extendedBankInfos, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.selectedAccount,
     state.extendedBankInfos,
@@ -140,7 +139,10 @@ const UserPositions: FC = () => {
                     key={index}
                     activeBankInfo={bankInfo}
                     marginfiAccount={selectedAccount}
-                    reloadPositions={() => fetchMrgnlendState({ connection, wallet })}
+                    reloadPositions={async () => {
+                      setIsRefreshingStore(true);
+                      fetchMrgnlendState();
+                    }}
                   />
                 ))}
               </TableBody>
@@ -246,7 +248,10 @@ const UserPositions: FC = () => {
                       key={index}
                       activeBankInfo={bankInfo}
                       marginfiAccount={selectedAccount}
-                      reloadPositions={() => fetchMrgnlendState({ connection, wallet })}
+                      reloadPositions={async () => {
+                        setIsRefreshingStore(true);
+                        fetchMrgnlendState();
+                      }}
                     />
                   ))}
                 </TableBody>

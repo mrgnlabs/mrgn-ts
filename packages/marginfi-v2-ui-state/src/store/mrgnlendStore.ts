@@ -54,6 +54,7 @@ interface MrgnlendState {
     wallet?: Wallet;
     isOverride?: boolean;
   }) => Promise<void>;
+  setIsRefreshingStore: (isRefreshingStore: boolean) => void;
 }
 
 function createMrgnlendStore() {
@@ -221,6 +222,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       accountSummary,
     });
   },
+  setIsRefreshingStore: (isRefreshingStore: boolean) => set({ isRefreshingStore }),
 });
 
 export { createMrgnlendStore, createPersistentMrgnlendStore };
