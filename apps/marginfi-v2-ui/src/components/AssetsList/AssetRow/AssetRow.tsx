@@ -684,7 +684,7 @@ const LoadingAsset: FC<{ isInLendingMode: boolean; bankMetadata: ExtendedBankMet
         <div className="font-aeonik hidden lg:block">{bankMetadata.tokenSymbol}</div>
       </div>
     </TableCell>
-    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
+    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}></TableCell>
     <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
     <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
     <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
