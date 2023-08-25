@@ -9,7 +9,7 @@ import { usdFormatter, numeralFormatter, usdFormatterDyn, percentFormatter } fro
 import styles from "./style.module.css";
 
 interface UserStatsProps {
-  accountSummary: AccountSummary;
+  accountSummary: AccountSummary | null;
   healthFactor: number | null;
 }
 
@@ -42,30 +42,32 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
                 Account
                 <div className="self-center">
-                  <MrgnTooltip
-                    title={
-                      <React.Fragment>
-                        <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                          Your account
-                        </Typography>
-                        <div className="flex flex-col gap-2 pb-2">
-                          {`Without price bias, your account balance is ${usdFormatter.format(
-                            accountSummary.balanceUnbiased
-                          )}. With bias, your account balance is ${usdFormatter.format(accountSummary.balance)}.`}
-                        </div>
-                        <Link href="https://t.me/mrgncommunity">
-                          <u>Learn why price bias matters.</u>
-                        </Link>
-                      </React.Fragment>
-                    }
-                    placement="top"
-                  >
-                    <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                  </MrgnTooltip>
+                  {accountSummary && (
+                    <MrgnTooltip
+                      title={
+                        <React.Fragment>
+                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                            Your account
+                          </Typography>
+                          <div className="flex flex-col gap-2 pb-2">
+                            {`Without price bias, your account balance is ${usdFormatter.format(
+                              accountSummary.balanceUnbiased
+                            )}. With bias, your account balance is ${usdFormatter.format(accountSummary.balance)}.`}
+                          </div>
+                          <Link href="https://t.me/mrgncommunity">
+                            <u>Learn why price bias matters.</u>
+                          </Link>
+                        </React.Fragment>
+                      }
+                      placement="top"
+                    >
+                      <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                    </MrgnTooltip>
+                  )}
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                <>
+                {accountSummary ? <>
                   <div className="sm:hidden">{`$${numeralFormatter(accountSummary.balanceUnbiased)}`}</div>
 
                   <div className="hidden sm:block xl:hidden">
@@ -75,7 +77,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                   </div>
 
                   <div className="hidden xl:block">{usdFormatter.format(accountSummary.balanceUnbiased)}</div>
-                </>
+                </> : "-"}
               </Typography>
             </div>
           </div>
@@ -87,32 +89,34 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
                 Supplying
                 <div className="self-center">
-                  <MrgnTooltip
-                    title={
-                      <React.Fragment>
-                        <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                          How much are you lending?
-                        </Typography>
-                        <div className="flex flex-col gap-2 pb-2">
-                          {`Your assets are worth ${usdFormatter.format(
-                            accountSummary.lendingAmountUnbiased
-                          )} without price bias and ${usdFormatter.format(
-                            accountSummary.lendingAmount
-                          )} with price bias.`}
-                        </div>
-                        <Link href="https://t.me/mrgncommunity">
-                          <u>Learn why price bias matters.</u>
-                        </Link>
-                      </React.Fragment>
-                    }
-                    placement="top"
-                  >
-                    <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                  </MrgnTooltip>
+                  {accountSummary && (
+                    <MrgnTooltip
+                      title={
+                        <React.Fragment>
+                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                            How much are you lending?
+                          </Typography>
+                          <div className="flex flex-col gap-2 pb-2">
+                            {`Your assets are worth ${usdFormatter.format(
+                              accountSummary.lendingAmountUnbiased
+                            )} without price bias and ${usdFormatter.format(
+                              accountSummary.lendingAmount
+                            )} with price bias.`}
+                          </div>
+                          <Link href="https://t.me/mrgncommunity">
+                            <u>Learn why price bias matters.</u>
+                          </Link>
+                        </React.Fragment>
+                      }
+                      placement="top"
+                    >
+                      <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                    </MrgnTooltip>
+                  )}
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                <>
+                {accountSummary ? <>
                   <div className="sm:hidden">{`$${numeralFormatter(accountSummary.lendingAmountUnbiased)}`}</div>
 
                   <div className="hidden sm:block xl:hidden">
@@ -122,7 +126,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                   </div>
 
                   <div className="hidden xl:block">{usdFormatter.format(accountSummary.lendingAmountUnbiased)}</div>
-                </>
+                </> : "-"}
               </Typography>
             </div>
           </div>
@@ -132,33 +136,34 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
                 Borrowing
                 <div className="self-center">
-                  <MrgnTooltip
-                    title={
-                      <React.Fragment>
-                        <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                          How much are you borrowing?
-                        </Typography>
-                        <div className="flex flex-col gap-2 pb-2">
-                          {`Your liabilities are worth ${usdFormatter.format(
-                            accountSummary.borrowingAmountUnbiased
-                          )} without price bias and ${usdFormatter.format(
-                            accountSummary.borrowingAmount
-                          )} with price bias.`}
-                        </div>
-                        <Link href="https://t.me/mrgncommunity">
-                          <u>Learn why price bias matters.</u>
-                        </Link>
-                      </React.Fragment>
-                    }
-                    placement="top"
-                  >
-                    <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                  </MrgnTooltip>
+                  {accountSummary && (
+                    <MrgnTooltip
+                      title={
+                        <React.Fragment>
+                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                            How much are you borrowing?
+                          </Typography>
+                          <div className="flex flex-col gap-2 pb-2">
+                            {`Your liabilities are worth ${usdFormatter.format(
+                              accountSummary.borrowingAmountUnbiased
+                            )} without price bias and ${usdFormatter.format(
+                              accountSummary.borrowingAmount
+                            )} with price bias.`}
+                          </div>
+                          <Link href="https://t.me/mrgncommunity">
+                            <u>Learn why price bias matters.</u>
+                          </Link>
+                        </React.Fragment>
+                      }
+                      placement="top"
+                    >
+                      <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                    </MrgnTooltip>
+                  )}
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {accountSummary.borrowingAmountUnbiased !== undefined &&
-                accountSummary.borrowingAmountUnbiased !== null ? (
+                {accountSummary ? (
                   <>
                     <div className="sm:hidden">{`$${numeralFormatter(accountSummary.borrowingAmountUnbiased)}`}</div>
 
@@ -171,7 +176,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                     <div className="hidden xl:block">{usdFormatter.format(accountSummary.borrowingAmountUnbiased)}</div>
                   </>
                 ) : (
-                  <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
+                  "-"
                 )}
               </Typography>
             </div>
@@ -182,32 +187,34 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
               <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
                 Health
                 <div className="self-center">
-                  <MrgnTooltip
-                    title={
-                      <React.Fragment>
-                        <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                          Health Factor
-                        </Typography>
-                        <div className="flex flex-col gap-2 pb-2">
-                          <div>
-                            Health factor is based off of <b>price biased</b> and <b>weighted</b> asset and liability
-                            values.
+                  {accountSummary && (
+                    <MrgnTooltip
+                      title={
+                        <React.Fragment>
+                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                            Health Factor
+                          </Typography>
+                          <div className="flex flex-col gap-2 pb-2">
+                            <div>
+                              Health factor is based off of <b>price biased</b> and <b>weighted</b> asset and liability
+                              values.
+                            </div>
+                            <div>The formula is:</div>
+                            <div className="text-sm text-center">{"(assets - liabilities) / (assets)"}</div>
+                            <div>Your math is:</div>
+                            <div className="text-sm text-center">{`(${usdFormatter.format(
+                              accountSummary.lendingAmountWithBiasAndWeighted
+                            )} - ${usdFormatter.format(
+                              accountSummary.borrowingAmountWithBiasAndWeighted
+                            )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</div>
                           </div>
-                          <div>The formula is:</div>
-                          <div className="text-sm text-center">{"(assets - liabilities) / (assets)"}</div>
-                          <div>Your math is:</div>
-                          <div className="text-sm text-center">{`(${usdFormatter.format(
-                            accountSummary.lendingAmountWithBiasAndWeighted
-                          )} - ${usdFormatter.format(
-                            accountSummary.borrowingAmountWithBiasAndWeighted
-                          )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</div>
-                        </div>
-                      </React.Fragment>
-                    }
-                    placement="top"
-                  >
-                    <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                  </MrgnTooltip>
+                        </React.Fragment>
+                      }
+                      placement="top"
+                    >
+                      <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                    </MrgnTooltip>
+                  )}
                 </div>
                 <div className="self-center"></div>
               </Typography>
@@ -215,7 +222,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                 {healthFactor ? (
                   percentFormatter.format(healthFactor)
                 ) : (
-                  <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
+                  "-"
                 )}
               </Typography>
             </div>
@@ -249,11 +256,11 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                 <div className="self-center"></div>
               </Typography>
               <Typography
-                color={accountSummary.signedFreeCollateral >= 0 ? "#fff" : "#B8B45F"}
+                color={!accountSummary || accountSummary.signedFreeCollateral >= 0 ? "#fff" : "#B8B45F"}
                 className="font-aeonik font-[500] text-lg md:text-xl"
                 component="div"
               >
-                {usdFormatter.format(accountSummary.signedFreeCollateral)}
+                {accountSummary ? usdFormatter.format(accountSummary.signedFreeCollateral) : "-"}
               </Typography>
             </div>
           </div>

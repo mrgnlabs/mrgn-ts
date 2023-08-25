@@ -39,6 +39,7 @@
     "react-hotkeys-hook": "^4.4.1",
     "react-katex": "^3.0.1",
     "react-number-format": "^5.2.2",
+    "react-spinners": "^0.13.8",
     "react-toastify": "^9.1.1",
     "sharp": "^0.31.3",
     "superstruct": "^1.0.3",

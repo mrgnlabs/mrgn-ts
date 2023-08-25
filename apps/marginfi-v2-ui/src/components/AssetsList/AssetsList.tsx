@@ -9,6 +9,9 @@ import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useHotkeys } from "react-hotkeys-hook";
+import { BankMetadata } from "@mrgnlabs/mrgn-common";
+import { ExtendedBankMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
+import { LoadingAsset } from "./AssetRow/AssetRow";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -25,7 +28,8 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 const AssetsList: FC = () => {
   // const { selectedAccount, nativeSolBalance } = useStore();
   const wallet = useWallet();
-  const [extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
+  const [isStoreInitialized, sortedBanks, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
+    state.initialized,
     state.extendedBankInfos,
     state.nativeSolBalance,
     state.selectedAccount,
@@ -57,16 +61,18 @@ const AssetsList: FC = () => {
 
   // Handle number keys in hotkey mode
   useHotkeys(
-    extendedBankInfos
-      .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
+    sortedBanks
+      .filter((b) => !b.info.state.isIsolated)
       .map((_, i) => `${i + 1}`)
       .join(", "),
     (_, handler) => {
       if (isHotkeyMode) {
-        const globalBankTokenNames = extendedBankInfos
-          .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
-          .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
-          .map((b) => b.tokenSymbol);
+        const globalBankTokenNames = sortedBanks
+          .filter((b) => !b.info.state.isIsolated)
+          .sort(
+            (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
+          )
+          .map((b) => b.meta.tokenSymbol);
 
         const keyPressed = handler.keys?.join("");
         if (Number(keyPressed) >= 1 && Number(keyPressed) <= globalBankTokenNames.length) {
@@ -292,27 +298,30 @@ const AssetsList: FC = () => {
               </TableHead>
 
               <TableBody>
-                {extendedBankInfos.length > 0 ? (
-                  extendedBankInfos
-                    .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
-                    .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
-                    .map((bankInfo, i) => (
-                      <AssetRow
-                        key={bankInfo.tokenSymbol}
-                        nativeSolBalance={nativeSolBalance}
-                        bankInfo={bankInfo}
+                {isStoreInitialized
+                  ? sortedBanks
+                      .filter((b) => !b.info.state.isIsolated)
+                      .map((bank, i) => (
+                        <AssetRow
+                          key={bank.meta.tokenSymbol}
+                          nativeSolBalance={nativeSolBalance}
+                          bank={bank}
+                          isInLendingMode={isInLendingMode}
+                          isConnected={wallet.connected}
+                          marginfiAccount={selectedAccount}
+                          inputRefs={inputRefs}
+                          hasHotkey={true}
+                          showHotkeyBadges={showBadges}
+                          badgeContent={`${i + 1}`}
+                        />
+                      ))
+                  : sortedBanks.map((banks) => (
+                      <LoadingAsset
+                        key={banks.meta.tokenSymbol}
                         isInLendingMode={isInLendingMode}
-                        isConnected={wallet.connected}
-                        marginfiAccount={selectedAccount}
-                        inputRefs={inputRefs}
-                        hasHotkey={true}
-                        showHotkeyBadges={showBadges}
-                        badgeContent={`${i + 1}`}
+                        bankMetadata={banks.meta}
                       />
-                    ))
-                ) : (
-                  <LoadingAssets />
-                )}
+                    ))}
               </TableBody>
               <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white my-4 gap-2">
                 <span className="gap-1 flex">
@@ -335,25 +344,30 @@ const AssetsList: FC = () => {
                 </HtmlTooltip>
               </div>
               <TableBody>
-                {extendedBankInfos.length > 0 ? (
-                  extendedBankInfos
-                    .filter((b) => b.bank.config.assetWeightInit.toNumber() === 0)
-                    .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
-                    .map((bankInfo, i) => (
-                      <AssetRow
-                        key={bankInfo.tokenSymbol}
-                        nativeSolBalance={nativeSolBalance}
-                        bankInfo={bankInfo}
-                        isInLendingMode={isInLendingMode}
-                        isConnected={wallet.connected}
-                        marginfiAccount={selectedAccount}
-                        inputRefs={inputRefs}
-                        hasHotkey={false}
-                      />
-                    ))
-                ) : (
-                  <LoadingAssets />
-                )}
+                {isStoreInitialized
+                  ? sortedBanks
+                      .filter((b) => b.info.state.isIsolated)
+                      .map((bank) => (
+                        <AssetRow
+                          key={bank.meta.tokenSymbol}
+                          nativeSolBalance={nativeSolBalance}
+                          bank={bank}
+                          isInLendingMode={isInLendingMode}
+                          isConnected={wallet.connected}
+                          marginfiAccount={selectedAccount}
+                          inputRefs={inputRefs}
+                          hasHotkey={false}
+                        />
+                      ))
+                  : sortedBanks
+                      .filter((b) => b.info.state.isIsolated)
+                      .map((banks) => (
+                        <LoadingAsset
+                          key={banks.meta.tokenSymbol}
+                          isInLendingMode={isInLendingMode}
+                          bankMetadata={banks.meta}
+                        />
+                      ))}
               </TableBody>
             </Table>
           </TableContainer>
@@ -362,23 +376,5 @@ const AssetsList: FC = () => {
     </>
   );
 };
-
-const LOADING_ASSETS = 3;
-
-const LoadingAssets = () => (
-  <>
-    {[...new Array(LOADING_ASSETS)].map((_, index) => (
-      <TableRow key={index}>
-        <Skeleton
-          component="td"
-          sx={{ bgcolor: "grey.900" }}
-          variant="rectangular"
-          animation="wave"
-          className="flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4"
-        />
-      </TableRow>
-    ))}
-  </>
-);
 
 export { AssetsList };

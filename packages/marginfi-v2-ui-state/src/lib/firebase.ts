@@ -17,11 +17,11 @@ import base58 from "bs58";
 import { object, string, optional, Infer } from "superstruct";
 import { FIREBASE_CONFIG } from "../config";
 
-const firebaseApp = initializeApp(FIREBASE_CONFIG);
-const firebaseDb = getFirestore(firebaseApp);
-const firebaseAuth = getAuth(firebaseApp);
+const app = initializeApp(FIREBASE_CONFIG);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-export { firebaseApp, firebaseDb, firebaseAuth };
+export { app, db, auth };
 
 // ----------------------------------------------------------------------------
 // Points auth API
@@ -224,7 +224,7 @@ async function signLoginTx(
 
 async function signinFirebaseAuth(token: string) {
   try {
-    await signInWithCustomToken(firebaseAuth, token);
+    await signInWithCustomToken(auth, token);
     console.log("Signed user in.");
   } catch (error: any) {
     console.error("Error signing in with custom token: ", error);

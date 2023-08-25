@@ -56,7 +56,7 @@ function createUserProfileStore() {
       const disconnected = !isConnected && currentFirebaseUser;
       const mismatchingId = walletAddress && currentFirebaseUser?.uid && walletAddress !== currentFirebaseUser.uid;
       if (disconnected || mismatchingId) {
-        await signOut(firebaseApi.firebaseAuth);
+        await signOut(firebaseApi.auth);
         set(() => ({ currentFirebaseUser: null }));
       }
     },

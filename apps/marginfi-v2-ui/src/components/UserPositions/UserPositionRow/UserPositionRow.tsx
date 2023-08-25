@@ -23,7 +23,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
 
   const isDust = useMemo(
-    () => uiToNative(activeBankInfo.position.amount, activeBankInfo.tokenMintDecimals).isZero(),
+    () => uiToNative(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals).isZero(),
     [activeBankInfo]
   );
 
@@ -39,9 +39,9 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
 
     try {
       if (activeBankInfo.position.isLending) {
-        await marginfiAccount.withdraw(0, activeBankInfo.bank.address, true);
+        await marginfiAccount.withdraw(0, activeBankInfo.address, true);
       } else {
-        await marginfiAccount.repay(0, activeBankInfo.bank.address, true);
+        await marginfiAccount.repay(0, activeBankInfo.address, true);
       }
       toast.update(CLOSE_BALANCE_TOAST_ID, {
         render: "Closing 👍",
@@ -101,13 +101,13 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       if (activeBankInfo.position.isLending) {
         await marginfiAccount.withdraw(
           withdrawOrRepayAmount,
-          activeBankInfo.bank.address,
+          activeBankInfo.address,
           isWholePosition(activeBankInfo, withdrawOrRepayAmount)
         );
       } else {
         await marginfiAccount.repay(
           withdrawOrRepayAmount,
-          activeBankInfo.bank.address,
+          activeBankInfo.address,
           isWholePosition(activeBankInfo, withdrawOrRepayAmount)
         );
       }
@@ -155,10 +155,10 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
     <TableRow className="h-full w-full bg-[#171C1F] border border-[#1E2122] rounded-2xl">
       <TableCell className={`text-white p-0 font-aeonik border-[1px] border-none`}>
         <div className="flex justify-center items-center px-4 gap-2">
-          {activeBankInfo.tokenIcon && (
-            <Image src={activeBankInfo.tokenIcon} alt={activeBankInfo.tokenSymbol} height={25} width={25} />
+          {activeBankInfo.meta.tokenLogoUri && (
+            <Image src={activeBankInfo.meta.tokenLogoUri} alt={activeBankInfo.meta.tokenSymbol} height={25} width={25} />
           )}
-          <div className="font-aeonik">{activeBankInfo.tokenSymbol}</div>
+          <div className="font-aeonik">{activeBankInfo.meta.tokenSymbol}</div>
         </div>
       </TableCell>
 
@@ -190,8 +190,8 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
-          maxValue={activeBankInfo.position.isLending ? activeBankInfo.maxWithdraw : activeBankInfo.maxRepay}
-          maxDecimals={activeBankInfo.tokenMintDecimals}
+          maxValue={activeBankInfo.position.isLending ? activeBankInfo.userInfo.maxWithdraw : activeBankInfo.userInfo.maxRepay}
+          maxDecimals={activeBankInfo.info.state.mintDecimals}
           disabled={isDust}
         />
       </TableCell>

@@ -1,11 +1,17 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { FC } from "react";
-import { GlobalStats } from "./GlobalStats";
 import { UserStats } from "./UserStats";
 import { useMrgnlendStore } from "~/store";
+import dynamic from "next/dynamic";
+
+const GlobalStats = dynamic(
+  async () => (await import("./GlobalStats")).GlobalStats,
+  { ssr: false }
+)
 
 const AccountSummary: FC = () => {
-  const [accountSummary, protocolStats, selectedAccount] = useMrgnlendStore((state) => [
+  const [isStoreInitialized, accountSummary, protocolStats, selectedAccount] = useMrgnlendStore((state) => [
+    state.initialized,
     state.accountSummary,
     state.protocolStats,
     state.selectedAccount,
@@ -13,7 +19,7 @@ const AccountSummary: FC = () => {
   const wallet = useWallet();
 
   return (
-    <div className="flex flex-col lg:flex-row w-full h-full justify-between items-center">
+    <div className="flex flex-col lg:flex-row w-full h-[118px] justify-between items-center">
       <div className="hidden lg:block w-full">
         <GlobalStats
           tvl={protocolStats.tvl}
@@ -24,8 +30,11 @@ const AccountSummary: FC = () => {
       </div>
 
       <div className="w-full">
-        {wallet.connected && !!selectedAccount && (
-          <UserStats accountSummary={accountSummary} healthFactor={accountSummary.healthFactor} />
+        {wallet.connected && (
+          <UserStats
+            accountSummary={isStoreInitialized && selectedAccount ? accountSummary : null}
+            healthFactor={accountSummary.healthFactor}
+          />
         )}
       </div>
     </div>

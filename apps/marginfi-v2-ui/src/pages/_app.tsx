@@ -15,10 +15,11 @@ import { init, push } from "@socialgouv/matomo-next";
 import config from "~/config";
 import { Navbar, Footer } from "~/components";
 
-import { LipClientProvider } from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
+import { OverlaySpinner } from "~/components/OverlaySpinner";
+import { useMrgnlendStore } from "~/store";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -51,27 +52,28 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     []
   );
 
+  const [isStoreInitialized] = useMrgnlendStore((state) => [state.initialized]);
+
   return (
     <ConnectionProvider endpoint={config.rpcEndpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <LipClientProvider>
-            <Head>
-              <title>marginfi</title>
-              <meta name="description" content="marginfi v2 UI" />
-              <meta name="viewport" content="width=device-width, initial-scale=1" />
-              <link rel="icon" href="/favicon.ico" />
-            </Head>
-            <Navbar />
-            <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
-              <Component {...pageProps} />
-              <Analytics />
-            </div>
-            <Footer />
-            <ToastContainer position="bottom-left" theme="dark" />
-          </LipClientProvider>
+          <Head>
+            <title>marginfi</title>
+            <meta name="description" content="marginfi v2 UI" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <link rel="icon" href="/favicon.ico" />
+          </Head>
+          <Navbar />
+          <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
+            <Component {...pageProps} />
+            <Analytics />
+          </div>
+          <Footer />
+          <ToastContainer position="bottom-left" theme="dark" />
         </WalletModalProvider>
       </WalletProvider>
+      <OverlaySpinner fetching={!isStoreInitialized} />
     </ConnectionProvider>
   );
 };

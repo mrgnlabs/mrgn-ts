@@ -32,8 +32,8 @@ export function makeAirdropCollateralIx(
 
 export function isWholePosition(activeBankInfo: ActiveBankInfo, amount: number): boolean {
   const positionTokenAmount =
-    Math.floor(activeBankInfo.position.amount * Math.pow(10, activeBankInfo.tokenMintDecimals)) /
-    Math.pow(10, activeBankInfo.tokenMintDecimals);
+    Math.floor(activeBankInfo.position.amount * Math.pow(10, activeBankInfo.info.state.mintDecimals)) /
+    Math.pow(10, activeBankInfo.info.state.mintDecimals);
   return amount >= positionTokenAmount;
 }
 

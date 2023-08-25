@@ -12,7 +12,7 @@ import {
   getCountFromServer,
   where,
 } from "firebase/firestore";
-import { firebaseDb } from "./firebase";
+import {firebaseApi} from ".";
 
 type LeaderboardRow = {
   id: string;
@@ -26,7 +26,7 @@ type LeaderboardRow = {
 };
 
 async function fetchLeaderboardData(rowCap = 100, pageSize = 50): Promise<LeaderboardRow[]> {
-  const pointsCollection = collection(firebaseDb, "points");
+  const pointsCollection = collection(firebaseApi.db, "points");
 
   const leaderboardMap = new Map();
   let initialQueryCursor = null;
@@ -63,13 +63,13 @@ async function fetchLeaderboardData(rowCap = 100, pageSize = 50): Promise<Leader
 // as the the count of users with more points inclusive of corrupted rows - the count of corrupted rows
 async function fetchUserRank(userPoints: number): Promise<number> {
   const q1 = query(
-    collection(firebaseDb, "points"),
+    collection(firebaseApi.db, "points"),
     where("owner", "==", null),
     where("total_points", ">", userPoints),
     orderBy("total_points", "desc")
   );
   const q2 = query(
-    collection(firebaseDb, "points"),
+    collection(firebaseApi.db, "points"),
     where("total_points", ">", userPoints),
     orderBy("total_points", "desc")
   );
@@ -107,8 +107,8 @@ const DEFAULT_USER_POINTS_DATA: UserPointsData = {
 const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPointsData> => {
   if (!wallet) return DEFAULT_USER_POINTS_DATA;
 
-  const userPointsDoc = doc(firebaseDb, "points", wallet);
-  const userPublicProfileDoc = doc(firebaseDb, "users_public", wallet);
+  const userPointsDoc = doc(firebaseApi.db, "points", wallet);
+  const userPublicProfileDoc = doc(firebaseApi.db, "users_public", wallet);
 
   const [userPointsSnap, userPublicProfileSnap] = await Promise.all([
     getDoc(userPointsDoc),
@@ -161,7 +161,7 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
 };
 
 async function getPointsSummary() {
-  const pointsSummaryCollection = collection(firebaseDb, "points_summary");
+  const pointsSummaryCollection = collection(firebaseApi.db, "points_summary");
   const pointSummarySnapshot = await getDocs(pointsSummaryCollection);
   const pointSummary = pointSummarySnapshot.docs[0]?.data() ?? { points_total: 0 };
   return pointSummary;

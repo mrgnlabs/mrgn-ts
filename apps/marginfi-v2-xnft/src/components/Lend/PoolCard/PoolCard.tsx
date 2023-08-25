@@ -6,8 +6,8 @@ import { PoolCardActions } from "./PoolCardActions";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { PoolCardPosition } from "./PoolCardPosition";
 import { useConnection } from "~/hooks/useConnection";
-import { ActionType, Emissions, ExtendedBankInfo, FEE_MARGIN, isActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { getCurrentAction, showErrorToast } from "~/utils";
+import { ActionType, Emissions, ExtendedBankInfo, FEE_MARGIN, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
+import { showErrorToast } from "~/utils";
 import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 type Props = {
@@ -30,17 +30,17 @@ export function PoolCard({
   const rateAP = useMemo(
     () =>
       percentFormatter.format(
-        (isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate) +
-          (isInLendingMode && bankInfo.emissions == Emissions.Lending ? bankInfo.emissionsRate : 0) +
-          (!isInLendingMode && bankInfo.emissions == Emissions.Borrowing ? bankInfo.emissionsRate : 0)
+        (isInLendingMode ? bankInfo.info.state.lendingRate : bankInfo.info.state.borrowingRate) +
+          (isInLendingMode && bankInfo.info.state.emissions == Emissions.Lending ? bankInfo.info.state.emissionsRate : 0) +
+          (!isInLendingMode && bankInfo.info.state.emissions == Emissions.Borrowing ? bankInfo.info.state.emissionsRate : 0)
       ),
     [isInLendingMode, bankInfo]
   );
 
   const currentAction = useMemo(() => getCurrentAction(isInLendingMode, bankInfo), [isInLendingMode, bankInfo]);
 
-  const depositFilled = useMemo(() => bankInfo.totalPoolDeposits / bankInfo.bank.config.depositLimit, [bankInfo]);
-  const borrowFilled = useMemo(() => bankInfo.totalPoolBorrows / bankInfo.bank.config.borrowLimit, [bankInfo]);
+  const depositFilled = useMemo(() => bankInfo.info.state.totalDeposits / bankInfo.info.rawBank.config.depositLimit, [bankInfo]);
+  const borrowFilled = useMemo(() => bankInfo.info.state.totalBorrows / bankInfo.info.rawBank.config.borrowLimit, [bankInfo]);
 
   const connection = useConnection();
 
@@ -56,13 +56,13 @@ export function PoolCard({
 
       if (marginfiClient === null) throw Error("Marginfi client not ready");
 
-      if (currentAction === ActionType.Deposit && bankInfo.maxDeposit === 0) {
-        showErrorToast(`You don't have any ${bankInfo.tokenSymbol} to lend in your wallet.`);
+      if (currentAction === ActionType.Deposit && bankInfo.userInfo.maxDeposit === 0) {
+        showErrorToast(`You don't have any ${bankInfo.meta.tokenSymbol} to lend in your wallet.`);
         return;
       }
 
-      if (currentAction === ActionType.Borrow && bankInfo.maxBorrow === 0) {
-        showErrorToast(`You cannot borrow any ${bankInfo.tokenSymbol} right now.`);
+      if (currentAction === ActionType.Borrow && bankInfo.userInfo.maxBorrow === 0) {
+        showErrorToast(`You cannot borrow any ${bankInfo.meta.tokenSymbol} right now.`);
         return;
       }
 
@@ -93,7 +93,7 @@ export function PoolCard({
       // -------- Perform relevant operation
       try {
         if (currentAction === ActionType.Deposit) {
-          await _marginfiAccount.deposit(borrowOrLendAmount, bankInfo.bank.address);
+          await _marginfiAccount.deposit(borrowOrLendAmount, bankInfo.address);
         }
 
         if (_marginfiAccount === null) {
@@ -102,13 +102,13 @@ export function PoolCard({
         }
 
         if (currentAction === ActionType.Borrow) {
-          await _marginfiAccount.borrow(borrowOrLendAmount, bankInfo.bank.address);
+          await _marginfiAccount.borrow(borrowOrLendAmount, bankInfo.address);
         } else if (currentAction === ActionType.Repay) {
-          const repayAll = isActiveBankInfo(bankInfo) ? borrowOrLendAmount === bankInfo.position.amount : false;
-          await _marginfiAccount.repay(borrowOrLendAmount, bankInfo.bank.address, repayAll);
+          const repayAll = bankInfo.isActive ? borrowOrLendAmount === bankInfo.position.amount : false;
+          await _marginfiAccount.repay(borrowOrLendAmount, bankInfo.address, repayAll);
         } else if (currentAction === ActionType.Withdraw) {
-          const withdrawAll = isActiveBankInfo(bankInfo) ? borrowOrLendAmount === bankInfo.position.amount : false;
-          await _marginfiAccount.withdraw(borrowOrLendAmount, bankInfo.bank.address, withdrawAll);
+          const withdrawAll = bankInfo.isActive ? borrowOrLendAmount === bankInfo.position.amount : false;
+          await _marginfiAccount.withdraw(borrowOrLendAmount, bankInfo.address, withdrawAll);
         }
       } catch (error: any) {
         console.log(`Error while ${currentAction + "ing"}`);
@@ -130,10 +130,10 @@ export function PoolCard({
     <View style={tw`bg-[#1C2125] rounded-xl px-12px py-16px flex flex-column gap-16px `}>
       <View style={tw`flex flex-row justify-between`}>
         <View style={tw`flex flex-row gap-7px`}>
-          <Image style={styles.logo} source={{ uri: bankInfo.tokenIcon }} alt={bankInfo.tokenSymbol} />
+          <Image style={styles.logo} source={{ uri: bankInfo.meta.tokenLogoUri }} alt={bankInfo.meta.tokenSymbol} />
           <View style={tw`flex flex-column`}>
-            <Text style={tw`text-primary text-base`}>{bankInfo.tokenSymbol}</Text>
-            <Text style={tw`text-tertiary`}>{usdFormatter.format(bankInfo.tokenPrice)}</Text>
+            <Text style={tw`text-primary text-base`}>{bankInfo.meta.tokenSymbol}</Text>
+            <Text style={tw`text-tertiary`}>{usdFormatter.format(bankInfo.info.state.price)}</Text>
           </View>
         </View>
         <View>
@@ -143,16 +143,16 @@ export function PoolCard({
         </View>
       </View>
       <PoolCardStats
-        bankInfo={bankInfo}
+        bank={bankInfo}
         bankFilled={isInLendingMode ? depositFilled : borrowFilled}
         nativeSolBalance={nativeSolBalance}
         isInLendingMode={isInLendingMode}
       />
-      {bankInfo?.hasActivePosition && <PoolCardPosition bankInfo={bankInfo} />}
+      {bankInfo.isActive && <PoolCardPosition activeBank={bankInfo} />}
       <PoolCardActions
         currentAction={currentAction}
         isBankFilled={isInLendingMode ? depositFilled >= 0.9999 : borrowFilled >= 0.9999}
-        bankInfo={bankInfo}
+        bank={bankInfo}
         onAction={(amount) => borrowOrLend(amount)}
       />
     </View>

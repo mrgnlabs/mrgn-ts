@@ -12,7 +12,7 @@ import {
   STATUS_INTERNAL_ERROR,
   STATUS_NOT_FOUND,
   STATUS_OK,
-  LoginPayloadStruct,
+  firebaseApi,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 
 initFirebaseIfNeeded();
@@ -93,7 +93,7 @@ export function validateAndUnpackLoginData(
     const authData = JSON.parse(memoIx.data.toString("utf8"));
     signerWallet = tx.feePayer!;
 
-    if (!is(authData, LoginPayloadStruct)) {
+    if (!is(authData, firebaseApi.LoginPayloadStruct)) {
       throw new Error("Invalid login payload");
     }
   } else {

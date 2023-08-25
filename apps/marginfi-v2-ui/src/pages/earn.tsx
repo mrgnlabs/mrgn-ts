@@ -1,7 +1,7 @@
 import React, { FC, MouseEventHandler, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
-import { useLipClient } from "~/context";
+import { LipClientProvider, useLipClient } from "~/context";
 import { Button, ButtonProps, Card, CircularProgress, InputAdornment, LinearProgress, TextField } from "@mui/material";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import dynamic from "next/dynamic";
@@ -28,16 +28,24 @@ import BigNumber from "bignumber.js";
 import { useWalletWithOverride } from "~/components/useWalletWithOverride";
 import { useMrgnlendStore } from "../store";
 
+const EarnPage = () => {
+  return (
+    <LipClientProvider>
+      <Earn />
+    </LipClientProvider>
+  );
+}
+
 const Earn = () => {
   const walletContext = useWallet();
   const { wallet, isOverride } = useWalletWithOverride();
   const { connection } = useConnection();
   const { lipClient } = useLipClient();
 
-  const [mfiClient, bankMetadataMap, reloadMrgnlendState] = useMrgnlendStore((state) => [
+  const [mfiClient, bankMetadataMap, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.marginfiClient,
     state.bankMetadataMap,
-    state.reloadMrgnlendState,
+    state.fetchMrgnlendState,
   ]);
 
   const [initialFetchDone, setInitialFetchDone] = useState(false);
@@ -46,6 +54,12 @@ const Earn = () => {
   const [amount, setAmount] = useState(0);
   const [progressPercent, setProgressPercent] = useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
+
+  useEffect(() => {
+    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride });
+    const id = setInterval(() => fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }), 60_000);
+    return () => clearInterval(id);
+  }, [wallet, connection, fetchMrgnlendState, isOverride]);
 
   const whitelistedCampaignsWithMeta = useMemo(() => {
     if (!lipClient) return [];
@@ -81,12 +95,6 @@ const Earn = () => {
     { value: 50, label: "SELECT", color: progressPercent >= 50 ? "#51B56A" : "#484848" },
     { value: 100, label: "READY", color: progressPercent >= 100 ? "#51B56A" : "#484848" },
   ];
-
-  useEffect(() => {
-    reloadMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride });
-    const id = setInterval(reloadMrgnlendState, 60_000);
-    return () => clearInterval(id);
-  }, [wallet, connection, reloadMrgnlendState, isOverride]);
 
   useEffect(() => {
     if (!selectedCampaign) return;
@@ -650,4 +658,4 @@ function getTokenSymbol(bank: Bank, bankMetadataMap: BankMetadataMap): string {
   return bankMetadata.tokenSymbol;
 }
 
-export default Earn;
+export default EarnPage;

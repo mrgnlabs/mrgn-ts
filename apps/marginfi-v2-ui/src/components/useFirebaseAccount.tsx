@@ -1,4 +1,4 @@
-import { firebaseAuth } from "@mrgnlabs/marginfi-v2-ui-state";
+import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect } from "react";
@@ -20,7 +20,7 @@ const useFirebaseAccount = () => {
 
   useEffect(() => {
     // NOTE: if more point-specific logic is added, move this to a separate hook
-    const unsubscribe = onAuthStateChanged(firebaseAuth, (newUser) => {
+    const unsubscribe = onAuthStateChanged(firebaseApi.auth, (newUser) => {
       if (newUser) {
         fetchPoints(newUser.uid).catch(console.error);
         setFirebaseUser(newUser);

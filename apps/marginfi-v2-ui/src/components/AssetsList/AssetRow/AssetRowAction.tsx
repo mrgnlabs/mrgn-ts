@@ -9,7 +9,7 @@ const WalletMultiButtonDynamic = dynamic(
 );
 
 interface AssetRowActionProps extends ButtonProps {
-  children: ReactNode;
+  children?: ReactNode;
   bgColor?: string;
 }
 

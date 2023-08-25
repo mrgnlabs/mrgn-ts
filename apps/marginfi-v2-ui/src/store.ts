@@ -1,12 +1,12 @@
 import {
   MrgnlendState,
   UserProfileState,
-  createMrgnlendStore,
+  createPersistentMrgnlendStore,
   createUserProfileStore,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { UseBoundStore, StoreApi } from "zustand";
 
-const useMrgnlendStore: UseBoundStore<StoreApi<MrgnlendState>> = createMrgnlendStore();
+const useMrgnlendStore: UseBoundStore<StoreApi<MrgnlendState>> = createPersistentMrgnlendStore();
 const useUserProfileStore: UseBoundStore<StoreApi<UserProfileState>> = createUserProfileStore();
 
 export { useMrgnlendStore, useUserProfileStore };

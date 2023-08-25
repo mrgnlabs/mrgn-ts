@@ -1,14 +1,14 @@
-import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import React, { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import tw from "~/styles/tailwind";
 
 type Props = {
-  bankInfo: ExtendedBankInfo;
+  activeBank: ActiveBankInfo;
 };
 
-export function PoolCardPosition({ bankInfo }: Props) {
+export function PoolCardPosition({ activeBank }: Props) {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(true);
 
   const styles = StyleSheet.create({
@@ -33,19 +33,19 @@ export function PoolCardPosition({ bankInfo }: Props) {
         <View style={tw`flex flex-column gap-8px pt-8px`}>
           <View style={tw`flex flex-row justify-between`}>
             <Text style={tw`text-secondary my-auto`}>
-              {(bankInfo as ActiveBankInfo).position.isLending ? "Lending" : "Borrowing"}
+              {(activeBank as ActiveBankInfo).position.isLending ? "Lending" : "Borrowing"}
             </Text>
             <Text style={tw`text-primary text-base my-auto`}>
-              {(bankInfo as ActiveBankInfo).position.amount.toFixed(bankInfo.tokenMintDecimals) +
+              {(activeBank as ActiveBankInfo).position.amount.toFixed(activeBank.info.state.mintDecimals) +
                 " " +
-                bankInfo.tokenSymbol}
+                activeBank.meta.tokenSymbol}
             </Text>
           </View>
           <View style={tw`flex flex-row justify-between`}>
             <Text style={tw`text-secondary my-auto`}>USD value</Text>
             <Text style={tw`text-primary text-base my-auto`}>
               {" "}
-              {usdFormatter.format((bankInfo as ActiveBankInfo).position.usdValue)}
+              {usdFormatter.format((activeBank as ActiveBankInfo).position.usdValue)}
             </Text>
           </View>
           {/* <View style={tw`flex flex-row justify-between`}>

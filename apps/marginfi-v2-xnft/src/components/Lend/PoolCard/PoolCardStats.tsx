@@ -7,40 +7,40 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
 
 type Props = {
-  bankInfo: ExtendedBankInfo;
+  bank: ExtendedBankInfo;
   nativeSolBalance: number;
   isInLendingMode: boolean;
   bankFilled: number;
 };
 
-export function PoolCardStats({ bankInfo, isInLendingMode, nativeSolBalance, bankFilled }: Props) {
+export function PoolCardStats({ bank, isInLendingMode, nativeSolBalance, bankFilled }: Props) {
   const assetWeight = useMemo(() => {
-    if (bankInfo.bank.config.assetWeightMaint.toNumber() <= 0) {
+    if (bank.info.rawBank.config.assetWeightMaint.toNumber() <= 0) {
       return "-";
     }
     return isInLendingMode
-      ? (bankInfo.bank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + "%"
-      : ((1 / bankInfo.bank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%";
-  }, [isInLendingMode, bankInfo]);
+      ? (bank.info.rawBank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + "%"
+      : ((1 / bank.info.rawBank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%";
+  }, [isInLendingMode, bank]);
 
   const bankAmount = useMemo(
     () =>
       numeralFormatter(
         isInLendingMode
-          ? bankInfo.totalPoolDeposits
-          : Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) - bankInfo.totalPoolBorrows
+          ? bank.info.state.totalDeposits
+          : Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit) - bank.info.state.totalBorrows
       ),
-    [isInLendingMode, bankInfo]
+    [isInLendingMode, bank]
   );
 
   const userBalance = useMemo(
     () =>
       numeralFormatter(
-        bankInfo.tokenMint.equals(WSOL_MINT)
-          ? bankInfo.tokenAccount.balance + nativeSolBalance
-          : bankInfo.tokenAccount.balance
+        bank.info.state.mint.equals(WSOL_MINT)
+          ? bank.userInfo.tokenAccount.balance + nativeSolBalance
+          : bank.userInfo.tokenAccount.balance
       ),
-    [bankInfo, nativeSolBalance]
+    [bank, nativeSolBalance]
   );
 
   const isFilled = useMemo(() => bankFilled >= 0.9999, [bankFilled]);
@@ -64,7 +64,7 @@ export function PoolCardStats({ bankInfo, isInLendingMode, nativeSolBalance, ban
       <Separator style={tw`mx-12px`} />
       <View style={tw`flex flex-col min-w-77px`}>
         <Text style={tw`font-normal text-sm text-tertiary`}>Your Balance</Text>
-        <Text style={tw`font-medium text-base text-primary`}>{userBalance + " " + bankInfo.tokenSymbol}</Text>
+        <Text style={tw`font-medium text-base text-primary`}>{userBalance + " " + bank.meta.tokenSymbol}</Text>
       </View>
     </View>
   );

@@ -6,26 +6,26 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type Props = {
   currentAction: ActionType;
-  bankInfo: ExtendedBankInfo;
+  bank: ExtendedBankInfo;
   isBankFilled: boolean;
   onAction: (amount: string) => void;
 };
 
-export function PoolCardActions({ currentAction, bankInfo, isBankFilled, onAction }: Props) {
+export function PoolCardActions({ currentAction, bank, isBankFilled, onAction }: Props) {
   const [amount, setAmount] = useState<string>("0");
 
   const maxAmount = useMemo(() => {
     switch (currentAction) {
       case ActionType.Deposit:
-        return bankInfo.maxDeposit;
+        return bank.userInfo.maxDeposit;
       case ActionType.Withdraw:
-        return bankInfo.maxWithdraw;
+        return bank.userInfo.maxWithdraw;
       case ActionType.Borrow:
-        return bankInfo.maxBorrow;
+        return bank.userInfo.maxBorrow;
       case ActionType.Repay:
-        return bankInfo.maxRepay;
+        return bank.userInfo.maxRepay;
     }
-  }, [bankInfo.maxBorrow, bankInfo.maxDeposit, bankInfo.maxRepay, bankInfo.maxWithdraw, currentAction]);
+  }, [bank.userInfo, currentAction]);
 
   const isDisabled = useMemo(() => {
     switch (currentAction) {
@@ -62,7 +62,7 @@ export function PoolCardActions({ currentAction, bankInfo, isBankFilled, onActio
               min={0}
               max={maxAmount}
               amount={amount}
-              decimals={bankInfo.tokenMintDecimals}
+              decimals={bank.info.state.mintDecimals}
               onValueChange={(value) => setAmount(value)}
             />
             <View style={tw`absolute top-0 right-12px bottom-0 my-auto h-20px`}>

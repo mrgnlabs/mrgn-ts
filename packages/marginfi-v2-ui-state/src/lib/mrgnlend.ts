@@ -5,18 +5,8 @@ import {
   MarginRequirementType,
   OraclePrice,
   PriceBias,
+  RiskTier,
 } from "@mrgnlabs/marginfi-client-v2";
-import {
-  AccountSummary,
-  BankInfo,
-  Emissions,
-  ExtendedBankInfo,
-  TokenAccount,
-  TokenAccountMap,
-  TokenPrice,
-  TokenPriceMap,
-  UserPosition,
-} from "../types";
 import {
   MintLayout,
   getAssociatedTokenAddressSync,
@@ -28,7 +18,6 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { Connection, PublicKey } from "@solana/web3.js";
-import * as firebaseApi from "./firebase";
 import BN from "bn.js";
 
 const FEE_MARGIN = 0.01;
@@ -50,24 +39,24 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   signedFreeCollateral: 0,
 };
 
-function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, bankInfos: ExtendedBankInfo[]): AccountSummary {
+function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: ExtendedBankInfo[]): AccountSummary {
   const equityComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Equity);
   const equityComponentsWithoutBias = marginfiAccount.computeHealthComponentsWithoutBias(MarginRequirementType.Equity);
   const maintenanceComponentsWithBiasAndWeighted = marginfiAccount.computeHealthComponents(
     MarginRequirementType.Maintenance
   );
 
-  let outstandingUxpEmissions = new BigNumber(0);
-
   const signedFreeCollateral = marginfiAccount.computeFreeCollateral({ clamped: false });
 
-  const uxpBank = bankInfos.find((bank) => bank.tokenSymbol === "UXD");
+  let outstandingUxpEmissions = new BigNumber(0);
+  const uxpBank = banks.find((bank) => bank.meta.tokenSymbol === "UXD");
   const uxpBalance = marginfiAccount.activeBalances.find((balance) =>
     balance.bankPk.equals(uxpBank?.address ?? PublicKey.default)
   );
-
-  if (uxpBalance) {
-    outstandingUxpEmissions = uxpBalance.computeTotalOutstandingEmissions(uxpBank!.bank).div(new BigNumber(10).pow(9));
+  if (uxpBank && uxpBalance) {
+    outstandingUxpEmissions = uxpBalance
+      .computeTotalOutstandingEmissions(uxpBank.info.rawBank)
+      .div(new BigNumber(10).pow(9));
   }
 
   const healthFactor = maintenanceComponentsWithBiasAndWeighted.assets.isZero()
@@ -93,18 +82,12 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, bankInfo
   };
 }
 
-function makeBankInfo(
-  bank: Bank,
-  oraclePrice: OraclePrice,
-  tokenMetadata: TokenMetadata,
-  tokenSymbol: string,
-  emissionTokenData?: TokenPrice
-): BankInfo {
+function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: TokenPrice): BankState {
   const { lendingRate, borrowingRate } = bank.computeInterestRates();
-  const totalPoolDeposits = nativeToUi(bank.getTotalAssetQuantity(), bank.mintDecimals);
-  const totalPoolBorrows = nativeToUi(bank.getTotalLiabilityQuantity(), bank.mintDecimals);
-  const liquidity = totalPoolDeposits - totalPoolBorrows;
-  const utilizationRate = totalPoolDeposits > 0 ? (totalPoolBorrows / totalPoolDeposits) * 100 : 0;
+  const totalDeposits = nativeToUi(bank.getTotalAssetQuantity(), bank.mintDecimals);
+  const totalBorrows = nativeToUi(bank.getTotalLiabilityQuantity(), bank.mintDecimals);
+  const liquidity = totalDeposits - totalBorrows;
+  const utilizationRate = bank.computeUtilizationRate().times(100).toNumber();
 
   let emissionsRate: number = 0;
   let emissions = Emissions.Inactive;
@@ -124,23 +107,18 @@ function makeBankInfo(
   }
 
   return {
-    bank,
-    oraclePrice,
-
-    address: bank.address,
-    tokenIcon: tokenMetadata.icon,
-    tokenSymbol,
-    tokenPrice: bank.getPrice(oraclePrice, PriceBias.None).toNumber(),
-    tokenMint: bank.mint,
-    tokenMintDecimals: bank.mintDecimals,
+    price: bank.getPrice(oraclePrice, PriceBias.None).toNumber(),
+    mint: bank.mint,
+    mintDecimals: bank.mintDecimals,
     lendingRate: isNaN(lendingRate.toNumber()) ? 0 : lendingRate.toNumber(),
     borrowingRate: isNaN(borrowingRate.toNumber()) ? 0 : borrowingRate.toNumber(),
     emissionsRate,
     emissions,
-    totalPoolDeposits,
-    totalPoolBorrows,
+    totalDeposits,
+    totalBorrows,
     availableLiquidity: liquidity,
     utilizationRate,
+    isIsolated: bank.config.riskTier === RiskTier.Isolated
   };
 }
 
@@ -190,11 +168,19 @@ export async function fetchEmissionsPriceMap(banks: Bank[], connection: Connecti
   return tokenMap;
 }
 
+function makeExtendedBankMetadata(bankAddress: PublicKey, tokenMetadata: TokenMetadata): ExtendedBankMetadata {
+  return {
+    address: bankAddress,
+    tokenSymbol: tokenMetadata.symbol,
+    tokenName: tokenMetadata.name,
+    tokenLogoUri: tokenMetadata.icon,
+  };
+}
+
 function makeExtendedBankInfo(
+  tokenMetadata: TokenMetadata,
   bank: Bank,
   oraclePrice: OraclePrice,
-  tokenMetadata: TokenMetadata,
-  tokenSymbol: string,
   emissionTokenPrice?: TokenPrice,
   userData?: {
     nativeSolBalance: number;
@@ -203,67 +189,83 @@ function makeExtendedBankInfo(
   }
 ): ExtendedBankInfo {
   // Aggregate user-agnostic bank info
-  const bankInfo = makeBankInfo(bank, oraclePrice, tokenMetadata, tokenSymbol, emissionTokenPrice);
+  const meta = makeExtendedBankMetadata(bank.address, tokenMetadata);
+
+  const bankInfo = makeBankInfo(bank, oraclePrice, emissionTokenPrice);
+  let state: BankInfo = {
+    rawBank: bank,
+    oraclePrice,
+    state: bankInfo,
+  };
 
   if (!userData) {
-    return {
-      ...bankInfo,
-      ...{
-        hasActivePosition: false,
-        tokenAccount: { mint: bankInfo.tokenMint, created: false, balance: 0 },
-        maxDeposit: 0,
-        maxRepay: 0,
-        maxWithdraw: 0,
-        maxBorrow: 0,
+    const userInfo = {
+      tokenAccount: {
+        created: false,
+        mint: bank.mint,
+        balance: 0,
       },
+      maxDeposit: 0,
+      maxRepay: 0,
+      maxWithdraw: 0,
+      maxBorrow: 0,
+    };
+    return {
+      address: bank.address,
+      meta,
+      info: state,
+      userInfo,
+      isActive: false,
     };
   }
 
   // Calculate user-specific info relevant regardless of whether they have an active position in this bank
-  const isWrappedSol = bankInfo.tokenMint.equals(WSOL_MINT);
+  const isWrappedSol = bankInfo.mint.equals(WSOL_MINT);
 
   const maxDeposit = floor(
     isWrappedSol
       ? Math.max(userData.tokenAccount.balance + userData.nativeSolBalance - FEE_MARGIN, 0)
       : userData.tokenAccount.balance,
-    bankInfo.tokenMintDecimals
+    bankInfo.mintDecimals
   );
   const maxBorrow = floor(
     Math.min(
-      userData.marginfiAccount.computeMaxBorrowForBank(bankInfo.bank.address).toNumber() * VOLATILITY_FACTOR,
+      userData.marginfiAccount.computeMaxBorrowForBank(bank.address).toNumber() * VOLATILITY_FACTOR,
       bankInfo.availableLiquidity
     ),
-    bankInfo.tokenMintDecimals
+    bankInfo.mintDecimals
   );
 
-  const positionRaw = userData.marginfiAccount.activeBalances.find((balance) =>
-    balance.bankPk.equals(bankInfo.address)
-  );
+  const positionRaw = userData.marginfiAccount.activeBalances.find((balance) => balance.bankPk.equals(bank.address));
   if (!positionRaw) {
+    const userInfo = {
+      tokenAccount: userData.tokenAccount,
+      maxDeposit,
+      maxRepay: 0,
+      maxWithdraw: 0,
+      maxBorrow,
+    };
+
     return {
-      ...bankInfo,
-      ...{
-        hasActivePosition: false,
-        tokenAccount: userData.tokenAccount,
-        maxDeposit,
-        maxRepay: 0,
-        maxWithdraw: 0,
-        maxBorrow,
-      },
+      address: bank.address,
+      meta,
+      info: state,
+      userInfo,
+      isActive: false,
     };
   }
 
   // Calculate user-specific info relevant to their active position in this bank
-  const position = makeUserPosition(positionRaw, bankInfo, oraclePrice);
+  const position = makeLendingPosition(positionRaw, bank, bankInfo, oraclePrice);
 
   const maxWithdraw = floor(
     Math.min(
       userData.marginfiAccount
-        .computeMaxWithdrawForBank(bankInfo.address, { volatilityFactor: VOLATILITY_FACTOR })
+        .computeMaxWithdrawForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR })
         .toNumber(),
       bankInfo.availableLiquidity
     ),
-    bankInfo.tokenMintDecimals
+    bankInfo.mintDecimals
   );
   let maxRepay: number;
   if (isWrappedSol) {
@@ -272,33 +274,38 @@ function makeExtendedBankInfo(
     maxRepay = !!position ? Math.min(position.amount, maxDeposit) : maxDeposit;
   }
 
+  const userInfo = {
+    tokenAccount: userData.tokenAccount,
+    maxDeposit,
+    maxRepay,
+    maxWithdraw,
+    maxBorrow,
+  };
+
   return {
-    ...bankInfo,
-    ...{
-      hasActivePosition: true,
-      tokenAccount: userData.tokenAccount,
-      maxDeposit,
-      maxRepay,
-      maxWithdraw,
-      maxBorrow,
-      position,
-    },
+    address: bank.address,
+    meta,
+    info: state,
+    userInfo,
+    isActive: true,
+    position,
   };
 }
 
-function makeUserPosition(balance: Balance, bankInfo: BankInfo, oraclePrice: OraclePrice): UserPosition {
-  const amounts = balance.computeQuantity(bankInfo.bank);
-  const usdValues = balance.computeUsdValue(bankInfo.bank, oraclePrice, MarginRequirementType.Equity);
-  const weightedUSDValues = balance.getUsdValueWithPriceBias(
-    bankInfo.bank,
-    oraclePrice,
-    MarginRequirementType.Maintenance
-  );
+function makeLendingPosition(
+  balance: Balance,
+  bank: Bank,
+  bankInfo: BankState,
+  oraclePrice: OraclePrice
+): LendingPosition {
+  const amounts = balance.computeQuantity(bank);
+  const usdValues = balance.computeUsdValue(bank, oraclePrice, MarginRequirementType.Equity);
+  const weightedUSDValues = balance.getUsdValueWithPriceBias(bank, oraclePrice, MarginRequirementType.Maintenance);
   const isLending = usdValues.liabilities.isZero();
   return {
     amount: isLending
-      ? nativeToUi(amounts.assets.toNumber(), bankInfo.tokenMintDecimals)
-      : nativeToUi(amounts.liabilities.toNumber(), bankInfo.tokenMintDecimals),
+      ? nativeToUi(amounts.assets.toNumber(), bankInfo.mintDecimals)
+      : nativeToUi(amounts.liabilities.toNumber(), bankInfo.mintDecimals),
     usdValue: isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber(),
     weightedUSDValue: isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber(),
     isLending,
@@ -365,11 +372,157 @@ async function fetchTokenAccounts(
   return { nativeSolBalance, tokenAccountMap: new Map(ataList.map((ata) => [ata.mint.toString(), ata])) };
 }
 
+function getCurrentAction(isLendingMode: boolean, bank: ExtendedBankInfo): ActionType {
+  if (!bank.isActive) {
+    return isLendingMode ? ActionType.Deposit : ActionType.Borrow;
+  } else {
+    if (bank.position.isLending) {
+      if (isLendingMode) {
+        return ActionType.Deposit;
+      } else {
+        return ActionType.Withdraw;
+      }
+    } else {
+      if (isLendingMode) {
+        return ActionType.Repay;
+      } else {
+        return ActionType.Borrow;
+      }
+    }
+  }
+}
+
 export {
   DEFAULT_ACCOUNT_SUMMARY,
   computeAccountSummary,
   makeBankInfo,
+  makeExtendedBankMetadata,
   makeExtendedBankInfo,
-  firebaseApi,
   fetchTokenAccounts,
+  getCurrentAction,
+};
+
+// ----------------------------------------------------------------------------
+// Types
+// ----------------------------------------------------------------------------
+
+interface AccountSummary {
+  healthFactor: number;
+  balance: number;
+  lendingAmount: number;
+  borrowingAmount: number;
+  apy: number;
+  outstandingUxpEmissions: number;
+  balanceUnbiased: number;
+  lendingAmountUnbiased: number;
+  borrowingAmountUnbiased: number;
+  lendingAmountWithBiasAndWeighted: number;
+  borrowingAmountWithBiasAndWeighted: number;
+  signedFreeCollateral: number;
+}
+
+interface TokenPriceMap {
+  [key: string]: TokenPrice;
+}
+
+interface TokenPrice {
+  price: BigNumber;
+  decimals: number;
+}
+
+interface TokenAccount {
+  mint: PublicKey;
+  created: boolean;
+  balance: number;
+}
+
+type TokenAccountMap = Map<string, TokenAccount>;
+
+interface ExtendedBankMetadata {
+  address: PublicKey;
+  tokenSymbol: string;
+  tokenName: string;
+  tokenLogoUri?: string;
+}
+
+interface BankState {
+  mint: PublicKey;
+  mintDecimals: number;
+  price: number;
+  lendingRate: number;
+  borrowingRate: number;
+  emissionsRate: number;
+  emissions: Emissions;
+  totalDeposits: number;
+  totalBorrows: number;
+  availableLiquidity: number;
+  utilizationRate: number;
+  isIsolated: boolean;
+}
+
+interface LendingPosition {
+  isLending: boolean;
+  amount: number;
+  usdValue: number;
+  weightedUSDValue: number;
+}
+
+interface BankInfo {
+  rawBank: Bank;
+  oraclePrice: OraclePrice;
+  state: BankState;
+}
+
+interface UserInfo {
+  tokenAccount: TokenAccount;
+  maxDeposit: number;
+  maxRepay: number;
+  maxWithdraw: number;
+  maxBorrow: number;
+}
+
+interface InactiveBankInfo {
+  address: PublicKey;
+  meta: ExtendedBankMetadata;
+  info: BankInfo;
+  isActive: false;
+  userInfo: UserInfo;
+}
+
+interface ActiveBankInfo {
+  address: PublicKey;
+  meta: ExtendedBankMetadata;
+  info: BankInfo;
+  isActive: true;
+  userInfo: UserInfo;
+  position: LendingPosition;
+}
+
+type ExtendedBankInfo = ActiveBankInfo | InactiveBankInfo;
+
+enum Emissions {
+  Inactive,
+  Lending,
+  Borrowing,
+}
+
+enum ActionType {
+  Deposit = "Supply",
+  Borrow = "Borrow",
+  Repay = "Repay",
+  Withdraw = "Withdraw",
+}
+
+export { Emissions, ActionType };
+export type {
+  AccountSummary,
+  LendingPosition,
+  TokenPriceMap,
+  TokenPrice,
+  TokenAccount,
+  TokenAccountMap,
+  ExtendedBankMetadata,
+  ActiveBankInfo,
+  InactiveBankInfo,
+  ExtendedBankInfo,
 };

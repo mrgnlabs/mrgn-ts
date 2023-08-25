@@ -391,6 +391,7 @@ class Bank {
   computeUtilizationRate(): BigNumber {
     const assets = this.getTotalAssetQuantity();
     const liabilities = this.getTotalLiabilityQuantity();
+    if (assets.isZero()) return new BigNumber(0);
     return liabilities.div(assets);
   }
 

@@ -1,3 +1,3 @@
 export * from "./mrgnlend";
-export * from "./firebase";
+export * as firebaseApi from "./firebase";
 export * from "./points";

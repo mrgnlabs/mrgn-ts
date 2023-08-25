@@ -1,15 +1,21 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Text, View } from "react-native";
 import tw from "~/styles/tailwind";
 import { Screen } from "~/components/Common";
 import { PortfolioOverview, PortfolioHeader } from "~/components/Portfolio";
 import { PoolCard, PoolCardSkeleton } from "~/components/Lend";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import { useConnection } from "~/hooks/useConnection";
+import { useWallet } from "~/hooks/useWallet";
+import config from "~/config";
 
 export function PortfolioScreens() {
+  const { wallet } = useWallet();
+  const connection = useConnection();
   const [
     marginfiClient,
-    reloadMrgnlendState,
+    fetchBankMetadatas,
+    fetchMrgnlendState,
     selectedAccount,
     accountSummary,
     extendedBankInfos,
@@ -17,7 +23,8 @@ export function PortfolioScreens() {
     protocolStats,
   ] = useMrgnlendStore((state) => [
     state.marginfiClient,
-    state.reloadMrgnlendState,
+    state.fetchBankMetadatas,
+    state.fetchMrgnlendState,
     state.selectedAccount,
     state.accountSummary,
     state.extendedBankInfos,
@@ -30,13 +37,21 @@ export function PortfolioScreens() {
     state.currentFirebaseUser,
   ]);
 
+  useEffect(() => {
+    if (!wallet || !connection) return;
+    fetchBankMetadatas().catch(console.error);
+    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet }).catch(console.error);
+    const id = setInterval(() => fetchMrgnlendState().catch(console.error), 30_000);
+    return () => clearInterval(id);
+  }, [wallet, connection, fetchBankMetadatas, fetchMrgnlendState]);
+
   const lendingPools = useMemo(
     () =>
       extendedBankInfos &&
       extendedBankInfos
-        .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
-        .filter((b) => b.hasActivePosition && b.position.isLending)
-        .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice),
+        .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
+        .filter((b) => b.isActive && b.position.isLending)
+        .sort((a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price),
     [extendedBankInfos]
   );
 
@@ -44,9 +59,9 @@ export function PortfolioScreens() {
     () =>
       extendedBankInfos &&
       extendedBankInfos
-        .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
-        .filter((b) => b.hasActivePosition && !b.position.isLending)
-        .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice),
+        .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
+        .filter((b) => b.isActive && !b.position.isLending)
+        .sort((a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price),
     [extendedBankInfos]
   );
 
@@ -76,7 +91,7 @@ export function PortfolioScreens() {
                   nativeSolBalance={nativeSolBalance}
                   isInLendingMode={false}
                   marginfiAccount={selectedAccount}
-                  reloadBanks={reloadMrgnlendState}
+                  reloadBanks={fetchMrgnlendState}
                   marginfiClient={marginfiClient}
                 />
               ))
@@ -96,7 +111,7 @@ export function PortfolioScreens() {
                   nativeSolBalance={nativeSolBalance}
                   isInLendingMode={true}
                   marginfiAccount={selectedAccount}
-                  reloadBanks={reloadMrgnlendState}
+                  reloadBanks={fetchMrgnlendState}
                   marginfiClient={marginfiClient}
                 />
               ))

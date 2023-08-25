@@ -35,9 +35,9 @@ const AiUI: FC = () => {
   const [failed, setFailed] = useState<boolean>(false);
 
   const wallet = useWallet();
-  const [marginfiClient, reloadMrgnlendState, selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
+  const [marginfiClient, fetchMrgnlendState, selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
     state.marginfiClient,
-    state.reloadMrgnlendState,
+    state.fetchMrgnlendState,
     state.selectedAccount,
     state.extendedBankInfos,
   ]);
@@ -112,51 +112,34 @@ const AiUI: FC = () => {
     const amountFloat = parseFloat(amount);
 
     // Types:
-    const bankInfo = extendedBankInfos.find((bank) => bank.tokenSymbol.toUpperCase() === tokenSymbol);
+    const bankInfo = extendedBankInfos.find((bank) => bank.meta.tokenSymbol.toUpperCase() === tokenSymbol);
     if (!bankInfo) {
       throw new Error(`Bank info was not found, tokenSymbol: ${tokenSymbol} bankInfo: ${bankInfo}`);
     }
 
-    let mSOLBank;
-    let SOLBank;
-
     try {
       switch (action) {
         case "deposit":
-          // Check if the user has a marginfi account
           if (_marginfiAccount === null) {
             try {
               // If the user does not have a marginfi account, create one for them.
-
-              // First, we double check that we don't have a state management problem.
-              const userAccounts = await marginfiClient.getMarginfiAccountsForAuthority();
-              if (userAccounts.length > 0) {
-                try {
-                  await reloadMrgnlendState();
-                } catch (error: any) {
-                  throw new Error(`Error while reloading state: ${error}`);
-                }
-              }
-
-              // If we're all good on state, we create an account
               _marginfiAccount = await marginfiClient.createMarginfiAccount();
             } catch (error: any) {
               throw new Error(`Error while creating marginfi account: ${error}`);
-              break;
             }
           }
 
           console.log("constructing transaction");
 
           // perform the deposit action
-          await _marginfiAccount.deposit(amountFloat, bankInfo.bank.address);
+          await _marginfiAccount.deposit(amountFloat, bankInfo.address);
 
           break;
 
         case "borrow":
           // perform the borrow action
-          // @ts-ignore marginfi account is checked above
-          await _marginfiAccount.borrow(parseFloat(amount), bankInfo.bank);
+          //@ts-ignore (mfi account checked above)
+          await _marginfiAccount.borrow(parseFloat(amount), bankInfo.address);
 
           break;
 
