@@ -24,7 +24,6 @@ import {
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
-import BigNumber from "bignumber.js";
 
 interface ProtocolStats {
   deposits: number;
@@ -188,14 +187,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
     const { deposits, borrows } = extendedBankInfos.reduce(
       (acc, bank) => {
-        acc.deposits += nativeToUi(
-          bank.info.state.totalDeposits * bank.info.oraclePrice.price.toNumber(),
-          bank.info.state.mintDecimals
-        );
-        acc.borrows += nativeToUi(
-          bank.info.state.totalBorrows * bank.info.oraclePrice.price.toNumber(),
-          bank.info.state.mintDecimals
-        );
+        acc.deposits += bank.info.state.totalDeposits * bank.info.oraclePrice.price.toNumber();
+        acc.borrows += bank.info.state.totalBorrows * bank.info.oraclePrice.price.toNumber();
         return acc;
       },
       { deposits: 0, borrows: 0 }
