@@ -124,7 +124,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     let tokenAccountMap: TokenAccountMap;
     let marginfiAccounts: MarginfiAccountWrapper[] = [];
     let selectedAccount: MarginfiAccountWrapper | null = null;
-    if (wallet) {
+    if (wallet?.publicKey) {
       const [tokenData, marginfiAccountWrappers] = await Promise.all([
         fetchTokenAccounts(
           connection,
