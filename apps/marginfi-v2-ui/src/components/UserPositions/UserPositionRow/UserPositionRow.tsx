@@ -156,7 +156,12 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       <TableCell className={`text-white p-0 font-aeonik border-[1px] border-none`}>
         <div className="flex justify-center items-center px-4 gap-2">
           {activeBankInfo.meta.tokenLogoUri && (
-            <Image src={activeBankInfo.meta.tokenLogoUri} alt={activeBankInfo.meta.tokenSymbol} height={25} width={25} />
+            <Image
+              src={activeBankInfo.meta.tokenLogoUri}
+              alt={activeBankInfo.meta.tokenSymbol}
+              height={25}
+              width={25}
+            />
           )}
           <div className="font-aeonik">{activeBankInfo.meta.tokenSymbol}</div>
         </div>
@@ -190,7 +195,9 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
-          maxValue={activeBankInfo.position.isLending ? activeBankInfo.userInfo.maxWithdraw : activeBankInfo.userInfo.maxRepay}
+          maxValue={
+            activeBankInfo.position.isLending ? activeBankInfo.userInfo.maxWithdraw : activeBankInfo.userInfo.maxRepay
+          }
           maxDecimals={activeBankInfo.info.state.mintDecimals}
           disabled={isDust}
         />

@@ -4,10 +4,7 @@ import { UserStats } from "./UserStats";
 import { useMrgnlendStore } from "~/store";
 import dynamic from "next/dynamic";
 
-const GlobalStats = dynamic(
-  async () => (await import("./GlobalStats")).GlobalStats,
-  { ssr: false }
-)
+const GlobalStats = dynamic(async () => (await import("./GlobalStats")).GlobalStats, { ssr: false });
 
 const AccountSummary: FC = () => {
   const [isStoreInitialized, accountSummary, protocolStats, selectedAccount] = useMrgnlendStore((state) => [
@@ -19,8 +16,8 @@ const AccountSummary: FC = () => {
   const wallet = useWallet();
 
   return (
-    <div className="flex flex-col lg:flex-row w-full h-[118px] justify-between items-center">
-      <div className="hidden lg:block w-full">
+    <div className="flex flex-col lg:flex-row w-full justify-between items-center">
+      <div className="hidden lg:block w-full h-[118px]">
         <GlobalStats
           tvl={protocolStats.tvl}
           pointsTotal={protocolStats.pointsTotal}

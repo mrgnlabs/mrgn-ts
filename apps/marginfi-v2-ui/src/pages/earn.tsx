@@ -34,7 +34,7 @@ const EarnPage = () => {
       <Earn />
     </LipClientProvider>
   );
-}
+};
 
 const Earn = () => {
   const walletContext = useWallet();
@@ -56,10 +56,12 @@ const Earn = () => {
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
 
   useEffect(() => {
-    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride });
-    const id = setInterval(() => fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }), 60_000);
+    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
+    const id = setInterval(() => fetchMrgnlendState().catch(console.error), 60_000);
     return () => clearInterval(id);
-  }, [wallet, connection, fetchMrgnlendState, isOverride]);
+  }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
+  // TODO: fix...
 
   const whitelistedCampaignsWithMeta = useMemo(() => {
     if (!lipClient) return [];

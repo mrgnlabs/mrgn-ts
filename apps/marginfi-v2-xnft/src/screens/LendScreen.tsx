@@ -13,10 +13,9 @@ import { useWallet } from "~/hooks/useWallet";
 export function LendScreen() {
   const { wallet } = useWallet();
   const connection = useConnection();
-  const [marginfiClient, fetchBankMetadatas, fetchMrgnlendState, selectedAccount, accountSummary, extendedBankInfos, nativeSolBalance] =
+  const [marginfiClient, fetchMrgnlendState, selectedAccount, accountSummary, extendedBankInfos, nativeSolBalance] =
     useMrgnlendStore((state) => [
       state.marginfiClient,
-      state.fetchBankMetadatas,
       state.fetchMrgnlendState,
       state.selectedAccount,
       state.accountSummary,
@@ -28,12 +27,12 @@ export function LendScreen() {
   const togglePositions = () => setIsFiltered((previousState) => !previousState);
 
   useEffect(() => {
-    if (!wallet || !connection) return;
-    fetchBankMetadatas().catch(console.error);
     fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet }).catch(console.error);
     const id = setInterval(() => fetchMrgnlendState().catch(console.error), 30_000);
     return () => clearInterval(id);
-  }, [wallet, connection, fetchBankMetadatas, fetchMrgnlendState]);
+  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
+  // TODO: fix...
 
   const globalPools = useMemo(
     () =>
@@ -41,7 +40,9 @@ export function LendScreen() {
       extendedBankInfos
         .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
         .filter((b) => (isFiltered ? b.isActive : true))
-        .sort((a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price),
+        .sort(
+          (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
+        ),
     [extendedBankInfos, isFiltered]
   );
 
@@ -50,7 +51,9 @@ export function LendScreen() {
       extendedBankInfos
         .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() === 0)
         .filter((b) => (isFiltered ? b.isActive : true))
-        .sort((a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price),
+        .sort(
+          (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
+        ),
     [extendedBankInfos, isFiltered]
   );
 
@@ -74,7 +77,10 @@ export function LendScreen() {
                   nativeSolBalance={nativeSolBalance}
                   isInLendingMode={tabActive === "lend"}
                   marginfiAccount={selectedAccount}
-                  reloadBanks={fetchMrgnlendState}
+                  reloadBanks={async () => {
+                    if (!connection) return;
+                    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet });
+                  }}
                   marginfiClient={marginfiClient}
                 ></PoolCard>
               ))
@@ -95,7 +101,10 @@ export function LendScreen() {
                   nativeSolBalance={nativeSolBalance}
                   isInLendingMode={tabActive === "lend"}
                   marginfiAccount={selectedAccount}
-                  reloadBanks={fetchMrgnlendState}
+                  reloadBanks={async () => {
+                    if (!connection) return;
+                    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet });
+                  }}
                   marginfiClient={marginfiClient}
                 ></PoolCard>
               ))

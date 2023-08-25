@@ -15,7 +15,7 @@ const OverlaySpinner: FC<OverlaySpinnerProps> = ({ fetching }) => (
       display: fetching ? "block" : "none",
     }}
   >
-    <PuffLoader color="#7fff00" size="30" />
+    <PuffLoader color="#7fff00" size={30} />
   </div>
 );
 

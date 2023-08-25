@@ -138,7 +138,7 @@ const AiUI: FC = () => {
 
         case "borrow":
           // perform the borrow action
-          //@ts-ignore (mfi account checked above)
+          //@ts-ignore (mfi)
           await _marginfiAccount.borrow(parseFloat(amount), bankInfo.address);
 
           break;

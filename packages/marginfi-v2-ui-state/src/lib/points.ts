@@ -12,7 +12,7 @@ import {
   getCountFromServer,
   where,
 } from "firebase/firestore";
-import {firebaseApi} from ".";
+import { firebaseApi } from ".";
 
 type LeaderboardRow = {
   id: string;

@@ -52,7 +52,10 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     []
   );
 
-  const [isStoreInitialized] = useMrgnlendStore((state) => [state.initialized]);
+  const [isStoreInitialized, isRefreshingStore] = useMrgnlendStore((state) => [
+    state.initialized,
+    state.isRefreshingStore,
+  ]);
 
   return (
     <ConnectionProvider endpoint={config.rpcEndpoint}>
@@ -73,7 +76,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
           <ToastContainer position="bottom-left" theme="dark" />
         </WalletModalProvider>
       </WalletProvider>
-      <OverlaySpinner fetching={!isStoreInitialized} />
+      <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
     </ConnectionProvider>
   );
 };

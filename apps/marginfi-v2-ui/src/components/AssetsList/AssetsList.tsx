@@ -291,7 +291,7 @@ const AssetsList: FC = () => {
                   style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                   align="right"
                 >
-                  <div className="h-full w-full flex justify-end items-center gap-2">Wallet Balance</div>
+                  <div className="h-full w-full flex justify-end items-center gap-2">Wallet Amt.</div>
                 </TableCell>
                 <TableCell className="border-none"></TableCell>
                 <TableCell className="border-none"></TableCell>

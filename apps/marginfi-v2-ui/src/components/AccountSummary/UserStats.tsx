@@ -67,17 +67,21 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {accountSummary ? <>
-                  <div className="sm:hidden">{`$${numeralFormatter(accountSummary.balanceUnbiased)}`}</div>
+                {accountSummary ? (
+                  <>
+                    <div className="sm:hidden">{`$${numeralFormatter(accountSummary.balanceUnbiased)}`}</div>
 
-                  <div className="hidden sm:block xl:hidden">
-                    {Math.round(accountSummary.balanceUnbiased) > 10000
-                      ? usdFormatterDyn.format(Math.round(accountSummary.balanceUnbiased))
-                      : usdFormatter.format(accountSummary.balanceUnbiased)}
-                  </div>
+                    <div className="hidden sm:block xl:hidden">
+                      {Math.round(accountSummary.balanceUnbiased) > 10000
+                        ? usdFormatterDyn.format(Math.round(accountSummary.balanceUnbiased))
+                        : usdFormatter.format(accountSummary.balanceUnbiased)}
+                    </div>
 
-                  <div className="hidden xl:block">{usdFormatter.format(accountSummary.balanceUnbiased)}</div>
-                </> : "-"}
+                    <div className="hidden xl:block">{usdFormatter.format(accountSummary.balanceUnbiased)}</div>
+                  </>
+                ) : (
+                  "-"
+                )}
               </Typography>
             </div>
           </div>
@@ -116,17 +120,21 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {accountSummary ? <>
-                  <div className="sm:hidden">{`$${numeralFormatter(accountSummary.lendingAmountUnbiased)}`}</div>
+                {accountSummary ? (
+                  <>
+                    <div className="sm:hidden">{`$${numeralFormatter(accountSummary.lendingAmountUnbiased)}`}</div>
 
-                  <div className="hidden sm:block xl:hidden">
-                    {Math.round(accountSummary.lendingAmountUnbiased) > 10000
-                      ? usdFormatterDyn.format(Math.round(accountSummary.lendingAmountUnbiased))
-                      : usdFormatter.format(accountSummary.lendingAmountUnbiased)}
-                  </div>
+                    <div className="hidden sm:block xl:hidden">
+                      {Math.round(accountSummary.lendingAmountUnbiased) > 10000
+                        ? usdFormatterDyn.format(Math.round(accountSummary.lendingAmountUnbiased))
+                        : usdFormatter.format(accountSummary.lendingAmountUnbiased)}
+                    </div>
 
-                  <div className="hidden xl:block">{usdFormatter.format(accountSummary.lendingAmountUnbiased)}</div>
-                </> : "-"}
+                    <div className="hidden xl:block">{usdFormatter.format(accountSummary.lendingAmountUnbiased)}</div>
+                  </>
+                ) : (
+                  "-"
+                )}
               </Typography>
             </div>
           </div>
@@ -219,11 +227,7 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                 <div className="self-center"></div>
               </Typography>
               <Typography color={healthColor} className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {healthFactor ? (
-                  percentFormatter.format(healthFactor)
-                ) : (
-                  "-"
-                )}
+                {healthFactor ? percentFormatter.format(healthFactor) : "-"}
               </Typography>
             </div>
           </div>

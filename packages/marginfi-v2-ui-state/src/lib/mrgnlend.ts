@@ -118,7 +118,7 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
     totalBorrows,
     availableLiquidity: liquidity,
     utilizationRate,
-    isIsolated: bank.config.riskTier === RiskTier.Isolated
+    isIsolated: bank.config.riskTier === RiskTier.Isolated,
   };
 }
 

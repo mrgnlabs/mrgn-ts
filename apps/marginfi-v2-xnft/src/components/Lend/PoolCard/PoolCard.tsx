@@ -31,16 +31,26 @@ export function PoolCard({
     () =>
       percentFormatter.format(
         (isInLendingMode ? bankInfo.info.state.lendingRate : bankInfo.info.state.borrowingRate) +
-          (isInLendingMode && bankInfo.info.state.emissions == Emissions.Lending ? bankInfo.info.state.emissionsRate : 0) +
-          (!isInLendingMode && bankInfo.info.state.emissions == Emissions.Borrowing ? bankInfo.info.state.emissionsRate : 0)
+          (isInLendingMode && bankInfo.info.state.emissions == Emissions.Lending
+            ? bankInfo.info.state.emissionsRate
+            : 0) +
+          (!isInLendingMode && bankInfo.info.state.emissions == Emissions.Borrowing
+            ? bankInfo.info.state.emissionsRate
+            : 0)
       ),
     [isInLendingMode, bankInfo]
   );
 
   const currentAction = useMemo(() => getCurrentAction(isInLendingMode, bankInfo), [isInLendingMode, bankInfo]);
 
-  const depositFilled = useMemo(() => bankInfo.info.state.totalDeposits / bankInfo.info.rawBank.config.depositLimit, [bankInfo]);
-  const borrowFilled = useMemo(() => bankInfo.info.state.totalBorrows / bankInfo.info.rawBank.config.borrowLimit, [bankInfo]);
+  const depositFilled = useMemo(
+    () => bankInfo.info.state.totalDeposits / bankInfo.info.rawBank.config.depositLimit,
+    [bankInfo]
+  );
+  const borrowFilled = useMemo(
+    () => bankInfo.info.state.totalBorrows / bankInfo.info.rawBank.config.borrowLimit,
+    [bankInfo]
+  );
 
   const connection = useConnection();
 

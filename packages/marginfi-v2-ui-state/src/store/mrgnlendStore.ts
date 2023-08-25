@@ -22,8 +22,9 @@ import {
   makeExtendedBankMetadata,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
-import { StateCreator, create } from "zustand";
+import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
+import BigNumber from "bignumber.js";
 
 interface ProtocolStats {
   deposits: number;
@@ -35,6 +36,7 @@ interface ProtocolStats {
 interface MrgnlendState {
   // State
   initialized: boolean;
+  isRefreshingStore: boolean;
   marginfiClient: MarginfiClient | null;
   bankMetadataMap: BankMetadataMap;
   tokenMetadataMap: TokenMetadataMap;
@@ -47,7 +49,6 @@ interface MrgnlendState {
   accountSummary: AccountSummary;
 
   // Actions
-  fetchBankMetadatas: () => Promise<void>;
   fetchMrgnlendState: (args?: {
     marginfiConfig?: MarginfiConfig;
     connection?: Connection;
@@ -61,16 +62,14 @@ function createMrgnlendStore() {
 }
 
 function createPersistentMrgnlendStore() {
-  return create<MrgnlendState,   [
-    ['zustand/persist', Pick<MrgnlendState, "extendedBankInfos" | "protocolStats">],
-  ]>(
+  return create<MrgnlendState, [["zustand/persist", Pick<MrgnlendState, "extendedBankInfos" | "protocolStats">]]>(
     persist(stateCreator, {
       name: "mrgnlend-peristent-store",
       partialize(state) {
-          return {
-            extendedBankInfos: state.extendedBankInfos,
-            protocolStats: state.protocolStats,
-          };
+        return {
+          extendedBankInfos: state.extendedBankInfos,
+          protocolStats: state.protocolStats,
+        };
       },
     })
   );
@@ -79,6 +78,7 @@ function createPersistentMrgnlendStore() {
 const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   // State
   initialized: false,
+  isRefreshingStore: false,
   marginfiClient: null,
   bankMetadataMap: {},
   tokenMetadataMap: {},
@@ -96,18 +96,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
 
   // Actions
-  fetchBankMetadatas: async () => {
-    if (get().extendedBankMetadatas.length > 0) return;
-
-    const [bankMetadataMap, tokenMetadataMap] = await Promise.all([loadBankMetadatas(), loadTokenMetadatas()]);
-    const extendedBankMetadatas = Object.entries(bankMetadataMap).map(([bankAddress, bankMetadata]) => {
-      const tokenMetadata = getValueInsensitive(tokenMetadataMap, bankMetadata.tokenSymbol);
-      if (!tokenMetadata) throw new Error(`Token metadata not found for ${bankMetadata.tokenSymbol}`);
-      return makeExtendedBankMetadata(new PublicKey(bankAddress), tokenMetadata);
-    });
-    console.log("setting", extendedBankMetadatas.length);
-    set({ bankMetadataMap, tokenMetadataMap, extendedBankMetadatas });
-  },
   fetchMrgnlendState: async (args?: {
     marginfiConfig?: MarginfiConfig;
     connection?: Connection;
@@ -222,6 +210,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
     set({
       initialized: true,
+      isRefreshingStore: false,
       marginfiClient,
       bankMetadataMap,
       tokenMetadataMap,

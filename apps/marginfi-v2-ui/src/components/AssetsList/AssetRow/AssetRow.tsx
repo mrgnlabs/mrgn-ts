@@ -691,13 +691,8 @@ const LoadingAsset: FC<{ isInLendingMode: boolean; bankMetadata: ExtendedBankMet
     <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
     <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
     <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
-          <AssetRowInputBox
-            tokenName={bankMetadata.tokenSymbol}
-            value={0}
-            setValue={() => {}}
-            disabled={true}
-          />
-      </TableCell>
+      <AssetRowInputBox tokenName={bankMetadata.tokenSymbol} value={0} setValue={() => {}} disabled={true} />
+    </TableCell>
     <TableCell className="text-white border-none font-aeonik p-0">
       <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
         <AssetRowAction bgColor={"rgb(227, 227, 227)"}>{isInLendingMode ? "Supply" : "Borrow"}</AssetRowAction>
