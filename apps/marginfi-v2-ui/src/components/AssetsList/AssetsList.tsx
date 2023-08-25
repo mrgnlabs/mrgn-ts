@@ -298,30 +298,30 @@ const AssetsList: FC = () => {
               </TableHead>
 
               <TableBody>
-                {isStoreInitialized
-                  ? sortedBanks
-                      .filter((b) => !b.info.state.isIsolated)
-                      .map((bank, i) => (
-                        <AssetRow
-                          key={bank.meta.tokenSymbol}
-                          nativeSolBalance={nativeSolBalance}
-                          bank={bank}
-                          isInLendingMode={isInLendingMode}
-                          isConnected={wallet.connected}
-                          marginfiAccount={selectedAccount}
-                          inputRefs={inputRefs}
-                          hasHotkey={true}
-                          showHotkeyBadges={showBadges}
-                          badgeContent={`${i + 1}`}
-                        />
-                      ))
-                  : sortedBanks.map((banks) => (
-                      <LoadingAsset
-                        key={banks.meta.tokenSymbol}
+                {sortedBanks
+                  .filter((b) => !b.info.state.isIsolated)
+                  .map((bank, i) =>
+                    isStoreInitialized ? (
+                      <AssetRow
+                        key={bank.meta.tokenSymbol}
+                        nativeSolBalance={nativeSolBalance}
+                        bank={bank}
                         isInLendingMode={isInLendingMode}
-                        bankMetadata={banks.meta}
+                        isConnected={wallet.connected}
+                        marginfiAccount={selectedAccount}
+                        inputRefs={inputRefs}
+                        hasHotkey={true}
+                        showHotkeyBadges={showBadges}
+                        badgeContent={`${i + 1}`}
                       />
-                    ))}
+                    ) : (
+                      <LoadingAsset
+                        key={bank.meta.tokenSymbol}
+                        isInLendingMode={isInLendingMode}
+                        bankMetadata={bank.meta}
+                      />
+                    )
+                  )}
               </TableBody>
               <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white my-4 gap-2">
                 <span className="gap-1 flex">
@@ -344,30 +344,28 @@ const AssetsList: FC = () => {
                 </HtmlTooltip>
               </div>
               <TableBody>
-                {isStoreInitialized
-                  ? sortedBanks
-                      .filter((b) => b.info.state.isIsolated)
-                      .map((bank) => (
-                        <AssetRow
-                          key={bank.meta.tokenSymbol}
-                          nativeSolBalance={nativeSolBalance}
-                          bank={bank}
-                          isInLendingMode={isInLendingMode}
-                          isConnected={wallet.connected}
-                          marginfiAccount={selectedAccount}
-                          inputRefs={inputRefs}
-                          hasHotkey={false}
-                        />
-                      ))
-                  : sortedBanks
-                      .filter((b) => b.info.state.isIsolated)
-                      .map((banks) => (
-                        <LoadingAsset
-                          key={banks.meta.tokenSymbol}
-                          isInLendingMode={isInLendingMode}
-                          bankMetadata={banks.meta}
-                        />
-                      ))}
+                {sortedBanks
+                  .filter((b) => b.info.state.isIsolated)
+                  .map((bank) =>
+                    isStoreInitialized ? (
+                      <AssetRow
+                        key={bank.meta.tokenSymbol}
+                        nativeSolBalance={nativeSolBalance}
+                        bank={bank}
+                        isInLendingMode={isInLendingMode}
+                        isConnected={wallet.connected}
+                        marginfiAccount={selectedAccount}
+                        inputRefs={inputRefs}
+                        hasHotkey={false}
+                      />
+                    ) : (
+                      <LoadingAsset
+                        key={bank.meta.tokenSymbol}
+                        isInLendingMode={isInLendingMode}
+                        bankMetadata={bank.meta}
+                      />
+                    )
+                  )}
               </TableBody>
             </Table>
           </TableContainer>
