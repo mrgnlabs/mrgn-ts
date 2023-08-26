@@ -6,10 +6,27 @@ import { loadKeypair } from "@mrgnlabs/mrgn-common";
 import * as fs from "fs";
 import path from "path";
 import { homedir } from "os";
+import BigNumber from "bignumber.js";
 
 const Sentry = require("@sentry/node");
 
 dotenv.config();
+
+// Nicely log when LIQUIDATOR_PK, WALLET_KEYPAIR, or RPC_ENDPOINT are missing
+if (!process.env.LIQUIDATOR_PK) {
+  console.error("LIQUIDATOR_PK is required");
+  process.exit(1);
+}
+
+if (!process.env.WALLET_KEYPAIR) {
+  console.error("WALLET_KEYPAIR is required");
+  process.exit(1);
+}
+
+if (!process.env.RPC_ENDPOINT) {
+  console.error("RPC_ENDPOINT is required");
+  process.exit(1);
+}
 
 /*eslint sort-keys: "error"*/
 let envSchema = z.object({
@@ -31,6 +48,7 @@ let envSchema = z.object({
       return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
     })
     .optional(),
+  MIN_LIQUIDATION_AMOUNT_USD_UI: z.string().default("0.1").transform((s) => new BigNumber(s)),
   MIN_SOL_BALANCE: z.coerce.number().default(0.5),
   MRGN_ENV: z
     .enum(["production", "alpha", "staging", "dev", "mainnet-test-1", "dev.1"])
@@ -43,7 +61,7 @@ let envSchema = z.object({
     .default("false")
     .transform((s) => s === "true" || s === "1"),
   SENTRY_DSN: z.string().optional(),
-  SLEEP_INTERVAL: z.number().default(5_000),
+  SLEEP_INTERVAL: z.string().default("10000").transform((s) => parseInt(s, 10)),
   WALLET_KEYPAIR: z.string().transform((keypairStr) => {
     if (fs.existsSync(resolveHome(keypairStr))) {
       return loadKeypair(keypairStr);
