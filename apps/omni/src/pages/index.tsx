@@ -1,11 +1,11 @@
 import React, { FC, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import axios from "axios";
-import { TextField } from "@mui/material";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
 
 import { useWallet } from "@solana/wallet-adapter-react";
 import { TypeAnimation } from "react-type-animation";
-import { InputAdornment } from "@mui/material";
 import { FormEventHandler } from "react";
 import { useMrgnlendStore } from "~/store";
 

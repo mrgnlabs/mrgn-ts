@@ -13,7 +13,6 @@ import {
   NATIVE_MINT,
 } from "@mrgnlabs/mrgn-common";
 import { useLipClient } from "~/context";
-import { EarnAction } from "~/pages/earn";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { MenuItem, Select, TextField } from "@mui/material";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
@@ -21,6 +20,7 @@ import Image from "next/image";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import { useMrgnlendStore } from "~/store";
 import { computeGuaranteedApy } from "@mrgnlabs/lip-client";
+import { EarnAction } from "./Earn";
 
 interface CampaignWizardInputBox {
   value: number;

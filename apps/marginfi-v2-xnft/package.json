@@ -19,7 +19,6 @@
     "@mrgnlabs/marginfi-client-v2": "*",
     "@mrgnlabs/marginfi-v2-ui-state": "*",
     "@mrgnlabs/mrgn-common": "*",
-    "@pythnetwork/client": "^2.19.0",
     "@react-navigation/bottom-tabs": "6.5.8",
     "@react-navigation/native": "6.1.7",
     "@react-navigation/native-stack": "6.9.13",
