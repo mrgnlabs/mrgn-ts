@@ -1,5 +1,5 @@
 import React, { createContext, FC, useCallback, useContext, useEffect, useState } from "react";
-import config from "~/config";
+import config from "~/config/marginfi";
 import { LipClient } from "@mrgnlabs/lip-client";
 import { useMrgnlendStore } from "~/store";
 

@@ -17,7 +17,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import Image from "next/image";
 import LipAccount, { Campaign, Deposit } from "@mrgnlabs/lip-client/src/account";
-import config from "~/config";
+import config from "~/config/marginfi";
 import {
   BankMetadataMap,
   floor,
