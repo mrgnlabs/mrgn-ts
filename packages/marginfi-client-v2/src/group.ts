@@ -1,4 +1,4 @@
-import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
+import { Address, BN, BorshCoder, translateAddress } from "@coral-xyz/anchor";
 import { Commitment, PublicKey } from "@solana/web3.js";
 import { Bank, BankData, getOraclePriceData } from "./bank";
 import { MARGINFI_IDL } from "./idl";

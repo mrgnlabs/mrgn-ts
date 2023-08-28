@@ -1,8 +1,5 @@
-import { AnchorProvider, Program } from "@project-serum/anchor";
-import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
-import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
+import { AnchorProvider, Program, Address, translateAddress } from "@coral-xyz/anchor";
 import {
-  AccountInfo,
   ConfirmOptions,
   Connection,
   Keypair,
@@ -19,19 +16,20 @@ import { LIP_IDL } from "./idl";
 import instructions from "./instructions";
 import { DEPOSIT_MFI_AUTH_SIGNER_SEED, MARGINFI_ACCOUNT_SEED } from "./constants";
 import { Bank, BankData, getOraclePriceData, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { Address, translateAddress } from "@coral-xyz/anchor";
 import { Campaign, DepositData } from "./account";
 import {
   Amount,
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
   DEFAULT_CONFIRM_OPTS,
+  getAssociatedTokenAddressSync,
   InstructionsWrapper,
   NATIVE_MINT,
   TransactionOptions,
   uiToNative,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
+import base58 from "bs58";
 /**
  * Entrypoint to interact with the LIP contract.
  */
@@ -176,10 +174,7 @@ class LipClient {
   async makeDepositIx(campaign: PublicKey, amount: Amount, bank: Bank): Promise<InstructionsWrapper> {
     const depositKeypair = Keypair.generate();
     const tempTokenAccountKeypair = Keypair.generate();
-    const userTokenAtaPk = await associatedAddress({
-      mint: bank.mint,
-      owner: this.mfiClient.provider.wallet.publicKey,
-    });
+    const userTokenAtaPk = getAssociatedTokenAddressSync(bank.mint, this.mfiClient.provider.wallet.publicKey);
     const amountNative = uiToNative(amount, bank.mintDecimals);
 
     const ixs = [];
@@ -261,7 +256,7 @@ class LipClient {
 
       const versionedMessage = new TransactionMessage({
         instructions: transaction.instructions,
-        payerKey: this.mfiClient.provider.publicKey,
+        payerKey: this.mfiClient.provider.wallet.publicKey,
         recentBlockhash: blockhash,
       });
 
@@ -282,7 +277,7 @@ class LipClient {
         console.log(response.value.logs);
 
         const signaturesEncoded = encodeURIComponent(
-          JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s)))
+          JSON.stringify(versionedTransaction.signatures.map((s) => base58.encode(s)))
         );
         const messageEncoded = encodeURIComponent(
           Buffer.from(versionedTransaction.message.serialize()).toString("base64")

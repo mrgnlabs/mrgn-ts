@@ -1,8 +1,7 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
-import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import BN from "bn.js";
-import { uiToNative } from "@mrgnlabs/mrgn-common";
+import { getAssociatedTokenAddressSync, uiToNative } from "@mrgnlabs/mrgn-common";
 import { useProgram } from "~/context";
 import { ProAction } from "~/pages/earn";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -129,10 +128,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
 
     const campaignKeypair = Keypair.generate();
     console.log("creating campaign", campaignKeypair.publicKey.toBase58());
-    const userTokenAtaPk = await associatedAddress({
-      mint: campaignBank.mint,
-      owner: lipClient.wallet.publicKey,
-    });
+    const userTokenAtaPk = getAssociatedTokenAddressSync(campaignBank.mint, lipClient.wallet.publicKey);
 
     const tx = new Transaction();
 

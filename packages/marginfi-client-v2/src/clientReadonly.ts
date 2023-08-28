@@ -1,5 +1,4 @@
-import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@project-serum/anchor";
-import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
+import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
 import { ConfirmOptions, Connection, PublicKey } from "@solana/web3.js";
 import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "./types";
 import { MARGINFI_IDL } from "./idl";
@@ -8,6 +7,7 @@ import MarginfiGroup from "./group";
 import { MarginfiAccountData } from "./account";
 import MarginfiAccountReadonly from "./accountReadonly";
 import { DEFAULT_COMMITMENT } from "@mrgnlabs/mrgn-common";
+import base58 from "bs58";
 
 /**
  * Entrypoint to interact with the marginfi contract.
@@ -127,7 +127,7 @@ class MarginfiClientReadonly {
           {
             memcmp: {
               offset: 0,
-              bytes: bs58.encode(BorshAccountsCoder.accountDiscriminator(AccountType.MarginfiAccount)),
+              bytes: base58.encode(BorshAccountsCoder.accountDiscriminator(AccountType.MarginfiAccount)),
             },
           },
         ],
@@ -180,7 +180,7 @@ class MarginfiClientReadonly {
           {
             memcmp: {
               offset: 0,
-              bytes: bs58.encode(BorshAccountsCoder.accountDiscriminator(type)),
+              bytes: base58.encode(BorshAccountsCoder.accountDiscriminator(type)),
             },
           },
         ],

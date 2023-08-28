@@ -13,8 +13,8 @@ import {
   WrappedI80F48,
   wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
-import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
-import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
+import { Address, BN, BorshCoder, translateAddress } from "@coral-xyz/anchor";
+import { associatedAddress } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import {
   AccountInfo,
   AccountMeta,
