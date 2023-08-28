@@ -13,8 +13,8 @@ import {
   WrappedI80F48,
   wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
-import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
-import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
+import { Address, BN, BorshCoder, translateAddress } from "@coral-xyz/anchor";
+import { associatedAddress } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import {
   AccountInfo,
   AccountMeta,
@@ -1037,7 +1037,7 @@ export class Balance {
     this.assetShares = wrappedI80F48toBigNumber(data.assetShares);
     this.liabilityShares = wrappedI80F48toBigNumber(data.liabilityShares);
     this.emissionsOutstanding = wrappedI80F48toBigNumber(data.emissionsOutstanding);
-    this.lastUpdate = data.lastUpdate;
+    this.lastUpdate = data.lastUpdate.toNumber();
   }
 
   public static newEmpty(bankPk: PublicKey): Balance {
@@ -1047,7 +1047,7 @@ export class Balance {
       assetShares: { value: new BN(0) },
       liabilityShares: { value: new BN(0) },
       emissionsOutstanding: { value: new BN(0) },
-      lastUpdate: 0,
+      lastUpdate: new BN(0),
     });
   }
 
@@ -1152,7 +1152,7 @@ export interface BalanceData {
   assetShares: WrappedI80F48;
   liabilityShares: WrappedI80F48;
   emissionsOutstanding: WrappedI80F48;
-  lastUpdate: number;
+  lastUpdate: BN;
 }
 
 export enum MarginRequirementType {

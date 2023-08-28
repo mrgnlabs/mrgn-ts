@@ -1,4 +1,4 @@
-import { AnchorProvider, BN, Program as AnchorProgram } from "@project-serum/anchor";
+import { AnchorProvider, BN, Program as AnchorProgram } from "@coral-xyz/anchor";
 import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
 import { ConfirmOptions, Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";

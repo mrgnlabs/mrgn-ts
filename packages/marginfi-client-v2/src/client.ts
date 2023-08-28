@@ -1,5 +1,5 @@
-import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@project-serum/anchor";
-import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
+import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
+import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {
   ConfirmOptions,
   Connection,
@@ -26,11 +26,6 @@ import {
   TransactionOptions,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
-import { OraclePriceData, OracleSetup } from "./bank";
-import { parsePriceData } from "@pythnetwork/client";
-import { BigNumber } from "bignumber.js";
-import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS } from "./constants";
-import { AggregatorAccount, SwitchboardProgram } from "@switchboard-xyz/solana.js";
 
 /**
  * Entrypoint to interact with the marginfi contract.

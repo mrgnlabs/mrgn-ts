@@ -1,4 +1,4 @@
-import { Address, BorshCoder, translateAddress } from "@project-serum/anchor";
+import { Address, BorshCoder, translateAddress } from "@coral-xyz/anchor";
 import { parsePriceData } from "@pythnetwork/client";
 import { AccountInfo, Cluster, Commitment, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";

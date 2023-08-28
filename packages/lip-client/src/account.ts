@@ -1,4 +1,4 @@
-import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
+import { Address, BN, BorshCoder, translateAddress } from "@coral-xyz/anchor";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { LIP_IDL } from ".";
