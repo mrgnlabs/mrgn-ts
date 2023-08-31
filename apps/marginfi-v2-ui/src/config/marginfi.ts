@@ -6,11 +6,10 @@ import { getConfig as getLipConfig } from "@mrgnlabs/lip-client";
 // MAIN APP CONFIG
 // ================
 
-let mfiConfig, rpcEndpoint, devFaucetAddress, lipConfig;
+let mfiConfig, devFaucetAddress, lipConfig;
 let campaignWhitelist: { icon: string; size: number; publicKey: string }[];
 
 const environment = process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT;
-const rpcEndpointOverride = process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE;
 const groupOverride = process.env.NEXT_PUBLIC_MARGINFI_GROUP_OVERRIDE;
 
 switch (environment) {
@@ -20,7 +19,6 @@ switch (environment) {
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
-    rpcEndpoint = rpcEndpointOverride || "https://mrgn.rpcpool.com/";
     campaignWhitelist = [
       {
         icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/23095.png",
@@ -35,7 +33,6 @@ switch (environment) {
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
-    rpcEndpoint = rpcEndpointOverride || "https://mrgn.rpcpool.com/";
     campaignWhitelist = [];
     break;
   case "staging":
@@ -44,7 +41,6 @@ switch (environment) {
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
-    rpcEndpoint = rpcEndpointOverride || "https://mrgn.rpcpool.com/";
     campaignWhitelist = [];
     break;
   case "dev":
@@ -53,14 +49,12 @@ switch (environment) {
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
-    rpcEndpoint = rpcEndpointOverride || "https://devnet.rpcpool.com/";
     devFaucetAddress = new PublicKey("B87AhxX6BkBsj3hnyHzcerX2WxPoACC7ZyDr8E7H9geN");
     campaignWhitelist = [];
     break;
   default:
     mfiConfig = getConfig("dev");
     lipConfig = getLipConfig("dev");
-    rpcEndpoint = rpcEndpointOverride || "https://devnet.rpcpool.com/";
     devFaucetAddress = new PublicKey("57hG7dDLXUg6GYDzAw892V4qLm6FhKxd86vMLazyFL98");
     campaignWhitelist = [
       {
@@ -78,7 +72,6 @@ switch (environment) {
 
 const config = {
   mfiConfig,
-  rpcEndpoint,
   devFaucetAddress,
   lipConfig,
   campaignWhitelist,

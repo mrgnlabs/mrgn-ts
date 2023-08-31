@@ -5,7 +5,6 @@ import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
-import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { useMrgnlendStore } from "~/store";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 

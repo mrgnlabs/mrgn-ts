@@ -1,11 +1,19 @@
 import React, { useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { AccountSummary, AssetsList, Banner, UserPositions } from "~/components";
+import { Banner } from "~/components";
 import { PageHeader } from "~/components/PageHeader";
 import { useWalletWithOverride } from "~/components/useWalletWithOverride";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import config from "~/config";
+import config from "~/config/marginfi";
 import { useMrgnlendStore } from "../store";
+import dynamic from "next/dynamic";
+import { OverlaySpinner } from "~/components/OverlaySpinner";
+
+const AccountSummary = dynamic(async () => (await import("~/components/AccountSummary")).AccountSummary, {
+  ssr: false,
+});
+const AssetsList = dynamic(async () => (await import("~/components/AssetsList")).AssetsList, { ssr: false });
+const UserPositions = dynamic(async () => (await import("~/components/UserPositions")).UserPositions, { ssr: false });
 
 const Home = () => {
   const walletContext = useWallet();
@@ -15,6 +23,11 @@ const Home = () => {
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const marginfiAccountCount = useMrgnlendStore((state) => state.marginfiAccountCount);
   const selectedAccount = useMrgnlendStore((state) => state.selectedAccount);
+
+  const [isStoreInitialized, isRefreshingStore] = useMrgnlendStore((state) => [
+    state.initialized,
+    state.isRefreshingStore,
+  ]);
 
   useEffect(() => {
     setIsRefreshingStore(true);
@@ -56,6 +69,7 @@ const Home = () => {
         <AssetsList />
         {walletContext.connected && <UserPositions />}
       </div>
+      <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
     </>
   );
 };

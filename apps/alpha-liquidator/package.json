@@ -10,11 +10,12 @@
     "watch": "tsc-watch -p tsconfig.json --onCompilationComplete 'yarn build' --onSuccess 'yarn serve'",
     "setup": "ts-node src/setup.ts",
     "inspect": "ts-node src/inspect.ts",
-    "serve": "pm2-runtime scripts/pm2.config.js"
+    "serve": "pm2-runtime scripts/pm2.config.js",
+    "start": "ts-node src/runLiquidatorOnlyJup.ts"
   },
   "license": "MIT",
   "dependencies": {
-    "@jup-ag/core": "^4.0.0-beta.18",
+    "@jup-ag/core": "^4.0.0-beta.20",
     "@mongodb-js/zstd": "^1.1.0",
     "@mrgnlabs/eslint-config-custom": "*",
     "@mrgnlabs/marginfi-client-v2": "*",

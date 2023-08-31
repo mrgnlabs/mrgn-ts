@@ -13,19 +13,20 @@ import {
 import { OKXWalletAdapter } from "~/utils";
 import { init, push } from "@socialgouv/matomo-next";
 import config from "~/config";
-import { Navbar, Footer } from "~/components";
 
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-import { OverlaySpinner } from "~/components/OverlaySpinner";
-import { useMrgnlendStore } from "~/store";
+import dynamic from "next/dynamic";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
 require("~/styles/asset-borders.css");
+
+const Navbar = dynamic(async () => (await import("~/components/Navbar")).Navbar, { ssr: false });
+const Footer = dynamic(async () => (await import("~/components/Footer")).Footer, { ssr: false });
 
 // Matomo
 const MATOMO_URL = "https://mrgn.matomo.cloud";
@@ -52,11 +53,6 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     []
   );
 
-  const [isStoreInitialized, isRefreshingStore] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.isRefreshingStore,
-  ]);
-
   return (
     <ConnectionProvider endpoint={config.rpcEndpoint}>
       <WalletProvider wallets={wallets} autoConnect>
@@ -76,7 +72,6 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
           <ToastContainer position="bottom-left" theme="dark" />
         </WalletModalProvider>
       </WalletProvider>
-      <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
     </ConnectionProvider>
   );
 };

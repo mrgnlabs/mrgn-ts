@@ -659,7 +659,7 @@ class MarginfiAccount {
           isSigner: false,
           isWritable: false,
         },
-        ...this.getHealthCheckAccounts(banks, [assetBank, liabilityBank]),
+        ...this.getHealthCheckAccounts(banks, [liabilityBank, assetBank]),
         ...liquidateeMarginfiAccount.getHealthCheckAccounts(banks),
       ]
     );

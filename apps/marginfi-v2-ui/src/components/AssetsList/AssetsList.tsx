@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React, { FC, useEffect, useRef, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Card, Skeleton, Table, TableHead, TableBody, TableContainer, TableRow, TableCell } from "@mui/material";
+import { Card, Table, TableHead, TableBody, TableContainer, TableCell } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
@@ -9,8 +9,6 @@ import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useHotkeys } from "react-hotkeys-hook";
-import { BankMetadata } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LoadingAsset } from "./AssetRow/AssetRow";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
