@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { registerRootComponent } from "expo";
 import { RecoilRoot } from "recoil";
 import { ActivityIndicator, View, Text, StyleSheet, ImageBackground } from "react-native";
@@ -9,7 +9,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFonts, Inter_900Black } from "@expo-google-fonts/dev";
 import { PortfolioScreens } from "~/screens/PortfolioScreen";
 import { LendScreen } from "~/screens/LendScreen";
-// import { SwapScreen } from "~/screens/SwapScreen";
+import { SwapScreen } from "~/screens/SwapScreen";
+import { SwapContextProvider } from "./context";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -79,17 +80,15 @@ function TabNavigator() {
           tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="account" color={color} size={size} />,
         }}
       />
-      {/* <Tab.Screen
+      <Tab.Screen
         name="Swap"
         component={SwapScreen}
         options={{
-          headerShown: false,
+          header: (props: BottomTabHeaderProps) => <LogoTitle />,
           tabBarLabel: "Swap",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="bank" color={color} size={size} />
-          ),
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="bank" color={color} size={size} />,
         }}
-      /> */}
+      />
       <Tab.Screen
         name="Portfolio"
         component={PortfolioScreens}
@@ -107,6 +106,7 @@ function App() {
   let [fontsLoaded] = useFonts({
     Inter_900Black,
   });
+  const [asLegacyTransaction, setAsLegacyTransaction] = useState(true);
 
   if (!fontsLoaded) {
     return (
@@ -118,10 +118,12 @@ function App() {
 
   return (
     <RecoilRoot>
-      <NavigationContainer theme={MyTheme}>
-        <TabNavigator />
-      </NavigationContainer>
-      <Toast position={"bottom"} />
+      <SwapContextProvider asLegacyTransaction={asLegacyTransaction} setAsLegacyTransaction={setAsLegacyTransaction}>
+        <NavigationContainer theme={MyTheme}>
+          <TabNavigator />
+        </NavigationContainer>
+        <Toast position={"bottom"} />
+      </SwapContextProvider>
     </RecoilRoot>
   );
 }

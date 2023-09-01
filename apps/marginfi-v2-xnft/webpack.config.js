@@ -3,15 +3,15 @@ const webpack = require("webpack");
 
 // Expo CLI will await this method so you can optionally return a promise.
 module.exports = async function (env, argv) {
-  const config = await createExpoWebpackConfigAsync({
-    ...env,
-    babel: {
-      dangerouslyAddModulePathsToTranspile: [
-        "@solana/web3.js",
-        "@solana/spl-token",
-      ],
+  const config = await createExpoWebpackConfigAsync(
+    {
+      ...env,
+      babel: {
+        dangerouslyAddModulePathsToTranspile: ["@solana/web3.js", "@solana/spl-token"],
+      },
     },
-  }, argv);
+    argv
+  );
 
   config.resolve.fallback = {
     fs: false,
@@ -31,6 +31,27 @@ module.exports = async function (env, argv) {
       process: "process/browser",
     })
   );
+
+  config.module.rules = config.module.rules.map((rule) => {
+    if (rule.oneOf instanceof Array) {
+      rule.oneOf[rule.oneOf.length - 1].exclude = [/\.(js|mjs|jsx|cjs|ts|tsx)$/, /\.html$/, /\.json$/];
+    }
+    return rule;
+  });
+
+  config.module.rules.push({
+    test: /\.m?js/,
+    resolve: {
+      fullySpecified: false,
+    },
+  });
+
+  config.module.rules.push({
+    test: /\.(js|mjs|cjs)$/,
+    resolve: {
+      fullySpecified: false,
+    },
+  });
 
   config.module.rules.push({
     test: /\.mjs$/,

@@ -11,10 +11,12 @@
     "clean": "rimraf dist node_modules .expo web-build"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "0.28.1-beta.1",
-    "@coral-xyz/common": "0.7.0-latest.1142",
-    "@expo-google-fonts/dev": "0.2.3",
+    "@coral-xyz/anchor": "^0.27.0",
+    "@coral-xyz/common": "^0.6.6-latest.5027",
+    "@expo-google-fonts/dev": "*",
     "@expo/vector-icons": "^13.0.0",
+    "@jup-ag/core": "^4.0.0-beta.21",
+    "@jup-ag/react-hook": "^4.0.0-beta.17",
     "@miblanchard/react-native-slider": "^2.3.1",
     "@mrgnlabs/marginfi-client-v2": "*",
     "@mrgnlabs/marginfi-v2-ui-state": "*",
@@ -47,6 +49,7 @@
     "react-content-loader": "^6.2.1",
     "react-dom": "18.2.0",
     "react-error-overlay": "6.0.11",
+    "react-hook-form": "^7.45.4",
     "react-native": "0.72.4",
     "react-native-dotenv": "^3.4.9",
     "react-native-gesture-handler": "~2.12.1",

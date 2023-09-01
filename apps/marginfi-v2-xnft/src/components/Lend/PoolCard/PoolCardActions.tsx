@@ -72,13 +72,13 @@ export function PoolCardActions({ currentAction, bank, isBankFilled, onAction }:
             </View>
           </View>
           {currentAction == ActionType.Withdraw || currentAction == ActionType.Repay ? (
-            <SecondaryButton title={buttonText} onPress={() => onAction(amount)} />
+            <SecondaryButton title={buttonText ?? ""} onPress={() => onAction(amount)} />
           ) : (
-            <PrimaryButton title={buttonText} onPress={() => onAction(amount)} />
+            <PrimaryButton title={buttonText ?? ""} onPress={() => onAction(amount)} />
           )}
         </View>
       ) : (
-        <PrimaryButton isDisabled title={buttonText} onPress={() => {}} />
+        <PrimaryButton isDisabled title={buttonText ?? ""} onPress={() => {}} />
       )}
     </>
   );
