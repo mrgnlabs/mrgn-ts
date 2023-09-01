@@ -334,7 +334,7 @@ export const SwapContextProvider: FC<{
         wallet: wallet as any as SignerWalletAdapter,
         routeInfo: selectedSwapRoute,
         onTransaction,
-        computeUnitPriceMicroLamports,
+        // computeUnitPriceMicroLamports,
       });
 
       setLastSwapResult(swapResult);

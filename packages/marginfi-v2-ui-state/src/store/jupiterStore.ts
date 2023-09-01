@@ -85,9 +85,9 @@ const stateCreator: StateCreator<JupiterState, [], []> = (set, get) => ({
 
   // Actions
   fetchJupiterState: async (args?: { connection?: Connection; wallet?: Wallet }) => {
-    let tokenMap = new Map();
+    let tokenMap = get().tokenMap;
 
-    if (get().tokenMap.size <= 1) {
+    if (tokenMap.size <= 1) {
       const preferredTokenListMode: any = "ahha";
       const tokens = await (preferredTokenListMode === "strict"
         ? await fetch("https://token.jup.ag/strict")

@@ -145,7 +145,6 @@ function App() {
           </SwapContextProvider>
         </JupiterProvider>
       )}
-      ♠
     </RecoilRoot>
   );
 }
