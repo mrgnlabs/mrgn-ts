@@ -16,8 +16,7 @@ interface AssetRowActionProps extends ButtonProps {
 const AssetRowAction: FC<AssetRowActionProps> = ({ children, disabled, bgColor, ...otherProps }) => {
   const wallet = useWallet();
 
-  return wallet.connected ? (
-    <Button
+  return <Button
       className="normal-case text-[10px] sm:text-sm mx-2 sm:mx-0 w-14 sm:w-32 h-11 max-w-1 rounded-md"
       style={{
         backgroundColor: disabled || !wallet.connected ? "gray" : bgColor ? bgColor : "rgb(227, 227, 227)",
@@ -29,18 +28,10 @@ const AssetRowAction: FC<AssetRowActionProps> = ({ children, disabled, bgColor, 
       }}
       {...otherProps}
       disabled={disabled || !wallet.connected}
+      onClick={wallet.connected ? otherProps.onClick : () => wallet.connect()}
     >
       {children}
-    </Button>
-  ) : (
-    <WalletMultiButtonDynamic
-      className="bg-[#E3E3E3] text-black normal-case text-[10px] sm:text-sm mx-2 sm:mx-0 w-14 sm:w-32 h-11 max-w-1 rounded-md flex justify-center items-center"
-      style={{ fontWeight: 400 }}
-      startIcon={undefined}
-    >
-      Connect
-    </WalletMultiButtonDynamic>
-  );
+    </Button>;
 };
 
 export { AssetRowAction };
