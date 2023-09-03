@@ -1,5 +1,5 @@
 import { Amount, DEFAULT_COMMITMENT, InstructionsWrapper, shortenAddress } from "@mrgnlabs/mrgn-common";
-import { Address, BorshCoder, translateAddress } from "@project-serum/anchor";
+import { Address, BorshCoder, translateAddress } from "@coral-xyz/anchor";
 import { AccountMeta, Commitment, PublicKey, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { MarginfiClient, MarginfiGroup } from "../..";

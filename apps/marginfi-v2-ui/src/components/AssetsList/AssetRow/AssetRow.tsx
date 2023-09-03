@@ -453,8 +453,8 @@ const AssetRow: FC<{
         style={{ fontWeight: 300 }}
       >
         {isInLendingMode
-          ? bank.info.rawBank.config.assetWeightMaint.toNumber() > 0
-            ? (bank.info.rawBank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + "%"
+          ? bank.info.rawBank.config.assetWeightInit.toNumber() > 0
+            ? (bank.info.rawBank.config.assetWeightInit.toNumber() * 100).toFixed(0) + "%"
             : "-"
           : ((1 / bank.info.rawBank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%"}
       </TableCell>

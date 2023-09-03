@@ -11,7 +11,7 @@
     "clean": "rimraf dist node_modules .expo web-build"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.28.0",
+    "@coral-xyz/anchor": "^0.28.1-beta.2",
     "@coral-xyz/common": "^0.6.6-latest.5027",
     "@expo-google-fonts/dev": "*",
     "@expo/vector-icons": "^13.0.0",

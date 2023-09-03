@@ -3,6 +3,7 @@ import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { OraclePrice, MarginRequirementType, PriceBias } from "..";
 import { Bank } from "./bank";
+import BN from "bn.js";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -14,7 +15,7 @@ interface BalanceRaw {
   assetShares: WrappedI80F48;
   liabilityShares: WrappedI80F48;
   emissionsOutstanding: WrappedI80F48;
-  lastUpdate: number;
+  lastUpdate: BN;
 }
 
 export type { BalanceRaw };
@@ -53,7 +54,7 @@ class Balance {
     const assetShares = wrappedI80F48toBigNumber(balanceRaw.assetShares);
     const liabilityShares = wrappedI80F48toBigNumber(balanceRaw.liabilityShares);
     const emissionsOutstanding = wrappedI80F48toBigNumber(balanceRaw.emissionsOutstanding);
-    const lastUpdate = balanceRaw.lastUpdate;
+    const lastUpdate = balanceRaw.lastUpdate.toNumber();
 
     return new Balance(active, bankPk, assetShares, liabilityShares, emissionsOutstanding, lastUpdate);
   }

@@ -1,11 +1,9 @@
 import { Tool } from "langchain/tools";
-import { Wallet } from "@coral-xyz/anchor";
 import { inflate } from "pako";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
-import { AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
+import { AnchorProvider, BorshAccountsCoder, Program, translateAddress, Wallet, Idl } from "@coral-xyz/anchor";
 import { decodeIdlAccount, idlAddress } from "@coral-xyz/anchor/dist/cjs/idl";
 import { utf8 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
-import { Idl } from "@project-serum/anchor";
 import { MARGINFI_IDL } from "@mrgnlabs/marginfi-client-v2";
 
 const SUPPORTED_PROGRAMS: { [programId: string]: string } = {

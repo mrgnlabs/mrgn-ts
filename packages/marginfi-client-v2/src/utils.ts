@@ -9,7 +9,6 @@ import {
 } from "./constants";
 import { BankVaultType } from "./types";
 import {
-  Amount,
   NATIVE_MINT,
   createAssociatedTokenAccountIdempotentInstruction,
   uiToNative,
@@ -17,7 +16,6 @@ import {
   createCloseAccountInstruction,
   getAssociatedTokenAddressSync,
 } from "@mrgnlabs/mrgn-common";
-import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import BigNumber from "bignumber.js";
 
 export function getBankVaultSeeds(type: BankVaultType): Buffer {

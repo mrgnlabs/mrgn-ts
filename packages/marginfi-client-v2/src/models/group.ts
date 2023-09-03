@@ -1,4 +1,4 @@
-import { BorshCoder } from "@project-serum/anchor";
+import { BorshCoder } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { MARGINFI_IDL } from "../idl";
