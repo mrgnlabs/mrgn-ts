@@ -19,10 +19,10 @@ import {
   SwapResult,
   useJupiter,
 } from "@jup-ag/react-hook";
-import { WRAPPED_SOL_MINT } from "@jup-ag/core";
 import { TokenInfo } from "@solana/spl-token-registry";
 import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
 import { PublicKey } from "@solana/web3.js";
+import { WRAPPED_SOL_MINT } from "@jup-ag/common";
 import Decimal from "decimal.js";
 import JSBI from "jsbi";
 

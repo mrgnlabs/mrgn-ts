@@ -1,17 +1,9 @@
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { Wallet, nativeToUi, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { TokenInfo, TokenListContainer } from "@solana/spl-token-registry";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { TokenAccountMap, TokenAccount } from "../lib";
 import { create, StateCreator } from "zustand";
 import { BN } from "@coral-xyz/anchor";
-
-interface ProtocolStats {
-  deposits: number;
-  borrows: number;
-  tvl: number;
-  pointsTotal: number;
-}
 
 interface JupiterState {
   // State

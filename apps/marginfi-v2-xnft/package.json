@@ -11,11 +11,11 @@
     "clean": "rimraf dist node_modules .expo web-build"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.27.0",
+    "@coral-xyz/anchor": "^0.28.0",
     "@coral-xyz/common": "^0.6.6-latest.5027",
     "@expo-google-fonts/dev": "*",
     "@expo/vector-icons": "^13.0.0",
-    "@jup-ag/core": "^4.0.0-beta.21",
+    "@jup-ag/common": "^6.0.0-beta.2",
     "@jup-ag/react-hook": "^4.0.0-beta.17",
     "@miblanchard/react-native-slider": "^2.3.1",
     "@mrgnlabs/marginfi-client-v2": "*",

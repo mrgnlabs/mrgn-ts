@@ -5,12 +5,13 @@ import tw from "~/styles/tailwind";
 import * as icons from "~/assets/icons";
 import { fromLamports } from "~/utils";
 import { useConnection } from "~/hooks/useConnection";
-import { SwapResult, getTokenBalanceChangesFromTransactionResponse } from "@jup-ag/core";
+import { getTokenBalanceChangesFromTransactionResponse } from "@jup-ag/common";
 import { PublicKey } from "@solana/web3.js";
 import { useWallet } from "~/hooks/useWallet";
 import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
 import { useJupiterStore } from "~/store";
 import { PriceInfo } from "../PriceInfo";
+import { SwapResult } from "@jup-ag/react-hook";
 
 export const ConfirmOrderModal = ({ onClose }: { onClose: () => void }) => {
   const {
