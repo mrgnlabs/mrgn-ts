@@ -1,8 +1,9 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState } from "react";
 import { registerRootComponent } from "expo";
 import { RecoilRoot } from "recoil";
 import { ActivityIndicator, View, Text, StyleSheet, ImageBackground } from "react-native";
 import Toast from "react-native-toast-message";
+import { JupiterProvider } from "@jup-ag/react-hook";
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { BottomTabHeaderProps, createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -11,6 +12,10 @@ import { useFonts, Inter_900Black } from "@expo-google-fonts/dev";
 import { PortfolioScreens } from "~/screens/PortfolioScreen";
 import { LendScreen } from "~/screens/LendScreen";
 import { SwapScreen } from "~/screens/SwapScreen";
+import { SwapContextProvider } from "~/context";
+import { useConnection } from "~/hooks/useConnection";
+import { useWallet } from "~/hooks/useWallet";
+import { ROUTE_CACHE_DURATION } from "~/consts";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -80,17 +85,15 @@ function TabNavigator() {
           tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="account" color={color} size={size} />,
         }}
       />
-      {/* <Tab.Screen
+      <Tab.Screen
         name="Swap"
         component={SwapScreen}
         options={{
-          headerShown: false,
+          header: (props: BottomTabHeaderProps) => <LogoTitle />,
           tabBarLabel: "Swap",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="bank" color={color} size={size} />
-          ),
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="bank" color={color} size={size} />,
         }}
-      /> */}
+      />
       <Tab.Screen
         name="Portfolio"
         component={PortfolioScreens}
@@ -108,6 +111,9 @@ function App() {
   let [fontsLoaded] = useFonts({
     Inter_900Black,
   });
+  const connection = useConnection();
+  const { publicKey } = useWallet();
+  const [asLegacyTransaction, setAsLegacyTransaction] = useState(true);
 
   if (!fontsLoaded) {
     return (
@@ -119,10 +125,26 @@ function App() {
 
   return (
     <RecoilRoot>
-      <NavigationContainer theme={MyTheme}>
-        <TabNavigator />
-      </NavigationContainer>
-      <Toast position={"bottom"} />
+      {connection && (
+        <JupiterProvider
+          connection={connection}
+          routeCacheDuration={ROUTE_CACHE_DURATION}
+          wrapUnwrapSOL={true}
+          userPublicKey={publicKey || undefined}
+          platformFeeAndAccounts={undefined}
+          asLegacyTransaction={asLegacyTransaction}
+        >
+          <SwapContextProvider
+            asLegacyTransaction={asLegacyTransaction}
+            setAsLegacyTransaction={setAsLegacyTransaction}
+          >
+            <NavigationContainer theme={MyTheme}>
+              <TabNavigator />
+            </NavigationContainer>
+            <Toast position={"bottom"} />
+          </SwapContextProvider>
+        </JupiterProvider>
+      )}
     </RecoilRoot>
   );
 }

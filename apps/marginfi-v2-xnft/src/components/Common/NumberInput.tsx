@@ -1,17 +1,28 @@
 import React, { useState } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
+
 import tw from "~/styles/tailwind";
-import { countDecimalPlaces } from "~/utils";
+import * as utils from "~/utils";
 
 interface NumberInputProps {
   min: number;
-  max: number;
+  max?: number;
   amount: string;
   decimals: number;
   onValueChange: (value: string) => void;
+  disabled?: boolean;
+  hasBorder?: boolean;
 }
 
-export const NumberInput: React.FC<NumberInputProps> = ({ min, max, amount, decimals, onValueChange }) => {
+export const NumberInput: React.FC<NumberInputProps> = ({
+  min,
+  max = Number.MAX_SAFE_INTEGER,
+  amount,
+  decimals,
+  onValueChange,
+  disabled = false,
+  hasBorder = true,
+}) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChangeText = (text: string) => {
@@ -25,7 +36,7 @@ export const NumberInput: React.FC<NumberInputProps> = ({ min, max, amount, deci
     } else if (parsedValue < min) {
       onValueChange(min.toString()); // Set the value to 0 if the user input is below 0. You can customize this part if you want a minimum value
     } else if (text.includes(".") && !Number.isNaN(numericValue)) {
-      if (countDecimalPlaces(parsedValue) > decimals) {
+      if (utils.countDecimalPlaces(parsedValue) > decimals) {
         onValueChange(parsedValue.toFixed(decimals));
       } else {
         onValueChange(text.toString());
@@ -48,7 +59,7 @@ export const NumberInput: React.FC<NumberInputProps> = ({ min, max, amount, deci
       <TextInput
         style={[
           styles.input,
-          tw`border border-solid border-border`,
+          hasBorder && tw`border border-solid border-border`,
           { outlineStyle: "none" } as any,
           isFocused ? styles.focusedInput : null,
         ]}
@@ -57,6 +68,8 @@ export const NumberInput: React.FC<NumberInputProps> = ({ min, max, amount, deci
         onBlur={handleBlur}
         onChangeText={handleChangeText}
         value={amount}
+        editable={!disabled}
+        selectTextOnFocus={!disabled}
       />
     </View>
   );

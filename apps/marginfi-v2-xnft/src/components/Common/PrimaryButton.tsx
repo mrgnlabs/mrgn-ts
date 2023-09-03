@@ -42,6 +42,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 14,
     fontWeight: "600",
+    textAlign: "center",
     color: "inherit",
     paddingVertical: 13,
     paddingHorizontal: 16,
