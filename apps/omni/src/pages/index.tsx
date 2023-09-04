@@ -35,9 +35,8 @@ const AiUI: FC = () => {
   const [failed, setFailed] = useState<boolean>(false);
 
   const wallet = useWallet();
-  const [marginfiClient, fetchMrgnlendState, selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
+  const [marginfiClient, selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
     state.marginfiClient,
-    state.fetchMrgnlendState,
     state.selectedAccount,
     state.extendedBankInfos,
   ]);

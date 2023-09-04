@@ -13,7 +13,6 @@ import {
   getAssociatedTokenAddressSync,
 } from "@mrgnlabs/mrgn-common";
 import { useLipClient } from "~/context";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { MenuItem, Select, TextField } from "@mui/material";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import Image from "next/image";
@@ -21,6 +20,7 @@ import { NumberFormatValues, NumericFormat } from "react-number-format";
 import { useMrgnlendStore } from "~/store";
 import { computeGuaranteedApy } from "@mrgnlabs/lip-client";
 import { EarnAction } from "./Earn";
+import { useWalletContext } from "./useWalletContext";
 
 interface CampaignWizardInputBox {
   value: number;
@@ -87,7 +87,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
   const [depositCapacity, setDepositCapacity] = useState(0);
   const [campaignBank, setCampaignBank] = useState<Bank | null>(null);
 
-  const wallet = useWallet();
+  const walletContext = useWalletContext();
   const [mfiClient] = useMrgnlendStore((state) => [state.marginfiClient]);
   const { lipClient, reload: reloadLipClient } = useLipClient();
 
@@ -273,7 +273,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           setValue={(value) => setGuaranteedApy(value / 100)}
           loadingSafetyCheck={() => {}}
           maxDecimals={2}
-          disabled={!wallet.connected}
+          disabled={!walletContext.connected}
         />
       </div>
       <div className="flex justify-between text-[rgb(227, 227, 227)]">
@@ -284,7 +284,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
             setValue={setLockupPeriodInDays}
             loadingSafetyCheck={() => {}}
             maxDecimals={4}
-            disabled={!wallet.connected}
+            disabled={!walletContext.connected}
           />
         </div>
       </div>
@@ -295,7 +295,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           setValue={setDepositCapacity}
           loadingSafetyCheck={() => {}}
           maxDecimals={3}
-          disabled={!wallet.connected}
+          disabled={!walletContext.connected}
         />
       </div>
       <div></div>

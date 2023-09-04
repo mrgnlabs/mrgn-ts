@@ -10,6 +10,7 @@ import {
   getAssociatedTokenAddressSync,
   shortenAddress,
 } from "@mrgnlabs/mrgn-common";
+import { useWalletContext } from "../useWalletContext";
 
 const SOL_AMOUNT = 2 * 10 ** 9;
 
@@ -23,7 +24,7 @@ const USDC_FAUCET = new PublicKey("3ThaREisq3etoy9cvdzRgKypHsa8iTjMxj19AjETA1Fy"
 
 const AirdropZone: FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const wallet = useWallet();
+  const { walletAddress, walletContextState } = useWalletContext();
   const { connection } = useConnection();
 
   const open = useCallback(async () => setIsOpen(true), []);
@@ -31,31 +32,31 @@ const AirdropZone: FC = () => {
 
   const airdropToken = useCallback(
     async (amount: number, mint: PublicKey, faucet: PublicKey) => {
-      if (faucet && wallet.publicKey) {
-        const ataAddress = getAssociatedTokenAddressSync(mint, wallet.publicKey!);
+      if (faucet && walletAddress) {
+        const ataAddress = getAssociatedTokenAddressSync(mint, walletAddress!);
         const ixs = [];
-        const solBalance = await connection.getBalance(wallet.publicKey);
+        const solBalance = await connection.getBalance(walletAddress);
         if (solBalance < 0.05) {
-          await connection.requestAirdrop(wallet.publicKey, 100000000);
+          await connection.requestAirdrop(walletAddress, 100000000);
         }
         const ataAi = await connection.getAccountInfo(ataAddress);
         if (!ataAi) {
-          ixs.push(createAssociatedTokenAccountInstruction(wallet.publicKey, ataAddress, wallet.publicKey, mint));
+          ixs.push(createAssociatedTokenAccountInstruction(walletAddress, ataAddress, walletAddress, mint));
         }
         ixs.push(makeAirdropCollateralIx(amount, mint, ataAddress, faucet));
 
         const tx = new Transaction();
         tx.add(...ixs);
 
-        await wallet.sendTransaction(tx, connection, {
+        await walletContextState.sendTransaction(tx, connection, {
           skipPreflight: true,
         });
       }
     },
-    [connection, wallet]
+    [connection, walletAddress, walletContextState]
   );
 
-  if (!wallet?.publicKey) return null;
+  if (!walletAddress) return null;
 
   return (
     <div>
@@ -72,7 +73,7 @@ const AirdropZone: FC = () => {
                 try {
                   await airdropToken(USDC_AMOUNT, USDC_MINT, USDC_FAUCET);
                   toast.update(toastId, {
-                    render: `Airdropped ${USDC_AMOUNT} USDC to ${shortenAddress(wallet.publicKey!)}`,
+                    render: `Airdropped ${USDC_AMOUNT} USDC to ${shortenAddress(walletAddress!)}`,
                     type: toast.TYPE.SUCCESS,
                     autoClose: 5000,
                     isLoading: false,
@@ -95,7 +96,7 @@ const AirdropZone: FC = () => {
                 try {
                   await airdropToken(NOTSOL_AMOUNT, NOTSOL_MINT, NOTSOL_FAUCET);
                   toast.update(toastId, {
-                    render: `Airdropped ${NOTSOL_AMOUNT} notSOL to ${shortenAddress(wallet.publicKey!)}`,
+                    render: `Airdropped ${NOTSOL_AMOUNT} notSOL to ${shortenAddress(walletAddress!)}`,
                     type: toast.TYPE.SUCCESS,
                     autoClose: 5000,
                     toastId,
@@ -118,9 +119,9 @@ const AirdropZone: FC = () => {
               onClick={async () => {
                 const toastId = toast.loading(`Airdropping ${SOL_AMOUNT} SOL`);
                 try {
-                  await connection.requestAirdrop(wallet.publicKey!, SOL_AMOUNT);
+                  await connection.requestAirdrop(walletAddress!, SOL_AMOUNT);
                   toast.update(toastId, {
-                    render: `Airdropped ${SOL_AMOUNT} SOL to ${shortenAddress(wallet.publicKey!)}`,
+                    render: `Airdropped ${SOL_AMOUNT} SOL to ${shortenAddress(walletAddress!)}`,
                     type: toast.TYPE.SUCCESS,
                     autoClose: 5000,
                     toastId,

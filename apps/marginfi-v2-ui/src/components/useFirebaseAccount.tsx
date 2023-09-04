@@ -1,12 +1,12 @@
 import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useUserProfileStore } from "~/store";
+import { useWalletContext } from "./useWalletContext";
 
 const useFirebaseAccount = () => {
-  const wallet = useWallet();
+  const {connected, walletAddress} = useWalletContext();
 
   const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser, fetchPoints, resetPoints] = useUserProfileStore(
     (state) => [
@@ -34,16 +34,16 @@ const useFirebaseAccount = () => {
 
   // Wallet connection side effect (auto-login attempt)
   useEffect(() => {
-    if (!wallet.publicKey) return;
-    checkForFirebaseUser(wallet.publicKey.toBase58());
-  }, [wallet.publicKey, checkForFirebaseUser]);
+    if (!walletAddress) return;
+    checkForFirebaseUser(walletAddress.toBase58());
+  }, [walletAddress, checkForFirebaseUser]);
 
   // Wallet disconnection/change side effect (auto-logout)
   useEffect(() => {
-    signoutFirebaseUser(wallet.connected, wallet.publicKey?.toBase58()).catch((error) =>
+    signoutFirebaseUser(connected, walletAddress?.toBase58()).catch((error) =>
       toast.error(`Error signing out: ${error}`)
     ),
-      [wallet];
+      [connected, walletAddress];
   });
 };
 

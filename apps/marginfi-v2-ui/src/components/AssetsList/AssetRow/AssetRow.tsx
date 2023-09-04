@@ -27,6 +27,7 @@ import {
   ExtendedBankMetadata,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
+import { useWalletContext } from "~/components/useWalletContext";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
@@ -64,6 +65,7 @@ const AssetRow: FC<{
   showHotkeyBadges,
   badgeContent,
 }) => {
+  const { connected, openWalletSelector } = useWalletContext();
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
@@ -74,9 +76,14 @@ const AssetRow: FC<{
     () => bank.isActive && uiToNative(bank.position.amount, bank.info.state.mintDecimals).isZero(),
     [bank]
   );
-  const currentAction = useMemo(() => getCurrentAction(isInLendingMode, bank), [isInLendingMode, bank]);
+  const currentAction: ActionType | "Connect" = useMemo(
+    () => (connected ? getCurrentAction(isInLendingMode, bank) : "Connect"),
+    [connected, isInLendingMode, bank]
+  );
   const maxAmount = useMemo(() => {
     switch (currentAction) {
+      case "Connect":
+        return 0;
       case ActionType.Deposit:
         return bank.userInfo.maxDeposit;
       case ActionType.Withdraw:
@@ -303,7 +310,16 @@ const AssetRow: FC<{
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [bank, borrowOrLendAmount, currentAction, marginfiAccount, mfiClient, nativeSolBalance, fetchMrgnlendState, setIsRefreshingStore]);
+  }, [
+    bank,
+    borrowOrLendAmount,
+    currentAction,
+    marginfiAccount,
+    mfiClient,
+    nativeSolBalance,
+    fetchMrgnlendState,
+    setIsRefreshingStore,
+  ]);
 
   return (
     <TableRow className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]">
@@ -641,7 +657,7 @@ const AssetRow: FC<{
             maxValue={maxAmount}
             maxDecimals={bank.info.state.mintDecimals}
             inputRefs={inputRefs}
-            disabled={isDust}
+            disabled={isDust || currentAction === "Connect"}
           />
         </Badge>
       </TableCell>
@@ -654,11 +670,15 @@ const AssetRow: FC<{
           <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
             <AssetRowAction
               bgColor={
-                currentAction === ActionType.Deposit || currentAction === ActionType.Borrow
+                currentAction === "Connect" ||
+                currentAction === ActionType.Deposit ||
+                currentAction === ActionType.Borrow
                   ? "rgb(227, 227, 227)"
                   : "rgba(0,0,0,0)"
               }
-              onClick={isDust ? closeBalance : borrowOrLend}
+              onClick={
+                currentAction === "Connect" ? openWalletSelector : isDust ? closeBalance : borrowOrLend
+              }
             >
               {isDust ? "Close" : currentAction}
             </AssetRowAction>

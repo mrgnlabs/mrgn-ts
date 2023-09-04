@@ -35,6 +35,7 @@ interface ProtocolStats {
 interface MrgnlendState {
   // State
   initialized: boolean;
+  userDataFetched: boolean;
   isRefreshingStore: boolean;
   marginfiClient: MarginfiClient | null;
   bankMetadataMap: BankMetadataMap;
@@ -55,6 +56,7 @@ interface MrgnlendState {
     isOverride?: boolean;
   }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
+  resetUserData: () => void;
 }
 
 function createMrgnlendStore() {
@@ -78,6 +80,7 @@ function createPersistentMrgnlendStore() {
 const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   // State
   initialized: false,
+  userDataFetched: false,
   isRefreshingStore: false,
   marginfiClient: null,
   bankMetadataMap: {},
@@ -102,6 +105,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     wallet?: Wallet;
     isOverride?: boolean;
   }) => {
+    let userDataFetched = false;
+
     const connection = args?.connection ?? get().marginfiClient?.provider.connection;
     if (!connection) throw new Error("Connection not found");
 
@@ -138,6 +143,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       tokenAccountMap = tokenData.tokenAccountMap;
       marginfiAccounts = marginfiAccountWrappers;
       selectedAccount = marginfiAccounts[0];
+      userDataFetched = true;
     }
 
     const banksWithPriceAndToken = banks.map((bank) => {
@@ -204,6 +210,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
     set({
       initialized: true,
+      userDataFetched,
       isRefreshingStore: false,
       marginfiClient,
       bankMetadataMap,
@@ -223,6 +230,31 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     });
   },
   setIsRefreshingStore: (isRefreshingStore: boolean) => set({ isRefreshingStore }),
+  resetUserData: () => {
+    const extendedBankInfos = get().extendedBankInfos.map((extendedBankInfo) => ({
+      ...extendedBankInfo,
+      userInfo: {
+        tokenAccount: {
+          created: false,
+          mint: extendedBankInfo.info.state.mint,
+          balance: 0,
+        },
+        maxDeposit: 0,
+        maxRepay: 0,
+        maxWithdraw: 0,
+        maxBorrow: 0,
+      },
+    }));
+
+    set({
+      userDataFetched: false,
+      selectedAccount: null,
+      nativeSolBalance: 0,
+      accountSummary: DEFAULT_ACCOUNT_SUMMARY,
+      extendedBankInfos,
+      marginfiClient: null,
+    });
+  },
 });
 
 export { createMrgnlendStore, createPersistentMrgnlendStore };

@@ -31,12 +31,11 @@ import { Bank, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { Countdown } from "~/components/Countdown";
 import { toast } from "react-toastify";
 import BigNumber from "bignumber.js";
-import { useWalletWithOverride } from "~/components/useWalletWithOverride";
+import { useWalletContext } from "~/components/useWalletContext";
 import { useMrgnlendStore } from "~/store";
 
 const Earn = () => {
-  const walletContext = useWallet();
-  const { wallet, isOverride } = useWalletWithOverride();
+  const { wallet, isOverride, connected, walletAddress } = useWalletContext();
   const { connection } = useConnection();
   const { lipClient } = useLipClient();
 
@@ -128,31 +127,31 @@ const Earn = () => {
   useEffect(() => {
     (async function () {
       setInitialFetchDone(true);
-      if (!mfiClient || !lipClient || !walletContext.publicKey) return;
-      const lipAccount = await LipAccount.fetch(walletContext.publicKey, lipClient, mfiClient);
+      if (!mfiClient || !lipClient || !walletAddress) return;
+      const lipAccount = await LipAccount.fetch(walletAddress, lipClient, mfiClient);
       setLipAccount(lipAccount);
     })();
-  }, [lipClient, mfiClient, walletContext.publicKey]);
+  }, [lipClient, mfiClient, walletAddress]);
 
   useEffect(() => {
-    if (walletContext.connected) {
+    if (connected) {
       setProgressPercent(50);
     } else {
       setProgressPercent(0);
     }
-  }, [walletContext.connected]);
+  }, [connected]);
 
   useEffect(() => {
     if (amount > 0) {
       setProgressPercent(100);
     } else {
-      if (walletContext.connected) {
+      if (connected) {
         setProgressPercent(50);
       } else {
         setProgressPercent(0);
       }
     }
-  }, [amount, walletContext.connected]);
+  }, [amount, connected]);
 
   const depositAction = useCallback(async () => {
     if (!lipAccount || !lipClient || !selectedCampaign || amount === 0 || whitelistedCampaignsWithMeta.length === 0)
@@ -216,7 +215,7 @@ const Earn = () => {
         <div className="w-[360px] flex flex-col items-center gap-6">
           <div className="w-[300px] h-[100px] flex flex-col gap-5 justify-center">
             <div className="flex flex-col gap-1 w-full justify-center">
-              {walletContext.connected && (
+              {connected && (
                 <div className="text-2xl flex justify-center gap-2" style={{ fontWeight: 400 }}>
                   Your total deposits:
                   <span style={{ color: "#51B56A" }}>
@@ -275,7 +274,7 @@ const Earn = () => {
               maxValue={maxDepositAmount}
               loadingSafetyCheck={loadingSafetyCheck}
               maxDecimals={2}
-              disabled={!walletContext.connected}
+              disabled={!connected}
             />
           </div>
 
@@ -625,21 +624,21 @@ interface EarnActionProps extends ButtonProps {
 }
 
 export const EarnAction: FC<EarnActionProps> = ({ children, spinning, disabled, ...otherProps }) => {
-  const walletContext = useWallet();
+  const { connected } = useWalletContext();
 
-  return walletContext.connected ? (
+  return connected ? (
     <Button
       className={`bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] ${
         disabled && "cursor-not-allowed"
       }`}
       style={{
-        backgroundColor: disabled || !walletContext.connected ? "gray" : "rgb(227, 227, 227)",
+        backgroundColor: disabled || !connected ? "gray" : "rgb(227, 227, 227)",
         color: "black",
         fontFamily: "Aeonik Pro",
         zIndex: 10,
       }}
       {...otherProps}
-      disabled={disabled || !walletContext.connected}
+      disabled={disabled || !connected}
     >
       {spinning ? <CircularProgress style={{ color: "#3CAB5F", width: "20px", height: "20px" }} /> : children}
     </Button>

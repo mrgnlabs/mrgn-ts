@@ -16,7 +16,7 @@ import {
   Checkbox,
   CircularProgress,
 } from "@mui/material";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { FC, useEffect, useState } from "react";
 import { PageHeader } from "~/components/PageHeader";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
@@ -31,6 +31,7 @@ import { toast } from "react-toastify";
 import { useUserProfileStore } from "~/store";
 import { LeaderboardRow, fetchLeaderboardData, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { useWalletContext } from "~/components/useWalletContext";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -45,7 +46,7 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 const Points: FC = () => {
-  const wallet = useWallet();
+  const { connected, walletAddress } = useWalletContext();
   const { query: routerQuery } = useRouter();
   const [currentFirebaseUser, hasUser, userPointsData] = useUserProfileStore((state) => [
     state.currentFirebaseUser,
@@ -60,13 +61,13 @@ const Points: FC = () => {
 
   useEffect(() => {
     fetchLeaderboardData().then(setLeaderboardData); // TODO: cache leaderboard and avoid call
-  }, [wallet.connected, wallet.publicKey]); // Dependency array to re-fetch when these variables change
+  }, [connected, walletAddress]); // Dependency array to re-fetch when these variables change
 
   return (
     <>
       <PageHeader text="points" />
       <div className="flex flex-col items-center w-full sm:w-4/5 max-w-7xl gap-5 py-[64px] sm:py-[32px]">
-        {!wallet.connected ? (
+        {!connected ? (
           <ConnectWallet />
         ) : currentFirebaseUser ? (
           <>
@@ -442,7 +443,7 @@ const CheckingUser: FC = () => (
 
 const Signup: FC<{ referralCode?: string }> = ({ referralCode }) => {
   const { connection } = useConnection();
-  const wallet = useWallet();
+  const { walletContextState, connected } = useWalletContext();
   const [manualCode, setManualCode] = useState("");
   const [useAuthTx, setUseAuthTx] = useState(false);
   const [useManualCode, setUseManualCode] = useState(false);
@@ -462,13 +463,13 @@ const Signup: FC<{ referralCode?: string }> = ({ referralCode }) => {
     toast.info("Logging in...");
     const blockhashInfo = await connection.getLatestBlockhash();
     try {
-      await firebaseApi.signup(wallet, useAuthTx ? "tx" : "memo", blockhashInfo, finalReferralCode);
+      await firebaseApi.signup(walletContextState, useAuthTx ? "tx" : "memo", blockhashInfo, finalReferralCode);
       // localStorage.setItem("authData", JSON.stringify(signedAuthData));
       toast.success("Signed up successfully");
     } catch (signupError: any) {
       toast.error(signupError.message);
     }
-  }, [connection, finalReferralCode, useAuthTx, wallet]);
+  }, [connection, finalReferralCode, useAuthTx, walletContextState]);
 
   return (
     <Card className="w-2/3 bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
@@ -483,7 +484,7 @@ const Signup: FC<{ referralCode?: string }> = ({ referralCode }) => {
             Optionally enter a referral code below.
           </div>
           <div className="w-full flex justify-center items-center">
-            {wallet.connected ? (
+            {connected ? (
               <div>
                 <TextField
                   size="medium"
@@ -551,19 +552,19 @@ const Signup: FC<{ referralCode?: string }> = ({ referralCode }) => {
 
 const Login: FC = () => {
   const { connection } = useConnection();
-  const wallet = useWallet();
+  const { walletContextState, connected } = useWalletContext();
   const [useAuthTx, setUseAuthTx] = useState(false);
   const login = useCallback(async () => {
     toast.info("Logging in...");
     const blockhashInfo = await connection.getLatestBlockhash();
     try {
-      await firebaseApi.login(wallet, useAuthTx ? "tx" : "memo", blockhashInfo);
+      await firebaseApi.login(walletContextState, useAuthTx ? "tx" : "memo", blockhashInfo);
       // localStorage.setItem("authData", JSON.stringify(signedAuthData));
       toast.success("Logged in successfully");
     } catch (loginError: any) {
       toast.error(loginError.message);
     }
-  }, [connection, useAuthTx, wallet]);
+  }, [connection, useAuthTx, walletContextState]);
 
   return (
     <Card className="w-2/3 bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
@@ -576,7 +577,7 @@ const Login: FC = () => {
             Login to your points account by signing a message.
           </div>
           <div className="w-full flex justify-center items-center mt-[20px]">
-            {wallet.connected ? (
+            {connected ? (
               <div>
                 <div
                   className="flex justify-center items-center cursor-pointer"

@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 import { FC } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletContext } from "../useWalletContext";
 
 const WalletMultiButtonDynamic = dynamic(
   async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
@@ -8,14 +8,12 @@ const WalletMultiButtonDynamic = dynamic(
 );
 
 const WalletButton: FC = () => {
-  const wallet = useWallet();
+  const { connected } = useWalletContext();
 
   return (
     <div>
-      <WalletMultiButtonDynamic
-        className={`${wallet.connected ? "glow-on-hover" : "glow"} bg-transparent px-0 font-aeonik font-[500]`}
-      >
-        {!wallet.connected && "CONNECT"}
+      <WalletMultiButtonDynamic style={{ background: "transparent", padding: "0" }}>
+        {!connected && <div className={"font-aeonik font-[500]"}>CONNECT</div>}
       </WalletMultiButtonDynamic>
     </div>
   );

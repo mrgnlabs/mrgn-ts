@@ -1,6 +1,5 @@
 import Image from "next/image";
 import React, { FC, useEffect, useRef, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { Card, Table, TableHead, TableBody, TableContainer, TableCell } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
@@ -10,6 +9,7 @@ import AssetRow from "./AssetRow";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useHotkeys } from "react-hotkeys-hook";
 import { LoadingAsset } from "./AssetRow/AssetRow";
+import { useWalletContext } from "../useWalletContext";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -25,7 +25,7 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 
 const AssetsList: FC = () => {
   // const { selectedAccount, nativeSolBalance } = useStore();
-  const wallet = useWallet();
+  const { connected } = useWalletContext();
   const [isStoreInitialized, sortedBanks, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
@@ -305,7 +305,7 @@ const AssetsList: FC = () => {
                         nativeSolBalance={nativeSolBalance}
                         bank={bank}
                         isInLendingMode={isInLendingMode}
-                        isConnected={wallet.connected}
+                        isConnected={connected}
                         marginfiAccount={selectedAccount}
                         inputRefs={inputRefs}
                         hasHotkey={true}
@@ -351,7 +351,7 @@ const AssetsList: FC = () => {
                         nativeSolBalance={nativeSolBalance}
                         bank={bank}
                         isInLendingMode={isInLendingMode}
-                        isConnected={wallet.connected}
+                        isConnected={connected}
                         marginfiAccount={selectedAccount}
                         inputRefs={inputRefs}
                         hasHotkey={false}

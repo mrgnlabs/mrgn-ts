@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import AirdropZone from "./AirdropZone";
 import { WalletButton } from "./WalletButton";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 
@@ -13,12 +12,13 @@ import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
 import { Badge } from "@mui/material";
 import { useFirebaseAccount } from "../useFirebaseAccount";
 import { groupedNumberFormatterDyn, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { useWalletContext } from "../useWalletContext";
 
 // @todo implement second pretty navbar row
 const Navbar: FC = () => {
   useFirebaseAccount();
 
-  const wallet = useWallet();
+  const { connected, walletAddress } = useWalletContext();
   const router = useRouter();
   const [accountSummary, selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
     state.accountSummary,
@@ -37,10 +37,9 @@ const Navbar: FC = () => {
   const [currentRoute, setCurrentRoute] = useState(router.pathname);
 
   useEffect(() => {
-    const walletAddress = wallet.publicKey?.toBase58();
     if (!walletAddress) return;
-    fetchPoints(walletAddress).catch(console.error);
-  }, [fetchPoints, wallet.publicKey]);
+    fetchPoints(walletAddress.toBase58()).catch(console.error);
+  }, [fetchPoints, walletAddress]);
 
   useEffect(() => {
     setCurrentRoute(router.pathname);
@@ -215,7 +214,7 @@ const Navbar: FC = () => {
                 omni
               </Link>
             </Badge>
-            {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && wallet.connected && <AirdropZone />}
+            {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && connected && <AirdropZone />}
           </div>
           <div className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[300] gap-4 lg:gap-8">
             <div
@@ -238,7 +237,7 @@ const Navbar: FC = () => {
             </div>
 
             <Link href={"/points"} className="glow whitespace-nowrap">
-              {wallet.connected && currentFirebaseUser
+              {connected && currentFirebaseUser
                 ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
                 : "P...P...POINTS!"}
             </Link>

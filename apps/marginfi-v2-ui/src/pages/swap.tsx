@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import config from "~/config";
 import { PageHeaderSwap } from "~/components/PageHeader";
+import { useWalletContext } from "~/components/useWalletContext";
 
 const SwapPage = () => {
-  const { wallet } = useWallet();
+  const { wallet } = useWalletContext();
 
   useEffect(() => {
     if (wallet) {
