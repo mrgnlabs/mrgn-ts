@@ -6,18 +6,18 @@ import { PageHeaderSwap } from "~/components/PageHeader";
 import { useWalletContext } from "~/components/useWalletContext";
 
 const SwapPage = () => {
-  const { wallet } = useWalletContext();
+  const { walletContextState } = useWalletContext();
 
   useEffect(() => {
-    if (wallet) {
+    if (walletContextState.wallet) {
       window.Jupiter.init({
         displayMode: "integrated",
         integratedTargetId: "integrated-terminal",
         endpoint: config.rpcEndpoint,
-        passThroughWallet: wallet,
+        passThroughWallet: walletContextState.wallet,
       });
     }
-  }, [wallet]);
+  }, [walletContextState.wallet]);
 
   return (
     <>
