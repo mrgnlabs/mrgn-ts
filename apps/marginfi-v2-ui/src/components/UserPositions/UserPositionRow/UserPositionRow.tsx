@@ -102,13 +102,13 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         await marginfiAccount.withdraw(
           withdrawOrRepayAmount,
           activeBankInfo.address,
-          isWholePosition(activeBankInfo, withdrawOrRepayAmount)
+          isWholePosition(activeBankInfo, withdrawOrRepayAmount, false)
         );
       } else {
         await marginfiAccount.repay(
           withdrawOrRepayAmount,
           activeBankInfo.address,
-          isWholePosition(activeBankInfo, withdrawOrRepayAmount)
+          isWholePosition(activeBankInfo, withdrawOrRepayAmount, true)
         );
       }
       toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
