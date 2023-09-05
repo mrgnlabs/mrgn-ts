@@ -27,6 +27,11 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
     [activeBankInfo]
   );
 
+  const maxAmount = useMemo(
+    () => (activeBankInfo.position.isLending ? activeBankInfo.userInfo.maxWithdraw : activeBankInfo.userInfo.maxRepay),
+    [activeBankInfo]
+  );
+
   const closeBalance = useCallback(async () => {
     if (!marginfiAccount) {
       toast.error("marginfi account not ready.");
@@ -102,13 +107,13 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         await marginfiAccount.withdraw(
           withdrawOrRepayAmount,
           activeBankInfo.address,
-          isWholePosition(activeBankInfo, withdrawOrRepayAmount, false)
+          isWholePosition(activeBankInfo, withdrawOrRepayAmount)
         );
       } else {
         await marginfiAccount.repay(
           withdrawOrRepayAmount,
           activeBankInfo.address,
-          isWholePosition(activeBankInfo, withdrawOrRepayAmount, true)
+          isWholePosition(activeBankInfo, withdrawOrRepayAmount)
         );
       }
       toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
@@ -195,17 +200,25 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
-          maxValue={
-            activeBankInfo.position.isLending ? activeBankInfo.userInfo.maxWithdraw : activeBankInfo.userInfo.maxRepay
-          }
+          maxValue={maxAmount}
           maxDecimals={activeBankInfo.info.state.mintDecimals}
-          disabled={isDust}
+          disabled={isDust || maxAmount === 0}
         />
       </TableCell>
 
       <TableCell className="text-white font-aeonik p-0 border-none" align="right">
         <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
-          <UserPositionRowAction onClick={isDust ? closeBalance : withdrawOrRepay}>
+          <UserPositionRowAction
+            onClick={isDust ? closeBalance : withdrawOrRepay}
+            disabled={
+              (isDust &&
+                uiToNative(
+                  activeBankInfo.userInfo.tokenAccount.balance,
+                  activeBankInfo.info.state.mintDecimals
+                ).isZero()) ||
+              maxAmount === 0
+            }
+          >
             {isDust ? "Close" : activeBankInfo.position.isLending ? "Withdraw" : "Repay"}
           </UserPositionRowAction>
         </div>

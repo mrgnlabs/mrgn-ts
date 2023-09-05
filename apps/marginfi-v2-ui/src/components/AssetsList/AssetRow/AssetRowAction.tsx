@@ -12,7 +12,7 @@ const AssetRowAction: FC<AssetRowActionProps> = ({ children, disabled, bgColor, 
     style={{
       backgroundColor: disabled ? "gray" : bgColor ? bgColor : "rgb(227, 227, 227)",
       border: disabled ? "gray" : bgColor ? "solid 1px rgb(227, 227, 227)" : "solid 1px transparent",
-      color: bgColor === "rgba(0,0,0,0)" ? "rgb(227, 227, 227)" : "black",
+      color: bgColor === "rgba(0,0,0,0)" && !disabled ? "rgb(227, 227, 227)" : "black",
       fontWeight: 400,
       fontFamily: "Aeonik Pro",
       zIndex: 10,

@@ -20,7 +20,13 @@ const groupedNumberFormatter = new CustomNumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
-const numeralFormatter = (value: number) => numeral(value).format("0.00a");
+const numeralFormatter = (value: number) => {
+  if (value < 0.01) {
+    return "0";
+  } else {
+    return numeral(value).format("0.00a");
+  }
+};
 
 const groupedNumberFormatterDyn = new Intl.NumberFormat("en-US", {
   useGrouping: true,

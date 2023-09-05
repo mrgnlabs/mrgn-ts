@@ -30,9 +30,9 @@ export function makeAirdropCollateralIx(
   });
 }
 
-export function isWholePosition(activeBankInfo: ActiveBankInfo, amount: number, isRepay: boolean): boolean {
+export function isWholePosition(activeBankInfo: ActiveBankInfo, amount: number): boolean {
   const positionTokenAmount =
-    (isRepay ? Math.ceil : Math.floor)(activeBankInfo.position.amount * Math.pow(10, activeBankInfo.info.state.mintDecimals)) /
+    Math.floor(activeBankInfo.position.amount * Math.pow(10, activeBankInfo.info.state.mintDecimals)) /
     Math.pow(10, activeBankInfo.info.state.mintDecimals);
   return amount >= positionTokenAmount;
 }

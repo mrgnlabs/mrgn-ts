@@ -104,7 +104,7 @@ const BridgePage = () => {
     }
   }, [walletContextState, handleConnect, walletAddress]);
 
-  const handleLoadMayanWidget = () => {
+  const handleLoadMayanWidget = useCallback(() => {
     const configIndex = isBridgeIn ? 0 : 1;
     const config = {
       ...configs[configIndex],
@@ -139,7 +139,7 @@ const BridgePage = () => {
         isLoading: false,
       });
     });
-  };
+  }, [handleConnect, isBridgeIn, walletAddress, walletContextState.disconnect, walletContextState.signTransaction]);
 
   const handleUpdateConfig = useCallback(() => {
     const newConfigIndex = isBridgeIn ? 1 : 0;

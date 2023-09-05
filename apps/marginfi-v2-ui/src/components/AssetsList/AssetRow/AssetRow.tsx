@@ -657,7 +657,7 @@ const AssetRow: FC<{
             maxValue={maxAmount}
             maxDecimals={bank.info.state.mintDecimals}
             inputRefs={inputRefs}
-            disabled={isDust || currentAction === "Connect"}
+            disabled={isDust || currentAction === "Connect" || maxAmount === 0}
           />
         </Badge>
       </TableCell>
@@ -676,8 +676,11 @@ const AssetRow: FC<{
                   ? "rgb(227, 227, 227)"
                   : "rgba(0,0,0,0)"
               }
-              onClick={
-                currentAction === "Connect" ? openWalletSelector : isDust ? closeBalance : borrowOrLend
+              onClick={currentAction === "Connect" ? openWalletSelector : isDust ? closeBalance : borrowOrLend}
+              disabled={
+                currentAction !== "Connect" &&
+                ((isDust && uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero()) ||
+                  maxAmount === 0)
               }
             >
               {isDust ? "Close" : currentAction}
