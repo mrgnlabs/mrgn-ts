@@ -667,7 +667,7 @@ const AssetRow: FC<{
           title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
           placement="top"
         >
-          <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
+          <div className="h-full w-full flex justify-end items-center xl:ml-0 pl-2 sm:px-2">
             <AssetRowAction
               bgColor={
                 currentAction === "Connect" ||

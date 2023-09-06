@@ -18,7 +18,21 @@ const UserPositions = dynamic(async () => (await import("~/components/UserPositi
 const Home = () => {
   const { walletAddress, wallet, isOverride } = useWalletContext();
   const { connection } = useConnection();
-  const [fetchMrgnlendState, setIsRefreshingStore, marginfiAccountCount, selectedAccount, userDataFetched, resetUserData] = useMrgnlendStore((state) => [state.fetchMrgnlendState, state.setIsRefreshingStore, state.marginfiAccountCount, state.selectedAccount, state.userDataFetched, state.resetUserData]);
+  const [
+    fetchMrgnlendState,
+    setIsRefreshingStore,
+    marginfiAccountCount,
+    selectedAccount,
+    userDataFetched,
+    resetUserData,
+  ] = useMrgnlendStore((state) => [
+    state.fetchMrgnlendState,
+    state.setIsRefreshingStore,
+    state.marginfiAccountCount,
+    state.selectedAccount,
+    state.userDataFetched,
+    state.resetUserData,
+  ]);
 
   const [isStoreInitialized, isRefreshingStore] = useMrgnlendStore((state) => [
     state.initialized,
@@ -46,21 +60,15 @@ const Home = () => {
   return (
     <>
       <PageHeader />
-      <div
-        suppressHydrationWarning={true}
-        className="flex flex-col h-full justify-start content-start pt-[64px] sm:pt-[16px] w-4/5 max-w-7xl gap-4"
-      >
-        {walletAddress &&
-          wallet &&
-          selectedAccount &&
-          !selectedAccount.authority.equals(walletAddress) && (
-            <Banner
-              text={`Read-only view of ${shortenAddress(walletAddress)}'s account ${shortenAddress(
-                selectedAccount.address.toBase58()
-              )}`}
-              backgroundColor="#7fff00"
-            />
-          )}
+      <div className="flex flex-col h-full justify-start content-start pt-[64px] sm:pt-[16px] w-4/5 max-w-7xl gap-4">
+        {walletAddress && wallet && selectedAccount && !selectedAccount.authority.equals(walletAddress) && (
+          <Banner
+            text={`Read-only view of ${shortenAddress(walletAddress)}'s account ${shortenAddress(
+              selectedAccount.address.toBase58()
+            )}`}
+            backgroundColor="#7fff00"
+          />
+        )}
         {walletAddress && marginfiAccountCount > 1 && (
           <Banner text="Multiple accounts were found (not supported). Contact the team or use at own risk." />
         )}
