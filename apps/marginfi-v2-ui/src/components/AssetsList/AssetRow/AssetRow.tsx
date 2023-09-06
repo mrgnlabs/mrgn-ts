@@ -206,7 +206,7 @@ const AssetRow: FC<{
 
     // -------- Create marginfi account if needed
     try {
-      if (_marginfiAccount === null) {
+      if (!_marginfiAccount) {
         if (currentAction !== ActionType.Deposit) {
           toast.error("An account is required for anything operation except deposit.");
           return;
