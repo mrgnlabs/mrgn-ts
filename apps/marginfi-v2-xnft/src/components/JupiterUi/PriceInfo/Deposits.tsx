@@ -10,17 +10,11 @@ interface props {
   feeInformation: TransactionFeeInfo | undefined;
 }
 
-export const Deposits = ({
-  hasSerumDeposit,
-  hasAtaDeposit,
-  feeInformation,
-}: props) => {
+export const Deposits = ({ hasSerumDeposit, hasAtaDeposit, feeInformation }: props) => {
   if (hasSerumDeposit || hasAtaDeposit) {
     return (
       <View style={tw`flex flex-row items-start justify-between`}>
-        <Text style={tw`flex flex-row w-[50%] text-secondary text-xs`}>
-          Deposit
-        </Text>
+        <Text style={tw`flex flex-row w-[50%] text-secondary text-xs`}>Deposit</Text>
         <View style={tw`w-[50%] text-right`}>
           {(() => {
             const content = [
@@ -33,13 +27,11 @@ export const Deposits = ({
                           s += deposit;
                           return s;
                         }, 0),
-                        9,
-                      ),
+                        9
+                      )
                     )}{" "}
                     SOL for {feeInformation?.ataDeposits?.length}{" "}
-                    {(feeInformation?.ataDeposits?.length || 0) > 0
-                      ? "ATA account"
-                      : "ATA accounts"}
+                    {(feeInformation?.ataDeposits?.length || 0) > 0 ? "ATA account" : "ATA accounts"}
                   </Text>
                 </View>
               ),
@@ -48,15 +40,12 @@ export const Deposits = ({
                   <Text style={tw`text-secondary text-xs text-right`}>
                     {formatNumber.format(
                       fromLamports(
-                        feeInformation?.openOrdersDeposits.reduce(
-                          (s, deposit) => {
-                            s += deposit;
-                            return s;
-                          },
-                          0,
-                        ),
-                        9,
-                      ),
+                        feeInformation?.openOrdersDeposits.reduce((s, deposit) => {
+                          s += deposit;
+                          return s;
+                        }, 0),
+                        9
+                      )
                     )}{" "}
                     SOL for {feeInformation?.openOrdersDeposits.length}{" "}
                     {(feeInformation?.openOrdersDeposits?.length || 0) > 0

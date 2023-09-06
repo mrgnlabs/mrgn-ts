@@ -1,16 +1,8 @@
 import React from "react";
 
-export const SettingsIcon: React.FC<React.SVGAttributes<SVGElement>> = ({
-  width = "12",
-  height = "12",
-}) => {
+export const SettingsIcon: React.FC<React.SVGAttributes<SVGElement>> = ({ width = "12", height = "12" }) => {
   return (
-    <svg
-      width={width}
-      height={height}
-      viewBox="0 0 12 10"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg">
+    <svg width={width} height={height} viewBox="0 0 12 10" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
       <path
         fillRule="evenodd"
         clipRule="evenodd"

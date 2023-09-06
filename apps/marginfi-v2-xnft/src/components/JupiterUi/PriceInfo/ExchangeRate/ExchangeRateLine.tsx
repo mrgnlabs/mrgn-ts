@@ -14,11 +14,7 @@ interface props {
   toTokenInfo: TokenInfo;
 }
 
-export const ExchangeRateLine = ({
-  fromTokenInfo,
-  rate,
-  toTokenInfo,
-}: props) => {
+export const ExchangeRateLine = ({ fromTokenInfo, rate, toTokenInfo }: props) => {
   return (
     <>
       <Text style={tw`text-secondary text-xs`}>1 {fromTokenInfo.symbol} ≈</Text>

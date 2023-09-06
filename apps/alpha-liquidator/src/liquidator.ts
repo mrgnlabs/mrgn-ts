@@ -78,7 +78,7 @@ class Liquidator {
 
   private async mainLoop() {
     const debug = getDebugLogger("main-loop");
-    drawSpinner("Scanning")
+    drawSpinner("Scanning");
     try {
       await this.swapNonUsdcInTokenAccounts();
       while (true) {
@@ -89,7 +89,7 @@ class Liquidator {
         }
 
         // Don't sleep after liquidating an account, start rebalance immediately
-        if (!await this.liquidationStage()) {
+        if (!(await this.liquidationStage())) {
           await sleep(env_config.SLEEP_INTERVAL);
         }
       }
@@ -396,9 +396,13 @@ class Liquidator {
     const allAccounts = await this.client.getAllMarginfiAccounts();
     const targetAccounts = allAccounts.filter((account) => {
       if (this.account_whitelist) {
-        return this.account_whitelist.find((whitelistedAddress) => whitelistedAddress.equals(account.address)) !== undefined;
+        return (
+          this.account_whitelist.find((whitelistedAddress) => whitelistedAddress.equals(account.address)) !== undefined
+        );
       } else if (this.account_blacklist) {
-        return this.account_blacklist.find((whitelistedAddress) => whitelistedAddress.equals(account.address)) === undefined;
+        return (
+          this.account_blacklist.find((whitelistedAddress) => whitelistedAddress.equals(account.address)) === undefined
+        );
       }
       return true;
     });
@@ -616,7 +620,7 @@ function drawSpinner(message: string) {
     // Don't draw spinner when logging is enabled
     return;
   }
-  const spinnerFrames = ['-', '\\', '|', '/'];
+  const spinnerFrames = ["-", "\\", "|", "/"];
   let frameIndex = 0;
 
   setInterval(() => {

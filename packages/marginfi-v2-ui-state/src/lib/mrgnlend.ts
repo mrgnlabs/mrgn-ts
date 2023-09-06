@@ -228,15 +228,19 @@ function makeExtendedBankInfo(
       : userData.tokenAccount.balance,
     bankInfo.mintDecimals
   );
-  const maxBorrow = userData.marginfiAccount ? floor(
-    Math.min(
-      userData.marginfiAccount.computeMaxBorrowForBank(bank.address).toNumber() * VOLATILITY_FACTOR,
-      bankInfo.availableLiquidity
-    ),
-    bankInfo.mintDecimals
-  ) : 0;
+  const maxBorrow = userData.marginfiAccount
+    ? floor(
+        Math.min(
+          userData.marginfiAccount.computeMaxBorrowForBank(bank.address).toNumber() * VOLATILITY_FACTOR,
+          bankInfo.availableLiquidity
+        ),
+        bankInfo.mintDecimals
+      )
+    : 0;
 
-  const positionRaw = userData.marginfiAccount && userData.marginfiAccount.activeBalances.find((balance) => balance.bankPk.equals(bank.address));
+  const positionRaw =
+    userData.marginfiAccount &&
+    userData.marginfiAccount.activeBalances.find((balance) => balance.bankPk.equals(bank.address));
   if (!positionRaw) {
     const userInfo = {
       tokenAccount: userData.tokenAccount,
@@ -258,15 +262,17 @@ function makeExtendedBankInfo(
   // Calculate user-specific info relevant to their active position in this bank
   const position = makeLendingPosition(positionRaw, bank, bankInfo, oraclePrice);
 
-  const maxWithdraw = userData.marginfiAccount ? floor(
-    Math.min(
-      userData.marginfiAccount
-        .computeMaxWithdrawForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR })
-        .toNumber(),
-      bankInfo.availableLiquidity
-    ),
-    bankInfo.mintDecimals
-  ) : 0;
+  const maxWithdraw = userData.marginfiAccount
+    ? floor(
+        Math.min(
+          userData.marginfiAccount
+            .computeMaxWithdrawForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR })
+            .toNumber(),
+          bankInfo.availableLiquidity
+        ),
+        bankInfo.mintDecimals
+      )
+    : 0;
   let maxRepay: number;
   if (isWrappedSol) {
     maxRepay = !!position ? Math.min(position.amount, maxDeposit) : maxDeposit;

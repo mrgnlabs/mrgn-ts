@@ -1,16 +1,8 @@
 import * as React from "react";
 
-export const ErrorIcon: React.FC<React.SVGAttributes<SVGElement>> = ({
-  width = 40,
-  height = 40,
-}) => {
+export const ErrorIcon: React.FC<React.SVGAttributes<SVGElement>> = ({ width = 40, height = 40 }) => {
   return (
-    <svg
-      width={width}
-      height={height}
-      viewBox="0 0 40 40"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+    <svg width={width} height={height} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clipPath="url(#clip0_7547_116874)">
         <circle cx="20" cy="20" r="20" fill="#F04A44" />
         <path

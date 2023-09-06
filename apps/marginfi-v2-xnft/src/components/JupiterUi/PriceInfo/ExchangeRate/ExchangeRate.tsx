@@ -18,14 +18,12 @@ interface IRateParams {
 
 const calculateRate = (
   { inAmount, inputDecimal, outAmount, outputDecimal }: IRateParams,
-  reverse: boolean,
+  reverse: boolean
 ): Decimal => {
   const input = fromLamports(inAmount, inputDecimal);
   const output = fromLamports(outAmount, outputDecimal);
 
-  const rate = !reverse
-    ? new Decimal(input).div(output)
-    : new Decimal(output).div(input);
+  const rate = !reverse ? new Decimal(input).div(output) : new Decimal(output).div(input);
 
   if (Number.isNaN(rate.toNumber())) {
     return new Decimal(0);
@@ -51,32 +49,19 @@ export const ExchangeRate = ({
 }: ExchangeRateProps) => {
   const [reverse, setReverse] = React.useState(reversible ?? true);
 
-  const rate = React.useMemo(
-    () => calculateRate(rateParams, reverse),
-    [loading, reverse, rateParams],
-  );
+  const rate = React.useMemo(() => calculateRate(rateParams, reverse), [loading, reverse, rateParams]);
 
   const onReverse = React.useCallback(() => {
     setReverse((prevState) => !prevState);
   }, []);
 
   return (
-    <Pressable
-      style={tw`flex flex-row cursor-pointeralign-center`}
-      onPress={() => onReverse()}>
+    <Pressable style={tw`flex flex-row cursor-pointeralign-center`} onPress={() => onReverse()}>
       <View style={tw`max-w-full flex flex-row whitespace-nowrap`}>
         {reverse ? (
-          <ExchangeRateLine
-            fromTokenInfo={fromTokenInfo}
-            toTokenInfo={toTokenInfo}
-            rate={rate}
-          />
+          <ExchangeRateLine fromTokenInfo={fromTokenInfo} toTokenInfo={toTokenInfo} rate={rate} />
         ) : (
-          <ExchangeRateLine
-            fromTokenInfo={toTokenInfo}
-            toTokenInfo={fromTokenInfo}
-            rate={rate}
-          />
+          <ExchangeRateLine fromTokenInfo={toTokenInfo} toTokenInfo={fromTokenInfo} rate={rate} />
         )}
       </View>
       {reversible ? (

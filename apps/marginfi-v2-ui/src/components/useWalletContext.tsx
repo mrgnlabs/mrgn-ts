@@ -29,7 +29,14 @@ const useWalletContext = () => {
     return { wallet: anchorWallet, isOverride: false };
   }, [anchorWallet, query]);
 
-  return { wallet, walletAddress: wallet?.publicKey, isOverride, connected: walletContextState.connected, openWalletSelector, walletContextState };
+  return {
+    wallet,
+    walletAddress: wallet?.publicKey,
+    isOverride,
+    connected: walletContextState.connected,
+    openWalletSelector,
+    walletContextState,
+  };
 };
 
 export { useWalletContext };

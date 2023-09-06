@@ -4,18 +4,7 @@ import tw from "~/styles/tailwind";
 import { Text, View } from "react-native";
 
 function generateSubscriptNumbers(x: number): string {
-  const subscriptNumbers: string[] = [
-    "₀",
-    "₁",
-    "₂",
-    "₃",
-    "₄",
-    "₅",
-    "₆",
-    "₇",
-    "₈",
-    "₉",
-  ];
+  const subscriptNumbers: string[] = ["₀", "₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈", "₉"];
   const xString: string = x.toString();
   let result: string = "";
 
@@ -29,9 +18,7 @@ function generateSubscriptNumbers(x: number): string {
 }
 
 const usePrecisionTick = (value: number): [number, string, string] => {
-  const firstSD = Decimal.abs(
-    Decimal.ceil(new Decimal(-1).mul(Decimal.log10(value))),
-  ).toNumber();
+  const firstSD = Decimal.abs(Decimal.ceil(new Decimal(-1).mul(Decimal.log10(value)))).toNumber();
   const [prefix, suffix] = [
     new Decimal(value).toFixed().slice(0, firstSD + 2), // +2 to account for 0.
     new Decimal(value).toFixed().slice(firstSD + 1), // +1 to account for 0. - and slice index
@@ -53,12 +40,8 @@ export const PrecisionTickSize: React.FC<{
   return (
     <View style={tw`flex flex-row items-center h-4`}>
       <Text style={tw`text-secondary text-sm`}>0.0</Text>
-      <Text style={tw`text-secondary mb-3 text-xl mx-0.5`}>
-        {generateSubscriptNumbers(firstSD - 1)}
-      </Text>
-      <Text style={tw`text-secondary text-sm`}>
-        {suffix.slice(0, maxSuffix)}
-      </Text>
+      <Text style={tw`text-secondary mb-3 text-xl mx-0.5`}>{generateSubscriptNumbers(firstSD - 1)}</Text>
+      <Text style={tw`text-secondary text-sm`}>{suffix.slice(0, maxSuffix)}</Text>
     </View>
   );
 };

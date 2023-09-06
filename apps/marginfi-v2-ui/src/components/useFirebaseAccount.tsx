@@ -6,7 +6,7 @@ import { useUserProfileStore } from "~/store";
 import { useWalletContext } from "./useWalletContext";
 
 const useFirebaseAccount = () => {
-  const {connected, walletAddress} = useWalletContext();
+  const { connected, walletAddress } = useWalletContext();
 
   const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser, fetchPoints, resetPoints] = useUserProfileStore(
     (state) => [
