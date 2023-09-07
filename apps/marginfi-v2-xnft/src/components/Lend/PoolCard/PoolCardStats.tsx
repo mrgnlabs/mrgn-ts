@@ -15,11 +15,11 @@ type Props = {
 
 export function PoolCardStats({ bank, isInLendingMode, nativeSolBalance, bankFilled }: Props) {
   const assetWeight = useMemo(() => {
-    if (bank.info.rawBank.config.assetWeightMaint.toNumber() <= 0) {
+    if (bank.info.rawBank.config.assetWeightInit.toNumber() <= 0) {
       return "-";
     }
     return isInLendingMode
-      ? (bank.info.rawBank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + "%"
+      ? (bank.info.rawBank.config.assetWeightInit.toNumber() * 100).toFixed(0) + "%"
       : ((1 / bank.info.rawBank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%";
   }, [isInLendingMode, bank]);
 

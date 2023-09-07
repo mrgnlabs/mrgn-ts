@@ -1,15 +1,12 @@
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { TableCell, TableRow } from "@mui/material";
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "react-toastify";
-import { AssetRowInputBox } from "./AssetRowInputBox";
-import { AssetRowAction } from "./AssetRowAction";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import Badge from "@mui/material/Badge";
-import { isWholePosition } from "~/utils";
+
 import {
   WSOL_MINT,
   groupedNumberFormatterDyn,
@@ -18,31 +15,16 @@ import {
   uiToNative,
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
-import {
-  ExtendedBankInfo,
-  Emissions,
-  FEE_MARGIN,
-  ActionType,
-  getCurrentAction,
-  ExtendedBankMetadata,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType, getCurrentAction, ExtendedBankMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { useWalletContext } from "~/components/common/useWalletContext";
 
-const CLOSE_BALANCE_TOAST_ID = "close-balance";
-const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
+import { borrowOrLend, closeBalance } from "~/utils";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { useAssetItemData } from "~/hooks/useAssetItemData";
+import { HtmlTooltip } from "~/components/common/HtmlTooltip";
 
-const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
-  <Tooltip {...props} classes={{ popper: className }} />
-))(({ theme }) => ({
-  [`& .${tooltipClasses.tooltip}`]: {
-    backgroundColor: "rgb(227, 227, 227)",
-    color: "rgba(0, 0, 0, 0.87)",
-    maxWidth: 220,
-    fontSize: theme.typography.pxToRem(12),
-    border: "1px solid #dadde9",
-  },
-}));
+import { AssetRowInputBox } from "./AssetRowInputBox";
+import { AssetRowAction } from "./AssetRowAction";
 
 const AssetRow: FC<{
   bank: ExtendedBankInfo;
@@ -68,6 +50,16 @@ const AssetRow: FC<{
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
+  const { rateAP, assetWeight, isBankFilled, isBankHigh, bankFilled } = useAssetItemData({ bank, isInLendingMode });
+
+  const assetPriceOffset = useMemo(
+    () =>
+      Math.max(
+        bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
+        bank.info.state.price - bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
+      ),
+    [bank.info]
+  );
 
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
 
@@ -99,42 +91,11 @@ const AssetRow: FC<{
     setBorrowOrLendAmount(0);
   }, [isInLendingMode]);
 
-  const closeBalance = useCallback(async () => {
-    if (!marginfiAccount) {
-      toast.error("marginfi account not ready.");
-      return;
-    }
-
-    if (!bank.isActive) {
-      toast.error("no position to close.");
-      return;
-    }
-
-    toast.loading("Closing dust balance", {
-      toastId: CLOSE_BALANCE_TOAST_ID,
-    });
-
+  const handleCloseBalance = useCallback(async () => {
     try {
-      if (bank.position.isLending) {
-        await marginfiAccount.withdraw(0, bank.address, true);
-      } else {
-        await marginfiAccount.repay(0, bank.address, true);
-      }
-      toast.update(CLOSE_BALANCE_TOAST_ID, {
-        render: "Closing 👍",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      toast.update(CLOSE_BALANCE_TOAST_ID, {
-        render: `Error while closing balance: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
-      console.log(`Error while closing balance`);
-      console.log(error);
+      closeBalance({ marginfiAccount, bank });
+    } catch (error) {
+      return;
     }
 
     setBorrowOrLendAmount(0);
@@ -148,130 +109,8 @@ const AssetRow: FC<{
     }
   }, [bank, marginfiAccount, fetchMrgnlendState, setIsRefreshingStore]);
 
-  const borrowOrLend = useCallback(async () => {
-    if (mfiClient === null) throw Error("Marginfi client not ready");
-
-    if (
-      currentAction === ActionType.Deposit &&
-      bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit
-    ) {
-      toast.error(
-        `${bank.meta.tokenSymbol} deposit limit has been been reached. Additional deposits are not currently available.`
-      );
-      return;
-    }
-
-    if (currentAction === ActionType.Borrow && bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit) {
-      toast.error(
-        `${bank.meta.tokenSymbol} borrow limit has been been reached. Additional borrows are not currently available.`
-      );
-      return;
-    }
-
-    if (currentAction === ActionType.Deposit && bank.userInfo.maxDeposit === 0) {
-      toast.error(`You don't have any ${bank.meta.tokenSymbol} to lend in your wallet.`);
-      return;
-    }
-
-    if (currentAction === ActionType.Borrow && bank.userInfo.maxBorrow === 0) {
-      toast.error(`You cannot borrow any ${bank.meta.tokenSymbol} right now.`);
-      return;
-    }
-
-    if (borrowOrLendAmount <= 0) {
-      toast.error("Please enter an amount over 0.");
-      return;
-    }
-
-    let _marginfiAccount = marginfiAccount;
-
-    if (nativeSolBalance < FEE_MARGIN) {
-      toast.error("Not enough sol for fee.");
-      return;
-    }
-
-    // -------- Create marginfi account if needed
-    try {
-      if (!_marginfiAccount) {
-        if (currentAction !== ActionType.Deposit) {
-          toast.error("An account is required for anything operation except deposit.");
-          return;
-        }
-
-        toast.loading("Creating account", {
-          toastId: BORROW_OR_LEND_TOAST_ID,
-        });
-
-        _marginfiAccount = await mfiClient.createMarginfiAccount();
-        toast.update(BORROW_OR_LEND_TOAST_ID, {
-          render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol}`,
-        });
-      }
-    } catch (error: any) {
-      toast.update(BORROW_OR_LEND_TOAST_ID, {
-        render: `Error while ${currentAction + "ing"}: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
-      console.log(`Error while ${currentAction + "ing"}`);
-      console.log(error);
-      return;
-    }
-
-    // -------- Perform relevant operation
-    try {
-      if (currentAction === ActionType.Deposit) {
-        await _marginfiAccount.deposit(borrowOrLendAmount, bank.address);
-
-        toast.update(BORROW_OR_LEND_TOAST_ID, {
-          render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol} 👍`,
-          type: toast.TYPE.SUCCESS,
-          autoClose: 2000,
-          isLoading: false,
-        });
-      }
-
-      toast.loading(`${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol}`, {
-        toastId: BORROW_OR_LEND_TOAST_ID,
-      });
-      if (_marginfiAccount === null) {
-        // noinspection ExceptionCaughtLocallyJS
-        throw Error("Marginfi account not ready");
-      }
-
-      if (currentAction === ActionType.Borrow) {
-        await _marginfiAccount.borrow(borrowOrLendAmount, bank.address);
-      } else if (currentAction === ActionType.Repay) {
-        await _marginfiAccount.repay(
-          borrowOrLendAmount,
-          bank.address,
-          bank.isActive && isWholePosition(bank, borrowOrLendAmount)
-        );
-      } else if (currentAction === ActionType.Withdraw) {
-        await _marginfiAccount.withdraw(
-          borrowOrLendAmount,
-          bank.address,
-          bank.isActive && isWholePosition(bank, borrowOrLendAmount)
-        );
-      }
-
-      toast.update(BORROW_OR_LEND_TOAST_ID, {
-        render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol} 👍`,
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      toast.update(BORROW_OR_LEND_TOAST_ID, {
-        render: `Error while ${currentAction + "ing"}: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
-      console.log(`Error while ${currentAction + "ing"}`);
-      console.log(error);
-    }
+  const handleBorrowOrLend = useCallback(async () => {
+    borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
 
     setBorrowOrLendAmount(0);
 
@@ -309,6 +148,7 @@ const AssetRow: FC<{
           <div className="font-aeonik hidden lg:block">{bank.meta.tokenSymbol}</div>
         </div>
       </TableCell>
+
       <TableCell
         className={`text-white border-none px-2 font-aeonik hidden lg:table-cell ${
           bank.info.state.price > 999 && lendZoomLevel < 2 ? "xl:text-xs xl:pl-0" : ""
@@ -323,10 +163,7 @@ const AssetRow: FC<{
                 Wide oracle price bands
               </Typography>
               {`${bank.meta.tokenSymbol} price estimates is
-                ${usdFormatter.format(bank.info.state.price)} ± ${Math.max(
-                bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
-                bank.info.state.price - bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
-              ).toFixed(
+                ${usdFormatter.format(bank.info.state.price)} ± ${assetPriceOffset.toFixed(
                 2
               )}, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`}
               <br />
@@ -336,50 +173,21 @@ const AssetRow: FC<{
             </React.Fragment>
           }
           placement="right"
-          className={`${
-            Math.max(
-              bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
-              bank.info.state.price - bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
-            ) >
-            bank.info.state.price * 0.1
-              ? "cursor-pointer"
-              : "hidden"
-          }`}
+          className={`${assetPriceOffset > bank.info.state.price * 0.1 ? "cursor-pointer" : "hidden"}`}
         >
           <Badge
-            badgeContent={
-              Math.max(
-                bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
-                bank.info.state.price - bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
-              ) >
-              bank.info.state.price * 0.1
-                ? "⚠️"
-                : ""
-            }
+            badgeContent={assetPriceOffset > bank.info.state.price * 0.1 ? "⚠️" : ""}
             className="bg-transparent"
             sx={{
               "& .MuiBadge-badge": {
                 fontSize: 20,
               },
             }}
-            invisible={
-              Math.max(
-                bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
-                bank.info.state.price - bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
-              ) >
-              bank.info.state.price * 0.1
-                ? false
-                : true
-            }
+            invisible={assetPriceOffset > bank.info.state.price * 0.1 ? false : true}
           >
             {bank.info.state.price >= 0.01
               ? lendZoomLevel < 2
-                ? `${usdFormatter.format(bank.info.state.price)} ± ${Math.max(
-                    bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() -
-                      bank.info.state.price,
-                    bank.info.state.price -
-                      bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
-                  ).toFixed(2)}`
+                ? `${usdFormatter.format(bank.info.state.price)} ± ${assetPriceOffset.toFixed(2)}`
                 : usdFormatter.format(bank.info.state.price)
               : `$${bank.info.state.price.toExponential(2)}`}
           </Badge>
@@ -423,15 +231,7 @@ const AssetRow: FC<{
               fontWeight: 400,
             }}
           >
-            {percentFormatter.format(
-              (isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate) +
-                (isInLendingMode && bank.info.state.emissions == Emissions.Lending
-                  ? bank.info.state.emissionsRate
-                  : 0) +
-                (!isInLendingMode && bank.info.state.emissions == Emissions.Borrowing
-                  ? bank.info.state.emissionsRate
-                  : 0)
-            )}
+            {rateAP}
           </div>
         </div>
       </TableCell>
@@ -441,11 +241,7 @@ const AssetRow: FC<{
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {isInLendingMode
-          ? bank.info.rawBank.config.assetWeightInit.toNumber() > 0
-            ? (bank.info.rawBank.config.assetWeightInit.toNumber() * 100).toFixed(0) + "%"
-            : "-"
-          : ((1 / bank.info.rawBank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%"}
+        {assetWeight}
       </TableCell>
 
       <TableCell
@@ -457,22 +253,10 @@ const AssetRow: FC<{
           title={
             <React.Fragment>
               <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                {isInLendingMode
-                  ? bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit * 0.99999
-                    ? "Limit Reached"
-                    : bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit * 0.9
-                    ? "Approaching Limit"
-                    : null
-                  : bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit * 0.99999
-                  ? "Limit Reached"
-                  : bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit * 0.9
-                  ? "Approaching Limit"
-                  : null}
+                {isBankHigh && (isBankFilled ? "Limit Reached" : "Approaching Limit")}
               </Typography>
               {`${bank.meta.tokenSymbol} ${isInLendingMode ? "deposits" : "borrows"} are at ${percentFormatter.format(
-                isInLendingMode
-                  ? bank.info.state.totalDeposits / bank.info.rawBank.config.depositLimit
-                  : bank.info.state.totalBorrows / bank.info.rawBank.config.borrowLimit
+                (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankFilled
               )} capacity.`}
               <br />
               <a href="https://docs.marginfi.com">
@@ -481,45 +265,17 @@ const AssetRow: FC<{
             </React.Fragment>
           }
           placement="right"
-          className={`${
-            isInLendingMode
-              ? bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit * 0.9
-                ? ""
-                : ""
-              : bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit * 0.9
-              ? ""
-              : ""
-          }`}
+          className={``}
         >
           <Badge
-            badgeContent={
-              isInLendingMode
-                ? bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit * 0.99999
-                  ? "💯"
-                  : bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit * 0.9
-                  ? "❗"
-                  : null
-                : bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit * 0.99999
-                ? "💯"
-                : bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit * 0.9
-                ? "❗"
-                : null
-            }
+            badgeContent={isBankHigh && (isBankFilled ? "💯" : "❗")}
             className="bg-transparent"
             sx={{
               "& .MuiBadge-badge": {
                 fontSize: 20,
               },
             }}
-            invisible={
-              isInLendingMode
-                ? bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit * 0.9
-                  ? false
-                  : true
-                : bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit * 0.9
-                ? false
-                : true
-            }
+            invisible={!isBankHigh}
           >
             {denominationUSD
               ? usdFormatter.format(
@@ -562,17 +318,10 @@ const AssetRow: FC<{
           style={{ fontWeight: 300 }}
         >
           {denominationUSD
-            ? usdFormatter.format(
-                (isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit) *
-                  bank.info.state.price
-              )
+            ? usdFormatter.format(bankFilled * bank.info.state.price)
             : lendZoomLevel < 2
-            ? groupedNumberFormatterDyn.format(
-                isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit
-              )
-            : numeralFormatter(
-                isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit
-              )}
+            ? groupedNumberFormatterDyn.format(bankFilled)
+            : numeralFormatter(bankFilled)}
         </TableCell>
       )}
 
@@ -631,7 +380,7 @@ const AssetRow: FC<{
             maxDecimals={bank.info.state.mintDecimals}
             inputRefs={inputRefs}
             disabled={isDust || currentAction === "Connect" || maxAmount === 0}
-            onEnter={borrowOrLend}
+            onEnter={handleBorrowOrLend}
           />
         </Badge>
       </TableCell>
@@ -650,7 +399,9 @@ const AssetRow: FC<{
                   ? "rgb(227, 227, 227)"
                   : "rgba(0,0,0,0)"
               }
-              onClick={currentAction === "Connect" ? openWalletSelector : isDust ? closeBalance : borrowOrLend}
+              onClick={
+                currentAction === "Connect" ? openWalletSelector : isDust ? handleCloseBalance : handleBorrowOrLend
+              }
               disabled={
                 currentAction !== "Connect" &&
                 ((isDust && uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero()) ||

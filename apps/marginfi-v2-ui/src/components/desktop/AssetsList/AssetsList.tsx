@@ -1,27 +1,17 @@
-import Image from "next/image";
 import React, { FC, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { useHotkeys } from "react-hotkeys-hook";
 import { Card, Table, TableHead, TableBody, TableContainer, TableCell } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { BorrowLendToggle } from "./BorrowLendToggle";
-import AssetRow from "./AssetRow";
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
-import { useHotkeys } from "react-hotkeys-hook";
-import { LoadingAsset } from "./AssetRow/AssetRow";
-import { useWalletContext } from "../../common/useWalletContext";
 
-const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
-  <Tooltip {...props} classes={{ popper: className }} />
-))(({ theme }) => ({
-  [`& .${tooltipClasses.tooltip}`]: {
-    backgroundColor: "rgb(227, 227, 227)",
-    color: "rgba(0, 0, 0, 0.87)",
-    maxWidth: 220,
-    fontSize: theme.typography.pxToRem(12),
-    border: "1px solid #dadde9",
-  },
-}));
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { BorrowLendToggle } from "~/components/common/AssetList/BorrowLendToggle";
+
+import { LoadingAsset, AssetRow } from "./AssetRow";
+import { HtmlTooltip } from "~/components/common/HtmlTooltip";
 
 const AssetsList: FC = () => {
   // const { selectedAccount, nativeSolBalance } = useStore();
@@ -97,7 +87,7 @@ const AssetsList: FC = () => {
   );
 
   // Hack required to circumvent rehydration error
-  const [hasMounted, setHasMounted] = React.useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   useEffect(() => {
     setHasMounted(true);
   }, []);

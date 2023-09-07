@@ -31,7 +31,7 @@ import { Bank, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { Countdown } from "~/components/desktop/Countdown";
 import { toast } from "react-toastify";
 import BigNumber from "bignumber.js";
-import { useWalletContext } from "~/components/common/useWalletContext";
+import { useWalletContext } from "~/hooks/useWalletContext";
 import { useMrgnlendStore } from "~/store";
 
 const Earn = () => {

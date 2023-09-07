@@ -1,10 +1,12 @@
 import React, { FC } from "react";
-import { UserStats } from "./UserStats";
 import { useMrgnlendStore } from "~/store";
 import dynamic from "next/dynamic";
-import { useWalletContext } from "../../common/useWalletContext";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { UserStats } from "~/components/common/AccountSummary";
 
-const GlobalStats = dynamic(async () => (await import("./GlobalStats")).GlobalStats, { ssr: false });
+const GlobalStats = dynamic(async () => (await import("~/components/common/AccountSummary/GlobalStats")).GlobalStats, {
+  ssr: false,
+});
 
 const AccountSummary: FC = () => {
   const [isStoreInitialized, accountSummary, protocolStats, selectedAccount] = useMrgnlendStore((state) => [
@@ -17,13 +19,16 @@ const AccountSummary: FC = () => {
 
   return (
     <div className="flex flex-col lg:flex-row w-full justify-between items-center">
-      <div className="hidden lg:block w-full h-[118px]">
-        <GlobalStats
-          tvl={protocolStats.tvl}
-          pointsTotal={protocolStats.pointsTotal}
-          borrows={protocolStats.borrows}
-          deposits={protocolStats.deposits}
-        />
+      <div className="lg:block w-full h-[118px]">
+        <div className="h-full rounded-xl p-[10px]">
+          <span className="w-full flex justify-start text-xl">Global stats</span>
+          <GlobalStats
+            tvl={protocolStats.tvl}
+            pointsTotal={protocolStats.pointsTotal}
+            borrows={protocolStats.borrows}
+            deposits={protocolStats.deposits}
+          />
+        </div>
       </div>
 
       <div className="w-full">
@@ -38,4 +43,4 @@ const AccountSummary: FC = () => {
   );
 };
 
-export { AccountSummary };
+export { AccountSummary as DesktopAccountSummary };

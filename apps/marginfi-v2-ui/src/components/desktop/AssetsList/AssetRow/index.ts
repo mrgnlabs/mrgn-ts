@@ -1,3 +1,1 @@
-import { AssetRow } from "./AssetRow";
-
-export default AssetRow;
+export * from "./AssetRow";

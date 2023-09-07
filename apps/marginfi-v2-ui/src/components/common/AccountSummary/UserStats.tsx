@@ -1,11 +1,12 @@
+import React, { FC, useMemo } from "react";
+import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { usdFormatter, numeralFormatter, usdFormatterDyn, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { Typography, Skeleton } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
-import { FC, useMemo } from "react";
+
 import { MrgnTooltip } from "~/components/desktop/Tooltip";
-import React from "react";
-import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
-import { usdFormatter, numeralFormatter, usdFormatterDyn, percentFormatter } from "@mrgnlabs/mrgn-common";
+
 import styles from "./style.module.css";
 
 interface UserStatsProps {

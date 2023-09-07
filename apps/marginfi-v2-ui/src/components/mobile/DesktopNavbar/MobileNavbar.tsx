@@ -4,8 +4,8 @@ import Image from "next/image";
 import AirdropZone from "./AirdropZone";
 import { useUserProfileStore } from "~/store";
 import { useRouter } from "next/router";
-import { useFirebaseAccount } from "../../common/useFirebaseAccount";
-import { useWalletContext } from "../../common/useWalletContext";
+import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 // @todo implement second pretty navbar row
 const MobileNavbar: FC = () => {

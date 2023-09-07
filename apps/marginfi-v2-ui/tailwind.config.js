@@ -10,7 +10,7 @@ module.exports = {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "jup-gradient-colors": "linear-gradient(to right, #A0F0F8, #EEAC55)",
-        "mayan-gradient-colors": "linear-gradient(90deg, #5768BD 0.11%, #FFFFFF 100%)"
+        "mayan-gradient-colors": "linear-gradient(90deg, #5768BD 0.11%, #FFFFFF 100%)",
       },
       borderImage: {
         SOL: "linear-gradient(to top right, #9945FF, #19FB9B)",
@@ -28,6 +28,9 @@ module.exports = {
       colors: {
         "usd-equiv": "rgba(113, 119, 126, 0.3)",
         "btn-light": "rgb(227, 227, 227)",
+        success: "#75ba80",
+        warning: "#daa204)",
+        error: "#e07d6f",
       },
     },
     fontFamily: {
@@ -42,7 +45,7 @@ module.exports = {
     },
   },
   plugins: [
-    plugin(function({ addUtilities }) {
+    plugin(function ({ addUtilities }) {
       addUtilities({
         ".invisible-scroll": {
           "content-visibility": "auto",

@@ -7,18 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMrgnlendStore } from "~/store";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
-const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
-  <Tooltip {...props} classes={{ popper: className }} />
-))(({ theme }) => ({
-  [`& .${tooltipClasses.tooltip}`]: {
-    backgroundColor: "rgb(227, 227, 227)",
-    color: "rgba(0, 0, 0, 0.87)",
-    maxWidth: 220,
-    fontSize: theme.typography.pxToRem(12),
-    border: "1px solid #dadde9",
-  },
-}));
+import { HtmlTooltip } from "~/components/common/HtmlTooltip";
 
 const UserPositions: FC = () => {
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
