@@ -1,22 +1,26 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
 import BN from "bn.js";
-import { getAssociatedTokenAddressSync, uiToNative } from "@mrgnlabs/mrgn-common";
-import { useProgram } from "~/context";
-import { ProAction } from "~/pages/earn";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { groupedNumberFormatterDyn, percentFormatterDyn } from "~/utils/formatters";
-import { calculateInterestFromApy, computeGuaranteedApy } from "@mrgnlabs/lip-client/src/utils";
-import { floor } from "~/utils";
 import {
+  uiToNative,
+  floor,
+  groupedNumberFormatterDyn,
+  percentFormatterDyn,
+  calculateInterestFromApy,
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
   NATIVE_MINT,
-} from "@mrgnlabs/mrgn-common/src/spl";
-import { MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
+  getAssociatedTokenAddressSync,
+} from "@mrgnlabs/mrgn-common";
+import { useLipClient } from "~/context";
+import { MenuItem, Select, TextField } from "@mui/material";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import Image from "next/image";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
+import { useMrgnlendStore } from "~/store";
+import { computeGuaranteedApy } from "@mrgnlabs/lip-client";
+import { EarnAction } from "./Earn";
+import { useWalletContext } from "./useWalletContext";
 
 interface CampaignWizardInputBox {
   value: number;
@@ -83,12 +87,13 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
   const [depositCapacity, setDepositCapacity] = useState(0);
   const [campaignBank, setCampaignBank] = useState<Bank | null>(null);
 
-  const wallet = useWallet();
-  const { lipClient, mfiClient, reload: reloadLipClient } = useProgram();
+  const walletContext = useWalletContext();
+  const [mfiClient] = useMrgnlendStore((state) => [state.marginfiClient]);
+  const { lipClient, reload: reloadLipClient } = useLipClient();
 
   const availableBanks = useMemo(() => {
     if (!mfiClient) return [];
-    return [...mfiClient.group.banks.values()];
+    return [...mfiClient.banks.values()];
   }, [mfiClient]);
 
   useEffect(() => {
@@ -156,7 +161,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           campaign: campaignKeypair.publicKey,
           admin: lipClient.wallet.publicKey,
           fundingAccount: userTokenAtaPk,
-          marginfiBank: campaignBank.publicKey,
+          marginfiBank: campaignBank.address,
           assetMint: campaignBank.mint,
         })
         .instruction()
@@ -234,27 +239,27 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           id="campaign-bank-select"
           variant="outlined"
           classes={{ standard: "test-white" }}
-          value={campaignBank.publicKey.toBase58()}
-          onChange={(event: SelectChangeEvent<string>) => {
-            const bank = availableBanks.find((b) => b.publicKey.toBase58() === event.target.value);
+          value={campaignBank.address.toBase58()}
+          onChange={(event) => {
+            const bank = availableBanks.find((b) => b.address.toBase58() === event.target.value);
             if (!bank) throw new Error("Bank not found");
             setCampaignBank(bank);
           }}
         >
           {availableBanks.map((b) => {
-            let assetIcon = assetIcons[b.publicKey.toBase58()];
+            let assetIcon = assetIcons[b.address.toBase58()];
             if (!assetIcon) assetIcon = assetIcons["CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"];
 
             return (
-              <MenuItem key={b.publicKey.toBase58()} value={b.publicKey.toBase58()}>
+              <MenuItem key={b.address.toBase58()} value={b.address.toBase58()}>
                 <div className="flex gap-4 items-center">
                   <Image
                     src={assetIcon.icon}
-                    alt={b.publicKey.toBase58()}
+                    alt={b.address.toBase58()}
                     height={assetIcon.size}
                     width={assetIcon.size}
                   />
-                  <div>{b.publicKey.toBase58()}</div>
+                  <div>{b.address.toBase58()}</div>
                 </div>
               </MenuItem>
             );
@@ -268,7 +273,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           setValue={(value) => setGuaranteedApy(value / 100)}
           loadingSafetyCheck={() => {}}
           maxDecimals={2}
-          disabled={!wallet.connected}
+          disabled={!walletContext.connected}
         />
       </div>
       <div className="flex justify-between text-[rgb(227, 227, 227)]">
@@ -279,7 +284,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
             setValue={setLockupPeriodInDays}
             loadingSafetyCheck={() => {}}
             maxDecimals={4}
-            disabled={!wallet.connected}
+            disabled={!walletContext.connected}
           />
         </div>
       </div>
@@ -290,7 +295,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           setValue={setDepositCapacity}
           loadingSafetyCheck={() => {}}
           maxDecimals={3}
-          disabled={!wallet.connected}
+          disabled={!walletContext.connected}
         />
       </div>
       <div></div>
@@ -349,12 +354,12 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
         </div>
       </div>
       <div className="flex justify-center my-8">
-        <ProAction
+        <EarnAction
           onClick={createCampaign}
           disabled={mfiClient === null || !lipClient || !campaignBank || maxRewards === 0}
         >
           Create campaign
-        </ProAction>
+        </EarnAction>
       </div>
     </div>
   );

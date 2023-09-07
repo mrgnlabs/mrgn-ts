@@ -1,7 +1,6 @@
 import { Badge, styled, Switch, SwitchProps } from "@mui/material";
 import { Dispatch, SetStateAction } from "react";
-import { useRecoilState } from "recoil";
-import { showBadgesState } from "~/state";
+import { useUserProfileStore } from "~/store";
 
 type PaddingConfigs = {
   left: string;
@@ -28,7 +27,7 @@ const BorrowLendToggle = styled(
     },
     ...switchProps
   }: BorrowLendToggleProps) => {
-    const [showBadges] = useRecoilState(showBadgesState);
+    const showBadges = useUserProfileStore((state) => state.showBadges);
     const handleChange = () => {
       setIsInLendingMode((prev) => !prev);
     };

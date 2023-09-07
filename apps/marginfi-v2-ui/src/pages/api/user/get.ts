@@ -1,13 +1,6 @@
 import { NextApiResponse } from "next";
-import {
-  NextApiRequest,
-  STATUS_INTERNAL_ERROR,
-  STATUS_NOT_FOUND,
-  STATUS_OK,
-  getFirebaseUserByWallet,
-  initFirebaseIfNeeded,
-} from "./utils";
-import { UserData } from "~/api/firebase";
+import { NextApiRequest, getFirebaseUserByWallet, initFirebaseIfNeeded } from "./utils";
+import { STATUS_INTERNAL_ERROR, STATUS_NOT_FOUND, STATUS_OK, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 
 initFirebaseIfNeeded();
 
@@ -17,7 +10,7 @@ export interface UserGetRequest {
 
 export type UserGetResponse =
   | {
-      user: UserData;
+      user: firebaseApi.UserData;
     }
   | {
       error: string;
@@ -33,6 +26,6 @@ export default async function handler(req: NextApiRequest<UserGetRequest>, res: 
     }
     return res.status(STATUS_OK).json({ user: { id: userResult.uid } });
   } catch (error: any) {
-    return res.status(STATUS_INTERNAL_ERROR).json({ error: error.message }); // An unexpected error occurred
+    return res.status(STATUS_INTERNAL_ERROR).json({ error: error.message }); // An unexpected error occurre
   }
 }

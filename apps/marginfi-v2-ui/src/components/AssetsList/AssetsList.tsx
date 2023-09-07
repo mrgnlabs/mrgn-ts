@@ -1,16 +1,15 @@
 import Image from "next/image";
-import React, { FC, useEffect, useMemo, useRef, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { Card, Skeleton, Table, TableHead, TableBody, TableContainer, TableRow, TableCell } from "@mui/material";
+import React, { FC, useEffect, useRef, useState } from "react";
+import { Card, Table, TableHead, TableBody, TableContainer, TableCell } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { useBanks, useProgram, useUserAccounts } from "~/context";
 import { BorrowLendToggle } from "./BorrowLendToggle";
 import AssetRow from "./AssetRow";
-import { lendZoomLevel, showBadgesState } from "~/state";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useHotkeys } from "react-hotkeys-hook";
+import { LoadingAsset } from "./AssetRow/AssetRow";
+import { useWalletContext } from "../useWalletContext";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -25,15 +24,22 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 const AssetsList: FC = () => {
-  const [isInLendingMode, setIsInLendingMode] = useState(true);
-  const { mfiClient } = useProgram();
-  const { reload } = useBanks();
-  const { extendedBankInfos, selectedAccount, nativeSolBalance } = useUserAccounts();
-  const wallet = useWallet();
-  const zoomLevel = useRecoilValue(lendZoomLevel);
-  const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
-  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  // const { selectedAccount, nativeSolBalance } = useStore();
+  const { connected } = useWalletContext();
+  const [isStoreInitialized, sortedBanks, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
+    state.initialized,
+    state.extendedBankInfos,
+    state.nativeSolBalance,
+    state.selectedAccount,
+  ]);
+  const [lendZoomLevel, showBadges, setShowBadges] = useUserProfileStore((state) => [
+    state.lendZoomLevel,
+    state.showBadges,
+    state.setShowBadges,
+  ]);
 
+  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [isInLendingMode, setIsInLendingMode] = useState(true);
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
 
   // Enter hotkey mode
@@ -53,16 +59,18 @@ const AssetsList: FC = () => {
 
   // Handle number keys in hotkey mode
   useHotkeys(
-    extendedBankInfos
-      .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
+    sortedBanks
+      .filter((b) => !b.info.state.isIsolated)
       .map((_, i) => `${i + 1}`)
       .join(", "),
     (_, handler) => {
       if (isHotkeyMode) {
-        const globalBankTokenNames = extendedBankInfos
-          .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
-          .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
-          .map((b) => b.tokenSymbol);
+        const globalBankTokenNames = sortedBanks
+          .filter((b) => !b.info.state.isIsolated)
+          .sort(
+            (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
+          )
+          .map((b) => b.meta.tokenSymbol);
 
         const keyPressed = handler.keys?.join("");
         if (Number(keyPressed) >= 1 && Number(keyPressed) <= globalBankTokenNames.length) {
@@ -220,7 +228,7 @@ const AssetsList: FC = () => {
                 {/* [START]: ZOOM-BASED COLUMNS */}
                 {/*******************************/}
 
-                {zoomLevel < 2 && (
+                {lendZoomLevel < 2 && (
                   <TableCell
                     className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
@@ -246,7 +254,7 @@ const AssetsList: FC = () => {
                   </TableCell>
                 )}
 
-                {zoomLevel < 3 && (
+                {lendZoomLevel < 3 && (
                   <TableCell
                     className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
@@ -281,36 +289,37 @@ const AssetsList: FC = () => {
                   style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                   align="right"
                 >
-                  <div className="h-full w-full flex justify-end items-center gap-2">Wallet Balance</div>
+                  <div className="h-full w-full flex justify-end items-center gap-2">Wallet Amt.</div>
                 </TableCell>
                 <TableCell className="border-none"></TableCell>
                 <TableCell className="border-none"></TableCell>
               </TableHead>
 
               <TableBody>
-                {extendedBankInfos.length > 0 ? (
-                  extendedBankInfos
-                    .filter((b) => b.bank.config.assetWeightInit.toNumber() > 0)
-                    .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
-                    .map((bankInfo, i) => (
+                {sortedBanks
+                  .filter((b) => !b.info.state.isIsolated)
+                  .map((bank, i) =>
+                    isStoreInitialized ? (
                       <AssetRow
-                        key={bankInfo.tokenSymbol}
+                        key={bank.meta.tokenSymbol}
                         nativeSolBalance={nativeSolBalance}
-                        bankInfo={bankInfo}
+                        bank={bank}
                         isInLendingMode={isInLendingMode}
-                        isConnected={wallet.connected}
+                        isConnected={connected}
                         marginfiAccount={selectedAccount}
-                        marginfiClient={mfiClient}
-                        reloadBanks={reload}
                         inputRefs={inputRefs}
                         hasHotkey={true}
                         showHotkeyBadges={showBadges}
                         badgeContent={`${i + 1}`}
                       />
-                    ))
-                ) : (
-                  <LoadingAssets />
-                )}
+                    ) : (
+                      <LoadingAsset
+                        key={bank.meta.tokenSymbol}
+                        isInLendingMode={isInLendingMode}
+                        bankMetadata={bank.meta}
+                      />
+                    )
+                  )}
               </TableBody>
               <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white my-4 gap-2">
                 <span className="gap-1 flex">
@@ -333,27 +342,28 @@ const AssetsList: FC = () => {
                 </HtmlTooltip>
               </div>
               <TableBody>
-                {extendedBankInfos.length > 0 ? (
-                  extendedBankInfos
-                    .filter((b) => b.bank.config.assetWeightInit.toNumber() === 0)
-                    .sort((a, b) => b.totalPoolDeposits * b.tokenPrice - a.totalPoolDeposits * a.tokenPrice)
-                    .map((bankInfo, i) => (
+                {sortedBanks
+                  .filter((b) => b.info.state.isIsolated)
+                  .map((bank) =>
+                    isStoreInitialized ? (
                       <AssetRow
-                        key={bankInfo.tokenSymbol}
+                        key={bank.meta.tokenSymbol}
                         nativeSolBalance={nativeSolBalance}
-                        bankInfo={bankInfo}
+                        bank={bank}
                         isInLendingMode={isInLendingMode}
-                        isConnected={wallet.connected}
+                        isConnected={connected}
                         marginfiAccount={selectedAccount}
-                        marginfiClient={mfiClient}
-                        reloadBanks={reload}
                         inputRefs={inputRefs}
                         hasHotkey={false}
                       />
-                    ))
-                ) : (
-                  <LoadingAssets />
-                )}
+                    ) : (
+                      <LoadingAsset
+                        key={bank.meta.tokenSymbol}
+                        isInLendingMode={isInLendingMode}
+                        bankMetadata={bank.meta}
+                      />
+                    )
+                  )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -362,23 +372,5 @@ const AssetsList: FC = () => {
     </>
   );
 };
-
-const LOADING_ASSETS = 3;
-
-const LoadingAssets = () => (
-  <>
-    {[...new Array(LOADING_ASSETS)].map((_, index) => (
-      <TableRow key={index}>
-        <Skeleton
-          component="td"
-          sx={{ bgcolor: "grey.900" }}
-          variant="rectangular"
-          animation="wave"
-          className="flex justify-between items-center h-[78px] p-0 px-2 sm:p-2 lg:p-4 border-solid border-[#1C2125] border rounded-xl gap-2 lg:gap-4"
-        />
-      </TableRow>
-    ))}
-  </>
-);
 
 export { AssetsList };

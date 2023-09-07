@@ -21,8 +21,8 @@
     "@google-cloud/bigquery": "^6.2.0",
     "@jup-ag/api": "^4.0.1-alpha.0",
     "@marinade.finance/marinade-ts-sdk": "^4.0.6",
-    "@mrgnlabs/lip-client": "*",
     "@mrgnlabs/marginfi-client-v2": "*",
+    "@mrgnlabs/marginfi-v2-ui-state": "*",
     "@mrgnlabs/mrgn-common": "*",
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.2",
@@ -55,7 +55,8 @@
     "react-type-animation": "^3.0.1",
     "sharp": "^0.31.3",
     "superstruct": "^1.0.3",
-    "zod": "^3.21.4"
+    "zod": "^3.21.4",
+    "zustand": "^4.4.1"
   },
   "devDependencies": {
     "@mrgnlabs/eslint-config-custom": "*",

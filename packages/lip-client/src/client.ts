@@ -15,7 +15,7 @@ import { LipConfig, LipProgram } from "./types";
 import { LIP_IDL } from "./idl";
 import instructions from "./instructions";
 import { DEPOSIT_MFI_AUTH_SIGNER_SEED, MARGINFI_ACCOUNT_SEED } from "./constants";
-import { Bank, BankData, getOraclePriceData, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { Bank, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { Campaign, DepositData } from "./account";
 import {
   Amount,
@@ -55,30 +55,24 @@ class LipClient {
 
   // --- Factories
 
-  static async fetch(
-    config: LipConfig,
-    wallet: Wallet,
-    connection: Connection,
-    marginfiClient: MarginfiClient,
-    opts?: ConfirmOptions
-  ) {
+  static async fetch(config: LipConfig, marginfiClient: MarginfiClient, opts?: ConfirmOptions) {
     const debug = require("debug")("lip:client");
     debug(
       "Loading Lip Client\n\tprogram: %s\n\tenv: %s\n\turl: %s",
       config.programId,
       config.environment,
-      connection.rpcEndpoint
+      marginfiClient.provider.connection.rpcEndpoint
     );
 
-    const provider = new AnchorProvider(connection, wallet, {
+    const provider = new AnchorProvider(marginfiClient.provider.connection, marginfiClient.wallet, {
       ...AnchorProvider.defaultOptions(),
-      commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
+      commitment: marginfiClient.provider.connection.commitment ?? AnchorProvider.defaultOptions().commitment,
       ...opts,
     });
     const program = new Program(LIP_IDL, config.programId, provider) as any as LipProgram;
     const campaigns = await LipClient._fetchAccountData(program, marginfiClient);
 
-    return new LipClient(config, program, wallet, marginfiClient, campaigns);
+    return new LipClient(config, program, marginfiClient.wallet, marginfiClient, campaigns);
   }
 
   async reload() {
@@ -94,37 +88,19 @@ class LipClient {
       ...c.account,
       publicKey: c.publicKey,
     }));
-    // 2. Get relevant banks for all campaigns
-    const relevantBankPks = allCampaigns.map((d) => d.marginfiBankPk);
-    // 3. Fetch all banks
-    const banksWithNulls = await marginfiClient.program.account.bank.fetchMultiple(relevantBankPks);
-    // 4. Filter out banks that aren't found
-    // This shouldn't happen, but is a workaround in case it does.
-    const banksData = banksWithNulls.filter((c) => c !== null) as BankData[];
-    if (banksData.length !== banksWithNulls.length) throw new Error("Some banks were not found");
 
-    const banks = await Promise.all(
-      banksData.map(async (bd, index) => {
-        return new Bank(
-          relevantBankPks[index],
-          bd as BankData,
-          await getOraclePriceData(
-            program.provider.connection,
-            (bd as BankData).config.oracleSetup,
-            (bd as BankData).config.oracleKeys
-          )
-        );
-      })
-    );
-
-    if (banks.length !== allCampaigns.length) {
-      return Promise.reject("Some of the banks were not found");
-    }
+    // 2. Refresh mfi banks
+    await marginfiClient.reload();
 
     // LipClient takes in a list of campaigns, which is
     // campaigns we've found + bank information we've constructed.
     return allCampaigns.map((campaign, i) => {
-      return new Campaign(banks[i], campaign);
+      const bank = marginfiClient.getBankByPk(campaign.marginfiBankPk);
+      if (!bank) throw new Error(`Bank ${campaign.marginfiBankPk} not found for campaign ${campaign.publicKey}`);
+      const oraclePrice = marginfiClient.getOraclePriceByBank(campaign.marginfiBankPk);
+      if (!oraclePrice)
+        throw new Error(`Oracle price ${campaign.marginfiBankPk} not found for campaign ${campaign.publicKey}`);
+      return new Campaign(bank, oraclePrice, campaign);
     });
   }
 
@@ -210,8 +186,8 @@ class LipClient {
           fundingAccount: userTokenAtaPk,
           tempTokenAccount: tempTokenAccountKeypair.publicKey,
           assetMint: bank.mint,
-          marginfiGroup: this.mfiClient.group.publicKey,
-          marginfiBank: bank.publicKey,
+          marginfiGroup: this.mfiClient.groupAddress,
+          marginfiBank: bank.address,
           marginfiAccount: PublicKey.findProgramAddressSync(
             [MARGINFI_ACCOUNT_SEED, depositKeypair.publicKey.toBuffer()],
             this.programId

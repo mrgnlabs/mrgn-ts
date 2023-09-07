@@ -1,107 +1,8 @@
-import { PublicKey } from "@solana/web3.js";
-import { Bank } from "@mrgnlabs/marginfi-client-v2";
-import BigNumber from "bignumber.js";
 import { Transaction } from "@solana/web3.js";
 
-export interface AccountSummary {
-  balance: number;
-  lendingAmount: number;
-  borrowingAmount: number;
-  apy: number;
-  outstandingUxpEmissions: number;
-  balanceUnbiased: number;
-  lendingAmountUnbiased: number;
-  borrowingAmountUnbiased: number;
-  lendingAmountWithBiasAndWeighted: number;
-  borrowingAmountWithBiasAndWeighted: number;
-  signedFreeCollateral: number;
-}
-
-export interface BankInfo {
-  address: PublicKey;
-  tokenIcon?: string;
-  tokenSymbol: string;
-  tokenMint: PublicKey;
-  tokenMintDecimals: number;
-  tokenPrice: number;
-  lendingRate: number;
-  borrowingRate: number;
-  emissionsRate: number;
-  emissions: Emissions;
-  totalPoolDeposits: number;
-  totalPoolBorrows: number;
-  availableLiquidity: number;
-  utilizationRate: number;
-  bank: Bank;
-}
-
-export interface UserPosition {
-  isLending: boolean;
-  amount: number;
-  usdValue: number;
-  weightedUSDValue: number;
-}
-
-export interface TokenMetadata {
-  icon?: string;
-  name: string;
-  symbol: string;
-}
-
-export interface BankMetadata {
-  tokenAddress: string;
-  tokenName: string;
-  tokenSymbol: string;
-}
-
-export interface TokenPriceMap {
-  [key: string]: {
-    price: BigNumber;
-    decimals: number;
-  };
-}
-
-export type TokenMetadataMap = { [symbol: string]: TokenMetadata };
-export type BankMetadataMap = { [address: string]: BankMetadata };
-
-export interface TokenAccount {
-  mint: PublicKey;
-  created: boolean;
-  balance: number;
-}
-
-export type TokenAccountMap = Map<string, TokenAccount>;
-
-export enum ActionType {
-  Deposit = "Supply",
-  Borrow = "Borrow",
-  Repay = "Repay",
-  Withdraw = "Withdraw",
-}
-
-export interface BankInfoForAccountBase extends BankInfo {
-  tokenBalance: number;
-  maxDeposit: number;
-  maxRepay: number;
-  maxWithdraw: number;
-  maxBorrow: number;
-}
-
-export type ActiveBankInfo = BankInfoForAccountBase & { hasActivePosition: true; position: UserPosition };
-export type InactiveBankInfo = BankInfoForAccountBase & { hasActivePosition: false };
-export type ExtendedBankInfo = ActiveBankInfo | InactiveBankInfo;
-
-export const isActiveBankInfo = (bankInfo: ExtendedBankInfo): bankInfo is ActiveBankInfo => bankInfo.hasActivePosition;
-
-export enum Emissions {
-  Inactive,
-  Lending,
-  Borrowing,
-}
-
-// ---------------------
+// ----------------------------------------------------------------------------
 // Mayan types
-// ---------------------
+// ----------------------------------------------------------------------------
 
 export type MayanWidgetChainName = "solana" | "ethereum" | "bsc" | "polygon" | "avalanche" | "arbitrum" | "aptos";
 
@@ -177,7 +78,3 @@ export type MayanSwapInfo = {
   toToken: string;
   fromAmount: number;
 };
-
-// ---------------------
-// End mayan types
-// ---------------------

@@ -10,7 +10,8 @@ interface AssetRowInputBox {
   maxDecimals?: number;
   disabled?: boolean;
   tokenName: string;
-  inputRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
+  inputRefs?: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
+  onEnter?: () => void;
 }
 
 const AssetRowInputBox: FC<AssetRowInputBox> = ({
@@ -21,6 +22,7 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
   disabled,
   tokenName,
   inputRefs,
+  onEnter,
 }) => {
   const onMaxClick = useCallback(() => {
     if (maxValue !== undefined) {
@@ -67,7 +69,12 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
           className: "font-aeonik text-[#e1e1e1] border border-[#4E5257] p-0 m-0 text-sm h-11",
           endAdornment: <MaxInputAdornment onClick={onMaxClick} disabled={disabled || !maxValue} />,
         }}
-        getInputRef={(el: any) => (inputRefs.current[tokenName] = el)}
+        {...(inputRefs ? { getInputRef: (el: any) => (inputRefs.current[tokenName] = el) } : {})}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && onEnter) {
+            onEnter();
+          }
+        }}
       />
     </div>
   );

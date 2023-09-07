@@ -2,18 +2,18 @@ import { Typography, Skeleton } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
 import { FC } from "react";
-import { numeralFormatter } from "~/utils/formatters";
 import { MrgnTooltip } from "~/components/Tooltip";
 import styles from "./style.module.css";
+import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 
 interface GlobalStatsProps {
-  globalDeposits: number;
-  globalBorrows: number;
-  globalTVL: number;
-  globalPoints: number | null;
+  deposits: number;
+  borrows: number;
+  tvl: number;
+  pointsTotal: number | null;
 }
 
-const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, globalPoints, globalTVL }) => {
+const GlobalStats: FC<GlobalStatsProps> = ({ borrows, deposits, pointsTotal, tvl }) => {
   return (
     <div className="h-full rounded-xl font-[500] p-[10px]">
       <span className="w-full flex justify-start text-xl">Global stats</span>
@@ -21,7 +21,12 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
         <div className="flex gap-4 w-full min-w-1/2 mt-[20px]">
           <div className="h-full w-1/4">
             <div>
-              <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+              <Typography
+                color="#868E95"
+                className="font-aeonik font-[300] text-xs flex gap-1"
+                gutterBottom
+                component="div"
+              >
                 Supplied
                 <div className="self-center">
                   <MrgnTooltip
@@ -40,8 +45,8 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {globalDeposits ? (
-                  `$${numeralFormatter(globalDeposits)}`
+                {deposits ? (
+                  `$${numeralFormatter(deposits)}`
                 ) : (
                   <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                 )}
@@ -51,7 +56,12 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
           <DividerLine />
           <div className="h-full w-1/4">
             <div>
-              <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+              <Typography
+                color="#868E95"
+                className="font-aeonik font-[300] text-xs flex gap-1"
+                gutterBottom
+                component="div"
+              >
                 Borrowed
                 <div className="self-center">
                   <MrgnTooltip
@@ -70,8 +80,8 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {globalBorrows ? (
-                  `$${numeralFormatter(globalBorrows)}`
+                {borrows ? (
+                  `$${numeralFormatter(borrows)}`
                 ) : (
                   <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                 )}
@@ -81,7 +91,12 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
           <DividerLine />
           <div className="h-full w-1/4">
             <div>
-              <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+              <Typography
+                color="#868E95"
+                className="font-aeonik font-[300] text-xs flex gap-1"
+                gutterBottom
+                component="div"
+              >
                 TVL
                 <div className="self-center">
                   <MrgnTooltip
@@ -103,8 +118,8 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {globalTVL ? (
-                  `$${numeralFormatter(globalTVL)}`
+                {tvl ? (
+                  `$${numeralFormatter(tvl)}`
                 ) : (
                   <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                 )}
@@ -114,7 +129,12 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
           <DividerLine />
           <div className="h-full w-1/4">
             <div>
-              <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+              <Typography
+                color="#868E95"
+                className="font-aeonik font-[300] text-xs flex gap-1"
+                gutterBottom
+                component="div"
+              >
                 Points
                 <div className="self-center">
                   <MrgnTooltip
@@ -141,8 +161,8 @@ const GlobalStats: FC<GlobalStatsProps> = ({ globalBorrows, globalDeposits, glob
                 </div>
               </Typography>
               <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
-                {globalPoints ? (
-                  numeralFormatter(globalPoints)
+                {pointsTotal ? (
+                  numeralFormatter(pointsTotal)
                 ) : (
                   <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                 )}

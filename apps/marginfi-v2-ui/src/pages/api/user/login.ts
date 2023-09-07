@@ -1,22 +1,19 @@
 import * as admin from "firebase-admin";
-import {
-  NextApiRequest,
-  STATUS_BAD_REQUEST,
-  STATUS_INTERNAL_ERROR,
-  STATUS_NOT_FOUND,
-  STATUS_OK,
-  STATUS_UNAUTHORIZED,
-  SigningMethod,
-  getFirebaseUserByWallet,
-  initFirebaseIfNeeded,
-  logLoginAttempt,
-} from "./utils";
+import { NextApiRequest, getFirebaseUserByWallet, initFirebaseIfNeeded, logLoginAttempt } from "./utils";
 import { MEMO_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import base58 from "bs58";
 import { is } from "superstruct";
 import nacl from "tweetnacl";
-import { LoginPayloadStruct } from "~/api/firebase";
+import {
+  SigningMethod,
+  STATUS_BAD_REQUEST,
+  STATUS_UNAUTHORIZED,
+  STATUS_INTERNAL_ERROR,
+  STATUS_NOT_FOUND,
+  STATUS_OK,
+  firebaseApi,
+} from "@mrgnlabs/marginfi-v2-ui-state";
 
 initFirebaseIfNeeded();
 
@@ -96,7 +93,7 @@ export function validateAndUnpackLoginData(
     const authData = JSON.parse(memoIx.data.toString("utf8"));
     signerWallet = tx.feePayer!;
 
-    if (!is(authData, LoginPayloadStruct)) {
+    if (!is(authData, firebaseApi.LoginPayloadStruct)) {
       throw new Error("Invalid login payload");
     }
   } else {

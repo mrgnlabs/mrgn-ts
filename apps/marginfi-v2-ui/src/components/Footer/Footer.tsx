@@ -1,6 +1,5 @@
-import { FC, useMemo } from "react";
-import { lendZoomLevel, denominationUSD } from "~/state";
-import { useRecoilState } from "recoil";
+import { FC, useEffect, useMemo, useState } from "react";
+import { useUserProfileStore } from "~/store";
 import Switch from "@mui/material/Switch";
 import { useRouter } from "next/router";
 import SvgIcon from "@mui/material/SvgIcon";
@@ -51,24 +50,26 @@ const Footer: FC = () => {
 };
 
 const HotkeysInfo: FC = () => {
-  const isMac = () => {
-    return typeof window !== "undefined" && window.navigator.userAgent.includes("Mac");
-  };
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    setIsMac(window.navigator.userAgent.includes("Mac"));
+  }, []);
 
   return (
     <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] px-4 font-[500]">
-      {isMac() ? "⌘" : "^"}+K to see hotkeys
+      {isMac ? "⌘" : "^"}+K to see hotkeys
     </div>
   );
 };
 
 const LendZoomControl: FC = () => {
-  const [_, setZoom] = useRecoilState(lendZoomLevel);
+  const setLendZoomLevel = useUserProfileStore((state) => state.setLendZoomLevel);
 
   return (
     <div className="flex gap-4 items-center justify-center border-r border-[#4E5257] pr-4">
       <div className="flex items-center h-full">
-        <SvgIcon onClick={() => setZoom(1)} viewBox="0 0 17 17">
+        <SvgIcon onClick={() => setLendZoomLevel(1)} viewBox="0 0 17 17">
           <svg fill="#868E95" className="cursor-pointer glow-on-hover text-lg">
             <path
               strokeWidth={1.5}
@@ -78,7 +79,7 @@ const LendZoomControl: FC = () => {
         </SvgIcon>
       </div>
       <div className="flex items-center h-full">
-        <SvgIcon onClick={() => setZoom(2)} viewBox="0 0 16 16">
+        <SvgIcon onClick={() => setLendZoomLevel(2)} viewBox="0 0 16 16">
           <svg fill="#868E95" className="cursor-pointer glow-on-hover text-lg">
             <path
               strokeWidth={1.5}
@@ -88,7 +89,7 @@ const LendZoomControl: FC = () => {
         </SvgIcon>
       </div>
       <div className="flex items-center h-full">
-        <SvgIcon onClick={() => setZoom(3)} viewBox="0 0 16 16">
+        <SvgIcon onClick={() => setLendZoomLevel(3)} viewBox="0 0 16 16">
           <svg fill="#868E95" className="cursor-pointer glow-on-hover text-lg">
             <path
               strokeWidth={1.5}
@@ -102,16 +103,15 @@ const LendZoomControl: FC = () => {
 };
 
 const LendUnitControl: FC = () => {
-  const [denomination, setDenominationUSD] = useRecoilState(denominationUSD);
-
-  const denominationOnChange = (event: any) => {
-    setDenominationUSD(event.target.checked);
-  };
+  const [denomination, setDenominationUSD] = useUserProfileStore((state) => [
+    state.denominationUSD,
+    state.setDenominationUSD,
+  ]);
 
   return (
     <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] pr-6">
       <Switch
-        onChange={denominationOnChange}
+        onChange={(_, checked) => setDenominationUSD(checked)}
         sx={{
           color: "#868E95",
           "& .MuiSwitch-thumb": {

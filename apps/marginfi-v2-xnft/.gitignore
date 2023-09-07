@@ -1,0 +1,17 @@
+node_modules/
+src/mrgn-ts-main/
+.expo/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+.xnft-bundle/
+xnft-bundle.zip
+
+# macOS
+.DS_Store

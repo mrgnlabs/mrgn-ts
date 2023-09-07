@@ -16,6 +16,16 @@ export function loadKeypair(keypairPath: string): Keypair {
   return Keypair.fromSecretKey(new Uint8Array(JSON.parse(require("fs").readFileSync(keyPath).toString())));
 }
 
+export function getValueInsensitive<T>(map: Record<string, T>, key: string): T {
+  const lowerCaseLabel = key.toLowerCase();
+  for (let key in map) {
+    if (key.toLowerCase() === lowerCaseLabel) {
+      return map[key];
+    }
+  }
+  throw new Error(`Token metadata not found for ${key}`);
+}
+
 /**
  * Transaction processing and error-handling helper.
  */

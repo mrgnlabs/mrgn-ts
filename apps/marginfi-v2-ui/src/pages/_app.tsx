@@ -10,30 +10,23 @@ import {
   SolflareWalletAdapter,
   GlowWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-import { OKXWalletAdapter } from "~/context/OKXWallet";
+import { OKXWalletAdapter } from "~/utils";
 import { init, push } from "@socialgouv/matomo-next";
-import config from "../config";
-import { Navbar, Footer } from "~/components";
+import config from "~/config";
 
-import {
-  BanksStateProvider,
-  ProgramProvider,
-  TokenAccountsProvider,
-  TokenMetadataProvider,
-  UserAccountsProvider,
-  BankMetadataProvider,
-} from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-import { RecoilRoot } from "recoil";
-import { FirebaseAccountProvider } from "~/context/FirebaseAccount";
+import dynamic from "next/dynamic";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
 require("~/styles/asset-borders.css");
+
+const Navbar = dynamic(async () => (await import("~/components/Navbar")).Navbar, { ssr: false });
+const Footer = dynamic(async () => (await import("~/components/Footer")).Footer, { ssr: false });
 
 // Matomo
 const MATOMO_URL = "https://mrgn.matomo.cloud";
@@ -54,6 +47,8 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       new LedgerWalletAdapter(),
       new SolflareWalletAdapter(),
       new GlowWalletAdapter(),
+      new PhantomWalletAdapter(),
+      new BackpackWalletAdapter(),
     ],
     []
   );
@@ -62,35 +57,19 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     <ConnectionProvider endpoint={config.rpcEndpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <ProgramProvider>
-            <BankMetadataProvider>
-              <TokenMetadataProvider>
-                <BanksStateProvider>
-                  <TokenAccountsProvider>
-                    <UserAccountsProvider>
-                      <FirebaseAccountProvider>
-                        <Head>
-                          <title>marginfi</title>
-                          <meta name="description" content="marginfi v2 UI" />
-                          <meta name="viewport" content="width=device-width, initial-scale=1" />
-                          <link rel="icon" href="/favicon.ico" />
-                        </Head>
-                        <RecoilRoot>
-                          <Navbar />
-                          <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
-                            <Component {...pageProps} />
-                            <Analytics />
-                          </div>
-                          <Footer />
-                          <ToastContainer position="bottom-left" theme="dark" />
-                        </RecoilRoot>
-                      </FirebaseAccountProvider>
-                    </UserAccountsProvider>
-                  </TokenAccountsProvider>
-                </BanksStateProvider>
-              </TokenMetadataProvider>
-            </BankMetadataProvider>
-          </ProgramProvider>
+          <Head>
+            <title>marginfi</title>
+            <meta name="description" content="marginfi v2 UI" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <link rel="icon" href="/favicon.ico" />
+          </Head>
+          <Navbar />
+          <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
+            <Component {...pageProps} />
+            <Analytics />
+          </div>
+          <Footer />
+          <ToastContainer position="bottom-left" theme="dark" />
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>

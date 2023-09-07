@@ -14,15 +14,6 @@ import {
 import { init, push } from "@socialgouv/matomo-next";
 import config from "../config";
 import { Navbar, Footer } from "~/components";
-import {
-  BanksStateProvider,
-  ProgramProvider,
-  TokenAccountsProvider,
-  TokenMetadataProvider,
-  UserAccountsProvider,
-  JupiterApiProvider,
-  BankMetadataProvider,
-} from "~/context";
 import "react-toastify/dist/ReactToastify.min.css";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -59,35 +50,21 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     <ConnectionProvider endpoint={config.rpcEndpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <ProgramProvider>
-            <BankMetadataProvider>
-              <TokenMetadataProvider>
-                <BanksStateProvider>
-                  <TokenAccountsProvider>
-                    <UserAccountsProvider>
-                      <JupiterApiProvider>
-                        <Head>
-                          <title>omni</title>
-                          <meta
-                            name="description"
-                            content="Omni, an autonomous agent that helps humans interact with the Solana blockchain."
-                          />
-                          <meta name="viewport" content="width=device-width, initial-scale=1" />
-                          <link rel="icon" href="/favicon.ico" />
-                        </Head>
-                        <Navbar />
-                        <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
-                          <Component {...pageProps} />
-                          <Analytics />
-                        </div>
-                        <Footer />
-                      </JupiterApiProvider>
-                    </UserAccountsProvider>
-                  </TokenAccountsProvider>
-                </BanksStateProvider>
-              </TokenMetadataProvider>
-            </BankMetadataProvider>
-          </ProgramProvider>
+          <Head>
+            <title>omni</title>
+            <meta
+              name="description"
+              content="Omni, an autonomous agent that helps humans interact with the Solana blockchain."
+            />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <link rel="icon" href="/favicon.ico" />
+          </Head>
+          <Navbar />
+          <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
+            <Component {...pageProps} />
+            <Analytics />
+          </div>
+          <Footer />
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>

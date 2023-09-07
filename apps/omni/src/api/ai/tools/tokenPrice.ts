@@ -1,7 +1,7 @@
 import { Tool } from "langchain/tools";
 import { Connection } from "@solana/web3.js";
 import { PythHttpClient, getPythProgramKeyForCluster } from "@pythnetwork/client";
-import { usdFormatter } from "~/utils/formatters";
+import { usdFormatter } from "@mrgnlabs/mrgn-common";
 
 interface TokenPriceProps {
   tokenName: string;

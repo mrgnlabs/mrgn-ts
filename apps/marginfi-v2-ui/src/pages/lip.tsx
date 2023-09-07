@@ -1,15 +1,16 @@
-import { useWallet } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
 import { CampaignWizard } from "~/components/CampaignWizard";
+import { LipClientProvider } from "~/context";
+import { useWalletContext } from "~/components/useWalletContext";
 
 const LIP = () => {
-  const wallet = useWallet();
+  const { connected } = useWalletContext();
 
   return (
-    <>
+    <LipClientProvider>
       <PageHeader />
-      {wallet.connected && <CampaignWizard />}
-    </>
+      {connected && <CampaignWizard />}
+    </LipClientProvider>
   );
 };
 

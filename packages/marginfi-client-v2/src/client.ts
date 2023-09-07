@@ -1,6 +1,7 @@
 import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {
+  Commitment,
   ConfirmOptions,
   Connection,
   Keypair,
@@ -14,9 +15,8 @@ import {
 import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "./types";
 import { MARGINFI_IDL } from "./idl";
 import { getConfig } from "./config";
-import MarginfiGroup from "./group";
 import instructions from "./instructions";
-import MarginfiAccount, { MarginRequirementType, MarginfiAccountData } from "./account";
+import { MarginRequirementType, MarginfiAccountRaw } from "./models/account";
 import {
   DEFAULT_COMMITMENT,
   DEFAULT_CONFIRM_OPTS,
@@ -26,13 +26,24 @@ import {
   TransactionOptions,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
+import { MarginfiGroup } from "./models/group";
+import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, OraclePrice } from ".";
+import { MarginfiAccountWrapper } from "./models/account/wrapper";
+
+export type BankMap = Map<string, Bank>;
+export type OraclePriceMap = Map<string, OraclePrice>;
 
 /**
  * Entrypoint to interact with the marginfi contract.
  */
 class MarginfiClient {
-  public readonly programId: PublicKey;
-  private _group: MarginfiGroup;
+  public group: MarginfiGroup;
+  public banks: BankMap;
+  public oraclePrices: OraclePriceMap;
+
+  // --------------------------------------------------------------------------
+  // Factories
+  // --------------------------------------------------------------------------
 
   /**
    * @internal
@@ -41,13 +52,15 @@ class MarginfiClient {
     readonly config: MarginfiConfig,
     readonly program: MarginfiProgram,
     readonly wallet: Wallet,
-    group: MarginfiGroup
+    readonly isReadOnly: boolean,
+    group: MarginfiGroup,
+    banks: BankMap,
+    priceInfos: OraclePriceMap
   ) {
-    this.programId = config.programId;
-    this._group = group;
+    this.group = group;
+    this.banks = banks;
+    this.oraclePrices = priceInfos;
   }
-
-  // --- Factories
 
   /**
    * MarginfiClient factory
@@ -60,7 +73,13 @@ class MarginfiClient {
    * @param opts Solana web.js ConfirmOptions object
    * @returns MarginfiClient instance
    */
-  static async fetch(config: MarginfiConfig, wallet: Wallet, connection: Connection, opts?: ConfirmOptions) {
+  static async fetch(
+    config: MarginfiConfig,
+    wallet: Wallet,
+    connection: Connection,
+    opts?: ConfirmOptions,
+    readOnly: boolean = false
+  ) {
     const debug = require("debug")("mfi:client");
     debug(
       "Loading Marginfi Client\n\tprogram: %s\n\tenv: %s\n\tgroup: %s\n\turl: %s",
@@ -74,9 +93,11 @@ class MarginfiClient {
       commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
       ...opts,
     });
-
     const program = new Program(MARGINFI_IDL, config.programId, provider) as any as MarginfiProgram;
-    return new MarginfiClient(config, program, wallet, await MarginfiGroup.fetch(config, program, opts?.commitment));
+
+    const { marginfiGroup, banks, priceInfos } = await this.fetchGroupData(program, config.groupPk, opts?.commitment);
+
+    return new MarginfiClient(config, program, wallet, readOnly, marginfiGroup, banks, priceInfos);
   }
 
   static async fromEnv(
@@ -120,66 +141,76 @@ class MarginfiClient {
     });
   }
 
-  // --- Getters and setters
+  // NOTE: 2 RPC calls
+  static async fetchGroupData(
+    program: MarginfiProgram,
+    groupAddress: PublicKey,
+    commitment?: Commitment
+  ): Promise<{ marginfiGroup: MarginfiGroup; banks: Map<string, Bank>; priceInfos: Map<string, OraclePrice> }> {
+    // Fetch & shape all accounts of Bank type (~ bank discovery)
+    let bankAccountsData = await program.account.bank.all([
+      { memcmp: { offset: 8 + 32 + 1, bytes: groupAddress.toBase58() } },
+    ]);
+    const bankDatasKeyed = bankAccountsData.map((account) => ({
+      address: account.publicKey,
+      data: account.account as any as BankRaw,
+    }));
 
-  /**
-   * Marginfi account group address
-   */
-  get group(): MarginfiGroup {
-    return this._group;
+    // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
+    const [groupAi, ...priceFeedAis] = await program.provider.connection.getMultipleAccountsInfo(
+      [groupAddress, ...bankDatasKeyed.map((b) => b.data.config.oracleKeys[0])],
+      commitment
+    ); // NOTE: This will break if/when we start having more than 1 oracle key per bank
+
+    // Unpack raw data for group and oracles, and build the `Bank`s map
+    if (!groupAi) throw new Error("Failed to fetch the on-chain group data");
+    const marginfiGroup = MarginfiGroup.fromBuffer(groupAi.data);
+
+    const banks = new Map(
+      bankDatasKeyed.map(({ address, data }) => [address.toBase58(), Bank.fromAccountParsed(address, data)])
+    );
+
+    const priceInfos = new Map(
+      bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
+        const priceDataRaw = priceFeedAis[index];
+        if (!priceDataRaw) throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
+        const oracleSetup = parseOracleSetup(bankData.config.oracleSetup);
+        return [bankAddress.toBase58(), parsePriceInfo(oracleSetup, priceDataRaw.data)];
+      })
+    );
+
+    return {
+      marginfiGroup,
+      banks,
+      priceInfos,
+    };
+  }
+
+  async reload() {
+    const { marginfiGroup, banks, priceInfos } = await MarginfiClient.fetchGroupData(
+      this.program,
+      this.config.groupPk,
+      this.program.provider.connection.commitment
+    );
+    this.group = marginfiGroup;
+    this.banks = banks;
+    this.oraclePrices = priceInfos;
+  }
+
+  // --------------------------------------------------------------------------
+  // Attributes
+  // --------------------------------------------------------------------------
+
+  get groupAddress(): PublicKey {
+    return this.config.groupPk;
   }
 
   get provider(): AnchorProvider {
     return this.program.provider as AnchorProvider;
   }
 
-  // --- Others
-
-  /**
-   * Create transaction instruction to create a new marginfi account under the authority of the user.
-   *
-   * @returns transaction instruction
-   */
-  async makeCreateMarginfiAccountIx(marginfiAccountKeypair?: Keypair): Promise<InstructionsWrapper> {
-    const dbg = require("debug")("mfi:client");
-    const accountKeypair = marginfiAccountKeypair || Keypair.generate();
-
-    dbg("Generating marginfi account ix for %s", accountKeypair.publicKey);
-
-    const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
-      marginfiGroupPk: this._group.publicKey,
-      marginfiAccountPk: accountKeypair.publicKey,
-      authorityPk: this.provider.wallet.publicKey,
-      feePayerPk: this.provider.wallet.publicKey,
-    });
-
-    const ixs = [initMarginfiAccountIx];
-
-    return {
-      instructions: ixs,
-      keys: [accountKeypair],
-    };
-  }
-
-  /**
-   * Create a new marginfi account under the authority of the user.
-   *
-   * @returns MarginfiAccount instance
-   */
-  async createMarginfiAccount(opts?: TransactionOptions): Promise<MarginfiAccount> {
-    const dbg = require("debug")("mfi:client");
-
-    const accountKeypair = Keypair.generate();
-
-    const ixs = await this.makeCreateMarginfiAccountIx(accountKeypair);
-    const tx = new Transaction().add(...ixs.instructions);
-    const sig = await this.processTransaction(tx, ixs.keys, opts);
-
-    dbg("Created Marginfi account %s", sig);
-
-    return opts?.dryRun
-      ? Promise.resolve(undefined as unknown as MarginfiAccount)
-      : MarginfiAccount.fetch(accountKeypair.publicKey, this, opts?.commitment);
+  get programId(): PublicKey {
+    return this.program.programId;
   }
 
   /**
@@ -187,17 +218,17 @@ class MarginfiClient {
    *
    * @returns Account addresses
    */
-  async getAllMarginfiAccounts(): Promise<MarginfiAccount[]> {
+  async getAllMarginfiAccounts(): Promise<MarginfiAccountWrapper[]> {
     return (
       await this.program.account.marginfiAccount.all([
         {
           memcmp: {
-            bytes: this._group.publicKey.toBase58(),
+            bytes: this.config.groupPk.toBase58(),
             offset: 8, // marginfiGroup is the first field in the account, so only offset is the discriminant
           },
         },
       ])
-    ).map((a) => MarginfiAccount.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, this.group));
+    ).map((a) => MarginfiAccountWrapper.fromAccountParsed(a.publicKey, this, a.account as MarginfiAccountRaw));
   }
 
   /**
@@ -216,7 +247,7 @@ class MarginfiClient {
         filters: [
           {
             memcmp: {
-              bytes: this._group.publicKey.toBase58(),
+              bytes: this.groupAddress.toBase58(),
               offset: 8, // marginfiGroup is the second field in the account after the authority, so offset by the discriminant and a pubkey
             },
           },
@@ -236,15 +267,14 @@ class MarginfiClient {
    *
    * @returns MarginfiAccount instances
    */
-  async getMarginfiAccountsForAuthority(authority?: Address): Promise<MarginfiAccount[]> {
-    const marginfiGroup = await MarginfiGroup.fetch(this.config, this.program);
+  async getMarginfiAccountsForAuthority(authority?: Address): Promise<MarginfiAccountWrapper[]> {
     const _authority = authority ? translateAddress(authority) : this.provider.wallet.publicKey;
 
     const marginfiAccounts = (
       await this.program.account.marginfiAccount.all([
         {
           memcmp: {
-            bytes: this._group.publicKey.toBase58(),
+            bytes: this.groupAddress.toBase58(),
             offset: 8, // marginfiGroup is the first field in the account, so only offset is the discriminant
           },
         },
@@ -255,11 +285,11 @@ class MarginfiClient {
           },
         },
       ])
-    ).map((a) => MarginfiAccount.fromAccountData(a.publicKey, this, a.account as MarginfiAccountData, marginfiGroup));
+    ).map((a) => MarginfiAccountWrapper.fromAccountParsed(a.publicKey, this, a.account as MarginfiAccountRaw));
 
     marginfiAccounts.sort((accountA, accountB) => {
-      const assetsValueA = accountA.getHealthComponents(MarginRequirementType.Equity).assets;
-      const assetsValueB = accountB.getHealthComponents(MarginRequirementType.Equity).assets;
+      const assetsValueA = accountA.computeHealthComponents(MarginRequirementType.Equity).assets;
+      const assetsValueB = accountB.computeHealthComponents(MarginRequirementType.Equity).assets;
 
       if (assetsValueA.eq(assetsValueB)) return 0;
       return assetsValueA.gt(assetsValueB) ? -1 : 1;
@@ -293,6 +323,75 @@ class MarginfiClient {
     ).map((a) => a.pubkey);
   }
 
+  getBankByPk(bankAddress: Address): Bank | null {
+    let _bankAddress = translateAddress(bankAddress);
+    return this.banks.get(_bankAddress.toString()) ?? null;
+  }
+
+  getBankByMint(mint: Address): Bank | null {
+    const _mint = translateAddress(mint);
+    return [...this.banks.values()].find((bank) => bank.mint.equals(_mint)) ?? null;
+  }
+
+  getOraclePriceByBank(bankAddress: Address): OraclePrice | null {
+    let _bankAddress = translateAddress(bankAddress);
+    return this.oraclePrices.get(_bankAddress.toString()) ?? null;
+  }
+  // --------------------------------------------------------------------------
+  // User actions
+  // --------------------------------------------------------------------------
+
+  /**
+   * Create transaction instruction to create a new marginfi account under the authority of the user.
+   *
+   * @returns transaction instruction
+   */
+  async makeCreateMarginfiAccountIx(marginfiAccountKeypair?: Keypair): Promise<InstructionsWrapper> {
+    const dbg = require("debug")("mfi:client");
+    const accountKeypair = marginfiAccountKeypair || Keypair.generate();
+
+    dbg("Generating marginfi account ix for %s", accountKeypair.publicKey);
+
+    const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
+      marginfiGroupPk: this.groupAddress,
+      marginfiAccountPk: accountKeypair.publicKey,
+      authorityPk: this.provider.wallet.publicKey,
+      feePayerPk: this.provider.wallet.publicKey,
+    });
+
+    const ixs = [initMarginfiAccountIx];
+
+    return {
+      instructions: ixs,
+      keys: [accountKeypair],
+    };
+  }
+
+  /**
+   * Create a new marginfi account under the authority of the user.
+   *
+   * @returns MarginfiAccount instance
+   */
+  async createMarginfiAccount(opts?: TransactionOptions): Promise<MarginfiAccountWrapper> {
+    const dbg = require("debug")("mfi:client");
+
+    const accountKeypair = Keypair.generate();
+
+    const ixs = await this.makeCreateMarginfiAccountIx(accountKeypair);
+    const tx = new Transaction().add(...ixs.instructions);
+    const sig = await this.processTransaction(tx, ixs.keys, opts);
+
+    dbg("Created Marginfi account %s", sig);
+
+    return opts?.dryRun
+      ? Promise.resolve(undefined as unknown as MarginfiAccountWrapper)
+      : MarginfiAccountWrapper.fetch(accountKeypair.publicKey, this, opts?.commitment);
+  }
+
+  // --------------------------------------------------------------------------
+  // Helpers
+  // --------------------------------------------------------------------------
+
   async processTransaction(
     transaction: Transaction | VersionedTransaction,
     signers?: Array<Signer>,
@@ -321,10 +420,9 @@ class MarginfiClient {
         versionedTransaction = transaction;
       }
 
-      versionedTransaction = await this.wallet.signTransaction(versionedTransaction);
       if (signers) versionedTransaction.sign(signers);
 
-      if (opts?.dryRun) {
+      if (opts?.dryRun || this.isReadOnly) {
         const response = await connection.simulateTransaction(
           versionedTransaction,
           opts ?? { minContextSlot, sigVerify: false }
@@ -349,6 +447,8 @@ class MarginfiClient {
 
         return versionedTransaction.signatures[0].toString();
       } else {
+        versionedTransaction = await this.wallet.signTransaction(versionedTransaction);
+
         let mergedOpts: ConfirmOptions = {
           ...DEFAULT_CONFIRM_OPTS,
           commitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,

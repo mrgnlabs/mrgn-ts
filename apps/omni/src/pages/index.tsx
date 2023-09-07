@@ -1,15 +1,13 @@
-import React, { FC, useState, useCallback, useRef, useMemo } from "react";
+import React, { FC, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import axios from "axios";
-import { TextField } from "@mui/material";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
 
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useBanks, useProgram, useUserAccounts } from "~/context";
-import { useJupiterApiContext } from "~/context/JupiterApiProvider";
-import { superStake, withdrawSuperstake } from "~/components/superStakeActions";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { TypeAnimation } from "react-type-animation";
-import { InputAdornment } from "@mui/material";
 import { FormEventHandler } from "react";
+import { useMrgnlendStore } from "~/store";
 
 const SAMPLE_PROMPTS = [
   "Show me my account, fool!",
@@ -36,12 +34,12 @@ const AiUI: FC = () => {
   const [transactionFailed, setTransactionFailed] = useState<boolean>(false);
   const [failed, setFailed] = useState<boolean>(false);
 
-  const { connection } = useConnection();
-  const { mfiClient: marginfiClient } = useProgram();
-  const { reload: reloadBanks } = useBanks();
   const wallet = useWallet();
-  const jupiter = useJupiterApiContext();
-  const { extendedBankInfos, selectedAccount } = useUserAccounts();
+  const [marginfiClient, selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
+    state.marginfiClient,
+    state.selectedAccount,
+    state.extendedBankInfos,
+  ]);
 
   const samplePrompt = useMemo(() => {
     return SAMPLE_PROMPTS[Math.floor(Math.random() * SAMPLE_PROMPTS.length)];
@@ -113,98 +111,34 @@ const AiUI: FC = () => {
     const amountFloat = parseFloat(amount);
 
     // Types:
-    const bankInfo = extendedBankInfos.find((bank) => bank.tokenSymbol.toUpperCase() === tokenSymbol);
+    const bankInfo = extendedBankInfos.find((bank) => bank.meta.tokenSymbol.toUpperCase() === tokenSymbol);
     if (!bankInfo) {
       throw new Error(`Bank info was not found, tokenSymbol: ${tokenSymbol} bankInfo: ${bankInfo}`);
     }
 
-    let mSOLBank;
-    let SOLBank;
-
     try {
       switch (action) {
         case "deposit":
-          // Check if the user has a marginfi account
           if (_marginfiAccount === null) {
             try {
               // If the user does not have a marginfi account, create one for them.
-
-              // First, we double check that we don't have a state management problem.
-              const userAccounts = await marginfiClient.getMarginfiAccountsForAuthority();
-              if (userAccounts.length > 0) {
-                try {
-                  await reloadBanks();
-                } catch (error: any) {
-                  throw new Error(`Error while reloading state: ${error}`);
-                }
-              }
-
-              // If we're all good on state, we create an account
               _marginfiAccount = await marginfiClient.createMarginfiAccount();
             } catch (error: any) {
               throw new Error(`Error while creating marginfi account: ${error}`);
-              break;
             }
           }
 
           console.log("constructing transaction");
 
           // perform the deposit action
-          await _marginfiAccount.deposit(amountFloat, bankInfo.bank);
+          await _marginfiAccount.deposit(amountFloat, bankInfo.address);
 
           break;
 
         case "borrow":
           // perform the borrow action
-          // @ts-ignore marginfi account is checked above
-          await _marginfiAccount.borrow(parseFloat(amount), bankInfo.bank);
-
-          break;
-
-        case "stake":
-          mSOLBank = extendedBankInfos.find((bank) => bank.tokenSymbol === "mSOL");
-          if (!mSOLBank) {
-            throw new Error("mSOL bank info was not found");
-          }
-          SOLBank = extendedBankInfos.find((bank) => bank.tokenSymbol === "SOL");
-          if (!SOLBank) {
-            throw new Error("SOL bank info was not found");
-          }
-
-          await superStake(
-            // @ts-ignore marginfi account is checked above
-            _marginfiAccount,
-            connection,
-            wallet,
-            amountFloat,
-            mSOLBank,
-            SOLBank,
-            reloadBanks
-          );
-
-          break;
-
-        case "unstake":
-          mSOLBank = extendedBankInfos.find((bank) => bank.tokenSymbol === "mSOL");
-          if (!mSOLBank) {
-            throw new Error("mSOL bank info was not found");
-          }
-          SOLBank = extendedBankInfos.find((bank) => bank.tokenSymbol === "SOL");
-          if (!SOLBank) {
-            throw new Error("SOL bank info was not found");
-          }
-
-          await withdrawSuperstake(
-            // @ts-ignore marginfi account is checked above
-            _marginfiAccount,
-            connection,
-            wallet,
-            amountFloat,
-            mSOLBank,
-            SOLBank,
-            reloadBanks,
-            jupiter
-          );
+          //@ts-ignore (mfi)
+          await _marginfiAccount.borrow(parseFloat(amount), bankInfo.address);
 
           break;
 

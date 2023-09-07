@@ -1,127 +1,7 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
-import { array, assert, Infer, number, object, string } from "superstruct";
-import { ActiveBankInfo, BankMetadata, TokenMetadata } from "~/types";
-import tokenInfos from "../assets/token_info.json";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
-
-export function floor(value: number, decimals: number): number {
-  return Math.floor(value * 10 ** decimals) / 10 ** decimals;
-}
-
-export function ceil(value: number, decimals: number): number {
-  return Math.ceil(value * 10 ** decimals) / 10 ** decimals;
-}
-
-// ================ token metadata ================
-
-const TokenMetadataRaw = object({
-  address: string(),
-  chainId: number(),
-  decimals: number(),
-  name: string(),
-  symbol: string(),
-  logoURI: string(),
-  extensions: object(),
-});
-const TokenMetadataList = array(TokenMetadataRaw);
-
-export type TokenMetadataRaw = Infer<typeof TokenMetadataRaw>;
-export type TokenMetadataListRaw = Infer<typeof TokenMetadataList>;
-
-const BankMetadataRaw = object({
-  bankAddress: string(),
-  tokenAddress: string(),
-  tokenName: string(),
-  tokenSymbol: string(),
-});
-const BankMetadataList = array(BankMetadataRaw);
-
-export type BankMetadataRaw = Infer<typeof BankMetadataRaw>;
-export type BankMetadataListRaw = Infer<typeof BankMetadataList>;
-
-function parseTokenMetadata(tokenMetadataRaw: TokenMetadataRaw): TokenMetadata {
-  return {
-    icon: tokenMetadataRaw.logoURI,
-    name: tokenMetadataRaw.name,
-    symbol: tokenMetadataRaw.symbol,
-  };
-}
-
-function parseTokenMetadatas(tokenMetadataListRaw: TokenMetadataListRaw): {
-  [symbol: string]: TokenMetadata;
-} {
-  return tokenMetadataListRaw.reduce(
-    (config, current, _) => ({
-      [current.symbol]: parseTokenMetadata(current),
-      ...config,
-    }),
-    {} as {
-      [symbol: string]: TokenMetadata;
-    }
-  );
-}
-
-function parseBankMetadata(bankMetadataRaw: BankMetadataRaw): BankMetadata {
-  return {
-    tokenAddress: bankMetadataRaw.tokenAddress,
-    tokenName: bankMetadataRaw.tokenName,
-    tokenSymbol: bankMetadataRaw.tokenSymbol,
-  };
-}
-
-function parseBankMetadatas(bankMetadataListRaw: BankMetadataListRaw): {
-  [symbol: string]: BankMetadata;
-} {
-  return bankMetadataListRaw.reduce(
-    (config, current, _) => ({
-      [current.bankAddress]: parseBankMetadata(current),
-      ...config,
-    }),
-    {} as {
-      [address: string]: BankMetadata;
-    }
-  );
-}
-
-export async function loadTokenMetadatas(): Promise<{
-  [symbol: string]: TokenMetadata;
-}> {
-  const response = await fetch(`https://storage.googleapis.com/mrgn-public/mrgn-token-metadata-cache.json`, {
-    headers: {
-      Accept: "application/json",
-    },
-    method: "GET",
-  });
-
-  if (response.status === 200) {
-    const responseData = await response.json();
-    assert(responseData, TokenMetadataList);
-    return parseTokenMetadatas(responseData);
-  } else {
-    assert(tokenInfos, TokenMetadataList);
-    return parseTokenMetadatas(tokenInfos);
-  }
-}
-
-export async function loadBankMetadatas(): Promise<{
-  [address: string]: BankMetadata;
-}> {
-  const response = await fetch(`https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json`, {
-    headers: {
-      Accept: "application/json",
-    },
-    method: "GET",
-  });
-
-  if (response.status === 200) {
-    const responseData = await response.json();
-    assert(responseData, BankMetadataList);
-    return parseBankMetadatas(responseData);
-  } else {
-    throw new Error("Failed to fetch bank metadata");
-  }
-}
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 // ================ development utils ================
 
@@ -150,9 +30,11 @@ export function makeAirdropCollateralIx(
   });
 }
 
-export function isWholePosition(positionWithBank: ActiveBankInfo, amount: number): boolean {
+export function isWholePosition(activeBankInfo: ActiveBankInfo, amount: number): boolean {
   const positionTokenAmount =
-    Math.floor(positionWithBank.position.amount * Math.pow(10, positionWithBank.tokenMintDecimals)) /
-    Math.pow(10, positionWithBank.tokenMintDecimals);
+    Math.floor(activeBankInfo.position.amount * Math.pow(10, activeBankInfo.info.state.mintDecimals)) /
+    Math.pow(10, activeBankInfo.info.state.mintDecimals);
   return amount >= positionTokenAmount;
 }
+
+export { OKXWalletAdapter } from "./OKXWalletAdapter";

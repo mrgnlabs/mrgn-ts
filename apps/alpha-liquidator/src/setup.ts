@@ -1,4 +1,4 @@
-import { getConfig, MarginfiAccount, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { getConfig, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { getAssociatedTokenAddressSync, NodeWallet } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
@@ -17,11 +17,11 @@ const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
       resolve(data.toString().trim());
     });
   });
-  let marginfiAccount: MarginfiAccount;
+  let marginfiAccount: MarginfiAccountWrapper;
   if (y === "y") {
     console.log("Creating marginfi account");
     marginfiAccount = await client.createMarginfiAccount();
-    console.log("Liquidator %s account created", marginfiAccount.publicKey);
+    console.log("Liquidator %s account created", marginfiAccount.address);
   } else {
     console.log("Exiting");
     process.exit(0);
@@ -41,7 +41,7 @@ const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
     });
 
     if (y === "y") {
-      await marginfiAccount.deposit(balance, client.group.getBankByMint(USDC_MINT)!);
+      await marginfiAccount.deposit(balance, client.getBankByMint(USDC_MINT)!.address);
       console.log("Deposited %s USDC", balance);
     } else {
       console.log("Not depositing, your liquidator account will be empty");
@@ -52,7 +52,7 @@ const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
     console.log("You need to fund your liquidator account with USDC to be able to liquidate");
   }
 
-  console.log("run `export LIQUIDATOR_PK=%s` to set the liquidator account", marginfiAccount.publicKey);
+  console.log("run `export LIQUIDATOR_PK=%s` to set the liquidator account", marginfiAccount.address);
   console.log("then `yarn start` to start the liquidator");
   process.exit(0);
 })();

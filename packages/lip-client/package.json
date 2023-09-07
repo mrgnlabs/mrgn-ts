@@ -15,7 +15,6 @@
     "@coral-xyz/anchor": "^0.28.1-beta.2",
     "@mrgnlabs/marginfi-client-v2": "*",
     "@mrgnlabs/mrgn-common": "*",
-    "@pythnetwork/client": "^2.9.0",
     "@solana/wallet-adapter-base": "^0.9.20",
     "@solana/web3.js": "^1.71.0",
     "bignumber.js": "^9.1.1",
