@@ -60,7 +60,7 @@ const AirdropZone: FC = () => {
 
   return (
     <div>
-      <span className="glow-on-hover" onClick={open}>
+      <span onClick={open}>
         Airdrop
       </span>
       <Modal open={isOpen} onClose={close} aria-labelledby="title" aria-describedby="description">

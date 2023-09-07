@@ -60,13 +60,6 @@ a {
   animation: pulse 1.8s infinite;
 }
 
-.glow-on-hover:hover {
-  text-shadow: 0 0 10px #DCE85D, 0 0 30px #DCE85D;
-  filter: drop-shadow(0 0 10px #DCE85D) drop-shadow(0 0 30px #DCE85D);
-  color: #DCE85D !important;
-  fill: #DCE85D !important;
-}
-
 .hover-underline-static {
   display: inline-block;
   position: relative;
