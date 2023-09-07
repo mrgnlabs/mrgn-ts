@@ -208,7 +208,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       </TableCell>
 
       <TableCell className="text-white font-aeonik p-0 border-none" align="right">
-        <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
+        <div className="h-full w-full flex justify-end items-center pl-2 sm:px-2">
           <UserPositionRowAction
             onClick={isDust ? closeBalance : withdrawOrRepay}
             disabled={
