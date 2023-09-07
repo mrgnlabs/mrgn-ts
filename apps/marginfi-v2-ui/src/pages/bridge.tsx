@@ -5,10 +5,10 @@ import config from "~/config";
 import Script from "next/script";
 import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
-import { PageHeaderBridge } from "~/components/PageHeader";
+import { PageHeaderBridge } from "~/components/desktop/PageHeader";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
 import { useUserProfileStore } from "~/store";
-import { useWalletContext } from "~/components/useWalletContext";
+import { useWalletContext } from "~/components/common/useWalletContext";
 
 const tokens = [
   "0x0000000000000000000000000000000000000000", // SOL

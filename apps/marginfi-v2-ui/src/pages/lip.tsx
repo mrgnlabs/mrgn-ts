@@ -1,7 +1,7 @@
-import { PageHeader } from "~/components/PageHeader";
-import { CampaignWizard } from "~/components/CampaignWizard";
+import { PageHeader } from "~/components/desktop/PageHeader";
+import { CampaignWizard } from "~/components/desktop/CampaignWizard";
 import { LipClientProvider } from "~/context";
-import { useWalletContext } from "~/components/useWalletContext";
+import { useWalletContext } from "~/components/common/useWalletContext";
 
 const LIP = () => {
   const { connected } = useWalletContext();

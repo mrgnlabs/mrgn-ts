@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import config from "~/config";
-import { PageHeaderSwap } from "~/components/PageHeader";
-import { useWalletContext } from "~/components/useWalletContext";
+import { PageHeaderSwap } from "~/components/desktop/PageHeader";
+import { useWalletContext } from "~/components/common/useWalletContext";
 
 const SwapPage = () => {
   const { walletContextState } = useWalletContext();

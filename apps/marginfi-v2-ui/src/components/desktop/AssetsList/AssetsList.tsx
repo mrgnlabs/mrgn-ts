@@ -9,7 +9,7 @@ import AssetRow from "./AssetRow";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useHotkeys } from "react-hotkeys-hook";
 import { LoadingAsset } from "./AssetRow/AssetRow";
-import { useWalletContext } from "../useWalletContext";
+import { useWalletContext } from "../../common/useWalletContext";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />

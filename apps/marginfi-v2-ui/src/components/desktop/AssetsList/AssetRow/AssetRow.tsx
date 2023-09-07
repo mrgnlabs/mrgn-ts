@@ -27,7 +27,7 @@ import {
   ExtendedBankMetadata,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { useWalletContext } from "~/components/useWalletContext";
+import { useWalletContext } from "~/components/common/useWalletContext";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";

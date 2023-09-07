@@ -2,7 +2,7 @@ import { Typography, Skeleton } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
 import { FC } from "react";
-import { MrgnTooltip } from "~/components/Tooltip";
+import { MrgnTooltip } from "~/components/desktop/Tooltip";
 import styles from "./style.module.css";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 

@@ -10,7 +10,7 @@ import {
   getAssociatedTokenAddressSync,
   shortenAddress,
 } from "@mrgnlabs/mrgn-common";
-import { useWalletContext } from "../useWalletContext";
+import { useWalletContext } from "../../common/useWalletContext";
 
 const SOL_AMOUNT = 2 * 10 ** 9;
 

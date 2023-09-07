@@ -1,6 +1,6 @@
 import React, { FC, MouseEventHandler, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { PageHeader } from "~/components/PageHeader";
+import { PageHeader } from "~/components/desktop/PageHeader";
 import { useLipClient } from "~/context";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -28,10 +28,10 @@ import {
   usdFormatterDyn,
 } from "@mrgnlabs/mrgn-common";
 import { Bank, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { Countdown } from "~/components/Countdown";
+import { Countdown } from "~/components/desktop/Countdown";
 import { toast } from "react-toastify";
 import BigNumber from "bignumber.js";
-import { useWalletContext } from "~/components/useWalletContext";
+import { useWalletContext } from "~/components/common/useWalletContext";
 import { useMrgnlendStore } from "~/store";
 
 const Earn = () => {

@@ -1,19 +1,20 @@
 import React, { useEffect } from "react";
-import { Banner } from "~/components";
-import { PageHeader } from "~/components/PageHeader";
-import { useWalletContext } from "~/components/useWalletContext";
+import { Banner } from "~/components/desktop/Banner";
+import { PageHeader } from "~/components/desktop/PageHeader";
+import { useWalletContext } from "~/components/common/useWalletContext";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import config from "~/config/marginfi";
 import { useMrgnlendStore } from "../store";
 import dynamic from "next/dynamic";
-import { OverlaySpinner } from "~/components/OverlaySpinner";
+import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
 import { useConnection } from "@solana/wallet-adapter-react";
+import { Desktop, Mobile } from "~/mediaQueries";
 
-const AccountSummary = dynamic(async () => (await import("~/components/AccountSummary")).AccountSummary, {
+const AccountSummary = dynamic(async () => (await import("~/components/desktop/AccountSummary")).AccountSummary, {
   ssr: false,
 });
-const AssetsList = dynamic(async () => (await import("~/components/AssetsList")).AssetsList, { ssr: false });
-const UserPositions = dynamic(async () => (await import("~/components/UserPositions")).UserPositions, { ssr: false });
+const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
+const UserPositions = dynamic(async () => (await import("~/components/desktop/UserPositions")).UserPositions, { ssr: false });
 
 const Home = () => {
   const { walletAddress, wallet, isOverride } = useWalletContext();
@@ -59,6 +60,7 @@ const Home = () => {
 
   return (
     <>
+    <Desktop>
       <PageHeader />
       <div className="flex flex-col h-full justify-start content-start pt-[64px] sm:pt-[16px] w-4/5 max-w-7xl gap-4">
         {walletAddress && selectedAccount && isOverride && (
@@ -80,6 +82,11 @@ const Home = () => {
         {walletAddress && <UserPositions />}
       </div>
       <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
+    </Desktop>
+
+    <Mobile>
+       LETS GOOOOO
+    </Mobile>
     </>
   );
 };

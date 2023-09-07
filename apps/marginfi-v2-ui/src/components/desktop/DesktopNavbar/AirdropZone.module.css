@@ -16,7 +16,7 @@
 #overlay {
   width: 100%;
   height: 100%;
-  background-image: url(../../../public/WaveBG2.png);
+  background-image: url(../../../../public/WaveBG2.png);
   background-size: 444px;
   padding: 20px 30px;
   background-repeat: no-repeat;

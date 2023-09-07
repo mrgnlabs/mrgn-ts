@@ -10,12 +10,12 @@ import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useRouter } from "next/router";
 import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
 import { Badge } from "@mui/material";
-import { useFirebaseAccount } from "../useFirebaseAccount";
+import { useFirebaseAccount } from "../../common/useFirebaseAccount";
 import { groupedNumberFormatterDyn, numeralFormatter } from "@mrgnlabs/mrgn-common";
-import { useWalletContext } from "../useWalletContext";
+import { useWalletContext } from "../../common/useWalletContext";
 
 // @todo implement second pretty navbar row
-const Navbar: FC = () => {
+const DesktopNavbar: FC = () => {
   useFirebaseAccount();
 
   const { connected, walletAddress } = useWalletContext();
@@ -250,4 +250,4 @@ const Navbar: FC = () => {
   );
 };
 
-export { Navbar };
+export { DesktopNavbar };

@@ -2,7 +2,7 @@ import React, { FC } from "react";
 import { UserStats } from "./UserStats";
 import { useMrgnlendStore } from "~/store";
 import dynamic from "next/dynamic";
-import { useWalletContext } from "../useWalletContext";
+import { useWalletContext } from "../../common/useWalletContext";
 
 const GlobalStats = dynamic(async () => (await import("./GlobalStats")).GlobalStats, { ssr: false });
 

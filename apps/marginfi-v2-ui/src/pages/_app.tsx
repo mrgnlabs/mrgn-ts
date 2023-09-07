@@ -18,6 +18,9 @@ import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import dynamic from "next/dynamic";
+import { Desk } from "@mui/icons-material";
+import { Desktop, Mobile } from "~/mediaQueries";
+import { MobileNavbar } from "~/components/mobile/DesktopNavbar";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -25,8 +28,8 @@ require("~/styles/globals.css");
 require("~/styles/fonts.css");
 require("~/styles/asset-borders.css");
 
-const Navbar = dynamic(async () => (await import("~/components/Navbar")).Navbar, { ssr: false });
-const Footer = dynamic(async () => (await import("~/components/Footer")).Footer, { ssr: false });
+const DesktopNavbar = dynamic(async () => (await import("~/components/desktop/DesktopNavbar")).DesktopNavbar, { ssr: false });
+const Footer = dynamic(async () => (await import("~/components/desktop/Footer")).Footer, { ssr: false });
 
 // Matomo
 const MATOMO_URL = "https://mrgn.matomo.cloud";
@@ -63,7 +66,13 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
             <meta name="viewport" content="width=device-width, initial-scale=1" />
             <link rel="icon" href="/favicon.ico" />
           </Head>
-          <Navbar />
+          <Desktop>
+            <DesktopNavbar />
+          </Desktop>
+          <Mobile>
+            <MobileNavbar />
+          </Mobile>
+
           <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
             <Component {...pageProps} />
             <Analytics />
