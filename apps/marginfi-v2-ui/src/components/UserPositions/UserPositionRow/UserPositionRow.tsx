@@ -11,7 +11,6 @@ import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const WITHDRAW_OR_REPAY_TOAST_ID = "withdraw-or-repay";
-const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 
 interface UserPositionRowProps {
   activeBankInfo: ActiveBankInfo;
@@ -67,22 +66,9 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
 
     setWithdrawOrRepayAmount(0);
 
-    toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
       await reloadPositions();
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: "Refreshing state 👍",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
     } catch (error: any) {
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: `Error while reloading state: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
       console.log("Error while reloading state");
       console.log(error);
     }
@@ -135,22 +121,9 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
 
     setWithdrawOrRepayAmount(0);
 
-    toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
       await reloadPositions();
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: "Refreshing state 👍",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
     } catch (error: any) {
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: `Error while reloading state: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
       console.log("Error while reloading state");
       console.log(error);
     }
