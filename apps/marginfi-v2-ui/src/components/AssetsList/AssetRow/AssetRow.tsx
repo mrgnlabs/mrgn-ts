@@ -658,6 +658,7 @@ const AssetRow: FC<{
             maxDecimals={bank.info.state.mintDecimals}
             inputRefs={inputRefs}
             disabled={isDust || currentAction === "Connect" || maxAmount === 0}
+            onEnter={borrowOrLend}
           />
         </Badge>
       </TableCell>

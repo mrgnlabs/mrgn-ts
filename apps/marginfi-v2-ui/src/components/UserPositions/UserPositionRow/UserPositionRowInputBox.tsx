@@ -8,6 +8,7 @@ interface UserPositionRowInputBoxProps {
   maxValue?: number;
   maxDecimals?: number;
   disabled?: boolean;
+  onEnter?: () => void;
 }
 
 const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
@@ -16,6 +17,7 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
   maxValue,
   maxDecimals,
   disabled,
+  onEnter,
 }) => {
   const onMaxClick = () => {
     if (maxValue !== undefined) {
@@ -53,6 +55,11 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
       InputProps={{
         className: "font-aeonik text-[#e1e1e1] border border-[#4E5257] p-0 m-0 text-sm h-11",
         endAdornment: <MaxInputAdornment onClick={onMaxClick} disabled={disabled || !maxValue} />,
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && onEnter) {
+          onEnter();
+        }
       }}
     />
   );

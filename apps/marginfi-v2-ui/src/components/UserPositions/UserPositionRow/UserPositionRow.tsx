@@ -203,6 +203,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
           maxValue={maxAmount}
           maxDecimals={activeBankInfo.info.state.mintDecimals}
           disabled={isDust || maxAmount === 0}
+          onEnter={withdrawOrRepay}
         />
       </TableCell>
 
