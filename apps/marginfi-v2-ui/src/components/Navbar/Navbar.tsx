@@ -110,9 +110,9 @@ const Navbar: FC = () => {
 
   return (
     <header>
-      <nav className="fixed w-full top-0 h-[64px] z-20 bg-[#0F1111]">
-        <div className="w-full top-0 flex justify-between items-center h-16 text-2xl z-10 border-b-[0.5px] border-[#1C2125] px-4">
-          <div className="h-full w-1/2 flex justify-start items-center z-10 text-base font-[300] gap-4 lg:gap-8">
+      <nav className="fixed w-full top-0 h-[64px] z-20">
+        <div className="w-full top-0 flex justify-between items-center h-16 text-sm font-[500] text-[#868E95] z-10 border-b-[0.5px] border-[#1C2125] px-4">
+          <div className="h-full w-1/2 flex justify-start items-center z-10 gap-4 lg:gap-8">
             <Link
               href={"https://app.marginfi.com"}
               className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center"
@@ -133,7 +133,7 @@ const Navbar: FC = () => {
               badgeContent={"l"}
               invisible={!showBadges}
             >
-              <Link href={"/"} className="glow-on-hover hidden md:block">
+              <Link href={"/"} className={`${router.asPath === "/" ? "hover-underline-static" : "hover-underline-animation"} hidden md:block`}>
                 lend
               </Link>
             </Badge>
@@ -152,7 +152,7 @@ const Navbar: FC = () => {
               badgeContent={"s"}
               invisible={!showBadges}
             >
-              <Link href={"/swap"} className="glow-on-hover">
+              <Link href={"/swap"} className={`${router.asPath === "/swap" ? "hover-underline-static" : "hover-underline-animation"}`}>
                 swap
               </Link>
             </Badge>
@@ -170,7 +170,7 @@ const Navbar: FC = () => {
               badgeContent={"b"}
               invisible={!showBadges}
             >
-              <Link href={"/bridge"} className="glow-on-hover">
+              <Link href={"/bridge"} className={`${router.asPath === "/bridge" ? "hover-underline-static" : "hover-underline-animation"}`}>
                 bridge
               </Link>
             </Badge>
@@ -190,7 +190,7 @@ const Navbar: FC = () => {
               invisible={!showBadges}
               className="hidden md:block"
             >
-              <Link href={"/earn"} className="glow-on-hover hidden md:block">
+              <Link href={"/earn"} className={`${router.asPath === "/earn" ? "hover-underline-static" : "hover-underline-animation"} hidden md:block`}>
                 earn
               </Link>
             </Badge>
@@ -210,15 +210,15 @@ const Navbar: FC = () => {
               invisible={!showBadges}
               className="hidden md:block"
             >
-              <Link href={"https://omni.marginfi.com"} className="glow-on-hover hidden md:block">
+              <Link href={"https://omni.marginfi.com"} className="hover-underline-animation hidden md:block">
                 omni
               </Link>
             </Badge>
             {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && connected && <AirdropZone />}
           </div>
-          <div className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[300] gap-4 lg:gap-8">
+          <div className="h-full w-1/2 flex justify-end items-center z-10 gap-4 lg:gap-8 text-[#868E95]">
             <div
-              className="glow-uxd whitespace-nowrap cursor-pointer hidden md:block"
+              className="whitespace-nowrap cursor-pointer hidden md:block"
               onClick={() => {
                 if (selectedAccount && extendedBankInfos?.find((b) => b.meta.tokenSymbol === "UXD")?.info.rawBank) {
                   selectedAccount!.withdrawEmissions(
@@ -236,10 +236,10 @@ const Navbar: FC = () => {
                   } UXP`}
             </div>
 
-            <Link href={"/points"} className="glow whitespace-nowrap">
+            <Link href={"/points"} className="whitespace-nowrap">
               {connected && currentFirebaseUser
                 ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
-                : "P...P...POINTS!"}
+                : "points"}
             </Link>
 
             <WalletButton />
