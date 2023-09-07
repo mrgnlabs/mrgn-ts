@@ -31,7 +31,6 @@ import { useWalletContext } from "~/components/useWalletContext";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
-const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -140,23 +139,10 @@ const AssetRow: FC<{
 
     setBorrowOrLendAmount(0);
 
-    toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
       setIsRefreshingStore(true);
       await fetchMrgnlendState();
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: "Refreshing state 👍",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
     } catch (error: any) {
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: `Error while reloading state: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
       console.log("Error while reloading state");
       console.log(error);
     }
@@ -290,23 +276,10 @@ const AssetRow: FC<{
     setBorrowOrLendAmount(0);
 
     // -------- Refresh state
-    toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
       setIsRefreshingStore(true);
       await fetchMrgnlendState();
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: "Refreshing state 👍",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
     } catch (error: any) {
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: `Error while reloading state: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
       console.log("Error while reloading state");
       console.log(error);
     }

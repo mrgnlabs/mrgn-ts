@@ -67,6 +67,47 @@ a {
   fill: #DCE85D !important;
 }
 
+.hover-underline-static {
+  display: inline-block;
+  position: relative;
+}
+
+.hover-underline-static::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(1);
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #7fff00;
+  transform-origin: center;
+  transition: transform 0.25s ease-out;
+}
+
+.hover-underline-animation {
+  display: inline-block;
+  position: relative;
+}
+
+.hover-underline-animation::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #7fff00;
+  transform-origin: center;
+  transition: transform 0.25s ease-out;
+}
+
+.hover-underline-animation:hover::after {
+  transform: scaleX(1);
+  transform-origin: center;
+}
+
 .glow {
   text-shadow: 0 0 10px #DCE85D, 0 0 30px #DCE85D;
   color: #DCE85D !important;
