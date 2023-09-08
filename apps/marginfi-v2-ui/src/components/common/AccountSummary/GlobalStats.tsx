@@ -1,10 +1,11 @@
 import { FC } from "react";
 import { Typography, Skeleton } from "@mui/material";
-import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import Image from "next/image";
 import Link from "next/link";
 
-import { MrgnTooltip } from "~/components/desktop/Tooltip";
+import { numeralFormatter } from "@mrgnlabs/mrgn-common";
+
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 
 import styles from "./style.module.css";
 

@@ -1,8 +1,7 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { TableCell, TableRow } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import Badge from "@mui/material/Badge";
@@ -21,10 +20,8 @@ import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2"
 import { borrowOrLend, closeBalance } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { HtmlTooltip } from "~/components/common/HtmlTooltip";
-
-import { AssetRowInputBox } from "./AssetRowInputBox";
-import { AssetRowAction } from "./AssetRowAction";
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { AssetRowInputBox, AssetRowAction } from "~/components/common/AssetList";
 
 const AssetRow: FC<{
   bank: ExtendedBankInfo;
@@ -156,7 +153,7 @@ const AssetRow: FC<{
         align="right"
         style={{ fontWeight: 300 }}
       >
-        <HtmlTooltip
+        <MrgnTooltip
           title={
             <React.Fragment>
               <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
@@ -191,7 +188,7 @@ const AssetRow: FC<{
                 : usdFormatter.format(bank.info.state.price)
               : `$${bank.info.state.price.toExponential(2)}`}
           </Badge>
-        </HtmlTooltip>
+        </MrgnTooltip>
       </TableCell>
 
       <TableCell
@@ -204,7 +201,7 @@ const AssetRow: FC<{
         <div className="h-full w-full flex justify-end items-center gap-3">
           {bank.meta.tokenSymbol === "UXD" && isInLendingMode && (
             <div className="w-1/2 flex justify-center sm:justify-end">
-              <HtmlTooltip
+              <MrgnTooltip
                 title={
                   <React.Fragment>
                     <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
@@ -222,7 +219,7 @@ const AssetRow: FC<{
                 placement="left"
               >
                 <Image src="/uxp-icon-white.png" alt="info" height={16} width={16} className="pulse" />
-              </HtmlTooltip>
+              </MrgnTooltip>
             </div>
           )}
           <div
@@ -249,7 +246,7 @@ const AssetRow: FC<{
         align="right"
         style={{ fontWeight: 300 }}
       >
-        <HtmlTooltip
+        <MrgnTooltip
           title={
             <React.Fragment>
               <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
@@ -304,7 +301,7 @@ const AssetRow: FC<{
                       )
                 )}
           </Badge>
-        </HtmlTooltip>
+        </MrgnTooltip>
       </TableCell>
 
       {/*******************************/}

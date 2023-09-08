@@ -1,6 +1,7 @@
 import React, { FC } from "react";
-import { useMrgnlendStore } from "~/store";
 import dynamic from "next/dynamic";
+
+import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { UserStats } from "~/components/common/AccountSummary";
 
@@ -19,7 +20,7 @@ const AccountSummary: FC = () => {
 
   return (
     <div className="flex flex-col lg:flex-row w-full justify-between items-center">
-      <div className="lg:block w-full h-[118px]">
+      <div className="font-[500] lg:block w-full h-[118px]">
         <div className="h-full rounded-xl p-[10px]">
           <span className="w-full flex justify-start text-xl">Global stats</span>
           <GlobalStats
@@ -33,10 +34,13 @@ const AccountSummary: FC = () => {
 
       <div className="w-full">
         {connected && (
-          <UserStats
-            accountSummary={isStoreInitialized && selectedAccount ? accountSummary : null}
-            healthFactor={accountSummary.healthFactor}
-          />
+          <div className="font-[500] h-full rounded-xl p-[10px]">
+            <span className="w-full h-full flex justify-start text-xl text-white">Your account</span>
+            <UserStats
+              accountSummary={isStoreInitialized && selectedAccount ? accountSummary : null}
+              healthFactor={accountSummary.healthFactor}
+            />
+          </div>
         )}
       </div>
     </div>

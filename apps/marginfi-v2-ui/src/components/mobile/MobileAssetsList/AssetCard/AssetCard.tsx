@@ -1,28 +1,19 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
-import { TableCell, TableRow } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
-import Badge from "@mui/material/Badge";
+import React, { FC, useCallback, useMemo } from "react";
 
-import {
-  WSOL_MINT,
-  groupedNumberFormatterDyn,
-  numeralFormatter,
-  percentFormatter,
-  uiToNative,
-  usdFormatter,
-} from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, ActionType, getCurrentAction, ExtendedBankMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { ExtendedBankInfo, ActionType, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
+import { useMrgnlendStore } from "~/store";
 import { borrowOrLend, closeBalance } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { HtmlTooltip } from "~/components/common/HtmlTooltip";
+
 import { AssetCardStats } from "./AssetCardStats";
+import { AssetCardActions } from "./AssetCardActions";
+
+import { AssetCardPosition } from "./AssetCardPosition";
+import { AssetCardHeader } from "./AssetCardHeader";
 
 export const AssetCard: FC<{
   bank: ExtendedBankInfo;
@@ -45,7 +36,9 @@ export const AssetCard: FC<{
   badgeContent,
 }) => {
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankFilled } = useAssetItemData({ bank, isInLendingMode });
-
+  const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
+  const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
+  const { connected } = useWalletContext();
   const totalDepositsOrBorrows = useMemo(
     () =>
       isInLendingMode
@@ -65,24 +58,46 @@ export const AssetCard: FC<{
     [bank.info.state.mint, bank.userInfo.tokenAccount, nativeSolBalance]
   );
 
+  const currentAction: ActionType | "Connect" = useMemo(
+    () => (connected ? getCurrentAction(isInLendingMode, bank) : "Connect"),
+    [connected, isInLendingMode, bank]
+  );
+
+  const handleCloseBalance = useCallback(async () => {
+    try {
+      closeBalance({ marginfiAccount, bank });
+    } catch (error) {
+      return;
+    }
+
+    try {
+      setIsRefreshingStore(true);
+      await fetchMrgnlendState();
+    } catch (error: any) {
+      console.log("Error while reloading state");
+      console.log(error);
+    }
+  }, [bank, marginfiAccount, fetchMrgnlendState, setIsRefreshingStore]);
+
+  const handleBorrowOrLend = useCallback(
+    async (borrowOrLendAmount: number) => {
+      borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
+
+      // -------- Refresh state
+      try {
+        setIsRefreshingStore(true);
+        await fetchMrgnlendState();
+      } catch (error: any) {
+        console.log("Error while reloading state");
+        console.log(error);
+      }
+    },
+    [bank, currentAction, marginfiAccount, mfiClient, nativeSolBalance, fetchMrgnlendState, setIsRefreshingStore]
+  );
+
   return (
-    <div className="bg-[#171C1F] rounded-xl px-[12px] py-[16px] flex flex-col gap-[16px] ">
-      <div className="flex flex-row justify-between">
-        <div className="flex flex-row gap-[7px]">
-          <div>
-            {bank.meta.tokenLogoUri && (
-              <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} height={40} width={40} />
-            )}
-          </div>
-          <div className="flex flex-col">
-            <div className="text-base">{bank.meta.tokenSymbol}</div>
-            <div className="text-tertiary text-[#A1A1A1]">{usdFormatter.format(bank.info.state.price)}</div>
-          </div>
-        </div>
-        <div className={`text-${isInLendingMode ? "success" : "error"} text-base my-auto`}>
-          <div>{rateAP.concat(...[" ", isInLendingMode ? "APY" : "APR"])}</div>
-        </div>
-      </div>
+    <div className="bg-[#171C1F] rounded-xl px-[12px] py-[16px] flex flex-col gap-[16px]  max-w-sm min-w-[300px] flex-1">
+      <AssetCardHeader bank={bank} isInLendingMode={isInLendingMode} rateAP={rateAP} />
       <AssetCardStats
         bank={bank}
         assetWeight={assetWeight}
@@ -92,7 +107,17 @@ export const AssetCard: FC<{
         isBankFilled={isBankFilled}
         isBankHigh={isBankHigh}
         bankFilled={bankFilled}
-      ></AssetCardStats>
+      />
+      {bank.isActive && <AssetCardPosition activeBank={bank} />}
+      <AssetCardActions
+        bank={bank}
+        inputRefs={inputRefs}
+        isBankFilled={isBankFilled}
+        isInLendingMode={isInLendingMode}
+        currentAction={currentAction}
+        onCloseBalance={() => handleCloseBalance()}
+        onBorrowOrLend={(amount) => handleBorrowOrLend(amount)}
+      />
     </div>
   );
 };

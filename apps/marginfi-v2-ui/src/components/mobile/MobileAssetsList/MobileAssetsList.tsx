@@ -1,19 +1,18 @@
-import React, { FC, useEffect, useRef, useState } from "react";
+import React, { FC, useRef, useState } from "react";
 import Image from "next/image";
-import { useHotkeys } from "react-hotkeys-hook";
-import { Card, Table, TableHead, TableBody, TableContainer, TableCell } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
+import { Skeleton, Switch, Typography } from "@mui/material";
 
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { BorrowLendToggle } from "~/components/common/AssetList/BorrowLendToggle";
+import { BorrowLendToggle } from "~/components/common/AssetList";
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+
 import { AssetCard } from "./AssetCard";
 
-// import { LoadingAsset, AssetRow } from "./AssetRow";
-
 export const MobileAssetsList: FC = () => {
+  const [isFiltered, setIsFiltered] = useState(false);
+  const togglePositions = () => setIsFiltered((previousState) => !previousState);
+
   const { connected } = useWalletContext();
   const [isStoreInitialized, sortedBanks, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
     state.initialized,
@@ -35,29 +34,78 @@ export const MobileAssetsList: FC = () => {
       <div className="col-span-full">
         <BorrowLendToggle isInLendingMode={isInLendingMode} setIsInLendingMode={setIsInLendingMode} />
       </div>
+      <div className="flex flex-row gap-1 col-span-full">
+        <Switch checked={isFiltered} onChange={togglePositions} inputProps={{ "aria-label": "controlled" }} />
+        <div className="my-auto">Filter my positions</div>
+      </div>
       <div className="col-span-full">
-        <div className="font-aeonik font-normal flex items-center text-2xl text-white">Global pool</div>
-        {sortedBanks
-          .filter((b) => !b.info.state.isIsolated)
-          .map((bank, i) =>
-            isStoreInitialized ? (
-              <AssetCard
-                key={bank.meta.tokenSymbol}
-                nativeSolBalance={nativeSolBalance}
-                bank={bank}
-                isInLendingMode={isInLendingMode}
-                isConnected={connected}
-                marginfiAccount={selectedAccount}
-                inputRefs={inputRefs}
-                hasHotkey={true}
-                showHotkeyBadges={showBadges}
-                badgeContent={`${i + 1}`}
-              />
-            ) : (
-              // TODO add skeleton lib & component if green light
-              <></>
-            )
-          )}
+        <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Global pool</div>
+        <div className="flex flew-row flex-wrap gap-4">
+          {sortedBanks
+            .filter((b) => !b.info.state.isIsolated)
+            .filter((b) => (isFiltered ? b.isActive : true))
+            .map((bank, i) =>
+              isStoreInitialized ? (
+                <AssetCard
+                  key={bank.meta.tokenSymbol}
+                  nativeSolBalance={nativeSolBalance}
+                  bank={bank}
+                  isInLendingMode={isInLendingMode}
+                  isConnected={connected}
+                  marginfiAccount={selectedAccount}
+                  inputRefs={inputRefs}
+                  hasHotkey={true}
+                  showHotkeyBadges={showBadges}
+                  badgeContent={`${i + 1}`}
+                />
+              ) : (
+                <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+              )
+            )}
+        </div>
+      </div>
+      <div className="col-span-full">
+        <div className="font-aeonik font-normal flex gap-1 items-center text-2xl text-white pb-2">
+          Isolated pool
+          <MrgnTooltip
+            title={
+              <>
+                <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                  Isolated pools are risky ⚠️
+                </Typography>
+                Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot
+                borrow other assets. Isolated pools should be considered particularly risky. As always, remember that
+                marginfi is a decentralized protocol and all deposited funds are at risk.
+              </>
+            }
+            placement="top"
+          >
+            <Image src="/info_icon.png" alt="info" height={16} width={16} />
+          </MrgnTooltip>
+        </div>
+        <div className="flex flew-row flex-wrap gap-4">
+          {sortedBanks
+            .filter((b) => b.info.state.isIsolated)
+            .filter((b) => (isFiltered ? b.isActive : true))
+            .map((bank, i) =>
+              isStoreInitialized ? (
+                <AssetCard
+                  key={bank.meta.tokenSymbol}
+                  nativeSolBalance={nativeSolBalance}
+                  bank={bank}
+                  isInLendingMode={isInLendingMode}
+                  isConnected={connected}
+                  marginfiAccount={selectedAccount}
+                  inputRefs={inputRefs}
+                  hasHotkey={true}
+                  showHotkeyBadges={showBadges}
+                  badgeContent={`${i + 1}`}
+                />
+              ) : (
+                <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={365} height={215} />
+              )
+            )}
+        </div>
       </div>
     </>
   );

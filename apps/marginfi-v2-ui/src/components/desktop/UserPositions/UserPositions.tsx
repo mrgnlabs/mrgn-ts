@@ -1,13 +1,14 @@
 import React, { FC, useMemo } from "react";
 import { Card, Table, TableBody, TableContainer, TableHead, TableCell, Typography } from "@mui/material";
-import UserPositionRow from "./UserPositionRow";
-import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
-import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
-import { useMrgnlendStore } from "~/store";
+
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { HtmlTooltip } from "~/components/common/HtmlTooltip";
+
+import { useMrgnlendStore } from "~/store";
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+
+import UserPositionRow from "./UserPositionRow";
 
 const UserPositions: FC = () => {
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
@@ -60,7 +61,7 @@ const UserPositions: FC = () => {
                   <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1">
                     Wtd
                     <div className="self-center">
-                      <HtmlTooltip
+                      <MrgnTooltip
                         title={
                           <React.Fragment>
                             <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
@@ -80,7 +81,7 @@ const UserPositions: FC = () => {
                         placement="top"
                       >
                         <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                      </HtmlTooltip>
+                      </MrgnTooltip>
                     </div>
                   </Typography>
                 </TableCell>
@@ -92,7 +93,7 @@ const UserPositions: FC = () => {
                   <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1">
                     USD
                     <div className="self-center">
-                      <HtmlTooltip
+                      <MrgnTooltip
                         title={
                           <React.Fragment>
                             <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
@@ -114,7 +115,7 @@ const UserPositions: FC = () => {
                         placement="top"
                       >
                         <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                      </HtmlTooltip>
+                      </MrgnTooltip>
                     </div>
                   </Typography>
                 </TableCell>
@@ -169,7 +170,7 @@ const UserPositions: FC = () => {
                     <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1">
                       Wtd
                       <div className="self-center">
-                        <HtmlTooltip
+                        <MrgnTooltip
                           title={
                             <React.Fragment>
                               <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
@@ -189,7 +190,7 @@ const UserPositions: FC = () => {
                           placement="top"
                         >
                           <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                        </HtmlTooltip>
+                        </MrgnTooltip>
                       </div>
                     </Typography>
                   </TableCell>
@@ -201,7 +202,7 @@ const UserPositions: FC = () => {
                     <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1">
                       USD
                       <div className="self-center">
-                        <HtmlTooltip
+                        <MrgnTooltip
                           title={
                             <React.Fragment>
                               <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
@@ -223,7 +224,7 @@ const UserPositions: FC = () => {
                           placement="top"
                         >
                           <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                        </HtmlTooltip>
+                        </MrgnTooltip>
                       </div>
                     </Typography>
                   </TableCell>

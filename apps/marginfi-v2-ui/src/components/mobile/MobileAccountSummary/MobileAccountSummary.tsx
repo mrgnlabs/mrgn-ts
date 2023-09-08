@@ -1,6 +1,7 @@
 import React, { FC } from "react";
-import { useMrgnlendStore } from "~/store";
 import dynamic from "next/dynamic";
+
+import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { UserStats } from "~/components/common/AccountSummary";
 
@@ -18,24 +19,30 @@ const AccountSummary: FC = () => {
   const { connected } = useWalletContext();
 
   return (
-    <div className="flex flex-row w-full justify-between items-center ">
-      <div className="lg:block w-full h-[70px] ">
-        <GlobalStats
-          tvl={protocolStats.tvl}
-          pointsTotal={protocolStats.pointsTotal}
-          borrows={protocolStats.borrows}
-          deposits={protocolStats.deposits}
-        />
+    <div className="flex flex-col w-full justify-between items-left gap-4">
+      <div className="lg:block flex-1">
+        <div className="h-full rounded-xl">
+          <span className="w-full flex justify-start text-xl">Global stats</span>
+          <GlobalStats
+            tvl={protocolStats.tvl}
+            pointsTotal={protocolStats.pointsTotal}
+            borrows={protocolStats.borrows}
+            deposits={protocolStats.deposits}
+          />
+        </div>{" "}
       </div>
 
-      {/* <div className="w-full">
+      <div className="flex-1">
         {connected && (
-          <UserStats
-            accountSummary={isStoreInitialized && selectedAccount ? accountSummary : null}
-            healthFactor={accountSummary.healthFactor}
-          />
+          <div className=" h-full rounded-xl ">
+            <span className="w-full h-full flex justify-start text-xl text-white">Your account</span>
+            <UserStats
+              accountSummary={isStoreInitialized && selectedAccount ? accountSummary : null}
+              healthFactor={accountSummary.healthFactor}
+            />
+          </div>
         )}
-      </div> */}
+      </div>
     </div>
   );
 };

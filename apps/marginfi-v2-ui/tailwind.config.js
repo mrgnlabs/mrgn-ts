@@ -29,7 +29,7 @@ module.exports = {
         "usd-equiv": "rgba(113, 119, 126, 0.3)",
         "btn-light": "rgb(227, 227, 227)",
         success: "#75ba80",
-        warning: "#daa204)",
+        warning: "#daa204",
         error: "#e07d6f",
       },
     },
