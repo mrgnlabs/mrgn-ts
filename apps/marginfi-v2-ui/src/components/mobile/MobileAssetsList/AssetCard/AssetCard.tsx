@@ -96,7 +96,7 @@ export const AssetCard: FC<{
   );
 
   return (
-    <div className="bg-[#171C1F] rounded-xl px-[12px] py-[16px] flex flex-col gap-[16px]  max-w-sm min-w-[300px] flex-1">
+    <div className="bg-[#171C1F] rounded-xl px-[12px] py-[16px] flex flex-col gap-[16px] max-w-sm min-w-[300px] flex-1">
       <AssetCardHeader bank={bank} isInLendingMode={isInLendingMode} rateAP={rateAP} />
       <AssetCardStats
         bank={bank}

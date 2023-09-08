@@ -41,7 +41,7 @@ export const AssetCardActions: FC<{
       currentAction !== "Connect" &&
       ((isDust && uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero()) ||
         maxAmount === 0),
-    [currentAction, isBankFilled, isDust, maxAmount]
+    [currentAction, bank, isDust, maxAmount]
   );
 
   return (

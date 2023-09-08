@@ -59,7 +59,13 @@ export const MobileAssetsList: FC = () => {
                   badgeContent={`${i + 1}`}
                 />
               ) : (
-                <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+                <Skeleton
+                  key={bank.meta.tokenSymbol}
+                  sx={{ bgcolor: "grey.900" }}
+                  variant="rounded"
+                  width={390}
+                  height={215}
+                />
               )
             )}
         </div>
@@ -102,7 +108,13 @@ export const MobileAssetsList: FC = () => {
                   badgeContent={`${i + 1}`}
                 />
               ) : (
-                <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={365} height={215} />
+                <Skeleton
+                  key={bank.meta.tokenSymbol}
+                  sx={{ bgcolor: "grey.900" }}
+                  variant="rounded"
+                  width={365}
+                  height={215}
+                />
               )
             )}
         </div>
