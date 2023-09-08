@@ -18,7 +18,7 @@ export const closeBalance = async ({
   marginfiAccount,
 }: {
   bank: ExtendedBankInfo;
-  marginfiAccount?: MarginfiAccountWrapper;
+  marginfiAccount: MarginfiAccountWrapper | null;
 }) => {
   if (!marginfiAccount) {
     toast.error("marginfi account not ready.");
@@ -66,12 +66,12 @@ export const borrowOrLend = async ({
   nativeSolBalance,
   marginfiAccount,
 }: {
-  mfiClient: MarginfiClient;
+  mfiClient: MarginfiClient | null;
   bank: ExtendedBankInfo;
   currentAction: ActionType | "Connect";
   borrowOrLendAmount: number;
   nativeSolBalance: number;
-  marginfiAccount?: MarginfiAccountWrapper;
+  marginfiAccount: MarginfiAccountWrapper | null;
 }) => {
   if (mfiClient === null) throw Error("Marginfi client not ready");
 

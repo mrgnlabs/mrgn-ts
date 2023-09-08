@@ -22,6 +22,7 @@ import { borrowOrLend, closeBalance } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { HtmlTooltip } from "~/components/common/HtmlTooltip";
+import { AssetCardStats } from "./AssetCardStats";
 
 export const AssetCard: FC<{
   bank: ExtendedBankInfo;
@@ -45,6 +46,25 @@ export const AssetCard: FC<{
 }) => {
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankFilled } = useAssetItemData({ bank, isInLendingMode });
 
+  const totalDepositsOrBorrows = useMemo(
+    () =>
+      isInLendingMode
+        ? bank.info.state.totalDeposits
+        : Math.max(
+            0,
+            Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit) - bank.info.state.totalBorrows
+          ),
+    [isInLendingMode, bank.info]
+  );
+
+  const userBalance = useMemo(
+    () =>
+      bank.info.state.mint.equals(WSOL_MINT)
+        ? bank.userInfo.tokenAccount.balance + nativeSolBalance
+        : bank.userInfo.tokenAccount.balance,
+    [bank.info.state.mint, bank.userInfo.tokenAccount, nativeSolBalance]
+  );
+
   return (
     <div className="bg-[#171C1F] rounded-xl px-[12px] py-[16px] flex flex-col gap-[16px] ">
       <div className="flex flex-row justify-between">
@@ -63,6 +83,16 @@ export const AssetCard: FC<{
           <div>{rateAP.concat(...[" ", isInLendingMode ? "APY" : "APR"])}</div>
         </div>
       </div>
+      <AssetCardStats
+        bank={bank}
+        assetWeight={assetWeight}
+        totalDepositsOrBorrows={totalDepositsOrBorrows}
+        userBalance={userBalance}
+        isInLendingMode={isInLendingMode}
+        isBankFilled={isBankFilled}
+        isBankHigh={isBankHigh}
+        bankFilled={bankFilled}
+      ></AssetCardStats>
     </div>
   );
 };
