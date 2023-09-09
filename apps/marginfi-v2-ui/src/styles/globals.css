@@ -73,7 +73,7 @@ a {
   height: 2px;
   bottom: 0;
   left: 0;
-  background-color: #7fff00;
+  background-color: #DCE85D;
   transform-origin: center;
   transition: transform 0.25s ease-out;
 }
@@ -91,7 +91,7 @@ a {
   height: 2px;
   bottom: 0;
   left: 0;
-  background-color: #7fff00;
+  background-color: #DCE85D;
   transform-origin: center;
   transition: transform 0.25s ease-out;
 }

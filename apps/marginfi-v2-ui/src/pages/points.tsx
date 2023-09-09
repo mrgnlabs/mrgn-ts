@@ -335,7 +335,7 @@ const Points: FC = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ textDecoration: "none", color: "inherit" }}
-                      className="hover:text-[#7fff00]"
+                      className="hover:text-[#DCE85D]"
                     >
                       {`${row.id.slice(0, 5)}...${row.id.slice(-5)}`}
                       <style jsx>{`

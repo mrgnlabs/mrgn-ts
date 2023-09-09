@@ -66,7 +66,7 @@ const Home = () => {
             text={`Read-only view of ${shortenAddress(
               selectedAccount.address.toBase58()
             )} (owner: ${shortenAddress(walletAddress)}) - All actions are simulated`}
-            backgroundColor="#7fff00"
+            backgroundColor="#DCE85D"
           />
         )}
         {walletAddress && marginfiAccountCount > 1 && (

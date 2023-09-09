@@ -236,7 +236,7 @@ const Navbar: FC = () => {
                   } UXP`}
             </div>
 
-            <Link href={"/points"} className="whitespace-nowrap">
+            <Link href={"/points"} className={`${router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"} whitespace-nowrap`}>
               {connected && currentFirebaseUser
                 ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
                 : "points"}
