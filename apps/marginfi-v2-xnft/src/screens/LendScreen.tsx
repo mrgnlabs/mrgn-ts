@@ -68,7 +68,7 @@ export function LendScreen() {
             <Text style={tw`text-base text-primary`}>Filter my positions</Text>
           </View>
           <Text style={tw`text-xl text-primary pl-12px`}>Global pools</Text>
-          {/* <View style={tw`flex flex-row gap-2 flex-wrap`}>
+          <View style={tw`flex flex-row gap-2 flex-wrap`}>
             {extendedBankInfos.length > 0 ? (
               globalPools.length > 0 ? (
                 globalPools.map((extendedBankInfo, idx) => (
@@ -91,10 +91,10 @@ export function LendScreen() {
             ) : (
               <PoolCardSkeleton />
             )}
-          </View> */}
+          </View>
 
           <Text style={tw`text-xl text-primary pl-12px`}>Isolated pools</Text>
-          {/* <View style={tw`flex flex-row gap-2 flex-wrap`}>
+          <View style={tw`flex flex-row gap-2 flex-wrap`}>
             {extendedBankInfos.length > 0 ? (
               isolatedPools.length > 0 ? (
                 isolatedPools.map((extendedBankInfo, idx) => (
@@ -117,7 +117,7 @@ export function LendScreen() {
             ) : (
               <PoolCardSkeleton />
             )}
-          </View>*/}
+          </View>
         </View>
       </View>
     </Screen>
