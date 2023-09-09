@@ -25,7 +25,7 @@ import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { WalletButton } from "~/components/desktop/DesktopNavbar/WalletButton";
+import { WalletButton } from "~/components/common/Navbar";
 import { grey } from "@mui/material/colors";
 import { toast } from "react-toastify";
 import { useUserProfileStore } from "~/store";

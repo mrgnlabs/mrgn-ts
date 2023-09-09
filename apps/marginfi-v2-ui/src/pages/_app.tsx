@@ -18,9 +18,9 @@ import "react-toastify/dist/ReactToastify.min.css";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import dynamic from "next/dynamic";
-import { Desk } from "@mui/icons-material";
 import { Desktop, Mobile } from "~/mediaQueries";
-import { MobileNavbar } from "~/components/mobile/DesktopNavbar";
+import { MobileNavbar } from "~/components/mobile/MobileNavbar";
+import { WalletButton } from "~/components/common/Navbar";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -28,7 +28,9 @@ require("~/styles/globals.css");
 require("~/styles/fonts.css");
 require("~/styles/asset-borders.css");
 
-const DesktopNavbar = dynamic(async () => (await import("~/components/desktop/DesktopNavbar")).DesktopNavbar, { ssr: false });
+const DesktopNavbar = dynamic(async () => (await import("~/components/desktop/DesktopNavbar")).DesktopNavbar, {
+  ssr: false,
+});
 const Footer = dynamic(async () => (await import("~/components/desktop/Footer")).Footer, { ssr: false });
 
 // Matomo
@@ -68,16 +70,22 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
           </Head>
           <Desktop>
             <DesktopNavbar />
+            <div className="w-full flex flex-col justify-center items-center pt-[64px]">
+              <Component {...pageProps} />
+              <Analytics />
+            </div>
+            <Footer />
           </Desktop>
           <Mobile>
+            <div className="absolute top-[33px] right-[40px]">
+              <WalletButton />
+            </div>
             <MobileNavbar />
+            <div className="w-full flex flex-col justify-center items-center pt-[24px]">
+              <Component {...pageProps} />
+              <Analytics />
+            </div>
           </Mobile>
-
-          <div className="w-full flex flex-col justify-center items-center pt-[24px] sm:pt-[64px]">
-            <Component {...pageProps} />
-            <Analytics />
-          </div>
-          <Footer />
           <ToastContainer position="bottom-left" theme="dark" />
         </WalletModalProvider>
       </WalletProvider>
