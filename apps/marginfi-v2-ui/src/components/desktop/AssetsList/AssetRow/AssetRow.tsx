@@ -47,7 +47,7 @@ const AssetRow: FC<{
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
-  const { rateAP, assetWeight, isBankFilled, isBankHigh, bankFilled } = useAssetItemData({ bank, isInLendingMode });
+  const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
 
   const assetPriceOffset = useMemo(
     () =>
@@ -253,7 +253,7 @@ const AssetRow: FC<{
                 {isBankHigh && (isBankFilled ? "Limit Reached" : "Approaching Limit")}
               </Typography>
               {`${bank.meta.tokenSymbol} ${isInLendingMode ? "deposits" : "borrows"} are at ${percentFormatter.format(
-                (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankFilled
+                (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
               )} capacity.`}
               <br />
               <a href="https://docs.marginfi.com">
@@ -315,10 +315,10 @@ const AssetRow: FC<{
           style={{ fontWeight: 300 }}
         >
           {denominationUSD
-            ? usdFormatter.format(bankFilled * bank.info.state.price)
+            ? usdFormatter.format(bankCap * bank.info.state.price)
             : lendZoomLevel < 2
-            ? groupedNumberFormatterDyn.format(bankFilled)
-            : numeralFormatter(bankFilled)}
+            ? groupedNumberFormatterDyn.format(bankCap)
+            : numeralFormatter(bankCap)}
         </TableCell>
       )}
 

@@ -27,7 +27,6 @@ export const MobileAssetsList: FC = () => {
   ]);
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [isInLendingMode, setIsInLendingMode] = useState(true);
-  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
 
   return (
     <>
@@ -54,9 +53,6 @@ export const MobileAssetsList: FC = () => {
                   isConnected={connected}
                   marginfiAccount={selectedAccount}
                   inputRefs={inputRefs}
-                  hasHotkey={true}
-                  showHotkeyBadges={showBadges}
-                  badgeContent={`${i + 1}`}
                 />
               ) : (
                 <Skeleton
@@ -103,9 +99,6 @@ export const MobileAssetsList: FC = () => {
                   isConnected={connected}
                   marginfiAccount={selectedAccount}
                   inputRefs={inputRefs}
-                  hasHotkey={true}
-                  showHotkeyBadges={showBadges}
-                  badgeContent={`${i + 1}`}
                 />
               ) : (
                 <Skeleton

@@ -10,10 +10,10 @@ type Props = {
   bank: ExtendedBankInfo;
   nativeSolBalance: number;
   isInLendingMode: boolean;
-  bankFilled: number;
+  bankCap: number;
 };
 
-export function PoolCardStats({ bank, isInLendingMode, nativeSolBalance, bankFilled }: Props) {
+export function PoolCardStats({ bank, isInLendingMode, nativeSolBalance, bankCap }: Props) {
   const assetWeight = useMemo(() => {
     if (bank.info.rawBank.config.assetWeightInit.toNumber() <= 0) {
       return "-";
@@ -43,9 +43,9 @@ export function PoolCardStats({ bank, isInLendingMode, nativeSolBalance, bankFil
     [bank, nativeSolBalance]
   );
 
-  const isFilled = useMemo(() => bankFilled >= 0.9999, [bankFilled]);
+  const isFilled = useMemo(() => bankCap >= 0.9999, [bankCap]);
 
-  const isHigh = useMemo(() => bankFilled >= 0.9, [bankFilled]);
+  const isHigh = useMemo(() => bankCap >= 0.9, [bankCap]);
 
   return (
     <View style={tw`flex flex-row`}>
@@ -57,9 +57,7 @@ export function PoolCardStats({ bank, isInLendingMode, nativeSolBalance, bankFil
       <View style={tw`flex flex-col min-w-77px`}>
         <Text style={tw`font-normal text-sm text-tertiary`}>{isInLendingMode ? "Deposits" : "Available"}</Text>
         <Text style={tw`font-medium text-base text-primary`}>{bankAmount}</Text>
-        {isHigh && (
-          <Text style={tw`text-${isFilled ? "error" : "warning"}`}>{percentFormatter.format(bankFilled)}</Text>
-        )}
+        {isHigh && <Text style={tw`text-${isFilled ? "error" : "warning"}`}>{percentFormatter.format(bankCap)}</Text>}
       </View>
       <Separator style={tw`mx-12px`} />
       <View style={tw`flex flex-col min-w-77px`}>

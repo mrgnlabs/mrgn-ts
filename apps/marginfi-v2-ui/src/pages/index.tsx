@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { FC, useEffect } from "react";
 import { Banner } from "~/components/desktop/Banner";
 import { PageHeader } from "~/components/desktop/PageHeader";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -10,26 +10,49 @@ import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { Desktop, Mobile } from "~/mediaQueries";
 
-const DesktopAccountSummary = dynamic(
-  async () => (await import("~/components/desktop/DesktopAccountSummary")).DesktopAccountSummary,
-  {
-    ssr: false,
-  }
-);
-const MobileAccountSummary = dynamic(
-  async () => (await import("~/components/mobile/MobileAccountSummary")).MobileAccountSummary,
-  {
-    ssr: false,
-  }
-);
-const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
-const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/MobileAssetsList")).MobileAssetsList, {
-  ssr: false,
-});
+const DesktopAccountSummary = () => {
+  const DesktopAccountSummary = dynamic(
+    async () => (await import("~/components/desktop/DesktopAccountSummary")).DesktopAccountSummary,
+    {
+      ssr: false,
+    }
+  );
 
-const UserPositions = dynamic(async () => (await import("~/components/desktop/UserPositions")).UserPositions, {
-  ssr: false,
-});
+  return <DesktopAccountSummary />;
+};
+
+const AssetsList = () => {
+  const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
+  return <AssetsList />;
+};
+
+const UserPositions = () => {
+  const UserPositions = dynamic(async () => (await import("~/components/desktop/UserPositions")).UserPositions, {
+    ssr: false,
+  });
+
+  return <UserPositions />;
+};
+
+const MobileAccountSummary = () => {
+  const MobileAccountSummary = dynamic(
+    async () => (await import("~/components/mobile/MobileAccountSummary")).MobileAccountSummary,
+    {
+      ssr: false,
+    }
+  );
+  return <MobileAccountSummary />;
+};
+
+const MobileAssetsList = () => {
+  const MobileAssetsList = dynamic(
+    async () => (await import("~/components/mobile/MobileAssetsList")).MobileAssetsList,
+    {
+      ssr: false,
+    }
+  );
+  return <MobileAssetsList />;
+};
 
 const Home = () => {
   const { walletAddress, wallet, isOverride } = useWalletContext();
@@ -89,7 +112,6 @@ const Home = () => {
           {walletAddress && marginfiAccountCount > 1 && (
             <Banner text="Multiple accounts were found (not supported). Contact the team or use at own risk." />
           )}
-
           <DesktopAccountSummary />
         </div>
         <div className="flex flex-col justify-start content-start pt-[16px] pb-[64px] grid w-4/5 max-w-7xl gap-4 grid-cols-1 xl:grid-cols-2">
@@ -105,6 +127,7 @@ const Home = () => {
           <MobileAccountSummary />
           <MobileAssetsList />
         </div>
+        <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
       </Mobile>
     </>
   );

@@ -35,7 +35,7 @@ export const AssetCard: FC<{
   showHotkeyBadges,
   badgeContent,
 }) => {
-  const { rateAP, assetWeight, isBankFilled, isBankHigh, bankFilled } = useAssetItemData({ bank, isInLendingMode });
+  const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const { connected } = useWalletContext();
@@ -106,7 +106,7 @@ export const AssetCard: FC<{
         isInLendingMode={isInLendingMode}
         isBankFilled={isBankFilled}
         isBankHigh={isBankHigh}
-        bankFilled={bankFilled}
+        bankCap={bankCap}
       />
       {bank.isActive && <AssetCardPosition activeBank={bank} />}
       <AssetCardActions
