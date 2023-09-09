@@ -10,9 +10,9 @@ import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useRouter } from "next/router";
 import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
 import { Badge } from "@mui/material";
-import { useFirebaseAccount } from "../../common/useFirebaseAccount";
+import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { groupedNumberFormatterDyn, numeralFormatter } from "@mrgnlabs/mrgn-common";
-import { useWalletContext } from "../../common/useWalletContext";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 // @todo implement second pretty navbar row
 const DesktopNavbar: FC = () => {
@@ -133,7 +133,12 @@ const DesktopNavbar: FC = () => {
               badgeContent={"l"}
               invisible={!showBadges}
             >
-              <Link href={"/"} className={`${router.pathname === "/" ? "hover-underline-static" : "hover-underline-animation"} hidden md:block`}>
+              <Link
+                href={"/"}
+                className={`${
+                  router.pathname === "/" ? "hover-underline-static" : "hover-underline-animation"
+                } hidden md:block`}
+              >
                 lend
               </Link>
             </Badge>
@@ -152,7 +157,10 @@ const DesktopNavbar: FC = () => {
               badgeContent={"s"}
               invisible={!showBadges}
             >
-              <Link href={"/swap"} className={`${router.pathname === "/swap" ? "hover-underline-static" : "hover-underline-animation"}`}>
+              <Link
+                href={"/swap"}
+                className={`${router.pathname === "/swap" ? "hover-underline-static" : "hover-underline-animation"}`}
+              >
                 swap
               </Link>
             </Badge>
@@ -170,7 +178,10 @@ const DesktopNavbar: FC = () => {
               badgeContent={"b"}
               invisible={!showBadges}
             >
-              <Link href={"/bridge"} className={`${router.pathname === "/bridge" ? "hover-underline-static" : "hover-underline-animation"}`}>
+              <Link
+                href={"/bridge"}
+                className={`${router.pathname === "/bridge" ? "hover-underline-static" : "hover-underline-animation"}`}
+              >
                 bridge
               </Link>
             </Badge>
@@ -190,7 +201,12 @@ const DesktopNavbar: FC = () => {
               invisible={!showBadges}
               className="hidden md:block"
             >
-              <Link href={"/earn"} className={`${router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"} hidden md:block`}>
+              <Link
+                href={"/earn"}
+                className={`${
+                  router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"
+                } hidden md:block`}
+              >
                 earn
               </Link>
             </Badge>

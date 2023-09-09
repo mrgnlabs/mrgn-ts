@@ -1,27 +1,15 @@
-import Image from "next/image";
 import React, { FC, useEffect, useRef, useState } from "react";
-import { Card, Table, TableHead, TableBody, TableContainer, TableCell } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
-import { BorrowLendToggle } from "./BorrowLendToggle";
-import AssetRow from "./AssetRow";
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import Image from "next/image";
 import { useHotkeys } from "react-hotkeys-hook";
-import { LoadingAsset } from "./AssetRow/AssetRow";
-import { useWalletContext } from "../../common/useWalletContext";
+import { Card, Table, TableHead, TableBody, TableContainer, TableCell } from "@mui/material";
+import Typography from "@mui/material/Typography";
 
-const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
-  <Tooltip {...props} classes={{ popper: className }} />
-))(({ theme }) => ({
-  [`& .${tooltipClasses.tooltip}`]: {
-    backgroundColor: "rgb(227, 227, 227)",
-    color: "rgba(0, 0, 0, 0.87)",
-    maxWidth: 220,
-    fontSize: theme.typography.pxToRem(12),
-    border: "1px solid #dadde9",
-  },
-}));
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { BorrowLendToggle } from "~/components/common/AssetList/BorrowLendToggle";
+
+import { LoadingAsset, AssetRow } from "./AssetRow";
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 
 const AssetsList: FC = () => {
   // const { selectedAccount, nativeSolBalance } = useStore();
@@ -97,7 +85,7 @@ const AssetsList: FC = () => {
   );
 
   // Hack required to circumvent rehydration error
-  const [hasMounted, setHasMounted] = React.useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   useEffect(() => {
     setHasMounted(true);
   }, []);
@@ -134,19 +122,21 @@ const AssetsList: FC = () => {
                 >
                   <div className="h-full w-full flex justify-end items-center gap-2">
                     Price
-                    <HtmlTooltip
+                    <MrgnTooltip
                       title={
                         <React.Fragment>
                           <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                             Realtime prices
                           </Typography>
-                          Powered by Pyth and Switchboard.
+                          <span style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
+                            Powered by Pyth and Switchboard.
+                          </span>
                         </React.Fragment>
                       }
                       placement="top"
                     >
                       <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </HtmlTooltip>
+                    </MrgnTooltip>
                   </div>
                 </TableCell>
                 <TableCell
@@ -156,7 +146,7 @@ const AssetsList: FC = () => {
                 >
                   <div className="h-full w-full flex justify-end items-center gap-2">
                     {isInLendingMode ? "APY" : "APR"}
-                    <HtmlTooltip
+                    <MrgnTooltip
                       title={
                         <React.Fragment>
                           <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
@@ -172,7 +162,7 @@ const AssetsList: FC = () => {
                       placement="top"
                     >
                       <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </HtmlTooltip>
+                    </MrgnTooltip>
                   </div>
                 </TableCell>
                 <TableCell
@@ -182,21 +172,23 @@ const AssetsList: FC = () => {
                 >
                   <div className="h-full w-full flex justify-end items-center gap-2">
                     {isInLendingMode ? "Weight" : "LTV"}
-                    <HtmlTooltip
+                    <MrgnTooltip
                       title={
                         <React.Fragment>
                           <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                             {isInLendingMode ? "Weight" : "LTV"}
                           </Typography>
-                          {isInLendingMode
-                            ? "How much your assets count for collateral, relative to their USD value. The higher the weight, the more collateral you can borrow against it."
-                            : "How much you can borrow against your free collateral. The higher the LTV, the more you can borrow against your free collateral."}
+                          <span style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
+                            {isInLendingMode
+                              ? "How much your assets count for collateral, relative to their USD value. The higher the weight, the more collateral you can borrow against it."
+                              : "How much you can borrow against your free collateral. The higher the LTV, the more you can borrow against your free collateral."}
+                          </span>
                         </React.Fragment>
                       }
                       placement="top"
                     >
                       <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </HtmlTooltip>
+                    </MrgnTooltip>
                   </div>
                 </TableCell>
                 <TableCell
@@ -206,21 +198,23 @@ const AssetsList: FC = () => {
                 >
                   <div className="h-full w-full flex justify-end items-center gap-2">
                     {isInLendingMode ? "Deposits" : "Available"}
-                    <HtmlTooltip
+                    <MrgnTooltip
                       title={
                         <React.Fragment>
                           <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                             {isInLendingMode ? "Total deposits" : "Total available"}
                           </Typography>
-                          {isInLendingMode
-                            ? "Total marginfi deposits for each asset. Everything is denominated in native tokens."
-                            : "The amount of tokens available to borrow for each asset. Calculated as the minimum of the asset's borrow limit and available liquidity that has not yet been borrowed."}
+                          <span style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
+                            {isInLendingMode
+                              ? "Total marginfi deposits for each asset. Everything is denominated in native tokens."
+                              : "The amount of tokens available to borrow for each asset. Calculated as the minimum of the asset's borrow limit and available liquidity that has not yet been borrowed."}
+                          </span>
                         </React.Fragment>
                       }
                       placement="top"
                     >
                       <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </HtmlTooltip>
+                    </MrgnTooltip>
                   </div>
                 </TableCell>
 
@@ -236,7 +230,7 @@ const AssetsList: FC = () => {
                   >
                     <div className="h-full w-full flex justify-end items-center gap-2">
                       Global limit
-                      <HtmlTooltip
+                      <MrgnTooltip
                         title={
                           <React.Fragment>
                             <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
@@ -249,7 +243,7 @@ const AssetsList: FC = () => {
                         placement="top"
                       >
                         <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                      </HtmlTooltip>
+                      </MrgnTooltip>
                     </div>
                   </TableCell>
                 )}
@@ -262,7 +256,7 @@ const AssetsList: FC = () => {
                   >
                     <div className="h-full w-full flex justify-end items-center gap-2">
                       Utilization
-                      <HtmlTooltip
+                      <MrgnTooltip
                         title={
                           <React.Fragment>
                             <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
@@ -275,7 +269,7 @@ const AssetsList: FC = () => {
                         placement="top"
                       >
                         <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                      </HtmlTooltip>
+                      </MrgnTooltip>
                     </div>
                   </TableCell>
                 )}
@@ -325,7 +319,7 @@ const AssetsList: FC = () => {
                 <span className="gap-1 flex">
                   Isolated <span className="hidden lg:block">pools</span>
                 </span>
-                <HtmlTooltip
+                <MrgnTooltip
                   title={
                     <React.Fragment>
                       <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
@@ -339,7 +333,7 @@ const AssetsList: FC = () => {
                   placement="top"
                 >
                   <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                </HtmlTooltip>
+                </MrgnTooltip>
               </div>
               <TableBody>
                 {sortedBanks

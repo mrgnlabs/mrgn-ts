@@ -10,7 +10,7 @@ import {
   getAssociatedTokenAddressSync,
   shortenAddress,
 } from "@mrgnlabs/mrgn-common";
-import { useWalletContext } from "../../common/useWalletContext";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 const SOL_AMOUNT = 2 * 10 ** 9;
 
@@ -60,9 +60,7 @@ const AirdropZone: FC = () => {
 
   return (
     <div>
-      <span onClick={open}>
-        Airdrop
-      </span>
+      <span onClick={open}>Airdrop</span>
       <Modal open={isOpen} onClose={close} aria-labelledby="title" aria-describedby="description">
         <div id={styles["container"]}>
           <div id={styles["overlay"]}>

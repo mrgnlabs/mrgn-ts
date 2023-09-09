@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Banner } from "~/components/desktop/Banner";
 import { PageHeader } from "~/components/desktop/PageHeader";
-import { useWalletContext } from "~/components/common/useWalletContext";
+import { useWalletContext } from "~/hooks/useWalletContext";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import config from "~/config/marginfi";
 import { useMrgnlendStore } from "../store";
@@ -10,11 +10,26 @@ import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { Desktop, Mobile } from "~/mediaQueries";
 
-const AccountSummary = dynamic(async () => (await import("~/components/desktop/AccountSummary")).AccountSummary, {
+const DesktopAccountSummary = dynamic(
+  async () => (await import("~/components/desktop/DesktopAccountSummary")).DesktopAccountSummary,
+  {
+    ssr: false,
+  }
+);
+const MobileAccountSummary = dynamic(
+  async () => (await import("~/components/mobile/MobileAccountSummary")).MobileAccountSummary,
+  {
+    ssr: false,
+  }
+);
+const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
+const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/MobileAssetsList")).MobileAssetsList, {
   ssr: false,
 });
-const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
-const UserPositions = dynamic(async () => (await import("~/components/desktop/UserPositions")).UserPositions, { ssr: false });
+
+const UserPositions = dynamic(async () => (await import("~/components/desktop/UserPositions")).UserPositions, {
+  ssr: false,
+});
 
 const Home = () => {
   const { walletAddress, wallet, isOverride } = useWalletContext();
@@ -60,33 +75,37 @@ const Home = () => {
 
   return (
     <>
-    <Desktop>
-      <PageHeader />
-      <div className="flex flex-col h-full justify-start content-start pt-[64px] sm:pt-[16px] w-4/5 max-w-7xl gap-4">
-        {walletAddress && selectedAccount && isOverride && (
-          <Banner
-            text={`Read-only view of ${shortenAddress(
-              selectedAccount.address.toBase58()
-            )} (owner: ${shortenAddress(walletAddress)}) - All actions are simulated`}
-            backgroundColor="#7fff00"
-          />
-        )}
-        {walletAddress && marginfiAccountCount > 1 && (
-          <Banner text="Multiple accounts were found (not supported). Contact the team or use at own risk." />
-        )}
+      <Desktop>
+        <PageHeader />
+        <div className="flex flex-col h-full justify-start content-start pt-[64px] sm:pt-[16px] w-4/5 max-w-7xl gap-4">
+          {walletAddress && selectedAccount && isOverride && (
+            <Banner
+              text={`Read-only view of ${shortenAddress(selectedAccount.address.toBase58())} (owner: ${shortenAddress(
+                walletAddress
+              )}) - All actions are simulated`}
+              backgroundColor="#7fff00"
+            />
+          )}
+          {walletAddress && marginfiAccountCount > 1 && (
+            <Banner text="Multiple accounts were found (not supported). Contact the team or use at own risk." />
+          )}
 
-        <AccountSummary />
-      </div>
-      <div className="flex flex-col justify-start content-start pt-[16px] pb-[64px] grid w-4/5 max-w-7xl gap-4 grid-cols-1 xl:grid-cols-2">
-        <AssetsList />
-        {walletAddress && <UserPositions />}
-      </div>
-      <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
-    </Desktop>
+          <DesktopAccountSummary />
+        </div>
+        <div className="flex flex-col justify-start content-start pt-[16px] pb-[64px] grid w-4/5 max-w-7xl gap-4 grid-cols-1 xl:grid-cols-2">
+          <AssetsList />
+          {walletAddress && <UserPositions />}
+        </div>
+        <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
+      </Desktop>
 
-    <Mobile>
-       LETS GOOOOO
-    </Mobile>
+      <Mobile>
+        <PageHeader />
+        <div className="flex flex-col h-full justify-start content-start pt-[64px] sm:pt-[16px] w-4/5 max-w-7xl gap-4">
+          <MobileAccountSummary />
+          <MobileAssetsList />
+        </div>
+      </Mobile>
     </>
   );
 };

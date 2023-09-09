@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import config from "~/config";
 import { PageHeaderSwap } from "~/components/desktop/PageHeader";
-import { useWalletContext } from "~/components/common/useWalletContext";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 const SwapPage = () => {
   const { walletContextState } = useWalletContext();

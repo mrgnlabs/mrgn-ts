@@ -2,7 +2,7 @@ import { Button, Modal } from "@mui/material";
 import { FC, useCallback, useState } from "react";
 import styles from "./AirdropZone.module.css";
 import { PublicKey, Transaction } from "@solana/web3.js";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { makeAirdropCollateralIx } from "~/utils";
 import { toast } from "react-toastify";
 import {
@@ -10,7 +10,7 @@ import {
   getAssociatedTokenAddressSync,
   shortenAddress,
 } from "@mrgnlabs/mrgn-common";
-import { useWalletContext } from "../../common/useWalletContext";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 const SOL_AMOUNT = 2 * 10 ** 9;
 
@@ -60,9 +60,7 @@ const AirdropZone: FC = () => {
 
   return (
     <div>
-      <span onClick={open}>
-        Airdrop
-      </span>
+      <span onClick={open}>Airdrop</span>
       <Modal open={isOpen} onClose={close} aria-labelledby="title" aria-describedby="description">
         <div id={styles["container"]}>
           <div id={styles["overlay"]}>

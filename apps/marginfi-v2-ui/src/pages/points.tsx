@@ -31,7 +31,7 @@ import { toast } from "react-toastify";
 import { useUserProfileStore } from "~/store";
 import { LeaderboardRow, fetchLeaderboardData, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { useWalletContext } from "~/components/common/useWalletContext";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
