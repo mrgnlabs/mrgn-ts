@@ -48,7 +48,7 @@ export function PoolCardStats({ bank, isInLendingMode, nativeSolBalance, bankFil
   const isHigh = useMemo(() => bankFilled >= 0.9, [bankFilled]);
 
   return (
-    <View style={tw`flex flex-row`}>
+    <View style={tw`flex flex-row h-60px`}>
       <View style={tw`flex flex-col min-w-77px`}>
         <Text style={tw`font-normal text-sm text-tertiary`}>Weight</Text>
         <Text style={tw`font-medium text-base text-primary`}>{assetWeight}</Text>

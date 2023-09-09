@@ -3,12 +3,13 @@ import { View, Text, Pressable } from "react-native";
 import tw from "~/styles/tailwind";
 import { NumberInput, PrimaryButton, SecondaryButton } from "~/components/Common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { uiToNative } from "@mrgnlabs/mrgn-common";
 
 type Props = {
   currentAction: ActionType;
   bank: ExtendedBankInfo;
   isBankFilled: boolean;
-  onAction: (amount: string) => void;
+  onAction: (amount?: string) => void;
 };
 
 export function PoolCardActions({ currentAction, bank, isBankFilled, onAction }: Props) {
@@ -27,20 +28,20 @@ export function PoolCardActions({ currentAction, bank, isBankFilled, onAction }:
     }
   }, [bank.userInfo, currentAction]);
 
-  const isDisabled = useMemo(() => {
-    switch (currentAction) {
-      case ActionType.Deposit:
-        return isBankFilled;
-      case ActionType.Withdraw:
-        return false;
-      case ActionType.Borrow:
-        return isBankFilled;
-      case ActionType.Repay:
-        return false;
-    }
-  }, [currentAction, isBankFilled]);
+  const isDust = useMemo(
+    () => bank.isActive && uiToNative(bank.position.amount, bank.info.state.mintDecimals).isZero(),
+    [bank]
+  );
+
+  const isDisabled = useMemo(
+    () =>
+      (isDust && uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero()) ||
+      maxAmount === 0,
+    [currentAction, bank, isDust, maxAmount]
+  );
 
   const buttonText = useMemo(() => {
+    if (isDust) return "Close";
     switch (currentAction) {
       case ActionType.Deposit:
         return isDisabled ? "Deposits reached the limit" : "Supply";
@@ -51,7 +52,7 @@ export function PoolCardActions({ currentAction, bank, isBankFilled, onAction }:
       case ActionType.Repay:
         return "Repay";
     }
-  }, [currentAction, isDisabled]);
+  }, [currentAction, isDisabled, isDust]);
 
   return (
     <>
@@ -72,7 +73,7 @@ export function PoolCardActions({ currentAction, bank, isBankFilled, onAction }:
             </View>
           </View>
           {currentAction == ActionType.Withdraw || currentAction == ActionType.Repay ? (
-            <SecondaryButton title={buttonText ?? ""} onPress={() => onAction(amount)} />
+            <SecondaryButton title={buttonText ?? ""} onPress={() => (isDust ? onAction() : onAction(amount))} />
           ) : (
             <PrimaryButton title={buttonText ?? ""} onPress={() => onAction(amount)} />
           )}
