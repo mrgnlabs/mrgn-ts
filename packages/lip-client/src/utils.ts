@@ -1,7 +1,4 @@
-import { Campaign } from "./account";
-import { nativeToUi } from "@mrgnlabs/mrgn-common";
-import BN from "bn.js";
-import { Bank } from "@mrgnlabs/marginfi-client-v2";
+import { calculateApyFromInterest } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import {
   CAMPAIGN_AUTH_SEED,
@@ -10,14 +7,6 @@ import {
   MARGINFI_ACCOUNT_SEED,
   TEMP_TOKEN_ACCOUNT_AUTH_SEED,
 } from "./constants";
-
-export function calculateInterestFromApy(principal: number, durationInYears: number, Apy: number): number {
-  return principal * Apy * durationInYears;
-}
-
-export function calculateApyFromInterest(principal: number, durationInYears: number, interest: number): number {
-  return interest / (principal * durationInYears);
-}
 
 export function computeGuaranteedApy(duration: number, principal: number, interest: number): number {
   const durationInYears = duration / 365 / 24 / 60 / 60;

@@ -1,4 +1,4 @@
-import { Commitment, ConfirmOptions, SendOptions } from "@solana/web3.js";
+import { Commitment, ConfirmOptions, PublicKey, SendOptions } from "@solana/web3.js";
 
 export const DEFAULT_COMMITMENT: Commitment = "processed";
 
@@ -13,3 +13,7 @@ export const DEFAULT_CONFIRM_OPTS: ConfirmOptions = {
 };
 
 export const USDC_DECIMALS = 6;
+
+export const WSOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
+
+export const HOURS_PER_YEAR = 365.25 * 24;

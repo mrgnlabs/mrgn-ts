@@ -1,22 +1,20 @@
 import Image from "next/image";
-import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { TableCell, TableRow } from "@mui/material";
 import { FC, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { groupedNumberFormatter, usdFormatter } from "~/utils/formatters";
 import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
-import { ActiveBankInfo } from "~/types";
-import { uiToNative } from "@mrgnlabs/mrgn-common";
+import { groupedNumberFormatter, uiToNative, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { isWholePosition } from "~/utils";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const WITHDRAW_OR_REPAY_TOAST_ID = "withdraw-or-repay";
-const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
 
 interface UserPositionRowProps {
   activeBankInfo: ActiveBankInfo;
-  marginfiAccount?: MarginfiAccount | null;
+  marginfiAccount?: MarginfiAccountWrapper | null;
   reloadPositions: () => Promise<void>;
 }
 
@@ -24,7 +22,12 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
 
   const isDust = useMemo(
-    () => uiToNative(activeBankInfo.position.amount, activeBankInfo.tokenMintDecimals).isZero(),
+    () => uiToNative(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals).isZero(),
+    [activeBankInfo]
+  );
+
+  const maxAmount = useMemo(
+    () => (activeBankInfo.position.isLending ? activeBankInfo.userInfo.maxWithdraw : activeBankInfo.userInfo.maxRepay),
     [activeBankInfo]
   );
 
@@ -40,9 +43,9 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
 
     try {
       if (activeBankInfo.position.isLending) {
-        await marginfiAccount.withdraw(0, activeBankInfo.bank, true);
+        await marginfiAccount.withdraw(0, activeBankInfo.address, true);
       } else {
-        await marginfiAccount.repay(0, activeBankInfo.bank, true);
+        await marginfiAccount.repay(0, activeBankInfo.address, true);
       }
       toast.update(CLOSE_BALANCE_TOAST_ID, {
         render: "Closing 👍",
@@ -63,22 +66,9 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
 
     setWithdrawOrRepayAmount(0);
 
-    toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
       await reloadPositions();
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: "Refreshing state 👍",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
     } catch (error: any) {
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: `Error while reloading state: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
       console.log("Error while reloading state");
       console.log(error);
     }
@@ -102,13 +92,13 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       if (activeBankInfo.position.isLending) {
         await marginfiAccount.withdraw(
           withdrawOrRepayAmount,
-          activeBankInfo.bank,
+          activeBankInfo.address,
           isWholePosition(activeBankInfo, withdrawOrRepayAmount)
         );
       } else {
         await marginfiAccount.repay(
           withdrawOrRepayAmount,
-          activeBankInfo.bank,
+          activeBankInfo.address,
           isWholePosition(activeBankInfo, withdrawOrRepayAmount)
         );
       }
@@ -131,22 +121,9 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
 
     setWithdrawOrRepayAmount(0);
 
-    toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
       await reloadPositions();
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: "Refreshing state 👍",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
     } catch (error: any) {
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: `Error while reloading state: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
       console.log("Error while reloading state");
       console.log(error);
     }
@@ -156,10 +133,15 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
     <TableRow className="h-full w-full bg-[#171C1F] border border-[#1E2122] rounded-2xl">
       <TableCell className={`text-white p-0 font-aeonik border-[1px] border-none`}>
         <div className="flex justify-center items-center px-4 gap-2">
-          {activeBankInfo.tokenIcon && (
-            <Image src={activeBankInfo.tokenIcon} alt={activeBankInfo.tokenSymbol} height={25} width={25} />
+          {activeBankInfo.meta.tokenLogoUri && (
+            <Image
+              src={activeBankInfo.meta.tokenLogoUri}
+              alt={activeBankInfo.meta.tokenSymbol}
+              height={25}
+              width={25}
+            />
           )}
-          <div className="font-aeonik">{activeBankInfo.tokenSymbol}</div>
+          <div className="font-aeonik">{activeBankInfo.meta.tokenSymbol}</div>
         </div>
       </TableCell>
 
@@ -191,15 +173,26 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         <UserPositionRowInputBox
           value={withdrawOrRepayAmount}
           setValue={setWithdrawOrRepayAmount}
-          maxValue={activeBankInfo.position.isLending ? activeBankInfo.maxWithdraw : activeBankInfo.maxRepay}
-          maxDecimals={activeBankInfo.tokenMintDecimals}
-          disabled={isDust}
+          maxValue={maxAmount}
+          maxDecimals={activeBankInfo.info.state.mintDecimals}
+          disabled={isDust || maxAmount === 0}
+          onEnter={withdrawOrRepay}
         />
       </TableCell>
 
       <TableCell className="text-white font-aeonik p-0 border-none" align="right">
-        <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
-          <UserPositionRowAction onClick={isDust ? closeBalance : withdrawOrRepay}>
+        <div className="h-full w-full flex justify-end items-center pl-2 sm:px-2">
+          <UserPositionRowAction
+            onClick={isDust ? closeBalance : withdrawOrRepay}
+            disabled={
+              (isDust &&
+                uiToNative(
+                  activeBankInfo.userInfo.tokenAccount.balance,
+                  activeBankInfo.info.state.mintDecimals
+                ).isZero()) ||
+              maxAmount === 0
+            }
+          >
             {isDust ? "Close" : activeBankInfo.position.isLending ? "Withdraw" : "Repay"}
           </UserPositionRowAction>
         </div>

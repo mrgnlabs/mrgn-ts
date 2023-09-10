@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import config from "~/config";
 import Script from "next/script";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { toast } from "react-toastify";
-import { useRecoilState } from "recoil";
-import { showBadgesState } from "~/state";
 import { useHotkeys } from "react-hotkeys-hook";
 import { PageHeaderBridge } from "~/components/PageHeader";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
+import { useUserProfileStore } from "~/store";
+import { useWalletContext } from "~/components/useWalletContext";
 
 const tokens = [
   "0x0000000000000000000000000000000000000000", // SOL
@@ -66,60 +64,55 @@ const configs: MayanWidgetConfigType[] = [
   },
 ];
 const BridgePage = () => {
-  const { publicKey, signTransaction, connect, disconnect, wallet } = useWallet();
-  const { setVisible, visible } = useWalletModal();
+  const { walletAddress, walletContextState, openWalletSelector } = useWalletContext();
   const [isBridgeIn, setIsBridgeIn] = useState<boolean>(true);
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
-  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
+  const setShowBadges = useUserProfileStore((state) => state.setShowBadges);
 
   // Enter hotkey mode
   useHotkeys(
     "meta + k",
     () => {
-      setIsHotkeyMode(true);
       setShowBadges(true);
 
       setTimeout(() => {
-        setIsHotkeyMode(false);
         setShowBadges(false);
       }, 5000);
     },
     { preventDefault: true, enableOnFormTags: true }
   );
 
-  const handleConnect = async () => {
+  const handleConnect = useCallback(async () => {
     try {
-      if (!wallet) {
-        setVisible(!visible);
+      if (!walletContextState.wallet) {
+        openWalletSelector();
       } else {
-        await connect();
+        await walletContextState.connect();
       }
     } catch (err) {
       console.error(err);
     }
-  };
+  }, [walletContextState, openWalletSelector]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && typeof window.MayanSwap !== "undefined") {
       window.MayanSwap.updateSolanaWallet({
-        signTransaction,
-        publicKey: publicKey ? publicKey.toString() : null,
+        signTransaction: walletContextState.signTransaction,
+        publicKey: walletAddress ? walletAddress.toString() : null,
         onClickOnConnect: handleConnect,
-        onClickOnDisconnect: disconnect,
+        onClickOnDisconnect: walletContextState.disconnect,
       });
     }
-  }, [publicKey, signTransaction, disconnect, setVisible, visible, wallet, connect]);
+  }, [walletContextState, handleConnect, walletAddress]);
 
-  const handleLoadMayanWidget = () => {
+  const handleLoadMayanWidget = useCallback(() => {
     const configIndex = isBridgeIn ? 0 : 1;
     const config = {
       ...configs[configIndex],
       solanaWallet: {
-        publicKey: publicKey ? publicKey.toString() : null,
-        signTransaction,
+        publicKey: walletAddress ? walletAddress.toString() : null,
+        signTransaction: walletContextState.signTransaction,
         onClickOnConnect: handleConnect,
-        onClickOnDisconnect: disconnect,
+        onClickOnDisconnect: walletContextState.disconnect,
       },
     };
     window.MayanSwap.init("swap_widget", config);
@@ -146,18 +139,17 @@ const BridgePage = () => {
         isLoading: false,
       });
     });
-    setIsLoaded(true);
-  };
+  }, [handleConnect, isBridgeIn, walletAddress, walletContextState.disconnect, walletContextState.signTransaction]);
 
-  const handleUpdateConfig = () => {
+  const handleUpdateConfig = useCallback(() => {
     const newConfigIndex = isBridgeIn ? 1 : 0;
     const config = {
       ...configs[newConfigIndex],
       solanaWallet: {
-        publicKey: publicKey ? publicKey.toString() : null,
-        signTransaction,
+        publicKey: walletAddress ? walletAddress.toString() : null,
+        signTransaction: walletContextState.signTransaction,
         onClickOnConnect: handleConnect,
-        onClickOnDisconnect: disconnect,
+        onClickOnDisconnect: walletContextState.disconnect,
       },
     };
     if (window.MayanSwap) {
@@ -166,11 +158,11 @@ const BridgePage = () => {
       return;
     }
     setIsBridgeIn((prevState) => !prevState);
-  };
+  }, [handleConnect, isBridgeIn, walletAddress, walletContextState]);
 
   useEffect(() => {
     handleUpdateConfig;
-  }, []);
+  }, [handleUpdateConfig]);
 
   return (
     <>

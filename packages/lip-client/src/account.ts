@@ -1,9 +1,15 @@
-import { Address, BN, BorshCoder, translateAddress } from "@project-serum/anchor";
+import { Address, BN, BorshCoder, translateAddress } from "@coral-xyz/anchor";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { LIP_IDL } from ".";
 import LipClient from "./client";
-import { Bank, BankVaultType, MarginfiClient, PriceBias, getBankVaultAuthority } from "@mrgnlabs/marginfi-client-v2";
+import {
+  BankVaultType,
+  MarginfiClient,
+  PriceBias,
+  OraclePrice,
+  getBankVaultAuthority,
+} from "@mrgnlabs/marginfi-client-v2";
 import {
   InstructionsWrapper,
   createAssociatedTokenAccountIdempotentInstruction,
@@ -19,17 +25,7 @@ import {
   getMfiPdaSigner,
   getTempTokenAccountAuthority,
 } from "./utils";
-
-export interface LipPosition {
-  address: PublicKey;
-  amount: number;
-  maturityAmount: number;
-  usdValue: number;
-  campaign: Campaign;
-  startDate: Date;
-  endDate: Date;
-  lockupPeriodInDays: number;
-}
+import { Bank } from "@mrgnlabs/marginfi-client-v2/dist/models/bank";
 
 /**
  * Wrapper class around a specific LIP account.
@@ -59,74 +55,55 @@ class LipAccount {
     return lipAccount;
   }
 
-  getPositions(): LipPosition[] {
-    return this.deposits
-      .map((d) => {
-        const campaign = this.campaigns.find((c) => d.campaign.equals(c.publicKey));
-        if (!campaign) throw Error("Campaign not found");
-        const endDate = new Date(d.startDate);
-        endDate.setSeconds(endDate.getSeconds() + campaign.lockupPeriod);
-        return {
-          address: d.address,
-          amount: d.amount,
-          maturityAmount: d.amount + (d.amount / campaign.maxDeposits) * campaign.maxRewards,
-          usdValue: d.usdValue,
-          campaign: campaign,
-          startDate: d.startDate,
-          endDate,
-          lockupPeriodInDays: campaign.lockupPeriod / (24 * 60 * 60),
-        };
-      })
-      .sort((a, b) => a.endDate.getTime() - b.endDate.getTime());
-  }
-
   getTotalBalance() {
-    return this.deposits.reduce((acc, d) => acc.plus(d.usdValue), new BigNumber(0));
+    return this.deposits.reduce((acc, deposit) => {
+      const oraclePrice = this.mfiClient.oraclePrices.get(deposit.campaign.bank.address.toBase58());
+      if (!oraclePrice) throw Error("Price info not found");
+
+      return acc.plus(deposit.computeUsdValue(oraclePrice, deposit.campaign.bank));
+    }, new BigNumber(0));
   }
 
-  async makeClosePositionIx(lipPosition: LipPosition): Promise<InstructionsWrapper> {
+  async makeClosePositionIx(deposit: Deposit): Promise<InstructionsWrapper> {
     let ixs = [];
 
-    const userAta = getAssociatedTokenAddressSync(lipPosition.campaign.bank.mint, this.client.wallet.publicKey);
+    const userAta = getAssociatedTokenAddressSync(deposit.campaign.bank.mint, this.client.wallet.publicKey);
     const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
       this.client.wallet.publicKey,
       userAta,
       this.client.wallet.publicKey,
-      lipPosition.campaign.bank.mint
+      deposit.campaign.bank.mint
     );
     ixs.push(createAtaIdempotentIx);
 
-    const [campaignRewardVault] = getCampaignRewardVault(lipPosition.campaign.publicKey, this.client.program.programId);
+    const [campaignRewardVault] = getCampaignRewardVault(deposit.campaign.publicKey, this.client.program.programId);
     const [campaignRewardVaultAuthority] = getCampaignRewardVaultAuthority(
-      lipPosition.campaign.publicKey,
+      deposit.campaign.publicKey,
       this.client.program.programId
     );
-    const [marginfiAccount] = getMarginfiAccount(lipPosition.address, this.client.program.programId);
+    const [marginfiAccount] = getMarginfiAccount(deposit.address, this.client.program.programId);
     const [marginfiBankVaultAuthority] = getBankVaultAuthority(
       BankVaultType.LiquidityVault,
-      lipPosition.campaign.bank.publicKey,
+      deposit.campaign.bank.address,
       this.mfiClient.programId
     );
-    const [mfiPdaSigner] = getMfiPdaSigner(lipPosition.address, this.client.program.programId);
-    const [tempTokenAccountAuthority] = getTempTokenAccountAuthority(
-      lipPosition.address,
-      this.client.program.programId
-    );
+    const [mfiPdaSigner] = getMfiPdaSigner(deposit.address, this.client.program.programId);
+    const [tempTokenAccountAuthority] = getTempTokenAccountAuthority(deposit.address, this.client.program.programId);
 
     const tempTokenAccount = Keypair.generate();
 
     const endDepositIx = await instructions.makeEndDepositIx(this.client.program, {
-      marginfiGroup: this.mfiClient.group.publicKey,
+      marginfiGroup: this.mfiClient.groupAddress,
       signer: this.client.wallet.publicKey,
-      assetMint: lipPosition.campaign.bank.mint,
-      campaign: lipPosition.campaign.publicKey,
+      assetMint: deposit.campaign.bank.mint,
+      campaign: deposit.campaign.publicKey,
       campaignRewardVault,
-      deposit: lipPosition.address,
+      deposit: deposit.address,
       campaignRewardVaultAuthority,
       destinationAccount: userAta,
       marginfiAccount,
-      marginfiBank: lipPosition.campaign.bank.publicKey,
-      marginfiBankVault: lipPosition.campaign.bank.liquidityVault,
+      marginfiBank: deposit.campaign.bank.address,
+      marginfiBankVault: deposit.campaign.bank.liquidityVault,
       marginfiProgram: this.mfiClient.programId,
       marginfiBankVaultAuthority,
       mfiPdaSigner,
@@ -138,7 +115,7 @@ class LipAccount {
     return { instructions: ixs, keys: [tempTokenAccount] };
   }
 
-  async closePosition(deposit: LipPosition) {
+  async closePosition(deposit: Deposit) {
     const tx = new Transaction();
 
     const ixs = await this.makeClosePositionIx(deposit);
@@ -171,14 +148,18 @@ class LipAccount {
     const relevantCampaignPks = deposits.map((d) => d.campaign.toBase58());
     const campaignsData = lipClient.campaigns.filter((c) => relevantCampaignPks.includes(c.publicKey.toBase58()));
 
-    const processedDeposits = deposits.map((deposit) => {
+    const shapedDeposits = deposits.map((deposit) => {
       const campaign = lipClient.campaigns.find((c) => deposit.campaign.equals(c.publicKey));
       if (!campaign) throw Error("Campaign not found");
-      return new Deposit(deposit, campaign.bank);
+
+      const bank = lipClient.mfiClient.banks.get(campaign.bank.address.toBase58());
+      if (!bank) throw Error("Bank not found");
+
+      return Deposit.fromAccountParsed(deposit, bank, campaign);
     });
 
     return {
-      deposits: processedDeposits,
+      deposits: shapedDeposits,
       campaigns: campaignsData,
     };
   }
@@ -206,22 +187,45 @@ export default LipAccount;
 // Client types
 
 export class Deposit {
-  address: PublicKey;
-  amount: number;
-  usdValue: number;
-  campaign: PublicKey;
-  startDate: Date;
+  public address: PublicKey;
+  public amount: number;
+  public campaign: Campaign;
+  public startDate: Date;
 
-  constructor(data: DepositData, bank: Bank) {
-    this.address = data.address;
-    this.amount = nativeToUi(data.amount, bank.mintDecimals);
-    this.usdValue = this.getUsdValue(this.amount, bank);
-    this.campaign = data.campaign;
-    this.startDate = new Date(data.startTime * 1000);
+  constructor(address: PublicKey, amount: number, campaign: Campaign, startDate: Date) {
+    this.address = address;
+    this.amount = amount;
+    this.campaign = campaign;
+    this.startDate = startDate;
   }
 
-  public getUsdValue(amount: number, bank: Bank): number {
-    return bank.getUsdValue(new BigNumber(amount), PriceBias.None, new BigNumber(1), false).toNumber();
+  get endDate(): Date {
+    const endDate = new Date(this.startDate);
+    endDate.setSeconds(endDate.getSeconds() + this.campaign.lockupPeriod);
+    return endDate;
+  }
+
+  get maturityAmount(): number {
+    return this.amount + (this.amount / this.campaign.maxDeposits) * this.campaign.maxRewards;
+  }
+
+  get lockupPeriodInDays(): number {
+    return this.campaign.lockupPeriod / 60 / 60 / 24;
+  }
+
+  public computeUsdValue(oraclePrice: OraclePrice, bank: Bank): number {
+    return bank
+      .computeUsdValue(oraclePrice, BigNumber(this.amount), PriceBias.None, new BigNumber(1), false)
+      .toNumber();
+  }
+
+  static fromAccountParsed(data: DepositData, bank: Bank, campaign: Campaign): Deposit {
+    return new Deposit(
+      data.address,
+      nativeToUi(data.amount, bank.mintDecimals),
+      campaign,
+      new Date(data.startTime * 1000)
+    );
   }
 }
 
@@ -233,7 +237,7 @@ export class Campaign {
   remainingCapacity: number;
   guaranteedApy: number;
 
-  constructor(readonly bank: Bank, data: CampaignData) {
+  constructor(readonly bank: Bank, readonly oraclePrice: OraclePrice, data: CampaignData) {
     this.publicKey = data.publicKey;
     this.maxDeposits = nativeToUi(data.maxDeposits, bank.mintDecimals);
     this.maxRewards = nativeToUi(data.maxRewards, bank.mintDecimals);

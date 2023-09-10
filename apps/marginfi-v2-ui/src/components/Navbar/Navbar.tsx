@@ -3,67 +3,43 @@ import Link from "next/link";
 import Image from "next/image";
 import AirdropZone from "./AirdropZone";
 import { WalletButton } from "./WalletButton";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { groupedNumberFormatterDyn, numeralFormatter } from "~/utils/formatters";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useUserAccounts } from "~/context";
-import { useRecoilState } from "recoil";
-import { showBadgesState } from "~/state";
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
 
 // Firebase
-import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
 import { Badge } from "@mui/material";
-import { firebaseDb } from "~/api/firebase";
-import { useFirebaseAccount } from "~/context/FirebaseAccount";
-
-const getPoints = async ({ wallet }: { wallet: string | undefined }) => {
-  if (!wallet) return;
-
-  const docRef = doc(firebaseDb, "points", wallet);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    const pointsData = docSnap.data();
-    const points = {
-      owner: pointsData.owner,
-      deposit_points: pointsData.total_deposit_points.toFixed(4),
-      borrow_points: pointsData.total_borrow_points.toFixed(4),
-      total:
-        pointsData.total_deposit_points +
-        pointsData.total_borrow_points +
-        (pointsData.socialPoints ? pointsData.socialPoints : 0),
-    };
-    return points;
-  } else {
-    // docSnap.data() will be undefined in this case
-    // return a points object with all fields set to zero
-    return {
-      owner: wallet,
-      deposit_points: 0,
-      borrow_points: 0,
-      total: 0,
-    };
-  }
-};
-
-type Points = {
-  owner: string;
-  deposit_points: number;
-  borrow_points: number;
-  total: number;
-} | null;
+import { useFirebaseAccount } from "../useFirebaseAccount";
+import { groupedNumberFormatterDyn, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { useWalletContext } from "../useWalletContext";
 
 // @todo implement second pretty navbar row
 const Navbar: FC = () => {
-  const wallet = useWallet();
-  const { initialUserFetchDone: initialFetchDone, currentUser } = useFirebaseAccount();
-  const [points, setPoints] = useState<Points>(null);
-  const [showBadges, setShowBadges] = useRecoilState(showBadgesState);
-  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
+  useFirebaseAccount();
 
+  const { connected, walletAddress } = useWalletContext();
   const router = useRouter();
+  const [accountSummary, selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
+    state.accountSummary,
+    state.selectedAccount,
+    state.extendedBankInfos,
+  ]);
+  const [showBadges, currentFirebaseUser, userPointsData, setShowBadges, fetchPoints] = useUserProfileStore((state) => [
+    state.showBadges,
+    state.currentFirebaseUser,
+    state.userPointsData,
+    state.setShowBadges,
+    state.fetchPoints,
+  ]);
+
+  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(router.pathname);
+
+  useEffect(() => {
+    if (!walletAddress) return;
+    fetchPoints(walletAddress.toBase58()).catch(console.error);
+  }, [fetchPoints, walletAddress]);
 
   useEffect(() => {
     setCurrentRoute(router.pathname);
@@ -132,26 +108,11 @@ const Navbar: FC = () => {
     { keyup: true, enableOnFormTags: true }
   );
 
-  const { accountSummary, selectedAccount, extendedBankInfos } = useUserAccounts();
-
-  useEffect(() => {
-    if (initialFetchDone && currentUser && wallet.publicKey?.toBase58()) {
-      const fetchData = async () => {
-        const pointsData = await getPoints({ wallet: wallet.publicKey?.toBase58() });
-        if (pointsData) {
-          setPoints(pointsData);
-        }
-      };
-
-      fetchData();
-    }
-  }, [initialFetchDone, currentUser, wallet.publicKey]);
-
   return (
     <header>
       <nav className="fixed w-full top-0 h-[64px] z-20 bg-[#0F1111]">
-        <div className="w-full top-0 flex justify-between items-center h-16 text-2xl z-10 border-b-[0.5px] border-[#1C2125] px-4">
-          <div className="h-full w-1/2 flex justify-start items-center z-10 text-base font-[300] gap-4 lg:gap-8">
+        <div className="w-full top-0 flex justify-between items-center h-16 text-sm font-[500] text-[#868E95] z-10 border-b-[0.5px] border-[#1C2125] px-4">
+          <div className="h-full w-1/2 flex justify-start items-center z-10 gap-4 lg:gap-8">
             <Link
               href={"https://app.marginfi.com"}
               className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center"
@@ -172,7 +133,7 @@ const Navbar: FC = () => {
               badgeContent={"l"}
               invisible={!showBadges}
             >
-              <Link href={"/"} className="glow-on-hover hidden md:block">
+              <Link href={"/"} className={`${router.pathname === "/" ? "hover-underline-static" : "hover-underline-animation"} hidden md:block`}>
                 lend
               </Link>
             </Badge>
@@ -191,7 +152,7 @@ const Navbar: FC = () => {
               badgeContent={"s"}
               invisible={!showBadges}
             >
-              <Link href={"/swap"} className="glow-on-hover">
+              <Link href={"/swap"} className={`${router.pathname === "/swap" ? "hover-underline-static" : "hover-underline-animation"}`}>
                 swap
               </Link>
             </Badge>
@@ -209,7 +170,7 @@ const Navbar: FC = () => {
               badgeContent={"b"}
               invisible={!showBadges}
             >
-              <Link href={"/bridge"} className="glow-on-hover">
+              <Link href={"/bridge"} className={`${router.pathname === "/bridge" ? "hover-underline-static" : "hover-underline-animation"}`}>
                 bridge
               </Link>
             </Badge>
@@ -229,7 +190,7 @@ const Navbar: FC = () => {
               invisible={!showBadges}
               className="hidden md:block"
             >
-              <Link href={"/earn"} className="glow-on-hover hidden md:block">
+              <Link href={"/earn"} className={`${router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"} hidden md:block`}>
                 earn
               </Link>
             </Badge>
@@ -249,18 +210,20 @@ const Navbar: FC = () => {
               invisible={!showBadges}
               className="hidden md:block"
             >
-              <Link href={"https://omni.marginfi.com"} className="glow-on-hover hidden md:block">
+              <Link href={"https://omni.marginfi.com"} className="hover-underline-animation hidden md:block">
                 omni
               </Link>
             </Badge>
-            {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && wallet.connected && <AirdropZone />}
+            {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && connected && <AirdropZone />}
           </div>
-          <div className="h-full w-1/2 flex justify-end items-center z-10 text-base font-[300] gap-4 lg:gap-8">
+          <div className="h-full w-1/2 flex justify-end items-center z-10 gap-4 lg:gap-8 text-[#868E95]">
             <div
-              className="glow-uxd whitespace-nowrap cursor-pointer hidden md:block"
+              className="whitespace-nowrap cursor-pointer hidden md:block"
               onClick={() => {
-                if (selectedAccount && extendedBankInfos?.find((b) => b.tokenSymbol === "UXD")?.bank) {
-                  selectedAccount!.withdrawEmissions(extendedBankInfos.find((b) => b.tokenSymbol === "UXD")!.bank);
+                if (selectedAccount && extendedBankInfos?.find((b) => b.meta.tokenSymbol === "UXD")?.info.rawBank) {
+                  selectedAccount!.withdrawEmissions(
+                    extendedBankInfos.find((b) => b.meta.tokenSymbol === "UXD")!.address
+                  );
                 }
               }}
             >
@@ -273,10 +236,10 @@ const Navbar: FC = () => {
                   } UXP`}
             </div>
 
-            <Link href={"/points"} className="glow whitespace-nowrap">
-              {wallet.connected && currentUser
-                ? `${points?.total ? groupedNumberFormatterDyn.format(Math.round(points.total)) : 0} points`
-                : "P...P...POINTS!"}
+            <Link href={"/points"} className={`${router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"} whitespace-nowrap`}>
+              {connected && currentFirebaseUser
+                ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
+                : "points"}
             </Link>
 
             <WalletButton />

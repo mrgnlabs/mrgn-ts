@@ -1,4 +1,4 @@
-import { Address, BN } from "@project-serum/anchor";
+import { Address, BN } from "@coral-xyz/anchor";
 import BigNumber from "bignumber.js";
 import { Decimal } from "decimal.js";
 import { Amount } from "./types";

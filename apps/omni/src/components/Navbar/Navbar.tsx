@@ -2,7 +2,6 @@ import { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { NavbarCenterItem } from "./NavbarCenterItem";
-import AirdropZone from "./AirdropZone";
 import { WalletButton } from "./WalletButton";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "@mui/material";
@@ -52,7 +51,6 @@ const Navbar: FC = () => {
               >
                 <NavbarCenterItem text="Omni" />
               </Link>
-              {wallet.connected && process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && <AirdropZone />}
             </div>
           </div>
           <div className="h-full flex justify-center items-center gap-4 z-10">

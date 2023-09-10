@@ -8,6 +8,7 @@ interface UserPositionRowInputBoxProps {
   maxValue?: number;
   maxDecimals?: number;
   disabled?: boolean;
+  onEnter?: () => void;
 }
 
 const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
@@ -16,8 +17,9 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
   maxValue,
   maxDecimals,
   disabled,
+  onEnter,
 }) => {
-  const onClick = () => {
+  const onMaxClick = () => {
     if (maxValue !== undefined) {
       setValue(maxValue);
     }
@@ -36,20 +38,29 @@ const UserPositionRowInputBox: FC<UserPositionRowInputBoxProps> = ({
 
   return (
     <NumericFormat
-      value={value}
+      value={maxValue ? value : ""}
       placeholder="0"
       allowNegative={false}
       decimalScale={maxDecimals}
+      disabled={disabled}
       onValueChange={onChange}
       thousandSeparator=","
       customInput={TextField}
       size="small"
-      max={maxValue}
-      InputProps={{
-        className: "font-aeonik bg-[#1C2125] text-[#e1e1e1] p-0 m-0 text-sm h-11 ml-2 border border-[#4E5257]",
-        endAdornment: <MaxInputAdornment onClick={onClick} disabled={disabled} />,
+      isAllowed={(values) => {
+        const { floatValue } = values;
+        if (!maxValue) return false;
+        return floatValue ? floatValue < maxValue : true;
       }}
-      disabled={disabled}
+      InputProps={{
+        className: "font-aeonik text-[#e1e1e1] border border-[#4E5257] p-0 m-0 text-sm h-11",
+        endAdornment: <MaxInputAdornment onClick={onMaxClick} disabled={disabled || !maxValue} />,
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && onEnter) {
+          onEnter();
+        }
+      }}
     />
   );
 };

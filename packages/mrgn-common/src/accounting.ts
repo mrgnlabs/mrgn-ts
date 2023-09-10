@@ -1,6 +1,6 @@
-// ================ apr/apy conversions ================
+import { HOURS_PER_YEAR } from "./constants";
 
-export const HOURS_PER_YEAR = 365.25 * 24;
+// ================ interest rate helpers ================
 
 /**
  * Formula source: http://www.linked8.com/blog/158-apy-to-apr-and-apr-to-apy-calculation-methodologies
@@ -9,7 +9,7 @@ export const HOURS_PER_YEAR = 365.25 * 24;
  * @param compoundingFrequency {Number} Compounding frequency (times a year)
  * @returns {Number} APR (i.e. 0.0582 for APY of 0.06)
  */
-export const apyToApr = (apy: number, compoundingFrequency = HOURS_PER_YEAR) =>
+const apyToApr = (apy: number, compoundingFrequency = HOURS_PER_YEAR) =>
   ((1 + apy) ** (1 / compoundingFrequency) - 1) * compoundingFrequency;
 
 /**
@@ -19,5 +19,15 @@ export const apyToApr = (apy: number, compoundingFrequency = HOURS_PER_YEAR) =>
  * @param compoundingFrequency {Number} Compounding frequency (times a year)
  * @returns {Number} APY (i.e. 0.06 for APR of 0.0582)
  */
-export const aprToApy = (apr: number, compoundingFrequency = HOURS_PER_YEAR) =>
+const aprToApy = (apr: number, compoundingFrequency = HOURS_PER_YEAR) =>
   (1 + apr / compoundingFrequency) ** compoundingFrequency - 1;
+
+function calculateInterestFromApy(principal: number, durationInYears: number, apy: number): number {
+  return principal * apy * durationInYears;
+}
+
+function calculateApyFromInterest(principal: number, durationInYears: number, interest: number): number {
+  return interest / (principal * durationInYears);
+}
+
+export { apyToApr, aprToApy, calculateInterestFromApy, calculateApyFromInterest };

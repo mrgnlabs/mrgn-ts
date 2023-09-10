@@ -1,11 +1,12 @@
 import React, { FC, useMemo } from "react";
 import { Card, Table, TableBody, TableContainer, TableHead, TableCell, Typography } from "@mui/material";
-import { useTokenAccounts, useUserAccounts } from "~/context";
 import UserPositionRow from "./UserPositionRow";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
+import { useMrgnlendStore } from "~/store";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -20,8 +21,17 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 const UserPositions: FC = () => {
-  const { selectedAccount, activeBankInfos, reload } = useUserAccounts();
-  const { tokenAccountMap } = useTokenAccounts();
+  const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
+  const [selectedAccount, extendedBankInfos, fetchMrgnlendState] = useMrgnlendStore((state) => [
+    state.selectedAccount,
+    state.extendedBankInfos,
+    state.fetchMrgnlendState,
+  ]);
+
+  const activeBankInfos = useMemo(
+    () => extendedBankInfos.filter((balance) => balance.isActive),
+    [extendedBankInfos]
+  ) as ActiveBankInfo[];
 
   const { lendPositions, borrowPositions } = useMemo(
     () => ({
@@ -31,23 +41,9 @@ const UserPositions: FC = () => {
     [activeBankInfos]
   );
 
-  const { lentAssetInfos, borrowedAssetInfos } = useMemo(
-    () => ({
-      lentAssetInfos: lendPositions.map((bankInfo) => ({
-        bankInfo,
-        tokenBalance: tokenAccountMap.get(bankInfo.bank.mint.toBase58())?.balance || 0,
-      })),
-      borrowedAssetInfos: borrowPositions.map((bankInfo) => ({
-        bankInfo,
-        tokenBalance: tokenAccountMap.get(bankInfo.bank.mint.toBase58())?.balance || 0,
-      })),
-    }),
-    [borrowPositions, lendPositions, tokenAccountMap]
-  );
-
   return (
     <>
-      {lentAssetInfos.length > 0 && selectedAccount && (
+      {lendPositions.length > 0 && selectedAccount && (
         <Card elevation={0} className="bg-transparent w-full p-0 grid">
           <div className="font-aeonik font-normal text-2xl my-0 lg:mt-2 mb-[-20px] text-white">Lending</div>
           <TableContainer>
@@ -137,12 +133,15 @@ const UserPositions: FC = () => {
                 <TableCell className="border-none"></TableCell>
               </TableHead>
               <TableBody>
-                {lentAssetInfos.map(({ bankInfo }, index) => (
+                {lendPositions.map((bankInfo, index) => (
                   <UserPositionRow
                     key={index}
                     activeBankInfo={bankInfo}
                     marginfiAccount={selectedAccount}
-                    reloadPositions={reload}
+                    reloadPositions={async () => {
+                      setIsRefreshingStore(true);
+                      fetchMrgnlendState();
+                    }}
                   />
                 ))}
               </TableBody>
@@ -151,7 +150,7 @@ const UserPositions: FC = () => {
         </Card>
       )}
       <div>
-        {borrowedAssetInfos.length > 0 && selectedAccount && (
+        {borrowPositions.length > 0 && selectedAccount && (
           <Card elevation={0} className="bg-transparent w-full p-0 grid">
             <div className="font-aeonik font-normal text-2xl my-0 lg:mt-2 mb-[-20px] text-white">Borrowing</div>
             <TableContainer>
@@ -243,12 +242,15 @@ const UserPositions: FC = () => {
                   <TableCell className="border-none"></TableCell>
                 </TableHead>
                 <TableBody>
-                  {borrowedAssetInfos.map(({ bankInfo }, index) => (
+                  {borrowPositions.map((bankInfo, index) => (
                     <UserPositionRow
                       key={index}
                       activeBankInfo={bankInfo}
                       marginfiAccount={selectedAccount}
-                      reloadPositions={reload}
+                      reloadPositions={async () => {
+                        setIsRefreshingStore(true);
+                        fetchMrgnlendState();
+                      }}
                     />
                   ))}
                 </TableBody>

@@ -8,8 +8,13 @@
       "packages/*"
     ],
     "nohoist": [
-      "**/expo*",
-      "**/@expo*"
+      "**/expo",
+      "**/expo/**",
+      "**/expo-*/**",
+      "**/@expo",
+      "**/@expo-*/**",
+      "**/@expo/**",
+      "**/ts-loader/**"
     ]
   },
   "scripts": {

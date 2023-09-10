@@ -48,6 +48,10 @@ let envSchema = z.object({
       return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
     })
     .optional(),
+  MIN_LIQUIDATION_AMOUNT_USD_UI: z
+    .string()
+    .default("0.1")
+    .transform((s) => new BigNumber(s)),
   MIN_SOL_BALANCE: z.coerce.number().default(0.5),
   MRGN_ENV: z
     .enum(["production", "alpha", "staging", "dev", "mainnet-test-1", "dev.1"])
@@ -71,10 +75,6 @@ let envSchema = z.object({
       return Keypair.fromSecretKey(new Uint8Array(JSON.parse(keypairStr)));
     }
   }),
-  MIN_LIQUIDATION_AMOUNT_USD_UI: z
-    .string()
-    .default("0.1")
-    .transform((s) => new BigNumber(s)),
 });
 
 type EnvSchema = z.infer<typeof envSchema>;

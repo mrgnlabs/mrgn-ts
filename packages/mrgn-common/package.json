@@ -12,13 +12,14 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.26.0",
-    "@project-serum/anchor": "^0.26.0",
+    "@coral-xyz/anchor": "^0.28.1-beta.2",
     "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/wallet-adapter-base": "^0.9.20",
     "@solana/web3.js": "^1.71.0",
     "bignumber.js": "^9.1.1",
-    "decimal.js": "^10.4.3"
+    "decimal.js": "^10.4.3",
+    "numeral": "^2.0.6",
+    "superstruct": "^1.0.3"
   },
   "devDependencies": {
     "@mrgnlabs/eslint-config-custom": "*",

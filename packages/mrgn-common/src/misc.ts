@@ -1,4 +1,4 @@
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 import { ConfirmOptions, Connection, Keypair, Signer, Transaction, TransactionSignature } from "@solana/web3.js";
 
 /**
@@ -14,6 +14,16 @@ export function loadKeypair(keypairPath: string): Keypair {
   }
   const keyPath = path.normalize(keypairPath);
   return Keypair.fromSecretKey(new Uint8Array(JSON.parse(require("fs").readFileSync(keyPath).toString())));
+}
+
+export function getValueInsensitive<T>(map: Record<string, T>, key: string): T {
+  const lowerCaseLabel = key.toLowerCase();
+  for (let key in map) {
+    if (key.toLowerCase() === lowerCaseLabel) {
+      return map[key];
+    }
+  }
+  throw new Error(`Token metadata not found for ${key}`);
 }
 
 /**

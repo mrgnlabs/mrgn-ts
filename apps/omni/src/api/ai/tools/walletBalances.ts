@@ -39,7 +39,7 @@ class WalletBalancesTool extends Tool {
     tokenAccounts: TokenAccount[];
   }> {
     const client = await getClient(this.connection);
-    const banks = [...client.group.banks.values()];
+    const banks = [...client.banks.values()];
     const wallet = new PublicKey(this.walletPublicKey);
 
     // Get relevant addresses

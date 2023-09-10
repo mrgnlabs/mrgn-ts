@@ -2,25 +2,35 @@ import Image from "next/image";
 import { TableCell, TableRow } from "@mui/material";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { ActionType, Emissions, ExtendedBankInfo, isActiveBankInfo } from "~/types";
 import { AssetRowInputBox } from "./AssetRowInputBox";
 import { AssetRowAction } from "./AssetRowAction";
-import { MarginfiAccount, MarginfiClient, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { numeralFormatter, usdFormatter, percentFormatter, groupedNumberFormatterDyn } from "~/utils/formatters";
-import { WSOL_MINT } from "~/config";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { lendZoomLevel, denominationUSD } from "~/state";
-import { useRecoilValue } from "recoil";
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import Badge from "@mui/material/Badge";
 import { isWholePosition } from "~/utils";
-import { uiToNative } from "@mrgnlabs/mrgn-common";
+import {
+  WSOL_MINT,
+  groupedNumberFormatterDyn,
+  numeralFormatter,
+  percentFormatter,
+  uiToNative,
+  usdFormatter,
+} from "@mrgnlabs/mrgn-common";
+import {
+  ExtendedBankInfo,
+  Emissions,
+  FEE_MARGIN,
+  ActionType,
+  getCurrentAction,
+  ExtendedBankMetadata,
+} from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
+import { useWalletContext } from "~/components/useWalletContext";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
-const REFRESH_ACCOUNT_TOAST_ID = "refresh-account";
-const ACCOUNT_DETECTION_ERROR_TOAST_ID = "account-detection-error";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -35,57 +45,59 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 const AssetRow: FC<{
-  bankInfo: ExtendedBankInfo;
+  bank: ExtendedBankInfo;
   nativeSolBalance: number;
   isInLendingMode: boolean;
   isConnected: boolean;
-  marginfiAccount: MarginfiAccount | null;
-  marginfiClient: MarginfiClient | null;
-  reloadBanks: () => Promise<void>;
+  marginfiAccount: MarginfiAccountWrapper | null;
   inputRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
   hasHotkey: boolean;
   showHotkeyBadges?: boolean;
   badgeContent?: string;
 }> = ({
-  bankInfo,
+  bank,
   nativeSolBalance,
   isInLendingMode,
   marginfiAccount,
-  marginfiClient,
-  reloadBanks,
   inputRefs,
   hasHotkey,
   showHotkeyBadges,
   badgeContent,
 }) => {
-  const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
-  const isDust = useMemo(
-    () => bankInfo.hasActivePosition && uiToNative(bankInfo.position.amount, bankInfo.tokenMintDecimals).isZero(),
-    [bankInfo]
-  );
+  const { connected, openWalletSelector } = useWalletContext();
+  const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
+  const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
+  const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
 
-  const zoomLevel = useRecoilValue(lendZoomLevel);
-  const showUSD = useRecoilValue(denominationUSD);
+  const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
+
+  const isDust = useMemo(
+    () => bank.isActive && uiToNative(bank.position.amount, bank.info.state.mintDecimals).isZero(),
+    [bank]
+  );
+  const currentAction: ActionType | "Connect" = useMemo(
+    () => (connected ? getCurrentAction(isInLendingMode, bank) : "Connect"),
+    [connected, isInLendingMode, bank]
+  );
+  const maxAmount = useMemo(() => {
+    switch (currentAction) {
+      case "Connect":
+        return 0;
+      case ActionType.Deposit:
+        return bank.userInfo.maxDeposit;
+      case ActionType.Withdraw:
+        return bank.userInfo.maxWithdraw;
+      case ActionType.Borrow:
+        return bank.userInfo.maxBorrow;
+      case ActionType.Repay:
+        return bank.userInfo.maxRepay;
+    }
+  }, [bank, currentAction]);
 
   // Reset b/l amounts on toggle
   useEffect(() => {
     setBorrowOrLendAmount(0);
   }, [isInLendingMode]);
-
-  const currentAction = useMemo(() => getCurrentAction(isInLendingMode, bankInfo), [isInLendingMode, bankInfo]);
-
-  const maxAmount = useMemo(() => {
-    switch (currentAction) {
-      case ActionType.Deposit:
-        return bankInfo.maxDeposit;
-      case ActionType.Withdraw:
-        return bankInfo.maxWithdraw;
-      case ActionType.Borrow:
-        return bankInfo.maxBorrow;
-      case ActionType.Repay:
-        return bankInfo.maxRepay;
-    }
-  }, [bankInfo.maxBorrow, bankInfo.maxDeposit, bankInfo.maxRepay, bankInfo.maxWithdraw, currentAction]);
 
   const closeBalance = useCallback(async () => {
     if (!marginfiAccount) {
@@ -93,7 +105,7 @@ const AssetRow: FC<{
       return;
     }
 
-    if (!bankInfo.hasActivePosition) {
+    if (!bank.isActive) {
       toast.error("no position to close.");
       return;
     }
@@ -103,10 +115,10 @@ const AssetRow: FC<{
     });
 
     try {
-      if (bankInfo.position.isLending) {
-        await marginfiAccount.withdraw(0, bankInfo.bank, true);
+      if (bank.position.isLending) {
+        await marginfiAccount.withdraw(0, bank.address, true);
       } else {
-        await marginfiAccount.repay(0, bankInfo.bank, true);
+        await marginfiAccount.repay(0, bank.address, true);
       }
       toast.update(CLOSE_BALANCE_TOAST_ID, {
         render: "Closing 👍",
@@ -127,51 +139,42 @@ const AssetRow: FC<{
 
     setBorrowOrLendAmount(0);
 
-    toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
-      await reloadBanks();
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: "Refreshing state 👍",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
+      setIsRefreshingStore(true);
+      await fetchMrgnlendState();
     } catch (error: any) {
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: `Error while reloading state: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [bankInfo, marginfiAccount, reloadBanks]);
+  }, [bank, marginfiAccount, fetchMrgnlendState, setIsRefreshingStore]);
 
   const borrowOrLend = useCallback(async () => {
-    if (marginfiClient === null) throw Error("Marginfi client not ready");
+    if (mfiClient === null) throw Error("Marginfi client not ready");
 
-    if (currentAction === ActionType.Deposit && bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit) {
+    if (
+      currentAction === ActionType.Deposit &&
+      bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit
+    ) {
       toast.error(
-        `${bankInfo.tokenSymbol} deposit limit has been been reached. Additional deposits are not currently available.`
+        `${bank.meta.tokenSymbol} deposit limit has been been reached. Additional deposits are not currently available.`
       );
       return;
     }
 
-    if (currentAction === ActionType.Borrow && bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit) {
+    if (currentAction === ActionType.Borrow && bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit) {
       toast.error(
-        `${bankInfo.tokenSymbol} borrow limit has been been reached. Additional borrows are not currently available.`
+        `${bank.meta.tokenSymbol} borrow limit has been been reached. Additional borrows are not currently available.`
       );
       return;
     }
 
-    if (currentAction === ActionType.Deposit && bankInfo.maxDeposit === 0) {
-      toast.error(`You don't have any ${bankInfo.tokenSymbol} to lend in your wallet.`);
+    if (currentAction === ActionType.Deposit && bank.userInfo.maxDeposit === 0) {
+      toast.error(`You don't have any ${bank.meta.tokenSymbol} to lend in your wallet.`);
       return;
     }
 
-    if (currentAction === ActionType.Borrow && bankInfo.maxBorrow === 0) {
-      toast.error(`You cannot borrow any ${bankInfo.tokenSymbol} right now.`);
+    if (currentAction === ActionType.Borrow && bank.userInfo.maxBorrow === 0) {
+      toast.error(`You cannot borrow any ${bank.meta.tokenSymbol} right now.`);
       return;
     }
 
@@ -182,9 +185,14 @@ const AssetRow: FC<{
 
     let _marginfiAccount = marginfiAccount;
 
+    if (nativeSolBalance < FEE_MARGIN) {
+      toast.error("Not enough sol for fee.");
+      return;
+    }
+
     // -------- Create marginfi account if needed
     try {
-      if (_marginfiAccount === null) {
+      if (!_marginfiAccount) {
         if (currentAction !== ActionType.Deposit) {
           toast.error("An account is required for anything operation except deposit.");
           return;
@@ -194,40 +202,9 @@ const AssetRow: FC<{
           toastId: BORROW_OR_LEND_TOAST_ID,
         });
 
-        const userAccounts = await marginfiClient.getMarginfiAccountsForAuthority();
-        if (userAccounts.length > 0) {
-          toast.update(BORROW_OR_LEND_TOAST_ID, {
-            render: "Uh oh, data seems out-of-sync",
-            toastId: BORROW_OR_LEND_TOAST_ID,
-            type: toast.TYPE.WARNING,
-            autoClose: 3000,
-            isLoading: false,
-          });
-          toast.loading("Refreshing data...", { toastId: ACCOUNT_DETECTION_ERROR_TOAST_ID });
-          try {
-            await reloadBanks();
-            toast.update(ACCOUNT_DETECTION_ERROR_TOAST_ID, {
-              render: "Refreshing data... Done. Please try again",
-              type: toast.TYPE.SUCCESS,
-              autoClose: 3000,
-              isLoading: false,
-            });
-          } catch (error: any) {
-            toast.update(ACCOUNT_DETECTION_ERROR_TOAST_ID, {
-              render: `Error while reloading state: ${error.message}`,
-              type: toast.TYPE.ERROR,
-              autoClose: 5000,
-              isLoading: false,
-            });
-            console.log("Error while reloading state");
-            console.log(error);
-          }
-          return;
-        }
-
-        _marginfiAccount = await marginfiClient.createMarginfiAccount();
+        _marginfiAccount = await mfiClient.createMarginfiAccount();
         toast.update(BORROW_OR_LEND_TOAST_ID, {
-          render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenSymbol}`,
+          render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol}`,
         });
       }
     } catch (error: any) {
@@ -245,17 +222,17 @@ const AssetRow: FC<{
     // -------- Perform relevant operation
     try {
       if (currentAction === ActionType.Deposit) {
-        await _marginfiAccount.deposit(borrowOrLendAmount, bankInfo.bank);
+        await _marginfiAccount.deposit(borrowOrLendAmount, bank.address);
 
         toast.update(BORROW_OR_LEND_TOAST_ID, {
-          render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenSymbol} 👍`,
+          render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol} 👍`,
           type: toast.TYPE.SUCCESS,
           autoClose: 2000,
           isLoading: false,
         });
       }
 
-      toast.loading(`${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenSymbol}`, {
+      toast.loading(`${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol}`, {
         toastId: BORROW_OR_LEND_TOAST_ID,
       });
       if (_marginfiAccount === null) {
@@ -264,23 +241,23 @@ const AssetRow: FC<{
       }
 
       if (currentAction === ActionType.Borrow) {
-        await _marginfiAccount.borrow(borrowOrLendAmount, bankInfo.bank);
+        await _marginfiAccount.borrow(borrowOrLendAmount, bank.address);
       } else if (currentAction === ActionType.Repay) {
         await _marginfiAccount.repay(
           borrowOrLendAmount,
-          bankInfo.bank,
-          bankInfo.hasActivePosition && isWholePosition(bankInfo, borrowOrLendAmount)
+          bank.address,
+          bank.isActive && isWholePosition(bank, borrowOrLendAmount)
         );
       } else if (currentAction === ActionType.Withdraw) {
         await _marginfiAccount.withdraw(
           borrowOrLendAmount,
-          bankInfo.bank,
-          bankInfo.hasActivePosition && isWholePosition(bankInfo, borrowOrLendAmount)
+          bank.address,
+          bank.isActive && isWholePosition(bank, borrowOrLendAmount)
         );
       }
 
       toast.update(BORROW_OR_LEND_TOAST_ID, {
-        render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.tokenSymbol} 👍`,
+        render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol} 👍`,
         type: toast.TYPE.SUCCESS,
         autoClose: 2000,
         isLoading: false,
@@ -299,29 +276,26 @@ const AssetRow: FC<{
     setBorrowOrLendAmount(0);
 
     // -------- Refresh state
-    toast.loading("Refreshing state", { toastId: REFRESH_ACCOUNT_TOAST_ID });
     try {
-      await reloadBanks();
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: "Refreshing state 👍",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
+      setIsRefreshingStore(true);
+      await fetchMrgnlendState();
     } catch (error: any) {
-      toast.update(REFRESH_ACCOUNT_TOAST_ID, {
-        render: `Error while reloading state: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [bankInfo, borrowOrLendAmount, currentAction, marginfiAccount, marginfiClient, reloadBanks]);
+  }, [
+    bank,
+    borrowOrLendAmount,
+    currentAction,
+    marginfiAccount,
+    mfiClient,
+    nativeSolBalance,
+    fetchMrgnlendState,
+    setIsRefreshingStore,
+  ]);
 
   return (
-    <TableRow className="h-full w-full bg-[#171C1F] border border-[#1E2122] rounded-2xl">
+    <TableRow className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]">
       <TableCell
         className={`text-white p-0 font-aeonik border-none`}
         style={{
@@ -329,13 +303,15 @@ const AssetRow: FC<{
         }}
       >
         <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
-          {bankInfo.tokenIcon && <Image src={bankInfo.tokenIcon} alt={bankInfo.tokenSymbol} height={25} width={25} />}
-          <div className="font-aeonik hidden lg:block">{bankInfo.tokenSymbol}</div>
+          {bank.meta.tokenLogoUri && (
+            <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} height={25} width={25} />
+          )}
+          <div className="font-aeonik hidden lg:block">{bank.meta.tokenSymbol}</div>
         </div>
       </TableCell>
       <TableCell
         className={`text-white border-none px-2 font-aeonik hidden lg:table-cell ${
-          bankInfo.tokenPrice > 999 && zoomLevel < 2 ? "xl:text-xs xl:pl-0" : ""
+          bank.info.state.price > 999 && lendZoomLevel < 2 ? "xl:text-xs xl:pl-0" : ""
         }`}
         align="right"
         style={{ fontWeight: 300 }}
@@ -346,10 +322,10 @@ const AssetRow: FC<{
               <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                 Wide oracle price bands
               </Typography>
-              {`${bankInfo.tokenSymbol} price estimates is
-                ${usdFormatter.format(bankInfo.tokenPrice)} ± ${Math.max(
-                bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
-                bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+              {`${bank.meta.tokenSymbol} price estimates is
+                ${usdFormatter.format(bank.info.state.price)} ± ${Math.max(
+                bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
+                bank.info.state.price - bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
               ).toFixed(
                 2
               )}, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`}
@@ -362,10 +338,10 @@ const AssetRow: FC<{
           placement="right"
           className={`${
             Math.max(
-              bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
-              bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+              bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
+              bank.info.state.price - bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
             ) >
-            bankInfo.tokenPrice * 0.1
+            bank.info.state.price * 0.1
               ? "cursor-pointer"
               : "hidden"
           }`}
@@ -373,10 +349,10 @@ const AssetRow: FC<{
           <Badge
             badgeContent={
               Math.max(
-                bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
-                bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+                bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
+                bank.info.state.price - bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
               ) >
-              bankInfo.tokenPrice * 0.1
+              bank.info.state.price * 0.1
                 ? "⚠️"
                 : ""
             }
@@ -388,22 +364,24 @@ const AssetRow: FC<{
             }}
             invisible={
               Math.max(
-                bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
-                bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+                bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
+                bank.info.state.price - bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
               ) >
-              bankInfo.tokenPrice * 0.1
+              bank.info.state.price * 0.1
                 ? false
                 : true
             }
           >
-            {bankInfo.tokenPrice >= 0.01
-              ? zoomLevel < 2
-                ? `${usdFormatter.format(bankInfo.tokenPrice)} ± ${Math.max(
-                    bankInfo.bank.getPrice(PriceBias.Highest).toNumber() - bankInfo.tokenPrice,
-                    bankInfo.tokenPrice - bankInfo.bank.getPrice(PriceBias.Lowest).toNumber()
+            {bank.info.state.price >= 0.01
+              ? lendZoomLevel < 2
+                ? `${usdFormatter.format(bank.info.state.price)} ± ${Math.max(
+                    bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() -
+                      bank.info.state.price,
+                    bank.info.state.price -
+                      bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
                   ).toFixed(2)}`
-                : usdFormatter.format(bankInfo.tokenPrice)
-              : `$${bankInfo.tokenPrice.toExponential(2)}`}
+                : usdFormatter.format(bank.info.state.price)
+              : `$${bank.info.state.price.toExponential(2)}`}
           </Badge>
         </HtmlTooltip>
       </TableCell>
@@ -416,7 +394,7 @@ const AssetRow: FC<{
         }}
       >
         <div className="h-full w-full flex justify-end items-center gap-3">
-          {bankInfo.tokenSymbol === "UXD" && isInLendingMode && (
+          {bank.meta.tokenSymbol === "UXD" && isInLendingMode && (
             <div className="w-1/2 flex justify-center sm:justify-end">
               <HtmlTooltip
                 title={
@@ -424,8 +402,8 @@ const AssetRow: FC<{
                     <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                       Liquidity rewards
                     </Typography>
-                    {`${percentFormatter.format(bankInfo.lendingRate)} Supply APY + ${percentFormatter.format(
-                      bankInfo.emissionsRate
+                    {`${percentFormatter.format(bank.info.state.lendingRate)} Supply APY + ${percentFormatter.format(
+                      bank.info.state.emissionsRate
                     )} UXP rewards.`}
                     <br />
                     <a href="https://docs.marginfi.com">
@@ -446,9 +424,13 @@ const AssetRow: FC<{
             }}
           >
             {percentFormatter.format(
-              (isInLendingMode ? bankInfo.lendingRate : bankInfo.borrowingRate) +
-                (isInLendingMode && bankInfo.emissions == Emissions.Lending ? bankInfo.emissionsRate : 0) +
-                (!isInLendingMode && bankInfo.emissions == Emissions.Borrowing ? bankInfo.emissionsRate : 0)
+              (isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate) +
+                (isInLendingMode && bank.info.state.emissions == Emissions.Lending
+                  ? bank.info.state.emissionsRate
+                  : 0) +
+                (!isInLendingMode && bank.info.state.emissions == Emissions.Borrowing
+                  ? bank.info.state.emissionsRate
+                  : 0)
             )}
           </div>
         </div>
@@ -460,10 +442,10 @@ const AssetRow: FC<{
         style={{ fontWeight: 300 }}
       >
         {isInLendingMode
-          ? bankInfo.bank.config.assetWeightMaint.toNumber() > 0
-            ? (bankInfo.bank.config.assetWeightMaint.toNumber() * 100).toFixed(0) + "%"
+          ? bank.info.rawBank.config.assetWeightInit.toNumber() > 0
+            ? (bank.info.rawBank.config.assetWeightInit.toNumber() * 100).toFixed(0) + "%"
             : "-"
-          : ((1 / bankInfo.bank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%"}
+          : ((1 / bank.info.rawBank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%"}
       </TableCell>
 
       <TableCell
@@ -476,21 +458,21 @@ const AssetRow: FC<{
             <React.Fragment>
               <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                 {isInLendingMode
-                  ? bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit * 0.99999
+                  ? bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit * 0.99999
                     ? "Limit Reached"
-                    : bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit * 0.9
+                    : bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit * 0.9
                     ? "Approaching Limit"
                     : null
-                  : bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit * 0.99999
+                  : bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit * 0.99999
                   ? "Limit Reached"
-                  : bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit * 0.9
+                  : bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit * 0.9
                   ? "Approaching Limit"
                   : null}
               </Typography>
-              {`${bankInfo.tokenSymbol} ${isInLendingMode ? "deposits" : "borrows"} are at ${percentFormatter.format(
+              {`${bank.meta.tokenSymbol} ${isInLendingMode ? "deposits" : "borrows"} are at ${percentFormatter.format(
                 isInLendingMode
-                  ? bankInfo.totalPoolDeposits / bankInfo.bank.config.depositLimit
-                  : bankInfo.totalPoolBorrows / bankInfo.bank.config.borrowLimit
+                  ? bank.info.state.totalDeposits / bank.info.rawBank.config.depositLimit
+                  : bank.info.state.totalBorrows / bank.info.rawBank.config.borrowLimit
               )} capacity.`}
               <br />
               <a href="https://docs.marginfi.com">
@@ -501,10 +483,10 @@ const AssetRow: FC<{
           placement="right"
           className={`${
             isInLendingMode
-              ? bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit * 0.9
+              ? bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit * 0.9
                 ? ""
                 : ""
-              : bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit * 0.9
+              : bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit * 0.9
               ? ""
               : ""
           }`}
@@ -512,14 +494,14 @@ const AssetRow: FC<{
           <Badge
             badgeContent={
               isInLendingMode
-                ? bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit * 0.99999
+                ? bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit * 0.99999
                   ? "💯"
-                  : bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit * 0.9
+                  : bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit * 0.9
                   ? "❗"
                   : null
-                : bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit * 0.99999
+                : bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit * 0.99999
                 ? "💯"
-                : bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit * 0.9
+                : bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit * 0.9
                 ? "❗"
                 : null
             }
@@ -531,38 +513,38 @@ const AssetRow: FC<{
             }}
             invisible={
               isInLendingMode
-                ? bankInfo.totalPoolDeposits >= bankInfo.bank.config.depositLimit * 0.9
+                ? bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit * 0.9
                   ? false
                   : true
-                : bankInfo.totalPoolBorrows >= bankInfo.bank.config.borrowLimit * 0.9
+                : bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit * 0.9
                 ? false
                 : true
             }
           >
-            {showUSD
+            {denominationUSD
               ? usdFormatter.format(
                   (isInLendingMode
-                    ? bankInfo.totalPoolDeposits
-                    : Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) -
-                      bankInfo.totalPoolBorrows) * bankInfo.tokenPrice
+                    ? bank.info.state.totalDeposits
+                    : Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit) -
+                      bank.info.state.totalBorrows) * bank.info.state.price
                 )
-              : zoomLevel < 2
+              : lendZoomLevel < 2
               ? groupedNumberFormatterDyn.format(
                   isInLendingMode
-                    ? bankInfo.totalPoolDeposits
+                    ? bank.info.state.totalDeposits
                     : Math.max(
                         0,
-                        Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) -
-                          bankInfo.totalPoolBorrows
+                        Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit) -
+                          bank.info.state.totalBorrows
                       )
                 )
               : numeralFormatter(
                   isInLendingMode
-                    ? bankInfo.totalPoolDeposits
+                    ? bank.info.state.totalDeposits
                     : Math.max(
                         0,
-                        Math.min(bankInfo.totalPoolDeposits, bankInfo.bank.config.borrowLimit) -
-                          bankInfo.totalPoolBorrows
+                        Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit) -
+                          bank.info.state.totalBorrows
                       )
                 )}
           </Badge>
@@ -573,32 +555,34 @@ const AssetRow: FC<{
       {/* [START]: ZOOM-BASED COLUMNS */}
       {/*******************************/}
 
-      {zoomLevel < 2 && (
+      {lendZoomLevel < 2 && (
         <TableCell
           className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
           align="right"
           style={{ fontWeight: 300 }}
         >
-          {showUSD
+          {denominationUSD
             ? usdFormatter.format(
-                (isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit) *
-                  bankInfo.tokenPrice
+                (isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit) *
+                  bank.info.state.price
               )
-            : zoomLevel < 2
+            : lendZoomLevel < 2
             ? groupedNumberFormatterDyn.format(
-                isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit
+                isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit
               )
-            : numeralFormatter(isInLendingMode ? bankInfo.bank.config.depositLimit : bankInfo.bank.config.borrowLimit)}
+            : numeralFormatter(
+                isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit
+              )}
         </TableCell>
       )}
 
-      {zoomLevel < 3 && (
+      {lendZoomLevel < 3 && (
         <TableCell
           className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
           align="right"
           style={{ fontWeight: 300 }}
         >
-          {percentFormatter.format(bankInfo.utilizationRate / 100)}
+          {percentFormatter.format(bank.info.state.utilizationRate / 100)}
         </TableCell>
       )}
 
@@ -611,14 +595,16 @@ const AssetRow: FC<{
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {showUSD
+        {denominationUSD
           ? usdFormatter.format(
-              (bankInfo.tokenMint.equals(WSOL_MINT)
-                ? bankInfo.tokenBalance + nativeSolBalance
-                : bankInfo.tokenBalance) * bankInfo.tokenPrice
+              (bank.info.state.mint.equals(WSOL_MINT)
+                ? bank.userInfo.tokenAccount.balance + nativeSolBalance
+                : bank.userInfo.tokenAccount.balance) * bank.info.state.price
             )
           : numeralFormatter(
-              bankInfo.tokenMint.equals(WSOL_MINT) ? bankInfo.tokenBalance + nativeSolBalance : bankInfo.tokenBalance
+              bank.info.state.mint.equals(WSOL_MINT)
+                ? bank.userInfo.tokenAccount.balance + nativeSolBalance
+                : bank.userInfo.tokenAccount.balance
             )}
       </TableCell>
 
@@ -638,13 +624,14 @@ const AssetRow: FC<{
           invisible={hasHotkey ? !showHotkeyBadges : true}
         >
           <AssetRowInputBox
-            tokenName={bankInfo.tokenSymbol}
+            tokenName={bank.meta.tokenSymbol}
             value={borrowOrLendAmount}
             setValue={setBorrowOrLendAmount}
             maxValue={maxAmount}
-            maxDecimals={bankInfo.tokenMintDecimals}
+            maxDecimals={bank.info.state.mintDecimals}
             inputRefs={inputRefs}
-            disabled={isDust}
+            disabled={isDust || currentAction === "Connect" || maxAmount === 0}
+            onEnter={borrowOrLend}
           />
         </Badge>
       </TableCell>
@@ -654,14 +641,21 @@ const AssetRow: FC<{
           title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
           placement="top"
         >
-          <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
+          <div className="h-full w-full flex justify-end items-center xl:ml-0 pl-2 sm:px-2">
             <AssetRowAction
               bgColor={
-                currentAction === ActionType.Deposit || currentAction === ActionType.Borrow
+                currentAction === "Connect" ||
+                currentAction === ActionType.Deposit ||
+                currentAction === ActionType.Borrow
                   ? "rgb(227, 227, 227)"
                   : "rgba(0,0,0,0)"
               }
-              onClick={isDust ? closeBalance : borrowOrLend}
+              onClick={currentAction === "Connect" ? openWalletSelector : isDust ? closeBalance : borrowOrLend}
+              disabled={
+                currentAction !== "Connect" &&
+                ((isDust && uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero()) ||
+                  maxAmount === 0)
+              }
             >
               {isDust ? "Close" : currentAction}
             </AssetRowAction>
@@ -672,24 +666,38 @@ const AssetRow: FC<{
   );
 };
 
-function getCurrentAction(isLendingMode: boolean, bankInfo: ExtendedBankInfo): ActionType {
-  if (!isActiveBankInfo(bankInfo)) {
-    return isLendingMode ? ActionType.Deposit : ActionType.Borrow;
-  } else {
-    if (bankInfo.position.isLending) {
-      if (isLendingMode) {
-        return ActionType.Deposit;
-      } else {
-        return ActionType.Withdraw;
-      }
-    } else {
-      if (isLendingMode) {
-        return ActionType.Repay;
-      } else {
-        return ActionType.Borrow;
-      }
-    }
-  }
-}
-
-export { AssetRow };
+const LoadingAsset: FC<{ isInLendingMode: boolean; bankMetadata: ExtendedBankMetadata }> = ({
+  isInLendingMode,
+  bankMetadata,
+}) => (
+  <TableRow className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]">
+    <TableCell
+      className={`w-full text-white p-0 font-aeonik border-none`}
+      style={{
+        fontWeight: 300,
+      }}
+    >
+      <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
+        {bankMetadata.tokenLogoUri && (
+          <Image src={bankMetadata.tokenLogoUri} alt={bankMetadata.tokenSymbol} height={25} width={25} />
+        )}
+        <div className="font-aeonik hidden lg:block">{bankMetadata.tokenSymbol}</div>
+      </div>
+    </TableCell>
+    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}></TableCell>
+    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
+    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
+    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
+    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
+    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
+    <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
+      <AssetRowInputBox tokenName={bankMetadata.tokenSymbol} value={0} setValue={() => {}} disabled={true} />
+    </TableCell>
+    <TableCell className="text-white border-none font-aeonik p-0">
+      <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
+        <AssetRowAction bgColor={"rgb(227, 227, 227)"}>{isInLendingMode ? "Supply" : "Borrow"}</AssetRowAction>
+      </div>
+    </TableCell>
+  </TableRow>
+);
+export { AssetRow, LoadingAsset };

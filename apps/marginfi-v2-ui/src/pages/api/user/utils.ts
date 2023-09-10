@@ -112,8 +112,6 @@ export async function createFirebaseUser(walletAddress: string, referralCode?: s
   });
 }
 
-export type SigningMethod = "memo" | "tx";
-
 // ------- Next helpers
 
 export declare type Env = {
@@ -141,9 +139,3 @@ export interface NextApiRequest<T> extends IncomingMessage {
    * */
   previewData?: PreviewData;
 }
-
-export const STATUS_OK = 200;
-export const STATUS_BAD_REQUEST = 400;
-export const STATUS_UNAUTHORIZED = 401;
-export const STATUS_NOT_FOUND = 404;
-export const STATUS_INTERNAL_ERROR = 500;

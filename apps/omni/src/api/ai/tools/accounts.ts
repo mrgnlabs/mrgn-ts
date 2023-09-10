@@ -1,6 +1,5 @@
 import { Tool } from "langchain/tools";
 import { Connection, PublicKey } from "@solana/web3.js";
-
 import { getClient } from "../utils";
 
 class AccountsTool extends Tool {

@@ -16,33 +16,22 @@ import {
   Checkbox,
   CircularProgress,
 } from "@mui/material";
-import { doc, getDoc } from "firebase/firestore";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { FC, useEffect, useState } from "react";
 import { PageHeader } from "~/components/PageHeader";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
-import { numeralFormatter, groupedNumberFormatterDyn } from "~/utils/formatters";
 import Link from "next/link";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
-import { firebaseDb } from "~/api/firebase";
-import { useFirebaseAccount } from "~/context/FirebaseAccount";
 import { useRouter } from "next/router";
-import { firebaseApi } from "~/api";
 import { WalletButton } from "~/components/Navbar/WalletButton";
 import { grey } from "@mui/material/colors";
 import { toast } from "react-toastify";
-import { LeaderboardRow, fetchLeaderboardData, fetchUserRank } from "~/api/points";
-
-type UserData = {
-  userTotalPoints?: number;
-  userLendingPoints?: number;
-  userBorrowingPoints?: number;
-  userReferralPoints?: number;
-  userReferralLink?: string;
-  userRank?: number;
-};
+import { useUserProfileStore } from "~/store";
+import { LeaderboardRow, fetchLeaderboardData, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
+import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { useWalletContext } from "~/components/useWalletContext";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -57,75 +46,30 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 const Points: FC = () => {
-  const wallet = useWallet();
+  const { connected, walletAddress } = useWalletContext();
   const { query: routerQuery } = useRouter();
-  const { currentUser, existingUser, initialUserFetchDone } = useFirebaseAccount();
+  const [currentFirebaseUser, hasUser, userPointsData] = useUserProfileStore((state) => [
+    state.currentFirebaseUser,
+    state.hasUser,
+    state.userPointsData,
+  ]);
 
-  const [userData, setUserData] = useState<UserData>();
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[]>([]);
-  const [usingCustomReferralCode, setUsingCustomReferralCode] = useState(false);
 
-  const currentUserId = useMemo(() => currentUser?.uid, [currentUser]);
+  const currentUserId = useMemo(() => currentFirebaseUser?.uid, [currentFirebaseUser]);
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
 
   useEffect(() => {
     fetchLeaderboardData().then(setLeaderboardData); // TODO: cache leaderboard and avoid call
-  }, [wallet.connected, wallet.publicKey]); // Dependency array to re-fetch when these variables change
-
-  useEffect(() => {
-    const fetchuserData = async () => {
-      // Fetch user data
-      if (currentUserId && leaderboardData.length > 0) {
-        // get user referral code
-        const userDoc = await getDoc(doc(firebaseDb, "users_public", currentUserId));
-        const userReferralData = userDoc.data();
-
-        let userReferralCode = "";
-        if (userReferralData && Array.isArray(userReferralData?.referralCode)) {
-          const uuidPattern = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-\b[0-9a-fA-F]{12}$/;
-          userReferralCode = userReferralData.referralCode.find((code) => !uuidPattern.test(code));
-          setUsingCustomReferralCode(true);
-        } else {
-          userReferralCode = userReferralData?.referralCode || "";
-          setUsingCustomReferralCode(false);
-        }
-
-        // get user points
-        const userPointsDoc = await getDoc(doc(firebaseDb, "points", currentUserId));
-        const userPointsData = userPointsDoc.data();
-
-        const userTotalPoints =
-          userPointsData?.total_deposit_points +
-          userPointsData?.total_borrow_points +
-          (userPointsData?.socialPoints ? userPointsData?.socialPoints : 0);
-        const userLendingPoints = userPointsData?.total_activity_deposit_points;
-        const userBorrowingPoints = userPointsData?.total_activity_borrow_points;
-        const userReferralPoints =
-          userPointsData?.total_referral_deposit_points + userPointsData?.total_referral_borrow_points;
-
-        const userRank = await fetchUserRank(userPointsData?.total_points ?? 0);
-
-        setUserData({
-          userTotalPoints,
-          userLendingPoints,
-          userBorrowingPoints,
-          userReferralPoints,
-          userReferralLink: userReferralCode ? `https://mfi.gg/r/${userReferralCode}` : "",
-          userRank,
-        });
-      }
-    };
-
-    fetchuserData().catch((e) => console.log(e));
-  }, [currentUserId, leaderboardData, setUsingCustomReferralCode, wallet.publicKey]);
+  }, [connected, walletAddress]); // Dependency array to re-fetch when these variables change
 
   return (
     <>
       <PageHeader text="points" />
       <div className="flex flex-col items-center w-full sm:w-4/5 max-w-7xl gap-5 py-[64px] sm:py-[32px]">
-        {!wallet.connected ? (
+        {!connected ? (
           <ConnectWallet />
-        ) : currentUser ? (
+        ) : currentFirebaseUser ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-2/3">
               <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
@@ -149,8 +93,8 @@ const Points: FC = () => {
                     </div>
                   </Typography>
                   <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-                    {userData?.userTotalPoints && userData.userTotalPoints > 0 ? (
-                      numeralFormatter(userData.userTotalPoints)
+                    {userPointsData.totalPoints > 0 ? (
+                      numeralFormatter(userPointsData.totalPoints)
                     ) : (
                       <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                     )}
@@ -163,8 +107,8 @@ const Points: FC = () => {
                     Global Rank {/* TODO: fix that with dedicated query */}
                   </Typography>
                   <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-                    {userData?.userRank && userData?.userRank > 0 ? (
-                      `#${groupedNumberFormatterDyn.format(userData?.userRank)}`
+                    {userPointsData.userRank && userPointsData.userRank > 0 ? (
+                      `#${groupedNumberFormatterDyn.format(userPointsData.userRank)}`
                     ) : (
                       <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                     )}
@@ -194,8 +138,8 @@ const Points: FC = () => {
                     </div>
                   </Typography>
                   <Typography color="#fff" component="div" className="font-aeonik font-[500] text-2xl">
-                    {userData?.userLendingPoints && userData?.userLendingPoints > 0 ? (
-                      numeralFormatter(userData?.userLendingPoints)
+                    {userPointsData.depositPoints > 0 ? (
+                      numeralFormatter(userPointsData.depositPoints)
                     ) : (
                       <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                     )}
@@ -223,8 +167,8 @@ const Points: FC = () => {
                     </div>
                   </Typography>
                   <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-                    {userData?.userBorrowingPoints && userData?.userBorrowingPoints > 0 ? (
-                      numeralFormatter(userData?.userBorrowingPoints)
+                    {userPointsData.borrowPoints > 0 ? (
+                      numeralFormatter(userPointsData.borrowPoints)
                     ) : (
                       <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                     )}
@@ -252,21 +196,15 @@ const Points: FC = () => {
                     </div>
                   </Typography>
                   <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-                    {userData?.userReferralPoints && userData?.userReferralPoints > 0 ? (
-                      numeralFormatter(userData?.userReferralPoints)
-                    ) : userData?.userReferralPoints === 0 ? (
-                      "-"
-                    ) : (
-                      <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
-                    )}
+                    {userPointsData.referralPoints > 0 ? numeralFormatter(userPointsData.referralPoints) : "-"}
                   </Typography>
                 </CardContent>
               </Card>
             </div>
           </>
-        ) : !initialUserFetchDone ? (
+        ) : hasUser === null ? (
           <CheckingUser />
-        ) : existingUser ? (
+        ) : hasUser ? (
           <Login />
         ) : (
           <Signup referralCode={referralCode} />
@@ -287,27 +225,29 @@ const Points: FC = () => {
           >
             How do points work?
           </Button>
-          {currentUser && (
+          {currentFirebaseUser && (
             <Button
               className={`normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap min-w-[260px] max-w-[260px]`}
               style={{
-                backgroundImage: usingCustomReferralCode
+                backgroundImage: userPointsData.isCustomReferralLink
                   ? "radial-gradient(ellipse at center, #fff 0%, #fff 10%, #DCE85D 60%, #DCE85D 100%)"
                   : "none",
-                backgroundColor: usingCustomReferralCode ? "transparent" : "rgb(227, 227, 227)",
+                backgroundColor: userPointsData.isCustomReferralLink ? "transparent" : "rgb(227, 227, 227)",
 
                 border: "none",
                 color: "black",
                 zIndex: 10,
               }}
               onClick={() => {
-                if (userData?.userReferralLink) {
-                  navigator.clipboard.writeText(userData.userReferralLink);
+                if (userPointsData.referralLink) {
+                  navigator.clipboard.writeText(userPointsData.referralLink);
                 }
               }}
             >
               {`${
-                usingCustomReferralCode ? userData?.userReferralLink?.replace("https://", "") : "Copy referral link"
+                userPointsData.isCustomReferralLink
+                  ? userPointsData.referralLink?.replace("https://", "")
+                  : "Copy referral link"
               }`}
               <FileCopyIcon />
             </Button>
@@ -395,7 +335,7 @@ const Points: FC = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ textDecoration: "none", color: "inherit" }}
-                      className="glow-on-hover"
+                      className="hover:text-[#DCE85D]"
                     >
                       {`${row.id.slice(0, 5)}...${row.id.slice(-5)}`}
                       <style jsx>{`
@@ -503,7 +443,7 @@ const CheckingUser: FC = () => (
 
 const Signup: FC<{ referralCode?: string }> = ({ referralCode }) => {
   const { connection } = useConnection();
-  const wallet = useWallet();
+  const { walletContextState, connected } = useWalletContext();
   const [manualCode, setManualCode] = useState("");
   const [useAuthTx, setUseAuthTx] = useState(false);
   const [useManualCode, setUseManualCode] = useState(false);
@@ -523,13 +463,13 @@ const Signup: FC<{ referralCode?: string }> = ({ referralCode }) => {
     toast.info("Logging in...");
     const blockhashInfo = await connection.getLatestBlockhash();
     try {
-      await firebaseApi.signup(wallet, useAuthTx ? "tx" : "memo", blockhashInfo, finalReferralCode);
+      await firebaseApi.signup(walletContextState, useAuthTx ? "tx" : "memo", blockhashInfo, finalReferralCode);
       // localStorage.setItem("authData", JSON.stringify(signedAuthData));
       toast.success("Signed up successfully");
     } catch (signupError: any) {
       toast.error(signupError.message);
     }
-  }, [connection, finalReferralCode, useAuthTx, wallet]);
+  }, [connection, finalReferralCode, useAuthTx, walletContextState]);
 
   return (
     <Card className="w-2/3 bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
@@ -544,7 +484,7 @@ const Signup: FC<{ referralCode?: string }> = ({ referralCode }) => {
             Optionally enter a referral code below.
           </div>
           <div className="w-full flex justify-center items-center">
-            {wallet.connected ? (
+            {connected ? (
               <div>
                 <TextField
                   size="medium"
@@ -612,19 +552,19 @@ const Signup: FC<{ referralCode?: string }> = ({ referralCode }) => {
 
 const Login: FC = () => {
   const { connection } = useConnection();
-  const wallet = useWallet();
+  const { walletContextState, connected } = useWalletContext();
   const [useAuthTx, setUseAuthTx] = useState(false);
   const login = useCallback(async () => {
     toast.info("Logging in...");
     const blockhashInfo = await connection.getLatestBlockhash();
     try {
-      await firebaseApi.login(wallet, useAuthTx ? "tx" : "memo", blockhashInfo);
+      await firebaseApi.login(walletContextState, useAuthTx ? "tx" : "memo", blockhashInfo);
       // localStorage.setItem("authData", JSON.stringify(signedAuthData));
       toast.success("Logged in successfully");
     } catch (loginError: any) {
       toast.error(loginError.message);
     }
-  }, [connection, useAuthTx, wallet]);
+  }, [connection, useAuthTx, walletContextState]);
 
   return (
     <Card className="w-2/3 bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
@@ -637,7 +577,7 @@ const Login: FC = () => {
             Login to your points account by signing a message.
           </div>
           <div className="w-full flex justify-center items-center mt-[20px]">
-            {wallet.connected ? (
+            {connected ? (
               <div>
                 <div
                   className="flex justify-center items-center cursor-pointer"
