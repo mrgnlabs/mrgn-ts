@@ -16,6 +16,7 @@ import { SwapContextProvider } from "~/context";
 import { useConnection } from "~/hooks/useConnection";
 import { useWallet } from "~/hooks/useWallet";
 import { ROUTE_CACHE_DURATION } from "~/consts";
+import { PieChartIcon, ReceiveMoneyIcon, TokenSwapIcon } from "~/assets/icons";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -82,7 +83,7 @@ function TabNavigator() {
         options={{
           header: (props: BottomTabHeaderProps) => <LogoTitle />,
           tabBarLabel: "Lend",
-          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="account" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <ReceiveMoneyIcon color={color} height={size} width={size} />,
         }}
       />
       <Tab.Screen
@@ -91,7 +92,7 @@ function TabNavigator() {
         options={{
           header: (props: BottomTabHeaderProps) => <LogoTitle />,
           tabBarLabel: "Swap",
-          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="bank" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <TokenSwapIcon color={color} height={size} width={size} />,
         }}
       />
       <Tab.Screen
@@ -100,7 +101,7 @@ function TabNavigator() {
         options={{
           header: (props: BottomTabHeaderProps) => <LogoTitle />,
           tabBarLabel: "Portfolio",
-          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="home" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <PieChartIcon color={color} height={size} width={size} />,
         }}
       />
     </Tab.Navigator>

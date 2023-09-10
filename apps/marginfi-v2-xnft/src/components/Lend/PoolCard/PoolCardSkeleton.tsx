@@ -4,7 +4,7 @@ import { View } from "react-native";
 import tw from "~/styles/tailwind";
 
 export const PoolCardSkeleton = (props?: JSX.IntrinsicAttributes & IContentLoaderProps) => (
-  <View style={tw`bg-[#1C2125] rounded-xl px-12px py-16px gap-16px `}>
+  <View style={tw`bg-[#1C2125] rounded-xl px-12px py-16px gap-16px max-w-sm min-w-[300px]`}>
     <ContentLoader
       speed={2}
       width={310.4}

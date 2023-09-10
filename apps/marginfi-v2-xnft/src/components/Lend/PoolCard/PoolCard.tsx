@@ -7,7 +7,7 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import { PoolCardPosition } from "./PoolCardPosition";
 import { useConnection } from "~/hooks/useConnection";
 import { ActionType, Emissions, ExtendedBankInfo, FEE_MARGIN, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
-import { showErrorToast } from "~/utils";
+import { showErrorToast, showSuccessToast } from "~/utils";
 import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 type Props = {
@@ -120,6 +120,8 @@ export function PoolCard({
           const withdrawAll = bankInfo.isActive ? borrowOrLendAmount === bankInfo.position.amount : false;
           await _marginfiAccount.withdraw(borrowOrLendAmount, bankInfo.address, withdrawAll);
         }
+
+        showSuccessToast(`${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.meta.tokenSymbol} 👍`);
       } catch (error: any) {
         console.log(`Error while ${currentAction + "ing"}`);
         console.log(error);
@@ -136,8 +138,46 @@ export function PoolCard({
     [bankInfo, connection, currentAction, marginfiAccount, marginfiClient, nativeSolBalance, reloadBanks]
   );
 
+  const closeBalance = useCallback(async () => {
+    if (!marginfiAccount) {
+      showErrorToast("marginfi account not ready.");
+      return;
+    }
+
+    if (!bankInfo.isActive) {
+      showErrorToast("no position to close.");
+      return;
+    }
+
+    try {
+      if (bankInfo.position.isLending) {
+        await marginfiAccount.withdraw(0, bankInfo.address, true);
+      } else {
+        await marginfiAccount.repay(0, bankInfo.address, true);
+      }
+      showSuccessToast("Closing 👍");
+    } catch (error: any) {
+      showSuccessToast(`Error while closing balance: ${error.message}`);
+      console.log(`Error while closing balance`);
+      console.log(error);
+    }
+
+    // TODO: set values back to 0
+    try {
+      await reloadBanks();
+    } catch (error: any) {
+      console.log("Error while reloading state");
+      console.log(error);
+    }
+  }, [bankInfo, marginfiAccount, reloadBanks]);
+
   return (
-    <View style={tw`bg-[#1C2125] rounded-xl px-12px py-16px flex flex-column gap-16px `}>
+    <View
+      style={[
+        tw`bg-[#1C2125] rounded-xl px-12px py-16px flex flex-column gap-16px w-[341px]`,
+        // { height: "fit-content" },
+      ]}
+    >
       <View style={tw`flex flex-row justify-between`}>
         <View style={tw`flex flex-row gap-7px`}>
           <Image style={styles.logo} source={{ uri: bankInfo.meta.tokenLogoUri }} alt={bankInfo.meta.tokenSymbol} />
@@ -163,7 +203,7 @@ export function PoolCard({
         currentAction={currentAction}
         isBankFilled={isInLendingMode ? depositFilled >= 0.9999 : borrowFilled >= 0.9999}
         bank={bankInfo}
-        onAction={(amount) => borrowOrLend(amount)}
+        onAction={(amount) => (amount ? borrowOrLend(amount) : closeBalance())}
       />
     </View>
   );
