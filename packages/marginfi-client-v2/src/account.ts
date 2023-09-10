@@ -806,7 +806,7 @@ export class MarginfiAccount {
    */
   public getMaxWithdrawForBank(bankPk: PublicKey, volatilityFactor: number = 1): BigNumber {
     const bank = this._group.getBankByPk(bankPk);
-    if (!bank) throw Error(`Bank ${bankPk.toBase58()} not found`)
+    if (!bank) throw Error(`Bank ${bankPk.toBase58()} not found`);
 
     const assetWeight = bank.getAssetWeight(MarginRequirementType.Init);
     const balance = this.getBalance(bank.publicKey);
@@ -881,7 +881,10 @@ export class MarginfiAccount {
       assetQuantityUi,
       liabBank
     );
-    const tx = new Transaction().add(...ixw.instructions, ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
+    const tx = new Transaction().add(
+      ...ixw.instructions,
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 })
+    );
     return this.client.processTransaction(tx);
   }
 
