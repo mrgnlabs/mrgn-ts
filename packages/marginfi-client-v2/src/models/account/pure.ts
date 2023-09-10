@@ -636,7 +636,7 @@ class MarginfiAccount {
 
     let ixs = [];
 
-    ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
+    ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }));
     const liquidateIx = await instructions.makeLendingAccountLiquidateIx(
       program,
       {
