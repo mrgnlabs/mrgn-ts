@@ -22,7 +22,7 @@ const AccountSummary: FC = () => {
     <div className="flex flex-col w-full justify-between items-left gap-4">
       <div className="lg:block flex-1">
         <div className="h-full rounded-xl">
-          <span className="w-full flex justify-start text-xl">Global stats</span>
+          {/* <span className="w-full flex justify-start text-xl">Global stats</span> */}
           <GlobalStats
             tvl={protocolStats.tvl}
             pointsTotal={protocolStats.pointsTotal}
@@ -32,7 +32,7 @@ const AccountSummary: FC = () => {
         </div>{" "}
       </div>
 
-      <div className="flex-1">
+      {/* <div className="flex-1">
         {connected && (
           <div className=" h-full rounded-xl ">
             <span className="w-full h-full flex justify-start text-xl text-white">Your account</span>
@@ -42,7 +42,7 @@ const AccountSummary: FC = () => {
             />
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };

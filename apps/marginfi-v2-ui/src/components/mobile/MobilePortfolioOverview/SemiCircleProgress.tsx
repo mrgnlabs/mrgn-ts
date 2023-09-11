@@ -7,8 +7,7 @@ type Props = {
   amount: number;
 };
 
-export const SemiCircleProgress = ({}: Props) => {
-  const amount = 10;
+export const SemiCircleProgress = ({ amount }: Props) => {
   const rotationAnimation = useRef(null);
   const [progressColor, setProgressColor] = useState<string>("#75BA80");
 
@@ -56,7 +55,7 @@ export const SemiCircleProgress = ({}: Props) => {
       width: "180px",
       height: "90px",
       borderRadius: "90px",
-      backgroundColor: "#1C2023",
+      backgroundColor: "#171C1F",
       top: "10px",
       marginLeft: "auto",
       marginRight: "auto",
@@ -66,11 +65,26 @@ export const SemiCircleProgress = ({}: Props) => {
       overflow: "hidden",
     },
 
-    ".healthLabel": {},
+    ".healthLabelWrapper": {
+      display: "flex",
+      position: "relative",
+      justifyContent: "center",
+      width: "100%",
+      height: "100%",
+    },
+
+    ".healthLabel": {
+      position: "absolute",
+      bottom: 0,
+      color: progressColor,
+      fontSize: "26px",
+      lineHeight: "26px",
+      fontWeight: 600,
+    },
 
     ".rotatingCircleWrap": {
       position: "absolute",
-      backgroundColor: "#1C2023",
+      backgroundColor: "#171C1F",
       left: "0px",
       width: "200px",
       height: "100px",
@@ -99,9 +113,13 @@ export const SemiCircleProgress = ({}: Props) => {
       <div className="exteriorCircle">
         <div className="rotatingCircleWrap">
           <div className="rotatingCircle" ref={rotationAnimation} color={progressColor} />
-          <span></span>
         </div>
-        <div className="interiorCircle"></div>
+
+        <div className="interiorCircle">
+          <div className="healthLabelWrapper">
+            <span className="healthLabel">{percentFormatter.format(amount / 100)}</span>
+          </div>
+        </div>
       </div>
     </SemiCircleWrapper>
   );

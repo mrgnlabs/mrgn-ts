@@ -100,7 +100,7 @@ const Home = () => {
     <>
       <Desktop>
         <PageHeader />
-        <div className="flex flex-col h-full justify-start content-start pt-[64px] sm:pt-[16px] w-4/5 max-w-7xl gap-4">
+        <div className="flex flex-col h-full justify-start content-start pt-[16px] w-4/5 max-w-7xl gap-4">
           {walletAddress && selectedAccount && isOverride && (
             <Banner
               text={`Read-only view of ${shortenAddress(selectedAccount.address.toBase58())} (owner: ${shortenAddress(
@@ -123,7 +123,7 @@ const Home = () => {
 
       <Mobile>
         <PageHeader />
-        <div className="flex flex-col h-full justify-start content-start pt-[64px] sm:pt-[16px] w-4/5 max-w-7xl gap-4">
+        <div className="flex flex-col h-full justify-start content-start pt-[16px] w-4/5 max-w-7xl gap-4">
           <MobileAccountSummary />
           <MobileAssetsList />
         </div>

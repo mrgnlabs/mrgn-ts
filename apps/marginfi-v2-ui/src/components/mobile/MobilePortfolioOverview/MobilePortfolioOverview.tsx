@@ -10,6 +10,8 @@ import { MarginRequirementType, MarginfiAccountWrapper } from "@mrgnlabs/marginf
 import { AccountSummary, UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usdFormatterDyn, usdFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { SemiCircleProgress } from "./SemiCircleProgress";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { Typography } from "@mui/material";
 
 // @todo implement second pretty navbar row
 export const MobilePortfolioOverview: FC = () => {
@@ -30,11 +32,23 @@ export const MobilePortfolioOverview: FC = () => {
     state.nativeSolBalance,
     state.protocolStats,
   ]);
+  const { wallet } = useWallet();
+  const connection = useConnection();
+
+  useEffect(() => {
+    fetchMrgnlendState();
+    const id = setInterval(() => fetchMrgnlendState().catch(console.error), 30_000);
+    return () => clearInterval(id);
+  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
+  // TODO: fix...
 
   const [userPointsData, currentFirebaseUser] = useUserProfileStore((state) => [
     state.userPointsData,
     state.currentFirebaseUser,
   ]);
+
+  console.log({ selectedAccount });
 
   const healthFactor = useMemo(() => {
     if (selectedAccount) {
@@ -45,59 +59,58 @@ export const MobilePortfolioOverview: FC = () => {
     }
   }, [selectedAccount]);
 
-  const labelStyle = `text-sm font-normal text-[#868E95]`;
-  const valueStyle = `text-xl font-bold text-[#FFF]`;
-
   return (
-    <div className="bg-[#1C2125] rounded-xl px-[12px] py-[16px] flex flex-col gap-[10px] h-[500px] w-[500px]">
-      <div className="bg-[#1C2125] rounded-xl text-2xl font-bold text-primary">Your overview</div>
-      <div className="text-center mx-auto ">
-        <div className={`${labelStyle} pb-4px`}>Health factor</div>
+    <div className="bg-[#171C1F] rounded-xl p-6 flex flex-col gap-[10px] h-full w-full">
+      <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Your overview</div>
+      <div className="text-center mx-auto">
+        <div className={`text-sm font-normal text-[#868E95] pb-4px`}>Health factor</div>
         <SemiCircleProgress amount={healthFactor ?? 0} />
       </div>
-      <div className="flex flex-row pt-10px flex-wrap gap-10px">
-        <div className="flex flex-col grow gap-10px">
+      <div className="flex flex-row pt-[10px] flex-wrap gap-[10px]">
+        <div className="flex flex-col grow gap-2">
           <div>
-            <div className={`${labelStyle} pb-4px`}>Supplied</div>
-            <div className="[valueStyle">
+            <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+              Supplied
+            </Typography>
+            <Typography color="#fff" className="font-aeonik font-[500] text-lg">
               {accountSummary &&
                 (Math.round(accountSummary.lendingAmountUnbiased) > 10000
                   ? usdFormatterDyn.format(Math.round(accountSummary.lendingAmountUnbiased))
                   : usdFormatter.format(accountSummary.lendingAmountUnbiased))}
-            </div>
+            </Typography>
           </div>
           <div>
-            <div className={`${labelStyle} pb-4px`}>Borrowed</div>
-            <div className="[valueStyle">
+            <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+              Borrowed
+            </Typography>
+            <Typography color="#fff" className="font-aeonik font-[500] text-lg">
               {accountSummary &&
                 (Math.round(accountSummary.borrowingAmountUnbiased) > 10000
                   ? usdFormatterDyn.format(Math.round(accountSummary.borrowingAmountUnbiased))
                   : usdFormatter.format(accountSummary.borrowingAmountUnbiased))}
-            </div>
+            </Typography>
           </div>
         </div>
-        <div className="flex flex-col grow gap-10px">
+        <div className="flex flex-col grow gap-2">
           <div>
-            <div className={`${labelStyle} pb-4px`}>Free Collateral</div>
-            <div className="[valueStyle">
+            <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+              Free Collateral
+            </Typography>
+            <Typography color="#fff" className="font-aeonik font-[500] text-lg">
               {accountSummary && usdFormatter.format(accountSummary.signedFreeCollateral)}
-            </div>
+            </Typography>
           </div>
           <div>
-            <div className={`${labelStyle} pb-4px`}>Points</div>
-            <div className="[valueStyle">
+            <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+              Points
+            </Typography>
+            <Typography color="#fff" className="font-aeonik font-[500] text-lg">
               {!!currentFirebaseUser
                 ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
                 : "P...P...POINTS!"}
-            </div>
+            </Typography>
           </div>
         </div>
-        {/* <div className="flex basis-full gap-10px">
-              <div>
-                <div className="[labelStyle, tw`pb-4px`">Points</Text>
-                <div className="[valueStyle">60 points</Text>
-              </div>
-            </div> */}
       </div>
     </div>
   );
