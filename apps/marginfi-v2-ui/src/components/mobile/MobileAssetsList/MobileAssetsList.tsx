@@ -20,11 +20,6 @@ export const MobileAssetsList: FC = () => {
     state.nativeSolBalance,
     state.selectedAccount,
   ]);
-  const [lendZoomLevel, showBadges, setShowBadges] = useUserProfileStore((state) => [
-    state.lendZoomLevel,
-    state.showBadges,
-    state.setShowBadges,
-  ]);
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [isInLendingMode, setIsInLendingMode] = useState(true);
 

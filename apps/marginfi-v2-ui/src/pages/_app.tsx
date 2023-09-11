@@ -77,8 +77,10 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
             <Footer />
           </Desktop>
           <Mobile>
-            <div className="absolute top-[33px] right-[40px]">
-              <WalletButton />
+            <div className="relative w-full ">
+              <div className="absolute top-[33px] right-[40px]">
+                <WalletButton />
+              </div>
             </div>
             <MobileNavbar />
             <div className="w-full flex flex-col justify-center items-center pt-[24px]">

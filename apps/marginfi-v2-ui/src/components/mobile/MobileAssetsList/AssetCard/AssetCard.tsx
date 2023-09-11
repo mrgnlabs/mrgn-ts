@@ -21,7 +21,7 @@ export const AssetCard: FC<{
   isInLendingMode: boolean;
   isConnected: boolean;
   marginfiAccount: MarginfiAccountWrapper | null;
-  inputRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
+  inputRefs?: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
 }> = ({ bank, nativeSolBalance, isInLendingMode, marginfiAccount, inputRefs }) => {
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);

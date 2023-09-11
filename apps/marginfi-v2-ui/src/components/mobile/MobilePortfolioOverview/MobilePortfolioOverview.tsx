@@ -1,56 +1,23 @@
-import { FC, useEffect, useMemo } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
-import { useRouter } from "next/router";
-import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
-import { useWalletContext } from "~/hooks/useWalletContext";
-
-import { MarginRequirementType, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
-import { usdFormatterDyn, usdFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { SemiCircleProgress } from "./SemiCircleProgress";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import React, { FC, useMemo } from "react";
 import { Typography } from "@mui/material";
 
-// @todo implement second pretty navbar row
-export const MobilePortfolioOverview: FC = () => {
-  const [
-    marginfiClient,
-    fetchMrgnlendState,
-    selectedAccount,
-    accountSummary,
-    extendedBankInfos,
-    nativeSolBalance,
-    protocolStats,
-  ] = useMrgnlendStore((state) => [
-    state.marginfiClient,
-    state.fetchMrgnlendState,
-    state.selectedAccount,
-    state.accountSummary,
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-    state.protocolStats,
-  ]);
-  const { wallet } = useWallet();
-  const connection = useConnection();
+import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
+import { usdFormatterDyn, usdFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 
-  useEffect(() => {
-    fetchMrgnlendState();
-    const id = setInterval(() => fetchMrgnlendState().catch(console.error), 30_000);
-    return () => clearInterval(id);
-  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
-  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
-  // TODO: fix...
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
+
+import { SemiCircleProgress } from "./SemiCircleProgress";
+
+export const MobilePortfolioOverview: FC = () => {
+  const [selectedAccount, accountSummary] = useMrgnlendStore((state) => [state.selectedAccount, state.accountSummary]);
 
   const [userPointsData, currentFirebaseUser] = useUserProfileStore((state) => [
     state.userPointsData,
     state.currentFirebaseUser,
   ]);
 
-  console.log({ selectedAccount });
-
   const healthFactor = useMemo(() => {
+    console.log({ selectedAccount });
     if (selectedAccount) {
       const { assets, liabilities } = selectedAccount.computeHealthComponents(MarginRequirementType.Maintenance);
       return assets.isZero() ? 100 : assets.minus(liabilities).dividedBy(assets).toNumber() * 100;
@@ -60,10 +27,10 @@ export const MobilePortfolioOverview: FC = () => {
   }, [selectedAccount]);
 
   return (
-    <div className="bg-[#171C1F] rounded-xl p-6 flex flex-col gap-[10px] h-full w-full">
+    <div className="max-w-[800px] mx-auto w-full bg-[#131619] rounded-xl p-6 flex flex-col gap-[10px] h-full">
       <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Your overview</div>
       <div className="text-center mx-auto">
-        <div className={`text-sm font-normal text-[#868E95] pb-4px`}>Health factor</div>
+        <div className={`text-sm font-normal text-[#868E95] pb-[4px]`}>Health factor</div>
         <SemiCircleProgress amount={healthFactor ?? 0} />
       </div>
       <div className="flex flex-row pt-[10px] flex-wrap gap-[10px]">

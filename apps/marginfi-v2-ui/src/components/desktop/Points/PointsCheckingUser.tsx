@@ -5,7 +5,7 @@ interface PointsCheckingUserProps {}
 
 export const PointsCheckingUser: FC<PointsCheckingUserProps> = ({}) => {
   return (
-    <Card className="w-2/3 bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+    <Card className="max-w-[800px] mx-auto w-full bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
       <CardContent>
         <div className="w-full flex flex-col justify-evenly items-center p-2 text-base text-white font-aeonik font-[400] rounded-xl text-center">
           <div>

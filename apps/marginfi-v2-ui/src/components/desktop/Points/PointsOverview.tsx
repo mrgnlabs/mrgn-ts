@@ -1,26 +1,20 @@
+import React, { FC } from "react";
 import Image from "next/image";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { Card, CardContent, Skeleton, TableCell, TableRow, Typography } from "@mui/material";
-import React, { FC, useCallback, useMemo, useState } from "react";
-import { toast } from "react-toastify";
-import {
-  groupedNumberFormatter,
-  uiToNative,
-  usdFormatter,
-  numeralFormatter,
-  groupedNumberFormatterDyn,
-} from "@mrgnlabs/mrgn-common";
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
-import { AccountSummary, UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
+import { Card, CardContent, Skeleton, Typography } from "@mui/material";
 
-interface PointsLeaderBoardProps {
+import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+
+interface PointsOverviewProps {
   userPointsData: UserPointsData;
 }
 
-export const PointsOverview: FC<PointsLeaderBoardProps> = ({ userPointsData }) => {
+export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-2/3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-[800px] mx-auto w-full">
         <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
           <CardContent>
             <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
@@ -65,7 +59,7 @@ export const PointsOverview: FC<PointsLeaderBoardProps> = ({ userPointsData }) =
           </CardContent>
         </Card>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 w-2/3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 max-w-[800px] mx-auto w-full">
         <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
           <CardContent>
             <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>

@@ -6,7 +6,7 @@ import { LeaderboardRow } from "@mrgnlabs/marginfi-v2-ui-state";
 
 interface PointsLeaderBoardProps {
   leaderboardData: LeaderboardRow[];
-  currentUserId: string;
+  currentUserId?: string;
 }
 
 export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData, currentUserId }) => {

@@ -1,7 +1,8 @@
+import React, { useEffect, useRef, useState } from "react";
 import { keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
+
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
-import React, { useEffect, useRef, useState } from "react";
 
 type Props = {
   amount: number;
@@ -55,7 +56,7 @@ export const SemiCircleProgress = ({ amount }: Props) => {
       width: "180px",
       height: "90px",
       borderRadius: "90px",
-      backgroundColor: "#171C1F",
+      backgroundColor: "#131619",
       top: "10px",
       marginLeft: "auto",
       marginRight: "auto",
@@ -84,7 +85,7 @@ export const SemiCircleProgress = ({ amount }: Props) => {
 
     ".rotatingCircleWrap": {
       position: "absolute",
-      backgroundColor: "#171C1F",
+      backgroundColor: "#131619",
       left: "0px",
       width: "200px",
       height: "100px",
@@ -92,7 +93,6 @@ export const SemiCircleProgress = ({ amount }: Props) => {
     },
 
     ".rotatingCircle": {
-      // position: "absolute",
       overflow: "hidden",
       top: "0px",
       left: "0px",

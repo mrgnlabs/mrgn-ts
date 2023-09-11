@@ -1,13 +1,15 @@
-import React, { FC, useEffect } from "react";
+import React, { useEffect } from "react";
+import dynamic from "next/dynamic";
+import { useConnection } from "@solana/wallet-adapter-react";
+
+import { shortenAddress } from "@mrgnlabs/mrgn-common";
+
+import config from "~/config/marginfi";
+import { useMrgnlendStore } from "~/store";
+import { useWalletContext } from "~/hooks/useWalletContext";
 import { Banner } from "~/components/desktop/Banner";
 import { PageHeader } from "~/components/desktop/PageHeader";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import config from "~/config/marginfi";
-import { useMrgnlendStore } from "../store";
-import dynamic from "next/dynamic";
 import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
-import { useConnection } from "@solana/wallet-adapter-react";
 import { Desktop, Mobile } from "~/mediaQueries";
 
 const DesktopAccountSummary = () => {
@@ -123,7 +125,7 @@ const Home = () => {
 
       <Mobile>
         <PageHeader />
-        <div className="flex flex-col h-full justify-start content-start pt-[16px] w-4/5 max-w-7xl gap-4">
+        <div className="flex flex-col h-full justify-start content-start pt-[16px] w-4/5 max-w-7xl gap-4 mb-20">
           <MobileAccountSummary />
           <MobileAssetsList />
         </div>
