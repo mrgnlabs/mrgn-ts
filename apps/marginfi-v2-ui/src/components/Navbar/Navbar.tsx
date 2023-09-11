@@ -222,6 +222,31 @@ const Navbar: FC = () => {
                   color: "#1C2125",
                 },
               }}
+              badgeContent={"e"}
+              invisible={!showBadges}
+              className="hidden md:block"
+            >
+              <Link
+                href={"/stake"}
+                className={`${
+                  router.pathname === "/stake" ? "hover-underline-static" : "hover-underline-animation"
+                } hidden md:block`}
+              >
+                stake
+              </Link>
+            </Badge>
+
+            <Badge
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              sx={{
+                "& .MuiBadge-badge": {
+                  backgroundColor: "rgb(220, 232, 93)",
+                  color: "#1C2125",
+                },
+              }}
               badgeContent={"o"}
               invisible={!showBadges}
               className="hidden md:block"
