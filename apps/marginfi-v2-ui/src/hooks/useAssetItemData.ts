@@ -1,5 +1,4 @@
 import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { useMemo } from "react";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -23,18 +22,18 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
       : ((1 / bank.info.rawBank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%";
   }, [isInLendingMode, bank.info.rawBank.config]);
 
-  const bankFilled = useMemo(
+  const bankCap = useMemo(
     () => (isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit),
     [isInLendingMode, bank.info.rawBank.config]
   );
   const isBankFilled = useMemo(
-    () => (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankFilled * 0.99999,
-    [bankFilled, isInLendingMode, bank.info.state]
+    () => (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.99999,
+    [bankCap, isInLendingMode, bank.info.state]
   );
   const isBankHigh = useMemo(
-    () => (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankFilled * 0.9,
-    [bankFilled, isInLendingMode, bank.info.state]
+    () => (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.9,
+    [bankCap, isInLendingMode, bank.info.state]
   );
 
-  return { rateAP, assetWeight, bankFilled, isBankFilled, isBankHigh };
+  return { rateAP, assetWeight, bankCap, isBankFilled, isBankHigh };
 }

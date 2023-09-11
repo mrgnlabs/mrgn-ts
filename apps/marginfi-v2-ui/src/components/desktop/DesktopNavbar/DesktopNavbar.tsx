@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import AirdropZone from "./AirdropZone";
-import { WalletButton } from "./WalletButton";
+import { WalletButton } from "~/components/common/Navbar";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 

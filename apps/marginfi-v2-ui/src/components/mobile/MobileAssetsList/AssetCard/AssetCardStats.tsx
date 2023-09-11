@@ -14,7 +14,7 @@ export const AssetCardStats: FC<{
   userBalance: number;
   isBankFilled: boolean;
   isBankHigh: boolean;
-  bankFilled: number;
+  bankCap: number;
   isInLendingMode: boolean;
 }> = ({
   bank,
@@ -23,7 +23,7 @@ export const AssetCardStats: FC<{
   userBalance,
   isBankFilled,
   isBankHigh,
-  bankFilled,
+  bankCap,
   isInLendingMode,
 }) => {
   return (
@@ -81,7 +81,7 @@ export const AssetCardStats: FC<{
         {isBankHigh && (
           <div className={`${isBankFilled ? "text-[#e07d6f]" : "text-[#daa204]"} text-xs`}>
             {percentFormatterDyn.format(
-              (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankFilled
+              (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
             ) + " FILLED"}
           </div>
         )}

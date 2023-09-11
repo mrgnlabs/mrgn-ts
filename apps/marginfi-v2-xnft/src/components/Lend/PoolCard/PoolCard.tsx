@@ -194,7 +194,7 @@ export function PoolCard({
       </View>
       <PoolCardStats
         bank={bankInfo}
-        bankFilled={isInLendingMode ? depositFilled : borrowFilled}
+        bankFilledPercentage={isInLendingMode ? depositFilled : borrowFilled}
         nativeSolBalance={nativeSolBalance}
         isInLendingMode={isInLendingMode}
       />
