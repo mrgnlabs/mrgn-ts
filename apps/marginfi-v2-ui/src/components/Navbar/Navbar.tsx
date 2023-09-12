@@ -133,7 +133,12 @@ const Navbar: FC = () => {
               badgeContent={"l"}
               invisible={!showBadges}
             >
-              <Link href={"/"} className={`${router.pathname === "/" ? "hover-underline-static" : "hover-underline-animation"} hidden md:block`}>
+              <Link
+                href={"/"}
+                className={`${
+                  router.pathname === "/" ? "hover-underline-static" : "hover-underline-animation"
+                } hidden md:block`}
+              >
                 lend
               </Link>
             </Badge>
@@ -152,7 +157,10 @@ const Navbar: FC = () => {
               badgeContent={"s"}
               invisible={!showBadges}
             >
-              <Link href={"/swap"} className={`${router.pathname === "/swap" ? "hover-underline-static" : "hover-underline-animation"}`}>
+              <Link
+                href={"/swap"}
+                className={`${router.pathname === "/swap" ? "hover-underline-static" : "hover-underline-animation"}`}
+              >
                 swap
               </Link>
             </Badge>
@@ -170,7 +178,10 @@ const Navbar: FC = () => {
               badgeContent={"b"}
               invisible={!showBadges}
             >
-              <Link href={"/bridge"} className={`${router.pathname === "/bridge" ? "hover-underline-static" : "hover-underline-animation"}`}>
+              <Link
+                href={"/bridge"}
+                className={`${router.pathname === "/bridge" ? "hover-underline-static" : "hover-underline-animation"}`}
+              >
                 bridge
               </Link>
             </Badge>
@@ -190,8 +201,38 @@ const Navbar: FC = () => {
               invisible={!showBadges}
               className="hidden md:block"
             >
-              <Link href={"/earn"} className={`${router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"} hidden md:block`}>
+              <Link
+                href={"/earn"}
+                className={`${
+                  router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"
+                } hidden md:block`}
+              >
                 earn
+              </Link>
+            </Badge>
+
+            <Badge
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              sx={{
+                "& .MuiBadge-badge": {
+                  backgroundColor: "rgb(220, 232, 93)",
+                  color: "#1C2125",
+                },
+              }}
+              badgeContent={"e"}
+              invisible={!showBadges}
+              className="hidden md:block"
+            >
+              <Link
+                href={"/stake"}
+                className={`${
+                  router.pathname === "/stake" ? "hover-underline-static" : "hover-underline-animation"
+                } hidden md:block`}
+              >
+                stake
               </Link>
             </Badge>
 
@@ -236,7 +277,12 @@ const Navbar: FC = () => {
                   } UXP`}
             </div>
 
-            <Link href={"/points"} className={`${router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"} whitespace-nowrap`}>
+            <Link
+              href={"/points"}
+              className={`${
+                router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"
+              } whitespace-nowrap`}
+            >
               {connected && currentFirebaseUser
                 ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
                 : "points"}
