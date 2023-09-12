@@ -10,7 +10,7 @@ interface StakingCardProps {}
 export const StakingCard: FC<StakingCardProps> = ({}) => {
   return (
     <>
-      <div className="relative flex flex-col gap-2 rounded-xl bg-[#1C2023] px-8 py-6 w-[480px]">
+      <div className="relative flex flex-col gap-2 rounded-xl bg-[#1C2023] px-8 py-6 max-w-[480px] w-full">
         <div className="flex flex-row justify-between w-full">
           <Typography className="font-aeonik font-[400] text-lg">Deposit</Typography>
           <div className="flex flex-row gap-2 my-auto">
