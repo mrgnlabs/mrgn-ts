@@ -224,13 +224,10 @@ const Navbar: FC = () => {
               }}
               badgeContent={"e"}
               invisible={!showBadges}
-              className="hidden md:block"
             >
               <Link
                 href={"/stake"}
-                className={`${
-                  router.pathname === "/stake" ? "hover-underline-static" : "hover-underline-animation"
-                } hidden md:block`}
+                className={router.pathname === "/stake" ? "hover-underline-static" : "hover-underline-animation"}
               >
                 stake
               </Link>
