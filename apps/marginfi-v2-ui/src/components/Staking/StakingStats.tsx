@@ -1,14 +1,11 @@
 import { FC } from "react";
-import { Typography, Skeleton } from "@mui/material";
-
+import { Typography } from "@mui/material";
 import { numeralFormatter, percentFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { useLstStore } from "~/pages/stake";
 
-interface StakingStatsProps {
-  tvl: number;
-  projectedApy: number;
-}
+export const StakingStats: FC = () => {
+  const [lstData] = useLstStore((state) => [state.lstData]);
 
-export const StakingStats: FC<StakingStatsProps> = ({ tvl, projectedApy }) => {
   return (
     <div className="h-full rounded-xl font-[500] p-[10px]">
       <div className="flex flex-col sm:flex-row justify-center gap-0 sm:gap-8 w-full min-w-1/2 mt-[20px] bg-[#171C1F] sm:bg-transparent rounded-xl">
@@ -22,11 +19,7 @@ export const StakingStats: FC<StakingStatsProps> = ({ tvl, projectedApy }) => {
             TVL
           </Typography>
           <Typography color="#fff" className="font-aeonik font-[500] text-xl" component="div">
-            {tvl ? (
-              `$${numeralFormatter(tvl)}`
-            ) : (
-              <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
-            )}
+            {lstData ? `$${numeralFormatter(lstData.tvl)}` : "-"}
           </Typography>
         </div>
 
@@ -42,11 +35,7 @@ export const StakingStats: FC<StakingStatsProps> = ({ tvl, projectedApy }) => {
             Projected APY
           </Typography>
           <Typography color="#fff" className="font-aeonik font-[500] text-xl" component="div">
-            {projectedApy ? (
-              percentFormatterDyn.format(projectedApy)
-            ) : (
-              <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
-            )}
+            {lstData ? percentFormatterDyn.format(lstData.projectedApy) : "-"}
           </Typography>
         </div>
       </div>
