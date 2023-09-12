@@ -6222,6 +6222,18 @@
   dependencies:
     buffer "~6.0.3"
 
+"@solana/spl-stake-pool@^0.6.5":
+  version "0.6.5"
+  resolved "https://registry.yarnpkg.com/@solana/spl-stake-pool/-/spl-stake-pool-0.6.5.tgz#edb9985df9a7c5b772e379c0435545506fc526a7"
+  integrity sha512-gAYjX4LlRem3Bje1csZOOBStX8wAH8b8tu4sublUTIoJxLMdEbXqnwc8RJ2lAsmFkjxxomEM9Hk65F8jcvv15A==
+  dependencies:
+    "@project-serum/borsh" "^0.2.2"
+    "@solana/buffer-layout" "^4.0.0"
+    "@solana/spl-token" "^0.1.8"
+    "@solana/web3.js" "^1.30.2"
+    bn.js "^5.2.0"
+    buffer "^6.0.3"
+
 "@solana/spl-token-registry@0.2.1105":
   version "0.2.1105"
   resolved "https://registry.yarnpkg.com/@solana/spl-token-registry/-/spl-token-registry-0.2.1105.tgz#460fc363096aa59c5150f67736cddc1d5a810e8a"
