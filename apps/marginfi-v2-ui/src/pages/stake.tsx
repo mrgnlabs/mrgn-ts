@@ -4,6 +4,7 @@ import { PageHeader } from "~/components/PageHeader";
 import { StakingStats } from "~/components/Staking";
 import { StakingCard } from "~/components/Staking/StakingCard/StakingCard";
 import { useWalletContext } from "~/components/useWalletContext";
+import { useJupiterStore } from "~/store";
 import { createLstStore } from "~/store/lstStore";
 
 export const useLstStore = createLstStore();
@@ -11,15 +12,24 @@ export const useLstStore = createLstStore();
 const StakePage = () => {
   const { wallet } = useWalletContext();
   const { connection } = useConnection();
-  
-  const [
-  fetchLstState,
-  setIsRefreshingStore,
-] = useLstStore((state) => [
-  state.fetchLstState,
-  state.setIsRefreshingStore,
-  state.userDataFetched,
-]);
+
+  const [fetchLstState, setIsRefreshingStore] = useLstStore((state) => [
+    state.fetchLstState,
+    state.setIsRefreshingStore,
+    state.userDataFetched,
+  ]);
+
+  const [fetchJupiterState] = useJupiterStore((state) => [state.fetchJupiterState]);
+
+  useEffect(() => {
+    fetchJupiterState({ connection, wallet }).catch(console.error);
+    const id = setInterval(() => {
+      setIsRefreshingStore(true);
+      fetchJupiterState().catch(console.error);
+    }, 100_000);
+    return () => clearInterval(id);
+  }, [wallet]);
+
   useEffect(() => {
     setIsRefreshingStore(true);
     fetchLstState({ connection, wallet }).catch(console.error);

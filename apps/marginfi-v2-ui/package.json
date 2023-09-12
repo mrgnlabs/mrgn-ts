@@ -14,6 +14,8 @@
     "@coral-xyz/borsh": "^0.28.0",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
+    "@jup-ag/api": "^6.0.6",
+    "@jup-ag/react-hook": "^6.0.0-beta.2",
     "@mrgnlabs/lip-client": "*",
     "@mrgnlabs/marginfi-client-v2": "*",
     "@mrgnlabs/marginfi-v2-ui-state": "*",
