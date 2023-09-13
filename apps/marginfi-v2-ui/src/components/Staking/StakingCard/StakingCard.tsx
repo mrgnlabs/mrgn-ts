@@ -118,7 +118,7 @@ export const StakingCard: FC = () => {
         <div className="flex flex-row justify-between w-full">
           <Typography className="font-aeonik font-[400] text-lg">Deposit</Typography>
           {connected && (
-            <div className="flex flex-row gap-2">
+            <div className="flex flex-row gap-2 items-center">
               <div className="leading-5">
                 <WalletIcon />
               </div>
@@ -127,7 +127,7 @@ export const StakingCard: FC = () => {
               </Typography>
               <a
                 className={`font-aeonik font-[700] text-base leading-5 ${
-                  !maxDeposit ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                  !maxDeposit ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:text-[#DCE85D]"
                 }`}
                 onClick={() => setDepositAmount(maxDeposit)}
               >
@@ -190,7 +190,7 @@ export const StakingCard: FC = () => {
 
         <div className="flex flex-row justify-between w-full my-auto pt-2">
           <Typography className="font-aeonik font-[400] text-lg">You will receive</Typography>
-          <Typography className="font-aeonik font-[700] text-2xl text-[#75BA80]">
+          <Typography className="font-aeonik font-[700] text-xl text-[#DCE85D]">
             {lstData ? numeralFormatter(depositAmount / lstData.lstSolValue) : "-"} $LST
           </Typography>
         </div>
