@@ -7,18 +7,20 @@ import { StakingStats } from "~/components/Staking";
 import { StakingCard } from "~/components/Staking/StakingCard/StakingCard";
 import { useWalletContext } from "~/components/useWalletContext";
 import { createLstStore } from "~/store/lstStore";
+import { usePrevious } from "~/utils";
 
 export const useLstStore = createLstStore();
 export const useJupiterStore = createJupiterStore();
 
 const StakePage = () => {
-  const { wallet } = useWalletContext();
+  const { wallet, walletAddress } = useWalletContext();
   const { connection } = useConnection();
 
-  const [fetchLstState, setIsRefreshingStore] = useLstStore((state) => [
+  const [fetchLstState, setIsRefreshingStore, userDataFetched, resetUserData] = useLstStore((state) => [
     state.fetchLstState,
     state.setIsRefreshingStore,
     state.userDataFetched,
+    state.resetUserData,
   ]);
 
   const [fetchJupiterState] = useJupiterStore((state) => [state.fetchJupiterState]);
@@ -36,6 +38,19 @@ const StakePage = () => {
   }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
   // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
   // TODO: fix...
+
+  const prevWalletAddress = usePrevious(walletAddress);
+  useEffect(() => {
+    if (!prevWalletAddress && walletAddress) {
+      resetUserData();
+    }
+  }, [walletAddress, prevWalletAddress, resetUserData]);
+
+  useEffect(() => {
+    if (!walletAddress && userDataFetched) {
+      resetUserData();
+    }
+  }, [walletAddress, userDataFetched, resetUserData]);
 
   return (
     <JupiterProvider connection={connection}>

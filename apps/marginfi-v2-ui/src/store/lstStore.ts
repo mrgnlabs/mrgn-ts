@@ -19,6 +19,7 @@ interface LstState {
   // Actions
   fetchLstState: (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
+  resetUserData: () => void;
 }
 
 function createLstStore() {
@@ -91,9 +92,39 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
     }
   },
   setIsRefreshingStore: (isRefreshingStore: boolean) => set({ isRefreshingStore }),
+  resetUserData: () => {
+    console.log("resetting user data")
+    set({ userDataFetched: false, userData: null })},
 });
 
 async function fetchLstData(connection: Connection): Promise<LstData> {
+  const [stakePoolInfo] = await Promise.all([
+    solanaStakePool.stakePoolInfo(connection, new PublicKey("5TnTqbrucx4GxLxEqtUUAr3cggE6CKV7nBDuT2bL9Gux")),
+  ]);
+  const poolTokenSupply = Number(stakePoolInfo.poolTokenSupply);
+  const totalLamports = Number(stakePoolInfo.totalLamports);
+  const lastPoolTokenSupply = Number(stakePoolInfo.lastEpochPoolTokenSupply);
+  const lastTotalLamports = Number(stakePoolInfo.lastEpochTotalLamports);
+
+  const solDepositFee = stakePoolInfo.solDepositFee.denominator.eqn(0)
+    ? 0
+    : stakePoolInfo.solDepositFee.numerator.toNumber() / stakePoolInfo.solDepositFee.denominator.toNumber();
+  const lstSolValue = poolTokenSupply > 0 ? totalLamports / poolTokenSupply : 1;
+  const lastLstSolValue = lastPoolTokenSupply > 0 ? lastTotalLamports / lastPoolTokenSupply : 1;
+  const epochRate = lstSolValue / lastLstSolValue - 1;
+  const apr = epochRate * EPOCHS_PER_YEAR;
+  const projectedApy = aprToApy(apr, EPOCHS_PER_YEAR);
+
+  return {
+    poolAddress: new PublicKey(stakePoolInfo.address),
+    tvl: totalLamports / 1e9,
+    projectedApy,
+    lstSolValue,
+    solDepositFee,
+  };
+}
+
+async function fetchTokenData(connection: Connection): Promise<LstData> {
   const [stakePoolInfo] = await Promise.all([
     solanaStakePool.stakePoolInfo(connection, new PublicKey("5TnTqbrucx4GxLxEqtUUAr3cggE6CKV7nBDuT2bL9Gux")),
   ]);
