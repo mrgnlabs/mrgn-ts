@@ -3,9 +3,9 @@ import { TextField, Typography } from "@mui/material";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { WalletIcon } from "./WalletIcon";
 import { PrimaryButton } from "./PrimaryButton";
-import { useJupiterStore, useLstStore } from "~/pages/stake";
+import { useLstStore } from "~/pages/stake";
 import { useWalletContext } from "~/components/useWalletContext";
-import { Wallet, numeralFormatter, processTransaction, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { Wallet, floor, numeralFormatter, processTransaction, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { ArrowDropDown } from "@mui/icons-material";
 import { StakingModal } from "./StakingModal";
 import Image from "next/image";
@@ -18,39 +18,30 @@ import { usePrevious } from "~/utils";
 
 const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 
-const SUPPORTED_TOKENS = [
-  new PublicKey("So11111111111111111111111111111111111111112"),
-  new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
-  new PublicKey("J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn"),
-];
-
 export interface TokenData {
   mint: PublicKey;
   symbol: string;
+  decimals: number;
   iconUrl: string;
   balance: number;
 }
 
 export const StakingCard: FC = () => {
   const { connection } = useConnection();
-  const { connected, wallet, walletAddress,  openWalletSelector } = useWalletContext();
-  const [lstData, userData] = useLstStore((state) => [state.lstData, state.userData]);
-  const [tokenMap, tokenAccountMap] = useJupiterStore((state) => [state.tokenMap, state.tokenAccountMap]);
+  const { connected, wallet, walletAddress, openWalletSelector } = useWalletContext();
+  const [lstData, userData, jupiterTokenInfo, userTokenAccounts] = useLstStore((state) => [
+    state.lstData,
+    state.userData,
+    state.jupiterTokenInfo,
+    state.userTokenAccounts,
+  ]);
 
-  const [depositAmount, setDepositAmount] = useState<number>(0);
+  const [depositAmount, setDepositAmount] = useState<number | null>(null);
   const [selectedMint, setSelectedMint] = useState<PublicKey>(SOL_MINT);
 
-  const jupiter = useJupiter({
-    amount: JSBI.BigInt(1 * 10 ** 6), // raw input amount of tokens
-    inputMint: selectedMint,
-    outputMint: SOL_MINT,
-    slippageBps: 1, // 0.1% slippage
-    debounceTime: 250, // debounce ms time before refresh
-  });
-  
   const prevWalletAddress = usePrevious(walletAddress);
   useEffect(() => {
-    if (!walletAddress && prevWalletAddress || walletAddress && !prevWalletAddress) {
+    if ((!walletAddress && prevWalletAddress) || (walletAddress && !prevWalletAddress)) {
       setDepositAmount(0);
       setSelectedMint(SOL_MINT);
     }
@@ -59,60 +50,64 @@ export const StakingCard: FC = () => {
   const maxDeposit: number | null = useMemo(() => userData?.nativeSolBalance ?? null, [userData]);
 
   const selectedMintInfo: TokenData | undefined = useMemo(() => {
-    if (!userData || tokenMap.size === 0) return undefined;
+    if (jupiterTokenInfo === null) return undefined;
 
-    const tokenInfo = tokenMap.get(selectedMint.toString());
+    const tokenInfo = jupiterTokenInfo.get(selectedMint.toString());
     if (!tokenInfo) throw new Error(`Token ${selectedMint.toBase58()} not found`);
 
-    let walletBalance: number;
+    let walletBalance: number = 0;
     if (selectedMint.equals(SOL_MINT)) {
-      walletBalance = userData.nativeSolBalance;
+      walletBalance = userData?.nativeSolBalance ?? 0;
     } else {
-      const tokenAccount = tokenAccountMap.get(selectedMint.toString());
-      if (!tokenAccount) throw new Error(`Token account ${selectedMint.toBase58()} not found`);
-      walletBalance = tokenAccount.balance;
+      const tokenAccount = userTokenAccounts?.get(selectedMint.toString());
+      walletBalance = tokenAccount?.balance ?? 0;
     }
 
     return {
       mint: selectedMint,
       symbol: tokenInfo.symbol,
       iconUrl: tokenInfo.logoURI ?? "/info_icon.png",
+      decimals: tokenInfo.decimals,
       balance: walletBalance,
     };
-  }, [selectedMint, userData, tokenMap, tokenAccountMap]);
+  }, [jupiterTokenInfo, selectedMint, userData, userTokenAccounts]);
 
-  const supportedTokensForUser: TokenData[] = useMemo(() => {
-    if (!userData || !tokenAccountMap) return [];
-    const ownedMints = SUPPORTED_TOKENS.filter((mint) => tokenAccountMap.has(mint.toString()));
-    return ownedMints.map((mint) => {
-      const tokenInfo = tokenMap.get(mint.toString());
-      if (!tokenInfo) throw new Error(`Token ${mint.toBase58()} not found`);
+  const { quoteResponseMeta } = useJupiter({
+    amount: JSBI.BigInt(
+      selectedMintInfo ? floor(depositAmount ?? 0, selectedMintInfo.decimals) * 10 ** selectedMintInfo.decimals : 0
+    ), // raw input amount of tokens
+    inputMint: selectedMint,
+    outputMint: SOL_MINT,
+    slippageBps: 1, // 0.1% slippage
+    debounceTime: 250,
+  });
 
-      let walletBalance: number;
-      if (selectedMint.equals(SOL_MINT)) {
-        walletBalance = userData.nativeSolBalance;
-      } else {
-        const tokenAccount = tokenAccountMap.get(selectedMint.toString());
-        if (!tokenAccount) throw new Error(`Token account ${selectedMint.toBase58()} not found`);
-        walletBalance = tokenAccount.balance;
-      }
+  const solDepositAmount: number | null = useMemo(() => {
+    if (!selectedMintInfo) return null;
+    if (selectedMintInfo.mint.equals(SOL_MINT)) return depositAmount;
+    const swapOutAmount = quoteResponseMeta?.quoteResponse.outAmount;
+    const swapOutAmountUi = swapOutAmount ? JSBI.toNumber(swapOutAmount) / 1e9 : null;
+    return swapOutAmountUi;
+  }, [depositAmount, selectedMintInfo, quoteResponseMeta]);
 
-      return {
-        mint,
-        symbol: tokenInfo.symbol,
-        iconUrl: tokenInfo.logoURI ?? "/info_icon.png",
-        balance: walletBalance,
-      };
-    });
-  }, [userData, tokenAccountMap, tokenMap, selectedMint]);
+  const availableTokens: TokenData[] = useMemo(() => {
+    if (!jupiterTokenInfo) return [];
+    return [...jupiterTokenInfo.values()].map((token) => ({
+      mint: new PublicKey(token.address),
+      symbol: token.symbol,
+      iconUrl: token.logoURI ?? "/info_icon.png",
+      decimals: token.decimals,
+      balance: 0,
+    }));
+  }, [jupiterTokenInfo]);
 
   const onChange = useCallback(
-    (event: NumberFormatValues) => setDepositAmount(event.floatValue ?? 0),
+    (event: NumberFormatValues) => setDepositAmount(event.floatValue ?? null),
     [setDepositAmount]
   );
 
   const onMint = useCallback(async () => {
-    if (!lstData || !wallet) return;
+    if (!lstData || !wallet || !depositAmount) return;
     console.log("depositing", depositAmount, selectedMint);
     try {
       await depositToken(lstData.poolAddress, depositAmount, selectedMint, connection, wallet);
@@ -172,14 +167,12 @@ export const StakingCard: FC = () => {
           }}
           className="bg-[#0F1111] p-2 rounded-xl"
           InputProps={
-            tokenMap.size > 0
+            jupiterTokenInfo
               ? {
                   className: "font-aeonik text-[#e1e1e1] p-0 m-0",
                   startAdornment: (
                     <DropDownButton
-                      supportedTokens={supportedTokensForUser}
-                      depositAmount={depositAmount}
-                      setDepositAmount={setDepositAmount}
+                      supportedTokens={availableTokens}
                       selectedMintInfo={
                         selectedMintInfo ?? {
                           mint: SOL_MINT,
@@ -198,11 +191,14 @@ export const StakingCard: FC = () => {
         <div className="flex flex-row justify-between w-full my-auto pt-2">
           <Typography className="font-aeonik font-[400] text-lg">You will receive</Typography>
           <Typography className="font-aeonik font-[700] text-xl text-[#DCE85D]">
-            {lstData ? numeralFormatter(depositAmount / lstData.lstSolValue) : "-"} $LST
+            {lstData ? numeralFormatter(solDepositAmount ?? 0 / lstData.lstSolValue) : "-"} $LST
           </Typography>
         </div>
         <div className="py-7">
-          <PrimaryButton disabled={connected && (!maxDeposit || depositAmount == 0)} onClick={connected ? onMint : openWalletSelector}>
+          <PrimaryButton
+            disabled={connected && (!maxDeposit || depositAmount == 0)}
+            onClick={connected ? onMint : openWalletSelector}
+          >
             {connected ? "Mint" : "Connect"}
           </PrimaryButton>
         </div>
@@ -223,8 +219,6 @@ export const StakingCard: FC = () => {
 
 interface DropDownButtonProps {
   supportedTokens: TokenData[];
-  depositAmount: number;
-  setDepositAmount: Dispatch<SetStateAction<number>>;
   selectedMintInfo: { mint: PublicKey; symbol: string; iconUrl: string };
   setSelectedMint: Dispatch<SetStateAction<PublicKey>>;
   disabled?: boolean;
@@ -244,7 +238,7 @@ const DropDownButton: FC<DropDownButtonProps> = ({ supportedTokens, selectedMint
           <Image src={selectedMintInfo.iconUrl} alt="token logo" height={24} width={24} />
         </div>
         <Typography className="font-aeonik font-[500] text-lg mr-1">{selectedMintInfo.symbol}</Typography>
-        <ArrowDropDown sx={{width: "20px", padding: 0 }} />
+        <ArrowDropDown sx={{ width: "20px", padding: 0 }} />
       </div>
 
       <StakingModal
@@ -264,7 +258,13 @@ async function depositToken(
   connection: Connection,
   wallet: Wallet
 ) {
-  if (!mint.equals(SOL_MINT)) throw new Error("Only SOL is supported for now");
+  const finalIxList = [];
+  const finalSignerList = [];
+
+  if (!mint.equals(SOL_MINT)) {
+    // Jup swap ix
+  }
+
   console.log("1 depositing", depositAmount, mint);
   const _depositAmount = depositAmount * 1e9;
   console.log("2 depositing", _depositAmount, mint);
@@ -277,9 +277,12 @@ async function depositToken(
     undefined
   );
 
-  const tx = new Transaction().add(...instructions);
+  finalIxList.push(...instructions);
+  finalSignerList.push(...signers);
 
-  const sig = await processTransaction(connection, wallet, tx, signers, { dryRun: false });
+  const tx = new Transaction().add(...finalIxList);
+
+  const sig = await processTransaction(connection, wallet, tx, finalSignerList, { dryRun: true });
 
   console.log(`Staked ${depositAmount} ${shortenAddress(mint)} with signature ${sig}`);
 }
