@@ -1,4 +1,4 @@
-import { Dispatch, FC, SetStateAction, useCallback, useMemo, useState } from "react";
+import { Dispatch, FC, SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
 import { TextField, Typography } from "@mui/material";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { WalletIcon } from "./WalletIcon";
@@ -14,6 +14,7 @@ import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { useJupiter } from "@jup-ag/react-hook";
 import JSBI from "jsbi";
+import { usePrevious } from "~/utils";
 
 const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 
@@ -32,7 +33,7 @@ export interface TokenData {
 
 export const StakingCard: FC = () => {
   const { connection } = useConnection();
-  const { connected, wallet } = useWalletContext();
+  const { connected, wallet, walletAddress,  openWalletSelector } = useWalletContext();
   const [lstData, userData] = useLstStore((state) => [state.lstData, state.userData]);
   const [tokenMap, tokenAccountMap] = useJupiterStore((state) => [state.tokenMap, state.tokenAccountMap]);
 
@@ -46,8 +47,16 @@ export const StakingCard: FC = () => {
     slippageBps: 1, // 0.1% slippage
     debounceTime: 250, // debounce ms time before refresh
   });
+  
+  const prevWalletAddress = usePrevious(walletAddress);
+  useEffect(() => {
+    if (!walletAddress && prevWalletAddress || walletAddress && !prevWalletAddress) {
+      setDepositAmount(0);
+      setSelectedMint(SOL_MINT);
+    }
+  }, [walletAddress, prevWalletAddress]);
 
-  const maxDeposit: number = useMemo(() => userData?.nativeSolBalance ?? 0, [userData]);
+  const maxDeposit: number | null = useMemo(() => userData?.nativeSolBalance ?? null, [userData]);
 
   const selectedMintInfo: TokenData | undefined = useMemo(() => {
     if (!userData || tokenMap.size === 0) return undefined;
@@ -117,7 +126,7 @@ export const StakingCard: FC = () => {
       <div className="relative flex flex-col gap-3 rounded-xl bg-[#1C2023] px-8 py-6 max-w-[480px] w-full">
         <div className="flex flex-row justify-between w-full">
           <Typography className="font-aeonik font-[400] text-lg">Deposit</Typography>
-          {connected && (
+          {connected && maxDeposit !== null && (
             <div className="flex flex-row gap-2 items-center">
               <div className="leading-5">
                 <WalletIcon />
@@ -126,7 +135,7 @@ export const StakingCard: FC = () => {
                 {userData ? numeralFormatter(userData.nativeSolBalance) : "-"}
               </Typography>
               <a
-                className={`font-aeonik font-[700] text-base leading-5 ${
+                className={`font-aeonik font-[700] text-base leading-5 ml-2 ${
                   !maxDeposit ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:text-[#DCE85D]"
                 }`}
                 onClick={() => setDepositAmount(maxDeposit)}
@@ -142,14 +151,14 @@ export const StakingCard: FC = () => {
           value={depositAmount}
           allowNegative={false}
           decimalScale={9}
-          disabled={!connected || !maxDeposit}
           onValueChange={onChange}
           thousandSeparator=","
           customInput={TextField}
           size="small"
           isAllowed={(values) => {
             const { floatValue } = values;
-            if (!maxDeposit) return false;
+            if (maxDeposit === null) return true;
+            if (maxDeposit === 0) return false;
             return floatValue ? floatValue < maxDeposit : true;
           }}
           sx={{
@@ -166,7 +175,6 @@ export const StakingCard: FC = () => {
             tokenMap.size > 0
               ? {
                   className: "font-aeonik text-[#e1e1e1] p-0 m-0",
-                  disabled: !connected || !maxDeposit,
                   startAdornment: (
                     <DropDownButton
                       supportedTokens={supportedTokensForUser}
@@ -180,7 +188,6 @@ export const StakingCard: FC = () => {
                         }
                       }
                       setSelectedMint={setSelectedMint}
-                      disabled={!connected || !maxDeposit}
                     />
                   ),
                 }
@@ -195,8 +202,8 @@ export const StakingCard: FC = () => {
           </Typography>
         </div>
         <div className="py-7">
-          <PrimaryButton disabled={!maxDeposit || depositAmount == 0} onClick={onMint}>
-            Mint
+          <PrimaryButton disabled={connected && (!maxDeposit || depositAmount == 0)} onClick={connected ? onMint : openWalletSelector}>
+            {connected ? "Mint" : "Connect"}
           </PrimaryButton>
         </div>
         <div className="flex flex-row justify-between w-full my-auto">
@@ -220,7 +227,7 @@ interface DropDownButtonProps {
   setDepositAmount: Dispatch<SetStateAction<number>>;
   selectedMintInfo: { mint: PublicKey; symbol: string; iconUrl: string };
   setSelectedMint: Dispatch<SetStateAction<PublicKey>>;
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 const DropDownButton: FC<DropDownButtonProps> = ({ supportedTokens, selectedMintInfo, setSelectedMint, disabled }) => {
