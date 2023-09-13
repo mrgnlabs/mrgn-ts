@@ -67,7 +67,7 @@ export const StakingCard: FC = () => {
     return {
       mint: selectedMint,
       symbol: tokenInfo.symbol,
-      iconUrl: tokenInfo.logoURI ?? "info_icon.png",
+      iconUrl: tokenInfo.logoURI ?? "/info_icon.png",
       balance: walletBalance,
     };
   }, [selectedMint, userData, tokenMap, tokenAccountMap]);
@@ -87,11 +87,11 @@ export const StakingCard: FC = () => {
         if (!tokenAccount) throw new Error(`Token account ${selectedMint.toBase58()} not found`);
         walletBalance = tokenAccount.balance;
       }
-      
+
       return {
         mint,
         symbol: tokenInfo.symbol,
-        iconUrl: tokenInfo.logoURI ?? "info_icon.png",
+        iconUrl: tokenInfo.logoURI ?? "/info_icon.png",
         balance: walletBalance,
       };
     });
@@ -161,22 +161,24 @@ export const StakingCard: FC = () => {
               },
             },
           }}
-          className="text-white bg-[#0F1111] text-3xl p-2 rounded-xl"
+          className="bg-[#0F1111] p-2 rounded-xl"
           InputProps={
             tokenMap.size > 0
               ? {
-                  className: "font-aeonik text-[#e1e1e1] text-2xl p-0 m-0",
+                  className: "font-aeonik text-[#e1e1e1] p-0 m-0",
                   disabled: !connected || !maxDeposit,
                   startAdornment: (
                     <DropDownButton
                       supportedTokens={supportedTokensForUser}
                       depositAmount={depositAmount}
                       setDepositAmount={setDepositAmount}
-                      selectedMintInfo={selectedMintInfo ?? {
-                        mint: SOL_MINT,
-                        iconUrl: "info_icon.png",
-                        symbol: "SOL",
-                      }}
+                      selectedMintInfo={
+                        selectedMintInfo ?? {
+                          mint: SOL_MINT,
+                          iconUrl: "/info_icon.png",
+                          symbol: "SOL",
+                        }
+                      }
                       setSelectedMint={setSelectedMint}
                       disabled={!connected || !maxDeposit}
                     />
@@ -227,23 +229,23 @@ const DropDownButton: FC<DropDownButtonProps> = ({ supportedTokens, selectedMint
     <>
       <div
         onClick={() => setIsModalOpen(true)}
-        className={`w-[250px] h-[45px] flex flex-row justify-between py-2 px-4 text-white bg-[#303030] rounded-lg ${
-          disabled ? "opacity-50" : "cursor-pointer"
+        className={`flex flex-row justify-between items-center py-2 px-3 text-white bg-[#303030] rounded-lg ${
+          disabled ? "opacity-50" : "cursor-pointer hover:bg-[#2D2D2D]"
         }`}
       >
-        <div className="flex flex-row gap-3">
-          <div className="m-auto">
-            <Image src={selectedMintInfo.iconUrl} alt="token logo" height={24} width={24} />
-          </div>
-          <div className="m-auto">
-          <Typography className="font-aeonik font-[700] text-[13px] sm:text-lg leading-none my-auto">
-            {selectedMintInfo.symbol}
-          </Typography>
-          </div>
+        <div className="w-[24px] mr-2">
+          <Image src={selectedMintInfo.iconUrl} alt="token logo" height={24} width={24} />
         </div>
-        <ArrowDropDown />
+        <Typography className="font-aeonik font-[500] text-lg mr-1">{selectedMintInfo.symbol}</Typography>
+        <ArrowDropDown sx={{width: "20px", padding: 0 }} />
       </div>
-      <StakingModal isOpen={isModalOpen} handleClose={() => setIsModalOpen(false)} supportedTokens={supportedTokens} setSelectedMint={setSelectedMint} />
+
+      <StakingModal
+        isOpen={isModalOpen}
+        handleClose={() => setIsModalOpen(false)}
+        supportedTokens={supportedTokens}
+        setSelectedMint={setSelectedMint}
+      />
     </>
   );
 };
