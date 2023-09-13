@@ -116,3 +116,16 @@ a {
   padding-left: 0px;
   padding-right: 0px;
 }
+
+@keyframes radiate {
+  0% {
+    color: #ccc;
+  }
+  100% {
+    color: #fff;
+  }
+}
+
+.radiating-text {
+  animation: radiate 2s infinite alternate;
+}
