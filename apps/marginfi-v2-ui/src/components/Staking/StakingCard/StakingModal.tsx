@@ -28,24 +28,19 @@ export const StakingModal: FC<StakingModalProps> = ({ isOpen, handleClose, suppo
             <Close />
           </div>
         </div>
-        <div className="flex flex-col gap-1 mt-3">
+        <div className="flex flex-col gap-1 mt-5">
           {supportedTokens.map((token) => {
             return (
               <a
-                  key={token.mint.toBase58()}
-                  onClick={() => {
+                key={token.mint.toBase58()}
+                onClick={() => {
                   setSelectedMint(token.mint);
                   handleClose();
                 }}
               >
-                <div
-                  className="flex flex-row w-full gap-4 p-2 rounded-lg hover:bg-gray-700 cursor-pointer"
-                >
+                <div className="flex flex-row w-full font-aeonik font-[400] text-xl items-center gap-4 p-2 rounded-lg hover:bg-gray-700 cursor-pointer">
                   <Image src={token.iconUrl} alt="token logo" height={35} width={35} />
-
-                  <Typography className="flex h-full font-aeonik font-[500] text-2xl items-center">
-                    {token.symbol}
-                  </Typography>
+                  <Typography>{token.symbol}</Typography>
                 </div>
               </a>
             );
