@@ -8,8 +8,8 @@ import { TokenAccount, TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
 import BN from "bn.js";
 
 const NETWORK_FEE_LAMPORTS = 15000; // network fee + some for potential account creation
- 
-const SUPPORTED_TOKENS = [
+
+export const SUPPORTED_TOKENS = [
   "So11111111111111111111111111111111111111112",
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
   "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
@@ -76,13 +76,14 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
       let jupiterTokenInfo: TokenInfoMap | null = null;
       let userTokenAccounts: TokenAccountMap | null = null;
       if (wallet?.publicKey) {
-        const [accountsAiList, minimumRentExemption, _lstData, _jupiterTokenInfo, _userTokenAccounts] = await Promise.all([
-          connection.getMultipleAccountsInfo([wallet.publicKey]),
-          connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE),
-          fetchLstData(connection),
-          fetchJupiterTokenInfo(),
-          fetchUserTokenAccounts(connection, wallet.publicKey),
-        ]);
+        const [accountsAiList, minimumRentExemption, _lstData, _jupiterTokenInfo, _userTokenAccounts] =
+          await Promise.all([
+            connection.getMultipleAccountsInfo([wallet.publicKey]),
+            connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE),
+            fetchLstData(connection),
+            fetchJupiterTokenInfo(),
+            fetchUserTokenAccounts(connection, wallet.publicKey),
+          ]);
         lstData = _lstData;
         jupiterTokenInfo = _jupiterTokenInfo;
         userTokenAccounts = _userTokenAccounts;
@@ -156,10 +157,12 @@ async function fetchJupiterTokenInfo(): Promise<TokenInfoMap> {
   ).json();
   const res = new TokenListContainer(tokens);
   const list = res.filterByChainId(101).getList();
-  const tokenMap = list.filter(tokenInfo => SUPPORTED_TOKENS.includes(tokenInfo.address)).reduce((acc, item) => {
-    acc.set(item.address, item);
-    return acc;
-  }, new Map());
+  const tokenMap = list
+    .filter((tokenInfo) => SUPPORTED_TOKENS.includes(tokenInfo.address))
+    .reduce((acc, item) => {
+      acc.set(item.address, item);
+      return acc;
+    }, new Map());
 
   return tokenMap;
 }

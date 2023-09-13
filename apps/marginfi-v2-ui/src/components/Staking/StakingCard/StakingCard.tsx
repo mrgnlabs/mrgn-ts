@@ -3,7 +3,7 @@ import { TextField, Typography } from "@mui/material";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { WalletIcon } from "./WalletIcon";
 import { PrimaryButton } from "./PrimaryButton";
-import { useJupiterStore, useLstStore } from "~/pages/stake";
+import { useLstStore } from "~/pages/stake";
 import { useWalletContext } from "~/components/useWalletContext";
 import { Wallet, numeralFormatter, processTransaction, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { ArrowDropDown } from "@mui/icons-material";
@@ -16,20 +16,16 @@ import { SwapMode, useJupiter, useJupiterExchange } from "@jup-ag/react-hook";
 import JSBI from "jsbi";
 import { usePrevious } from "~/utils";
 import { SwapResponse, createJupiterApiClient, instanceOfSwapResponse } from "@jup-ag/api";
+import { SUPPORTED_TOKENS } from "~/store/lstStore";
 
 const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
-
-const SUPPORTED_TOKENS = [
-  new PublicKey("So11111111111111111111111111111111111111112"),
-  new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
-  new PublicKey("J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn"),
-];
+const SLIPPAGE_BPS = 5;
 
 export interface TokenData {
   mint: PublicKey;
   symbol: string;
-  iconUrl: string;
   decimals: number;
+  iconUrl: string;
   balance: number;
 }
 
@@ -62,9 +58,11 @@ export const StakingCard: FC = () => {
     if (!userData || !userTokenAccounts || !userData?.nativeSolBalance) return [];
 
     const ownedMints = SUPPORTED_TOKENS.filter(
-      (mint) => userTokenAccounts.has(mint.toString()) || mint.equals(SOL_MINT)
+      (mint) => userTokenAccounts.has(mint) || new PublicKey(mint).equals(SOL_MINT)
     );
-    return ownedMints.map((mint) => {
+    return ownedMints.map((key) => {
+      const mint = new PublicKey(key);
+
       const tokenInfo = jupiterTokenInfo.get(mint.toString());
       if (!tokenInfo) throw new Error(`Token ${mint.toBase58()} not found`);
 
@@ -110,7 +108,7 @@ export const StakingCard: FC = () => {
     inputMint: selectedMint,
     outputMint: SOL_MINT,
     swapMode: SwapMode.ExactIn,
-    slippageBps: 5, // 0.5% slippage
+    slippageBps: SLIPPAGE_BPS, // 0.5% slippage
     debounceTime: 250, // debounce ms time before refresh
   });
 
@@ -136,7 +134,7 @@ export const StakingCard: FC = () => {
   );
 
   const onMint = useCallback(async () => {
-    if (!lstData || !wallet) return;
+    if (!lstData || !wallet || !depositAmount) return;
     console.log("depositing", depositAmount, selectedMint);
 
     try {
