@@ -34,7 +34,7 @@ interface LstData {
 }
 
 interface UserData {
-  availableSolBalance: number;
+  nativeSolBalance: number;
 }
 
 const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
@@ -71,7 +71,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
         const nativeSolBalance = walletAi?.lamports ? walletAi.lamports : 0;
         const availableSolBalance = (nativeSolBalance - minimumRentExemption - NETWORK_FEE_LAMPORTS) / 1e9;
 
-        userData = { availableSolBalance };
+        userData = { nativeSolBalance: availableSolBalance };
         userDataFetched = true;
       } else {
         lstData = await fetchLstData(connection);
