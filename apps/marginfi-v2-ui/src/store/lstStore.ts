@@ -56,7 +56,6 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
       if (!connection) throw new Error("Connection not found");
 
       const wallet = args?.wallet || get().wallet;
-      console.log("fetching", !!wallet);
 
       let lstData: LstData | null = null;
       let userData: UserData | null = null;
@@ -98,7 +97,6 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
   const [stakePoolInfo] = await Promise.all([
     solanaStakePool.stakePoolInfo(connection, new PublicKey("5TnTqbrucx4GxLxEqtUUAr3cggE6CKV7nBDuT2bL9Gux")),
   ]);
-  console.log(stakePoolInfo.solWithdrawalFee.numerator.div(stakePoolInfo.solWithdrawalFee.denominator).toString());
   const poolTokenSupply = Number(stakePoolInfo.poolTokenSupply);
   const totalLamports = Number(stakePoolInfo.totalLamports);
   const lastPoolTokenSupply = Number(stakePoolInfo.lastEpochPoolTokenSupply);
