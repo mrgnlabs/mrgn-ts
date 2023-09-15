@@ -71,6 +71,6 @@ export function makeWrapSolIxs(walletAddress: PublicKey, amount: BigNumber): Tra
 }
 
 export function makeUnwrapSolIx(walletAddress: PublicKey): TransactionInstruction {
-  const address = getAssociatedTokenAddressSync(NATIVE_MINT, walletAddress);
+  const address = getAssociatedTokenAddressSync(NATIVE_MINT, walletAddress, true); // We allow off curve addresses here to support Fuse.
   return createCloseAccountInstruction(address, walletAddress, walletAddress);
 }

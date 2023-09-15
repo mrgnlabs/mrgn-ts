@@ -350,7 +350,7 @@ async function fetchTokenAccounts(
     };
   }
 
-  const ataAddresses = mintList.map((mint) => getAssociatedTokenAddressSync(mint.address, walletAddress!));
+  const ataAddresses = mintList.map((mint) => getAssociatedTokenAddressSync(mint.address, walletAddress!, true)); // We allow off curve addresses here to support Fuse.
 
   // Fetch relevant accounts
   const accountsAiList = await connection.getMultipleAccountsInfo([walletAddress, ...ataAddresses]);

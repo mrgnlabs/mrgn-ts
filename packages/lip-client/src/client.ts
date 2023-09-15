@@ -150,7 +150,7 @@ class LipClient {
   async makeDepositIx(campaign: PublicKey, amount: Amount, bank: Bank): Promise<InstructionsWrapper> {
     const depositKeypair = Keypair.generate();
     const tempTokenAccountKeypair = Keypair.generate();
-    const userTokenAtaPk = getAssociatedTokenAddressSync(bank.mint, this.mfiClient.provider.wallet.publicKey);
+    const userTokenAtaPk = getAssociatedTokenAddressSync(bank.mint, this.mfiClient.provider.wallet.publicKey, true); // We allow off curve addresses here to support Fuse.
     const amountNative = uiToNative(amount, bank.mintDecimals);
 
     const ixs = [];
