@@ -47,6 +47,7 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 
 const Points: FC = () => {
   const { connected, walletAddress } = useWalletContext();
+  const { connection } = useConnection();
   const { query: routerQuery } = useRouter();
   const [currentFirebaseUser, hasUser, userPointsData] = useUserProfileStore((state) => [
     state.currentFirebaseUser,
@@ -60,7 +61,7 @@ const Points: FC = () => {
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
 
   useEffect(() => {
-    fetchLeaderboardData().then(setLeaderboardData); // TODO: cache leaderboard and avoid call
+    fetchLeaderboardData(connection).then(setLeaderboardData); // TODO: cache leaderboard and avoid call
   }, [connected, walletAddress]); // Dependency array to re-fetch when these variables change
 
   return (
@@ -337,7 +338,7 @@ const Points: FC = () => {
                       style={{ textDecoration: "none", color: "inherit" }}
                       className="hover:text-[#DCE85D]"
                     >
-                      {`${row.id.slice(0, 5)}...${row.id.slice(-5)}`}
+                      {row.id.endsWith(".sol") ? row.id : `${row.id.slice(0, 5)}...${row.id.slice(-5)}`}
                       <style jsx>{`
                         a:hover {
                           text-decoration: underline;
