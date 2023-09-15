@@ -1,4 +1,5 @@
-import { ACCOUNT_SIZE, TOKEN_PROGRAM_ID, Wallet, aprToApy, nativeToUi } from "@mrgnlabs/mrgn-common";
+import { vendor } from "@mrgnlabs/marginfi-client-v2";
+import { ACCOUNT_SIZE, TOKEN_PROGRAM_ID, Wallet, aprToApy } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { create, StateCreator } from "zustand";
 import * as solanaStakePool from "@solana/spl-stake-pool";
@@ -8,7 +9,8 @@ import { TokenAccount, TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
 import BN from "bn.js";
 
 const NETWORK_FEE_LAMPORTS = 15000; // network fee + some for potential account creation
- 
+const SOL_USD_PYTH_ORACLE = new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG");
+
 const SUPPORTED_TOKENS = [
   "So11111111111111111111111111111111111111112",
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
@@ -26,6 +28,7 @@ interface LstState {
   userData: UserData | null;
   jupiterTokenInfo: TokenInfoMap | null;
   userTokenAccounts: TokenAccountMap | null;
+  solUsdValue: number | null;
 
   // Actions
   fetchLstState: (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => Promise<void>;
@@ -60,6 +63,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
   userData: null,
   jupiterTokenInfo: null,
   userTokenAccounts: null,
+  solUsdValue: null,
 
   // Actions
   fetchLstState: async (args?: { connection?: Connection; wallet?: Wallet }) => {
@@ -75,20 +79,23 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
       let userData: UserData | null = null;
       let jupiterTokenInfo: TokenInfoMap | null = null;
       let userTokenAccounts: TokenAccountMap | null = null;
+      let solUsdValue: number | null = null;
       if (wallet?.publicKey) {
-        const [accountsAiList, minimumRentExemption, _lstData, _jupiterTokenInfo, _userTokenAccounts] = await Promise.all([
-          connection.getMultipleAccountsInfo([wallet.publicKey]),
-          connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE),
-          fetchLstData(connection),
-          fetchJupiterTokenInfo(),
-          fetchUserTokenAccounts(connection, wallet.publicKey),
-        ]);
+        const [accountsAiList, minimumRentExemption, _lstData, _jupiterTokenInfo, _userTokenAccounts] =
+          await Promise.all([
+            connection.getMultipleAccountsInfo([wallet.publicKey, SOL_USD_PYTH_ORACLE]),
+            connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE),
+            fetchLstData(connection),
+            fetchJupiterTokenInfo(),
+            fetchUserTokenAccounts(connection, wallet.publicKey),
+          ]);
         lstData = _lstData;
         jupiterTokenInfo = _jupiterTokenInfo;
         userTokenAccounts = _userTokenAccounts;
-        const [walletAi] = accountsAiList;
+        const [walletAi, solUsdPythFeedAi] = accountsAiList;
         const nativeSolBalance = walletAi?.lamports ? walletAi.lamports : 0;
         const availableSolBalance = (nativeSolBalance - minimumRentExemption - NETWORK_FEE_LAMPORTS) / 1e9;
+        solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
 
         userData = { nativeSolBalance: availableSolBalance };
         userDataFetched = true;
@@ -108,6 +115,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
         userData,
         jupiterTokenInfo,
         userTokenAccounts,
+        solUsdValue,
       });
     } catch (err) {
       console.error("error refreshing state: ", err);
@@ -156,10 +164,12 @@ async function fetchJupiterTokenInfo(): Promise<TokenInfoMap> {
   ).json();
   const res = new TokenListContainer(tokens);
   const list = res.filterByChainId(101).getList();
-  const tokenMap = list.filter(tokenInfo => SUPPORTED_TOKENS.includes(tokenInfo.address)).reduce((acc, item) => {
-    acc.set(item.address, item);
-    return acc;
-  }, new Map());
+  const tokenMap = list
+    .filter((tokenInfo) => SUPPORTED_TOKENS.includes(tokenInfo.address))
+    .reduce((acc, item) => {
+      acc.set(item.address, item);
+      return acc;
+    }, new Map());
 
   return tokenMap;
 }
@@ -175,7 +185,7 @@ async function fetchUserTokenAccounts(connection: Connection, walletAddress: Pub
     return {
       created: true,
       mint: new PublicKey(item.account.data.parsed.info.mint),
-      balance: nativeToUi(new BN(item.account.data.parsed.info.tokenAmount.uiAmount), 0),
+      balance: item.account.data.parsed.info.tokenAmount.uiAmount,
     } as TokenAccount;
   });
 
