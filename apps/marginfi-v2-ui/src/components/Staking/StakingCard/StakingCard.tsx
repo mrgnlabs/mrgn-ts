@@ -1,22 +1,25 @@
 import { Dispatch, FC, SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
-import { TextField, Typography } from "@mui/material";
+import { TextField, Typography, CircularProgress } from "@mui/material";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { WalletIcon } from "./WalletIcon";
 import { PrimaryButton } from "./PrimaryButton";
 import { useLstStore } from "~/pages/stake";
 import { useWalletContext } from "~/components/useWalletContext";
-import { Wallet, floor, numeralFormatter, processTransaction, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { Wallet, numeralFormatter, processTransaction, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { ArrowDropDown } from "@mui/icons-material";
 import { StakingModal } from "./StakingModal";
 import Image from "next/image";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { useJupiter } from "@jup-ag/react-hook";
+import { SwapMode, useJupiter } from "@jup-ag/react-hook";
 import JSBI from "jsbi";
 import { usePrevious } from "~/utils";
+import { createJupiterApiClient, instanceOfSwapResponse } from "@jup-ag/api";
+import { toast } from "react-toastify";
 
 const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
+const SLIPPAGE_BPS = 5; // 0.5% slippage
 
 export interface TokenData {
   mint: PublicKey;
@@ -29,13 +32,17 @@ export interface TokenData {
 export const StakingCard: FC = () => {
   const { connection } = useConnection();
   const { connected, wallet, walletAddress, openWalletSelector } = useWalletContext();
-  const [lstData, userData, jupiterTokenInfo, userTokenAccounts] = useLstStore((state) => [
+  const [lstData, userData, jupiterTokenInfo, userTokenAccounts, fetchLstState] = useLstStore((state) => [
     state.lstData,
     state.userData,
     state.jupiterTokenInfo,
     state.userTokenAccounts,
+    state.fetchLstState,
   ]);
 
+  const jupiterApiClient = createJupiterApiClient();
+
+  const [swapping, setSwapping] = useState<boolean>(false);
   const [depositAmount, setDepositAmount] = useState<number | null>(null);
   const [selectedMint, setSelectedMint] = useState<PublicKey>(SOL_MINT);
 
@@ -43,14 +50,11 @@ export const StakingCard: FC = () => {
   useEffect(() => {
     if ((!walletAddress && prevWalletAddress) || (walletAddress && !prevWalletAddress)) {
       setDepositAmount(0);
-      setSelectedMint(SOL_MINT);
     }
   }, [walletAddress, prevWalletAddress]);
 
-  const maxDeposit: number | null = useMemo(() => userData?.nativeSolBalance ?? null, [userData]);
-
-  const selectedMintInfo: TokenData | undefined = useMemo(() => {
-    if (jupiterTokenInfo === null) return undefined;
+  const selectedMintInfo: TokenData | null = useMemo(() => {
+    if (jupiterTokenInfo === null) return null;
 
     const tokenInfo = jupiterTokenInfo.get(selectedMint.toString());
     if (!tokenInfo) throw new Error(`Token ${selectedMint.toBase58()} not found`);
@@ -72,23 +76,39 @@ export const StakingCard: FC = () => {
     };
   }, [jupiterTokenInfo, selectedMint, userData, userTokenAccounts]);
 
-  const { quoteResponseMeta } = useJupiter({
-    amount: JSBI.BigInt(
-      selectedMintInfo ? floor(depositAmount ?? 0, selectedMintInfo.decimals) * 10 ** selectedMintInfo.decimals : 0
-    ), // raw input amount of tokens
+  const rawDepositAmount = useMemo(
+    () => Math.trunc(Math.pow(10, selectedMintInfo?.decimals ?? 0) * (depositAmount ?? 0)),
+    [depositAmount, selectedMintInfo]
+  );
+
+  const {
+    quoteResponseMeta,
+    loading: loadingQuotes,
+    refresh,
+  } = useJupiter({
+    amount: JSBI.BigInt(rawDepositAmount), // raw input amount of tokens
     inputMint: selectedMint,
     outputMint: SOL_MINT,
-    slippageBps: 1, // 0.1% slippage
-    debounceTime: 250,
+    swapMode: SwapMode.ExactIn,
+    slippageBps: SLIPPAGE_BPS, // 0.5% slippage
+    debounceTime: 250, // debounce ms time before refresh
   });
 
-  const solDepositAmount: number | null = useMemo(() => {
-    if (!selectedMintInfo) return null;
-    if (selectedMintInfo.mint.equals(SOL_MINT)) return depositAmount;
-    const swapOutAmount = quoteResponseMeta?.quoteResponse.outAmount;
-    const swapOutAmountUi = swapOutAmount ? JSBI.toNumber(swapOutAmount) / 1e9 : null;
-    return swapOutAmountUi;
-  }, [depositAmount, selectedMintInfo, quoteResponseMeta]);
+  const lstOutAmount: number | null = useMemo(() => {
+    if (depositAmount === null) return null;
+    if (!selectedMint || !lstData?.lstSolValue) return 0;
+
+    if (selectedMint.equals(SOL_MINT)) {
+      return depositAmount / lstData.lstSolValue;
+    } else {
+      if (quoteResponseMeta?.quoteResponse?.outAmount) {
+        const outAmount = JSBI.toNumber(quoteResponseMeta?.quoteResponse?.outAmount) / 1e9; // adding decimals for SOL
+        return outAmount / lstData.lstSolValue;
+      } else {
+        return 0;
+      }
+    }
+  }, [depositAmount, selectedMint, lstData?.lstSolValue, quoteResponseMeta?.quoteResponse?.outAmount]);
 
   const availableTokens: TokenData[] = useMemo(() => {
     if (!jupiterTokenInfo) return [];
@@ -107,33 +127,134 @@ export const StakingCard: FC = () => {
   );
 
   const onMint = useCallback(async () => {
-    if (!lstData || !wallet || !depositAmount) return;
+    if (!lstData || !wallet || !walletAddress || !depositAmount) return;
     console.log("depositing", depositAmount, selectedMint);
+
+    let sigs = [];
+
+    setSwapping(true);
+
+    const {
+      value: { blockhash, lastValidBlockHeight },
+    } = await connection.getLatestBlockhashAndContext();
+
     try {
-      await depositToken(lstData.poolAddress, depositAmount, selectedMint, connection, wallet);
+      if (selectedMint.equals(SOL_MINT)) {
+        const sig = await depositToken(lstData.poolAddress, depositAmount, selectedMint, connection, wallet);
+        sigs.push(sig);
+      } else {
+        if (!quoteResponseMeta?.quoteResponse) {
+          throw new Error("Route not calculated yet");
+        }
+        const outAmount = JSBI.toNumber(quoteResponseMeta.quoteResponse.outAmount);
+        const finalAmount = Math.floor(outAmount * (1 - SLIPPAGE_BPS / 1000));
+
+        const avoidSlippageIssues = await jupiterApiClient.quoteGet({
+          amount: finalAmount, // add slippage
+          inputMint: selectedMint.toBase58(),
+          outputMint: SOL_MINT.toBase58(),
+          swapMode: SwapMode.ExactOut,
+          slippageBps: SLIPPAGE_BPS,
+        });
+
+        const swapResult = await jupiterApiClient.swapPost({
+          swapRequest: {
+            quoteResponse: avoidSlippageIssues, //  quoteResponseMeta.original
+            userPublicKey: walletAddress.toBase58(),
+            wrapAndUnwrapSol: true,
+            // asLegacyTransaction: true,
+          },
+        });
+
+        if (instanceOfSwapResponse(swapResult)) {
+          const { swapTransaction: swapTransactionSerialized } = swapResult;
+          const swapTransactionBuffer = Buffer.from(swapTransactionSerialized, "base64");
+          const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuffer); //Transaction.from(swapTransactionBuffer); //
+
+          const { instructions, signers } = await solanaStakePool.depositSol(
+            connection,
+            lstData.poolAddress,
+            wallet.publicKey,
+            finalAmount,
+            undefined
+          );
+
+          const depositMessage = new TransactionMessage({
+            instructions: instructions,
+            payerKey: walletAddress,
+            recentBlockhash: blockhash,
+          });
+
+          const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
+          depositTransaction.sign(signers);
+
+          const versionedTransactions = await wallet.signAllTransactions([swapTransaction, depositTransaction]);
+
+          const swapSig = await connection.sendTransaction(versionedTransactions[0]); //TODO confirm
+          sigs.push(swapSig);
+          const depositSig = await connection.sendTransaction(versionedTransactions[1]); //TODO confirm
+          sigs.push(depositSig);
+        }
+      }
+
+      await Promise.all(
+        sigs.map((sig) =>
+          connection.confirmTransaction(
+            {
+              blockhash,
+              lastValidBlockHeight,
+              signature: sig,
+            },
+            "confirmed"
+          )
+        )
+      );
+      toast.success("Staking complete");
+    } catch (error: any) {
+      if (error.logs) {
+        console.log("------ Logs 👇 ------");
+        console.log(error.logs.join("\n"));
+      }
+      console.log(error);
+      let errorMsg = typeof error === "string" ? error : error?.message;
+      if (errorMsg) {
+        errorMsg = errorMsg ? errorMsg : "Transaction failed!";
+      }
+      toast.error(errorMsg);
     } finally {
+      await Promise.all([refresh(), fetchLstState()]);
       setDepositAmount(0);
+      setSwapping(false);
     }
-  }, [connection, depositAmount, lstData, selectedMint, wallet]);
+  }, [
+    lstData,
+    wallet,
+    depositAmount,
+    selectedMint,
+    connection,
+    quoteResponseMeta?.quoteResponse,
+    jupiterApiClient,
+    walletAddress,
+    refresh,
+    fetchLstState,
+  ]);
 
   return (
     <>
       <div className="relative flex flex-col gap-3 rounded-xl bg-[#1C2023] px-8 py-6 max-w-[480px] w-full">
         <div className="flex flex-row justify-between w-full">
           <Typography className="font-aeonik font-[400] text-lg">Deposit</Typography>
-          {connected && maxDeposit !== null && (
+          {connected && selectedMintInfo && (
             <div className="flex flex-row gap-2 items-center">
               <div className="leading-5">
                 <WalletIcon />
               </div>
               <Typography className="font-aeonik font-[400] text-sm leading-5">
-                {userData ? numeralFormatter(userData.nativeSolBalance) : "-"}
+                {selectedMintInfo.balance ? numeralFormatter(selectedMintInfo.balance) : "-"}
               </Typography>
               <a
-                className={`font-aeonik font-[700] text-base leading-5 ml-2 ${
-                  !maxDeposit ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:text-[#DCE85D]"
-                }`}
-                onClick={() => setDepositAmount(maxDeposit)}
+                className={`font-aeonik font-[700] text-base leading-5 ml-2 cursor-pointer hover:text-[#DCE85D]`}
+                onClick={() => setDepositAmount(selectedMintInfo.balance)}
               >
                 MAX
               </a>
@@ -147,14 +268,23 @@ export const StakingCard: FC = () => {
           allowNegative={false}
           decimalScale={9}
           onValueChange={onChange}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && connected && depositAmount !== 0 && !loadingQuotes && !swapping) {
+              onMint();
+            }
+          }}
           thousandSeparator=","
           customInput={TextField}
           size="small"
           isAllowed={(values) => {
             const { floatValue } = values;
-            if (maxDeposit === null) return true;
-            if (maxDeposit === 0) return false;
-            return floatValue ? floatValue < maxDeposit : true;
+            if (!connected || selectedMintInfo === null) {
+              return true;
+            }
+            if (selectedMintInfo.balance === 0) {
+              return false;
+            }
+            return floatValue ? floatValue < selectedMintInfo.balance : true;
           }}
           sx={{
             input: { textAlign: "right", MozAppearance: "textfield" },
@@ -191,15 +321,22 @@ export const StakingCard: FC = () => {
         <div className="flex flex-row justify-between w-full my-auto pt-2">
           <Typography className="font-aeonik font-[400] text-lg">You will receive</Typography>
           <Typography className="font-aeonik font-[700] text-xl text-[#DCE85D]">
-            {lstData ? numeralFormatter(solDepositAmount ?? 0 / lstData.lstSolValue) : "-"} $LST
+            {lstOutAmount ? numeralFormatter(lstOutAmount) : "-"} $LST
           </Typography>
         </div>
         <div className="py-7">
           <PrimaryButton
-            disabled={connected && (!maxDeposit || depositAmount == 0)}
+            className="h-[36px]"
+            disabled={connected && (!depositAmount || depositAmount == 0 || loadingQuotes || swapping)}
             onClick={connected ? onMint : openWalletSelector}
           >
-            {connected ? "Mint" : "Connect"}
+            {swapping ? (
+              <CircularProgress size={20} thickness={6} sx={{ color: "#DCE85D" }} />
+            ) : connected ? (
+              "Mint"
+            ) : (
+              "Connect"
+            )}
           </PrimaryButton>
         </div>
         <div className="flex flex-row justify-between w-full my-auto">
@@ -257,7 +394,7 @@ async function depositToken(
   mint: PublicKey,
   connection: Connection,
   wallet: Wallet
-) {
+): Promise<string> {
   const finalIxList = [];
   const finalSignerList = [];
 
@@ -265,9 +402,7 @@ async function depositToken(
     // Jup swap ix
   }
 
-  console.log("1 depositing", depositAmount, mint);
   const _depositAmount = depositAmount * 1e9;
-  console.log("2 depositing", _depositAmount, mint);
 
   const { instructions, signers } = await solanaStakePool.depositSol(
     connection,
@@ -282,7 +417,9 @@ async function depositToken(
 
   const tx = new Transaction().add(...finalIxList);
 
-  const sig = await processTransaction(connection, wallet, tx, finalSignerList, { dryRun: true });
+  const sig = await processTransaction(connection, wallet, tx, finalSignerList, { dryRun: false });
 
   console.log(`Staked ${depositAmount} ${shortenAddress(mint)} with signature ${sig}`);
+
+  return sig;
 }
