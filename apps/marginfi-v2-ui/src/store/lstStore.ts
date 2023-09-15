@@ -100,9 +100,13 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
         userData = { nativeSolBalance: availableSolBalance };
         userDataFetched = true;
       } else {
-        const [_lstData, _jupiterTokenInfo] = await Promise.all([fetchLstData(connection), fetchJupiterTokenInfo()]);
+        const [accountsAiList, _lstData, _jupiterTokenInfo] = await Promise.all([
+          connection.getMultipleAccountsInfo([ SOL_USD_PYTH_ORACLE]),
+          fetchLstData(connection), fetchJupiterTokenInfo()]);
         lstData = _lstData;
         jupiterTokenInfo = _jupiterTokenInfo;
+        const [solUsdPythFeedAi] = accountsAiList;
+        solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
       }
 
       set({
