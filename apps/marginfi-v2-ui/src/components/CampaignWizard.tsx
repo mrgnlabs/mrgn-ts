@@ -79,7 +79,7 @@ const CampaignWizardInputBox: FC<CampaignWizardInputBox> = ({
   );
 };
 
-interface CampaignWizardProps {}
+interface CampaignWizardProps { }
 
 const CampaignWizard: FC<CampaignWizardProps> = () => {
   const [guaranteedApy, setGuaranteedApy] = useState(0);
@@ -133,7 +133,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
 
     const campaignKeypair = Keypair.generate();
     console.log("creating campaign", campaignKeypair.publicKey.toBase58());
-    const userTokenAtaPk = getAssociatedTokenAddressSync(campaignBank.mint, lipClient.wallet.publicKey);
+    const userTokenAtaPk = getAssociatedTokenAddressSync(campaignBank.mint, lipClient.wallet.publicKey, true); // We allow off curve addresses here to support Fuse.
 
     const tx = new Transaction();
 
@@ -271,7 +271,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
         <CampaignWizardInputBox
           value={guaranteedApy * 100}
           setValue={(value) => setGuaranteedApy(value / 100)}
-          loadingSafetyCheck={() => {}}
+          loadingSafetyCheck={() => { }}
           maxDecimals={2}
           disabled={!walletContext.connected}
         />
@@ -282,7 +282,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           <CampaignWizardInputBox
             value={lockupPeriodInDays}
             setValue={setLockupPeriodInDays}
-            loadingSafetyCheck={() => {}}
+            loadingSafetyCheck={() => { }}
             maxDecimals={4}
             disabled={!walletContext.connected}
           />
@@ -293,7 +293,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
         <CampaignWizardInputBox
           value={depositCapacity}
           setValue={setDepositCapacity}
-          loadingSafetyCheck={() => {}}
+          loadingSafetyCheck={() => { }}
           maxDecimals={3}
           disabled={!walletContext.connected}
         />
@@ -343,12 +343,12 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
           >
             {campaignBank
               ? percentFormatterDyn.format(
-                  computeGuaranteedApy(
-                    contractInputs.lockupPeriod.toNumber(),
-                    contractInputs.maxDeposits.toNumber(),
-                    contractInputs.maxRewards.toNumber()
-                  )
+                computeGuaranteedApy(
+                  contractInputs.lockupPeriod.toNumber(),
+                  contractInputs.maxDeposits.toNumber(),
+                  contractInputs.maxRewards.toNumber()
                 )
+              )
               : 0}
           </span>
         </div>

@@ -390,7 +390,7 @@ class MarginfiAccount {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
 
-    const userTokenAtaPk = getAssociatedTokenAddressSync(bank.mint, this.authority);
+    const userTokenAtaPk = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
     const remainingAccounts = this.getHealthCheckAccounts(banks, [bank]);
     const ix = await instructions.makeDepositIx(
       program,
@@ -432,7 +432,7 @@ class MarginfiAccount {
 
     // Add emissions-related instructions if necessary
     if (repayAll && !bank.emissionsMint.equals(PublicKey.default)) {
-      const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority);
+      const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true); // We allow off curve addresses here to support Fuse.
       const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
         this.authority,
         userAta,
@@ -445,7 +445,7 @@ class MarginfiAccount {
     }
 
     // Add repay-related instructions
-    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority);
+    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
     const remainingAccounts = repayAll
       ? this.getHealthCheckAccounts(banks, [], [bank])
       : this.getHealthCheckAccounts(banks, [bank], []);
@@ -490,7 +490,7 @@ class MarginfiAccount {
 
     // Add emissions-related instructions if necessary
     if (withdrawAll && !bank.emissionsMint.equals(PublicKey.default)) {
-      const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority);
+      const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true); // We allow off curve addresses here to support Fuse.
       const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
         this.authority,
         userAta,
@@ -548,7 +548,7 @@ class MarginfiAccount {
 
     let ixs = [];
 
-    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority);
+    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
 
     // Add additional CU request if necessary
     const activeBalances = this.balances.filter((b) => b.active);
@@ -599,7 +599,7 @@ class MarginfiAccount {
 
     let ixs = [];
 
-    const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority);
+    const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true); // We allow off curve addresses here to support Fuse.
     const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
       this.authority,
       userAta,
