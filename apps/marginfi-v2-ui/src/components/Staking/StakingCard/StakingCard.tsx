@@ -21,6 +21,7 @@ import { SettingsModal } from "./SettingsModal";
 import { SettingsIcon } from "./SettingsIcon";
 
 const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
+const LST_FORMATTER = makeTokenAmountFormatter(9);
 
 export interface TokenData {
   mint: PublicKey;
@@ -333,13 +334,13 @@ export const StakingCard: FC = () => {
         <div className="flex flex-row justify-between w-full my-auto pt-2">
           <Typography className="font-aeonik font-[400] text-lg">You will receive</Typography>
           <Typography className="font-aeonik font-[700] text-xl text-[#DCE85D]">
-            {lstOutAmount ? numeralFormatter(lstOutAmount) : "-"} $LST
+            {lstOutAmount !== null && selectedMintInfo ? LST_FORMATTER.format(lstOutAmount) : "-"} $LST
           </Typography>
         </div>
         <div className="py-7">
           <PrimaryButton
             className="h-[36px]"
-            disabled={connected && (!depositAmount || depositAmount == 0 || loadingQuotes || swapping)}
+            disabled={connected && (!depositAmount || depositAmount == 0 || lstOutAmount === 0 || lstOutAmount === null || loadingQuotes || swapping)}
             onClick={connected ? onMint : openWalletSelector}
           >
             {swapping ? (
@@ -440,4 +441,12 @@ async function depositToken(
   console.log(`Staked ${depositAmount} ${shortenAddress(mint)} with signature ${sig}`);
 
   return sig;
+}
+
+function makeTokenAmountFormatter(decimals: number) {
+  return new Intl.NumberFormat("en-US", {
+    useGrouping: true,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: decimals,
+  })
 }
