@@ -3,23 +3,25 @@ import { Dispatch, FC, SetStateAction, useState } from "react";
 import { Close } from "@mui/icons-material";
 import { PrimaryButton } from "./PrimaryButton";
 
+export type SupportedSlippagePercent = 0.1 | 0.5 | 1.0 | 5.0;
+
 interface SettingsModalProps {
   isOpen: boolean;
   handleClose: () => void;
-  setSelectedSlippage: Dispatch<SetStateAction<number>>;
-  selectedSlippage: number;
+  setSelectedSlippagePercent: Dispatch<SetStateAction<SupportedSlippagePercent>>;
+  selectedSlippagePercent: SupportedSlippagePercent;
 }
 
-const SLIPPAGE_PRESET = [0.1, 0.5, 1.0, 5.0];
+const SLIPPAGE_PRESET: SupportedSlippagePercent[] = [0.1, 0.5, 1.0, 5.0];
 
 export const SettingsModal: FC<SettingsModalProps> = ({
   isOpen,
   handleClose,
-  selectedSlippage,
-  setSelectedSlippage,
+  selectedSlippagePercent: selectedSlippage,
+  setSelectedSlippagePercent: setSelectedSlippage,
 }) => {
-  const [localSlippage, setLocalSlippage] = useState<number>(selectedSlippage);
-
+  const [localSlippage, setLocalSlippage] = useState<SupportedSlippagePercent>(selectedSlippage);
+  
   const onSaveSettings = () => {
     setSelectedSlippage(localSlippage);
     handleClose();
