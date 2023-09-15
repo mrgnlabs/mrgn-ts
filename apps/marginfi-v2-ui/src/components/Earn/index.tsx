@@ -1,5 +1,5 @@
 import React, { FC, MouseEventHandler, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { PageHeader } from "~/components/PageHeader";
 import { useLipClient } from "~/context";
 import Button from "@mui/material/Button";
@@ -210,7 +210,6 @@ const Earn = () => {
 
   return (
     <>
-      <PageHeader />
       <div className="h-full flex flex-col justify-start items-center content-start py-[48px] w-4/5 max-w-7xl gap-4">
         <div className="w-[360px] flex flex-col items-center gap-6">
           <div className="w-[300px] h-[100px] flex flex-col gap-5 justify-center">

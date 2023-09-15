@@ -54,7 +54,7 @@ const StakePage = () => {
 
   return (
     <JupiterProvider connection={connection}>
-      <PageHeader text={"$LST"} />
+      <PageHeader>stake</PageHeader>
       <div className="flex flex-col h-full justify-center content-center pt-[64px] sm:pt-[16px] gap-4 mx-4">
         <StakingStats />
         <StakingCard />
