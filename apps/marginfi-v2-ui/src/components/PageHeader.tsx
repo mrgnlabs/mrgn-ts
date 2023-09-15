@@ -6,8 +6,10 @@ interface PageHeaderProps {
 
 const PageHeader: FC<PageHeaderProps> = ({ children }) => {
   return (
-    <div className="hidden h-[64px] sm:flex justify-start content-start items-center w-4/5 max-w-7xl flex-row border-solid border-[#1C2125] border-y-[1px] font-aeonik font-normal text-3xl bg-[url('/WaveBG3.png')]">
-      {children}
+    <div className="hidden sm:flex w-full h-[64px] justify-center items-center border-solid border-[#1C2125] border-y-[1px] bg-[url('/WaveBG3.png')]">
+      <div className="w-4/5 max-w-7xl flex-row border-solid font-aeonik font-normal text-3xl">
+        {children}
+      </div>
     </div>
   );
 };
