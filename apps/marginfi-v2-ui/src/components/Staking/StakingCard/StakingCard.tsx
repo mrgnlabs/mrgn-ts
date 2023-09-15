@@ -17,9 +17,10 @@ import JSBI from "jsbi";
 import { usePrevious } from "~/utils";
 import { createJupiterApiClient, instanceOfSwapResponse } from "@jup-ag/api";
 import { toast } from "react-toastify";
+import { SettingsModal } from "./SettingsModal";
+import { SettingsIcon } from "./SettingsIcon";
 
 const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
-const SLIPPAGE_BPS = 5; // 0.5% slippage
 
 export interface TokenData {
   mint: PublicKey;
@@ -45,6 +46,8 @@ export const StakingCard: FC = () => {
   const [swapping, setSwapping] = useState<boolean>(false);
   const [depositAmount, setDepositAmount] = useState<number | null>(null);
   const [selectedMint, setSelectedMint] = useState<PublicKey>(SOL_MINT);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
+  const [selectedSlippage, setSelectedSlippage] = useState<number>(0.5);
 
   const prevWalletAddress = usePrevious(walletAddress);
   useEffect(() => {
@@ -90,7 +93,7 @@ export const StakingCard: FC = () => {
     inputMint: selectedMint,
     outputMint: SOL_MINT,
     swapMode: SwapMode.ExactIn,
-    slippageBps: SLIPPAGE_BPS, // 0.5% slippage
+    slippageBps: selectedSlippage, // 0.5% slippage
     debounceTime: 250, // debounce ms time before refresh
   });
 
@@ -147,14 +150,14 @@ export const StakingCard: FC = () => {
           throw new Error("Route not calculated yet");
         }
         const outAmount = JSBI.toNumber(quoteResponseMeta.quoteResponse.outAmount);
-        const finalAmount = Math.floor(outAmount * (1 - SLIPPAGE_BPS / 1000));
+        const finalAmount = Math.floor(outAmount * (1 - selectedSlippage / 1000));
 
         const avoidSlippageIssues = await jupiterApiClient.quoteGet({
           amount: finalAmount, // add slippage
           inputMint: selectedMint.toBase58(),
           outputMint: SOL_MINT.toBase58(),
           swapMode: SwapMode.ExactOut,
-          slippageBps: SLIPPAGE_BPS,
+          slippageBps: selectedSlippage,
         });
 
         const swapResult = await jupiterApiClient.swapPost({
@@ -246,6 +249,15 @@ export const StakingCard: FC = () => {
           <Typography className="font-aeonik font-[400] text-lg">Deposit</Typography>
           {connected && selectedMintInfo && (
             <div className="flex flex-row gap-2 items-center">
+              <div
+                className={`p-2 h-7 gap-2 flex flex-row items-center justify-center border rounded-2xl border-white/10 bg-black/10 cursor-pointer`}
+                onClick={() => setIsSettingsModalOpen(true)}
+              >
+                <SettingsIcon />
+                <Typography className={`text-xs text-secondary mt-2px`}>
+                  {isNaN(selectedSlippage) ? "0" : selectedSlippage}%
+                </Typography>
+              </div>
               <div className="leading-5">
                 <WalletIcon />
               </div>
@@ -350,6 +362,12 @@ export const StakingCard: FC = () => {
           <Typography className="font-aeonik font-[700] text-lg">0%</Typography>
         </div>
       </div>
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        handleClose={() => setIsSettingsModalOpen(false)}
+        selectedSlippage={selectedSlippage}
+        setSelectedSlippage={setSelectedSlippage}
+      />
     </>
   );
 };
