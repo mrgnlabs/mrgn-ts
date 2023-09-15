@@ -1,10 +1,6 @@
-import { Typography, Modal, SvgIcon } from "@mui/material";
-import { Dispatch, FC, SetStateAction, useEffect, useMemo, useState } from "react";
+import { Typography, Modal } from "@mui/material";
+import { Dispatch, FC, SetStateAction, useState } from "react";
 import { Close } from "@mui/icons-material";
-import { TokenData } from "./StakingCard";
-import Image from "next/image";
-import { PublicKey } from "@solana/web3.js";
-import { NumberFormatValues, NumericFormat } from "react-number-format";
 import { PrimaryButton } from "./PrimaryButton";
 
 interface SettingsModalProps {
@@ -22,8 +18,7 @@ export const SettingsModal: FC<SettingsModalProps> = ({
   selectedSlippage,
   setSelectedSlippage,
 }) => {
-  const [localSlippage, setLocalSlippage] = useState<number>();
-  useEffect(() => setLocalSlippage(selectedSlippage), [selectedSlippage]);
+  const [localSlippage, setLocalSlippage] = useState<number>(selectedSlippage);
 
   const onSaveSettings = () => {
     setSelectedSlippage(localSlippage);
