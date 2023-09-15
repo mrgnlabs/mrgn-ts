@@ -59,7 +59,7 @@ const Home = () => {
 
   return (
     <>
-      <PageHeader />
+      <PageHeader>lend</PageHeader>
       <div className="flex flex-col h-full justify-start content-start pt-[64px] sm:pt-[16px] w-4/5 max-w-7xl gap-4">
         {walletAddress && selectedAccount && isOverride && (
           <Banner

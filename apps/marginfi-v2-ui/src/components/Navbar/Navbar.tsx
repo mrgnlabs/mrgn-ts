@@ -154,6 +154,28 @@ const Navbar: FC = () => {
                   color: "#1C2125",
                 },
               }}
+              badgeContent={"e"}
+              invisible={!showBadges}
+            >
+              <Link
+                href={"/stake"}
+                className={router.pathname === "/stake" ? "hover-underline-static" : "hover-underline-animation"}
+              >
+                stake
+              </Link>
+            </Badge>
+
+            <Badge
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              sx={{
+                "& .MuiBadge-badge": {
+                  backgroundColor: "rgb(220, 232, 93)",
+                  color: "#1C2125",
+                },
+              }}
               badgeContent={"s"}
               invisible={!showBadges}
             >
@@ -208,28 +230,6 @@ const Navbar: FC = () => {
                 } hidden md:block`}
               >
                 earn
-              </Link>
-            </Badge>
-
-            <Badge
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              sx={{
-                "& .MuiBadge-badge": {
-                  backgroundColor: "rgb(220, 232, 93)",
-                  color: "#1C2125",
-                },
-              }}
-              badgeContent={"e"}
-              invisible={!showBadges}
-            >
-              <Link
-                href={"/stake"}
-                className={router.pathname === "/stake" ? "hover-underline-static" : "hover-underline-animation"}
-              >
-                stake
               </Link>
             </Badge>
 
