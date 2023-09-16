@@ -6,6 +6,7 @@ import * as solanaStakePool from "@solana/spl-stake-pool";
 import { EPOCHS_PER_YEAR } from "~/utils";
 import { TokenInfo, TokenInfoMap, TokenListContainer } from "@solana/spl-token-registry";
 import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
+import { persist } from "zustand/middleware";
 
 export const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 const NETWORK_FEE_LAMPORTS = 15000; // network fee + some for potential account creation
@@ -26,6 +27,8 @@ const SUPPORTED_TOKENS = [
 export type TokenData = Omit<TokenInfo, "logoUri"> & { price: number; balance: number; iconUrl: string };
 export type TokenDataMap = Map<string, TokenData>;
 
+export type SupportedSlippagePercent = 0.1 | 0.5 | 1.0 | 5.0;
+
 interface LstState {
   // State
   initialized: boolean;
@@ -36,15 +39,26 @@ interface LstState {
   lstData: LstData | null;
   tokenDataMap: TokenDataMap | null;
   solUsdValue: number | null;
+  slippagePct: SupportedSlippagePercent;
 
   // Actions
   fetchLstState: (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
   resetUserData: () => void;
+  setSlippagePct: (slippagePct: SupportedSlippagePercent) => void;
 }
 
 function createLstStore() {
-  return create<LstState>(stateCreator);
+  return create<LstState, [["zustand/persist", Pick<LstState, "slippagePct">]]>(
+    persist(stateCreator, {
+      name: "lst-peristent-store",
+      partialize(state) {
+        return {
+          slippagePct: state.slippagePct,
+        };
+      },
+    })
+  );
 }
 
 interface LstData {
@@ -53,10 +67,6 @@ interface LstData {
   projectedApy: number;
   lstSolValue: number;
   solDepositFee: number;
-}
-
-interface UserData {
-  nativeSolBalance: number;
 }
 
 const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
@@ -69,6 +79,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
   lstData: null,
   tokenDataMap: null,
   solUsdValue: null,
+  slippagePct: 1, 
 
   // Actions
   fetchLstState: async (args?: { connection?: Connection; wallet?: Wallet }) => {
@@ -167,15 +178,17 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
   },
   setIsRefreshingStore: (isRefreshingStore: boolean) => set({ isRefreshingStore }),
   resetUserData: () => {
-    console.log("resetting user data");
     let tokenDataMap = get().tokenDataMap;
     if (tokenDataMap) {
-      tokenDataMap = new Map([...tokenDataMap?.entries()].map(
-        ([tokenMint, tokenData]) => [tokenMint, { ...tokenData, balance: 0 }] as [string, TokenData]
-      ));
+      tokenDataMap = new Map(
+        [...tokenDataMap?.entries()].map(
+          ([tokenMint, tokenData]) => [tokenMint, { ...tokenData, balance: 0 }] as [string, TokenData]
+        )
+      );
     }
     set({ userDataFetched: false, tokenDataMap });
   },
+  setSlippagePct: (slippagePct: SupportedSlippagePercent) => set({ slippagePct }),
 });
 
 async function fetchLstData(connection: Connection): Promise<LstData> {
@@ -188,11 +201,18 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
   const solDepositFee = stakePoolInfo.solDepositFee.denominator.eqn(0)
     ? 0
     : stakePoolInfo.solDepositFee.numerator.toNumber() / stakePoolInfo.solDepositFee.denominator.toNumber();
+
   const lstSolValue = poolTokenSupply > 0 ? totalLamports / poolTokenSupply : 1;
-  const lastLstSolValue = lastPoolTokenSupply > 0 ? lastTotalLamports / lastPoolTokenSupply : 1;
-  const epochRate = lstSolValue / lastLstSolValue - 1;
-  const apr = epochRate * EPOCHS_PER_YEAR;
-  const projectedApy = aprToApy(apr, EPOCHS_PER_YEAR);
+
+  let projectedApy;
+  if (lastTotalLamports === 0 || lastPoolTokenSupply === 0) {
+    projectedApy = 0.08;
+  } else { 
+    const lastLstSolValue = lastPoolTokenSupply > 0 ? lastTotalLamports / lastPoolTokenSupply : 1;
+    const epochRate = lstSolValue / lastLstSolValue - 1;
+    const apr = epochRate * EPOCHS_PER_YEAR;
+    projectedApy = aprToApy(apr, EPOCHS_PER_YEAR);
+  }
 
   return {
     poolAddress: new PublicKey(stakePoolInfo.address),

@@ -2,13 +2,12 @@ import { Typography, Modal } from "@mui/material";
 import { Dispatch, FC, SetStateAction, useState } from "react";
 import { Close } from "@mui/icons-material";
 import { PrimaryButton } from "./PrimaryButton";
-
-export type SupportedSlippagePercent = 0.1 | 0.5 | 1.0 | 5.0;
+import { SupportedSlippagePercent } from "~/store/lstStore";
 
 interface SettingsModalProps {
   isOpen: boolean;
   handleClose: () => void;
-  setSelectedSlippagePercent: Dispatch<SetStateAction<SupportedSlippagePercent>>;
+  setSelectedSlippagePercent: (slippage: SupportedSlippagePercent) => void;
   selectedSlippagePercent: SupportedSlippagePercent;
 }
 

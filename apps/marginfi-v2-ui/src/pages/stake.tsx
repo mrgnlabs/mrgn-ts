@@ -23,16 +23,12 @@ const StakePage = () => {
     state.resetUserData,
   ]);
 
-  const [fetchJupiterState] = useJupiterStore((state) => [state.fetchJupiterState]);
-
   useEffect(() => {
     setIsRefreshingStore(true);
     fetchLstState({ connection, wallet }).catch(console.error);
-    fetchJupiterState({ connection, wallet }).catch(console.error);
     const id = setInterval(() => {
       setIsRefreshingStore(true);
       fetchLstState().catch(console.error);
-      fetchJupiterState().catch(console.error);
     }, 30_000);
     return () => clearInterval(id);
   }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -55,7 +51,7 @@ const StakePage = () => {
   return (
     <JupiterProvider connection={connection}>
       <PageHeader>stake</PageHeader>
-      <div className="flex flex-col h-full justify-center content-center pt-[64px] sm:pt-[16px] gap-4 mx-4">
+      <div className="flex flex-col h-full max-w-[480px] w-full justify-center content-center pt-[64px] sm:pt-[16px] gap-4 px-4">
         <StakingStats />
         <StakingCard />
       </div>

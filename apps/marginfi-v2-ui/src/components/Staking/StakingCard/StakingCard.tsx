@@ -17,32 +17,34 @@ import JSBI from "jsbi";
 import { usePrevious } from "~/utils";
 import { createJupiterApiClient, instanceOfSwapResponse } from "@jup-ag/api";
 import { toast } from "react-toastify";
-import { SettingsModal, SupportedSlippagePercent } from "./SettingsModal";
+import { SettingsModal } from "./SettingsModal";
 import { SettingsIcon } from "./SettingsIcon";
 import { SOL_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
+import { RefreshIcon } from "./RefreshIcon";
 
 const LST_FORMATTER = makeTokenAmountFormatter(9);
-const DEFAULT_SLIPPAGE_PERCENT = 1;
+const QUOTE_EXPIRY_MS = 30_000;
 
 export const StakingCard: FC = () => {
   const { connection } = useConnection();
   const { connected, wallet, walletAddress, openWalletSelector } = useWalletContext();
-  const [lstData, tokenDataMap, fetchLstState] = useLstStore((state) => [
+  const [lstData, tokenDataMap, fetchLstState, slippagePct, setSlippagePct] = useLstStore((state) => [
     state.lstData,
     state.tokenDataMap,
     state.fetchLstState,
+    state.slippagePct,
+    state.setSlippagePct
   ]);
 
   const jupiterApiClient = createJupiterApiClient();
 
   const [swapping, setSwapping] = useState<boolean>(false);
+  const [refreshingQuotes, setRefreshingQuotes] = useState<boolean>(false);
   const [depositAmount, setDepositAmount] = useState<number | null>(null);
   const [selectedMint, setSelectedMint] = useState<PublicKey>(SOL_MINT);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
-  const [selectedSlippagePercent, setSelectedSlippagePercent] =
-    useState<SupportedSlippagePercent>(DEFAULT_SLIPPAGE_PERCENT);
 
-  const selectedSlippageBps = useMemo(() => selectedSlippagePercent * 100, [selectedSlippagePercent]);
+  const selectedSlippageBps = useMemo(() => slippagePct * 100, [slippagePct]);
 
   const prevSelectedMint = usePrevious(selectedMint);
   useEffect(() => {
@@ -72,14 +74,42 @@ export const StakingCard: FC = () => {
     quoteResponseMeta,
     loading: loadingQuotes,
     refresh,
+    lastRefreshTimestamp,
   } = useJupiter({
-    amount: JSBI.BigInt(rawDepositAmount), // raw input amount of tokens
+    amount: selectedMint.equals(SOL_MINT) ? JSBI.BigInt(0) : JSBI.BigInt(rawDepositAmount), // amount in trick to avoid SOL -> SOL quote calls
     inputMint: selectedMint,
     outputMint: SOL_MINT,
     swapMode: SwapMode.ExactIn,
     slippageBps: selectedSlippageBps, // 0.5% slippage
     debounceTime: 250, // debounce ms time before refresh
   });
+
+  const priceImpactPct: number | null = useMemo(() => {
+    if (!quoteResponseMeta?.quoteResponse) return null;
+    return Number(quoteResponseMeta.quoteResponse.priceImpactPct);
+  }, [quoteResponseMeta?.quoteResponse]);
+
+  const refreshQuoteIfNeeded = useCallback((force: boolean = false) => {
+    const hasExpired = Date.now() - lastRefreshTimestamp > QUOTE_EXPIRY_MS;
+    if (!selectedMint.equals(SOL_MINT) && (depositAmount ?? 0 > 0) && (hasExpired || force)) {
+      setRefreshingQuotes(true);
+      refresh();
+    }
+  }, [selectedMint, depositAmount, refresh, lastRefreshTimestamp]);
+
+  useEffect(() => {
+    refreshQuoteIfNeeded();
+    const id = setInterval(refreshQuoteIfNeeded, 1_000);
+    return () => clearInterval(id);
+  }, [refreshQuoteIfNeeded]);
+
+  useEffect(() => {
+    console.log(loadingQuotes);
+    if (!loadingQuotes) {
+      console.log("done refreshing");
+      setTimeout(() => setRefreshingQuotes(false), 500);
+    }
+  }, [loadingQuotes]);
 
   const lstOutAmount: number | null = useMemo(() => {
     if (depositAmount === null) return null;
@@ -89,7 +119,7 @@ export const StakingCard: FC = () => {
       return depositAmount / lstData.lstSolValue;
     } else {
       if (quoteResponseMeta?.quoteResponse?.outAmount) {
-        const outAmount = JSBI.toNumber(quoteResponseMeta?.quoteResponse?.outAmount) / 1e9; // adding decimals for SOL
+        const outAmount = JSBI.toNumber(quoteResponseMeta?.quoteResponse?.outAmount) / 1e9;
         return outAmount / lstData.lstSolValue;
       } else {
         return 0;
@@ -123,7 +153,7 @@ export const StakingCard: FC = () => {
           throw new Error("Route not calculated yet");
         }
         const outAmount = JSBI.toNumber(quoteResponseMeta.quoteResponse.outAmount);
-        const finalAmount = Math.floor(outAmount * (1 - selectedSlippagePercent / 100));
+        const finalAmount = Math.floor(outAmount * (1 - slippagePct / 100));
 
         const avoidSlippageIssues = await jupiterApiClient.quoteGet({
           amount: finalAmount, // add slippage
@@ -138,7 +168,6 @@ export const StakingCard: FC = () => {
             quoteResponse: avoidSlippageIssues, //  quoteResponseMeta.original
             userPublicKey: walletAddress.toBase58(),
             wrapAndUnwrapSol: true,
-            // asLegacyTransaction: true,
           },
         });
 
@@ -211,7 +240,7 @@ export const StakingCard: FC = () => {
     connection,
     quoteResponseMeta?.quoteResponse,
     selectedSlippageBps,
-    selectedSlippagePercent,
+    slippagePct,
     jupiterApiClient,
     refresh,
     fetchLstState,
@@ -219,25 +248,39 @@ export const StakingCard: FC = () => {
 
   return (
     <>
-      <div className="relative flex flex-col gap-3 rounded-xl bg-[#1C2023] px-8 py-6 max-w-[480px] w-full">
+      <div className="relative flex flex-col gap-3 rounded-xl bg-[#1C2023] px-6 sm:px-8 py-4 sm:py-6 max-w-[480px] w-full">
         <div className="flex flex-row justify-between w-full">
           <Typography className="font-aeonik font-[400] text-lg">Deposit</Typography>
           {connected && selectedMintInfo && (
             <div className="flex flex-row gap-2 items-center">
-              <div
-                className={`p-2 h-7 gap-2 flex flex-row items-center justify-center border rounded-2xl border-white/10 bg-black/10 cursor-pointer`}
-                onClick={() => setIsSettingsModalOpen(true)}
-              >
-                <SettingsIcon />
-                <Typography className={`text-xs text-secondary mt-2px`}>
-                  {isNaN(selectedSlippagePercent) ? "0" : selectedSlippagePercent}%
-                </Typography>
-              </div>
+              {selectedMintInfo.symbol !== "SOL" && (
+                <>
+                  <div
+                    className="p-2 h-7 w-7 flex flex-row items-center justify-center border rounded-full border-white/10 bg-black/10 text-secondary fill-current"
+                    onClick={() => refreshQuoteIfNeeded(true)}
+                  >
+                    <RefreshIcon />
+                  </div>
+                  <div
+                    className={`p-2 h-7 gap-2 flex flex-row items-center justify-center border rounded-2xl border-white/10 bg-black/10 cursor-pointer`}
+                    onClick={() => setIsSettingsModalOpen(true)}
+                  >
+                    <SettingsIcon />
+                    <Typography className={`text-xs text-secondary mt-2px`}>
+                      {isNaN(slippagePct) ? "0" : slippagePct}%
+                    </Typography>
+                  </div>
+                </>
+              )}
               <div className="leading-5">
                 <WalletIcon />
               </div>
               <Typography className="font-aeonik font-[400] text-sm leading-5">
-                {selectedMintInfo.balance ? numeralFormatter(selectedMintInfo.balance) : "-"}
+                {selectedMintInfo.balance
+                  ? selectedMintInfo.balance < 0.01
+                    ? "< 0.01"
+                    : numeralFormatter(selectedMintInfo.balance)
+                  : "-"}
               </Typography>
               <a
                 className={`font-aeonik font-[700] text-base leading-5 ml-2 cursor-pointer hover:text-[#DCE85D]`}
@@ -256,7 +299,7 @@ export const StakingCard: FC = () => {
           decimalScale={9}
           onValueChange={onChange}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && connected && depositAmount !== 0 && !loadingQuotes && !swapping) {
+            if (e.key === "Enter" && connected && depositAmount !== 0 && !refreshingQuotes && !swapping) {
               onMint();
             }
           }}
@@ -290,9 +333,7 @@ export const StakingCard: FC = () => {
                   startAdornment: (
                     <DropDownButton
                       tokenDataMap={tokenDataMap}
-                      selectedMintInfo={
-                        selectedMintInfo
-                      }
+                      selectedMintInfo={selectedMintInfo}
                       setSelectedMint={setSelectedMint}
                     />
                   ),
@@ -303,11 +344,11 @@ export const StakingCard: FC = () => {
 
         <div className="flex flex-row justify-between w-full my-auto pt-2">
           <Typography className="font-aeonik font-[400] text-lg">You will receive</Typography>
-          <Typography className="font-aeonik font-[700] text-xl text-[#DCE85D]">
+          <Typography className="font-aeonik font-[700] text-lg sm:text-xl text-[#DCE85D]">
             {lstOutAmount !== null && selectedMintInfo ? LST_FORMATTER.format(lstOutAmount) : "-"} $LST
           </Typography>
         </div>
-        <div className="py-7">
+        <div className="py-5">
           <PrimaryButton
             className="h-[36px]"
             disabled={
@@ -316,12 +357,12 @@ export const StakingCard: FC = () => {
                 depositAmount == 0 ||
                 lstOutAmount === 0 ||
                 lstOutAmount === null ||
-                loadingQuotes ||
+                refreshingQuotes ||
                 swapping)
             }
             onClick={connected ? onMint : openWalletSelector}
           >
-            {swapping ? (
+            {swapping || refreshingQuotes ? (
               <CircularProgress size={20} thickness={6} sx={{ color: "#DCE85D" }} />
             ) : connected ? (
               "Mint"
@@ -333,19 +374,31 @@ export const StakingCard: FC = () => {
         <div className="flex flex-row justify-between w-full my-auto">
           <Typography className="font-aeonik font-[400] text-base">Current price</Typography>
           <Typography className="font-aeonik font-[700] text-lg">
-            1 $LST = {lstData ? lstData.lstSolValue : "-"} SOL
+            1 $LST = {lstData ? makeTokenAmountFormatter(3).format(lstData.lstSolValue) : "-"} SOL
           </Typography>
         </div>
         <div className="flex flex-row justify-between w-full my-auto">
           <Typography className="font-aeonik font-[400] text-base">Deposit fee</Typography>
           <Typography className="font-aeonik font-[700] text-lg">0%</Typography>
         </div>
+        {priceImpactPct !== null && (
+          <div
+            className={`flex flex-row justify-between w-full my-auto ${
+              priceImpactPct > 1 ? "text-[#FF6B6B]" : priceImpactPct > 0.5 ? "text-[#FFB06B]" : "text-[#fff]"
+            }`}
+          >
+            <Typography className={`font-aeonik font-[400] text-base`}>Price impact</Typography>
+            <Typography className="font-aeonik font-[700] text-lg">
+              {priceImpactPct < 0.01 ? "< 0.01" : `~ ${numeralFormatter(priceImpactPct)}`}%
+            </Typography>
+          </div>
+        )}
       </div>
       <SettingsModal
         isOpen={isSettingsModalOpen}
         handleClose={() => setIsSettingsModalOpen(false)}
-        selectedSlippagePercent={selectedSlippagePercent}
-        setSelectedSlippagePercent={setSelectedSlippagePercent}
+        selectedSlippagePercent={slippagePct}
+        setSelectedSlippagePercent={setSlippagePct}
       />
     </>
   );
@@ -400,7 +453,7 @@ async function depositToken(
   }
 
   const _depositAmount = depositAmount * 1e9;
-  console.log("deposit amount", _depositAmount, depositAmount)
+  console.log("deposit amount", _depositAmount, depositAmount);
 
   const { instructions, signers } = await solanaStakePool.depositSol(
     connection,
