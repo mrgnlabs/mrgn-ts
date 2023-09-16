@@ -4,18 +4,27 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { create, StateCreator } from "zustand";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { EPOCHS_PER_YEAR } from "~/utils";
-import { TokenInfoMap, TokenListContainer } from "@solana/spl-token-registry";
-import { TokenAccount, TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
-import BN from "bn.js";
+import { TokenInfo, TokenInfoMap, TokenListContainer } from "@solana/spl-token-registry";
+import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
 
+export const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 const NETWORK_FEE_LAMPORTS = 15000; // network fee + some for potential account creation
 const SOL_USD_PYTH_ORACLE = new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG");
+const STAKE_POOL_ID = new PublicKey("DqhH94PjkZsjAqEze2BEkWhFQJ6EyU6MdtMphMgnXqeK");
 
 const SUPPORTED_TOKENS = [
-  "So11111111111111111111111111111111111111112",
+  "7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT",
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
   "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+  "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
+  "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
+  "So11111111111111111111111111111111111111112",
+  "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj",
+  "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
 ];
+
+export type TokenData = Omit<TokenInfo, "logoUri"> & { price: number; balance: number; iconUrl: string };
+export type TokenDataMap = Map<string, TokenData>;
 
 interface LstState {
   // State
@@ -25,9 +34,7 @@ interface LstState {
   connection: Connection | null;
   wallet: Wallet | null;
   lstData: LstData | null;
-  userData: UserData | null;
-  jupiterTokenInfo: TokenInfoMap | null;
-  userTokenAccounts: TokenAccountMap | null;
+  tokenDataMap: TokenDataMap | null;
   solUsdValue: number | null;
 
   // Actions
@@ -60,9 +67,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
   connection: null,
   wallet: null,
   lstData: null,
-  userData: null,
-  jupiterTokenInfo: null,
-  userTokenAccounts: null,
+  tokenDataMap: null,
   solUsdValue: null,
 
   // Actions
@@ -76,35 +81,71 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
       const wallet = args?.wallet || get().wallet;
 
       let lstData: LstData | null = null;
-      let userData: UserData | null = null;
-      let jupiterTokenInfo: TokenInfoMap | null = null;
-      let userTokenAccounts: TokenAccountMap | null = null;
+      let tokenDataMap: TokenDataMap | null = null;
       let solUsdValue: number | null = null;
       if (wallet?.publicKey) {
-        const [accountsAiList, minimumRentExemption, _lstData, _jupiterTokenInfo, _userTokenAccounts] =
-          await Promise.all([
+        const [accountsAiList, minimumRentExemption, _lstData, jupiterTokenInfo, userTokenAccounts] = await Promise.all(
+          [
             connection.getMultipleAccountsInfo([wallet.publicKey, SOL_USD_PYTH_ORACLE]),
             connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE),
             fetchLstData(connection),
             fetchJupiterTokenInfo(),
             fetchUserTokenAccounts(connection, wallet.publicKey),
-          ]);
+          ]
+        );
+
         lstData = _lstData;
-        jupiterTokenInfo = _jupiterTokenInfo;
-        userTokenAccounts = _userTokenAccounts;
         const [walletAi, solUsdPythFeedAi] = accountsAiList;
         const nativeSolBalance = walletAi?.lamports ? walletAi.lamports : 0;
         const availableSolBalance = (nativeSolBalance - minimumRentExemption - NETWORK_FEE_LAMPORTS) / 1e9;
         solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
 
-        userData = { nativeSolBalance: availableSolBalance };
+        const tokenPrices = await fetchTokenPrices(
+          [...jupiterTokenInfo.values()].map((tokenInfo) => new PublicKey(tokenInfo.address))
+        );
+        tokenDataMap = new Map(
+          [...jupiterTokenInfo.entries()].map(([tokenMint, tokenInfo]) => {
+            const price = tokenPrices.get(tokenInfo.address);
+            const { logoURI, ..._tokenInfo } = tokenInfo;
+
+            let walletBalance: number = 0;
+            if (tokenMint === SOL_MINT.toBase58()) {
+              walletBalance = availableSolBalance;
+            } else {
+              const tokenAccount = userTokenAccounts?.get(tokenMint);
+              walletBalance = tokenAccount?.balance ?? 0;
+            }
+
+            return [
+              tokenMint,
+              { ..._tokenInfo, iconUrl: logoURI ?? "/info_icon.png", price: price ? price : 0, balance: walletBalance },
+            ];
+          })
+        );
+
         userDataFetched = true;
       } else {
-        const [accountsAiList, _lstData, _jupiterTokenInfo] = await Promise.all([
-          connection.getMultipleAccountsInfo([ SOL_USD_PYTH_ORACLE]),
-          fetchLstData(connection), fetchJupiterTokenInfo()]);
+        const [accountsAiList, _lstData, jupiterTokenInfo] = await Promise.all([
+          connection.getMultipleAccountsInfo([SOL_USD_PYTH_ORACLE]),
+          fetchLstData(connection),
+          fetchJupiterTokenInfo(),
+        ]);
+
+        const tokenPrices = await fetchTokenPrices(
+          [...jupiterTokenInfo.values()].map((tokenInfo) => new PublicKey(tokenInfo.address))
+        );
+        tokenDataMap = new Map(
+          [...jupiterTokenInfo.entries()].map(([tokenMint, tokenInfo]) => {
+            const price = tokenPrices.get(tokenInfo.address);
+            const { logoURI, ..._tokenInfo } = tokenInfo;
+            return [
+              tokenMint,
+              { ..._tokenInfo, iconUrl: logoURI ?? "/info_icon.png", price: price ? price : 0, balance: 0 },
+            ];
+          })
+        );
+
         lstData = _lstData;
-        jupiterTokenInfo = _jupiterTokenInfo;
         const [solUsdPythFeedAi] = accountsAiList;
         solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
       }
@@ -116,9 +157,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
         connection,
         wallet,
         lstData,
-        userData,
-        jupiterTokenInfo,
-        userTokenAccounts,
+        tokenDataMap,
         solUsdValue,
       });
     } catch (err) {
@@ -129,12 +168,18 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
   setIsRefreshingStore: (isRefreshingStore: boolean) => set({ isRefreshingStore }),
   resetUserData: () => {
     console.log("resetting user data");
-    set({ userDataFetched: false, userData: null });
+    let tokenDataMap = get().tokenDataMap;
+    if (tokenDataMap) {
+      tokenDataMap = new Map([...tokenDataMap?.entries()].map(
+        ([tokenMint, tokenData]) => [tokenMint, { ...tokenData, balance: 0 }] as [string, TokenData]
+      ));
+    }
+    set({ userDataFetched: false, tokenDataMap });
   },
 });
 
 async function fetchLstData(connection: Connection): Promise<LstData> {
-  const [stakePoolInfo] = await Promise.all([
+  const [stakePoolInfo] = await Promise.all([solanaStakePool.stakePoolInfo(connection, STAKE_POOL_ID)]);
     solanaStakePool.stakePoolInfo(connection, new PublicKey("5TnTqbrucx4GxLxEqtUUAr3cggE6CKV7nBDuT2bL9Gux")),
   ]);
   const poolTokenSupply = Number(stakePoolInfo.poolTokenSupply);
@@ -197,6 +242,11 @@ async function fetchUserTokenAccounts(connection: Connection, walletAddress: Pub
     reducedResult.map((tokenAccount: any) => [tokenAccount.mint.toString(), tokenAccount])
   );
   return userTokenAccounts;
+}
+
+async function fetchTokenPrices(mints: PublicKey[]): Promise<Map<string, number>> {
+  const prices = await fetchBirdeyePrices(mints);
+  return new Map(prices.map((price, index) => [mints[index].toString(), price.toNumber()]));
 }
 
 export { createLstStore };

@@ -19,27 +19,17 @@ import { createJupiterApiClient, instanceOfSwapResponse } from "@jup-ag/api";
 import { toast } from "react-toastify";
 import { SettingsModal, SupportedSlippagePercent } from "./SettingsModal";
 import { SettingsIcon } from "./SettingsIcon";
+import { SOL_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
 
-const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 const LST_FORMATTER = makeTokenAmountFormatter(9);
 const DEFAULT_SLIPPAGE_PERCENT = 1;
-
-export interface TokenData {
-  mint: PublicKey;
-  symbol: string;
-  decimals: number;
-  iconUrl: string;
-  balance: number;
-}
 
 export const StakingCard: FC = () => {
   const { connection } = useConnection();
   const { connected, wallet, walletAddress, openWalletSelector } = useWalletContext();
-  const [lstData, userData, jupiterTokenInfo, userTokenAccounts, fetchLstState] = useLstStore((state) => [
+  const [lstData, tokenDataMap, fetchLstState] = useLstStore((state) => [
     state.lstData,
-    state.userData,
-    state.jupiterTokenInfo,
-    state.userTokenAccounts,
+    state.tokenDataMap,
     state.fetchLstState,
   ]);
 
@@ -49,7 +39,8 @@ export const StakingCard: FC = () => {
   const [depositAmount, setDepositAmount] = useState<number | null>(null);
   const [selectedMint, setSelectedMint] = useState<PublicKey>(SOL_MINT);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
-  const [selectedSlippagePercent, setSelectedSlippagePercent] = useState<SupportedSlippagePercent>(DEFAULT_SLIPPAGE_PERCENT);
+  const [selectedSlippagePercent, setSelectedSlippagePercent] =
+    useState<SupportedSlippagePercent>(DEFAULT_SLIPPAGE_PERCENT);
 
   const selectedSlippageBps = useMemo(() => selectedSlippagePercent * 100, [selectedSlippagePercent]);
 
@@ -68,27 +59,9 @@ export const StakingCard: FC = () => {
   }, [walletAddress, prevWalletAddress]);
 
   const selectedMintInfo: TokenData | null = useMemo(() => {
-    if (jupiterTokenInfo === null) return null;
-
-    const tokenInfo = jupiterTokenInfo.get(selectedMint.toString());
-    if (!tokenInfo) throw new Error(`Token ${selectedMint.toBase58()} not found`);
-
-    let walletBalance: number = 0;
-    if (selectedMint.equals(SOL_MINT)) {
-      walletBalance = userData?.nativeSolBalance ?? 0;
-    } else {
-      const tokenAccount = userTokenAccounts?.get(selectedMint.toString());
-      walletBalance = tokenAccount?.balance ?? 0;
-    }
-
-    return {
-      mint: selectedMint,
-      symbol: tokenInfo.symbol,
-      iconUrl: tokenInfo.logoURI ?? "/info_icon.png",
-      decimals: tokenInfo.decimals,
-      balance: walletBalance,
-    };
-  }, [jupiterTokenInfo, selectedMint, userData, userTokenAccounts]);
+    if (tokenDataMap === null) return null;
+    return tokenDataMap.get(selectedMint.toString()) ?? null;
+  }, [tokenDataMap, selectedMint]);
 
   const rawDepositAmount = useMemo(
     () => Math.trunc(Math.pow(10, selectedMintInfo?.decimals ?? 0) * (depositAmount ?? 0)),
@@ -123,17 +96,6 @@ export const StakingCard: FC = () => {
       }
     }
   }, [depositAmount, selectedMint, lstData?.lstSolValue, quoteResponseMeta?.quoteResponse?.outAmount]);
-
-  const availableTokens: TokenData[] = useMemo(() => {
-    if (!jupiterTokenInfo) return [];
-    return [...jupiterTokenInfo.values()].map((token) => ({
-      mint: new PublicKey(token.address),
-      symbol: token.symbol,
-      iconUrl: token.logoURI ?? "/info_icon.png",
-      decimals: token.decimals,
-      balance: 0,
-    }));
-  }, [jupiterTokenInfo]);
 
   const onChange = useCallback(
     (event: NumberFormatValues) => setDepositAmount(event.floatValue ?? null),
@@ -322,18 +284,14 @@ export const StakingCard: FC = () => {
           }}
           className="bg-[#0F1111] p-2 rounded-xl"
           InputProps={
-            jupiterTokenInfo
+            tokenDataMap
               ? {
                   className: "font-aeonik text-[#e1e1e1] p-0 m-0",
                   startAdornment: (
                     <DropDownButton
-                      supportedTokens={availableTokens}
+                      tokenDataMap={tokenDataMap}
                       selectedMintInfo={
-                        selectedMintInfo ?? {
-                          mint: SOL_MINT,
-                          iconUrl: "/info_icon.png",
-                          symbol: "SOL",
-                        }
+                        selectedMintInfo
                       }
                       setSelectedMint={setSelectedMint}
                     />
@@ -394,13 +352,13 @@ export const StakingCard: FC = () => {
 };
 
 interface DropDownButtonProps {
-  supportedTokens: TokenData[];
-  selectedMintInfo: { mint: PublicKey; symbol: string; iconUrl: string };
+  tokenDataMap: TokenDataMap;
+  selectedMintInfo: TokenData | null;
   setSelectedMint: Dispatch<SetStateAction<PublicKey>>;
   disabled?: boolean;
 }
 
-const DropDownButton: FC<DropDownButtonProps> = ({ supportedTokens, selectedMintInfo, setSelectedMint, disabled }) => {
+const DropDownButton: FC<DropDownButtonProps> = ({ tokenDataMap, selectedMintInfo, setSelectedMint, disabled }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   return (
     <>
@@ -411,16 +369,16 @@ const DropDownButton: FC<DropDownButtonProps> = ({ supportedTokens, selectedMint
         }`}
       >
         <div className="w-[24px] mr-2">
-          <Image src={selectedMintInfo.iconUrl} alt="token logo" height={24} width={24} />
+          <Image src={selectedMintInfo?.iconUrl ?? "/info_icon.png"} alt="token logo" height={24} width={24} />
         </div>
-        <Typography className="font-aeonik font-[500] text-lg mr-1">{selectedMintInfo.symbol}</Typography>
+        <Typography className="font-aeonik font-[500] text-lg mr-1">{selectedMintInfo?.symbol ?? "SOL"}</Typography>
         <ArrowDropDown sx={{ width: "20px", padding: 0 }} />
       </div>
 
       <StakingModal
         isOpen={isModalOpen}
         handleClose={() => setIsModalOpen(false)}
-        supportedTokens={supportedTokens}
+        tokenDataMap={tokenDataMap}
         setSelectedMint={setSelectedMint}
       />
     </>
@@ -442,6 +400,7 @@ async function depositToken(
   }
 
   const _depositAmount = depositAmount * 1e9;
+  console.log("deposit amount", _depositAmount, depositAmount)
 
   const { instructions, signers } = await solanaStakePool.depositSol(
     connection,
@@ -463,7 +422,7 @@ async function depositToken(
   return sig;
 }
 
-function makeTokenAmountFormatter(decimals: number) {
+export function makeTokenAmountFormatter(decimals: number) {
   return new Intl.NumberFormat("en-US", {
     useGrouping: true,
     minimumFractionDigits: 0,
