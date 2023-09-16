@@ -5,7 +5,7 @@ import { WalletIcon } from "./WalletIcon";
 import { PrimaryButton } from "./PrimaryButton";
 import { useLstStore } from "~/pages/stake";
 import { useWalletContext } from "~/components/useWalletContext";
-import { Wallet, numeralFormatter, processTransaction, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { Wallet, numeralFormatter, percentFormatter, processTransaction, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { ArrowDropDown } from "@mui/icons-material";
 import { StakingModal } from "./StakingModal";
 import Image from "next/image";
@@ -345,7 +345,7 @@ export const StakingCard: FC = () => {
         <div className="flex flex-row justify-between w-full my-auto pt-2">
           <Typography className="font-aeonik font-[400] text-lg">You will receive</Typography>
           <Typography className="font-aeonik font-[700] text-lg sm:text-xl text-[#DCE85D]">
-            {lstOutAmount !== null && selectedMintInfo ? LST_FORMATTER.format(lstOutAmount) : "-"} $LST
+            {lstOutAmount !== null && selectedMintInfo ? lstOutAmount < 0.01 && lstOutAmount > 0 ? "< 0.01" : numeralFormatter(lstOutAmount) : "-"} $LST
           </Typography>
         </div>
         <div className="py-5">
@@ -362,7 +362,7 @@ export const StakingCard: FC = () => {
             }
             onClick={connected ? onMint : openWalletSelector}
           >
-            {swapping || refreshingQuotes ? (
+            {connected && (swapping || refreshingQuotes) ? (
               <CircularProgress size={20} thickness={6} sx={{ color: "#DCE85D" }} />
             ) : connected ? (
               "Mint"
@@ -379,17 +379,17 @@ export const StakingCard: FC = () => {
         </div>
         <div className="flex flex-row justify-between w-full my-auto">
           <Typography className="font-aeonik font-[400] text-base">Deposit fee</Typography>
-          <Typography className="font-aeonik font-[700] text-lg">0%</Typography>
+          <Typography className="font-aeonik font-[700] text-lg">{lstData?.solDepositFee ?? 0}%</Typography>
         </div>
         {priceImpactPct !== null && (
           <div
             className={`flex flex-row justify-between w-full my-auto ${
-              priceImpactPct > 1 ? "text-[#FF6B6B]" : priceImpactPct > 0.5 ? "text-[#FFB06B]" : "text-[#fff]"
+              priceImpactPct > 0.1 ? "text-[#FF6B6B]" : priceImpactPct > 0.02 ? "text-[#FFB06B]" : "text-[#fff]"
             }`}
           >
             <Typography className={`font-aeonik font-[400] text-base`}>Price impact</Typography>
             <Typography className="font-aeonik font-[700] text-lg">
-              {priceImpactPct < 0.01 ? "< 0.01" : `~ ${numeralFormatter(priceImpactPct)}`}%
+              {priceImpactPct < 0.01 ? "< 0.01%" : `~ ${percentFormatter.format(priceImpactPct)}`}
             </Typography>
           </div>
         )}
