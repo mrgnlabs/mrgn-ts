@@ -180,8 +180,6 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
 
 async function fetchLstData(connection: Connection): Promise<LstData> {
   const [stakePoolInfo] = await Promise.all([solanaStakePool.stakePoolInfo(connection, STAKE_POOL_ID)]);
-    solanaStakePool.stakePoolInfo(connection, new PublicKey("5TnTqbrucx4GxLxEqtUUAr3cggE6CKV7nBDuT2bL9Gux")),
-  ]);
   const poolTokenSupply = Number(stakePoolInfo.poolTokenSupply);
   const totalLamports = Number(stakePoolInfo.totalLamports);
   const lastPoolTokenSupply = Number(stakePoolInfo.lastEpochPoolTokenSupply);
