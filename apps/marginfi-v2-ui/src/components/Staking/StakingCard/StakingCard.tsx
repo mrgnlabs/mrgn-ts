@@ -5,12 +5,25 @@ import { WalletIcon } from "./WalletIcon";
 import { PrimaryButton } from "./PrimaryButton";
 import { useLstStore } from "~/pages/stake";
 import { useWalletContext } from "~/components/useWalletContext";
-import { Wallet, createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync, numeralFormatter, percentFormatter, processTransaction, shortenAddress } from "@mrgnlabs/mrgn-common";
+import {
+  createAssociatedTokenAccountIdempotentInstruction,
+  getAssociatedTokenAddressSync,
+  numeralFormatter,
+  percentFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { ArrowDropDown } from "@mui/icons-material";
 import { StakingModal } from "./StakingModal";
 import Image from "next/image";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
-import { Connection, Keypair, PublicKey, Signer, SystemProgram, Transaction, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import {
+  Keypair,
+  PublicKey,
+  Signer,
+  SystemProgram,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { SwapMode, useJupiter } from "@jup-ag/react-hook";
 import JSBI from "jsbi";
@@ -43,7 +56,10 @@ export const StakingCard: FC = () => {
   const [selectedMint, setSelectedMint] = useState<PublicKey>(SOL_MINT);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
 
-  const selectedSlippageBps = useMemo(() => slippagePct * 100, [slippagePct]);
+  const { slippage, slippageBps } = useMemo(
+    () => ({ slippage: slippagePct / 100, slippageBps: slippagePct * 100 }),
+    [slippagePct]
+  );
 
   const prevSelectedMint = usePrevious(selectedMint);
   useEffect(() => {
@@ -75,12 +91,12 @@ export const StakingCard: FC = () => {
     refresh,
     lastRefreshTimestamp,
   } = useJupiter({
-    amount: selectedMint.equals(SOL_MINT) ? JSBI.BigInt(0) : JSBI.BigInt(rawDepositAmount), // amount in trick to avoid SOL -> SOL quote calls
+    amount: selectedMint.equals(SOL_MINT) ? JSBI.BigInt(0) : JSBI.BigInt(rawDepositAmount), // amountIn trick to avoid SOL -> SOL quote calls
     inputMint: selectedMint,
     outputMint: SOL_MINT,
     swapMode: SwapMode.ExactIn,
-    slippageBps: selectedSlippageBps, // 0.5% slippage
-    debounceTime: 250, // debounce ms time before refresh
+    slippageBps,
+    debounceTime: 250, // debounce ms time before consecutive refresh calls
   });
 
   const priceImpactPct: number | null = useMemo(() => {
@@ -146,7 +162,15 @@ export const StakingCard: FC = () => {
 
     try {
       if (selectedMint.equals(SOL_MINT)) {
-        const { instructions, signers } = await depositSolToStakePool(connection, lstData.poolAddress, walletAddress, depositAmount, selectedMint);
+        const _depositAmount = depositAmount * 1e9;
+
+        const { instructions, signers } = makeDepositSolToStakePoolIx(
+          lstData.accountData,
+          lstData.poolAddress,
+          walletAddress,
+          _depositAmount,
+          undefined
+        );
 
         const depositMessage = new TransactionMessage({
           instructions: instructions,
@@ -157,27 +181,52 @@ export const StakingCard: FC = () => {
         const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
         depositTransaction.sign(signers);
 
-        const depositSig = await connection.sendTransaction(depositTransaction);
+        const signedTransaction = await wallet.signTransaction(depositTransaction);
+        const depositSig = await connection.sendTransaction(signedTransaction);
 
         sigs.push(depositSig);
       } else {
         if (!quoteResponseMeta?.quoteResponse) {
           throw new Error("Route not calculated yet");
         }
-        const outAmount = JSBI.toNumber(quoteResponseMeta.quoteResponse.outAmount);
-        const finalAmount = Math.floor(outAmount * (1 - slippagePct / 100));
 
+        // Calculate updated quote
+        const newQuote = await jupiterApiClient.quoteGet({
+          amount: selectedMint.equals(SOL_MINT) ? 0 : rawDepositAmount, // add slippage
+          inputMint: selectedMint.toBase58(),
+          outputMint: SOL_MINT.toBase58(),
+          swapMode: SwapMode.ExactIn,
+          slippageBps: slippageBps,
+        });
+        const outAmount = Number.parseInt(newQuote.outAmount);
+
+        // outAmount delta check
+        const displayedOutAmount = JSBI.toNumber(quoteResponseMeta.quoteResponse.outAmount);
+        const outAmountIncrease = (outAmount - displayedOutAmount) / displayedOutAmount;
+        if (outAmountIncrease < -0.001) {
+          throw new Error("Price deviated too much from quote, please try again");
+        }
+
+        const finalAmount = Math.floor(outAmount * (1 - slippage));
         const avoidSlippageIssues = await jupiterApiClient.quoteGet({
           amount: finalAmount, // add slippage
           inputMint: selectedMint.toBase58(),
           outputMint: SOL_MINT.toBase58(),
           swapMode: SwapMode.ExactOut,
-          slippageBps: selectedSlippageBps,
+          slippageBps: slippageBps,
         });
+
+        // price impact delta check
+        const priceImpact = Number(newQuote.priceImpactPct);
+        const displayedPriceImpact = Number(quoteResponseMeta.quoteResponse.priceImpactPct);
+        const priceImpactIncrease = (priceImpact - displayedPriceImpact) / displayedPriceImpact;
+        if (displayedPriceImpact > 0 && priceImpactIncrease > 0.001) {
+          throw new Error("Price impact increased too much from quote, please try again");
+        }
 
         const swapResult = await jupiterApiClient.swapPost({
           swapRequest: {
-            quoteResponse: avoidSlippageIssues, //  quoteResponseMeta.original
+            quoteResponse: avoidSlippageIssues,
             userPublicKey: walletAddress.toBase58(),
             wrapAndUnwrapSol: true,
           },
@@ -186,10 +235,10 @@ export const StakingCard: FC = () => {
         if (instanceOfSwapResponse(swapResult)) {
           const { swapTransaction: swapTransactionSerialized } = swapResult;
           const swapTransactionBuffer = Buffer.from(swapTransactionSerialized, "base64");
-          const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuffer); //Transaction.from(swapTransactionBuffer); //
+          const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuffer);
 
-          const { instructions, signers } = await depositSolToStakePool(
-            connection,
+          const { instructions, signers } = makeDepositSolToStakePoolIx(
+            lstData.accountData,
             lstData.poolAddress,
             wallet.publicKey,
             finalAmount,
@@ -207,9 +256,9 @@ export const StakingCard: FC = () => {
 
           const versionedTransactions = await wallet.signAllTransactions([swapTransaction, depositTransaction]);
 
-          const swapSig = await connection.sendTransaction(versionedTransactions[0]); //TODO confirm
+          const swapSig = await connection.sendTransaction(versionedTransactions[0]); // TODO: explicitly warn if second tx fails
+          const depositSig = await connection.sendTransaction(versionedTransactions[1]);
           sigs.push(swapSig);
-          const depositSig = await connection.sendTransaction(versionedTransactions[1]); //TODO confirm
           sigs.push(depositSig);
         }
       }
@@ -226,7 +275,7 @@ export const StakingCard: FC = () => {
           )
         )
       );
-      toast.success("Staking complete");
+      toast.success("Minting complete");
     } catch (error: any) {
       if (error.logs) {
         console.log("------ Logs 👇 ------");
@@ -251,9 +300,10 @@ export const StakingCard: FC = () => {
     selectedMint,
     connection,
     quoteResponseMeta?.quoteResponse,
-    selectedSlippageBps,
-    slippagePct,
     jupiterApiClient,
+    rawDepositAmount,
+    slippageBps,
+    slippage,
     refresh,
     fetchLstState,
   ]);
@@ -473,18 +523,15 @@ export function makeTokenAmountFormatter(decimals: number) {
 /**
  * Creates instructions required to deposit sol to stake pool.
  */
-async function depositSolToStakePool(
-  connection: Connection,
+function makeDepositSolToStakePoolIx(
+  stakePool: solanaStakePool.StakePool,
   stakePoolAddress: PublicKey,
   from: PublicKey,
   lamports: number,
   destinationTokenAccount?: PublicKey,
   referrerTokenAccount?: PublicKey,
-  depositAuthority?: PublicKey,
+  depositAuthority?: PublicKey
 ) {
-  const stakePoolAccount = await solanaStakePool.getStakePoolAccount(connection, stakePoolAddress);
-  const stakePool = stakePoolAccount.account.data;
-
   // Ephemeral SOL account just to do the transfer
   const userSolTransfer = new Keypair();
   const signers: Signer[] = [userSolTransfer];
@@ -496,26 +543,21 @@ async function depositSolToStakePool(
       fromPubkey: from,
       toPubkey: userSolTransfer.publicKey,
       lamports,
-    }),
+    })
   );
 
   // Create token account if not specified
   if (!destinationTokenAccount) {
     const associatedAddress = getAssociatedTokenAddressSync(stakePool.poolMint, from);
     instructions.push(
-      createAssociatedTokenAccountIdempotentInstruction(
-        from,
-        associatedAddress,
-        from,
-        stakePool.poolMint,
-      ),
+      createAssociatedTokenAccountIdempotentInstruction(from, associatedAddress, from, stakePool.poolMint)
     );
     destinationTokenAccount = associatedAddress;
   }
 
   const withdrawAuthority = findWithdrawAuthorityProgramAddress(
     solanaStakePool.STAKE_POOL_PROGRAM_ID,
-    stakePoolAddress,
+    stakePoolAddress
   );
 
   instructions.push(
@@ -530,7 +572,7 @@ async function depositSolToStakePool(
       lamports,
       withdrawAuthority,
       depositAuthority,
-    }),
+    })
   );
 
   return {
@@ -542,13 +584,10 @@ async function depositSolToStakePool(
 /**
  * Generates the withdraw authority program address for the stake pool
  */
-function findWithdrawAuthorityProgramAddress(
-  programId: PublicKey,
-  stakePoolAddress: PublicKey,
-) {
+function findWithdrawAuthorityProgramAddress(programId: PublicKey, stakePoolAddress: PublicKey) {
   const [publicKey] = PublicKey.findProgramAddressSync(
-    [stakePoolAddress.toBuffer(), Buffer.from('withdraw')],
-    programId,
+    [stakePoolAddress.toBuffer(), Buffer.from("withdraw")],
+    programId
   );
   return publicKey;
 }

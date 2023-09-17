@@ -67,6 +67,7 @@ interface LstData {
   projectedApy: number;
   lstSolValue: number;
   solDepositFee: number;
+  accountData: solanaStakePool.StakePool
 }
 
 const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
@@ -192,7 +193,10 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
 });
 
 async function fetchLstData(connection: Connection): Promise<LstData> {
-  const [stakePoolInfo] = await Promise.all([solanaStakePool.stakePoolInfo(connection, STAKE_POOL_ID)]);
+
+  const [stakePoolInfo, stakePoolAccount] = await Promise.all([solanaStakePool.stakePoolInfo(connection, STAKE_POOL_ID), solanaStakePool.getStakePoolAccount(connection, STAKE_POOL_ID)]);
+  const stakePool = stakePoolAccount.account.data;
+
   const poolTokenSupply = Number(stakePoolInfo.poolTokenSupply);
   const totalLamports = Number(stakePoolInfo.totalLamports);
   const lastPoolTokenSupply = Number(stakePoolInfo.lastEpochPoolTokenSupply);
@@ -220,6 +224,7 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
     projectedApy,
     lstSolValue,
     solDepositFee,
+    accountData: stakePool,
   };
 }
 
