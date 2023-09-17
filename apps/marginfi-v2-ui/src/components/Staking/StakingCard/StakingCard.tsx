@@ -220,7 +220,7 @@ export const StakingCard: FC = () => {
         const priceImpact = Number(newQuote.priceImpactPct);
         const displayedPriceImpact = Number(quoteResponseMeta.quoteResponse.priceImpactPct);
         const priceImpactIncrease = (priceImpact - displayedPriceImpact) / displayedPriceImpact;
-        if (displayedPriceImpact > 0 && priceImpactIncrease > 0.001) {
+        if (displayedPriceImpact > 0 && priceImpact >= 0.01 && priceImpactIncrease > 0.001) {
           throw new Error("Price impact increased too much from quote, please try again");
         }
 
