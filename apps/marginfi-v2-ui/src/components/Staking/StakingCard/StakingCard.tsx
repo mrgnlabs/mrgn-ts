@@ -146,8 +146,20 @@ export const StakingCard: FC = () => {
 
     try {
       if (selectedMint.equals(SOL_MINT)) {
-        const sig = await depositToken(lstData.poolAddress, depositAmount, selectedMint, connection, wallet);
-        sigs.push(sig);
+        const { instructions, signers } = await depositSolToStakePool(connection, lstData.poolAddress, walletAddress, depositAmount, selectedMint);
+
+        const depositMessage = new TransactionMessage({
+          instructions: instructions,
+          payerKey: walletAddress,
+          recentBlockhash: blockhash,
+        });
+
+        const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
+        depositTransaction.sign(signers);
+
+        const depositSig = await connection.sendTransaction(depositTransaction);
+
+        sigs.push(depositSig);
       } else {
         if (!quoteResponseMeta?.quoteResponse) {
           throw new Error("Route not calculated yet");
@@ -176,7 +188,7 @@ export const StakingCard: FC = () => {
           const swapTransactionBuffer = Buffer.from(swapTransactionSerialized, "base64");
           const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuffer); //Transaction.from(swapTransactionBuffer); //
 
-          const { instructions, signers } = await solanaStakePool.depositSol(
+          const { instructions, signers } = await depositSolToStakePool(
             connection,
             lstData.poolAddress,
             wallet.publicKey,
@@ -450,43 +462,6 @@ const DropDownButton: FC<DropDownButtonProps> = ({ tokenDataMap, selectedMintInf
   );
 };
 
-async function depositToken(
-  stakePoolAddress: PublicKey,
-  depositAmount: number,
-  mint: PublicKey,
-  connection: Connection,
-  wallet: Wallet
-): Promise<string> {
-  const finalIxList = [];
-  const finalSignerList = [];
-
-  if (!mint.equals(SOL_MINT)) {
-    // Jup swap ix
-  }
-
-  const _depositAmount = depositAmount * 1e9;
-  console.log("deposit amount", _depositAmount, depositAmount);
-
-  const { instructions, signers } = await depositSolToStakePool(
-    connection,
-    stakePoolAddress,
-    wallet.publicKey,
-    _depositAmount,
-    undefined
-  );
-
-  finalIxList.push(...instructions);
-  finalSignerList.push(...signers);
-
-  const tx = new Transaction().add(...finalIxList);
-
-  const sig = await processTransaction(connection, wallet, tx, finalSignerList, { dryRun: false });
-
-  console.log(`Staked ${depositAmount} ${shortenAddress(mint)} with signature ${sig}`);
-
-  return sig;
-}
-
 export function makeTokenAmountFormatter(decimals: number) {
   return new Intl.NumberFormat("en-US", {
     useGrouping: true,
@@ -538,7 +513,7 @@ async function depositSolToStakePool(
     destinationTokenAccount = associatedAddress;
   }
 
-  const withdrawAuthority = await findWithdrawAuthorityProgramAddress(
+  const withdrawAuthority = findWithdrawAuthorityProgramAddress(
     solanaStakePool.STAKE_POOL_PROGRAM_ID,
     stakePoolAddress,
   );
@@ -567,11 +542,11 @@ async function depositSolToStakePool(
 /**
  * Generates the withdraw authority program address for the stake pool
  */
-async function findWithdrawAuthorityProgramAddress(
+function findWithdrawAuthorityProgramAddress(
   programId: PublicKey,
   stakePoolAddress: PublicKey,
 ) {
-  const [publicKey] = await PublicKey.findProgramAddress(
+  const [publicKey] = PublicKey.findProgramAddressSync(
     [stakePoolAddress.toBuffer(), Buffer.from('withdraw')],
     programId,
   );
