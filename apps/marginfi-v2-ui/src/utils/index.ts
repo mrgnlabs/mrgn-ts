@@ -2,7 +2,7 @@ import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 // ================ development utils ================
 
@@ -42,10 +42,10 @@ const DEFAULT_TICKS_PER_SECOND = 160;
 const DEFAULT_TICKS_PER_SLOT = 64;
 const SECONDS_PER_DAY = 24 * 60 * 60;
 const TICKS_PER_DAY = DEFAULT_TICKS_PER_SECOND * SECONDS_PER_DAY;
-const DEFAULT_SLOTS_PER_EPOCH = 2 * TICKS_PER_DAY / DEFAULT_TICKS_PER_SLOT;
-const DEFAULT_S_PER_SLOT = DEFAULT_TICKS_PER_SLOT  / DEFAULT_TICKS_PER_SECOND ;
-const SECONDS_PER_EPOCH = DEFAULT_SLOTS_PER_EPOCH  * DEFAULT_S_PER_SLOT;
-export const EPOCHS_PER_YEAR = SECONDS_PER_DAY  * 365.25 / SECONDS_PER_EPOCH;
+const DEFAULT_SLOTS_PER_EPOCH = (2 * TICKS_PER_DAY) / DEFAULT_TICKS_PER_SLOT;
+const DEFAULT_S_PER_SLOT = DEFAULT_TICKS_PER_SLOT / DEFAULT_TICKS_PER_SECOND;
+const SECONDS_PER_EPOCH = DEFAULT_SLOTS_PER_EPOCH * DEFAULT_S_PER_SLOT;
+export const EPOCHS_PER_YEAR = (SECONDS_PER_DAY * 365.25) / SECONDS_PER_EPOCH;
 
 export function usePrevious<T>(value: T): T | undefined {
   const ref = useRef<T>();

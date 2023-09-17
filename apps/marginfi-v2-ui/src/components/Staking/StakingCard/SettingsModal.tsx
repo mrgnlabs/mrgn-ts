@@ -20,7 +20,7 @@ export const SettingsModal: FC<SettingsModalProps> = ({
   setSelectedSlippagePercent: setSelectedSlippage,
 }) => {
   const [localSlippage, setLocalSlippage] = useState<SupportedSlippagePercent>(selectedSlippage);
-  
+
   const onSaveSettings = () => {
     setSelectedSlippage(localSlippage);
     handleClose();

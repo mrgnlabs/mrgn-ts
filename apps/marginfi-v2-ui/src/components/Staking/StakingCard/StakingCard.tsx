@@ -22,7 +22,6 @@ import { SettingsIcon } from "./SettingsIcon";
 import { SOL_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
 import { RefreshIcon } from "./RefreshIcon";
 
-const LST_FORMATTER = makeTokenAmountFormatter(9);
 const QUOTE_EXPIRY_MS = 30_000;
 
 export const StakingCard: FC = () => {
@@ -33,7 +32,7 @@ export const StakingCard: FC = () => {
     state.tokenDataMap,
     state.fetchLstState,
     state.slippagePct,
-    state.setSlippagePct
+    state.setSlippagePct,
   ]);
 
   const jupiterApiClient = createJupiterApiClient();
@@ -89,13 +88,16 @@ export const StakingCard: FC = () => {
     return Number(quoteResponseMeta.quoteResponse.priceImpactPct);
   }, [quoteResponseMeta?.quoteResponse]);
 
-  const refreshQuoteIfNeeded = useCallback((force: boolean = false) => {
-    const hasExpired = Date.now() - lastRefreshTimestamp > QUOTE_EXPIRY_MS;
-    if (!selectedMint.equals(SOL_MINT) && (depositAmount ?? 0 > 0) && (hasExpired || force)) {
-      setRefreshingQuotes(true);
-      refresh();
-    }
-  }, [selectedMint, depositAmount, refresh, lastRefreshTimestamp]);
+  const refreshQuoteIfNeeded = useCallback(
+    (force: boolean = false) => {
+      const hasExpired = Date.now() - lastRefreshTimestamp > QUOTE_EXPIRY_MS;
+      if (!selectedMint.equals(SOL_MINT) && (depositAmount ?? 0 > 0) && (hasExpired || force)) {
+        setRefreshingQuotes(true);
+        refresh();
+      }
+    },
+    [selectedMint, depositAmount, refresh, lastRefreshTimestamp]
+  );
 
   useEffect(() => {
     refreshQuoteIfNeeded();
@@ -104,9 +106,7 @@ export const StakingCard: FC = () => {
   }, [refreshQuoteIfNeeded]);
 
   useEffect(() => {
-    console.log(loadingQuotes);
     if (!loadingQuotes) {
-      console.log("done refreshing");
       setTimeout(() => setRefreshingQuotes(false), 500);
     }
   }, [loadingQuotes]);
@@ -250,28 +250,35 @@ export const StakingCard: FC = () => {
     <>
       <div className="relative flex flex-col gap-3 rounded-xl bg-[#1C2023] px-6 sm:px-8 py-4 sm:py-6 max-w-[480px] w-full">
         <div className="flex flex-row justify-between w-full">
-          <Typography className="font-aeonik font-[400] text-lg">Deposit</Typography>
+          <div className="flex flex-row items-center gap-4">
+            <Typography className="font-aeonik font-[400] text-lg">Deposit</Typography>
+            {selectedMintInfo && (
+              <div className="flex flex-row gap-2 items-center">
+                {selectedMintInfo.symbol !== "SOL" && (
+                  <>
+                    <div
+                      className="p-2 h-7 w-7 flex flex-row items-center justify-center border rounded-full border-white/10 bg-black/10 text-secondary fill-current cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out"
+                      onClick={() => refreshQuoteIfNeeded(true)}
+                    >
+                      <RefreshIcon />
+                    </div>
+                    <div
+                      className={`p-2 h-7 gap-2 flex flex-row items-center justify-center border rounded-2xl border-white/10 bg-black/10 cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out`}
+                      onClick={() => setIsSettingsModalOpen(true)}
+                    >
+                      <SettingsIcon />
+                      <Typography className={`text-xs text-secondary mt-2px`}>
+                        {isNaN(slippagePct) ? "0" : slippagePct}%
+                      </Typography>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
           {connected && selectedMintInfo && (
-            <div className="flex flex-row gap-2 items-center">
-              {selectedMintInfo.symbol !== "SOL" && (
-                <>
-                  <div
-                    className="p-2 h-7 w-7 flex flex-row items-center justify-center border rounded-full border-white/10 bg-black/10 text-secondary fill-current"
-                    onClick={() => refreshQuoteIfNeeded(true)}
-                  >
-                    <RefreshIcon />
-                  </div>
-                  <div
-                    className={`p-2 h-7 gap-2 flex flex-row items-center justify-center border rounded-2xl border-white/10 bg-black/10 cursor-pointer`}
-                    onClick={() => setIsSettingsModalOpen(true)}
-                  >
-                    <SettingsIcon />
-                    <Typography className={`text-xs text-secondary mt-2px`}>
-                      {isNaN(slippagePct) ? "0" : slippagePct}%
-                    </Typography>
-                  </div>
-                </>
-              )}
+            <div className="flex flex-row items-center gap-1">
               <div className="leading-5">
                 <WalletIcon />
               </div>
@@ -283,7 +290,7 @@ export const StakingCard: FC = () => {
                   : "-"}
               </Typography>
               <a
-                className={`font-aeonik font-[700] text-base leading-5 ml-2 cursor-pointer hover:text-[#DCE85D]`}
+                className={`p-2 h-7 flex flex-row items-center justify-center text-sm border rounded-full border-white/10 bg-black/10 text-secondary fill-current cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out`}
                 onClick={() => setDepositAmount(selectedMintInfo.balance)}
               >
                 MAX
@@ -345,7 +352,12 @@ export const StakingCard: FC = () => {
         <div className="flex flex-row justify-between w-full my-auto pt-2">
           <Typography className="font-aeonik font-[400] text-lg">You will receive</Typography>
           <Typography className="font-aeonik font-[700] text-lg sm:text-xl text-[#DCE85D]">
-            {lstOutAmount !== null && selectedMintInfo ? lstOutAmount < 0.01 && lstOutAmount > 0 ? "< 0.01" : numeralFormatter(lstOutAmount) : "-"} $LST
+            {lstOutAmount !== null && selectedMintInfo
+              ? lstOutAmount < 0.01 && lstOutAmount > 0
+                ? "< 0.01"
+                : numeralFormatter(lstOutAmount)
+              : "-"}{" "}
+            $LST
           </Typography>
         </div>
         <div className="py-5">

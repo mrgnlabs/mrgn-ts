@@ -181,7 +181,9 @@ const Navbar: FC = () => {
             >
               <Link
                 href={"/swap"}
-                className={`${router.pathname === "/swap" ? "hover-underline-static" : "hover-underline-animation"} hidden md:block`}
+                className={`${
+                  router.pathname === "/swap" ? "hover-underline-static" : "hover-underline-animation"
+                } hidden md:block`}
               >
                 swap
               </Link>
@@ -202,7 +204,9 @@ const Navbar: FC = () => {
             >
               <Link
                 href={"/bridge"}
-                className={`${router.pathname === "/bridge" ? "hover-underline-static" : "hover-underline-animation"} hidden md:block`}
+                className={`${
+                  router.pathname === "/bridge" ? "hover-underline-static" : "hover-underline-animation"
+                } hidden md:block`}
               >
                 bridge
               </Link>

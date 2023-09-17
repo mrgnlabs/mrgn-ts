@@ -79,7 +79,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
   lstData: null,
   tokenDataMap: null,
   solUsdValue: null,
-  slippagePct: 1, 
+  slippagePct: 1,
 
   // Actions
   fetchLstState: async (args?: { connection?: Connection; wallet?: Wallet }) => {
@@ -207,7 +207,7 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
   let projectedApy;
   if (lastTotalLamports === 0 || lastPoolTokenSupply === 0) {
     projectedApy = 0.08;
-  } else { 
+  } else {
     const lastLstSolValue = lastPoolTokenSupply > 0 ? lastTotalLamports / lastPoolTokenSupply : 1;
     const epochRate = lstSolValue / lastLstSolValue - 1;
     const apr = epochRate * EPOCHS_PER_YEAR;

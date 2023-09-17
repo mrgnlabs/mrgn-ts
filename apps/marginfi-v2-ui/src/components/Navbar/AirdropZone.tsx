@@ -60,9 +60,7 @@ const AirdropZone: FC = () => {
 
   return (
     <div>
-      <span onClick={open}>
-        Airdrop
-      </span>
+      <span onClick={open}>Airdrop</span>
       <Modal open={isOpen} onClose={close} aria-labelledby="title" aria-describedby="description">
         <div id={styles["container"]}>
           <div id={styles["overlay"]}>

@@ -51,7 +51,9 @@ export const StakingModal: FC<StakingModalProps> = ({ isOpen, handleClose, token
                       {token.balance > 0 && (
                         <>
                           <Typography>{token.balance < 0.01 ? "< 0.01" : numeralFormatter(token.balance)}</Typography>
-                          <Typography className="flex justify-end min-w-[75px]">({usdValue < 0.01 ? "< $0.01" : `$${numeralFormatter(usdValue)}`})</Typography>
+                          <Typography className="flex justify-end min-w-[75px]">
+                            ({usdValue < 0.01 ? "< $0.01" : `$${numeralFormatter(usdValue)}`})
+                          </Typography>
                         </>
                       )}
                     </div>
