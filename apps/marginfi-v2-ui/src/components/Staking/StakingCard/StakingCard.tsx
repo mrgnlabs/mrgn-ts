@@ -5,12 +5,12 @@ import { WalletIcon } from "./WalletIcon";
 import { PrimaryButton } from "./PrimaryButton";
 import { useLstStore } from "~/pages/stake";
 import { useWalletContext } from "~/components/useWalletContext";
-import { Wallet, numeralFormatter, percentFormatter, processTransaction, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { Wallet, createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync, numeralFormatter, percentFormatter, processTransaction, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { ArrowDropDown } from "@mui/icons-material";
 import { StakingModal } from "./StakingModal";
 import Image from "next/image";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
-import { Connection, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, Signer, SystemProgram, Transaction, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { SwapMode, useJupiter } from "@jup-ag/react-hook";
 import JSBI from "jsbi";
@@ -467,7 +467,7 @@ async function depositToken(
   const _depositAmount = depositAmount * 1e9;
   console.log("deposit amount", _depositAmount, depositAmount);
 
-  const { instructions, signers } = await solanaStakePool.depositSol(
+  const { instructions, signers } = await depositSolToStakePool(
     connection,
     stakePoolAddress,
     wallet.publicKey,
@@ -493,4 +493,87 @@ export function makeTokenAmountFormatter(decimals: number) {
     minimumFractionDigits: 0,
     maximumFractionDigits: decimals,
   });
+}
+
+/**
+ * Creates instructions required to deposit sol to stake pool.
+ */
+async function depositSolToStakePool(
+  connection: Connection,
+  stakePoolAddress: PublicKey,
+  from: PublicKey,
+  lamports: number,
+  destinationTokenAccount?: PublicKey,
+  referrerTokenAccount?: PublicKey,
+  depositAuthority?: PublicKey,
+) {
+  const stakePoolAccount = await solanaStakePool.getStakePoolAccount(connection, stakePoolAddress);
+  const stakePool = stakePoolAccount.account.data;
+
+  // Ephemeral SOL account just to do the transfer
+  const userSolTransfer = new Keypair();
+  const signers: Signer[] = [userSolTransfer];
+  const instructions: TransactionInstruction[] = [];
+
+  // Create the ephemeral SOL account
+  instructions.push(
+    SystemProgram.transfer({
+      fromPubkey: from,
+      toPubkey: userSolTransfer.publicKey,
+      lamports,
+    }),
+  );
+
+  // Create token account if not specified
+  if (!destinationTokenAccount) {
+    const associatedAddress = getAssociatedTokenAddressSync(stakePool.poolMint, from);
+    instructions.push(
+      createAssociatedTokenAccountIdempotentInstruction(
+        from,
+        associatedAddress,
+        from,
+        stakePool.poolMint,
+      ),
+    );
+    destinationTokenAccount = associatedAddress;
+  }
+
+  const withdrawAuthority = await findWithdrawAuthorityProgramAddress(
+    solanaStakePool.STAKE_POOL_PROGRAM_ID,
+    stakePoolAddress,
+  );
+
+  instructions.push(
+    solanaStakePool.StakePoolInstruction.depositSol({
+      stakePool: stakePoolAddress,
+      reserveStake: stakePool.reserveStake,
+      fundingAccount: userSolTransfer.publicKey,
+      destinationPoolAccount: destinationTokenAccount,
+      managerFeeAccount: stakePool.managerFeeAccount,
+      referralPoolAccount: referrerTokenAccount ?? destinationTokenAccount,
+      poolMint: stakePool.poolMint,
+      lamports,
+      withdrawAuthority,
+      depositAuthority,
+    }),
+  );
+
+  return {
+    instructions,
+    signers,
+  };
+}
+
+/**
+ * Generates the withdraw authority program address for the stake pool
+ */
+async function findWithdrawAuthorityProgramAddress(
+  programId: PublicKey,
+  stakePoolAddress: PublicKey,
+) {
+  const [publicKey] = await PublicKey.findProgramAddress(
+    [stakePoolAddress.toBuffer(), Buffer.from('withdraw')],
+    programId,
+  );
+  return publicKey;
 }
