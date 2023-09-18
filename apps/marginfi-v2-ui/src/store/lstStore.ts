@@ -1,3 +1,4 @@
+import { AnchorProvider } from "@coral-xyz/anchor";
 import { vendor } from "@mrgnlabs/marginfi-client-v2";
 import { ACCOUNT_SIZE, TOKEN_PROGRAM_ID, Wallet, aprToApy } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -7,6 +8,7 @@ import { EPOCHS_PER_YEAR } from "~/utils";
 import { TokenInfo, TokenInfoMap, TokenListContainer } from "@solana/spl-token-registry";
 import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
 import { persist } from "zustand/middleware";
+import { StakePoolProxyProgram, getStakePoolProxyProgram } from "~/utils/stakePoolProxy";
 
 export const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 const NETWORK_FEE_LAMPORTS = 15000; // network fee + some for potential account creation
@@ -40,6 +42,7 @@ interface LstState {
   tokenDataMap: TokenDataMap | null;
   solUsdValue: number | null;
   slippagePct: SupportedSlippagePercent;
+  stakePoolProxyProgram: StakePoolProxyProgram | null;
 
   // Actions
   fetchLstState: (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => Promise<void>;
@@ -67,7 +70,7 @@ interface LstData {
   projectedApy: number;
   lstSolValue: number;
   solDepositFee: number;
-  accountData: solanaStakePool.StakePool
+  accountData: solanaStakePool.StakePool;
 }
 
 const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
@@ -81,6 +84,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
   tokenDataMap: null,
   solUsdValue: null,
   slippagePct: 1,
+  stakePoolProxyProgram: null,
 
   // Actions
   fetchLstState: async (args?: { connection?: Connection; wallet?: Wallet }) => {
@@ -91,6 +95,12 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
       if (!connection) throw new Error("Connection not found");
 
       const wallet = args?.wallet || get().wallet;
+
+      const provider = new AnchorProvider(connection, wallet ?? ({} as Wallet), {
+        ...AnchorProvider.defaultOptions(),
+        commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
+      });
+      const stakePoolProxyProgram = getStakePoolProxyProgram(provider);
 
       let lstData: LstData | null = null;
       let tokenDataMap: TokenDataMap | null = null;
@@ -171,6 +181,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
         lstData,
         tokenDataMap,
         solUsdValue,
+        stakePoolProxyProgram,
       });
     } catch (err) {
       console.error("error refreshing state: ", err);
@@ -193,8 +204,10 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
 });
 
 async function fetchLstData(connection: Connection): Promise<LstData> {
-
-  const [stakePoolInfo, stakePoolAccount] = await Promise.all([solanaStakePool.stakePoolInfo(connection, STAKE_POOL_ID), solanaStakePool.getStakePoolAccount(connection, STAKE_POOL_ID)]);
+  const [stakePoolInfo, stakePoolAccount] = await Promise.all([
+    solanaStakePool.stakePoolInfo(connection, STAKE_POOL_ID),
+    solanaStakePool.getStakePoolAccount(connection, STAKE_POOL_ID),
+  ]);
   const stakePool = stakePoolAccount.account.data;
 
   const poolTokenSupply = Number(stakePoolInfo.poolTokenSupply);

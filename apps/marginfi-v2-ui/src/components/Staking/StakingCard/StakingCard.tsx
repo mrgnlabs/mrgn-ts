@@ -6,7 +6,11 @@ import { PrimaryButton } from "./PrimaryButton";
 import { useLstStore } from "~/pages/stake";
 import { useWalletContext } from "~/components/useWalletContext";
 import {
+  ACCOUNT_SIZE,
+  TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountIdempotentInstruction,
+  createCloseAccountInstruction,
+  createInitializeAccountInstruction,
   getAssociatedTokenAddressSync,
   numeralFormatter,
   percentFormatter,
@@ -16,8 +20,11 @@ import { StakingModal } from "./StakingModal";
 import Image from "next/image";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import {
+  AddressLookupTableAccount,
+  Connection,
   Keypair,
   PublicKey,
+  SYSVAR_RENT_PUBKEY,
   Signer,
   SystemProgram,
   TransactionInstruction,
@@ -28,25 +35,29 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { SwapMode, useJupiter } from "@jup-ag/react-hook";
 import JSBI from "jsbi";
 import { usePrevious } from "~/utils";
-import { createJupiterApiClient, instanceOfSwapResponse } from "@jup-ag/api";
+import { createJupiterApiClient, instanceOfSwapInstructionsResponse, Instruction } from "@jup-ag/api";
 import { toast } from "react-toastify";
 import { SettingsModal } from "./SettingsModal";
 import { SettingsIcon } from "./SettingsIcon";
 import { SOL_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
 import { RefreshIcon } from "./RefreshIcon";
+import { StakePoolProxyProgram } from "~/utils/stakePoolProxy";
 
 const QUOTE_EXPIRY_MS = 30_000;
 
 export const StakingCard: FC = () => {
   const { connection } = useConnection();
   const { connected, wallet, walletAddress, openWalletSelector } = useWalletContext();
-  const [lstData, tokenDataMap, fetchLstState, slippagePct, setSlippagePct] = useLstStore((state) => [
-    state.lstData,
-    state.tokenDataMap,
-    state.fetchLstState,
-    state.slippagePct,
-    state.setSlippagePct,
-  ]);
+  const [lstData, tokenDataMap, fetchLstState, slippagePct, setSlippagePct, stakePoolProxyProgram] = useLstStore(
+    (state) => [
+      state.lstData,
+      state.tokenDataMap,
+      state.fetchLstState,
+      state.slippagePct,
+      state.setSlippagePct,
+      state.stakePoolProxyProgram,
+    ]
+  );
 
   const jupiterApiClient = createJupiterApiClient();
 
@@ -149,7 +160,7 @@ export const StakingCard: FC = () => {
   );
 
   const onMint = useCallback(async () => {
-    if (!lstData || !wallet || !walletAddress || !depositAmount) return;
+    if (!lstData || !wallet || !walletAddress || !depositAmount || !stakePoolProxyProgram) return;
     console.log("depositing", depositAmount, selectedMint);
 
     let sigs = [];
@@ -164,7 +175,7 @@ export const StakingCard: FC = () => {
       if (selectedMint.equals(SOL_MINT)) {
         const _depositAmount = depositAmount * 1e9;
 
-        const { instructions, signers } = makeDepositSolToStakePoolIx(
+        const { instructions, signers } = await makeDepositSolToStakePoolIx(
           lstData.accountData,
           lstData.poolAddress,
           walletAddress,
@@ -186,95 +197,100 @@ export const StakingCard: FC = () => {
 
         sigs.push(depositSig);
       } else {
-        if (!quoteResponseMeta?.quoteResponse) {
+        const quote = quoteResponseMeta?.original;
+        if (!quote) {
           throw new Error("Route not calculated yet");
         }
 
-        // Calculate updated quote
-        const newQuote = await jupiterApiClient.quoteGet({
-          amount: selectedMint.equals(SOL_MINT) ? 0 : rawDepositAmount, // add slippage
-          inputMint: selectedMint.toBase58(),
-          outputMint: SOL_MINT.toBase58(),
-          swapMode: SwapMode.ExactIn,
-          slippageBps: slippageBps,
+        const destinationTokenAccountKeypair = Keypair.generate();
+
+        const minimumRentExemption = await connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE);
+        const createWSolAccountIx = SystemProgram.createAccount({
+          fromPubkey: walletAddress,
+          newAccountPubkey: destinationTokenAccountKeypair.publicKey,
+          lamports: minimumRentExemption,
+          space: ACCOUNT_SIZE,
+          programId: TOKEN_PROGRAM_ID,
         });
-        const outAmount = Number.parseInt(newQuote.outAmount);
+        const initWSolAccountIx = createInitializeAccountInstruction(
+          destinationTokenAccountKeypair.publicKey,
+          SOL_MINT,
+          walletAddress
+        );
 
-        // outAmount delta check
-        const displayedOutAmount = JSBI.toNumber(quoteResponseMeta.quoteResponse.outAmount);
-        const outAmountIncrease = (outAmount - displayedOutAmount) / displayedOutAmount;
-        if (outAmountIncrease < -0.001) {
-          throw new Error("Price deviated too much from quote, please try again");
-        }
-
-        const finalAmount = Math.floor(outAmount * (1 - slippage));
-        const avoidSlippageIssues = await jupiterApiClient.quoteGet({
-          amount: finalAmount, // add slippage
-          inputMint: selectedMint.toBase58(),
-          outputMint: SOL_MINT.toBase58(),
-          swapMode: SwapMode.ExactOut,
-          slippageBps: slippageBps,
-        });
-
-        // price impact delta check
-        const priceImpact = Number(newQuote.priceImpactPct);
-        const displayedPriceImpact = Number(quoteResponseMeta.quoteResponse.priceImpactPct);
-        const priceImpactIncrease = (priceImpact - displayedPriceImpact) / displayedPriceImpact;
-        if (displayedPriceImpact > 0 && priceImpact >= 0.01 && priceImpactIncrease > 0.001) {
-          throw new Error("Price impact increased too much from quote, please try again");
-        }
-
-        const swapResult = await jupiterApiClient.swapPost({
+        // Craft swap tx
+        const swapInstructionsResult = await jupiterApiClient.swapInstructionsPost({
           swapRequest: {
-            quoteResponse: avoidSlippageIssues,
+            quoteResponse: quote,
             userPublicKey: walletAddress.toBase58(),
-            wrapAndUnwrapSol: true,
+            wrapAndUnwrapSol: false,
+            destinationTokenAccount: destinationTokenAccountKeypair.publicKey.toBase58(),
           },
         });
+        if (!instanceOfSwapInstructionsResponse(swapInstructionsResult)) throw new Error("Invalid swap response");
 
-        if (instanceOfSwapResponse(swapResult)) {
-          const { swapTransaction: swapTransactionSerialized } = swapResult;
-          const swapTransactionBuffer = Buffer.from(swapTransactionSerialized, "base64");
-          const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuffer);
+        const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
 
-          const { instructions, signers } = makeDepositSolToStakePoolIx(
-            lstData.accountData,
-            lstData.poolAddress,
-            wallet.publicKey,
-            finalAmount,
-            undefined
-          );
-
-          const depositMessage = new TransactionMessage({
-            instructions: instructions,
-            payerKey: walletAddress,
-            recentBlockhash: blockhash,
-          });
-
-          const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
-          depositTransaction.sign(signers);
-
-          const versionedTransactions = await wallet.signAllTransactions([swapTransaction, depositTransaction]);
-
-          const swapSig = await connection.sendTransaction(versionedTransactions[0]); // TODO: explicitly warn if second tx fails
-          const depositSig = await connection.sendTransaction(versionedTransactions[1]);
-          sigs.push(swapSig);
-          sigs.push(depositSig);
+        const swapInstructions = [...swapInstructionsResult.computeBudgetInstructions.map(jupIxToSolanaIx), createWSolAccountIx, initWSolAccountIx, ...swapInstructionsResult.setupInstructions.map(jupIxToSolanaIx), jupIxToSolanaIx(swapInstructionsResult.swapInstruction)];
+        if (swapInstructionsResult.cleanupInstruction) {
+          swapInstructions.push(jupIxToSolanaIx(swapInstructionsResult.cleanupInstruction));
         }
+
+        addressLookupTableAccounts.push(
+          ...(await getAdressLookupTableAccounts(connection, swapInstructionsResult.addressLookupTableAddresses))
+        );
+        
+        const swapTransactionMessage = new TransactionMessage({
+          instructions: swapInstructions,
+          payerKey: walletAddress,
+          recentBlockhash: blockhash,
+        }).compileToV0Message(addressLookupTableAccounts);
+        const swapTransaction = new VersionedTransaction(swapTransactionMessage);
+        swapTransaction.sign([destinationTokenAccountKeypair]);
+        console.log(swapTransaction.serialize().length)
+        
+        // Craft stake pool deposit tx
+        const { instructions, signers } = await makeDepositWSolToStakePoolIx(
+          lstData.accountData,
+          lstData.poolAddress,
+          wallet.publicKey,
+          destinationTokenAccountKeypair.publicKey,
+          stakePoolProxyProgram
+        );
+        const depositMessage = new TransactionMessage({
+          instructions: instructions,
+          payerKey: walletAddress,
+          recentBlockhash: blockhash,
+        });
+        const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
+        depositTransaction.sign(signers);
+
+        // Send txs
+        const versionedTransactions = await wallet.signAllTransactions([
+          swapTransaction,
+          depositTransaction,
+        ]);
+
+        const swapSig = await connection.sendTransaction(versionedTransactions[0]);
+        await connection.confirmTransaction(
+          {
+            blockhash,
+            lastValidBlockHeight,
+            signature: swapSig,
+          },
+          "confirmed"
+        ) // TODO: explicitly warn if second tx fails
+        const depositSig = await connection.sendTransaction(versionedTransactions[1]);
+        await connection.confirmTransaction(
+          {
+            blockhash,
+            lastValidBlockHeight,
+            signature: depositSig,
+          },
+          "confirmed"
+        )
       }
 
-      await Promise.all(
-        sigs.map((sig) =>
-          connection.confirmTransaction(
-            {
-              blockhash,
-              lastValidBlockHeight,
-              signature: sig,
-            },
-            "confirmed"
-          )
-        )
-      );
       toast.success("Minting complete");
     } catch (error: any) {
       if (error.logs) {
@@ -297,13 +313,11 @@ export const StakingCard: FC = () => {
     wallet,
     walletAddress,
     depositAmount,
+    stakePoolProxyProgram,
     selectedMint,
     connection,
-    quoteResponseMeta?.quoteResponse,
+    quoteResponseMeta?.original,
     jupiterApiClient,
-    rawDepositAmount,
-    slippageBps,
-    slippage,
     refresh,
     fetchLstState,
   ]);
@@ -523,7 +537,7 @@ export function makeTokenAmountFormatter(decimals: number) {
 /**
  * Creates instructions required to deposit sol to stake pool.
  */
-function makeDepositSolToStakePoolIx(
+async function makeDepositSolToStakePoolIx(
   stakePool: solanaStakePool.StakePool,
   stakePoolAddress: PublicKey,
   from: PublicKey,
@@ -582,6 +596,60 @@ function makeDepositSolToStakePoolIx(
 }
 
 /**
+ * Creates instructions required to deposit the whole balance of a wsol account to stake pool.
+ */
+async function makeDepositWSolToStakePoolIx(
+  stakePool: solanaStakePool.StakePool,
+  stakePoolAddress: PublicKey,
+  from: PublicKey,
+  sourceSolTokenAccount: PublicKey,
+  stakePoolProxyProgram: StakePoolProxyProgram
+) {
+  // Ephemeral SOL account just to receive the wSOL conversion
+  const userSolTransfer = new Keypair();
+  const signers: Signer[] = [userSolTransfer];
+  const instructions: TransactionInstruction[] = [];
+
+  // Create the ephemeral SOL account
+  instructions.push(createCloseAccountInstruction(sourceSolTokenAccount, userSolTransfer.publicKey, from));
+  // Create token account
+  const associatedAddress = getAssociatedTokenAddressSync(stakePool.poolMint, from);
+  instructions.push(
+    createAssociatedTokenAccountIdempotentInstruction(from, associatedAddress, from, stakePool.poolMint)
+  );
+  const destinationLstTokenAccount = associatedAddress;
+
+  const withdrawAuthority = findWithdrawAuthorityProgramAddress(
+    solanaStakePool.STAKE_POOL_PROGRAM_ID,
+    stakePoolAddress
+  );
+  instructions.push(
+    await stakePoolProxyProgram.methods
+      .depositAllSol()
+      .accountsStrict({
+        stakePool: stakePoolAddress,
+        reserveStakeAccount: stakePool.reserveStake,
+        lamportsFrom: userSolTransfer.publicKey,
+        poolTokensTo: destinationLstTokenAccount,
+        managerFeeAccount: stakePool.managerFeeAccount,
+        referrerPoolTokensAccount: destinationLstTokenAccount,
+        poolMint: stakePool.poolMint,
+        stakePoolWithdrawAuthority: withdrawAuthority,
+        stakePoolProgram: solanaStakePool.STAKE_POOL_PROGRAM_ID,
+        rent: SYSVAR_RENT_PUBKEY,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      })
+      .instruction()
+  );
+
+  return {
+    instructions,
+    signers,
+  };
+}
+
+/**
  * Generates the withdraw authority program address for the stake pool
  */
 function findWithdrawAuthorityProgramAddress(programId: PublicKey, stakePoolAddress: PublicKey) {
@@ -591,3 +659,40 @@ function findWithdrawAuthorityProgramAddress(programId: PublicKey, stakePoolAddr
   );
   return publicKey;
 }
+
+function jupIxToSolanaIx(ix: Instruction): TransactionInstruction {
+  return new TransactionInstruction({
+    programId: new PublicKey(ix.programId),
+    keys: ix.accounts.map((acc) => {
+      return {
+        pubkey: new PublicKey(acc.pubkey),
+        isSigner: acc.isSigner,
+        isWritable: acc.isWritable,
+      };
+    }),
+    data: Buffer.from(ix.data, "base64"),
+  });
+}
+
+export const getAdressLookupTableAccounts = async (
+  connection: Connection,
+  keys: string[]
+): Promise<AddressLookupTableAccount[]> => {
+  const addressLookupTableAccountInfos =
+    await connection.getMultipleAccountsInfo(
+      keys.map((key) => new PublicKey(key))
+    );
+
+  return addressLookupTableAccountInfos.reduce((acc, accountInfo, index) => {
+    const addressLookupTableAddress = keys[index];
+    if (accountInfo) {
+      const addressLookupTableAccount = new AddressLookupTableAccount({
+        key: new PublicKey(addressLookupTableAddress),
+        state: AddressLookupTableAccount.deserialize(accountInfo.data),
+      });
+      acc.push(addressLookupTableAccount);
+    }
+
+    return acc;
+  }, new Array<AddressLookupTableAccount>());
+};
