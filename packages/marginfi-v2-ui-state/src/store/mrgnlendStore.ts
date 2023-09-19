@@ -164,7 +164,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           const emissionTokenPriceData = priceMap[bank.emissionsMint.toBase58()];
 
           let userData;
-          if (wallet?.publicKey && nativeSolBalance) {
+          if (wallet?.publicKey) {
             const tokenAccount = tokenAccountMap!.get(bank.mint.toBase58());
             if (!tokenAccount) throw new Error(`Token account not found for ${bank.mint.toBase58()}`);
             userData = {
