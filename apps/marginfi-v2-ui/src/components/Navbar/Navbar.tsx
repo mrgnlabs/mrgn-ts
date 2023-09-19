@@ -225,15 +225,21 @@ const Navbar: FC = () => {
                     extendedBankInfos.find((b) => b.meta.tokenSymbol === "UXD")!.address
                   );
                 }
+
+                if (selectedAccount && extendedBankInfos?.find((b) => b.meta.tokenSymbol === "bSOL")?.info.rawBank) {
+                  selectedAccount!.withdrawEmissions(
+                    extendedBankInfos.find((b) => b.meta.tokenSymbol === "bSOL")!.address
+                  );
+                }
               }}
             >
-              {accountSummary.outstandingUxpEmissions === 0
-                ? `Lend UXD to earn UXP`
-                : `Claim ${
-                    accountSummary.outstandingUxpEmissions < 1
-                      ? accountSummary.outstandingUxpEmissions.toExponential(5)
-                      : numeralFormatter(accountSummary.outstandingUxpEmissions)
-                  } UXP`}
+              {/* {accountSummary.outstandingUxpEmissions === -1
+                                ? `Lend UXD to earn UXP`
+                                : `Claim ${accountSummary.outstandingUxpEmissions < 0
+                                    ? accountSummary.outstandingUxpEmissions.toExponential(5)
+                                    : numeralFormatter(accountSummary.outstandingUxpEmissions)
+                                } UXP`}*/}
+              { selectedAccount ? `Withdraw all rewards`: `` }
             </div>
 
             <Link href={"/points"} className={`${router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"} whitespace-nowrap`}>
