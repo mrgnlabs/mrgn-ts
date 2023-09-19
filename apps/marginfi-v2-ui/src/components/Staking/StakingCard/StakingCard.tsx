@@ -273,9 +273,8 @@ export const StakingCard: FC = () => {
         depositTransaction.sign(signers);
 
         // Send txs
-        const versionedTransactions = await wallet.signAllTransactions([swapTransaction, depositTransaction]);
-
-        const swapSig = await connection.sendTransaction(versionedTransactions[0]);
+        const signedSwapTransaction = await wallet.signTransaction(swapTransaction);
+        const swapSig = await connection.sendTransaction(signedSwapTransaction);
         await connection.confirmTransaction(
           {
             blockhash,
@@ -284,7 +283,9 @@ export const StakingCard: FC = () => {
           },
           "confirmed"
         ); // TODO: explicitly warn if second tx fails
-        const depositSig = await connection.sendTransaction(versionedTransactions[1]);
+        
+        const signedDepositTransaction = await wallet.signTransaction(depositTransaction);
+        const depositSig = await connection.sendTransaction(signedDepositTransaction);
         await connection.confirmTransaction(
           {
             blockhash,
