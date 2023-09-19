@@ -204,11 +204,11 @@ export const StakingCard: FC = () => {
 
         const destinationTokenAccountKeypair = Keypair.generate();
 
-        const minimumRentExemption = await connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE);
+        const minimumRentExemptionForTokenAccount = await connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE);
         const createWSolAccountIx = SystemProgram.createAccount({
           fromPubkey: walletAddress,
           newAccountPubkey: destinationTokenAccountKeypair.publicKey,
-          lamports: minimumRentExemption,
+          lamports: minimumRentExemptionForTokenAccount,
           space: ACCOUNT_SIZE,
           programId: TOKEN_PROGRAM_ID,
         });
@@ -231,7 +231,13 @@ export const StakingCard: FC = () => {
 
         const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
 
-        const swapInstructions = [...swapInstructionsResult.computeBudgetInstructions.map(jupIxToSolanaIx), createWSolAccountIx, initWSolAccountIx, ...swapInstructionsResult.setupInstructions.map(jupIxToSolanaIx), jupIxToSolanaIx(swapInstructionsResult.swapInstruction)];
+        const swapInstructions = [
+          ...swapInstructionsResult.computeBudgetInstructions.map(jupIxToSolanaIx),
+          createWSolAccountIx,
+          initWSolAccountIx,
+          ...swapInstructionsResult.setupInstructions.map(jupIxToSolanaIx),
+          jupIxToSolanaIx(swapInstructionsResult.swapInstruction),
+        ];
         if (swapInstructionsResult.cleanupInstruction) {
           swapInstructions.push(jupIxToSolanaIx(swapInstructionsResult.cleanupInstruction));
         }
@@ -239,7 +245,7 @@ export const StakingCard: FC = () => {
         addressLookupTableAccounts.push(
           ...(await getAdressLookupTableAccounts(connection, swapInstructionsResult.addressLookupTableAddresses))
         );
-        
+
         const swapTransactionMessage = new TransactionMessage({
           instructions: swapInstructions,
           payerKey: walletAddress,
@@ -255,7 +261,8 @@ export const StakingCard: FC = () => {
           lstData.poolAddress,
           wallet.publicKey,
           destinationTokenAccountKeypair.publicKey,
-          stakePoolProxyProgram
+          stakePoolProxyProgram,
+          minimumRentExemptionForTokenAccount
         );
         const depositMessage = new TransactionMessage({
           instructions: instructions,
@@ -266,10 +273,7 @@ export const StakingCard: FC = () => {
         depositTransaction.sign(signers);
 
         // Send txs
-        const versionedTransactions = await wallet.signAllTransactions([
-          swapTransaction,
-          depositTransaction,
-        ]);
+        const versionedTransactions = await wallet.signAllTransactions([swapTransaction, depositTransaction]);
 
         const swapSig = await connection.sendTransaction(versionedTransactions[0]);
         await connection.confirmTransaction(
@@ -279,7 +283,7 @@ export const StakingCard: FC = () => {
             signature: swapSig,
           },
           "confirmed"
-        ) // TODO: explicitly warn if second tx fails
+        ); // TODO: explicitly warn if second tx fails
         const depositSig = await connection.sendTransaction(versionedTransactions[1]);
         await connection.confirmTransaction(
           {
@@ -288,7 +292,7 @@ export const StakingCard: FC = () => {
             signature: depositSig,
           },
           "confirmed"
-        )
+        );
       }
 
       toast.success("Minting complete");
@@ -603,7 +607,8 @@ async function makeDepositWSolToStakePoolIx(
   stakePoolAddress: PublicKey,
   from: PublicKey,
   sourceSolTokenAccount: PublicKey,
-  stakePoolProxyProgram: StakePoolProxyProgram
+  stakePoolProxyProgram: StakePoolProxyProgram,
+  minimumRentExemptionForTokenAccount: number
 ) {
   // Ephemeral SOL account just to receive the wSOL conversion
   const userSolTransfer = new Keypair();
@@ -612,6 +617,13 @@ async function makeDepositWSolToStakePoolIx(
 
   // Create the ephemeral SOL account
   instructions.push(createCloseAccountInstruction(sourceSolTokenAccount, userSolTransfer.publicKey, from));
+  instructions.push(
+    SystemProgram.transfer({
+      fromPubkey: userSolTransfer.publicKey,
+      toPubkey: from,
+      lamports: minimumRentExemptionForTokenAccount,
+    })
+  );
   // Create token account
   const associatedAddress = getAssociatedTokenAddressSync(stakePool.poolMint, from);
   instructions.push(
@@ -678,10 +690,9 @@ export const getAdressLookupTableAccounts = async (
   connection: Connection,
   keys: string[]
 ): Promise<AddressLookupTableAccount[]> => {
-  const addressLookupTableAccountInfos =
-    await connection.getMultipleAccountsInfo(
-      keys.map((key) => new PublicKey(key))
-    );
+  const addressLookupTableAccountInfos = await connection.getMultipleAccountsInfo(
+    keys.map((key) => new PublicKey(key))
+  );
 
   return addressLookupTableAccountInfos.reduce((acc, accountInfo, index) => {
     const addressLookupTableAddress = keys[index];
