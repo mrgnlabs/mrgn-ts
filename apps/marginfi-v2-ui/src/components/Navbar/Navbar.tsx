@@ -239,7 +239,8 @@ const Navbar: FC = () => {
                                     ? accountSummary.outstandingUxpEmissions.toExponential(5)
                                     : numeralFormatter(accountSummary.outstandingUxpEmissions)
                                 } UXP`}*/}
-              { selectedAccount ? `Withdraw all rewards`: `` }
+              {/* { selectedAccount ? `Withdraw all rewards`: `` } */}
+              {`withdraw all rewards`}
             </div>
 
             <Link href={"/points"} className={`${router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"} whitespace-nowrap`}>
