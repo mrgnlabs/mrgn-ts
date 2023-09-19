@@ -153,7 +153,7 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
     depositPoints,
     borrowPoints,
     referralPoints,
-    referralLink: pointsData.referral_link,
+    referralLink: userReferralCode,
     isCustomReferralLink,
     userRank,
     totalPoints,
