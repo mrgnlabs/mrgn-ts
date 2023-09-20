@@ -151,3 +151,18 @@ a {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+@keyframes wavyGradientAnimation {
+  0% {
+      background-position: 200% 0;
+  }
+  100% {
+      background-position: 0 0;
+  }
+}
+
+.wavy-gradient-bg {
+  animation: wavyGradientAnimation 2s linear infinite;
+  background: linear-gradient(90deg, #808080, #DCE85DCC, #808080);
+  background-size: 200% 100%;
+}

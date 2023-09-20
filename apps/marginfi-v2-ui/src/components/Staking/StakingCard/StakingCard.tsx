@@ -45,6 +45,8 @@ import { StakePoolProxyProgram } from "~/utils/stakePoolProxy";
 
 const QUOTE_EXPIRY_MS = 30_000;
 
+type OngoingAction = "swapping" | "minting";
+
 export const StakingCard: FC = () => {
   const { connection } = useConnection();
   const { connected, wallet, walletAddress, openWalletSelector } = useWalletContext();
@@ -61,7 +63,7 @@ export const StakingCard: FC = () => {
 
   const jupiterApiClient = createJupiterApiClient();
 
-  const [swapping, setSwapping] = useState<boolean>(false);
+  const [ongoingAction, setOngoingAction] = useState<OngoingAction | null>(null);
   const [refreshingQuotes, setRefreshingQuotes] = useState<boolean>(false);
   const [depositAmount, setDepositAmount] = useState<number | null>(null);
   const [selectedMint, setSelectedMint] = useState<PublicKey>(SOL_MINT);
@@ -165,14 +167,13 @@ export const StakingCard: FC = () => {
 
     let sigs = [];
 
-    setSwapping(true);
-
     const {
       value: { blockhash, lastValidBlockHeight },
     } = await connection.getLatestBlockhashAndContext();
 
     try {
       if (selectedMint.equals(SOL_MINT)) {
+        setOngoingAction("minting");
         const _depositAmount = depositAmount * 1e9;
 
         const { instructions, signers } = await makeDepositSolToStakePoolIx(
@@ -197,6 +198,7 @@ export const StakingCard: FC = () => {
 
         sigs.push(depositSig);
       } else {
+        setOngoingAction("swapping");
         const quote = quoteResponseMeta?.original;
         if (!quote) {
           throw new Error("Route not calculated yet");
@@ -253,8 +255,7 @@ export const StakingCard: FC = () => {
         }).compileToV0Message(addressLookupTableAccounts);
         const swapTransaction = new VersionedTransaction(swapTransactionMessage);
         swapTransaction.sign([destinationTokenAccountKeypair]);
-        console.log(swapTransaction.serialize().length)
-        
+
         // Craft stake pool deposit tx
         const { instructions, signers } = await makeDepositWSolToStakePoolIx(
           lstData.accountData,
@@ -283,7 +284,9 @@ export const StakingCard: FC = () => {
           },
           "confirmed"
         ); // TODO: explicitly warn if second tx fails
-        
+
+        setOngoingAction("minting");
+
         const signedDepositTransaction = await wallet.signTransaction(depositTransaction);
         const depositSig = await connection.sendTransaction(signedDepositTransaction);
         await connection.confirmTransaction(
@@ -311,7 +314,7 @@ export const StakingCard: FC = () => {
     } finally {
       await Promise.all([refresh(), fetchLstState()]);
       setDepositAmount(0);
-      setSwapping(false);
+      setOngoingAction(null);
     }
   }, [
     lstData,
@@ -387,7 +390,7 @@ export const StakingCard: FC = () => {
           decimalScale={9}
           onValueChange={onChange}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && connected && depositAmount !== 0 && !refreshingQuotes && !swapping) {
+            if (e.key === "Enter" && connected && depositAmount !== 0 && !refreshingQuotes && !ongoingAction) {
               onMint();
             }
           }}
@@ -441,9 +444,8 @@ export const StakingCard: FC = () => {
             $LST
           </Typography>
         </div>
-        <div className="py-5">
+        <div className="h-[36px] my-5">
           <PrimaryButton
-            className="h-[36px]"
             disabled={
               connected &&
               (!depositAmount ||
@@ -451,17 +453,12 @@ export const StakingCard: FC = () => {
                 lstOutAmount === 0 ||
                 lstOutAmount === null ||
                 refreshingQuotes ||
-                swapping)
+                !!ongoingAction)
             }
+            loading={connected && !!ongoingAction}
             onClick={connected ? onMint : openWalletSelector}
           >
-            {connected && (swapping || refreshingQuotes) ? (
-              <CircularProgress size={20} thickness={6} sx={{ color: "#DCE85D" }} />
-            ) : connected ? (
-              "Mint"
-            ) : (
-              "Connect"
-            )}
+            {!connected ? "connect" : ongoingAction ? `${ongoingAction}...` : "mint"}
           </PrimaryButton>
         </div>
         <div className="flex flex-row justify-between w-full my-auto">

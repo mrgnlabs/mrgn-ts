@@ -63,7 +63,9 @@ export const SettingsModal: FC<SettingsModalProps> = ({
             );
           })}
         </div>
-        <PrimaryButton onClick={() => onSaveSettings()}>Save</PrimaryButton>
+        <div className="h-[36px]">
+          <PrimaryButton onClick={() => onSaveSettings()}>Save</PrimaryButton>
+        </div>
       </div>
     </Modal>
   );

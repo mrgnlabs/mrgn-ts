@@ -1,28 +1,27 @@
 import React, { FC, ReactNode } from "react";
-import { Button, ButtonProps } from "@mui/material";
 
 // Put this in common folder in the future when all is merged
 
-interface PrimaryButtonProps extends ButtonProps {
+interface PrimaryButtonProps {
   children?: ReactNode;
-  bgColor?: string;
+  loading?: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
 }
 
-export const PrimaryButton: FC<PrimaryButtonProps> = ({ children, disabled, bgColor, ...otherProps }) => (
-  <Button
-    style={{
-      width: "100%",
-      textTransform: "capitalize",
-      backgroundColor: disabled ? "gray" : bgColor ? bgColor : "rgb(227, 227, 227)",
-      border: disabled ? "gray" : bgColor ? "solid 1px rgb(227, 227, 227)" : "solid 1px transparent",
-      color: bgColor === "rgba(0,0,0,0)" && !disabled ? "rgb(227, 227, 227)" : "black",
-      fontWeight: 400,
-      fontFamily: "Aeonik Pro",
-      zIndex: 10,
-    }}
-    {...otherProps}
-    disabled={disabled}
-  >
-    {children}
-  </Button>
+export const PrimaryButton: FC<PrimaryButtonProps> = ({ children, disabled, loading, onClick }) => (
+  <a onClick={disabled ? undefined : onClick}>
+    <div
+      className={`w-full h-full flex flex-row justify-center items-center capitalize rounded-[3px] font-aeonik font-normal z-10 ${
+        loading
+          ? "wavy-gradient-bg text-black"
+          : disabled
+          ? "bg-[#808080] text-black"
+          : "bg-[#e3e3e3] text-black cursor-pointer"
+      }
+      `}
+    >
+      {children}
+    </div>
+  </a>
 );
