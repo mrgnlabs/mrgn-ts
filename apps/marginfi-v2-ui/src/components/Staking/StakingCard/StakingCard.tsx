@@ -42,6 +42,7 @@ import { SettingsIcon } from "./SettingsIcon";
 import { SOL_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
 import { RefreshIcon } from "./RefreshIcon";
 import { StakePoolProxyProgram } from "~/utils/stakePoolProxy";
+import { Spinner } from "~/components/Spinner";
 
 const QUOTE_EXPIRY_MS = 30_000;
 
@@ -458,7 +459,15 @@ export const StakingCard: FC = () => {
             loading={connected && !!ongoingAction}
             onClick={connected ? onMint : openWalletSelector}
           >
-            {!connected ? "connect" : ongoingAction ? `${ongoingAction}...` : "mint"}
+            {!connected ? (
+              "connect"
+            ) : ongoingAction ? (
+              `${ongoingAction}...`
+            ) : refreshingQuotes ? (
+              <Spinner />
+            ) : (
+              "mint"
+            )}
           </PrimaryButton>
         </div>
         <div className="flex flex-row justify-between w-full my-auto">
