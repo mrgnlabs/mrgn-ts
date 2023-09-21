@@ -3815,6 +3815,11 @@
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-4.0.1-alpha.0.tgz#6c9fd02e607830206802b5e372fd0c2ec5a6a0c1"
   integrity sha512-H9hyf9K7sXMPd0++/hQ5Fs2eVgi2w9wtJP0YmGFLJMjF8zHYDYqQ0ZCdgmLLSp/vrEjmOHbbiLJT2psuV5W+bw==
 
+"@jup-ag/api@^6.0.6", "@jup-ag/api@~6.0.6":
+  version "6.0.6"
+  resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.6.tgz#f0f838aaf8ca5964d7cb9ff24535599bf4d03813"
+  integrity sha512-wGp3FjT+WNdd5TzsWaKr2a2rQ2FgIyaV6sq8L76R8KVYxH7TfCY/BZwhcij6YhxHGjxrF8j7qI6ZPpmUTICpnA==
+
 "@jup-ag/common@4.0.0-beta.21":
   version "4.0.0-beta.21"
   resolved "https://registry.yarnpkg.com/@jup-ag/common/-/common-4.0.0-beta.21.tgz#416b3fc75a3e0a3055dfb5fc404cb71edcd6a60b"
@@ -3830,7 +3835,7 @@
     bs58 "^4.0.1"
     jsbi "4.3.0"
 
-"@jup-ag/common@^6.0.0-beta.2":
+"@jup-ag/common@6.0.0-beta.2", "@jup-ag/common@^6.0.0-beta.2":
   version "6.0.0-beta.2"
   resolved "https://registry.yarnpkg.com/@jup-ag/common/-/common-6.0.0-beta.2.tgz#64cce00a04299b8047c1fa5e0c821b0328cef591"
   integrity sha512-KHXKs+6aE+Y4rtzisIeZcC2j4iRVJeS0mX8H3wIBQ2D/FQtVrZp1mI6A/kA3ifPad1jmjWTLPLTwLAcf1Y/Fjw==
@@ -4065,6 +4070,17 @@
     "@jup-ag/core" "4.0.0-beta.3-fbed36"
     "@solana/spl-token" "0.1.8"
     cross-fetch "3.1.5"
+
+"@jup-ag/react-hook@^6.0.0-beta.2":
+  version "6.0.0-beta.2"
+  resolved "https://registry.yarnpkg.com/@jup-ag/react-hook/-/react-hook-6.0.0-beta.2.tgz#1effec260c488d862474a1b33c7324f4ca5ee2c4"
+  integrity sha512-vWvjn/uy54ri2bJ/086NlRM7hkL92ZU5iFiLlL5V1v21ZdmKwof6J30hShf/l3fTbv8IjUWIsLpU3EUVyuO26w==
+  dependencies:
+    "@jup-ag/api" "~6.0.6"
+    "@jup-ag/common" "6.0.0-beta.2"
+    "@mercurial-finance/optimist" "0.3.0"
+    "@solana/spl-token" "0.1.8"
+    superstruct "~1.0.3"
 
 "@jup-ag/whirlpools-sdk@0.7.2":
   version "0.7.2"
@@ -6222,6 +6238,18 @@
   dependencies:
     buffer "~6.0.3"
 
+"@solana/spl-stake-pool@^0.6.5":
+  version "0.6.5"
+  resolved "https://registry.yarnpkg.com/@solana/spl-stake-pool/-/spl-stake-pool-0.6.5.tgz#edb9985df9a7c5b772e379c0435545506fc526a7"
+  integrity sha512-gAYjX4LlRem3Bje1csZOOBStX8wAH8b8tu4sublUTIoJxLMdEbXqnwc8RJ2lAsmFkjxxomEM9Hk65F8jcvv15A==
+  dependencies:
+    "@project-serum/borsh" "^0.2.2"
+    "@solana/buffer-layout" "^4.0.0"
+    "@solana/spl-token" "^0.1.8"
+    "@solana/web3.js" "^1.30.2"
+    bn.js "^5.2.0"
+    buffer "^6.0.3"
+
 "@solana/spl-token-registry@0.2.1105":
   version "0.2.1105"
   resolved "https://registry.yarnpkg.com/@solana/spl-token-registry/-/spl-token-registry-0.2.1105.tgz#460fc363096aa59c5150f67736cddc1d5a810e8a"
@@ -6229,7 +6257,7 @@
   dependencies:
     cross-fetch "3.0.6"
 
-"@solana/spl-token-registry@^0.2.1107", "@solana/spl-token-registry@^0.2.3225", "@solana/spl-token-registry@^0.2.4484", "@solana/spl-token-registry@~0.2.1105":
+"@solana/spl-token-registry@^0.2.1107", "@solana/spl-token-registry@^0.2.3225", "@solana/spl-token-registry@^0.2.4484", "@solana/spl-token-registry@^0.2.4574", "@solana/spl-token-registry@~0.2.1105":
   version "0.2.4574"
   resolved "https://registry.yarnpkg.com/@solana/spl-token-registry/-/spl-token-registry-0.2.4574.tgz#13f4636b7bec90d2bb43bbbb83512cd90d2ce257"
   integrity sha512-JzlfZmke8Rxug20VT/VpI2XsXlsqMlcORIUivF+Yucj7tFi7A0dXG7h+2UnD0WaZJw8BrUz2ABNkUnv89vbv1A==
@@ -20734,7 +20762,7 @@ superstruct@^0.15.4:
   resolved "https://registry.yarnpkg.com/superstruct/-/superstruct-0.15.5.tgz#0f0a8d3ce31313f0d84c6096cd4fa1bfdedc9dab"
   integrity sha512-4AOeU+P5UuE/4nOUkmcQdW5y7i9ndt1cQd/3iUe+LTz3RxESf/W/5lg4B74HbDMMv8PHnPnGCQFH45kBcrQYoQ==
 
-superstruct@^1.0.3:
+superstruct@^1.0.3, superstruct@~1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/superstruct/-/superstruct-1.0.3.tgz#de626a5b49c6641ff4d37da3c7598e7a87697046"
   integrity sha512-8iTn3oSS8nRGn+C2pgXSKPI3jmpm6FExNazNpjvqS6ZUJQCej3PUXEKM8NjHBOs54ExM+LPW/FBRhymrdcCiSg==

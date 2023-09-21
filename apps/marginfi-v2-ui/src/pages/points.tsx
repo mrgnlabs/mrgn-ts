@@ -65,7 +65,7 @@ const Points: FC = () => {
 
   return (
     <>
-      <PageHeader text="points" />
+      <PageHeader>points</PageHeader>
       <div className="flex flex-col items-center w-full sm:w-4/5 max-w-7xl gap-5 py-[64px] sm:py-[32px]">
         {!connected ? (
           <ConnectWallet />

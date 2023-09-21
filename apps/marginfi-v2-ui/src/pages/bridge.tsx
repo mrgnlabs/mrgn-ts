@@ -5,7 +5,7 @@ import config from "~/config";
 import Script from "next/script";
 import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
-import { PageHeaderBridge } from "~/components/PageHeader";
+import { PageHeader } from "~/components/PageHeader";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
 import { useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/components/useWalletContext";
@@ -166,7 +166,19 @@ const BridgePage = () => {
 
   return (
     <>
-      <PageHeaderBridge />
+      <PageHeader>
+        <div className="flex flex-row gap-1 pt-3">
+          <span>bridge</span>
+          <div className="flex flex-row items-center gap-1">
+            <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
+            {/* Different components here by word so spacing can be the same */}
+            <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
+            <span className="text-sm h-[48px] pt-[28px] bg-mayan-gradient-colors bg-clip-text text-transparent">
+              Mayan
+            </span>
+          </div>
+        </div>
+      </PageHeader>
       <div className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-7xl">
         <div className="text-[#fff] text-3xl min-w-[600px] text-center">
           Zero fees. <span className="text-[#DCE85D]">Always.</span>
