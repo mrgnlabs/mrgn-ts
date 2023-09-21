@@ -296,7 +296,7 @@ const Navbar: FC = () => {
                 toast.success("Withdrawal successful");
               }}
             >
-              withdraw all rewards
+              collect rewards
               {bankAddressesWithEmissions.length > 0 && (
                 <span className="relative flex h-1 w-1">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#DCE85D] opacity-75"></span>
