@@ -11,6 +11,7 @@
     "lint-fix": "yarn lint --fix"
   },
   "dependencies": {
+    "@bonfida/spl-name-service": "^1.1.1",
     "@coral-xyz/borsh": "^0.28.0",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
