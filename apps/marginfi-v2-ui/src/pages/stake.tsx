@@ -1,13 +1,15 @@
 import { JupiterProvider } from "@jup-ag/react-hook";
 import { createJupiterStore } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import { PageHeader } from "~/components/PageHeader";
 import { StakingStats } from "~/components/Staking";
 import { StakingCard } from "~/components/Staking/StakingCard/StakingCard";
 import { useWalletContext } from "~/components/useWalletContext";
 import { createLstStore } from "~/store/lstStore";
 import { usePrevious } from "~/utils";
+import { Features, isActive } from "~/utils/featureGates";
 
 export const useLstStore = createLstStore();
 export const useJupiterStore = createJupiterStore();
@@ -15,6 +17,17 @@ export const useJupiterStore = createJupiterStore();
 const StakePage = () => {
   const { wallet, walletAddress } = useWalletContext();
   const { connection } = useConnection();
+  const [mounted, setMounted] = useState(false);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (router.pathname.startsWith('/stake') && !isActive(Features.STAKE)) {
+      router.push('/');
+    } else {
+      setMounted(true);
+    }
+  }, [router]);
 
   const [fetchLstState, setIsRefreshingStore, userDataFetched, resetUserData] = useLstStore((state) => [
     state.fetchLstState,
@@ -47,6 +60,8 @@ const StakePage = () => {
       resetUserData();
     }
   }, [walletAddress, userDataFetched, resetUserData]);
+
+  if (!mounted) return null;
 
   return (
     <JupiterProvider connection={connection}>

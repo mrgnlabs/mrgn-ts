@@ -13,6 +13,7 @@ import { Badge } from "@mui/material";
 import { useFirebaseAccount } from "../useFirebaseAccount";
 import { groupedNumberFormatterDyn, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { useWalletContext } from "../useWalletContext";
+import { Features, isActive } from "~/utils/featureGates";
 
 // @todo implement second pretty navbar row
 const Navbar: FC = () => {
@@ -143,7 +144,7 @@ const Navbar: FC = () => {
               </Link>
             </Badge>
 
-            <Badge
+            {isActive(Features.STAKE) && <Badge
               anchorOrigin={{
                 vertical: "bottom",
                 horizontal: "right",
@@ -163,7 +164,7 @@ const Navbar: FC = () => {
               >
                 stake
               </Link>
-            </Badge>
+            </Badge>}
 
             <Badge
               anchorOrigin={{
