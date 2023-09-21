@@ -80,7 +80,7 @@ const Points: FC = () => {
 
   useEffect(() => {
     fetchLeaderboardData(connection).then(setLeaderboardData); // TODO: cache leaderboard and avoid call
-  }, [connected, walletAddress]); // Dependency array to re-fetch when these variables change
+  }, [connection, connected, walletAddress]); // Dependency array to re-fetch when these variables change
 
   return (
     <>
