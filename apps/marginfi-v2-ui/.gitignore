@@ -39,3 +39,6 @@ next-env.d.ts
 
 # turbo
 .turbo
+
+# Sentry Auth Token
+.sentryclirc

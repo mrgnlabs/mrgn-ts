@@ -25,6 +25,7 @@
     "@mui/material": "^5.11.2",
     "@next/bundle-analyzer": "^13.4.19",
     "@next/font": "13.1.1",
+    "@sentry/nextjs": "^7.68.0",
     "@socialgouv/matomo-next": "^1.4.0",
     "@solana/spl-stake-pool": "^0.6.5",
     "@solana/spl-token-registry": "^0.2.4574",
