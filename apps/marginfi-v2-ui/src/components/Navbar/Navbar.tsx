@@ -255,6 +255,17 @@ const Navbar: FC = () => {
               </Link>
             </Badge>
 
+            <Link
+              href={"/points"}
+              className={`${
+                router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"
+              } whitespace-nowrap`}
+            >
+              {connected && currentFirebaseUser
+                ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
+                : "points"}
+            </Link>
+
             <Badge
               anchorOrigin={{
                 vertical: "bottom",
@@ -304,17 +315,6 @@ const Navbar: FC = () => {
                 </span>
               )}
             </div>
-
-            <Link
-              href={"/points"}
-              className={`${
-                router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"
-              } whitespace-nowrap`}
-            >
-              {connected && currentFirebaseUser
-                ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
-                : "points"}
-            </Link>
 
             <WalletButton />
           </div>
