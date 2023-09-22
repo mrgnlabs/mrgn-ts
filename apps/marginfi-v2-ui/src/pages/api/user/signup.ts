@@ -31,6 +31,11 @@ export interface SignupRequest {
 export default async function handler(req: NextApiRequest<SignupRequest>, res: any) {
   const { method, signedAuthDataRaw } = req.body;
 
+  Sentry.setContext("signup_args", {
+    method,
+    signedAuthDataRaw,
+  });
+
   let signer;
   let payload;
   try {

@@ -101,7 +101,7 @@ async function signup(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ signedAuthDataRaw }),
+    body: JSON.stringify({ method: signingMethod, signedAuthDataRaw }),
   });
   const data = await response.json();
 
