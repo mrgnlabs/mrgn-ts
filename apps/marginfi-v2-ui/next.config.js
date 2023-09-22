@@ -81,7 +81,7 @@ module.exports = withSentryConfig(
     silent: true,
 
     org: "mrgn-labs",
-    project: "mrgnlend-serverless",
+    project: "marginfi-v2-ui",
   },
   {
     // For all available options, see:
