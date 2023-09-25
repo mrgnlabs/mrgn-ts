@@ -7,6 +7,7 @@ import { AssetRowAction } from "./AssetRowAction";
 import { styled } from "@mui/material/styles";
 import Tooltip, { TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import { PublicKey } from "@solana/web3.js";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import Badge from "@mui/material/Badge";
 import { isWholePosition } from "~/utils";
@@ -80,7 +81,8 @@ const AssetRow: FC<{
   showHotkeyBadges,
   badgeContent,
 }) => {
-  const { connected, openWalletSelector } = useWalletContext();
+  const { connected, openWalletSelector, walletContextState } = useWalletContext();
+  const adapter = walletContextState.wallet?.adapter;
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
@@ -218,7 +220,18 @@ const AssetRow: FC<{
           toastId: BORROW_OR_LEND_TOAST_ID,
         });
 
-        _marginfiAccount = await mfiClient.createMarginfiAccount();
+        // If the connected wallet is SquadsX, use the ephemeral signer address provided by the wallet to create the marginfi account.
+        const ephemeralSignerAddress =
+          adapter &&
+          "standard" in adapter &&
+          "fuse:getEphemeralSigners" in adapter.wallet.features &&
+          // @ts-ignore
+          (await adapter.wallet.features["fuse:getEphemeralSigners"].getEphemeralSigners(1))[0];
+        const ephemeralSignerPubkey = ephemeralSignerAddress ? new PublicKey(ephemeralSignerAddress) : undefined;
+
+        _marginfiAccount = await mfiClient.createMarginfiAccount(undefined, {
+          newAccountKey: ephemeralSignerPubkey,
+        });
         toast.update(BORROW_OR_LEND_TOAST_ID, {
           render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol}`,
         });
@@ -308,6 +321,7 @@ const AssetRow: FC<{
     nativeSolBalance,
     fetchMrgnlendState,
     setIsRefreshingStore,
+    adapter,
   ]);
 
   return (
@@ -410,35 +424,37 @@ const AssetRow: FC<{
         }}
       >
         <div className="h-full w-full flex justify-end items-center gap-3">
-          {bank.info.state.emissionsRate > 0 && EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol) !== undefined && isInLendingMode && (
-            <div className="w-1/2 flex justify-center sm:justify-end">
-              <HtmlTooltip
-                title={
-                  <React.Fragment>
-                    <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                      Liquidity rewards
-                    </Typography>
-                    {`${percentFormatter.format(bank.info.state.lendingRate)} Supply APY + ${percentFormatter.format(
-                      bank.info.state.emissionsRate
-                    )} ${EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenSymbol} rewards.`}
-                    <br />
-                    <a href="https://docs.marginfi.com">
-                      <u>Learn more.</u>
-                    </a>
-                  </React.Fragment>
-                }
-                placement="left"
-              >
-                <Image
-                  src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
-                  alt="info"
-                  height={16}
-                  width={16}
-                  className="pulse"
-                />
-              </HtmlTooltip>
-            </div>
-          )}
+          {bank.info.state.emissionsRate > 0 &&
+            EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol) !== undefined &&
+            isInLendingMode && (
+              <div className="w-1/2 flex justify-center sm:justify-end">
+                <HtmlTooltip
+                  title={
+                    <React.Fragment>
+                      <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                        Liquidity rewards
+                      </Typography>
+                      {`${percentFormatter.format(bank.info.state.lendingRate)} Supply APY + ${percentFormatter.format(
+                        bank.info.state.emissionsRate
+                      )} ${EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenSymbol} rewards.`}
+                      <br />
+                      <a href="https://docs.marginfi.com">
+                        <u>Learn more.</u>
+                      </a>
+                    </React.Fragment>
+                  }
+                  placement="left"
+                >
+                  <Image
+                    src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
+                    alt="info"
+                    height={16}
+                    width={16}
+                    className="pulse"
+                  />
+                </HtmlTooltip>
+              </div>
+            )}
           <div
             className="w-[40%] flex justify-end"
             style={{
