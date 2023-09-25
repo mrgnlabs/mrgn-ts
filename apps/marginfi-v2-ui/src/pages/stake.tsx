@@ -4,6 +4,7 @@ import { Typography } from "@mui/material";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { OverlaySpinner } from "~/components/OverlaySpinner";
 import { PageHeader } from "~/components/PageHeader";
 import { StakingStats } from "~/components/Staking";
 import { StakingCard } from "~/components/Staking/StakingCard/StakingCard";
@@ -30,7 +31,9 @@ const StakePage = () => {
     }
   }, [router]);
 
-  const [fetchLstState, setIsRefreshingStore, userDataFetched, resetUserData] = useLstStore((state) => [
+  const [initialized, isRefreshingStore, fetchLstState, setIsRefreshingStore, userDataFetched, resetUserData] = useLstStore((state) => [
+    state.initialized,
+    state.isRefreshingStore,
     state.fetchLstState,
     state.setIsRefreshingStore,
     state.userDataFetched,
@@ -86,6 +89,7 @@ const StakePage = () => {
           </Typography>
         </div>
       </div>
+      <OverlaySpinner fetching={!initialized || isRefreshingStore} />
     </JupiterProvider>
   );
 };

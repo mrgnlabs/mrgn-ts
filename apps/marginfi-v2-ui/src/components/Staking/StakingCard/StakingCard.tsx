@@ -1,5 +1,5 @@
 import { Dispatch, FC, SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
-import { TextField, Typography, CircularProgress } from "@mui/material";
+import { TextField, Typography } from "@mui/material";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { WalletIcon } from "./WalletIcon";
 import { PrimaryButton } from "./PrimaryButton";
@@ -12,8 +12,10 @@ import {
   createCloseAccountInstruction,
   createInitializeAccountInstruction,
   getAssociatedTokenAddressSync,
+  nativeToUi,
   numeralFormatter,
   percentFormatter,
+  uiToNative,
 } from "@mrgnlabs/mrgn-common";
 import { ArrowDropDown } from "@mui/icons-material";
 import { StakingModal } from "./StakingModal";
@@ -26,6 +28,8 @@ import {
   PublicKey,
   SYSVAR_RENT_PUBKEY,
   Signer,
+  StakeAuthorizationLayout,
+  StakeProgram,
   SystemProgram,
   TransactionInstruction,
   TransactionMessage,
@@ -43,61 +47,99 @@ import { SOL_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
 import { RefreshIcon } from "./RefreshIcon";
 import { StakePoolProxyProgram } from "~/utils/stakePoolProxy";
 import { Spinner } from "~/components/Spinner";
+import { StakeData } from "~/utils/stakeAcounts";
+import BN from "bn.js";
 
 const QUOTE_EXPIRY_MS = 30_000;
+const DEFAULT_DEPOSIT_OPTION: DepositOption = { type: "native", amount: new BN(0), maxAmount: new BN(0) };
 
 type OngoingAction = "swapping" | "minting";
+
+export type DepositOption =
+  | {
+      type: "native";
+      amount: BN;
+      maxAmount: BN;
+    }
+  | {
+      type: "token";
+      tokenData: TokenData;
+      amount: BN;
+    }
+  | {
+      type: "stake";
+      stakeData: StakeData;
+    };
 
 export const StakingCard: FC = () => {
   const { connection } = useConnection();
   const { connected, wallet, walletAddress, openWalletSelector } = useWalletContext();
-  const [lstData, tokenDataMap, fetchLstState, slippagePct, setSlippagePct, stakePoolProxyProgram] = useLstStore(
-    (state) => [
-      state.lstData,
-      state.tokenDataMap,
-      state.fetchLstState,
-      state.slippagePct,
-      state.setSlippagePct,
-      state.stakePoolProxyProgram,
-    ]
-  );
+  const [
+    lstData,
+    userDataFetched,
+    tokenDataMap,
+    stakeAccounts,
+    fetchLstState,
+    slippagePct,
+    setSlippagePct,
+    stakePoolProxyProgram,
+    availableLamports,
+    solUsdValue,
+  ] = useLstStore((state) => [
+    state.lstData,
+    state.userDataFetched,
+    state.tokenDataMap,
+    state.stakeAccounts,
+    state.fetchLstState,
+    state.slippagePct,
+    state.setSlippagePct,
+    state.stakePoolProxyProgram,
+    state.availableLamports,
+    state.solUsdValue,
+  ]);
 
   const jupiterApiClient = createJupiterApiClient();
 
   const [ongoingAction, setOngoingAction] = useState<OngoingAction | null>(null);
   const [refreshingQuotes, setRefreshingQuotes] = useState<boolean>(false);
-  const [depositAmount, setDepositAmount] = useState<number | null>(null);
-  const [selectedMint, setSelectedMint] = useState<PublicKey>(SOL_MINT);
+  const [depositOption, setDepositOption] = useState<DepositOption>(DEFAULT_DEPOSIT_OPTION);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
 
-  const { slippage, slippageBps } = useMemo(
-    () => ({ slippage: slippagePct / 100, slippageBps: slippagePct * 100 }),
-    [slippagePct]
-  );
-
-  const prevSelectedMint = usePrevious(selectedMint);
-  useEffect(() => {
-    if (selectedMint?.toBase58() !== prevSelectedMint?.toBase58()) {
-      setDepositAmount(0);
-    }
-  }, [selectedMint, prevSelectedMint]);
+  const slippageBps = useMemo(() => slippagePct * 100, [slippagePct]);
 
   const prevWalletAddress = usePrevious(walletAddress);
   useEffect(() => {
     if ((!walletAddress && prevWalletAddress) || (walletAddress && !prevWalletAddress)) {
-      setDepositAmount(0);
+      setDepositOption(DEFAULT_DEPOSIT_OPTION);
     }
   }, [walletAddress, prevWalletAddress]);
 
-  const selectedMintInfo: TokenData | null = useMemo(() => {
-    if (tokenDataMap === null) return null;
-    return tokenDataMap.get(selectedMint.toString()) ?? null;
-  }, [tokenDataMap, selectedMint]);
+  useEffect(() => {
+    setDepositOption((currentDepositOption) => {
+      if (currentDepositOption.type === "native") {
+        return {
+          ...currentDepositOption,
+          maxAmount: availableLamports ?? new BN(0),
+        };
+      } else if (currentDepositOption.type === "token") {
+        if (!tokenDataMap) return currentDepositOption;
+        return {
+          ...currentDepositOption,
+          maxAmount: tokenDataMap.get(currentDepositOption.tokenData.address)?.balance ?? 0,
+        };
+      } else {
+        return currentDepositOption;
+      }
+    });
+  }, [availableLamports, tokenDataMap]);
 
-  const rawDepositAmount = useMemo(
-    () => Math.trunc(Math.pow(10, selectedMintInfo?.decimals ?? 0) * (depositAmount ?? 0)),
-    [depositAmount, selectedMintInfo]
-  );
+  const depositAmountUi = useMemo(() => {
+    return depositOption.type === "native"
+      ? nativeToUi(depositOption.amount, 9)
+      : depositOption.type === "token"
+      ? nativeToUi(depositOption.amount, depositOption.tokenData.decimals)
+      : nativeToUi(depositOption.stakeData.lamports, 9);
+  }, [depositOption]);
 
   const {
     quoteResponseMeta,
@@ -105,12 +147,12 @@ export const StakingCard: FC = () => {
     refresh,
     lastRefreshTimestamp,
   } = useJupiter({
-    amount: selectedMint.equals(SOL_MINT) ? JSBI.BigInt(0) : JSBI.BigInt(rawDepositAmount), // amountIn trick to avoid SOL -> SOL quote calls
-    inputMint: selectedMint,
+    amount: depositOption.type === "token" ? JSBI.BigInt(depositOption.amount) : JSBI.BigInt(0), // amountIn trick to avoid Jupiter calls when depositing stake or native SOL
+    inputMint: depositOption.type === "token" ? new PublicKey(depositOption.tokenData.address) : undefined,
     outputMint: SOL_MINT,
     swapMode: SwapMode.ExactIn,
     slippageBps,
-    debounceTime: 250, // debounce ms time before consecutive refresh calls
+    debounceTime: 250,
   });
 
   const priceImpactPct: number | null = useMemo(() => {
@@ -121,12 +163,12 @@ export const StakingCard: FC = () => {
   const refreshQuoteIfNeeded = useCallback(
     (force: boolean = false) => {
       const hasExpired = Date.now() - lastRefreshTimestamp > QUOTE_EXPIRY_MS;
-      if (!selectedMint.equals(SOL_MINT) && (depositAmount ?? 0 > 0) && (hasExpired || force)) {
+      if (depositOption.type === "token" && depositOption.amount.gtn(0) && (hasExpired || force)) {
         setRefreshingQuotes(true);
         refresh();
       }
     },
-    [selectedMint, depositAmount, refresh, lastRefreshTimestamp]
+    [depositOption, refresh, lastRefreshTimestamp]
   );
 
   useEffect(() => {
@@ -141,12 +183,13 @@ export const StakingCard: FC = () => {
     }
   }, [loadingQuotes]);
 
-  const lstOutAmount: number | null = useMemo(() => {
-    if (depositAmount === null) return null;
-    if (!selectedMint || !lstData?.lstSolValue) return 0;
+  const lstOutAmount: number = useMemo(() => {
+    if (!depositOption || !lstData?.lstSolValue) return 0;
 
-    if (selectedMint.equals(SOL_MINT)) {
-      return depositAmount / lstData.lstSolValue;
+    if (depositOption.type === "native") {
+      return nativeToUi(depositOption.amount, 9) / lstData.lstSolValue;
+    } else if (depositOption.type === "stake") {
+      return nativeToUi(depositOption.stakeData.lamports, 9) / lstData.lstSolValue;
     } else {
       if (quoteResponseMeta?.quoteResponse?.outAmount) {
         const outAmount = JSBI.toNumber(quoteResponseMeta?.quoteResponse?.outAmount) / 1e9;
@@ -155,16 +198,43 @@ export const StakingCard: FC = () => {
         return 0;
       }
     }
-  }, [depositAmount, selectedMint, lstData?.lstSolValue, quoteResponseMeta?.quoteResponse?.outAmount]);
+  }, [depositOption, lstData?.lstSolValue, quoteResponseMeta?.quoteResponse?.outAmount]);
 
   const onChange = useCallback(
-    (event: NumberFormatValues) => setDepositAmount(event.floatValue ?? null),
-    [setDepositAmount]
+    (event: NumberFormatValues) => {
+      if (depositOption.type === "stake") return;
+
+      setDepositOption((currentDepositOption) => {
+        const updatedAmount =
+          currentDepositOption.type === "native"
+            ? uiToNative(event.floatValue ?? 0, 9)
+            : currentDepositOption.type === "token"
+            ? uiToNative(event.floatValue ?? 0, currentDepositOption.tokenData.decimals)
+            : currentDepositOption.stakeData.lamports;
+
+        return {
+          ...currentDepositOption,
+          amount: updatedAmount,
+        };
+      });
+    },
+    [depositOption.type]
   );
 
+  const maxDepositString = useMemo(() => {
+    if (!userDataFetched) return "-";
+    if (depositOption.type === "token") {
+      const maxUi = nativeToUi(depositOption.tokenData.balance, depositOption.tokenData.decimals);
+      return maxUi < 0.01 ? "< 0.01" : numeralFormatter(maxUi);
+    } else if (depositOption.type === "native") {
+      const maxUi = nativeToUi(depositOption.maxAmount, 9);
+      return maxUi < 0.01 ? "< 0.01" : numeralFormatter(maxUi);
+    }
+    return "-";
+  }, [userDataFetched, depositOption]);
+
   const onMint = useCallback(async () => {
-    if (!lstData || !wallet || !walletAddress || !depositAmount || !stakePoolProxyProgram) return;
-    console.log("depositing", depositAmount, selectedMint);
+    if (!lstData || !wallet || !walletAddress) return;
 
     let sigs = [];
 
@@ -173,15 +243,14 @@ export const StakingCard: FC = () => {
     } = await connection.getLatestBlockhashAndContext();
 
     try {
-      if (selectedMint.equals(SOL_MINT)) {
+      if (depositOption.type === "native") {
         setOngoingAction("minting");
-        const _depositAmount = depositAmount * 1e9;
 
         const { instructions, signers } = await makeDepositSolToStakePoolIx(
           lstData.accountData,
           lstData.poolAddress,
           walletAddress,
-          _depositAmount,
+          depositOption.amount,
           undefined
         );
 
@@ -198,12 +267,42 @@ export const StakingCard: FC = () => {
         const depositSig = await connection.sendTransaction(signedTransaction);
 
         sigs.push(depositSig);
-      } else {
-        setOngoingAction("swapping");
+      } else if (depositOption.type === "stake") {
+        setOngoingAction("minting");
+
+        const { instructions, signers } = await makeDepositStakeToStakePoolIx(
+          lstData.accountData,
+          lstData.poolAddress,
+          walletAddress,
+          depositOption.stakeData.validatorVoteAddress,
+          depositOption.stakeData.address
+        );
+
+        const depositMessage = new TransactionMessage({
+          instructions: instructions,
+          payerKey: walletAddress,
+          recentBlockhash: blockhash,
+        });
+
+        const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
+        depositTransaction.sign(signers);
+
+        const signedTransaction = await wallet.signTransaction(depositTransaction);
+        const depositSig = await connection.sendTransaction(signedTransaction);
+
+        sigs.push(depositSig);
+      } else if (depositOption.type === "token") {
+        if (!stakePoolProxyProgram) {
+          console.error("stakePoolProxyProgram not initialized");
+          return;
+        }
         const quote = quoteResponseMeta?.original;
         if (!quote) {
-          throw new Error("Route not calculated yet");
+          console.error("Route not calculated yet");
+          return;
         }
+
+        setOngoingAction("swapping");
 
         const destinationTokenAccountKeypair = Keypair.generate();
 
@@ -298,6 +397,8 @@ export const StakingCard: FC = () => {
           },
           "confirmed"
         );
+      } else {
+        throw new Error("Invalid deposit option");
       }
 
       toast.success("Minting complete");
@@ -314,16 +415,17 @@ export const StakingCard: FC = () => {
       toast.error(errorMsg);
     } finally {
       await Promise.all([refresh(), fetchLstState()]);
-      setDepositAmount(0);
+      setDepositOption((currentDepositOption) =>
+        currentDepositOption.type === "stake" ? currentDepositOption : { ...currentDepositOption, amount: new BN(0) }
+      );
       setOngoingAction(null);
     }
   }, [
     lstData,
     wallet,
     walletAddress,
-    depositAmount,
     stakePoolProxyProgram,
-    selectedMint,
+    depositOption,
     connection,
     quoteResponseMeta?.original,
     jupiterApiClient,
@@ -337,46 +439,50 @@ export const StakingCard: FC = () => {
         <div className="flex flex-row justify-between w-full">
           <div className="flex flex-row items-center gap-4">
             <Typography className="font-aeonik font-[400] text-lg">Deposit</Typography>
-            {selectedMintInfo && (
+            {depositOption.type === "token" && (
               <div className="flex flex-row gap-2 items-center">
-                {selectedMintInfo.symbol !== "SOL" && (
-                  <>
-                    <div
-                      className="p-2 h-7 w-7 flex flex-row items-center justify-center border rounded-full border-white/10 bg-black/10 text-secondary fill-current cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out"
-                      onClick={() => refreshQuoteIfNeeded(true)}
-                    >
-                      <RefreshIcon />
-                    </div>
-                    <div
-                      className={`p-2 h-7 gap-2 flex flex-row items-center justify-center border rounded-2xl border-white/10 bg-black/10 cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out`}
-                      onClick={() => setIsSettingsModalOpen(true)}
-                    >
-                      <SettingsIcon />
-                      <Typography className={`text-xs text-secondary mt-2px`}>
-                        {isNaN(slippagePct) ? "0" : slippagePct}%
-                      </Typography>
-                    </div>
-                  </>
-                )}
+                <div
+                  className="p-2 h-7 w-7 flex flex-row items-center justify-center border rounded-full border-white/10 bg-black/10 text-secondary fill-current cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out"
+                  onClick={() => refreshQuoteIfNeeded(true)}
+                >
+                  <RefreshIcon />
+                </div>
+                <div
+                  className={`p-2 h-7 gap-2 flex flex-row items-center justify-center border rounded-2xl border-white/10 bg-black/10 cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out`}
+                  onClick={() => setIsSettingsModalOpen(true)}
+                >
+                  <SettingsIcon />
+                  <Typography className={`text-xs text-secondary mt-2px`}>
+                    {isNaN(slippagePct) ? "0" : slippagePct}%
+                  </Typography>
+                </div>
               </div>
             )}
           </div>
 
-          {connected && selectedMintInfo && (
+          {connected && (depositOption.type === "native" || depositOption.type === "token") && (
             <div className="flex flex-row items-center gap-1">
               <div className="leading-5">
                 <WalletIcon />
               </div>
-              <Typography className="font-aeonik font-[400] text-sm leading-5">
-                {selectedMintInfo.balance
-                  ? selectedMintInfo.balance < 0.01
-                    ? "< 0.01"
-                    : numeralFormatter(selectedMintInfo.balance)
-                  : "-"}
-              </Typography>
+              <Typography className="font-aeonik font-[400] text-sm leading-5">{maxDepositString}</Typography>
               <a
-                className={`p-2 h-7 flex flex-row items-center justify-center text-sm border rounded-full border-white/10 bg-black/10 text-secondary fill-current cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out`}
-                onClick={() => setDepositAmount(selectedMintInfo.balance)}
+                className={`p-2 ml-1 h-5 flex flex-row items-center justify-center text-sm border rounded-full border-white/10 bg-black/10 text-secondary fill-current cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out`}
+                onClick={() =>
+                  setDepositOption((currentDepositOption) => {
+                    const updatedAmount =
+                      currentDepositOption.type === "native"
+                        ? currentDepositOption.maxAmount
+                        : currentDepositOption.type === "token"
+                        ? currentDepositOption.tokenData.balance
+                        : new BN(currentDepositOption.stakeData.lamports);
+
+                    return {
+                      ...currentDepositOption,
+                      amount: updatedAmount,
+                    };
+                  })
+                }
               >
                 MAX
               </a>
@@ -386,12 +492,13 @@ export const StakingCard: FC = () => {
 
         <NumericFormat
           placeholder="0"
-          value={depositAmount}
+          value={depositAmountUi}
           allowNegative={false}
+          disabled={depositOption.type === "stake"}
           decimalScale={9}
           onValueChange={onChange}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && connected && depositAmount !== 0 && !refreshingQuotes && !ongoingAction) {
+            if (e.key === "Enter" && connected && depositAmountUi !== 0 && !refreshingQuotes && !ongoingAction) {
               onMint();
             }
           }}
@@ -400,33 +507,42 @@ export const StakingCard: FC = () => {
           size="small"
           isAllowed={(values) => {
             const { floatValue } = values;
-            if (!connected || selectedMintInfo === null) {
+            const decimals = depositOption.type === "token" ? depositOption.tokenData.decimals : 9;
+            const depositAmount = uiToNative(floatValue ?? 0, decimals);
+            if (!connected || depositOption.type === "stake") {
               return true;
             }
-            if (selectedMintInfo.balance === 0) {
-              return false;
-            }
-            return floatValue ? floatValue < selectedMintInfo.balance : true;
+            const maxDepositAmount =
+              depositOption.type === "token" ? depositOption.tokenData.balance : depositOption.maxAmount;
+            return floatValue ? depositAmount < maxDepositAmount : true;
           }}
           sx={{
             input: { textAlign: "right", MozAppearance: "textfield" },
             "input::-webkit-inner-spin-button": { WebkitAppearance: "none", margin: 0 },
+            "input::-webkit-text-fill-color": "red",
             "& .MuiOutlinedInput-root": {
               "&.Mui-focused fieldset": {
                 borderWidth: "0px",
               },
             },
+            "& .MuiInputBase-input.Mui-disabled": {
+              WebkitTextFillColor: "#e1e1e1",
+              cursor: "not-allowed",
+            },
           }}
           className="bg-[#0F1111] p-2 rounded-xl"
           InputProps={
-            tokenDataMap
+            tokenDataMap && solUsdValue
               ? {
                   className: "font-aeonik text-[#e1e1e1] p-0 m-0",
                   startAdornment: (
                     <DropDownButton
+                      depositOption={depositOption}
+                      availableLamports={availableLamports ?? new BN(0)}
+                      solUsdPrice={solUsdValue}
                       tokenDataMap={tokenDataMap}
-                      selectedMintInfo={selectedMintInfo}
-                      setSelectedMint={setSelectedMint}
+                      stakeAccounts={stakeAccounts}
+                      setDepositOption={setDepositOption}
                     />
                   ),
                 }
@@ -437,7 +553,7 @@ export const StakingCard: FC = () => {
         <div className="flex flex-row justify-between w-full my-auto pt-2">
           <Typography className="font-aeonik font-[400] text-lg">You will receive</Typography>
           <Typography className="font-aeonik font-[700] text-lg sm:text-xl text-[#DCE85D]">
-            {lstOutAmount !== null && selectedMintInfo
+            {lstOutAmount !== null
               ? lstOutAmount < 0.01 && lstOutAmount > 0
                 ? "< 0.01"
                 : numeralFormatter(lstOutAmount)
@@ -449,8 +565,7 @@ export const StakingCard: FC = () => {
           <PrimaryButton
             disabled={
               connected &&
-              (!depositAmount ||
-                depositAmount == 0 ||
+              (depositAmountUi == 0 ||
                 lstOutAmount === 0 ||
                 lstOutAmount === null ||
                 refreshingQuotes ||
@@ -459,15 +574,7 @@ export const StakingCard: FC = () => {
             loading={connected && !!ongoingAction}
             onClick={connected ? onMint : openWalletSelector}
           >
-            {!connected ? (
-              "connect"
-            ) : ongoingAction ? (
-              `${ongoingAction}...`
-            ) : refreshingQuotes ? (
-              <Spinner />
-            ) : (
-              "mint"
-            )}
+            {!connected ? "connect" : ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? <Spinner /> : "mint"}
           </PrimaryButton>
         </div>
         <div className="flex flex-row justify-between w-full my-auto">
@@ -504,14 +611,42 @@ export const StakingCard: FC = () => {
 };
 
 interface DropDownButtonProps {
+  availableLamports: BN;
+  solUsdPrice: number;
   tokenDataMap: TokenDataMap;
-  selectedMintInfo: TokenData | null;
-  setSelectedMint: Dispatch<SetStateAction<PublicKey>>;
+  stakeAccounts: StakeData[];
+  depositOption: DepositOption;
+  setDepositOption: Dispatch<SetStateAction<DepositOption>>;
   disabled?: boolean;
 }
 
-const DropDownButton: FC<DropDownButtonProps> = ({ tokenDataMap, selectedMintInfo, setSelectedMint, disabled }) => {
+const DropDownButton: FC<DropDownButtonProps> = ({
+  availableLamports,
+  solUsdPrice,
+  tokenDataMap,
+  stakeAccounts,
+  depositOption,
+  setDepositOption,
+  disabled,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  const [iconUrl, optionName] = useMemo(() => {
+    if (depositOption.type === "native") {
+      return [
+        "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+        "SOL",
+      ];
+    } else if (depositOption.type === "stake") {
+      return [
+        "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+        "Stake",
+      ];
+    } else {
+      return [depositOption.tokenData.iconUrl, depositOption.tokenData.symbol];
+    }
+  }, [depositOption]);
+
   return (
     <>
       <div
@@ -521,17 +656,21 @@ const DropDownButton: FC<DropDownButtonProps> = ({ tokenDataMap, selectedMintInf
         }`}
       >
         <div className="w-[24px] mr-2">
-          <Image src={selectedMintInfo?.iconUrl ?? "/info_icon.png"} alt="token logo" height={24} width={24} />
+          <Image src={iconUrl} alt="token logo" height={24} width={24} className="rounded-full" />
         </div>
-        <Typography className="font-aeonik font-[500] text-lg mr-1">{selectedMintInfo?.symbol ?? "SOL"}</Typography>
+        <Typography className="font-aeonik font-[500] text-lg mr-1">{optionName}</Typography>
         <ArrowDropDown sx={{ width: "20px", padding: 0 }} />
       </div>
 
       <StakingModal
         isOpen={isModalOpen}
         handleClose={() => setIsModalOpen(false)}
+        availableLamports={availableLamports}
+        solUsdPrice={solUsdPrice}
         tokenDataMap={tokenDataMap}
-        setSelectedMint={setSelectedMint}
+        stakeAccounts={stakeAccounts}
+        depositOption={depositOption}
+        setDepositOption={setDepositOption}
       />
     </>
   );
@@ -552,7 +691,7 @@ async function makeDepositSolToStakePoolIx(
   stakePool: solanaStakePool.StakePool,
   stakePoolAddress: PublicKey,
   from: PublicKey,
-  lamports: number,
+  lamports: BN,
   destinationTokenAccount?: PublicKey,
   referrerTokenAccount?: PublicKey,
   depositAuthority?: PublicKey
@@ -567,7 +706,7 @@ async function makeDepositSolToStakePoolIx(
     SystemProgram.transfer({
       fromPubkey: from,
       toPubkey: userSolTransfer.publicKey,
-      lamports,
+      lamports: lamports.toNumber(),
     })
   );
 
@@ -594,9 +733,80 @@ async function makeDepositSolToStakePoolIx(
       managerFeeAccount: stakePool.managerFeeAccount,
       referralPoolAccount: referrerTokenAccount ?? destinationTokenAccount,
       poolMint: stakePool.poolMint,
-      lamports,
+      lamports: lamports.toNumber(),
       withdrawAuthority,
       depositAuthority,
+    })
+  );
+
+  return {
+    instructions,
+    signers,
+  };
+}
+
+/**
+ * Creates instructions required to deposit stake to stake pool.
+ */
+export async function makeDepositStakeToStakePoolIx(
+  stakePool: solanaStakePool.StakePool,
+  stakePoolAddress: PublicKey,
+  walletAddress: PublicKey,
+  validatorVote: PublicKey,
+  depositStake: PublicKey
+) {
+  const withdrawAuthority = findWithdrawAuthorityProgramAddress(
+    solanaStakePool.STAKE_POOL_PROGRAM_ID,
+    stakePoolAddress
+  );
+
+  const validatorStake = findStakeProgramAddress(
+    solanaStakePool.STAKE_POOL_PROGRAM_ID,
+    validatorVote,
+    stakePoolAddress
+  );
+
+  const instructions: TransactionInstruction[] = [];
+  const signers: Signer[] = [];
+
+  const poolMint = stakePool.poolMint;
+
+  const poolTokenReceiverAccount = getAssociatedTokenAddressSync(poolMint, walletAddress);
+  instructions.push(
+    createAssociatedTokenAccountIdempotentInstruction(walletAddress, poolTokenReceiverAccount, walletAddress, poolMint)
+  );
+
+  instructions.push(
+    ...StakeProgram.authorize({
+      stakePubkey: depositStake,
+      authorizedPubkey: walletAddress,
+      newAuthorizedPubkey: stakePool.stakeDepositAuthority,
+      stakeAuthorizationType: StakeAuthorizationLayout.Staker,
+    }).instructions
+  );
+
+  instructions.push(
+    ...StakeProgram.authorize({
+      stakePubkey: depositStake,
+      authorizedPubkey: walletAddress,
+      newAuthorizedPubkey: stakePool.stakeDepositAuthority,
+      stakeAuthorizationType: StakeAuthorizationLayout.Withdrawer,
+    }).instructions
+  );
+
+  instructions.push(
+    solanaStakePool.StakePoolInstruction.depositStake({
+      stakePool: stakePoolAddress,
+      validatorList: stakePool.validatorList,
+      depositAuthority: stakePool.stakeDepositAuthority,
+      reserveStake: stakePool.reserveStake,
+      managerFeeAccount: stakePool.managerFeeAccount,
+      referralPoolAccount: poolTokenReceiverAccount,
+      destinationPoolAccount: poolTokenReceiverAccount,
+      withdrawAuthority,
+      depositStake,
+      validatorStake,
+      poolMint,
     })
   );
 
@@ -674,6 +884,17 @@ async function makeDepositWSolToStakePoolIx(
 function findWithdrawAuthorityProgramAddress(programId: PublicKey, stakePoolAddress: PublicKey) {
   const [publicKey] = PublicKey.findProgramAddressSync(
     [stakePoolAddress.toBuffer(), Buffer.from("withdraw")],
+    programId
+  );
+  return publicKey;
+}
+
+/**
+ * Generates the stake program address for a validator's vote account
+ */
+function findStakeProgramAddress(programId: PublicKey, voteAccountAddress: PublicKey, stakePoolAddress: PublicKey) {
+  const [publicKey] = PublicKey.findProgramAddressSync(
+    [voteAccountAddress.toBuffer(), stakePoolAddress.toBuffer()],
     programId
   );
   return publicKey;
