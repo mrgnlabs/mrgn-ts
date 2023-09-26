@@ -11,6 +11,7 @@ import {
   getDoc,
   getCountFromServer,
   where,
+  QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { FavouriteDomain, NAME_OFFERS_ID, reverseLookupBatch } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -18,6 +19,7 @@ import { firebaseApi } from ".";
 
 type LeaderboardRow = {
   id: string;
+  doc: QueryDocumentSnapshot<DocumentData>;
   total_activity_deposit_points: number;
   total_activity_borrow_points: number;
   total_referral_deposit_points: number;
@@ -33,7 +35,7 @@ async function fetchLeaderboardData({
   pageSize = 50,
 }: {
   connection?: Connection;
-  queryCursor?: string;
+  queryCursor?: QueryDocumentSnapshot<DocumentData>;
   pageSize?: number;
 }): Promise<LeaderboardRow[]> {
   const pointsCollection = collection(firebaseApi.db, "points");
@@ -49,7 +51,7 @@ async function fetchLeaderboardData({
   const leaderboardSlice = querySnapshot.docs
     .filter((item) => item.id !== null && item.id !== undefined && item.id != "None")
     .map((doc) => {
-      const data = { id: doc.id, ...doc.data() } as LeaderboardRow;
+      const data = { id: doc.id, doc, ...doc.data() } as LeaderboardRow;
       return data;
     });
 

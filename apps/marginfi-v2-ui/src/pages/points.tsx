@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useMemo } from "react";
+import { Fragment, useCallback, useMemo, useRef } from "react";
 import {
   Button,
   Table,
@@ -34,6 +34,7 @@ import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-comm
 import { useWalletContext } from "~/components/useWalletContext";
 import { getFavoriteDomain } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
+import throttle from "lodash/throttle";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -58,16 +59,21 @@ const Points: FC = () => {
   ]);
 
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[]>([]);
+  const [fetchingLeaderboardPage, setFetchingLeaderboardPage] = useState(false);
+  const fetchLeaderboardPage = useCallback(async () => {
+    const queryCursor = leaderboardData.length > 0 ? leaderboardData[leaderboardData.length - 1].doc : undefined;
+    fetchLeaderboardData({
+      connection,
+      queryCursor,
+    }).then((data) => {
+      setLeaderboardData((current) => [...current, ...data]);
+    });
+  }, [connection, leaderboardData, setLeaderboardData]);
+
   const [domain, setDomain] = useState<string>();
 
   const currentUserId = useMemo(() => domain ?? currentFirebaseUser?.uid, [currentFirebaseUser, domain]);
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
-
-  useEffect(() => {
-    if (connection && walletAddress) {
-      resolveDomain(connection, new PublicKey(walletAddress));
-    }
-  }, [connection, walletAddress]);
 
   const resolveDomain = async (connection: Connection, user: PublicKey) => {
     try {
@@ -79,8 +85,33 @@ const Points: FC = () => {
   };
 
   useEffect(() => {
-    fetchLeaderboardData(connection).then(setLeaderboardData); // TODO: cache leaderboard and avoid call
-  }, [connection, connected, walletAddress]); // Dependency array to re-fetch when these variables change
+    if (connection && walletAddress) {
+      resolveDomain(connection, new PublicKey(walletAddress));
+    }
+  }, [connection, walletAddress]);
+
+  useEffect(() => {
+    if (!leaderboardData.length) {
+      fetchLeaderboardData({
+        connection,
+      }).then((data) => {
+        setLeaderboardData([...data]);
+      });
+    }
+
+    const handleScroll = throttle(() => {
+      if (fetchingLeaderboardPage) return;
+      setFetchingLeaderboardPage(false);
+      if (document.body.scrollTop > document.body.scrollHeight * 0.5) {
+        fetchLeaderboardPage();
+      }
+    }, 500);
+
+    document.body.addEventListener("scroll", handleScroll);
+    return () => {
+      document.body.removeEventListener("scroll", handleScroll);
+    };
+  }, [connection, fetchLeaderboardPage, fetchingLeaderboardPage]);
 
   return (
     <>
