@@ -73,58 +73,6 @@ async function fetchLeaderboardData({
   return leaderboardFinalSlice;
 }
 
-async function fetchLeaderboardDataOriginal(
-  connection?: Connection,
-  rowCap = 100,
-  pageSize = 50
-): Promise<LeaderboardRow[]> {
-  const pointsCollection = collection(firebaseApi.db, "points");
-
-  const leaderboardMap = new Map();
-  let initialQueryCursor = null;
-  do {
-    let pointsQuery: Query<DocumentData>;
-    if (initialQueryCursor) {
-      pointsQuery = query(
-        pointsCollection,
-        orderBy("total_points", "desc"),
-        startAfter(initialQueryCursor),
-        limit(pageSize)
-      );
-    } else {
-      pointsQuery = query(pointsCollection, orderBy("total_points", "desc"), limit(pageSize));
-    }
-
-    const querySnapshot = await getDocs(pointsQuery);
-    const leaderboardSlice = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    const leaderboardSliceFiltered = leaderboardSlice.filter(
-      (item) => item.id !== null && item.id !== undefined && item.id != "None"
-    );
-
-    for (const row of leaderboardSliceFiltered) {
-      leaderboardMap.set(row.id, row);
-    }
-
-    initialQueryCursor = querySnapshot.docs.length > 0 ? querySnapshot.docs[querySnapshot.docs.length - 1] : null;
-  } while (initialQueryCursor !== null && leaderboardMap.size < rowCap);
-
-  const leaderboardFinalSlice = [...leaderboardMap.values()].slice(0, 100);
-
-  if (connection) {
-    const publicKeys = leaderboardFinalSlice.map((value) => {
-      const [favoriteDomains] = FavouriteDomain.getKeySync(NAME_OFFERS_ID, new PublicKey(value.id));
-      return favoriteDomains;
-    });
-    const favoriteDomainsInfo = (await connection.getMultipleAccountsInfo(publicKeys)).map((accountInfo, idx) =>
-      accountInfo ? FavouriteDomain.deserialize(accountInfo.data).nameAccount : publicKeys[idx]
-    );
-    const reverseLookup = await reverseLookupBatch(connection, favoriteDomainsInfo);
-
-    leaderboardFinalSlice.map((value, idx) => (value.id = reverseLookup[idx] ? `${reverseLookup[idx]}.sol` : value.id));
-  }
-  return leaderboardFinalSlice;
-}
-
 // Firebase query is very constrained, so we calculate the number of users with more points
 // as the the count of users with more points inclusive of corrupted rows - the count of corrupted rows
 async function fetchUserRank(userPoints: number): Promise<number> {
