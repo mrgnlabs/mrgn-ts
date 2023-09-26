@@ -72,7 +72,7 @@ const StakePage = () => {
         <StakingCard />
         <div className="flex flex-col mt-10 pb-[64px] gap-5 justify-center font-aeonik text-lg">
           <Typography className="text-center w-full">
-            <span className="font-bold text-[#DCE85D]">$LST</span> is a mrgn x Jito collab
+            <span className="font-bold text-[#DCE85D]">$LST</span>, by mrgn
           </Typography>
           <Typography className="text-center w-full">
             Introducing the best way to get exposure to SOL. <span className="font-bold text-[#DCE85D]">$LST</span> is
