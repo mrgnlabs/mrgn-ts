@@ -477,7 +477,7 @@ export const StakingCard: FC = () => {
           </Typography>
         </div>
         <div className="flex flex-row justify-between w-full my-auto">
-          <Typography className="font-aeonik font-[400] text-base">Deposit fee</Typography>
+          <Typography className="font-aeonik font-[400] text-base">Commission</Typography>
           <Typography className="font-aeonik font-[700] text-lg">{lstData?.solDepositFee ?? 0}%</Typography>
         </div>
         {priceImpactPct !== null && (

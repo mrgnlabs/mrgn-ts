@@ -10,6 +10,9 @@ import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/mar
 import { persist } from "zustand/middleware";
 import { StakePoolProxyProgram, getStakePoolProxyProgram } from "~/utils/stakePoolProxy";
 
+const STAKEVIEW_APP_URL = "https://stakeview.app/apy/prev3.json";
+const BASELINE_VALIDATOR_ID = "FugJZepeGfh1Ruunhep19JC4F3Hr2FL3oKUMezoK8ajp";
+
 export const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 const NETWORK_FEE_LAMPORTS = 15000; // network fee + some for potential account creation
 const SOL_USD_PYTH_ORACLE = new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG");
@@ -207,9 +210,10 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
 });
 
 async function fetchLstData(connection: Connection): Promise<LstData> {
-  const [stakePoolInfo, stakePoolAccount] = await Promise.all([
+  const [stakePoolInfo, stakePoolAccount, apyData] = await Promise.all([
     solanaStakePool.stakePoolInfo(connection, STAKE_POOL_ID),
     solanaStakePool.getStakePoolAccount(connection, STAKE_POOL_ID),
+    fetch(STAKEVIEW_APP_URL).then((res) => res.json()),
   ]);
   const stakePool = stakePoolAccount.account.data;
 
@@ -232,6 +236,14 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
     const epochRate = lstSolValue / lastLstSolValue - 1;
     const apr = epochRate * EPOCHS_PER_YEAR;
     projectedApy = aprToApy(apr, EPOCHS_PER_YEAR);
+  }
+
+  if (projectedApy < 7) {
+    // temporarily use baseline validator APY waiting for a few epochs to pass
+    const baselineValidatorData = apyData.validators.find(
+      (validator: any) => validator.id === BASELINE_VALIDATOR_ID
+    );
+    if (baselineValidatorData) projectedApy = baselineValidatorData.apy;
   }
 
   return {

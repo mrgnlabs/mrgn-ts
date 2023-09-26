@@ -1,6 +1,7 @@
 import * as admin from "firebase-admin";
 import * as Sentry from "@sentry/nextjs";
-import { NextApiRequest, getFirebaseUserByWallet, initFirebaseIfNeeded, logLoginAttempt } from "./utils";
+import { getFirebaseUserByWallet, initFirebaseIfNeeded, logLoginAttempt } from "./utils";
+import { NextApiRequest } from "../utils";
 import { MEMO_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import base58 from "bs58";
