@@ -1,6 +1,6 @@
 import { Typography, Modal } from "@mui/material";
 import { Dispatch, FC, SetStateAction, useState } from "react";
-import { Close } from "@mui/icons-material";
+import { Close, Launch } from "@mui/icons-material";
 import Image from "next/image";
 import { nativeToUi, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { SOL_MINT, TokenDataMap } from "~/store/lstStore";
@@ -8,6 +8,7 @@ import { LstDepositToggle } from "./LstDepositToggle";
 import { StakeData } from "~/utils/stakeAcounts";
 import { DepositOption } from "./StakingCard";
 import BN from "bn.js";
+import { PublicKey } from "@solana/web3.js";
 
 interface StakingModalProps {
   isOpen: boolean;
@@ -49,7 +50,7 @@ export const StakingModal: FC<StakingModalProps> = ({
             <Close className="cursor-pointer hover:text-[#DCE85D]" onClick={handleClose} />
           </div>
         </div>
-        <Typography className="my-4 font-aeonik font-[500] text-2xl inline">
+        <Typography className="my-4 font-aeonik font-[500] text-[22px] inline">
           {isStakeAccountMode ? "Select stake account" : "Select token"}
         </Typography>
         <div className="flex flex-col overflow-y-auto">
@@ -94,8 +95,8 @@ const TokenList: FC<{
           setDepositOption({ type: "native", amount: new BN(0), maxAmount: availableLamports });
           handleClose();
         }}
-        className={`flex flex-row w-full justify-between font-aeonik font-[400] text-xl items-center gap-4 p-2 rounded-lg ${
-          depositOption.type === "native" && "text-black bg-[#DCE85DBB]"
+        className={`flex flex-row w-full justify-between font-aeonik font-[400] text-base items-center gap-4 p-2 rounded-lg ${
+          depositOption.type === "native" && "bg-[#DCE85D88]"
         } hover:text-white hover:bg-gray-700 cursor-pointer`}
       >
         <div className="flex flex-row items-center gap-2">
@@ -108,23 +109,32 @@ const TokenList: FC<{
             width={35}
             className="rounded-full"
           />
-          <Typography>{"SOL (native)"}</Typography>
+
+          <div className="flex flex-col justify-start">
+            <Typography className="text-[15px]">{"SOL (native)"}</Typography>
+            <AccountBadge account={SOL_MINT} type="token" />
+          </div>
         </div>
         <div className="flex flex-row items-center">
           {availableLamportsUi > 0 && (
-            <>
-              <Typography>{availableLamportsUi < 0.01 ? "< 0.01" : numeralFormatter(availableLamportsUi)}</Typography>
-              <Typography className="flex justify-end min-w-[75px]">
+            <div className="flex flex-col justify-end">
+              <Typography className="flex justify-end text-sm">
+                {availableLamportsUi < 0.01 ? "< 0.01" : numeralFormatter(availableLamportsUi)}
+              </Typography>
+              <Typography className="flex justify-end text-sm">
                 ({lamportsUsdValue < 0.01 ? "< $0.01" : `$${numeralFormatter(lamportsUsdValue)}`})
               </Typography>
-            </>
+            </div>
           )}
         </div>
       </div>
 
       {[...tokenDataMap.values()]
         .filter((token) => token.balance.gtn(0))
-        .sort((a, b) => nativeToUi(b.balance, b.decimals) * Number(b.price) - nativeToUi(a.balance, a.decimals) * Number(a.price))
+        .sort(
+          (a, b) =>
+            nativeToUi(b.balance, b.decimals) * Number(b.price) - nativeToUi(a.balance, a.decimals) * Number(a.price)
+        )
         .map((token) => {
           const balanceUi = nativeToUi(token.balance, token.decimals);
           const usdValue = balanceUi * token.price;
@@ -135,22 +145,31 @@ const TokenList: FC<{
                 setDepositOption({ type: "token", tokenData: token, amount: new BN(0) });
                 handleClose();
               }}
-              className={`flex flex-row w-full justify-between font-aeonik font-[400] text-xl items-center gap-4 p-2 rounded-lg hover:text-white hover:bg-gray-700 cursor-pointer ${
-                depositOption.type === "token" && depositOption.tokenData.address === token.address && "text-black bg-[#DCE85DBB]"
+              className={`flex flex-row w-full justify-between font-aeonik font-[400] text-base items-center gap-4 p-2 rounded-lg hover:text-white hover:bg-gray-700 cursor-pointer ${
+                depositOption.type === "token" &&
+                depositOption.tokenData.address === token.address &&
+                "text-black bg-[#DCE85D88]"
               }`}
             >
               <div className="flex flex-row items-center gap-2">
                 <Image src={token.iconUrl} alt="token logo" height={35} width={35} className="rounded-full" />
-                <Typography>{token.address === SOL_MINT.toBase58() ? "SOL (wrapped)" : token.symbol}</Typography>
+                <div className="flex flex-col justify-start">
+                  <Typography className="text-[15px]">
+                    {token.address === SOL_MINT.toBase58() ? "SOL (wrapped)" : token.symbol}
+                  </Typography>
+                  <AccountBadge account={token.address} type="token" />
+                </div>
               </div>
-              <div className="flex flex-row items-center w">
+              <div className="flex flex-row items-center">
                 {token.balance.gtn(0) && (
-                  <>
-                    <Typography>{balanceUi < 0.01 ? "< 0.01" : numeralFormatter(balanceUi)}</Typography>
-                    <Typography className="flex justify-end min-w-[75px]">
-                      ({usdValue < 0.01 ? "< $0.01" : `$${numeralFormatter(usdValue)}`})
+                  <div className="flex flex-col justify-end">
+                    <Typography className="flex justify-end text-sm">
+                      {balanceUi < 0.01 ? "< 0.01" : numeralFormatter(balanceUi)}
                     </Typography>
-                  </>
+                    <Typography className="flex justify-end text-sm">
+                      {usdValue < 0.01 ? "< $0.01" : `$${numeralFormatter(usdValue)}`}
+                    </Typography>
+                  </div>
                 )}
               </div>
             </div>
@@ -169,38 +188,57 @@ const StakeAccountList: FC<{
   return (
     <div className="flex flex-col gap-2">
       {stakeAccounts
-      .sort((a, b) => b.lamports.sub(a.lamports).toNumber())
-      .map((stakeData) => {
-        return (
-          <a
-            key={stakeData.address.toBase58()}
-            onClick={() => {
-              setSelectedStakeAccount({ type: "stake", stakeData });
-              handleClose();
-            }}
-          >
-            <div className={`flex flex-row w-full justify-between font-aeonik font-[400] text-xl items-center gap-4 p-2 rounded-lg hover:text-white hover:bg-gray-700 cursor-pointer ${
-                depositOption.type === "stake" && depositOption.stakeData.address === stakeData.address && "text-black bg-[#DCE85DBB]"
-              }`}>
-              <div className="flex flex-row items-center gap-2">
-                <Image
-                  src={
-                    "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png"
-                  }
-                  alt="token logo"
-                  height={35}
-                  width={35}
-                  className="rounded-full"
-                />
-                <Typography>{shortenAddress(stakeData.address)}</Typography>
+        .sort((a, b) => b.lamports.sub(a.lamports).toNumber())
+        .map((stakeData) => {
+          return (
+            <a
+              key={stakeData.address.toBase58()}
+              onClick={() => {
+                setSelectedStakeAccount({ type: "stake", stakeData });
+                handleClose();
+              }}
+            >
+              <div
+                className={`flex flex-row w-full justify-between font-aeonik font-[400] text-base items-center gap-4 p-2 rounded-lg hover:text-white hover:bg-gray-700 cursor-pointer ${
+                  depositOption.type === "stake" &&
+                  depositOption.stakeData.address === stakeData.address &&
+                  "text-black bg-[#DCE85D88]"
+                }`}
+              >
+                <div className="flex flex-row items-center gap-2">
+                  <Image
+                    src={
+                      "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png"
+                    }
+                    alt="token logo"
+                    height={35}
+                    width={35}
+                    className="rounded-full"
+                  />
+                  <AccountBadge account={stakeData.address} type="stake" />
+                </div>
+                <div className="flex flex-row items-center w">
+                  <Typography>{nativeToUi(stakeData.lamports, 9)} SOL</Typography>
+                </div>
               </div>
-              <div className="flex flex-row items-center w">
-                <Typography>{nativeToUi(stakeData.lamports, 9)}</Typography>
-              </div>
-            </div>
-          </a>
-        );
-      })}
+            </a>
+          );
+        })}
     </div>
   );
 };
+
+type AccountType = "token" | "stake";
+
+const AccountBadge: FC<{ account: PublicKey | string; type: AccountType }> = ({ account, type }) => (
+  <a
+    className="w-[100px] h-[16px] inline-flex items-center justify-center rounded-md bg-[#DCE85D] px-2 py-1 text-xs font-[] text-gray-600 ring-1 ring-inset ring-gray-500/10"
+    target="_blank"
+    rel="noreferrer"
+    href={`https://solscan.io/${type === "stake" ? "account" : "token"}/${account.toString()}`}
+    onClick={(event) => event.stopPropagation()}
+  >
+    {shortenAddress(account)}
+    <Launch className="ml-1 w-[12px]" />
+  </a>
+);
