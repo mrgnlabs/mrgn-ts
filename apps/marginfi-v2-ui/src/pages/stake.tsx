@@ -1,5 +1,6 @@
 import { JupiterProvider } from "@jup-ag/react-hook";
 import { createJupiterStore } from "@mrgnlabs/marginfi-v2-ui-state";
+import { Typography } from "@mui/material";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -22,8 +23,8 @@ const StakePage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (router.pathname.startsWith('/stake') && !isActive(Features.STAKE)) {
-      router.push('/');
+    if (router.pathname.startsWith("/stake") && !isActive(Features.STAKE)) {
+      router.push("/");
     } else {
       setMounted(true);
     }
@@ -69,6 +70,21 @@ const StakePage = () => {
       <div className="flex flex-col h-full max-w-[480px] w-full justify-center content-center pt-[64px] sm:pt-[16px] gap-4 px-4">
         <StakingStats />
         <StakingCard />
+        <div className="flex flex-col mt-10 pb-[64px] gap-5 justify-center font-aeonik text-lg">
+          <Typography className="text-center w-full">
+            <span className="font-bold text-[#DCE85D]">$LST</span> is a mrgn x Jito collab
+          </Typography>
+          <Typography className="text-center w-full">
+            Introducing the best way to get exposure to SOL. <span className="font-bold text-[#DCE85D]">$LST</span> is
+            built on mrgn's validator network and Jito's MEV rewards. For the first time,{" "}
+            <span className="font-bold text-[#DCE85D]">$LST</span> holders can get the best staking yield available on
+            Solana, combined with the biggest MEV rewards from Solana's trader network.
+          </Typography>
+          <Typography className="text-center w-full">
+            <span className="font-bold text-[#DCE85D]">$LST</span> has 0% commission. The yield goes to you. Stop
+            paying middlemen. Stop using underperforming validators. Stop missing out on MEV rewards.
+          </Typography>
+        </div>
       </div>
     </JupiterProvider>
   );
