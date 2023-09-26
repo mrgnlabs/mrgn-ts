@@ -27,7 +27,55 @@ type LeaderboardRow = {
   socialPoints: number;
 };
 
-async function fetchLeaderboardData(connection?: Connection, rowCap = 100, pageSize = 50): Promise<LeaderboardRow[]> {
+async function fetchLeaderboardData({
+  connection,
+  queryCursor,
+  pageSize = 50,
+}: {
+  connection?: Connection;
+  queryCursor?: string;
+  pageSize?: number;
+}): Promise<LeaderboardRow[]> {
+  const pointsCollection = collection(firebaseApi.db, "points");
+
+  const pointsQuery: Query<DocumentData> = query(
+    pointsCollection,
+    orderBy("total_points", "desc"),
+    ...(queryCursor ? [startAfter(queryCursor)] : []),
+    limit(pageSize)
+  );
+
+  const querySnapshot = await getDocs(pointsQuery);
+  const leaderboardSlice = querySnapshot.docs
+    .filter((item) => item.id !== null && item.id !== undefined && item.id != "None")
+    .map((doc) => {
+      const data = { id: doc.id, ...doc.data() } as LeaderboardRow;
+      return data;
+    });
+
+  const leaderboardFinalSlice: LeaderboardRow[] = [...leaderboardSlice];
+
+  if (connection) {
+    const publicKeys = leaderboardFinalSlice.map((value) => {
+      const [favoriteDomains] = FavouriteDomain.getKeySync(NAME_OFFERS_ID, new PublicKey(value.id));
+      return favoriteDomains;
+    });
+    const favoriteDomainsInfo = (await connection.getMultipleAccountsInfo(publicKeys)).map((accountInfo, idx) =>
+      accountInfo ? FavouriteDomain.deserialize(accountInfo.data).nameAccount : publicKeys[idx]
+    );
+    const reverseLookup = await reverseLookupBatch(connection, favoriteDomainsInfo);
+
+    leaderboardFinalSlice.map((value, idx) => (value.id = reverseLookup[idx] ? `${reverseLookup[idx]}.sol` : value.id));
+  }
+
+  return leaderboardFinalSlice;
+}
+
+async function fetchLeaderboardDataOriginal(
+  connection?: Connection,
+  rowCap = 100,
+  pageSize = 50
+): Promise<LeaderboardRow[]> {
   const pointsCollection = collection(firebaseApi.db, "points");
 
   const leaderboardMap = new Map();
