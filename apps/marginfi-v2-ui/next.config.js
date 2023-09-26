@@ -1,6 +1,6 @@
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-})
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+});
 
 module.exports = withBundleAnalyzer({
   /**
@@ -11,14 +11,10 @@ module.exports = withBundleAnalyzer({
   publicRuntimeConfig: {
     NODE_ENV: process.env.NODE_ENV,
   },
-  transpilePackages: [
-    "@mrgnlabs/marginfi-client-v2",
-    "@mrgnlabs/mrgn-common",
-    "@mrgnlabs/lip-client",
-  ],
+  transpilePackages: ["@mrgnlabs/marginfi-client-v2", "@mrgnlabs/mrgn-common", "@mrgnlabs/lip-client"],
   reactStrictMode: true,
   webpack: (config) => {
-    config.resolve.fallback = { fs: false, path: false, net: false, tls: false, "child_process": false, request: false };
+    config.resolve.fallback = { fs: false, path: false, net: false, tls: false, child_process: false, request: false };
     return config;
   },
   images: {
@@ -55,6 +51,12 @@ module.exports = withBundleAnalyzer({
       },
       {
         protocol: "https",
+        hostname: "storage.googleapis.com",
+        port: "",
+        pathname: "/static-marginfi/**",
+      },
+      {
+        protocol: "https",
         hostname: "arweave.net",
         port: "",
         pathname: "/**",
@@ -64,7 +66,7 @@ module.exports = withBundleAnalyzer({
         hostname: "shdw-drive.genesysgo.net",
         port: "",
         pathname: "/6tcnBSybPG7piEDShBcrVtYJDPSvGrDbVvXmXKpzBvWP/**",
-      }
+      },
     ],
   },
 });
