@@ -59,7 +59,6 @@ const Points: FC = () => {
   ]);
 
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[]>([]);
-  const [fetchingLeaderboardPage, setFetchingLeaderboardPage] = useState(false);
   const fetchLeaderboardPage = useCallback(async () => {
     const queryCursor = leaderboardData.length > 0 ? leaderboardData[leaderboardData.length - 1].doc : undefined;
     fetchLeaderboardData({
@@ -100,8 +99,6 @@ const Points: FC = () => {
     }
 
     const handleScroll = throttle(() => {
-      if (fetchingLeaderboardPage) return;
-      setFetchingLeaderboardPage(false);
       if (document.body.scrollTop > document.body.scrollHeight * 0.5) {
         fetchLeaderboardPage();
       }
@@ -111,7 +108,7 @@ const Points: FC = () => {
     return () => {
       document.body.removeEventListener("scroll", handleScroll);
     };
-  }, [connection, fetchLeaderboardPage, fetchingLeaderboardPage]);
+  }, [connection, fetchLeaderboardPage]);
 
   return (
     <>
