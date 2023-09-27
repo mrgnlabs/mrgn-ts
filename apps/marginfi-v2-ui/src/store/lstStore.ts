@@ -1,6 +1,6 @@
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { vendor } from "@mrgnlabs/marginfi-client-v2";
-import { ACCOUNT_SIZE, TOKEN_PROGRAM_ID, Wallet, aprToApy } from "@mrgnlabs/mrgn-common";
+import { ACCOUNT_SIZE, TOKEN_PROGRAM_ID, Wallet, aprToApy, uiToNative } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { create, StateCreator } from "zustand";
 import * as solanaStakePool from "@solana/spl-stake-pool";
@@ -9,17 +9,17 @@ import { TokenInfo, TokenInfoMap, TokenListContainer } from "@solana/spl-token-r
 import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
 import { persist } from "zustand/middleware";
 import { StakePoolProxyProgram, getStakePoolProxyProgram } from "~/utils/stakePoolProxy";
+import { StakeData, fetchStakeAccounts } from "~/utils/stakeAcounts";
+import BN from "bn.js";
 
 const STAKEVIEW_APP_URL = "https://stakeview.app/apy/prev3.json";
 const BASELINE_VALIDATOR_ID = "FugJZepeGfh1Ruunhep19JC4F3Hr2FL3oKUMezoK8ajp";
 
 export const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
+export const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
 const NETWORK_FEE_LAMPORTS = 15000; // network fee + some for potential account creation
 const SOL_USD_PYTH_ORACLE = new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG");
 const STAKE_POOL_ID = new PublicKey("DqhH94PjkZsjAqEze2BEkWhFQJ6EyU6MdtMphMgnXqeK");
-
-// const STAKE_POOL_ID = new PublicKey("stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"); // blaze
-// const STAKE_POOL_ID = new PublicKey("Jito4APyf642JPZPx3hGc6WWJ8zPKtRbRs4P815Awbb"); // jito
 
 const SUPPORTED_TOKENS = [
   "7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT",
@@ -32,7 +32,7 @@ const SUPPORTED_TOKENS = [
   "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
 ];
 
-export type TokenData = Omit<TokenInfo, "logoUri"> & { price: number; balance: number; iconUrl: string };
+export type TokenData = Omit<TokenInfo, "logoUri"> & { price: number; balance: BN; iconUrl: string };
 export type TokenDataMap = Map<string, TokenData>;
 
 export type SupportedSlippagePercent = 0.1 | 0.5 | 1.0 | 5.0;
@@ -45,7 +45,9 @@ interface LstState {
   connection: Connection | null;
   wallet: Wallet | null;
   lstData: LstData | null;
+  availableLamports: BN | null;
   tokenDataMap: TokenDataMap | null;
+  stakeAccounts: StakeData[];
   solUsdValue: number | null;
   slippagePct: SupportedSlippagePercent;
   stakePoolProxyProgram: StakePoolProxyProgram | null;
@@ -70,13 +72,14 @@ function createLstStore() {
   );
 }
 
-interface LstData {
+export interface LstData {
   poolAddress: PublicKey;
   tvl: number;
   projectedApy: number;
   lstSolValue: number;
   solDepositFee: number;
   accountData: solanaStakePool.StakePool;
+  validatorList: PublicKey[];
 }
 
 const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
@@ -87,7 +90,9 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
   connection: null,
   wallet: null,
   lstData: null,
+  availableLamports: null,
   tokenDataMap: null,
+  stakeAccounts: [],
   solUsdValue: null,
   slippagePct: 1,
   stakePoolProxyProgram: null,
@@ -109,24 +114,30 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
       const stakePoolProxyProgram = getStakePoolProxyProgram(provider);
 
       let lstData: LstData | null = null;
+      let availableLamports: BN | null = null;
       let tokenDataMap: TokenDataMap | null = null;
       let solUsdValue: number | null = null;
+      let stakeAccounts: StakeData[] = [];
       if (wallet?.publicKey) {
-        const [accountsAiList, minimumRentExemption, _lstData, jupiterTokenInfo, userTokenAccounts] = await Promise.all(
-          [
+        const [accountsAiList, minimumRentExemption, _lstData, jupiterTokenInfo, userTokenAccounts, _stakeAccounts] =
+          await Promise.all([
             connection.getMultipleAccountsInfo([wallet.publicKey, SOL_USD_PYTH_ORACLE]),
             connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE),
             fetchLstData(connection),
             fetchJupiterTokenInfo(),
             fetchUserTokenAccounts(connection, wallet.publicKey),
-          ]
-        );
+            fetchStakeAccounts(connection, wallet.publicKey),
+          ]);
 
         lstData = _lstData;
         const [walletAi, solUsdPythFeedAi] = accountsAiList;
         const nativeSolBalance = walletAi?.lamports ? walletAi.lamports : 0;
-        const availableSolBalance = (nativeSolBalance - minimumRentExemption - NETWORK_FEE_LAMPORTS) / 1e9;
+        availableLamports = new BN(nativeSolBalance - minimumRentExemption - NETWORK_FEE_LAMPORTS);
         solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
+        stakeAccounts = _stakeAccounts.filter(
+          (stakeAccount) =>
+            stakeAccount.isActive && _lstData.validatorList.find((v) => v.equals(stakeAccount.validatorVoteAddress))
+        );
 
         const tokenPrices = await fetchTokenPrices(
           [...jupiterTokenInfo.values()].map((tokenInfo) => new PublicKey(tokenInfo.address))
@@ -136,13 +147,9 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
             const price = tokenPrices.get(tokenInfo.address);
             const { logoURI, ..._tokenInfo } = tokenInfo;
 
-            let walletBalance: number = 0;
-            if (tokenMint === SOL_MINT.toBase58()) {
-              walletBalance = availableSolBalance;
-            } else {
-              const tokenAccount = userTokenAccounts?.get(tokenMint);
-              walletBalance = tokenAccount?.balance ?? 0;
-            }
+            let walletBalance: BN = new BN(0);
+            const tokenAccount = userTokenAccounts?.get(tokenMint);
+            walletBalance = uiToNative(tokenAccount?.balance ?? 0, tokenInfo.decimals);
 
             return [
               tokenMint,
@@ -168,7 +175,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
             const { logoURI, ..._tokenInfo } = tokenInfo;
             return [
               tokenMint,
-              { ..._tokenInfo, iconUrl: logoURI ?? "/info_icon.png", price: price ? price : 0, balance: 0 },
+              { ..._tokenInfo, iconUrl: logoURI ?? "/info_icon.png", price: price ? price : 0, balance: new BN(0) },
             ];
           })
         );
@@ -185,7 +192,9 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
         connection,
         wallet,
         lstData,
+        availableLamports,
         tokenDataMap,
+        stakeAccounts,
         solUsdValue,
         stakePoolProxyProgram,
       });
@@ -200,7 +209,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
     if (tokenDataMap) {
       tokenDataMap = new Map(
         [...tokenDataMap?.entries()].map(
-          ([tokenMint, tokenData]) => [tokenMint, { ...tokenData, balance: 0 }] as [string, TokenData]
+          ([tokenMint, tokenData]) => [tokenMint, { ...tokenData, balance: new BN(0) }] as [string, TokenData]
         )
       );
     }
@@ -253,6 +262,7 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
     lstSolValue,
     solDepositFee,
     accountData: stakePool,
+    validatorList: stakePoolInfo.validatorList.map((v) => new PublicKey(v.voteAccountAddress)),
   };
 }
 
