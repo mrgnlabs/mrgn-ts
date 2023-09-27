@@ -10,7 +10,7 @@ import { DepositOption } from "./StakingCard";
 import BN from "bn.js";
 import { PublicKey } from "@solana/web3.js";
 import { MrgnTooltip } from "~/components/Tooltip";
-import InfoIcon from '@mui/icons-material/Info';
+import InfoIcon from "@mui/icons-material/Info";
 
 interface StakingModalProps {
   isOpen: boolean;
@@ -58,7 +58,17 @@ export const StakingModal: FC<StakingModalProps> = ({
           </Typography>
           <div className="h-full flex justify-center items-center">
             <MrgnTooltip
-              title={isStakeAccountMode ? <Typography className="font-aeonik text-sm">Convert your native SOL stake into $LST instantly</Typography> : <Typography className="font-aeonik text-sm">Convert your tokens to $LST effortlessly. Powered by Jupiter.</Typography>}
+              title={
+                isStakeAccountMode ? (
+                  <Typography className="font-aeonik text-sm">
+                    Convert your native SOL stake into $LST instantly
+                  </Typography>
+                ) : (
+                  <Typography className="font-aeonik text-sm">
+                    Convert your tokens to $LST effortlessly. Powered by Jupiter.
+                  </Typography>
+                )
+              }
               placement="top"
             >
               <InfoIcon className="hover:text-[#DCE85D]" fontSize="small" />
@@ -67,12 +77,17 @@ export const StakingModal: FC<StakingModalProps> = ({
         </div>
         <div className="flex flex-col overflow-y-auto pr-1">
           {isStakeAccountMode ? (
-            <StakeAccountList
-              depositOption={depositOption}
-              stakeAccounts={stakeAccounts}
-              setSelectedStakeAccount={setDepositOption}
-              handleClose={handleClose}
-            />
+            stakeAccounts.length === 0 ? (
+              <StakeAccountList
+                depositOption={depositOption}
+                stakeAccounts={stakeAccounts}
+                setSelectedStakeAccount={setDepositOption}
+                handleClose={handleClose}
+              />
+            ) : (
+              <div className="flex justify-center mt-8">
+              <Typography className="font-aeonik font-[300] text-[#BBB] text-lg">No eligible stake accounts found</Typography></div>
+            )
           ) : (
             <TokenList
               depositOption={depositOption}
