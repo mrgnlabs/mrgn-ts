@@ -58,18 +58,49 @@ const Points: FC = () => {
     state.userPointsData,
   ]);
 
-  const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[] | {}[]>([...new Array(50).fill({})]);
+  const leaderboardPerPage = 50;
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[] | {}[]>([
+    ...new Array(leaderboardPerPage).fill({}),
+  ]);
+  const [leaderboardPage, setLeaderboardPage] = useState(0);
+  const [isFetchingLeaderboardPage, setIsFetchingLeaderboardPage] = useState(false);
+  const leaderboardSentinelRef = useRef<HTMLDivElement>(null);
+
+  // fetch next page of leaderboard results
   const fetchLeaderboardPage = useCallback(async () => {
-    const queryCursor = leaderboardData.length > 0 ? leaderboardData[leaderboardData.length - 1].doc : undefined;
+    // grab last row of current leaderboard data for cursor
+    const lastRow = [...leaderboardData].filter((row) => row.hasOwnProperty("id"))[
+      leaderboardPage * leaderboardPerPage - 2
+    ] as LeaderboardRow;
+    if (!lastRow || !lastRow.hasOwnProperty("id")) return;
+    setIsFetchingLeaderboardPage(true);
+
+    // fetch new page of data with cursor
+    const queryCursor = leaderboardData.length > 0 ? lastRow.doc : undefined;
     setLeaderboardData((current) => [...current, ...new Array(50).fill({})]);
     fetchLeaderboardData({
       connection,
       queryCursor,
     }).then((data) => {
+      // filter out skeleton rows
       const filtered = [...leaderboardData].filter((row) => row.hasOwnProperty("id"));
-      setLeaderboardData((current) => [...filtered, ...data]);
+
+      // additional check for duplicate values
+      const uniqueData = data.reduce((acc, curr) => {
+        const isDuplicate = acc.some((item) => {
+          const data = item as LeaderboardRow;
+          data.id === curr.id;
+        });
+        if (!isDuplicate) {
+          acc.push(curr);
+        }
+        return acc;
+      }, filtered);
+
+      setLeaderboardData(uniqueData);
+      setIsFetchingLeaderboardPage(false);
     });
-  }, [connection, leaderboardData, setLeaderboardData]);
+  }, [connection, leaderboardData, setLeaderboardData, setIsFetchingLeaderboardPage, leaderboardPage]);
 
   const [domain, setDomain] = useState<string>();
 
@@ -91,8 +122,14 @@ const Points: FC = () => {
     }
   }, [connection, walletAddress]);
 
+  // fetch new page when page counter changed
   useEffect(() => {
-    if (!leaderboardData[0].hasOwnProperty("id")) {
+    fetchLeaderboardPage();
+  }, [leaderboardPage]);
+
+  useEffect(() => {
+    // fetch initial page and overwrite skeleton rows
+    if (leaderboardPage === 0) {
       fetchLeaderboardData({
         connection,
       }).then((data) => {
@@ -100,15 +137,29 @@ const Points: FC = () => {
       });
     }
 
-    const handleScroll = throttle(() => {
-      if (document.body.scrollTop > document.body.scrollHeight * 0.5) {
-        fetchLeaderboardPage();
+    // intersection observer to fetch new page of data
+    // when sentinel element is scrolled into view
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isFetchingLeaderboardPage) {
+          setLeaderboardPage((current) => current + 1);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0,
       }
-    }, 500);
+    );
 
-    document.body.addEventListener("scroll", handleScroll);
+    if (leaderboardSentinelRef.current) {
+      observer.observe(leaderboardSentinelRef.current);
+    }
+
     return () => {
-      document.body.removeEventListener("scroll", handleScroll);
+      if (leaderboardSentinelRef.current) {
+        observer.unobserve(leaderboardSentinelRef.current);
+      }
     };
   }, [connection, fetchLeaderboardPage]);
 
@@ -395,7 +446,7 @@ const Points: FC = () => {
                       style={{ fontWeight: 400 }}
                     >
                       <a
-                        href={`https://solscan.io/account/${row.id}`}
+                        href={`https://solscan.io/account/${data.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ textDecoration: "none", color: "inherit" }}
@@ -468,6 +519,7 @@ const Points: FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        <div ref={leaderboardSentinelRef} style={{ height: 10, width: "100%", transform: "translateY(-50vh)" }} />
       </div>
     </>
   );
