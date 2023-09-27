@@ -31,14 +31,15 @@ const StakePage = () => {
     }
   }, [router]);
 
-  const [initialized, isRefreshingStore, fetchLstState, setIsRefreshingStore, userDataFetched, resetUserData] = useLstStore((state) => [
-    state.initialized,
-    state.isRefreshingStore,
-    state.fetchLstState,
-    state.setIsRefreshingStore,
-    state.userDataFetched,
-    state.resetUserData,
-  ]);
+  const [initialized, isRefreshingStore, fetchLstState, setIsRefreshingStore, userDataFetched, resetUserData] =
+    useLstStore((state) => [
+      state.initialized,
+      state.isRefreshingStore,
+      state.fetchLstState,
+      state.setIsRefreshingStore,
+      state.userDataFetched,
+      state.resetUserData,
+    ]);
 
   useEffect(() => {
     setIsRefreshingStore(true);
@@ -68,24 +69,24 @@ const StakePage = () => {
   if (!mounted) return null;
 
   return (
-    <JupiterProvider connection={connection}>
+    <JupiterProvider connection={connection} wrapUnwrapSOL={false}>
       <PageHeader>stake</PageHeader>
       <div className="flex flex-col h-full max-w-[480px] w-full justify-center content-center pt-[64px] sm:pt-[16px] gap-4 px-4">
         <StakingStats />
         <StakingCard />
-        <div className="flex flex-col mt-10 pb-[64px] gap-5 justify-center font-aeonik text-lg">
-          <Typography className="text-center w-full">
+        <div className="flex flex-col mt-10 pb-[64px] gap-5 justify-center font-aeonik">
+          <Typography className="text-center w-full text-xl">
             <span className="font-bold text-[#DCE85D]">$LST</span>, by mrgn
           </Typography>
-          <Typography className="text-center w-full">
+          <Typography className="text-center w-full text-xl">
             Introducing the best way to get exposure to SOL. <span className="font-bold text-[#DCE85D]">$LST</span> is
             built on mrgn&apos;s validator network and Jito&apos;s MEV rewards. For the first time,{" "}
             <span className="font-bold text-[#DCE85D]">$LST</span> holders can get the best staking yield available on
             Solana, combined with the biggest MEV rewards from Solana&apos;s trader network.
           </Typography>
-          <Typography className="text-center w-full">
-            <span className="font-bold text-[#DCE85D]">$LST</span> has 0% commission. The yield goes to you. Stop
-            paying middlemen. Stop using underperforming validators. Stop missing out on MEV rewards.
+          <Typography className="text-center w-full text-xl">
+            <span className="font-bold text-[#DCE85D]">$LST</span> has 0% commission. The yield goes to you. Stop paying
+            middlemen. Stop using underperforming validators. Stop missing out on MEV rewards.
           </Typography>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { Dispatch, FC, SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
+import { Dispatch, FC, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TextField, Typography } from "@mui/material";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { WalletIcon } from "./WalletIcon";
@@ -6,11 +6,9 @@ import { PrimaryButton } from "./PrimaryButton";
 import { useLstStore } from "~/pages/stake";
 import { useWalletContext } from "~/components/useWalletContext";
 import {
-  ACCOUNT_SIZE,
   TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountIdempotentInstruction,
   createCloseAccountInstruction,
-  createInitializeAccountInstruction,
   getAssociatedTokenAddressSync,
   nativeToUi,
   numeralFormatter,
@@ -36,19 +34,23 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { SwapMode, useJupiter } from "@jup-ag/react-hook";
+import { JupiterProvider, SwapMode, useJupiter } from "@jup-ag/react-hook";
 import JSBI from "jsbi";
 import { usePrevious } from "~/utils";
-import { createJupiterApiClient, instanceOfSwapInstructionsResponse, Instruction } from "@jup-ag/api";
+import {
+  createJupiterApiClient,
+  Instruction,
+} from "@jup-ag/api";
 import { toast } from "react-toastify";
 import { SettingsModal } from "./SettingsModal";
 import { SettingsIcon } from "./SettingsIcon";
-import { SOL_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
+import { LST_MINT, SOL_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
 import { RefreshIcon } from "./RefreshIcon";
 import { StakePoolProxyProgram } from "~/utils/stakePoolProxy";
 import { Spinner } from "~/components/Spinner";
 import { StakeData } from "~/utils/stakeAcounts";
 import BN from "bn.js";
+import debounce from "lodash.debounce";
 
 const QUOTE_EXPIRY_MS = 30_000;
 const DEFAULT_DEPOSIT_OPTION: DepositOption = { type: "native", amount: new BN(0), maxAmount: new BN(0) };
@@ -82,7 +84,6 @@ export const StakingCard: FC = () => {
     fetchLstState,
     slippagePct,
     setSlippagePct,
-    stakePoolProxyProgram,
     availableLamports,
     solUsdValue,
   ] = useLstStore((state) => [
@@ -93,7 +94,6 @@ export const StakingCard: FC = () => {
     state.fetchLstState,
     state.slippagePct,
     state.setSlippagePct,
-    state.stakePoolProxyProgram,
     state.availableLamports,
     state.solUsdValue,
   ]);
@@ -105,7 +105,10 @@ export const StakingCard: FC = () => {
   const [depositOption, setDepositOption] = useState<DepositOption>(DEFAULT_DEPOSIT_OPTION);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
 
-  const slippageBps = useMemo(() => slippagePct * 100, [slippagePct]);
+  const slippageBps = useMemo(
+    () => slippagePct * 100,
+    [slippagePct]
+  );
 
   const prevWalletAddress = usePrevious(walletAddress);
   useEffect(() => {
@@ -146,10 +149,14 @@ export const StakingCard: FC = () => {
     loading: loadingQuotes,
     refresh,
     lastRefreshTimestamp,
+    error,
   } = useJupiter({
-    amount: depositOption.type === "token" ? JSBI.BigInt(depositOption.amount) : JSBI.BigInt(0), // amountIn trick to avoid Jupiter calls when depositing stake or native SOL
-    inputMint: depositOption.type === "token" ? new PublicKey(depositOption.tokenData.address) : undefined,
-    outputMint: SOL_MINT,
+    amount: depositOption.type === "stake" || depositOption.type === "native" ? JSBI.BigInt(0) : JSBI.BigInt(depositOption.amount), // amountIn trick to avoid Jupiter calls when depositing stake or native SOL
+    inputMint:
+      depositOption.type === "token"
+        ? new PublicKey(depositOption.tokenData.address)
+        : undefined,
+    outputMint: LST_MINT,
     swapMode: SwapMode.ExactIn,
     slippageBps,
     debounceTime: 250,
@@ -171,17 +178,30 @@ export const StakingCard: FC = () => {
     [depositOption, refresh, lastRefreshTimestamp]
   );
 
+  const showErrotToast = useRef(debounce(() => toast.error("Failed to find route"), 250));
+
+  const prevError = usePrevious(error);
   useEffect(() => {
-    refreshQuoteIfNeeded();
-    const id = setInterval(refreshQuoteIfNeeded, 1_000);
-    return () => clearInterval(id);
-  }, [refreshQuoteIfNeeded]);
+    if (prevError === undefined && error !== undefined) {
+      setDepositOption((currentDepositOption) => {
+        if (currentDepositOption.type === "token" && currentDepositOption.amount.gtn(0)) {
+          showErrotToast.current();
+          return {
+            ...currentDepositOption,
+            amount: new BN(0),
+          };
+        } else {
+          return currentDepositOption;
+        }
+      });
+    }
+  }, [error, prevError]);
 
   useEffect(() => {
     if (!loadingQuotes) {
-      setTimeout(() => setRefreshingQuotes(false), 500);
-    }
-  }, [loadingQuotes]);
+    setTimeout(() => setRefreshingQuotes(false), 500);
+  }
+}, [loadingQuotes]);
 
   const lstOutAmount: number = useMemo(() => {
     if (!depositOption || !lstData?.lstSolValue) return 0;
@@ -192,8 +212,7 @@ export const StakingCard: FC = () => {
       return nativeToUi(depositOption.stakeData.lamports, 9) / lstData.lstSolValue;
     } else {
       if (quoteResponseMeta?.quoteResponse?.outAmount) {
-        const outAmount = JSBI.toNumber(quoteResponseMeta?.quoteResponse?.outAmount) / 1e9;
-        return outAmount / lstData.lstSolValue;
+        return JSBI.toNumber(quoteResponseMeta?.quoteResponse?.outAmount) / 1e9;
       } else {
         return 0;
       }
@@ -242,34 +261,10 @@ export const StakingCard: FC = () => {
       value: { blockhash, lastValidBlockHeight },
     } = await connection.getLatestBlockhashAndContext();
 
+    setOngoingAction("minting");
+
     try {
-      if (depositOption.type === "native") {
-        setOngoingAction("minting");
-
-        const { instructions, signers } = await makeDepositSolToStakePoolIx(
-          lstData.accountData,
-          lstData.poolAddress,
-          walletAddress,
-          depositOption.amount,
-          undefined
-        );
-
-        const depositMessage = new TransactionMessage({
-          instructions: instructions,
-          payerKey: walletAddress,
-          recentBlockhash: blockhash,
-        });
-
-        const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
-        depositTransaction.sign(signers);
-
-        const signedTransaction = await wallet.signTransaction(depositTransaction);
-        const depositSig = await connection.sendTransaction(signedTransaction);
-
-        sigs.push(depositSig);
-      } else if (depositOption.type === "stake") {
-        setOngoingAction("minting");
-
+      if (depositOption.type === "stake") {
         const { instructions, signers } = await makeDepositStakeToStakePoolIx(
           lstData.accountData,
           lstData.poolAddress,
@@ -292,88 +287,22 @@ export const StakingCard: FC = () => {
 
         sigs.push(depositSig);
       } else if (depositOption.type === "token") {
-        if (!stakePoolProxyProgram) {
-          console.error("stakePoolProxyProgram not initialized");
-          return;
-        }
         const quote = quoteResponseMeta?.original;
         if (!quote) {
           console.error("Route not calculated yet");
           return;
         }
 
-        setOngoingAction("swapping");
-
-        const destinationTokenAccountKeypair = Keypair.generate();
-
-        const minimumRentExemptionForTokenAccount = await connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE);
-        const createWSolAccountIx = SystemProgram.createAccount({
-          fromPubkey: walletAddress,
-          newAccountPubkey: destinationTokenAccountKeypair.publicKey,
-          lamports: minimumRentExemptionForTokenAccount,
-          space: ACCOUNT_SIZE,
-          programId: TOKEN_PROGRAM_ID,
-        });
-        const initWSolAccountIx = createInitializeAccountInstruction(
-          destinationTokenAccountKeypair.publicKey,
-          SOL_MINT,
-          walletAddress
-        );
-
-        // Craft swap tx
-        const swapInstructionsResult = await jupiterApiClient.swapInstructionsPost({
+        const { swapTransaction: swapTransactionEncoded, lastValidBlockHeight } = await jupiterApiClient.swapPost({
           swapRequest: {
             quoteResponse: quote,
             userPublicKey: walletAddress.toBase58(),
             wrapAndUnwrapSol: false,
-            destinationTokenAccount: destinationTokenAccountKeypair.publicKey.toBase58(),
           },
         });
-        if (!instanceOfSwapInstructionsResponse(swapInstructionsResult)) throw new Error("Invalid swap response");
+        const swapTransactionBuffer = Buffer.from(swapTransactionEncoded, "base64");
+        const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuffer);
 
-        const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
-
-        const swapInstructions = [
-          ...swapInstructionsResult.computeBudgetInstructions.map(jupIxToSolanaIx),
-          createWSolAccountIx,
-          initWSolAccountIx,
-          ...swapInstructionsResult.setupInstructions.map(jupIxToSolanaIx),
-          jupIxToSolanaIx(swapInstructionsResult.swapInstruction),
-        ];
-        if (swapInstructionsResult.cleanupInstruction) {
-          swapInstructions.push(jupIxToSolanaIx(swapInstructionsResult.cleanupInstruction));
-        }
-
-        addressLookupTableAccounts.push(
-          ...(await getAdressLookupTableAccounts(connection, swapInstructionsResult.addressLookupTableAddresses))
-        );
-
-        const swapTransactionMessage = new TransactionMessage({
-          instructions: swapInstructions,
-          payerKey: walletAddress,
-          recentBlockhash: blockhash,
-        }).compileToV0Message(addressLookupTableAccounts);
-        const swapTransaction = new VersionedTransaction(swapTransactionMessage);
-        swapTransaction.sign([destinationTokenAccountKeypair]);
-
-        // Craft stake pool deposit tx
-        const { instructions, signers } = await makeDepositWSolToStakePoolIx(
-          lstData.accountData,
-          lstData.poolAddress,
-          wallet.publicKey,
-          destinationTokenAccountKeypair.publicKey,
-          stakePoolProxyProgram,
-          minimumRentExemptionForTokenAccount
-        );
-        const depositMessage = new TransactionMessage({
-          instructions: instructions,
-          payerKey: walletAddress,
-          recentBlockhash: blockhash,
-        });
-        const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
-        depositTransaction.sign(signers);
-
-        // Send txs
         const signedSwapTransaction = await wallet.signTransaction(swapTransaction);
         const swapSig = await connection.sendTransaction(signedSwapTransaction);
         await connection.confirmTransaction(
@@ -383,12 +312,28 @@ export const StakingCard: FC = () => {
             signature: swapSig,
           },
           "confirmed"
-        ); // TODO: explicitly warn if second tx fails
+        );
+      } else if (depositOption.type === "native") {
 
-        setOngoingAction("minting");
+        const { instructions, signers } = await makeDepositSolToStakePoolIx(
+          lstData.accountData,
+          lstData.poolAddress,
+          walletAddress,
+          depositOption.amount,
+          undefined
+        );
 
-        const signedDepositTransaction = await wallet.signTransaction(depositTransaction);
-        const depositSig = await connection.sendTransaction(signedDepositTransaction);
+        const depositMessage = new TransactionMessage({
+          instructions: instructions,
+          payerKey: walletAddress,
+          recentBlockhash: blockhash,
+        });
+
+        const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
+        depositTransaction.sign(signers);
+
+        const signedTransaction = await wallet.signTransaction(depositTransaction);
+        const depositSig = await connection.sendTransaction(signedTransaction);
         await connection.confirmTransaction(
           {
             blockhash,
@@ -420,18 +365,7 @@ export const StakingCard: FC = () => {
       );
       setOngoingAction(null);
     }
-  }, [
-    lstData,
-    wallet,
-    walletAddress,
-    stakePoolProxyProgram,
-    depositOption,
-    connection,
-    quoteResponseMeta?.original,
-    jupiterApiClient,
-    refresh,
-    fetchLstState,
-  ]);
+  }, [lstData, wallet, walletAddress, depositOption, connection, quoteResponseMeta?.original, jupiterApiClient, refresh, fetchLstState]);
 
   return (
     <>
@@ -507,14 +441,14 @@ export const StakingCard: FC = () => {
           size="small"
           isAllowed={(values) => {
             const { floatValue } = values;
-            const decimals = depositOption.type === "token" ? depositOption.tokenData.decimals : 9;
-            const depositAmount = uiToNative(floatValue ?? 0, decimals);
             if (!connected || depositOption.type === "stake") {
               return true;
             }
+            const decimals = depositOption.type === "token" ? depositOption.tokenData.decimals : 9;
+            const depositAmount = uiToNative(floatValue ?? 0, decimals);
             const maxDepositAmount =
               depositOption.type === "token" ? depositOption.tokenData.balance : depositOption.maxAmount;
-            return floatValue ? depositAmount < maxDepositAmount : true;
+            return floatValue ? depositAmount.lt(maxDepositAmount) : true;
           }}
           sx={{
             input: { textAlign: "right", MozAppearance: "textfield" },

@@ -30,10 +30,11 @@ export async function fetchStakeAccounts(
   let newStakeAccountMetas = parsedAccounts
     .map(({ pubkey, account }) => {
       const parsedAccount = account as AccountInfo<ParsedAccountData>;
-      console.log(parsedAccount.data.parsed.info)
-      const activationEpoch = Number(parsedAccount.data.parsed.info.stake.delegation.activationEpoch);
-      let isActive = parsedAccount.data.parsed.type === "delegated" && currentEpoch.epoch >= activationEpoch + 1;
 
+      const activationEpoch = Number(parsedAccount.data.parsed.info.stake.delegation.activationEpoch);
+      const deactivationEpoch = Number(parsedAccount.data.parsed.info.stake.delegation.deactivationEpoch);
+      let isActive = parsedAccount.data.parsed.type === "delegated" && currentEpoch.epoch >= activationEpoch + 1 && deactivationEpoch > currentEpoch.epoch;
+  
       return {
         address: pubkey,
         lamports: new BN(account.lamports),

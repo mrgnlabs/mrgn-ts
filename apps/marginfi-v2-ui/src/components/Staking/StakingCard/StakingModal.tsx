@@ -9,6 +9,8 @@ import { StakeData } from "~/utils/stakeAcounts";
 import { DepositOption } from "./StakingCard";
 import BN from "bn.js";
 import { PublicKey } from "@solana/web3.js";
+import { MrgnTooltip } from "~/components/Tooltip";
+import InfoIcon from '@mui/icons-material/Info';
 
 interface StakingModalProps {
   isOpen: boolean;
@@ -50,10 +52,20 @@ export const StakingModal: FC<StakingModalProps> = ({
             <Close className="cursor-pointer hover:text-[#DCE85D]" onClick={handleClose} />
           </div>
         </div>
-        <Typography className="my-4 font-aeonik font-[500] text-[22px] inline">
-          {isStakeAccountMode ? "Select stake account" : "Select token"}
-        </Typography>
-        <div className="flex flex-col overflow-y-auto">
+        <div className="flex my-4 gap-2">
+          <Typography className="font-aeonik font-[500] text-[22px]">
+            {isStakeAccountMode ? "Select stake account" : "Select token"}
+          </Typography>
+          <div className="h-full flex justify-center items-center">
+            <MrgnTooltip
+              title={isStakeAccountMode ? <Typography className="font-aeonik text-sm">Convert your native SOL stake into $LST instantly</Typography> : <Typography className="font-aeonik text-sm">Convert your tokens to $LST effortlessly. Powered by Jupiter.</Typography>}
+              placement="top"
+            >
+              <InfoIcon className="hover:text-[#DCE85D]" fontSize="small" />
+            </MrgnTooltip>
+          </div>
+        </div>
+        <div className="flex flex-col overflow-y-auto pr-1">
           {isStakeAccountMode ? (
             <StakeAccountList
               depositOption={depositOption}
@@ -121,8 +133,8 @@ const TokenList: FC<{
               <Typography className="flex justify-end text-sm">
                 {availableLamportsUi < 0.01 ? "< 0.01" : numeralFormatter(availableLamportsUi)}
               </Typography>
-              <Typography className="flex justify-end text-sm">
-                ({lamportsUsdValue < 0.01 ? "< $0.01" : `$${numeralFormatter(lamportsUsdValue)}`})
+              <Typography className="flex justify-end text-sm text-[#BBB]">
+                {lamportsUsdValue < 0.01 ? "< $0.01" : `$${numeralFormatter(lamportsUsdValue)}`}
               </Typography>
             </div>
           )}
@@ -166,7 +178,7 @@ const TokenList: FC<{
                     <Typography className="flex justify-end text-sm">
                       {balanceUi < 0.01 ? "< 0.01" : numeralFormatter(balanceUi)}
                     </Typography>
-                    <Typography className="flex justify-end text-sm">
+                    <Typography className="flex justify-end text-sm text-[#BBB]">
                       {usdValue < 0.01 ? "< $0.01" : `$${numeralFormatter(usdValue)}`}
                     </Typography>
                   </div>
