@@ -77,7 +77,7 @@ export const StakingModal: FC<StakingModalProps> = ({
         </div>
         <div className="flex flex-col overflow-y-auto pr-1">
           {isStakeAccountMode ? (
-            stakeAccounts.length === 0 ? (
+            stakeAccounts.length > 0 ? (
               <StakeAccountList
                 depositOption={depositOption}
                 stakeAccounts={stakeAccounts}
