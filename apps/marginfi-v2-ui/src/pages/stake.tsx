@@ -74,16 +74,16 @@ const StakePage = () => {
         <StakingStats />
         <StakingCard />
         <div className="flex flex-col mt-10 pb-[64px] gap-5 justify-center font-aeonik">
-          <Typography className="text-center w-full text-xl">
+          <Typography className="text-center w-full text-xl font-[200]">
             <span className="font-bold text-[#DCE85D]">$LST</span>, by mrgn
           </Typography>
-          <Typography className="text-center w-full text-xl">
+          <Typography className="text-center w-full text-xl font-[200]">
             Introducing the best way to get exposure to SOL. <span className="font-bold text-[#DCE85D]">$LST</span> is
             built on mrgn&apos;s validator network and Jito&apos;s MEV rewards. For the first time,{" "}
             <span className="font-bold text-[#DCE85D]">$LST</span> holders can get the best staking yield available on
             Solana, combined with the biggest MEV rewards from Solana&apos;s trader network.
           </Typography>
-          <Typography className="text-center w-full text-xl">
+          <Typography className="text-center w-full text-xl font-[200]">
             <span className="font-bold text-[#DCE85D]">$LST</span> has 0% commission. The yield goes to you. Stop paying
             middlemen. Stop using underperforming validators. Stop missing out on MEV rewards.
           </Typography>
