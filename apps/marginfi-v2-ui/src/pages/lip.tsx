@@ -8,7 +8,7 @@ const LIP = () => {
 
   return (
     <LipClientProvider>
-      <PageHeader />
+      <PageHeader>lip</PageHeader>
       {connected && <CampaignWizard />}
     </LipClientProvider>
   );

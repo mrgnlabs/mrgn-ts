@@ -68,7 +68,7 @@ const stateCreator: StateCreator<JupiterState, [], []> = (set, get) => ({
         return {
           created: true,
           mint: new PublicKey(item.account.data.parsed.info.mint),
-          balance: nativeToUi(new BN(item.account.data.parsed.info.tokenAmount.uiAmount), 0),
+          balance: item.account.data.parsed.info.tokenAmount.uiAmount,
         } as TokenAccount;
       });
 

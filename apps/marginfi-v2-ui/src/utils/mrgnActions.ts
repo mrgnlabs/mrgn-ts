@@ -1,11 +1,8 @@
-import { MarginfiAccountWrapper, MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ExtendedBankInfo,
-  Emissions,
   FEE_MARGIN,
   ActionType,
-  getCurrentAction,
-  ExtendedBankMetadata,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { toast } from "react-toastify";
 import { isWholePosition } from "./mrgnUtils";

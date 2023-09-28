@@ -3,9 +3,9 @@ import Link from "next/link";
 import { Button } from "@mui/material";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import { useRouter } from "next/router";
-
+import { getFavoriteDomain } from "@bonfida/spl-name-service";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { LeaderboardRow, fetchLeaderboardData } from "@mrgnlabs/marginfi-v2-ui-state";
-
 import { useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { PageHeader } from "~/components/desktop/PageHeader";
@@ -17,9 +17,11 @@ import {
   PointsCheckingUser,
   PointsConnectWallet,
 } from "~/components/desktop/Points";
+import { useConnection } from "@solana/wallet-adapter-react";
 
 const Points: FC = () => {
   const { connected, walletAddress } = useWalletContext();
+  const { connection } = useConnection();
   const { query: routerQuery } = useRouter();
   const [currentFirebaseUser, hasUser, userPointsData] = useUserProfileStore((state) => [
     state.currentFirebaseUser,
@@ -28,17 +30,33 @@ const Points: FC = () => {
   ]);
 
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[]>([]);
+  const [domain, setDomain] = useState<string>();
 
-  const currentUserId = useMemo(() => currentFirebaseUser?.uid, [currentFirebaseUser]);
+  const currentUserId = useMemo(() => domain ?? currentFirebaseUser?.uid, [currentFirebaseUser, domain]);
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
 
   useEffect(() => {
-    fetchLeaderboardData().then(setLeaderboardData); // TODO: cache leaderboard and avoid call
-  }, [connected, walletAddress]); // Dependency array to re-fetch when these variables change
+    if (connection && walletAddress) {
+      resolveDomain(connection, new PublicKey(walletAddress));
+    }
+  }, [connection, walletAddress]);
+
+  const resolveDomain = async (connection: Connection, user: PublicKey) => {
+    try {
+      const { reverse } = await getFavoriteDomain(connection, user);
+      setDomain(`${reverse}.sol`);
+    } catch (error) {
+      return;
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaderboardData(connection).then(setLeaderboardData); // TODO: cache leaderboard and avoid call
+  }, [connection, connected, walletAddress]); // Dependency array to re-fetch when these variables change
 
   return (
     <>
-      <PageHeader text="points" />
+      <PageHeader>points</PageHeader>
       <div className="flex flex-col items-center w-full sm:w-4/5 max-w-7xl gap-5 py-[64px] sm:py-[32px]">
         {!connected ? (
           <PointsConnectWallet />

@@ -100,15 +100,15 @@ const Home = () => {
 
   return (
     <>
+      <PageHeader>lend</PageHeader>
       <Desktop>
-        <PageHeader />
         <div className="flex flex-col h-full justify-start content-start pt-[16px] w-4/5 max-w-7xl gap-4">
           {walletAddress && selectedAccount && isOverride && (
             <Banner
               text={`Read-only view of ${shortenAddress(selectedAccount.address.toBase58())} (owner: ${shortenAddress(
                 walletAddress
               )}) - All actions are simulated`}
-              backgroundColor="#7fff00"
+              backgroundColor="#DCE85D"
             />
           )}
           {walletAddress && marginfiAccountCount > 1 && (
@@ -120,17 +120,14 @@ const Home = () => {
           <AssetsList />
           {walletAddress && <UserPositions />}
         </div>
-        <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
       </Desktop>
-
       <Mobile>
-        <PageHeader />
         <div className="flex flex-col h-full justify-start content-start pt-[16px] w-4/5 max-w-7xl gap-4 mb-20">
           <MobileAccountSummary />
           <MobileAssetsList />
         </div>
-        <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
       </Mobile>
+      <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
     </>
   );
 };

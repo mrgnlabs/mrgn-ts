@@ -1,5 +1,7 @@
 import * as admin from "firebase-admin";
-import { NextApiRequest, getFirebaseUserByWallet, initFirebaseIfNeeded, logLoginAttempt } from "./utils";
+import * as Sentry from "@sentry/nextjs";
+import { getFirebaseUserByWallet, initFirebaseIfNeeded, logLoginAttempt } from "./utils";
+import { NextApiRequest } from "../utils";
 import { MEMO_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import base58 from "bs58";
@@ -30,6 +32,7 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: an
     const loginData = validateAndUnpackLoginData(signedAuthDataRaw, method);
     signer = loginData.signer.toBase58();
   } catch (error: any) {
+    Sentry.captureException(error);
     let status;
     switch (error.message) {
       case "Invalid login tx":
@@ -50,10 +53,12 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: an
     const userResult = await getFirebaseUserByWallet(signer);
     if (userResult === undefined) {
       await logLoginAttempt(signer, null, signedAuthDataRaw, false);
+      Sentry.captureException({ message: "User not found" });
       return res.status(STATUS_NOT_FOUND).json({ error: "User not found" });
     }
     user = userResult;
   } catch (error: any) {
+    Sentry.captureException(error);
     return res.status(STATUS_INTERNAL_ERROR).json({ error: error.message }); // An unexpected error occurred
   }
 

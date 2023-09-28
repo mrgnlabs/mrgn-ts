@@ -133,7 +133,7 @@ const CampaignWizard: FC<CampaignWizardProps> = () => {
 
     const campaignKeypair = Keypair.generate();
     console.log("creating campaign", campaignKeypair.publicKey.toBase58());
-    const userTokenAtaPk = getAssociatedTokenAddressSync(campaignBank.mint, lipClient.wallet.publicKey);
+    const userTokenAtaPk = getAssociatedTokenAddressSync(campaignBank.mint, lipClient.wallet.publicKey, true); // We allow off curve addresses here to support Fuse.
 
     const tx = new Transaction();
 

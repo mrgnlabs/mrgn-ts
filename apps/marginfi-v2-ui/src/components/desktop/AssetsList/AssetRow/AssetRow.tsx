@@ -16,12 +16,28 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType, getCurrentAction, ExtendedBankMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-
-import { borrowOrLend, closeBalance } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { AssetRowInputBox, AssetRowAction } from "~/components/common/AssetList";
+import { useAssetItemData } from "~/hooks/useAssetItemData";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { closeBalance, borrowOrLend } from "~/utils";
+
+export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
+  [
+    "UXD",
+    {
+      tokenSymbol: "UXP",
+      tokenLogoUri: "/uxp-icon-white.png",
+    },
+  ],
+  [
+    "bSOL",
+    {
+      tokenSymbol: "BLZE",
+      tokenLogoUri: "/blze.png",
+    },
+  ],
+]);
 
 const AssetRow: FC<{
   bank: ExtendedBankInfo;
@@ -199,7 +215,7 @@ const AssetRow: FC<{
         }}
       >
         <div className="h-full w-full flex justify-end items-center gap-3">
-          {bank.meta.tokenSymbol === "UXD" && isInLendingMode && (
+          {bank.info.state.emissionsRate > 0 && EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol) !== undefined && isInLendingMode && (
             <div className="w-1/2 flex justify-center sm:justify-end">
               <MrgnTooltip
                 title={
@@ -209,7 +225,7 @@ const AssetRow: FC<{
                     </Typography>
                     {`${percentFormatter.format(bank.info.state.lendingRate)} Supply APY + ${percentFormatter.format(
                       bank.info.state.emissionsRate
-                    )} UXP rewards.`}
+                    )} ${EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenSymbol} rewards.`}
                     <br />
                     <a href="https://docs.marginfi.com">
                       <u>Learn more.</u>
@@ -218,7 +234,13 @@ const AssetRow: FC<{
                 }
                 placement="left"
               >
-                <Image src="/uxp-icon-white.png" alt="info" height={16} width={16} className="pulse" />
+                <Image
+                  src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
+                  alt="info"
+                  height={16}
+                  width={16}
+                  className="pulse"
+                />
               </MrgnTooltip>
             </div>
           )}

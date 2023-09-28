@@ -74,7 +74,7 @@ export const MobilePortfolioOverview: FC = () => {
             <Typography color="#fff" className="font-aeonik font-[500] text-lg">
               {!!currentFirebaseUser
                 ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
-                : "P...P...POINTS!"}
+                : "-"}
             </Typography>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { PageHeader } from "~/components/desktop/PageHeader";
 function Disclaimer() {
   return (
     <>
-      <PageHeader text="terms: points" />
+      <PageHeader>terms: points</PageHeader>
       <div className="w-4/5 sm:w-3/5 max-w-5xl gap-5 py-[64px] sm:py-[32px]">
         <h1>Last Updated: June 2023</h1>
 

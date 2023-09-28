@@ -8,12 +8,21 @@ const WalletMultiButtonDynamic = dynamic(
 );
 
 const WalletButton: FC = () => {
-  const { connected } = useWalletContext();
+  const { connected, walletContextState, openWalletSelector } = useWalletContext();
 
   return (
     <div>
       <WalletMultiButtonDynamic style={{ background: "transparent", padding: "0" }}>
-        {!connected && <div className={"font-aeonik font-[500]"}>CONNECT</div>}
+        {walletContextState.connecting ? (
+          <a
+            onClick={walletContextState.connecting ? openWalletSelector : undefined}
+            className={"font-aeonik font-[500]"}
+          >
+            CONNECTING
+          </a>
+        ) : (
+          !connected && <div className={"font-aeonik font-[500]"}>CONNECT</div>
+        )}
       </WalletMultiButtonDynamic>
     </div>
   );

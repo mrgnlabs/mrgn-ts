@@ -1,7 +1,6 @@
 import { FC, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-
 import { useUserProfileStore } from "~/store";
 import { useRouter } from "next/router";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
@@ -11,7 +10,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 const MobileNavbar: FC = () => {
   useFirebaseAccount();
 
-  const { connected, walletAddress } = useWalletContext();
+  const { walletAddress } = useWalletContext();
   const router = useRouter();
   const [fetchPoints] = useUserProfileStore((state) => [state.fetchPoints]);
 
@@ -46,20 +45,6 @@ const MobileNavbar: FC = () => {
             <Image className="m-auto" src="/pie_chart.svg" alt="wallet icon" width={18.9} height={18.9} />
             portfolio
           </Link>
-
-          {/* <Link
-              href={"/earn"}
-              className={`${
-                router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"
-              } hidden md:block`}
-            >
-              earn
-            </Link>
-
-            <Link href={"https://omni.marginfi.com"} className="hover-underline-animation hidden md:block">
-              omni
-            </Link> */}
-          {/* {process.env.NEXT_PUBLIC_MARGINFI_FEATURES_AIRDROP === "true" && connected && <AirdropZone />} */}
         </div>
       </nav>
     </header>

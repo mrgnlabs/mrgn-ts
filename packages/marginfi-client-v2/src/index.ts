@@ -12,4 +12,5 @@ export * from "./models/account";
 export * from "./idl";
 export * from "./types";
 export * from "./utils";
+export * as vendor from "./vendor";
 export { MarginfiClient };

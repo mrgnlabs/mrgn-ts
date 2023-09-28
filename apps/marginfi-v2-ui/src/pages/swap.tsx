@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import config from "~/config";
-import { PageHeaderSwap } from "~/components/desktop/PageHeader";
+import { PageHeader } from "~/components/desktop/PageHeader";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 const SwapPage = () => {
@@ -21,7 +21,19 @@ const SwapPage = () => {
 
   return (
     <>
-      <PageHeaderSwap />
+      <PageHeader>
+        <div className="flex flex-row gap-1 pt-3">
+          <span>swap</span>
+          <div className="flex flex-row items-center gap-1">
+            <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
+            {/* Different components here by word so spacing can be the same */}
+            <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
+            <span className="text-sm h-[48px] pt-[28px] bg-jup-gradient-colors bg-clip-text text-transparent">
+              Jupiter
+            </span>
+          </div>
+        </div>
+      </PageHeader>
       <div className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-7xl">
         <div>
           <div className="text-[#fff] text-3xl min-w-[600px] text-center">

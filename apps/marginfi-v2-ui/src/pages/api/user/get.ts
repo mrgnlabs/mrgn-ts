@@ -1,5 +1,6 @@
 import { NextApiResponse } from "next";
-import { NextApiRequest, getFirebaseUserByWallet, initFirebaseIfNeeded } from "./utils";
+import { getFirebaseUserByWallet, initFirebaseIfNeeded } from "./utils";
+import { NextApiRequest } from "../utils";
 import { STATUS_INTERNAL_ERROR, STATUS_NOT_FOUND, STATUS_OK, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 
 initFirebaseIfNeeded();

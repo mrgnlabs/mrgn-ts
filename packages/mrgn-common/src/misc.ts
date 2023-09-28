@@ -1,5 +1,16 @@
-import { AnchorProvider } from "@coral-xyz/anchor";
-import { ConfirmOptions, Connection, Keypair, Signer, Transaction, TransactionSignature } from "@solana/web3.js";
+import {
+  ConfirmOptions,
+  Connection,
+  Keypair,
+  Signer,
+  Transaction,
+  TransactionMessage,
+  TransactionSignature,
+  VersionedTransaction,
+} from "@solana/web3.js";
+import { TransactionOptions, Wallet } from "./types";
+import { DEFAULT_CONFIRM_OPTS } from "./constants";
+import base58 from "bs58";
 
 /**
  * Load Keypair from the provided file.
@@ -30,49 +41,94 @@ export function getValueInsensitive<T>(map: Record<string, T>, key: string): T {
  * Transaction processing and error-handling helper.
  */
 export async function processTransaction(
-  provider: AnchorProvider,
-  tx: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  transaction: Transaction | VersionedTransaction,
   signers?: Array<Signer>,
-  opts?: ConfirmOptions
+  opts?: TransactionOptions
 ): Promise<TransactionSignature> {
-  const connection = new Connection(provider.connection.rpcEndpoint, provider.opts);
-  const {
-    context: { slot: minContextSlot },
-    value: { blockhash, lastValidBlockHeight },
-  } = await connection.getLatestBlockhashAndContext();
-
-  tx.recentBlockhash = blockhash;
-  tx.feePayer = provider.wallet.publicKey;
-  tx = await provider.wallet.signTransaction(tx);
-
-  if (signers === undefined) {
-    signers = [];
-  }
-  signers
-    .filter((s) => s !== undefined)
-    .forEach((kp) => {
-      tx.partialSign(kp);
-    });
+  let signature: TransactionSignature = "";
 
   try {
-    const signature = await connection.sendRawTransaction(
-      tx.serialize(),
-      opts || {
-        skipPreflight: false,
-        preflightCommitment: provider.connection.commitment,
-        commitment: provider.connection.commitment,
+    let versionedTransaction: VersionedTransaction;
+
+    const {
+      context: { slot: minContextSlot },
+      value: { blockhash, lastValidBlockHeight },
+    } = await connection.getLatestBlockhashAndContext();
+
+    if (transaction instanceof Transaction) {
+      const versionedMessage = new TransactionMessage({
+        instructions: transaction.instructions,
+        payerKey: wallet.publicKey,
+        recentBlockhash: blockhash,
+      });
+
+      versionedTransaction = new VersionedTransaction(versionedMessage.compileToV0Message([]));
+    } else {
+      versionedTransaction = transaction;
+    }
+
+    if (signers) versionedTransaction.sign(signers);
+
+    if (opts?.dryRun) {
+      const response = await connection.simulateTransaction(
+        versionedTransaction,
+        opts ?? { minContextSlot, sigVerify: false }
+      );
+      console.log(
+        response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
+      );
+      console.log("------ Logs 👇 ------");
+      console.log(response.value.logs);
+
+      const signaturesEncoded = encodeURIComponent(
+        JSON.stringify(versionedTransaction.signatures.map((s) => base58.encode(s)))
+      );
+      const messageEncoded = encodeURIComponent(
+        Buffer.from(versionedTransaction.message.serialize()).toString("base64")
+      );
+      console.log(Buffer.from(versionedTransaction.message.serialize()).toString("base64"));
+
+      const urlEscaped = `https://explorer.solana.com/tx/inspector?cluster=mainnet&signatures=${signaturesEncoded}&message=${messageEncoded}`;
+      console.log("------ Inspect 👇 ------");
+      console.log(urlEscaped);
+
+      return versionedTransaction.signatures[0].toString();
+    } else {
+      versionedTransaction = await wallet.signTransaction(versionedTransaction);
+
+      let mergedOpts: ConfirmOptions = {
+        ...DEFAULT_CONFIRM_OPTS,
+        commitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,
+        preflightCommitment: connection.commitment ?? DEFAULT_CONFIRM_OPTS.commitment,
         minContextSlot,
-      }
-    );
-    await connection.confirmTransaction({
-      blockhash,
-      lastValidBlockHeight,
-      signature,
-    });
-    return signature;
-  } catch (e: any) {
-    console.log(e);
-    throw e;
+        ...opts,
+      };
+
+      signature = await connection.sendTransaction(versionedTransaction, {
+        minContextSlot: mergedOpts.minContextSlot,
+        skipPreflight: mergedOpts.skipPreflight,
+        preflightCommitment: mergedOpts.preflightCommitment,
+        maxRetries: mergedOpts.maxRetries,
+      });
+      await connection.confirmTransaction(
+        {
+          blockhash,
+          lastValidBlockHeight,
+          signature,
+        },
+        mergedOpts.commitment
+      );
+      return signature;
+    }
+  } catch (error: any) {
+    if (error.logs) {
+      console.log("------ Logs 👇 ------");
+      console.log(error.logs.join("\n"));
+    }
+
+    throw `Transaction failed! ${error?.message}`;
   }
 }
 

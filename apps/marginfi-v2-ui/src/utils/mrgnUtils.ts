@@ -2,6 +2,7 @@ import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { useEffect, useRef } from "react";
 
 // ================ development utils ================
 
@@ -35,4 +36,12 @@ export function isWholePosition(activeBankInfo: ActiveBankInfo, amount: number):
     Math.floor(activeBankInfo.position.amount * Math.pow(10, activeBankInfo.info.state.mintDecimals)) /
     Math.pow(10, activeBankInfo.info.state.mintDecimals);
   return amount >= positionTokenAmount;
+}
+
+export function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T>();
+  useEffect(() => {
+    ref.current = value;
+  }, [value]);
+  return ref.current;
 }
