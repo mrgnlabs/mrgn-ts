@@ -349,7 +349,7 @@ export const StakingCard: FC = () => {
     } finally {
       await Promise.all([refresh(), fetchLstState()]);
       setDepositOption((currentDepositOption) =>
-        currentDepositOption.type === "stake" ? currentDepositOption : { ...currentDepositOption, amount: new BN(0) }
+        currentDepositOption.type === "stake" ? DEFAULT_DEPOSIT_OPTION : { ...currentDepositOption, amount: new BN(0) }
       );
       setOngoingAction(null);
     }
