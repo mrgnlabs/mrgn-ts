@@ -19,7 +19,7 @@ export const StakingStats: FC = () => {
             TVL
           </Typography>
           <Typography color="#fff" className="font-aeonik font-[500] text-xl" component="div">
-            {lstData && solUsdValue ? `$${numeralFormatter(lstData.tvl * lstData.lstSolValue * solUsdValue)}` : "-"}
+            {lstData && solUsdValue ? `$${numeralFormatter(lstData.tvl * solUsdValue)}` : "-"}
           </Typography>
         </div>
 
