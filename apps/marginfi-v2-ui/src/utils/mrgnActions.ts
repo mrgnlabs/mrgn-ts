@@ -1,9 +1,5 @@
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import {
-  ExtendedBankInfo,
-  FEE_MARGIN,
-  ActionType,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, FEE_MARGIN, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { toast } from "react-toastify";
 import { isWholePosition } from "./mrgnUtils";
 

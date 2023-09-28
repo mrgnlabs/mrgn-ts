@@ -17,10 +17,7 @@ export interface StakeData {
   validatorVoteAddress: PublicKey;
 }
 
-export async function fetchStakeAccounts(
-  connection: Connection,
-  walletAddress: PublicKey
-): Promise<StakeData[]> {
+export async function fetchStakeAccounts(connection: Connection, walletAddress: PublicKey): Promise<StakeData[]> {
   const [parsedAccounts, currentEpoch] = await Promise.all([
     connection.getParsedProgramAccounts(StakeProgram.programId, {
       filters: [
@@ -42,8 +39,11 @@ export async function fetchStakeAccounts(
 
       const activationEpoch = Number(parsedAccount.data.parsed.info.stake.delegation.activationEpoch);
       const deactivationEpoch = Number(parsedAccount.data.parsed.info.stake.delegation.deactivationEpoch);
-      let isActive = parsedAccount.data.parsed.type === "delegated" && currentEpoch.epoch >= activationEpoch + 1 && deactivationEpoch > currentEpoch.epoch;
-  
+      let isActive =
+        parsedAccount.data.parsed.type === "delegated" &&
+        currentEpoch.epoch >= activationEpoch + 1 &&
+        deactivationEpoch > currentEpoch.epoch;
+
       return {
         address: pubkey,
         lamports: new BN(account.lamports),

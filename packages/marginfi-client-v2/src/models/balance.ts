@@ -142,7 +142,10 @@ class Balance {
       const lastUpdate = this.lastUpdate;
       const period = new BigNumber(currentTimestamp - lastUpdate);
       const emissionsRate = new BigNumber(bank.emissionsRate);
-      const emissions = period.times(balanceAmount).times(emissionsRate).div(31_536_000 * Math.pow(10, bank.mintDecimals));
+      const emissions = period
+        .times(balanceAmount)
+        .times(emissionsRate)
+        .div(31_536_000 * Math.pow(10, bank.mintDecimals));
       const emissionsReal = BigNumber.min(emissions, new BigNumber(bank.emissionsRemaining));
 
       return emissionsReal;

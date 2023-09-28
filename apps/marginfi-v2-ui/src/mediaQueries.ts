@@ -1,12 +1,12 @@
-import { FC } from 'react';
-import { useMediaQuery } from 'react-responsive';
+import { FC } from "react";
+import { useMediaQuery } from "react-responsive";
 
-const Desktop: FC<{children: any}> = ({ children }) => {
+const Desktop: FC<{ children: any }> = ({ children }) => {
   const isDesktop = useMediaQuery({ minWidth: 992 });
   return isDesktop ? children : null;
 };
 
-const Mobile: FC<{children: any}> = ({ children }) => {
+const Mobile: FC<{ children: any }> = ({ children }) => {
   const isMobile = useMediaQuery({ maxWidth: 992 });
   return isMobile ? children : null;
 };

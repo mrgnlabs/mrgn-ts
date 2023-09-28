@@ -215,35 +215,37 @@ const AssetRow: FC<{
         }}
       >
         <div className="h-full w-full flex justify-end items-center gap-3">
-          {bank.info.state.emissionsRate > 0 && EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol) !== undefined && isInLendingMode && (
-            <div className="w-1/2 flex justify-center sm:justify-end">
-              <MrgnTooltip
-                title={
-                  <React.Fragment>
-                    <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                      Liquidity rewards
-                    </Typography>
-                    {`${percentFormatter.format(bank.info.state.lendingRate)} Supply APY + ${percentFormatter.format(
-                      bank.info.state.emissionsRate
-                    )} ${EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenSymbol} rewards.`}
-                    <br />
-                    <a href="https://docs.marginfi.com">
-                      <u>Learn more.</u>
-                    </a>
-                  </React.Fragment>
-                }
-                placement="left"
-              >
-                <Image
-                  src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
-                  alt="info"
-                  height={16}
-                  width={16}
-                  className="pulse"
-                />
-              </MrgnTooltip>
-            </div>
-          )}
+          {bank.info.state.emissionsRate > 0 &&
+            EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol) !== undefined &&
+            isInLendingMode && (
+              <div className="w-1/2 flex justify-center sm:justify-end">
+                <MrgnTooltip
+                  title={
+                    <React.Fragment>
+                      <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                        Liquidity rewards
+                      </Typography>
+                      {`${percentFormatter.format(bank.info.state.lendingRate)} Supply APY + ${percentFormatter.format(
+                        bank.info.state.emissionsRate
+                      )} ${EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenSymbol} rewards.`}
+                      <br />
+                      <a href="https://docs.marginfi.com">
+                        <u>Learn more.</u>
+                      </a>
+                    </React.Fragment>
+                  }
+                  placement="left"
+                >
+                  <Image
+                    src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
+                    alt="info"
+                    height={16}
+                    width={16}
+                    className="pulse"
+                  />
+                </MrgnTooltip>
+              </div>
+            )}
           <div
             className="w-[40%] flex justify-end"
             style={{

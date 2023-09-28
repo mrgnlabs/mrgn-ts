@@ -61,7 +61,7 @@ const LstDepositToggle = styled(({ checked, setChecked, ...switchProps }: LstDep
     justifyContent: "center",
     transitionDuration: "300ms",
     transform: "translateX(0%)",
-      "& + .MuiSwitch-track": {
+    "& + .MuiSwitch-track": {
       opacity: 0,
       width: 0,
       height: "100%",

@@ -248,9 +248,7 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
 
   if (projectedApy < 7) {
     // temporarily use baseline validator APY waiting for a few epochs to pass
-    const baselineValidatorData = apyData.validators.find(
-      (validator: any) => validator.id === BASELINE_VALIDATOR_ID
-    );
+    const baselineValidatorData = apyData.validators.find((validator: any) => validator.id === BASELINE_VALIDATOR_ID);
     if (baselineValidatorData) projectedApy = baselineValidatorData.apy;
   }
 

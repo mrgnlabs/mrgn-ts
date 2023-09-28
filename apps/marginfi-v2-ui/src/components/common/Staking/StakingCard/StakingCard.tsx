@@ -6,9 +6,7 @@ import { PrimaryButton } from "./PrimaryButton";
 import { useLstStore } from "~/pages/stake";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import {
-  TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountIdempotentInstruction,
-  createCloseAccountInstruction,
   getAssociatedTokenAddressSync,
   nativeToUi,
   numeralFormatter,
@@ -24,7 +22,6 @@ import {
   Connection,
   Keypair,
   PublicKey,
-  SYSVAR_RENT_PUBKEY,
   Signer,
   StakeAuthorizationLayout,
   StakeProgram,
@@ -43,7 +40,7 @@ import { SettingsModal } from "./SettingsModal";
 import { SettingsIcon } from "./SettingsIcon";
 import { LST_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
 import { RefreshIcon } from "./RefreshIcon";
-import { Spinner } from "~/components/Spinner";
+import { Spinner } from "~/components/common/Spinner";
 import BN from "bn.js";
 import debounce from "lodash.debounce";
 

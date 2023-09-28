@@ -86,7 +86,10 @@ export const StakingModal: FC<StakingModalProps> = ({
               />
             ) : (
               <div className="flex justify-center mt-8">
-              <Typography className="font-aeonik font-[300] text-[#BBB] text-lg">No eligible stake accounts found</Typography></div>
+                <Typography className="font-aeonik font-[300] text-[#BBB] text-lg">
+                  No eligible stake accounts found
+                </Typography>
+              </div>
             )
           ) : (
             <TokenList
