@@ -1,7 +1,7 @@
 import { FC, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import AirdropZone from "./AirdropZone";
+
 import { useUserProfileStore } from "~/store";
 import { useRouter } from "next/router";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
@@ -40,11 +40,11 @@ const MobileNavbar: FC = () => {
             swap
           </Link>
           <Link
-            href={"/bridge"}
-            className={`${router.pathname === "/bridge" ? "hover-underline-static" : "hover-underline-animation"}`}
+            href={"/portfolio"}
+            className={`${router.pathname === "/portfolio" ? "hover-underline-static" : "hover-underline-animation"}`}
           >
             <Image className="m-auto" src="/pie_chart.svg" alt="wallet icon" width={18.9} height={18.9} />
-            bridge
+            portfolio
           </Link>
 
           {/* <Link

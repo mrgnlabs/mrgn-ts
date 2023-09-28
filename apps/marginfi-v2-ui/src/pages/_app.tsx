@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
@@ -46,50 +46,55 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     }
   }, []);
 
+  const [ready, setReady] = useState(false);
+
   const wallets = useMemo(
-    () => [
-      new OKXWalletAdapter(),
-      new LedgerWalletAdapter(),
-      new SolflareWalletAdapter(),
-      new GlowWalletAdapter(),
-      new PhantomWalletAdapter(),
-      new BackpackWalletAdapter(),
-    ],
+    () => [new OKXWalletAdapter(), new LedgerWalletAdapter(), new SolflareWalletAdapter(), new GlowWalletAdapter()],
     []
   );
 
+  useEffect(() => {
+    setReady(true);
+  }, []);
+
   return (
-    <ConnectionProvider endpoint={config.rpcEndpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <Head>
-            <title>marginfi</title>
-            <meta name="description" content="marginfi v2 UI" />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <link rel="icon" href="/favicon.ico" />
-          </Head>
-          <Desktop>
-            <DesktopNavbar />
-            <div className="w-full flex flex-col justify-center items-center pt-[64px]">
-              <Component {...pageProps} />
-              <Analytics />
-            </div>
-            <Footer />
-          </Desktop>
-          <Mobile>
-            <div className="absolute top-[33px] right-[40px]">
-              <WalletButton />
-            </div>
-            <MobileNavbar />
-            <div className="w-full flex flex-col justify-center items-center pt-[24px]">
-              <Component {...pageProps} />
-              <Analytics />
-            </div>
-          </Mobile>
-          <ToastContainer position="bottom-left" theme="dark" />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
+    <>
+      <Head>
+        <title>marginfi</title>
+        <meta name="description" content="marginfi v2 UI" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      {ready && (
+        <ConnectionProvider endpoint={config.rpcEndpoint}>
+          <WalletProvider wallets={wallets} autoConnect>
+            <WalletModalProvider>
+              <Desktop>
+                <DesktopNavbar />
+                <div className="w-full flex flex-col justify-center items-center pt-[64px]">
+                  <Component {...pageProps} />
+                  <Analytics />
+                </div>
+                <Footer />
+              </Desktop>
+              <Mobile>
+                <div className="relative w-full ">
+                  <div className="absolute top-[33px] right-[40px]">
+                    <WalletButton />
+                  </div>
+                </div>
+                <MobileNavbar />
+                <div className="w-full flex flex-col justify-center items-center pt-[24px]">
+                  <Component {...pageProps} />
+                  <Analytics />
+                </div>
+              </Mobile>
+              <ToastContainer position="bottom-left" theme="dark" />
+            </WalletModalProvider>
+          </WalletProvider>
+        </ConnectionProvider>
+      )}
+    </>
   );
 };
 

@@ -39,7 +39,12 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
       <div className="flex flex-wrap sm:flex-nowrap gap-4 h-full w-full min-w-1/2 mt-[20px]">
         <div className="h-full  lg:flex w-1/5 min-w-1/5">
           <div>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+            <Typography
+              color="#868E95"
+              className="font-aeonik font-[300] text-xs flex gap-1"
+              gutterBottom
+              component="div"
+            >
               Account
               <div className="self-center">
                 {accountSummary && (
@@ -90,7 +95,12 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
         <DividerLine />
         <div className="h-full w-1/4 md:w-1/5">
           <div>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+            <Typography
+              color="#868E95"
+              className="font-aeonik font-[300] text-xs flex gap-1"
+              gutterBottom
+              component="div"
+            >
               Supplying
               <div className="self-center">
                 {accountSummary && (
@@ -143,7 +153,12 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
         <DividerLine />
         <div className="h-full w-1/4 md:w-1/5">
           <div>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+            <Typography
+              color="#868E95"
+              className="font-aeonik font-[300] text-xs flex gap-1"
+              gutterBottom
+              component="div"
+            >
               Borrowing
               <div className="self-center">
                 {accountSummary && (
@@ -196,7 +211,12 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
         <DividerLine />
         <div className="h-full w-1/4 md:w-1/5">
           <div>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+            <Typography
+              color="#868E95"
+              className="font-aeonik font-[300] text-xs flex gap-1"
+              gutterBottom
+              component="div"
+            >
               Health
               <div className="self-center">
                 {accountSummary && (
@@ -242,7 +262,12 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
         <DividerLine />
         <div className="h-full w-1/4 md:w-1/5">
           <div>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-xs flex gap-1" gutterBottom>
+            <Typography
+              color="#868E95"
+              className="font-aeonik font-[300] text-xs flex gap-1"
+              gutterBottom
+              component="div"
+            >
               Free
               <div className="self-center">
                 <MrgnTooltip

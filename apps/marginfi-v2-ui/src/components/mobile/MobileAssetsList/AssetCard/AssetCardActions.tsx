@@ -8,10 +8,10 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 
 export const AssetCardActions: FC<{
   bank: ExtendedBankInfo;
-  inputRefs: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
   isBankFilled: boolean;
   isInLendingMode: boolean;
   currentAction: ActionType | "Connect";
+  inputRefs?: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
   onCloseBalance: () => void;
   onBorrowOrLend: (amount: number) => void;
 }> = ({ bank, inputRefs, isBankFilled, currentAction, onCloseBalance, onBorrowOrLend }) => {
