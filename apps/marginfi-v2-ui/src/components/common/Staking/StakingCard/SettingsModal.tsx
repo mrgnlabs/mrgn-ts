@@ -41,7 +41,7 @@ export const SettingsModal: FC<SettingsModalProps> = ({
             <Close />
           </div>
         </div>
-        <Typography className="font-aeonik font-[500] text-xl">Slippage Settings</Typography>
+        <Typography className="font-aeonik font-[400] text-lg">Slippage Settings</Typography>
         <div className="flex flex-row items-center mt-2.5 rounded-xl overflow-hidden text-sm mb-10">
           {SLIPPAGE_PRESET.map((slippage, idx) => {
             const displayText = Number(slippage) + "%";
@@ -49,8 +49,8 @@ export const SettingsModal: FC<SettingsModalProps> = ({
             return (
               <a
                 key={idx}
-                className={`relative cursor-pointer flex-1 text-secondary py-3 ${
-                  isHighlighted ? "bg-[#303437]" : "bg-[#1B1B1E]"
+                className={`relative cursor-pointer flex-1 text-secondary py-3 hover:bg-gray-700 ${
+                  isHighlighted ? "bg-[#DCE85D88] hover:bg-[#DCE85D88]" : "bg-[#1B1B1E]"
                 }`}
                 onClick={() => {
                   setLocalSlippage(slippage);

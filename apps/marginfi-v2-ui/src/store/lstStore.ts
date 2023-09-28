@@ -1,4 +1,3 @@
-import { AnchorProvider } from "@coral-xyz/anchor";
 import { vendor } from "@mrgnlabs/marginfi-client-v2";
 import { ACCOUNT_SIZE, TOKEN_PROGRAM_ID, Wallet, aprToApy, uiToNative } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -8,7 +7,6 @@ import { EPOCHS_PER_YEAR, StakeData, fetchStakeAccounts } from "~/utils";
 import { TokenInfo, TokenInfoMap, TokenListContainer } from "@solana/spl-token-registry";
 import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
 import { persist } from "zustand/middleware";
-import { StakePoolProxyProgram, getStakePoolProxyProgram } from "~/utils/stakePoolProxy";
 import BN from "bn.js";
 
 const STAKEVIEW_APP_URL = "https://stakeview.app/apy/prev3.json";
@@ -49,7 +47,6 @@ interface LstState {
   stakeAccounts: StakeData[];
   solUsdValue: number | null;
   slippagePct: SupportedSlippagePercent;
-  stakePoolProxyProgram: StakePoolProxyProgram | null;
 
   // Actions
   fetchLstState: (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => Promise<void>;
@@ -105,12 +102,6 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
       if (!connection) throw new Error("Connection not found");
 
       const wallet = args?.wallet || get().wallet;
-
-      const provider = new AnchorProvider(connection, wallet ?? ({} as Wallet), {
-        ...AnchorProvider.defaultOptions(),
-        commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
-      });
-      const stakePoolProxyProgram = getStakePoolProxyProgram(provider);
 
       let lstData: LstData | null = null;
       let availableLamports: BN | null = null;
@@ -195,7 +186,6 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
         tokenDataMap,
         stakeAccounts,
         solUsdValue,
-        stakePoolProxyProgram,
       });
     } catch (err) {
       console.error("error refreshing state: ", err);

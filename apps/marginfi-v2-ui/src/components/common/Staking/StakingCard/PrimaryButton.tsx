@@ -17,7 +17,7 @@ export const PrimaryButton: FC<PrimaryButtonProps> = ({ children, disabled, load
           ? "wavy-gradient-bg text-black"
           : disabled
           ? "bg-[#808080] text-black"
-          : "bg-[#e3e3e3] text-black cursor-pointer"
+          : "bg-[#e3e3e3] hover:bg-[#ccc] text-black cursor-pointer"
       }
       `}
     >
