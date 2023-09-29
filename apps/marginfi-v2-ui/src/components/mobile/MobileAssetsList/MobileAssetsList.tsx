@@ -55,8 +55,8 @@ export const MobileAssetsList: FC = () => {
         </div>
       </div>
       <div className="w-full">
-        <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Global pool</div>
-        <div className="flex flew-row flex-wrap gap-4">
+        <div className="font-aeonik font-normal flex items-center text-2xl text-white pt-2 pb-5">Global pool</div>
+        <div className="flex flew-row flex-wrap gap-6">
           {isStoreInitialized ? (
             globalBanks.length > 0 ? (
               globalBanks.map((bank, i) => (

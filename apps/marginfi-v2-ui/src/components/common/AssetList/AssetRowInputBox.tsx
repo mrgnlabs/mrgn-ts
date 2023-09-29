@@ -49,9 +49,10 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
   );
 
   return (
-    <div className="flex justify-center">
+    <div className="w-full flex justify-center">
       <NumericFormat
         value={maxValue ? value : ""}
+        className="w-full"
         placeholder="0"
         allowNegative={false}
         decimalScale={maxDecimals}

@@ -8,7 +8,7 @@ interface AssetRowActionProps extends ButtonProps {
 
 const AssetRowAction: FC<AssetRowActionProps> = ({ children, disabled, bgColor, ...otherProps }) => (
   <Button
-    className="normal-case text-[10px] sm:text-sm mx-2 sm:mx-0 w-14 sm:w-32 h-11 max-w-1 rounded-md"
+    className="normal-case text-normal sm:text-sm px-4 sm:mx-0 sm:w-32 h-11 max-w-14 rounded-md"
     style={{
       backgroundColor: disabled ? "gray" : bgColor ? bgColor : "rgb(227, 227, 227)",
       border: disabled ? "gray" : bgColor ? "solid 1px rgb(227, 227, 227)" : "solid 1px transparent",

@@ -2,7 +2,7 @@ import React, { FC } from "react";
 import Image from "next/image";
 import Typography from "@mui/material/Typography";
 
-import { numeralFormatter, percentFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { groupedNumberFormatterDyn, numeralFormatter, percentFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
@@ -89,7 +89,7 @@ export const AssetCardStats: FC<{
       <Separator />
       <div className="flex flex-col min-w-[77px]">
         <div className="font-normal text-sm text-[#A1A1A1]">Your Balance</div>
-        <div className="font-medium text-base">{userBalance + " " + bank.meta.tokenSymbol}</div>
+        <div className="font-medium text-base">{groupedNumberFormatterDyn.format(userBalance) + " " + bank.meta.tokenSymbol}</div>
       </div>
     </div>
   );

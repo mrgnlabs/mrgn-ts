@@ -46,7 +46,7 @@ export const AssetCardActions: FC<{
 
   return (
     <>
-      <div className="flex flex-row gap-[10px] justify-between w-full relative">
+      <div className="flex flex-row gap-[10px] justify-between w-full">
         <AssetRowInputBox
           tokenName={bank.meta.tokenSymbol}
           value={borrowOrLendAmount}
