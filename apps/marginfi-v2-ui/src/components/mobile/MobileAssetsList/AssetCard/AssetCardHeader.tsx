@@ -18,7 +18,7 @@ export const AssetCardHeader: FC<{
       <div className="flex flex-row gap-3 items-center">
         <div>
           {bank.meta.tokenLogoUri && (
-            <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} height={40} width={40} />
+            <Image src={bank.meta.tokenLogoUri} className="rounded-full" alt={bank.meta.tokenSymbol} height={40} width={40} />
           )}
         </div>
         <div className="flex flex-col">
