@@ -27,7 +27,7 @@ export const AssetCardStats: FC<{
   isInLendingMode,
 }) => {
   return (
-    <div className="flex flex-row ">
+    <div className="flex flex-row justify-between">
       <div className="flex flex-col min-w-[77px]">
         <div className="font-normal text-sm text-[#A1A1A1] flex gap-1">
           {isInLendingMode ? "Weight" : "LTV"}
