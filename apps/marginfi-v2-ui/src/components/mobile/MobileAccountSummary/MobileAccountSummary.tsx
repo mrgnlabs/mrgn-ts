@@ -14,7 +14,6 @@ const AccountSummary: FC = () => {
     <div className="flex flex-col w-full justify-between items-left gap-4">
       <div className="lg:block flex-1">
         <div className="h-full rounded-xl">
-          {/* <span className="w-full flex justify-start text-xl">Global stats</span> */}
           <GlobalStats
             tvl={protocolStats.tvl}
             pointsTotal={protocolStats.pointsTotal}

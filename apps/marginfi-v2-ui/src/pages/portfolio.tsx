@@ -82,7 +82,7 @@ const PortfolioPage = () => {
   return (
     <>
       <PageHeader>Portfolio</PageHeader>
-      <div className="flex flex-col h-full justify-start content-start pt-[16px] mx-7 sm:mx-0 max-w-7xl sm:w-4/5 gap-7 mb-20">
+      <div className="flex flex-col w-full h-full justify-start content-start pt-[16px] px-[12px] gap-7 mb-20">
         <MobileAccountSummary />
         <MobilePortfolioOverview />
         {!connected ? (
