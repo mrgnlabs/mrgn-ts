@@ -14,8 +14,8 @@ export const AssetCardHeader: FC<{
   rateAP: string;
 }> = ({ bank, isInLendingMode, rateAP }) => {
   return (
-    <div className="flex flex-row justify-between">
-      <div className="flex flex-row gap-[7px]">
+    <div className="flex flex-row justify-between items-center">
+      <div className="flex flex-row gap-3 items-center">
         <div>
           {bank.meta.tokenLogoUri && (
             <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} height={40} width={40} />
@@ -52,7 +52,7 @@ export const AssetCardHeader: FC<{
             </div>
           )}
         </div>
-        <div>{rateAP.concat(...[" ", isInLendingMode ? "APY" : "APR"])}</div>
+        <div className="font-[500]">{rateAP.concat(...[" ", isInLendingMode ? "APY" : "APR"])}</div>
       </div>
     </div>
   );
