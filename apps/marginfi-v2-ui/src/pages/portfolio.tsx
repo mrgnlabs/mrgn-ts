@@ -45,9 +45,7 @@ const PortfolioPage = () => {
     () =>
       sortedBanks && isStoreInitialized ?
       sortedBanks
-        .filter((b) => {
-          console.log(b.info.rawBank.config.assetWeightInit, typeof b.info.rawBank.config.assetWeightInit)
-          return b.info.rawBank.config.assetWeightInit.toNumber() > 0})
+        .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
         .filter((b) => b.isActive && b.position.isLending)
         .sort(
           (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price

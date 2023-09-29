@@ -17,7 +17,6 @@ export const MobilePortfolioOverview: FC = () => {
   ]);
 
   const healthFactor = useMemo(() => {
-    console.log({ selectedAccount });
     if (selectedAccount) {
       const { assets, liabilities } = selectedAccount.computeHealthComponents(MarginRequirementType.Maintenance);
       return assets.isZero() ? 100 : assets.minus(liabilities).dividedBy(assets).toNumber() * 100;
