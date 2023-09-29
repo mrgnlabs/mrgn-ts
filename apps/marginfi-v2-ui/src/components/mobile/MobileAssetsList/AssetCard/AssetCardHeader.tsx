@@ -26,7 +26,7 @@ export const AssetCardHeader: FC<{
           <div className="text-[#A1A1A1]">{usdFormatter.format(bank.info.state.price)}</div>
         </div>
       </div>
-      <div className={`${isInLendingMode ? "text-[#75ba80]" : "text-[#e07d6f]"} text-base my-auto flex gap-2`}>
+      <div className={`${isInLendingMode ? "text-[#75ba80]" : "text-[#e07d6f]"} text-base my-auto flex gap-2 items-center`}>
         <div>
           {bank.meta.tokenSymbol === "UXD" && isInLendingMode && (
             <div className="flex justify-center sm:justify-end mt-[1px]">
