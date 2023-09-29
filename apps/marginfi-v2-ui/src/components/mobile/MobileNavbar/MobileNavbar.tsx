@@ -21,8 +21,8 @@ const MobileNavbar: FC = () => {
 
   return (
     <header>
-      <nav className="fixed w-full bottom-0 h-[64px] z-20 bg-[#0F1111]">
-        <div className="h-full w-full border-t-2 border-[#1C2125] border-solid text-sm font-[500] text-[#868E95] z-10 px-4 flex justify-around items-center z-10 gap-4 lg:gap-8">
+      <nav className="fixed w-full bottom-0 h-[64px] z-50 bg-[#0F1111]">
+        <div className="h-full w-full border-t-2 border-[#1C2125] border-solid text-sm font-[500] text-[#868E95] z-50 px-4 flex justify-around items-center z-10 gap-4 lg:gap-8">
           <Link
             href={"/"}
             className={`${router.pathname === "/" ? "hover-underline-static" : "hover-underline-animation"} block`}

@@ -6,10 +6,10 @@ import Typography from "@mui/material/Typography";
 
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { BorrowLendToggle } from "~/components/common/AssetList/BorrowLendToggle";
 
 import { LoadingAsset, AssetRow } from "./AssetRow";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { MrgnSwitch } from "~/components/common";
 
 const AssetsList: FC = () => {
   // const { selectedAccount, nativeSolBalance } = useStore();
@@ -96,7 +96,14 @@ const AssetsList: FC = () => {
   return (
     <>
       <div className="col-span-full">
-        <BorrowLendToggle isInLendingMode={isInLendingMode} setIsInLendingMode={setIsInLendingMode} />
+        <div className="flex w-[150px] h-[42px]">
+        <MrgnSwitch
+          labelLeft="Lend"
+          labelRight="Borrow"
+          checked={!isInLendingMode}
+          onClick={() => setIsInLendingMode(!isInLendingMode)}
+        />
+      </div>
       </div>
 
       <div className="col-span-full">

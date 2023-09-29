@@ -1,11 +1,9 @@
 import React, { FC, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Skeleton, Switch, Typography } from "@mui/material";
-
+import { Skeleton, Typography } from "@mui/material";
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { BorrowLendToggle } from "~/components/common/AssetList";
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { MrgnContainedSwitch, MrgnSwitch, MrgnTooltip } from "~/components/common";
 
 import { AssetCard } from "./AssetCard";
 
@@ -38,14 +36,25 @@ export const MobileAssetsList: FC = () => {
 
   return (
     <>
-      <div className="col-span-full">
-        <BorrowLendToggle isInLendingMode={isInLendingMode} setIsInLendingMode={setIsInLendingMode} />
+      <div className="flex justify-between items-center">
+        <div className="flex w-[150px] h-[42px]">
+          <MrgnSwitch
+            labelLeft="Lend"
+            labelRight="Borrow"
+            checked={!isInLendingMode}
+            onClick={() => setIsInLendingMode(!isInLendingMode)}
+          />
+        </div>
+        <div className="flex items-center gap-1">
+          <MrgnContainedSwitch
+            checked={isFiltered}
+            onChange={togglePositions}
+            inputProps={{ "aria-label": "controlled" }}
+          />
+          <div>My positions</div>
+        </div>
       </div>
-      <div className="flex flex-row gap-1 col-span-full">
-        <Switch checked={isFiltered} onChange={togglePositions} inputProps={{ "aria-label": "controlled" }} />
-        <div className="my-auto">Filter my positions</div>
-      </div>
-      <div className="col-span-full">
+      <div className="w-full">
         <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Global pool</div>
         <div className="flex flew-row flex-wrap gap-4">
           {isStoreInitialized ? (
@@ -71,7 +80,7 @@ export const MobileAssetsList: FC = () => {
           )}
         </div>
       </div>
-      <div className="col-span-full">
+      <div className="w-full">
         <div className="font-aeonik font-normal flex gap-1 items-center text-2xl text-white pb-2">
           Isolated pool
           <MrgnTooltip

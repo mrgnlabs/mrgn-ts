@@ -24,13 +24,6 @@ const UserPositions = dynamic(async () => (await import("~/components/desktop/Us
   ssr: false,
 });
 
-const MobileAccountSummary = dynamic(
-  async () => (await import("~/components/mobile/MobileAccountSummary")).MobileAccountSummary,
-  {
-    ssr: false,
-  }
-);
-
 const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/MobileAssetsList")).MobileAssetsList, {
   ssr: false,
 });
@@ -101,8 +94,7 @@ const Home = () => {
         </div>
       </Desktop>
       <Mobile>
-        <div className="flex flex-col h-full justify-start content-start pt-[16px] mx-7 max-w-7xl gap-4 mb-20">
-          <MobileAccountSummary />
+        <div className="flex flex-col w-full h-full justify-start content-start pt-[16px] px-[12px] gap-4 mb-20">
           <MobileAssetsList />
         </div>
       </Mobile>

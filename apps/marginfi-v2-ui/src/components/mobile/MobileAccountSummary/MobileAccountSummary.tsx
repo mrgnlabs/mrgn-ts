@@ -23,18 +23,6 @@ const AccountSummary: FC = () => {
           />
         </div>
       </div>
-
-      {/* <div className="flex-1">
-        {connected && (
-          <div className=" h-full rounded-xl ">
-            <span className="w-full h-full flex justify-start text-xl text-white">Your account</span>
-            <UserStats
-              accountSummary={isStoreInitialized && selectedAccount ? accountSummary : null}
-              healthFactor={accountSummary.healthFactor}
-            />
-          </div>
-        )}
-      </div> */}
     </div>
   );
 };
