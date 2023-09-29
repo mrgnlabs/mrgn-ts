@@ -88,7 +88,7 @@ export const AssetCardStats: FC<{
       </div>
       <Separator />
       <div className="flex flex-col min-w-[77px]">
-        <div className="font-normal text-sm text-[#A1A1A1]">Your Balance</div>
+        <div className="font-normal text-sm text-[#A1A1A1]">Wallet Balance</div>
         <div className="font-medium text-base">{groupedNumberFormatterDyn.format(userBalance) + " " + bank.meta.tokenSymbol}</div>
       </div>
     </div>
