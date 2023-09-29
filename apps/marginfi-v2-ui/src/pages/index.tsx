@@ -12,49 +12,28 @@ import { PageHeader } from "~/components/desktop/PageHeader";
 import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
 import { Desktop, Mobile } from "~/mediaQueries";
 
-const DesktopAccountSummary = () => {
-  const DesktopAccountSummary = dynamic(
-    async () => (await import("~/components/desktop/DesktopAccountSummary")).DesktopAccountSummary,
-    {
-      ssr: false,
-    }
-  );
-
-  return <DesktopAccountSummary />;
-};
-
-const AssetsList = () => {
-  const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
-  return <AssetsList />;
-};
-
-const UserPositions = () => {
-  const UserPositions = dynamic(async () => (await import("~/components/desktop/UserPositions")).UserPositions, {
+const DesktopAccountSummary = dynamic(
+  async () => (await import("~/components/desktop/DesktopAccountSummary")).DesktopAccountSummary,
+  {
     ssr: false,
-  });
+  }
+);
+const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
 
-  return <UserPositions />;
-};
+const UserPositions = dynamic(async () => (await import("~/components/desktop/UserPositions")).UserPositions, {
+  ssr: false,
+});
 
-const MobileAccountSummary = () => {
-  const MobileAccountSummary = dynamic(
-    async () => (await import("~/components/mobile/MobileAccountSummary")).MobileAccountSummary,
-    {
-      ssr: false,
-    }
-  );
-  return <MobileAccountSummary />;
-};
+const MobileAccountSummary = dynamic(
+  async () => (await import("~/components/mobile/MobileAccountSummary")).MobileAccountSummary,
+  {
+    ssr: false,
+  }
+);
 
-const MobileAssetsList = () => {
-  const MobileAssetsList = dynamic(
-    async () => (await import("~/components/mobile/MobileAssetsList")).MobileAssetsList,
-    {
-      ssr: false,
-    }
-  );
-  return <MobileAssetsList />;
-};
+const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/MobileAssetsList")).MobileAssetsList, {
+  ssr: false,
+});
 
 const Home = () => {
   const { walletAddress, wallet, isOverride } = useWalletContext();
@@ -122,7 +101,7 @@ const Home = () => {
         </div>
       </Desktop>
       <Mobile>
-        <div className="flex flex-col h-full justify-start content-start pt-[16px] w-4/5 max-w-7xl gap-4 mb-20">
+        <div className="flex flex-col h-full justify-start content-start pt-[16px] mx-7 max-w-7xl gap-4 mb-20">
           <MobileAccountSummary />
           <MobileAssetsList />
         </div>

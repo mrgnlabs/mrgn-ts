@@ -1,8 +1,8 @@
-import React, { FC, useRef, useState } from "react";
+import React, { FC, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Skeleton, Switch, Typography } from "@mui/material";
 
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { BorrowLendToggle } from "~/components/common/AssetList";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
@@ -23,6 +23,19 @@ export const MobileAssetsList: FC = () => {
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [isInLendingMode, setIsInLendingMode] = useState(true);
 
+  const globalBanks = useMemo(
+    () =>
+      sortedBanks &&
+      sortedBanks.filter((b) => !b.info.state.isIsolated).filter((b) => (isFiltered ? b.isActive : true)),
+    [sortedBanks, isFiltered]
+  );
+
+  const isolatedBanks = useMemo(
+    () =>
+      sortedBanks && sortedBanks.filter((b) => b.info.state.isIsolated).filter((b) => (isFiltered ? b.isActive : true)),
+    [sortedBanks, isFiltered]
+  );
+
   return (
     <>
       <div className="col-span-full">
@@ -35,11 +48,9 @@ export const MobileAssetsList: FC = () => {
       <div className="col-span-full">
         <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Global pool</div>
         <div className="flex flew-row flex-wrap gap-4">
-          {sortedBanks
-            .filter((b) => !b.info.state.isIsolated)
-            .filter((b) => (isFiltered ? b.isActive : true))
-            .map((bank, i) =>
-              isStoreInitialized ? (
+          {isStoreInitialized ? (
+            globalBanks.length > 0 ? (
+              globalBanks.map((bank, i) => (
                 <AssetCard
                   key={bank.meta.tokenSymbol}
                   nativeSolBalance={nativeSolBalance}
@@ -49,16 +60,15 @@ export const MobileAssetsList: FC = () => {
                   marginfiAccount={selectedAccount}
                   inputRefs={inputRefs}
                 />
-              ) : (
-                <Skeleton
-                  key={bank.meta.tokenSymbol}
-                  sx={{ bgcolor: "grey.900" }}
-                  variant="rounded"
-                  width={390}
-                  height={215}
-                />
-              )
-            )}
+              ))
+            ) : (
+              <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
+                No {isInLendingMode ? "lending" : "borrowing"} {isFiltered ? "positions" : "pools"} found.
+              </Typography>
+            )
+          ) : (
+            <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+          )}
         </div>
       </div>
       <div className="col-span-full">
@@ -81,11 +91,9 @@ export const MobileAssetsList: FC = () => {
           </MrgnTooltip>
         </div>
         <div className="flex flew-row flex-wrap gap-4">
-          {sortedBanks
-            .filter((b) => b.info.state.isIsolated)
-            .filter((b) => (isFiltered ? b.isActive : true))
-            .map((bank, i) =>
-              isStoreInitialized ? (
+          {isStoreInitialized ? (
+            isolatedBanks.length > 0 ? (
+              isolatedBanks.map((bank, i) => (
                 <AssetCard
                   key={bank.meta.tokenSymbol}
                   nativeSolBalance={nativeSolBalance}
@@ -95,16 +103,15 @@ export const MobileAssetsList: FC = () => {
                   marginfiAccount={selectedAccount}
                   inputRefs={inputRefs}
                 />
-              ) : (
-                <Skeleton
-                  key={bank.meta.tokenSymbol}
-                  sx={{ bgcolor: "grey.900" }}
-                  variant="rounded"
-                  width={365}
-                  height={215}
-                />
-              )
-            )}
+              ))
+            ) : (
+              <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
+                No {isInLendingMode ? "lending" : "borrowing"} {isFiltered ? "positions" : "pools"} found.
+              </Typography>
+            )
+          ) : (
+            <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+          )}
         </div>
       </div>
     </>

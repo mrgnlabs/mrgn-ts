@@ -18,7 +18,7 @@ import {
   PointsConnectWallet,
 } from "~/components/desktop/Points";
 import { AssetCard } from "~/components/mobile/MobileAssetsList/AssetCard";
-import { Button, Skeleton } from "@mui/material";
+import { Button, Skeleton, Typography } from "@mui/material";
 
 const PortfolioPage = () => {
   const { connected, wallet, isOverride } = useWalletContext();
@@ -41,6 +41,30 @@ const PortfolioPage = () => {
 
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
 
+  const lendingBanks = useMemo(
+    () =>
+      sortedBanks &&
+      sortedBanks
+        .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
+        .filter((b) => b.isActive && b.position.isLending)
+        .sort(
+          (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
+        ),
+    [sortedBanks]
+  );
+
+  const borrowingBanks = useMemo(
+    () =>
+      sortedBanks &&
+      sortedBanks
+        .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
+        .filter((b) => b.isActive && !b.position.isLending)
+        .sort(
+          (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
+        ),
+    [sortedBanks]
+  );
+
   useEffect(() => {
     setIsRefreshingStore(true);
     fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
@@ -56,7 +80,7 @@ const PortfolioPage = () => {
   return (
     <>
       <PageHeader>Portfolio</PageHeader>
-      <div className="flex flex-col h-full justify-start content-start pt-[16px] w-4/5 max-w-7xl gap-7 mb-20">
+      <div className="flex flex-col h-full justify-start content-start pt-[16px] mx-7 sm:mx-0 max-w-7xl sm:w-4/5 gap-7 mb-20">
         <MobileAccountSummary />
         <MobilePortfolioOverview />
         {!connected ? (
@@ -122,13 +146,40 @@ const PortfolioPage = () => {
             </Link>
           </div>
         </div>
+        {sortedBanks && (
+          <div className="col-span-full">
+            <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Lending positions</div>
+            <div className="flex flew-row flex-wrap gap-4">
+              {isStoreInitialized ? (
+                lendingBanks.length > 0 ? (
+                  lendingBanks.map((bank) => (
+                    <AssetCard
+                      key={bank.meta.tokenSymbol}
+                      nativeSolBalance={nativeSolBalance}
+                      bank={bank}
+                      isInLendingMode={false}
+                      isConnected={connected}
+                      marginfiAccount={selectedAccount}
+                    />
+                  ))
+                ) : (
+                  <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
+                    No lending positions found.
+                  </Typography>
+                )
+              ) : (
+                <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="col-span-full">
-          <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Lending positions</div>
+          <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Borrowing positions</div>
           <div className="flex flew-row flex-wrap gap-4">
-            {sortedBanks
-              .filter((b) => b.isActive)
-              .map((bank, i) =>
-                isStoreInitialized ? (
+            {isStoreInitialized ? (
+              borrowingBanks.length > 0 ? (
+                borrowingBanks.map((bank) => (
                   <AssetCard
                     key={bank.meta.tokenSymbol}
                     nativeSolBalance={nativeSolBalance}
@@ -137,44 +188,15 @@ const PortfolioPage = () => {
                     isConnected={connected}
                     marginfiAccount={selectedAccount}
                   />
-                ) : (
-                  <Skeleton
-                    key={bank.meta.tokenSymbol}
-                    sx={{ bgcolor: "grey.900" }}
-                    variant="rounded"
-                    width={390}
-                    height={215}
-                  />
-                )
-              )}
-          </div>
-        </div>
-
-        <div className="col-span-full">
-          <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Borrowing positions</div>
-          <div className="flex flew-row flex-wrap gap-4">
-            {sortedBanks
-              .filter((b) => b.isActive)
-              .map((bank, i) =>
-                isStoreInitialized ? (
-                  <AssetCard
-                    key={bank.meta.tokenSymbol}
-                    nativeSolBalance={nativeSolBalance}
-                    bank={bank}
-                    isInLendingMode={true}
-                    isConnected={connected}
-                    marginfiAccount={selectedAccount}
-                  />
-                ) : (
-                  <Skeleton
-                    key={bank.meta.tokenSymbol}
-                    sx={{ bgcolor: "grey.900" }}
-                    variant="rounded"
-                    width={390}
-                    height={215}
-                  />
-                )
-              )}
+                ))
+              ) : (
+                <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
+                  No borrowing positions found.
+                </Typography>
+              )
+            ) : (
+              <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+            )}
           </div>
         </div>
       </div>

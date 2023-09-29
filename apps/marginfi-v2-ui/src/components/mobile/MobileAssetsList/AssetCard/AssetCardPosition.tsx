@@ -16,7 +16,7 @@ export const AssetCardPosition: FC<{
       <div className="flex flex-row justify-between ">
         <div className="my-auto">Your position details</div>
         <span className="cursor-pointer" onClick={() => setIsCollapsed(!isCollapsed)}>
-          {isCollapsed ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          {isCollapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />}
         </span>
       </div>
       {!isCollapsed && (
