@@ -55,7 +55,7 @@ export const SemiCircleProgress = ({ amount }: Props) => {
       width: "180px",
       height: "90px",
       borderRadius: "90px",
-      backgroundColor: "#131619",
+      backgroundColor: "#1A1F22",
       top: "10px",
       marginLeft: "auto",
       marginRight: "auto",

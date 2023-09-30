@@ -7,7 +7,7 @@ interface PointsConnectWalletProps {}
 
 export const PointsConnectWallet: FC<PointsConnectWalletProps> = ({}) => {
   return (
-    <Card className="max-w-[800px] mx-auto w-full bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+    <Card className="max-w-[800px] mx-auto w-full bg-[#1A1F22] h-full h-24 rounded-xl" elevation={0}>
       <CardContent>
         <div className="w-full flex flex-col justify-evenly items-center p-2 text-base text-white font-aeonik font-[400] rounded-xl text-center">
           <div>
