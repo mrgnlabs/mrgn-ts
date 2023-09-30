@@ -166,3 +166,32 @@ a {
   background: linear-gradient(90deg, #808080, #DCE85DCC, #808080);
   background-size: 200% 100%;
 }
+
+.btn-gleam {
+  position: relative;
+  overflow: hidden;
+  /* Other styles remain the same */
+}
+
+.btn-gleam::before {
+  content: "";
+  position: absolute;
+  margin: -50%;
+  top: 0;
+  left: 0;
+  width: 50%;  /* width of the gleam, you can adjust this */
+  height: 500%;  /* covering the full height of the button */
+  background: linear-gradient(to left, transparent, #ffffff66, transparent);  /* Adjust colors for the gleam effect */
+  transform: translateX(-50%) rotate(-40deg);
+  animation: 5s infinite gleam;
+}
+
+
+@keyframes gleam {
+  0% {
+    transform: translateX(-50%) rotate(-40deg);
+  }
+  15%, 100% {
+    transform: translateX(350%) rotate(-40deg);
+  }
+}

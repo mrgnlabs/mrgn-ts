@@ -19,6 +19,7 @@ import {
 } from "~/components/desktop/Points";
 import { AssetCard } from "~/components/mobile/MobileAssetsList/AssetCard";
 import { Button, Skeleton, Typography } from "@mui/material";
+import { EmissionsBanner } from "~/components/mobile/EmissionsBanner";
 
 const PortfolioPage = () => {
   const { connected, wallet, isOverride } = useWalletContext();
@@ -79,9 +80,10 @@ const PortfolioPage = () => {
 
   return (
     <>
-      <PageHeader>Portfolio</PageHeader>
-      <div className="flex flex-col w-full h-full justify-start content-start pt-[16px] px-[12px] gap-7 mb-20">
+      <PageHeader>portfolio</PageHeader>
+      <div className="flex flex-col w-full h-full justify-start items-center px-[12px] gap-6 mb-20">
         <MobileAccountSummary />
+        <EmissionsBanner />
         <MobilePortfolioOverview />
         {!connected ? (
           <PointsConnectWallet />

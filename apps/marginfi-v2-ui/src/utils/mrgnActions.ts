@@ -2,6 +2,8 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import { ExtendedBankInfo, FEE_MARGIN, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { toast } from "react-toastify";
 import { isWholePosition } from "./mrgnUtils";
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { Wallet, processTransaction } from "@mrgnlabs/mrgn-common";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
@@ -187,3 +189,16 @@ export const borrowOrLend = async ({
     console.log(error);
   }
 };
+
+export async function collectRewardsBatch(connection: Connection, wallet: Wallet, marginfiAccount: MarginfiAccountWrapper, bankAddresses: PublicKey[]) {
+  const tx = new Transaction();
+  const ixs = [];
+  const signers = [];
+  for (const bankAddress of bankAddresses) {
+    const ix = await marginfiAccount.makeWithdrawEmissionsIx(bankAddress);
+    ixs.push(...ix.instructions);
+    signers.push(ix.keys);
+  }
+  tx.add(...ixs);
+  await processTransaction(connection, wallet, tx);
+}

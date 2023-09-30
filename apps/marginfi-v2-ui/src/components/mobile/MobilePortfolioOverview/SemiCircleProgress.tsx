@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
-
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 type Props = {

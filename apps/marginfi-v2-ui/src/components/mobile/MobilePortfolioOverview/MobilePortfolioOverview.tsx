@@ -26,7 +26,7 @@ export const MobilePortfolioOverview: FC = () => {
   }, [selectedAccount]);
 
   return (
-    <div className="max-w-[800px] mx-auto w-full bg-[#131619] rounded-xl p-6 flex flex-col gap-[10px] h-full">
+    <div className="max-w-[800px] mx-auto w-full bg-[#131619] rounded-xl px-6 flex flex-col gap-[10px] h-full">
       <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Your overview</div>
       <div className="text-center mx-auto">
         <div className={`text-sm font-normal text-[#868E95] pb-[4px]`}>Health factor</div>

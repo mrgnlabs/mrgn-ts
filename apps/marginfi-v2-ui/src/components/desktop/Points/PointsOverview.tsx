@@ -1,10 +1,8 @@
 import React, { FC } from "react";
 import Image from "next/image";
 import { Card, CardContent, Skeleton, Typography } from "@mui/material";
-
 import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
-
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 
 interface PointsOverviewProps {

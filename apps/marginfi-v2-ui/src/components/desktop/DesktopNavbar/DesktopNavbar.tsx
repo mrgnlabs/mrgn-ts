@@ -15,6 +15,7 @@ import { PublicKey, Transaction } from "@solana/web3.js";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { toast } from "react-toastify";
 import { EMISSION_MINT_INFO_MAP } from "../AssetsList/AssetRow";
+import { collectRewardsBatch } from "~/utils";
 
 // @todo implement second pretty navbar row
 const DesktopNavbar: FC = () => {
@@ -289,16 +290,7 @@ const DesktopNavbar: FC = () => {
               }`}
               onClick={async () => {
                 if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
-                const tx = new Transaction();
-                const ixs = [];
-                const signers = [];
-                for (const bankAddress of bankAddressesWithEmissions) {
-                  const ix = await selectedAccount.makeWithdrawEmissionsIx(bankAddress);
-                  ixs.push(...ix.instructions);
-                  signers.push(ix.keys);
-                }
-                tx.add(...ixs);
-                await processTransaction(connection, wallet, tx);
+                await collectRewardsBatch(connection, wallet, selectedAccount, bankAddressesWithEmissions)
                 toast.success("Withdrawal successful");
               }}
             >
