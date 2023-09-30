@@ -8,6 +8,7 @@ import { StakingCard, StakingStats } from "~/components/common/Staking";
 import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
 import { PageHeader } from "~/components/desktop/PageHeader";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { Desktop } from "~/mediaQueries";
 import { createLstStore } from "~/store/lstStore";
 import { usePrevious } from "~/utils";
 import { Features, isActive } from "~/utils/featureGates";
@@ -70,7 +71,7 @@ const StakePage = () => {
   return (
     <JupiterProvider connection={connection} wrapUnwrapSOL={false}>
       <PageHeader>stake</PageHeader>
-      <div className="flex flex-col h-full max-w-[480px] w-full justify-center content-center pt-[64px] sm:pt-[16px] gap-4 px-4">
+      <div className="flex flex-col h-full max-w-[480px] w-full justify-center content-center sm:pt-[16px] gap-4 px-4">
         <StakingStats />
         <StakingCard />
         <div className="flex flex-col mt-10 pb-[64px] gap-5 justify-center font-aeonik">
@@ -89,7 +90,9 @@ const StakePage = () => {
           </Typography>
         </div>
       </div>
-      <OverlaySpinner fetching={!initialized || isRefreshingStore} />
+      <Desktop>
+        <OverlaySpinner fetching={!initialized || isRefreshingStore} />
+      </Desktop>
     </JupiterProvider>
   );
 };
