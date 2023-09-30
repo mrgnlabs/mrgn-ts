@@ -9,7 +9,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { LoadingAsset, AssetRow } from "./AssetRow";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
-import { MrgnSwitch } from "~/components/common";
+import { MrgnLabeledSwitch } from "~/components/common";
 
 const AssetsList: FC = () => {
   // const { selectedAccount, nativeSolBalance } = useStore();
@@ -97,7 +97,7 @@ const AssetsList: FC = () => {
     <>
       <div className="col-span-full">
         <div className="flex w-[150px] h-[42px]">
-        <MrgnSwitch
+        <MrgnLabeledSwitch
           labelLeft="Lend"
           labelRight="Borrow"
           checked={!isInLendingMode}

@@ -1,82 +1,48 @@
-import { styled, Switch, SwitchProps } from "@mui/material";
-
-interface MrgnLabeledSwitchProps extends SwitchProps {
+interface MrgnLabeledSwitchProps {
   labelLeft: string;
   labelRight: string;
+  checked: boolean;
+  onClick: () => void;
+  disabled?: boolean;
   trackColor?: string;
   thumbColor?: string;
 }
 
-const MrgnLabeledSwitch = styled(({ onChange, ...switchProps }: MrgnLabeledSwitchProps) => {
+const MrgnLabeledSwitch = ({
+  checked,
+  onClick,
+  disabled,
+  labelLeft,
+  labelRight,
+  trackColor,
+  thumbColor,
+}: MrgnLabeledSwitchProps) => {
   return (
-    <Switch
-      {...switchProps}
-      focusVisibleClassName=".Mui-focusVisible"
-      disableRipple
-    />
+    <div
+      className={`relative w-full h-full flex flex-row items-center ${
+        trackColor ? `bg-[${trackColor}]` : "bg-[#22282C]"
+      } rounded-[4px] ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+      onClick={() => {
+        if (!disabled) onClick();
+      }}
+    >
+      <div className="absolute flex items-center top-0 left-0 w-1/2 h-full bg-transparent">
+        <div
+          className={`w-full h-full flex justify-center items-center p-1 transition-transform duration-200 ease-in-out ${
+            checked ? "translate-x-full" : ""
+          }`}
+        >
+          <div className={`w-full h-full ${thumbColor ? `bg-[${thumbColor}]` : "bg-[#131618]"} rounded-[4px]`} />
+        </div>
+      </div>
+      <div className="w-1/2 h-full flex justify-center items-center text-white text-normal font-[500] bg-transparent z-20">
+        {labelLeft}
+      </div>
+      <div className="w-1/2 h-full flex justify-center items-center text-white text-normal font-[500] bg-transparent z-20">
+        {labelRight}
+      </div>
+    </div>
   );
-})(({ disabled, labelLeft, labelRight,trackColor, thumbColor }) => ({
-  width: "100%",
-  height: "100%",
-  ...(disabled ? { cursor: "not-allowed" } : {}),
-  padding: 0,
-  backgroundColor: trackColor ?? "#22282C", // @todo currently transparency is at 1 to hide the center thing that i can't make disappear
-  borderRadius: 4,
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  fontFamily: "Aeonik Pro",
-  fontWeight: 400,
-  "&:before": {
-    content: `"${labelLeft}"`,
-    width: "50%",
-    height: "100%",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 10,
-    pointerEvents: "none",
-  },
-  "&:after": {
-    content: `"${labelRight}"`,
-    width: "50%",
-    height: "100%",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 10,
-    pointerEvents: "none",
-  },
-  "& .MuiSwitch-switchBase": {
-    padding: "0.3rem",
-    width: "50%",
-    height: "100%",
-    display: "flex",
-    justifyContent: "center",
-    transitionDuration: "200ms",
-    transform: "translateX(0%)",
-    "& + .MuiSwitch-track": {
-      opacity: 0,
-      width: 0,
-      height: "100%",
-    },
-    "&.Mui-disabled + .MuiSwitch-track": {
-      opacity: 0.5,
-    },
-    "&.Mui-checked": {
-      transform: "translateX(100%)",
-    },
-  },
-  "&:hover .MuiSwitch-thumb": {
-    backgroundColor: "#1B1E20",
-  },
-  "& .MuiSwitch-thumb": {
-    boxSizing: "border-box",
-    width: "100%",
-    height: "100%",
-    backgroundColor: thumbColor ?? "#131618",
-    borderRadius: 3,
-  },
-}));
+};
 
-export { MrgnLabeledSwitch as MrgnSwitch };
+export { MrgnLabeledSwitch };

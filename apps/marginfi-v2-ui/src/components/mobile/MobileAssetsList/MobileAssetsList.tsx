@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Skeleton, Typography } from "@mui/material";
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { MrgnContainedSwitch, MrgnSwitch, MrgnTooltip } from "~/components/common";
+import { MrgnContainedSwitch, MrgnLabeledSwitch, MrgnTooltip } from "~/components/common";
 
 import { AssetCard } from "./AssetCard";
 
@@ -38,7 +38,7 @@ export const MobileAssetsList: FC = () => {
     <>
       <div className="flex justify-between items-center">
         <div className="flex w-[150px] h-[42px]">
-          <MrgnSwitch
+          <MrgnLabeledSwitch
             labelLeft="Lend"
             labelRight="Borrow"
             checked={!isInLendingMode}
