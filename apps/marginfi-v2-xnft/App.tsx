@@ -1,12 +1,11 @@
-import React, { ReactNode, useState } from "react";
+import React, { useState } from "react";
 import { registerRootComponent } from "expo";
 import { RecoilRoot } from "recoil";
-import { ActivityIndicator, View, Text, StyleSheet, ImageBackground } from "react-native";
+import { ActivityIndicator, View, Text, StyleSheet, ImageBackground, TouchableOpacity } from "react-native";
 import Toast from "react-native-toast-message";
 import { JupiterProvider } from "@jup-ag/react-hook";
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { BottomTabHeaderProps, createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFonts, Inter_900Black } from "@expo-google-fonts/dev";
 
 import { PortfolioScreens } from "~/screens/PortfolioScreen";
@@ -16,7 +15,8 @@ import { SwapContextProvider } from "~/context";
 import { useConnection } from "~/hooks/useConnection";
 import { useWallet } from "~/hooks/useWallet";
 import { ROUTE_CACHE_DURATION } from "~/consts";
-import { PieChartIcon, ReceiveMoneyIcon, TokenSwapIcon } from "~/assets/icons";
+import { AppsIcon, PieChartIcon, ReceiveMoneyIcon, TokenSwapIcon } from "~/assets/icons";
+import tw from "~/styles/tailwind";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -31,19 +31,13 @@ const MyTheme = {
   },
 };
 
-function LogoTitle() {
+function LogoTitle({ title }: { title: string }) {
   const styles = StyleSheet.create({
     container: {
-      // flex: '1 1 0%',
       borderBottomColor: "rgb(39, 39, 41)",
       borderBottomWidth: 1,
       height: 63,
       position: "relative",
-
-      // border-bottom-width: 1px
-      // background-color: rgb(18, 18, 18)
-      // border-bottom-color: rgb(39, 39, 41)
-      // box-shadow: rgb(39, 39, 41) 0px 0px 0px
     },
     backgroundImage: {
       height: "100%",
@@ -54,7 +48,7 @@ function LogoTitle() {
       fontFamily: "Aeonik Pro",
       fontWeight: "400",
       color: "white",
-      fontSize: 22,
+      fontSize: 24,
       marginVertical: "auto",
       paddingLeft: 22,
     },
@@ -63,45 +57,75 @@ function LogoTitle() {
   return (
     <View style={styles.container}>
       <ImageBackground style={styles.backgroundImage} source={{ uri: "https://app.marginfi.com/WaveBG3.png" }}>
-        <Text style={styles.headerTitle}>mrgnlend</Text>
+        <Text style={styles.headerTitle}>{title}</Text>
       </ImageBackground>
     </View>
   );
 }
 
+function MoreScreen() {
+  return null;
+}
+
 function TabNavigator() {
   return (
     <Tab.Navigator
-      initialRouteName="Home"
+      initialRouteName="Lend"
       screenOptions={{
-        tabBarActiveTintColor: "#D8D8D8",
+        tabBarActiveTintColor: "#DCE85D",
+        tabBarLabelPosition: "below-icon",
+        tabBarLabelStyle: { fontWeight: "400", fontSize: 14, flex: 1, fontFamily: "Aeonik Pro" },
+        tabBarStyle: { height: 60 },
       }}
     >
+      <Tab.Screen
+        name="More"
+        component={MoreScreen}
+        options={{
+          tabBarShowLabel: false,
+          tabBarIcon: ({ color }) => <ReceiveMoneyIcon color={color} height={20} width={20} />,
+          tabBarButton: () => (
+            <TouchableOpacity
+              style={tw`flex flex-1 flex-column items-center`}
+              onPress={() => {
+                console.log("working!");
+              }}
+            >
+              <View style={tw`inline-flex flex-1 items-stretch`}>
+                <View style={tw`self-center w-full h-full justify-center items-center inline-flex absolute`}>
+                  <AppsIcon color="#7c7c7d" height={20} width={20} />
+                </View>
+              </View>
+              <Text style={tw`font-normal text-sm flex flex-1 text-[#7c7c7d] leading-none`}>More</Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
       <Tab.Screen
         name="Lend"
         component={LendScreen}
         options={{
-          header: (props: BottomTabHeaderProps) => <LogoTitle />,
+          header: (props: BottomTabHeaderProps) => <LogoTitle title="lend" />,
           tabBarLabel: "Lend",
-          tabBarIcon: ({ color, size }) => <ReceiveMoneyIcon color={color} height={size} width={size} />,
+          tabBarIcon: ({ color }) => <ReceiveMoneyIcon color={color} height={20} width={20} />,
         }}
       />
       <Tab.Screen
         name="Swap"
         component={SwapScreen}
         options={{
-          header: (props: BottomTabHeaderProps) => <LogoTitle />,
+          header: (props: BottomTabHeaderProps) => <LogoTitle title="swap" />,
           tabBarLabel: "Swap",
-          tabBarIcon: ({ color, size }) => <TokenSwapIcon color={color} height={size} width={size} />,
+          tabBarIcon: ({ color }) => <TokenSwapIcon color={color} height={20} width={20} />,
         }}
       />
       <Tab.Screen
         name="Portfolio"
         component={PortfolioScreens}
         options={{
-          header: (props: BottomTabHeaderProps) => <LogoTitle />,
+          header: (props: BottomTabHeaderProps) => <LogoTitle title="portfolio" />,
           tabBarLabel: "Portfolio",
-          tabBarIcon: ({ color, size }) => <PieChartIcon color={color} height={size} width={size} />,
+          tabBarIcon: ({ color }) => <PieChartIcon color={color} height={20} width={20} />,
         }}
       />
     </Tab.Navigator>

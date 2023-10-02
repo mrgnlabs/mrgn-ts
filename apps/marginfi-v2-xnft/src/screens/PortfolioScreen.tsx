@@ -72,7 +72,7 @@ export function PortfolioScreens() {
       <PortfolioHeader
         globalDeposits={protocolStats.deposits}
         globalBorrowed={protocolStats.borrows}
-        globalPoints={protocolStats.pointsTotal}
+        tvl={protocolStats.tvl}
       />
       <View style={tw`px-12px pb-24px`}>
         <View style={tw`flex flex-column gap-16px`}>
