@@ -172,12 +172,7 @@ export function PoolCard({
   }, [bankInfo, marginfiAccount, reloadBanks]);
 
   return (
-    <View
-      style={[
-        tw`bg-[#1C2125] rounded-xl px-12px py-16px flex flex-column gap-16px w-[341px]`,
-        // { height: "fit-content" },
-      ]}
-    >
+    <View style={[tw`bg-[#1C2125] rounded-xl px-12px py-16px flex flex-col gap-[16px] max-w-sm min-w-[300px] flex-1`]}>
       <View style={tw`flex flex-row justify-between`}>
         <View style={tw`flex flex-row gap-7px`}>
           <Image style={styles.logo} source={{ uri: bankInfo.meta.tokenLogoUri }} alt={bankInfo.meta.tokenSymbol} />
