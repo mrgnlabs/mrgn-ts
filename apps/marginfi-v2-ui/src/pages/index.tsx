@@ -72,8 +72,8 @@ const Home = () => {
 
   return (
     <>
-      <PageHeader>lend</PageHeader>
       <Desktop>
+        <PageHeader>lend</PageHeader>
         <div className="flex flex-col h-full justify-start content-start pt-[16px] w-4/5 max-w-7xl gap-4">
           {walletAddress && selectedAccount && isOverride && (
             <Banner
@@ -92,13 +92,15 @@ const Home = () => {
           <AssetsList />
           {walletAddress && <UserPositions />}
         </div>
+        <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
       </Desktop>
+      
       <Mobile>
+        <PageHeader>lend</PageHeader>
         <div className="flex flex-col w-full h-full justify-start content-start pt-[16px] px-[12px] gap-4 mb-20">
           <MobileAssetsList />
         </div>
       </Mobile>
-      <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
     </>
   );
 };

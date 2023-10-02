@@ -20,7 +20,6 @@ import { Analytics } from "@vercel/analytics/react";
 import dynamic from "next/dynamic";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
-import { WalletButton } from "~/components/common/Navbar";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -49,7 +48,14 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   const [ready, setReady] = useState(false);
 
   const wallets = useMemo(
-    () => [new OKXWalletAdapter(), new LedgerWalletAdapter(), new SolflareWalletAdapter(), new GlowWalletAdapter()],
+    () => [
+      new OKXWalletAdapter(),
+      new PhantomWalletAdapter(),
+      new BackpackWalletAdapter(),
+      new LedgerWalletAdapter(),
+      new SolflareWalletAdapter(),
+      new GlowWalletAdapter(),
+    ],
     []
   );
 
@@ -73,17 +79,17 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                 <DesktopNavbar />
                 <div className="w-full flex flex-col justify-center items-center pt-[64px]">
                   <Component {...pageProps} />
-                  <Analytics />
                 </div>
                 <Footer />
               </Desktop>
+
               <Mobile>
                 <MobileNavbar />
-                <div className="w-full flex flex-col justify-center items-center sm:pt-[24px]">
+                <div className="w-full flex flex-col justify-center items-center sm:pt-[24px] transition ease-in-out delay-150">
                   <Component {...pageProps} />
-                  <Analytics />
                 </div>
               </Mobile>
+              <Analytics />
               <ToastContainer position="bottom-left" theme="dark" />
             </WalletModalProvider>
           </WalletProvider>

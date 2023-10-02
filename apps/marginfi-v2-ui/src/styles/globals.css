@@ -60,6 +60,43 @@ a {
   animation: pulse 1.8s infinite;
 }
 
+
+.bg-lines {
+  background-image: url(../../public/WaveBG2.png);
+  background-size: 700px;
+  background-repeat: no-repeat;
+  background-position: 40%;
+}
+
+
+.nav-link {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.border-slider {
+  position: absolute;
+  top: 0;
+  height: 3px;
+  width: 25%;
+  background-color: #DCE85D;
+  transition: left 0.25s ease-in-out;
+}
+
+.border-slider.link1 {
+  left: 25%;
+}
+
+.border-slider.link2 {
+  left: 50%;
+}
+
+.border-slider.link3 {
+  left: 75%;
+}
+
 .hover-underline-static {
   display: inline-block;
   position: relative;

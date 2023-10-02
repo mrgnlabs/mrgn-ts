@@ -1,12 +1,13 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useUserProfileStore } from "~/store";
 import { useRouter } from "next/router";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { MoreModal } from "./MoreModal";
+import { ORDERED_MOBILE_NAVBAR_LINKS } from "~/config/navigationLinks";
+import { Apps } from "@mui/icons-material";
+import { useSwipeGesture } from "~/hooks/useSwipeGesture";
 
 // @todo implement second pretty navbar row
 const MobileNavbar: FC = () => {
@@ -23,41 +24,46 @@ const MobileNavbar: FC = () => {
     fetchPoints(walletAddress.toBase58()).catch(console.error);
   }, [fetchPoints, walletAddress]);
 
+  const activeLink = useMemo(() => {
+    const activeLinkIndex = ORDERED_MOBILE_NAVBAR_LINKS.findIndex((link) => link.href === router.pathname);
+    return activeLinkIndex >= 0 ? `link${activeLinkIndex + 1}` : null;
+  }, [router.pathname]);
+
+  useSwipeGesture(() => setIsMoreModalOpen(true));
+
   return (
     <header>
       <nav className="fixed w-full bottom-0 h-[68px] z-50 bg-[#0F1111]">
-        <div className="h-full w-full border-t-2 pb-3 border-[#1C2125] border-solid text-sm font-[500] text-[#868E95] z-50 px-4 flex justify-around items-center z-10 gap-4 lg:gap-8">
-          <Link
-            href={"/"}
-            className={`${router.pathname === "/" ? "hover-underline-static" : "hover-underline-animation"} block`}
-          >
-            <Image className="m-auto" src="/receive_money.svg" alt="hand with money icon" width={18.9} height={18.9} />
-            lend
-          </Link>
-
-          <Link
-            href={"/swap"}
-            className={`${router.pathname === "/swap" ? "hover-underline-static" : "hover-underline-animation"}`}
-          >
-            <Image className="m-auto" src="/token_swap.svg" alt="coin swap icon" width={18.9} height={18.9} />
-            swap
-          </Link>
-
-          <Link
-            href={"/portfolio"}
-            className={`${router.pathname === "/portfolio" ? "hover-underline-static" : "hover-underline-animation"}`}
-          >
-            <Image className="m-auto" src="/pie_chart.svg" alt="pie chart icon" width={18.9} height={18.9} />
-            portfolio
-          </Link>
-
+        <div className="h-full w-full text-sm font-[500] text-[#868E95] z-50 flex justify-around relative items-center z-10 lg:gap-8">
           <div
-            className="flex flex-col"
+            className="w-1/4 h-full flex flex-col justify-center items-center"
             onClick={() => setIsMoreModalOpen(!isMoreModalOpen)}
           >
-            <MoreHorizIcon className="m-auto w-[18.9px] h-[18.9px]" />
+            <Apps className="w-[18.9px] h-[18.9px]" />
+            <div className={`font-aeonik font-[400] text-[#999]`}>
             more
+            </div>
           </div>
+          {ORDERED_MOBILE_NAVBAR_LINKS.map((linkInfo, index) => {
+            const isActive = activeLink === `link${index + 1}`;
+            return (
+              <Link
+                key={linkInfo.label}
+                href={linkInfo.href}
+                className={`w-1/4 h-full flex flex-col justify-center items-center ${
+                  isActive ? "current-mobile-nav-link" : ""
+                }`}
+              >
+                <linkInfo.Icon className="w-[18.9px] h-[18.9px]" color={isActive ? "#DCE85D" : "#999"} />
+                <div className={`font-aeonik font-[400] ${isActive ? "text-[#DCE85D]" : "text-[#999]"}`}>
+                  {linkInfo.label}
+                </div>
+              </Link>
+            );
+          })}
+
+          <div className={`w-full absolute top-[1px] border-t-[1px] border-[#333]`} />
+          <div className={`border-slider ${activeLink}`} />
         </div>
       </nav>
       <MoreModal isOpen={isMoreModalOpen} handleClose={() => setIsMoreModalOpen(false)} />
