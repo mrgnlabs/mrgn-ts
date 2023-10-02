@@ -85,6 +85,10 @@ a {
   transition: left 0.25s ease-in-out;
 }
 
+.border-slider.link0 {
+  left: 0%;
+}
+
 .border-slider.link1 {
   left: 25%;
 }

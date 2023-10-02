@@ -1,5 +1,8 @@
 import { FC, HTMLProps } from "react";
 import {PieChart, ReceiveMoney, TokenSwap} from "~/components/common/icons";
+import { Bridge } from "~/components/common/icons/Bridge";
+import { Coins } from "~/components/common/icons/Coins";
+import { Steak } from "~/components/common/icons/Steak";
 
 export interface NavLinkInfo {
   href: string;
@@ -17,9 +20,9 @@ export const ORDERED_MOBILE_NAVBAR_LINKS: NavLinkInfo[] = [
   },
   {
     href: "/stake",
-    alt: "coin swap icon",
+    alt: "steak icon",
     label: "stake",
-    Icon: TokenSwap,
+    Icon: Steak,
   },
   {
     href: "/portfolio",
@@ -38,9 +41,9 @@ export const ORDERED_MOBILE_LAUNCHER_LINKS: NavLinkInfo[] = [
   },
   {
     href: "/stake",
-    alt: "coin swap icon",
+    alt: "steak icon",
     label: "stake",
-    Icon: TokenSwap,
+    Icon: Steak,
   },
   {
     href: "/portfolio",
@@ -48,4 +51,28 @@ export const ORDERED_MOBILE_LAUNCHER_LINKS: NavLinkInfo[] = [
     label: "portfolio",
     Icon: PieChart,
   },
+  {
+    href: "/swap",
+    alt: "coin swap icon",
+    label: "swap",
+    Icon: TokenSwap,
+  },
+  {
+    href: "/bridge",
+    alt: "pie chart icon",
+    label: "bridge",
+    Icon: Bridge,
+  },
+  {
+    href: "/earn",
+    alt: "coins icon",
+    label: "earn",
+    Icon: Coins,
+  },
+  // {
+  //   href: "/points",
+  //   alt: "hashtag icon",
+  //   label: "points",
+  //   Icon: Hashtag,
+  // },
 ];

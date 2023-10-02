@@ -8,7 +8,7 @@ import { StakingCard, StakingStats } from "~/components/common/Staking";
 import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
 import { PageHeader } from "~/components/desktop/PageHeader";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { Desktop, Mobile } from "~/mediaQueries";
+import { Desktop } from "~/mediaQueries";
 import { createLstStore } from "~/store/lstStore";
 import { usePrevious } from "~/utils";
 import { Features, isActive } from "~/utils/featureGates";
@@ -70,16 +70,11 @@ const StakePage = () => {
 
   return (
     <JupiterProvider connection={connection} wrapUnwrapSOL={false}>
+      <PageHeader>stake</PageHeader>
+      <StakingContent />
       <Desktop>
-        <PageHeader>stake</PageHeader>
-        <StakingContent />
         <OverlaySpinner fetching={!initialized || isRefreshingStore} />
       </Desktop>
-
-      <Mobile>
-        <PageHeader>stake</PageHeader>
-        <StakingContent />
-      </Mobile>
     </JupiterProvider>
   );
 };

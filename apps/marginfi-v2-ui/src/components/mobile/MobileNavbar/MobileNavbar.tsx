@@ -26,7 +26,7 @@ const MobileNavbar: FC = () => {
 
   const activeLink = useMemo(() => {
     const activeLinkIndex = ORDERED_MOBILE_NAVBAR_LINKS.findIndex((link) => link.href === router.pathname);
-    return activeLinkIndex >= 0 ? `link${activeLinkIndex + 1}` : null;
+    return activeLinkIndex >= 0 ? `link${activeLinkIndex + 1}` : "link0";
   }, [router.pathname]);
 
   useSwipeGesture(() => setIsMoreModalOpen(true));
@@ -39,8 +39,8 @@ const MobileNavbar: FC = () => {
             className="w-1/4 h-full flex flex-col justify-center items-center"
             onClick={() => setIsMoreModalOpen(!isMoreModalOpen)}
           >
-            <Apps className="w-[18.9px] h-[18.9px]" />
-            <div className={`font-aeonik font-[400] text-[#999]`}>
+            <Apps className="w-[18.9px] h-[18.9px]" sx={{color: activeLink === "link0" ? "#DCE85D" : "#999"}} />
+            <div className={`font-aeonik font-[400] text-[#999] ${activeLink === "link0" ? "text-[#DCE85D]" : "text-[#999]"}`}>
             more
             </div>
           </div>
