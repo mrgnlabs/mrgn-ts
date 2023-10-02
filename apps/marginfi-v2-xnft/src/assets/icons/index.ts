@@ -14,3 +14,4 @@ export * from "./ErrorIcon";
 export * from "./PieChartIcon";
 export * from "./ReceiveMoneyIcon";
 export * from "./TokenSwapIcon";
+export * from "./AppsIcon";

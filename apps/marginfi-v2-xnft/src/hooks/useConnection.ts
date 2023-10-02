@@ -4,10 +4,10 @@ import { Connection } from "@solana/web3.js";
 export function useConnection() {
   const [connection, setConnection] = useState<Connection>();
   useEffect(() => {
-    if (window.xnft?.solana?.connection) {
-      const endpoint = window.xnft.solana.connection._rpcEndpoint as string;
+    if (!connection) {
+      const endpoint = "https://app.bitspawn.workers.dev"; //window.xnft.solana.connection._rpcEndpoint as string;
       setConnection(new Connection(endpoint));
     }
-  }, [window.xnft?.solana?.connection]);
+  }, [connection]);
   return connection;
 }

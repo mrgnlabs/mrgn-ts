@@ -24,18 +24,18 @@ export function TabSwitch({}: Props) {
   };
 
   return (
-    <View style={tw`flex flex-row justify-between bg-[#22282C] p-1.25 w-129px h-38px rounded-md`}>
+    <View style={tw`flex flex-row justify-between bg-[#22282C] p-1.25 w-150px h-42px rounded-md`}>
       <TouchableOpacity
         style={[styles.commonStyle, tabActive === "lend" ? styles.selectedStyle : styles.unSelectedStyle]}
         onPress={handleLendClick}
       >
-        <Text style={tw`text-inherit leading-14px my-auto`}>Lend</Text>
+        <Text style={tw`text-inherit font-medium text-base leading-14px my-auto`}>Lend</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.commonStyle, tabActive === "borrow" ? styles.selectedStyle : styles.unSelectedStyle]}
         onPress={handleBorrowClick}
       >
-        <Text style={tw`text-inherit leading-14px my-auto`}>Borrow</Text>
+        <Text style={tw`text-inherit font-medium text-base font- leading-14px my-auto`}>Borrow</Text>
       </TouchableOpacity>
     </View>
   );
