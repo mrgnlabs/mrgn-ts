@@ -18,7 +18,7 @@ export const MoreModal: FC<MoreModalProps> = ({ isOpen, handleClose }) => {
   return (
     <Modal open={isOpen} onClose={handleClose} className="h-full">
       <Slide direction="right" in={isOpen} mountOnEnter unmountOnExit>
-        <div className="absolute top-0 left-0 w-[70%] h-full bg-[#0F1111] p-4 bg-lines border-r-[1px] border-[#333]">
+        <div className="absolute top-0 left-0 w-[70%] h-full bg-[#0F1111] p-4 bg-lines border-r-[1px] border-r-[#333]">
           <div className="h-[40px] flex flex-row justify-between mb-3">
             <Link
               href={"https://app.marginfi.com"}
