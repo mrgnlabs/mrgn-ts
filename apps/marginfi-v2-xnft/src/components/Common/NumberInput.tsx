@@ -12,6 +12,8 @@ interface NumberInputProps {
   onValueChange: (value: string) => void;
   disabled?: boolean;
   hasBorder?: boolean;
+  placeholder?: string;
+  textAlign?: "center" | "right" | "left";
 }
 
 export const NumberInput: React.FC<NumberInputProps> = ({
@@ -22,6 +24,8 @@ export const NumberInput: React.FC<NumberInputProps> = ({
   onValueChange,
   disabled = false,
   hasBorder = true,
+  placeholder = "",
+  textAlign = undefined,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -62,7 +66,9 @@ export const NumberInput: React.FC<NumberInputProps> = ({
           hasBorder && tw`border border-solid border-border`,
           { outlineStyle: "none" } as any,
           isFocused ? styles.focusedInput : null,
+          textAlign && { textAlign: textAlign },
         ]}
+        placeholder={placeholder}
         keyboardType="numeric"
         onFocus={handleFocus}
         onBlur={handleBlur}

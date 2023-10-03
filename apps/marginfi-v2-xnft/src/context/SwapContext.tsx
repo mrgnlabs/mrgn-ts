@@ -31,7 +31,7 @@ import { useWallet } from "~/hooks/useWallet";
 import { useConnection } from "~/hooks/useConnection";
 import { fromLamports, toLamports } from "~/utils";
 import { DEFAULT_SLIPPAGE, PRIORITY_NONE } from "~/consts";
-import { useJupiterStore } from "~/store";
+import { useJupiterStore } from "~/store/store";
 
 export interface IForm {
   fromMint: string;

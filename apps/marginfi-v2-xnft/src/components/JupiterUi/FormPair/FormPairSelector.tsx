@@ -7,7 +7,7 @@ import * as icons from "~/assets/icons";
 import { SecondaryButton } from "~/components/Common";
 import { PublicKey } from "@solana/web3.js";
 import { WSOL_MINT } from "~/config";
-import { useJupiterStore, useMrgnlendStore } from "~/store";
+import { useJupiterStore, useMrgnlendStore } from "~/store/store";
 
 const PAIR_SELECTOR_TOP_TOKENS = [
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
@@ -70,8 +70,11 @@ export const FormPairSelector = ({
   return (
     <View style={tw`p-5px w-full`}>
       <View style={tw`relative`}>
-        <Pressable onPress={() => onClose()} style={tw`absolute my-auto h-full justify-center text-white`}>
-          <icons.LeftArrowIcon height={20} width={20} />
+        <Pressable
+          onPress={() => onClose()}
+          style={tw`absolute my-auto h-full cursor-pointer justify-center text-white z-10`}
+        >
+          <icons.LeftArrowIcon onClick={() => onClose()} height={20} width={20} />
         </Pressable>
         <Text style={tw`text-primary text-base my-10px text-center`}>Select Token</Text>
       </View>
