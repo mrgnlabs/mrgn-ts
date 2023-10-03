@@ -5,7 +5,7 @@ import Decimal from "decimal.js";
 import { formatNumber } from "~/utils";
 import { View, Text } from "react-native";
 import tw from "~/styles/tailwind";
-import { useJupiterStore } from "~/store";
+import { useJupiterStore } from "~/store/store";
 
 interface props {
   marketInfos: RouteInfo["marketInfos"] | undefined;

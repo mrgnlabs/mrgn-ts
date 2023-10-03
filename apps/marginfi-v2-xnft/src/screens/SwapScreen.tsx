@@ -16,7 +16,7 @@ import { TokenInfo } from "@solana/spl-token-registry/dist/main/lib/tokenlist";
 import { IForm, useSwapContext } from "~/context";
 import { WSOL_MINT } from "~/config";
 import { PublicKey } from "@solana/web3.js";
-import { useJupiterStore, useMrgnlendStore } from "~/store";
+import { useJupiterStore, useMrgnlendStore } from "~/store/store";
 
 export function SwapScreen() {
   const [showRouteSelector, setShowRouteSelector] = useState<boolean>(false);

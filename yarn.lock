@@ -4158,11 +4158,6 @@
     "@json-rpc-tools/types" "^1.7.6"
     "@pedrouid/environment" "^1.0.1"
 
-"@jup-ag/api@4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-4.0.0.tgz#7a35079557014d5cccedfa6f8ee786124b9d0ff9"
-  integrity sha512-GqMgiPXsH+zSYNGiSJl/PuPyIMcVDwIATbnk4s9YL1zUaS7Di9nB23SBZOhDv3Z5bo1Ud/nquL+G8+p94RLmQQ==
-
 "@jup-ag/api@4.0.1-alpha.0", "@jup-ag/api@^4.0.1-alpha.0":
   version "4.0.1-alpha.0"
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-4.0.1-alpha.0.tgz#6c9fd02e607830206802b5e372fd0c2ec5a6a0c1"
@@ -4198,41 +4193,6 @@
     "@solana/spl-token" "0.1.8"
     bs58 "^4.0.1"
     jsbi "4.3.0"
-
-"@jup-ag/core@4.0.0-beta.3-fbed36":
-  version "4.0.0-beta.3-fbed36"
-  resolved "https://registry.yarnpkg.com/@jup-ag/core/-/core-4.0.0-beta.3-fbed36.tgz#a2b47a90572ac0c6bb92fe2a30d3b8102efbfa03"
-  integrity sha512-ubk7LO0t3RfHAPJctq04u9SHMXPYPdxNB9ql3GzY7+H8ZC5l5KIqlhvXU8c49nclXNRO5kIkyMqrgCWKY5sOAQ==
-  dependencies:
-    "@jup-ag/crema-sdk-v2" "2.1.6"
-    "@jup-ag/cykura-sdk" "0.1.25"
-    "@jup-ag/cykura-sdk-core" "0.1.8"
-    "@jup-ag/deltafi-sdk" "0.0.2"
-    "@jup-ag/dradex-idl" "0.2.1"
-    "@jup-ag/dradex-sdk" "0.2.3"
-    "@jup-ag/goosefx-ssl-sdk" "1.2.17"
-    "@jup-ag/invariant" "0.9.35"
-    "@jup-ag/lifinity-sdk" "0.1.72"
-    "@jup-ag/lifinity-sdk-v2" "1.0.8"
-    "@jup-ag/math" "4.0.0-beta.3-fbed36"
-    "@jup-ag/raydium-clmm-sdk" "1.0.2"
-    "@jup-ag/whirlpools-sdk" "0.7.2"
-    "@mercurial-finance/dynamic-amm-sdk" "0.1.12"
-    "@mercurial-finance/optimist" "0.2.0"
-    "@mercurial-finance/vault-sdk" "0.3.3"
-    "@noble/hashes" "1.1.2"
-    "@project-serum/anchor" "0.24.2"
-    "@project-serum/serum" "0.13.65"
-    "@pythnetwork/client" "2.7.3"
-    "@saberhq/stableswap-sdk" "1.13.6"
-    "@solana/spl-token" "0.1.8"
-    bignumber.js "9.1.0"
-    bn.js "5.2.1"
-    cross-fetch "3.1.5"
-    decimal.js "10.4.2"
-    fzstd "~0.0.4"
-    jsbi "4.3.0"
-    promise-retry "2.0.1"
 
 "@jup-ag/core@^4.0.0-beta.20":
   version "4.0.0-beta.21"
@@ -4370,14 +4330,6 @@
     decimal.js "10.4.2"
     jsbi "4.3.0"
 
-"@jup-ag/math@4.0.0-beta.3-fbed36":
-  version "4.0.0-beta.3-fbed36"
-  resolved "https://registry.yarnpkg.com/@jup-ag/math/-/math-4.0.0-beta.3-fbed36.tgz#5071fead5008b2fb09ea3ab670a8406aebb251ea"
-  integrity sha512-EBBOhmPaTJFzjih8ZNiOpTr2I3W2UJ17bPLoFRvKDwAlXMKNjsEwVFh+2toz0LBqqJIJPS+6Q6hRGJXommfUaA==
-  dependencies:
-    decimal.js "10.4.2"
-    jsbi "4.3.0"
-
 "@jup-ag/phoenix-sdk@1.4.4":
   version "1.4.4"
   resolved "https://registry.yarnpkg.com/@jup-ag/phoenix-sdk/-/phoenix-sdk-1.4.4.tgz#191afcbd49e0e5604e62b5013193d1548d00cc33"
@@ -4392,17 +4344,6 @@
     borsh "^0.7.0"
     bs58 "^5.0.0"
 
-"@jup-ag/raydium-clmm-sdk@1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@jup-ag/raydium-clmm-sdk/-/raydium-clmm-sdk-1.0.2.tgz#22e822c1fd3975af58a6e8c6fdc2deb2373dcf76"
-  integrity sha512-cFTmIqnKpoJeEgvjMTc3ylFO2mhfEDWDJVqP2t5rmxTy18MT6g7qXSTT3c8HVB3pM3TJAms1CA0MBC/0RS9YwQ==
-  dependencies:
-    "@project-serum/anchor" "0.24.2"
-    "@project-serum/borsh" "^0.2.5"
-    "@solana/spl-token" "0.1.8"
-    "@solana/web3.js" "^1.66.2"
-    decimal.js "^10.3.1"
-
 "@jup-ag/raydium-clmm-sdk@1.0.6":
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/@jup-ag/raydium-clmm-sdk/-/raydium-clmm-sdk-1.0.6.tgz#ca79c88d7b91d515dbc6dc326c0e8602aac7a710"
@@ -4413,16 +4354,6 @@
     "@solana/spl-token" "0.1.8"
     "@solana/web3.js" "^1.66.2"
     decimal.js "^10.3.1"
-
-"@jup-ag/react-hook@^4.0.0-beta.17":
-  version "4.0.0-beta.3-fbed36"
-  resolved "https://registry.yarnpkg.com/@jup-ag/react-hook/-/react-hook-4.0.0-beta.3-fbed36.tgz#92944fb3c9efa838336f9adf2e413ff2a51cbac0"
-  integrity sha512-zsLBMGeocGxhIg0aRLfLr3TIpW5/pifRVVxWflR1zTXr3iiL85nEZNoCbq7iDrfiQ/KiEtgnv5yOGmgr6myOYg==
-  dependencies:
-    "@jup-ag/api" "4.0.0"
-    "@jup-ag/core" "4.0.0-beta.3-fbed36"
-    "@solana/spl-token" "0.1.8"
-    cross-fetch "3.1.5"
 
 "@jup-ag/react-hook@^6.0.0-beta.2":
   version "6.0.0-beta.2"
@@ -4637,26 +4568,6 @@
     strict-event-emitter-types "^2.0.0"
     uuid "^8.3.2"
 
-"@mercurial-finance/dynamic-amm-sdk@0.1.12":
-  version "0.1.12"
-  resolved "https://registry.yarnpkg.com/@mercurial-finance/dynamic-amm-sdk/-/dynamic-amm-sdk-0.1.12.tgz#24e63c8c6b8f876fb8f643c4f20e34ffc2a9da8a"
-  integrity sha512-MscZP0Mpzs0oo7KsOZlQWvpwKSKAE+baf0E5usseuVnMvarYDDw/7gnZFt2Ot/lFRxv79McqwcV/mLJWW25OnQ==
-  dependencies:
-    "@mercurial-finance/vault-sdk" "0.3.3"
-    "@project-serum/anchor" "0.24.2"
-    "@saberhq/anchor-contrib" "^1.13.32"
-    "@saberhq/stableswap-sdk" "^1.13.32"
-    "@saberhq/token-utils" "1.13.32"
-    "@solana/spl-token" "0.1.8"
-    "@solana/spl-token-registry" "0.2.1105"
-    "@solana/web3.js" "^1.42.0"
-    bn-sqrt "^1.0.0"
-    bn.js "5.2.1"
-    decimal.js "^10.4.1"
-    dotenv "^16.0.1"
-    invariant "^2.2.4"
-    jsbi "^4.3.0"
-
 "@mercurial-finance/dynamic-amm-sdk@0.3.10":
   version "0.3.10"
   resolved "https://registry.yarnpkg.com/@mercurial-finance/dynamic-amm-sdk/-/dynamic-amm-sdk-0.3.10.tgz#a6d5438d707a3e8e6da67d8dc985d9ea6ac3bc86"
@@ -4708,13 +4619,6 @@
     cross-fetch "^3.1.5"
     dotenv "^16.0.3"
     node-kraken-api "^2.2.2"
-
-"@mercurial-finance/optimist@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@mercurial-finance/optimist/-/optimist-0.2.0.tgz#03992ce6de460611006ac094037013bcb6a999b1"
-  integrity sha512-tUA1y83jTXroEClGN7dyhHxKZ+C+zKbSRx/LA7BltMumNG8mFSWJpi5uwkhmfhmSzvSgDob/qw0py3lFjw/FKQ==
-  dependencies:
-    promise-retry "2.0.1"
 
 "@mercurial-finance/optimist@0.2.1":
   version "0.2.1"
@@ -4771,30 +4675,6 @@
     "@project-serum/borsh" "^0.2.5"
     "@solana/web3.js" "^1.66.2"
     lodash "^4.17.21"
-
-"@mercurial-finance/vault-sdk@0.3.3":
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/@mercurial-finance/vault-sdk/-/vault-sdk-0.3.3.tgz#57aed78db652718190b6ee7d954644f88a189062"
-  integrity sha512-6zSLrvQp03x5101DV5+mZaQ3VZ+f78KQgGQEarMPrjm80F/Eb5ElNh7Od9S0BsEfL7nocM8yIi424wgH17/gLQ==
-  dependencies:
-    "@blockworks-foundation/mango-client" "^3.4.7"
-    "@mercurial-finance/apricot-sdk" "0.17.6"
-    "@mercurial-finance/francium-sdk" "1.4.3"
-    "@mercurial-finance/optimist" "^0.1.4"
-    "@mercurial-finance/port-sdk" "0.2.69"
-    "@mercurial-finance/solend-sdk" "0.6.5"
-    "@mercurial-finance/tulip-platform-sdk" "2.0.30"
-    "@project-serum/anchor" "0.24.2"
-    "@quarryprotocol/quarry-sdk" "5.0.2"
-    "@saberhq/anchor-contrib" "^1.13.6"
-    "@solana/buffer-layout" "^4.0.0"
-    "@solana/spl-token" "0.1.8"
-    "@solana/spl-token-registry" "0.2.1105"
-    "@solana/web3.js" "^1.42.0"
-    bn.js "5.2.1"
-    cross-fetch "^3.1.5"
-    decimal.js "10.3.1"
-    jsbi "4.3.0"
 
 "@mercurial-finance/vault-sdk@0.4.2":
   version "0.4.2"
@@ -6325,7 +6205,7 @@
     lodash.mapvalues "^4.6.0"
     tslib "^2.4.0"
 
-"@saberhq/anchor-contrib@^1.13.32", "@saberhq/anchor-contrib@^1.13.6", "@saberhq/anchor-contrib@^1.14.1", "@saberhq/anchor-contrib@^1.14.11", "@saberhq/anchor-contrib@^1.14.9":
+"@saberhq/anchor-contrib@^1.13.6", "@saberhq/anchor-contrib@^1.14.1", "@saberhq/anchor-contrib@^1.14.11", "@saberhq/anchor-contrib@^1.14.9":
   version "1.14.11"
   resolved "https://registry.yarnpkg.com/@saberhq/anchor-contrib/-/anchor-contrib-1.14.11.tgz#cebaac040faea643ade8ecb6afeeb2dcdf5a33a2"
   integrity sha512-6fOMC9XjuMSpGin/5HGqDita/dYzndjMMUNjht7yQZzD9638cdjrAutwZjvYwMUepKLdJ5CQV4bE74bSeMF9HQ==
@@ -6408,17 +6288,6 @@
     "@solana/buffer-layout" "^4.0.0"
     lodash.mapvalues "^4.6.0"
     tiny-invariant "^1.2.0"
-    tslib "^2.4.0"
-
-"@saberhq/stableswap-sdk@^1.13.32":
-  version "1.14.11"
-  resolved "https://registry.yarnpkg.com/@saberhq/stableswap-sdk/-/stableswap-sdk-1.14.11.tgz#88397d8a546888a92f767d98c83586ef0ced2f1d"
-  integrity sha512-nEOLIFC1QyeoNOtIQMotlyaGfYCsmyJJn0HqrjJL2tcX87zWOmH5aEEfhmg9jJ19aiFYPvQeQ6h8eKp+nFk9Ow==
-  dependencies:
-    "@saberhq/solana-contrib" "^1.14.11"
-    "@saberhq/token-utils" "^1.14.11"
-    "@solana/buffer-layout" "^4.0.0"
-    tiny-invariant "^1.3.1"
     tslib "^2.4.0"
 
 "@saberhq/token-utils@1.13.32":
