@@ -15,3 +15,4 @@ export * from "./PieChartIcon";
 export * from "./ReceiveMoneyIcon";
 export * from "./TokenSwapIcon";
 export * from "./AppsIcon";
+export * from "./MrgnIcon";
