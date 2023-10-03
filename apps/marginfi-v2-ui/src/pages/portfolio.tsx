@@ -155,7 +155,7 @@ const PortfolioPage = () => {
         {sortedBanks && (
           <div className="col-span-full w-full max-w-[900px]">
             <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Lending positions</div>
-            <div className="flex flew-row flex-wrap gap-4">
+            <div className="flex flew-row flex-wrap gap-4 justify-center items-center">
               {isStoreInitialized ? (
                 lendingBanks.length > 0 ? (
                   lendingBanks.map((bank) => (
@@ -185,7 +185,7 @@ const PortfolioPage = () => {
             <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">
               Borrowing positions
             </div>
-            <div className="flex flew-row flex-wrap gap-4">
+            <div className="flex flew-row flex-wrap gap-4 justify-center items-center">
               {isStoreInitialized ? (
                 borrowingBanks.length > 0 ? (
                   borrowingBanks.map((bank) => (
