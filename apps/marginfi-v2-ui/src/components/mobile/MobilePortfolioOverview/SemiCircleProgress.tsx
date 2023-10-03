@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
-import { keyframes } from "@emotion/react";
+import React, { useMemo, useRef } from "react";
 import styled from "@emotion/styled";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -8,33 +7,35 @@ type Props = {
 };
 
 export const SemiCircleProgress = ({ amount }: Props) => {
-  const rotationAnimation = useRef(null);
-  const [progressColor, setProgressColor] = useState<string>("#75BA80");
+  const rotateAnimation = useRef(null);
 
-  useEffect(() => {
+  const progressColor = useMemo(() => {
     if (amount) {
-      let color;
-
       if (amount >= 50) {
-        color = "#75ba80"; // green color
+        return "#75ba80"; // green color
       } else if (amount >= 25) {
-        color = "#FABD12"; // yellow color
+        return "#FABD12"; // yellow color
       } else {
-        color = "#E06D6F"; // red color
+        return "#E06D6F"; // red color
       }
-
-      setProgressColor(color);
     }
   }, [amount]);
 
-  const rotateAnimation = keyframes`
-    0% {
-      transform: translateY(-50px) rotate(0deg) translateY(50px);
-    }
-    100% {
-      transform: translateY(-50px) rotate(${(amount / 100) * 180}deg) translateY(50px);
-    }
-    `;
+  // Bugged annimation
+  // useEffectOnce(() => {
+  //   if (!rotateAnimation.current) {
+  //     console.log("how?");
+  //     const castAmount = amount.toString();
+  //     rotateAnimation.current = keyframes`
+  //       0% {
+  //         transform: translateY(-50px) rotate(0deg) translateY(50px);
+  //       }
+  //       100% {
+  //         transform: translateY(-50px) rotate(${(Number(castAmount) / 100) * 180}deg) translateY(50px);
+  //       }
+  //     `;
+  //   }
+  // });
 
   const SemiCircleWrapper = styled.div({
     position: "relative",
@@ -101,8 +102,6 @@ export const SemiCircleProgress = ({ amount }: Props) => {
       width: "200px",
       height: "100px",
       backgroundColor: progressColor,
-      animation: rotateAnimation,
-      animationDuration: "1s",
       transform: `translateY(-50px) rotate(${(amount / 100) * 180}deg) translateY(50px)`,
     },
   });
@@ -111,7 +110,7 @@ export const SemiCircleProgress = ({ amount }: Props) => {
     <SemiCircleWrapper>
       <div className="exteriorCircle">
         <div className="rotatingCircleWrap">
-          <div className="rotatingCircle" ref={rotationAnimation} color={progressColor} />
+          <div className="rotatingCircle" />
         </div>
 
         <div className="interiorCircle">

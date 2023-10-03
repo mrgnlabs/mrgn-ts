@@ -209,26 +209,26 @@ const Earn = () => {
 
   return (
     <>
-      <div className="h-full flex flex-col justify-start items-center content-start py-[48px] w-4/5 max-w-7xl gap-4">
-        <div className="w-[360px] flex flex-col items-center gap-6">
-          <div className="w-[300px] h-[100px] flex flex-col gap-5 justify-center">
-            <div className="flex flex-col gap-1 w-full justify-center">
-              {connected && (
-                <div className="text-2xl flex justify-center gap-2" style={{ fontWeight: 400 }}>
-                  Your total deposits:
-                  <span style={{ color: "#51B56A" }}>
-                    {
-                      // Since users will only be able to deposit to the LIP,
-                      // the balance of their account should match total deposits.
-                    }
-                    {usdFormatter.format(lipAccount?.getTotalBalance().toNumber() || 0)}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="relative col-span-full flex flex-col justify-center items-center">
+      <div className="h-full flex flex-col justify-start items-center content-start max-w-7xl gap-4 px-[32px] py-[24px] rounded-xl mt-10">
+        <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-col gap-1 w-full justify-center">
+            {connected && (
+              <div className="text-2xl flex justify-center gap-2 " style={{ fontWeight: 400 }}>
+                Your total deposits:
+                <span style={{ color: "#51B56A" }}>
+                  {
+                    // Since users will only be able to deposit to the LIP,
+                    // the balance of their account should match total deposits.
+                  }
+                  {usdFormatter.format(lipAccount?.getTotalBalance().toNumber() || 0)}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="px-10 w-full mb-7 mt-3">
+            <div className="relative w-full flex flex-col justify-center items-center">
               <LinearProgress
-                className="h-1 w-[300px] rounded-lg"
+                className="h-1 w-full rounded-lg"
                 variant="determinate"
                 color="inherit"
                 value={progressPercent}
@@ -239,13 +239,11 @@ const Earn = () => {
                   },
                 }}
               />
-              <div className="flex absolute w-[300px] justify-between">
-                <Marks marks={marks} />
-              </div>
+              <Marks marks={marks} />
             </div>
           </div>
 
-          <div className="w-[300px] flex flex-col my-4 justify-cen dter font-[rgb(227, 227, 227)]">
+          <div className="flex flex-col">
             <div className="flex justify-center gap-2 text-[#484848] text-xl" style={{ fontWeight: 400 }}>
               FUNDS WILL BE LOCKED FOR:
             </div>
@@ -291,7 +289,7 @@ const Earn = () => {
           </div>
         </div>
       </div>
-      {lipAccount && (
+      {lipAccount?.deposits.length > 0 && (
         <>
           <div className="text-2xl flex justify-center gap-2 mb-[40px]" style={{ fontWeight: 400 }}>
             Your deposits
@@ -470,7 +468,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
   const defaultCampaign = whitelistedCampaigns[0];
 
   return (
-    <FormControl className="min-w-[360px] w-[360px]">
+    <FormControl className="w-full">
       <RadioGroup
         defaultValue={defaultCampaign.campaign.publicKey.toBase58()}
         className="flex flex-col justify-center items-center gap-2"
@@ -487,7 +485,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
               value={campaign.publicKey.toBase58()}
               control={
                 <Radio
-                  className="bg-[#1E1E1E] mr-2"
+                  className="bg-[#0f1111] mr-2"
                   sx={{
                     color: "#1E1E1E",
                     "&.Mui-checked": {
@@ -497,7 +495,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
                 />
               }
               label={
-                <div className="w-[295px] flex justify-between items-center">
+                <div className="w-[295px] flex justify-between items-center ">
                   <div>{getTokenSymbol(campaign.bank, bankMetadataMap || {})}</div>
                   <div className="flex gap-4 justify-center items-center">
                     <div
@@ -626,7 +624,7 @@ export const EarnAction: FC<EarnActionProps> = ({ children, spinning, disabled, 
 
   return connected ? (
     <Button
-      className={`bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] ${
+      className={`bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 ${
         disabled && "cursor-not-allowed"
       }`}
       style={{

@@ -27,7 +27,7 @@ const EmissionsBanner: FC = () => {
 
   return (
     <button
-      className="btn-gleam w-1/2 h-12 flex items-center justify-center px-2 bg-gradient-to-tr from-[#DCE85DBB] to-[#22282C] rounded-md outline outline-2 outline-offset-2 outline-[#DCE85DBB]"
+      className="btn-gleam w-1/2 h-12 flex items-center justify-center px-2 bg-gradient-to-tr from-[#DCE85DBB] to-[#22282C] rounded-md outline outline-2 outline-offset-2 outline-[#DCE85DBB] max-w-[260px]"
       onClick={async () => {
         if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
         await collectRewardsBatch(connection, wallet, selectedAccount, bankAddressesWithEmissions);

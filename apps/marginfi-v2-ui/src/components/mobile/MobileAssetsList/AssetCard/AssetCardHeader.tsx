@@ -29,7 +29,7 @@ export const AssetCardHeader: FC<{
       <div className={`${isInLendingMode ? "text-[#75ba80]" : "text-[#e07d6f]"} text-base my-auto flex gap-2 items-center`}>
         <div>
           {bank.meta.tokenSymbol === "UXD" && isInLendingMode && (
-            <div className="flex justify-center sm:justify-end mt-[1px]">
+            <div className="flex justify-center justify-end mt-[1px]">
               <MrgnTooltip
                 title={
                   <>

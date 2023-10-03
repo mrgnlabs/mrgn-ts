@@ -44,25 +44,29 @@ const PortfolioPage = () => {
 
   const lendingBanks = useMemo(
     () =>
-      sortedBanks && isStoreInitialized ?
-      sortedBanks
-        .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
-        .filter((b) => b.isActive && b.position.isLending)
-        .sort(
-          (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
-        ) : [],
+      sortedBanks && isStoreInitialized
+        ? sortedBanks
+            .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
+            .filter((b) => b.isActive && b.position.isLending)
+            .sort(
+              (a, b) =>
+                b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
+            )
+        : [],
     [sortedBanks, isStoreInitialized]
   );
 
   const borrowingBanks = useMemo(
     () =>
-      sortedBanks && isStoreInitialized ?
-      sortedBanks
-        .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
-        .filter((b) => b.isActive && !b.position.isLending)
-        .sort(
-          (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
-        ) : [],
+      sortedBanks && isStoreInitialized
+        ? sortedBanks
+            .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
+            .filter((b) => b.isActive && !b.position.isLending)
+            .sort(
+              (a, b) =>
+                b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
+            )
+        : [],
     [sortedBanks, isStoreInitialized]
   );
 
@@ -149,7 +153,7 @@ const PortfolioPage = () => {
           </div>
         </div>
         {sortedBanks && (
-          <div className="col-span-full">
+          <div className="col-span-full w-full max-w-[900px]">
             <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Lending positions</div>
             <div className="flex flew-row flex-wrap gap-4">
               {isStoreInitialized ? (
@@ -176,31 +180,35 @@ const PortfolioPage = () => {
           </div>
         )}
 
-        <div className="col-span-full">
-          <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Borrowing positions</div>
-          <div className="flex flew-row flex-wrap gap-4">
-            {isStoreInitialized ? (
-              borrowingBanks.length > 0 ? (
-                borrowingBanks.map((bank) => (
-                  <AssetCard
-                    key={bank.meta.tokenSymbol}
-                    nativeSolBalance={nativeSolBalance}
-                    bank={bank}
-                    isInLendingMode={false}
-                    isConnected={connected}
-                    marginfiAccount={selectedAccount}
-                  />
-                ))
+        {sortedBanks && (
+          <div className="col-span-full w-full max-w-[900px]">
+            <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">
+              Borrowing positions
+            </div>
+            <div className="flex flew-row flex-wrap gap-4">
+              {isStoreInitialized ? (
+                borrowingBanks.length > 0 ? (
+                  borrowingBanks.map((bank) => (
+                    <AssetCard
+                      key={bank.meta.tokenSymbol}
+                      nativeSolBalance={nativeSolBalance}
+                      bank={bank}
+                      isInLendingMode={false}
+                      isConnected={connected}
+                      marginfiAccount={selectedAccount}
+                    />
+                  ))
+                ) : (
+                  <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
+                    No borrowing positions found.
+                  </Typography>
+                )
               ) : (
-                <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
-                  No borrowing positions found.
-                </Typography>
-              )
-            ) : (
-              <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
-            )}
+                <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );
