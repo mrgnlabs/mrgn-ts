@@ -1,8 +1,12 @@
+const withPWA = require('next-pwa')({
+  dest: 'public'
+})
+
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
   enabled: process.env.ANALYZE === "true",
 });
 
-module.exports = withBundleAnalyzer({
+let config = withBundleAnalyzer({
   /**
    * Dynamic configuration available for the browser and server.
    * Note: requires `ssr: true` or a `getInitialProps` in `_app.tsx`
@@ -73,8 +77,8 @@ module.exports = withBundleAnalyzer({
 
 const { withSentryConfig } = require("@sentry/nextjs");
 
-module.exports = withSentryConfig(
-  module.exports,
+config = withSentryConfig(
+  config,
   {
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options
@@ -105,3 +109,5 @@ module.exports = withSentryConfig(
     disableLogger: true,
   }
 );
+
+module.exports = withPWA(config);
