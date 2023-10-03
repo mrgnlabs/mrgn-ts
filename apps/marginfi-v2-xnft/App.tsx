@@ -16,7 +16,9 @@ import { SwapContextProvider } from "~/context";
 import { useConnection } from "~/hooks/useConnection";
 import { useWallet } from "~/hooks/useWallet";
 import { ROUTE_CACHE_DURATION } from "~/consts";
-import { PieChartIcon, ReceiveMoneyIcon, TokenSwapIcon } from "~/assets/icons";
+import { AppsIcon, MrgnIcon, PieChartIcon, ReceiveMoneyIcon, TokenSwapIcon } from "~/assets/icons";
+import tw from "~/styles/tailwind";
+import { StakeScreen } from "~/screens/StakeScreen";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -46,7 +48,13 @@ function LogoTitle() {
       // box-shadow: rgb(39, 39, 41) 0px 0px 0px
     },
     backgroundImage: {
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "flex-start",
+      alignItems: "center",
       height: "100%",
+      paddingLeft: 22,
+      gap: 10,
     },
 
     headerTitle: {
@@ -56,14 +64,14 @@ function LogoTitle() {
       color: "white",
       fontSize: 22,
       marginVertical: "auto",
-      paddingLeft: 22,
     },
   });
 
   return (
     <View style={styles.container}>
       <ImageBackground style={styles.backgroundImage} source={{ uri: "https://app.marginfi.com/WaveBG3.png" }}>
-        <Text style={styles.headerTitle}>mrgnlend</Text>
+        <MrgnIcon width={22} height={22} />
+        <Text style={styles.headerTitle}>{title}</Text>
       </ImageBackground>
     </View>
   );
@@ -77,6 +85,39 @@ function TabNavigator() {
         tabBarActiveTintColor: "#D8D8D8",
       }}
     >
+      {/* <Tab.Screen
+        name="More"
+        component={MoreScreen}
+        options={{
+          tabBarShowLabel: false,
+          tabBarIcon: ({ color }) => <ReceiveMoneyIcon color={color} height={20} width={20} />,
+          tabBarButton: () => (
+            <TouchableOpacity
+              style={tw`flex flex-1 flex-column items-center`}
+              onPress={() => {
+                console.log("working!");
+              }}
+            >
+              <View style={tw`inline-flex flex-1 items-stretch`}>
+                <View style={tw`self-center w-full h-full justify-center items-center inline-flex absolute`}>
+                  <AppsIcon color="#7c7c7d" height={20} width={20} />
+                </View>
+              </View>
+              <Text style={tw`font-normal text-sm flex flex-1 text-[#7c7c7d] leading-none`}>More</Text>
+            </TouchableOpacity>
+          ),
+        }}
+      /> */}
+
+      <Tab.Screen
+        name="Stake"
+        component={StakeScreen}
+        options={{
+          header: (props: BottomTabHeaderProps) => <LogoTitle title="lend" />,
+          tabBarLabel: "Stake",
+          tabBarIcon: ({ color }) => <ReceiveMoneyIcon color={color} height={20} width={20} />,
+        }}
+      />
       <Tab.Screen
         name="Lend"
         component={LendScreen}
