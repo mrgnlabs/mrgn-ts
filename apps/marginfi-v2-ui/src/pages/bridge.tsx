@@ -182,9 +182,6 @@ const BridgePage = () => {
         </div>
       </PageHeader>
       <div className="w-full sm:w-4/5 sm:max-w-7xl h-full flex flex-col items-center justify-center py-[24px] sm:py-[96px] gap-7">
-        <div className="text-[#fff] text-3xl min-w-[600px] text-center">
-          Zero fees. <span className="text-[#DCE85D]">Always.</span>
-        </div>
         <Script
           src="https://cdn.mayan.finance/widget_solana-0-4-5.js"
           integrity="sha256-mTVQLKvE422WDwtZQUcz/9u5ZK3T1vMfSO0omQvla0E="

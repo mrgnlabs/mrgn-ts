@@ -32,11 +32,6 @@ const SwapPage = () => {
         </div>
       </PageHeader>
       <div className="w-full h-full flex flex-col justify-start items-center content-start py-[32px] gap-8 w-4/5">
-        <div>
-          <div className="text-[#fff] text-3xl min-w-[600px] text-center">
-            Zero fees. <span className="text-[#DCE85D]">Always.</span>
-          </div>
-        </div>
         <div className="max-w-[420px] px-3" id="integrated-terminal"></div>
       </div>
     </>
