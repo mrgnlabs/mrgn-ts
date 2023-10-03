@@ -25,12 +25,12 @@ const WalletSelector: FC = () => {
     >
       <Slide direction="up" in={isWalletDrawerOpen} mountOnEnter unmountOnExit>
         <div className="absolute bottom-0 left-0 w-full h-1/2 px-6 py-6 opacity-1 bg-lines2 bg-[#171C1F] rounded-t-3xl border-t-[1px] border-t-[#333] font-aeonik font-[400] text-lg">
-          {wallets.filter((wallet) => wallet.readyState === "Installed").length > 0 ? (
+          {wallets.filter((wallet) => wallet.readyState === "Installed" || wallet.readyState === "Loadable").length > 0 ? (
             <>
               <div className="flex justify-center items-center font-[500] text-[#868E95]">Select a wallet</div>
               <div className="w-full h-full flex flex-col gap-4 mt-2 pr-3 overflow-y-auto">
                 {wallets
-                  .filter((wallet) => wallet.readyState === "Installed")
+                  .filter((wallet) => wallet.readyState === "Installed" || wallet.readyState === "Loadable")
                   .map((wallet) => (
                     <div
                       key={wallet.adapter.name}
@@ -56,7 +56,7 @@ const WalletSelector: FC = () => {
                 ) : (
                   <>
                     {wallets
-                      .filter((wallet) => wallet.readyState !== "Installed")
+                      .filter((wallet) => wallet.readyState !== "Installed" && wallet.readyState !== "Loadable")
                       .map((wallet) => (
                         <div
                           key={wallet.adapter.name}
