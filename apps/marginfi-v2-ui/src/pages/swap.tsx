@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import config from "~/config";
 import { PageHeader } from "~/components/PageHeader";
 import { useWalletContext } from "~/components/useWalletContext";
+import { WalletButton } from "~/components/Navbar/WalletButton";
 
 const SwapPage = () => {
   const { walletContextState } = useWalletContext();
@@ -35,12 +36,23 @@ const SwapPage = () => {
         </div>
       </PageHeader>
       <div className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-7xl">
-        <div>
+        {walletContextState.wallet && (
+          <>
+            <div>
+              <div className="text-[#fff] text-3xl min-w-[600px] text-center">
+                Zero fees. <span className="text-[#DCE85D]">Always.</span>
+              </div>
+            </div>
+            <div style={{ width: 420, maxWidth: "80%" }} id="integrated-terminal"></div>
+          </>
+        )}
+
+        {!walletContextState.wallet && (
           <div className="text-[#fff] text-3xl min-w-[600px] text-center">
-            Zero fees. <span className="text-[#DCE85D]">Always.</span>
+            <p className="mb-2">Connect your wallet to get started.</p>
+            <WalletButton />
           </div>
-        </div>
-        <div style={{ width: 420, maxWidth: "80%" }} id="integrated-terminal"></div>
+        )}
       </div>
     </>
   );
