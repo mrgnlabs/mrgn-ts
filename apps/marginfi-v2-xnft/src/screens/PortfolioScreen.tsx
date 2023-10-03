@@ -4,7 +4,7 @@ import tw from "~/styles/tailwind";
 import { Screen } from "~/components/Common";
 import { PortfolioOverview, PortfolioHeader } from "~/components/Portfolio";
 import { PoolCard, PoolCardSkeleton } from "~/components/Lend";
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import { useMrgnlendStore, useUserProfileStore } from "~/store/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWallet } from "~/hooks/useWallet";
 import config from "~/config";

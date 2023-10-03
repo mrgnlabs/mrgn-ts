@@ -19,17 +19,17 @@ export const useJupiterStore = createJupiterStore();
 const StakePage = () => {
   const { wallet, walletAddress } = useWalletContext();
   const { connection } = useConnection();
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState(true);
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (router.pathname.startsWith("/stake") && !isActive(Features.STAKE)) {
-      router.push("/");
-    } else {
-      setMounted(true);
-    }
-  }, [router]);
+  // useEffect(() => {
+  //   if (router.pathname.startsWith("/stake") && !isActive(Features.STAKE)) {
+  //     router.push("/");
+  //   } else {
+  //     setMounted(true);
+  //   }
+  // }, [router]);
 
   const [initialized, isRefreshingStore, fetchLstState, setIsRefreshingStore, userDataFetched, resetUserData] =
     useLstStore((state) => [

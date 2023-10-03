@@ -15,8 +15,9 @@ import { SwapContextProvider } from "~/context";
 import { useConnection } from "~/hooks/useConnection";
 import { useWallet } from "~/hooks/useWallet";
 import { ROUTE_CACHE_DURATION } from "~/consts";
-import { AppsIcon, PieChartIcon, ReceiveMoneyIcon, TokenSwapIcon } from "~/assets/icons";
+import { AppsIcon, MrgnIcon, PieChartIcon, ReceiveMoneyIcon, TokenSwapIcon } from "~/assets/icons";
 import tw from "~/styles/tailwind";
+import { StakeScreen } from "~/screens/StakeScreen";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -40,7 +41,13 @@ function LogoTitle({ title }: { title: string }) {
       position: "relative",
     },
     backgroundImage: {
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "flex-start",
+      alignItems: "center",
       height: "100%",
+      paddingLeft: 22,
+      gap: 10,
     },
 
     headerTitle: {
@@ -50,13 +57,13 @@ function LogoTitle({ title }: { title: string }) {
       color: "white",
       fontSize: 24,
       marginVertical: "auto",
-      paddingLeft: 22,
     },
   });
 
   return (
     <View style={styles.container}>
       <ImageBackground style={styles.backgroundImage} source={{ uri: "https://app.marginfi.com/WaveBG3.png" }}>
+        <MrgnIcon width={22} height={22} />
         <Text style={styles.headerTitle}>{title}</Text>
       </ImageBackground>
     </View>
@@ -78,7 +85,7 @@ function TabNavigator() {
         tabBarStyle: { height: 60 },
       }}
     >
-      <Tab.Screen
+      {/* <Tab.Screen
         name="More"
         component={MoreScreen}
         options={{
@@ -99,6 +106,16 @@ function TabNavigator() {
               <Text style={tw`font-normal text-sm flex flex-1 text-[#7c7c7d] leading-none`}>More</Text>
             </TouchableOpacity>
           ),
+        }}
+      /> */}
+
+      <Tab.Screen
+        name="Stake"
+        component={StakeScreen}
+        options={{
+          header: (props: BottomTabHeaderProps) => <LogoTitle title="lend" />,
+          tabBarLabel: "Stake",
+          tabBarIcon: ({ color }) => <ReceiveMoneyIcon color={color} height={20} width={20} />,
         }}
       />
       <Tab.Screen

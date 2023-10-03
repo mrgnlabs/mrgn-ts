@@ -9,7 +9,7 @@ import { getTokenBalanceChangesFromTransactionResponse } from "@jup-ag/common";
 import { PublicKey } from "@solana/web3.js";
 import { useWallet } from "~/hooks/useWallet";
 import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
-import { useJupiterStore } from "~/store";
+import { useJupiterStore } from "~/store/store";
 import { PriceInfo } from "../PriceInfo";
 import { SwapResult } from "@jup-ag/react-hook";
 

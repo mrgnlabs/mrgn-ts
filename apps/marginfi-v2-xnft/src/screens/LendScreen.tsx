@@ -5,7 +5,7 @@ import tw from "~/styles/tailwind";
 import { tabActiveAtom } from "~/consts";
 import { Screen, Toggle } from "~/components/Common";
 import { LendHeader, PoolCard, PoolCardSkeleton, TabSwitch } from "~/components/Lend";
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore } from "~/store/store";
 import config from "~/config";
 import { useConnection } from "~/hooks/useConnection";
 import { useWallet } from "~/hooks/useWallet";
