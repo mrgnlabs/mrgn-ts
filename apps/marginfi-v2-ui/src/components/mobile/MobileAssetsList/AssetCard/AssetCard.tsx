@@ -53,7 +53,7 @@ export const AssetCard: FC<{
 
   const handleCloseBalance = useCallback(async () => {
     try {
-      closeBalance({ marginfiAccount, bank });
+      await closeBalance({ marginfiAccount, bank });
     } catch (error) {
       return;
     }
@@ -69,7 +69,7 @@ export const AssetCard: FC<{
 
   const handleBorrowOrLend = useCallback(
     async (borrowOrLendAmount: number) => {
-      borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
+      await borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
 
       // -------- Refresh state
       try {

@@ -1,51 +1,57 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useUserProfileStore } from "~/store";
+import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useRouter } from "next/router";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { MoreModal } from "./MoreModal";
+import { MenuModal } from "./MenuModal";
 import { ORDERED_MOBILE_NAVBAR_LINKS } from "~/config/navigationLinks";
-import { Apps } from "@mui/icons-material";
 import { useSwipeGesture } from "~/hooks/useSwipeGesture";
+import { useLstStore } from "~/pages/stake";
 
-// @todo implement second pretty navbar row
 const MobileNavbar: FC = () => {
   useFirebaseAccount();
 
   const { walletAddress } = useWalletContext();
   const router = useRouter();
+  const [isMenuModalOpen, setIsMenuModalOpen] = useUiStore((state) => [
+    state.isMenuDrawerOpen,
+    state.setIsMenuDrawerOpen,
+  ]);
   const [fetchPoints] = useUserProfileStore((state) => [state.fetchPoints]);
-
-  const [isMoreModalOpen, setIsMoreModalOpen] = useState(false);
+  const [lendUserDataFetched, resetLendUserData] = useMrgnlendStore((state) => [
+    state.userDataFetched,
+    state.resetUserData,
+  ]);
+  const [lstUserDataFetched, resetLstUserData] = useLstStore((state) => [state.userDataFetched, state.resetUserData]);
+  
+  useSwipeGesture(() => setIsMenuModalOpen(true));
 
   useEffect(() => {
     if (!walletAddress) return;
     fetchPoints(walletAddress.toBase58()).catch(console.error);
   }, [fetchPoints, walletAddress]);
 
+  useEffect(() => {
+    if (!walletAddress && lendUserDataFetched) {
+      resetLendUserData();
+    }
+    if (!walletAddress && lstUserDataFetched) {
+      resetLstUserData();
+    }
+  }, [walletAddress, lendUserDataFetched, resetLendUserData, lstUserDataFetched, resetLstUserData]);
+
   const activeLink = useMemo(() => {
     const activeLinkIndex = ORDERED_MOBILE_NAVBAR_LINKS.findIndex((link) => link.href === router.pathname);
-    return activeLinkIndex >= 0 ? `link${activeLinkIndex + 1}` : "link0";
+    return activeLinkIndex >= 0 ? `link${activeLinkIndex}` : "linknone";
   }, [router.pathname]);
-
-  useSwipeGesture(() => setIsMoreModalOpen(true));
 
   return (
     <header>
       <nav className="fixed w-full bottom-0 h-[68px] z-50 bg-[#0F1111]">
         <div className="h-full w-full text-sm font-[500] text-[#868E95] z-50 flex justify-around relative items-center z-10 lg:gap-8">
-          <div
-            className="w-1/4 h-full flex flex-col justify-center items-center"
-            onClick={() => setIsMoreModalOpen(!isMoreModalOpen)}
-          >
-            <Apps className="w-[18.9px] h-[18.9px]" sx={{color: activeLink === "link0" ? "#DCE85D" : "#999"}} />
-            <div className={`font-aeonik font-[400] text-[#999] ${activeLink === "link0" ? "text-[#DCE85D]" : "text-[#999]"}`}>
-            more
-            </div>
-          </div>
           {ORDERED_MOBILE_NAVBAR_LINKS.map((linkInfo, index) => {
-            const isActive = activeLink === `link${index + 1}`;
+            const isActive = activeLink === `link${index}`;
             return (
               <Link
                 key={linkInfo.label}
@@ -66,7 +72,7 @@ const MobileNavbar: FC = () => {
           <div className={`border-slider ${activeLink}`} />
         </div>
       </nav>
-      <MoreModal isOpen={isMoreModalOpen} handleClose={() => setIsMoreModalOpen(false)} />
+      <MenuModal isOpen={isMenuModalOpen} handleClose={() => setIsMenuModalOpen(false)} />
     </header>
   );
 };

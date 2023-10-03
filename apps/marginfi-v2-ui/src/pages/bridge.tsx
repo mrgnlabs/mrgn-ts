@@ -9,6 +9,7 @@ import { PageHeader } from "~/components/desktop/PageHeader";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
 import { useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { Desktop } from "~/mediaQueries";
 
 const tokens = [
   "0x0000000000000000000000000000000000000000", // SOL
@@ -169,17 +170,18 @@ const BridgePage = () => {
       <PageHeader>
         <div className="flex flex-row gap-1 pt-3">
           <span>bridge</span>
-          <div className="flex flex-row items-center gap-1">
-            <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
-            {/* Different components here by word so spacing can be the same */}
-            <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
-            <span className="text-sm h-[48px] pt-[28px] bg-mayan-gradient-colors bg-clip-text text-transparent">
-              Mayan
-            </span>
-          </div>
+          <Desktop>
+            <div className="flex flex-row items-center gap-1">
+              <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
+              <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
+              <span className="text-sm h-[48px] pt-[28px] bg-mayan-gradient-colors bg-clip-text text-transparent">
+                Mayan
+              </span>
+            </div>
+          </Desktop>
         </div>
       </PageHeader>
-      <div className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-7xl">
+      <div className="w-full sm:w-4/5 sm:max-w-7xl h-full flex flex-col items-center justify-center py-[24px] sm:py-[96px] gap-7">
         <div className="text-[#fff] text-3xl min-w-[600px] text-center">
           Zero fees. <span className="text-[#DCE85D]">Always.</span>
         </div>
@@ -189,7 +191,7 @@ const BridgePage = () => {
           crossOrigin="anonymous"
           onReady={handleLoadMayanWidget}
         />
-        <div className="max-h-[500px]" id="swap_widget"></div>
+        <div className="max-w-[420px] max-h-[500px]" id="swap_widget"/>
       </div>
     </>
   );

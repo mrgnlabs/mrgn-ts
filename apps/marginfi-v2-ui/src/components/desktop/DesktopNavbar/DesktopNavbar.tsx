@@ -1,6 +1,5 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { WalletButton } from "~/components/common/Navbar";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
@@ -8,14 +7,16 @@ import { useRouter } from "next/router";
 import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
 import { Badge } from "@mui/material";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
-import { groupedNumberFormatterDyn, processTransaction } from "@mrgnlabs/mrgn-common";
+import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Features, isActive } from "~/utils/featureGates";
-import { PublicKey, Transaction } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { toast } from "react-toastify";
 import { EMISSION_MINT_INFO_MAP } from "../AssetsList/AssetRow";
 import { collectRewardsBatch } from "~/utils";
+import { Mrgn } from "~/components/common/icons/Mrgn";
+import { useLstStore } from "~/pages/stake";
 
 // @todo implement second pretty navbar row
 const DesktopNavbar: FC = () => {
@@ -24,10 +25,13 @@ const DesktopNavbar: FC = () => {
   const { connection } = useConnection();
   const { connected, walletAddress, wallet } = useWalletContext();
   const router = useRouter();
-  const [selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
+  const [selectedAccount, extendedBankInfos, lendUserDataFetched, resetLendUserData] = useMrgnlendStore((state) => [
     state.selectedAccount,
     state.extendedBankInfos,
+    state.userDataFetched,
+    state.resetUserData,
   ]);
+  const [lstUserDataFetched, resetLstUserData] = useLstStore((state) => [state.userDataFetched, state.resetUserData]);
   const [showBadges, currentFirebaseUser, userPointsData, setShowBadges, fetchPoints] = useUserProfileStore((state) => [
     state.showBadges,
     state.currentFirebaseUser,
@@ -35,6 +39,15 @@ const DesktopNavbar: FC = () => {
     state.setShowBadges,
     state.fetchPoints,
   ]);
+
+  useEffect(() => {
+    if (!walletAddress && lendUserDataFetched) {
+      resetLendUserData();
+    }
+    if (!walletAddress && lstUserDataFetched) {
+      resetLstUserData();
+    }
+  }, [walletAddress, lendUserDataFetched, resetLendUserData, lstUserDataFetched, resetLstUserData]);
 
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
   const [currentRoute, setCurrentRoute] = useState(router.pathname);
@@ -130,7 +143,7 @@ const DesktopNavbar: FC = () => {
               href={"https://app.marginfi.com"}
               className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center"
             >
-              <Image src="/marginfi_logo.png" alt="marginfi logo" height={35.025} width={31.0125} />
+              <Mrgn />
             </Link>
             <Badge
               anchorOrigin={{
@@ -290,7 +303,7 @@ const DesktopNavbar: FC = () => {
               }`}
               onClick={async () => {
                 if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
-                await collectRewardsBatch(connection, wallet, selectedAccount, bankAddressesWithEmissions)
+                await collectRewardsBatch(connection, wallet, selectedAccount, bankAddressesWithEmissions);
                 toast.success("Withdrawal successful");
               }}
             >

@@ -1,8 +1,7 @@
-import React, { FC, HTMLProps } from "react";
+import React, { FC, SVGProps } from "react";
 
-const Steak: FC<HTMLProps<HTMLDivElement>> = ({ color = "#868E95", ...props }) => (
-  <div {...props}>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+const Steak: FC<SVGProps<SVGSVGElement>> = ({ color = "#868E95", ...props }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" {...props}>
       <path d="M0 0h512v512H0z"></path>
       <g>
         <path
@@ -12,7 +11,6 @@ const Steak: FC<HTMLProps<HTMLDivElement>> = ({ color = "#868E95", ...props }) =
         ></path>
       </g>
     </svg>
-  </div>
 );
 
 export { Steak };

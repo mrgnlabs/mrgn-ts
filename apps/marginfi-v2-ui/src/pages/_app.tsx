@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {
   BackpackWalletAdapter,
   LedgerWalletAdapter,
@@ -20,6 +19,10 @@ import { Analytics } from "@vercel/analytics/react";
 import dynamic from "next/dynamic";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
+import { WalletSelector } from "~/components/mobile/WalletSelector";
+import { useMrgnlendStore, useUiStore } from "~/store";
+import { useLstStore } from "./stake";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -36,6 +39,16 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 const MATOMO_URL = "https://mrgn.matomo.cloud";
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
+  const [setIsFetchingData] = useUiStore((state) => [state.setIsFetchingData]);
+  const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore] = useMrgnlendStore((state) => [
+    state.initialized,
+    state.isRefreshingStore,
+  ]);
+  const [isLstStoreInitialised, isRefreshingLstStore] = useLstStore((state) => [
+    state.initialized,
+    state.isRefreshingStore,
+  ]);
+
   // enable matomo heartbeat
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT === "alpha") {
@@ -44,6 +57,17 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       push(["enableHeartBeatTimer"]);
     }
   }, []);
+
+  useEffect(() => {
+    const isFetchingData = isRefreshingMrgnlendStore || isRefreshingLstStore;
+    setIsFetchingData(isFetchingData);
+  }, [
+    isLstStoreInitialised,
+    isMrgnlendStoreInitialized,
+    isRefreshingLstStore,
+    isRefreshingMrgnlendStore,
+    setIsFetchingData,
+  ]);
 
   const [ready, setReady] = useState(false);
 
@@ -74,24 +98,25 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
           <WalletProvider wallets={wallets} autoConnect>
-            <WalletModalProvider>
-              <Desktop>
+            <Desktop>
+              <WalletModalProvider>
                 <DesktopNavbar />
                 <div className="w-full flex flex-col justify-center items-center pt-[64px]">
                   <Component {...pageProps} />
                 </div>
                 <Footer />
-              </Desktop>
+              </WalletModalProvider>
+            </Desktop>
 
-              <Mobile>
-                <MobileNavbar />
-                <div className="w-full flex flex-col justify-center items-center sm:pt-[24px] transition ease-in-out delay-150">
-                  <Component {...pageProps} />
-                </div>
-              </Mobile>
-              <Analytics />
-              <ToastContainer position="bottom-left" theme="dark" />
-            </WalletModalProvider>
+            <Mobile>
+              <MobileNavbar />
+              <div className="w-full flex flex-col justify-center items-center sm:pt-[24px]">
+                <Component {...pageProps} />
+              </div>
+              <WalletSelector />
+            </Mobile>
+            <Analytics />
+            <ToastContainer position="bottom-left" theme="dark" />
           </WalletProvider>
         </ConnectionProvider>
       )}

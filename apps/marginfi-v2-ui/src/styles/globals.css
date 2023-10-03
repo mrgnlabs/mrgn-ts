@@ -60,7 +60,6 @@ a {
   animation: pulse 1.8s infinite;
 }
 
-
 .bg-lines {
   background-image: url(../../public/WaveBG2.png);
   background-size: 900px;
@@ -68,6 +67,13 @@ a {
   background-position: 40%;
 }
 
+.bg-lines2 {
+  background-image: url(../../public/WaveBG2.png);
+  background-size: 400px;
+  background-repeat: no-repeat;
+  background-color: #DCE85D;
+  background-position: -20%;
+}
 
 .nav-link {
   flex: 1;
@@ -83,6 +89,10 @@ a {
   width: 25%;
   background-color: #DCE85D;
   transition: left 0.25s ease-in-out;
+}
+
+.border-slider.linknone {
+  display: none;
 }
 
 .border-slider.link0 {
@@ -150,12 +160,6 @@ a {
 .glow-uxd {
   text-shadow: 0 0 10px #05FFFF, 0 0 30px #05FFFF;
   color: #05FFFF !important;
-}
-
-#MAYAN_SWAP_PV_ROOT {
-  width: 420px;
-  padding-left: 0px;
-  padding-right: 0px;
 }
 
 @keyframes radiate {
@@ -235,4 +239,9 @@ a {
   15%, 100% {
     transform: translateX(350%) rotate(-40deg);
   }
+}
+
+#MAYAN_SWAP_PV_ROOT {
+  padding-left: 0px;
+  padding-right: 0px;
 }

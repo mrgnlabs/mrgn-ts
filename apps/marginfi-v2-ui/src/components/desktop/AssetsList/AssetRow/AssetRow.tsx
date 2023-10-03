@@ -106,7 +106,7 @@ const AssetRow: FC<{
 
   const handleCloseBalance = useCallback(async () => {
     try {
-      closeBalance({ marginfiAccount, bank });
+      await closeBalance({ marginfiAccount, bank });
     } catch (error) {
       return;
     }
@@ -123,7 +123,7 @@ const AssetRow: FC<{
   }, [bank, marginfiAccount, fetchMrgnlendState, setIsRefreshingStore]);
 
   const handleBorrowOrLend = useCallback(async () => {
-    borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
+    await borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
 
     setBorrowOrLendAmount(0);
 

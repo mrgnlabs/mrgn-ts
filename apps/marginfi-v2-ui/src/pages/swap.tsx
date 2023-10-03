@@ -9,14 +9,12 @@ const SwapPage = () => {
   const { walletContextState } = useWalletContext();
 
   useEffect(() => {
-    if (walletContextState.wallet) {
       window.Jupiter.init({
         displayMode: "integrated",
         integratedTargetId: "integrated-terminal",
         endpoint: config.rpcEndpoint,
         passThroughWallet: walletContextState.wallet,
       });
-    }
   }, [walletContextState.wallet]);
 
   return (
@@ -26,7 +24,6 @@ const SwapPage = () => {
           <span>swap</span>
           <div className="hidden sm:block flex flex-row items-center gap-1">
             <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
-            {/* Different components here by word so spacing can be the same */}
             <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
             <span className="text-sm h-[48px] pt-[28px] bg-jup-gradient-colors bg-clip-text text-transparent">
               Jupiter

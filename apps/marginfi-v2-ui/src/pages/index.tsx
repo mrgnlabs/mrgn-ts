@@ -36,27 +36,17 @@ const Home = () => {
     setIsRefreshingStore,
     marginfiAccountCount,
     selectedAccount,
-    userDataFetched,
-    resetUserData,
   ] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,
     state.setIsRefreshingStore,
     state.marginfiAccountCount,
     state.selectedAccount,
-    state.userDataFetched,
-    state.resetUserData,
   ]);
 
   const [isStoreInitialized, isRefreshingStore] = useMrgnlendStore((state) => [
     state.initialized,
     state.isRefreshingStore,
   ]);
-
-  useEffect(() => {
-    if (!walletAddress && userDataFetched) {
-      resetUserData();
-    }
-  }, [walletAddress, userDataFetched, resetUserData]);
 
   useEffect(() => {
     setIsRefreshingStore(true);

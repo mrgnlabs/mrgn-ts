@@ -32,6 +32,7 @@ import { toast } from "react-toastify";
 import BigNumber from "bignumber.js";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useMrgnlendStore } from "~/store";
+import { Desktop } from "~/mediaQueries";
 
 const Earn = () => {
   const { wallet, isOverride, connected, walletAddress } = useWalletContext();
@@ -209,11 +210,11 @@ const Earn = () => {
 
   return (
     <>
-      <div className="h-full flex flex-col justify-start items-center content-start max-w-7xl gap-4 px-[32px] py-[24px] rounded-xl mt-10">
-        <div className="flex flex-col items-center gap-6">
-          <div className="flex flex-col gap-1 w-full justify-center">
+      <div className="h-full w-[350px] sm:w-[400px] flex flex-col justify-start items-center content-start gap-4 px-[20px] sm:px-[32px] py-[12px] sm:py-[24px] rounded-xl mt-10">
+        <div className="w-full flex flex-col items-center gap-6">
+          <div className="w-full flex flex-col gap-1 justify-center">
             {connected && (
-              <div className="text-2xl flex justify-center gap-2 " style={{ fontWeight: 400 }}>
+              <div className="w-full flex justify-center items-center gap-2 text-xl sm:text-2xl" style={{ fontWeight: 400 }}>
                 Your total deposits:
                 <span style={{ color: "#51B56A" }}>
                   {
@@ -225,7 +226,7 @@ const Earn = () => {
               </div>
             )}
           </div>
-          <div className="px-10 w-full mb-7 mt-3">
+          <div className="w-full px-10 mb-7 mt-3">
             <div className="relative w-full flex flex-col justify-center items-center">
               <LinearProgress
                 className="h-1 w-full rounded-lg"
@@ -243,19 +244,19 @@ const Earn = () => {
             </div>
           </div>
 
-          <div className="flex flex-col">
-            <div className="flex justify-center gap-2 text-[#484848] text-xl" style={{ fontWeight: 400 }}>
+          <div className="w-full flex flex-col">
+            <div className="w-full flex justify-center gap-2 text-[#484848] text-lg sm:text-xl" style={{ fontWeight: 400 }}>
               FUNDS WILL BE LOCKED FOR:
             </div>
-            <div className="flex justify-center gap-2 text-2xl d" style={{ fontWeight: 400, letterSpacing: "0.2em" }}>
+            <div className="w-full flex justify-center gap-2 text-xl sm:text-2xl d" style={{ fontWeight: 400, letterSpacing: "0.2em" }}>
               ⚠️<span style={{ color: "yellow" }}>6 MONTHS</span>⚠️
             </div>
-            <div className="flex justify-center gap-2 text-[#484848] text-xl" style={{ fontWeight: 400 }}>
+            <div className="w-full flex justify-center gap-2 text-[#484848] text-lg sm:text-xl" style={{ fontWeight: 400 }}>
               FROM DEPOSIT DATE
             </div>
           </div>
 
-          <div className="flex justify-center">
+          <div className="w-full flex justify-center">
             <AssetSelection
               whitelistedCampaigns={whitelistedCampaignsWithMeta}
               setSelectedCampaign={setSelectedCampaign}
@@ -263,7 +264,7 @@ const Earn = () => {
             />
           </div>
 
-          <div className="flex justify-center">
+          <div className="w-full flex justify-center">
             <EarnInputBox
               value={amount}
               setValue={setAmount}
@@ -274,7 +275,7 @@ const Earn = () => {
             />
           </div>
 
-          <div className="flex justify-center">
+          <div className="w-full flex justify-center">
             {
               // You can only deposit right now.
               // All funds will be locked up for 6 months, each from the date of its *own* deposit.
@@ -289,7 +290,7 @@ const Earn = () => {
           </div>
         </div>
       </div>
-      {lipAccount?.deposits.length > 0 && (
+      {lipAccount && lipAccount.deposits.length > 0 && (
         <>
           <div className="text-2xl flex justify-center gap-2 mb-[40px]" style={{ fontWeight: 400 }}>
             Your deposits
@@ -471,7 +472,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
     <FormControl className="w-full">
       <RadioGroup
         defaultValue={defaultCampaign.campaign.publicKey.toBase58()}
-        className="flex flex-col justify-center items-center gap-2"
+        className="w-full flex flex-col justify-center items-center gap-2"
         onChange={(event) => {
           const campaign = whitelistedCampaigns.find((b) => b.campaign.publicKey.toBase58() === event.target.value);
           if (!campaign) throw new Error("Campaign not found");
@@ -491,20 +492,23 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
                     "&.Mui-checked": {
                       color: "#3CAB5F",
                     },
+                    ".MuiFormControlLabel-label": {
+                      width: "100%",
+                    }
                   }}
                 />
               }
               label={
-                <div className="w-[295px] flex justify-between items-center ">
+                <div className="w-[265px] sm:w-[290px] flex justify-between items-center">
                   <div>{getTokenSymbol(campaign.bank, bankMetadataMap || {})}</div>
-                  <div className="flex gap-4 justify-center items-center">
+                  <div className="flex gap-4 justify-center items-center pr-3">
                     <div
                       className={`font-aeonik flex justify-center items-center px-2 text-[#3AFF6C] bg-[#3aff6c1f] rounded-xl text-sm`}
                     >
                       Min. APY: {percentFormatterDyn.format(campaign.computeGuaranteedApyForCampaign())}
                     </div>
                     <div className="ml-[2px] w-[40px]">
-                      <Image src={meta.icon} alt={campaign.bank.mint.toBase58()} height={meta.size} width={meta.size} />
+                      <Image className="rounded-full" src={meta.icon} alt={campaign.bank.mint.toBase58()} height={meta.size} width={meta.size} />
                     </div>
                   </div>
                 </div>
@@ -563,6 +567,7 @@ export const EarnInputBox: FC<EarnInputBox> = ({
     <NumericFormat
       value={value}
       placeholder="0"
+      fullWidth
       allowNegative={false}
       decimalScale={maxDecimals}
       disabled={disabled}
@@ -574,7 +579,7 @@ export const EarnInputBox: FC<EarnInputBox> = ({
       InputProps={{
         // @todo width is hacky here
         className:
-          "font-aeonik min-w-[360px] h-12 px-0 bg-[#1C2125] text-[#e1e1e1] text-sm font-light rounded-lg self-center",
+          "w-full font-aeonik sm:min-w-[360px] h-12 px-0 bg-[#1C2125] text-[#e1e1e1] text-sm font-light rounded-lg self-center",
         endAdornment: (
           <MaxInputAdornment
             onClick={() => {
@@ -624,7 +629,7 @@ export const EarnAction: FC<EarnActionProps> = ({ children, spinning, disabled, 
 
   return connected ? (
     <Button
-      className={`bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 ${
+      className={`bg-white text-black normal-case text-sm w-full sm:min-w-[360px] sm:w-[360px] h-12 ${
         disabled && "cursor-not-allowed"
       }`}
       style={{
@@ -639,12 +644,14 @@ export const EarnAction: FC<EarnActionProps> = ({ children, spinning, disabled, 
       {spinning ? <CircularProgress style={{ color: "#3CAB5F", width: "20px", height: "20px" }} /> : children}
     </Button>
   ) : (
-    <WalletMultiButtonDynamic
-      className="bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] flex justify-center items-center"
-      startIcon={undefined}
-    >
-      Connect
-    </WalletMultiButtonDynamic>
+    <Desktop>
+      <WalletMultiButtonDynamic
+        className="bg-white text-black normal-case text-sm min-w-[360px] w-[360px] h-12 rounded-[100px] flex justify-center items-center"
+        startIcon={undefined}
+      >
+        Connect
+      </WalletMultiButtonDynamic>
+    </Desktop>
   );
 };
 
