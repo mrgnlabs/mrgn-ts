@@ -189,8 +189,9 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
                 uiToNative(
                   activeBankInfo.userInfo.tokenAccount.balance,
                   activeBankInfo.info.state.mintDecimals
-                ).isZero()) ||
-              maxAmount === 0
+                ).isZero() &&
+                !activeBankInfo.position.isLending) ||
+              (!isDust && maxAmount === 0)
             }
           >
             {isDust ? "Close" : activeBankInfo.position.isLending ? "Withdraw" : "Repay"}
