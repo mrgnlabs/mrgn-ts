@@ -30,7 +30,7 @@ const WalletSelector: FC = () => {
               <div className="flex justify-center items-center font-[500] text-[#868E95]">Select a wallet</div>
               <div className="w-full h-full flex flex-col gap-4 mt-2 pr-3 overflow-y-auto">
                 {wallets
-                  .filter((wallet) => wallet.readyState === "Installed" || wallet.readyState === "Loadable")
+                  .filter((wallet) => wallet.readyState === "Installed")
                   .map((wallet) => (
                     <div
                       key={wallet.adapter.name}
@@ -45,7 +45,7 @@ const WalletSelector: FC = () => {
                         <Image src={wallet.adapter.icon} alt={wallet.adapter.name} height={20} width={20} />
                         <div>{wallet.adapter.name}</div>
                       </div>
-                      <div className="text-[#868E95] italic">Detected</div>
+                      <div className="text-[#868E95] italic">{wallet.readyState}</div>
                     </div>
                   ))}
                 {moreCollapsed ? (
@@ -56,7 +56,7 @@ const WalletSelector: FC = () => {
                 ) : (
                   <>
                     {wallets
-                      .filter((wallet) => wallet.readyState !== "Installed" && wallet.readyState !== "Loadable")
+                      .filter((wallet) => wallet.readyState !== "Installed")
                       .map((wallet) => (
                         <div
                           key={wallet.adapter.name}
@@ -70,7 +70,7 @@ const WalletSelector: FC = () => {
                             <Image src={wallet.adapter.icon} alt={wallet.adapter.name} height={20} width={20} />
                             <div>{wallet.adapter.name}</div>
                           </div>
-                          <div className="text-[#868E95] italic">Not installed</div>
+                          <div className="text-[#868E95] italic">{wallet.readyState}</div>
                         </div>
                       ))}
                     <div

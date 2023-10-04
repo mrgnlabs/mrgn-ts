@@ -3,11 +3,9 @@ import type { AppProps } from "next/app";
 import Head from "next/head";
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
 import {
-  BackpackWalletAdapter,
   LedgerWalletAdapter,
   PhantomWalletAdapter,
   SolflareWalletAdapter,
-  GlowWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { OKXWalletAdapter } from "~/utils";
 import { init, push } from "@socialgouv/matomo-next";
@@ -75,10 +73,8 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     () => [
       new OKXWalletAdapter(),
       new PhantomWalletAdapter(),
-      new BackpackWalletAdapter(),
       new LedgerWalletAdapter(),
       new SolflareWalletAdapter(),
-      new GlowWalletAdapter(),
     ],
     []
   );
