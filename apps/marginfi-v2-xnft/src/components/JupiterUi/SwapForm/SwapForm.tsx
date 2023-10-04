@@ -23,12 +23,13 @@ export const SwapForm: React.FC<{
     errors,
     fromTokenInfo,
     toTokenInfo,
-    selectedSwapRoute,
+    quoteReponseMeta,
     formProps: { swapMode, fixedAmount, fixedInputMint, fixedOutputMint },
-    jupiter: { routes, loading, refresh },
+    jupiter: { quoteResponseMeta: route, loading, error, refresh },
   } = useSwapContext();
-
-  const marketRoutes = selectedSwapRoute ? selectedSwapRoute.marketInfos.map(({ label }) => label).join(", ") : "";
+  const marketRoutes = quoteReponseMeta
+    ? quoteReponseMeta.quoteResponse.routePlan.map(({ swapInfo }) => swapInfo.label).join(", ")
+    : "";
 
   const onClickSwitchPair = () => {
     setForm((prev) => ({
@@ -85,13 +86,13 @@ export const SwapForm: React.FC<{
           />
         )}
       </View>
-      {routes ? (
+      {route?.quoteResponse ? (
         <View style={tw`flex flex-row items-center mt-2 text-xs space-x-1 gap-4px`}>
           <Pressable
             style={tw`bg-black/20 rounded-xl px-2 py-1 cursor-pointer text-white/50 flex flex-row items-center space-x-1 gap-2px`}
             onPress={() => setShowRouteSelector(true)}
           >
-            <Text style={tw`text-secondary`}>{routes?.length}</Text>
+            <Text style={tw`text-secondary`}>{marketRoutes?.length}</Text>
             <icons.RoutesSVG width={7} height={9} />
           </Pressable>
           <Text style={tw`text-secondary`}>using</Text>
