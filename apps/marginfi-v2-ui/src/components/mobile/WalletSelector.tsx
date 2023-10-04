@@ -1,31 +1,60 @@
 import { Modal, Slide } from "@mui/material";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { Wallet, useWallet } from "@solana/wallet-adapter-react";
 import Image from "next/image";
-import { FC, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { useUiStore } from "~/store";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { WalletName, WalletReadyState } from "@solana/wallet-adapter-base";
 
-const WalletSelector: FC = () => {
-  const { select, wallets } = useWallet();
+const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 }) => {
   const [isWalletDrawerOpen, setIsWalletDrawerOpen] = useUiStore((state) => [
     state.isWalletDrawerOpen,
     state.setIsWalletDrawerOpen,
   ]);
 
-  const [moreCollapsed, setMoreCollapsed] = useState<boolean>(true);
+  const { wallets, select } = useWallet();
+  const [expanded, setExpanded] = useState(false);
 
+  const [featured, more] = useMemo(() => {
+    const installed: Wallet[] = [];
+    const loadable: Wallet[] = [];
+    const notDetected: Wallet[] = [];
+
+    for (const wallet of wallets) {
+      if (wallet.readyState === WalletReadyState.NotDetected) {
+        notDetected.push(wallet);
+      } else if (wallet.readyState === WalletReadyState.Loadable) {
+        loadable.push(wallet);
+      } else if (wallet.readyState === WalletReadyState.Installed) {
+        installed.push(wallet);
+      }
+    }
+
+    const orderedWallets = [...installed, ...loadable, ...notDetected];
+    return [orderedWallets.slice(0, featuredWallets), orderedWallets.slice(featuredWallets)];
+  }, [wallets, featuredWallets]);
+
+  const handleWalletClick = useCallback(
+    (walletName: WalletName) => {
+      select(walletName);
+      setExpanded(false);
+      setIsWalletDrawerOpen(false);
+    },
+    [select, setIsWalletDrawerOpen]
+  );
   return (
     <Modal
       open={isWalletDrawerOpen}
       onClose={() => {
-        setMoreCollapsed(true);
+        setExpanded(false);
         setIsWalletDrawerOpen(false);
       }}
     >
       <Slide direction="up" in={isWalletDrawerOpen} mountOnEnter unmountOnExit>
         <div className="absolute bottom-0 left-0 w-full h-1/2 px-6 py-6 opacity-1 bg-lines2 bg-[#171C1F] rounded-t-3xl border-t-[1px] border-t-[#333] font-aeonik font-[400] text-lg">
-          {wallets.filter((wallet) => wallet.readyState === "Installed" || wallet.readyState === "Loadable").length > 0 ? (
+          {wallets.filter((wallet) => wallet.readyState === "Installed" || wallet.readyState === "Loadable").length >
+          0 ? (
             <>
               <div className="flex justify-center items-center font-[500] text-[#868E95]">Select a wallet</div>
               <div className="w-full h-full flex flex-col gap-4 mt-2 pr-3 overflow-y-auto">
@@ -34,11 +63,7 @@ const WalletSelector: FC = () => {
                   .map((wallet) => (
                     <div
                       key={wallet.adapter.name}
-                      onClick={() => {
-                        select(wallet.adapter.name);
-                        setIsWalletDrawerOpen(false);
-                        setMoreCollapsed(true);
-                      }}
+                      onClick={() => handleWalletClick(wallet.adapter.name)}
                       className="w-full flex justify-between"
                     >
                       <div className="flex gap-3 justify-center items-center">
@@ -48,22 +73,14 @@ const WalletSelector: FC = () => {
                       <div className="text-[#868E95] italic">{wallet.readyState}</div>
                     </div>
                   ))}
-                {moreCollapsed ? (
-                  <div className="w-full flex justify-center items-center gap-2">
-                    more
-                    <ExpandMoreIcon onClick={() => setMoreCollapsed(false)} />
-                  </div>
-                ) : (
+                {expanded ? (
                   <>
                     {wallets
                       .filter((wallet) => wallet.readyState !== "Installed")
                       .map((wallet) => (
                         <div
                           key={wallet.adapter.name}
-                          onClick={() => {
-                            setMoreCollapsed(true);
-                            window.location.assign(wallet.adapter.url);
-                          }}
+                          onClick={() => handleWalletClick(wallet.adapter.name)}
                           className="w-full flex justify-between"
                         >
                           <div className="flex gap-3 justify-center items-center">
@@ -73,19 +90,23 @@ const WalletSelector: FC = () => {
                           <div className="text-[#868E95] italic">{wallet.readyState}</div>
                         </div>
                       ))}
-                    <div
-                      className="w-full flex justify-center items-center gap-2"
-                      onClick={() => setMoreCollapsed(true)}
-                    >
+                    <div className="w-full flex justify-center items-center gap-2" onClick={() => setExpanded(false)}>
                       less
                       <ExpandLessIcon />
                     </div>
                   </>
+                ) : (
+                  <div className="w-full flex justify-center items-center gap-2">
+                    more
+                    <ExpandMoreIcon onClick={() => setExpanded(true)} />
+                  </div>
                 )}
               </div>
             </>
           ) : (
-            <div className="w-full h-full flex justify-center items-center text-center">No wallet found. Please download a supported Solana wallet</div>
+            <div className="w-full h-full flex justify-center items-center text-center">
+              No wallet found. Please download a supported Solana wallet
+            </div>
           )}
         </div>
       </Slide>
