@@ -18,8 +18,8 @@ export const ReviewOrderModal = ({ onClose, onSubmit }: props) => {
   const {
     fromTokenInfo,
     toTokenInfo,
-    selectedSwapRoute,
-    jupiter: { routes, loading, refresh },
+    quoteReponseMeta,
+    jupiter: { loading, refresh },
   } = useSwapContext();
 
   const [hasExpired] = useTimeDiff();
@@ -42,15 +42,13 @@ export const ReviewOrderModal = ({ onClose, onSubmit }: props) => {
       </View>
 
       <View>
-        {routes && selectedSwapRoute && fromTokenInfo && toTokenInfo ? (
+        {quoteReponseMeta && fromTokenInfo && toTokenInfo ? (
           <PriceInfo
-            routes={routes}
-            selectedSwapRoute={selectedSwapRoute}
+            quoteResponse={quoteReponseMeta.quoteResponse}
             fromTokenInfo={fromTokenInfo}
             toTokenInfo={toTokenInfo}
             loading={loading}
             showFullDetails
-            containerClassName="bg-[#25252D] border-none"
           />
         ) : null}
       </View>
