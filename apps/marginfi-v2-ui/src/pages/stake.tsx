@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { StakingCard, StakingStats } from "~/components/common/Staking";
 import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
-import { PageHeader } from "~/components/desktop/PageHeader";
+import { PageHeader } from "~/components/common/PageHeader";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Desktop } from "~/mediaQueries";
 import { createLstStore } from "~/store/lstStore";

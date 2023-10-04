@@ -8,7 +8,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { LeaderboardRow, fetchLeaderboardData } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { PageHeader } from "~/components/desktop/PageHeader";
+import { PageHeader } from "~/components/common/PageHeader";
 import {
   PointsLeaderBoard,
   PointsOverview,

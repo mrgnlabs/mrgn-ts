@@ -46,8 +46,8 @@ export const AssetCard: FC<{
     [bank.info.state.mint, bank.userInfo.tokenAccount, nativeSolBalance]
   );
 
-  const currentAction: ActionType | "Connect" = useMemo(
-    () => (connected ? getCurrentAction(isInLendingMode, bank) : "Connect"),
+  const currentAction: ActionType = useMemo(
+    () => getCurrentAction(isInLendingMode, bank),
     [connected, isInLendingMode, bank]
   );
 
