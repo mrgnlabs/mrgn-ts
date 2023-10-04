@@ -18,8 +18,8 @@ export const ConfirmOrderModal = ({ onClose }: { onClose: () => void }) => {
     fromTokenInfo,
     lastSwapResult,
     toTokenInfo,
-    selectedSwapRoute,
-    jupiter: { routes, refresh: refreshJupiter },
+    quoteReponseMeta,
+    jupiter: { refresh: refreshJupiter },
     swapping: { txStatus },
   } = useSwapContext();
 
@@ -112,13 +112,13 @@ export const ConfirmOrderModal = ({ onClose }: { onClose: () => void }) => {
   };
 
   const swapState: "success" | "error" | "loading" = useMemo(() => {
-    const hasErrors = txStatus.find((item) => item.status === "fail");
+    const hasErrors = txStatus?.status === "fail";
     if (hasErrors) {
       return "error";
     }
 
-    const allSuccess = txStatus.every((item) => item.status !== "loading");
-    if (txStatus.length > 0 && allSuccess) {
+    const allSuccess = txStatus?.status === "success";
+    if (txStatus && allSuccess) {
       return "success";
     }
 
@@ -159,7 +159,7 @@ export const ConfirmOrderModal = ({ onClose }: { onClose: () => void }) => {
         </View>
       )}
       {swapState === "success" &&
-        (!_lastSwapResult || !fromTokenInfo || !toTokenInfo || !routes || !selectedSwapRoute ? (
+        (!_lastSwapResult || !fromTokenInfo || !toTokenInfo || !quoteReponseMeta ? (
           <></>
         ) : (
           <View>
@@ -176,13 +176,11 @@ export const ConfirmOrderModal = ({ onClose }: { onClose: () => void }) => {
               </View>
 
               <PriceInfo
-                routes={routes}
-                selectedSwapRoute={selectedSwapRoute}
+                quoteResponse={quoteReponseMeta.quoteResponse}
                 fromTokenInfo={fromTokenInfo}
                 toTokenInfo={toTokenInfo}
                 loading={false}
                 showFullDetails
-                containerClassName="bg-[#25252D] border-none mt-0"
               />
             </View>
           </View>
