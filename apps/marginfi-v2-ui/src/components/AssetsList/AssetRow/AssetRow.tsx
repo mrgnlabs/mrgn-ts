@@ -675,8 +675,10 @@ const AssetRow: FC<{
               onClick={currentAction === "Connect" ? openWalletSelector : isDust ? closeBalance : borrowOrLend}
               disabled={
                 currentAction !== "Connect" &&
-                ((isDust && uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero()) ||
-                  maxAmount === 0)
+                ((isDust &&
+                  uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero() &&
+                  currentAction == ActionType.Borrow) ||
+                  (!isDust && maxAmount === 0))
               }
             >
               {isDust ? "Close" : currentAction}
