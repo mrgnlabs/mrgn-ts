@@ -41,7 +41,7 @@
     "ioredis": "5.2.4",
     "jsbi": "4.3.0",
     "superstruct": "^1.0.3",
-    "zod": "^3.20.6"
+    "zod": "^3.22.3"
   },
   "devDependencies": {
     "@project-serum/anchor": "0.24.2",

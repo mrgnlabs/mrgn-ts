@@ -55,7 +55,7 @@
     "react-type-animation": "^3.0.1",
     "sharp": "^0.31.3",
     "superstruct": "^1.0.3",
-    "zod": "^3.21.4",
+    "zod": "^3.22.3",
     "zustand": "^4.4.1"
   },
   "devDependencies": {
