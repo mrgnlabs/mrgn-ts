@@ -116,3 +116,53 @@ a {
   padding-left: 0px;
   padding-right: 0px;
 }
+
+@keyframes radiate {
+  0% {
+    color: #ccc;
+  }
+  100% {
+    color: #fff;
+  }
+}
+
+.radiating-text {
+  animation: radiate 2s infinite alternate;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 5px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+@keyframes wavyGradientAnimation {
+  0% {
+      background-position: 200% 0;
+  }
+  100% {
+      background-position: 0 0;
+  }
+}
+
+.wavy-gradient-bg {
+  animation: wavyGradientAnimation 2s linear infinite;
+  background: linear-gradient(90deg, #808080, #DCE85DCC, #808080);
+  background-size: 200% 100%;
+}

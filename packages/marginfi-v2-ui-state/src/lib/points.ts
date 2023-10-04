@@ -12,6 +12,8 @@ import {
   getCountFromServer,
   where,
 } from "firebase/firestore";
+import { FavouriteDomain, NAME_OFFERS_ID, reverseLookupBatch } from "@bonfida/spl-name-service";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { firebaseApi } from ".";
 
 type LeaderboardRow = {
@@ -25,7 +27,7 @@ type LeaderboardRow = {
   socialPoints: number;
 };
 
-async function fetchLeaderboardData(rowCap = 100, pageSize = 50): Promise<LeaderboardRow[]> {
+async function fetchLeaderboardData(connection?: Connection, rowCap = 100, pageSize = 50): Promise<LeaderboardRow[]> {
   const pointsCollection = collection(firebaseApi.db, "points");
 
   const leaderboardMap = new Map();
@@ -56,7 +58,21 @@ async function fetchLeaderboardData(rowCap = 100, pageSize = 50): Promise<Leader
     initialQueryCursor = querySnapshot.docs.length > 0 ? querySnapshot.docs[querySnapshot.docs.length - 1] : null;
   } while (initialQueryCursor !== null && leaderboardMap.size < rowCap);
 
-  return [...leaderboardMap.values()].slice(0, 100);
+  const leaderboardFinalSlice = [...leaderboardMap.values()].slice(0, 100);
+
+  if (connection) {
+    const publicKeys = leaderboardFinalSlice.map((value) => {
+      const [favoriteDomains] = FavouriteDomain.getKeySync(NAME_OFFERS_ID, new PublicKey(value.id));
+      return favoriteDomains;
+    });
+    const favoriteDomainsInfo = (await connection.getMultipleAccountsInfo(publicKeys)).map((accountInfo, idx) =>
+      accountInfo ? FavouriteDomain.deserialize(accountInfo.data).nameAccount : publicKeys[idx]
+    );
+    const reverseLookup = await reverseLookupBatch(connection, favoriteDomainsInfo);
+
+    leaderboardFinalSlice.map((value, idx) => (value.id = reverseLookup[idx] ? `${reverseLookup[idx]}.sol` : value.id));
+  }
+  return leaderboardFinalSlice;
 }
 
 // Firebase query is very constrained, so we calculate the number of users with more points
@@ -153,7 +169,7 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
     depositPoints,
     borrowPoints,
     referralPoints,
-    referralLink: pointsData.referral_link,
+    referralLink: userReferralCode,
     isCustomReferralLink,
     userRank,
     totalPoints,

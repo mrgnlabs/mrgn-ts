@@ -67,7 +67,7 @@ class LipAccount {
   async makeClosePositionIx(deposit: Deposit): Promise<InstructionsWrapper> {
     let ixs = [];
 
-    const userAta = getAssociatedTokenAddressSync(deposit.campaign.bank.mint, this.client.wallet.publicKey);
+    const userAta = getAssociatedTokenAddressSync(deposit.campaign.bank.mint, this.client.wallet.publicKey, true); // We allow off curve addresses here to support Fuse.
     const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
       this.client.wallet.publicKey,
       userAta,

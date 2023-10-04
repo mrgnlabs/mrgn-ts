@@ -66,7 +66,7 @@ class WalletBalancesTool extends Tool {
       };
     }
 
-    const ataAddresses = mintList.map((mint) => getAssociatedTokenAddressSync(mint.address, wallet!));
+    const ataAddresses = mintList.map((mint) => getAssociatedTokenAddressSync(mint.address, wallet!, true)); // We allow off curve addresses here to support Fuse.
 
     // Fetch relevant accounts
     const accountsAiList = await this.connection.getMultipleAccountsInfo([wallet, ...ataAddresses]);
