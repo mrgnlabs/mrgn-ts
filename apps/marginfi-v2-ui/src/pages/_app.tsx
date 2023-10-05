@@ -2,11 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
-import {
-  LedgerWalletAdapter,
-  PhantomWalletAdapter,
-  SolflareWalletAdapter,
-} from "@solana/wallet-adapter-wallets";
 import { OKXWalletAdapter } from "~/utils";
 import { init, push } from "@socialgouv/matomo-next";
 import config from "~/config";
@@ -21,6 +16,7 @@ import { WalletSelector } from "~/components/mobile/WalletSelector";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "./stake";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import { WALLET_ADAPTERS } from "~/config/wallets";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -69,15 +65,6 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   const [ready, setReady] = useState(false);
 
-  const wallets = useMemo(
-    () => [
-      new OKXWalletAdapter(),
-      new LedgerWalletAdapter(),
-      new SolflareWalletAdapter(),
-    ],
-    []
-  );
-
   useEffect(() => {
     setReady(true);
   }, []);
@@ -93,7 +80,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       </Head>
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
-          <WalletProvider wallets={wallets} autoConnect>
+          <WalletProvider wallets={WALLET_ADAPTERS} autoConnect>
             <Desktop>
               <WalletModalProvider>
                 <DesktopNavbar />
