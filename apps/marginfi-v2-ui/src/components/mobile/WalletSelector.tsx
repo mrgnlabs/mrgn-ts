@@ -1,7 +1,7 @@
 import { Modal, Slide } from "@mui/material";
 import { Wallet, useWallet } from "@solana/wallet-adapter-react";
 import Image from "next/image";
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { useUiStore } from "~/store";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -21,6 +21,10 @@ const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 
 
   const { wallets, select } = useWallet();
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    select(null);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [featured, more] = useMemo(() => {
     const installed: Wallet[] = [];
