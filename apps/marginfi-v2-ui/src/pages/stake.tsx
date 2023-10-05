@@ -83,7 +83,7 @@ const StakingContent = () => (
   <div className="flex flex-col h-full max-w-[480px] w-full justify-center content-center sm:pt-[16px] gap-4 px-4">
     <StakingStats />
     <StakingCard />
-    <div className="flex flex-col mt-10 pb-[64px] gap-5 justify-center font-aeonik">
+    <div className="flex flex-col mt-10 pb-[128px] sm:pb-[64px] gap-5 justify-center font-aeonik">
       <Typography className="text-center w-full text-xl font-[200]">
         <span className="font-bold text-[#DCE85D]">$LST</span>, by mrgn
       </Typography>

@@ -43,6 +43,7 @@ import { RefreshIcon } from "./RefreshIcon";
 import { Spinner } from "~/components/common/Spinner";
 import BN from "bn.js";
 import debounce from "lodash.debounce";
+import { Desktop, Mobile } from "~/mediaQueries";
 
 const QUOTE_EXPIRY_MS = 30_000;
 const DEFAULT_DEPOSIT_OPTION: DepositOption = { type: "native", amount: new BN(0), maxAmount: new BN(0) };
@@ -494,7 +495,7 @@ export const StakingCard: FC = () => {
           </Typography>
         </div>
         <div className="h-[36px] my-5">
-          <PrimaryButton
+          <Desktop><PrimaryButton
             disabled={
               connected &&
               (depositAmountUi == 0 ||
@@ -507,7 +508,21 @@ export const StakingCard: FC = () => {
             onClick={connected ? onMint : openWalletSelector}
           >
             {!connected ? "connect" : ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? <Spinner /> : "mint"}
-          </PrimaryButton>
+          </PrimaryButton></Desktop>
+          <Mobile><PrimaryButton
+            disabled={
+              !connected ||
+              (depositAmountUi == 0 ||
+                lstOutAmount === 0 ||
+                lstOutAmount === null ||
+                refreshingQuotes ||
+                !!ongoingAction)
+            }
+            loading={connected && !!ongoingAction}
+            onClick={connected ? onMint : undefined}
+          >
+            {ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? <Spinner /> : "mint"}
+          </PrimaryButton></Mobile>
         </div>
         <div className="flex flex-row justify-between w-full my-auto">
           <Typography className="font-aeonik font-[400] text-base">Current price</Typography>

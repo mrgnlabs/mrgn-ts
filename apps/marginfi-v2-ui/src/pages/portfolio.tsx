@@ -90,7 +90,7 @@ const PortfolioPage = () => {
         <EmissionsBanner />
         <MobilePortfolioOverview />
         {!connected ? (
-          <PointsConnectWallet />
+          null
         ) : currentFirebaseUser ? (
           <PointsOverview userPointsData={userPointsData} />
         ) : hasUser === null ? (
