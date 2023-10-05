@@ -1,22 +1,13 @@
 import React, { FC, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import {
-  FormControl,
-  FormHelperText,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  Skeleton,
-  Typography,
-  paperClasses,
-} from "@mui/material";
+import { FormControl, MenuItem, Select, SelectChangeEvent, Skeleton, Typography } from "@mui/material";
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { MrgnContainedSwitch, MrgnLabeledSwitch, MrgnTooltip } from "~/components/common";
 
 import { AssetCard } from "./AssetCard";
-import { SORT_OPTIONS_MAP, SortAssetOption, sortApRate, sortTvl } from "./MobileAssetsList.utils";
+import { SORT_OPTIONS_MAP, SortAssetOption, SortType, sortApRate, sortTvl } from "./MobileAssetsList.utils";
 
 export const MobileAssetsList: FC = () => {
   const [isFiltered, setIsFiltered] = useState(false);
@@ -33,12 +24,10 @@ export const MobileAssetsList: FC = () => {
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [isInLendingMode, setIsInLendingMode] = useState(true);
 
-  // const test = useMemo(() => sortedBanks && sortedBanks.sort((a,b) => a.) ,[])
-
-  const sortBanks = (banks: ExtendedBankInfo) => {
-    if (sortOption.field === "APY") {
+  const sortBanks = (banks: ExtendedBankInfo[]) => {
+    if (sortOption?.field === "APY") {
       return sortApRate(banks, isInLendingMode, sortOption.direction);
-    } else if (sortOption.field === "TVL") {
+    } else if (sortOption?.field === "TVL") {
       return sortTvl(banks, sortOption.direction);
     } else {
       return banks;
@@ -69,7 +58,7 @@ export const MobileAssetsList: FC = () => {
   }, [sortedBanks, isFiltered, sortOption]);
 
   const handleSortChange = (event: SelectChangeEvent) => {
-    setSortOption(SORT_OPTIONS_MAP[event.target.value]);
+    setSortOption(SORT_OPTIONS_MAP[event.target.value as SortType]);
   };
 
   return (
@@ -131,6 +120,7 @@ export const MobileAssetsList: FC = () => {
               </MenuItem>
               {Object.values(SORT_OPTIONS_MAP).map((option) => (
                 <MenuItem
+                  key={option.value}
                   sx={{
                     color: "white",
                     backgroundColor: "#22282c",

@@ -10,7 +10,7 @@ export type SortAssetOption = {
 
 type sortDirection = "ASC" | "DESC";
 
-type SortType = "APY_ASC" | "APY_DESC" | "TVL_ASC" | "TVL_DESC";
+export type SortType = "APY_ASC" | "APY_DESC" | "TVL_ASC" | "TVL_DESC";
 
 export const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {

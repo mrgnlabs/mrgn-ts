@@ -1,10 +1,5 @@
 import { FC, SVGProps } from "react";
-import { PieChart, ReceiveMoney, TokenSwap } from "~/components/common/icons";
-import { Bridge } from "~/components/common/icons/Bridge";
-import { Coins } from "~/components/common/icons/Coins";
-import { Steak } from "~/components/common/icons/Steak";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-
+import { PieChart, ReceiveMoney, TokenSwap, More, Bridge, Coins, Steak } from "~/components/common/icons";
 export interface NavLinkInfo {
   href: string;
   alt: string;
@@ -36,7 +31,7 @@ export const ORDERED_MOBILE_NAVBAR_LINKS: NavLinkInfo[] = [
     href: "",
     alt: "more menu icon",
     label: "more",
-    Icon: MoreHorizIcon,
+    Icon: More,
   },
 ];
 
