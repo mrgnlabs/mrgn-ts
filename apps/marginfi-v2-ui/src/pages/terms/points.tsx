@@ -1,5 +1,5 @@
 import React from "react";
-import { PageHeader } from "~/components/desktop/PageHeader";
+import { PageHeader } from "~/components/common/PageHeader";
 
 function Disclaimer() {
   return (

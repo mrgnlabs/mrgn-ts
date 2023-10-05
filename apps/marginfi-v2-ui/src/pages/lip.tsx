@@ -1,4 +1,4 @@
-import { PageHeader } from "~/components/desktop/PageHeader";
+import { PageHeader } from "~/components/common/PageHeader";
 import { CampaignWizard } from "~/components/desktop/CampaignWizard";
 import { LipClientProvider } from "~/context";
 import { useWalletContext } from "~/hooks/useWalletContext";

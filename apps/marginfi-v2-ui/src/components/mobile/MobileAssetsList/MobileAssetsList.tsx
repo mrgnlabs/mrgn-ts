@@ -1,14 +1,17 @@
 import React, { FC, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Skeleton, Typography } from "@mui/material";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { FormControl, MenuItem, Select, SelectChangeEvent, Skeleton, Typography } from "@mui/material";
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { MrgnContainedSwitch, MrgnLabeledSwitch, MrgnTooltip } from "~/components/common";
 
 import { AssetCard } from "./AssetCard";
+import { SORT_OPTIONS_MAP, SortAssetOption, SortType, sortApRate, sortTvl } from "./MobileAssetsList.utils";
 
 export const MobileAssetsList: FC = () => {
   const [isFiltered, setIsFiltered] = useState(false);
+  const [sortOption, setSortOption] = useState<SortAssetOption>();
   const togglePositions = () => setIsFiltered((previousState) => !previousState);
 
   const { connected } = useWalletContext();
@@ -21,18 +24,42 @@ export const MobileAssetsList: FC = () => {
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [isInLendingMode, setIsInLendingMode] = useState(true);
 
-  const globalBanks = useMemo(
-    () =>
-      sortedBanks &&
-      sortedBanks.filter((b) => !b.info.state.isIsolated).filter((b) => (isFiltered ? b.isActive : true)),
-    [sortedBanks, isFiltered]
-  );
+  const sortBanks = (banks: ExtendedBankInfo[]) => {
+    if (sortOption?.field === "APY") {
+      return sortApRate(banks, isInLendingMode, sortOption.direction);
+    } else if (sortOption?.field === "TVL") {
+      return sortTvl(banks, sortOption.direction);
+    } else {
+      return banks;
+    }
+  };
 
-  const isolatedBanks = useMemo(
-    () =>
-      sortedBanks && sortedBanks.filter((b) => b.info.state.isIsolated).filter((b) => (isFiltered ? b.isActive : true)),
-    [sortedBanks, isFiltered]
-  );
+  const globalBanks = useMemo(() => {
+    const filteredBanks =
+      sortedBanks &&
+      sortedBanks.filter((b) => !b.info.state.isIsolated).filter((b) => (isFiltered ? b.isActive : true));
+
+    if (sortOption && filteredBanks) {
+      return sortBanks(filteredBanks);
+    } else {
+      return filteredBanks;
+    }
+  }, [sortedBanks, isFiltered, sortOption]);
+
+  const isolatedBanks = useMemo(() => {
+    const filteredBanks =
+      sortedBanks && sortedBanks.filter((b) => b.info.state.isIsolated).filter((b) => (isFiltered ? b.isActive : true));
+
+    if (sortOption && filteredBanks) {
+      return sortBanks(filteredBanks);
+    } else {
+      return filteredBanks;
+    }
+  }, [sortedBanks, isFiltered, sortOption]);
+
+  const handleSortChange = (event: SelectChangeEvent) => {
+    setSortOption(SORT_OPTIONS_MAP[event.target.value as SortType]);
+  };
 
   return (
     <>
@@ -45,21 +72,76 @@ export const MobileAssetsList: FC = () => {
             onClick={() => setIsInLendingMode(!isInLendingMode)}
           />
         </div>
+      </div>
+      <div className="flex justify-between items-center align-center">
         <div className="flex items-center gap-1">
           <MrgnContainedSwitch
             checked={isFiltered}
             onChange={togglePositions}
             inputProps={{ "aria-label": "controlled" }}
           />
-          <div>My positions</div>
+          <div>Filter my positions</div>
+        </div>
+        <div>
+          <FormControl sx={{ m: 1, width: "102px", height: "36px", color: "white", margin: 0 }}>
+            <Select
+              value={sortOption?.value ?? ""}
+              onChange={handleSortChange}
+              inputProps={{ "aria-label": "Without label" }}
+              disableUnderline
+              variant="standard"
+              placeholder="Sort"
+              MenuProps={{
+                PaperProps: {
+                  sx: {
+                    backgroundColor: "#22282c",
+                    color: "red",
+                  },
+                },
+              }}
+              sx={{
+                color: "white",
+                height: "36px",
+                fontSize: "16px",
+                fontWeight: 400,
+                marginRight: "4px",
+                padding: "8px 16px",
+                borderWidth: 0,
+                backgroundColor: "#22282c",
+                borderRadius: "6px",
+                "& .MuiSvgIcon-root": {
+                  color: "white",
+                  marginRight: "6px",
+                },
+              }}
+            >
+              <MenuItem value="" sx={{ color: "#A1A1A1", backgroundColor: "#22282c" }}>
+                <em>None</em>
+              </MenuItem>
+              {Object.values(SORT_OPTIONS_MAP).map((option) => (
+                <MenuItem
+                  key={option.value}
+                  sx={{
+                    color: "white",
+                    backgroundColor: "#22282c",
+                  }}
+                  value={option.value}
+                >
+                  {isInLendingMode || !option.borrowLabel ? option.label : option.borrowLabel}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </div>
       </div>
       <div className="w-full">
-        <div className="font-aeonik font-normal flex items-center text-2xl text-white pt-2 pb-5">Global pool</div>
-        <div className="flex flew-row flex-wrap gap-6 justify-center items-center">
-          {isStoreInitialized ? (
-            globalBanks.length > 0 ? (
-              globalBanks.map((bank, i) => (
+        <Typography className="font-aeonik font-normal flex items-center text-2xl text-white pt-2 pb-3">
+          Global pool
+        </Typography>
+        {isStoreInitialized && globalBanks ? (
+          globalBanks.length > 0 ? (
+            <div className="flex flew-row flex-wrap gap-6 justify-center items-center pt-2">
+              {globalBanks.map((bank, i) => (
                 <AssetCard
                   key={bank.meta.tokenSymbol}
                   nativeSolBalance={nativeSolBalance}
@@ -69,19 +151,19 @@ export const MobileAssetsList: FC = () => {
                   marginfiAccount={selectedAccount}
                   inputRefs={inputRefs}
                 />
-              ))
-            ) : (
-              <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
-                No {isInLendingMode ? "lending" : "borrowing"} {isFiltered ? "positions" : "pools"} found.
-              </Typography>
-            )
+              ))}
+            </div>
           ) : (
-            <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
-          )}
-        </div>
+            <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
+              No {isInLendingMode ? "lending" : "borrowing"} {isFiltered ? "positions" : "pools"} found.
+            </Typography>
+          )
+        ) : (
+          <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+        )}
       </div>
       <div className="w-full">
-        <div className="font-aeonik font-normal flex gap-1 items-center text-2xl text-white pb-2">
+        <Typography className="font-aeonik font-normal flex gap-2 items-center text-2xl text-white pt-2 pb-3">
           Isolated pool
           <MrgnTooltip
             title={
@@ -98,11 +180,12 @@ export const MobileAssetsList: FC = () => {
           >
             <Image src="/info_icon.png" alt="info" height={16} width={16} />
           </MrgnTooltip>
-        </div>
-        <div className="flex flew-row flex-wrap gap-4">
-          {isStoreInitialized ? (
-            isolatedBanks.length > 0 ? (
-              isolatedBanks.map((bank, i) => (
+        </Typography>
+
+        {isStoreInitialized && globalBanks ? (
+          isolatedBanks.length > 0 ? (
+            <div className="flex flew-row flex-wrap gap-6 justify-center items-center pt-2">
+              {isolatedBanks.map((bank, i) => (
                 <AssetCard
                   key={bank.meta.tokenSymbol}
                   nativeSolBalance={nativeSolBalance}
@@ -112,16 +195,16 @@ export const MobileAssetsList: FC = () => {
                   marginfiAccount={selectedAccount}
                   inputRefs={inputRefs}
                 />
-              ))
-            ) : (
-              <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
-                No {isInLendingMode ? "lending" : "borrowing"} {isFiltered ? "positions" : "pools"} found.
-              </Typography>
-            )
+              ))}
+            </div>
           ) : (
-            <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
-          )}
-        </div>
+            <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
+              No {isInLendingMode ? "lending" : "borrowing"} {isFiltered ? "positions" : "pools"} found.
+            </Typography>
+          )
+        ) : (
+          <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+        )}
       </div>
     </>
   );

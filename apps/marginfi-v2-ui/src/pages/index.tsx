@@ -8,7 +8,7 @@ import config from "~/config/marginfi";
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Banner } from "~/components/desktop/Banner";
-import { PageHeader } from "~/components/desktop/PageHeader";
+import { PageHeader } from "~/components/common/PageHeader";
 import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
 import { Desktop, Mobile } from "~/mediaQueries";
 
@@ -31,17 +31,9 @@ const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/
 const Home = () => {
   const { walletAddress, wallet, isOverride } = useWalletContext();
   const { connection } = useConnection();
-  const [
-    fetchMrgnlendState,
-    setIsRefreshingStore,
-    marginfiAccountCount,
-    selectedAccount,
-  ] = useMrgnlendStore((state) => [
-    state.fetchMrgnlendState,
-    state.setIsRefreshingStore,
-    state.marginfiAccountCount,
-    state.selectedAccount,
-  ]);
+  const [fetchMrgnlendState, setIsRefreshingStore, marginfiAccountCount, selectedAccount] = useMrgnlendStore(
+    (state) => [state.fetchMrgnlendState, state.setIsRefreshingStore, state.marginfiAccountCount, state.selectedAccount]
+  );
 
   const [isStoreInitialized, isRefreshingStore] = useMrgnlendStore((state) => [
     state.initialized,
@@ -84,7 +76,7 @@ const Home = () => {
         </div>
         <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
       </Desktop>
-      
+
       <Mobile>
         <PageHeader>lend</PageHeader>
         <div className="flex flex-col w-full h-full justify-start content-start pt-[16px] px-[12px] gap-4 mb-20">

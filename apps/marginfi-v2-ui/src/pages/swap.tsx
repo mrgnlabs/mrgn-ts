@@ -2,19 +2,19 @@
 
 import { useEffect } from "react";
 import config from "~/config";
-import { PageHeader } from "~/components/desktop/PageHeader";
+import { PageHeader } from "~/components/common/PageHeader";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 const SwapPage = () => {
   const { walletContextState } = useWalletContext();
 
   useEffect(() => {
-      window.Jupiter.init({
-        displayMode: "integrated",
-        integratedTargetId: "integrated-terminal",
-        endpoint: config.rpcEndpoint,
-        passThroughWallet: walletContextState.wallet,
-      });
+    window.Jupiter.init({
+      displayMode: "integrated",
+      integratedTargetId: "integrated-terminal",
+      endpoint: config.rpcEndpoint,
+      passThroughWallet: walletContextState.wallet,
+    });
   }, [walletContextState.wallet]);
 
   return (

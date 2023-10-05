@@ -7,7 +7,7 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import config from "~/config/marginfi";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { PageHeader } from "~/components/desktop/PageHeader";
+import { PageHeader } from "~/components/common/PageHeader";
 import { MobileAccountSummary } from "~/components/mobile/MobileAccountSummary";
 import { MobilePortfolioOverview } from "~/components/mobile/MobilePortfolioOverview";
 import {
@@ -155,10 +155,11 @@ const PortfolioPage = () => {
         {sortedBanks && (
           <div className="col-span-full w-full max-w-[900px]">
             <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Lending positions</div>
-            <div className="flex flew-row flex-wrap gap-4 justify-center items-center">
-              {isStoreInitialized ? (
-                lendingBanks.length > 0 ? (
-                  lendingBanks.map((bank) => (
+
+            {isStoreInitialized ? (
+              lendingBanks.length > 0 ? (
+                <div className="flex flew-row flex-wrap gap-4 justify-center items-center">
+                  {lendingBanks.map((bank) => (
                     <AssetCard
                       key={bank.meta.tokenSymbol}
                       nativeSolBalance={nativeSolBalance}
@@ -167,16 +168,16 @@ const PortfolioPage = () => {
                       isConnected={connected}
                       marginfiAccount={selectedAccount}
                     />
-                  ))
-                ) : (
-                  <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
-                    No lending positions found.
-                  </Typography>
-                )
+                  ))}
+                </div>
               ) : (
-                <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
-              )}
-            </div>
+                <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
+                  No lending positions found.
+                </Typography>
+              )
+            ) : (
+              <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+            )}
           </div>
         )}
 
@@ -185,10 +186,11 @@ const PortfolioPage = () => {
             <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">
               Borrowing positions
             </div>
-            <div className="flex flew-row flex-wrap gap-4 justify-center items-center">
-              {isStoreInitialized ? (
-                borrowingBanks.length > 0 ? (
-                  borrowingBanks.map((bank) => (
+
+            {isStoreInitialized ? (
+              borrowingBanks.length > 0 ? (
+                <div className="flex flew-row flex-wrap gap-4 justify-center items-center">
+                  {borrowingBanks.map((bank) => (
                     <AssetCard
                       key={bank.meta.tokenSymbol}
                       nativeSolBalance={nativeSolBalance}
@@ -197,16 +199,16 @@ const PortfolioPage = () => {
                       isConnected={connected}
                       marginfiAccount={selectedAccount}
                     />
-                  ))
-                ) : (
-                  <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
-                    No borrowing positions found.
-                  </Typography>
-                )
+                  ))}
+                </div>
               ) : (
-                <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
-              )}
-            </div>
+                <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1 pb-5" gutterBottom>
+                  No borrowing positions found.
+                </Typography>
+              )
+            ) : (
+              <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+            )}
           </div>
         )}
       </div>

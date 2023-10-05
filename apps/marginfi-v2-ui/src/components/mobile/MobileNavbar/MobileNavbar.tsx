@@ -24,7 +24,7 @@ const MobileNavbar: FC = () => {
     state.resetUserData,
   ]);
   const [lstUserDataFetched, resetLstUserData] = useLstStore((state) => [state.userDataFetched, state.resetUserData]);
-  
+
   useSwipeGesture(() => setIsMenuModalOpen(true));
 
   useEffect(() => {
@@ -48,13 +48,14 @@ const MobileNavbar: FC = () => {
 
   return (
     <header>
-      <nav className="fixed w-full bottom-0 h-[68px] z-50 bg-[#0F1111]">
+      <nav className="fixed w-full bottom-0 h-[84px] z-50 bg-[#0F1111]">
         <div className="h-full w-full text-sm font-[500] text-[#868E95] z-50 flex justify-around relative items-center z-10 lg:gap-8">
           {ORDERED_MOBILE_NAVBAR_LINKS.map((linkInfo, index) => {
             const isActive = activeLink === `link${index}`;
             return (
               <Link
                 key={linkInfo.label}
+                onClick={() => linkInfo.label === "more" && setIsMenuModalOpen(true)}
                 href={linkInfo.href}
                 className={`w-1/4 h-full flex flex-col justify-center items-center ${
                   isActive ? "current-mobile-nav-link" : ""

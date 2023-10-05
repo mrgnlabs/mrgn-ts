@@ -1,9 +1,5 @@
 import { FC, SVGProps } from "react";
-import {PieChart, ReceiveMoney, TokenSwap} from "~/components/common/icons";
-import { Bridge } from "~/components/common/icons/Bridge";
-import { Coins } from "~/components/common/icons/Coins";
-import { Steak } from "~/components/common/icons/Steak";
-
+import { PieChart, ReceiveMoney, TokenSwap, More, Bridge, Coins, Steak } from "~/components/common/icons";
 export interface NavLinkInfo {
   href: string;
   alt: string;
@@ -24,17 +20,18 @@ export const ORDERED_MOBILE_NAVBAR_LINKS: NavLinkInfo[] = [
     label: "stake",
     Icon: Steak,
   },
-  {
-    href: "/swap",
-    alt: "coin swap icon",
-    label: "swap",
-    Icon: TokenSwap,
-  },
+
   {
     href: "/portfolio",
     alt: "pie chart icon",
     label: "portfolio",
     Icon: PieChart,
+  },
+  {
+    href: "",
+    alt: "more menu icon",
+    label: "more",
+    Icon: More,
   },
 ];
 

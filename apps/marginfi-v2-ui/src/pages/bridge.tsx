@@ -5,7 +5,7 @@ import config from "~/config";
 import Script from "next/script";
 import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
-import { PageHeader } from "~/components/desktop/PageHeader";
+import { PageHeader } from "~/components/common/PageHeader";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
 import { useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -168,7 +168,7 @@ const BridgePage = () => {
   return (
     <>
       <PageHeader>
-        <div className="flex flex-row gap-1 pt-3">
+        <div className="flex flex-row gap-1">
           <span>bridge</span>
           <Desktop>
             <div className="flex flex-row items-center gap-1">
@@ -188,7 +188,7 @@ const BridgePage = () => {
           crossOrigin="anonymous"
           onReady={handleLoadMayanWidget}
         />
-        <div className="max-w-[420px] max-h-[500px]" id="swap_widget"/>
+        <div className="max-w-[420px] max-h-[500px]" id="swap_widget" />
       </div>
     </>
   );
