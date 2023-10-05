@@ -425,8 +425,10 @@ const AssetRow: FC<{
               }
               disabled={
                 currentAction !== "Connect" &&
-                ((isDust && uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero()) ||
-                  maxAmount === 0)
+                ((isDust &&
+                  uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero() &&
+                  currentAction == ActionType.Borrow) ||
+                  (!isDust && maxAmount === 0))
               }
             >
               {isDust ? "Close" : currentAction}
