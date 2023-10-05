@@ -22,10 +22,6 @@ const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 
   const { wallets, select } = useWallet();
   const [expanded, setExpanded] = useState(false);
 
-  useEffect(() => {
-    select(null);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   const [featured, more] = useMemo(() => {
     const installed: Wallet[] = [];
     const loadable: Wallet[] = [];
