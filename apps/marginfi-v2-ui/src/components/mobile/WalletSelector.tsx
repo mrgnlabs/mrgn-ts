@@ -66,9 +66,7 @@ const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 
                 <div
                   key={"walletconnect"}
                   onClick={() => {
-                    modal.openModal({
-                      uri: "marginfi://hey",
-                    });
+                    modal.openModal();
                     setIsWalletDrawerOpen(false);
                   }}
                   className="w-full flex justify-between"
