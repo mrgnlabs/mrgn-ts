@@ -49,7 +49,7 @@ const MobileNavbar: FC = () => {
   return (
     <header>
       <nav className="fixed w-full bottom-0 h-[84px] z-50 bg-[#0F1111]">
-        <div className="h-full w-full text-sm font-[500] text-[#868E95] z-50 flex justify-around relative items-center z-10 lg:gap-8">
+        <div className="h-full w-full text-sm font-[500] text-[#868E95] z-50 flex justify-around relative lg:gap-8">
           {ORDERED_MOBILE_NAVBAR_LINKS.map((linkInfo, index) => {
             const isActive = activeLink === `link${index}`;
             return (
@@ -57,11 +57,11 @@ const MobileNavbar: FC = () => {
                 key={linkInfo.label}
                 onClick={() => linkInfo.label === "more" && setIsMenuModalOpen(true)}
                 href={linkInfo.href}
-                className={`w-1/4 h-full flex flex-col justify-center items-center ${
+                className={`w-1/4 h-full flex flex-col pt-3 items-center ${
                   isActive ? "current-mobile-nav-link" : ""
                 }`}
               >
-                <linkInfo.Icon className="w-[18.9px] h-[18.9px]" color={isActive ? "#DCE85D" : "#999"} />
+                <linkInfo.Icon className="w-[24px] h-[24px]" color={isActive ? "#DCE85D" : "#999"} />
                 <div className={`font-aeonik font-[400] ${isActive ? "text-[#DCE85D]" : "text-[#999]"}`}>
                   {linkInfo.label}
                 </div>

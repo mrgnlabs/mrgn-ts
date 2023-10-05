@@ -21,14 +21,23 @@ interface UserPositionRowProps {
 const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAccount, reloadPositions }) => {
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
 
+  const maxAmount = useMemo(
+    () => (activeBankInfo.position.isLending ? activeBankInfo.userInfo.maxWithdraw : activeBankInfo.userInfo.maxRepay),
+    [activeBankInfo]
+  );
+
   const isDust = useMemo(
     () => uiToNative(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals).isZero(),
     [activeBankInfo]
   );
 
-  const maxAmount = useMemo(
-    () => (activeBankInfo.position.isLending ? activeBankInfo.userInfo.maxWithdraw : activeBankInfo.userInfo.maxRepay),
-    [activeBankInfo]
+  const isDisabled = useMemo(
+    () =>
+      (isDust &&
+        uiToNative(activeBankInfo.userInfo.tokenAccount.balance, activeBankInfo.info.state.mintDecimals).isZero() &&
+        !activeBankInfo.position.isLending) ||
+      (!isDust && maxAmount === 0),
+    [isDust, activeBankInfo, maxAmount]
   );
 
   const closeBalance = useCallback(async () => {
@@ -182,18 +191,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
 
       <TableCell className="text-white font-aeonik p-0 border-none" align="right">
         <div className="h-full w-full flex justify-end items-center pl-2 sm:px-2">
-          <UserPositionRowAction
-            onClick={isDust ? closeBalance : withdrawOrRepay}
-            disabled={
-              (isDust &&
-                uiToNative(
-                  activeBankInfo.userInfo.tokenAccount.balance,
-                  activeBankInfo.info.state.mintDecimals
-                ).isZero() &&
-                !activeBankInfo.position.isLending) ||
-              (!isDust && maxAmount === 0)
-            }
-          >
+          <UserPositionRowAction onClick={isDust ? closeBalance : withdrawOrRepay} disabled={isDisabled}>
             {isDust ? "Close" : activeBankInfo.position.isLending ? "Withdraw" : "Repay"}
           </UserPositionRowAction>
         </div>

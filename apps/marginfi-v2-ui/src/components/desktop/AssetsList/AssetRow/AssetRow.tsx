@@ -5,7 +5,6 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import Badge from "@mui/material/Badge";
-
 import {
   WSOL_MINT,
   groupedNumberFormatterDyn,
@@ -19,7 +18,6 @@ import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2"
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { AssetRowInputBox, AssetRowAction } from "~/components/common/AssetList";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { useWalletContext } from "~/hooks/useWalletContext";
 import { closeBalance, borrowOrLend } from "~/utils";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
@@ -59,7 +57,6 @@ const AssetRow: FC<{
   showHotkeyBadges,
   badgeContent,
 }) => {
-  const { connected, openWalletSelector } = useWalletContext();
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
@@ -76,18 +73,10 @@ const AssetRow: FC<{
 
   const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
 
-  const isDust = useMemo(
-    () => bank.isActive && uiToNative(bank.position.amount, bank.info.state.mintDecimals).isZero(),
-    [bank]
-  );
-  const currentAction: ActionType | "Connect" = useMemo(
-    () => (connected ? getCurrentAction(isInLendingMode, bank) : "Connect"),
-    [connected, isInLendingMode, bank]
-  );
+  const currentAction: ActionType = useMemo(() => getCurrentAction(isInLendingMode, bank), [isInLendingMode, bank]);
+
   const maxAmount = useMemo(() => {
     switch (currentAction) {
-      case "Connect":
-        return 0;
       case ActionType.Deposit:
         return bank.userInfo.maxDeposit;
       case ActionType.Withdraw:
@@ -98,6 +87,20 @@ const AssetRow: FC<{
         return bank.userInfo.maxRepay;
     }
   }, [bank, currentAction]);
+
+  const isDust = useMemo(
+    () => bank.isActive && uiToNative(bank.position.amount, bank.info.state.mintDecimals).isZero(),
+    [bank]
+  );
+
+  const isDisabled = useMemo(
+    () =>
+      (isDust &&
+        uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero() &&
+        currentAction == ActionType.Borrow) ||
+      (!isDust && maxAmount === 0),
+    [currentAction, bank, isDust, maxAmount]
+  );
 
   // Reset b/l amounts on toggle
   useEffect(() => {
@@ -400,7 +403,7 @@ const AssetRow: FC<{
             maxValue={maxAmount}
             maxDecimals={bank.info.state.mintDecimals}
             inputRefs={inputRefs}
-            disabled={isDust || currentAction === "Connect" || maxAmount === 0}
+            disabled={isDust || maxAmount === 0}
             onEnter={handleBorrowOrLend}
           />
         </Badge>
@@ -414,22 +417,12 @@ const AssetRow: FC<{
           <div className="h-full w-full flex justify-end items-center xl:ml-0 pl-2 sm:px-2">
             <AssetRowAction
               bgColor={
-                currentAction === "Connect" ||
-                currentAction === ActionType.Deposit ||
-                currentAction === ActionType.Borrow
+                currentAction === ActionType.Deposit || currentAction === ActionType.Borrow
                   ? "rgb(227, 227, 227)"
                   : "rgba(0,0,0,0)"
               }
-              onClick={
-                currentAction === "Connect" ? openWalletSelector : isDust ? handleCloseBalance : handleBorrowOrLend
-              }
-              disabled={
-                currentAction !== "Connect" &&
-                ((isDust &&
-                  uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero() &&
-                  currentAction == ActionType.Borrow) ||
-                  (!isDust && maxAmount === 0))
-              }
+              onClick={isDust ? handleCloseBalance : handleBorrowOrLend}
+              disabled={isDisabled}
             >
               {isDust ? "Close" : currentAction}
             </AssetRowAction>

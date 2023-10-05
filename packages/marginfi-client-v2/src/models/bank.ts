@@ -354,6 +354,22 @@ class Bank {
     }
   }
 
+  computeTvl(oraclePrice: OraclePrice): BigNumber {
+    return this.computeAssetUsdValue(
+      oraclePrice,
+      this.totalAssetShares,
+      MarginRequirementType.Equity,
+      PriceBias.None
+    ).minus(
+      this.computeLiabilityUsdValue(
+        oraclePrice,
+        this.totalLiabilityShares,
+        MarginRequirementType.Equity,
+        PriceBias.None
+      )
+    );
+  }
+
   computeInterestRates(): {
     lendingRate: BigNumber;
     borrowingRate: BigNumber;

@@ -1,17 +1,12 @@
 import React, { FC, useCallback, useMemo } from "react";
-
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-
 import { useMrgnlendStore } from "~/store";
 import { borrowOrLend, closeBalance } from "~/utils";
-import { useWalletContext } from "~/hooks/useWalletContext";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
-
 import { AssetCardStats } from "./AssetCardStats";
 import { AssetCardActions } from "./AssetCardActions";
-
 import { AssetCardPosition } from "./AssetCardPosition";
 import { AssetCardHeader } from "./AssetCardHeader";
 
@@ -26,7 +21,7 @@ export const AssetCard: FC<{
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
-  const { connected } = useWalletContext();
+
   const totalDepositsOrBorrows = useMemo(
     () =>
       isInLendingMode

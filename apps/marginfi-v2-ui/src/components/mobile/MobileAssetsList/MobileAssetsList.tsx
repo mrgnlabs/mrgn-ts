@@ -1,4 +1,4 @@
-import React, { FC, useMemo, useRef, useState } from "react";
+import React, { FC, useCallback, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { FormControl, MenuItem, Select, SelectChangeEvent, Skeleton, Typography } from "@mui/material";
@@ -11,7 +11,7 @@ import { SORT_OPTIONS_MAP, SortAssetOption, SortType, sortApRate, sortTvl } from
 
 export const MobileAssetsList: FC = () => {
   const [isFiltered, setIsFiltered] = useState(false);
-  const [sortOption, setSortOption] = useState<SortAssetOption>();
+  const [sortOption, setSortOption] = useState<SortAssetOption>(SORT_OPTIONS_MAP.TVL_DESC);
   const togglePositions = () => setIsFiltered((previousState) => !previousState);
 
   const { connected } = useWalletContext();
@@ -24,15 +24,18 @@ export const MobileAssetsList: FC = () => {
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [isInLendingMode, setIsInLendingMode] = useState(true);
 
-  const sortBanks = (banks: ExtendedBankInfo[]) => {
-    if (sortOption?.field === "APY") {
-      return sortApRate(banks, isInLendingMode, sortOption.direction);
-    } else if (sortOption?.field === "TVL") {
-      return sortTvl(banks, sortOption.direction);
-    } else {
-      return banks;
-    }
-  };
+  const sortBanks = useCallback(
+    (banks: ExtendedBankInfo[]) => {
+      if (sortOption.field === "APY") {
+        return sortApRate(banks, isInLendingMode, sortOption.direction);
+      } else if (sortOption.field === "TVL") {
+        return sortTvl(banks, sortOption.direction);
+      } else {
+        return banks;
+      }
+    },
+    [isInLendingMode, sortOption]
+  );
 
   const globalBanks = useMemo(() => {
     const filteredBanks =
@@ -44,7 +47,7 @@ export const MobileAssetsList: FC = () => {
     } else {
       return filteredBanks;
     }
-  }, [sortedBanks, isFiltered, sortOption]);
+  }, [sortedBanks, sortOption, isFiltered, sortBanks]);
 
   const isolatedBanks = useMemo(() => {
     const filteredBanks =
@@ -55,7 +58,7 @@ export const MobileAssetsList: FC = () => {
     } else {
       return filteredBanks;
     }
-  }, [sortedBanks, isFiltered, sortOption]);
+  }, [sortedBanks, sortOption, isFiltered, sortBanks]);
 
   const handleSortChange = (event: SelectChangeEvent) => {
     setSortOption(SORT_OPTIONS_MAP[event.target.value as SortType]);
@@ -85,7 +88,7 @@ export const MobileAssetsList: FC = () => {
         <div>
           <FormControl sx={{ m: 1, width: "102px", height: "36px", color: "white", margin: 0 }}>
             <Select
-              value={sortOption?.value ?? ""}
+              value={sortOption.value}
               onChange={handleSortChange}
               inputProps={{ "aria-label": "Without label" }}
               disableUnderline
@@ -105,29 +108,31 @@ export const MobileAssetsList: FC = () => {
                 fontSize: "16px",
                 fontWeight: 400,
                 marginRight: "4px",
-                padding: "8px 16px",
+                padding: "8px 12px",
                 borderWidth: 0,
                 backgroundColor: "#22282c",
                 borderRadius: "6px",
                 "& .MuiSvgIcon-root": {
                   color: "white",
-                  marginRight: "6px",
                 },
               }}
             >
-              <MenuItem value="" sx={{ color: "#A1A1A1", backgroundColor: "#22282c" }}>
-                <em>None</em>
-              </MenuItem>
               {Object.values(SORT_OPTIONS_MAP).map((option) => (
                 <MenuItem
                   key={option.value}
                   sx={{
                     color: "white",
                     backgroundColor: "#22282c",
+                    display: "flex",
+                    justifyContent: "space-around",
+                    alignItems: "center",
+                    width: "100%",
+                    paddingRight: "12px",
                   }}
                   value={option.value}
                 >
                   {isInLendingMode || !option.borrowLabel ? option.label : option.borrowLabel}
+                  <option.Icon className="w-[18px] h-[18px]" />
                 </MenuItem>
               ))}
             </Select>
@@ -141,7 +146,7 @@ export const MobileAssetsList: FC = () => {
         {isStoreInitialized && globalBanks ? (
           globalBanks.length > 0 ? (
             <div className="flex flew-row flex-wrap gap-6 justify-center items-center pt-2">
-              {globalBanks.map((bank, i) => (
+              {globalBanks.map((bank) => (
                 <AssetCard
                   key={bank.meta.tokenSymbol}
                   nativeSolBalance={nativeSolBalance}

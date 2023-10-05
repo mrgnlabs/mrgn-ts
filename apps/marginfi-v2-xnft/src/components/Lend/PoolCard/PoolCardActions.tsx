@@ -12,7 +12,7 @@ type Props = {
   onAction: (amount?: string) => void;
 };
 
-export function PoolCardActions({ currentAction, bank, isBankFilled, onAction }: Props) {
+export function PoolCardActions({ currentAction, bank, onAction }: Props) {
   const [amount, setAmount] = useState<string>("0");
 
   const maxAmount = useMemo(() => {
@@ -35,8 +35,10 @@ export function PoolCardActions({ currentAction, bank, isBankFilled, onAction }:
 
   const isDisabled = useMemo(
     () =>
-      (isDust && uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero()) ||
-      maxAmount === 0,
+      (isDust &&
+        uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero() &&
+        currentAction == ActionType.Borrow) ||
+      (!isDust && maxAmount === 0),
     [currentAction, bank, isDust, maxAmount]
   );
 
