@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import { Apps, Login } from "@mui/icons-material";
+import { Login } from "@mui/icons-material";
 import { useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Mobile } from "~/mediaQueries";
@@ -10,7 +10,7 @@ interface PageHeaderProps {
 }
 
 const PageHeader: FC<PageHeaderProps> = ({ children }) => {
-  const { connected } = useWalletContext();
+  const { connected, openWalletSelector } = useWalletContext();
   const [setIsWalletDrawerOpen, isFetchingData] = useUiStore((state) => [
     state.setIsWalletDrawerOpen,
     state.isFetchingData,
@@ -28,13 +28,21 @@ const PageHeader: FC<PageHeaderProps> = ({ children }) => {
         <Mobile>
           <div className="flex justify-center items-center gap-3">
             {!connected && (
-              <Login
-                onClick={() => {
-                  setIsWalletDrawerOpen(true);
-                }}
-                sx={{ width: "22px" }}
-                className=""
-              />
+              <>
+                <Login
+                  onClick={() => {
+                    setIsWalletDrawerOpen(true);
+                  }}
+                  sx={{ width: "22px" }}
+                  className=""
+                />
+                <div
+                  className="flex justify-center items-center cursor-pointer bg-transparent rounded-2xl border-[1px] border-white text-base px-2 font-[300]"
+                  onClick={openWalletSelector}
+                >
+                  connect
+                </div>
+              </>
             )}
           </div>
         </Mobile>

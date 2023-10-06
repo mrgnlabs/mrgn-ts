@@ -6,6 +6,7 @@ import { useUiStore } from "~/store";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { WalletName, WalletReadyState } from "@solana/wallet-adapter-base";
+import { toast } from "react-toastify";
 
 const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 }) => {
   const [isWalletDrawerOpen, setIsWalletDrawerOpen] = useUiStore((state) => [
@@ -13,7 +14,7 @@ const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 
     state.setIsWalletDrawerOpen,
   ]);
 
-  const { wallets, select } = useWallet();
+  const { wallets, select, wallet: currentWallet } = useWallet();
   const [expanded, setExpanded] = useState(false);
 
   const [featured, more] = useMemo(() => {
@@ -37,11 +38,13 @@ const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 
 
   const handleWalletClick = useCallback(
     (walletName: WalletName) => {
+      if (walletName === currentWallet?.adapter.name) return;
+      toast.info(`Connecting to ${walletName}, prev: ${currentWallet?.adapter.name}`)
       select(walletName);
       setExpanded(false);
       setIsWalletDrawerOpen(false);
     },
-    [select, setIsWalletDrawerOpen]
+    [select, setIsWalletDrawerOpen, currentWallet]
   );
   return (
     <Modal

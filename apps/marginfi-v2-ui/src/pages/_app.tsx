@@ -64,8 +64,6 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     setIsFetchingData,
   ]);
 
-  const isMobile = useMediaQuery({ query: '(max-width: 640px)' })
-
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -84,25 +82,27 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
           <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
-            <Desktop>
-              <WalletModalProvider>
+            <WalletModalProvider>
+              <Desktop>
+                {/* <WalletModalProvider> */}
                 <DesktopNavbar />
                 <div className="w-full flex flex-col justify-center items-center pt-[64px]">
                   <Component {...pageProps} />
                 </div>
                 <Footer />
-              </WalletModalProvider>
-            </Desktop>
+                {/* </WalletModalProvider> */}
+              </Desktop>
 
-            <Mobile>
-              <MobileNavbar />
-              <div className="w-full flex flex-col justify-center items-center sm:pt-[24px]">
-                <Component {...pageProps} />
-              </div>
-              <WalletSelector />
-            </Mobile>
-            <Analytics />
-            <ToastContainer position="bottom-left" theme="dark" />
+              <Mobile>
+                <MobileNavbar />
+                <div className="w-full flex flex-col justify-center items-center sm:pt-[24px]">
+                  <Component {...pageProps} />
+                </div>
+                <WalletSelector />
+              </Mobile>
+              <Analytics />
+              <ToastContainer position="bottom-left" theme="dark" />
+            </WalletModalProvider>
           </WalletProvider>
         </ConnectionProvider>
       )}
