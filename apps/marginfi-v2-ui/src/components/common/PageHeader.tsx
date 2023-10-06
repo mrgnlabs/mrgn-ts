@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import { Login } from "@mui/icons-material";
+import { Login, WalletOutlined } from "@mui/icons-material";
 import { useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Mobile } from "~/mediaQueries";
@@ -18,7 +18,7 @@ const PageHeader: FC<PageHeaderProps> = ({ children }) => {
 
   return (
     <div className="flex w-full h-[90px] sm:h-[60px] justify-center items-center border-solid border-[#1C2125] border-y-[1px] bg-[url('/WaveBG3.png')]">
-      <div className="w-[90%] sm:w-4/5 sm:max-w-7xl flex flex-row justify-between items-center border-solid font-aeonik font-normal text-2xl sm:text-3xl">
+      <div className="w-full px-4 sm:w-4/5 sm:max-w-7xl flex flex-row justify-between items-center border-solid font-aeonik font-normal text-2xl sm:text-3xl">
         <div className="flex gap-4 justify-center items-center">
           <Mobile>
             <Mrgn className={`w-[18px] ${isFetchingData ? "animate-pulse" : ""}`} />
@@ -28,14 +28,14 @@ const PageHeader: FC<PageHeaderProps> = ({ children }) => {
         <Mobile>
           <div className="flex justify-center items-center gap-3">
             {!connected && (
-                <div
-                  className="flex justify-center items-center cursor-pointer bg-transparent rounded-2xl border-[1px] border-white text-base px-2 font-[300]"
-                  onClick={() => {
-                    setIsWalletDrawerOpen(true);
-                  }}
-                >
-                  connect
-                </div>
+              <div
+                className="flex justify-center gap-1.5 items-center cursor-pointer bg-white rounded-md border-[1px] border-white transition hover:bg-transparent text-black text-base px-3 py-1"
+                onClick={() => {
+                  setIsWalletDrawerOpen(true);
+                }}
+              >
+                <WalletOutlined className="text-lg" /> Connect
+              </div>
             )}
           </div>
         </Mobile>
