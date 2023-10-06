@@ -49,7 +49,11 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
             </Typography>
             <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
               {userPointsData ? (
-                `#${groupedNumberFormatterDyn.format(userPointsData.userRank)}`
+                userPointsData.userRank ? (
+                  `#${groupedNumberFormatterDyn.format(userPointsData.userRank)}`
+                ) : (
+                  "-"
+                )
               ) : (
                 <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
               )}
