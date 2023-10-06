@@ -5,7 +5,7 @@ import { useRecoilValue } from "recoil";
 import tw from "~/styles/tailwind";
 import { tabActiveAtom } from "~/consts";
 import { Screen, Toggle } from "~/components/Common";
-import { LendHeader, PoolCard, PoolCardSkeleton, TabSwitch } from "~/components/Lend";
+import { LendHeader, PoolCard, PoolCardSkeleton, Select, TabSwitch } from "~/components/Lend";
 import { useMrgnlendStore } from "~/store/store";
 import config from "~/config";
 import { useConnection } from "~/hooks/useConnection";
@@ -15,15 +15,15 @@ import { SORT_OPTIONS_MAP, SortAssetOption, SortType, sortApRate, sortTvl } from
 export function LendScreen() {
   const { wallet } = useWallet();
   const connection = useConnection();
-  const [marginfiClient, fetchMrgnlendState, selectedAccount, extendedBankInfos, nativeSolBalance] = useMrgnlendStore(
-    (state) => [
+  const [isStoreInitialized, marginfiClient, fetchMrgnlendState, selectedAccount, extendedBankInfos, nativeSolBalance] =
+    useMrgnlendStore((state) => [
+      state.initialized,
       state.marginfiClient,
       state.fetchMrgnlendState,
       state.selectedAccount,
       state.extendedBankInfos,
       state.nativeSolBalance,
-    ]
-  );
+    ]);
   const tabActive = useRecoilValue(tabActiveAtom);
   const [isFiltered, setIsFiltered] = useState(false);
   const [sortOption, setSortOption] = useState<SortAssetOption>(SORT_OPTIONS_MAP["TVL_DESC"]);
@@ -80,10 +80,13 @@ export function LendScreen() {
         <View style={tw`flex flex-column gap-16px`}>
           <View style={tw`flex-row justify-between`}>
             <TabSwitch />
-            <View style={tw`flex flex-row gap-3 items-center `}>
+          </View>
+          <View style={tw`flex flex-row justify-between z-50`}>
+            <View style={tw`flex flex-row gap-3 items-center`}>
               <Toggle isEnabled={isFiltered} toggleSwitch={togglePositions} />
-              <Text style={tw`text-base font-light text-primary`}>My positions</Text>
+              <Text style={tw`text-base font-light text-primary`}>Filter My positions</Text>
             </View>
+            <Select selectedItem={sortOption} setSelectedItem={setSortOption} />
           </View>
           <View style={tw`flex flex-row justify-between z-50`}>
             <View style={tw`flex flex-row gap-3 items-center`}>

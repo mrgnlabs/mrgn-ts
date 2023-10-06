@@ -5,7 +5,7 @@ export function useConnection() {
   const [connection, setConnection] = useState<Connection>();
   useEffect(() => {
     if (!connection) {
-      const endpoint = "https://app.bitspawn.workers.dev"; //window.xnft.solana.connection._rpcEndpoint as string;
+      const endpoint = window.xnft.solana.connection._rpcEndpoint as string;
       setConnection(new Connection(endpoint));
     }
   }, [connection]);
