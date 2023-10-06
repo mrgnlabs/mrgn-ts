@@ -59,7 +59,7 @@ const Home = () => {
         <div className="flex flex-col h-full justify-start content-start pt-[16px] w-4/5 max-w-7xl gap-4">
           {walletAddress && selectedAccount && isOverride && (
             <Banner
-              text={`Read-only view of ${shortenAddress(selectedAccount.address.toBase58())} (owner: ${shortenAddress(
+              text={`Read-only view of ${selectedAccount.address.toBase58()} (owner: ${shortenAddress(
                 walletAddress
               )}) - All actions are simulated`}
               backgroundColor="#DCE85D"

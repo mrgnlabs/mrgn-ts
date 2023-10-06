@@ -1,18 +1,11 @@
 import { Modal, Slide } from "@mui/material";
 import { Wallet, useWallet } from "@solana/wallet-adapter-react";
 import Image from "next/image";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { useUiStore } from "~/store";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { WalletName, WalletReadyState } from "@solana/wallet-adapter-base";
-import { WalletConnectModal } from "@walletconnect/modal";
-
-const modal = new WalletConnectModal({
-  projectId: "69125c28c9733812e7b6653a2222cb0e",
-  chains: ["solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ"],
-  explorerRecommendedWalletIds: ["a797aa35c0fadbfc1a53e7f675162ed5226968b44a19ee3d24385c64d1d3c393"]
-});
 
 const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 }) => {
   const [isWalletDrawerOpen, setIsWalletDrawerOpen] = useUiStore((state) => [
@@ -64,7 +57,7 @@ const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 
             <>
               <div className="flex justify-center items-center font-[500] text-[#868E95]">Select a wallet</div>
               <div className="w-full h-full flex flex-col gap-4 mt-2 pr-3 overflow-y-auto">
-                <div
+                {/* <div
                   key={"walletconnect"}
                   onClick={() => {
                     modal.openModal();
@@ -75,7 +68,7 @@ const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 
                   <div className="flex gap-3 justify-center items-center">
                     <div>walletconnect</div>
                   </div>
-                </div>
+                </div> */}
                 {featured.map((wallet) => (
                   <div
                     key={wallet.adapter.name}
@@ -119,7 +112,7 @@ const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 
             </>
           ) : (
             <div className="w-full h-full flex justify-center items-center text-center">
-              No wallet found. Please download a supported Solana wallet
+              No wallet found. Please download a supported Solana wallet.
             </div>
           )}
         </div>
