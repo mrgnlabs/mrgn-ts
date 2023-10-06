@@ -15,7 +15,7 @@ export const MobileAssetsList: FC = () => {
   const togglePositions = () => setIsFiltered((previousState) => !previousState);
 
   const { connected } = useWalletContext();
-  const [isStoreInitialized, sortedBanks, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
+  const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
     state.nativeSolBalance,
@@ -29,6 +29,7 @@ export const MobileAssetsList: FC = () => {
       if (sortOption.field === "APY") {
         return sortApRate(banks, isInLendingMode, sortOption.direction);
       } else if (sortOption.field === "TVL") {
+        console.log(sortTvl)
         return sortTvl(banks, sortOption.direction);
       } else {
         return banks;
@@ -39,26 +40,26 @@ export const MobileAssetsList: FC = () => {
 
   const globalBanks = useMemo(() => {
     const filteredBanks =
-      sortedBanks &&
-      sortedBanks.filter((b) => !b.info.state.isIsolated).filter((b) => (isFiltered ? b.isActive : true));
+      extendedBankInfos &&
+      extendedBankInfos.filter((b) => !b.info.state.isIsolated).filter((b) => (isFiltered ? b.isActive : true));
 
-    if (sortOption && filteredBanks) {
+    if (isStoreInitialized && sortOption && filteredBanks) {
       return sortBanks(filteredBanks);
     } else {
       return filteredBanks;
     }
-  }, [sortedBanks, sortOption, isFiltered, sortBanks]);
+  }, [isStoreInitialized, extendedBankInfos, sortOption, isFiltered, sortBanks]);
 
   const isolatedBanks = useMemo(() => {
     const filteredBanks =
-      sortedBanks && sortedBanks.filter((b) => b.info.state.isIsolated).filter((b) => (isFiltered ? b.isActive : true));
+      extendedBankInfos && extendedBankInfos.filter((b) => b.info.state.isIsolated).filter((b) => (isFiltered ? b.isActive : true));
 
-    if (sortOption && filteredBanks) {
+    if (isStoreInitialized && sortOption && filteredBanks) {
       return sortBanks(filteredBanks);
     } else {
       return filteredBanks;
     }
-  }, [sortedBanks, sortOption, isFiltered, sortBanks]);
+  }, [isStoreInitialized, extendedBankInfos, sortOption, isFiltered, sortBanks]);
 
   const handleSortChange = (event: SelectChangeEvent) => {
     setSortOption(SORT_OPTIONS_MAP[event.target.value as SortType]);

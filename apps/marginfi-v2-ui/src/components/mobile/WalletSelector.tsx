@@ -11,6 +11,7 @@ import { WalletConnectModal } from "@walletconnect/modal";
 const modal = new WalletConnectModal({
   projectId: "69125c28c9733812e7b6653a2222cb0e",
   chains: ["solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ"],
+  explorerRecommendedWalletIds: ["a797aa35c0fadbfc1a53e7f675162ed5226968b44a19ee3d24385c64d1d3c393"]
 });
 
 const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 }) => {

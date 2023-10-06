@@ -1,5 +1,7 @@
 const withPWA = require('next-pwa')({
-  dest: 'public'
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
+  runtimeCaching: "CacheFirst",
 })
 
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
@@ -110,4 +112,4 @@ config = withSentryConfig(
   }
 );
 
-module.exports = process.env.NODE_ENV === 'development' ? config : withPWA(config);
+module.exports = withPWA(config);
