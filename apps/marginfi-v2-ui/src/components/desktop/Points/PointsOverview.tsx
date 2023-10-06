@@ -12,8 +12,8 @@ interface PointsOverviewProps {
 export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-[800px] mx-auto w-full">
-        <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+      <div className="grid grid-cols-2 gap-5 max-w-[800px] mx-auto w-full">
+        <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
           <CardContent>
             <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
               Total Points
@@ -42,7 +42,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
             </Typography>
           </CardContent>
         </Card>
-        <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+        <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
           <CardContent>
             <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
               Global Rank {/* TODO: fix that with dedicated query */}
@@ -57,8 +57,8 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
           </CardContent>
         </Card>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 max-w-[800px] mx-auto w-full">
-        <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-5 max-w-[800px] mx-auto w-full">
+        <Card className="bg-[#131619]  h-24 rounded-xl" elevation={0}>
           <CardContent>
             <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
               Lending Points
@@ -87,7 +87,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
             </Typography>
           </CardContent>
         </Card>
-        <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+        <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
           <CardContent>
             <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
               Borrowing Points
@@ -116,7 +116,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
             </Typography>
           </CardContent>
         </Card>
-        <Card className="bg-[#131619] h-full h-24 rounded-xl" elevation={0}>
+        <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
           <CardContent>
             <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
               Referral Points
