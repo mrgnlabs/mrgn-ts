@@ -29,7 +29,6 @@ export const MobileAssetsList: FC = () => {
       if (sortOption.field === "APY") {
         return sortApRate(banks, isInLendingMode, sortOption.direction);
       } else if (sortOption.field === "TVL") {
-        console.log(sortTvl)
         return sortTvl(banks, sortOption.direction);
       } else {
         return banks;
