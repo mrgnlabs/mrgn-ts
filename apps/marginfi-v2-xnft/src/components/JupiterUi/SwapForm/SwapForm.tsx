@@ -9,6 +9,7 @@ import { PrimaryButton } from "~/components/Common";
 
 import { SwapFormCard } from "./SwapFormCard";
 import { FormHeader } from "./FormHeader";
+import { PriceInfo } from "../PriceInfo";
 
 export const SwapForm: React.FC<{
   onSubmit: () => void;
@@ -112,6 +113,17 @@ export const SwapForm: React.FC<{
           }}
         />
       </View>
+
+      {route && quoteReponseMeta && fromTokenInfo && toTokenInfo ? (
+        <PriceInfo
+          quoteResponse={quoteReponseMeta.quoteResponse}
+          fromTokenInfo={fromTokenInfo}
+          toTokenInfo={toTokenInfo}
+          loading={loading}
+        />
+      ) : (
+        <></>
+      )}
     </View>
   );
 };

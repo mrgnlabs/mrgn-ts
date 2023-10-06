@@ -21,21 +21,19 @@ import { useJupiterStore, useMrgnlendStore } from "~/store/store";
 export function SwapScreen() {
   const [showRouteSelector, setShowRouteSelector] = useState<boolean>(false);
   const [selectPairSelector, setSelectPairSelector] = useState<"fromMint" | "toMint" | null>(null);
+  const [showUnknownToken, setShowUnknownToken] = useState<TokenInfo | null>(null);
   const [tokenMap, tokenAccountMap] = useJupiterStore((state) => [state.tokenMap, state.tokenAccountMap]);
 
   const {
     form,
     setForm,
     setErrors,
-    selectedSwapRoute,
-    fromTokenInfo,
-    toTokenInfo,
-    formProps: { initialOutputMint, fixedOutputMint },
+    quoteReponseMeta,
     onSubmit: onSubmitJupiter,
-    jupiter: { routes, loading },
+    formProps: { initialOutputMint, fixedOutputMint },
+    jupiter: { loading },
   } = useSwapContext();
-  // const { tokenAccountMap } = useTokenAccounts();
-  const [showUnknownToken, setShowUnknownToken] = useState<TokenInfo | null>(null);
+
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
   const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
@@ -53,7 +51,7 @@ export function SwapScreen() {
   }, [tokenAccountMap, nativeSolBalance, form.fromMint]);
 
   useEffect(() => {
-    if (!form.fromValue || !form.fromMint || !form.toMint || !form.toValue || !selectedSwapRoute || loading) {
+    if (!form.fromValue || !form.fromMint || !form.toMint || !form.toValue || !quoteReponseMeta || loading) {
       setErrors({});
       setIsDisabled(true);
       return;
@@ -136,18 +134,6 @@ export function SwapScreen() {
           setShowRouteSelector={(toggle: boolean) => setShowRouteSelector(toggle)}
           setShowSettingsModal={() => setShowSettingsModal(!showSettingsModal)}
         />
-
-        {routes && selectedSwapRoute && fromTokenInfo && toTokenInfo ? (
-          <PriceInfo
-            routes={routes}
-            selectedSwapRoute={selectedSwapRoute}
-            fromTokenInfo={fromTokenInfo}
-            toTokenInfo={toTokenInfo}
-            loading={loading}
-          />
-        ) : (
-          <></>
-        )}
 
         <Modal
           animationType="slide"
