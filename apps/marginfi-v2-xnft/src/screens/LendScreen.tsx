@@ -88,7 +88,7 @@ export function LendScreen() {
             </View>
             <Select selectedItem={sortOption} setSelectedItem={setSortOption} />
           </View>
-          <Text style={tw`text-xl text-primary pl-12px`}>Global pools</Text>
+          <Text style={tw`text-xl text-primary pl-12px`}>Global pool</Text>
           <View style={tw`flex flex-row gap-2 flex-wrap`}>
             {extendedBankInfos.length > 0 ? (
               globalBanks.length > 0 ? (
@@ -114,7 +114,7 @@ export function LendScreen() {
             )}
           </View>
 
-          <Text style={tw`text-xl text-primary pl-12px`}>Isolated pools</Text>
+          <Text style={tw`text-xl text-primary pl-12px`}>Isolated pool</Text>
           <View style={tw`flex flex-row gap-2 flex-wrap`}>
             {extendedBankInfos.length > 0 ? (
               isolatedBanks.length > 0 ? (
