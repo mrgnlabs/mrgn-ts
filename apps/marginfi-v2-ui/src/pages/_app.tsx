@@ -83,7 +83,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       </Head>
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
-          <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={!isMobile}>
+          <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
             <Desktop>
               <WalletModalProvider>
                 <DesktopNavbar />
