@@ -34,7 +34,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
               </div>
             </Typography>
             <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-              {userPointsData.totalPoints > 0 ? (
+              {userPointsData ? (
                 numeralFormatter(userPointsData.totalPoints)
               ) : (
                 <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
@@ -48,7 +48,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
               Global Rank {/* TODO: fix that with dedicated query */}
             </Typography>
             <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-              {userPointsData.userRank && userPointsData.userRank > 0 ? (
+              {userPointsData ? (
                 `#${groupedNumberFormatterDyn.format(userPointsData.userRank)}`
               ) : (
                 <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
@@ -79,7 +79,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
               </div>
             </Typography>
             <Typography color="#fff" component="div" className="font-aeonik font-[500] text-2xl">
-              {userPointsData.depositPoints > 0 ? (
+              {userPointsData ? (
                 numeralFormatter(userPointsData.depositPoints)
               ) : (
                 <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
@@ -108,7 +108,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
               </div>
             </Typography>
             <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-              {userPointsData.borrowPoints > 0 ? (
+              {userPointsData ? (
                 numeralFormatter(userPointsData.borrowPoints)
               ) : (
                 <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
@@ -137,7 +137,11 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
               </div>
             </Typography>
             <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-              {userPointsData.referralPoints > 0 ? numeralFormatter(userPointsData.referralPoints) : "-"}
+              {userPointsData ? (
+                numeralFormatter(userPointsData.referralPoints)
+              ) : (
+                <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
+              )}
             </Typography>
           </CardContent>
         </Card>
