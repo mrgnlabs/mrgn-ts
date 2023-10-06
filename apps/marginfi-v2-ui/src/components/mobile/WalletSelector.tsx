@@ -87,9 +87,9 @@ const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 
                 ))}
                 {more.length === 0 ? null : expanded ? (
                   <>
-                    {more.map((wallet) => (
+                    {more.map((wallet, i) => (
                       <div
-                        key={wallet.adapter.name}
+                        key={i}
                         onClick={() => handleWalletClick(wallet.adapter.name)}
                         className="w-full flex justify-between"
                       >

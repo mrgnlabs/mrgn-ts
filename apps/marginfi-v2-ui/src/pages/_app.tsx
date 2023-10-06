@@ -17,7 +17,6 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "./stake";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { WALLET_ADAPTERS } from "~/config/wallets";
-import { useMediaQuery } from "react-responsive";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -82,27 +81,25 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
           <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
-            <WalletModalProvider>
-              <Desktop>
-                {/* <WalletModalProvider> */}
+            <Desktop>
+              <WalletModalProvider>
                 <DesktopNavbar />
                 <div className="w-full flex flex-col justify-center items-center pt-[64px]">
                   <Component {...pageProps} />
                 </div>
                 <Footer />
-                {/* </WalletModalProvider> */}
-              </Desktop>
+              </WalletModalProvider>
+            </Desktop>
 
-              <Mobile>
-                <MobileNavbar />
-                <div className="w-full flex flex-col justify-center items-center sm:pt-[24px]">
-                  <Component {...pageProps} />
-                </div>
-                <WalletSelector />
-              </Mobile>
-              <Analytics />
-              <ToastContainer position="bottom-left" theme="dark" />
-            </WalletModalProvider>
+            <Mobile>
+              <MobileNavbar />
+              <div className="w-full flex flex-col justify-center items-center sm:pt-[24px]">
+                <Component {...pageProps} />
+              </div>
+              <WalletSelector />
+            </Mobile>
+            <Analytics />
+            <ToastContainer position="bottom-left" theme="dark" />
           </WalletProvider>
         </ConnectionProvider>
       )}
