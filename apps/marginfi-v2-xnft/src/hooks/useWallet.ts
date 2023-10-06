@@ -13,25 +13,23 @@ export function useWallet() {
   const connection = useConnection();
 
   useEffect(() => {
-    if (connection) {
-      setProvider(
-        new AnchorProvider(
-          connection,
-          { publicKey: new PublicKey("3rpcmBeq3LcdTxez1sdi8vf61ofpxFpKrr7iViEWykAR") } as Wallet,
-          AnchorProvider.defaultOptions()
-        )
-      );
+    if (connection && window?.xnft?.solana) {
+      setProvider(new AnchorProvider(connection, new XnftWallet(window.xnft.solana), AnchorProvider.defaultOptions()));
     }
-  }, [connection, setProvider]);
+  }, [connection, window?.xnft?.solana, setProvider]);
 
   useEffect(() => {
-    const wallet = {
-      publicKey: new PublicKey("3rpcmBeq3LcdTxez1sdi8vf61ofpxFpKrr7iViEWykAR"),
-      // signTransaction: solanaSignTransaction,
-    } as Wallet; //new Wallet({ publicKey: new PublicKey(key) } as Keypair);
-    setWallet(wallet);
-    setSolanaPublicKey(new PublicKey("3rpcmBeq3LcdTxez1sdi8vf61ofpxFpKrr7iViEWykAR"));
-  }, [setSolanaPublicKey]);
+    if (window?.xnft?.publicKeys?.solana) {
+      const key = window?.xnft?.publicKeys?.solana;
+      const wallet = {
+        publicKey: new PublicKey(key),
+        signTransaction: solanaSignTransaction,
+      } as Wallet; //new Wallet({ publicKey: new PublicKey(key) } as Keypair);
+
+      setWallet(wallet);
+      setSolanaPublicKey(new PublicKey(key));
+    }
+  }, [window?.xnft?.publicKeys?.solana, setSolanaPublicKey]);
   return {
     publicKey: solanaPublicKey,
     provider,
