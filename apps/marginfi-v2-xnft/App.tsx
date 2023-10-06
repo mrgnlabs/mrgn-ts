@@ -1,12 +1,11 @@
-import React, { ReactNode, useState } from "react";
+import React, { useState } from "react";
 import { registerRootComponent } from "expo";
 import { RecoilRoot } from "recoil";
-import { ActivityIndicator, View, Text, StyleSheet, ImageBackground } from "react-native";
+import { ActivityIndicator, View, Text, StyleSheet, ImageBackground, TouchableOpacity } from "react-native";
 import Toast from "react-native-toast-message";
 import { JupiterProvider } from "@jup-ag/react-hook";
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { BottomTabHeaderProps, createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFonts, Inter_900Black } from "@expo-google-fonts/dev";
 
 import { PortfolioScreens } from "~/screens/PortfolioScreen";
@@ -33,19 +32,13 @@ const MyTheme = {
   },
 };
 
-function LogoTitle() {
+function LogoTitle({ title }: { title: string }) {
   const styles = StyleSheet.create({
     container: {
-      // flex: '1 1 0%',
       borderBottomColor: "rgb(39, 39, 41)",
       borderBottomWidth: 1,
       height: 63,
       position: "relative",
-
-      // border-bottom-width: 1px
-      // background-color: rgb(18, 18, 18)
-      // border-bottom-color: rgb(39, 39, 41)
-      // box-shadow: rgb(39, 39, 41) 0px 0px 0px
     },
     backgroundImage: {
       display: "flex",
@@ -62,7 +55,7 @@ function LogoTitle() {
       fontFamily: "Aeonik Pro",
       fontWeight: "400",
       color: "white",
-      fontSize: 22,
+      fontSize: 24,
       marginVertical: "auto",
     },
   });
@@ -77,12 +70,19 @@ function LogoTitle() {
   );
 }
 
+function MoreScreen() {
+  return null;
+}
+
 function TabNavigator() {
   return (
     <Tab.Navigator
-      initialRouteName="Home"
+      initialRouteName="Lend"
       screenOptions={{
-        tabBarActiveTintColor: "#D8D8D8",
+        tabBarActiveTintColor: "#DCE85D",
+        tabBarLabelPosition: "below-icon",
+        tabBarLabelStyle: { fontWeight: "400", fontSize: 14, flex: 1, fontFamily: "Aeonik Pro" },
+        tabBarStyle: { height: 60 },
       }}
     >
       {/* <Tab.Screen
@@ -122,27 +122,27 @@ function TabNavigator() {
         name="Lend"
         component={LendScreen}
         options={{
-          header: (props: BottomTabHeaderProps) => <LogoTitle />,
+          header: (props: BottomTabHeaderProps) => <LogoTitle title="lend" />,
           tabBarLabel: "Lend",
-          tabBarIcon: ({ color, size }) => <ReceiveMoneyIcon color={color} height={size} width={size} />,
+          tabBarIcon: ({ color }) => <ReceiveMoneyIcon color={color} height={20} width={20} />,
         }}
       />
       <Tab.Screen
         name="Swap"
         component={SwapScreen}
         options={{
-          header: (props: BottomTabHeaderProps) => <LogoTitle />,
+          header: (props: BottomTabHeaderProps) => <LogoTitle title="swap" />,
           tabBarLabel: "Swap",
-          tabBarIcon: ({ color, size }) => <TokenSwapIcon color={color} height={size} width={size} />,
+          tabBarIcon: ({ color }) => <TokenSwapIcon color={color} height={20} width={20} />,
         }}
       />
       <Tab.Screen
         name="Portfolio"
         component={PortfolioScreens}
         options={{
-          header: (props: BottomTabHeaderProps) => <LogoTitle />,
+          header: (props: BottomTabHeaderProps) => <LogoTitle title="portfolio" />,
           tabBarLabel: "Portfolio",
-          tabBarIcon: ({ color, size }) => <PieChartIcon color={color} height={size} width={size} />,
+          tabBarIcon: ({ color }) => <PieChartIcon color={color} height={20} width={20} />,
         }}
       />
     </Tab.Navigator>
