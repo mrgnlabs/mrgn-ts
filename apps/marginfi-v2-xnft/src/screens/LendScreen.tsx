@@ -88,13 +88,6 @@ export function LendScreen() {
             </View>
             <Select selectedItem={sortOption} setSelectedItem={setSortOption} />
           </View>
-          <View style={tw`flex flex-row justify-between z-50`}>
-            <View style={tw`flex flex-row gap-3 items-center`}>
-              <Toggle isEnabled={isFiltered} toggleSwitch={togglePositions} />
-              <Text style={tw`text-base font-light text-primary`}>Filter My positions</Text>
-            </View>
-            <Select selectedItem={sortOption} setSelectedItem={setSortOption} />
-          </View>
           <Text style={tw`text-xl text-primary pl-12px`}>Global pool</Text>
           <View style={tw`flex flex-row gap-2 flex-wrap`}>
             {extendedBankInfos.length > 0 ? (
