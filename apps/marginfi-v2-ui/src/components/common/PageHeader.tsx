@@ -28,21 +28,14 @@ const PageHeader: FC<PageHeaderProps> = ({ children }) => {
         <Mobile>
           <div className="flex justify-center items-center gap-3">
             {!connected && (
-              <>
-                <Login
+                <div
+                  className="flex justify-center items-center cursor-pointer bg-transparent rounded-2xl border-[1px] border-white text-base px-2 font-[300]"
                   onClick={() => {
                     setIsWalletDrawerOpen(true);
                   }}
-                  sx={{ width: "22px" }}
-                  className=""
-                />
-                <div
-                  className="flex justify-center items-center cursor-pointer bg-transparent rounded-2xl border-[1px] border-white text-base px-2 font-[300]"
-                  onClick={openWalletSelector}
                 >
                   connect
                 </div>
-              </>
             )}
           </div>
         </Mobile>

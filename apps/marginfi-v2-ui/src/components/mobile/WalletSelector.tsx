@@ -39,7 +39,6 @@ const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 
   const handleWalletClick = useCallback(
     (walletName: WalletName) => {
       if (walletName === currentWallet?.adapter.name) return;
-      toast.info(`Connecting to ${walletName}, prev: ${currentWallet?.adapter.name}`)
       select(walletName);
       setExpanded(false);
       setIsWalletDrawerOpen(false);
