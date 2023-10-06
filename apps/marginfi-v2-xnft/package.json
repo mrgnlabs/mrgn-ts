@@ -7,7 +7,7 @@
     "build": "GENERATE_SOURCEMAP=false expo export:web",
     "start": "GENERATE_SOURCEMAP=false yarn build && npx xnft web",
     "bundle": "GENERATE_SOURCEMAP=false yarn build && npx xnft bundle",
-    "dev": "GENERATE_SOURCEMAP=false BROWSER=none expo start -p 19001 --web & npx xnft --iframe http://localhost:19007",
+    "dev": "GENERATE_SOURCEMAP=false BROWSER=none expo start --web & npx xnft --iframe http://localhost:19006",
     "clean": "rimraf dist node_modules .expo web-build"
   },
   "dependencies": {
@@ -67,6 +67,7 @@
     "tailwindcss-animate": "^1.0.6",
     "ts-loader": "^9.4.4",
     "twrnc": "3.6.4",
+    "usehooks-ts": "^2.9.1",
     "uuid": "9.0.0",
     "webpack": "^5.88.2",
     "zustand": "^4.4.1"
