@@ -17,6 +17,7 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "./stake";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { WALLET_ADAPTERS } from "~/config/wallets";
+import { useMediaQuery } from "react-responsive";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -63,6 +64,8 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     setIsFetchingData,
   ]);
 
+  const isMobile = useMediaQuery({ query: '(max-width: 640px)' })
+
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -80,7 +83,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       </Head>
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
-          <WalletProvider wallets={WALLET_ADAPTERS} autoConnect>
+          <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={!isMobile}>
             <Desktop>
               <WalletModalProvider>
                 <DesktopNavbar />
