@@ -67,6 +67,12 @@ module.exports = withBundleAnalyzer({
         port: "",
         pathname: "/6tcnBSybPG7piEDShBcrVtYJDPSvGrDbVvXmXKpzBvWP/**",
       },
+      {
+        protocol: "https",
+        hostname: "solblaze.org",
+        port: "",
+        pathname: "/assets/**",
+      },
     ],
   },
 });
