@@ -99,16 +99,16 @@ const WalletSelector: FC<{ featuredWallets?: number }> = ({ featuredWallets = 3 
                         <div className="text-[#868E95] italic">{wallet.readyState}</div>
                       </div>
                     ))}
-                    <div className="w-full flex justify-center items-center gap-2" onClick={() => setExpanded(false)}>
+                    <button className="w-full flex justify-center items-center gap-2" onClick={() => setExpanded(false)}>
                       less
                       <ExpandLessIcon />
-                    </div>
+                    </button>
                   </>
                 ) : (
-                  <div className="w-full flex justify-center items-center gap-2">
+                  <button className="w-full flex justify-center items-center gap-2" onClick={() => setExpanded(true)}>
                     more
-                    <ExpandMoreIcon onClick={() => setExpanded(true)} />
-                  </div>
+                    <ExpandMoreIcon />
+                  </button>
                 )}
               </div>
             </>
