@@ -31,7 +31,7 @@ export const MenuModal: FC<MenuModalProps> = ({ isOpen, handleClose }) => {
               <ChevronLeft />
             </div>
           </div>
-          <div className="h-[calc(100%-40px)] pb-6 flex flex-col justify-between">
+          <div className="h-[calc(100%-40px)] pb-9 flex flex-col justify-between">
             <div className="grid grid-cols-2 gap-3 p-7">
               {ORDERED_MOBILE_LAUNCHER_LINKS.map((link) => (
                 <AppLink
