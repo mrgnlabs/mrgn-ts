@@ -9,7 +9,7 @@ import { useConnection } from "~/hooks/useConnection";
 import { useWallet } from "~/hooks/useWallet";
 import config from "~/config";
 
-export function PortfolioScreens() {
+export function PortfolioScreen() {
   const { wallet } = useWallet();
   const connection = useConnection();
   const [

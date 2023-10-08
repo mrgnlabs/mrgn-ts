@@ -16,3 +16,6 @@ export * from "./ReceiveMoneyIcon";
 export * from "./TokenSwapIcon";
 export * from "./AppsIcon";
 export * from "./MrgnIcon";
+export * from "./BackIcon";
+export * from "./SteakIcon";
+export * from "./MoreIcon";

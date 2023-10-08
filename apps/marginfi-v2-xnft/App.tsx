@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { registerRootComponent } from "expo";
-import { RecoilRoot } from "recoil";
+import { RecoilRoot, useSetRecoilState } from "recoil";
 import { ActivityIndicator, View, Text, StyleSheet, ImageBackground, TouchableOpacity } from "react-native";
 import Toast from "react-native-toast-message";
 import { JupiterProvider } from "@jup-ag/react-hook";
@@ -8,16 +8,17 @@ import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { BottomTabHeaderProps, createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useFonts, Inter_900Black } from "@expo-google-fonts/dev";
 
-import { PortfolioScreens } from "~/screens/PortfolioScreen";
+import { PortfolioScreen } from "~/screens/PortfolioScreen";
 import { LendScreen } from "~/screens/LendScreen";
 import { SwapScreen } from "~/screens/SwapScreen";
 import { SwapContextProvider } from "~/context";
 import { useConnection } from "~/hooks/useConnection";
 import { useWallet } from "~/hooks/useWallet";
-import { ROUTE_CACHE_DURATION } from "~/consts";
+import { ORDERED_MOBILE_NAVBAR_LINKS, ROUTE_CACHE_DURATION, isSideDrawerVisible } from "~/consts";
 import { AppsIcon, MrgnIcon, PieChartIcon, ReceiveMoneyIcon, TokenSwapIcon } from "~/assets/icons";
 import tw from "~/styles/tailwind";
 import { StakeScreen } from "~/screens/StakeScreen";
+import { DrawerMenu } from "~/components/Common/DrawerMenu";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -75,6 +76,8 @@ function MoreScreen() {
 }
 
 function TabNavigator() {
+  const setIsMenuVisible = useSetRecoilState(isSideDrawerVisible);
+
   return (
     <Tab.Navigator
       initialRouteName="Lend"
@@ -85,66 +88,47 @@ function TabNavigator() {
         tabBarStyle: { height: 60 },
       }}
     >
-      {/* <Tab.Screen
-        name="More"
-        component={MoreScreen}
-        options={{
-          tabBarShowLabel: false,
-          tabBarIcon: ({ color }) => <ReceiveMoneyIcon color={color} height={20} width={20} />,
-          tabBarButton: () => (
-            <TouchableOpacity
-              style={tw`flex flex-1 flex-column items-center`}
-              onPress={() => {
-                console.log("working!");
-              }}
-            >
-              <View style={tw`inline-flex flex-1 items-stretch`}>
-                <View style={tw`self-center w-full h-full justify-center items-center inline-flex absolute`}>
-                  <AppsIcon color="#7c7c7d" height={20} width={20} />
-                </View>
-              </View>
-              <Text style={tw`font-normal text-sm flex flex-1 text-[#7c7c7d] leading-none`}>More</Text>
-            </TouchableOpacity>
-          ),
-        }}
-      /> */}
-
-      <Tab.Screen
-        name="Stake"
-        component={StakeScreen}
-        options={{
-          header: (props: BottomTabHeaderProps) => <LogoTitle title="lend" />,
-          tabBarLabel: "Stake",
-          tabBarIcon: ({ color }) => <ReceiveMoneyIcon color={color} height={20} width={20} />,
-        }}
-      />
-      <Tab.Screen
-        name="Lend"
-        component={LendScreen}
-        options={{
-          header: (props: BottomTabHeaderProps) => <LogoTitle title="lend" />,
-          tabBarLabel: "Lend",
-          tabBarIcon: ({ color }) => <ReceiveMoneyIcon color={color} height={20} width={20} />,
-        }}
-      />
-      <Tab.Screen
-        name="Swap"
-        component={SwapScreen}
-        options={{
-          header: (props: BottomTabHeaderProps) => <LogoTitle title="swap" />,
-          tabBarLabel: "Swap",
-          tabBarIcon: ({ color }) => <TokenSwapIcon color={color} height={20} width={20} />,
-        }}
-      />
-      <Tab.Screen
-        name="Portfolio"
-        component={PortfolioScreens}
-        options={{
-          header: (props: BottomTabHeaderProps) => <LogoTitle title="portfolio" />,
-          tabBarLabel: "Portfolio",
-          tabBarIcon: ({ color }) => <PieChartIcon color={color} height={20} width={20} />,
-        }}
-      />
+      {ORDERED_MOBILE_NAVBAR_LINKS.map((navBarLink) => {
+        const LinkIcon = navBarLink.Icon;
+        return navBarLink.label === "more" ? (
+          <Tab.Screen
+            key={navBarLink.label}
+            name={navBarLink.name}
+            component={navBarLink.Comp as any}
+            options={{
+              tabBarShowLabel: false,
+              tabBarIcon: ({ color }) => <navBarLink.Icon color={color} height={20} width={20} />,
+              tabBarButton: () => (
+                <TouchableOpacity
+                  style={tw`flex flex-1 flex-column items-center`}
+                  onPress={() => {
+                    setIsMenuVisible(true);
+                  }}
+                >
+                  <View style={tw`inline-flex flex-1 items-stretch`}>
+                    <View style={tw`self-center w-full h-full justify-center items-center inline-flex absolute`}>
+                      <LinkIcon color="#7c7c7d" height={20} width={20} />
+                    </View>
+                  </View>
+                  <Text style={tw`font-normal text-sm flex flex-1 text-[#7c7c7d] leading-none`}>{navBarLink.name}</Text>
+                </TouchableOpacity>
+              ),
+            }}
+          />
+        ) : (
+          <Tab.Screen
+            key={navBarLink.label}
+            name={navBarLink.name}
+            component={navBarLink.Comp as any}
+            options={{
+              tabBarItemStyle: navBarLink.isExtra ? { display: "none" } : {},
+              header: (props: BottomTabHeaderProps) => <LogoTitle title={navBarLink.label} />,
+              tabBarLabel: navBarLink.label,
+              tabBarIcon: ({ color }) => <LinkIcon color={color} height={20} width={20} />,
+            }}
+          />
+        );
+      })}
     </Tab.Navigator>
   );
 }
@@ -155,6 +139,7 @@ function App() {
   });
   const connection = useConnection();
   const { publicKey } = useWallet();
+
   const [asLegacyTransaction, setAsLegacyTransaction] = useState(true);
 
   if (!fontsLoaded) {
@@ -181,6 +166,7 @@ function App() {
             setAsLegacyTransaction={setAsLegacyTransaction}
           >
             <NavigationContainer theme={MyTheme}>
+              <DrawerMenu />
               <TabNavigator />
             </NavigationContainer>
             <Toast position={"bottom"} />
