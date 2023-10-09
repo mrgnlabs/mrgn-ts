@@ -502,7 +502,7 @@ class MarginfiAccount {
       ixs.push(...(await this.makeWithdrawEmissionsIx(program, banks, bankAddress)).instructions);
     }
 
-    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority);
+    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true);
     const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
       this.authority,
       userAta,

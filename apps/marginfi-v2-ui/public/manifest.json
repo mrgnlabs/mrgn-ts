@@ -1,0 +1,22 @@
+{
+  "name": "marginfi",
+  "short_name": "marginfi",
+  "icons": [
+    {
+      "src": "/mrgn_logo_192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/mrgn_logo_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#0F1111",
+  "background_color": "#0F1111",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
+}

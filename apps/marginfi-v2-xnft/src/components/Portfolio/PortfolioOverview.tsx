@@ -64,9 +64,7 @@ export function PortfolioOverview({ selectedAccount, accountSummary, points, isF
           <View>
             <Text style={[labelStyle, tw`pb-4px`]}>Points</Text>
             <Text style={[valueStyle]}>
-              {isFirebaseConnected
-                ? `${groupedNumberFormatterDyn.format(Math.round(points.totalPoints))} points`
-                : "P...P...POINTS!"}
+              {isFirebaseConnected ? `${groupedNumberFormatterDyn.format(Math.round(points.totalPoints))} points` : "-"}
             </Text>
           </View>
         </View>

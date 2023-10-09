@@ -68,52 +68,56 @@ export function LendScreen() {
             <Text style={tw`text-base text-primary`}>Filter my positions</Text>
           </View>
           <Text style={tw`text-xl text-primary pl-12px`}>Global pools</Text>
-          {extendedBankInfos.length > 0 ? (
-            globalPools.length > 0 ? (
-              globalPools.map((extendedBankInfo, idx) => (
-                <PoolCard
-                  key={idx}
-                  bankInfo={extendedBankInfo}
-                  nativeSolBalance={nativeSolBalance}
-                  isInLendingMode={tabActive === "lend"}
-                  marginfiAccount={selectedAccount}
-                  reloadBanks={async () => {
-                    if (!connection) return;
-                    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet });
-                  }}
-                  marginfiClient={marginfiClient}
-                ></PoolCard>
-              ))
+          <View style={tw`flex flex-row gap-2 flex-wrap`}>
+            {extendedBankInfos.length > 0 ? (
+              globalPools.length > 0 ? (
+                globalPools.map((extendedBankInfo, idx) => (
+                  <PoolCard
+                    key={idx}
+                    bankInfo={extendedBankInfo}
+                    nativeSolBalance={nativeSolBalance}
+                    isInLendingMode={tabActive === "lend"}
+                    marginfiAccount={selectedAccount}
+                    reloadBanks={async () => {
+                      if (!connection) return;
+                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet });
+                    }}
+                    marginfiClient={marginfiClient}
+                  ></PoolCard>
+                ))
+              ) : (
+                <Text style={tw`text-sm text-secondary pl-12px`}>No Global Pools Found</Text>
+              )
             ) : (
-              <Text style={tw`text-sm text-secondary pl-12px`}>No Global Pools Found</Text>
-            )
-          ) : (
-            <PoolCardSkeleton />
-          )}
+              <PoolCardSkeleton />
+            )}
+          </View>
 
           <Text style={tw`text-xl text-primary pl-12px`}>Isolated pools</Text>
-          {extendedBankInfos.length > 0 ? (
-            isolatedPools.length > 0 ? (
-              isolatedPools.map((extendedBankInfo, idx) => (
-                <PoolCard
-                  key={idx}
-                  bankInfo={extendedBankInfo}
-                  nativeSolBalance={nativeSolBalance}
-                  isInLendingMode={tabActive === "lend"}
-                  marginfiAccount={selectedAccount}
-                  reloadBanks={async () => {
-                    if (!connection) return;
-                    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet });
-                  }}
-                  marginfiClient={marginfiClient}
-                ></PoolCard>
-              ))
+          <View style={tw`flex flex-row gap-2 flex-wrap`}>
+            {extendedBankInfos.length > 0 ? (
+              isolatedPools.length > 0 ? (
+                isolatedPools.map((extendedBankInfo, idx) => (
+                  <PoolCard
+                    key={idx}
+                    bankInfo={extendedBankInfo}
+                    nativeSolBalance={nativeSolBalance}
+                    isInLendingMode={tabActive === "lend"}
+                    marginfiAccount={selectedAccount}
+                    reloadBanks={async () => {
+                      if (!connection) return;
+                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet });
+                    }}
+                    marginfiClient={marginfiClient}
+                  ></PoolCard>
+                ))
+              ) : (
+                <Text style={tw`text-sm text-secondary pl-12px`}>No Isolated Pools Found</Text>
+              )
             ) : (
-              <Text style={tw`text-sm text-secondary pl-12px`}>No Isolated Pools Found</Text>
-            )
-          ) : (
-            <PoolCardSkeleton />
-          )}
+              <PoolCardSkeleton />
+            )}
+          </View>
         </View>
       </View>
     </Screen>

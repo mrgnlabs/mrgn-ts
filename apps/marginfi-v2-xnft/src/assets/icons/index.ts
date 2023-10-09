@@ -11,3 +11,6 @@ export * from "./RefreshIcon";
 export * from "./SettingsIcon";
 export * from "./CloseIcon";
 export * from "./ErrorIcon";
+export * from "./PieChartIcon";
+export * from "./ReceiveMoneyIcon";
+export * from "./TokenSwapIcon";

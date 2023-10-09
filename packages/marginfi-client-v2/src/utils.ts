@@ -56,7 +56,7 @@ export function getBankVaultAuthority(
 }
 
 export function makeWrapSolIxs(walletAddress: PublicKey, amount: BigNumber): TransactionInstruction[] {
-  const address = getAssociatedTokenAddressSync(NATIVE_MINT, walletAddress);
+  const address = getAssociatedTokenAddressSync(NATIVE_MINT, walletAddress, true);
   const ixs = [createAssociatedTokenAccountIdempotentInstruction(walletAddress, address, walletAddress, NATIVE_MINT)];
 
   if (amount.gt(0)) {

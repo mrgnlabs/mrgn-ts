@@ -60,6 +60,57 @@ a {
   animation: pulse 1.8s infinite;
 }
 
+.bg-lines {
+  background-image: url(../../public/WaveBG2.png);
+  background-size: 900px;
+  background-repeat: no-repeat;
+  background-position: 40%;
+}
+
+.bg-lines2 {
+  background-image: url(../../public/WaveBG2.png);
+  background-size: 400px;
+  background-repeat: no-repeat;
+  background-color: #DCE85D;
+  background-position: -20%;
+}
+
+.nav-link {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.border-slider {
+  position: absolute;
+  top: 0;
+  height: 3px;
+  width: 25%;
+  background-color: #DCE85D;
+  transition: left 0.25s ease-in-out;
+}
+
+.border-slider.linknone {
+  display: none;
+}
+
+.border-slider.link0 {
+  left: 0%;
+}
+
+.border-slider.link1 {
+  left: 25%;
+}
+
+.border-slider.link2 {
+  left: 50%;
+}
+
+.border-slider.link3 {
+  left: 75%;
+}
+
 .hover-underline-static {
   display: inline-block;
   position: relative;
@@ -111,12 +162,6 @@ a {
   color: #05FFFF !important;
 }
 
-#MAYAN_SWAP_PV_ROOT {
-  width: 420px;
-  padding-left: 0px;
-  padding-right: 0px;
-}
-
 @keyframes radiate {
   0% {
     color: #ccc;
@@ -165,4 +210,38 @@ a {
   animation: wavyGradientAnimation 2s linear infinite;
   background: linear-gradient(90deg, #808080, #DCE85DCC, #808080);
   background-size: 200% 100%;
+}
+
+.btn-gleam {
+  position: relative;
+  overflow: hidden;
+  /* Other styles remain the same */
+}
+
+.btn-gleam::before {
+  content: "";
+  position: absolute;
+  margin: -50%;
+  top: 0;
+  left: 0;
+  width: 50%;  /* width of the gleam, you can adjust this */
+  height: 500%;  /* covering the full height of the button */
+  background: linear-gradient(to left, transparent, #ffffff66, transparent);  /* Adjust colors for the gleam effect */
+  transform: translateX(-50%) rotate(-40deg);
+  animation: 5s infinite gleam;
+}
+
+
+@keyframes gleam {
+  0% {
+    transform: translateX(-50%) rotate(-40deg);
+  }
+  15%, 100% {
+    transform: translateX(350%) rotate(-40deg);
+  }
+}
+
+#MAYAN_SWAP_PV_ROOT {
+  padding-left: 0px;
+  padding-right: 0px;
 }

@@ -1,5 +1,5 @@
 enum Features {
-  STAKE = 'stake',
+  STAKE = "stake",
 }
 
 function isActive(feature: Features) {
