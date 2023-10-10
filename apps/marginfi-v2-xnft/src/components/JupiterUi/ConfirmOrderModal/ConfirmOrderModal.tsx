@@ -145,7 +145,7 @@ export const ConfirmOrderModal = ({ onClose }: { onClose: () => void }) => {
   return (
     <View style={tw`flex flex-col h-full w-full py-4 px-2`}>
       <View style={tw`flex flex-row justify-end p-4`}>
-        <Pressable style={tw`text-primary fill-current`} onPress={() => onGoBack()}>
+        <Pressable style={tw`text-primary`} onPress={() => onGoBack()}>
           <icons.CloseIcon width={14} height={14} />
         </Pressable>
       </View>

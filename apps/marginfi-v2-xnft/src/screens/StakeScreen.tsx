@@ -1,26 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { View, Text, Modal, StyleSheet } from "react-native";
+import React, { useEffect } from "react";
+import { View, Text } from "react-native";
 
+import { useLstStore } from "~/store/store";
+import { useConnection } from "~/hooks/useConnection";
+import { useWallet } from "~/hooks/useWallet";
 import tw from "~/styles/tailwind";
 
 import { Screen } from "~/components/Common";
-import {
-  SwapForm,
-  PriceInfo,
-  SetSlippage,
-  FormPairSelector,
-  ReviewOrderModal,
-  ConfirmOrderModal,
-} from "~/components/JupiterUi";
-import { TokenInfo } from "@solana/spl-token-registry/dist/main/lib/tokenlist";
-import { IForm, useSwapContext } from "~/context";
-import { WSOL_MINT } from "~/config";
-import { PublicKey } from "@solana/web3.js";
-import { useJupiterStore, useLstStore, useMrgnlendStore } from "~/store/store";
-import { useConnection } from "~/hooks/useConnection";
-import { useWallet } from "~/hooks/useWallet";
-import { StakingStats } from "~/components/Staking";
-import { StakingCard } from "~/components/Staking/StakingCard";
+import { StakingStats, StakingCard } from "~/components/Staking";
 
 export function StakeScreen() {
   const { wallet } = useWallet();
@@ -59,7 +46,7 @@ export function StakeScreen() {
 
   return (
     <Screen>
-      <View>
+      <View style={tw`px-12px pb-24px pt-1 flex gap-3`}>
         <StakingStats
           isLoading={initialized || isRefreshingStore}
           tvl={lstData?.tvl}
@@ -67,9 +54,23 @@ export function StakeScreen() {
           projectedApy={lstData?.projectedApy}
         />
         <StakingCard />
+
+        <View style={tw`flex flex-col mt-10 pb-4 gap-5 justify-center font-aeonik`}>
+          <Text style={tw`text-center w-full text-xl font-[200] text-primary`}>
+            <Text style={tw`font-bold text-[#DCE85D]`}>$LST</Text>, by mrgn
+          </Text>
+          <Text style={tw`text-center w-full text-xl font-[200] text-primary`}>
+            Introducing the best way to get exposure to SOL. <Text style={tw`font-bold text-[#DCE85D]`}>$LST</Text> is
+            built on mrgn&apos;s validator network and Jito&apos;s MEV rewards. For the first time,{" "}
+            <Text style={tw`font-bold text-[#DCE85D]`}>$LST</Text> holders can get the best staking yield available on
+            Solana, combined with the biggest MEV rewards from Solana&apos;s trader network.
+          </Text>
+          <Text style={tw`text-center w-full text-xl font-[200] text-primary`}>
+            <Text style={tw`font-bold text-[#DCE85D]`}>$LST</Text> has 0% commission. The yield goes to you. Stop paying
+            middlemen. Stop using underperforming validators. Stop missing out on MEV rewards.
+          </Text>
+        </View>
       </View>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({});

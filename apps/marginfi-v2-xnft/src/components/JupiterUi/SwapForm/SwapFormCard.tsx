@@ -56,7 +56,7 @@ export const SwapFormCard: React.FC<{
             amount={typeof value === "undefined" ? "" : value}
             decimals={token.decimals}
             onValueChange={(value: string) => handleChangeFromValue(value)}
-            disabled={!((!isFromToken && !swapMode) || swapMode === "ExactIn")}
+            disabled={!isFromToken}
           />
         </View>
       </View>

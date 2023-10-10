@@ -32,7 +32,7 @@ export const ReviewOrderModal = ({ onClose, onSubmit }: props) => {
   return (
     <View style={tw`flex flex-col h-full w-full py-4 px-2`}>
       <View style={tw`flex flex-row w-full justify-between`}>
-        <Pressable style={tw`text-primary fill-current w-6 h-6 cursor-pointer`} onPress={onGoBack}>
+        <Pressable style={tw`text-primary w-6 h-6 cursor-pointer`} onPress={onGoBack}>
           <icons.LeftArrowIcon width={24} height={24} />
         </Pressable>
 

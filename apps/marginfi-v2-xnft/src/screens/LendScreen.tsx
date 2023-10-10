@@ -2,15 +2,17 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { View, Text } from "react-native";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useRecoilValue } from "recoil";
-import tw from "~/styles/tailwind";
+
 import { tabActiveAtom } from "~/consts";
-import { Screen, Toggle } from "~/components/Common";
-import { LendHeader, PoolCard, PoolCardSkeleton, Select, TabSwitch } from "~/components/Lend";
 import { useMrgnlendStore } from "~/store/store";
-import config from "~/config";
 import { useConnection } from "~/hooks/useConnection";
 import { useWallet } from "~/hooks/useWallet";
-import { SORT_OPTIONS_MAP, SortAssetOption, SortType, sortApRate, sortTvl } from "~/utils/sort.utils";
+import { SORT_OPTIONS_MAP, SortAssetOption, sortApRate, sortTvl } from "~/utils";
+import tw from "~/styles/tailwind";
+import config from "~/config";
+
+import { Screen, Toggle } from "~/components/Common";
+import { PoolCard, PoolCardSkeleton, Select, TabSwitch } from "~/components/Lend";
 
 export function LendScreen() {
   const { wallet } = useWallet();
@@ -89,7 +91,7 @@ export function LendScreen() {
             <Select selectedItem={sortOption} setSelectedItem={setSortOption} />
           </View>
           <Text style={tw`text-xl text-primary pl-12px`}>Global pool</Text>
-          <View style={tw`flex flex-row gap-2 flex-wrap`}>
+          <View style={tw`flex flex-row flex-wrap gap-6 justify-center items-center`}>
             {extendedBankInfos.length > 0 ? (
               globalBanks.length > 0 ? (
                 globalBanks.map((extendedBankInfo, idx) => (
@@ -115,7 +117,7 @@ export function LendScreen() {
           </View>
 
           <Text style={tw`text-xl text-primary pl-12px`}>Isolated pool</Text>
-          <View style={tw`flex flex-row gap-2 flex-wrap`}>
+          <View style={tw`flex flex-row flex-wrap gap-6 justify-center items-center`}>
             {extendedBankInfos.length > 0 ? (
               isolatedBanks.length > 0 ? (
                 isolatedBanks.map((extendedBankInfo, idx) => (

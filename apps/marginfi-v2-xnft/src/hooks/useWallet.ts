@@ -4,7 +4,7 @@ import { AnchorProvider, Provider, Wallet } from "@coral-xyz/anchor";
 
 import { useConnection } from "~/hooks/useConnection";
 import { XnftWallet } from "~/types/xnftTypes";
-import { solanaSignTransaction } from "~/utils";
+import { solanaSendTransaction, solanaSignTransaction } from "~/utils";
 
 export function useWallet() {
   const [solanaPublicKey, setSolanaPublicKey] = useState<PublicKey>();
@@ -34,5 +34,6 @@ export function useWallet() {
     publicKey: solanaPublicKey,
     provider,
     wallet,
+    sendTransaction: solanaSendTransaction,
   };
 }

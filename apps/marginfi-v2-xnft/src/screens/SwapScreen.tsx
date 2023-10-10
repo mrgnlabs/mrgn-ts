@@ -1,22 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { View, Text, Modal, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import Modal from "react-native-modal";
+import { PublicKey } from "@solana/web3.js";
+import { TokenInfo } from "@solana/spl-token-registry/dist/main/lib/tokenlist";
 
+import { IForm, useSwapContext } from "~/context";
+import { useJupiterStore, useMrgnlendStore } from "~/store/store";
 import tw from "~/styles/tailwind";
+import { WSOL_MINT } from "~/config";
 
 import { Screen } from "~/components/Common";
-import {
-  SwapForm,
-  PriceInfo,
-  SetSlippage,
-  FormPairSelector,
-  ReviewOrderModal,
-  ConfirmOrderModal,
-} from "~/components/JupiterUi";
-import { TokenInfo } from "@solana/spl-token-registry/dist/main/lib/tokenlist";
-import { IForm, useSwapContext } from "~/context";
-import { WSOL_MINT } from "~/config";
-import { PublicKey } from "@solana/web3.js";
-import { useJupiterStore, useMrgnlendStore } from "~/store/store";
+import { SwapForm, SetSlippage, FormPairSelector, ReviewOrderModal, ConfirmOrderModal } from "~/components/JupiterUi";
 
 export function SwapScreen() {
   const [showRouteSelector, setShowRouteSelector] = useState<boolean>(false);
@@ -136,10 +130,10 @@ export function SwapScreen() {
         />
 
         <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showSettingsModal}
-          onRequestClose={() => {
+          animationIn="slideInLeft"
+          animationOut="slideOutLeft"
+          isVisible={showSettingsModal}
+          onBackdropPress={() => {
             setShowSettingsModal(false);
           }}
         >
@@ -151,10 +145,10 @@ export function SwapScreen() {
         </Modal>
 
         <Modal
-          animationType="slide"
-          transparent={true}
-          visible={selectPairSelector !== null}
-          onRequestClose={() => {
+          animationIn="slideInLeft"
+          animationOut="slideOutLeft"
+          isVisible={selectPairSelector !== null}
+          onBackdropPress={() => {
             setSelectPairSelector(null);
           }}
         >
@@ -170,10 +164,10 @@ export function SwapScreen() {
         </Modal>
 
         <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showReviewModal}
-          onRequestClose={() => {
+          animationIn="slideInLeft"
+          animationOut="slideOutLeft"
+          isVisible={showReviewModal}
+          onBackdropPress={() => {
             setShowReviewModal(false);
           }}
         >
@@ -185,10 +179,10 @@ export function SwapScreen() {
         </Modal>
 
         <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showConfirmModal}
-          onRequestClose={() => {
+          animationIn="slideInLeft"
+          animationOut="slideOutLeft"
+          isVisible={showConfirmModal}
+          onBackdropPress={() => {
             setShowConfirmModal(false);
           }}
         >

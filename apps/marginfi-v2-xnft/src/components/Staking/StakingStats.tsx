@@ -15,9 +15,9 @@ type Props = {
 
 export function StakingStats({ isLoading, solUsdValue = 0, tvl = 0, projectedApy = 0 }: Props) {
   return (
-    <View style={tw`h-full rounded-xl font-[500]`}>
+    <View style={tw`rounded-xl font-[500]`}>
       <View
-        style={tw`flex flex-column sm:flex-row justify-center gap-0 sm:gap-8 w-full min-w-1/2 mt-[20px] bg-[#171C1F] sm:bg-transparent rounded-xl`}
+        style={tw`flex flex-column sm:flex-row justify-center gap-0 sm:gap-8 w-full min-w-1/2 mt-[20px] bg-[#1C2023] sm:bg-transparent rounded-xl`}
       >
         <View style={tw`flex flex-row sm:flex-column justify-between p-3 sm:p-0 gap-1`}>
           <Text style={tw`font-aeonik font-[400] text-base flex gap-1 my-auto text-secondary`}>TVL</Text>
