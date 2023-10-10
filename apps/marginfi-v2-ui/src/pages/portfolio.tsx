@@ -164,7 +164,7 @@ const PortfolioPage = () => {
                       key={bank.meta.tokenSymbol}
                       nativeSolBalance={nativeSolBalance}
                       bank={bank}
-                      isInLendingMode={false}
+                      isInLendingMode={true}
                       isConnected={connected}
                       marginfiAccount={selectedAccount}
                     />
