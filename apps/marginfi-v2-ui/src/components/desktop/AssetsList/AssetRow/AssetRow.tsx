@@ -1,8 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { TableCell, TableRow } from "@mui/material";
-import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
+import { TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import Badge from "@mui/material/Badge";
 import {
@@ -16,7 +14,7 @@ import {
 import { ExtendedBankInfo, ActionType, getCurrentAction, ExtendedBankMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
-import { AssetRowInputBox, AssetRowAction } from "~/components/common/AssetList";
+import { AssetRowInputBox, AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { closeBalance, borrowOrLend } from "~/utils";
 
@@ -47,6 +45,7 @@ const AssetRow: FC<{
   hasHotkey: boolean;
   showHotkeyBadges?: boolean;
   badgeContent?: string;
+  showLSTDialog?: (variant: LSTDialogVariants) => void;
 }> = ({
   bank,
   nativeSolBalance,
@@ -56,6 +55,7 @@ const AssetRow: FC<{
   hasHotkey,
   showHotkeyBadges,
   badgeContent,
+  showLSTDialog
 }) => {
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
@@ -126,6 +126,11 @@ const AssetRow: FC<{
   }, [bank, marginfiAccount, fetchMrgnlendState, setIsRefreshingStore]);
 
   const handleBorrowOrLend = useCallback(async () => {
+    if (currentAction === ActionType.Deposit && showLSTDialog && (bank.meta.tokenSymbol === 'SOL' || bank.meta.tokenSymbol === 'stSOL')) {
+      showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants)
+      return
+    }
+
     await borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
 
     setBorrowOrLendAmount(0);
@@ -147,6 +152,7 @@ const AssetRow: FC<{
     nativeSolBalance,
     fetchMrgnlendState,
     setIsRefreshingStore,
+    showLSTDialog
   ]);
 
   return (
