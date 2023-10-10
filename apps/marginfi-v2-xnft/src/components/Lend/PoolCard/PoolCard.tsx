@@ -125,14 +125,13 @@ export function PoolCard({
       } catch (error: any) {
         console.log(`Error while ${currentAction + "ing"}`);
         console.log(error);
-      }
-
-      // TODO: set values back to 0
-      try {
-        await reloadBanks();
-      } catch (error: any) {
-        console.log("Error while reloading state");
-        console.log(error);
+      } finally {
+        try {
+          await reloadBanks();
+        } catch (error: any) {
+          console.log("Error while reloading state");
+          console.log(error);
+        }
       }
     },
     [bankInfo, connection, currentAction, marginfiAccount, marginfiClient, nativeSolBalance, reloadBanks]

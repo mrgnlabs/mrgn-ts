@@ -70,7 +70,7 @@ export const SwapForm: React.FC<{
         <View style={tw`flex justify-center items-center`}>
           <Pressable
             onPress={() => onClickSwitchPair()}
-            style={tw`border border-black/50 fill-current text-black bg-black/10 dark:text-white-35 dark:hover:text-white/50 dark:border dark:border-white-35 dark:hover:border-white/50 h-8 w-8 rounded-full flex items-center justify-center cursor-pointer`}
+            style={tw`border border-black/50 text-black bg-black/10 dark:text-white-35 dark:border dark:border-white-35 h-8 w-8 rounded-full flex items-center justify-center cursor-pointer`}
           >
             <View style={tw`block rotate-45`}>
               <icons.SwitchPairIcon />

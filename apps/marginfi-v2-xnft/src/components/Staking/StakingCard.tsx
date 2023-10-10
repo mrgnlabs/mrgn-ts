@@ -1,5 +1,4 @@
 import React, { Dispatch, FC, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { TextField, Typography } from "@mui/material";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
@@ -9,10 +8,7 @@ import {
   percentFormatter,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
-import { ArrowDropDown } from "@mui/icons-material";
 // import { StakingModal } from "./StakingModal";
-import Image from "next/image";
-import { NumberFormatValues, NumericFormat } from "react-number-format";
 import {
   AddressLookupTableAccount,
   Connection,
@@ -31,20 +27,19 @@ import JSBI from "jsbi";
 import { StakeData } from "~/utils";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { toast } from "react-toastify";
-// import { SettingsModal } from "./SettingsModal";
-// import { SettingsIcon } from "./SettingsIcon";
-import { LST_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
-// import { RefreshIcon } from "./RefreshIcon";
-// import { Spinner } from "~/components/common/Spinner";
+import { LST_MINT, TokenData } from "~/store/lstStore";
 import BN from "bn.js";
 import debounce from "lodash.debounce";
-import { RefreshIcon, SettingsIcon, WalletIcon } from "~/assets/icons";
+import Modal from "react-native-modal";
+import { ChevronDownIcon, RefreshIcon, SettingsIcon, WalletIcon } from "~/assets/icons";
 import tw from "~/styles/tailwind";
-import { Pressable, View, Text } from "react-native";
+import { Pressable, View, Text, Image } from "react-native";
 import { NumberInput, PrimaryButton } from "../Common";
 import { useWallet } from "~/hooks/useWallet";
 import { useConnection } from "~/hooks/useConnection";
 import { useLstStore } from "~/store/store";
+import { StakingModal } from "./StakingModal";
+import { SettingsModal } from "./SettingsModal";
 
 const QUOTE_EXPIRY_MS = 30_000;
 const DEFAULT_DEPOSIT_OPTION: DepositOption = { type: "native", amount: new BN(0), maxAmount: new BN(0) };
@@ -70,7 +65,6 @@ export type DepositOption =
 export const StakingCard: FC = () => {
   const connection = useConnection();
   const { wallet, publicKey: walletAddress } = useWallet();
-  //   const { connected, wallet, walletAddress, openWalletSelector } = useWalletContext();
   const [
     lstData,
     userDataFetched,
@@ -99,8 +93,24 @@ export const StakingCard: FC = () => {
   const [refreshingQuotes, setRefreshingQuotes] = useState<boolean>(false);
   const [depositOption, setDepositOption] = useState<DepositOption>(DEFAULT_DEPOSIT_OPTION);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
+  const [isStakeModalOpen, setIsStakeModalOpen] = useState<boolean>(false);
 
   const slippageBps = useMemo(() => slippagePct * 100, [slippagePct]);
+  const [iconUrl, optionName] = useMemo(() => {
+    if (depositOption.type === "native") {
+      return [
+        "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+        "SOL",
+      ];
+    } else if (depositOption.type === "stake") {
+      return [
+        "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+        "Stake",
+      ];
+    } else {
+      return [depositOption.tokenData.iconUrl, depositOption.tokenData.symbol];
+    }
+  }, [depositOption]);
 
   useEffect(() => {
     setDepositOption((currentDepositOption) => {
@@ -236,6 +246,17 @@ export const StakingCard: FC = () => {
     return "-";
   }, [userDataFetched, depositOption]);
 
+  const maxDepositValue = useMemo(() => {
+    if (depositOption.type === "stake") {
+      return 0;
+    }
+    const decimals = depositOption.type === "token" ? depositOption.tokenData.decimals : 9;
+    const maxDepositAmount =
+      (depositOption.type === "token" ? depositOption.tokenData.balance : depositOption.maxAmount).toNumber() /
+      Math.pow(10, decimals);
+    return maxDepositAmount;
+  }, [depositOption]);
+
   const onMint = useCallback(async () => {
     if (!lstData || !wallet || !walletAddress || !connection) return;
 
@@ -288,7 +309,8 @@ export const StakingCard: FC = () => {
         const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuffer);
 
         const signedSwapTransaction = await wallet.signTransaction(swapTransaction);
-        const swapSig = await connection.sendTransaction(signedSwapTransaction);
+
+        const swapSig = await connection.sendTransaction(signedSwapTransaction, { maxRetries: 5 });
         await connection.confirmTransaction(
           {
             blockhash,
@@ -362,25 +384,23 @@ export const StakingCard: FC = () => {
 
   return (
     <>
-      <View
-        style={tw`relative flex flex-col gap-3 rounded-xl bg-[#1C2023] px-6 sm:px-8 py-4 sm:py-6 max-w-[480px] w-full`}
-      >
+      <View style={tw`relative flex flex-col gap-3 rounded-xl bg-[#1C2023] px-4 py-4 sm:py-6 max-w-[480px] w-full`}>
         <View style={tw`flex flex-row justify-between w-full`}>
           <View style={tw`flex flex-row items-center gap-4`}>
             <Text style={tw`font-aeonik font-[400] text-lg text-primary`}>Deposit</Text>
             {depositOption.type === "token" && (
               <View style={tw`flex flex-row gap-2 items-center`}>
                 <Pressable
-                  style={tw`p-2 h-7 w-7 flex flex-row items-center justify-center border rounded-full border-white/10 bg-black/10 text-secondary fill-current cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out`}
+                  style={tw`p-2 h-7 w-7 flex flex-row items-center justify-center border rounded-full border-white/10 bg-black/10 text-secondary cursor-pointer`}
                   onPress={() => refreshQuoteIfNeeded(true)}
                 >
                   <RefreshIcon />
                 </Pressable>
                 <Pressable
-                  style={tw`p-2 h-7 gap-2 flex flex-row items-center justify-center border rounded-2xl border-white/10 bg-black/10 cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out`}
+                  style={tw`p-2 h-7 gap-2 flex flex-row items-center justify-center border rounded-2xl border-white/10 bg-black/10 cursor-pointer`}
                   onPress={() => setIsSettingsModalOpen(true)}
                 >
-                  <SettingsIcon />
+                  <SettingsIcon color="white" />
                   <Text style={tw`text-xs text-secondary mt-2px`}>{isNaN(slippagePct) ? "0" : slippagePct}%</Text>
                 </Pressable>
               </View>
@@ -390,11 +410,11 @@ export const StakingCard: FC = () => {
           {connection && (depositOption.type === "native" || depositOption.type === "token") && (
             <View style={tw`flex flex-row items-center gap-1`}>
               <View style={tw`leading-5`}>
-                <WalletIcon />
+                <WalletIcon height={18} width={18} />
               </View>
               <Text style={tw`font-aeonik font-[400] text-sm leading-5 text-primary`}>{maxDepositString}</Text>
               <Pressable
-                style={tw`p-2 ml-1 h-5 flex flex-row items-center justify-center text-sm border rounded-full border-white/10 bg-black/10 text-secondary fill-current cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out`}
+                style={tw`p-2 ml-1 h-5 flex flex-row items-center justify-center border rounded-full border-white/10 bg-black/10 cursor-pointer`}
                 onPress={() =>
                   setDepositOption((currentDepositOption) => {
                     const updatedAmount =
@@ -411,19 +431,33 @@ export const StakingCard: FC = () => {
                   })
                 }
               >
-                MAX
+                <Text style={tw`text-secondary text-sm`}>MAX</Text>
               </Pressable>
             </View>
           )}
         </View>
-        <View style={tw`bg-[#0f1111]`}>
+        <View style={tw`flex flex-row relative bg-[#0f1111] p-2 rounded-xl`}>
+          <Pressable
+            style={tw`flex flex-row justify-between px-12px py-8px w-124px rounded-xl bg-[#303030]`}
+            onPress={() => setIsStakeModalOpen(true)}
+          >
+            <View style={tw`my-auto`}>
+              <Image style={{ height: 20, width: 20 }} source={{ uri: iconUrl }} />
+            </View>
+            <View style={tw`flex flex-row mt-4px`}>
+              <Text style={tw`text-primary text-base`}>{optionName}</Text>
+            </View>
+            <View style={tw`mt-5px`}>
+              <ChevronDownIcon />
+            </View>
+          </Pressable>
           <NumberInput
             textAlign="right"
             hasBorder={false}
             placeholder="0"
-            amount={depositAmountUi}
+            amount={depositAmountUi.toString()}
             min={0}
-            max={maxDepositString}
+            max={maxDepositValue}
             disabled={depositOption.type === "stake"}
             decimals={9}
             onValueChange={onChange}
@@ -443,7 +477,7 @@ export const StakingCard: FC = () => {
         </View>
         <View style={tw`h-[36px] my-5`}>
           <PrimaryButton
-            title={ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? "refreshing .." : "mint"}
+            title={ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? "Refreshing .." : "Mint"}
             onPress={onMint}
             isDisabled={
               depositAmountUi == 0 || lstOutAmount === 0 || lstOutAmount === null || refreshingQuotes || !!ongoingAction
@@ -473,78 +507,42 @@ export const StakingCard: FC = () => {
           </View>
         )}
       </View>
-      {/* <SettingsModal
-        isOpen={isSettingsModalOpen}
-        handleClose={() => setIsSettingsModalOpen(false)}
-        selectedSlippagePercent={slippagePct}
-        setSelectedSlippagePercent={setSlippagePct}
-      /> */}
-    </>
-  );
-};
 
-interface DropDownButtonProps {
-  availableLamports: BN;
-  solUsdPrice: number;
-  tokenDataMap: TokenDataMap;
-  stakeAccounts: StakeData[];
-  depositOption: DepositOption;
-  setDepositOption: Dispatch<SetStateAction<DepositOption>>;
-  disabled?: boolean;
-}
-
-const DropDownButton: FC<DropDownButtonProps> = ({
-  availableLamports,
-  solUsdPrice,
-  tokenDataMap,
-  stakeAccounts,
-  depositOption,
-  setDepositOption,
-  disabled,
-}) => {
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
-  const [iconUrl, optionName] = useMemo(() => {
-    if (depositOption.type === "native") {
-      return [
-        "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
-        "SOL",
-      ];
-    } else if (depositOption.type === "stake") {
-      return [
-        "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
-        "Stake",
-      ];
-    } else {
-      return [depositOption.tokenData.iconUrl, depositOption.tokenData.symbol];
-    }
-  }, [depositOption]);
-
-  return (
-    <>
-      <Pressable
-        onPress={() => setIsModalOpen(true)}
-        style={tw`flex flex-row justify-between items-center py-2 px-3 text-white bg-[#303030] rounded-lg ${
-          disabled ? "opacity-50" : "cursor-pointer hover:bg-[#2D2D2D]"
-        }`}
+      <Modal
+        isVisible={isSettingsModalOpen}
+        coverScreen={true}
+        onBackdropPress={() => {
+          setIsSettingsModalOpen(false);
+        }}
       >
-        <View style={tw`w-[24px] mr-2`}>
-          <Image src={iconUrl} alt="token logo" height={24} width={24} className="rounded-full" />
-        </View>
-        <Typography style={tw`font-aeonik font-[500] text-lg mr-1`}>{optionName}</Typography>
-        <ArrowDropDown sx={{ width: "20px", padding: 0 }} />
-      </Pressable>
+        <SettingsModal
+          handleClose={() => setIsSettingsModalOpen(false)}
+          selectedSlippagePercent={slippagePct}
+          setSelectedSlippagePercent={setSlippagePct}
+        />
+      </Modal>
 
-      {/* <StakingModal
-        isOpen={isModalOpen}
-        handleClose={() => setIsModalOpen(false)}
-        availableLamports={availableLamports}
-        solUsdPrice={solUsdPrice}
-        tokenDataMap={tokenDataMap}
-        stakeAccounts={stakeAccounts}
-        depositOption={depositOption}
-        setDepositOption={setDepositOption}
-      /> */}
+      <Modal
+        isVisible={isStakeModalOpen}
+        coverScreen={true}
+        onBackdropPress={() => {
+          setIsStakeModalOpen(false);
+        }}
+      >
+        {/* <View style={tw``}>
+          <View style={tw`bg-[#1C2125]`}> */}
+        <StakingModal
+          handleClose={() => setIsStakeModalOpen(false)}
+          availableLamports={availableLamports}
+          solUsdPrice={solUsdValue ?? 0}
+          tokenDataMap={tokenDataMap ?? new Map()}
+          stakeAccounts={stakeAccounts}
+          depositOption={depositOption}
+          setDepositOption={setDepositOption}
+        />
+        {/* </View>
+        </View> */}
+      </Modal>
     </>
   );
 };

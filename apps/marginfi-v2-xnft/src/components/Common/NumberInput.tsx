@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 
 import tw from "~/styles/tailwind";
@@ -28,10 +28,19 @@ export const NumberInput: React.FC<NumberInputProps> = ({
   textAlign = undefined,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [localAmount, setLocalAmount] = useState(amount);
+  const [isZeroDecimal, setIsZeroDecimal] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isZeroDecimal) {
+      setLocalAmount(amount);
+    }
+  }, [amount, isZeroDecimal]);
 
   const handleChangeText = (text: string) => {
     const parsedValue = Number.parseFloat(text); // Convert input value to a Float
     const numericValue = Number(text);
+    setIsZeroDecimal(false);
 
     if (Number.isNaN(parsedValue)) {
       onValueChange(min.toString()); // In case user input a characters instead of a number
@@ -40,7 +49,11 @@ export const NumberInput: React.FC<NumberInputProps> = ({
     } else if (parsedValue < min) {
       onValueChange(min.toString()); // Set the value to 0 if the user input is below 0. You can customize this part if you want a minimum value
     } else if (text.includes(".") && !Number.isNaN(numericValue)) {
-      if (utils.countDecimalPlaces(parsedValue) > decimals) {
+      if (utils.countDecimalPlaces(parsedValue) === 0) {
+        setIsZeroDecimal(true);
+        setLocalAmount(text);
+        onValueChange(parsedValue.toFixed(decimals));
+      } else if (utils.countDecimalPlaces(parsedValue) > decimals) {
         onValueChange(parsedValue.toFixed(decimals));
       } else {
         onValueChange(text.toString());
@@ -73,7 +86,7 @@ export const NumberInput: React.FC<NumberInputProps> = ({
         onFocus={handleFocus}
         onBlur={handleBlur}
         onChangeText={handleChangeText}
-        value={amount}
+        value={localAmount}
         editable={!disabled}
         selectTextOnFocus={!disabled}
       />

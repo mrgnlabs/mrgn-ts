@@ -8,9 +8,6 @@ import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { BottomTabHeaderProps, createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useFonts, Inter_900Black } from "@expo-google-fonts/dev";
 
-import { PortfolioScreen } from "~/screens/PortfolioScreen";
-import { LendScreen } from "~/screens/LendScreen";
-import { SwapScreen } from "~/screens/SwapScreen";
 import { SwapContextProvider } from "~/context";
 import { useConnection } from "~/hooks/useConnection";
 import { useWallet } from "~/hooks/useWallet";
@@ -71,10 +68,6 @@ function LogoTitle({ title }: { title: string }) {
   );
 }
 
-function MoreScreen() {
-  return null;
-}
-
 function TabNavigator() {
   const setIsMenuVisible = useSetRecoilState(isSideDrawerVisible);
 
@@ -85,7 +78,7 @@ function TabNavigator() {
         tabBarActiveTintColor: "#DCE85D",
         tabBarLabelPosition: "below-icon",
         tabBarLabelStyle: { fontWeight: "400", fontSize: 14, flex: 1, fontFamily: "Aeonik Pro" },
-        tabBarStyle: { height: 60 },
+        tabBarStyle: { height: 70, paddingTop: 13, paddingBottom: 10 },
       }}
     >
       {ORDERED_MOBILE_NAVBAR_LINKS.map((navBarLink) => {
