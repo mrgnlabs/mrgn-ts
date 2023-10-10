@@ -100,13 +100,13 @@ const AssetsList: FC = () => {
     <>
       <div className="col-span-full">
         <div className="flex w-[150px] h-[42px]">
-        <MrgnLabeledSwitch
-          labelLeft="Lend"
-          labelRight="Borrow"
-          checked={!isInLendingMode}
-          onClick={() => setIsInLendingMode(!isInLendingMode)}
-        />
-      </div>
+          <MrgnLabeledSwitch
+            labelLeft="Lend"
+            labelRight="Borrow"
+            checked={!isInLendingMode}
+            onClick={() => setIsInLendingMode(!isInLendingMode)}
+          />
+        </div>
       </div>
 
       <div className="col-span-full">
@@ -318,8 +318,8 @@ const AssetsList: FC = () => {
                         showHotkeyBadges={showBadges}
                         badgeContent={`${i + 1}`}
                         showLSTDialog={(variant: LSTDialogVariants) => {
-                          setLSTDialogVariant(variant)
-                          setIsLSTDialogOpen(true)
+                          setLSTDialogVariant(variant);
+                          setIsLSTDialogOpen(true);
                         }}
                       />
                     ) : (
@@ -387,10 +387,14 @@ const AssetsList: FC = () => {
         </Card>
       </div>
 
-      <LSTDialog variant={lstDialogVariant} open={isLSTDialogOpen} onClose={() => {
-        setIsLSTDialogOpen(false)
-        setLSTDialogVariant(null)
-      }} />
+      <LSTDialog
+        variant={lstDialogVariant}
+        open={isLSTDialogOpen}
+        onClose={() => {
+          setIsLSTDialogOpen(false);
+          setLSTDialogVariant(null);
+        }}
+      />
     </>
   );
 };

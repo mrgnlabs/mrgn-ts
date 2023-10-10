@@ -55,7 +55,7 @@ const AssetRow: FC<{
   hasHotkey,
   showHotkeyBadges,
   badgeContent,
-  showLSTDialog
+  showLSTDialog,
 }) => {
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
@@ -126,12 +126,25 @@ const AssetRow: FC<{
   }, [bank, marginfiAccount, fetchMrgnlendState, setIsRefreshingStore]);
 
   const handleBorrowOrLend = useCallback(async () => {
-    if (currentAction === ActionType.Deposit && showLSTDialog && (bank.meta.tokenSymbol === 'SOL' || bank.meta.tokenSymbol === 'stSOL')) {
-      showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants)
-      return
+    if (
+      currentAction === ActionType.Deposit &&
+      (bank.meta.tokenSymbol === "SOL" || bank.meta.tokenSymbol === "stSOL") &&
+      showLSTDialog
+    ) {
+      showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
+      return;
     }
 
     await borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
+
+    if (
+      currentAction === ActionType.Withdraw &&
+      (bank.meta.tokenSymbol === "SOL" || bank.meta.tokenSymbol === "stSOL") &&
+      showLSTDialog
+    ) {
+      showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
+      return;
+    }
 
     setBorrowOrLendAmount(0);
 
@@ -152,7 +165,7 @@ const AssetRow: FC<{
     nativeSolBalance,
     fetchMrgnlendState,
     setIsRefreshingStore,
-    showLSTDialog
+    showLSTDialog,
   ]);
 
   return (
