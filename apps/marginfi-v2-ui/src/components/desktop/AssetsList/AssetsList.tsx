@@ -8,6 +8,7 @@ import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { LoadingAsset, AssetRow } from "./AssetRow";
+import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { MrgnLabeledSwitch } from "~/components/common";
 
@@ -29,6 +30,8 @@ const AssetsList: FC = () => {
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [isInLendingMode, setIsInLendingMode] = useState(true);
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
+  const [isLSTDialogOpen, setIsLSTDialogOpen] = useState(false);
+  const [lstDialogVariant, setLSTDialogVariant] = useState<LSTDialogVariants | null>(null);
 
   // Enter hotkey mode
   useHotkeys(
@@ -314,6 +317,10 @@ const AssetsList: FC = () => {
                         hasHotkey={true}
                         showHotkeyBadges={showBadges}
                         badgeContent={`${i + 1}`}
+                        showLSTDialog={(variant: LSTDialogVariants) => {
+                          setLSTDialogVariant(variant)
+                          setIsLSTDialogOpen(true)
+                        }}
                       />
                     ) : (
                       <LoadingAsset
@@ -379,6 +386,11 @@ const AssetsList: FC = () => {
           </TableContainer>
         </Card>
       </div>
+
+      <LSTDialog variant={lstDialogVariant} open={isLSTDialogOpen} onClose={() => {
+        setIsLSTDialogOpen(false)
+        setLSTDialogVariant(null)
+      }} />
     </>
   );
 };
