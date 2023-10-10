@@ -10,6 +10,7 @@ import {
   createDefaultWalletNotFoundHandler,
   SolanaMobileWalletAdapter,
 } from "@solana-mobile/wallet-adapter-mobile";
+import { MoongateWalletAdapter } from "@moongate/moongate-adapter";
 
 export const WALLET_ADAPTERS = [
   new SolanaMobileWalletAdapter({
@@ -27,4 +28,5 @@ export const WALLET_ADAPTERS = [
   new SolflareWalletAdapter(),
   new BackpackWalletAdapter(),
   new GlowWalletAdapter(),
+  new MoongateWalletAdapter(),
 ];
