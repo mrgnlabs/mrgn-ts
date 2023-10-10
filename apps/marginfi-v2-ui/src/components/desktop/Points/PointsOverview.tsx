@@ -15,7 +15,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
       <div className="grid grid-cols-2 gap-5 max-w-[800px] mx-auto w-full">
         <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
           <CardContent>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
+            <Typography color="#868E95" className="font-aeonik font-[300] text-sm sm:text-base flex gap-1" gutterBottom>
               Total Points
               <div className="self-center">
                 <MrgnTooltip
@@ -44,7 +44,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
         </Card>
         <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
           <CardContent>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
+            <Typography color="#868E95" className="font-aeonik font-[300] text-sm sm:text-base" gutterBottom>
               Global Rank {/* TODO: fix that with dedicated query */}
             </Typography>
             <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
@@ -64,7 +64,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-5 max-w-[800px] mx-auto w-full">
         <Card className="bg-[#131619]  h-24 rounded-xl" elevation={0}>
           <CardContent>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
+            <Typography color="#868E95" className="font-aeonik font-[300] text-sm sm:text-base flex gap-1" gutterBottom>
               Lending Points
               <div className="self-center">
                 <MrgnTooltip
@@ -93,7 +93,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
         </Card>
         <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
           <CardContent>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
+            <Typography color="#868E95" className="font-aeonik font-[300] text-sm sm:text-base flex gap-1" gutterBottom>
               Borrowing Points
               <div className="self-center">
                 <MrgnTooltip
@@ -122,7 +122,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
         </Card>
         <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
           <CardContent>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
+            <Typography color="#868E95" className="font-aeonik font-[300] text-sm sm:text-base flex gap-1" gutterBottom>
               Referral Points
               <div className="self-center">
                 <MrgnTooltip
