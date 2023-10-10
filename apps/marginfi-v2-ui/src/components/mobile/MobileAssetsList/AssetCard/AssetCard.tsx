@@ -5,6 +5,7 @@ import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { useMrgnlendStore } from "~/store";
 import { borrowOrLend, closeBalance } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
+import { LSTDialogVariants } from "~/components/common/AssetList";
 import { AssetCardStats } from "./AssetCardStats";
 import { AssetCardActions } from "./AssetCardActions";
 import { AssetCardPosition } from "./AssetCardPosition";
@@ -17,7 +18,8 @@ export const AssetCard: FC<{
   isConnected: boolean;
   marginfiAccount: MarginfiAccountWrapper | null;
   inputRefs?: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
-}> = ({ bank, nativeSolBalance, isInLendingMode, marginfiAccount, inputRefs }) => {
+  showLSTDialog?: (variant: LSTDialogVariants) => void;
+}> = ({ bank, nativeSolBalance, isInLendingMode, marginfiAccount, inputRefs, showLSTDialog }) => {
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
@@ -61,6 +63,15 @@ export const AssetCard: FC<{
 
   const handleBorrowOrLend = useCallback(
     async (borrowOrLendAmount: number) => {
+      if (
+        currentAction === ActionType.Deposit &&
+        (bank.meta.tokenSymbol === "SOL" || bank.meta.tokenSymbol === "stSOL") &&
+        showLSTDialog
+      ) {
+        showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
+        return;
+      }
+
       await borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
 
       // -------- Refresh state

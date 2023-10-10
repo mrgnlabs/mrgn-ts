@@ -7,6 +7,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { MrgnContainedSwitch, MrgnLabeledSwitch, MrgnTooltip } from "~/components/common";
 
 import { AssetCard } from "./AssetCard";
+import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { SORT_OPTIONS_MAP, SortAssetOption, SortType, sortApRate, sortTvl } from "./MobileAssetsList.utils";
 
 export const MobileAssetsList: FC = () => {
@@ -23,6 +24,8 @@ export const MobileAssetsList: FC = () => {
   ]);
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [isInLendingMode, setIsInLendingMode] = useState(true);
+  const [isLSTDialogOpen, setIsLSTDialogOpen] = useState(false);
+  const [lstDialogVariant, setLSTDialogVariant] = useState<LSTDialogVariants | null>(null);
 
   const sortBanks = useCallback(
     (banks: ExtendedBankInfo[]) => {
@@ -51,7 +54,8 @@ export const MobileAssetsList: FC = () => {
 
   const isolatedBanks = useMemo(() => {
     const filteredBanks =
-      extendedBankInfos && extendedBankInfos.filter((b) => b.info.state.isIsolated).filter((b) => (isFiltered ? b.isActive : true));
+      extendedBankInfos &&
+      extendedBankInfos.filter((b) => b.info.state.isIsolated).filter((b) => (isFiltered ? b.isActive : true));
 
     if (isStoreInitialized && sortOption && filteredBanks) {
       return sortBanks(filteredBanks);
@@ -155,6 +159,10 @@ export const MobileAssetsList: FC = () => {
                   isConnected={connected}
                   marginfiAccount={selectedAccount}
                   inputRefs={inputRefs}
+                  showLSTDialog={(variant: LSTDialogVariants) => {
+                    setLSTDialogVariant(variant);
+                    setIsLSTDialogOpen(true);
+                  }}
                 />
               ))}
             </div>
@@ -211,6 +219,15 @@ export const MobileAssetsList: FC = () => {
           <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
         )}
       </div>
+
+      <LSTDialog
+        variant={lstDialogVariant}
+        open={isLSTDialogOpen}
+        onClose={() => {
+          setIsLSTDialogOpen(false);
+          setLSTDialogVariant(null);
+        }}
+      />
     </>
   );
 };
