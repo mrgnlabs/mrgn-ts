@@ -1,7 +1,7 @@
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-})
+const withPWA = require("next-pwa")({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+});
 
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
   enabled: process.env.ANALYZE === "true",
@@ -70,7 +70,7 @@ let config = withBundleAnalyzer({
         protocol: "https",
         hostname: "shdw-drive.genesysgo.net",
         port: "",
-        pathname: "/6tcnBSybPG7piEDShBcrVtYJDPSvGrDbVvXmXKpzBvWP/**",
+        pathname: "/**",
       },
       {
         protocol: "https",
