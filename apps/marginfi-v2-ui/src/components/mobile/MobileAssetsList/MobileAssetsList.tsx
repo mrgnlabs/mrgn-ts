@@ -26,6 +26,7 @@ export const MobileAssetsList: FC = () => {
   const [isInLendingMode, setIsInLendingMode] = useState(true);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = useState<LSTDialogVariants | null>(null);
+  const [lstDialogCallback, setLSTDialogCallback] = useState<(() => void) | null>(null);
 
   const sortBanks = useCallback(
     (banks: ExtendedBankInfo[]) => {
@@ -159,9 +160,12 @@ export const MobileAssetsList: FC = () => {
                   isConnected={connected}
                   marginfiAccount={selectedAccount}
                   inputRefs={inputRefs}
-                  showLSTDialog={(variant: LSTDialogVariants) => {
+                  showLSTDialog={(variant: LSTDialogVariants, onClose?: () => void) => {
                     setLSTDialogVariant(variant);
                     setIsLSTDialogOpen(true);
+                    if (onClose) {
+                      setLSTDialogCallback(() => onClose);
+                    }
                   }}
                 />
               ))}
@@ -226,6 +230,10 @@ export const MobileAssetsList: FC = () => {
         onClose={() => {
           setIsLSTDialogOpen(false);
           setLSTDialogVariant(null);
+          if (lstDialogCallback) {
+            lstDialogCallback();
+            setLSTDialogCallback(null);
+          }
         }}
       />
     </>

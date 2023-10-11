@@ -3,7 +3,7 @@ import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { useMrgnlendStore } from "~/store";
-import { borrowOrLend, closeBalance } from "~/utils";
+import { borrowOrLend, closeBalance, BorrowOrLendParams } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { LSTDialogVariants } from "~/components/common/AssetList";
 import { AssetCardStats } from "./AssetCardStats";
@@ -18,7 +18,7 @@ export const AssetCard: FC<{
   isConnected: boolean;
   marginfiAccount: MarginfiAccountWrapper | null;
   inputRefs?: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
-  showLSTDialog?: (variant: LSTDialogVariants) => void;
+  showLSTDialog?: (variant: LSTDialogVariants, callback?: () => void) => void;
 }> = ({ bank, nativeSolBalance, isInLendingMode, marginfiAccount, inputRefs, showLSTDialog }) => {
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
@@ -71,11 +71,25 @@ export const AssetCard: FC<{
         showLSTDialog
       ) {
         setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
-        showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
+        showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants, async () => {
+          await actionBorrowOrLend(borrowOrLendAmount, {
+            mfiClient,
+            currentAction,
+            bank,
+            nativeSolBalance,
+            marginfiAccount,
+          });
+        });
         return;
       }
 
-      await borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
+      await actionBorrowOrLend(borrowOrLendAmount, {
+        mfiClient,
+        currentAction,
+        bank,
+        nativeSolBalance,
+        marginfiAccount,
+      });
 
       if (
         currentAction === ActionType.Withdraw &&
@@ -86,15 +100,6 @@ export const AssetCard: FC<{
         setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
         showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
         return;
-      }
-
-      // -------- Refresh state
-      try {
-        setIsRefreshingStore(true);
-        await fetchMrgnlendState();
-      } catch (error: any) {
-        console.log("Error while reloading state");
-        console.log(error);
       }
     },
     [
@@ -107,6 +112,31 @@ export const AssetCard: FC<{
       setIsRefreshingStore,
       showLSTDialog,
     ]
+  );
+
+  const actionBorrowOrLend = useCallback(
+    async (
+      borrowOrLendAmount: number,
+      {
+        mfiClient,
+        currentAction,
+        bank,
+        nativeSolBalance,
+        marginfiAccount,
+      }: Omit<BorrowOrLendParams, "borrowOrLendAmount">
+    ) => {
+      await borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
+
+      // -------- Refresh state
+      try {
+        setIsRefreshingStore(true);
+        await fetchMrgnlendState();
+      } catch (error: any) {
+        console.log("Error while reloading state");
+        console.log(error);
+      }
+    },
+    []
   );
 
   return (
