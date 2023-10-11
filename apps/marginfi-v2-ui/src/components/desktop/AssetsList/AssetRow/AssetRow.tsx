@@ -61,6 +61,7 @@ const AssetRow: FC<{
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
+  const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
 
   const assetPriceOffset = useMemo(
     () =>
@@ -129,8 +130,10 @@ const AssetRow: FC<{
     if (
       currentAction === ActionType.Deposit &&
       (bank.meta.tokenSymbol === "SOL" || bank.meta.tokenSymbol === "stSOL") &&
+      !hasLSTDialogShown.includes(bank.meta.tokenSymbol as LSTDialogVariants) &&
       showLSTDialog
     ) {
+      setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
       showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
       return;
     }
@@ -140,8 +143,10 @@ const AssetRow: FC<{
     if (
       currentAction === ActionType.Withdraw &&
       (bank.meta.tokenSymbol === "SOL" || bank.meta.tokenSymbol === "stSOL") &&
+      !hasLSTDialogShown.includes(bank.meta.tokenSymbol as LSTDialogVariants) &&
       showLSTDialog
     ) {
+      setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
       showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
       return;
     }
