@@ -61,19 +61,13 @@ const LSTDialog = ({ variant, open, onClose }: LSTDialogProps) => {
             {variant === LSTDialogVariants.stSOL && (
               <>
                 <h2 className="text-2xl font-bold">Swap stSOL for LST?</h2>
-                <div className="space-y-2">
-                  <p>
-                    <a
-                      href="https://snapshot.org/#/lido-snapshot.eth/proposal/0x37c958cfa873f6b2859b280bc4165fbdf15b1141b62844712af3338d5893c6c8"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[#DCE85D] font-bold border-b border-transparent transition hover:border-[#DCE85D]"
-                    >
-                      Lido is sunsetting stSOL
-                    </a>
-                    .
-                  </p>
-                  <p>Swap your stSOL for LST now and earn higher yield.</p>
+                <div className="space-y-4">
+                  <p>Lido is sunsetting stSOL. Swap your stSOL for LST now and earn higher yield</p>
+                  <div className="text-[#DCE85D] space-y-2 font-bold">
+                    <p>LST is the only 8% yielding LST.</p>
+                    <p>LST is the only 0% commission LST.</p>
+                    <p>LST is the only 0 fee LST.</p>
+                  </div>
                 </div>
               </>
             )}
