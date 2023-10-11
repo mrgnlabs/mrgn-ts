@@ -89,7 +89,7 @@ const LSTDialog = ({ variant, open, onClose }: LSTDialogProps) => {
               </>
             )}
             <div className="flex flex-col space-y-4 mt-3">
-              <Link href="/stake">
+              <Link href={variant === LSTDialogVariants.stSOL ? "/stake?deposit=stSOL" : "/stake"}>
                 <Button className="bg-white text-[#020815] normal-case mx-auto px-4 hover:bg-white/80">Mint LST</Button>
               </Link>
               <button
