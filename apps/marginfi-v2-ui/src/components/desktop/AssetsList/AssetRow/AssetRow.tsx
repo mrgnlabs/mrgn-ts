@@ -12,11 +12,11 @@ import {
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType, getCurrentAction, ExtendedBankMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, PriceBias, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { AssetRowInputBox, AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { closeBalance, borrowOrLend } from "~/utils";
+import { closeBalance, borrowOrLend, BorrowOrLendParams } from "~/utils";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
   [
@@ -45,7 +45,7 @@ const AssetRow: FC<{
   hasHotkey: boolean;
   showHotkeyBadges?: boolean;
   badgeContent?: string;
-  showLSTDialog?: (variant: LSTDialogVariants) => void;
+  showLSTDialog?: (variant: LSTDialogVariants, callback?: () => void) => void;
 }> = ({
   bank,
   nativeSolBalance,
@@ -134,11 +134,27 @@ const AssetRow: FC<{
       showLSTDialog
     ) {
       setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
-      showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
+      showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants, async () => {
+        await actionBorrowOrLend({
+          mfiClient,
+          currentAction,
+          bank,
+          borrowOrLendAmount,
+          nativeSolBalance,
+          marginfiAccount,
+        });
+      });
       return;
     }
 
-    await borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
+    await actionBorrowOrLend({
+      mfiClient,
+      currentAction,
+      bank,
+      borrowOrLendAmount,
+      nativeSolBalance,
+      marginfiAccount,
+    });
 
     if (
       currentAction === ActionType.Withdraw &&
@@ -149,17 +165,6 @@ const AssetRow: FC<{
       setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
       showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
       return;
-    }
-
-    setBorrowOrLendAmount(0);
-
-    // -------- Refresh state
-    try {
-      setIsRefreshingStore(true);
-      await fetchMrgnlendState();
-    } catch (error: any) {
-      console.log("Error while reloading state");
-      console.log(error);
     }
   }, [
     bank,
@@ -172,6 +177,31 @@ const AssetRow: FC<{
     setIsRefreshingStore,
     showLSTDialog,
   ]);
+
+  const actionBorrowOrLend = useCallback(
+    async ({
+      mfiClient,
+      currentAction,
+      bank,
+      borrowOrLendAmount,
+      nativeSolBalance,
+      marginfiAccount,
+    }: BorrowOrLendParams) => {
+      await borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
+
+      setBorrowOrLendAmount(0);
+
+      // -------- Refresh state
+      try {
+        setIsRefreshingStore(true);
+        await fetchMrgnlendState();
+      } catch (error: any) {
+        console.log("Error while reloading state");
+        console.log(error);
+      }
+    },
+    []
+  );
 
   return (
     <TableRow className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]">

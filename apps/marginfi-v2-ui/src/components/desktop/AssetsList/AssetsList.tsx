@@ -32,6 +32,7 @@ const AssetsList: FC = () => {
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = useState<LSTDialogVariants | null>(null);
+  const [lstDialogCallback, setLSTDialogCallback] = useState<(() => void) | null>(null);
 
   // Enter hotkey mode
   useHotkeys(
@@ -317,9 +318,12 @@ const AssetsList: FC = () => {
                         hasHotkey={true}
                         showHotkeyBadges={showBadges}
                         badgeContent={`${i + 1}`}
-                        showLSTDialog={(variant: LSTDialogVariants) => {
+                        showLSTDialog={(variant: LSTDialogVariants, onClose?: () => void) => {
                           setLSTDialogVariant(variant);
                           setIsLSTDialogOpen(true);
+                          if (onClose) {
+                            setLSTDialogCallback(() => onClose);
+                          }
                         }}
                       />
                     ) : (
@@ -393,6 +397,10 @@ const AssetsList: FC = () => {
         onClose={() => {
           setIsLSTDialogOpen(false);
           setLSTDialogVariant(null);
+          if (lstDialogCallback) {
+            lstDialogCallback();
+            setLSTDialogCallback(null);
+          }
         }}
       />
     </>
