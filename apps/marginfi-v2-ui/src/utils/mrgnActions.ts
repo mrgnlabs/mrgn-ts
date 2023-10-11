@@ -53,6 +53,15 @@ export const closeBalance = async ({
   }
 };
 
+export type BorrowOrLendParams = {
+  mfiClient: MarginfiClient | null;
+  bank: ExtendedBankInfo;
+  currentAction: ActionType | "Connect";
+  borrowOrLendAmount: number;
+  nativeSolBalance: number;
+  marginfiAccount: MarginfiAccountWrapper | null;
+};
+
 export const borrowOrLend = async ({
   mfiClient,
   currentAction,
@@ -60,14 +69,7 @@ export const borrowOrLend = async ({
   borrowOrLendAmount,
   nativeSolBalance,
   marginfiAccount,
-}: {
-  mfiClient: MarginfiClient | null;
-  bank: ExtendedBankInfo;
-  currentAction: ActionType | "Connect";
-  borrowOrLendAmount: number;
-  nativeSolBalance: number;
-  marginfiAccount: MarginfiAccountWrapper | null;
-}) => {
+}: BorrowOrLendParams) => {
   if (mfiClient === null) throw Error("Marginfi client not ready");
 
   if (currentAction === ActionType.Deposit && bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit) {
@@ -190,7 +192,12 @@ export const borrowOrLend = async ({
   }
 };
 
-export async function collectRewardsBatch(connection: Connection, wallet: Wallet, marginfiAccount: MarginfiAccountWrapper, bankAddresses: PublicKey[]) {
+export async function collectRewardsBatch(
+  connection: Connection,
+  wallet: Wallet,
+  marginfiAccount: MarginfiAccountWrapper,
+  bankAddresses: PublicKey[]
+) {
   const tx = new Transaction();
   const ixs = [];
   const signers = [];
