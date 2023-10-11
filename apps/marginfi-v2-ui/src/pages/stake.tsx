@@ -80,7 +80,7 @@ const StakePage = () => {
 };
 
 const StakingContent = () => (
-  <div className="flex flex-col max-w-[640px] h-full w-full justify-center items-center py-12 px-4">
+  <div className="flex flex-col max-w-[640px] h-full w-full justify-center items-center pt-10 pb-16 px-4">
     <div className="space-y-6 text-center mb-4">
       <h1 className="font-bold text-3xl">LST — mrgn&apos;s Liquid Staking Token.</h1>
       <p>The highest natural yield available from any LST on Solana. By a lot.</p>
@@ -94,7 +94,7 @@ const StakingContent = () => (
       <StakingStats />
       <StakingCard />
     </div>
-    <p className="text-white/50 text-sm mt-8 text-center">
+    <p className="text-white/75 mt-8 text-center">
       Using mrgn&apos;s sophisticated validator set, you pay no fees, earn more yield, and get more utility out of your
       staked SOL than anywhere else. Maximum liquidity with Sanctum, maximum utility with marginfi, maximum flexibility
       with Solana DeFi.
