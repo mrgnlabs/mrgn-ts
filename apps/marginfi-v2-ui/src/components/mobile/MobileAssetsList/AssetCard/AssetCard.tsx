@@ -83,7 +83,16 @@ export const AssetCard: FC<{
         console.log(error);
       }
     },
-    [bank, currentAction, marginfiAccount, mfiClient, nativeSolBalance, fetchMrgnlendState, setIsRefreshingStore]
+    [
+      bank,
+      currentAction,
+      marginfiAccount,
+      mfiClient,
+      nativeSolBalance,
+      fetchMrgnlendState,
+      setIsRefreshingStore,
+      showLSTDialog,
+    ]
   );
 
   return (

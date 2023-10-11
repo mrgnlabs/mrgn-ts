@@ -23,7 +23,7 @@ const LSTDialog = ({ variant, open, onClose }: LSTDialogProps) => {
     if (!bank) return null;
 
     return bank.meta.tokenLogoUri;
-  }, [variant]);
+  }, [variant, sortedBanks]);
 
   return (
     <Dialog
@@ -66,6 +66,7 @@ const LSTDialog = ({ variant, open, onClose }: LSTDialogProps) => {
                   <a
                     href="https://snapshot.org/#/lido-snapshot.eth/proposal/0x37c958cfa873f6b2859b280bc4165fbdf15b1141b62844712af3338d5893c6c8"
                     target="_blank"
+                    rel="noreferrer"
                     className="text-[#DCE85D] border-b border-transparent transition hover:border-[#DCE85D]"
                   >
                     proposal on the future of stSOL
