@@ -1,4 +1,5 @@
 import { Dispatch, FC, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/router";
 import { TextField, Typography } from "@mui/material";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { WalletIcon } from "./WalletIcon";
@@ -67,6 +68,7 @@ export type DepositOption =
     };
 
 export const StakingCard: FC = () => {
+  const router = useRouter();
   const { connection } = useConnection();
   const { connected, wallet, walletAddress, openWalletSelector } = useWalletContext();
   const [
@@ -109,7 +111,16 @@ export const StakingCard: FC = () => {
 
   useEffect(() => {
     setDepositOption((currentDepositOption) => {
-      if (currentDepositOption.type === "native") {
+      if (tokenDataMap && router.query.deposit) {
+        const tokenData = [...tokenDataMap.values()].find(
+          (tokenData) => tokenData.symbol.toLowerCase() === (router.query.deposit as string).toLowerCase()
+        );
+
+        if (!tokenData) {
+          return currentDepositOption;
+        }
+        return { type: "token", tokenData, amount: new BN(0) };
+      } else if (currentDepositOption.type === "native") {
         return {
           ...currentDepositOption,
           maxAmount: availableLamports ?? new BN(0),
@@ -495,34 +506,38 @@ export const StakingCard: FC = () => {
           </Typography>
         </div>
         <div className="h-[36px] my-5">
-          <Desktop><PrimaryButton
-            disabled={
-              connected &&
-              (depositAmountUi == 0 ||
+          <Desktop>
+            <PrimaryButton
+              disabled={
+                connected &&
+                (depositAmountUi == 0 ||
+                  lstOutAmount === 0 ||
+                  lstOutAmount === null ||
+                  refreshingQuotes ||
+                  !!ongoingAction)
+              }
+              loading={connected && !!ongoingAction}
+              onClick={connected ? onMint : openWalletSelector}
+            >
+              {!connected ? "connect" : ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? <Spinner /> : "mint"}
+            </PrimaryButton>
+          </Desktop>
+          <Mobile>
+            <PrimaryButton
+              disabled={
+                !connected ||
+                depositAmountUi == 0 ||
                 lstOutAmount === 0 ||
                 lstOutAmount === null ||
                 refreshingQuotes ||
-                !!ongoingAction)
-            }
-            loading={connected && !!ongoingAction}
-            onClick={connected ? onMint : openWalletSelector}
-          >
-            {!connected ? "connect" : ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? <Spinner /> : "mint"}
-          </PrimaryButton></Desktop>
-          <Mobile><PrimaryButton
-            disabled={
-              !connected ||
-              (depositAmountUi == 0 ||
-                lstOutAmount === 0 ||
-                lstOutAmount === null ||
-                refreshingQuotes ||
-                !!ongoingAction)
-            }
-            loading={connected && !!ongoingAction}
-            onClick={connected ? onMint : undefined}
-          >
-            {ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? <Spinner /> : "mint"}
-          </PrimaryButton></Mobile>
+                !!ongoingAction
+              }
+              loading={connected && !!ongoingAction}
+              onClick={connected ? onMint : undefined}
+            >
+              {ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? <Spinner /> : "mint"}
+            </PrimaryButton>
+          </Mobile>
         </div>
         <div className="flex flex-row justify-between w-full my-auto">
           <Typography className="font-aeonik font-[400] text-base">Current price</Typography>
