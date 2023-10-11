@@ -80,24 +80,25 @@ const StakePage = () => {
 };
 
 const StakingContent = () => (
-  <div className="flex flex-col h-full max-w-[480px] w-full justify-center content-center sm:pt-[16px] gap-4 px-4">
-    <StakingStats />
-    <StakingCard />
-    <div className="flex flex-col mt-10 pb-[128px] sm:pb-[64px] gap-5 justify-center font-aeonik">
-      <Typography className="text-center w-full text-xl font-[200]">
-        <span className="font-bold text-[#DCE85D]">$LST</span>, by mrgn
-      </Typography>
-      <Typography className="text-center w-full text-xl font-[200]">
-        Introducing the best way to get exposure to SOL. <span className="font-bold text-[#DCE85D]">$LST</span> is built
-        on mrgn&apos;s validator network and Jito&apos;s MEV rewards. For the first time,{" "}
-        <span className="font-bold text-[#DCE85D]">$LST</span> holders can get the best staking yield available on
-        Solana, combined with the biggest MEV rewards from Solana&apos;s trader network.
-      </Typography>
-      <Typography className="text-center w-full text-xl font-[200]">
-        <span className="font-bold text-[#DCE85D]">$LST</span> has 0% commission. The yield goes to you. Stop paying
-        middlemen. Stop using underperforming validators. Stop missing out on MEV rewards.
-      </Typography>
+  <div className="flex flex-col max-w-[640px] h-full w-full justify-center items-center py-12 px-4">
+    <div className="space-y-6 text-center mb-4">
+      <h1 className="font-bold text-3xl">LST — mrgn&apos;s Liquid Staking Token.</h1>
+      <p>The highest natural yield available from any LST on Solana. By a lot.</p>
+      <div className="text-[#DCE85D] space-y-2 font-bold">
+        <p>LST is the only 8% yielding LST.</p>
+        <p>LST is the only 0% commission LST.</p>
+        <p>LST is the only 0 fee LST.</p>
+      </div>
     </div>
+    <div className="max-w-[480px] w-full space-y-4">
+      <StakingStats />
+      <StakingCard />
+    </div>
+    <p className="text-white/50 text-sm mt-8 text-center">
+      Using mrgn&apos;s sophisticated validator set, you pay no fees, earn more yield, and get more utility out of your
+      staked SOL than anywhere else. Maximum liquidity with Sanctum, maximum utility with marginfi, maximum flexibility
+      with Solana DeFi.
+    </p>
   </div>
 );
 

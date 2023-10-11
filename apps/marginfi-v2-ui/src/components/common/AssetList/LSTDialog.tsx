@@ -78,16 +78,14 @@ const LSTDialog = ({ variant, open, onClose }: LSTDialogProps) => {
             {variant === LSTDialogVariants.SOL && (
               <>
                 <h2 className="text-2xl font-bold">Stake for LST?</h2>
-                <p>
-                  <a
-                    href="https://twitter.com/marginfi/status/1706690880093221119"
-                    target="_blank"
-                    className="text-[#DCE85D] border-b border-transparent transition hover:border-[#DCE85D]"
-                  >
-                    Introducing the best way to get exposure to SOL
-                  </a>
-                  . Stop paying middlemen. Stop using underperforming validators. Stop missing out on MEV rewards.
-                </p>
+                <div className="space-y-4">
+                  <p>The highest natural yield available from any LST on Solana. By a lot.</p>
+                  <div className="text-[#DCE85D] space-y-2 font-bold">
+                    <p>LST is the only 8% yielding LST.</p>
+                    <p>LST is the only 0% commission LST.</p>
+                    <p>LST is the only 0 fee LST.</p>
+                  </div>
+                </div>
               </>
             )}
             <div className="flex flex-col space-y-4 mt-3">
