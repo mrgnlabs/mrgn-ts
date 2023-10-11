@@ -19,7 +19,6 @@ const LSTDialog = ({ variant, open, onClose }: LSTDialogProps) => {
   const [sortedBanks] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
   const tokenImage = useMemo(() => {
-    // find bank object from sortedBanks where bank.meta.tokenSymbol === variant
     const bank = sortedBanks.find((bank) => bank.meta.tokenSymbol === variant);
     if (!bank) return null;
 
