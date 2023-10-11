@@ -1,9 +1,10 @@
 import React, { FC, useState } from "react";
-import { SupportedSlippagePercent } from "~/store/lstStore";
-import { PrimaryButton } from "../Common";
 import { View, Text, Pressable } from "react-native";
+
 import tw from "~/styles/tailwind";
+import { SupportedSlippagePercent } from "~/store/lstStore";
 import { CloseIcon } from "~/assets/icons";
+import { PrimaryButton } from "~/components/Common";
 
 interface SettingsModalProps {
   handleClose: () => void;

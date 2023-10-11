@@ -1,12 +1,11 @@
-import React, { useMemo, useState, useRef } from "react";
-import { View, StyleSheet, Text, Pressable } from "react-native";
-import { TapGestureHandler } from "react-native-gesture-handler";
+import React, { useState, useRef } from "react";
+import { View, Text, Pressable } from "react-native";
 import { useOnClickOutside } from "usehooks-ts";
 
-import { KeyArrowDownIcon } from "~/assets/icons/KeyArrowDownIcon";
-import { KeyArrowUpIcon } from "~/assets/icons/KeyArrowUpIcon";
+import { KeyArrowDownIcon } from "~/assets/icons";
+import { KeyArrowUpIcon } from "~/assets/icons";
 import tw from "~/styles/tailwind";
-import { SORT_OPTIONS_MAP, SortAssetOption, SortType } from "~/utils/sort.utils";
+import { SORT_OPTIONS_MAP, SortAssetOption } from "~/utils";
 
 type props = {
   selectedItem: SortAssetOption;

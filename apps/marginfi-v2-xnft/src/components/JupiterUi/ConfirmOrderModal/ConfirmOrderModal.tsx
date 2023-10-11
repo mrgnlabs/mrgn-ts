@@ -144,16 +144,16 @@ export const ConfirmOrderModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <View style={tw`flex flex-col h-full w-full py-4 px-2`}>
-      <View style={tw`flex flex-row justify-end p-4`}>
+      <View style={tw`absolute right-4 top-2`}>
         <Pressable style={tw`text-primary`} onPress={() => onGoBack()}>
-          <icons.CloseIcon width={14} height={14} />
+          <icons.CloseIcon width={14} height={14} color="white" />
         </Pressable>
       </View>
 
       {swapState === "error" && <ErrorContent />}
 
       {swapState === "loading" && (
-        <View>
+        <View style={tw`pt-4`}>
           <ActivityIndicator size="large" color="#ffff" />
           <Text style={tw`text-center text-primary text-base my-4`}>Confirming transaction</Text>
         </View>

@@ -1,66 +1,33 @@
-import React, { Dispatch, FC, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import * as solanaStakePool from "@solana/spl-stake-pool";
-import {
-  createAssociatedTokenAccountIdempotentInstruction,
-  getAssociatedTokenAddressSync,
-  nativeToUi,
-  numeralFormatter,
-  percentFormatter,
-  uiToNative,
-} from "@mrgnlabs/mrgn-common";
-// import { StakingModal } from "./StakingModal";
-import {
-  AddressLookupTableAccount,
-  Connection,
-  Keypair,
-  PublicKey,
-  Signer,
-  StakeAuthorizationLayout,
-  StakeProgram,
-  SystemProgram,
-  TransactionInstruction,
-  TransactionMessage,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, View, Text, Image } from "react-native";
+import { nativeToUi, numeralFormatter, percentFormatter, uiToNative } from "@mrgnlabs/mrgn-common";
+import { PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { SwapMode, useJupiter } from "@jup-ag/react-hook";
-import JSBI from "jsbi";
-import { StakeData } from "~/utils";
 import { createJupiterApiClient } from "@jup-ag/api";
-import { toast } from "react-toastify";
-import { LST_MINT, TokenData } from "~/store/lstStore";
+import JSBI from "jsbi";
 import BN from "bn.js";
+import { toast } from "react-toastify";
 import debounce from "lodash.debounce";
 import Modal from "react-native-modal";
-import { ChevronDownIcon, RefreshIcon, SettingsIcon, WalletIcon } from "~/assets/icons";
+
 import tw from "~/styles/tailwind";
-import { Pressable, View, Text, Image } from "react-native";
-import { NumberInput, PrimaryButton } from "../Common";
+import { LST_MINT } from "~/store/lstStore";
+import { ChevronDownIcon, RefreshIcon, SettingsIcon, WalletIcon } from "~/assets/icons";
 import { useWallet } from "~/hooks/useWallet";
 import { useConnection } from "~/hooks/useConnection";
 import { useLstStore } from "~/store/store";
-import { StakingModal } from "./StakingModal";
-import { SettingsModal } from "./SettingsModal";
+import { NumberInput, PrimaryButton } from "~/components/Common";
 
-const QUOTE_EXPIRY_MS = 30_000;
-const DEFAULT_DEPOSIT_OPTION: DepositOption = { type: "native", amount: new BN(0), maxAmount: new BN(0) };
-
-type OngoingAction = "swapping" | "minting";
-
-export type DepositOption =
-  | {
-      type: "native";
-      amount: BN;
-      maxAmount: BN;
-    }
-  | {
-      type: "token";
-      tokenData: TokenData;
-      amount: BN;
-    }
-  | {
-      type: "stake";
-      stakeData: StakeData;
-    };
+import { SettingsModal } from "./Modals/SettingsModal";
+import {
+  DepositOption,
+  OngoingAction,
+  makeDepositSolToStakePoolIx,
+  makeDepositStakeToStakePoolIx,
+  makeTokenAmountFormatter,
+} from "./StakingCard.utils";
+import * as _consts from "./StakingCard.consts";
+import { StakingModal } from "./Modals";
 
 export const StakingCard: FC = () => {
   const connection = useConnection();
@@ -91,22 +58,16 @@ export const StakingCard: FC = () => {
 
   const [ongoingAction, setOngoingAction] = useState<OngoingAction | null>(null);
   const [refreshingQuotes, setRefreshingQuotes] = useState<boolean>(false);
-  const [depositOption, setDepositOption] = useState<DepositOption>(DEFAULT_DEPOSIT_OPTION);
+  const [depositOption, setDepositOption] = useState<DepositOption>(_consts.DEFAULT_DEPOSIT_OPTION);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
   const [isStakeModalOpen, setIsStakeModalOpen] = useState<boolean>(false);
 
   const slippageBps = useMemo(() => slippagePct * 100, [slippagePct]);
   const [iconUrl, optionName] = useMemo(() => {
     if (depositOption.type === "native") {
-      return [
-        "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
-        "SOL",
-      ];
+      return [_consts.SOL_LOGO_URL, "SOL"];
     } else if (depositOption.type === "stake") {
-      return [
-        "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
-        "Stake",
-      ];
+      return [_consts.SOL_LOGO_URL, "Stake"];
     } else {
       return [depositOption.tokenData.iconUrl, depositOption.tokenData.symbol];
     }
@@ -164,7 +125,7 @@ export const StakingCard: FC = () => {
 
   const refreshQuoteIfNeeded = useCallback(
     (force: boolean = false) => {
-      const hasExpired = Date.now() - lastRefreshTimestamp > QUOTE_EXPIRY_MS;
+      const hasExpired = Date.now() - lastRefreshTimestamp > _consts.QUOTE_EXPIRY_MS;
       if (depositOption.type === "token" && depositOption.amount.gtn(0) && (hasExpired || force)) {
         setRefreshingQuotes(true);
         refresh();
@@ -307,10 +268,11 @@ export const StakingCard: FC = () => {
         });
         const swapTransactionBuffer = Buffer.from(swapTransactionEncoded, "base64");
         const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuffer);
-
+        swapTransaction.message.recentBlockhash = blockhash; // Needed for bug from jupiter regarding faulty blockhash returned
         const signedSwapTransaction = await wallet.signTransaction(swapTransaction);
 
         const swapSig = await connection.sendTransaction(signedSwapTransaction, { maxRetries: 5 });
+
         await connection.confirmTransaction(
           {
             blockhash,
@@ -366,7 +328,9 @@ export const StakingCard: FC = () => {
     } finally {
       await Promise.all([refresh(), fetchLstState()]);
       setDepositOption((currentDepositOption) =>
-        currentDepositOption.type === "stake" ? DEFAULT_DEPOSIT_OPTION : { ...currentDepositOption, amount: new BN(0) }
+        currentDepositOption.type === "stake"
+          ? _consts.DEFAULT_DEPOSIT_OPTION
+          : { ...currentDepositOption, amount: new BN(0) }
       );
       setOngoingAction(null);
     }
@@ -545,188 +509,4 @@ export const StakingCard: FC = () => {
       </Modal>
     </>
   );
-};
-
-export function makeTokenAmountFormatter(decimals: number) {
-  return new Intl.NumberFormat("en-US", {
-    useGrouping: true,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: decimals,
-  });
-}
-
-/**
- * Creates instructions required to deposit sol to stake pool.
- */
-async function makeDepositSolToStakePoolIx(
-  stakePool: solanaStakePool.StakePool,
-  stakePoolAddress: PublicKey,
-  from: PublicKey,
-  lamports: BN,
-  destinationTokenAccount?: PublicKey,
-  referrerTokenAccount?: PublicKey,
-  depositAuthority?: PublicKey
-) {
-  // Ephemeral SOL account just to do the transfer
-  const userSolTransfer = new Keypair();
-  const signers: Signer[] = [userSolTransfer];
-  const instructions: TransactionInstruction[] = [];
-
-  // Create the ephemeral SOL account
-  instructions.push(
-    SystemProgram.transfer({
-      fromPubkey: from,
-      toPubkey: userSolTransfer.publicKey,
-      lamports: lamports.toNumber(),
-    })
-  );
-
-  // Create token account if not specified
-  if (!destinationTokenAccount) {
-    const associatedAddress = getAssociatedTokenAddressSync(stakePool.poolMint, from, true);
-    instructions.push(
-      createAssociatedTokenAccountIdempotentInstruction(from, associatedAddress, from, stakePool.poolMint)
-    );
-    destinationTokenAccount = associatedAddress;
-  }
-
-  const withdrawAuthority = findWithdrawAuthorityProgramAddress(
-    solanaStakePool.STAKE_POOL_PROGRAM_ID,
-    stakePoolAddress
-  );
-
-  instructions.push(
-    solanaStakePool.StakePoolInstruction.depositSol({
-      stakePool: stakePoolAddress,
-      reserveStake: stakePool.reserveStake,
-      fundingAccount: userSolTransfer.publicKey,
-      destinationPoolAccount: destinationTokenAccount,
-      managerFeeAccount: stakePool.managerFeeAccount,
-      referralPoolAccount: referrerTokenAccount ?? destinationTokenAccount,
-      poolMint: stakePool.poolMint,
-      lamports: lamports.toNumber(),
-      withdrawAuthority,
-      depositAuthority,
-    })
-  );
-
-  return {
-    instructions,
-    signers,
-  };
-}
-
-/**
- * Creates instructions required to deposit stake to stake pool.
- */
-export async function makeDepositStakeToStakePoolIx(
-  stakePool: solanaStakePool.StakePool,
-  stakePoolAddress: PublicKey,
-  walletAddress: PublicKey,
-  validatorVote: PublicKey,
-  depositStake: PublicKey
-) {
-  const withdrawAuthority = findWithdrawAuthorityProgramAddress(
-    solanaStakePool.STAKE_POOL_PROGRAM_ID,
-    stakePoolAddress
-  );
-
-  const validatorStake = findStakeProgramAddress(
-    solanaStakePool.STAKE_POOL_PROGRAM_ID,
-    validatorVote,
-    stakePoolAddress
-  );
-
-  const instructions: TransactionInstruction[] = [];
-  const signers: Signer[] = [];
-
-  const poolMint = stakePool.poolMint;
-
-  const poolTokenReceiverAccount = getAssociatedTokenAddressSync(poolMint, walletAddress, true);
-  instructions.push(
-    createAssociatedTokenAccountIdempotentInstruction(walletAddress, poolTokenReceiverAccount, walletAddress, poolMint)
-  );
-
-  instructions.push(
-    ...StakeProgram.authorize({
-      stakePubkey: depositStake,
-      authorizedPubkey: walletAddress,
-      newAuthorizedPubkey: stakePool.stakeDepositAuthority,
-      stakeAuthorizationType: StakeAuthorizationLayout.Staker,
-    }).instructions
-  );
-
-  instructions.push(
-    ...StakeProgram.authorize({
-      stakePubkey: depositStake,
-      authorizedPubkey: walletAddress,
-      newAuthorizedPubkey: stakePool.stakeDepositAuthority,
-      stakeAuthorizationType: StakeAuthorizationLayout.Withdrawer,
-    }).instructions
-  );
-
-  instructions.push(
-    solanaStakePool.StakePoolInstruction.depositStake({
-      stakePool: stakePoolAddress,
-      validatorList: stakePool.validatorList,
-      depositAuthority: stakePool.stakeDepositAuthority,
-      reserveStake: stakePool.reserveStake,
-      managerFeeAccount: stakePool.managerFeeAccount,
-      referralPoolAccount: poolTokenReceiverAccount,
-      destinationPoolAccount: poolTokenReceiverAccount,
-      withdrawAuthority,
-      depositStake,
-      validatorStake,
-      poolMint,
-    })
-  );
-
-  return {
-    instructions,
-    signers,
-  };
-}
-
-/**
- * Generates the withdraw authority program address for the stake pool
- */
-function findWithdrawAuthorityProgramAddress(programId: PublicKey, stakePoolAddress: PublicKey) {
-  const [publicKey] = PublicKey.findProgramAddressSync(
-    [stakePoolAddress.toBuffer(), Buffer.from("withdraw")],
-    programId
-  );
-  return publicKey;
-}
-
-/**
- * Generates the stake program address for a validator's vote account
- */
-function findStakeProgramAddress(programId: PublicKey, voteAccountAddress: PublicKey, stakePoolAddress: PublicKey) {
-  const [publicKey] = PublicKey.findProgramAddressSync(
-    [voteAccountAddress.toBuffer(), stakePoolAddress.toBuffer()],
-    programId
-  );
-  return publicKey;
-}
-
-export const getAdressLookupTableAccounts = async (
-  connection: Connection,
-  keys: string[]
-): Promise<AddressLookupTableAccount[]> => {
-  const addressLookupTableAccountInfos = await connection.getMultipleAccountsInfo(
-    keys.map((key) => new PublicKey(key))
-  );
-
-  return addressLookupTableAccountInfos.reduce((acc, accountInfo, index) => {
-    const addressLookupTableAddress = keys[index];
-    if (accountInfo) {
-      const addressLookupTableAccount = new AddressLookupTableAccount({
-        key: new PublicKey(addressLookupTableAddress),
-        state: AddressLookupTableAccount.deserialize(accountInfo.data),
-      });
-      acc.push(addressLookupTableAccount);
-    }
-
-    return acc;
-  }, new Array<AddressLookupTableAccount>());
 };

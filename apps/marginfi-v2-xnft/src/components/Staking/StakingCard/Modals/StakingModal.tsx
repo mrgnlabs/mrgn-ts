@@ -1,14 +1,16 @@
 import React, { Dispatch, FC, SetStateAction, useState } from "react";
 import { nativeToUi, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
-import { SOL_MINT, TokenDataMap } from "~/store/lstStore";
-import { DepositOption } from "./StakingCard";
-import BN from "bn.js";
+import { View, Text, Image, Pressable } from "react-native";
 import { PublicKey } from "@solana/web3.js";
-import { StakeData } from "~/utils";
-import { View, Text, Image, Pressable, StyleSheet } from "react-native";
+import BN from "bn.js";
+
 import tw from "~/styles/tailwind";
-import { StakeTabSwitch } from "./StakeTabSwitch";
+import { SOL_MINT, TokenDataMap } from "~/store/lstStore";
+import { StakeData } from "~/utils";
 import { CloseIcon, ExternalIcon } from "~/assets/icons";
+
+import { StakeTabSwitch } from "../StakeTabSwitch";
+import { DepositOption } from "../StakingCard.utils";
 
 interface StakingModalProps {
   handleClose: () => void;

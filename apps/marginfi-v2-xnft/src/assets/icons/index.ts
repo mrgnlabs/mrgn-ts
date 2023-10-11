@@ -19,3 +19,5 @@ export * from "./MrgnIcon";
 export * from "./BackIcon";
 export * from "./SteakIcon";
 export * from "./MoreIcon";
+export * from "./KeyArrowDownIcon";
+export * from "./KeyArrowUpIcon";

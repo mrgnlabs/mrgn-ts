@@ -16,6 +16,7 @@ import { AppsIcon, MrgnIcon, PieChartIcon, ReceiveMoneyIcon, TokenSwapIcon } fro
 import tw from "~/styles/tailwind";
 import { StakeScreen } from "~/screens/StakeScreen";
 import { DrawerMenu } from "~/components/Common/DrawerMenu";
+import { useDidLaunch } from "~/hooks/xnft-hooks";
 
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
@@ -133,7 +134,10 @@ function App() {
   const connection = useConnection();
   const { publicKey } = useWallet();
 
-  const [asLegacyTransaction, setAsLegacyTransaction] = useState(true);
+  const didConnect = useDidLaunch();
+  console.log({ didConnect });
+
+  const [asLegacyTransaction, setAsLegacyTransaction] = useState(false);
 
   if (!fontsLoaded) {
     return (
