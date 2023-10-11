@@ -80,7 +80,7 @@ const StakePage = () => {
 };
 
 const StakingContent = () => (
-  <div className="flex flex-col max-w-[640px] h-full w-full justify-center items-center pt-10 pb-16 px-4">
+  <div className="flex flex-col max-w-[640px] h-full w-full justify-center items-center pt-10 pb-32 lg:pb-16 px-4">
     <div className="space-y-6 text-center mb-4">
       <h1 className="font-bold text-3xl">LST — mrgn&apos;s Liquid Staking Token.</h1>
       <p>The highest natural yield available from any LST on Solana. By a lot.</p>
