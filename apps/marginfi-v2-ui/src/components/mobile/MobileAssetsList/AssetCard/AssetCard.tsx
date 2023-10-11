@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo } from "react";
+import React, { FC, useCallback, useMemo, useState } from "react";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
@@ -23,6 +23,7 @@ export const AssetCard: FC<{
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
+  const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
 
   const totalDepositsOrBorrows = useMemo(
     () =>
@@ -66,13 +67,26 @@ export const AssetCard: FC<{
       if (
         currentAction === ActionType.Deposit &&
         (bank.meta.tokenSymbol === "SOL" || bank.meta.tokenSymbol === "stSOL") &&
+        !hasLSTDialogShown.includes(bank.meta.tokenSymbol as LSTDialogVariants) &&
         showLSTDialog
       ) {
+        setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
         showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
         return;
       }
 
       await borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
+
+      if (
+        currentAction === ActionType.Withdraw &&
+        (bank.meta.tokenSymbol === "SOL" || bank.meta.tokenSymbol === "stSOL") &&
+        !hasLSTDialogShown.includes(bank.meta.tokenSymbol as LSTDialogVariants) &&
+        showLSTDialog
+      ) {
+        setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
+        showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
+        return;
+      }
 
       // -------- Refresh state
       try {
