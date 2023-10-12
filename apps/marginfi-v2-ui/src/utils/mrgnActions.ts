@@ -127,7 +127,7 @@ export const borrowOrLend = async ({
     }
   } catch (error: any) {
     toast.update(BORROW_OR_LEND_TOAST_ID, {
-      render: error ? error : `Error while ${currentAction.toLowerCase() + "ing"}`,
+      render: typeof error === "string" ? error : `Error while ${currentAction.toLowerCase() + "ing"}`,
       type: toast.TYPE.ERROR,
       autoClose: 5000,
       isLoading: false,
@@ -182,7 +182,7 @@ export const borrowOrLend = async ({
     });
   } catch (error: any) {
     toast.update(BORROW_OR_LEND_TOAST_ID, {
-      render: error ? error : `Error while ${currentAction.toLowerCase() + "ing"}`,
+      render: typeof error === "string" ? error : `Error while ${currentAction.toLowerCase() + "ing"}`,
       type: toast.TYPE.ERROR,
       autoClose: 5000,
       isLoading: false,
