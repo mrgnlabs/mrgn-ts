@@ -1,4 +1,4 @@
-import React, { useMemo, FC, useEffect, useState, useCallback } from "react";
+import React, { useMemo, FC, useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@mui/material";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
@@ -31,12 +31,54 @@ const Points: FC = () => {
     state.userPointsData,
   ]);
 
-  const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[]>([]);
+  const leaderboardPerPage = 50;
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[] | {}[]>([
+    ...new Array(leaderboardPerPage).fill({}),
+  ]);
+  const [leaderboardPage, setLeaderboardPage] = useState(0);
+  const [isFetchingLeaderboardPage, setIsFetchingLeaderboardPage] = useState(false);
+  const leaderboardSentinelRef = useRef<HTMLDivElement>(null);
   const [domain, setDomain] = useState<string>();
 
   const currentUserId = useMemo(() => domain ?? currentFirebaseUser?.uid, [currentFirebaseUser, domain]);
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
   const [isReferralCopied, setIsReferralCopied] = useState(false);
+
+  // fetch next page of leaderboard results
+  const fetchLeaderboardPage = useCallback(async () => {
+    // grab last row of current leaderboard data for cursor
+    const lastRow = [...leaderboardData].filter((row) => row.hasOwnProperty("id"))[
+      leaderboardPage * leaderboardPerPage - 2
+    ] as LeaderboardRow;
+    if (!lastRow || !lastRow.hasOwnProperty("id")) return;
+    setIsFetchingLeaderboardPage(true);
+
+    // fetch new page of data with cursor
+    const queryCursor = leaderboardData.length > 0 ? lastRow.doc : undefined;
+    setLeaderboardData((current) => [...current, ...new Array(50).fill({})]);
+    fetchLeaderboardData({
+      connection,
+      queryCursor,
+    }).then((data) => {
+      // filter out skeleton rows
+      const filtered = [...leaderboardData].filter((row) => row.hasOwnProperty("id"));
+
+      // additional check for duplicate values
+      const uniqueData = data.reduce((acc, curr) => {
+        const isDuplicate = acc.some((item) => {
+          const data = item as LeaderboardRow;
+          data.id === curr.id;
+        });
+        if (!isDuplicate) {
+          acc.push(curr);
+        }
+        return acc;
+      }, filtered);
+
+      setLeaderboardData(uniqueData);
+      setIsFetchingLeaderboardPage(false);
+    });
+  }, [connection, leaderboardData, setLeaderboardData, setIsFetchingLeaderboardPage, leaderboardPage]);
 
   const resolveDomain = async (connection: Connection, user: PublicKey) => {
     try {
@@ -53,9 +95,47 @@ const Points: FC = () => {
     }
   }, [connection, walletAddress]);
 
+  // fetch new page when page counter changed
   useEffect(() => {
-    fetchLeaderboardData(connection).then(setLeaderboardData); // TODO: cache leaderboard and avoid call
-  }, [connection, connected, walletAddress]); // Dependency array to re-fetch when these variables change
+    fetchLeaderboardPage();
+  }, [leaderboardPage]);
+
+  useEffect(() => {
+    // fetch initial page and overwrite skeleton rows
+    if (leaderboardPage === 0) {
+      fetchLeaderboardData({
+        connection,
+      }).then((data) => {
+        setLeaderboardData([...data]);
+      });
+    }
+
+    // intersection observer to fetch new page of data
+    // when sentinel element is scrolled into view
+    const observer = new IntersectionObserver(
+      (entries) => {
+        console.log("here", entries);
+        if (entries[0].isIntersecting && !isFetchingLeaderboardPage) {
+          setLeaderboardPage((current) => current + 1);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0,
+      }
+    );
+
+    if (leaderboardSentinelRef.current) {
+      observer.observe(leaderboardSentinelRef.current);
+    }
+
+    return () => {
+      if (leaderboardSentinelRef.current) {
+        observer.unobserve(leaderboardSentinelRef.current);
+      }
+    };
+  }, [connection, fetchLeaderboardPage]);
 
   return (
     <>
@@ -130,6 +210,7 @@ const Points: FC = () => {
           </div>
         </div>
         <PointsLeaderBoard leaderboardData={leaderboardData} currentUserId={currentUserId} />
+        <div ref={leaderboardSentinelRef} style={{ height: 10, width: "100%", transform: "translateY(-50vh)" }} />
       </div>
     </>
   );

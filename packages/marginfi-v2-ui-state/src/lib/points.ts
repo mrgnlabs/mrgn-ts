@@ -11,6 +11,7 @@ import {
   getDoc,
   getCountFromServer,
   where,
+  QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { FavouriteDomain, NAME_OFFERS_ID, reverseLookupBatch } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -18,6 +19,7 @@ import { firebaseApi } from ".";
 
 type LeaderboardRow = {
   id: string;
+  doc: QueryDocumentSnapshot<DocumentData>;
   total_activity_deposit_points: number;
   total_activity_borrow_points: number;
   total_referral_deposit_points: number;
@@ -27,38 +29,33 @@ type LeaderboardRow = {
   socialPoints: number;
 };
 
-async function fetchLeaderboardData(connection?: Connection, rowCap = 100, pageSize = 50): Promise<LeaderboardRow[]> {
+async function fetchLeaderboardData({
+  connection,
+  queryCursor,
+  pageSize = 50,
+}: {
+  connection?: Connection;
+  queryCursor?: QueryDocumentSnapshot<DocumentData>;
+  pageSize?: number;
+}): Promise<LeaderboardRow[]> {
   const pointsCollection = collection(firebaseApi.db, "points");
 
-  const leaderboardMap = new Map();
-  let initialQueryCursor = null;
-  do {
-    let pointsQuery: Query<DocumentData>;
-    if (initialQueryCursor) {
-      pointsQuery = query(
-        pointsCollection,
-        orderBy("total_points", "desc"),
-        startAfter(initialQueryCursor),
-        limit(pageSize)
-      );
-    } else {
-      pointsQuery = query(pointsCollection, orderBy("total_points", "desc"), limit(pageSize));
-    }
+  const pointsQuery: Query<DocumentData> = query(
+    pointsCollection,
+    orderBy("total_points", "desc"),
+    ...(queryCursor ? [startAfter(queryCursor)] : []),
+    limit(pageSize)
+  );
 
-    const querySnapshot = await getDocs(pointsQuery);
-    const leaderboardSlice = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    const leaderboardSliceFiltered = leaderboardSlice.filter(
-      (item) => item.id !== null && item.id !== undefined && item.id != "None"
-    );
+  const querySnapshot = await getDocs(pointsQuery);
+  const leaderboardSlice = querySnapshot.docs
+    .filter((item) => item.id !== null && item.id !== undefined && item.id != "None")
+    .map((doc) => {
+      const data = { id: doc.id, doc, ...doc.data() } as LeaderboardRow;
+      return data;
+    });
 
-    for (const row of leaderboardSliceFiltered) {
-      leaderboardMap.set(row.id, row);
-    }
-
-    initialQueryCursor = querySnapshot.docs.length > 0 ? querySnapshot.docs[querySnapshot.docs.length - 1] : null;
-  } while (initialQueryCursor !== null && leaderboardMap.size < rowCap);
-
-  const leaderboardFinalSlice = [...leaderboardMap.values()].slice(0, 100);
+  const leaderboardFinalSlice: LeaderboardRow[] = [...leaderboardSlice];
 
   if (connection) {
     const publicKeys = leaderboardFinalSlice.map((value) => {
@@ -72,6 +69,7 @@ async function fetchLeaderboardData(connection?: Connection, rowCap = 100, pageS
 
     leaderboardFinalSlice.map((value, idx) => (value.id = reverseLookup[idx] ? `${reverseLookup[idx]}.sol` : value.id));
   }
+
   return leaderboardFinalSlice;
 }
 
