@@ -21,7 +21,7 @@ interface PointsLeaderBoardProps {
 
 export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData, currentUserId }) => {
   return (
-    <TableContainer component={Paper} className="h-full w-4/5 sm:w-full bg-[#131619] rounded-xl overflow-x-auto">
+    <TableContainer component={Paper} className="h-full w-4/5 mt-10 sm:w-full bg-[#131619] rounded-xl overflow-x-auto">
       <Table>
         <TableHead>
           <TableRow className="bg-zinc-800">
@@ -115,14 +115,9 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData,
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ textDecoration: "none", color: "inherit" }}
-                    className="hover:text-[#7fff00]"
+                    className="hover:text-[#DCE85D]"
                   >
-                    {`${data.id.slice(0, 5)}...${data.id.slice(-5)}`}
-                    <style jsx>{`
-                      a:hover {
-                        text-decoration: underline;
-                      }
-                    `}</style>
+                    {data.id}
                   </a>
                 </TableCell>
                 <TableCell
