@@ -21,13 +21,22 @@ interface PointsLeaderBoardProps {
 
 export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId }) => {
   const { connection } = useConnection();
-  const [leaderboardSettings, setLeaderboardSettings] = useState({
+  const [leaderboardSettings, setLeaderboardSettings] = useState<{
+    orderCol: string;
+    orderDir: "asc" | "desc";
+    totalUserCount: number;
+    perPage: number;
+    currentPage: number;
+    isFetchingLeaderboardPage: boolean;
+    initialLoad: boolean;
+  }>({
     orderCol: "total_points",
     orderDir: "desc",
     totalUserCount: 0,
     perPage: 50,
     currentPage: 0,
     isFetchingLeaderboardPage: false,
+    initialLoad: true,
   });
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[] | {}[]>([
     ...new Array(leaderboardSettings.perPage).fill({}),
@@ -46,7 +55,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
   const fetchLeaderboardPage = useCallback(async () => {
     // grab last row of current leaderboard data for cursor
     const lastRow = [...leaderboardData].filter((row) => row.hasOwnProperty("id"))[
-      leaderboardSettings.currentPage * leaderboardSettings.perPage - 2
+      leaderboardSettings.currentPage * leaderboardSettings.perPage - (leaderboardSettings.orderDir === "asc" ? 1 : 2)
     ] as LeaderboardRow;
     if (!lastRow || !lastRow.hasOwnProperty("id")) return;
     setLeaderboardSettings({
@@ -60,6 +69,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
     fetchLeaderboardData({
       connection,
       queryCursor,
+      orderDir: leaderboardSettings.orderDir,
     }).then((data) => {
       // filter out skeleton rows
       const filtered = [...leaderboardData].filter((row) => row.hasOwnProperty("id"));
@@ -82,7 +92,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
         isFetchingLeaderboardPage: false,
       });
     });
-  }, [connection, leaderboardData, setLeaderboardData, leaderboardSettings, setLeaderboardSettings]);
+  }, [setLeaderboardData, leaderboardSettings, setLeaderboardSettings]);
 
   // fetch new page when page counter changed
   useEffect(() => {
@@ -91,9 +101,15 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
 
   useEffect(() => {
     // fetch initial page and overwrite skeleton rows
-    if (leaderboardSettings.currentPage === 0) {
+    if (leaderboardSettings.currentPage === 0 && leaderboardSettings.initialLoad) {
+      setLeaderboardSettings({
+        ...leaderboardSettings,
+        initialLoad: false,
+      });
       fetchLeaderboardData({
         connection,
+        orderDir: leaderboardSettings.orderDir,
+        orderCol: leaderboardSettings.orderCol,
       }).then((data) => {
         setLeaderboardData([...data]);
       });
@@ -106,6 +122,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
         if (entries[0].isIntersecting && !leaderboardSettings.isFetchingLeaderboardPage) {
           setLeaderboardSettings({
             ...leaderboardSettings,
+            isFetchingLeaderboardPage: true,
             currentPage: leaderboardSettings.currentPage + 1,
           });
         }
@@ -126,7 +143,15 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
         observer.unobserve(leaderboardSentinelRef.current);
       }
     };
-  }, [connection, fetchLeaderboardPage]);
+  }, [
+    connection,
+    fetchLeaderboardPage,
+    setLeaderboardSettings,
+    leaderboardSettings.isFetchingLeaderboardPage,
+    leaderboardSettings.currentPage,
+    leaderboardSettings.initialLoad,
+    setLeaderboardSettings,
+  ]);
 
   useEffect(() => {
     getTotalUserCount();
@@ -147,7 +172,14 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                 className="text-white text-base font-aeonik font-bold border-none text-center cursor-pointer"
                 style={{ fontWeight: 500 }}
                 onClick={() => {
-                  console.log("Sort by rank");
+                  setLeaderboardData([...new Array(leaderboardSettings.perPage).fill({})]);
+                  setLeaderboardSettings({
+                    ...leaderboardSettings,
+                    orderCol: "total_points",
+                    orderDir: leaderboardSettings.orderDir === "asc" ? "desc" : "asc",
+                    currentPage: 0,
+                    initialLoad: true,
+                  });
                 }}
               >
                 Rank
@@ -218,13 +250,27 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                 >
                   <TableCell
                     align="center"
-                    className={`${index <= 2 ? "text-2xl" : "text-base"} border-none font-mono ${
+                    className={clsx(
+                      "border-none font-mono",
+                      leaderboardSettings.orderCol === "total_points" &&
+                        leaderboardSettings.orderDir === "desc" &&
+                        index <= 2 &&
+                        "text-2xl",
+                      leaderboardSettings.orderCol === "total_points" &&
+                        leaderboardSettings.orderDir === "desc" &&
+                        index > 2 &&
+                        "text-base",
+                      leaderboardSettings.orderCol !== "total_points" && "text-base",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                    }`}
-                    // className={`border-none font-aeonik ${data.id === currentUserId ? "text-[#DCE85D]" : "text-white"}`}
+                    )}
                   >
-                    {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}
-                    {/* {userPointsData.totalUserCount - index} */}
+                    {leaderboardSettings.orderCol === "total_points" && leaderboardSettings.orderDir === "desc" && (
+                      <>{index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</>
+                    )}
+                    {leaderboardSettings.orderCol === "total_points" && leaderboardSettings.orderDir === "asc" && (
+                      <>{leaderboardSettings.totalUserCount - index}</>
+                    )}
+                    {leaderboardSettings.orderCol !== "total_points" && <>{index}</>}
                   </TableCell>
                   <TableCell
                     className={`text-base border-none font-aeonik ${
@@ -301,7 +347,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
           </TableBody>
         </Table>
       </TableContainer>
-      <div ref={leaderboardSentinelRef} style={{ height: 10, width: "100%", transform: "translateY(-50vh)" }} />
+      <div ref={leaderboardSentinelRef} style={{ height: 10, width: "100%" }} />
     </>
   );
 };

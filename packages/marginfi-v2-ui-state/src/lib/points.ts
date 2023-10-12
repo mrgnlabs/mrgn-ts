@@ -33,16 +33,20 @@ async function fetchLeaderboardData({
   connection,
   queryCursor,
   pageSize = 50,
+  orderCol = "total_points",
+  orderDir = "desc",
 }: {
   connection?: Connection;
   queryCursor?: QueryDocumentSnapshot<DocumentData>;
   pageSize?: number;
+  orderCol?: string;
+  orderDir?: "desc" | "asc";
 }): Promise<LeaderboardRow[]> {
   const pointsCollection = collection(firebaseApi.db, "points");
 
   const pointsQuery: Query<DocumentData> = query(
     pointsCollection,
-    orderBy("total_points", "desc"),
+    orderBy(orderCol, orderDir),
     ...(queryCursor ? [startAfter(queryCursor)] : []),
     where("total_points", ">=", 1),
     limit(pageSize)
