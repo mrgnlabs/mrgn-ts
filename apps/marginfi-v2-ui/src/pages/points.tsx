@@ -100,7 +100,7 @@ const Points: FC = () => {
               }}
               onClick={() => {
                 if (userPointsData.referralLink) {
-                  navigator.clipboard.writeText(userPointsData.referralLink);
+                  navigator.clipboard.writeText(`https://www.mfi.gg/refer/${userPointsData.referralLink}`);
                 }
               }}
             >
