@@ -114,7 +114,6 @@ const Points: FC = () => {
     // when sentinel element is scrolled into view
     const observer = new IntersectionObserver(
       (entries) => {
-        console.log("here", entries);
         if (entries[0].isIntersecting && !isFetchingLeaderboardPage) {
           setLeaderboardPage((current) => current + 1);
         }

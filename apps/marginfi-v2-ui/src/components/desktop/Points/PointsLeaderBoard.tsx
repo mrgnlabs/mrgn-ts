@@ -1,6 +1,16 @@
 import React, { FC } from "react";
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Skeleton } from "@mui/material";
-
+import clsx from "clsx";
+import {
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Skeleton,
+  Typography,
+} from "@mui/material";
 import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { LeaderboardRow } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -14,10 +24,10 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData,
     <TableContainer component={Paper} className="h-full w-4/5 sm:w-full bg-[#131619] rounded-xl overflow-x-auto">
       <Table>
         <TableHead>
-          <TableRow>
+          <TableRow className="bg-zinc-800">
             <TableCell
               align="center"
-              className="text-white text-base font-aeonik border-none pl-2"
+              className="text-white text-base font-aeonik font-bold border-none pl-2"
               style={{ fontWeight: 500 }}
             >
               Rank
@@ -79,7 +89,13 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData,
             const data = row as LeaderboardRow;
 
             return (
-              <TableRow key={data.id} className={`${data.id === currentUserId ? "glow" : ""}`}>
+              <TableRow
+                key={data.id}
+                className={clsx(
+                  (index & 1) > 0 ? "bg-zinc-800/50" : "bg-none",
+                  `${data.id === currentUserId ? "glow" : ""}`
+                )}
+              >
                 <TableCell
                   align="center"
                   className={`${index <= 2 ? "text-2xl" : "text-base"} border-none font-aeonik ${
@@ -111,7 +127,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData,
                 </TableCell>
                 <TableCell
                   align="right"
-                  className={`text-base border-none font-aeonik ${
+                  className={`text-sm border-none font-mono ${
                     data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
                   }`}
                   style={{ fontWeight: 400 }}
@@ -120,7 +136,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData,
                 </TableCell>
                 <TableCell
                   align="right"
-                  className={`text-base border-none font-aeonik ${
+                  className={`text-sm border-none font-mono ${
                     data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
                   }`}
                   style={{ fontWeight: 400 }}
@@ -129,7 +145,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData,
                 </TableCell>
                 <TableCell
                   align="right"
-                  className={`text-base border-none font-aeonik ${
+                  className={`text-sm border-none font-mono ${
                     data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
                   }`}
                   style={{ fontWeight: 400 }}
@@ -140,7 +156,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData,
                 </TableCell>
                 <TableCell
                   align="right"
-                  className={`text-base border-none font-aeonik ${
+                  className={`text-sm border-none font-mono ${
                     data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
                   }`}
                   style={{ fontWeight: 400 }}
@@ -149,7 +165,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData,
                 </TableCell>
                 <TableCell
                   align="right"
-                  className={`text-base border-none font-aeonik ${
+                  className={`text-sm border-none font-mono ${
                     data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
                   }`}
                   style={{ fontWeight: 400 }}

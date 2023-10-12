@@ -35,6 +35,16 @@ module.exports = {
     },
     fontFamily: {
       aeonik: ['"Aeonik Pro"'],
+      mono: [
+        "ui-monospace",
+        "SFMono-Regular",
+        "Menlo",
+        "Monaco",
+        "Consolas",
+        "Liberation Mono",
+        "Courier New",
+        "monospace",
+      ],
     },
     screens: {
       sm: "640px",
