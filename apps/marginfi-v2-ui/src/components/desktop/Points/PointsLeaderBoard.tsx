@@ -1,11 +1,11 @@
 import React, { FC } from "react";
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Skeleton } from "@mui/material";
 
 import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { LeaderboardRow } from "@mrgnlabs/marginfi-v2-ui-state";
 
 interface PointsLeaderBoardProps {
-  leaderboardData: LeaderboardRow[];
+  leaderboardData: LeaderboardRow[] | {}[];
   currentUserId?: string;
 }
 
@@ -63,90 +63,106 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ leaderboardData,
           </TableRow>
         </TableHead>
         <TableBody>
-          {leaderboardData.map((row: LeaderboardRow, index: number) => (
-            <TableRow key={row.id} className={`${row.id === currentUserId ? "glow" : ""}`}>
-              <TableCell
-                align="center"
-                className={`${index <= 2 ? "text-2xl" : "text-base"} border-none font-aeonik ${
-                  row.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                }`}
-              >
-                {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}
-              </TableCell>
-              <TableCell
-                className={`text-base border-none font-aeonik ${
-                  row.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                }`}
-                style={{ fontWeight: 400 }}
-              >
-                <a
-                  href={`https://solscan.io/account/${row.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  className="hover:text-[#7fff00]"
+          {leaderboardData.map((row: LeaderboardRow | {}, index: number) => {
+            if (!row.hasOwnProperty("id")) {
+              return (
+                <TableRow key={index}>
+                  {[...new Array(7)].map((_, index) => (
+                    <TableCell className="border-none">
+                      <Skeleton variant="text" animation="pulse" sx={{ fontSize: "1rem", bgcolor: "grey.900" }} />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            }
+
+            const data = row as LeaderboardRow;
+
+            return (
+              <TableRow key={data.id} className={`${data.id === currentUserId ? "glow" : ""}`}>
+                <TableCell
+                  align="center"
+                  className={`${index <= 2 ? "text-2xl" : "text-base"} border-none font-aeonik ${
+                    data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
+                  }`}
                 >
-                  {`${row.id.slice(0, 5)}...${row.id.slice(-5)}`}
-                  <style jsx>{`
-                    a:hover {
-                      text-decoration: underline;
-                    }
-                  `}</style>
-                </a>
-              </TableCell>
-              <TableCell
-                align="right"
-                className={`text-base border-none font-aeonik ${
-                  row.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                }`}
-                style={{ fontWeight: 400 }}
-              >
-                {groupedNumberFormatterDyn.format(Math.round(row.total_activity_deposit_points))}
-              </TableCell>
-              <TableCell
-                align="right"
-                className={`text-base border-none font-aeonik ${
-                  row.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                }`}
-                style={{ fontWeight: 400 }}
-              >
-                {groupedNumberFormatterDyn.format(Math.round(row.total_activity_borrow_points))}
-              </TableCell>
-              <TableCell
-                align="right"
-                className={`text-base border-none font-aeonik ${
-                  row.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                }`}
-                style={{ fontWeight: 400 }}
-              >
-                {groupedNumberFormatterDyn.format(
-                  Math.round(row.total_referral_deposit_points + row.total_referral_borrow_points)
-                )}
-              </TableCell>
-              <TableCell
-                align="right"
-                className={`text-base border-none font-aeonik ${
-                  row.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                }`}
-                style={{ fontWeight: 400 }}
-              >
-                {groupedNumberFormatterDyn.format(Math.round(row.socialPoints ? row.socialPoints : 0))}
-              </TableCell>
-              <TableCell
-                align="right"
-                className={`text-base border-none font-aeonik ${
-                  row.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                }`}
-                style={{ fontWeight: 400 }}
-              >
-                {groupedNumberFormatterDyn.format(
-                  Math.round(
-                    row.total_deposit_points + row.total_borrow_points + (row.socialPoints ? row.socialPoints : 0)
-                  )
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
+                  {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}
+                </TableCell>
+                <TableCell
+                  className={`text-base border-none font-aeonik ${
+                    data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
+                  }`}
+                  style={{ fontWeight: 400 }}
+                >
+                  <a
+                    href={`https://solscan.io/account/${data.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: "none", color: "inherit" }}
+                    className="hover:text-[#7fff00]"
+                  >
+                    {`${data.id.slice(0, 5)}...${data.id.slice(-5)}`}
+                    <style jsx>{`
+                      a:hover {
+                        text-decoration: underline;
+                      }
+                    `}</style>
+                  </a>
+                </TableCell>
+                <TableCell
+                  align="right"
+                  className={`text-base border-none font-aeonik ${
+                    data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
+                  }`}
+                  style={{ fontWeight: 400 }}
+                >
+                  {groupedNumberFormatterDyn.format(Math.round(data.total_activity_deposit_points))}
+                </TableCell>
+                <TableCell
+                  align="right"
+                  className={`text-base border-none font-aeonik ${
+                    data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
+                  }`}
+                  style={{ fontWeight: 400 }}
+                >
+                  {groupedNumberFormatterDyn.format(Math.round(data.total_activity_borrow_points))}
+                </TableCell>
+                <TableCell
+                  align="right"
+                  className={`text-base border-none font-aeonik ${
+                    data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
+                  }`}
+                  style={{ fontWeight: 400 }}
+                >
+                  {groupedNumberFormatterDyn.format(
+                    Math.round(data.total_referral_deposit_points + data.total_referral_borrow_points)
+                  )}
+                </TableCell>
+                <TableCell
+                  align="right"
+                  className={`text-base border-none font-aeonik ${
+                    data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
+                  }`}
+                  style={{ fontWeight: 400 }}
+                >
+                  {groupedNumberFormatterDyn.format(Math.round(data.socialPoints ? data.socialPoints : 0))}
+                </TableCell>
+                <TableCell
+                  align="right"
+                  className={`text-base border-none font-aeonik ${
+                    data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
+                  }`}
+                  style={{ fontWeight: 400 }}
+                >
+                  {groupedNumberFormatterDyn.format(
+                    Math.round(
+                      data.total_deposit_points + data.total_borrow_points + (data.socialPoints ? data.socialPoints : 0)
+                    )
+                  )}
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>
