@@ -41,6 +41,7 @@
     "bignumber.js": "^9.1.1",
     "bn.js": "^5.2.1",
     "bs58": "^5.0.0",
+    "clsx": "^2.0.0",
     "firebase": "^9.22.1",
     "firebase-admin": "^11.9.0",
     "jsbi": "^4.3.0",
