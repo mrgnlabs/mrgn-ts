@@ -67,7 +67,12 @@ async function fetchLeaderboardData({
     );
     const reverseLookup = await reverseLookupBatch(connection, favoriteDomainsInfo);
 
-    leaderboardFinalSlice.map((value, idx) => (value.id = reverseLookup[idx] ? `${reverseLookup[idx]}.sol` : value.id));
+    leaderboardFinalSlice.map(
+      (value, idx) =>
+        (value.id = reverseLookup[idx]
+          ? `${reverseLookup[idx]}.sol`
+          : `${value.id.slice(0, 5)}...${value.id.slice(-5)}`)
+    );
   }
 
   return leaderboardFinalSlice;
