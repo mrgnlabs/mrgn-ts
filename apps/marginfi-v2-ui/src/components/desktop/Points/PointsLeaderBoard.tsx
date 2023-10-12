@@ -21,28 +21,38 @@ interface PointsLeaderBoardProps {
 
 export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId }) => {
   const { connection } = useConnection();
-  const leaderboardPerPage = 50;
+  const [leaderboardSettings, setLeaderboardSettings] = useState({
+    orderCol: "total_points",
+    orderDir: "desc",
+    totalUserCount: 0,
+    perPage: 50,
+    currentPage: 0,
+    isFetchingLeaderboardPage: false,
+  });
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[] | {}[]>([
-    ...new Array(leaderboardPerPage).fill({}),
+    ...new Array(leaderboardSettings.perPage).fill({}),
   ]);
-  const [leaderboardPage, setLeaderboardPage] = useState(0);
-  const [totalUserCount, setTotalUserCount] = useState(0);
-  const [isFetchingLeaderboardPage, setIsFetchingLeaderboardPage] = useState(false);
   const leaderboardSentinelRef = useRef<HTMLDivElement>(null);
 
   const getTotalUserCount = useCallback(async () => {
     const totalUserCount = await fetchTotalUserCount();
-    setTotalUserCount(totalUserCount);
-  }, [setTotalUserCount, fetchTotalUserCount]);
+    setLeaderboardSettings({
+      ...leaderboardSettings,
+      totalUserCount,
+    });
+  }, [setLeaderboardSettings, fetchTotalUserCount]);
 
   // fetch next page of leaderboard results
   const fetchLeaderboardPage = useCallback(async () => {
     // grab last row of current leaderboard data for cursor
     const lastRow = [...leaderboardData].filter((row) => row.hasOwnProperty("id"))[
-      leaderboardPage * leaderboardPerPage - 2
+      leaderboardSettings.currentPage * leaderboardSettings.perPage - 2
     ] as LeaderboardRow;
     if (!lastRow || !lastRow.hasOwnProperty("id")) return;
-    setIsFetchingLeaderboardPage(true);
+    setLeaderboardSettings({
+      ...leaderboardSettings,
+      isFetchingLeaderboardPage: true,
+    });
 
     // fetch new page of data with cursor
     const queryCursor = leaderboardData.length > 0 ? lastRow.doc : undefined;
@@ -67,18 +77,21 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
       }, filtered);
 
       setLeaderboardData(uniqueData);
-      setIsFetchingLeaderboardPage(false);
+      setLeaderboardSettings({
+        ...leaderboardSettings,
+        isFetchingLeaderboardPage: false,
+      });
     });
-  }, [connection, leaderboardData, setLeaderboardData, setIsFetchingLeaderboardPage, leaderboardPage]);
+  }, [connection, leaderboardData, setLeaderboardData, leaderboardSettings, setLeaderboardSettings]);
 
   // fetch new page when page counter changed
   useEffect(() => {
     fetchLeaderboardPage();
-  }, [leaderboardPage]);
+  }, [leaderboardSettings.currentPage]);
 
   useEffect(() => {
     // fetch initial page and overwrite skeleton rows
-    if (leaderboardPage === 0) {
+    if (leaderboardSettings.currentPage === 0) {
       fetchLeaderboardData({
         connection,
       }).then((data) => {
@@ -90,8 +103,11 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
     // when sentinel element is scrolled into view
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isFetchingLeaderboardPage) {
-          setLeaderboardPage((current) => current + 1);
+        if (entries[0].isIntersecting && !leaderboardSettings.isFetchingLeaderboardPage) {
+          setLeaderboardSettings({
+            ...leaderboardSettings,
+            currentPage: leaderboardSettings.currentPage + 1,
+          });
         }
       },
       {
@@ -118,7 +134,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
 
   return (
     <>
-      <p>Total users: {totalUserCount}</p>
+      <p>Total users: {leaderboardSettings.totalUserCount}</p>
       <TableContainer
         component={Paper}
         className="h-full w-4/5 mt-10 sm:w-full bg-[#131619] rounded-xl overflow-x-auto"
@@ -128,8 +144,11 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
             <TableRow className="bg-zinc-800">
               <TableCell
                 align="center"
-                className="text-white text-base font-aeonik font-bold border-none text-center"
+                className="text-white text-base font-aeonik font-bold border-none text-center cursor-pointer"
                 style={{ fontWeight: 500 }}
+                onClick={() => {
+                  console.log("Sort by rank");
+                }}
               >
                 Rank
               </TableCell>
