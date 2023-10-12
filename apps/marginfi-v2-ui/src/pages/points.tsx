@@ -1,7 +1,8 @@
-import React, { useMemo, FC, useEffect, useState } from "react";
+import React, { useMemo, FC, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@mui/material";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
+import CheckIcon from "@mui/icons-material/Check";
 import { useRouter } from "next/router";
 import { getFavoriteDomain } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -34,12 +35,15 @@ const Points: FC = () => {
 
   const currentUserId = useMemo(() => domain ?? currentFirebaseUser?.uid, [currentFirebaseUser, domain]);
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
+  const [isReferralCopied, setIsReferralCopied] = useState(false);
 
-  useEffect(() => {
-    if (connection && walletAddress) {
-      resolveDomain(connection, new PublicKey(walletAddress));
+  const handleReferralCopy = useCallback(() => {
+    if (userPointsData.referralLink) {
+      navigator.clipboard.writeText(`https://www.mfi.gg/refer/${userPointsData.referralLink}`);
+      setIsReferralCopied(true);
+      setTimeout(() => setIsReferralCopied(false), 2000);
     }
-  }, [connection, walletAddress]);
+  }, [userPointsData.referralLink]);
 
   const resolveDomain = async (connection: Connection, user: PublicKey) => {
     try {
@@ -49,6 +53,12 @@ const Points: FC = () => {
       return;
     }
   };
+
+  useEffect(() => {
+    if (connection && walletAddress) {
+      resolveDomain(connection, new PublicKey(walletAddress));
+    }
+  }, [connection, walletAddress]);
 
   useEffect(() => {
     fetchLeaderboardData(connection).then(setLeaderboardData); // TODO: cache leaderboard and avoid call
@@ -98,18 +108,16 @@ const Points: FC = () => {
                 color: "black",
                 zIndex: 10,
               }}
-              onClick={() => {
-                if (userPointsData.referralLink) {
-                  navigator.clipboard.writeText(`https://www.mfi.gg/refer/${userPointsData.referralLink}`);
-                }
-              }}
+              onClick={handleReferralCopy}
             >
-              {`${
-                userPointsData.isCustomReferralLink
-                  ? userPointsData.referralLink?.replace("https://", "")
-                  : "Copy referral link"
-              }`}
-              <FileCopyIcon />
+              {isReferralCopied
+                ? "Link copied"
+                : `${
+                    userPointsData.isCustomReferralLink
+                      ? userPointsData.referralLink?.replace("https://", "")
+                      : "Copy referral link"
+                  }`}
+              {isReferralCopied ? <CheckIcon /> : <FileCopyIcon />}
             </Button>
           )}
         </div>
