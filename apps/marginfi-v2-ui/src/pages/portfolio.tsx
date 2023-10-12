@@ -1,7 +1,8 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
+import CheckIcon from "@mui/icons-material/Check";
 import { useConnection } from "@solana/wallet-adapter-react";
 
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
@@ -41,6 +42,15 @@ const PortfolioPage = () => {
   ]);
 
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
+  const [isReferralCopied, setIsReferralCopied] = useState(false);
+
+  const handleReferralCopy = useCallback(() => {
+    if (userPointsData.referralLink) {
+      navigator.clipboard.writeText(`https://www.mfi.gg/refer/${userPointsData.referralLink}`);
+      setIsReferralCopied(true);
+      setTimeout(() => setIsReferralCopied(false), 2000);
+    }
+  }, [userPointsData.referralLink]);
 
   const lendingBanks = useMemo(
     () =>
@@ -89,9 +99,7 @@ const PortfolioPage = () => {
         <MobileAccountSummary />
         <EmissionsBanner />
         <MobilePortfolioOverview />
-        {!connected ? (
-          null
-        ) : currentFirebaseUser ? (
+        {!connected ? null : currentFirebaseUser ? (
           <PointsOverview userPointsData={userPointsData} />
         ) : hasUser === null ? (
           <PointsCheckingUser />
@@ -129,18 +137,16 @@ const PortfolioPage = () => {
                 color: "black",
                 zIndex: 10,
               }}
-              onClick={() => {
-                if (userPointsData.referralLink) {
-                  navigator.clipboard.writeText(userPointsData.referralLink);
-                }
-              }}
+              onClick={handleReferralCopy}
             >
-              {`${
-                userPointsData.isCustomReferralLink
-                  ? userPointsData.referralLink?.replace("https://", "")
-                  : "Copy referral link"
-              }`}
-              <FileCopyIcon />
+              {isReferralCopied
+                ? "Link copied"
+                : `${
+                    userPointsData.isCustomReferralLink
+                      ? userPointsData.referralLink?.replace("https://", "")
+                      : "Copy referral link"
+                  }`}
+              {isReferralCopied ? <CheckIcon /> : <FileCopyIcon />}
             </Button>
           )}
         </div>
