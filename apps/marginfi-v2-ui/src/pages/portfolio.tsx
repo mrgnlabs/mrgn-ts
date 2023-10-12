@@ -1,9 +1,10 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
+import CheckIcon from "@mui/icons-material/Check";
 import { useConnection } from "@solana/wallet-adapter-react";
-
+import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import config from "~/config/marginfi";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -41,6 +42,7 @@ const PortfolioPage = () => {
   ]);
 
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
+  const [isReferralCopied, setIsReferralCopied] = useState(false);
 
   const lendingBanks = useMemo(
     () =>
@@ -89,9 +91,7 @@ const PortfolioPage = () => {
         <MobileAccountSummary />
         <EmissionsBanner />
         <MobilePortfolioOverview />
-        {!connected ? (
-          null
-        ) : currentFirebaseUser ? (
+        {!connected ? null : currentFirebaseUser ? (
           <PointsOverview userPointsData={userPointsData} />
         ) : hasUser === null ? (
           <PointsCheckingUser />
@@ -117,31 +117,36 @@ const PortfolioPage = () => {
             How do points work?
           </Button>
           {currentFirebaseUser && (
-            <Button
-              className={`normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap min-w-[260px] max-w-[260px]`}
-              style={{
-                backgroundImage: userPointsData.isCustomReferralLink
-                  ? "radial-gradient(ellipse at center, #fff 0%, #fff 10%, #DCE85D 60%, #DCE85D 100%)"
-                  : "none",
-                backgroundColor: userPointsData.isCustomReferralLink ? "transparent" : "rgb(227, 227, 227)",
-
-                border: "none",
-                color: "black",
-                zIndex: 10,
-              }}
-              onClick={() => {
-                if (userPointsData.referralLink) {
-                  navigator.clipboard.writeText(userPointsData.referralLink);
-                }
+            <CopyToClipboard
+              text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
+              onCopy={() => {
+                setIsReferralCopied(true);
+                setTimeout(() => setIsReferralCopied(false), 2000);
               }}
             >
-              {`${
-                userPointsData.isCustomReferralLink
-                  ? userPointsData.referralLink?.replace("https://", "")
-                  : "Copy referral link"
-              }`}
-              <FileCopyIcon />
-            </Button>
+              <Button
+                className={`normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap min-w-[260px] max-w-[260px]`}
+                style={{
+                  backgroundImage: userPointsData.isCustomReferralLink
+                    ? "radial-gradient(ellipse at center, #fff 0%, #fff 10%, #DCE85D 60%, #DCE85D 100%)"
+                    : "none",
+                  backgroundColor: userPointsData.isCustomReferralLink ? "transparent" : "rgb(227, 227, 227)",
+
+                  border: "none",
+                  color: "black",
+                  zIndex: 10,
+                }}
+              >
+                {isReferralCopied
+                  ? "Link copied"
+                  : `${
+                      userPointsData.isCustomReferralLink
+                        ? userPointsData.referralLink?.replace("https://", "")
+                        : "Copy referral link"
+                    }`}
+                {isReferralCopied ? <CheckIcon /> : <FileCopyIcon />}
+              </Button>
+            </CopyToClipboard>
           )}
         </div>
         <div className="text-center text-[#868E95] text-xs flex justify-center gap-1">
