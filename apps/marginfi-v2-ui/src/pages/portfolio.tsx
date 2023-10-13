@@ -116,7 +116,7 @@ const PortfolioPage = () => {
           >
             How do points work?
           </Button>
-          {userPointsData.referralLink && (
+          {userPointsData.referralLink && userPointsData.referralLink.length > 0 && (
             <CopyToClipboard
               text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
               onCopy={() => {
