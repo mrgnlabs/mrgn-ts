@@ -1,4 +1,5 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import clsx from "clsx";
 import Image from "next/image";
 import { TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
@@ -323,7 +324,7 @@ const AssetRow: FC<{
       </TableCell>
 
       <TableCell
-        className="text-white border-none font-aeonik px-2 hidden lg:table-cell"
+        className={clsx("text-white border-none font-aeonik px-2 hidden lg:table-cell")}
         align="right"
         style={{ fontWeight: 300 }}
       >
@@ -363,7 +364,7 @@ const AssetRow: FC<{
                       bank.info.state.totalBorrows) * bank.info.state.price
                 )
               : lendZoomLevel < 2
-              ? groupedNumberFormatterDyn.format(
+              ? numeralFormatter(
                   isInLendingMode
                     ? bank.info.state.totalDeposits
                     : Math.max(
@@ -391,15 +392,11 @@ const AssetRow: FC<{
 
       {lendZoomLevel < 2 && (
         <TableCell
-          className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
+          className="text-white border-none font-aeonik px-2 hidden xl:table-cell text-xs"
           align="right"
           style={{ fontWeight: 300 }}
         >
-          {denominationUSD
-            ? usdFormatter.format(bankCap * bank.info.state.price)
-            : lendZoomLevel < 2
-            ? groupedNumberFormatterDyn.format(bankCap)
-            : numeralFormatter(bankCap)}
+          {denominationUSD ? usdFormatter.format(bankCap * bank.info.state.price) : numeralFormatter(bankCap)}
         </TableCell>
       )}
 
