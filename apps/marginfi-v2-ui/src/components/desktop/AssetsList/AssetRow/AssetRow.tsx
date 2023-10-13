@@ -221,9 +221,7 @@ const AssetRow: FC<{
       </TableCell>
 
       <TableCell
-        className={`text-white border-none px-2 font-aeonik hidden lg:table-cell ${
-          bank.info.state.price > 999 && lendZoomLevel < 2 ? "xl:text-xs xl:pl-0" : ""
-        }`}
+        className={`text-white border-none px-2 font-aeonik hidden lg:table-cell`}
         align="right"
         style={{ fontWeight: 300 }}
       >
@@ -258,7 +256,11 @@ const AssetRow: FC<{
           >
             {bank.info.state.price >= 0.01
               ? lendZoomLevel < 2
-                ? `${usdFormatter.format(bank.info.state.price)} ± ${assetPriceOffset.toFixed(2)}`
+                ? `${
+                    bank.info.state.price > 9999
+                      ? numeralFormatter(bank.info.state.price)
+                      : usdFormatter.format(bank.info.state.price)
+                  } ± ${assetPriceOffset.toFixed(2)}`
                 : usdFormatter.format(bank.info.state.price)
               : `$${bank.info.state.price.toExponential(2)}`}
           </Badge>
@@ -363,16 +365,6 @@ const AssetRow: FC<{
                     : Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit) -
                       bank.info.state.totalBorrows) * bank.info.state.price
                 )
-              : lendZoomLevel < 2
-              ? numeralFormatter(
-                  isInLendingMode
-                    ? bank.info.state.totalDeposits
-                    : Math.max(
-                        0,
-                        Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit) -
-                          bank.info.state.totalBorrows
-                      )
-                )
               : numeralFormatter(
                   isInLendingMode
                     ? bank.info.state.totalDeposits
@@ -392,7 +384,7 @@ const AssetRow: FC<{
 
       {lendZoomLevel < 2 && (
         <TableCell
-          className="text-white border-none font-aeonik px-2 hidden xl:table-cell text-xs"
+          className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
           align="right"
           style={{ fontWeight: 300 }}
         >
