@@ -136,7 +136,7 @@ async function fetchUserRank(userPoints: number): Promise<number> {
   const nullGreaterDocsCount = querySnapshot1.data().count;
   const allGreaterDocsCount = querySnapshot2.data().count;
 
-  return allGreaterDocsCount - nullGreaterDocsCount;
+  return allGreaterDocsCount - nullGreaterDocsCount + 1;
 }
 
 async function fetchTotalUserCount() {
