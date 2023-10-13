@@ -13,7 +13,14 @@ import {
   where,
   QueryDocumentSnapshot,
 } from "firebase/firestore";
-import { FavouriteDomain, NAME_OFFERS_ID, reverseLookupBatch } from "@bonfida/spl-name-service";
+import {
+  FavouriteDomain,
+  NAME_OFFERS_ID,
+  reverseLookupBatch,
+  reverseLookup,
+  getAllDomains,
+  getFavoriteDomain,
+} from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { firebaseApi } from ".";
 
@@ -28,6 +35,8 @@ type LeaderboardRow = {
   total_borrow_points: number;
   socialPoints: number;
 };
+
+const shortAddress = (address: string) => `${address.slice(0, 4)}...${address.slice(-4)}`;
 
 async function fetchLeaderboardData({
   connection,
@@ -61,25 +70,50 @@ async function fetchLeaderboardData({
 
   const leaderboardFinalSlice: LeaderboardRow[] = [...leaderboardSlice];
 
-  if (connection) {
-    const publicKeys = leaderboardFinalSlice.map((value) => {
-      const [favoriteDomains] = FavouriteDomain.getKeySync(NAME_OFFERS_ID, new PublicKey(value.id));
-      return favoriteDomains;
-    });
-    const favoriteDomainsInfo = (await connection.getMultipleAccountsInfo(publicKeys)).map((accountInfo, idx) =>
-      accountInfo ? FavouriteDomain.deserialize(accountInfo.data).nameAccount : publicKeys[idx]
-    );
-    const reverseLookup = await reverseLookupBatch(connection, favoriteDomainsInfo);
-
-    leaderboardFinalSlice.map(
-      (value, idx) =>
-        (value.id = reverseLookup[idx]
-          ? `${reverseLookup[idx]}.sol`
-          : `${value.id.slice(0, 5)}...${value.id.slice(-5)}`)
-    );
+  if (!connection) {
+    return leaderboardFinalSlice;
   }
 
-  return leaderboardFinalSlice;
+  const leaderboardFinalSliceWithDomains: LeaderboardRow[] = await Promise.all(
+    leaderboardFinalSlice.map(async (value) => {
+      // attempt to get favorite domain
+      try {
+        const { reverse } = await getFavoriteDomain(connection, new PublicKey(value.id));
+        if (reverse) {
+          return {
+            ...value,
+            id: `${reverse}.sol`,
+          };
+        }
+      } catch (e) {
+        // attempt to get all domains
+        try {
+          const domains = await getAllDomains(connection, new PublicKey(value.id));
+          if (domains.length > 0) {
+            const reverse = await reverseLookup(connection, domains[0]);
+            if (reverse) {
+              return {
+                ...value,
+                id: `${reverse}.sol`,
+              };
+            }
+          }
+        } catch (e) {
+          return {
+            ...value,
+            id: shortAddress(value.id),
+          };
+        }
+      }
+
+      return {
+        ...value,
+        id: shortAddress(value.id),
+      };
+    })
+  );
+
+  return leaderboardFinalSliceWithDomains;
 }
 
 // Firebase query is very constrained, so we calculate the number of users with more points
