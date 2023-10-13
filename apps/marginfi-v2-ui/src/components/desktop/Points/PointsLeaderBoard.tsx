@@ -230,7 +230,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                 return (
                   <TableRow key={index}>
                     {[...new Array(7)].map((_, index) => (
-                      <TableCell className="border-none">
+                      <TableCell className="border-none" key={index}>
                         <Skeleton variant="text" animation="pulse" sx={{ fontSize: "1rem", bgcolor: "grey.900" }} />
                       </TableCell>
                     ))}
