@@ -1,19 +1,25 @@
 import React, { FC, useEffect, useState, useCallback, useRef, useMemo } from "react";
 import clsx from "clsx";
-import {
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Skeleton,
-  Typography,
-} from "@mui/material";
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Skeleton } from "@mui/material";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { LeaderboardRow, fetchLeaderboardData, fetchTotalUserCount } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useConnection } from "@solana/wallet-adapter-react";
+
+const SortIcon = ({ orderDir }: { orderDir: "asc" | "desc" }) => {
+  return (
+    <div className="flex flex-col items-center justify-center gap-2">
+      <svg width="12" height="6" viewBox="0 0 16 8" fill="white" className={clsx(orderDir !== "asc" && "opacity-50")}>
+        <path d="M8 6.55671e-07L0.500001 8L15.5 8L8 6.55671e-07Z" />
+      </svg>
+
+      <svg width="12" height="6" viewBox="0 0 16 8" fill="white" className={clsx(orderDir !== "desc" && "opacity-50")}>
+        <path d="M8 8L0.500001 -1.31134e-06L15.5 0L8 8Z" />
+      </svg>
+    </div>
+  );
+};
 
 interface PointsLeaderBoardProps {
   currentUserId?: string;
@@ -43,6 +49,22 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
   ]);
   const leaderboardSentinelRef = useRef<HTMLDivElement>(null);
 
+  const setOrderCol = useCallback(
+    (col: string) => {
+      setLeaderboardData([...new Array(leaderboardSettings.perPage).fill({})]);
+      const direction =
+        col === leaderboardSettings.orderCol ? (leaderboardSettings.orderDir === "asc" ? "desc" : "asc") : "desc";
+      setLeaderboardSettings({
+        ...leaderboardSettings,
+        orderCol: col,
+        orderDir: direction,
+        currentPage: 0,
+        initialLoad: true,
+      });
+    },
+    [setLeaderboardSettings, leaderboardSettings]
+  );
+
   const getTotalUserCount = useCallback(async () => {
     const totalUserCount = await fetchTotalUserCount();
     setLeaderboardSettings({
@@ -69,6 +91,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
     fetchLeaderboardData({
       connection,
       queryCursor,
+      orderCol: leaderboardSettings.orderCol,
       orderDir: leaderboardSettings.orderDir,
     }).then((data) => {
       // filter out skeleton rows
@@ -169,56 +192,66 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
             <TableRow className="bg-zinc-800">
               <TableCell
                 align="center"
-                className="text-white text-base font-aeonik font-bold border-none text-center cursor-pointer"
-                style={{ fontWeight: 500 }}
-                onClick={() => {
-                  setLeaderboardData([...new Array(leaderboardSettings.perPage).fill({})]);
-                  setLeaderboardSettings({
-                    ...leaderboardSettings,
-                    orderCol: "total_points",
-                    orderDir: leaderboardSettings.orderDir === "asc" ? "desc" : "asc",
-                    currentPage: 0,
-                    initialLoad: true,
-                  });
-                }}
+                className={clsx(
+                  "text-white text-base font-aeonik border-none cursor-pointer",
+                  leaderboardSettings.orderCol === "total_points" && "flex items-center justify-center gap-3"
+                )}
+                onClick={() => setOrderCol("total_points")}
               >
                 Rank
+                {leaderboardSettings.orderCol === "total_points" && (
+                  <SortIcon orderDir={leaderboardSettings.orderDir} />
+                )}
               </TableCell>
-              <TableCell className="text-white text-base font-aeonik border-none" style={{ fontWeight: 500 }}>
-                User
-              </TableCell>
+              <TableCell className="text-white text-base font-aeonik border-none">User</TableCell>
               <TableCell
-                className="text-white text-base font-aeonik border-none"
+                className={clsx(
+                  "text-white text-base font-aeonik border-none cursor-pointer",
+                  leaderboardSettings.orderCol === "total_activity_deposit_points" &&
+                    "flex flex-row items-center justify-end gap-3"
+                )}
                 align="right"
-                style={{ fontWeight: 500 }}
+                onClick={() => setOrderCol("total_activity_deposit_points")}
               >
                 Lending Points
+                {leaderboardSettings.orderCol === "total_activity_deposit_points" && (
+                  <SortIcon orderDir={leaderboardSettings.orderDir} />
+                )}
               </TableCell>
               <TableCell
-                className="text-white text-base font-aeonik border-none"
+                className={clsx(
+                  "text-white text-base font-aeonik border-none cursor-pointer",
+                  leaderboardSettings.orderCol === "total_activity_borrow_points" &&
+                    "flex flex-row items-center justify-end gap-3"
+                )}
                 align="right"
-                style={{ fontWeight: 500 }}
+                onClick={() => setOrderCol("total_activity_borrow_points")}
               >
                 Borrowing Points
+                {leaderboardSettings.orderCol === "total_activity_borrow_points" && (
+                  <SortIcon orderDir={leaderboardSettings.orderDir} />
+                )}
               </TableCell>
-              <TableCell
-                className="text-white text-base font-aeonik border-none"
-                align="right"
-                style={{ fontWeight: 500 }}
-              >
+              <TableCell className="text-white text-base font-aeonik border-none" align="right">
                 Referral Points
               </TableCell>
               <TableCell
-                className="text-white text-base font-aeonik border-none"
+                className={clsx(
+                  "text-white text-base font-aeonik border-none cursor-pointer",
+                  leaderboardSettings.orderCol === "socialPoints" && "flex flex-row items-center justify-end gap-3"
+                )}
                 align="right"
-                style={{ fontWeight: 500 }}
+                onClick={() => setOrderCol("socialPoints")}
               >
                 Social Points
+                {leaderboardSettings.orderCol === "socialPoints" && (
+                  <SortIcon orderDir={leaderboardSettings.orderDir} />
+                )}
               </TableCell>
               <TableCell
-                className="text-white text-base font-aeonik border-none"
                 align="right"
-                style={{ fontWeight: 500 }}
+                className="text-white text-base font-aeonik border-none cursor-pointer"
+                onClick={() => setOrderCol("total_points")}
               >
                 Total Points
               </TableCell>
@@ -230,7 +263,15 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                 return (
                   <TableRow key={index}>
                     {[...new Array(7)].map((_, index) => (
-                      <TableCell className="border-none" key={index}>
+                      <TableCell
+                        className={clsx(
+                          "border-none",
+                          index === 0 && "w-[10%]",
+                          index === 1 && "w-[15%]",
+                          index > 1 && "w-[15%]"
+                        )}
+                        key={index}
+                      >
                         <Skeleton variant="text" animation="pulse" sx={{ fontSize: "1rem", bgcolor: "grey.900" }} />
                       </TableCell>
                     ))}
@@ -251,7 +292,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                   <TableCell
                     align="center"
                     className={clsx(
-                      "border-none font-mono",
+                      "border-none font-mono w-[10%]",
                       leaderboardSettings.orderCol === "total_points" &&
                         leaderboardSettings.orderDir === "desc" &&
                         index <= 2 &&
@@ -267,16 +308,16 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                     {leaderboardSettings.orderCol === "total_points" && leaderboardSettings.orderDir === "desc" && (
                       <>{index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</>
                     )}
-                    {leaderboardSettings.orderCol === "total_points" && leaderboardSettings.orderDir === "asc" && (
-                      <>{leaderboardSettings.totalUserCount - index}</>
+                    {leaderboardSettings.orderCol !== "total_points" && leaderboardSettings.orderDir === "desc" && (
+                      <>{index + 1}</>
                     )}
-                    {leaderboardSettings.orderCol !== "total_points" && <>{index}</>}
+                    {leaderboardSettings.orderDir === "asc" && <>{leaderboardSettings.totalUserCount - (index + 1)}</>}
                   </TableCell>
                   <TableCell
-                    className={`text-base border-none font-aeonik ${
+                    className={clsx(
+                      "text-base border-none font-aeonik w-[15%]",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                    }`}
-                    style={{ fontWeight: 400 }}
+                    )}
                   >
                     <a
                       href={`https://solscan.io/account/${data.id}`}
@@ -290,28 +331,28 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                   </TableCell>
                   <TableCell
                     align="right"
-                    className={`text-sm border-none font-mono ${
+                    className={clsx(
+                      "border-none font-mono text-sm w-[15%]",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                    }`}
-                    style={{ fontWeight: 400 }}
+                    )}
                   >
                     {groupedNumberFormatterDyn.format(Math.round(data.total_activity_deposit_points))}
                   </TableCell>
                   <TableCell
                     align="right"
-                    className={`text-sm border-none font-mono ${
+                    className={clsx(
+                      "border-none font-mono text-sm w-[15%]",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                    }`}
-                    style={{ fontWeight: 400 }}
+                    )}
                   >
                     {groupedNumberFormatterDyn.format(Math.round(data.total_activity_borrow_points))}
                   </TableCell>
                   <TableCell
                     align="right"
-                    className={`text-sm border-none font-mono ${
+                    className={clsx(
+                      "border-none font-mono text-sm w-[15%]",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                    }`}
-                    style={{ fontWeight: 400 }}
+                    )}
                   >
                     {groupedNumberFormatterDyn.format(
                       Math.round(data.total_referral_deposit_points + data.total_referral_borrow_points)
@@ -319,19 +360,19 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                   </TableCell>
                   <TableCell
                     align="right"
-                    className={`text-sm border-none font-mono ${
+                    className={clsx(
+                      "border-none font-mono text-sm w-[15%]",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                    }`}
-                    style={{ fontWeight: 400 }}
+                    )}
                   >
                     {groupedNumberFormatterDyn.format(Math.round(data.socialPoints ? data.socialPoints : 0))}
                   </TableCell>
                   <TableCell
                     align="right"
-                    className={`text-sm border-none font-mono ${
+                    className={clsx(
+                      "border-none font-mono text-sm w-[15%]",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
-                    }`}
-                    style={{ fontWeight: 400 }}
+                    )}
                   >
                     {groupedNumberFormatterDyn.format(
                       Math.round(
