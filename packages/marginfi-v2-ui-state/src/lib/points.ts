@@ -48,7 +48,6 @@ async function fetchLeaderboardData({
     pointsCollection,
     orderBy(orderCol, orderDir),
     ...(queryCursor ? [startAfter(queryCursor)] : []),
-    where("total_points", ">=", 1),
     limit(pageSize)
   );
 
@@ -109,11 +108,9 @@ async function fetchUserRank(userPoints: number): Promise<number> {
 async function fetchTotalUserCount() {
   const q1 = query(collection(firebaseApi.db, "points"));
   const q2 = query(collection(firebaseApi.db, "points"), where("owner", "==", null));
-  const q3 = query(collection(firebaseApi.db, "points"), where("total_points", "<", 1));
   const q1Count = await getCountFromServer(q1);
   const q2Count = await getCountFromServer(q2);
-  const q3Count = await getCountFromServer(q3);
-  return q1Count.data().count - q2Count.data().count - q3Count.data().count;
+  return q1Count.data().count - q2Count.data().count;
 }
 
 interface UserPointsData {
