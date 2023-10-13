@@ -171,7 +171,7 @@ const BridgePage = () => {
         <div className="flex flex-row gap-1">
           <span>bridge</span>
           <Desktop>
-            <div className="flex flex-row items-center gap-1">
+            <div className="hidden sm:block flex flex-row items-center gap-1">
               <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
               <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
               <span className="text-sm h-[48px] pt-[28px] bg-mayan-gradient-colors bg-clip-text text-transparent">
@@ -181,7 +181,7 @@ const BridgePage = () => {
           </Desktop>
         </div>
       </PageHeader>
-      <div className="w-full sm:w-4/5 sm:max-w-7xl h-full flex flex-col items-center justify-center py-[24px] sm:py-[96px] gap-7">
+      <div className="w-full h-full flex flex-col justify-start items-center content-start py-[32px] gap-8 w-4/5">
         <Script
           src="https://cdn.mayan.finance/widget_solana-0-4-5.js"
           integrity="sha256-mTVQLKvE422WDwtZQUcz/9u5ZK3T1vMfSO0omQvla0E="
