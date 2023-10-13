@@ -76,9 +76,8 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
   // fetch next page of leaderboard results
   const fetchLeaderboardPage = useCallback(async () => {
     // grab last row of current leaderboard data for cursor
-    const lastRow = [...leaderboardData].filter((row) => row.hasOwnProperty("id"))[
-      leaderboardSettings.currentPage * leaderboardSettings.perPage - (leaderboardSettings.orderDir === "asc" ? 1 : 2)
-    ] as LeaderboardRow;
+    const filtered = [...leaderboardData].filter((row) => row.hasOwnProperty("id"));
+    const lastRow = filtered[filtered.length - 1] as LeaderboardRow;
     if (!lastRow || !lastRow.hasOwnProperty("id")) return;
     setLeaderboardSettings({
       ...leaderboardSettings,
