@@ -181,26 +181,19 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
 
   return (
     <>
-      <p>Total users: {leaderboardSettings.totalUserCount}</p>
       <TableContainer
         component={Paper}
-        className="h-full w-4/5 mt-10 sm:w-full bg-[#131619] rounded-xl overflow-x-auto"
+        className="h-full w-full mt-10 sm:w-full bg-[#131619] rounded-xl overflow-x-auto"
       >
         <Table>
           <TableHead>
             <TableRow className="bg-zinc-800">
               <TableCell
                 align="center"
-                className={clsx(
-                  "text-white text-base font-aeonik border-none cursor-pointer",
-                  leaderboardSettings.orderCol === "total_points" && "flex items-center justify-center gap-3"
-                )}
+                className="text-white text-base font-aeonik border-none cursor-pointer"
                 onClick={() => setOrderCol("total_points")}
               >
                 Rank
-                {leaderboardSettings.orderCol === "total_points" && (
-                  <SortIcon orderDir={leaderboardSettings.orderDir} />
-                )}
               </TableCell>
               <TableCell className="text-white text-base font-aeonik border-none">User</TableCell>
               <TableCell
@@ -249,10 +242,16 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
               </TableCell>
               <TableCell
                 align="right"
-                className="text-white text-base font-aeonik border-none cursor-pointer"
+                className={clsx(
+                  "text-white text-base font-aeonik border-none cursor-pointer",
+                  leaderboardSettings.orderCol === "total_points" && "flex flex-row items-center justify-end gap-3"
+                )}
                 onClick={() => setOrderCol("total_points")}
               >
                 Total Points
+                {leaderboardSettings.orderCol === "total_points" && (
+                  <SortIcon orderDir={leaderboardSettings.orderDir} />
+                )}
               </TableCell>
             </TableRow>
           </TableHead>
@@ -266,8 +265,8 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                         className={clsx(
                           "border-none",
                           index === 0 && "w-[10%]",
-                          index === 1 && "w-[15%]",
-                          index > 1 && "w-[15%]"
+                          index === 1 && "w-[15%] min-w-[190px]",
+                          index > 1 && "w-[15%] min-w-[190px]"
                         )}
                         key={index}
                       >
@@ -314,7 +313,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                   </TableCell>
                   <TableCell
                     className={clsx(
-                      "text-base border-none font-aeonik w-[15%]",
+                      "text-base border-none font-aeonik w-[15%] min-w-[190px]",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
                     )}
                   >
@@ -323,7 +322,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ textDecoration: "none", color: "inherit" }}
-                      className="hover:text-[#DCE85D]"
+                      className={clsx("hover:text-[#DCE85D]")}
                     >
                       {data.id}
                     </a>
@@ -331,7 +330,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                   <TableCell
                     align="right"
                     className={clsx(
-                      "border-none font-mono text-sm w-[15%]",
+                      "border-none font-mono text-sm w-[15%] min-w-[190px]",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
                     )}
                   >
@@ -340,7 +339,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                   <TableCell
                     align="right"
                     className={clsx(
-                      "border-none font-mono text-sm w-[15%]",
+                      "border-none font-mono text-sm w-[15%] min-w-[190px]",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
                     )}
                   >
@@ -349,7 +348,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                   <TableCell
                     align="right"
                     className={clsx(
-                      "border-none font-mono text-sm w-[15%]",
+                      "border-none font-mono text-sm w-[15%] min-w-[190px]",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
                     )}
                   >
@@ -360,7 +359,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                   <TableCell
                     align="right"
                     className={clsx(
-                      "border-none font-mono text-sm w-[15%]",
+                      "border-none font-mono text-sm w-[15%] min-w-[190px]",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
                     )}
                   >
@@ -369,7 +368,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                   <TableCell
                     align="right"
                     className={clsx(
-                      "border-none font-mono text-sm w-[15%]",
+                      "border-none font-mono text-sm w-[15%] min-w-[190px]",
                       data.id === currentUserId ? "text-[#DCE85D]" : "text-white"
                     )}
                   >
