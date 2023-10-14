@@ -26,6 +26,8 @@ import { firebaseApi } from ".";
 
 type LeaderboardRow = {
   id: string;
+  shortAddress?: string;
+  domain?: string;
   doc: QueryDocumentSnapshot<DocumentData>;
   total_activity_deposit_points: number;
   total_activity_borrow_points: number;
@@ -76,40 +78,31 @@ async function fetchLeaderboardData({
 
   const leaderboardFinalSliceWithDomains: LeaderboardRow[] = await Promise.all(
     leaderboardFinalSlice.map(async (value) => {
+      const newValue = { ...value, shortAddress: shortAddress(value.id) };
       // attempt to get favorite domain
       try {
         const { reverse } = await getFavoriteDomain(connection, new PublicKey(value.id));
-        if (reverse) {
-          return {
-            ...value,
-            id: `${reverse}.sol`,
-          };
-        }
+        return {
+          ...newValue,
+          domain: `${reverse}.sol`,
+        };
       } catch (e) {
         // attempt to get all domains
         try {
           const domains = await getAllDomains(connection, new PublicKey(value.id));
           if (domains.length > 0) {
             const reverse = await reverseLookup(connection, domains[0]);
-            if (reverse) {
-              return {
-                ...value,
-                id: `${reverse}.sol`,
-              };
-            }
+            return {
+              ...newValue,
+              domain: `${reverse}.sol`,
+            };
           }
         } catch (e) {
-          return {
-            ...value,
-            id: shortAddress(value.id),
-          };
+          return newValue;
         }
       }
 
-      return {
-        ...value,
-        id: shortAddress(value.id),
-      };
+      return newValue;
     })
   );
 

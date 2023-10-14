@@ -322,9 +322,13 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ textDecoration: "none", color: "inherit" }}
-                      className={clsx("hover:text-[#DCE85D]")}
+                      className={clsx(
+                        "hover:text-[#DCE85D] hover:opacity-100 transition",
+                        data.domain && "font-bold",
+                        !data.domain && "opacity-80"
+                      )}
                     >
-                      {data.id}
+                      {data.domain || data.shortAddress || data.id}
                     </a>
                   </TableCell>
                   <TableCell
