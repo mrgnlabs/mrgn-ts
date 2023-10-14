@@ -32,6 +32,9 @@ module.exports = {
         warning: "#daa204",
         error: "#e07d6f",
       },
+      maxWidth: {
+        "8xl": "90rem",
+      },
     },
     fontFamily: {
       aeonik: ['"Aeonik Pro"'],

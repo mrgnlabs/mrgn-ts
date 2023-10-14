@@ -12,7 +12,7 @@ interface PointsOverviewProps {
 export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
   return (
     <>
-      <div className="grid grid-cols-2 gap-5 max-w-[800px] mx-auto w-full">
+      <div className="grid grid-cols-2 gap-5 max-w-[800px] mx-auto w-full mt-2">
         <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
           <CardContent>
             <Typography color="#868E95" className="font-aeonik font-[300] text-base flex gap-1" gutterBottom>
