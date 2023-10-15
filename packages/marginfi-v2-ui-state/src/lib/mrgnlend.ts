@@ -124,11 +124,11 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
 
 const BIRDEYE_API = "https://public-api.birdeye.so";
 export async function fetchBirdeyePrices(mints: PublicKey[]): Promise<BigNumber[]> {
-  const mintList = mints.map((mint) => mint.toBase58()).join(","); 
+  const mintList = mints.map((mint) => mint.toBase58()).join(",");
   const response = await fetch(`${BIRDEYE_API}/public/multi_price?list_address=${mintList}`, {
-    headers: { 
-      "Accept": "application/json",
-      "X-Api-Key": process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || ''
+    headers: {
+      Accept: "application/json",
+      "X-Api-Key": process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || "",
     },
   });
 

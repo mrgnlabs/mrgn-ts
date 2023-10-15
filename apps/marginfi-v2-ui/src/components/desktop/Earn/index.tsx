@@ -214,7 +214,10 @@ const Earn = () => {
         <div className="w-full flex flex-col items-center gap-6">
           <div className="w-full flex flex-col gap-1 justify-center">
             {connected && (
-              <div className="w-full flex justify-center items-center gap-2 text-xl sm:text-2xl" style={{ fontWeight: 400 }}>
+              <div
+                className="w-full flex justify-center items-center gap-2 text-xl sm:text-2xl"
+                style={{ fontWeight: 400 }}
+              >
                 Your total deposits:
                 <span style={{ color: "#51B56A" }}>
                   {
@@ -245,13 +248,22 @@ const Earn = () => {
           </div>
 
           <div className="w-full flex flex-col">
-            <div className="w-full flex justify-center gap-2 text-[#484848] text-lg sm:text-xl" style={{ fontWeight: 400 }}>
+            <div
+              className="w-full flex justify-center gap-2 text-[#484848] text-lg sm:text-xl"
+              style={{ fontWeight: 400 }}
+            >
               FUNDS WILL BE LOCKED FOR:
             </div>
-            <div className="w-full flex justify-center gap-2 text-xl sm:text-2xl d" style={{ fontWeight: 400, letterSpacing: "0.2em" }}>
+            <div
+              className="w-full flex justify-center gap-2 text-xl sm:text-2xl d"
+              style={{ fontWeight: 400, letterSpacing: "0.2em" }}
+            >
               ⚠️<span style={{ color: "yellow" }}>6 MONTHS</span>⚠️
             </div>
-            <div className="w-full flex justify-center gap-2 text-[#484848] text-lg sm:text-xl" style={{ fontWeight: 400 }}>
+            <div
+              className="w-full flex justify-center gap-2 text-[#484848] text-lg sm:text-xl"
+              style={{ fontWeight: 400 }}
+            >
               FROM DEPOSIT DATE
             </div>
           </div>
@@ -494,7 +506,7 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
                     },
                     ".MuiFormControlLabel-label": {
                       width: "100%",
-                    }
+                    },
                   }}
                 />
               }
@@ -508,7 +520,13 @@ const AssetSelection: FC<AssetSelectionProps> = ({ whitelistedCampaigns, setSele
                       Min. APY: {percentFormatterDyn.format(campaign.computeGuaranteedApyForCampaign())}
                     </div>
                     <div className="ml-[2px] w-[40px]">
-                      <Image className="rounded-full" src={meta.icon} alt={campaign.bank.mint.toBase58()} height={meta.size} width={meta.size} />
+                      <Image
+                        className="rounded-full"
+                        src={meta.icon}
+                        alt={campaign.bank.mint.toBase58()}
+                        height={meta.size}
+                        width={meta.size}
+                      />
                     </div>
                   </div>
                 </div>

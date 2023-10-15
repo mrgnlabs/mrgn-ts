@@ -57,9 +57,7 @@ const MobileNavbar: FC = () => {
                 key={linkInfo.label}
                 onClick={() => linkInfo.label === "more" && setIsMenuModalOpen(true)}
                 href={linkInfo.href}
-                className={`w-1/4 h-full flex flex-col pt-3 items-center ${
-                  isActive ? "current-mobile-nav-link" : ""
-                }`}
+                className={`w-1/4 h-full flex flex-col pt-3 items-center ${isActive ? "current-mobile-nav-link" : ""}`}
               >
                 <linkInfo.Icon className="w-[24px] h-[24px]" color={isActive ? "#DCE85D" : "#999"} />
                 <div className={`font-aeonik font-[400] ${isActive ? "text-[#DCE85D]" : "text-[#999]"}`}>

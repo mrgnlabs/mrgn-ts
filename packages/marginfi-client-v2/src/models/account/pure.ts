@@ -16,7 +16,7 @@ import instructions from "../../instructions";
 import { MarginfiProgram } from "../../types";
 import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
 import { Balance, BalanceRaw } from "../balance";
-import { BankMap, OraclePriceMap } from "../..";
+import { BankMap, OraclePriceMap, RiskTier } from "../..";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -237,7 +237,7 @@ class MarginfiAccount {
     const assetWeight = bank.getAssetWeight(MarginRequirementType.Initial);
     const balance = this.getBalance(bankAddress);
 
-    if (assetWeight.eq(0)) {
+    if (bank.config.riskTier === RiskTier.Isolated) {
       return balance.computeQuantityUi(bank).assets;
     } else {
       const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
@@ -255,8 +255,10 @@ class MarginfiAccount {
       }
 
       const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
+      const weightedPrice = priceLowestBias.times(assetWeight);
+      const maxWithdraw = weightedPrice.isZero() ? new BigNumber(0) : untiedCollateralForBank.div(weightedPrice);
 
-      return untiedCollateralForBank.div(priceLowestBias.times(assetWeight));
+      return maxWithdraw;
     }
   }
 
