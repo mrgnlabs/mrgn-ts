@@ -5,7 +5,8 @@ import { create, StateCreator } from "zustand";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { EPOCHS_PER_YEAR, StakeData, fetchStakeAccounts } from "~/utils";
 import { TokenInfo, TokenInfoMap, TokenListContainer } from "@solana/spl-token-registry";
-import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
+// import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
+import { TokenAccount, TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
 import { persist } from "zustand/middleware";
 import BN from "bn.js";
 
@@ -293,7 +294,8 @@ async function fetchUserTokenAccounts(connection: Connection, walletAddress: Pub
 }
 
 async function fetchTokenPrices(mints: PublicKey[]): Promise<Map<string, number>> {
-  const prices = await fetchBirdeyePrices(mints);
+  // const prices = await fetchBirdeyePrices(mints);
+  const prices = new Array(mints.length).fill(0);
   return new Map(prices.map((price, index) => [mints[index].toString(), price.toNumber()]));
 }
 
