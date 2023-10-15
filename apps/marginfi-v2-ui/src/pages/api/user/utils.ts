@@ -1,7 +1,5 @@
 import * as admin from "firebase-admin";
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
-import { IncomingMessage } from "http";
-import { PreviewData } from "next";
 import { v4 as uuidv4 } from "uuid";
 
 export const logSignupAttempt = async (

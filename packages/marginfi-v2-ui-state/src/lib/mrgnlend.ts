@@ -128,7 +128,7 @@ export async function fetchBirdeyePrices(mints: PublicKey[]): Promise<BigNumber[
   const response = await fetch(`${BIRDEYE_API}/public/multi_price?list_address=${mintList}`, {
     headers: { 
       "Accept": "application/json",
-      "X-Api-Key": process.env.BIRDEYE_API_KEY || ''
+      "X-Api-Key": process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || ''
     },
   });
 
