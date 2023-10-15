@@ -152,21 +152,18 @@ export async function fetchEmissionsPriceMap(banks: Bank[], connection: Connecti
   const banksWithEmissions = banks.filter((bank) => !bank.emissionsMint.equals(PublicKey.default));
   const emissionsMints = banksWithEmissions.map((bank) => bank.emissionsMint);
 
-  // const [birdeyePrices, mintAis] = await Promise.all([
-  //   fetchBirdeyePrices(emissionsMints),
-  //   connection.getMultipleAccountsInfo(emissionsMints),
-  // ]);
-  // const mint = mintAis.map((ai) => MintLayout.decode(ai!.data));
-  // const emissionsPrices = banksWithEmissions.map((bank, i) => ({
-  //   mint: bank.emissionsMint,
-  //   price: birdeyePrices[i],
-  //   decimals: mint[0].decimals,
-  // }));
-  // @ts-ignore
-  const emissionsPrices = []
+  const [birdeyePrices, mintAis] = await Promise.all([
+    fetchBirdeyePrices(emissionsMints),
+    connection.getMultipleAccountsInfo(emissionsMints),
+  ]);
+  const mint = mintAis.map((ai) => MintLayout.decode(ai!.data));
+  const emissionsPrices = banksWithEmissions.map((bank, i) => ({
+    mint: bank.emissionsMint,
+    price: birdeyePrices[i],
+    decimals: mint[0].decimals,
+  }));
 
   const tokenMap: TokenPriceMap = {};
-  // @ts-ignore
   for (let { mint, price, decimals } of emissionsPrices) {
     tokenMap[mint.toBase58()] = { price, decimals };
   }
