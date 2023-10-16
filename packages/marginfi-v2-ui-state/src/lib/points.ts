@@ -79,7 +79,7 @@ async function fetchLeaderboardData({
 
   const leaderboardFinalSliceWithDomains: LeaderboardRow[] = await Promise.all(
     leaderboardFinalSlice.map(async (value) => {
-      sleep(100);
+      await sleep(100);
       const newValue = { ...value, shortAddress: shortAddress(value.id) };
       // attempt to get favorite domain
       try {
