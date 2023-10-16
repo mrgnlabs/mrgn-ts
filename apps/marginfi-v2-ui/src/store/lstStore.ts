@@ -10,7 +10,7 @@ import { persist } from "zustand/middleware";
 import BN from "bn.js";
 
 const STAKEVIEW_APP_URL = "https://stakeview.app/apy/prev3.json";
-const BASELINE_VALIDATOR_ID = "FugJZepeGfh1Ruunhep19JC4F3Hr2FL3oKUMezoK8ajp";
+const BASELINE_VALIDATOR_ID = "mrgn28BhocwdAUEenen3Sw2MR9cPKDpLkDvzDdR7DBD";
 
 export const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 export const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
@@ -226,18 +226,10 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
 
   const lstSolValue = poolTokenSupply > 0 ? totalLamports / poolTokenSupply : 1;
 
-  let projectedApy: number;
+  let projectedApy: number = 0;
   if (lastTotalLamports === 0 || lastPoolTokenSupply === 0) {
     projectedApy = 0.08;
   } else {
-    const lastLstSolValue = lastPoolTokenSupply > 0 ? lastTotalLamports / lastPoolTokenSupply : 1;
-    const epochRate = lstSolValue / lastLstSolValue - 1;
-    const apr = epochRate * EPOCHS_PER_YEAR;
-    projectedApy = aprToApy(apr, EPOCHS_PER_YEAR);
-  }
-
-  if (projectedApy < 0.07) {
-    // temporarily use baseline validator APY waiting for a few epochs to pass
     const baselineValidatorData = apyData.validators.find((validator: any) => validator.id === BASELINE_VALIDATOR_ID);
     if (baselineValidatorData) projectedApy = baselineValidatorData.apy;
   }
