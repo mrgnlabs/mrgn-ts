@@ -226,10 +226,18 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
 
   const lstSolValue = poolTokenSupply > 0 ? totalLamports / poolTokenSupply : 1;
 
-  let projectedApy: number = 0;
+  let projectedApy: number;
   if (lastTotalLamports === 0 || lastPoolTokenSupply === 0) {
     projectedApy = 0.08;
   } else {
+    const lastLstSolValue = lastPoolTokenSupply > 0 ? lastTotalLamports / lastPoolTokenSupply : 1;
+    const epochRate = lstSolValue / lastLstSolValue - 1;
+    const apr = epochRate * EPOCHS_PER_YEAR;
+    projectedApy = aprToApy(apr, EPOCHS_PER_YEAR);
+  }
+
+  if (projectedApy < 0.08) {
+    // temporarily use baseline validator APY waiting for a few epochs to pass
     const baselineValidatorData = apyData.validators.find((validator: any) => validator.id === BASELINE_VALIDATOR_ID);
     if (baselineValidatorData) projectedApy = baselineValidatorData.apy;
   }
