@@ -39,6 +39,7 @@ type LeaderboardRow = {
 };
 
 const shortAddress = (address: string) => `${address.slice(0, 4)}...${address.slice(-4)}`;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function fetchLeaderboardData({
   connection,
@@ -78,6 +79,7 @@ async function fetchLeaderboardData({
 
   const leaderboardFinalSliceWithDomains: LeaderboardRow[] = await Promise.all(
     leaderboardFinalSlice.map(async (value) => {
+      sleep(50);
       const newValue = { ...value, shortAddress: shortAddress(value.id) };
       // attempt to get favorite domain
       try {
