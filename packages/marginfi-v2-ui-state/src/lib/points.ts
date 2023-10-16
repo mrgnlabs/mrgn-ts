@@ -90,6 +90,7 @@ async function fetchLeaderboardData({
         };
       } catch (e) {
         // attempt to get all domains
+        await sleep(100);
         try {
           const domains = await getAllDomains(connection, new PublicKey(value.id));
           if (domains.length > 0) {
