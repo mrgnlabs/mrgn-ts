@@ -237,34 +237,31 @@ class MarginfiAccount {
     const assetWeight = bank.getAssetWeight(MarginRequirementType.Initial);
     const balance = this.getBalance(bankAddress);
 
-    if (bank.config.riskTier === RiskTier.Isolated) {
+    const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
+    const collateralForBank = bank.computeAssetUsdValue(
+      priceInfo,
+      balance.assetShares,
+      MarginRequirementType.Initial,
+      PriceBias.Lowest
+    );
+
+    const { liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Initial);
+    if (liabilities.isZero() || collateralForBank.eq(freeCollateral)) {
       return balance.computeQuantityUi(bank).assets;
-    } else {
-      const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
-      const collateralForBank = bank.computeAssetUsdValue(
-        priceInfo,
-        balance.assetShares,
-        MarginRequirementType.Initial,
-        PriceBias.Lowest
-      );
-      
-      if (collateralForBank.eq(freeCollateral)) {
-        return balance.computeQuantityUi(bank).assets;
-      }
-      
-      let untiedCollateralForBank: BigNumber;
-      if (collateralForBank.lte(freeCollateral)) {
-        untiedCollateralForBank = collateralForBank;
-      } else {
-        untiedCollateralForBank = freeCollateral.times(_volatilityFactor);
-      }
-
-      const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
-      const weightedPrice = priceLowestBias.times(assetWeight);
-      const maxWithdraw = weightedPrice.isZero() ? new BigNumber(0) : untiedCollateralForBank.div(weightedPrice);
-
-      return maxWithdraw;
     }
+
+    let untiedCollateralForBank: BigNumber;
+    if (collateralForBank.lt(freeCollateral)) {
+      untiedCollateralForBank = collateralForBank;
+    } else {
+      untiedCollateralForBank = freeCollateral.times(_volatilityFactor);
+    }
+
+    const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
+    const weightedPrice = priceLowestBias.times(assetWeight);
+    const maxWithdraw = weightedPrice.isZero() ? new BigNumber(0) : untiedCollateralForBank.div(weightedPrice);
+
+    return maxWithdraw;
   }
 
   // Calculate the max amount of collateral to liquidate to bring an account maint health to 0 (assuming negative health).
