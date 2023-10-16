@@ -247,6 +247,11 @@ class MarginfiAccount {
         MarginRequirementType.Initial,
         PriceBias.Lowest
       );
+      
+      if (collateralForBank.eq(freeCollateral)) {
+        return balance.computeQuantityUi(bank).assets;
+      }
+      
       let untiedCollateralForBank: BigNumber;
       if (collateralForBank.lte(freeCollateral)) {
         untiedCollateralForBank = collateralForBank;
