@@ -78,8 +78,8 @@ async function fetchLeaderboardData({
   }
 
   const leaderboardFinalSliceWithDomains: LeaderboardRow[] = await Promise.all(
-    leaderboardFinalSlice.map(async (value) => {
-      await sleep(100);
+    leaderboardFinalSlice.map(async (value, index) => {
+      await sleep(20 * index);
       const newValue = { ...value, shortAddress: shortAddress(value.id) };
       // attempt to get favorite domain
       try {
@@ -90,7 +90,6 @@ async function fetchLeaderboardData({
         };
       } catch (e) {
         // attempt to get all domains
-        await sleep(100);
         try {
           const domains = await getAllDomains(connection, new PublicKey(value.id));
           if (domains.length > 0) {
