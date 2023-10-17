@@ -234,7 +234,8 @@ class MarginfiAccount {
 
     const _volatilityFactor = opts?.volatilityFactor ?? 1;
 
-    const assetWeight = bank.getAssetWeight(MarginRequirementType.Initial);
+    const initAssetWeight = bank.getAssetWeight(MarginRequirementType.Initial);
+    const maintAssetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance);
     const balance = this.getBalance(bankAddress);
 
     const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
@@ -247,8 +248,8 @@ class MarginfiAccount {
 
     const entireBalance = balance.computeQuantityUi(bank).assets;
 
-    const { liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Initial);
-    if (liabilities.isZero() || collateralForBank.eq(freeCollateral)) {
+    const { liabilities: liabilitiesInit } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Initial);
+    if (liabilitiesInit.isZero() || collateralForBank.eq(freeCollateral)) {
       return entireBalance;
     }
 
@@ -259,9 +260,14 @@ class MarginfiAccount {
       untiedCollateralForBank = freeCollateral.times(_volatilityFactor);
     }
 
+    const { liabilities: liabilitiesMaint, assets: assetsMaint } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Maintenance);
+    const maintMargin = assetsMaint.minus(liabilitiesMaint);
+
     const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
-    const weightedPrice = priceLowestBias.times(assetWeight);
-    const maxWithdraw = weightedPrice.isZero() ? entireBalance : untiedCollateralForBank.div(weightedPrice);
+    const initWeightedPrice = priceLowestBias.times(initAssetWeight);
+    const maintWeightedPrice = priceLowestBias.times(maintAssetWeight);
+    
+    const maxWithdraw = initWeightedPrice.isZero() ? maintMargin.div(maintWeightedPrice) : untiedCollateralForBank.div(initWeightedPrice);
 
     return maxWithdraw;
   }
