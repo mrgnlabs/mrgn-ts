@@ -245,9 +245,11 @@ class MarginfiAccount {
       PriceBias.Lowest
     );
 
+    const entireBalance = balance.computeQuantityUi(bank).assets;
+
     const { liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Initial);
     if (liabilities.isZero() || collateralForBank.eq(freeCollateral)) {
-      return balance.computeQuantityUi(bank).assets;
+      return entireBalance;
     }
 
     let untiedCollateralForBank: BigNumber;
@@ -259,7 +261,7 @@ class MarginfiAccount {
 
     const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
     const weightedPrice = priceLowestBias.times(assetWeight);
-    const maxWithdraw = weightedPrice.isZero() ? new BigNumber(0) : untiedCollateralForBank.div(weightedPrice);
+    const maxWithdraw = weightedPrice.isZero() ? entireBalance : untiedCollateralForBank.div(weightedPrice);
 
     return maxWithdraw;
   }
