@@ -38,9 +38,6 @@ type LeaderboardRow = {
   socialPoints: number;
 };
 
-const shortAddress = (address: string) => `${address.slice(0, 4)}...${address.slice(-4)}`;
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 async function fetchLeaderboardData({
   connection,
   queryCursor,
@@ -79,7 +76,6 @@ async function fetchLeaderboardData({
   }
 
   // batch fetch all favorite domains and update array
-  console.log("batch fetching favorite domains", new Date().toISOString());
   const publicKeys = leaderboardFinalSlice.map((value) => {
     const [favoriteDomains] = FavouriteDomain.getKeySync(NAME_OFFERS_ID, new PublicKey(value.id));
     return favoriteDomains;
@@ -87,51 +83,18 @@ async function fetchLeaderboardData({
   const favoriteDomainsInfo = (await connection.getMultipleAccountsInfo(publicKeys)).map((accountInfo, idx) =>
     accountInfo ? FavouriteDomain.deserialize(accountInfo.data).nameAccount : publicKeys[idx]
   );
-  const favoriteReverseLookups = await reverseLookupBatch(connection, favoriteDomainsInfo);
+  const reverseLookup = await reverseLookupBatch(connection, favoriteDomainsInfo);
 
-  // loop through leaderboard page and update with short address and sns domain
-  console.log("looping through leaderboard page", new Date().toISOString());
-  const domainsToBatch: PublicKey[] = [];
-  const leaderboardFinalSliceWithDomains: LeaderboardRow[] = await Promise.all(
-    leaderboardFinalSlice.map(async (value, idx) => {
-      const updatedValue = { ...value };
-      updatedValue.shortAddress = shortAddress(value.id);
-
-      // if favoite domain exists, update domain
-      if (favoriteReverseLookups[idx]) {
-        console.log("favorite domain exists for ", idx, favoriteReverseLookups[idx], new Date().toISOString());
-        updatedValue.domain = favoriteReverseLookups[idx] && `${favoriteReverseLookups[idx]}.sol`;
-        return updatedValue;
-
-        // if no favorite domain found then attempt to get all domains
-      } else {
-        await sleep(100 * idx);
-        console.log("attempting to get all domains for ", value.id, new Date().toISOString());
-        const domains = await getAllDomains(connection, new PublicKey(value.id));
-
-        if (domains.length > 0) {
-          domainsToBatch.push(domains[0]);
-          updatedValue.domain = domains[0].toString();
-          return updatedValue;
-        }
-
-        return updatedValue;
-      }
-    })
-  );
-
-  console.log("domainsToBatch", domainsToBatch);
-  const domainsReverseLookups = await reverseLookupBatch(connection, domainsToBatch);
-  console.log("domainsReverseLookups", domainsReverseLookups);
-  domainsToBatch.forEach((domain, idx) => {
-    // find index of leaderboardFinalSliceWithDomains where item.domain === domain
-    const leaderboardIndex = leaderboardFinalSliceWithDomains.findIndex((item) => item.domain === domain.toString());
-    if (leaderboardIndex > -1) {
-      leaderboardFinalSliceWithDomains[leaderboardIndex].domain = `${domainsReverseLookups[idx]}.sol`;
+  leaderboardFinalSlice.map((value, idx) => {
+    const domain = reverseLookup[idx];
+    if (domain) {
+      value.domain = `${domain}.sol`;
     }
+
+    return value;
   });
 
-  return leaderboardFinalSliceWithDomains;
+  return leaderboardFinalSlice;
 }
 
 // Firebase query is very constrained, so we calculate the number of users with more points

@@ -45,3 +45,7 @@ export function usePrevious<T>(value: T): T | undefined {
   }, [value]);
   return ref.current;
 }
+
+export function shortAddress(address: string) {
+  return `${address.slice(0, 4)}...${address.slice(-4)}`;
+}
