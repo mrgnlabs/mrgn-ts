@@ -31,18 +31,13 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
     orderDir: "asc" | "desc";
     totalUserCount: number;
     perPage: number;
-    currentPage: number;
-    isFetchingLeaderboardPage: boolean;
-    initialLoad: boolean;
   }>({
     orderCol: "total_points",
     orderDir: "desc",
     totalUserCount: 0,
     perPage: 50,
-    currentPage: 0,
-    isFetchingLeaderboardPage: false,
-    initialLoad: true,
   });
+  const [leaderboardPage, setLeaderboardPage] = useState<number>(0);
 
   // prefill leaderboard data with empty rows for skeleton loading
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[] | {}[]>([
@@ -61,20 +56,16 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
         ...leaderboardSettings,
         orderCol: col,
         orderDir: direction,
-        currentPage: 0,
-        initialLoad: true,
       });
+      setLeaderboardPage(0);
     },
-    [setLeaderboardSettings, leaderboardSettings]
+    [setLeaderboardSettings, leaderboardSettings, setLeaderboardPage]
   );
 
   const getTotalUserCount = useCallback(async () => {
     const totalUserCount = await fetchTotalUserCount();
-    setLeaderboardSettings({
-      ...leaderboardSettings,
-      totalUserCount,
-    });
-  }, [setLeaderboardSettings, fetchTotalUserCount]);
+    setLeaderboardSettings((current) => ({ ...current, totalUserCount }));
+  }, [setLeaderboardSettings]);
 
   // fetch next page of leaderboard results
   const fetchLeaderboardPage = useCallback(async () => {
@@ -82,10 +73,6 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
     const filtered = [...leaderboardData].filter((row) => row.hasOwnProperty("id"));
     const lastRow = filtered[filtered.length - 1] as LeaderboardRow;
     if (!lastRow || !lastRow.hasOwnProperty("id")) return;
-    setLeaderboardSettings({
-      ...leaderboardSettings,
-      isFetchingLeaderboardPage: true,
-    });
 
     // fetch new page of data with cursor
     const queryCursor = leaderboardData.length > 0 ? lastRow.doc : undefined;
@@ -112,20 +99,11 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
       }, filtered);
 
       setLeaderboardData(uniqueData);
-      setLeaderboardSettings({
-        ...leaderboardSettings,
-        isFetchingLeaderboardPage: false,
-      });
     });
-  }, [setLeaderboardData, leaderboardSettings, setLeaderboardSettings]);
+  }, [connection, setLeaderboardData, leaderboardData, leaderboardSettings]);
 
   // fetch initial page and overwrite skeleton rows
   const fetchInitialPage = useCallback(async () => {
-    setLeaderboardSettings({
-      ...leaderboardSettings,
-      initialLoad: false,
-      isFetchingLeaderboardPage: true,
-    });
     fetchLeaderboardData({
       connection,
       orderDir: leaderboardSettings.orderDir,
@@ -133,49 +111,48 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
     }).then((data) => {
       setLeaderboardData([...data]);
     });
-  }, [setLeaderboardData, leaderboardSettings, setLeaderboardSettings]);
+  }, [connection, setLeaderboardData, leaderboardSettings.orderDir, leaderboardSettings.orderCol]);
 
-  // intersection observer to fetch new page of data
-  // when sentinel element is scrolled into view
-  const initObserver = useCallback(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !leaderboardSettings.isFetchingLeaderboardPage) {
-          setLeaderboardSettings({
-            ...leaderboardSettings,
-            isFetchingLeaderboardPage: true,
-            currentPage: leaderboardSettings.currentPage + 1,
-          });
-        }
-      },
-      {
-        root: null,
-        rootMargin: "0px",
-        threshold: 0,
+  // fetch new page of data when intersewction observer fires
+  const handlerIntersection = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      if (entries[0].isIntersecting) {
+        setLeaderboardPage((current) => current + 1);
       }
-    );
-
-    if (leaderboardSentinelRef.current) {
-      observer.observe(leaderboardSentinelRef.current);
-    }
-
-    return () => {
-      if (leaderboardSentinelRef.current) {
-        observer.unobserve(leaderboardSentinelRef.current);
-      }
-    };
-  }, [leaderboardSettings]);
+    },
+    [setLeaderboardPage]
+  );
 
   // fetch new page when page counter changed
   useEffect(() => {
     fetchLeaderboardPage();
-  }, [leaderboardSettings.currentPage]);
+    // must not include fetchLeaderboardPage to avoid infinite loop
+    // this is because fetchLeaderboardPage depends on leaderboardData AND effects leaderboardData
+    // TODO: refactor to avoid this
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leaderboardPage]);
 
+  // on page load fetch initial page, total user count, and configure
   useEffect(() => {
     fetchInitialPage();
     getTotalUserCount();
-    initObserver();
-  }, []);
+
+    const sentinel = leaderboardSentinelRef.current;
+
+    // intersection observer to fetch new page of data
+    // when sentinel element is scrolled into view
+    const observer = new IntersectionObserver(handlerIntersection);
+
+    if (sentinel) {
+      observer.observe(sentinel);
+    }
+
+    return () => {
+      if (sentinel) {
+        observer.unobserve(sentinel);
+      }
+    };
+  }, [fetchInitialPage, getTotalUserCount, handlerIntersection]);
 
   return (
     <>
