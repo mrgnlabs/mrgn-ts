@@ -87,6 +87,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
     // fetch new page of data with cursor
     const queryCursor = leaderboardData.length > 0 ? lastRow.doc : undefined;
     setLeaderboardData((current) => [...current, ...new Array(50).fill({})]);
+    console.log("Calling for subsequent page");
     fetchLeaderboardData({
       connection,
       queryCursor,
@@ -116,29 +117,26 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
     });
   }, [setLeaderboardData, leaderboardSettings, setLeaderboardSettings]);
 
-  // fetch new page when page counter changed
-  useEffect(() => {
-    fetchLeaderboardPage();
-  }, [leaderboardSettings.currentPage]);
+  // fetch initial page and overwrite skeleton rows
+  const fetchInitialPage = useCallback(async () => {
+    setLeaderboardSettings({
+      ...leaderboardSettings,
+      initialLoad: false,
+      isFetchingLeaderboardPage: true,
+    });
+    console.log("Calling for initial page", leaderboardSettings);
+    fetchLeaderboardData({
+      connection,
+      orderDir: leaderboardSettings.orderDir,
+      orderCol: leaderboardSettings.orderCol,
+    }).then((data) => {
+      setLeaderboardData([...data]);
+    });
+  }, [setLeaderboardData, leaderboardSettings, setLeaderboardSettings]);
 
-  useEffect(() => {
-    // fetch initial page and overwrite skeleton rows
-    if (leaderboardSettings.currentPage === 0 && leaderboardSettings.initialLoad) {
-      setLeaderboardSettings({
-        ...leaderboardSettings,
-        initialLoad: false,
-      });
-      fetchLeaderboardData({
-        connection,
-        orderDir: leaderboardSettings.orderDir,
-        orderCol: leaderboardSettings.orderCol,
-      }).then((data) => {
-        setLeaderboardData([...data]);
-      });
-    }
-
-    // intersection observer to fetch new page of data
-    // when sentinel element is scrolled into view
+  // intersection observer to fetch new page of data
+  // when sentinel element is scrolled into view
+  const initObserver = useCallback(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !leaderboardSettings.isFetchingLeaderboardPage) {
@@ -165,19 +163,20 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
         observer.unobserve(leaderboardSentinelRef.current);
       }
     };
-  }, [
-    connection,
-    fetchLeaderboardPage,
-    setLeaderboardSettings,
-    leaderboardSettings.isFetchingLeaderboardPage,
-    leaderboardSettings.currentPage,
-    leaderboardSettings.initialLoad,
-    setLeaderboardSettings,
-  ]);
+  }, [leaderboardSettings]);
+
+  // fetch new page when page counter changed
+  useEffect(() => {
+    fetchLeaderboardPage();
+  }, [leaderboardSettings.currentPage]);
 
   useEffect(() => {
+    fetchInitialPage();
     getTotalUserCount();
+    initObserver();
   }, []);
+
+  useEffect(() => {}, []);
 
   return (
     <>
