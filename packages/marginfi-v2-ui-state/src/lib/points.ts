@@ -79,7 +79,7 @@ async function fetchLeaderboardData({
 
   const leaderboardFinalSliceWithDomains: LeaderboardRow[] = await Promise.all(
     leaderboardFinalSlice.map(async (value, index) => {
-      await sleep(20 * index);
+      await sleep(100 * index);
       const newValue = { ...value, shortAddress: shortAddress(value.id) };
       // attempt to get favorite domain
       try {
@@ -91,6 +91,7 @@ async function fetchLeaderboardData({
       } catch (e) {
         // attempt to get all domains
         try {
+          await sleep(100);
           const domains = await getAllDomains(connection, new PublicKey(value.id));
           if (domains.length > 0) {
             const reverse = await reverseLookup(connection, domains[0]);
