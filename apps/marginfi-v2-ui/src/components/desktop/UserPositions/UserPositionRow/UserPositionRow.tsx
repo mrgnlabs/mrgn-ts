@@ -1,8 +1,9 @@
 import Image from "next/image";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { TableCell, TableRow } from "@mui/material";
-import { FC, useCallback, useMemo, useState } from "react";
+import { TableCell, TableRow, Typography } from "@mui/material";
+import { FC, Fragment, useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
 import { groupedNumberFormatter, uiToNative, usdFormatter } from "@mrgnlabs/mrgn-common";
@@ -159,7 +160,17 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
         align="right"
         style={{ fontWeight: 300 }}
       >
-        {groupedNumberFormatter.format(activeBankInfo.position.amount)}
+        {activeBankInfo.position.amount < 0.01 && (
+          <>
+            <div className="flex items-center gap-1 justify-end">
+              &lt; {groupedNumberFormatter.format(activeBankInfo.position.amount)}
+              <MrgnTooltip title={<Fragment>{activeBankInfo.position.amount}</Fragment>} placement="top">
+                <Image src="/info_icon.png" alt="info" height={16} width={16} />
+              </MrgnTooltip>
+            </div>
+          </>
+        )}
+        {activeBankInfo.position.amount > 0.01 && groupedNumberFormatter.format(activeBankInfo.position.amount)}
       </TableCell>
 
       <TableCell
