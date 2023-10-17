@@ -54,6 +54,7 @@ async function fetchLeaderboardData({
   orderCol?: string;
   orderDir?: "desc" | "asc";
 }): Promise<LeaderboardRow[]> {
+  console.log("Method called");
   const pointsCollection = collection(firebaseApi.db, "points");
 
   const pointsQuery: Query<DocumentData> = query(
@@ -77,39 +78,58 @@ async function fetchLeaderboardData({
     return leaderboardFinalSlice;
   }
 
-  const leaderboardFinalSliceWithDomains: LeaderboardRow[] = await Promise.all(
-    leaderboardFinalSlice.map(async (value, index) => {
-      await sleep(100 * index);
-      const newValue = { ...value, shortAddress: shortAddress(value.id) };
-      // attempt to get favorite domain
-      try {
-        const { reverse } = await getFavoriteDomain(connection, new PublicKey(value.id));
-        return {
-          ...newValue,
-          domain: `${reverse}.sol`,
-        };
-      } catch (e) {
-        // attempt to get all domains
-        // try {
-        //   await sleep(100);
-        //   const domains = await getAllDomains(connection, new PublicKey(value.id));
-        //   if (domains.length > 0) {
-        //     await sleep(100);
-        //     const reverse = await reverseLookup(connection, domains[0]);
-        //     return {
-        //       ...newValue,
-        //       domain: `${reverse}.sol`,
-        //     };
-        //   }
-        // } catch (e) {
-        //   return newValue;
-        // }
-        return newValue;
-      }
+  // batch fetch all favorite domains and update array
+  console.log("batch fetching favorite domains", new Date().toISOString());
+  const publicKeys = leaderboardFinalSlice.map((value) => {
+    const [favoriteDomains] = FavouriteDomain.getKeySync(NAME_OFFERS_ID, new PublicKey(value.id));
+    return favoriteDomains;
+  });
+  const favoriteDomainsInfo = (await connection.getMultipleAccountsInfo(publicKeys)).map((accountInfo, idx) =>
+    accountInfo ? FavouriteDomain.deserialize(accountInfo.data).nameAccount : publicKeys[idx]
+  );
+  const favoriteReverseLookups = await reverseLookupBatch(connection, favoriteDomainsInfo);
 
-      // return newValue;
+  // loop through leaderboard page and update with short address and sns domain
+  console.log("looping through leaderboard page", new Date().toISOString());
+  const domainsToBatch: PublicKey[] = [];
+  const leaderboardFinalSliceWithDomains: LeaderboardRow[] = await Promise.all(
+    leaderboardFinalSlice.map(async (value, idx) => {
+      const updatedValue = { ...value };
+      updatedValue.shortAddress = shortAddress(value.id);
+
+      // if favoite domain exists, update domain
+      if (favoriteReverseLookups[idx]) {
+        console.log("favorite domain exists for ", idx, favoriteReverseLookups[idx], new Date().toISOString());
+        updatedValue.domain = favoriteReverseLookups[idx] && `${favoriteReverseLookups[idx]}.sol`;
+        return updatedValue;
+
+        // if no favorite domain found then attempt to get all domains
+      } else {
+        await sleep(100 * idx);
+        console.log("attempting to get all domains for ", value.id, new Date().toISOString());
+        const domains = await getAllDomains(connection, new PublicKey(value.id));
+
+        if (domains.length > 0) {
+          domainsToBatch.push(domains[0]);
+          updatedValue.domain = domains[0].toString();
+          return updatedValue;
+        }
+
+        return updatedValue;
+      }
     })
   );
+
+  console.log("domainsToBatch", domainsToBatch);
+  const domainsReverseLookups = await reverseLookupBatch(connection, domainsToBatch);
+  console.log("domainsReverseLookups", domainsReverseLookups);
+  domainsToBatch.forEach((domain, idx) => {
+    // find index of leaderboardFinalSliceWithDomains where item.domain === domain
+    const leaderboardIndex = leaderboardFinalSliceWithDomains.findIndex((item) => item.domain === domain.toString());
+    if (leaderboardIndex > -1) {
+      leaderboardFinalSliceWithDomains[leaderboardIndex].domain = `${domainsReverseLookups[idx]}.sol`;
+    }
+  });
 
   return leaderboardFinalSliceWithDomains;
 }
