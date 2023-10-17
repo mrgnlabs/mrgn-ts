@@ -21,8 +21,7 @@ import {
 } from "~/components/desktop/Points";
 
 const Points: FC = () => {
-  const { connected, walletAddress } = useWalletContext();
-  const { connection } = useConnection();
+  const { connected } = useWalletContext();
   const { query: routerQuery } = useRouter();
   const [currentFirebaseUser, hasUser, userPointsData] = useUserProfileStore((state) => [
     state.currentFirebaseUser,
@@ -30,26 +29,8 @@ const Points: FC = () => {
     state.userPointsData,
   ]);
 
-  const [domain, setDomain] = useState<string>();
-
-  const currentUserId = useMemo(() => domain ?? currentFirebaseUser?.uid, [currentFirebaseUser, domain]);
   const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
   const [isReferralCopied, setIsReferralCopied] = useState(false);
-
-  const resolveDomain = async (connection: Connection, user: PublicKey) => {
-    try {
-      const { reverse } = await getFavoriteDomain(connection, user);
-      setDomain(`${reverse}.sol`);
-    } catch (error) {
-      return;
-    }
-  };
-
-  useEffect(() => {
-    if (connection && walletAddress) {
-      resolveDomain(connection, new PublicKey(walletAddress));
-    }
-  }, [connection, walletAddress]);
 
   return (
     <>
@@ -123,7 +104,7 @@ const Points: FC = () => {
             </Link>
           </div>
         </div>
-        <PointsLeaderBoard currentUserId={currentUserId} />
+        <PointsLeaderBoard currentUserId={currentFirebaseUser?.uid} />
       </div>
     </>
   );
