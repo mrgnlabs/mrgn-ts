@@ -51,7 +51,6 @@ async function fetchLeaderboardData({
   orderCol?: string;
   orderDir?: "desc" | "asc";
 }): Promise<LeaderboardRow[]> {
-  console.log("Method called");
   const pointsCollection = collection(firebaseApi.db, "points");
 
   const pointsQuery: Query<DocumentData> = query(
