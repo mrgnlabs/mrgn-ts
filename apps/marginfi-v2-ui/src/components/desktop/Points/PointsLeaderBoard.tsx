@@ -1,11 +1,10 @@
-import React, { FC, useEffect, useState, useCallback, useRef, useMemo } from "react";
+import React, { FC, useEffect, useState, useCallback, useRef } from "react";
 import clsx from "clsx";
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Skeleton } from "@mui/material";
-import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { LeaderboardRow, fetchLeaderboardData, fetchTotalUserCount } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useConnection } from "@solana/wallet-adapter-react";
+import { shortAddress } from "~/utils";
 
 const SortIcon = ({ orderDir }: { orderDir: "asc" | "desc" }) => {
   return (
@@ -44,11 +43,15 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
     isFetchingLeaderboardPage: false,
     initialLoad: true,
   });
+
+  // prefill leaderboard data with empty rows for skeleton loading
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardRow[] | {}[]>([
     ...new Array(leaderboardSettings.perPage).fill({}),
   ]);
+  // sentinel element to trigger fetch of new page on scroll
   const leaderboardSentinelRef = useRef<HTMLDivElement>(null);
 
+  // set order column and direction
   const setOrderCol = useCallback(
     (col: string) => {
       setLeaderboardData([...new Array(leaderboardSettings.perPage).fill({})]);
@@ -87,7 +90,6 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
     // fetch new page of data with cursor
     const queryCursor = leaderboardData.length > 0 ? lastRow.doc : undefined;
     setLeaderboardData((current) => [...current, ...new Array(50).fill({})]);
-    console.log("Calling for subsequent page");
     fetchLeaderboardData({
       connection,
       queryCursor,
@@ -124,7 +126,6 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
       initialLoad: false,
       isFetchingLeaderboardPage: true,
     });
-    console.log("Calling for initial page", leaderboardSettings);
     fetchLeaderboardData({
       connection,
       orderDir: leaderboardSettings.orderDir,
@@ -175,8 +176,6 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
     getTotalUserCount();
     initObserver();
   }, []);
-
-  useEffect(() => {}, []);
 
   return (
     <>
@@ -327,7 +326,7 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                         !data.domain && "opacity-80"
                       )}
                     >
-                      {data.domain || data.shortAddress || data.id}
+                      {data.domain || shortAddress(data.id)}
                     </a>
                   </TableCell>
                   <TableCell
