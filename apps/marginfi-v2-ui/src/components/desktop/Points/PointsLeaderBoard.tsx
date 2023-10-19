@@ -4,7 +4,7 @@ import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { LeaderboardRow, fetchLeaderboardData, fetchTotalUserCount } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { shortAddress } from "~/utils";
+import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 const SortIcon = ({ orderDir }: { orderDir: "asc" | "desc" }) => {
   return (
@@ -300,10 +300,10 @@ export const PointsLeaderBoard: FC<PointsLeaderBoardProps> = ({ currentUserId })
                       className={clsx(
                         "hover:text-[#DCE85D] hover:opacity-100 transition",
                         data.domain && "font-bold",
-                        !data.domain && "opacity-80"
+                        !data.domain && "opacity-80 font-mono text-sm"
                       )}
                     >
-                      {data.domain || shortAddress(data.id)}
+                      {data.domain || shortenAddress(data.id)}
                     </a>
                   </TableCell>
                   <TableCell
