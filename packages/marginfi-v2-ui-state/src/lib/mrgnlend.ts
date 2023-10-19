@@ -11,8 +11,10 @@ import {
   MintLayout,
   getAssociatedTokenAddressSync,
   nativeToUi,
+  uiToNative,
   unpackAccount,
   floor,
+  ceil,
   WSOL_MINT,
   TokenMetadata,
 } from "@mrgnlabs/mrgn-common";
@@ -280,11 +282,15 @@ function makeExtendedBankInfo(
         bankInfo.mintDecimals
       )
     : 0;
-  let maxRepay: number;
-  if (isWrappedSol) {
-    maxRepay = !!position ? Math.min(position.amount, maxDeposit) : maxDeposit;
-  } else {
-    maxRepay = !!position ? Math.min(position.amount, maxDeposit) : maxDeposit;
+
+  let maxRepay = maxDeposit;
+
+  // round up to 1 unit of smallest denomination if maxRepay is dust
+  if (position) {
+    const maxRepayNative = uiToNative(position.amount, bankInfo.mintDecimals);
+    maxRepay = maxRepayNative.isZero()
+      ? ceil(position.amount, bankInfo.mintDecimals)
+      : Math.min(position.amount, maxDeposit);
   }
 
   const userInfo = {

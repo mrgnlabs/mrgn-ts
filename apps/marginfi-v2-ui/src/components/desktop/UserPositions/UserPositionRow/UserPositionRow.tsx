@@ -22,72 +22,12 @@ interface UserPositionRowProps {
 const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAccount, reloadPositions }) => {
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
 
-  // GD9aB3bwL3vUAk9kzmbbAehZBo1aLGktraTQF6grTwTK
-  // console.log("activeBankInfo", activeBankInfo);
-  // activeBankInfo.position.amount = 0.0000001;
-
   const maxAmount = useMemo(
     () => (activeBankInfo.position.isLending ? activeBankInfo.userInfo.maxWithdraw : activeBankInfo.userInfo.maxRepay),
     [activeBankInfo]
   );
 
-  const isDust = useMemo(() => {
-    const bn = uiToNative(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals);
-    console.log(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals, bn.toNumber(), bn.isZero());
-    return uiToNative(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals).isZero();
-  }, [activeBankInfo]);
-
-  const isDisabled = useMemo(
-    () =>
-      (isDust &&
-        uiToNative(activeBankInfo.userInfo.tokenAccount.balance, activeBankInfo.info.state.mintDecimals).isZero() &&
-        !activeBankInfo.position.isLending) ||
-      (!isDust && maxAmount === 0),
-    [isDust, activeBankInfo, maxAmount]
-  );
-
-  const closeBalance = useCallback(async () => {
-    if (!marginfiAccount) {
-      toast.error("marginfi account not ready.");
-      return;
-    }
-
-    toast.loading("Closing dust balance", {
-      toastId: CLOSE_BALANCE_TOAST_ID,
-    });
-
-    try {
-      if (activeBankInfo.position.isLending) {
-        await marginfiAccount.withdraw(0, activeBankInfo.address, true);
-      } else {
-        await marginfiAccount.repay(0, activeBankInfo.address, true);
-      }
-      toast.update(CLOSE_BALANCE_TOAST_ID, {
-        render: "Closing 👍",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      toast.update(CLOSE_BALANCE_TOAST_ID, {
-        render: `Error while closing balance: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
-      console.log(`Error while closing balance`);
-      console.log(error);
-    }
-
-    setWithdrawOrRepayAmount(0);
-
-    try {
-      await reloadPositions();
-    } catch (error: any) {
-      console.log("Error while reloading state");
-      console.log(error);
-    }
-  }, [activeBankInfo, marginfiAccount, reloadPositions]);
+  const isDisabled = useMemo(() => maxAmount === 0, [maxAmount]);
 
   const withdrawOrRepay = useCallback(async () => {
     if (!marginfiAccount) {
@@ -200,15 +140,15 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
           setValue={setWithdrawOrRepayAmount}
           maxValue={maxAmount}
           maxDecimals={activeBankInfo.info.state.mintDecimals}
-          disabled={isDust || maxAmount === 0}
+          disabled={maxAmount === 0}
           onEnter={withdrawOrRepay}
         />
       </TableCell>
 
       <TableCell className="text-white font-aeonik p-0 border-none" align="right">
         <div className="h-full w-full flex justify-end items-center pl-2 sm:px-2">
-          <UserPositionRowAction onClick={isDust ? closeBalance : withdrawOrRepay} disabled={isDisabled}>
-            {isDust ? "Close" : activeBankInfo.position.isLending ? "Withdraw" : "Repay"}
+          <UserPositionRowAction onClick={withdrawOrRepay} disabled={isDisabled}>
+            {activeBankInfo.position.isLending ? "Withdraw" : "Repay"}
           </UserPositionRowAction>
         </div>
       </TableCell>
