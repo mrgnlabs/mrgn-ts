@@ -22,15 +22,20 @@ interface UserPositionRowProps {
 const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAccount, reloadPositions }) => {
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
 
+  // GD9aB3bwL3vUAk9kzmbbAehZBo1aLGktraTQF6grTwTK
+  // console.log("activeBankInfo", activeBankInfo);
+  // activeBankInfo.position.amount = 0.0000001;
+
   const maxAmount = useMemo(
     () => (activeBankInfo.position.isLending ? activeBankInfo.userInfo.maxWithdraw : activeBankInfo.userInfo.maxRepay),
     [activeBankInfo]
   );
 
-  const isDust = useMemo(
-    () => uiToNative(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals).isZero(),
-    [activeBankInfo]
-  );
+  const isDust = useMemo(() => {
+    const bn = uiToNative(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals);
+    console.log(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals, bn.toNumber(), bn.isZero());
+    return uiToNative(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals).isZero();
+  }, [activeBankInfo]);
 
   const isDisabled = useMemo(
     () =>
