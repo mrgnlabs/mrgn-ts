@@ -143,8 +143,8 @@ export const SetSlippage: React.FC<{ closeModal: () => void }> = ({ closeModal }
     <View style={tw`w-full rounded-xl flex flex-col bg-jupiter-bg text-white shadow-xl max-h-[90%]`}>
       <View style={tw`flex flex-row justify-between items-center p-4 border-b border-white/10`}>
         <Text style={tw`text-base font-semibold text-primary`}>Swap Settings</Text>
-        <Pressable style={tw`text-primary fill-current`} onPress={() => closeModal()}>
-          <icons.CloseIcon width={14} height={14} />
+        <Pressable style={tw`text-primary`} onPress={() => closeModal()}>
+          <icons.CloseIcon width={14} height={14} color="white" />
         </Pressable>
       </View>
 
