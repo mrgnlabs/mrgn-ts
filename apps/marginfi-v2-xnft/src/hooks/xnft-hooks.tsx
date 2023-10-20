@@ -91,7 +91,6 @@ export function useDidLaunch() {
       console.log("didConnect");
       window.xnft.on("connect", () => {
         setDidConnect(true);
-        // console.log({ setDidConnect: true });
       });
       window.xnft.on("disconnect", () => {
         setDidConnect(false);

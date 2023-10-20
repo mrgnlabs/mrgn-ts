@@ -9,7 +9,7 @@ import { getTokenBalanceChangesFromTransactionResponse } from "@jup-ag/common";
 import { PublicKey } from "@solana/web3.js";
 import { useWallet } from "~/hooks/useWallet";
 import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
-import { useJupiterStore } from "~/store";
+import { useJupiterStore } from "~/store/store";
 import { PriceInfo } from "../PriceInfo";
 import { SwapResult } from "@jup-ag/react-hook";
 
@@ -18,8 +18,8 @@ export const ConfirmOrderModal = ({ onClose }: { onClose: () => void }) => {
     fromTokenInfo,
     lastSwapResult,
     toTokenInfo,
-    selectedSwapRoute,
-    jupiter: { routes, refresh: refreshJupiter },
+    quoteReponseMeta,
+    jupiter: { refresh: refreshJupiter },
     swapping: { txStatus },
   } = useSwapContext();
 
@@ -112,13 +112,13 @@ export const ConfirmOrderModal = ({ onClose }: { onClose: () => void }) => {
   };
 
   const swapState: "success" | "error" | "loading" = useMemo(() => {
-    const hasErrors = txStatus.find((item) => item.status === "fail");
+    const hasErrors = txStatus?.status === "fail";
     if (hasErrors) {
       return "error";
     }
 
-    const allSuccess = txStatus.every((item) => item.status !== "loading");
-    if (txStatus.length > 0 && allSuccess) {
+    const allSuccess = txStatus?.status === "success";
+    if (txStatus && allSuccess) {
       return "success";
     }
 
@@ -144,22 +144,22 @@ export const ConfirmOrderModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <View style={tw`flex flex-col h-full w-full py-4 px-2`}>
-      <View style={tw`flex flex-row justify-end p-4`}>
-        <Pressable style={tw`text-primary fill-current`} onPress={() => onGoBack()}>
-          <icons.CloseIcon width={14} height={14} />
+      <View style={tw`absolute right-4 top-2`}>
+        <Pressable style={tw`text-primary`} onPress={() => onGoBack()}>
+          <icons.CloseIcon width={14} height={14} color="white" />
         </Pressable>
       </View>
 
       {swapState === "error" && <ErrorContent />}
 
       {swapState === "loading" && (
-        <View>
+        <View style={tw`pt-4`}>
           <ActivityIndicator size="large" color="#ffff" />
           <Text style={tw`text-center text-primary text-base my-4`}>Confirming transaction</Text>
         </View>
       )}
       {swapState === "success" &&
-        (!_lastSwapResult || !fromTokenInfo || !toTokenInfo || !routes || !selectedSwapRoute ? (
+        (!_lastSwapResult || !fromTokenInfo || !toTokenInfo || !quoteReponseMeta ? (
           <></>
         ) : (
           <View>
@@ -176,13 +176,11 @@ export const ConfirmOrderModal = ({ onClose }: { onClose: () => void }) => {
               </View>
 
               <PriceInfo
-                routes={routes}
-                selectedSwapRoute={selectedSwapRoute}
+                quoteResponse={quoteReponseMeta.quoteResponse}
                 fromTokenInfo={fromTokenInfo}
                 toTokenInfo={toTokenInfo}
                 loading={false}
                 showFullDetails
-                containerClassName="bg-[#25252D] border-none mt-0"
               />
             </View>
           </View>
