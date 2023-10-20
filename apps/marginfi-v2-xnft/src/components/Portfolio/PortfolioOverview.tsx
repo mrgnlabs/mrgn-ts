@@ -30,7 +30,7 @@ export function PortfolioOverview({ selectedAccount, accountSummary, points, isF
     <View style={tw`bg-[#1C2125] rounded-xl px-12px py-16px flex flex-column gap-10px `}>
       <Text style={tw`bg-[#1C2125] rounded-xl text-2xl font-bold text-primary`}>Your overview</Text>
       <View style={tw`text-center m-auto`}>
-        <Text style={[labelStyle, tw`pb-4px`]}>Health factor</Text>
+        <Text style={[labelStyle, tw`pb-4px text-center`]}>Health factor</Text>
         <SemiCircleProgress amount={healthFactor ?? 0} />
       </View>
       <View style={tw`flex flex-row pt-10px flex-wrap gap-10px`}>

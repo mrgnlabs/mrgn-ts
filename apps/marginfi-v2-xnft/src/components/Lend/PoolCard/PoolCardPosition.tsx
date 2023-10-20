@@ -48,10 +48,6 @@ export function PoolCardPosition({ activeBank }: Props) {
               {usdFormatter.format((activeBank as ActiveBankInfo).position.usdValue)}
             </Text>
           </View>
-          {/* <View style={tw`flex flex-row justify-between`}>
-            <Text style={tw`text-secondary`}>WTD</Text>
-            <Text style={tw`text-primary text-base`}>$122.121.44</Text>
-          </View> */}
         </View>
       )}
     </View>

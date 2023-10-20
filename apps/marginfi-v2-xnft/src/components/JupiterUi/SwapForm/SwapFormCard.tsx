@@ -8,7 +8,7 @@ import tw from "~/styles/tailwind";
 import { NumberInput } from "~/components/Common";
 import * as icons from "~/assets/icons";
 import { WSOL_MINT } from "~/config";
-import { useJupiterStore, useMrgnlendStore } from "~/store";
+import { useJupiterStore, useMrgnlendStore } from "~/store/store";
 
 export const SwapFormCard: React.FC<{
   token: TokenInfo;
@@ -56,7 +56,7 @@ export const SwapFormCard: React.FC<{
             amount={typeof value === "undefined" ? "" : value}
             decimals={token.decimals}
             onValueChange={(value: string) => handleChangeFromValue(value)}
-            disabled={!((!isFromToken && !swapMode) || swapMode === "ExactIn")}
+            disabled={!isFromToken}
           />
         </View>
       </View>

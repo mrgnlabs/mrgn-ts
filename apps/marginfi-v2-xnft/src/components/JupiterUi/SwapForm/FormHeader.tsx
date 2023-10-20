@@ -23,13 +23,13 @@ export const FormHeader = ({ handleOpenSettingsModal }: props) => {
       </Pressable>
       <View style={tw`flex flex-row gap-6px items-center`}>
         <Pressable
-          style={tw`p-2 h-7 w-7 flex flex-row items-center justify-center border rounded-full border-white/10 bg-black/10 text-secondary fill-current`}
+          style={tw`p-2 h-7 w-7 flex flex-row items-center justify-center border rounded-full border-white/10 bg-black/10 text-secondary`}
           onPress={() => refresh()}
         >
           <icons.RefreshIcon />
         </Pressable>
         <Pressable
-          style={tw`p-2 h-7 gap-4px flex flex-row items-center justify-center border rounded-2xl border-white/10 bg-black/10 text-secondary fill-current`}
+          style={tw`p-2 h-7 gap-4px flex flex-row items-center justify-center border rounded-2xl border-white/10 bg-black/10 text-secondary`}
           onPress={() => handleOpenSettingsModal()}
         >
           <icons.SettingsIcon />
