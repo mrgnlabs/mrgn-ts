@@ -48,6 +48,7 @@ let envSchema = z.object({
       return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
     })
     .optional(),
+  MAX_SLIPPAGE_BPS: z.string().optional().default("250").transform((s) => Number.parseInt(s, 10)),
   MIN_LIQUIDATION_AMOUNT_USD_UI: z
     .string()
     .default("0.1")
