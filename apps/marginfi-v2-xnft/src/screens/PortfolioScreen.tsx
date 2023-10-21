@@ -2,8 +2,9 @@ import React, { useEffect, useMemo } from "react";
 import { Text, View } from "react-native";
 
 import { useMrgnlendStore, useUserProfileStore } from "~/store/store";
-import { useConnection } from "~/hooks/useConnection";
-import { useWallet } from "~/hooks/useWallet";
+
+import { useWallet } from "~/context/WalletContext";
+import { useConnection } from "~/context/ConnectionContext";
 import tw from "~/styles/tailwind";
 import config from "~/config";
 
@@ -13,7 +14,7 @@ import { PoolCard, PoolCardSkeleton } from "~/components/Lend";
 
 export function PortfolioScreen() {
   const { wallet } = useWallet();
-  const connection = useConnection();
+  const { connection } = useConnection();
   const [
     marginfiClient,
     fetchMrgnlendState,
@@ -38,7 +39,9 @@ export function PortfolioScreen() {
   ]);
 
   useEffect(() => {
-    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet }).catch(console.error);
+    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet: wallet ?? undefined }).catch(
+      console.error
+    );
     const id = setInterval(() => fetchMrgnlendState().catch(console.error), 30_000);
     return () => clearInterval(id);
   }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -98,7 +101,7 @@ export function PortfolioScreen() {
                     marginfiAccount={selectedAccount}
                     reloadBanks={async () => {
                       if (!connection) return;
-                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet });
+                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet: wallet ?? undefined });
                     }}
                     marginfiClient={marginfiClient}
                   />
@@ -123,7 +126,7 @@ export function PortfolioScreen() {
                     marginfiAccount={selectedAccount}
                     reloadBanks={async () => {
                       if (!connection) return;
-                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet });
+                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet: wallet ?? undefined });
                     }}
                     marginfiClient={marginfiClient}
                   />

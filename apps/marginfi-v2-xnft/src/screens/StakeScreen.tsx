@@ -2,8 +2,9 @@ import React, { useEffect } from "react";
 import { View, Text } from "react-native";
 
 import { useLstStore } from "~/store/store";
-import { useConnection } from "~/hooks/useConnection";
-import { useWallet } from "~/hooks/useWallet";
+import { useWallet } from "~/context/WalletContext";
+import { useConnection } from "~/context/ConnectionContext";
+
 import tw from "~/styles/tailwind";
 
 import { Screen } from "~/components/Common";
@@ -11,7 +12,7 @@ import { StakingStats, StakingCard } from "~/components/Staking";
 
 export function StakeScreen() {
   const { wallet } = useWallet();
-  const connection = useConnection();
+  const { connection } = useConnection();
   const [
     initialized,
     isRefreshingStore,
@@ -34,7 +35,7 @@ export function StakeScreen() {
 
   useEffect(() => {
     setIsRefreshingStore(true);
-    fetchLstState({ connection, wallet }).catch(console.error);
+    fetchLstState({ connection, wallet: wallet ?? undefined }).catch(console.error);
     const id = setInterval(() => {
       setIsRefreshingStore(true);
       fetchLstState().catch(console.error);

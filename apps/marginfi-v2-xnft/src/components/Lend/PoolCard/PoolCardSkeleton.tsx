@@ -13,6 +13,7 @@ export const PoolCardSkeleton = (props?: JSX.IntrinsicAttributes & IContentLoade
       backgroundColor="#454545"
       foregroundColor="#ecebeb"
       animate={false}
+      collapsable={"false" as any}
       {...props}
     >
       {/* token icon */}
