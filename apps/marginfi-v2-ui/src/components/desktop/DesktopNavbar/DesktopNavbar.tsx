@@ -1,6 +1,6 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { WalletButton } from "~/components/common/Navbar";
+import { WalletButtonNew } from "~/components/common/Navbar";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useRouter } from "next/router";
@@ -316,7 +316,7 @@ const DesktopNavbar: FC = () => {
               )}
             </div>
 
-            <WalletButton />
+            <WalletButtonNew />
           </div>
         </div>
       </nav>
