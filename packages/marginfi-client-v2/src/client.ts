@@ -1,6 +1,7 @@
 import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {
+  AddressLookupTableAccount,
   Commitment,
   ConfirmOptions,
   Connection,
@@ -27,7 +28,7 @@ import {
   Wallet,
 } from "@mrgnlabs/mrgn-common";
 import { MarginfiGroup } from "./models/group";
-import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, OraclePrice } from ".";
+import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, OraclePrice, ADDRESS_LOOKUP_TABLE_FOR_GROUP } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
 
 export type BankMap = Map<string, Bank>;
@@ -40,6 +41,7 @@ class MarginfiClient {
   public group: MarginfiGroup;
   public banks: BankMap;
   public oraclePrices: OraclePriceMap;
+  private addressLookupTables: AddressLookupTableAccount[];
 
   // --------------------------------------------------------------------------
   // Factories
@@ -55,11 +57,13 @@ class MarginfiClient {
     readonly isReadOnly: boolean,
     group: MarginfiGroup,
     banks: BankMap,
-    priceInfos: OraclePriceMap
+    priceInfos: OraclePriceMap,
+    addressLookupTables?: AddressLookupTableAccount[]
   ) {
     this.group = group;
     this.banks = banks;
     this.oraclePrices = priceInfos;
+    this.addressLookupTables = addressLookupTables ?? [];
   }
 
   /**
@@ -97,7 +101,15 @@ class MarginfiClient {
 
     const { marginfiGroup, banks, priceInfos } = await this.fetchGroupData(program, config.groupPk, opts?.commitment);
 
-    return new MarginfiClient(config, program, wallet, readOnly, marginfiGroup, banks, priceInfos);
+    const addressLookupTableAddresses = ADDRESS_LOOKUP_TABLE_FOR_GROUP[config.groupPk.toString()] ?? [];
+    debug("Fetching address lookup tables for %s", addressLookupTableAddresses);
+    const addressLookupTables = (
+      await Promise.all(addressLookupTableAddresses.map((address) => connection.getAddressLookupTable(address)))
+    )
+      .map((response) => response!.value)
+      .filter((table) => table !== null) as AddressLookupTableAccount[];
+
+    return new MarginfiClient(config, program, wallet, readOnly, marginfiGroup, banks, priceInfos, addressLookupTables);
   }
 
   static async fromEnv(
@@ -415,7 +427,7 @@ class MarginfiClient {
           recentBlockhash: blockhash,
         });
 
-        versionedTransaction = new VersionedTransaction(versionedMessage.compileToV0Message([]));
+        versionedTransaction = new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables));
       } else {
         versionedTransaction = transaction;
       }

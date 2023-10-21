@@ -12,6 +12,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@bonfida/spl-name-service": "^1.1.1",
     "@coral-xyz/anchor": "^0.28.1-beta.2",
     "@mrgnlabs/marginfi-client-v2": "*",
     "@solana/buffer-layout-utils": "^0.2.0",

@@ -123,7 +123,7 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
 }
 
 const BIRDEYE_API = "https://public-api.birdeye.so";
-async function fetchBirdeyePrices(mints: PublicKey[]): Promise<BigNumber[]> {
+export async function fetchBirdeyePrices(mints: PublicKey[]): Promise<BigNumber[]> {
   const mintList = mints.map((mint) => mint.toBase58()).join(",");
   const response = await fetch(`${BIRDEYE_API}/public/multi_price?list_address=${mintList}`, {
     headers: { Accept: "application/json" },
@@ -350,7 +350,7 @@ async function fetchTokenAccounts(
     };
   }
 
-  const ataAddresses = mintList.map((mint) => getAssociatedTokenAddressSync(mint.address, walletAddress!));
+  const ataAddresses = mintList.map((mint) => getAssociatedTokenAddressSync(mint.address, walletAddress!, true)); // We allow off curve addresses here to support Fuse.
 
   // Fetch relevant accounts
   const accountsAiList = await connection.getMultipleAccountsInfo([walletAddress, ...ataAddresses]);

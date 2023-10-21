@@ -31,6 +31,22 @@ import { useWalletContext } from "~/components/useWalletContext";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
+export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
+  [
+    "UXD",
+    {
+      tokenSymbol: "UXP",
+      tokenLogoUri: "/uxp-icon-white.png",
+    },
+  ],
+  [
+    "bSOL",
+    {
+      tokenSymbol: "BLZE",
+      tokenLogoUri: "/blze.png",
+    },
+  ],
+]);
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -394,7 +410,7 @@ const AssetRow: FC<{
         }}
       >
         <div className="h-full w-full flex justify-end items-center gap-3">
-          {bank.meta.tokenSymbol === "UXD" && isInLendingMode && (
+          {bank.info.state.emissionsRate > 0 && EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol) !== undefined && isInLendingMode && (
             <div className="w-1/2 flex justify-center sm:justify-end">
               <HtmlTooltip
                 title={
@@ -404,7 +420,7 @@ const AssetRow: FC<{
                     </Typography>
                     {`${percentFormatter.format(bank.info.state.lendingRate)} Supply APY + ${percentFormatter.format(
                       bank.info.state.emissionsRate
-                    )} UXP rewards.`}
+                    )} ${EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenSymbol} rewards.`}
                     <br />
                     <a href="https://docs.marginfi.com">
                       <u>Learn more.</u>
@@ -413,7 +429,13 @@ const AssetRow: FC<{
                 }
                 placement="left"
               >
-                <Image src="/uxp-icon-white.png" alt="info" height={16} width={16} className="pulse" />
+                <Image
+                  src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
+                  alt="info"
+                  height={16}
+                  width={16}
+                  className="pulse"
+                />
               </HtmlTooltip>
             </div>
           )}

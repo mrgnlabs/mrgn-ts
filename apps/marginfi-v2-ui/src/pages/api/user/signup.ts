@@ -1,11 +1,14 @@
 import * as admin from "firebase-admin";
+import * as Sentry from "@sentry/nextjs";
 import {
-  NextApiRequest,
   createFirebaseUser,
   getFirebaseUserByWallet,
   initFirebaseIfNeeded,
   logSignupAttempt,
 } from "./utils";
+import {
+  NextApiRequest,
+} from "../utils";
 import { is } from "superstruct";
 import { MEMO_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { PublicKey, Transaction } from "@solana/web3.js";
@@ -30,6 +33,11 @@ export interface SignupRequest {
 export default async function handler(req: NextApiRequest<SignupRequest>, res: any) {
   const { method, signedAuthDataRaw } = req.body;
 
+  Sentry.setContext("signup_args", {
+    method,
+    signedAuthDataRaw,
+  });
+
   let signer;
   let payload;
   try {
@@ -37,6 +45,7 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
     signer = signupData.signer.toBase58();
     payload = signupData.payload;
   } catch (error: any) {
+    Sentry.captureException(error);
     let status;
     switch (error.message) {
       case "Invalid signup tx":
@@ -54,8 +63,12 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
 
   try {
     const user = await getFirebaseUserByWallet(signer);
-    if (user) return res.status(STATUS_BAD_REQUEST).json({ error: "User already exists" });
+    if (user) {
+      Sentry.captureException({ message: "User already exists" });
+      return res.status(STATUS_BAD_REQUEST).json({ error: "User already exists" });
+    }
   } catch (error: any) {
+    Sentry.captureException(error);
     return res.status(STATUS_INTERNAL_ERROR).json({ error: error.message }); // An unexpected error occurred
   }
 
@@ -63,6 +76,7 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
     await createFirebaseUser(signer, payload.referralCode);
     console.log("successfully created new user");
   } catch (createUserError: any) {
+    Sentry.captureException(createUserError);
     return res.status(STATUS_INTERNAL_ERROR).json({ error: createUserError.message });
   }
 
