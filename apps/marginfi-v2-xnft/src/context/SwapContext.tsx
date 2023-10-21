@@ -20,8 +20,8 @@ import Decimal from "decimal.js";
 import JSBI from "jsbi";
 
 import { FormProps } from "~/types/jupiterTypes";
-import { useWallet } from "~/hooks/useWallet";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/context/ConnectionContext";
+import { useWallet } from "~/context/WalletContext";
 import { fromLamports, toLamports } from "~/utils";
 import { DEFAULT_SLIPPAGE, PRIORITY_NONE } from "~/consts";
 import { useJupiterStore } from "~/store/store";
@@ -142,7 +142,7 @@ export const SwapContextProvider: FC<{
   const [tokenMap, fetchJupiterState] = useJupiterStore((state) => [state.tokenMap, state.fetchJupiterState]);
 
   const { publicKey, wallet } = useWallet();
-  const connection = useConnection();
+  const { connection } = useConnection();
 
   const formProps: FormProps = useMemo(
     () => ({ ...initialSwapContext.formProps, ...originalFormProps }),
@@ -195,7 +195,7 @@ export const SwapContextProvider: FC<{
   }, [formProps?.initialAmount, jupiterSwapMode, tokenMap]);
 
   useEffect(() => {
-    fetchJupiterState({ connection, wallet });
+    fetchJupiterState({ connection, wallet: wallet ?? undefined });
   }, [connection, wallet]);
 
   useEffect(() => {

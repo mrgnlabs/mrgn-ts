@@ -61,7 +61,10 @@ export const SwapFormCard: React.FC<{
         </View>
       </View>
       <View style={tw`flex flex-row justify-between`}>
-        <Pressable style={tw`flex flex-row gap-5px`} onPress={() => handleChangeFromValue(userBalance.toString() ?? 0)}>
+        <Pressable
+          style={tw`flex flex-row gap-5px`}
+          onPress={() => handleChangeFromValue(userBalance.toString() ?? "0")}
+        >
           <View style={tw`mt-3px`}>
             <icons.WalletIcon width={10} height={10} />
           </View>
