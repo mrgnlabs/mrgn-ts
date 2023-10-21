@@ -15,7 +15,7 @@ import { Fees } from "./Fees";
 import { TransactionFee } from "./TransactionFee";
 import { Deposits } from "./Deposits";
 import { useJupiterStore } from "~/store/store";
-import { useWallet } from "~/hooks/useWallet";
+import { useWallet } from "~/context/WalletContext";
 
 export const PriceInfo = ({
   quoteResponse,

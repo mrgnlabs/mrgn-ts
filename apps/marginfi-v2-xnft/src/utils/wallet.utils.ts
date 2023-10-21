@@ -20,23 +20,6 @@ export const solanaSignAndConfirmTransaction = async (
   }
 };
 
-export const solanaSignMessage = async (message: string) => {
-  const result = await window.xnft.solana.signMessage(Buffer.from(message));
-  console.log("solana sign message", result);
-};
-
-export const solanaSendTransaction = async (transaction: Transaction | VersionedTransaction) => {
-  const result = await window.xnft.solana.send(transaction);
-  console.log("solana send transaction", result);
-  return result;
-};
-
-export const solanaSignTransaction = async (transaction: Transaction | VersionedTransaction) => {
-  const result = await window.xnft.solana.signTransaction(transaction);
-  console.log("solana sign transaction", result);
-  return result;
-};
-
 const solanaSendLegacyTransaction = async () => {
   const {
     context: { slot: minContextSlot },
@@ -63,23 +46,6 @@ const solanaSendLegacyTransaction = async () => {
 };
 
 export const solanaSignAllTransactions = async (transactions: Transaction | VersionedTransaction[]) => {
-  // const transactions = [
-  //   new Transaction().add(
-  //     SystemProgram.transfer({
-  //       fromPubkey: window.xnft.solana.publicKey,
-  //       toPubkey: new PublicKey("H4YJ7ESVkiiP9tGeQJy9jKVSHk98tSAUD3LqTowH9tEY"),
-  //       lamports: 1,
-  //     })
-  //   ),
-  //   new Transaction().add(
-  //     SystemProgram.transfer({
-  //       fromPubkey: window.xnft.solana.publicKey,
-  //       toPubkey: new PublicKey("H4YJ7ESVkiiP9tGeQJy9jKVSHk98tSAUD3LqTowH9tEY"),
-  //       lamports: 1,
-  //     })
-  //   ),
-  // ];
-
   const result = await window.xnft.solana.signAllTransactions(transactions);
   console.log("solana sign all transactions", result);
 };

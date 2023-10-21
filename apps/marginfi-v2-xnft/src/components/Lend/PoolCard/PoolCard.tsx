@@ -5,7 +5,7 @@ import { PoolCardStats } from "./PoolCardStats";
 import { PoolCardActions } from "./PoolCardActions";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { PoolCardPosition } from "./PoolCardPosition";
-import { useConnection } from "~/hooks/useConnection";
+import { useConnection } from "~/context/ConnectionContext";
 import { ActionType, Emissions, ExtendedBankInfo, FEE_MARGIN, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
 import { showErrorToast, showSuccessToast } from "~/utils";
 import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
@@ -52,7 +52,7 @@ export function PoolCard({
     [bankInfo]
   );
 
-  const connection = useConnection();
+  const { connection } = useConnection();
 
   const borrowOrLend = useCallback(
     async (amount: string) => {

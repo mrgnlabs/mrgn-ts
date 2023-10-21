@@ -4,10 +4,10 @@ import { useSwapContext } from "~/context";
 import tw from "~/styles/tailwind";
 import * as icons from "~/assets/icons";
 import { fromLamports } from "~/utils";
-import { useConnection } from "~/hooks/useConnection";
 import { getTokenBalanceChangesFromTransactionResponse } from "@jup-ag/common";
 import { PublicKey } from "@solana/web3.js";
-import { useWallet } from "~/hooks/useWallet";
+import { useConnection } from "~/context/ConnectionContext";
+import { useWallet } from "~/context/WalletContext";
 import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
 import { useJupiterStore } from "~/store/store";
 import { PriceInfo } from "../PriceInfo";
@@ -30,7 +30,7 @@ export const ConfirmOrderModal = ({ onClose }: { onClose: () => void }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [lastSwapResultFix, setLastSwapResultFix] = useState<SwapResult>();
   const [isChecked, setIsChecked] = useState<boolean>(false);
-  const connection = useConnection();
+  const { connection } = useConnection();
 
   useEffect(() => {
     if (lastSwapResult && "error" in lastSwapResult) {
