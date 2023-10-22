@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 // import "react-native-get-random-values";
 // import { Buffer } from "buffer";
 import { registerRootComponent } from "expo";
@@ -22,6 +22,7 @@ import { useXnftReady } from "~/hooks/xnftHooks";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { ConnectionProvider } from "~/context/ConnectionContext";
 import { XNftWalletProvider } from "~/context/WalletContext";
+import { useIsWindowLoaded } from "~/hooks/useIsWindowLoaded";
 
 // global.Buffer = Buffer;
 require("~/styles/globals.css");
@@ -140,8 +141,11 @@ function App() {
   const isMobile = useIsMobile();
   const { connection } = useConnection();
   const { windowLoaded, didLaunch } = useXnftReady();
+  const testieee = useIsWindowLoaded();
 
   const [asLegacyTransaction, setAsLegacyTransaction] = useState(false);
+
+  console.log({ testieee });
 
   if (!fontsLoaded || isMobile === undefined || (!didLaunch && !isMobile) || !windowLoaded) {
     return (
