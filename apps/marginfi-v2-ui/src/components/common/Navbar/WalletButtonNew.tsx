@@ -4,16 +4,14 @@ import { Button, Dialog, DialogContent } from "@mui/material";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWeb3Auth } from "~/hooks/useWeb3Auth";
 
 export const WalletButtonNew = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { select, wallets } = useWallet();
-  const { connected, wallet, showAuthModal, logout } = useWalletContext();
+  const { connected, wallet, logout } = useWalletContext();
+  const { login } = useWeb3Auth();
   const emailInputRef = React.useRef<HTMLInputElement>(null);
-
-  const handleEmailLogin = async () => {
-    console.log("handleEmailLogin");
-  };
 
   React.useEffect(() => {
     if (connected) {
@@ -45,14 +43,26 @@ export const WalletButtonNew = () => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleEmailLogin();
+              login("email_passwordless", { login_hint: emailInputRef.current?.value });
             }}
           >
             <input ref={emailInputRef} type="email" placeholder="Email address" className="text-black" />
             <Button type="submit">Login</Button>
           </form>
 
-          {wallets.filter((wallet) => wallet.readyState === "Installed").length > 0 ? (
+          <ul>
+            <li>
+              <Button onClick={() => login("google")}>Google</Button>
+            </li>
+            <li>
+              <Button onClick={() => login("twitter")}>Twitter</Button>
+            </li>
+            <li>
+              <Button onClick={() => login("apple")}>Apple</Button>
+            </li>
+          </ul>
+
+          {wallets.filter((wallet) => wallet.readyState === "Installed").length > 0 && (
             <ul>
               {wallets
                 .filter((wallet) => wallet.readyState === "Installed")
@@ -71,8 +81,6 @@ export const WalletButtonNew = () => {
                   </li>
                 ))}
             </ul>
-          ) : (
-            <p>No wallet found. Please download a supported Solana wallet</p>
           )}
         </DialogContent>
       </Dialog>

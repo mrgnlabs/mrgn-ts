@@ -10,7 +10,7 @@ const useWalletContext = () => {
   const walletContextState = useWallet();
   const walletModal = useWalletModal();
   const anchorWallet = useAnchorWallet();
-  const { web3AuthWalletData, showAuthModal, logout: web3AuthLogout } = useWeb3Auth();
+  const { web3AuthWalletData, connected, login, logout: web3AuthLogout } = useWeb3Auth();
   const { query } = useRouter();
 
   const openWalletSelector = useCallback(() => {
@@ -48,10 +48,10 @@ const useWalletContext = () => {
     wallet,
     walletAddress: wallet?.publicKey,
     isOverride,
-    connected: wallet?.publicKey,
+    connected: walletContextState.connected || !!web3AuthWalletData,
     openWalletSelector,
     walletContextState,
-    showAuthModal,
+    login,
     logout,
   };
 };
