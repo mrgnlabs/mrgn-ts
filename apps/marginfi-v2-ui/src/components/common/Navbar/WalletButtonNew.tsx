@@ -66,8 +66,8 @@ export const WalletButtonNew = () => {
             <ul>
               {wallets
                 .filter((wallet) => wallet.readyState === "Installed")
-                .map((wallet) => (
-                  <li>
+                .map((wallet, i) => (
+                  <li key={i}>
                     <Button
                       key={wallet.adapter.name}
                       onClick={() => {

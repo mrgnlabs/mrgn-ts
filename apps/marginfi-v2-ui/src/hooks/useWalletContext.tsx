@@ -42,7 +42,7 @@ const useWalletContext = () => {
     } else {
       walletContextState.disconnect();
     }
-  }, [web3AuthWalletData, anchorWallet, web3AuthLogout]);
+  }, [walletContextState, web3AuthLogout]);
 
   return {
     wallet,
