@@ -159,7 +159,6 @@ function App() {
       <ConnectionProvider
         endpoint={RPC_ENDPOINT_OVERRIDE} // add fallback endpoint
         isMobile={isMobile}
-        asLegacyTransaction={asLegacyTransaction}
       >
         <XNftWalletProvider isMobile={isMobile}>
           <JupiterProvider
