@@ -1,23 +1,31 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+// import "react-native-get-random-values";
+// import { Buffer } from "buffer";
 import { registerRootComponent } from "expo";
+import { JupiterProvider } from "@jup-ag/react-hook";
 import { RecoilRoot, useSetRecoilState } from "recoil";
 import { ActivityIndicator, View, Text, StyleSheet, ImageBackground, TouchableOpacity } from "react-native";
 import Toast from "react-native-toast-message";
-import { JupiterProvider } from "@jup-ag/react-hook";
+
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { BottomTabHeaderProps, createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useFonts, Inter_900Black } from "@expo-google-fonts/dev";
 
 import { SwapContextProvider } from "~/context";
-import { useConnection } from "~/hooks/useConnection";
-import { useWallet } from "~/hooks/useWallet";
+import { useConnection } from "~/context/ConnectionContext";
 import { ORDERED_MOBILE_NAVBAR_LINKS, ROUTE_CACHE_DURATION, isSideDrawerVisible } from "~/consts";
 import { AppsIcon, MrgnIcon, PieChartIcon, ReceiveMoneyIcon, TokenSwapIcon } from "~/assets/icons";
 import tw from "~/styles/tailwind";
 import { StakeScreen } from "~/screens/StakeScreen";
 import { DrawerMenu } from "~/components/Common/DrawerMenu";
-import { useDidLaunch } from "~/hooks/xnft-hooks";
+import { useXnftReady } from "~/hooks/xnftHooks";
+import { useIsMobile } from "~/hooks/useIsMobile";
+import { ConnectionProvider } from "~/context/ConnectionContext";
+import { XNftWalletProvider } from "~/context/WalletContext";
+import { useIsWindowLoaded } from "~/hooks/useIsWindowLoaded";
+import { RPC_ENDPOINT_OVERRIDE } from "@env";
 
+// global.Buffer = Buffer;
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
 
@@ -131,15 +139,14 @@ function App() {
   let [fontsLoaded] = useFonts({
     Inter_900Black,
   });
-  const connection = useConnection();
-  const { publicKey } = useWallet();
-
-  const didConnect = useDidLaunch();
-  console.log({ didConnect });
+  const isMobile = useIsMobile();
+  const { connection } = useConnection();
+  const didLaunch = useXnftReady();
+  const isWindowLoaded = useIsWindowLoaded();
 
   const [asLegacyTransaction, setAsLegacyTransaction] = useState(false);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || isMobile === undefined || (!didLaunch && !isMobile) || !isWindowLoaded) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <ActivityIndicator />
@@ -149,27 +156,33 @@ function App() {
 
   return (
     <RecoilRoot>
-      {connection && (
-        <JupiterProvider
-          connection={connection}
-          routeCacheDuration={ROUTE_CACHE_DURATION}
-          wrapUnwrapSOL={true}
-          userPublicKey={publicKey || undefined}
-          platformFeeAndAccounts={undefined}
-          asLegacyTransaction={asLegacyTransaction}
-        >
-          <SwapContextProvider
+      <ConnectionProvider
+        endpoint={RPC_ENDPOINT_OVERRIDE} // add fallback endpoint
+        isMobile={isMobile}
+        asLegacyTransaction={asLegacyTransaction}
+      >
+        <XNftWalletProvider isMobile={isMobile}>
+          <JupiterProvider
+            connection={connection}
+            routeCacheDuration={ROUTE_CACHE_DURATION}
+            wrapUnwrapSOL={true}
+            userPublicKey={undefined}
+            platformFeeAndAccounts={undefined}
             asLegacyTransaction={asLegacyTransaction}
-            setAsLegacyTransaction={setAsLegacyTransaction}
           >
-            <NavigationContainer theme={MyTheme}>
-              <DrawerMenu />
-              <TabNavigator />
-            </NavigationContainer>
-            <Toast position={"bottom"} />
-          </SwapContextProvider>
-        </JupiterProvider>
-      )}
+            <SwapContextProvider
+              asLegacyTransaction={asLegacyTransaction}
+              setAsLegacyTransaction={setAsLegacyTransaction}
+            >
+              <NavigationContainer theme={MyTheme}>
+                <DrawerMenu />
+                <TabNavigator />
+              </NavigationContainer>
+              <Toast position={"bottom"} />
+            </SwapContextProvider>
+          </JupiterProvider>
+        </XNftWalletProvider>
+      </ConnectionProvider>
     </RecoilRoot>
   );
 }

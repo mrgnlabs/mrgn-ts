@@ -12,14 +12,7 @@ export function SecondaryButton({ onPress, title, customStyles, isDisabled = fal
   const pressableRef = useRef<any>();
 
   return (
-    <Pressable
-      ref={pressableRef}
-      style={[styles.button, customStyles]}
-      onPress={onPress}
-      disabled={isDisabled}
-      // onHoverIn={hoverIn}
-      // onHoverOut={hoverOut}
-    >
+    <Pressable ref={pressableRef} style={[styles.button, customStyles]} onPress={onPress} disabled={isDisabled}>
       <Text style={styles.text}>{title}</Text>
     </Pressable>
   );

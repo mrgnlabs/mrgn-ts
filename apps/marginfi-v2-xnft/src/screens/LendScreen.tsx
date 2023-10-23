@@ -5,8 +5,8 @@ import { useRecoilValue } from "recoil";
 
 import { tabActiveAtom } from "~/consts";
 import { useMrgnlendStore } from "~/store/store";
-import { useConnection } from "~/hooks/useConnection";
-import { useWallet } from "~/hooks/useWallet";
+import { useWallet } from "~/context/WalletContext";
+import { useConnection } from "~/context/ConnectionContext";
 import { SORT_OPTIONS_MAP, SortAssetOption, sortApRate, sortTvl } from "~/utils";
 import tw from "~/styles/tailwind";
 import config from "~/config";
@@ -16,7 +16,7 @@ import { PoolCard, PoolCardSkeleton, Select, TabSwitch } from "~/components/Lend
 
 export function LendScreen() {
   const { wallet } = useWallet();
-  const connection = useConnection();
+  const { connection } = useConnection();
   const [isStoreInitialized, marginfiClient, fetchMrgnlendState, selectedAccount, extendedBankInfos, nativeSolBalance] =
     useMrgnlendStore((state) => [
       state.initialized,
@@ -26,18 +26,11 @@ export function LendScreen() {
       state.extendedBankInfos,
       state.nativeSolBalance,
     ]);
+
   const tabActive = useRecoilValue(tabActiveAtom);
   const [isFiltered, setIsFiltered] = useState(false);
   const [sortOption, setSortOption] = useState<SortAssetOption>(SORT_OPTIONS_MAP["TVL_DESC"]);
   const togglePositions = () => setIsFiltered((previousState) => !previousState);
-
-  useEffect(() => {
-    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet }).catch(console.error);
-    const id = setInterval(() => fetchMrgnlendState().catch(console.error), 30_000);
-    return () => clearInterval(id);
-  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
-  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
-  // TODO: fix...
 
   const sortBanks = useCallback(
     (banks: ExtendedBankInfo[]) => {
@@ -103,7 +96,7 @@ export function LendScreen() {
                     marginfiAccount={selectedAccount}
                     reloadBanks={async () => {
                       if (!connection) return;
-                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet });
+                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet: wallet ?? undefined });
                     }}
                     marginfiClient={marginfiClient}
                   ></PoolCard>
@@ -129,7 +122,7 @@ export function LendScreen() {
                     marginfiAccount={selectedAccount}
                     reloadBanks={async () => {
                       if (!connection) return;
-                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet });
+                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet: wallet ?? undefined });
                     }}
                     marginfiClient={marginfiClient}
                   ></PoolCard>

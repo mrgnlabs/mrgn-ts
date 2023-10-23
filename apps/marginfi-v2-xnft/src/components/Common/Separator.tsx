@@ -8,5 +8,5 @@ type Props = {
 };
 
 export function Separator({ style }: Props) {
-  return <View style={[tw`border-l border-border h-full`, style]}></View>;
+  return <View style={[tw`border-l border-border h-[44px]`, style]}></View>;
 }

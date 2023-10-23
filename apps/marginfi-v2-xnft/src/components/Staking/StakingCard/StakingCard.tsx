@@ -13,8 +13,6 @@ import Modal from "react-native-modal";
 import tw from "~/styles/tailwind";
 import { LST_MINT } from "~/store/lstStore";
 import { ChevronDownIcon, RefreshIcon, SettingsIcon, WalletIcon } from "~/assets/icons";
-import { useWallet } from "~/hooks/useWallet";
-import { useConnection } from "~/hooks/useConnection";
 import { useLstStore } from "~/store/store";
 import { NumberInput, PrimaryButton } from "~/components/Common";
 
@@ -28,9 +26,11 @@ import {
 } from "./StakingCard.utils";
 import * as _consts from "./StakingCard.consts";
 import { StakingModal } from "./Modals";
+import { useConnection } from "~/context/ConnectionContext";
+import { useWallet } from "~/context/WalletContext";
 
 export const StakingCard: FC = () => {
-  const connection = useConnection();
+  const { connection } = useConnection();
   const { wallet, publicKey: walletAddress } = useWallet();
   const [
     lstData,
