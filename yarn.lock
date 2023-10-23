@@ -7944,6 +7944,13 @@
     ethereum-cryptography "^2.0.0"
     json-stable-stringify "^1.0.2"
 
+"@toruslabs/openlogin-ed25519@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@toruslabs/openlogin-ed25519/-/openlogin-ed25519-5.0.0.tgz#7c2aac16102c505e62491d301d45b83e8ed2f157"
+  integrity sha512-WgiUgZkjoI8iM8OrNarHTnHZXsZRC/tKkoXcJbVsd4aSbuJKt23iXX/4Cg1S30MR+RqjXbY5YH7DZCt9ob90yw==
+  dependencies:
+    "@toruslabs/tweetnacl-js" "^1.0.4"
+
 "@toruslabs/openlogin-jrpc@^3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@toruslabs/openlogin-jrpc/-/openlogin-jrpc-3.2.0.tgz#fff051d05b6c01b6329e2da9b134fae99305d1e0"
@@ -8049,6 +8056,11 @@
     lodash-es "^4.17.21"
     loglevel "^1.8.1"
     pump "^3.0.0"
+
+"@toruslabs/tweetnacl-js@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@toruslabs/tweetnacl-js/-/tweetnacl-js-1.0.4.tgz#0f1965d1b93d4061472b07ed21d71c33ac533cce"
+  integrity sha512-h8fVemW5pstsKbm/fTx+y61dZkh5Pepy/92lsyKp83KErf96jT+w4LGx4nEgeAVrdYQDTLg2tO7vu/boEb23Iw==
 
 "@trysound/sax@0.2.0":
   version "0.2.0"
@@ -9170,6 +9182,33 @@
     "@web3auth/base" "^7.0.4"
     "@web3auth/base-plugin" "^7.0.4"
     "@web3auth/base-provider" "^7.0.4"
+
+"@web3auth/openlogin-adapter@^7.0.4":
+  version "7.0.4"
+  resolved "https://registry.yarnpkg.com/@web3auth/openlogin-adapter/-/openlogin-adapter-7.0.4.tgz#9d30012a69561e3d037f82bd61540b2c7fc3ac2f"
+  integrity sha512-B1yJYrIE3PDiiJcexu5QWH1PWbDh4m1jLIre4OZlGsja2/Rc5z8r51RxKmKRC/vdFfKtPSg5SiTzj/FGNZCzRQ==
+  dependencies:
+    "@toruslabs/openlogin" "^5.2.0"
+    "@toruslabs/openlogin-utils" "^5.2.0"
+    "@web3auth/base" "^7.0.4"
+    "@web3auth/base-provider" "^7.0.4"
+    lodash.merge "^4.6.2"
+
+"@web3auth/solana-provider@^7.0.4":
+  version "7.0.4"
+  resolved "https://registry.yarnpkg.com/@web3auth/solana-provider/-/solana-provider-7.0.4.tgz#41f6151a5200e5bfd623912f6ca670c63ba0ea10"
+  integrity sha512-ISG8t9CRXnRQi6pkif/hjwejYmTyj3Jv0xlFvnVkSIvMXm7PMtnhOAvCL2dxRB3t69f2ItV36phKDN2vVtGI2w==
+  dependencies:
+    "@metamask/rpc-errors" "^6.0.0"
+    "@toruslabs/base-controllers" "^4.2.0"
+    "@toruslabs/openlogin-ed25519" "^5.0.0"
+    "@toruslabs/openlogin-jrpc" "^5.2.0"
+    "@toruslabs/tweetnacl-js" "^1.0.4"
+    "@web3auth/base" "^7.0.4"
+    "@web3auth/base-provider" "^7.0.4"
+    bn.js "^5.2.1"
+    bs58 "^5.0.0"
+    json-rpc-random-id "^1.0.1"
 
 "@webassemblyjs/ast@1.11.6", "@webassemblyjs/ast@^1.11.5":
   version "1.11.6"

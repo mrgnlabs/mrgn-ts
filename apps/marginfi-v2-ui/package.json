@@ -39,6 +39,8 @@
     "@vercel/analytics": "^1.0.0",
     "@walletconnect/modal": "^2.6.2",
     "@web3auth/no-modal": "^7.0.4",
+    "@web3auth/openlogin-adapter": "^7.0.4",
+    "@web3auth/solana-provider": "^7.0.4",
     "bignumber.js": "^9.1.1",
     "bn.js": "^5.2.1",
     "bs58": "^5.0.0",
