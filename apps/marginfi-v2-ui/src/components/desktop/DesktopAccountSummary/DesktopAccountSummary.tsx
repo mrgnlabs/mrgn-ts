@@ -18,6 +18,8 @@ const AccountSummary: FC = () => {
   ]);
   const { connected } = useWalletContext();
 
+  // console.log(isStoreInitialized, accountSummary, protocolStats, selectedAccount);
+
   return (
     <div className="flex flex-col lg:flex-row w-full justify-between items-center">
       <div className="font-[500] lg:block w-full h-[118px]">

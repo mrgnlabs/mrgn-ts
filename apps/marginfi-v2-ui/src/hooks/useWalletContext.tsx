@@ -3,16 +3,15 @@ import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { PublicKey } from "@solana/web3.js";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Magic } from "magic-sdk";
+import { useCallback, useMemo } from "react";
+import { useWeb3Auth } from "./useWeb3Auth";
 
 const useWalletContext = () => {
   const walletContextState = useWallet();
   const walletModal = useWalletModal();
   const anchorWallet = useAnchorWallet();
+  const { web3AuthWalletData, showAuthModal, logout: web3AuthLogout } = useWeb3Auth();
   const { query } = useRouter();
-
-  const magic = new Magic(process.env.NEXT_PUBLIC_MAGIC_API_KEY || "");
 
   const openWalletSelector = useCallback(() => {
     walletModal.setVisible(true);
@@ -20,7 +19,12 @@ const useWalletContext = () => {
 
   const { wallet, isOverride }: { wallet: Wallet | undefined; isOverride: boolean } = useMemo(() => {
     const override = query?.wallet as string;
-    if (anchorWallet && override) {
+    if (web3AuthWalletData) {
+      return {
+        wallet: web3AuthWalletData,
+        isOverride: false,
+      };
+    } else if (anchorWallet && override) {
       return {
         wallet: {
           ...anchorWallet,
@@ -30,25 +34,25 @@ const useWalletContext = () => {
       };
     }
     return { wallet: anchorWallet, isOverride: false };
-  }, [anchorWallet, query]);
+  }, [anchorWallet, web3AuthWalletData, query]);
 
-  const loginWithEmail = async (email: string) => {
-    if (!email) return;
-
-    console.log("login with email", email);
-    await magic.auth.loginWithEmailOTP({ email });
-    const metadata = await magic.user.getMetadata();
-    console.log(metadata.publicAddress);
-  };
+  const logout = useCallback(() => {
+    if (web3AuthWalletData) {
+      web3AuthLogout();
+    } else {
+      walletContextState.disconnect();
+    }
+  }, [web3AuthWalletData, anchorWallet, web3AuthLogout]);
 
   return {
     wallet,
     walletAddress: wallet?.publicKey,
     isOverride,
-    connected: walletContextState.connected,
+    connected: wallet?.publicKey,
     openWalletSelector,
     walletContextState,
-    loginWithEmail,
+    showAuthModal,
+    logout,
   };
 };
 
