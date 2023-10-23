@@ -2,6 +2,7 @@ import { FC, ReactNode } from "react";
 import { Login, WalletOutlined } from "@mui/icons-material";
 import { useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { WalletButtonNew } from "./Navbar";
 import { Mobile } from "~/mediaQueries";
 import { Mrgn } from "./icons/Mrgn";
 
@@ -26,18 +27,7 @@ const PageHeader: FC<PageHeaderProps> = ({ children }) => {
           <div>{children}</div>
         </div>
         <Mobile>
-          <div className="flex justify-center items-center gap-3">
-            {!connected && (
-              <div
-                className="flex justify-center gap-1.5 items-center cursor-pointer bg-white rounded-md border-[1px] border-white transition hover:bg-transparent text-black text-base px-3 py-1"
-                onClick={() => {
-                  setIsWalletDrawerOpen(true);
-                }}
-              >
-                <WalletOutlined className="text-lg" /> Connect
-              </div>
-            )}
-          </div>
+          <div className="flex justify-center items-center gap-3">{!connected && <WalletButtonNew />}</div>
         </Mobile>
       </div>
     </div>
