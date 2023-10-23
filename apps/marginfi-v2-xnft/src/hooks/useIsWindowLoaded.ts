@@ -3,13 +3,10 @@ import { useEffect, useState } from "react";
 export function useIsWindowLoaded() {
   const [isWindowLoaded, setIsWindowLoaded] = useState<boolean>(false);
   useEffect(() => {
-    console.log({ doc: document.readyState });
-    if (document.readyState === "complete") {
+    if (document.readyState === "complete" || document.readyState === "interactive") {
       setIsWindowLoaded(true);
-      console.log("window.xnft");
-      console.log(window.xnft);
     }
-  }, [document]);
+  }, [document.readyState]);
 
   return isWindowLoaded;
 }

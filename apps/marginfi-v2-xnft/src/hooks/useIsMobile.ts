@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
+import { useIsWindowLoaded } from "./useIsWindowLoaded";
 
 export function useIsMobile() {
   const [isMobile, setIsMobile] = useState<boolean>();
+  const isWindowLoaded = useIsWindowLoaded();
+
   useEffect(() => {
-    console.log("a");
-    if (window?.xnft) {
-      console.log("b");
-      setIsMobile(false);
-    } else {
-      console.log("c");
-      setIsMobile(true);
+    if (isWindowLoaded) {
+      if (window?.xnft) {
+        setIsMobile(false);
+      } else {
+        setIsMobile(true);
+      }
     }
-  }, [window?.xnft]);
+  }, [window?.xnft, isWindowLoaded]);
 
   return isMobile;
 }
