@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { Text, StyleSheet, Pressable, StyleProp, ViewStyle } from "react-native";
+
 import tw from "~/styles/tailwind";
 
 type Props = {
@@ -14,11 +15,9 @@ export function PrimaryButton({ onPress, title, customStyles, isDisabled = false
   return (
     <Pressable
       ref={pressableRef}
-      style={[styles.button, isDisabled && tw`opacity-50`, customStyles]}
+      style={[styles.button, isDisabled ? tw`opacity-50 cursor-none` : tw`opacity-50 cursor-pointer`, customStyles]}
       onPress={onPress}
       disabled={isDisabled}
-      // onHoverIn={hoverIn}
-      // onHoverOut={hoverOut}
     >
       <Text style={styles.text}>{title}</Text>
     </Pressable>
@@ -31,10 +30,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     borderColor: "#434343",
     textAlign: "center",
-
     height: 40,
-
-    cursor: "pointer",
     borderRadius: 6,
   },
 
