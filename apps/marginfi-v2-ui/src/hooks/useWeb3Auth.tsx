@@ -89,7 +89,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
     if (web3auth.connected && web3auth.provider && !web3AuthWalletData) {
       makeWeb3AuthWalletData(web3auth.provider);
     }
-  }, [web3auth]);
+  }, [web3auth, web3AuthWalletData]);
 
   React.useEffect(() => {
     const init = async () => {
