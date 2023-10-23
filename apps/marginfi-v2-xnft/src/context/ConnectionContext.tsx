@@ -9,7 +9,6 @@ import { useMrgnlendStore } from "~/store/store";
 export interface ConnectionProviderProps {
   children: ReactNode;
   isMobile: boolean;
-  asLegacyTransaction: boolean;
   endpoint?: string;
   config?: ConnectionConfig;
 }
@@ -18,7 +17,6 @@ export const ConnectionProvider: FC<ConnectionProviderProps> = ({
   children,
   endpoint,
   isMobile,
-  asLegacyTransaction,
   config = { commitment: "confirmed" },
 }) => {
   const { wallet } = useWallet();
@@ -32,7 +30,7 @@ export const ConnectionProvider: FC<ConnectionProviderProps> = ({
 
   useEffect(() => {
     if (isMobile) {
-      setConnection(new Connection(endpoint ?? "", config)); // TODO add fallback rpc
+      setConnection(new Connection(endpoint ?? "https://api.mainnet-beta.solana.com", config)); // TODO add fallback rpc
     } else {
       if (endpoint) {
         setConnection(new Connection(endpoint, { commitment: xNftConnection?.commitment ?? "confirmed" }));
