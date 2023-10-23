@@ -1,8 +1,9 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnchorProvider, Provider, Wallet } from "@coral-xyz/anchor";
 
 import { XnftWallet } from "~/types/xnftTypes";
+import { useIsMobile } from "./useIsMobile";
 
 // Hooks do not work due to useDidLaunch, TODO futher look into it
 declare global {
@@ -33,7 +34,7 @@ export const useXNftPublicKey = usePublicKey;
 // }
 
 function useWallet(): XnftWallet | undefined {
-  const { didLaunch } = useXnftDidLaunch();
+  const didLaunch = useXnftDidLaunch();
   const [wallet, setWallet] = useState<XnftWallet>();
   useEffect(() => {
     if (didLaunch) {
@@ -48,7 +49,7 @@ function useWallet(): XnftWallet | undefined {
 
 /** @deprecated use `usePublicKeys()` instead */
 function usePublicKey(): PublicKey | undefined {
-  const { didLaunch } = useXnftDidLaunch();
+  const didLaunch = useXnftDidLaunch();
   const [publicKey, setPublicKey] = useState();
   useEffect(() => {
     if (didLaunch) {
@@ -62,7 +63,7 @@ function usePublicKey(): PublicKey | undefined {
 }
 
 function usePublicKeys(): { [key: string]: PublicKey } | undefined {
-  const { didLaunch } = useXnftDidLaunch();
+  const didLaunch = useXnftDidLaunch();
 
   const [publicKeys, setPublicKeys] = useState();
   useEffect(() => {
@@ -78,7 +79,7 @@ function usePublicKeys(): { [key: string]: PublicKey } | undefined {
 
 /** @deprecated use blockchain-specific connections instead */
 function useConnection(): Connection | undefined {
-  const { didLaunch } = useXnftDidLaunch();
+  const didLaunch = useXnftDidLaunch();
   const [connection, setConnection] = useState();
   useEffect(() => {
     if (didLaunch) {
@@ -92,7 +93,7 @@ function useConnection(): Connection | undefined {
 }
 
 function useSolanaConnection(): Connection | undefined {
-  const { didLaunch } = useXnftDidLaunch();
+  const didLaunch = useXnftDidLaunch();
   const [connection, setConnection] = useState<Connection>();
   useEffect(() => {
     if (didLaunch) {
@@ -120,25 +121,36 @@ function useSolanaConnection(): Connection | undefined {
 // }
 
 // Returns true if the `window.xnft` object is ready to be used.
-function useXnftDidLaunch() {
-  const [didLaunch, setDidLaunch] = useState(false);
-  const [windowLoaded, setWindowLoaded] = useState(false);
+// function useXnftDidLaunch() {
+//   const [didLaunch, setDidLaunch] = useState(false);
 
-  useEffect(() => {
-    window.addEventListener("load", () => {
-      console.log("didConnect");
-      setWindowLoaded(true);
-      window.xnft.on("connect", () => {
-        setDidLaunch(true);
-        console.log("true");
-      });
-      window.xnft.on("disconnect", () => {
-        setDidLaunch(false);
-        console.log("false");
-      });
-    });
-  }, []);
-  return { didLaunch, windowLoaded };
+//   useEffect(() => {
+//     window.addEventListener("load", () => {
+//       console.log("didConnect");
+//       window.xnft.on("connect", () => {
+//         setDidLaunch(true);
+//         console.log("true");
+//       });
+//       window.xnft.on("disconnect", () => {
+//         setDidLaunch(false);
+//         console.log("false");
+//       });
+//     });
+//   }, []);
+//   return didLaunch;
+// }
+
+function useXnftDidLaunch() {
+  const isMobile = useIsMobile();
+
+  const nftDidLaunch = useMemo(() => {
+    if (isMobile === false) {
+      return true;
+    } else {
+      return false;
+    }
+  }, [isMobile]);
+  return nftDidLaunch;
 }
 
 // export function useMetadata(): XnftMetadata | undefined {

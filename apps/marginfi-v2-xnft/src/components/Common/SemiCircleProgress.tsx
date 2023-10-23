@@ -1,6 +1,8 @@
-import { percentFormatter } from "@mrgnlabs/mrgn-common";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, View, StyleSheet, Text } from "react-native";
+
+import { percentFormatter } from "@mrgnlabs/mrgn-common";
+
 import tw from "~/styles/tailwind";
 
 const progressShadowColor = "#3D3D3D";

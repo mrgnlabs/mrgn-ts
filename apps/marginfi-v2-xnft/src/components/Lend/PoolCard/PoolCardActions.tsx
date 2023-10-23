@@ -1,9 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, Pressable } from "react-native";
-import tw from "~/styles/tailwind";
-import { NumberInput, PrimaryButton, SecondaryButton } from "~/components/Common";
+
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { uiToNative } from "@mrgnlabs/mrgn-common";
+
+import tw from "~/styles/tailwind";
+import { NumberInput, PrimaryButton, SecondaryButton } from "~/components/Common";
+import { useWallet } from "~/context/WalletContext";
 
 type Props = {
   currentAction: ActionType;
@@ -14,6 +17,7 @@ type Props = {
 
 export function PoolCardActions({ currentAction, bank, onAction }: Props) {
   const [amount, setAmount] = useState<string>("0");
+  const { connected } = useWallet();
 
   const maxAmount = useMemo(() => {
     switch (currentAction) {
@@ -43,6 +47,7 @@ export function PoolCardActions({ currentAction, bank, onAction }: Props) {
   );
 
   const buttonText = useMemo(() => {
+    if (!connected) return "Connect your wallet";
     if (isDust) return "Close";
     switch (currentAction) {
       case ActionType.Deposit:

@@ -26,20 +26,11 @@ export function LendScreen() {
       state.extendedBankInfos,
       state.nativeSolBalance,
     ]);
+
   const tabActive = useRecoilValue(tabActiveAtom);
   const [isFiltered, setIsFiltered] = useState(false);
   const [sortOption, setSortOption] = useState<SortAssetOption>(SORT_OPTIONS_MAP["TVL_DESC"]);
   const togglePositions = () => setIsFiltered((previousState) => !previousState);
-
-  useEffect(() => {
-    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet: wallet ?? undefined }).catch(
-      console.error
-    );
-    const id = setInterval(() => fetchMrgnlendState().catch(console.error), 30_000);
-    return () => clearInterval(id);
-  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
-  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
-  // TODO: fix...
 
   const sortBanks = useCallback(
     (banks: ExtendedBankInfo[]) => {

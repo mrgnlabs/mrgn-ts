@@ -1,16 +1,16 @@
+import React, { type FC, type ReactNode, useEffect, useState, createContext, useContext } from "react";
 import { Connection, type ConnectionConfig, PublicKey } from "@solana/web3.js";
-import { AnchorProvider, Provider } from "@coral-xyz/anchor";
-import { Wallet } from "@coral-xyz/anchor/dist/cjs/provider";
-import { JupiterProvider } from "@jup-ag/react-hook";
-import React, { type FC, type ReactNode, useMemo, useEffect, useState, createContext, useContext } from "react";
-import { useXNftConnection, useXNftWallet } from "~/hooks/xnftHooks";
-import { ROUTE_CACHE_DURATION } from "~/consts";
+
+import { useXNftConnection } from "~/hooks/xnftHooks";
+import { useWallet } from "~/context/WalletContext";
+import marginfiConfig from "~/config";
+import { useMrgnlendStore } from "~/store/store";
 
 export interface ConnectionProviderProps {
   children: ReactNode;
-  endpoint: string;
   isMobile: boolean;
   asLegacyTransaction: boolean;
+  endpoint?: string;
   config?: ConnectionConfig;
 }
 
@@ -21,18 +21,47 @@ export const ConnectionProvider: FC<ConnectionProviderProps> = ({
   asLegacyTransaction,
   config = { commitment: "confirmed" },
 }) => {
+  const { wallet } = useWallet();
   const xNftConnection = useXNftConnection();
+  const [fetchMrgnlendState, setIsRefreshingStore] = useMrgnlendStore((state) => [
+    state.fetchMrgnlendState,
+    state.setIsRefreshingStore,
+  ]);
 
   const [connection, setConnection] = useState<Connection>();
 
   useEffect(() => {
     if (isMobile) {
-      console.log("he");
-      setConnection(new Connection(endpoint, config));
+      setConnection(new Connection(endpoint ?? "", config)); // TODO add fallback rpc
     } else {
-      setConnection(xNftConnection);
+      if (endpoint) {
+        setConnection(new Connection(endpoint, { commitment: xNftConnection?.commitment ?? "confirmed" }));
+      } else {
+        setConnection(xNftConnection);
+      }
     }
-  }, [setConnection, xNftConnection, endpoint, config, isMobile]);
+  }, [setConnection, xNftConnection, endpoint, isMobile]);
+
+  useEffect(() => {
+    if (connection) {
+      setIsRefreshingStore(true);
+      fetchMrgnlendState({ marginfiConfig: marginfiConfig.mfiConfig, connection, wallet: wallet ?? undefined }).catch(
+        console.error
+      );
+      const id = setInterval(() => {
+        setIsRefreshingStore(true);
+        fetchMrgnlendState().catch(console.error);
+      }, 30_000);
+      return () => clearInterval(id);
+    }
+  }, [fetchMrgnlendState, connection, wallet]);
+
+  const haha = async (connection?: Connection) => {
+    if (connection) {
+      const test = await xNftConnection?.getAccountInfo(new PublicKey("3rpcmBeq3LcdTxez1sdi8vf61ofpxFpKrr7iViEWykAR"));
+      console.log(test);
+    }
+  };
 
   if (!connection) {
     return <></>;

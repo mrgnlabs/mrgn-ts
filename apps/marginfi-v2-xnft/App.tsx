@@ -23,6 +23,7 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 import { ConnectionProvider } from "~/context/ConnectionContext";
 import { XNftWalletProvider } from "~/context/WalletContext";
 import { useIsWindowLoaded } from "~/hooks/useIsWindowLoaded";
+import { RPC_ENDPOINT_OVERRIDE } from "@env";
 
 // global.Buffer = Buffer;
 require("~/styles/globals.css");
@@ -140,14 +141,12 @@ function App() {
   });
   const isMobile = useIsMobile();
   const { connection } = useConnection();
-  const { windowLoaded, didLaunch } = useXnftReady();
-  const testieee = useIsWindowLoaded();
+  const didLaunch = useXnftReady();
+  const isWindowLoaded = useIsWindowLoaded();
 
   const [asLegacyTransaction, setAsLegacyTransaction] = useState(false);
 
-  console.log({ testieee });
-
-  if (!fontsLoaded || isMobile === undefined || (!didLaunch && !isMobile) || !windowLoaded) {
+  if (!fontsLoaded || isMobile === undefined || (!didLaunch && !isMobile) || !isWindowLoaded) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <ActivityIndicator />
@@ -158,7 +157,7 @@ function App() {
   return (
     <RecoilRoot>
       <ConnectionProvider
-        endpoint={"https://api.mainnet-beta.solana.com"}
+        endpoint={RPC_ENDPOINT_OVERRIDE} // add fallback endpoint
         isMobile={isMobile}
         asLegacyTransaction={asLegacyTransaction}
       >
