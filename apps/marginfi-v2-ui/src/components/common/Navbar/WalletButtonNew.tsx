@@ -2,29 +2,33 @@ import React from "react";
 import Image from "next/image";
 import { Button, Dialog, DialogContent } from "@mui/material";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Magic } from "magic-sdk";
+import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 export const WalletButtonNew = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const { select, wallets, disconnect } = useWallet();
-  const { connected, loginWithEmail } = useWalletContext();
+  const { select, wallets } = useWallet();
+  const { connected, wallet, showAuthModal, logout } = useWalletContext();
   const emailInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleEmailLogin = async () => {
-    if (!emailInputRef.current) return;
-    const email = emailInputRef.current.value;
-    if (!email) return;
-
-    await loginWithEmail(email);
+    console.log("handleEmailLogin");
   };
+
+  React.useEffect(() => {
+    if (connected) {
+      setDialogOpen(false);
+    }
+  }, [connected]);
 
   return (
     <div>
       {!connected ? (
         <Button onClick={() => setDialogOpen(true)}>Connect</Button>
       ) : (
-        <Button onClick={() => disconnect()}>Disconnect</Button>
+        <Button onClick={() => logout()}>
+          <>{wallet?.publicKey ? shortenAddress(wallet.publicKey.toString()) : "Disconnect"}</>
+        </Button>
       )}
       <Dialog
         open={dialogOpen}

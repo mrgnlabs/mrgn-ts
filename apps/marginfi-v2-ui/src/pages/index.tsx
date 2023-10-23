@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
 import dynamic from "next/dynamic";
-import { useConnection } from "@solana/wallet-adapter-react";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import config from "~/config/marginfi";
 import { useMrgnlendStore } from "~/store";
+import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Banner } from "~/components/desktop/Banner";
 import { PageHeader } from "~/components/common/PageHeader";
