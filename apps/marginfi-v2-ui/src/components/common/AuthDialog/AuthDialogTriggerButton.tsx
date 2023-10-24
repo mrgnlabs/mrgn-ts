@@ -1,6 +1,6 @@
-import { Button } from "@mui/material";
-import { useWalletContext } from "~/hooks/useWalletContext";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { Button } from "~/components/ui/button";
 
 type AuthDialogButtonProps = {
   connected: boolean;

@@ -1,5 +1,7 @@
 import React from "react";
-import { Button, TextField } from "@mui/material";
+import { Label } from "~/components/ui/label";
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
 
 type AuthDialogEmailFormProps = {
   onSubmit: (email: string) => void;
@@ -21,10 +23,11 @@ export const AuthDialogEmailForm = ({ onSubmit }: AuthDialogEmailFormProps) => {
         onSubmit(inputRef.current?.value);
       }}
     >
-      <TextField ref={inputRef} type="email" placeholder="Email address" variant="outlined" />
-      <Button type="submit" variant="contained">
-        Login
-      </Button>
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input ref={inputRef} id="email" type="email" placeholder="Email address" />
+      </div>
+      <Button type="submit">Login</Button>
     </form>
   );
 };
