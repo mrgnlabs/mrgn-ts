@@ -4,13 +4,11 @@ import { Button, Dialog, DialogContent } from "@mui/material";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useWeb3Auth } from "~/hooks/useWeb3Auth";
 
 export const WalletButtonNew = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { select, wallets } = useWallet();
-  const { connected, wallet, logout } = useWalletContext();
-  const { login } = useWeb3Auth();
+  const { connected, wallet, logout, login } = useWalletContext();
   const emailInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {

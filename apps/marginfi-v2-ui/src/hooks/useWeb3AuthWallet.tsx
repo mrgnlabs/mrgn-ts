@@ -9,7 +9,7 @@ import { Wallet } from "@mrgnlabs/mrgn-common";
 import { toast } from "react-toastify";
 
 interface Web3AuthContextProps {
-  web3AuthWalletData: Wallet | undefined;
+  walletData: Wallet | undefined;
   connected: boolean;
   login: (
     provider: "email_passwordless" | "google" | "twitter" | "apple",
@@ -33,7 +33,7 @@ const chainConfig = {
 const Web3AuthContext = React.createContext<Web3AuthContextProps | undefined>(undefined);
 
 export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [web3AuthWalletData, setWeb3AuthWalletData] = React.useState<Wallet>();
+  const [walletData, setWalletData] = React.useState<Wallet>();
   const [web3auth, setWeb3auth] = React.useState<Web3AuthNoModal | null>(null);
 
   const connected = React.useMemo(() => {
@@ -44,7 +44,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   const logout = async () => {
     if (!web3auth) return;
     await web3auth.logout();
-    setWeb3AuthWalletData(undefined);
+    setWalletData(undefined);
   };
 
   const login = async (provider: string, extraLoginOptions: any = {}) => {
@@ -74,7 +74,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
 
     console.log("Connected public key", accounts[0]);
 
-    setWeb3AuthWalletData({
+    setWalletData({
       publicKey: new PublicKey(accounts[0]),
       async signTransaction<T extends Transaction | VersionedTransaction>(transaction: T): Promise<T> {
         const solanaWallet = new SolanaWallet(web3authProvider);
@@ -92,10 +92,10 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   React.useEffect(() => {
     if (!web3auth) return;
 
-    if (web3auth.connected && web3auth.provider && !web3AuthWalletData) {
+    if (web3auth.connected && web3auth.provider && !walletData) {
       makeWeb3AuthWalletData(web3auth.provider);
     }
-  }, [web3auth, web3AuthWalletData]);
+  }, [web3auth, walletData]);
 
   React.useEffect(() => {
     const init = async () => {
@@ -129,13 +129,11 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   }, []);
 
   return (
-    <Web3AuthContext.Provider value={{ web3AuthWalletData, connected, login, logout }}>
-      {children}
-    </Web3AuthContext.Provider>
+    <Web3AuthContext.Provider value={{ walletData, connected, login, logout }}>{children}</Web3AuthContext.Provider>
   );
 };
 
-export const useWeb3Auth = () => {
+export const useWeb3AuthWallet = () => {
   const context = React.useContext(Web3AuthContext);
   if (!context) {
     throw new Error("useWeb3Auth must be used within a Web3AuthProvider");

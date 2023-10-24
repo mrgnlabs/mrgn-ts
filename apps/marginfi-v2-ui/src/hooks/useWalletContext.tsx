@@ -1,21 +1,20 @@
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { PublicKey } from "@solana/web3.js";
 import { useRouter } from "next/router";
 import { useCallback, useMemo } from "react";
-import { useWeb3Auth } from "./useWeb3Auth";
+import { useWeb3AuthWallet } from "./useWeb3AuthWallet";
 
 const useWalletContext = () => {
   const walletContextState = useWallet();
-  const walletModal = useWalletModal();
   const anchorWallet = useAnchorWallet();
-  const { web3AuthWalletData, connected, login, logout: web3AuthLogout } = useWeb3Auth();
+  const {
+    walletData: web3AuthWalletData,
+    connected: web3AuthConnected,
+    login: web3AuthLogin,
+    logout: web3AuthLogout,
+  } = useWeb3AuthWallet();
   const { query } = useRouter();
-
-  const openWalletSelector = useCallback(() => {
-    walletModal.setVisible(true);
-  }, [walletModal]);
 
   const { wallet, isOverride }: { wallet: Wallet | undefined; isOverride: boolean } = useMemo(() => {
     const override = query?.wallet as string;
@@ -48,10 +47,9 @@ const useWalletContext = () => {
     wallet,
     walletAddress: wallet?.publicKey,
     isOverride,
-    connected: walletContextState.connected || !!web3AuthWalletData,
-    openWalletSelector,
+    connected: walletContextState.connected || web3AuthConnected,
     walletContextState,
-    login,
+    login: web3AuthLogin,
     logout,
   };
 };
