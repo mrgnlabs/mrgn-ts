@@ -7,4 +7,5 @@ declare module "*.svg" {
 
 declare module "@env" {
   export const RPC_ENDPOINT_OVERRIDE: string;
+  export const PUBLIC_BIRDEYE_API_KEY: string;
 }

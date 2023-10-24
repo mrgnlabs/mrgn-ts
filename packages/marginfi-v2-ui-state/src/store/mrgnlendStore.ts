@@ -46,6 +46,7 @@ interface MrgnlendState {
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
   accountSummary: AccountSummary;
+  birdEyeApiKey: string;
 
   // Actions
   fetchMrgnlendState: (args?: {
@@ -53,6 +54,7 @@ interface MrgnlendState {
     connection?: Connection;
     wallet?: Wallet;
     isOverride?: boolean;
+    birdEyeApiKey?: string;
   }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
   resetUserData: () => void;
@@ -96,6 +98,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   selectedAccount: null,
   nativeSolBalance: 0,
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
+  birdEyeApiKey: "",
 
   // Actions
   fetchMrgnlendState: async (args?: {
@@ -103,6 +106,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     connection?: Connection;
     wallet?: Wallet;
     isOverride?: boolean;
+    birdEyeApiKey?: string;
   }) => {
     try {
       let userDataFetched = false;
@@ -123,7 +127,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       ]);
       const banks = [...marginfiClient.banks.values()];
 
-      const priceMap = await fetchEmissionsPriceMap(banks, connection);
+      const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
+      const priceMap = await fetchEmissionsPriceMap(banks, connection, birdEyeApiKey);
 
       let nativeSolBalance: number = 0;
       let tokenAccountMap: TokenAccountMap;
@@ -227,6 +232,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         selectedAccount,
         nativeSolBalance,
         accountSummary,
+        birdEyeApiKey,
       });
     } catch (err) {
       console.error("error refreshing state: ", err);

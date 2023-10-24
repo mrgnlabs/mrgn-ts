@@ -2,11 +2,11 @@ import React, { useEffect, useMemo } from "react";
 import { Text, View } from "react-native";
 
 import { useMrgnlendStore, useUserProfileStore } from "~/store/store";
-
 import { useWallet } from "~/context/WalletContext";
 import { useConnection } from "~/context/ConnectionContext";
 import tw from "~/styles/tailwind";
 import config from "~/config";
+import { PUBLIC_BIRDEYE_API_KEY } from "@env";
 
 import { Screen } from "~/components/Common";
 import { PortfolioOverview, PortfolioHeader } from "~/components/Portfolio";
@@ -39,9 +39,12 @@ export function PortfolioScreen() {
   ]);
 
   useEffect(() => {
-    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet: wallet ?? undefined }).catch(
-      console.error
-    );
+    fetchMrgnlendState({
+      marginfiConfig: config.mfiConfig,
+      connection,
+      wallet: wallet ?? undefined,
+      birdEyeApiKey: PUBLIC_BIRDEYE_API_KEY,
+    }).catch(console.error);
     const id = setInterval(() => fetchMrgnlendState().catch(console.error), 30_000);
     return () => clearInterval(id);
   }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -101,7 +104,12 @@ export function PortfolioScreen() {
                     marginfiAccount={selectedAccount}
                     reloadBanks={async () => {
                       if (!connection) return;
-                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet: wallet ?? undefined });
+                      fetchMrgnlendState({
+                        marginfiConfig: config.mfiConfig,
+                        connection,
+                        wallet: wallet ?? undefined,
+                        birdEyeApiKey: PUBLIC_BIRDEYE_API_KEY,
+                      });
                     }}
                     marginfiClient={marginfiClient}
                   />
@@ -126,7 +134,12 @@ export function PortfolioScreen() {
                     marginfiAccount={selectedAccount}
                     reloadBanks={async () => {
                       if (!connection) return;
-                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet: wallet ?? undefined });
+                      fetchMrgnlendState({
+                        marginfiConfig: config.mfiConfig,
+                        connection,
+                        wallet: wallet ?? undefined,
+                        birdEyeApiKey: PUBLIC_BIRDEYE_API_KEY,
+                      });
                     }}
                     marginfiClient={marginfiClient}
                   />

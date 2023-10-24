@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useRecoilState } from "recoil";
+
 import tw from "~/styles/tailwind";
 import { tabActiveAtom } from "~/consts";
 
