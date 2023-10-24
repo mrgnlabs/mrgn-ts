@@ -1,4 +1,5 @@
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { FaWallet } from "react-icons/fa";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Button } from "~/components/ui/button";
 
@@ -13,7 +14,9 @@ export const AuthDialogTriggerButton = ({ connected, onConnect, onDisconnect }: 
   return (
     <>
       {!connected ? (
-        <Button onClick={() => onConnect()}>Connect</Button>
+        <Button onClick={() => onConnect()}>
+          <FaWallet /> Connect
+        </Button>
       ) : (
         <Button onClick={() => onDisconnect()}>
           <>{wallet?.publicKey && shortenAddress(wallet.publicKey.toString())}</>
