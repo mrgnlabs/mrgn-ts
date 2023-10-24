@@ -9,8 +9,8 @@ type AuthDialogSocialButtonProps = {
 
 export const AuthDialogWalletButton = ({ name, image, onClick }: AuthDialogSocialButtonProps) => {
   return (
-    <Button onClick={() => onClick()} className="w-full">
-      <Image src={image} alt={name} height={10} width={10} />
+    <Button onClick={() => onClick()} className="w-full" size="lg">
+      <Image src={image} alt={name} height={20} width={20} />
       {name}
     </Button>
   );

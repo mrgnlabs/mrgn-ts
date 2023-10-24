@@ -8,9 +8,10 @@ type AuthDialogSocialButtonProps = {
 
 export const AuthDialogSocialButton = ({ provider, image, onClick }: AuthDialogSocialButtonProps) => {
   return (
-    <Button onClick={() => onClick()}>
+    <Button onClick={() => onClick()} size="lg">
       {image}
-      {provider}
+      {/* print provider with first letter uppercase */}
+      {provider.slice(0, 1).toUpperCase() + provider.slice(1)}
     </Button>
   );
 };

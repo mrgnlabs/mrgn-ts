@@ -1,6 +1,7 @@
 import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { AiOutlineGoogle, AiOutlineTwitter, AiFillApple } from "react-icons/ai";
+import { AiOutlineTwitter, AiFillApple } from "react-icons/ai";
+import { FcGoogle } from "react-icons/fc";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Web3AuthSocialProvider } from "~/hooks/useWeb3AuthWallet";
 import {
@@ -24,15 +25,15 @@ const socialProviders: {
 }[] = [
   {
     name: "google",
-    image: <AiOutlineGoogle />,
+    image: <FcGoogle className="text-xl" />,
   },
   {
     name: "twitter",
-    image: <AiOutlineTwitter />,
+    image: <AiOutlineTwitter className="text-xl fill-[#1da1f2]" />,
   },
   {
     name: "apple",
-    image: <AiFillApple />,
+    image: <AiFillApple className="text-xl fill-[#a2aaad]" />,
   },
 ];
 
@@ -55,18 +56,24 @@ export const AuthDialog = () => {
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Are you sure absolutely sure?</DialogTitle>
+            <DialogTitle>Sign in to marginfi</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. This will permanently delete your account and remove your data from our
-              servers.
+              Commodo labore reprehenderit dolore est Lorem id eu consectetur. Magna deserunt ipsum enim ad nulla enim
+              voluptate qui esse cupidatat.
             </DialogDescription>
           </DialogHeader>
 
           <AuthDialogEmailForm onSubmit={(email) => login("email_passwordless", { login_hint: email })} />
 
-          <ul className="mt-8 flex flex-col gap-2">
+          <div className="my-4 flex items-center justify-center text-sm">
+            <hr className="flex-grow border-gray-300 dark:border-gray-700" />
+            <span className="px-2 text-gray-500 dark:text-gray-400">or sign in with</span>
+            <hr className="flex-grow border-gray-300 dark:border-gray-700" />
+          </div>
+
+          <ul className="flex flex-col gap-2 w-full">
             {socialProviders.map((provider, i) => (
-              <li className="flex" key={i}>
+              <li className="flex flex-col" key={i}>
                 <AuthDialogSocialButton
                   provider={provider.name}
                   image={provider.image}
@@ -76,8 +83,14 @@ export const AuthDialog = () => {
             ))}
           </ul>
 
+          <div className="my-4 flex items-center justify-center text-sm">
+            <hr className="flex-grow border-gray-300 dark:border-gray-700" />
+            <span className="px-2 text-gray-500 dark:text-gray-400">or connect wallet</span>
+            <hr className="flex-grow border-gray-300 dark:border-gray-700" />
+          </div>
+
           {wallets.filter((wallet) => wallet.readyState === "Installed").length > 0 && (
-            <ul className="mt-8 flex flex-col gap-2">
+            <ul className="flex flex-col gap-2">
               {wallets
                 .filter((wallet) => wallet.readyState === "Installed")
                 .map((wallet, i) => (

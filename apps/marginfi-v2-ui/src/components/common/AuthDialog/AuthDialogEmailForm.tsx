@@ -24,10 +24,12 @@ export const AuthDialogEmailForm = ({ onSubmit }: AuthDialogEmailFormProps) => {
       }}
     >
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input ref={inputRef} id="email" type="email" placeholder="Email address" />
+        <Label htmlFor="email">Email address</Label>
+        <Input ref={inputRef} id="email" type="email" placeholder="example@example.com" className="text-lg h-12" />
       </div>
-      <Button type="submit">Login</Button>
+      <Button type="submit" size="lg">
+        Login
+      </Button>
     </form>
   );
 };
