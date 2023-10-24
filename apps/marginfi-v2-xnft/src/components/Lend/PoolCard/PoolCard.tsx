@@ -105,8 +105,9 @@ export function PoolCard({
 
       // -------- Perform relevant operation
       try {
+        let signature = "";
         if (currentAction === ActionType.Deposit) {
-          await _marginfiAccount.deposit(borrowOrLendAmount, bankInfo.address);
+          signature = await _marginfiAccount.deposit(borrowOrLendAmount, bankInfo.address);
         }
 
         if (_marginfiAccount === null) {
@@ -115,16 +116,16 @@ export function PoolCard({
         }
 
         if (currentAction === ActionType.Borrow) {
-          await _marginfiAccount.borrow(borrowOrLendAmount, bankInfo.address);
+          signature = await _marginfiAccount.borrow(borrowOrLendAmount, bankInfo.address);
         } else if (currentAction === ActionType.Repay) {
           const repayAll = bankInfo.isActive ? borrowOrLendAmount === bankInfo.position.amount : false;
-          await _marginfiAccount.repay(borrowOrLendAmount, bankInfo.address, repayAll);
+          signature = await _marginfiAccount.repay(borrowOrLendAmount, bankInfo.address, repayAll);
         } else if (currentAction === ActionType.Withdraw) {
           const withdrawAll = bankInfo.isActive ? borrowOrLendAmount === bankInfo.position.amount : false;
-          await _marginfiAccount.withdraw(borrowOrLendAmount, bankInfo.address, withdrawAll);
+          signature = await _marginfiAccount.withdraw(borrowOrLendAmount, bankInfo.address, withdrawAll);
         }
-
         showSuccessToast(`${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.meta.tokenSymbol} 👍`);
+        const aha = await connection.confirmTransaction(signature, "confirmed");
       } catch (error: any) {
         console.log(`Error while ${currentAction + "ing"}`);
         console.log(error);
@@ -178,7 +179,7 @@ export function PoolCard({
       <View style={tw`flex flex-row justify-between`}>
         <View style={tw`flex flex-row gap-7px`}>
           <Image style={styles.logo} source={{ uri: bankInfo.meta.tokenLogoUri }} alt={bankInfo.meta.tokenSymbol} />
-          <View style={tw`flex flex-column`}>
+          <View style={tw`flex flex-col`}>
             <Text style={tw`text-primary text-base`}>{bankInfo.meta.tokenSymbol}</Text>
             <Text style={tw`text-tertiary`}>{usdFormatter.format(bankInfo.info.state.price)}</Text>
           </View>

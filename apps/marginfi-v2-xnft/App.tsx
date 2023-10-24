@@ -4,7 +4,7 @@ import { Buffer } from "buffer";
 import { registerRootComponent } from "expo";
 import { JupiterProvider } from "@jup-ag/react-hook";
 import { RecoilRoot, useSetRecoilState } from "recoil";
-import { ActivityIndicator, View, Text, StyleSheet, ImageBackground, TouchableOpacity } from "react-native";
+import { ActivityIndicator, View, Text, StyleSheet, ImageBackground, Pressable } from "react-native";
 import Toast from "react-native-toast-message";
 
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
@@ -18,10 +18,10 @@ import { AppsIcon, MrgnIcon, PieChartIcon, ReceiveMoneyIcon, TokenSwapIcon } fro
 import tw from "~/styles/tailwind";
 import { StakeScreen } from "~/screens/StakeScreen";
 import { DrawerMenu } from "~/components/Common/DrawerMenu";
-import { useXnftReady } from "~/hooks/xnftHooks";
+import { useXNftPublicKey, useXnftReady } from "~/hooks/xnftHooks";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { ConnectionProvider } from "~/context/ConnectionContext";
-import { XNftWalletProvider } from "~/context/WalletContext";
+import { XNftWalletProvider, useWallet } from "~/context/WalletContext";
 import { useIsWindowLoaded } from "~/hooks/useIsWindowLoaded";
 import { RPC_ENDPOINT_OVERRIDE } from "@env";
 
@@ -101,19 +101,19 @@ function TabNavigator() {
               tabBarShowLabel: false,
               tabBarIcon: ({ color }) => <navBarLink.Icon color={color} height={20} width={20} />,
               tabBarButton: () => (
-                <TouchableOpacity
+                <Pressable
                   style={tw`flex flex-1 flex-column items-center`}
                   onPress={() => {
                     setIsMenuVisible(true);
                   }}
                 >
-                  <View style={tw`inline-flex flex-1 items-stretch`}>
-                    <View style={tw`self-center w-full h-full justify-center items-center inline-flex absolute`}>
+                  <View style={tw`flex-1 items-stretch`}>
+                    <View style={tw`self-center w-full h-full justify-center items-center absolute`}>
                       <LinkIcon color="#7c7c7d" height={20} width={20} />
                     </View>
                   </View>
                   <Text style={tw`font-normal text-sm flex flex-1 text-[#7c7c7d] leading-none`}>{navBarLink.name}</Text>
-                </TouchableOpacity>
+                </Pressable>
               ),
             }}
           />
@@ -141,6 +141,8 @@ function App() {
   });
   const isMobile = useIsMobile();
   const { connection } = useConnection();
+  const { wallet } = useWallet();
+  const publicKey = useXNftPublicKey(); // temp
   const didLaunch = useXnftReady();
   const isWindowLoaded = useIsWindowLoaded();
 
@@ -165,7 +167,7 @@ function App() {
             connection={connection}
             routeCacheDuration={ROUTE_CACHE_DURATION}
             wrapUnwrapSOL={true}
-            userPublicKey={undefined}
+            userPublicKey={publicKey}
             platformFeeAndAccounts={undefined}
             asLegacyTransaction={asLegacyTransaction}
           >

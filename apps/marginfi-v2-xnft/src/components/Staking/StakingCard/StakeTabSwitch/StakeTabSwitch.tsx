@@ -1,5 +1,5 @@
 import React, { Dispatch, SetStateAction } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import tw from "~/styles/tailwind";
 
 type Props = {
@@ -16,18 +16,18 @@ export function StakeTabSwitch({ isChecked, setChecked }: Props) {
 
   return (
     <View style={tw`flex flex-row justify-between bg-[#22282C] p-1.25 w-full h-42px rounded-md`}>
-      <TouchableOpacity
+      <Pressable
         style={[styles.commonStyle, isChecked ? styles.selectedStyle : styles.unSelectedStyle]}
         onPress={() => setChecked(false)}
       >
         <Text style={tw`text-inherit font-medium text-base leading-14px my-auto text-center`}>Tokens</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </Pressable>
+      <Pressable
         style={[styles.commonStyle, !isChecked ? styles.selectedStyle : styles.unSelectedStyle]}
         onPress={() => setChecked(true)}
       >
         <Text style={tw`text-inherit font-medium text-base leading-14px my-auto text-center`}>Native Stake</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }

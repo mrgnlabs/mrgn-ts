@@ -72,7 +72,7 @@ export const SwapForm: React.FC<{
             onPress={() => onClickSwitchPair()}
             style={tw`border border-black/50 text-black bg-black/10 dark:text-white-35 dark:border dark:border-white-35 h-8 w-8 rounded-full flex items-center justify-center cursor-pointer`}
           >
-            <View style={tw`block rotate-45`}>
+            <View>
               <icons.SwitchPairIcon />
             </View>
           </Pressable>
@@ -88,9 +88,9 @@ export const SwapForm: React.FC<{
         )}
       </View>
       {route?.quoteResponse ? (
-        <View style={tw`flex flex-row items-center mt-2 text-xs space-x-1 gap-4px`}>
+        <View style={tw`flex flex-row items-center mt-2 text-xs gap-4px`}>
           <Pressable
-            style={tw`bg-black/20 rounded-xl px-2 py-1 cursor-pointer text-white/50 flex flex-row items-center space-x-1 gap-2px`}
+            style={tw`bg-black/20 rounded-xl px-2 py-1 cursor-pointer text-white/50 flex flex-row items-center gap-2px`}
             onPress={() => setShowRouteSelector(true)}
           >
             <Text style={tw`text-secondary`}>{marketRoutes?.length}</Text>
