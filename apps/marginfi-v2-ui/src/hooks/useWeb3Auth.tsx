@@ -49,17 +49,23 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
 
   const login = async (provider: string, extraLoginOptions: any = {}) => {
     if (!web3auth) return;
-    const web3authProvider = await web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
-      loginProvider: provider,
-      extraLoginOptions,
-    });
 
-    if (!web3authProvider) {
-      toast.error("Error connecting to Web3Auth");
-      return;
+    try {
+      const web3authProvider = await web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
+        loginProvider: provider,
+        extraLoginOptions,
+      });
+
+      if (!web3authProvider) {
+        toast.error("Error connecting to Web3Auth");
+        return;
+      }
+
+      makeWeb3AuthWalletData(web3authProvider);
+    } catch (error) {
+      console.log("here");
+      console.error(error);
     }
-
-    makeWeb3AuthWalletData(web3authProvider);
   };
 
   const makeWeb3AuthWalletData = async (web3authProvider: IProvider) => {
@@ -104,6 +110,9 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
 
         const openloginAdapter = new OpenloginAdapter({
           privateKeyProvider,
+          adapterSettings: {
+            uxMode: "redirect",
+          },
         });
 
         web3authInstance.configureAdapter(openloginAdapter);
