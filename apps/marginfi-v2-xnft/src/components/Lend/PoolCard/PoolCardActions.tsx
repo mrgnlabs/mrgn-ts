@@ -51,11 +51,11 @@ export function PoolCardActions({ currentAction, bank, onAction }: Props) {
     if (isDust) return "Close";
     switch (currentAction) {
       case ActionType.Deposit:
-        return isDisabled ? "Deposits reached the limit" : "Supply";
+        return isDisabled ? (maxAmount === 0 ? "No wallet balance found" : "Deposits reached the limit") : "Supply";
       case ActionType.Withdraw:
         return "Withdraw";
       case ActionType.Borrow:
-        return isDisabled ? "Borrows reached the limit" : "Borrow";
+        return isDisabled ? (maxAmount === 0 ? "No wallet balance found" : "Borrows reached the limit") : "Borrow";
       case ActionType.Repay:
         return "Repay";
     }
@@ -82,7 +82,7 @@ export function PoolCardActions({ currentAction, bank, onAction }: Props) {
           {currentAction == ActionType.Withdraw || currentAction == ActionType.Repay ? (
             <SecondaryButton title={buttonText ?? ""} onPress={() => (isDust ? onAction() : onAction(amount))} />
           ) : (
-            <PrimaryButton title={buttonText ?? ""} onPress={() => onAction(amount)} />
+            <PrimaryButton title={buttonText ?? ""} onPress={() => (isDust ? onAction() : onAction(amount))} />
           )}
         </View>
       ) : (

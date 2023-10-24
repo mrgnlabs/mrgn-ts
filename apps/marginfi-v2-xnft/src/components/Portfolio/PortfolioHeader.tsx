@@ -1,9 +1,11 @@
 import React from "react";
 import { View, Text } from "react-native";
+import ContentLoader, { Rect } from "react-content-loader/native";
+
+import { numeralFormatter } from "@mrgnlabs/mrgn-common";
+
 import tw from "~/styles/tailwind";
 import { Separator } from "~/components/Common";
-import ContentLoader, { Rect } from "react-content-loader/native";
-import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 
 type Props = {
   globalDeposits: number;

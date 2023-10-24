@@ -15,7 +15,7 @@ export function PrimaryButton({ onPress, title, customStyles, isDisabled = false
   return (
     <Pressable
       ref={pressableRef}
-      style={[styles.button, isDisabled ? tw`opacity-50 cursor-none` : tw`opacity-50 cursor-pointer`, customStyles]}
+      style={[styles.button, isDisabled ? tw`opacity-50 cursor-none` : tw`cursor-pointer`, customStyles]}
       onPress={onPress}
       disabled={isDisabled}
     >

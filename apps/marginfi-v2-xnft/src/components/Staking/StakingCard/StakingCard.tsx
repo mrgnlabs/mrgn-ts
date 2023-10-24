@@ -15,6 +15,8 @@ import { LST_MINT } from "~/store/lstStore";
 import { ChevronDownIcon, RefreshIcon, SettingsIcon, WalletIcon } from "~/assets/icons";
 import { useLstStore } from "~/store/store";
 import { NumberInput, PrimaryButton } from "~/components/Common";
+import { useConnection } from "~/context/ConnectionContext";
+import { useWallet } from "~/context/WalletContext";
 
 import { SettingsModal } from "./Modals/SettingsModal";
 import {
@@ -26,8 +28,6 @@ import {
 } from "./StakingCard.utils";
 import * as _consts from "./StakingCard.consts";
 import { StakingModal } from "./Modals";
-import { useConnection } from "~/context/ConnectionContext";
-import { useWallet } from "~/context/WalletContext";
 
 export const StakingCard: FC = () => {
   const { connection } = useConnection();

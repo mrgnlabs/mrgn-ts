@@ -1,14 +1,17 @@
 import React, { useCallback, useMemo } from "react";
 import { StyleSheet, View, Text, Image } from "react-native";
+
+import { ActionType, Emissions, ExtendedBankInfo, FEE_MARGIN, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+
+import { showErrorToast, showSuccessToast } from "~/utils";
 import tw from "~/styles/tailwind";
+import { useConnection } from "~/context/ConnectionContext";
+
 import { PoolCardStats } from "./PoolCardStats";
 import { PoolCardActions } from "./PoolCardActions";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { PoolCardPosition } from "./PoolCardPosition";
-import { useConnection } from "~/context/ConnectionContext";
-import { ActionType, Emissions, ExtendedBankInfo, FEE_MARGIN, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
-import { showErrorToast, showSuccessToast } from "~/utils";
-import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 type Props = {
   bankInfo: ExtendedBankInfo;

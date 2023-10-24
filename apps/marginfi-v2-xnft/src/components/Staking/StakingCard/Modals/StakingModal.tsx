@@ -1,8 +1,9 @@
 import React, { Dispatch, FC, SetStateAction, useState } from "react";
-import { nativeToUi, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { View, Text, Image, Pressable } from "react-native";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
+
+import { nativeToUi, numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import tw from "~/styles/tailwind";
 import { SOL_MINT, TokenDataMap } from "~/store/lstStore";

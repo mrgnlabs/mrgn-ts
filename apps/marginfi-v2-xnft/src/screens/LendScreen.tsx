@@ -10,6 +10,7 @@ import { useConnection } from "~/context/ConnectionContext";
 import { SORT_OPTIONS_MAP, SortAssetOption, sortApRate, sortTvl } from "~/utils";
 import tw from "~/styles/tailwind";
 import config from "~/config";
+import { PUBLIC_BIRDEYE_API_KEY } from "@env";
 
 import { Screen, Toggle } from "~/components/Common";
 import { PoolCard, PoolCardSkeleton, Select, TabSwitch } from "~/components/Lend";
@@ -96,7 +97,12 @@ export function LendScreen() {
                     marginfiAccount={selectedAccount}
                     reloadBanks={async () => {
                       if (!connection) return;
-                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet: wallet ?? undefined });
+                      fetchMrgnlendState({
+                        marginfiConfig: config.mfiConfig,
+                        connection,
+                        wallet: wallet ?? undefined,
+                        birdEyeApiKey: PUBLIC_BIRDEYE_API_KEY,
+                      });
                     }}
                     marginfiClient={marginfiClient}
                   ></PoolCard>
@@ -122,7 +128,12 @@ export function LendScreen() {
                     marginfiAccount={selectedAccount}
                     reloadBanks={async () => {
                       if (!connection) return;
-                      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet: wallet ?? undefined });
+                      fetchMrgnlendState({
+                        marginfiConfig: config.mfiConfig,
+                        connection,
+                        wallet: wallet ?? undefined,
+                        birdEyeApiKey: PUBLIC_BIRDEYE_API_KEY,
+                      });
                     }}
                     marginfiClient={marginfiClient}
                   ></PoolCard>

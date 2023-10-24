@@ -1,10 +1,11 @@
 import React, { type FC, type ReactNode, useEffect, useState, createContext, useContext } from "react";
-import { Connection, type ConnectionConfig, PublicKey } from "@solana/web3.js";
+import { Connection, type ConnectionConfig } from "@solana/web3.js";
 
 import { useXNftConnection } from "~/hooks/xnftHooks";
 import { useWallet } from "~/context/WalletContext";
 import marginfiConfig from "~/config";
 import { useMrgnlendStore } from "~/store/store";
+import { PUBLIC_BIRDEYE_API_KEY } from "@env";
 
 export interface ConnectionProviderProps {
   children: ReactNode;
@@ -43,9 +44,12 @@ export const ConnectionProvider: FC<ConnectionProviderProps> = ({
   useEffect(() => {
     if (connection) {
       setIsRefreshingStore(true);
-      fetchMrgnlendState({ marginfiConfig: marginfiConfig.mfiConfig, connection, wallet: wallet ?? undefined }).catch(
-        console.error
-      );
+      fetchMrgnlendState({
+        marginfiConfig: marginfiConfig.mfiConfig,
+        connection,
+        wallet: wallet ?? undefined,
+        birdEyeApiKey: PUBLIC_BIRDEYE_API_KEY,
+      }).catch(console.error);
       const id = setInterval(() => {
         setIsRefreshingStore(true);
         fetchMrgnlendState().catch(console.error);
@@ -53,13 +57,6 @@ export const ConnectionProvider: FC<ConnectionProviderProps> = ({
       return () => clearInterval(id);
     }
   }, [fetchMrgnlendState, connection, wallet]);
-
-  const haha = async (connection?: Connection) => {
-    if (connection) {
-      const test = await xNftConnection?.getAccountInfo(new PublicKey("3rpcmBeq3LcdTxez1sdi8vf61ofpxFpKrr7iViEWykAR"));
-      console.log(test);
-    }
-  };
 
   if (!connection) {
     return <></>;
