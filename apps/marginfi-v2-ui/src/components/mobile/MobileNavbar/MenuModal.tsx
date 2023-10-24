@@ -17,7 +17,7 @@ interface MenuModalProps {
 }
 
 export const MenuModal: FC<MenuModalProps> = ({ isOpen, handleClose }) => {
-  const { connected, walletContextState } = useWalletContext();
+  const { connected, walletContextState, logout } = useWalletContext();
   const [setIsMenuDrawerOpen] = useUiStore((state) => [state.setIsMenuDrawerOpen]);
 
   return (
@@ -112,7 +112,7 @@ export const MenuModal: FC<MenuModalProps> = ({ isOpen, handleClose }) => {
               {connected && (
                 <div
                   onClick={() => {
-                    walletContextState.disconnect();
+                    logout();
                     setIsMenuDrawerOpen(false);
                   }}
                   className="flex w-full h-[40px] text-[#999] font-aeonik font-[400] justify-center items-center"
