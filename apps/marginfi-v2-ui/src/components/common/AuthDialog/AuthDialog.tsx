@@ -1,9 +1,16 @@
 import React from "react";
-import { Dialog, DialogContent } from "@mui/material";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { AiOutlineGoogle, AiOutlineTwitter, AiFillApple } from "react-icons/ai";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Web3AuthSocialProvider } from "~/hooks/useWeb3AuthWallet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import {
   AuthDialogTriggerButton,
   AuthDialogSocialButton,
@@ -42,19 +49,19 @@ export const AuthDialog = () => {
 
   return (
     <div>
-      <AuthDialogTriggerButton connected={connected} onConnect={() => setDialogOpen(true)} onDisconnect={logout} />
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        maxWidth="xl"
-        PaperProps={{
-          style: {
-            backgroundColor: "transparent",
-            boxShadow: "none",
-          },
-        }}
-      >
-        <DialogContent className="bg-[#171C1F] w-full rounded-lg text-white items-center justify-center text-center p-8">
+      <Dialog open={dialogOpen} onOpenChange={(open) => setDialogOpen(open)}>
+        <DialogTrigger>
+          <AuthDialogTriggerButton connected={connected} onConnect={() => setDialogOpen(true)} onDisconnect={logout} />
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure absolutely sure?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete your account and remove your data from our
+              servers.
+            </DialogDescription>
+          </DialogHeader>
+
           <AuthDialogEmailForm onSubmit={(email) => login("email_passwordless", { login_hint: email })} />
 
           <ul className="mt-8 flex flex-col gap-2">

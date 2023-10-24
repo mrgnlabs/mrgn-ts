@@ -1,4 +1,4 @@
-import { Button } from "@mui/material";
+import { Button } from "~/components/ui/button";
 
 type AuthDialogSocialButtonProps = {
   provider: string;
@@ -8,7 +8,7 @@ type AuthDialogSocialButtonProps = {
 
 export const AuthDialogSocialButton = ({ provider, image, onClick }: AuthDialogSocialButtonProps) => {
   return (
-    <Button onClick={() => onClick()} variant="contained" className="w-full">
+    <Button onClick={() => onClick()}>
       {image}
       {provider}
     </Button>

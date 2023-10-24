@@ -12,7 +12,7 @@ export default function Document() {
           />
         }
       </Head>
-      <body className="no-scrollbar">
+      <body className="no-scrollbar dark">
         <Main />
         <NextScript />
         <script defer src="https://terminal.jup.ag/main-v1.js" data-preload />
