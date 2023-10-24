@@ -425,6 +425,7 @@ export const StakingCard: FC = () => {
             disabled={depositOption.type === "stake"}
             decimals={9}
             onValueChange={onChange}
+            wrapperStyle={tw`flex-1`}
           />
         </View>
 

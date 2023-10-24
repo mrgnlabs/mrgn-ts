@@ -97,10 +97,11 @@ function useSolanaConnection(): Connection | undefined {
   const [connection, setConnection] = useState<Connection>();
   useEffect(() => {
     if (didLaunch) {
+      const xNftConnection = new Connection(window.xnft.solana.connection.rpcEndpoint, { commitment: "confirmed" });
       window.xnft.solana.on("connectionUpdate", () => {
-        setConnection(window.xnft.solana.connection);
+        setConnection(xNftConnection);
       });
-      setConnection(window.xnft.solana.connection);
+      setConnection(xNftConnection);
     }
   }, [didLaunch, setConnection]);
   return connection;

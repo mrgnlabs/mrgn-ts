@@ -38,13 +38,13 @@ export function DrawerMenu() {
           resizeMode="cover"
           style={tw`h-full w-full p-4`}
         >
-          <View style={tw`h-[40px] flex flex-row justify-between mb-3 align-center items-center`}>
+          <View style={tw`h-[40px] flex flex-row justify-between mb-3 items-center`}>
             <MrgnIcon width={35} height={35} />
             <Pressable onPress={() => setIsMenuVisible(!isMenuVisible)}>
               <BackIcon width={16} height={16} />
             </Pressable>
           </View>
-          <View style={tw`h-[calc(100%-40px)] pb-9 flex flex-col justify-between`}>
+          <View style={tw`pb-9 flex flex-col justify-between`}>
             <View style={[tw`gap-3 p-7`, { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }]}>
               {ORDERED_MOBILE_LAUNCHER_LINKS.map((link) => (
                 <AppLink

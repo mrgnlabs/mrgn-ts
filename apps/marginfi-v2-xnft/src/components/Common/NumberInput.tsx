@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
+import { Style } from "twrnc/dist/esm/types";
 
 import tw from "~/styles/tailwind";
 import * as utils from "~/utils";
@@ -14,6 +15,7 @@ interface NumberInputProps {
   hasBorder?: boolean;
   placeholder?: string;
   textAlign?: "center" | "right" | "left";
+  wrapperStyle?: Style;
 }
 
 export const NumberInput: React.FC<NumberInputProps> = ({
@@ -26,6 +28,7 @@ export const NumberInput: React.FC<NumberInputProps> = ({
   hasBorder = true,
   placeholder = "",
   textAlign = undefined,
+  wrapperStyle,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [localAmount, setLocalAmount] = useState(amount);
@@ -72,7 +75,7 @@ export const NumberInput: React.FC<NumberInputProps> = ({
   };
 
   return (
-    <View>
+    <View style={wrapperStyle}>
       <TextInput
         style={[
           styles.input,
