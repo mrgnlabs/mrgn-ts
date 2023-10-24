@@ -58,8 +58,8 @@ export const AuthDialog = () => {
             <Mrgn width={40} />
             <DialogTitle>Sign in to marginfi</DialogTitle>
             <DialogDescription>
-              Sign in with email or social and we'll create a marginfi wallet for you.
-              <br className="hidden lg:block" /> Or, if you're experienced, connect your own wallet.
+              Sign in with email or social and we&apos;ll create a marginfi wallet for you.
+              <br className="hidden lg:block" /> Or, if you&apos;re experienced, connect your own wallet.
             </DialogDescription>
           </DialogHeader>
 
@@ -98,33 +98,34 @@ export const AuthDialog = () => {
               ))}
             </ul>
 
-            <div className="my-4 flex items-center justify-center text-sm">
-              <hr className="flex-grow border-gray-300 dark:border-gray-700" />
-              <span className="px-2 text-gray-500 dark:text-gray-400">or connect wallet</span>
-              <hr className="flex-grow border-gray-300 dark:border-gray-700" />
-            </div>
-
             {wallets.filter((wallet) => wallet.readyState === "Installed").length > 0 && (
-              <ul className="flex flex-col gap-2">
-                {wallets
-                  .filter((wallet) => wallet.readyState === "Installed")
-                  .map((wallet, i) => (
-                    <li className="flex flex-col" key={i}>
-                      <AuthDialogButton
-                        name={wallet.adapter.name}
-                        image={<Image src={wallet.adapter.icon} width={20} height={20} alt={wallet.adapter.name} />}
-                        loading={isLoading && isActiveLoading === wallet.adapter.name}
-                        active={!isLoading || (isLoading && isActiveLoading === wallet.adapter.name)}
-                        onClick={() => {
-                          setIsLoading(true);
-                          setIsActiveLoading(wallet.adapter.name);
-                          select(wallet.adapter.name);
-                          setDialogOpen(false);
-                        }}
-                      />
-                    </li>
-                  ))}
-              </ul>
+              <>
+                <div className="my-4 flex items-center justify-center text-sm">
+                  <hr className="flex-grow border-gray-300 dark:border-gray-700" />
+                  <span className="px-2 text-gray-500 dark:text-gray-400">or connect wallet</span>
+                  <hr className="flex-grow border-gray-300 dark:border-gray-700" />
+                </div>
+                <ul className="flex flex-col gap-2">
+                  {wallets
+                    .filter((wallet) => wallet.readyState === "Installed")
+                    .map((wallet, i) => (
+                      <li className="flex flex-col" key={i}>
+                        <AuthDialogButton
+                          name={wallet.adapter.name}
+                          image={<Image src={wallet.adapter.icon} width={20} height={20} alt={wallet.adapter.name} />}
+                          loading={isLoading && isActiveLoading === wallet.adapter.name}
+                          active={!isLoading || (isLoading && isActiveLoading === wallet.adapter.name)}
+                          onClick={() => {
+                            setIsLoading(true);
+                            setIsActiveLoading(wallet.adapter.name);
+                            select(wallet.adapter.name);
+                            setDialogOpen(false);
+                          }}
+                        />
+                      </li>
+                    ))}
+                </ul>
+              </>
             )}
           </div>
         </DialogContent>
