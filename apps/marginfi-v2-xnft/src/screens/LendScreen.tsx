@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useRecoilValue } from "recoil";
 
@@ -18,15 +18,24 @@ import { PoolCard, PoolCardSkeleton, Select, TabSwitch } from "~/components/Lend
 export function LendScreen() {
   const { wallet } = useWallet();
   const { connection } = useConnection();
-  const [isStoreInitialized, marginfiClient, fetchMrgnlendState, selectedAccount, extendedBankInfos, nativeSolBalance] =
-    useMrgnlendStore((state) => [
-      state.initialized,
-      state.marginfiClient,
-      state.fetchMrgnlendState,
-      state.selectedAccount,
-      state.extendedBankInfos,
-      state.nativeSolBalance,
-    ]);
+
+  const [
+    isStoreInitialized,
+    marginfiClient,
+    fetchMrgnlendState,
+    setIsRefreshingStore,
+    selectedAccount,
+    extendedBankInfos,
+    nativeSolBalance,
+  ] = useMrgnlendStore((state) => [
+    state.initialized,
+    state.marginfiClient,
+    state.fetchMrgnlendState,
+    state.setIsRefreshingStore,
+    state.selectedAccount,
+    state.extendedBankInfos,
+    state.nativeSolBalance,
+  ]);
 
   const tabActive = useRecoilValue(tabActiveAtom);
   const [isFiltered, setIsFiltered] = useState(false);
@@ -70,6 +79,11 @@ export function LendScreen() {
     }
   }, [isStoreInitialized, extendedBankInfos, sortOption, isFiltered, sortBanks]);
 
+  const reloadBanks = async () => {
+    setIsRefreshingStore(true);
+    await fetchMrgnlendState().catch(console.error);
+  };
+
   return (
     <Screen>
       <View style={tw`px-12px pb-24px pt-16px`}>
@@ -85,6 +99,9 @@ export function LendScreen() {
             <Select selectedItem={sortOption} setSelectedItem={setSortOption} />
           </View>
           <Text style={tw`text-xl text-primary pl-12px`}>Global pool</Text>
+          <Pressable onPress={() => reloadBanks()}>
+            <Text>hi</Text>
+          </Pressable>
           <View style={tw`flex flex-row flex-wrap gap-6 justify-center items-center`}>
             {extendedBankInfos.length > 0 ? (
               globalBanks.length > 0 ? (
@@ -95,15 +112,7 @@ export function LendScreen() {
                     nativeSolBalance={nativeSolBalance}
                     isInLendingMode={tabActive === "lend"}
                     marginfiAccount={selectedAccount}
-                    reloadBanks={async () => {
-                      if (!connection) return;
-                      fetchMrgnlendState({
-                        marginfiConfig: config.mfiConfig,
-                        connection,
-                        wallet: wallet ?? undefined,
-                        birdEyeApiKey: PUBLIC_BIRDEYE_API_KEY,
-                      });
-                    }}
+                    reloadBanks={async () => reloadBanks()}
                     marginfiClient={marginfiClient}
                   ></PoolCard>
                 ))
@@ -126,15 +135,7 @@ export function LendScreen() {
                     nativeSolBalance={nativeSolBalance}
                     isInLendingMode={tabActive === "lend"}
                     marginfiAccount={selectedAccount}
-                    reloadBanks={async () => {
-                      if (!connection) return;
-                      fetchMrgnlendState({
-                        marginfiConfig: config.mfiConfig,
-                        connection,
-                        wallet: wallet ?? undefined,
-                        birdEyeApiKey: PUBLIC_BIRDEYE_API_KEY,
-                      });
-                    }}
+                    reloadBanks={async () => reloadBanks()}
                     marginfiClient={marginfiClient}
                   ></PoolCard>
                 ))

@@ -141,7 +141,7 @@ export const SwapContextProvider: FC<{
 
   const [tokenMap, fetchJupiterState] = useJupiterStore((state) => [state.tokenMap, state.fetchJupiterState]);
 
-  const { publicKey, wallet } = useWallet();
+  const { publicKey: walletPublicKey, wallet } = useWallet();
   const { connection } = useConnection();
 
   const formProps: FormProps = useMemo(
@@ -312,25 +312,37 @@ export const SwapContextProvider: FC<{
 
   const [lastSwapResult, setLastSwapResult] = useState<SwapResult | null>(null);
   const onSubmit = useCallback(async () => {
-    if (!publicKey || !wallet || !quoteReponseMeta) {
+    console.log({ wallet, quoteReponseMeta, walletPublicKey });
+    if (!walletPublicKey || !wallet || !quoteReponseMeta) {
       return null;
     }
 
+    const signerWallet = {
+      publicKey: wallet.publicKey,
+      signAllTransactions: wallet.signAllTransactions,
+      signTransaction: wallet.signTransaction,
+      name: "xNftSignerWallet",
+    } as SignerWalletAdapter;
+
     try {
+      // const test = await exchange({
+      //   routeInfo: quoteReponseMeta,
+      // });
       const swapResult = await exchange({
-        wallet: wallet as any as SignerWalletAdapter,
+        wallet: signerWallet,
         routeInfo: quoteReponseMeta,
         onTransaction,
         computeUnitPriceMicroLamports,
       });
 
       setLastSwapResult(swapResult);
+      setForm((prev) => ({ ...prev, fromValue: "", toValue: "" }));
       return swapResult;
     } catch (error) {
       console.log("Swap error", error);
       return null;
     }
-  }, [publicKey, quoteReponseMeta]);
+  }, [walletPublicKey, quoteReponseMeta]);
 
   const refreshAll = () => {
     refresh();
