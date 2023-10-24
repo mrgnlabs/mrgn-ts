@@ -3,7 +3,7 @@ import type { AppProps } from "next/app";
 import Head from "next/head";
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { ConnectionProvider } from "~/hooks/useConnection";
-import { Web3AuthProvider } from "~/hooks/useWeb3Auth";
+import { Web3AuthProvider } from "~/hooks/useWeb3AuthWallet";
 import { init, push } from "@socialgouv/matomo-next";
 import config from "~/config";
 import { ToastContainer } from "react-toastify";
