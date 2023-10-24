@@ -1,3 +1,4 @@
+import React, { type FC, type ReactNode, useMemo, useEffect, useState, createContext, useContext } from "react";
 import {
   Connection,
   type ConnectionConfig,
@@ -7,12 +8,9 @@ import {
   SendOptions,
   TransactionSignature,
 } from "@solana/web3.js";
-import { AnchorProvider, Provider } from "@coral-xyz/anchor";
 import { Wallet } from "@coral-xyz/anchor/dist/cjs/provider";
-import { JupiterProvider } from "@jup-ag/react-hook";
-import React, { type FC, type ReactNode, useMemo, useEffect, useState, createContext, useContext } from "react";
+
 import { useXNftPublicKey, useXNftWallet } from "~/hooks/xnftHooks";
-import { ROUTE_CACHE_DURATION } from "~/consts";
 
 export interface XNftWalletProviderProps {
   children: ReactNode;

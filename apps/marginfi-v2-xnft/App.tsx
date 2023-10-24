@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 // import "react-native-get-random-values";
-// import { Buffer } from "buffer";
+import { Buffer } from "buffer";
 import { registerRootComponent } from "expo";
 import { JupiterProvider } from "@jup-ag/react-hook";
 import { RecoilRoot, useSetRecoilState } from "recoil";
@@ -25,7 +25,7 @@ import { XNftWalletProvider } from "~/context/WalletContext";
 import { useIsWindowLoaded } from "~/hooks/useIsWindowLoaded";
 import { RPC_ENDPOINT_OVERRIDE } from "@env";
 
-// global.Buffer = Buffer;
+global.Buffer = Buffer;
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
 
@@ -156,11 +156,11 @@ function App() {
 
   return (
     <RecoilRoot>
-      <ConnectionProvider
-        endpoint={RPC_ENDPOINT_OVERRIDE} // add fallback endpoint
-        isMobile={isMobile}
-      >
-        <XNftWalletProvider isMobile={isMobile}>
+      <XNftWalletProvider isMobile={isMobile}>
+        <ConnectionProvider
+          endpoint={RPC_ENDPOINT_OVERRIDE} // add fallback endpoint
+          isMobile={isMobile}
+        >
           <JupiterProvider
             connection={connection}
             routeCacheDuration={ROUTE_CACHE_DURATION}
@@ -180,8 +180,8 @@ function App() {
               <Toast position={"bottom"} />
             </SwapContextProvider>
           </JupiterProvider>
-        </XNftWalletProvider>
-      </ConnectionProvider>
+        </ConnectionProvider>
+      </XNftWalletProvider>
     </RecoilRoot>
   );
 }

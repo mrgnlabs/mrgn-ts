@@ -1,7 +1,9 @@
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import React, { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
+
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { usdFormatter } from "@mrgnlabs/mrgn-common";
+
 import tw from "~/styles/tailwind";
 
 type Props = {

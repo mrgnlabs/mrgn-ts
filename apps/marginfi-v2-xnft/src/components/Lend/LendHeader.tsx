@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Text } from "react-native";
 
-import tw from "~/styles/tailwind";
-import * as utils from "~/utils";
-import { Separator } from "~/components/Common";
 import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usdFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
+
+import tw from "~/styles/tailwind";
+import { Separator } from "~/components/Common";
 
 type Props = {
   accountSummary?: AccountSummary;

@@ -8,6 +8,7 @@ import { TokenInfo, TokenInfoMap, TokenListContainer } from "@solana/spl-token-r
 import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
 import { persist } from "zustand/middleware";
 import BN from "bn.js";
+import { PUBLIC_BIRDEYE_API_KEY } from "@env";
 
 const STAKEVIEW_APP_URL = "https://stakeview.app/apy/prev3.json";
 const BASELINE_VALIDATOR_ID = "FugJZepeGfh1Ruunhep19JC4F3Hr2FL3oKUMezoK8ajp";
@@ -293,7 +294,7 @@ async function fetchUserTokenAccounts(connection: Connection, walletAddress: Pub
 }
 
 async function fetchTokenPrices(mints: PublicKey[]): Promise<Map<string, number>> {
-  const prices = await fetchBirdeyePrices(mints);
+  const prices = await fetchBirdeyePrices(mints, PUBLIC_BIRDEYE_API_KEY);
   return new Map(prices.map((price: any, index: number) => [mints[index].toString(), price.toNumber()]));
 }
 

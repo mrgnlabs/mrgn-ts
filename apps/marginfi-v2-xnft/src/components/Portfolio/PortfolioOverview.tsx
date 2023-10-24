@@ -1,10 +1,12 @@
 import React, { useMemo } from "react";
-import { MarginRequirementType, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { View, Text } from "react-native";
-import tw from "~/styles/tailwind";
-import { SemiCircleProgress } from "~/components/Common";
+
+import { MarginRequirementType, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usdFormatterDyn, usdFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
+
+import tw from "~/styles/tailwind";
+import { SemiCircleProgress } from "~/components/Common";
 
 type Props = {
   selectedAccount?: MarginfiAccountWrapper;
@@ -68,12 +70,6 @@ export function PortfolioOverview({ selectedAccount, accountSummary, points, isF
             </Text>
           </View>
         </View>
-        {/* <View style={tw`flex basis-full gap-10px`}>
-          <View>
-            <Text style={[labelStyle, tw`pb-4px`]}>Points</Text>
-            <Text style={[valueStyle]}>60 points</Text>
-          </View>
-        </View> */}
       </View>
     </View>
   );

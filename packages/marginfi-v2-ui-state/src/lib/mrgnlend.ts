@@ -123,12 +123,12 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
 }
 
 const BIRDEYE_API = "https://public-api.birdeye.so";
-export async function fetchBirdeyePrices(mints: PublicKey[]): Promise<BigNumber[]> {
+export async function fetchBirdeyePrices(mints: PublicKey[], apiKey?: string): Promise<BigNumber[]> {
   const mintList = mints.map((mint) => mint.toBase58()).join(",");
   const response = await fetch(`${BIRDEYE_API}/public/multi_price?list_address=${mintList}`, {
     headers: {
       Accept: "application/json",
-      "X-Api-Key": process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || "",
+      "X-Api-Key": process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || apiKey || "",
     },
   });
 
@@ -148,12 +148,16 @@ export async function fetchBirdeyePrices(mints: PublicKey[]): Promise<BigNumber[
   throw new Error("Failed to fetch price");
 }
 
-export async function fetchEmissionsPriceMap(banks: Bank[], connection: Connection): Promise<TokenPriceMap> {
+export async function fetchEmissionsPriceMap(
+  banks: Bank[],
+  connection: Connection,
+  apiKey?: string
+): Promise<TokenPriceMap> {
   const banksWithEmissions = banks.filter((bank) => !bank.emissionsMint.equals(PublicKey.default));
   const emissionsMints = banksWithEmissions.map((bank) => bank.emissionsMint);
 
   const [birdeyePrices, mintAis] = await Promise.all([
-    fetchBirdeyePrices(emissionsMints),
+    fetchBirdeyePrices(emissionsMints, apiKey),
     connection.getMultipleAccountsInfo(emissionsMints),
   ]);
   const mint = mintAis.map((ai) => MintLayout.decode(ai!.data));

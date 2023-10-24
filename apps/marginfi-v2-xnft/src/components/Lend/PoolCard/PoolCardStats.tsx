@@ -1,10 +1,12 @@
 import React, { useMemo } from "react";
 import { View, Text } from "react-native";
+
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { numeralFormatter, percentFormatterDyn } from "@mrgnlabs/mrgn-common";
+
 import tw from "~/styles/tailwind";
 import { Separator } from "~/components/Common";
 import { WSOL_MINT } from "~/config";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { numeralFormatter, percentFormatterDyn } from "@mrgnlabs/mrgn-common";
 
 type Props = {
   bank: ExtendedBankInfo;
