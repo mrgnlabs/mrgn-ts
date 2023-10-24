@@ -18,7 +18,7 @@ const useWalletContext = () => {
 
   const { wallet, isOverride }: { wallet: Wallet | undefined; isOverride: boolean } = useMemo(() => {
     const override = query?.wallet as string;
-    if (web3AuthWalletData) {
+    if (web3AuthWalletData && web3AuthConnected) {
       return {
         wallet: web3AuthWalletData,
         isOverride: false,
@@ -36,12 +36,12 @@ const useWalletContext = () => {
   }, [anchorWallet, web3AuthWalletData, query]);
 
   const logout = useCallback(() => {
-    if (web3AuthWalletData) {
+    if (web3AuthConnected) {
       web3AuthLogout();
     } else {
       walletContextState.disconnect();
     }
-  }, [walletContextState, web3AuthLogout]);
+  }, [walletContextState, web3AuthConnected, web3AuthLogout]);
 
   return {
     wallet,

@@ -8,17 +8,19 @@ import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provide
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import { toast } from "react-toastify";
 
-interface Web3AuthContextProps {
+export type Web3AuthSocialProvider = "google" | "twitter" | "apple";
+
+type Web3AuthContextProps = {
   walletData: Wallet | undefined;
   connected: boolean;
   login: (
-    provider: "email_passwordless" | "google" | "twitter" | "apple",
+    provider: "email_passwordless" | Web3AuthSocialProvider,
     extraLoginOptions?: Partial<{
       login_hint: string;
     }>
   ) => void;
   logout: () => void;
-}
+};
 
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.SOLANA,
@@ -37,9 +39,8 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   const [web3auth, setWeb3auth] = React.useState<Web3AuthNoModal | null>(null);
 
   const connected = React.useMemo(() => {
-    console.log(web3auth?.connected);
     return web3auth ? web3auth.connected : false;
-  }, [web3auth]);
+  }, [web3auth?.connected]);
 
   const logout = async () => {
     if (!web3auth) return;
@@ -63,7 +64,6 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
 
       makeWeb3AuthWalletData(web3authProvider);
     } catch (error) {
-      console.log("here");
       console.error(error);
     }
   };
@@ -90,11 +90,8 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   React.useEffect(() => {
-    if (!web3auth) return;
-
-    if (web3auth.connected && web3auth.provider && !walletData) {
-      makeWeb3AuthWalletData(web3auth.provider);
-    }
+    if (!web3auth || !web3auth.connected || !web3auth.provider || walletData) return;
+    makeWeb3AuthWalletData(web3auth.provider);
   }, [web3auth, walletData]);
 
   React.useEffect(() => {
@@ -120,7 +117,6 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
 
         setWeb3auth(web3authInstance);
       } catch (error) {
-        console.log("init error", error);
         console.error(error);
       }
     };
