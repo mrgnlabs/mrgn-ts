@@ -1,8 +1,6 @@
 import { FC, ReactNode } from "react";
-import { Login, WalletOutlined } from "@mui/icons-material";
 import { useUiStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { WalletButtonNew } from "./Navbar";
+import { AuthDialog } from "./AuthDialog";
 import { Mobile } from "~/mediaQueries";
 import { Mrgn } from "./icons/Mrgn";
 
@@ -11,11 +9,7 @@ interface PageHeaderProps {
 }
 
 const PageHeader: FC<PageHeaderProps> = ({ children }) => {
-  const { connected, openWalletSelector } = useWalletContext();
-  const [setIsWalletDrawerOpen, isFetchingData] = useUiStore((state) => [
-    state.setIsWalletDrawerOpen,
-    state.isFetchingData,
-  ]);
+  const [isFetchingData] = useUiStore((state) => [state.isFetchingData]);
 
   return (
     <div className="flex w-full h-[90px] sm:h-[60px] justify-center items-center border-solid border-[#1C2125] border-y-[1px] bg-[url('/WaveBG3.png')]">
@@ -27,7 +21,9 @@ const PageHeader: FC<PageHeaderProps> = ({ children }) => {
           <div>{children}</div>
         </div>
         <Mobile>
-          <div className="flex justify-center items-center gap-3">{!connected && <WalletButtonNew />}</div>
+          <div className="flex justify-center items-center gap-3">
+            <AuthDialog />
+          </div>
         </Mobile>
       </div>
     </div>

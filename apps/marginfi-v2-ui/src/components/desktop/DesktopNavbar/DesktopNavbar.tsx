@@ -1,6 +1,5 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { WalletButtonNew } from "~/components/common/Navbar";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useRouter } from "next/router";
@@ -17,6 +16,7 @@ import { EMISSION_MINT_INFO_MAP } from "../AssetsList/AssetRow";
 import { collectRewardsBatch } from "~/utils";
 import { Mrgn } from "~/components/common/icons/Mrgn";
 import { useLstStore } from "~/pages/stake";
+import { AuthDialog } from "~/components/common/AuthDialog";
 
 // @todo implement second pretty navbar row
 const DesktopNavbar: FC = () => {
@@ -316,7 +316,7 @@ const DesktopNavbar: FC = () => {
               )}
             </div>
 
-            <WalletButtonNew />
+            <AuthDialog />
           </div>
         </div>
       </nav>
