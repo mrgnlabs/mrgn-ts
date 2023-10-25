@@ -9,7 +9,7 @@ import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
-import { AuthDialogTriggerButton } from "~/components/common/AuthDialog";
+import { WalletButton } from "~/components/common/Wallet";
 
 interface PointsSignUpProps {
   referralCode?: string;
@@ -115,7 +115,7 @@ export const PointsSignUp: FC<PointsSignUpProps> = ({ referralCode }) => {
                 </Button>
               </div>
             ) : (
-              <AuthDialogTriggerButton />
+              <WalletButton />
             )}
           </div>
         </div>

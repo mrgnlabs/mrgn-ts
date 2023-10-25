@@ -5,13 +5,13 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/ui/loader";
 
-type AuthDialogEmailFormProps = {
+type WalletAuthEmailFormProps = {
   loading: boolean;
   active: boolean;
   onSubmit: (email: string) => void;
 };
 
-export const AuthDialogEmailForm = ({ loading, active, onSubmit }: AuthDialogEmailFormProps) => {
+export const WalletAuthEmailForm = ({ loading, active, onSubmit }: WalletAuthEmailFormProps) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   return (

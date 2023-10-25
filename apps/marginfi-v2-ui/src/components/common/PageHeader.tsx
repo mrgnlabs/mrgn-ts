@@ -1,6 +1,6 @@
 import { FC, ReactNode } from "react";
 import { useUiStore } from "~/store";
-import { AuthDialogTriggerButton } from "./AuthDialog";
+import { WalletButton } from "./Wallet";
 import { Mobile } from "~/mediaQueries";
 import { Mrgn } from "./icons/Mrgn";
 
@@ -22,7 +22,7 @@ const PageHeader: FC<PageHeaderProps> = ({ children }) => {
         </div>
         <Mobile>
           <div className="flex justify-center items-center gap-3">
-            <AuthDialogTriggerButton />
+            <WalletButton />
           </div>
         </Mobile>
       </div>

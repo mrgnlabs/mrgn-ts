@@ -7,7 +7,6 @@ import config from "~/config/marginfi";
 import { useMrgnlendStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { AuthDialog } from "~/components/common/AuthDialog";
 import { Banner } from "~/components/desktop/Banner";
 import { PageHeader } from "~/components/common/PageHeader";
 import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";

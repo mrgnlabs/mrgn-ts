@@ -1,11 +1,12 @@
-import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import React from "react";
 import { FaWallet } from "react-icons/fa";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { Button } from "~/components/ui/button";
+import { WalletPopover } from "~/components/common/Wallet";
 
-export const AuthDialogTriggerButton = () => {
-  const { wallet, connected, logout } = useWalletContext();
+export const WalletButton = () => {
+  const { connected } = useWalletContext();
   const { setIsOpenAuthDialog } = useWeb3AuthWallet();
 
   return (
@@ -15,9 +16,7 @@ export const AuthDialogTriggerButton = () => {
           <FaWallet /> Connect
         </Button>
       ) : (
-        <Button onClick={() => logout()}>
-          <>{wallet?.publicKey && shortenAddress(wallet.publicKey.toString())}</>
-        </Button>
+        <WalletPopover />
       )}
     </>
   );

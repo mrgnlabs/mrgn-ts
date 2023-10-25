@@ -7,7 +7,7 @@ import { Mrgn } from "~/components/common/icons/Mrgn";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Web3AuthSocialProvider, useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { AuthDialogButton, AuthDialogEmailForm } from "~/components/common/AuthDialog";
+import { WalletAuthButton, WalletAuthEmailForm } from "~/components/common/Wallet";
 
 const socialProviders: {
   name: Web3AuthSocialProvider;
@@ -27,7 +27,7 @@ const socialProviders: {
   },
 ];
 
-export const AuthDialog = () => {
+export const WalletAuthDialog = () => {
   const { select, wallets } = useWallet();
   const { connected, login } = useWalletContext();
   const { isOpenAuthDialog, setIsOpenAuthDialog } = useWeb3AuthWallet();
@@ -67,7 +67,7 @@ export const AuthDialog = () => {
           </DialogHeader>
 
           <div className="w-full md:w-4/5 mx-auto">
-            <AuthDialogEmailForm
+            <WalletAuthEmailForm
               loading={isLoading && isActiveLoading === "email"}
               active={!isLoading || (isLoading && isActiveLoading === "email")}
               onSubmit={(email) => {
@@ -86,7 +86,7 @@ export const AuthDialog = () => {
             <ul className="flex flex-col gap-2 w-full">
               {socialProviders.map((provider, i) => (
                 <li className="flex flex-col" key={i}>
-                  <AuthDialogButton
+                  <WalletAuthButton
                     loading={isLoading && isActiveLoading === provider.name}
                     active={!isLoading || (isLoading && isActiveLoading === provider.name)}
                     name={provider.name}
@@ -111,7 +111,7 @@ export const AuthDialog = () => {
                 <ul className="flex flex-col gap-2">
                   {filteredWallets.map((wallet, i) => (
                     <li className="flex flex-col" key={i}>
-                      <AuthDialogButton
+                      <WalletAuthButton
                         name={wallet.adapter.name}
                         image={<Image src={wallet.adapter.icon} width={20} height={20} alt={wallet.adapter.name} />}
                         loading={isLoading && isActiveLoading === wallet.adapter.name}

@@ -15,6 +15,8 @@ type Web3AuthContextProps = {
   connected: boolean;
   isOpenAuthDialog: boolean;
   setIsOpenAuthDialog: (open: boolean) => void;
+  isOpenWallet: boolean;
+  setIsOpenWallet: (open: boolean) => void;
   login: (
     provider: "email_passwordless" | Web3AuthSocialProvider,
     extraLoginOptions?: Partial<{
@@ -40,6 +42,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   const [walletData, setWalletData] = React.useState<Wallet>();
   const [web3auth, setWeb3auth] = React.useState<Web3AuthNoModal | null>(null);
   const [isOpenAuthDialog, setIsOpenAuthDialog] = React.useState<boolean>(false);
+  const [isOpenWallet, setIsOpenWallet] = React.useState<boolean>(false);
 
   const logout = async () => {
     if (!web3auth) return;
@@ -70,8 +73,6 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   const makeWeb3AuthWalletData = async (web3authProvider: IProvider) => {
     const solanaWallet = new SolanaWallet(web3authProvider);
     const accounts = await solanaWallet.requestAccounts();
-
-    console.log("Connected public key", accounts[0]);
 
     setWalletData({
       publicKey: new PublicKey(accounts[0]),
@@ -128,6 +129,8 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
       value={{
         isOpenAuthDialog,
         setIsOpenAuthDialog,
+        isOpenWallet,
+        setIsOpenWallet,
         walletData,
         connected: Boolean(web3auth?.connected),
         login,

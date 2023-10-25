@@ -16,7 +16,7 @@ import { EMISSION_MINT_INFO_MAP } from "../AssetsList/AssetRow";
 import { collectRewardsBatch } from "~/utils";
 import { Mrgn } from "~/components/common/icons/Mrgn";
 import { useLstStore } from "~/pages/stake";
-import { AuthDialogTriggerButton } from "~/components/common/AuthDialog";
+import { WalletButton } from "~/components/common/Wallet";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 
 // @todo implement second pretty navbar row
@@ -318,7 +318,7 @@ const DesktopNavbar: FC = () => {
               )}
             </div>
 
-            <AuthDialogTriggerButton />
+            <WalletButton />
           </div>
         </div>
       </nav>
