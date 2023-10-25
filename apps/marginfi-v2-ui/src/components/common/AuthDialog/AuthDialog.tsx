@@ -34,6 +34,17 @@ export const AuthDialog = () => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
 
+  const filteredWallets = React.useMemo(() => {
+    return wallets.filter((wallet) => wallet.readyState === "Installed" || wallet.readyState === "Loadable");
+  }, [wallets]);
+
+  React.useEffect(() => {
+    if (!isOpenAuthDialog) {
+      setIsLoading(false);
+      setIsActiveLoading("");
+    }
+  }, [isOpenAuthDialog]);
+
   React.useEffect(() => {
     if (connected) {
       setIsOpenAuthDialog(false);
@@ -90,7 +101,7 @@ export const AuthDialog = () => {
               ))}
             </ul>
 
-            {wallets.filter((wallet) => wallet.readyState === "Installed").length > 0 && (
+            {filteredWallets.length > 0 && (
               <>
                 <div className="my-4 flex items-center justify-center text-sm">
                   <hr className="flex-grow border-gray-300 dark:border-gray-700" />
@@ -98,24 +109,22 @@ export const AuthDialog = () => {
                   <hr className="flex-grow border-gray-300 dark:border-gray-700" />
                 </div>
                 <ul className="flex flex-col gap-2">
-                  {wallets
-                    .filter((wallet) => wallet.readyState === "Installed")
-                    .map((wallet, i) => (
-                      <li className="flex flex-col" key={i}>
-                        <AuthDialogButton
-                          name={wallet.adapter.name}
-                          image={<Image src={wallet.adapter.icon} width={20} height={20} alt={wallet.adapter.name} />}
-                          loading={isLoading && isActiveLoading === wallet.adapter.name}
-                          active={!isLoading || (isLoading && isActiveLoading === wallet.adapter.name)}
-                          onClick={() => {
-                            setIsLoading(true);
-                            setIsActiveLoading(wallet.adapter.name);
-                            select(wallet.adapter.name);
-                            setIsOpenAuthDialog(false);
-                          }}
-                        />
-                      </li>
-                    ))}
+                  {filteredWallets.map((wallet, i) => (
+                    <li className="flex flex-col" key={i}>
+                      <AuthDialogButton
+                        name={wallet.adapter.name}
+                        image={<Image src={wallet.adapter.icon} width={20} height={20} alt={wallet.adapter.name} />}
+                        loading={isLoading && isActiveLoading === wallet.adapter.name}
+                        active={!isLoading || (isLoading && isActiveLoading === wallet.adapter.name)}
+                        onClick={() => {
+                          setIsLoading(true);
+                          setIsActiveLoading(wallet.adapter.name);
+                          select(wallet.adapter.name);
+                          setIsOpenAuthDialog(false);
+                        }}
+                      />
+                    </li>
+                  ))}
                 </ul>
               </>
             )}
