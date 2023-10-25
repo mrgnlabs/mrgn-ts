@@ -1,6 +1,6 @@
 import React, { FC } from "react";
 import { Card, CardContent } from "@mui/material";
-import { AuthDialogTriggerButton } from "~/components/common/AuthDialog";
+import { WalletButton } from "~/components/common/Wallet";
 
 interface PointsConnectWalletProps {}
 
@@ -15,7 +15,7 @@ export const PointsConnectWallet: FC<PointsConnectWalletProps> = ({}) => {
             <br />
           </div>
           <div className="w-full flex justify-center items-center">
-            <AuthDialogTriggerButton />
+            <WalletButton />
           </div>
         </div>
       </CardContent>

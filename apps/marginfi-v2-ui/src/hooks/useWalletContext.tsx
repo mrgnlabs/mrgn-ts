@@ -48,6 +48,7 @@ const useWalletContext = () => {
     walletAddress: wallet?.publicKey,
     isOverride,
     connected: walletContextState.connected || web3AuthConnected,
+    connecting: walletContextState.connecting,
     walletContextState,
     login: web3AuthLogin,
     logout,

@@ -1,8 +1,7 @@
 import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/ui/loader";
-import { cn } from "~/utils/themeUtils";
 
-type AuthDialogSocialButtonProps = {
+type WalletAuthButtonProps = {
   name: string;
   image: React.ReactNode;
   loading: boolean;
@@ -10,7 +9,7 @@ type AuthDialogSocialButtonProps = {
   onClick: () => void;
 };
 
-export const AuthDialogButton = ({ name, image, loading, active, onClick }: AuthDialogSocialButtonProps) => {
+export const WalletAuthButton = ({ name, image, loading, active, onClick }: WalletAuthButtonProps) => {
   return (
     <Button onClick={() => onClick()} size="lg" disabled={!active}>
       {loading && <Loader className="absolute top-1/2 -translate-y-1/2 left-1.5" />}
