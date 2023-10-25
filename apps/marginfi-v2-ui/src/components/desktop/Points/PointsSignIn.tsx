@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 
 import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { WalletButton } from "~/components/common/Navbar";
+import { AuthDialogTriggerButton } from "~/components/common/AuthDialog";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 
@@ -85,7 +85,7 @@ export const PointsSignIn: FC<PointsSignInProps> = ({}) => {
                 </Button>
               </div>
             ) : (
-              <WalletButton />
+              <AuthDialogTriggerButton />
             )}
           </div>
         </div>
