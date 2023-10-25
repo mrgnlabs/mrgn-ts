@@ -13,6 +13,8 @@ export type Web3AuthSocialProvider = "google" | "twitter" | "apple";
 type Web3AuthContextProps = {
   walletData: Wallet | undefined;
   connected: boolean;
+  isOpenAuthDialog: boolean;
+  setIsOpenAuthDialog: (open: boolean) => void;
   login: (
     provider: "email_passwordless" | Web3AuthSocialProvider,
     extraLoginOptions?: Partial<{
@@ -37,10 +39,7 @@ const Web3AuthContext = React.createContext<Web3AuthContextProps | undefined>(un
 export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [walletData, setWalletData] = React.useState<Wallet>();
   const [web3auth, setWeb3auth] = React.useState<Web3AuthNoModal | null>(null);
-
-  const connected = React.useMemo(() => {
-    return web3auth ? web3auth.connected : false;
-  }, [web3auth?.connected]);
+  const [isOpenAuthDialog, setIsOpenAuthDialog] = React.useState<boolean>(false);
 
   const logout = async () => {
     if (!web3auth) return;
@@ -125,7 +124,18 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   }, []);
 
   return (
-    <Web3AuthContext.Provider value={{ walletData, connected, login, logout }}>{children}</Web3AuthContext.Provider>
+    <Web3AuthContext.Provider
+      value={{
+        isOpenAuthDialog,
+        setIsOpenAuthDialog,
+        walletData,
+        connected: Boolean(web3auth?.connected),
+        login,
+        logout,
+      }}
+    >
+      {children}
+    </Web3AuthContext.Provider>
   );
 };
 

@@ -9,6 +9,7 @@ import { PageHeader } from "~/components/common/PageHeader";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
 import { useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { Desktop } from "~/mediaQueries";
 
 const tokens = [
@@ -65,7 +66,8 @@ const configs: MayanWidgetConfigType[] = [
   },
 ];
 const BridgePage = () => {
-  const { walletAddress, walletContextState, openWalletSelector } = useWalletContext();
+  const { walletAddress, walletContextState } = useWalletContext();
+  const { setIsOpenAuthDialog } = useWeb3AuthWallet();
   const [isBridgeIn, setIsBridgeIn] = useState<boolean>(true);
   const setShowBadges = useUserProfileStore((state) => state.setShowBadges);
 
@@ -83,16 +85,17 @@ const BridgePage = () => {
   );
 
   const handleConnect = useCallback(async () => {
+    console.log("handleConnect", walletContextState);
     try {
       if (!walletContextState.wallet) {
-        openWalletSelector();
+        setIsOpenAuthDialog(true);
       } else {
         await walletContextState.connect();
       }
     } catch (err) {
       console.error(err);
     }
-  }, [walletContextState, openWalletSelector]);
+  }, [walletContextState, setIsOpenAuthDialog]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && typeof window.MayanSwap !== "undefined") {
