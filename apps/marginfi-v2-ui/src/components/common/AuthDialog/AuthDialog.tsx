@@ -5,16 +5,9 @@ import { AiOutlineTwitter, AiFillApple } from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
 import { Mrgn } from "~/components/common/icons/Mrgn";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { Web3AuthSocialProvider } from "~/hooks/useWeb3AuthWallet";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/dialog";
-import { AuthDialogTriggerButton, AuthDialogButton, AuthDialogEmailForm } from "~/components/common/AuthDialog";
+import { Web3AuthSocialProvider, useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import { AuthDialogButton, AuthDialogEmailForm } from "~/components/common/AuthDialog";
 
 const socialProviders: {
   name: Web3AuthSocialProvider;
@@ -35,24 +28,23 @@ const socialProviders: {
 ];
 
 export const AuthDialog = () => {
-  const [dialogOpen, setDialogOpen] = React.useState(false);
   const { select, wallets } = useWallet();
-  const { connected, logout, login } = useWalletContext();
+  const { connected, login } = useWalletContext();
+  const { isOpenAuthDialog, setIsOpenAuthDialog } = useWeb3AuthWallet();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
 
   React.useEffect(() => {
     if (connected) {
-      setDialogOpen(false);
+      setIsOpenAuthDialog(false);
+      setIsLoading(false);
+      setIsActiveLoading("");
     }
   }, [connected]);
 
   return (
     <div>
-      <Dialog open={dialogOpen} onOpenChange={(open) => setDialogOpen(open)}>
-        <DialogTrigger>
-          <AuthDialogTriggerButton connected={connected} onConnect={() => setDialogOpen(true)} onDisconnect={logout} />
-        </DialogTrigger>
+      <Dialog open={isOpenAuthDialog} onOpenChange={(open) => setIsOpenAuthDialog(open)}>
         <DialogContent>
           <DialogHeader>
             <Mrgn width={40} />
@@ -119,7 +111,7 @@ export const AuthDialog = () => {
                             setIsLoading(true);
                             setIsActiveLoading(wallet.adapter.name);
                             select(wallet.adapter.name);
-                            setDialogOpen(false);
+                            setIsOpenAuthDialog(false);
                           }}
                         />
                       </li>

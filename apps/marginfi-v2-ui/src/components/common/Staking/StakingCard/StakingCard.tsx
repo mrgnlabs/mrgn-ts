@@ -45,6 +45,7 @@ import { Spinner } from "~/components/common/Spinner";
 import BN from "bn.js";
 import debounce from "lodash.debounce";
 import { Desktop, Mobile } from "~/mediaQueries";
+import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 
 const QUOTE_EXPIRY_MS = 30_000;
 const DEFAULT_DEPOSIT_OPTION: DepositOption = { type: "native", amount: new BN(0), maxAmount: new BN(0) };
@@ -70,7 +71,8 @@ export type DepositOption =
 export const StakingCard: FC = () => {
   const router = useRouter();
   const { connection } = useConnection();
-  const { connected, wallet, walletAddress, openWalletSelector } = useWalletContext();
+  const { connected, wallet, walletAddress } = useWalletContext();
+  const { isOpenAuthDialog, setIsOpenAuthDialog } = useWeb3AuthWallet();
   const [
     lstData,
     userDataFetched,
@@ -517,7 +519,7 @@ export const StakingCard: FC = () => {
                   !!ongoingAction)
               }
               loading={connected && !!ongoingAction}
-              onClick={connected ? onMint : openWalletSelector}
+              onClick={connected ? onMint : () => setIsOpenAuthDialog(true)}
             >
               {!connected ? "connect" : ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? <Spinner /> : "mint"}
             </PrimaryButton>

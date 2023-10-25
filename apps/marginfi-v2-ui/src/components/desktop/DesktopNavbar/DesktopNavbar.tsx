@@ -16,7 +16,8 @@ import { EMISSION_MINT_INFO_MAP } from "../AssetsList/AssetRow";
 import { collectRewardsBatch } from "~/utils";
 import { Mrgn } from "~/components/common/icons/Mrgn";
 import { useLstStore } from "~/pages/stake";
-import { AuthDialog } from "~/components/common/AuthDialog";
+import { AuthDialogTriggerButton } from "~/components/common/AuthDialog";
+import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 
 // @todo implement second pretty navbar row
 const DesktopNavbar: FC = () => {
@@ -24,6 +25,7 @@ const DesktopNavbar: FC = () => {
 
   const { connection } = useConnection();
   const { connected, walletAddress, wallet } = useWalletContext();
+  const { logout, setIsOpenAuthDialog } = useWeb3AuthWallet();
   const router = useRouter();
   const [selectedAccount, extendedBankInfos, lendUserDataFetched, resetLendUserData] = useMrgnlendStore((state) => [
     state.selectedAccount,
@@ -316,7 +318,7 @@ const DesktopNavbar: FC = () => {
               )}
             </div>
 
-            <AuthDialog />
+            <AuthDialogTriggerButton />
           </div>
         </div>
       </nav>

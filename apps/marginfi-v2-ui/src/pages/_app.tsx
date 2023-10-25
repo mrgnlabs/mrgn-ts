@@ -17,6 +17,7 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "./stake";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { WALLET_ADAPTERS } from "~/config/wallets";
+import { AuthDialog } from "~/components/common/AuthDialog";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -105,6 +106,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
               </Mobile>
               <Analytics />
               <Tutorial />
+              <AuthDialog />
               <ToastContainer position="bottom-left" theme="dark" />
             </Web3AuthProvider>
           </WalletProvider>
