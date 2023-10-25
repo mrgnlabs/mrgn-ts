@@ -46,13 +46,11 @@ export const WalletPopover = () => {
   return (
     <Popover>
       <PopoverTrigger>
-        <Button variant="ghost" className="rounded-full w-12 h-12 p-0 bg-muted/50 hover:bg-muted">
-          <>
-            <Image src={svgURI} alt={shortenAddress(address)} width={40} height={40} />
-          </>
-        </Button>
+        <div className="flex items-center justify-center rounded-full w-12 h-12 p-0 bg-muted/50 hover:bg-muted">
+          <Image src={svgURI} alt={shortenAddress(address)} width={40} height={40} />
+        </div>
       </PopoverTrigger>
-      <PopoverContent>
+      <PopoverContent align="end" sideOffset={7}>
         {!walletData && <p>Loading...</p>}
         {walletData && (
           <>
