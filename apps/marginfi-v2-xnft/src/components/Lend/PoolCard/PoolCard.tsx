@@ -88,16 +88,19 @@ export function PoolCard({
 
       // -------- Create marginfi account if needed
       try {
-        if (_marginfiAccount === null) {
+        if (_marginfiAccount === null || !_marginfiAccount) {
           if (currentAction !== ActionType.Deposit) {
             showErrorToast("An account is required for anything operation except deposit.");
             return;
           }
           // Creating account
-
           _marginfiAccount = await marginfiClient.createMarginfiAccount();
         }
       } catch (error: any) {
+        const lamportError = String(error).includes("0x1");
+        if (lamportError) {
+          showErrorToast("Not enough SOL");
+        }
         console.log(`Error while ${currentAction + "ing"}`);
         console.log(error);
         return;
@@ -110,7 +113,7 @@ export function PoolCard({
           signature = await _marginfiAccount.deposit(borrowOrLendAmount, bankInfo.address);
         }
 
-        if (_marginfiAccount === null) {
+        if (_marginfiAccount === null || !_marginfiAccount) {
           // noinspection ExceptionCaughtLocallyJS
           throw Error("Marginfi account not ready");
         }
@@ -143,12 +146,12 @@ export function PoolCard({
 
   const closeBalance = useCallback(async () => {
     if (!marginfiAccount) {
-      showErrorToast("marginfi account not ready.");
+      showErrorToast("Marginfi account not ready.");
       return;
     }
 
     if (!bankInfo.isActive) {
-      showErrorToast("no position to close.");
+      showErrorToast("No position to close.");
       return;
     }
 
