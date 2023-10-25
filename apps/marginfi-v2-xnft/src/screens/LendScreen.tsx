@@ -99,9 +99,6 @@ export function LendScreen() {
             <Select selectedItem={sortOption} setSelectedItem={setSortOption} />
           </View>
           <Text style={tw`text-xl text-primary pl-12px`}>Global pool</Text>
-          <Pressable onPress={() => reloadBanks()}>
-            <Text>hi</Text>
-          </Pressable>
           <View style={tw`flex flex-row flex-wrap gap-6 justify-center items-center`}>
             {extendedBankInfos.length > 0 ? (
               globalBanks.length > 0 ? (
