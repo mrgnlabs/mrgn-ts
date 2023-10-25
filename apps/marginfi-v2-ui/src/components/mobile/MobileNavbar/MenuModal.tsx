@@ -49,6 +49,17 @@ export const MenuModal: FC<MenuModalProps> = ({ isOpen, handleClose }) => {
               ))}
             </div>
             <div className="w-full flex flex-col justify-center items-center">
+              {connected && (
+                <div
+                  onClick={() => {
+                    logout();
+                    setIsMenuDrawerOpen(false);
+                  }}
+                  className="flex w-full h-[40px] text-[#999] font-aeonik font-[400] justify-center items-center"
+                >
+                  sign out
+                </div>
+              )}
               <div className="w-full h-[30px] flex flex-row justify-around items-center">
                 <Link
                   href="https://discord.gg/mrgn"
@@ -109,17 +120,6 @@ export const MenuModal: FC<MenuModalProps> = ({ isOpen, handleClose }) => {
                   <QuestionMark className="pb-1 text-xl cursor-pointer hover:fill-[#DCE85D] text-[#868E95]" />
                 </Link>
               </div>
-              {connected && (
-                <div
-                  onClick={() => {
-                    logout();
-                    setIsMenuDrawerOpen(false);
-                  }}
-                  className="flex w-full h-[40px] text-[#999] font-aeonik font-[400] justify-center items-center"
-                >
-                  sign out
-                </div>
-              )}
             </div>
           </div>
         </div>
