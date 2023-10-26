@@ -1,9 +1,9 @@
 import React from "react";
-import { FaWallet } from "react-icons/fa";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
-import { Button } from "~/components/ui/button";
 import { Wallet } from "~/components/common/Wallet";
+import { Button } from "~/components/ui/button";
+import { WalletIcon } from "~/components/ui/icons";
 
 export const WalletButton = () => {
   const { connected } = useWalletContext();
@@ -13,7 +13,7 @@ export const WalletButton = () => {
     <>
       {!connected ? (
         <Button onClick={() => setIsOpenAuthDialog(true)}>
-          <FaWallet /> Connect
+          <WalletIcon size={16} /> Connect
         </Button>
       ) : (
         <Wallet />
