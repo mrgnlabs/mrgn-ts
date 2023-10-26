@@ -69,7 +69,7 @@ const StakePage = () => {
   if (!mounted) return null;
 
   return (
-    <JupiterProvider connection={connection} wrapUnwrapSOL={false} platformFeeAndAccounts={undefined}>
+    <JupiterProvider connection={connection} wrapUnwrapSOL={false}>
       <PageHeader>stake</PageHeader>
       <StakingContent />
       <Desktop>
