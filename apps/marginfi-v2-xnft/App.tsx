@@ -157,16 +157,15 @@ function App() {
 
   return (
     <RecoilRoot>
-      <XNftWalletProvider isMobile={isMobile}>
+      <XNftWalletProvider>
         <ConnectionProvider
           endpoint={RPC_ENDPOINT_OVERRIDE} // add fallback endpoint
-          isMobile={isMobile}
         >
           <JupiterProvider
             connection={connection}
             routeCacheDuration={ROUTE_CACHE_DURATION}
             wrapUnwrapSOL={true}
-            userPublicKey={publicKey}
+            userPublicKey={publicKey ?? undefined}
             platformFeeAndAccounts={undefined}
             asLegacyTransaction={asLegacyTransaction}
           >

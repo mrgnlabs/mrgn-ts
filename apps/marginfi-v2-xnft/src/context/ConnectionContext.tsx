@@ -6,10 +6,10 @@ import { useWallet } from "~/context/WalletContext";
 import marginfiConfig from "~/config";
 import { useMrgnlendStore } from "~/store/store";
 import { PUBLIC_BIRDEYE_API_KEY } from "@env";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 export interface ConnectionProviderProps {
   children: ReactNode;
-  isMobile: boolean;
   endpoint?: string;
   config?: ConnectionConfig;
 }
@@ -17,10 +17,11 @@ export interface ConnectionProviderProps {
 export const ConnectionProvider: FC<ConnectionProviderProps> = ({
   children,
   endpoint,
-  isMobile,
   config = { commitment: "confirmed" },
 }) => {
+  const FALLBACK_RPC = "https://rpc.helius.xyz/?api-key=5a663035-f1ac-4014-9193-5c44785b5e81"; //  TODO add fallback rpc, replace please
   const { wallet } = useWallet();
+  const isMobile = useIsMobile();
   const xNftConnection = useXNftConnection();
   const [fetchMrgnlendState, setIsRefreshingStore] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,
@@ -31,12 +32,16 @@ export const ConnectionProvider: FC<ConnectionProviderProps> = ({
 
   useEffect(() => {
     if (isMobile) {
-      setConnection(new Connection(endpoint ?? "https://api.mainnet-beta.solana.com", config)); // TODO add fallback rpc
+      setConnection(new Connection(endpoint ?? FALLBACK_RPC, config));
     } else {
       if (endpoint) {
         setConnection(new Connection(endpoint, { commitment: xNftConnection?.commitment ?? "confirmed" }));
       } else {
-        setConnection(xNftConnection);
+        if (!xNftConnection?.rpcEndpoint || xNftConnection?.rpcEndpoint.includes("swr.xnfts.dev")) {
+          setConnection(new Connection(FALLBACK_RPC, config));
+        } else {
+          setConnection(new Connection(xNftConnection?.rpcEndpoint, config));
+        }
       }
     }
   }, [setConnection, xNftConnection, endpoint, isMobile]);

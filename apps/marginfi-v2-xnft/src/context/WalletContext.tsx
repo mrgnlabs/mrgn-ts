@@ -11,16 +11,18 @@ import {
 import { Wallet } from "@coral-xyz/anchor/dist/cjs/provider";
 
 import { useXNftPublicKey, useXNftWallet } from "~/hooks/xnftHooks";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 export interface XNftWalletProviderProps {
   children: ReactNode;
-  isMobile: boolean;
   config?: ConnectionConfig;
 }
 
-export const XNftWalletProvider: FC<XNftWalletProviderProps> = ({ children, isMobile }) => {
+export const XNftWalletProvider: FC<XNftWalletProviderProps> = ({ children }) => {
   const xNftWallet = useXNftWallet();
   const publicKey = useXNftPublicKey();
+
+  const isMobile = useIsMobile();
 
   const connected = useMemo(() => !!publicKey, [publicKey]); // TODO use xNft listeners when known
   const connecting = useMemo(() => !connected, [connected]); // TODO use xNft listeners when known
@@ -33,7 +35,7 @@ export const XNftWalletProvider: FC<XNftWalletProviderProps> = ({ children, isMo
     <WalletContext.Provider
       value={{
         wallet: xNftWallet || null,
-        publicKey: publicKey || null,
+        publicKey: publicKey,
         connected,
         connecting,
         disconnecting: false,
