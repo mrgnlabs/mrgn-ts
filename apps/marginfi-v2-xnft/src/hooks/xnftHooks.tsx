@@ -48,9 +48,9 @@ function useWallet(): XnftWallet | undefined {
 }
 
 /** @deprecated use `usePublicKeys()` instead */
-function usePublicKey(): PublicKey | undefined {
+function usePublicKey(): PublicKey | null {
   const didLaunch = useXnftDidLaunch();
-  const [publicKey, setPublicKey] = useState();
+  const [publicKey, setPublicKey] = useState(null);
   useEffect(() => {
     if (didLaunch) {
       window.xnft.solana.on("publicKeyUpdate", () => {

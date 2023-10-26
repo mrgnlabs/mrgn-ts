@@ -7,6 +7,7 @@ import { uiToNative } from "@mrgnlabs/mrgn-common";
 import tw from "~/styles/tailwind";
 import { NumberInput, PrimaryButton, SecondaryButton } from "~/components/Common";
 import { useWallet } from "~/context/WalletContext";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 type Props = {
   currentAction: ActionType;
@@ -18,6 +19,7 @@ type Props = {
 export function PoolCardActions({ currentAction, bank, onAction }: Props) {
   const [amount, setAmount] = useState<string>("0");
   const { publicKey } = useWallet();
+  const isMobile = useIsMobile();
 
   const maxAmount = useMemo(() => {
     switch (currentAction) {
@@ -47,7 +49,7 @@ export function PoolCardActions({ currentAction, bank, onAction }: Props) {
   );
 
   const buttonText = useMemo(() => {
-    if (!publicKey) return "Connect your wallet";
+    if (!publicKey && isMobile) return "Connect your wallet";
     if (isDust) return "Close";
     switch (currentAction) {
       case ActionType.Deposit:
@@ -59,7 +61,7 @@ export function PoolCardActions({ currentAction, bank, onAction }: Props) {
       case ActionType.Repay:
         return "Repay";
     }
-  }, [currentAction, isDisabled, isDust]);
+  }, [currentAction, isDisabled, isDust, publicKey]);
 
   return (
     <>
