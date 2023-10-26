@@ -5,6 +5,7 @@ import { CHAIN_NAMESPACES, IProvider } from "@web3auth/base";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
+import { SolanaWalletConnectorPlugin } from "@web3auth/solana-wallet-connector-plugin";
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import { toast } from "react-toastify";
 
@@ -24,6 +25,7 @@ type Web3AuthContextProps = {
     }>
   ) => void;
   logout: () => void;
+  topUpWallet: () => void;
 };
 
 const chainConfig = {
@@ -43,6 +45,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   const [web3auth, setWeb3auth] = React.useState<Web3AuthNoModal | null>(null);
   const [isOpenAuthDialog, setIsOpenAuthDialog] = React.useState<boolean>(false);
   const [isOpenWallet, setIsOpenWallet] = React.useState<boolean>(false);
+  const [torusPlugin, setTorusPlugin] = React.useState<SolanaWalletConnectorPlugin | null>(null);
 
   const logout = async () => {
     if (!web3auth) return;
@@ -89,6 +92,16 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
     });
   };
 
+  const topUpWallet = async () => {
+    if (!torusPlugin) return;
+    await torusPlugin.initiateTopup("moonpay", {
+      selectedAddress: "wallet_address",
+      selectedCurrency: "USD",
+      fiatValue: 100, // Fiat Value
+      selectedCryptoCurrency: "SOL",
+    });
+  };
+
   React.useEffect(() => {
     if (!web3auth || !web3auth.connected || !web3auth.provider || walletData) return;
     makeWeb3AuthWalletData(web3auth.provider);
@@ -112,10 +125,24 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
           },
         });
 
+        const torusPlugin = new SolanaWalletConnectorPlugin({
+          torusWalletOpts: {},
+          walletInitOptions: {
+            whiteLabel: {
+              theme: { isDark: true, colors: { primary: "#00a8ff" } },
+              logoDark: "https://web3auth.io/images/w3a-L-Favicon-1.svg",
+              logoLight: "https://web3auth.io/images/w3a-D-Favicon-1.svg",
+            },
+          },
+        });
+
+        await web3authInstance.addPlugin(torusPlugin);
+
         web3authInstance.configureAdapter(openloginAdapter);
         await web3authInstance.init();
 
         setWeb3auth(web3authInstance);
+        setTorusPlugin(torusPlugin);
       } catch (error) {
         console.error(error);
       }
@@ -135,6 +162,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
         connected: Boolean(web3auth?.connected),
         login,
         logout,
+        topUpWallet,
       }}
     >
       {children}
