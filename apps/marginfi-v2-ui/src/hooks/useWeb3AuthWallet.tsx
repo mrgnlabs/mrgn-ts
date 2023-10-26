@@ -25,6 +25,7 @@ type Web3AuthContextProps = {
     }>
   ) => void;
   logout: () => void;
+  exportPrivateKey: () => void;
 };
 
 const chainConfig = {
@@ -42,9 +43,9 @@ const Web3AuthContext = React.createContext<Web3AuthContextProps | undefined>(un
 export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [walletData, setWalletData] = React.useState<Wallet>();
   const [web3auth, setWeb3auth] = React.useState<Web3AuthNoModal | null>(null);
+  const [web3authProvider, setWeb3authProvider] = React.useState<IProvider | null>(null);
   const [isOpenAuthDialog, setIsOpenAuthDialog] = React.useState<boolean>(false);
   const [isOpenWallet, setIsOpenWallet] = React.useState<boolean>(false);
-  const [torusPlugin, setTorusPlugin] = React.useState<SolanaWalletConnectorPlugin | null>(null);
 
   const logout = async () => {
     if (!web3auth) return;
@@ -72,10 +73,21 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
     }
   };
 
+  const exportPrivateKey = React.useCallback(async () => {
+    if (!web3authProvider) return;
+    const privateKey = await web3authProvider.request({
+      method: "solanaPrivateKey",
+    });
+
+    alert(privateKey);
+    console.log(privateKey);
+  }, [web3authProvider]);
+
   const makeWeb3AuthWalletData = async (web3authProvider: IProvider) => {
     const solanaWallet = new SolanaWallet(web3authProvider);
     const accounts = await solanaWallet.requestAccounts();
 
+    setWeb3authProvider(web3authProvider);
     setWalletData({
       publicKey: new PublicKey(accounts[0]),
       async signTransaction<T extends Transaction | VersionedTransaction>(transaction: T): Promise<T> {
@@ -114,25 +126,10 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
           },
         });
 
-        const torusPlugin = new SolanaWalletConnectorPlugin({
-          torusWalletOpts: {},
-          walletInitOptions: {
-            whiteLabel: {
-              theme: { isDark: true, colors: { primary: "#00a8ff" } },
-              logoDark: "https://web3auth.io/images/w3a-L-Favicon-1.svg",
-              logoLight: "https://web3auth.io/images/w3a-D-Favicon-1.svg",
-            },
-            showTorusButton: false,
-          },
-        });
-
-        await web3authInstance.addPlugin(torusPlugin);
-
         web3authInstance.configureAdapter(openloginAdapter);
         await web3authInstance.init();
 
         setWeb3auth(web3authInstance);
-        setTorusPlugin(torusPlugin);
       } catch (error) {
         console.error(error);
       }
@@ -152,6 +149,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
         connected: Boolean(web3auth?.connected),
         login,
         logout,
+        exportPrivateKey,
       }}
     >
       {children}

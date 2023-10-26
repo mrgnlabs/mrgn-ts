@@ -18,7 +18,7 @@ export const Wallet = () => {
   const [sortedBanks] = useMrgnlendStore((state) => [state.extendedBankInfos]);
   const { connection } = useConnection();
   const { wallet, connected, logout } = useWalletContext();
-  const { isOpenWallet, setIsOpenWallet } = useWeb3AuthWallet();
+  const { isOpenWallet, setIsOpenWallet, exportPrivateKey } = useWeb3AuthWallet();
   const [walletData, setWalletData] = React.useState({
     address: "",
     shortAddress: "",
@@ -108,9 +108,18 @@ export const Wallet = () => {
                   </Button>
                 </li>
               </ul>
-              <Button onClick={() => logout()} variant="link" size="sm" className="p-0 w-full mt-8 opacity-50">
-                Logout
-              </Button>
+              <ul className="mt-8">
+                <li>
+                  <Button onClick={() => logout()} variant="link" size="sm" className="p-0 w-full opacity-50">
+                    Logout
+                  </Button>
+                </li>
+                <li>
+                  <Button onClick={() => exportPrivateKey()} variant="link" size="sm" className="p-0 w-full opacity-50">
+                    Export private key
+                  </Button>
+                </li>
+              </ul>
             </div>
           </div>
         ) : (
