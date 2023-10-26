@@ -5,7 +5,6 @@ import { CHAIN_NAMESPACES, IProvider } from "@web3auth/base";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
-import { SolanaWalletConnectorPlugin } from "@web3auth/solana-wallet-connector-plugin";
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import { toast } from "react-toastify";
 
@@ -26,6 +25,7 @@ type Web3AuthContextProps = {
   ) => void;
   logout: () => void;
   exportPrivateKey: () => void;
+  pfp: string;
 };
 
 const chainConfig = {
@@ -46,6 +46,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   const [web3authProvider, setWeb3authProvider] = React.useState<IProvider | null>(null);
   const [isOpenAuthDialog, setIsOpenAuthDialog] = React.useState<boolean>(false);
   const [isOpenWallet, setIsOpenWallet] = React.useState<boolean>(false);
+  const [pfp, setPfp] = React.useState<string>("");
 
   const logout = async () => {
     if (!web3auth) return;
@@ -84,8 +85,15 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   }, [web3authProvider]);
 
   const makeWeb3AuthWalletData = async (web3authProvider: IProvider) => {
+    if (!web3auth) return;
+
     const solanaWallet = new SolanaWallet(web3authProvider);
     const accounts = await solanaWallet.requestAccounts();
+
+    if (web3auth.getUserInfo) {
+      const userData = await web3auth.getUserInfo();
+      setPfp(userData.profileImage || "");
+    }
 
     setWeb3authProvider(web3authProvider);
     setWalletData({
@@ -150,6 +158,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
         login,
         logout,
         exportPrivateKey,
+        pfp,
       }}
     >
       {children}

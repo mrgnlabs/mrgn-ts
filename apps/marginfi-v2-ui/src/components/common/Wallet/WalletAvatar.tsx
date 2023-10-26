@@ -5,15 +5,16 @@ import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "~/utils/themeUtils";
 
 type WalletAvatarProps = {
+  pfp?: string;
   address: string;
   size?: "sm" | "md" | "lg";
   className?: string;
 };
 
-export const WalletAvatar = ({ address, size = "md", className }: WalletAvatarProps) => {
-  const svgURI = React.useMemo(() => {
-    return "data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(address));
-  }, [address]);
+export const WalletAvatar = ({ pfp, address, size = "md", className }: WalletAvatarProps) => {
+  const imageSrc = React.useMemo(() => {
+    return pfp ? pfp : "data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(address));
+  }, [pfp, address]);
 
   const sizeInPx = React.useMemo(() => {
     if (size === "sm") return 32;
@@ -34,7 +35,7 @@ export const WalletAvatar = ({ address, size = "md", className }: WalletAvatarPr
         height: containerSizeInPx,
       }}
     >
-      <Image src={svgURI} alt={shortenAddress(address)} width={sizeInPx} height={sizeInPx} />
+      <Image src={imageSrc} alt={shortenAddress(address)} width={sizeInPx} height={sizeInPx} className="rounded-full" />
     </div>
   );
 };
