@@ -53,7 +53,7 @@ export const ConnectionProvider: FC<ConnectionProviderProps> = ({
       const id = setInterval(() => {
         setIsRefreshingStore(true);
         fetchMrgnlendState().catch(console.error);
-      }, 30_000);
+      }, 50_000);
       return () => clearInterval(id);
     }
   }, [fetchMrgnlendState, connection, wallet]);
