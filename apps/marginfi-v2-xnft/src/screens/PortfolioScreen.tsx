@@ -38,19 +38,6 @@ export function PortfolioScreen() {
     state.currentFirebaseUser,
   ]);
 
-  useEffect(() => {
-    fetchMrgnlendState({
-      marginfiConfig: config.mfiConfig,
-      connection,
-      wallet: wallet ?? undefined,
-      birdEyeApiKey: PUBLIC_BIRDEYE_API_KEY,
-    }).catch(console.error);
-    const id = setInterval(() => fetchMrgnlendState().catch(console.error), 30_000);
-    return () => clearInterval(id);
-  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
-  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
-  // TODO: fix...
-
   const lendingPools = useMemo(
     () =>
       extendedBankInfos &&

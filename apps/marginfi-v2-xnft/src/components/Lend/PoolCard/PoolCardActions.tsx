@@ -17,7 +17,7 @@ type Props = {
 
 export function PoolCardActions({ currentAction, bank, onAction }: Props) {
   const [amount, setAmount] = useState<string>("0");
-  const { connected } = useWallet();
+  const { publicKey } = useWallet();
 
   const maxAmount = useMemo(() => {
     switch (currentAction) {
@@ -47,7 +47,7 @@ export function PoolCardActions({ currentAction, bank, onAction }: Props) {
   );
 
   const buttonText = useMemo(() => {
-    if (!connected) return "Connect your wallet";
+    if (!publicKey) return "Connect your wallet";
     if (isDust) return "Close";
     switch (currentAction) {
       case ActionType.Deposit:
