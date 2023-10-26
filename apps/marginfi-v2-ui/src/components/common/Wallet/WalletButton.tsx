@@ -3,7 +3,7 @@ import { FaWallet } from "react-icons/fa";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { Button } from "~/components/ui/button";
-import { WalletPopover } from "~/components/common/Wallet";
+import { Wallet } from "~/components/common/Wallet";
 
 export const WalletButton = () => {
   const { connected } = useWalletContext();
@@ -16,7 +16,7 @@ export const WalletButton = () => {
           <FaWallet /> Connect
         </Button>
       ) : (
-        <WalletPopover />
+        <Wallet />
       )}
     </>
   );
