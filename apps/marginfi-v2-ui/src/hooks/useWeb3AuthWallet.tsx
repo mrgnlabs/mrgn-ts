@@ -25,7 +25,6 @@ type Web3AuthContextProps = {
     }>
   ) => void;
   logout: () => void;
-  topUpWallet: () => void;
 };
 
 const chainConfig = {
@@ -92,16 +91,6 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
     });
   };
 
-  const topUpWallet = async () => {
-    if (!torusPlugin) return;
-    await torusPlugin.initiateTopup("moonpay", {
-      selectedAddress: "wallet_address",
-      selectedCurrency: "USD",
-      fiatValue: 100, // Fiat Value
-      selectedCryptoCurrency: "SOL",
-    });
-  };
-
   React.useEffect(() => {
     if (!web3auth || !web3auth.connected || !web3auth.provider || walletData) return;
     makeWeb3AuthWalletData(web3auth.provider);
@@ -133,6 +122,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
               logoDark: "https://web3auth.io/images/w3a-L-Favicon-1.svg",
               logoLight: "https://web3auth.io/images/w3a-D-Favicon-1.svg",
             },
+            showTorusButton: false,
           },
         });
 
@@ -162,7 +152,6 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
         connected: Boolean(web3auth?.connected),
         login,
         logout,
-        topUpWallet,
       }}
     >
       {children}
