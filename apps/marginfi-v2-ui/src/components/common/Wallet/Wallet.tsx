@@ -18,7 +18,7 @@ export const Wallet = () => {
   const [sortedBanks] = useMrgnlendStore((state) => [state.extendedBankInfos]);
   const { connection } = useConnection();
   const { wallet, connected, logout } = useWalletContext();
-  const { isOpenWallet, setIsOpenWallet, exportPrivateKey } = useWeb3AuthWallet();
+  const { isOpenWallet, setIsOpenWallet, pfp, exportPrivateKey } = useWeb3AuthWallet();
   const [walletData, setWalletData] = React.useState({
     address: "",
     shortAddress: "",
@@ -64,7 +64,7 @@ export const Wallet = () => {
       <SheetTrigger asChild>
         {walletData && (
           <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full px-2 text-base text-muted-foreground">
-            <WalletAvatar address={walletData.address} size="sm" />
+            <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
             {walletData.shortAddress}
             <ChevronDownIcon size="16" />
           </button>
@@ -74,7 +74,7 @@ export const Wallet = () => {
         {walletData ? (
           <div className="pt-4 px-4">
             <header className="space-y-2 flex flex-col items-center mb-8">
-              <WalletAvatar address={walletData.address} size="lg" />
+              <WalletAvatar pfp={pfp} address={walletData.address} size="lg" />
               <h1 className="font-medium">
                 <Link href={`https://solscan.io/address/${walletData.address}`} target="_blank" rel="noreferrer">
                   {walletData.shortAddress}
