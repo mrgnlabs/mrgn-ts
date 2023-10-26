@@ -2,15 +2,17 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { shortenAddress, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+
 import { useMrgnlendStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
+import { WalletAvatar } from "~/components/common/Wallet";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
-import { WalletAvatar } from "~/components/common/Wallet";
 import { Button } from "~/components/ui/button";
+import { ChevronDownIcon } from "~/components/ui/icons";
 
 export const Wallet = () => {
   const router = useRouter();
@@ -21,7 +23,7 @@ export const Wallet = () => {
   const [walletData, setWalletData] = React.useState({
     address: "",
     shortAddress: "",
-    balance: 0,
+    balance: "",
     formattedBalance: "0.00",
   });
 
@@ -41,7 +43,7 @@ export const Wallet = () => {
     setWalletData({
       address: wallet?.publicKey.toString(),
       shortAddress: address,
-      balance: balance / LAMPORTS_PER_SOL,
+      balance: numeralFormatter(balance / LAMPORTS_PER_SOL),
       formattedBalance: usdFormatter.format(solBank ? (balance / LAMPORTS_PER_SOL) * solBank.info.state.price : 0),
     });
   }, [connection, wallet?.publicKey, address, solBank]);
@@ -62,8 +64,10 @@ export const Wallet = () => {
     <Sheet open={isOpenWallet} onOpenChange={(open) => setIsOpenWallet(open)}>
       <SheetTrigger asChild>
         {walletData && (
-          <button>
-            <WalletAvatar address={walletData.address} className="hover:bg-muted" />
+          <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full px-2">
+            <WalletAvatar address={walletData.address} size="sm" />
+            {walletData.shortAddress}
+            <ChevronDownIcon size="16" />
           </button>
         )}
       </SheetTrigger>
@@ -79,7 +83,10 @@ export const Wallet = () => {
               </h1>
             </header>
             <div className="flex flex-col items-center">
-              <h2 className="text-3xl font-medium">{walletData.formattedBalance}</h2>
+              <div className="text-center">
+                <h2 className="text-3xl font-medium">{walletData.formattedBalance}</h2>
+                <p className="text-muted-foreground text-sm">~{walletData.balance} SOL</p>
+              </div>
               <ul className="mt-8 w-full space-y-2">
                 <li>
                   <Button onClick={() => topUpWallet()} variant="outline" className="p-0 w-full">
