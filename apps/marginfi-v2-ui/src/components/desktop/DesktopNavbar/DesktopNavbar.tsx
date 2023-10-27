@@ -90,14 +90,17 @@ const DesktopNavbar: FC = () => {
 
   // Navigation in hotkey mode
   useHotkeys(
-    "l, s, b, e, o",
+    "l, s+1, s+2, b, e, o",
     (_, handler: HotkeysEvent) => {
       if (isHotkeyMode) {
         switch (handler.keys?.join("")) {
           case "l":
             router.push("/");
             break;
-          case "s":
+          case "s1":
+            router.push("/stake");
+            break;
+          case "s2":
             router.push("/swap");
             break;
           case "b":
@@ -114,26 +117,20 @@ const DesktopNavbar: FC = () => {
         setShowBadges(false);
       }
     },
-    { preventDefault: currentRoute == "/" ? true : false, enableOnFormTags: true }
-  );
-
-  useHotkeys(
-    "meta+k",
-    () => {
-      setShowBadges(true);
-      setTimeout(() => {
-        setShowBadges(false);
-      }, 5000);
-    },
     { enableOnFormTags: true }
   );
 
   useHotkeys(
     "meta+k",
     () => {
-      setShowBadges(false);
+      setShowBadges(true);
+      setIsHotkeyMode(true);
+      setTimeout(() => {
+        setShowBadges(false);
+        setIsHotkeyMode(false);
+      }, 5000);
     },
-    { keyup: true, enableOnFormTags: true }
+    { enableOnFormTags: true }
   );
 
   return (
@@ -183,7 +180,7 @@ const DesktopNavbar: FC = () => {
                     color: "#1C2125",
                   },
                 }}
-                badgeContent={"e"}
+                badgeContent={"s1"}
                 invisible={!showBadges}
               >
                 <Link
@@ -206,7 +203,7 @@ const DesktopNavbar: FC = () => {
                   color: "#1C2125",
                 },
               }}
-              badgeContent={"s"}
+              badgeContent={"s2"}
               invisible={!showBadges}
             >
               <Link
