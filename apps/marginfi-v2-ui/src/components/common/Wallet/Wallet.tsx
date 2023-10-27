@@ -153,14 +153,14 @@ export const Wallet = () => {
     <Sheet open={isOpenWallet} onOpenChange={(open) => setIsOpenWallet(open)}>
       <SheetTrigger asChild>
         {walletData && (
-          <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full px-2 text-base text-muted-foreground">
+          <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full py-0.5 px-2 text-base text-muted-foreground">
             <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
             {walletData.shortAddress}
             <ChevronDownIcon size="16" />
           </button>
         )}
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent className="outline-none">
         {walletData ? (
           <div className="pt-4 px-4 h-full flex flex-col">
             <header className="space-y-2 flex flex-col items-center mb-8">
@@ -194,27 +194,27 @@ export const Wallet = () => {
                             className="w-4 h-4 mr-1"
                           />
                         )}
-                        <span className="mr-2">{walletData.tokens[0].symbol}</span>
-                        <span>{walletData.tokens[0].formattedValue}</span>
-                        <span className="text-xs">({walletData.tokens[0].formattedValueUSD})</span>
+                        <span className="mr-1">{walletData.tokens[0].symbol}</span>
+                        <div className="text-xs space-x-2">
+                          <span>{walletData.tokens[0].formattedValue}</span>
+                          <span className="text-xs font-light">({walletData.tokens[0].formattedValueUSD})</span>
+                        </div>
                         <CaretSortIcon className="ml-auto h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="p-0" style={{ width: "calc(var(--radix-popper-anchor-width) + 8)" }}>
-                      <Command style={{ width: "calc(var(--radix-popper-anchor-width) + 8)" }}>
-                        <CommandInput placeholder="Search framework..." className="h-9" />
-                        <CommandEmpty>No framework found.</CommandEmpty>
+                    <PopoverContent className="p-0 w-[304px] m-0">
+                      <Command>
+                        <CommandInput placeholder="Search tokens..." className="h-9" />
+                        <CommandEmpty>No token found.</CommandEmpty>
                         <CommandGroup>
                           {walletData.tokens.slice(1).map((token, index) => (
-                            <CommandItem
-                              key={index}
-                              className="flex items-center justify-start font-medium"
-                              style={{ width: "calc(var(--radix-popper-anchor-width) + 8)" }}
-                            >
-                              {token.image && <img src={token.image} alt={token.symbol} className="w-4 h-4 mr-2" />}
+                            <CommandItem key={index} className="flex items-center justify-start font-medium pl-3">
+                              {token.image && <img src={token.image} alt={token.symbol} className="w-4 h-4 mr-3" />}
                               <span className="mr-2">{token.symbol}</span>
-                              <span>{token.formattedValue}</span>
-                              <span className="text-xs">({token.formattedValueUSD})</span>
+                              <div className="text-xs space-x-2">
+                                <span>{token.formattedValue}</span>
+                                <span>({token.formattedValueUSD})</span>
+                              </div>
                             </CommandItem>
                           ))}
                         </CommandGroup>

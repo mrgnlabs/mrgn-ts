@@ -17,10 +17,10 @@ export const WalletAvatar = ({ pfp, address, size = "md", className }: WalletAva
   }, [pfp, address]);
 
   const sizeInPx = React.useMemo(() => {
-    if (size === "sm") return 32;
-    if (size === "md") return 40;
-    if (size === "lg") return 64;
-  }, [size]);
+    if (size === "sm") return pfp ? 30 : 32;
+    if (size === "md") return pfp ? 34 : 40;
+    if (size === "lg") return pfp ? 62 : 64;
+  }, [size, pfp]);
 
   const containerSizeInPx = React.useMemo(() => {
     if (!sizeInPx) return 0;
