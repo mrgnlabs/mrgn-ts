@@ -24,7 +24,7 @@ type Web3AuthContextProps = {
     }>
   ) => void;
   logout: () => void;
-  exportPrivateKey: () => void;
+  privateKey: string;
   pfp: string;
 };
 
@@ -47,11 +47,15 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   const [isOpenAuthDialog, setIsOpenAuthDialog] = React.useState<boolean>(false);
   const [isOpenWallet, setIsOpenWallet] = React.useState<boolean>(false);
   const [pfp, setPfp] = React.useState<string>("");
+  const [privateKey, setPrivateKey] = React.useState<string>("");
 
   const logout = async () => {
     if (!web3auth) return;
     await web3auth.logout();
     setWalletData(undefined);
+    setWeb3authProvider(null);
+    setPrivateKey("");
+    setPfp("");
   };
 
   const login = async (provider: string, extraLoginOptions: any = {}) => {
@@ -74,27 +78,21 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
     }
   };
 
-  const exportPrivateKey = React.useCallback(async () => {
-    if (!web3authProvider) return;
-    const privateKey = await web3authProvider.request({
-      method: "solanaPrivateKey",
-    });
-
-    alert(privateKey);
-    console.log(privateKey);
-  }, [web3authProvider]);
-
   const makeWeb3AuthWalletData = async (web3authProvider: IProvider) => {
     if (!web3auth) return;
 
     const solanaWallet = new SolanaWallet(web3authProvider);
     const accounts = await solanaWallet.requestAccounts();
+    const pk = await web3authProvider.request({
+      method: "solanaPrivateKey",
+    });
 
     if (web3auth.getUserInfo) {
       const userData = await web3auth.getUserInfo();
       setPfp(userData.profileImage || "");
     }
 
+    setPrivateKey(pk as string);
     setWeb3authProvider(web3authProvider);
     setWalletData({
       publicKey: new PublicKey(accounts[0]),
@@ -157,7 +155,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
         connected: Boolean(web3auth?.connected),
         login,
         logout,
-        exportPrivateKey,
+        privateKey,
         pfp,
       }}
     >

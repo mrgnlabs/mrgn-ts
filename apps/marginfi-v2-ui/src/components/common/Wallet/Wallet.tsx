@@ -4,7 +4,8 @@ import { useRouter } from "next/router";
 import { LAMPORTS_PER_SOL, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
-import { CaretSortIcon } from "@radix-ui/react-icons";
+import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useMrgnlendStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -31,8 +32,9 @@ export const Wallet = () => {
   const [sortedBanks] = useMrgnlendStore((state) => [state.extendedBankInfos]);
   const { connection } = useConnection();
   const { wallet, connected, logout } = useWalletContext();
-  const { isOpenWallet, setIsOpenWallet, pfp, exportPrivateKey } = useWeb3AuthWallet();
+  const { isOpenWallet, setIsOpenWallet, pfp, privateKey } = useWeb3AuthWallet();
   const [isTokensOpen, setIsTokensOpen] = React.useState(false);
+  const [isPrivateKeyCopied, setIsPrivateKeyCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
@@ -145,6 +147,13 @@ export const Wallet = () => {
     [connection]
   );
 
+  const privateKeyCopied = React.useCallback(() => {
+    setIsPrivateKeyCopied(true);
+    setTimeout(() => {
+      setIsPrivateKeyCopied(false);
+    }, 2000);
+  }, []);
+
   React.useEffect(() => {
     getWalletData();
   }, [connected, wallet?.publicKey]);
@@ -252,16 +261,26 @@ export const Wallet = () => {
                       Logout
                     </Button>
                   </li>
-                  <li>
-                    <Button
-                      onClick={() => exportPrivateKey()}
-                      variant="link"
-                      size="sm"
-                      className="p-0 w-full opacity-50"
-                    >
-                      Export private key
-                    </Button>
-                  </li>
+                  {privateKey && (
+                    <li>
+                      <CopyToClipboard text={privateKey} onCopy={() => privateKeyCopied()}>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="p-0 w-full opacity-50 gap-1"
+                          disabled={isPrivateKeyCopied}
+                        >
+                          {isPrivateKeyCopied ? (
+                            <>
+                              Copied to clipboard <CheckIcon />
+                            </>
+                          ) : (
+                            "Export private key"
+                          )}
+                        </Button>
+                      </CopyToClipboard>
+                    </li>
+                  )}
                 </ul>
               </SheetFooter>
             </div>
