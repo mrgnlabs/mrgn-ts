@@ -6,7 +6,6 @@ import { SwapMode, useJupiter } from "@jup-ag/react-hook";
 import { createJupiterApiClient } from "@jup-ag/api";
 import JSBI from "jsbi";
 import BN from "bn.js";
-import { toast } from "react-toastify";
 import debounce from "lodash.debounce";
 import Modal from "react-native-modal";
 
@@ -17,6 +16,7 @@ import { useLstStore } from "~/store/store";
 import { NumberInput, PrimaryButton } from "~/components/Common";
 import { useConnection } from "~/context/ConnectionContext";
 import { useWallet } from "~/context/WalletContext";
+import { showErrorToast, showSuccessToast } from "~/utils";
 
 import { SettingsModal } from "./Modals/SettingsModal";
 import {
@@ -134,7 +134,7 @@ export const StakingCard: FC = () => {
     [depositOption, refresh, lastRefreshTimestamp]
   );
 
-  const showErrotToast = useRef(debounce(() => toast.error("Failed to find route"), 250));
+  const showErrotToast = useRef(debounce(() => showErrorToast("Failed to find route"), 250));
 
   useEffect(() => {
     if (error !== undefined) {
@@ -313,7 +313,7 @@ export const StakingCard: FC = () => {
         throw new Error("Invalid deposit option");
       }
 
-      toast.success("Minting complete");
+      showSuccessToast("Minting complete");
     } catch (error: any) {
       if (error.logs) {
         console.log("------ Logs 👇 ------");
@@ -324,7 +324,7 @@ export const StakingCard: FC = () => {
       if (errorMsg) {
         errorMsg = errorMsg ? errorMsg : "Transaction failed!";
       }
-      toast.error(errorMsg);
+      showErrorToast(errorMsg);
     } finally {
       await Promise.all([refresh(), fetchLstState()]);
       setDepositOption((currentDepositOption) =>
