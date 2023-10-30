@@ -15,15 +15,15 @@ const socialProviders: {
 }[] = [
   {
     name: "google",
-    image: <FcGoogle className="text-2xl" />,
+    image: <FcGoogle className="text-3xl" />,
   },
   {
     name: "twitter",
-    image: <AiOutlineTwitter className="text-2xl fill-[#1da1f2]" />,
+    image: <AiOutlineTwitter className="text-3xl fill-[#1da1f2]" />,
   },
   {
     name: "apple",
-    image: <AiFillApple className="text-2xl fill-[#a2aaad]" />,
+    image: <AiFillApple className="text-3xl fill-[#a2aaad]" />,
   },
 ];
 
@@ -83,9 +83,9 @@ export const WalletAuthDialog = () => {
               <hr className="flex-grow border-gray-300 dark:border-gray-700" />
             </div>
 
-            <ul className="flex flex-col gap-2 w-full">
+            <ul className="flex items-center justify-center gap-4 w-full">
               {socialProviders.map((provider, i) => (
-                <li className="flex flex-col" key={i}>
+                <li key={i}>
                   <WalletAuthButton
                     loading={isLoading && isActiveLoading === provider.name}
                     active={!isLoading || (isLoading && isActiveLoading === provider.name)}
@@ -108,12 +108,12 @@ export const WalletAuthDialog = () => {
                   <span className="px-2 text-gray-500 dark:text-gray-400">or connect wallet</span>
                   <hr className="flex-grow border-gray-300 dark:border-gray-700" />
                 </div>
-                <ul className="flex flex-col gap-2">
+                <ul className="flex items-center justify-center gap-4">
                   {filteredWallets.map((wallet, i) => (
-                    <li className="flex flex-col" key={i}>
+                    <li key={i}>
                       <WalletAuthButton
                         name={wallet.adapter.name}
-                        image={<Image src={wallet.adapter.icon} width={20} height={20} alt={wallet.adapter.name} />}
+                        image={<Image src={wallet.adapter.icon} width={26} height={26} alt={wallet.adapter.name} />}
                         loading={isLoading && isActiveLoading === wallet.adapter.name}
                         active={!isLoading || (isLoading && isActiveLoading === wallet.adapter.name)}
                         onClick={() => {
