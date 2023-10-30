@@ -25,7 +25,7 @@ const SwapPage = () => {
           <div className="hidden sm:block flex flex-row items-center gap-1">
             <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
             <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
-            <span className="text-sm h-[48px] pt-[28px] bg-jup-gradient-colors bg-clip-text text-transparent">
+            <span className="text-sm h-[48px] pt-[28px] bg-jup-gradient-colors bg-clip-text text-transparent ml-1">
               Jupiter
             </span>
           </div>

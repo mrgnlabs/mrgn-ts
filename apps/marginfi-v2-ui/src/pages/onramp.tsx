@@ -30,7 +30,7 @@ const OnRampPage = () => {
             <div className="hidden sm:block flex flex-row items-center gap-1">
               <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
               <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
-              <span className="text-sm h-[48px] pt-[28px] text-[rgb(125, 0, 255)]">Moonpay</span>
+              <span className="text-sm h-[48px] pt-[28px] text-[#935bcf] ml-1">Moonpay</span>
             </div>
           </Desktop>
         </div>
