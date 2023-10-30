@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { LAMPORTS_PER_SOL, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useMrgnlendStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
@@ -13,9 +12,9 @@ import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { WalletAvatar } from "~/components/common/Wallet";
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Button } from "~/components/ui/button";
-import { ChevronDownIcon } from "~/components/ui/icons";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { IconCaretUpDownFilled, IconCheck, IconChevronDown } from "~/components/ui/icons";
 
 type token = {
   name: string;
@@ -165,7 +164,7 @@ export const Wallet = () => {
           <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full py-0.5 px-2 text-base text-muted-foreground">
             <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
             {walletData.shortAddress}
-            <ChevronDownIcon size="16" />
+            <IconChevronDown size={16} />
           </button>
         )}
       </SheetTrigger>
@@ -208,7 +207,7 @@ export const Wallet = () => {
                           <span>{walletData.tokens[0].formattedValue}</span>
                           <span className="text-xs font-light">({walletData.tokens[0].formattedValueUSD})</span>
                         </div>
-                        <CaretSortIcon className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                        <IconCaretUpDownFilled size={16} className="ml-auto shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="p-0 w-[304px] m-0">
@@ -272,7 +271,7 @@ export const Wallet = () => {
                         >
                           {isPrivateKeyCopied ? (
                             <>
-                              Copied to clipboard <CheckIcon />
+                              Copied to clipboard <IconCheck />
                             </>
                           ) : (
                             "Export private key"
