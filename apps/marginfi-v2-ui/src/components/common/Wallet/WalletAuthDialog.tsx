@@ -1,13 +1,22 @@
 import React from "react";
 import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { AiOutlineTwitter, AiFillApple } from "react-icons/ai";
-import { FcGoogle } from "react-icons/fc";
 import { Mrgn } from "~/components/common/icons/Mrgn";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Web3AuthSocialProvider, useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { WalletAuthButton, WalletAuthEmailForm } from "~/components/common/Wallet";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import {
+  IconBrandX,
+  IconBrandApple,
+  IconBrandGoogleFilled,
+  IconBraveWallet,
+  IconPhantomWallet,
+  IconBackpackWallet,
+  IconSolflareWallet,
+  IconWalletConnectWallet,
+  IconGlowWallet,
+} from "~/components/ui/icons";
 
 const socialProviders: {
   name: Web3AuthSocialProvider;
@@ -15,17 +24,26 @@ const socialProviders: {
 }[] = [
   {
     name: "google",
-    image: <FcGoogle className="text-3xl" />,
+    image: <IconBrandGoogleFilled />,
   },
   {
     name: "twitter",
-    image: <AiOutlineTwitter className="text-3xl fill-[#1da1f2]" />,
+    image: <IconBrandX />,
   },
   {
     name: "apple",
-    image: <AiFillApple className="text-3xl fill-[#a2aaad]" />,
+    image: <IconBrandApple className="fill-white" />,
   },
 ];
+
+const walletIcons: { [key: string]: React.ReactNode } = {
+  "Brave Wallet": <IconBraveWallet />,
+  Phantom: <IconPhantomWallet />,
+  Solflare: <IconSolflareWallet />,
+  Backpack: <IconBackpackWallet />,
+  WalletConnect: <IconWalletConnectWallet />,
+  Glow: <IconGlowWallet />,
+};
 
 export const WalletAuthDialog = () => {
   const { select, wallets } = useWallet();
@@ -109,22 +127,27 @@ export const WalletAuthDialog = () => {
                   <hr className="flex-grow border-gray-300 dark:border-gray-700" />
                 </div>
                 <ul className="flex items-center justify-center gap-4">
-                  {filteredWallets.map((wallet, i) => (
-                    <li key={i}>
-                      <WalletAuthButton
-                        name={wallet.adapter.name}
-                        image={<Image src={wallet.adapter.icon} width={26} height={26} alt={wallet.adapter.name} />}
-                        loading={isLoading && isActiveLoading === wallet.adapter.name}
-                        active={!isLoading || (isLoading && isActiveLoading === wallet.adapter.name)}
-                        onClick={() => {
-                          setIsLoading(true);
-                          setIsActiveLoading(wallet.adapter.name);
-                          select(wallet.adapter.name);
-                          setIsOpenAuthDialog(false);
-                        }}
-                      />
-                    </li>
-                  ))}
+                  {filteredWallets.map((wallet, i) => {
+                    const img = walletIcons[wallet.adapter.name] || (
+                      <Image src={wallet.adapter.icon} width={24} height={24} alt={wallet.adapter.name} />
+                    );
+                    return (
+                      <li key={i}>
+                        <WalletAuthButton
+                          name={wallet.adapter.name}
+                          image={img}
+                          loading={isLoading && isActiveLoading === wallet.adapter.name}
+                          active={!isLoading || (isLoading && isActiveLoading === wallet.adapter.name)}
+                          onClick={() => {
+                            setIsLoading(true);
+                            setIsActiveLoading(wallet.adapter.name);
+                            select(wallet.adapter.name);
+                            setIsOpenAuthDialog(false);
+                          }}
+                        />
+                      </li>
+                    );
+                  })}
                 </ul>
               </>
             )}
