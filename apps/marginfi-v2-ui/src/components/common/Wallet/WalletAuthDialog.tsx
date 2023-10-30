@@ -62,7 +62,7 @@ export const WalletAuthDialog = () => {
             <DialogTitle>Sign in to marginfi</DialogTitle>
             <DialogDescription>
               Sign in with email or social and we&apos;ll create a marginfi wallet for you.
-              <br className="hidden lg:block" /> Or, if you&apos;re experienced, connect your own wallet.
+              <br className="hidden lg:block" /> Or, if you&apos;re experienced, connect your wallet.
             </DialogDescription>
           </DialogHeader>
 
