@@ -1,5 +1,5 @@
 import { Button } from "~/components/ui/button";
-import { Loader } from "~/components/ui/loader";
+import { IconLoader } from "~/components/ui/icons";
 
 type WalletAuthButtonProps = {
   name: string;
@@ -12,9 +12,8 @@ type WalletAuthButtonProps = {
 export const WalletAuthButton = ({ name, image, loading, active, onClick }: WalletAuthButtonProps) => {
   return (
     <Button onClick={() => onClick()} variant="secondary" size="icon" disabled={!active} className="w-14 h-14">
-      {loading && <Loader />}
+      {loading && <IconLoader />}
       {!loading && image}
-      {/* {name.slice(0, 1).toUpperCase() + name.slice(1)} */}
     </Button>
   );
 };

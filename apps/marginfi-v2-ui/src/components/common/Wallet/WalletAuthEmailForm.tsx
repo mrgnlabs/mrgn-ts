@@ -3,7 +3,7 @@ import { cn } from "~/utils/themeUtils";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import { Loader } from "~/components/ui/loader";
+import { IconLoader } from "~/components/ui/icons";
 
 type WalletAuthEmailFormProps = {
   loading: boolean;
@@ -32,7 +32,7 @@ export const WalletAuthEmailForm = ({ loading, active, onSubmit }: WalletAuthEma
         <Input ref={inputRef} id="email" type="email" placeholder="example@example.com" className="text-lg h-12" />
       </div>
       <Button type="submit" size="lg" disabled={!active}>
-        {loading && <Loader className="absolute top-1/2 -translate-y-1/2 left-1.5" />}
+        {loading && <IconLoader className="absolute left-2" />}
         Sign In
       </Button>
     </form>
