@@ -33,7 +33,7 @@ export const WalletAuthEmailForm = ({ loading, active, onSubmit }: WalletAuthEma
       </div>
       <Button type="submit" size="lg" disabled={!active}>
         {loading && <Loader className="absolute top-1/2 -translate-y-1/2 left-1.5" />}
-        Login
+        Sign In
       </Button>
     </form>
   );
