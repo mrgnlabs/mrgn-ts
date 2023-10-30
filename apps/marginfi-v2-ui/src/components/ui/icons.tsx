@@ -8,7 +8,9 @@ import {
   IconWallet,
   IconSearch,
   IconX,
+  IconLoader2,
 } from "@tabler/icons-react";
+import { cn } from "~/utils/themeUtils";
 
 type IconProps = {
   size?: number;
@@ -161,6 +163,10 @@ const IconGlowWallet = ({ size = 24, className }: IconProps) => (
   </svg>
 );
 
+const IconLoader = ({ size = 24, className }: IconProps) => (
+  <IconLoader2 size={size} className={cn("animate-spin", className)} />
+);
+
 export {
   IconCaretUpDownFilled,
   IconCheck,
@@ -177,4 +183,5 @@ export {
   IconBackpackWallet,
   IconWalletConnectWallet,
   IconGlowWallet,
+  IconLoader,
 };
