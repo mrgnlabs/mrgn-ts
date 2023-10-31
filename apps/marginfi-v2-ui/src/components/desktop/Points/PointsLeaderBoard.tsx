@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Skeleton } from "@mui/material";
 import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { LeaderboardRow, fetchLeaderboardData, fetchTotalUserCount } from "@mrgnlabs/marginfi-v2-ui-state";
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useConnection } from "~/hooks/useConnection";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 const SortIcon = ({ orderDir }: { orderDir: "asc" | "desc" }) => {

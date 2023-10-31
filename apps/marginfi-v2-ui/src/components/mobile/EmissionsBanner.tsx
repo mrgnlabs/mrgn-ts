@@ -1,4 +1,4 @@
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useConnection } from "~/hooks/useConnection";
 import { PublicKey } from "@solana/web3.js";
 import { FC, useMemo } from "react";
 import { useWalletContext } from "~/hooks/useWalletContext";

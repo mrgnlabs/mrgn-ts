@@ -28,6 +28,7 @@ const useWalletContext = () => {
         wallet: {
           ...anchorWallet,
           publicKey: new PublicKey(override),
+          signMessage: walletContextState.signMessage,
         },
         isOverride: true,
       };

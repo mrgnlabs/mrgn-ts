@@ -1,7 +1,7 @@
 import React, { useCallback, FC, useState } from "react";
 import Image from "next/image";
 import { Button, Card, CardContent, Checkbox } from "@mui/material";
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useConnection } from "~/hooks/useConnection";
 import { grey } from "@mui/material/colors";
 import { toast } from "react-toastify";
 
@@ -15,19 +15,23 @@ interface PointsSignInProps {}
 
 export const PointsSignIn: FC<PointsSignInProps> = ({}) => {
   const { connection } = useConnection();
-  const { walletContextState, connected } = useWalletContext();
+  const { wallet, connected } = useWalletContext();
   const [useAuthTx, setUseAuthTx] = useState(false);
   const login = useCallback(async () => {
+    if (!wallet) {
+      toast.error("Wallet not connected!");
+      return;
+    }
     toast.info("Logging in...");
     const blockhashInfo = await connection.getLatestBlockhash();
     try {
-      await firebaseApi.login(walletContextState, useAuthTx ? "tx" : "memo", blockhashInfo);
+      await firebaseApi.login(wallet, useAuthTx ? "tx" : "memo", blockhashInfo);
       // localStorage.setItem("authData", JSON.stringify(signedAuthData));
       toast.success("Logged in successfully");
     } catch (loginError: any) {
       toast.error(loginError.message);
     }
-  }, [connection, useAuthTx, walletContextState]);
+  }, [connection, useAuthTx, wallet]);
 
   return (
     <Card className="max-w-[800px] mx-auto w-full bg-[#1A1F22] h-full h-24 rounded-xl" elevation={0}>
