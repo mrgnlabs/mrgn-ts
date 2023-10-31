@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Mrgn } from "~/components/common/icons/Mrgn";
+import { IconMrgn } from "~/components/ui/icons";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Web3AuthSocialProvider, useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { WalletAuthButton, WalletAuthEmailForm } from "~/components/common/Wallet";
@@ -76,7 +76,7 @@ export const WalletAuthDialog = () => {
       <Dialog open={isOpenAuthDialog} onOpenChange={(open) => setIsOpenAuthDialog(open)}>
         <DialogContent>
           <DialogHeader>
-            <Mrgn width={40} />
+            <IconMrgn size={48} />
             <DialogTitle>Sign in to marginfi</DialogTitle>
             <DialogDescription>
               Sign in with email or social and we&apos;ll create a marginfi wallet for you.
@@ -95,7 +95,7 @@ export const WalletAuthDialog = () => {
               }}
             />
 
-            <div className="my-4 flex items-center justify-center text-sm">
+            <div className="mb-4 mt-8 flex items-center justify-center text-sm">
               <hr className="flex-grow border-gray-300 dark:border-gray-700" />
               <span className="px-2 text-gray-500 dark:text-gray-400">or sign in with</span>
               <hr className="flex-grow border-gray-300 dark:border-gray-700" />
@@ -121,7 +121,7 @@ export const WalletAuthDialog = () => {
 
             {filteredWallets.length > 0 && (
               <>
-                <div className="my-4 flex items-center justify-center text-sm">
+                <div className="mb-4 mt-8 flex items-center justify-center text-sm">
                   <hr className="flex-grow border-gray-300 dark:border-gray-700" />
                   <span className="px-2 text-gray-500 dark:text-gray-400">or connect wallet</span>
                   <hr className="flex-grow border-gray-300 dark:border-gray-700" />

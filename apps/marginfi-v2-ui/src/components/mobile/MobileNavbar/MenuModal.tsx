@@ -140,10 +140,10 @@ const AppLink: FC<NavLinkInfo & { onClick?: () => void }> = ({ href, label, Icon
           if (onClick) onClick();
         }}
         className={`w-full h-full flex flex-col justify-center items-center rounded-md bg-black border-[1px] ${
-          isActive ? "border-[#DCE85D]" : "border-[#999]"
+          isActive ? "border-[#DCE85D] text-[#DCE85D]" : "border-[#999] text-[#999]"
         }`}
       >
-        <Icon className="w-[20px] h-[20px]" color={isActive ? "#DCE85D" : "#999"} />
+        <Icon />
         <div className={`font-aeonik font-[400] text-sm ${isActive ? "text-[#DCE85D]" : "text-[#999]"}`}>{label}</div>
       </button>
     </div>
