@@ -57,6 +57,7 @@ export const WalletAuthDialog = () => {
   const filteredWallets = React.useMemo(() => {
     return wallets.filter((wallet) => {
       if (wallet.adapter.name === "Mobile Wallet Adapter" && isIOS) return false;
+      if (wallet.adapter.name === "Solflare" && wallet.readyState !== "Installed" && (isIOS || isAndroid)) return false;
       return wallet.readyState === "Installed" || wallet.readyState === "Loadable";
     });
   }, [wallets]);
