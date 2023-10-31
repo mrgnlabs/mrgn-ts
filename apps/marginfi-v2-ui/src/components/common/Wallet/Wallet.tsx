@@ -9,22 +9,10 @@ import { useMrgnlendStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
-import { WalletAvatar } from "~/components/common/Wallet";
+import { WalletAvatar, WalletTokens, Token } from "~/components/common/Wallet";
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Button } from "~/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
-import { IconCaretUpDownFilled, IconCheck, IconChevronDown } from "~/components/ui/icons";
-
-type token = {
-  name: string;
-  symbol: string;
-  image: string;
-  value: number;
-  valueUSD: number;
-  formattedValue: string;
-  formattedValueUSD?: string;
-};
+import { IconCheck, IconChevronDown, IconBridge, IconTokenSwap, IconSteak, IconCoins } from "~/components/ui/icons";
 
 export const Wallet = () => {
   const router = useRouter();
@@ -32,14 +20,13 @@ export const Wallet = () => {
   const { connection } = useConnection();
   const { wallet, connected, logout } = useWalletContext();
   const { isOpenWallet, setIsOpenWallet, pfp, privateKey } = useWeb3AuthWallet();
-  const [isTokensOpen, setIsTokensOpen] = React.useState(false);
   const [isPrivateKeyCopied, setIsPrivateKeyCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
     balanceSOL: string;
     balanceUSD: string;
-    tokens: token[];
+    tokens: Token[];
   }>({
     address: "",
     shortAddress: "",
@@ -80,7 +67,7 @@ export const Wallet = () => {
       shortAddress: address,
       balanceUSD: usdFormatter.format(totalBalance),
       balanceSOL: solBank ? numeralFormatter(totalBalance / solBank?.info.state.price) : "0.00",
-      tokens: (tokens || []) as token[],
+      tokens: (tokens || []) as Token[],
     });
   }, [connection, wallet?.publicKey, address, solBank]);
 
@@ -161,7 +148,7 @@ export const Wallet = () => {
     <Sheet open={isOpenWallet} onOpenChange={(open) => setIsOpenWallet(open)}>
       <SheetTrigger asChild>
         {walletData && (
-          <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full py-0.5 px-2 text-base text-muted-foreground">
+          <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
             <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
             {walletData.shortAddress}
             <IconChevronDown size={16} />
@@ -184,71 +171,29 @@ export const Wallet = () => {
                 <h2 className="text-3xl font-medium">{walletData.balanceUSD}</h2>
                 <p className="text-muted-foreground text-sm">~{walletData.balanceSOL} SOL</p>
               </div>
-              {walletData.tokens.length > 0 && (
-                <div className="w-full mt-8 space-y-1">
-                  <h3 className="font-medium text-sm">Tokens</h3>
-                  <Popover open={isTokensOpen} onOpenChange={setIsTokensOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={isTokensOpen}
-                        className="w-full justify-start"
-                      >
-                        {walletData.tokens[0].image && (
-                          <img
-                            src={walletData.tokens[0].image}
-                            alt={walletData.tokens[0].symbol}
-                            className="w-4 h-4 mr-1"
-                          />
-                        )}
-                        <span className="mr-1">{walletData.tokens[0].symbol}</span>
-                        <div className="text-xs space-x-2">
-                          <span>{walletData.tokens[0].formattedValue}</span>
-                          <span className="text-xs font-light">({walletData.tokens[0].formattedValueUSD})</span>
-                        </div>
-                        <IconCaretUpDownFilled size={16} className="ml-auto shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0 w-[304px] m-0">
-                      <Command>
-                        <CommandInput placeholder="Search tokens..." className="h-9" />
-                        <CommandEmpty>No token found.</CommandEmpty>
-                        <CommandGroup>
-                          {walletData.tokens.slice(1).map((token, index) => (
-                            <CommandItem key={index} className="flex items-center justify-start font-medium pl-3">
-                              {token.image && <img src={token.image} alt={token.symbol} className="w-4 h-4 mr-3" />}
-                              <span className="mr-2">{token.symbol}</span>
-                              <div className="text-xs space-x-2">
-                                <span>{token.formattedValue}</span>
-                                <span>({token.formattedValueUSD})</span>
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              )}
+              <WalletTokens tokens={walletData.tokens} />
               <ul className="mt-8 w-full space-y-2">
                 <li>
-                  <Button onClick={() => linkTo("/onramp")} variant="outline" className="p-0 w-full">
+                  <Button onClick={() => linkTo("/onramp")} variant="outline" className="w-full">
+                    <IconCoins size={14} />
                     Buy crypto
                   </Button>
                 </li>
                 <li>
-                  <Button onClick={() => linkTo("/bridge")} variant="outline" className="p-0 w-full">
+                  <Button onClick={() => linkTo("/bridge")} variant="outline" className="w-full">
+                    <IconBridge size={14} />
                     Bridge assets
                   </Button>
                 </li>
                 <li>
-                  <Button onClick={() => linkTo("/swap")} variant="outline" className="p-0 w-full">
+                  <Button onClick={() => linkTo("/swap")} variant="outline" className="w-full">
+                    <IconTokenSwap size={14} />
                     Swap tokens
                   </Button>
                 </li>
                 <li>
-                  <Button onClick={() => linkTo("/stake")} variant="outline" className="p-0 w-full">
+                  <Button onClick={() => linkTo("/stake")} variant="outline" className="w-full">
+                    <IconSteak size={14} />
                     Stake for $LST
                   </Button>
                 </li>
