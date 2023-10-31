@@ -5,6 +5,7 @@ import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { useMrgnlendStore } from "~/store";
 import { borrowOrLend, closeBalance, BorrowOrLendParams } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
+import { useWalletContext } from "~/hooks/useWalletContext";
 import { LSTDialogVariants } from "~/components/common/AssetList";
 import { AssetCardStats } from "./AssetCardStats";
 import { AssetCardActions } from "./AssetCardActions";
@@ -24,6 +25,7 @@ export const AssetCard: FC<{
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
+  const { walletContextState } = useWalletContext();
 
   const totalDepositsOrBorrows = useMemo(
     () =>
@@ -78,6 +80,7 @@ export const AssetCard: FC<{
             bank,
             nativeSolBalance,
             marginfiAccount,
+            walletContextState,
           });
         });
         return;
@@ -89,6 +92,7 @@ export const AssetCard: FC<{
         bank,
         nativeSolBalance,
         marginfiAccount,
+        walletContextState,
       });
 
       if (
@@ -123,9 +127,18 @@ export const AssetCard: FC<{
         bank,
         nativeSolBalance,
         marginfiAccount,
+        walletContextState,
       }: Omit<BorrowOrLendParams, "borrowOrLendAmount">
     ) => {
-      await borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
+      await borrowOrLend({
+        mfiClient,
+        currentAction,
+        bank,
+        borrowOrLendAmount,
+        nativeSolBalance,
+        marginfiAccount,
+        walletContextState,
+      });
 
       // -------- Refresh state
       try {

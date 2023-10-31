@@ -358,15 +358,14 @@ class MarginfiClient {
    *
    * @returns transaction instruction
    */
-  async makeCreateMarginfiAccountIx(marginfiAccountKeypair?: Keypair): Promise<InstructionsWrapper> {
+  async makeCreateMarginfiAccountIx(marginfiAccountPk: PublicKey): Promise<InstructionsWrapper> {
     const dbg = require("debug")("mfi:client");
-    const accountKeypair = marginfiAccountKeypair || Keypair.generate();
 
-    dbg("Generating marginfi account ix for %s", accountKeypair.publicKey);
+    dbg("Generating marginfi account ix for %s", marginfiAccountPk);
 
     const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
       marginfiGroupPk: this.groupAddress,
-      marginfiAccountPk: accountKeypair.publicKey,
+      marginfiAccountPk,
       authorityPk: this.provider.wallet.publicKey,
       feePayerPk: this.provider.wallet.publicKey,
     });
@@ -375,7 +374,7 @@ class MarginfiClient {
 
     return {
       instructions: ixs,
-      keys: [accountKeypair],
+      keys: [],
     };
   }
 
@@ -384,20 +383,28 @@ class MarginfiClient {
    *
    * @returns MarginfiAccount instance
    */
-  async createMarginfiAccount(opts?: TransactionOptions): Promise<MarginfiAccountWrapper> {
+  async createMarginfiAccount(
+    opts?: TransactionOptions,
+    createOpts?: { newAccountKey?: PublicKey | undefined }
+  ): Promise<MarginfiAccountWrapper> {
     const dbg = require("debug")("mfi:client");
 
-    const accountKeypair = Keypair.generate();
+    const ephemeraKeypair = Keypair.generate();
+    const newAccountKey = createOpts?.newAccountKey ? createOpts.newAccountKey : ephemeraKeypair.publicKey;
 
-    const ixs = await this.makeCreateMarginfiAccountIx(accountKeypair);
+    const ixs = await this.makeCreateMarginfiAccountIx(newAccountKey);
+    const signers = [...ixs.keys];
+    // If there was no newAccountKey provided, we need to sign with the ephemeraKeypair we generated.
+    if (!createOpts?.newAccountKey) signers.push(ephemeraKeypair);
+
     const tx = new Transaction().add(...ixs.instructions);
-    const sig = await this.processTransaction(tx, ixs.keys, opts);
+    const sig = await this.processTransaction(tx, signers, opts);
 
     dbg("Created Marginfi account %s", sig);
 
     return opts?.dryRun
       ? Promise.resolve(undefined as unknown as MarginfiAccountWrapper)
-      : MarginfiAccountWrapper.fetch(accountKeypair.publicKey, this, opts?.commitment);
+      : MarginfiAccountWrapper.fetch(newAccountKey, this, opts?.commitment);
   }
 
   // --------------------------------------------------------------------------
