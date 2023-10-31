@@ -17,6 +17,7 @@ import { MarginfiAccountWrapper, PriceBias, MarginfiClient } from "@mrgnlabs/mar
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { AssetRowInputBox, AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
+import { useWalletContext } from "~/hooks/useWalletContext";
 import { closeBalance, borrowOrLend, BorrowOrLendParams } from "~/utils";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
@@ -63,6 +64,7 @@ const AssetRow: FC<{
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
+  const { walletContextState } = useWalletContext();
 
   const assetPriceOffset = useMemo(
     () =>
@@ -143,6 +145,7 @@ const AssetRow: FC<{
           borrowOrLendAmount,
           nativeSolBalance,
           marginfiAccount,
+          walletContextState,
         });
       });
       return;
@@ -155,6 +158,7 @@ const AssetRow: FC<{
       borrowOrLendAmount,
       nativeSolBalance,
       marginfiAccount,
+      walletContextState,
     });
 
     if (
@@ -187,8 +191,17 @@ const AssetRow: FC<{
       borrowOrLendAmount,
       nativeSolBalance,
       marginfiAccount,
+      walletContextState,
     }: BorrowOrLendParams) => {
-      await borrowOrLend({ mfiClient, currentAction, bank, borrowOrLendAmount, nativeSolBalance, marginfiAccount });
+      await borrowOrLend({
+        mfiClient,
+        currentAction,
+        bank,
+        borrowOrLendAmount,
+        nativeSolBalance,
+        marginfiAccount,
+        walletContextState,
+      });
 
       setBorrowOrLendAmount(0);
 

@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { isWholePosition } from "./mrgnUtils";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Wallet, processTransaction } from "@mrgnlabs/mrgn-common";
+import { WalletContextState } from "@solana/wallet-adapter-react";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
@@ -60,6 +61,7 @@ export type BorrowOrLendParams = {
   borrowOrLendAmount: number;
   nativeSolBalance: number;
   marginfiAccount: MarginfiAccountWrapper | null;
+  walletContextState?: WalletContextState;
 };
 
 export const borrowOrLend = async ({
@@ -69,6 +71,7 @@ export const borrowOrLend = async ({
   borrowOrLendAmount,
   nativeSolBalance,
   marginfiAccount,
+  walletContextState,
 }: BorrowOrLendParams) => {
   if (mfiClient === null) throw Error("Marginfi client not ready");
 
@@ -121,6 +124,19 @@ export const borrowOrLend = async ({
       });
 
       _marginfiAccount = await mfiClient.createMarginfiAccount();
+      // If the connected wallet is SquadsX, use the ephemeral signer address provided by the wallet to create the marginfi account.
+      const adapter = walletContextState?.wallet?.adapter;
+      const ephemeralSignerAddress =
+        adapter &&
+        "standard" in adapter &&
+        "fuse:getEphemeralSigners" in adapter.wallet.features &&
+        // @ts-ignore
+        (await adapter.wallet.features["fuse:getEphemeralSigners"].getEphemeralSigners(1))[0];
+      const ephemeralSignerPubkey = ephemeralSignerAddress ? new PublicKey(ephemeralSignerAddress) : undefined;
+
+      _marginfiAccount = await mfiClient.createMarginfiAccount(undefined, {
+        newAccountKey: ephemeralSignerPubkey,
+      });
       toast.update(BORROW_OR_LEND_TOAST_ID, {
         render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol}`,
       });
