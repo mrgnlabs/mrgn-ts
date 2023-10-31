@@ -4,3 +4,4 @@ export * from "./WalletAuthButton";
 export * from "./WalletAuthEmailForm";
 export * from "./Wallet";
 export * from "./WalletAvatar";
+export * from "./WalletTokens";
