@@ -25,7 +25,7 @@ const OnRampPage = () => {
     <>
       <PageHeader>
         <div className="flex flex-row gap-1">
-          <span>bridge</span>
+          <span>onramp</span>
           <Desktop>
             <div className="hidden sm:block flex flex-row items-center gap-1">
               <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
@@ -37,7 +37,7 @@ const OnRampPage = () => {
       </PageHeader>
       <div className="w-full h-full flex flex-col justify-start items-center content-start py-[32px] gap-8 w-4/5">
         <iframe
-          height="700px"
+          height="740px"
           width="75%"
           src={`https://buy-sandbox.moonpay.com/${moonPayParams}`}
           style={{ border: "none", display: "flex", margin: "auto" }}
