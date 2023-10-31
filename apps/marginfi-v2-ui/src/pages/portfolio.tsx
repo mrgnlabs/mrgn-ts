@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import CheckIcon from "@mui/icons-material/Check";
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useConnection } from "~/hooks/useConnection";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import config from "~/config/marginfi";

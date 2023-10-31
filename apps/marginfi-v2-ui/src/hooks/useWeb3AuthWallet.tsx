@@ -106,6 +106,11 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
         const signedTransactions = await solanaWallet.signAllTransactions(transactions);
         return signedTransactions;
       },
+      async signMessage(message: Uint8Array): Promise<Uint8Array> {
+        const solanaWallet = new SolanaWallet(web3authProvider);
+        const signedMessage = await solanaWallet.signMessage(message);
+        return signedMessage;
+      },
     });
   };
 

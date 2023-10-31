@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { Button, Card, CardContent, TextField, Checkbox } from "@mui/material";
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useConnection } from "~/hooks/useConnection";
 import { grey } from "@mui/material/colors";
 import { toast } from "react-toastify";
 
@@ -17,7 +17,7 @@ interface PointsSignUpProps {
 
 export const PointsSignUp: FC<PointsSignUpProps> = ({ referralCode }) => {
   const { connection } = useConnection();
-  const { walletContextState, connected } = useWalletContext();
+  const { wallet, connected } = useWalletContext();
   const [manualCode, setManualCode] = useState("");
   const [useAuthTx, setUseAuthTx] = useState(false);
   const [useManualCode, setUseManualCode] = useState(false);
@@ -34,16 +34,20 @@ export const PointsSignUp: FC<PointsSignUpProps> = ({ referralCode }) => {
   }, [manualCode]);
 
   const signup = useCallback(async () => {
+    if (!wallet) {
+      toast.error("Wallet not connected!");
+      return;
+    }
     toast.info("Logging in...");
     const blockhashInfo = await connection.getLatestBlockhash();
     try {
-      await firebaseApi.signup(walletContextState, useAuthTx ? "tx" : "memo", blockhashInfo, finalReferralCode);
+      await firebaseApi.signup(wallet, useAuthTx ? "tx" : "memo", blockhashInfo, finalReferralCode);
       // localStorage.setItem("authData", JSON.stringify(signedAuthData));
       toast.success("Signed up successfully");
     } catch (signupError: any) {
       toast.error(signupError.message);
     }
-  }, [connection, finalReferralCode, useAuthTx, walletContextState]);
+  }, [connection, finalReferralCode, useAuthTx, wallet]);
 
   return (
     <Card className="max-w-[800px] mx-auto w-full bg-[#1A1F22] h-full h-24 rounded-xl" elevation={0}>

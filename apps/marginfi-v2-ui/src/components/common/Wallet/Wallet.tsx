@@ -50,6 +50,8 @@ export const Wallet = () => {
     const balance = await connection.getBalance(wallet?.publicKey);
     const tokens = await getSupportedTokens(wallet?.publicKey);
 
+    console.log("tokerns", tokens);
+
     tokens.splice(0, 0, {
       name: "Solana",
       symbol: "SOL",
@@ -142,7 +144,14 @@ export const Wallet = () => {
 
   React.useEffect(() => {
     getWalletData();
-  }, [connected, wallet?.publicKey]);
+    const intervalId = setInterval(() => {
+      getWalletData();
+    }, 20000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [connected, wallet?.publicKey, getWalletData]);
 
   return (
     <Sheet open={isOpenWallet} onOpenChange={(open) => setIsOpenWallet(open)}>

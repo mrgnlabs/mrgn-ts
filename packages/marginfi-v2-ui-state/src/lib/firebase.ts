@@ -16,6 +16,7 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import base58 from "bs58";
 import { object, string, optional, Infer } from "superstruct";
 import { FIREBASE_CONFIG } from "../config";
+import { Wallet } from "@mrgnlabs/mrgn-common";
 
 const app = initializeApp(FIREBASE_CONFIG);
 const db = getFirestore(app);
@@ -60,7 +61,7 @@ const LoginPayloadStruct = object({
 type LoginPayload = Infer<typeof LoginPayloadStruct>;
 
 async function login(
-  wallet: WalletContextState,
+  wallet: Wallet,
   signingMethod: SigningMethod,
   blockhash: BlockhashWithExpiryBlockHeight
 ): Promise<{ signingMethod: SigningMethod; signedAuthDataRaw: string }> {
@@ -79,7 +80,7 @@ const SignupPayloadStruct = object({
 type SignupPayload = Infer<typeof SignupPayloadStruct>;
 
 async function signup(
-  wallet: WalletContextState,
+  wallet: Wallet,
   signingMethod: SigningMethod,
   blockhash: BlockhashWithExpiryBlockHeight,
   referralCode?: string
@@ -142,7 +143,7 @@ async function loginWithAuthData(signingMethod: SigningMethod, signedAuthDataRaw
   await signinFirebaseAuth(data.token);
 }
 
-async function signSignupMemo(wallet: WalletContextState, authData: SignupPayload): Promise<string> {
+async function signSignupMemo(wallet: Wallet, authData: SignupPayload): Promise<string> {
   if (!wallet.publicKey) {
     throw new Error("Wallet not connected!");
   }
@@ -154,7 +155,7 @@ async function signSignupMemo(wallet: WalletContextState, authData: SignupPayloa
   const signature = await wallet.signMessage(encodedMessage);
   const signedData = JSON.stringify({
     data: authData,
-    signature: base58.encode(signature),
+    signature: base58.encode(signature as Uint8Array),
     signer: wallet.publicKey.toBase58(),
   });
 
@@ -162,7 +163,7 @@ async function signSignupMemo(wallet: WalletContextState, authData: SignupPayloa
 }
 
 async function signSignupTx(
-  wallet: WalletContextState,
+  wallet: Wallet,
   authData: SignupPayload,
   blockhash: BlockhashWithExpiryBlockHeight
 ): Promise<string> {
@@ -182,7 +183,7 @@ async function signSignupTx(
   return signedData;
 }
 
-async function signLoginMemo(wallet: WalletContextState, authData: LoginPayload): Promise<string> {
+async function signLoginMemo(wallet: Wallet, authData: LoginPayload): Promise<string> {
   if (!wallet.publicKey) {
     throw new Error("Wallet not connected!");
   }
@@ -194,7 +195,7 @@ async function signLoginMemo(wallet: WalletContextState, authData: LoginPayload)
   const signature = await wallet.signMessage(encodedMessage);
   const signedData = JSON.stringify({
     data: authData,
-    signature: base58.encode(signature),
+    signature: base58.encode(signature as Uint8Array),
     signer: wallet.publicKey.toBase58(),
   });
 
@@ -202,7 +203,7 @@ async function signLoginMemo(wallet: WalletContextState, authData: LoginPayload)
 }
 
 async function signLoginTx(
-  wallet: WalletContextState,
+  wallet: Wallet,
   authData: LoginPayload,
   blockhash: BlockhashWithExpiryBlockHeight
 ): Promise<string> {

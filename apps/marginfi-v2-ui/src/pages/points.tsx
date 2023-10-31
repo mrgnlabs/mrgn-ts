@@ -6,7 +6,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import { useRouter } from "next/router";
 import { getFavoriteDomain } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useConnection } from "~/hooks/useConnection";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
