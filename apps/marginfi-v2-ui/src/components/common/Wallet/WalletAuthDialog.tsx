@@ -1,12 +1,13 @@
 import React from "react";
 import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { IconMrgn } from "~/components/ui/icons";
+import { useOs } from "~/hooks/useOs";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Web3AuthSocialProvider, useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { WalletAuthButton, WalletAuthEmailForm } from "~/components/common/Wallet";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import {
+  IconMrgn,
   IconBrandX,
   IconBrandApple,
   IconBrandGoogleFilled,
@@ -51,9 +52,13 @@ export const WalletAuthDialog = () => {
   const { isOpenAuthDialog, setIsOpenAuthDialog } = useWeb3AuthWallet();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
+  const { isAndroid, isIOS } = useOs();
 
   const filteredWallets = React.useMemo(() => {
-    return wallets.filter((wallet) => wallet.readyState === "Installed" || wallet.readyState === "Loadable");
+    return wallets.filter((wallet) => {
+      if (wallet.adapter.name === "Mobile Wallet Adapter" && isIOS) return false;
+      return wallet.readyState === "Installed" || wallet.readyState === "Loadable";
+    });
   }, [wallets]);
 
   React.useEffect(() => {
@@ -119,7 +124,7 @@ export const WalletAuthDialog = () => {
               ))}
             </ul>
 
-            {filteredWallets.length > 0 && (
+            {(filteredWallets.length > 0 || isAndroid || isIOS) && (
               <>
                 <div className="mb-4 mt-8 flex items-center justify-center text-sm">
                   <hr className="flex-grow border-gray-300 dark:border-gray-700" />
@@ -148,6 +153,20 @@ export const WalletAuthDialog = () => {
                       </li>
                     );
                   })}
+                  {(isAndroid || isIOS) && (
+                    <li>
+                      <WalletAuthButton
+                        name="phantom"
+                        image={<IconPhantomWallet />}
+                        loading={false}
+                        active={true}
+                        onClick={() => {
+                          window.location.href =
+                            "https://phantom.app/ul/browse/https://app.marginfi.com?ref=https://app.marginfi.com";
+                        }}
+                      />
+                    </li>
+                  )}
                 </ul>
               </>
             )}
