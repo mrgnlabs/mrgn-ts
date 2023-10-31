@@ -1,5 +1,13 @@
 import { FC, SVGProps } from "react";
-import { PieChart, ReceiveMoney, TokenSwap, More, Bridge, Coins, Steak } from "~/components/common/icons";
+import {
+  IconPieChart,
+  IconReceiveMoney,
+  IconTokenSwap,
+  IconMore,
+  IconBridge,
+  IconCoins,
+  IconSteak,
+} from "~/components/ui/icons";
 export interface NavLinkInfo {
   href: string;
   alt: string;
@@ -12,26 +20,26 @@ export const ORDERED_MOBILE_NAVBAR_LINKS: NavLinkInfo[] = [
     href: "/",
     alt: "hand with money icon",
     label: "lend",
-    Icon: ReceiveMoney,
+    Icon: IconReceiveMoney,
   },
   {
     href: "/stake",
     alt: "steak icon",
     label: "stake",
-    Icon: Steak,
+    Icon: IconSteak,
   },
 
   {
     href: "/portfolio",
     alt: "pie chart icon",
     label: "portfolio",
-    Icon: PieChart,
+    Icon: IconPieChart,
   },
   {
     href: "",
     alt: "more menu icon",
     label: "more",
-    Icon: More,
+    Icon: IconMore,
   },
 ];
 
@@ -40,42 +48,36 @@ export const ORDERED_MOBILE_LAUNCHER_LINKS: NavLinkInfo[] = [
     href: "/",
     alt: "hand with money icon",
     label: "lend",
-    Icon: ReceiveMoney,
+    Icon: IconReceiveMoney,
   },
   {
     href: "/stake",
     alt: "steak icon",
     label: "stake",
-    Icon: Steak,
+    Icon: IconSteak,
   },
   {
     href: "/portfolio",
     alt: "pie chart icon",
     label: "portfolio",
-    Icon: PieChart,
+    Icon: IconPieChart,
   },
   {
     href: "/swap",
     alt: "coin swap icon",
     label: "swap",
-    Icon: TokenSwap,
+    Icon: IconTokenSwap,
   },
   {
     href: "/bridge",
     alt: "pie chart icon",
     label: "bridge",
-    Icon: Bridge,
+    Icon: IconBridge,
   },
   {
     href: "/earn",
     alt: "coins icon",
     label: "earn",
-    Icon: Coins,
+    Icon: IconCoins,
   },
-  // {
-  //   href: "/points",
-  //   alt: "hashtag icon",
-  //   label: "points",
-  //   Icon: Hashtag,
-  // },
 ];

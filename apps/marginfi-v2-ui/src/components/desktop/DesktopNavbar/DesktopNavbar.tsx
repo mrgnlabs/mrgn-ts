@@ -14,7 +14,7 @@ import { useConnection } from "@solana/wallet-adapter-react";
 import { toast } from "react-toastify";
 import { EMISSION_MINT_INFO_MAP } from "../AssetsList/AssetRow";
 import { collectRewardsBatch } from "~/utils";
-import { Mrgn } from "~/components/common/icons/Mrgn";
+import { IconMrgn } from "~/components/ui/icons";
 import { useLstStore } from "~/pages/stake";
 import { WalletButton } from "~/components/common/Wallet";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
@@ -140,9 +140,9 @@ const DesktopNavbar: FC = () => {
           <div className="h-full w-1/2 flex justify-start items-center z-10 gap-4 lg:gap-8">
             <Link
               href={"https://app.marginfi.com"}
-              className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center"
+              className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center text-white"
             >
-              <Mrgn />
+              <IconMrgn size={35} />
             </Link>
             <Badge
               anchorOrigin={{

@@ -4,6 +4,7 @@ import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useRouter } from "next/router";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { cn } from "~/utils/themeUtils";
 import { MenuModal } from "./MenuModal";
 import { ORDERED_MOBILE_NAVBAR_LINKS } from "~/config/navigationLinks";
 import { useSwipeGesture } from "~/hooks/useSwipeGesture";
@@ -57,9 +58,12 @@ const MobileNavbar: FC = () => {
                 key={linkInfo.label}
                 onClick={() => linkInfo.label === "more" && setIsMenuModalOpen(true)}
                 href={linkInfo.href}
-                className={`w-1/4 h-full flex flex-col pt-3 items-center ${isActive ? "current-mobile-nav-link" : ""}`}
+                className={cn(
+                  "w-1/4 h-full flex flex-col pt-3 items-center",
+                  isActive ? "text-[#DCE85D]" : "text-[#999]"
+                )}
               >
-                <linkInfo.Icon className="w-[24px] h-[24px]" color={isActive ? "#DCE85D" : "#999"} />
+                <linkInfo.Icon />
                 <div className={`font-aeonik font-[400] ${isActive ? "text-[#DCE85D]" : "text-[#999]"}`}>
                   {linkInfo.label}
                 </div>

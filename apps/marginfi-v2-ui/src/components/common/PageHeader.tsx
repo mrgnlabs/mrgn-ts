@@ -2,7 +2,7 @@ import { FC, ReactNode } from "react";
 import { useUiStore } from "~/store";
 import { WalletButton } from "./Wallet";
 import { Mobile } from "~/mediaQueries";
-import { Mrgn } from "./icons/Mrgn";
+import { IconMrgn } from "~/components/ui/icons";
 
 interface PageHeaderProps {
   children: ReactNode;
@@ -16,7 +16,7 @@ const PageHeader: FC<PageHeaderProps> = ({ children }) => {
       <div className="w-full px-4 sm:w-4/5 sm:max-w-7xl flex flex-row justify-between items-center border-solid font-aeonik font-normal text-2xl sm:text-3xl">
         <div className="flex gap-4 justify-center items-center">
           <Mobile>
-            <Mrgn className={`w-[18px] ${isFetchingData ? "animate-pulse" : ""}`} />
+            <IconMrgn size={18} className={`${isFetchingData ? "animate-pulse" : ""}`} />
           </Mobile>
           <div>{children}</div>
         </div>
