@@ -61,6 +61,10 @@ export const WalletAuthDialog = () => {
     });
   }, [wallets]);
 
+  const isPhantomInstalled = React.useMemo(() => {
+    return wallets.some((wallet) => wallet.adapter.name === "Phantom" && wallet.readyState === "Installed");
+  }, [wallets]);
+
   React.useEffect(() => {
     if (!isOpenAuthDialog) {
       setIsLoading(false);
@@ -153,7 +157,7 @@ export const WalletAuthDialog = () => {
                       </li>
                     );
                   })}
-                  {(isAndroid || isIOS) && (
+                  {(isAndroid || isIOS) && !isPhantomInstalled && (
                     <li>
                       <WalletAuthButton
                         name="phantom"
