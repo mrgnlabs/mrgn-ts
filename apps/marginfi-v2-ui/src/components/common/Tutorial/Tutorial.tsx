@@ -102,7 +102,7 @@ export const Tutorial = () => {
                   </p>
                   <p>
                     Today, marginfi allows you to do two things: Lend tokens and earn yield on them Borrow tokens, using
-                    tokens you've lent as collateral.
+                    tokens you&apos;ve lent as collateral.
                   </p>
                 </div>
               </TutorialSlide>
@@ -119,9 +119,9 @@ export const Tutorial = () => {
                     made possible by lenders on the platform who borrow these tokens and pay interest on them.
                   </p>
                   <p>
-                    Deposits into marginfi's LIP program may be locked up depending on the LIP campaign they're
-                    deposited to, which is available to users in each LIP campaign configuration and can only be set
-                    when a campaign is initially created.
+                    Deposits into marginfi&apos;s LIP program may be locked up depending on the LIP campaign
+                    they&apos;re deposited to, which is available to users in each LIP campaign configuration and can
+                    only be set when a campaign is initially created.
                   </p>
                   <p>
                     Borrowing on marginfi incurs a fee. Fees are specific to each asset that marginfi supports, usually
@@ -138,8 +138,8 @@ export const Tutorial = () => {
               >
                 <div className="space-y-8 pb-2 max-w-[44rem] mx-auto flex flex-col justify-center">
                   <p>
-                    Every account's health is represented as a health factor. Your account health factor is a single
-                    value that encapsulates how well-collateralized your portfolio is.
+                    Every account&apos;s health is represented as a health factor. Your account health factor is a
+                    single value that encapsulates how well-collateralized your portfolio is.
                   </p>
                   <p className="font-bold mx-auto flex items-center gap-3 border border-solid border-white/50 px-4 py-2 rounded-lg">
                     <Alert height={20} className="hidden md:block" />
