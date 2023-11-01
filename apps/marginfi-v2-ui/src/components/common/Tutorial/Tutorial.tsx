@@ -36,7 +36,7 @@ const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialS
             swiper.slideNext();
           }}
         >
-          Next ({next}) <ArrowRight />
+          {next} <ArrowRight />
         </Button>
       )}
       {!next && (
