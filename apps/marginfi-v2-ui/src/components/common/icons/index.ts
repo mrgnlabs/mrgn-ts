@@ -5,3 +5,5 @@ export * from "./More";
 export * from "./Steak";
 export * from "./Coins";
 export * from "./Bridge";
+export * from "./Mrgn";
+export * from "./Alert";

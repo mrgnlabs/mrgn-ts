@@ -254,3 +254,7 @@ a {
 .swiper-pagination-bullet-active {
   opacity: 1;
 }
+
+.swiper-wrapper {
+  align-items: center;
+}
