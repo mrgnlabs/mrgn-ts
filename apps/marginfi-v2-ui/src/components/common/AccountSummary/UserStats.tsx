@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usdFormatter, numeralFormatter, usdFormatterDyn, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { Alert } from "~/components/common/icons";
 
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 
@@ -230,6 +231,10 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                           <div>
                             Health factor is based off of <b>price biased</b> and <b>weighted</b> asset and liability
                             values.
+                          </div>
+                          <div className="font-bold pb-2">
+                            <Alert height={16} className="inline -translate-y-[1px]" /> When your account health reaches
+                            0% or below, you are exposed to liquidation.
                           </div>
                           <div>The formula is:</div>
                           <div className="text-sm text-center">{"(assets - liabilities) / (assets)"}</div>
