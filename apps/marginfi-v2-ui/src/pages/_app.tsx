@@ -13,10 +13,14 @@ import dynamic from "next/dynamic";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { WalletSelector } from "~/components/mobile/WalletSelector";
+import { Tutorial } from "~/components/common/Tutorial";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "./stake";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { WALLET_ADAPTERS } from "~/config/wallets";
+
+import "swiper/css";
+import "swiper/css/pagination";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -100,6 +104,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
             </Mobile>
             <Analytics />
             <ToastContainer position="bottom-left" theme="dark" />
+            <Tutorial />
           </WalletProvider>
         </ConnectionProvider>
       )}

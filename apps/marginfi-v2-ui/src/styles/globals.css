@@ -29,7 +29,7 @@ body {
 
 body {
   color: rgb(255, 255, 255);
-  background-color: #0F1111;
+  background-color: #0f1111;
   background-size: cover;
   background-repeat: no-repeat;
   font-family: "Aeonik Pro";
@@ -43,7 +43,7 @@ a {
 
 @keyframes pulse {
   0% {
-    opacity: 0.90;
+    opacity: 0.9;
     transform: scale(1);
   }
   50% {
@@ -51,7 +51,7 @@ a {
     transform: scale(1.05);
   }
   100% {
-    opacity: 0.90;
+    opacity: 0.9;
     transform: scale(1);
   }
 }
@@ -71,7 +71,7 @@ a {
   background-image: url(../../public/WaveBG2.png);
   background-size: 400px;
   background-repeat: no-repeat;
-  background-color: #DCE85D;
+  background-color: #dce85d;
   background-position: -20%;
 }
 
@@ -87,7 +87,7 @@ a {
   top: 0;
   height: 3px;
   width: 25%;
-  background-color: #DCE85D;
+  background-color: #dce85d;
   transition: left 0.25s ease-in-out;
 }
 
@@ -117,14 +117,14 @@ a {
 }
 
 .hover-underline-static::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 100%;
   transform: scaleX(1);
   height: 2px;
   bottom: 0;
   left: 0;
-  background-color: #DCE85D;
+  background-color: #dce85d;
   transform-origin: center;
   transition: transform 0.25s ease-out;
 }
@@ -135,14 +135,14 @@ a {
 }
 
 .hover-underline-animation::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 100%;
   transform: scaleX(0);
   height: 2px;
   bottom: 0;
   left: 0;
-  background-color: #DCE85D;
+  background-color: #dce85d;
   transform-origin: center;
   transition: transform 0.25s ease-out;
 }
@@ -153,13 +153,13 @@ a {
 }
 
 .glow {
-  text-shadow: 0 0 10px #DCE85D, 0 0 30px #DCE85D;
-  color: #DCE85D !important;
+  text-shadow: 0 0 10px #dce85d, 0 0 30px #dce85d;
+  color: #dce85d !important;
 }
 
 .glow-uxd {
-  text-shadow: 0 0 10px #05FFFF, 0 0 30px #05FFFF;
-  color: #05FFFF !important;
+  text-shadow: 0 0 10px #05ffff, 0 0 30px #05ffff;
+  color: #05ffff !important;
 }
 
 @keyframes radiate {
@@ -199,16 +199,16 @@ a {
 
 @keyframes wavyGradientAnimation {
   0% {
-      background-position: 200% 0;
+    background-position: 200% 0;
   }
   100% {
-      background-position: 0 0;
+    background-position: 0 0;
   }
 }
 
 .wavy-gradient-bg {
   animation: wavyGradientAnimation 2s linear infinite;
-  background: linear-gradient(90deg, #808080, #DCE85DCC, #808080);
+  background: linear-gradient(90deg, #808080, #dce85dcc, #808080);
   background-size: 200% 100%;
 }
 
@@ -224,19 +224,19 @@ a {
   margin: -50%;
   top: 0;
   left: 0;
-  width: 50%;  /* width of the gleam, you can adjust this */
-  height: 500%;  /* covering the full height of the button */
-  background: linear-gradient(to left, transparent, #ffffff66, transparent);  /* Adjust colors for the gleam effect */
+  width: 50%; /* width of the gleam, you can adjust this */
+  height: 500%; /* covering the full height of the button */
+  background: linear-gradient(to left, transparent, #ffffff66, transparent); /* Adjust colors for the gleam effect */
   transform: translateX(-50%) rotate(-40deg);
   animation: 5s infinite gleam;
 }
-
 
 @keyframes gleam {
   0% {
     transform: translateX(-50%) rotate(-40deg);
   }
-  15%, 100% {
+  15%,
+  100% {
     transform: translateX(350%) rotate(-40deg);
   }
 }
@@ -244,4 +244,13 @@ a {
 #MAYAN_SWAP_PV_ROOT {
   padding-left: 0px;
   padding-right: 0px;
+}
+
+.swiper-pagination-bullet {
+  background: #fff;
+  opacity: 0.25;
+}
+
+.swiper-pagination-bullet-active {
+  opacity: 1;
 }
