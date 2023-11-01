@@ -59,6 +59,7 @@
     "react-toastify": "^9.1.1",
     "sharp": "^0.31.3",
     "superstruct": "^1.0.3",
+    "swiper": "^11.0.3",
     "tweetnacl": "^1.0.3",
     "uuid": "^9.0.0",
     "zustand": "^4.4.1"
