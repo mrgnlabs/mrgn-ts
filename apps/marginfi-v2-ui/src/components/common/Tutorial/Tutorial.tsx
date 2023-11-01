@@ -85,14 +85,7 @@ export const Tutorial = () => {
     >
       <DialogContent className="bg-[#171C1F] w-full rounded-lg text-white items-center justify-center text-center p-0">
         <div className="w-full max-w-4xl">
-          <Swiper
-            modules={[Pagination]}
-            slidesPerView={1}
-            navigation
-            pagination={{ clickable: true }}
-            onSlideChange={() => console.log("slide change")}
-            onSwiper={(swiper) => console.log(swiper)}
-          >
+          <Swiper modules={[Pagination]} slidesPerView={1} navigation pagination={{ clickable: true }}>
             <SwiperSlide className="h-full">
               <TutorialSlide icon={<Mrgn color="#fff" height={48} />} heading="Welcome to marginfi" next="Fees & yield">
                 <div className="space-y-8 pb-2 max-w-xl mx-auto flex flex-col justify-center">
