@@ -1,23 +1,28 @@
 import React from "react";
+import Link from "next/link";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowRight from "@mui/icons-material/ArrowRight";
 import { Button, Dialog, DialogContent } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import { useSwiper } from "swiper/react";
-import { Coins, Mrgn, ReceiveMoney, Alert } from "~/components/common/icons";
+import { Mrgn, ReceiveMoney, Alert } from "~/components/common/icons";
 
 type TutorialSlideProps = {
   icon?: React.ReactNode;
   heading?: string;
   next?: string;
   children: React.ReactNode;
+  closeDialog?: () => void;
 };
 
-const TutorialSlide = ({ children, icon, heading, next }: TutorialSlideProps) => {
+const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialSlideProps) => {
   const swiper = useSwiper();
+
   return (
-    <div className="py-20 px-4 space-y-8 h-full">
+    <div className="py-16 md:py-20 px-4 space-y-8 h-full md:h-auto">
       <header className="space-y-6 flex flex-col items-center">
         {icon && icon}
         {heading && <h2 className="text-3xl font-medium">{heading}</h2>}
@@ -35,21 +40,20 @@ const TutorialSlide = ({ children, icon, heading, next }: TutorialSlideProps) =>
         </Button>
       )}
       {!next && (
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
           <Button
             variant="contained"
-            className="bg-transparent text-white border border-solid border-white gap-2 flex items-center"
-            onClick={() => {
-              swiper.slideNext();
-            }}
+            className="bg-transparent text-white border border-solid border-white gap-2 flex items-center w-full md:w-auto"
           >
-            Read docs
+            <Link href="https://docs.marginfi.com/" target="_blank" rel="noreferrer">
+              Read docs <OpenInNewIcon className="text-sm" />
+            </Link>
           </Button>
           <Button
             variant="contained"
-            className="bg-white text-black gap-2 flex items-center"
+            className="bg-white text-black gap-2 flex items-center w-full md:w-auto"
             onClick={() => {
-              swiper.slideNext();
+              if (closeDialog) closeDialog();
             }}
           >
             Get started
@@ -62,6 +66,8 @@ const TutorialSlide = ({ children, icon, heading, next }: TutorialSlideProps) =>
 
 export const Tutorial = () => {
   const [open, setOpen] = React.useState(true);
+  const theme = useTheme();
+
   return (
     <Dialog
       open={open}
@@ -73,6 +79,7 @@ export const Tutorial = () => {
         style: {
           backgroundColor: "transparent",
           boxShadow: "none",
+          margin: 0,
         },
       }}
     >
@@ -88,7 +95,7 @@ export const Tutorial = () => {
           >
             <SwiperSlide className="h-full">
               <TutorialSlide icon={<Mrgn color="#fff" height={48} />} heading="Welcome to marginfi" next="Fees & yield">
-                <div className="space-y-8 pb-4 max-w-xl mx-auto flex flex-col justify-center">
+                <div className="space-y-8 pb-2 max-w-xl mx-auto flex flex-col justify-center">
                   <p>
                     marginfi is a decentralized lending protocol on Solana that prioritizes risk management to provide a
                     safe and reliable solution for users looking to access leverage and maximize capital efficiency.
@@ -106,7 +113,7 @@ export const Tutorial = () => {
                 heading="Fees & yield"
                 next="Account health"
               >
-                <div className="space-y-8 pb-4 max-w-[41.8rem] mx-auto flex flex-col justify-center">
+                <div className="space-y-8 pb-2 max-w-[41.8rem] mx-auto flex flex-col justify-center">
                   <p>
                     marginfi allows users to deposit supported tokens into the protocol and earn yield on them. This is
                     made possible by lenders on the platform who borrow these tokens and pay interest on them.
@@ -124,14 +131,18 @@ export const Tutorial = () => {
               </TutorialSlide>
             </SwiperSlide>
             <SwiperSlide className="h-full">
-              <TutorialSlide icon={<Alert color="#fff" height={48} />} heading="Account health">
-                <div className="space-y-8 pb-4 max-w-[44rem] mx-auto flex flex-col justify-center">
+              <TutorialSlide
+                icon={<Alert color="#fff" height={48} />}
+                heading="Account health"
+                closeDialog={() => setOpen(false)}
+              >
+                <div className="space-y-8 pb-2 max-w-[44rem] mx-auto flex flex-col justify-center">
                   <p>
                     Every account's health is represented as a health factor. Your account health factor is a single
                     value that encapsulates how well-collateralized your portfolio is.
                   </p>
-                  <p className="font-bold mx-auto flex items-center gap-3 border border-solid border-white/50 px-4 py-2 rounded-xl">
-                    <Alert height={20} />
+                  <p className="font-bold mx-auto flex items-center gap-3 border border-solid border-white/50 px-4 py-2 rounded-lg">
+                    <Alert height={20} className="hidden md:block" />
                     When your account health reaches 0% or below, you are exposed to liquidation.
                   </p>
                   <p>
