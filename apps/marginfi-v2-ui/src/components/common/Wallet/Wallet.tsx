@@ -12,14 +12,14 @@ import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { WalletAvatar, WalletTokens, Token } from "~/components/common/Wallet";
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Button } from "~/components/ui/button";
-import { IconCheck, IconChevronDown, IconBridge, IconTokenSwap, IconSteak, IconCoins } from "~/components/ui/icons";
+import { IconCheck, IconChevronDown, IconCoins, IconCopy } from "~/components/ui/icons";
 
 export const Wallet = () => {
   const router = useRouter();
   const [sortedBanks] = useMrgnlendStore((state) => [state.extendedBankInfos]);
   const { connection } = useConnection();
   const { wallet, connected, logout } = useWalletContext();
-  const { isOpenWallet, setIsOpenWallet, pfp, privateKey } = useWeb3AuthWallet();
+  const { isOpenWallet, setIsOpenWallet, pfp, privateKey, connected: web3authConnected } = useWeb3AuthWallet();
   const [isPrivateKeyCopied, setIsPrivateKeyCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
@@ -182,32 +182,28 @@ export const Wallet = () => {
                 <p className="text-muted-foreground text-sm">~{walletData.balanceSOL} SOL</p>
               </div>
               <WalletTokens tokens={walletData.tokens} />
-              <ul className="mt-8 w-full space-y-2">
-                <li>
-                  <Button onClick={() => linkTo("/onramp")} variant="outline" className="w-full">
-                    <IconCoins size={14} />
-                    Buy crypto
-                  </Button>
-                </li>
-                <li>
-                  <Button onClick={() => linkTo("/bridge")} variant="outline" className="w-full">
-                    <IconBridge size={14} />
-                    Bridge assets
-                  </Button>
-                </li>
-                <li>
-                  <Button onClick={() => linkTo("/swap")} variant="outline" className="w-full">
-                    <IconTokenSwap size={14} />
-                    Swap tokens
-                  </Button>
-                </li>
-                <li>
-                  <Button onClick={() => linkTo("/stake")} variant="outline" className="w-full">
-                    <IconSteak size={14} />
-                    Stake for $LST
-                  </Button>
-                </li>
-              </ul>
+              {web3authConnected && (
+                <div className="mt-8 space-y-4">
+                  <p className="text-sm text-white/50 text-center">
+                    Tranfer funds to this wallet (
+                    <CopyToClipboard text={privateKey} onCopy={() => privateKeyCopied()}>
+                      <button className="cursor-pointer inline-flex items-center gap-1 group">
+                        {shortenAddress(walletData.address)}
+                        <IconCopy size={12} />
+                      </button>
+                    </CopyToClipboard>
+                    ) to get started. On-ramp coming soon...
+                  </p>
+                  <ul className="w-full space-y-2">
+                    <li>
+                      <Button variant="outline" className="w-full cursor-help" disabled>
+                        <IconCoins size={14} />
+                        Buy crypto
+                      </Button>
+                    </li>
+                  </ul>
+                </div>
+              )}
               <SheetFooter className="mt-auto">
                 <ul>
                   <li>
