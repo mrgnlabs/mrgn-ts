@@ -123,7 +123,6 @@ export const borrowOrLend = async ({
         toastId: BORROW_OR_LEND_TOAST_ID,
       });
 
-      _marginfiAccount = await mfiClient.createMarginfiAccount();
       // If the connected wallet is SquadsX, use the ephemeral signer address provided by the wallet to create the marginfi account.
       const adapter = walletContextState?.wallet?.adapter;
       const ephemeralSignerAddress =
