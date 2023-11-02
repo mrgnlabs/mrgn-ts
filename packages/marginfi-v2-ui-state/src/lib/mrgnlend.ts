@@ -271,17 +271,17 @@ function makeExtendedBankInfo(
   // Calculate user-specific info relevant to their active position in this bank
   const position = makeLendingPosition(positionRaw, bank, bankInfo, oraclePrice);
 
-  let maxWithdraw = 0;
-
-  if (userData.marginfiAccount) {
-    const maxWithdrawNative = userData.marginfiAccount
-      .computeMaxWithdrawForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR })
-      .toNumber();
-
-    maxWithdraw = uiToNative(maxWithdrawNative, bankInfo.mintDecimals).isZero()
-      ? ceil(Math.min(maxWithdrawNative, bankInfo.availableLiquidity), bankInfo.mintDecimals)
-      : floor(Math.min(maxWithdrawNative, bankInfo.availableLiquidity), bankInfo.mintDecimals);
-  }
+  const maxWithdraw = userData.marginfiAccount
+    ? floor(
+        Math.min(
+          userData.marginfiAccount
+            .computeMaxWithdrawForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR })
+            .toNumber(),
+          bankInfo.availableLiquidity
+        ),
+        bankInfo.mintDecimals
+      )
+    : 0;
 
   let maxRepay = maxDeposit;
 
