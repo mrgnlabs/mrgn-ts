@@ -1,8 +1,8 @@
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { create, StateCreator } from "zustand";
 
-export type StakePoolsStatsWithMeta = StakePoolStats & StakePoolMeta & { epoch: number };
-export type StakePoolsStatsPerEpoch = Map<number, StakePoolsStatsWithMeta[] | null>;
+export type StakePoolStatsWithMeta = StakePoolStats & StakePoolMeta & { epoch: number };
+export type StakePoolsStatsPerEpoch = Map<number, StakePoolStatsWithMeta[] | null>;
 
 export interface EpochStats {
   epoch: number;

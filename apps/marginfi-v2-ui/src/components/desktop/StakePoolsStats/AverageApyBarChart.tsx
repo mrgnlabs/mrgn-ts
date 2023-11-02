@@ -15,7 +15,7 @@ import {
 import { FC, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import { MrgnContainedSwitch } from "~/components/common";
-import { APY_THRESHOLD } from "~/pages/lstats";
+import { APY_THRESHOLD, StakePoolMetrics } from "~/pages/lstats";
 import { STAKE_POOLS_METAS } from "~/store/stakePoolStatsStore";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend);
@@ -64,21 +64,21 @@ const averageApyOptions = {
 
 export const AverageApyBarChar: FC<{
   epochs: number[];
-  historicalApys: Record<string, { effective: number; baseline: number }[]>;
-}> = ({ epochs, historicalApys }) => {
+  historicalMetrics: Record<string, StakePoolMetrics[]>;
+}> = ({ epochs, historicalMetrics }) => {
   const [sortByBaseline, setSortByBaseline] = useState<boolean>(true);
 
-  const averageApys = Object.entries(historicalApys)
-    .filter(([_, historicalApys]) => historicalApys.every((apy) => apy.effective > APY_THRESHOLD))
-    .map(([spAddress, historicalApys]) => {
+  const averageApys = Object.entries(historicalMetrics)
+    .filter(([_, historicalMetrics]) => historicalMetrics.every((metrics) => metrics.apyEffective > APY_THRESHOLD))
+    .map(([spAddress, historicalMetrics]) => {
       const averageEffectiveApy =
-        historicalApys.slice(epochs.length - AVERAGE_WINDOW, epochs.length).reduce((sum, apy) => {
-          sum += apy.effective;
+        historicalMetrics.slice(epochs.length - AVERAGE_WINDOW, epochs.length).reduce((sum, metrics) => {
+          sum += metrics.apyEffective;
           return sum;
         }, 0) / AVERAGE_WINDOW;
       const averageBaselineApy =
-        historicalApys.slice(epochs.length - AVERAGE_WINDOW, epochs.length).reduce((sum, apy) => {
-          sum += apy.baseline;
+        historicalMetrics.slice(epochs.length - AVERAGE_WINDOW, epochs.length).reduce((sum, metrics) => {
+          sum += metrics.apyBaseline;
           return sum;
         }, 0) / AVERAGE_WINDOW;
 

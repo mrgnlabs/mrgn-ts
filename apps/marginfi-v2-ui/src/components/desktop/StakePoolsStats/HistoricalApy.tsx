@@ -15,32 +15,32 @@ import chroma from "chroma-js";
 import { FC, useState } from "react";
 import { Line } from "react-chartjs-2";
 import { MrgnContainedSwitch } from "~/components/common";
-import { APY_THRESHOLD } from "~/pages/lstats";
+import { APY_THRESHOLD, StakePoolMetrics } from "~/pages/lstats";
 import { STAKE_POOLS_METAS } from "~/store/stakePoolStatsStore";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend);
 
 export const HistoricalApy: FC<{
   epochs: number[];
-  historicalApys: Record<string, { effective: number; baseline: number }[]>;
-}> = ({ epochs, historicalApys }) => {
+  historicalMetrics: Record<string, StakePoolMetrics[]>;
+}> = ({ epochs, historicalMetrics }) => {
   const [showBaseline, setShowBaseline] = useState<boolean>(true);
 
   const colors = chroma
     .scale(["#663399", "#00A86B"])
     .mode("lab")
-    .colors(Object.keys(historicalApys).length)
+    .colors(Object.keys(historicalMetrics).length)
     .map((color) => chroma(color).alpha(0.9).hex());
-  const datasets = Object.entries(historicalApys)
-    .filter(([_, historicalApys]) => historicalApys.every((apy) => apy.effective > APY_THRESHOLD))
+  const datasets = Object.entries(historicalMetrics)
+    .filter(([_, historicalMetrics]) => historicalMetrics.every((apy) => apy.apyEffective > APY_THRESHOLD))
     .sort(
       (a, b) =>
         a[1].reduce((sum, e) => {
-          sum += showBaseline ? e.baseline : e.effective;
+          sum += showBaseline ? e.apyBaseline : e.apyEffective;
           return sum;
         }, 0) -
         b[1].reduce((sum, e) => {
-          sum += showBaseline ? e.baseline : e.effective;
+          sum += showBaseline ? e.apyBaseline : e.apyEffective;
           return sum;
         }, 0)
     )
@@ -52,13 +52,13 @@ export const HistoricalApy: FC<{
       return {
         label: spName,
         fill: true,
-        data: spApys.map((apy) => (showBaseline ? apy.baseline * 100 : apy.effective * 100)),
+        data: spApys.map((apy) => (showBaseline ? apy.apyBaseline * 100 : apy.apyEffective * 100)),
         borderColor: chroma(colors[i]).darken().hex(),
         backgroundColor: colors[i],
       };
     });
 
-  const historicalApyOptions = {
+  const historicalMetricsOptions = {
     responsive: true,
     plugins: {
       legend: {
@@ -92,7 +92,7 @@ export const HistoricalApy: FC<{
         Show baseline APY
       </div>
       <Line
-        options={historicalApyOptions}
+        options={historicalMetricsOptions}
         data={{
           labels: epochs,
           datasets: datasets,

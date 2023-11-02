@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MenuItem, Select } from "@mui/material";
 import {
   StakePoolsStatsPerEpoch,
-  StakePoolsStatsWithMeta,
+  StakePoolStatsWithMeta,
   createStakePoolsStatsStore,
 } from "~/store/stakePoolStatsStore";
 import {
@@ -17,7 +17,7 @@ export const useStakePoolsStatsStore = createStakePoolsStatsStore();
 
 const StakePoolsStats = () => {
   const [selectedEpoch, setSelectedEpoch] = useState<number | null>(null);
-  const [selectedPool, setSelectedPool] = useState<StakePoolsStatsWithMeta | null>(null);
+  const [selectedPool, setSelectedPool] = useState<StakePoolStatsWithMeta | null>(null);
 
   const [fetchStats, stakePoolsStatsPerEpoch] = useStakePoolsStatsStore((state) => [
     state.fetchStats,
@@ -33,7 +33,7 @@ const StakePoolsStats = () => {
           )
           .sort((a, b) => b.apy_effective - a.apy_effective)
       : null;
-  const historicalApys = stakePoolsStatsPerEpoch ? makeHistoricalApyPerPool(stakePoolsStatsPerEpoch) : {};
+  const historicalMetrics = stakePoolsStatsPerEpoch ? makeHistoricalApyPerPool(stakePoolsStatsPerEpoch) : {};
 
   useEffect(() => {
     fetchStats();
@@ -68,12 +68,12 @@ const StakePoolsStats = () => {
           <div className="w-full flex flex-row">
             <div className="w-1/2">
               {stakePoolsStatsPerEpoch && (
-                <HistoricalApy epochs={[...stakePoolsStatsPerEpoch.keys()]} historicalApys={historicalApys} />
+                <HistoricalApy epochs={[...stakePoolsStatsPerEpoch.keys()]} historicalMetrics={historicalMetrics} />
               )}
             </div>
             <div className="w-1/2">
               {stakePoolsStatsPerEpoch && (
-                <AverageApyBarChar epochs={[...stakePoolsStatsPerEpoch.keys()]} historicalApys={historicalApys} />
+                <AverageApyBarChar epochs={[...stakePoolsStatsPerEpoch.keys()]} historicalMetrics={historicalMetrics} />
               )}
             </div>
           </div>
@@ -152,7 +152,7 @@ const StakePoolsStats = () => {
             </div>
             {selectedPool && (
               <div className="w-full">
-                <StakePoolStats stakePool={selectedPool} />
+                <StakePoolStats stakePool={selectedPool} stakePoolHistory={historicalMetrics[selectedPool.address]} />
               </div>
             )}
           </div>
@@ -167,21 +167,39 @@ export default StakePoolsStats;
 
 export const APY_THRESHOLD = 0.03;
 
-function makeHistoricalApyPerPool(
-  availableEpochsStats: StakePoolsStatsPerEpoch
-): Record<string, { effective: number; baseline: number }[]> {
+export type StakePoolMetrics = {
+  epoch: number;
+  apyEffective: number;
+  apyBaseline: number;
+  activeSol: number;
+  deactivatingSol: number;
+  undelegatedSol: number;
+  activatingSol: number;
+};
+
+const DEFAULT_METRICS: StakePoolMetrics = {
+  epoch: 0,
+  apyEffective: 0,
+  apyBaseline: 0,
+  activeSol: 0,
+  deactivatingSol: 0,
+  undelegatedSol: 0,
+  activatingSol: 0,
+};
+
+function makeHistoricalApyPerPool(availableEpochsStats: StakePoolsStatsPerEpoch): Record<string, StakePoolMetrics[]> {
   const allStakePoolAddresses: string[] = [
     ...new Set([...availableEpochsStats.values()].flatMap((stats) => (stats ? stats.map((sp) => sp.address) : []))),
   ];
 
-  const historicalApysPerPool: Record<string, { effective: number; baseline: number }[]> = {};
+  const historicalMetricsPerPool: Record<string, (StakePoolMetrics)[]> = {};
   [...availableEpochsStats.entries()]
     .sort((a, b) => a[0] - b[0])
     .forEach(([_, epochStats]) => {
       if (!epochStats) {
         allStakePoolAddresses.forEach((spAddress) => {
-          if (!historicalApysPerPool[spAddress]) historicalApysPerPool[spAddress] = [];
-          historicalApysPerPool[spAddress].push({ effective: 0, baseline: 0 });
+          if (!historicalMetricsPerPool[spAddress]) historicalMetricsPerPool[spAddress] = [];
+          historicalMetricsPerPool[spAddress].push(DEFAULT_METRICS);
         });
 
         return;
@@ -189,27 +207,38 @@ function makeHistoricalApyPerPool(
 
       allStakePoolAddresses.forEach((spAddress) => {
         const spStats = epochStats.find((sp) => sp.address === spAddress);
-        if (!historicalApysPerPool[spAddress]) historicalApysPerPool[spAddress] = [];
+        if (!historicalMetricsPerPool[spAddress]) historicalMetricsPerPool[spAddress] = [];
         if (!spStats) {
-          historicalApysPerPool[spAddress].push({ effective: 0, baseline: 0 });
+          historicalMetricsPerPool[spAddress].push(DEFAULT_METRICS);
         } else if (!spStats.is_valid) {
           //@ts-ignore
-          historicalApysPerPool[spAddress].push(null);
+          historicalMetricsPerPool[spAddress].push(null);
         } else {
-          historicalApysPerPool[spAddress].push({ effective: spStats.apy_effective, baseline: spStats.apy_baseline });
+          historicalMetricsPerPool[spAddress].push({
+            epoch: spStats.epoch,
+            apyEffective: spStats.apy_effective,
+            apyBaseline: spStats.apy_baseline,
+            activeSol: spStats.active_lamports,
+            deactivatingSol: spStats.deactivating_lamports,
+            undelegatedSol: spStats.undelegated_lamports,
+            activatingSol: spStats.activating_lamports,
+          });
         }
       });
     });
 
-  for (const spAddress of Object.keys(historicalApysPerPool)) {
-    if (historicalApysPerPool[spAddress].some((apy) => apy === null)) {
-      delete historicalApysPerPool[spAddress];
+  // Remove problematic pools
+  for (const spAddress of Object.keys(historicalMetricsPerPool)) {
+    if (historicalMetricsPerPool[spAddress].some((apy) => apy === null)) {
+      delete historicalMetricsPerPool[spAddress];
     } else if (
-      historicalApysPerPool[spAddress].every((apy) => apy.baseline < APY_THRESHOLD && apy.effective < APY_THRESHOLD)
+      historicalMetricsPerPool[spAddress].every(
+        (apy) => apy.apyBaseline < APY_THRESHOLD && apy.apyEffective < APY_THRESHOLD
+      )
     ) {
-      delete historicalApysPerPool[spAddress];
+      delete historicalMetricsPerPool[spAddress];
     }
   }
 
-  return historicalApysPerPool;
+  return historicalMetricsPerPool;
 }

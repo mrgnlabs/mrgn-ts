@@ -16,7 +16,7 @@ import { FC, useState, useMemo } from "react";
 import { Bar } from "react-chartjs-2";
 import { MrgnContainedSwitch } from "~/components/common";
 import { APY_THRESHOLD } from "~/pages/lstats";
-import { StakePoolsStatsWithMeta } from "~/store/stakePoolStatsStore";
+import { StakePoolStatsWithMeta } from "~/store/stakePoolStatsStore";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend);
 
@@ -60,7 +60,7 @@ const options = {
   },
 };
 
-export const ApyBarChart: FC<{ stakePools: StakePoolsStatsWithMeta[] }> = ({ stakePools }) => {
+export const ApyBarChart: FC<{ stakePools: StakePoolStatsWithMeta[] }> = ({ stakePools }) => {
   const [sortByBaseline, setSortByBaseline] = useState<boolean>(true);
 
   const apyBarChartData = useMemo(() => {
