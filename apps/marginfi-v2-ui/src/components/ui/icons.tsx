@@ -9,6 +9,7 @@ import {
   IconSearch,
   IconX,
   IconLoader2,
+  IconCopy,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -273,6 +274,7 @@ const IconMrgn = ({ size = 24, className }: IconProps) => (
 );
 
 export {
+  // tabler icons
   IconCaretUpDownFilled,
   IconCheck,
   IconChevronDown,
@@ -282,6 +284,9 @@ export {
   IconWallet,
   IconSearch,
   IconX,
+  IconCopy,
+
+  // customed icons
   IconBraveWallet,
   IconPhantomWallet,
   IconSolflareWallet,
