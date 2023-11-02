@@ -50,8 +50,6 @@ export const Wallet = () => {
     const balance = await connection.getBalance(wallet?.publicKey);
     const tokens = await getSupportedTokens(wallet?.publicKey);
 
-    console.log("tokerns", tokens);
-
     tokens.splice(0, 0, {
       name: "Solana",
       symbol: "SOL",
@@ -100,12 +98,15 @@ export const Wallet = () => {
         const supportedTokens = accounts
           .filter((account) => {
             const parsedAccountInfo: any = account.account.data;
-            return sortedBanks.find((bank) => bank.info.rawBank.mint === parsedAccountInfo["parsed"]["info"]["mint"]);
+
+            return sortedBanks.find((bank) => {
+              return bank.info.rawBank.mint.toString() === parsedAccountInfo["parsed"]["info"]["mint"];
+            });
           })
           .map((account) => {
             const parsedAccountInfo: any = account.account.data;
             const matchedBank = sortedBanks.find(
-              (bank) => bank.info.rawBank.mint === parsedAccountInfo["parsed"]["info"]["mint"]
+              (bank) => bank.info.rawBank.mint.toString() === parsedAccountInfo["parsed"]["info"]["mint"]
             );
 
             if (!matchedBank || parsedAccountInfo.parsed.info.tokenAmount.uiAmount <= 0) {
@@ -132,7 +133,7 @@ export const Wallet = () => {
         return [];
       }
     },
-    [connection]
+    [connection, sortedBanks]
   );
 
   const privateKeyCopied = React.useCallback(() => {
