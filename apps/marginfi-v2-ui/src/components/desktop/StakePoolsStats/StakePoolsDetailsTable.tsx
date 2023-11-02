@@ -1,9 +1,9 @@
 import { shortenAddress, nativeToUi, numeralFormatter, percentFormatter, percentFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { createColumnHelper, SortingState, useReactTable, getCoreRowModel, getSortedRowModel, flexRender } from "@tanstack/react-table";
 import { FC, useState } from "react";
-import { StakePoolsStatsWithMeta } from "~/store/stakePoolStatsStore";
+import { StakePoolStatsWithMeta } from "~/store/stakePoolStatsStore";
 
-const columnHelper = createColumnHelper<StakePoolsStatsWithMeta>();
+const columnHelper = createColumnHelper<StakePoolStatsWithMeta>();
 const columns = [
   columnHelper.accessor("name", {
     header: () => <span className="w-full flex justify-start">Address</span>,
@@ -75,7 +75,7 @@ const columns = [
   }),
 ];
 
-export const StakePoolDetailsTable: FC<{ stakePools: StakePoolsStatsWithMeta[] }> = ({ stakePools }) => {
+export const StakePoolDetailsTable: FC<{ stakePools: StakePoolStatsWithMeta[] }> = ({ stakePools }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
