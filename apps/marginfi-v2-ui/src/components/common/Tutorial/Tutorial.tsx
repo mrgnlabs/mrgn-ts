@@ -29,15 +29,23 @@ const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialS
       </header>
       {children}
       {next && (
-        <Button
-          variant="contained"
-          className="bg-white text-black"
-          onClick={() => {
-            swiper.slideNext();
-          }}
-        >
-          {next} <ArrowRight />
-        </Button>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+          <Button
+            variant="contained"
+            className="bg-transparent text-white border border-solid border-white gap-2 flex items-center w-full md:w-auto opacity-50 hover:opacity-100 transition-opacity"
+          >
+            Exit tutorial
+          </Button>
+          <Button
+            variant="contained"
+            className="bg-white text-black gap-2 flex items-center w-full md:w-auto"
+            onClick={() => {
+              swiper.slideNext();
+            }}
+          >
+            {next} <ArrowRight />
+          </Button>
+        </div>
       )}
       {!next && (
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
