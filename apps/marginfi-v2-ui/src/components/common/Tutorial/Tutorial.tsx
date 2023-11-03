@@ -1,9 +1,9 @@
 import React from "react";
 import Link from "next/link";
+import { useCookies } from "react-cookie";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowRight from "@mui/icons-material/ArrowRight";
 import { Button, Dialog, DialogContent } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
@@ -67,7 +67,19 @@ const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialS
 };
 
 export const Tutorial = () => {
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
+  const [cookies, setCookie] = useCookies(["tutorialAcknowledged"]);
+
+  const handleDialogClose = () => {
+    setCookie("tutorialAcknowledged", "true", { path: "/" });
+    setOpen(false);
+  };
+
+  React.useEffect(() => {
+    if (!cookies.tutorialAcknowledged) {
+      setOpen(true);
+    }
+  }, [cookies.tutorialAcknowledged]);
 
   return (
     <Dialog
@@ -131,7 +143,7 @@ export const Tutorial = () => {
               <TutorialSlide
                 icon={<Alert color="#fff" height={48} />}
                 heading="Account health"
-                closeDialog={() => setOpen(false)}
+                closeDialog={handleDialogClose}
               >
                 <div className="space-y-8 pb-2 max-w-[44rem] mx-auto flex flex-col justify-center">
                   <p>
@@ -152,7 +164,7 @@ export const Tutorial = () => {
               </TutorialSlide>
             </SwiperSlide>
           </Swiper>
-          <CloseIcon className="absolute top-4 right-4 cursor-pointer z-20 opacity-75" onClick={() => setOpen(false)} />
+          <CloseIcon className="absolute top-4 right-4 cursor-pointer z-20 opacity-75" onClick={handleDialogClose} />
         </div>
       </DialogContent>
     </Dialog>
