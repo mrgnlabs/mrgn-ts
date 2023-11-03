@@ -112,7 +112,7 @@ export const Tutorial = () => {
                   </p>
                   <p>
                     Today marginfi allows you to do two things: Lend tokens and earn yield on them. Borrow tokens using
-                    tokens you've lent as collateral.
+                    tokens you&apos;ve lent as collateral.
                   </p>
                 </div>
               </TutorialSlide>
