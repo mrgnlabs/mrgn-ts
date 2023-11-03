@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { LAMPORTS_PER_SOL, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
@@ -11,15 +10,23 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { WalletAvatar, WalletTokens, Token } from "~/components/common/Wallet";
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
+import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { IconCheck, IconChevronDown, IconCoins, IconCopy } from "~/components/ui/icons";
 
 export const Wallet = () => {
-  const router = useRouter();
   const [sortedBanks] = useMrgnlendStore((state) => [state.extendedBankInfos]);
   const { connection } = useConnection();
   const { wallet, connected, logout } = useWalletContext();
-  const { isOpenWallet, setIsOpenWallet, pfp, privateKey, connected: web3authConnected } = useWeb3AuthWallet();
+  const {
+    isOpenWallet,
+    setIsOpenWallet,
+    pfp,
+    requestPrivateKey,
+    pk,
+    resetPk,
+    connected: web3authConnected,
+  } = useWeb3AuthWallet();
   const [isPrivateKeyCopied, setIsPrivateKeyCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
@@ -70,14 +77,6 @@ export const Wallet = () => {
       tokens: (tokens || []) as Token[],
     });
   }, [connection, wallet?.publicKey, address, solBank]);
-
-  const linkTo = React.useCallback(
-    (href: string) => {
-      router.push(href);
-      setIsOpenWallet(false);
-    },
-    [router.isReady]
-  );
 
   const getSupportedTokens = React.useCallback(
     async (wallet: PublicKey) => {
@@ -136,13 +135,6 @@ export const Wallet = () => {
     [connection, sortedBanks]
   );
 
-  const privateKeyCopied = React.useCallback(() => {
-    setIsPrivateKeyCopied(true);
-    setTimeout(() => {
-      setIsPrivateKeyCopied(false);
-    }, 2000);
-  }, []);
-
   React.useEffect(() => {
     getWalletData();
     const intervalId = setInterval(() => {
@@ -155,90 +147,131 @@ export const Wallet = () => {
   }, [connected, wallet?.publicKey, getWalletData]);
 
   return (
-    <Sheet open={isOpenWallet} onOpenChange={(open) => setIsOpenWallet(open)}>
-      <SheetTrigger asChild>
-        {walletData && (
-          <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
-            <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
-            {walletData.shortAddress}
-            <IconChevronDown size={16} />
-          </button>
-        )}
-      </SheetTrigger>
-      <SheetContent className="outline-none">
-        {walletData ? (
-          <div className="pt-4 px-4 h-full flex flex-col">
-            <header className="space-y-2 flex flex-col items-center mb-8">
-              <WalletAvatar pfp={pfp} address={walletData.address} size="lg" />
-              <h1 className="font-medium">
-                <Link href={`https://solscan.io/address/${walletData.address}`} target="_blank" rel="noreferrer">
-                  {walletData.shortAddress}
-                </Link>
-              </h1>
-            </header>
-            <div className="flex flex-col items-center h-full">
-              <div className="text-center">
-                <h2 className="text-3xl font-medium">{walletData.balanceUSD}</h2>
-                <p className="text-muted-foreground text-sm">~{walletData.balanceSOL} SOL</p>
-              </div>
-              <WalletTokens tokens={walletData.tokens} />
-              {web3authConnected && (
-                <div className="mt-8 space-y-4">
-                  <p className="text-sm text-white/50 text-center">
-                    Tranfer funds to this wallet (
-                    <CopyToClipboard text={privateKey} onCopy={() => privateKeyCopied()}>
-                      <button className="cursor-pointer inline-flex items-center gap-1 group">
-                        {shortenAddress(walletData.address)}
-                        <IconCopy size={12} />
-                      </button>
-                    </CopyToClipboard>
-                    ) to get started. On-ramp coming soon...
-                  </p>
-                  <ul className="w-full space-y-2">
+    <>
+      <Sheet open={isOpenWallet} onOpenChange={(open) => setIsOpenWallet(open)}>
+        <SheetTrigger asChild>
+          {walletData && (
+            <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
+              <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
+              {walletData.shortAddress}
+              <IconChevronDown size={16} />
+            </button>
+          )}
+        </SheetTrigger>
+        <SheetContent className="outline-none">
+          {walletData ? (
+            <div className="pt-4 px-4 h-full flex flex-col">
+              <header className="space-y-2 flex flex-col items-center mb-8">
+                <WalletAvatar pfp={pfp} address={walletData.address} size="lg" />
+                <h1 className="font-medium">
+                  <Link href={`https://solscan.io/address/${walletData.address}`} target="_blank" rel="noreferrer">
+                    {walletData.shortAddress}
+                  </Link>
+                </h1>
+              </header>
+              <div className="flex flex-col items-center h-full">
+                <div className="text-center">
+                  <h2 className="text-3xl font-medium">{walletData.balanceUSD}</h2>
+                  <p className="text-muted-foreground text-sm">~{walletData.balanceSOL} SOL</p>
+                </div>
+                <WalletTokens tokens={walletData.tokens} />
+                {web3authConnected && (
+                  <div className="mt-8 space-y-4">
+                    <p className="text-sm text-white/50 text-center">
+                      Tranfer funds to this wallet (
+                      <CopyToClipboard text={walletData.address}>
+                        <button className="cursor-pointer inline-flex items-center gap-1 group">
+                          {shortenAddress(walletData.address)}
+                          <IconCopy size={12} />
+                        </button>
+                      </CopyToClipboard>
+                      ) to get started. On-ramp coming soon...
+                    </p>
+                    <ul className="w-full space-y-2">
+                      <li>
+                        <Button variant="outline" className="w-full cursor-help" disabled>
+                          <IconCoins size={14} />
+                          Buy crypto
+                        </Button>
+                      </li>
+                    </ul>
+
+                    {pk && <div className="mt-8">{pk}</div>}
+                  </div>
+                )}
+                <SheetFooter className="mt-auto">
+                  <ul>
                     <li>
-                      <Button variant="outline" className="w-full cursor-help" disabled>
-                        <IconCoins size={14} />
-                        Buy crypto
+                      <Button onClick={() => logout()} variant="link" size="sm" className="p-0 w-full opacity-50">
+                        Logout
                       </Button>
                     </li>
-                  </ul>
-                </div>
-              )}
-              <SheetFooter className="mt-auto">
-                <ul>
-                  <li>
-                    <Button onClick={() => logout()} variant="link" size="sm" className="p-0 w-full opacity-50">
-                      Logout
-                    </Button>
-                  </li>
-                  {privateKey && (
-                    <li>
-                      <CopyToClipboard text={privateKey} onCopy={() => privateKeyCopied()}>
+                    {web3authConnected && (
+                      <li>
                         <Button
                           variant="link"
                           size="sm"
                           className="p-0 w-full opacity-50 gap-1"
-                          disabled={isPrivateKeyCopied}
+                          onClick={() => {
+                            requestPrivateKey();
+                          }}
                         >
-                          {isPrivateKeyCopied ? (
-                            <>
-                              Copied to clipboard <IconCheck />
-                            </>
-                          ) : (
-                            "Export private key"
-                          )}
+                          Export private key
                         </Button>
-                      </CopyToClipboard>
-                    </li>
-                  )}
-                </ul>
-              </SheetFooter>
+                      </li>
+                    )}
+                  </ul>
+                </SheetFooter>
+              </div>
             </div>
+          ) : (
+            <p>Loading...</p>
+          )}
+        </SheetContent>
+      </Sheet>
+      <Dialog
+        open={Boolean(pk)}
+        onOpenChange={(open) => {
+          if (!open) {
+            resetPk();
+          }
+        }}
+      >
+        <DialogContent className="md:max-w-[640px]">
+          <div className="flex flex-col items-center space-y-4">
+            <h2 className="font-medium text-2xl">Your private key</h2>
+            <p>
+              Your private key grants access to your wallet. Keep it safe at all time. marginfi does not store your
+              private key and cannot help you recover your wallet.
+            </p>
           </div>
-        ) : (
-          <p>Loading...</p>
-        )}
-      </SheetContent>
-    </Sheet>
+          <div className="space-y-2">
+            <CopyToClipboard
+              text={pk}
+              onCopy={() => {
+                setIsPrivateKeyCopied(true);
+                setTimeout(() => {
+                  setIsPrivateKeyCopied(false);
+                }, 2000);
+              }}
+            >
+              <button className="flex items-center gap-1 text-xs outline-none mt-4">
+                {!isPrivateKeyCopied && (
+                  <>
+                    <IconCopy size="14" /> Copy to clipboard
+                  </>
+                )}
+                {isPrivateKeyCopied && (
+                  <>
+                    <IconCheck size="14" /> Copied to clipboard!
+                  </>
+                )}
+              </button>
+            </CopyToClipboard>
+            <div className="break-words font-mono text-xs p-2 border rounded-md max-w-[540px]">{pk}</div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

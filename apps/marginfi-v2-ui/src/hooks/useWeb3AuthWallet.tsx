@@ -1,7 +1,8 @@
 import React from "react";
+import { useCookies } from "react-cookie";
 import { WALLET_ADAPTERS } from "@web3auth/base";
 import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
-import { CHAIN_NAMESPACES, IProvider } from "@web3auth/base";
+import { CHAIN_NAMESPACES, IProvider, ADAPTER_EVENTS } from "@web3auth/base";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
@@ -9,6 +10,7 @@ import { Wallet } from "@mrgnlabs/mrgn-common";
 import { toast } from "react-toastify";
 
 export type Web3AuthSocialProvider = "google" | "twitter" | "apple";
+export type Web3AuthProvider = "email_passwordless" | Web3AuthSocialProvider;
 
 type Web3AuthContextProps = {
   walletData: Wallet | undefined;
@@ -18,14 +20,17 @@ type Web3AuthContextProps = {
   isOpenWallet: boolean;
   setIsOpenWallet: (open: boolean) => void;
   login: (
-    provider: "email_passwordless" | Web3AuthSocialProvider,
+    provider: Web3AuthProvider,
     extraLoginOptions?: Partial<{
       login_hint: string;
-    }>
+    }>,
+    cb?: () => void
   ) => void;
   logout: () => void;
-  privateKey: string;
   pfp: string;
+  pk: string;
+  resetPk: () => void;
+  requestPrivateKey: () => void;
 };
 
 const chainConfig = {
@@ -41,38 +46,36 @@ const chainConfig = {
 const Web3AuthContext = React.createContext<Web3AuthContextProps | undefined>(undefined);
 
 export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [pkCookie, setPkCookie] = useCookies(["privateKeyRequested"]);
   const [walletData, setWalletData] = React.useState<Wallet>();
   const [web3auth, setWeb3auth] = React.useState<Web3AuthNoModal | null>(null);
   const [web3authProvider, setWeb3authProvider] = React.useState<IProvider | null>(null);
   const [isOpenAuthDialog, setIsOpenAuthDialog] = React.useState<boolean>(false);
   const [isOpenWallet, setIsOpenWallet] = React.useState<boolean>(false);
   const [pfp, setPfp] = React.useState<string>("");
-  const [privateKey, setPrivateKey] = React.useState<string>("");
+  const [pk, setPk] = React.useState<string>("");
+  const [loginType, setLoginType] = React.useState<string>("");
+  const [privateKeyRequested, setPrivateKeyRequested] = React.useState<boolean>(false);
 
   const logout = async () => {
     if (!web3auth) return;
     await web3auth.logout();
     setWalletData(undefined);
     setWeb3authProvider(null);
-    setPrivateKey("");
     setPfp("");
   };
 
-  const login = async (provider: string, extraLoginOptions: any = {}) => {
-    if (!web3auth) return;
+  const login = async (provider: string, extraLoginOptions: any = {}, cb?: () => void) => {
+    if (!web3auth) {
+      toast.error("Error connecting to Web3Auth");
+      return;
+    }
 
     try {
-      const web3authProvider = await web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
+      await web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
         loginProvider: provider,
         extraLoginOptions,
       });
-
-      if (!web3authProvider) {
-        toast.error("Error connecting to Web3Auth");
-        return;
-      }
-
-      makeWeb3AuthWalletData(web3authProvider);
     } catch (error) {
       console.error(error);
     }
@@ -83,16 +86,15 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
 
     const solanaWallet = new SolanaWallet(web3authProvider);
     const accounts = await solanaWallet.requestAccounts();
-    const pk = await web3authProvider.request({
-      method: "solanaPrivateKey",
-    });
 
     if (web3auth.getUserInfo) {
       const userData = await web3auth.getUserInfo();
+      setLoginType(userData.typeOfLogin || "");
       setPfp(userData.profileImage || "");
     }
 
-    setPrivateKey(pk as string);
+    checkPrivateKeyRequested(web3authProvider);
+
     setWeb3authProvider(web3authProvider);
     setWalletData({
       publicKey: new PublicKey(accounts[0]),
@@ -112,6 +114,28 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
         return signedMessage;
       },
     });
+  };
+
+  const requestPrivateKey = async () => {
+    if (!loginType) return;
+    setPkCookie("privateKeyRequested", true, { expires: new Date(Date.now() + 5 * 60 * 1000) });
+    await logout();
+    await login(loginType);
+  };
+
+  const checkPrivateKeyRequested = async (provider: IProvider) => {
+    if (!pkCookie.privateKeyRequested) return;
+
+    const pk = await provider.request({
+      method: "solanaPrivateKey",
+    });
+
+    setPkCookie("privateKeyRequested", false);
+    setPk(pk as string);
+  };
+
+  const resetPk = () => {
+    setPk("");
   };
 
   React.useEffect(() => {
@@ -138,6 +162,11 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
         });
 
         web3authInstance.configureAdapter(openloginAdapter);
+
+        web3authInstance.on(ADAPTER_EVENTS.CONNECTED, async (provider) => {
+          await makeWeb3AuthWalletData(provider);
+        });
+
         await web3authInstance.init();
 
         setWeb3auth(web3authInstance);
@@ -160,8 +189,10 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
         connected: Boolean(web3auth?.connected),
         login,
         logout,
-        privateKey,
+        requestPrivateKey,
         pfp,
+        pk,
+        resetPk,
       }}
     >
       {children}
