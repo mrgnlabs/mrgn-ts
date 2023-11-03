@@ -22,20 +22,14 @@ const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialS
   const swiper = useSwiper();
 
   return (
-    <div className="py-16 md:py-20 px-4 space-y-8 h-full md:h-auto">
+    <div className="py-16 md:pb-20 md:pt-14 px-4 space-y-8 h-full md:h-auto">
       <header className="space-y-6 flex flex-col items-center">
         {icon && icon}
         {heading && <h2 className="text-3xl font-medium">{heading}</h2>}
       </header>
       {children}
       {next && (
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-          <Button
-            variant="contained"
-            className="bg-transparent text-white border border-solid border-white gap-2 flex items-center w-full md:w-auto opacity-50 hover:opacity-100 transition-opacity"
-          >
-            Exit tutorial
-          </Button>
+        <div className="flex items-center justify-center">
           <Button
             variant="contained"
             className="bg-white text-black gap-2 flex items-center w-full md:w-auto"
@@ -74,15 +68,18 @@ const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialS
 
 export const Tutorial = () => {
   const [open, setOpen] = React.useState(true);
-  const theme = useTheme();
 
   return (
     <Dialog
       open={open}
-      onClose={() => {
-        setOpen(false);
-      }}
       maxWidth="xl"
+      slotProps={{
+        backdrop: {
+          style: {
+            backdropFilter: "blur(4px)",
+          },
+        },
+      }}
       PaperProps={{
         style: {
           backgroundColor: "transparent",
@@ -102,8 +99,8 @@ export const Tutorial = () => {
                     safe and reliable solution for users looking to access leverage and maximize capital efficiency.
                   </p>
                   <p>
-                    Today, marginfi allows you to do two things: Lend tokens and earn yield on them Borrow tokens, using
-                    tokens you&apos;ve lent as collateral.
+                    Today marginfi allows you to do two things: Lend tokens and earn yield on them. Borrow tokens using
+                    tokens you've lent as collateral.
                   </p>
                 </div>
               </TutorialSlide>
@@ -114,19 +111,18 @@ export const Tutorial = () => {
                 heading="Fees & yield"
                 next="Account health"
               >
-                <div className="space-y-8 pb-2 max-w-[41.8rem] mx-auto flex flex-col justify-center">
+                <div className="space-y-8 pb-2 max-w-[35rem] mx-auto flex flex-col justify-center">
                   <p>
-                    marginfi allows users to deposit supported tokens into the protocol and earn yield on them. This is
-                    made possible by lenders on the platform who borrow these tokens and pay interest on them.
+                    marginfi allows users to lend tokens and earn interest. Interest is paid by borrowers to lenders
+                    when borrowing tokens. All borrowing is over-collateralized.
                   </p>
                   <p>
-                    Deposits into marginfi&apos;s LIP program may be locked up depending on the LIP campaign
-                    they&apos;re deposited to, which is available to users in each LIP campaign configuration and can
-                    only be set when a campaign is initially created.
+                    Deposits in marginfi&apos;s Earn program may be locked according to the parameters each campaign.
+                    Campaigns can be created on marginfi by new teams looking to bootstrap liquidity for their token.
                   </p>
                   <p>
-                    Borrowing on marginfi incurs a fee. Fees are specific to each asset that marginfi supports, usually
-                    expressed in terms of APR (Annual Percentage Rate).
+                    Borrowers in marginfi pay interest specific to each asset. Both lending and borrowing interest on
+                    marginfi is variable.
                   </p>
                 </div>
               </TutorialSlide>
@@ -139,25 +135,25 @@ export const Tutorial = () => {
               >
                 <div className="space-y-8 pb-2 max-w-[44rem] mx-auto flex flex-col justify-center">
                   <p>
-                    Every account&apos;s health is represented as a health factor. Your account health factor is a
-                    single value that encapsulates how well-collateralized your portfolio is.
+                    Account health is only for borrowing activity on marginfi. If you&apos;re not borrowing on marginfi,
+                    you will always have 100% account health. Your account health is a single value that encapsulates
+                    how well-collateralized your account is based on your borrowed liabilities.
                   </p>
                   <p className="font-bold mx-auto flex items-center gap-3 border border-solid border-white/50 px-4 py-2 rounded-lg">
                     <Alert height={20} className="hidden md:block" />
                     When your account health reaches 0% or below, you are exposed to liquidation.
                   </p>
                   <p>
-                    When borrowed trader positions fall below configured margin requirements, they are exposed to
-                    liquidation. Liquidations on marginfi are automatic and permissionless, executed by third-party
-                    liquidators who provide this service for a return, and marginfi awards a fee for successful
-                    liquidations.
+                    When borrowed positions fall below configured margin requirements and your account health goes to
+                    0%, you are exposed to liquidation. Liquidations on marginfi are automatic and permissionless.
+                    Liquidators can buy and sell assets once accounts reach 0% account health for profit.
                   </p>
                 </div>
               </TutorialSlide>
             </SwiperSlide>
           </Swiper>
+          <CloseIcon className="absolute top-4 right-4 cursor-pointer z-20 opacity-75" onClick={() => setOpen(false)} />
         </div>
-        <CloseIcon className="absolute top-4 right-4 cursor-pointer z-20 opacity-75" onClick={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );
