@@ -40,11 +40,11 @@ export const StakePoolStats: FC<{ stakePool: StakePoolStatsWithMeta; stakePoolHi
   };
 
   return (
-    <div className="w-full flex">
-      <div className="w-1/3">
+    <div className="grid grid-cols-12 gap-12 mt-8">
+      <div className="col-span-4">
         <RewardsDistribution stakePool={stakePool} />
       </div>
-      <div className="w-2/3">
+      <div className="col-span-8">
         <StakeDistribution stakePoolHistory={stakePoolHistory} />
       </div>
     </div>
@@ -72,7 +72,7 @@ const RewardsDistribution: FC<{ stakePool: StakePoolStatsWithMeta }> = ({ stakeP
     datasets: [
       {
         data: [inflationShare, jitoShare, managementFeeShare, untappedYieldShare],
-        backgroundColor: [...colors, "rgba(75, 192, 192, 0)"],
+        backgroundColor: [...colors, "rgba(25, 25, 25)"],
         borderColor: [...colors.map((color) => chroma(color).darken().hex()), "rgba(255, 255, 255, 0)"],
         borderWidth: 1,
       },
@@ -80,20 +80,38 @@ const RewardsDistribution: FC<{ stakePool: StakePoolStatsWithMeta }> = ({ stakeP
   };
 
   return (
-    <Doughnut
-      options={{
-        plugins: {
-          title: {
-            display: true,
-            text: "Rewards distribution (%)",
-          },
-          tooltip: {
-            callbacks: {},
-          },
-        },
-      }}
-      data={data}
-    />
+    <div className="px-8">
+      <div className="h-[400px] pb-8">
+        <Doughnut
+          options={{
+            plugins: {
+              legend: {
+                display: false,
+              },
+              title: {
+                display: true,
+                text: "Rewards distribution (%)",
+                padding: {
+                  bottom: 20,
+                },
+              },
+              tooltip: {
+                callbacks: {},
+              },
+            },
+          }}
+          data={data}
+        />
+      </div>
+      <div className="w-full flex justify-center items-center gap-4 text-xs text-[#868E95]/50 mt-4">
+        {data.datasets[0].data.map((_dataset, i) => (
+          <div key={i} className="flex flex-col gap-2 font-medium justidy-center text-center">
+            <span className="h-2" style={{ backgroundColor: data.datasets[0].backgroundColor[i] }}></span>
+            <span>{data.labels[i]}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 
@@ -121,9 +139,10 @@ const StakeDistribution: FC<{ stakePoolHistory: StakePoolMetrics[] }> = ({ stake
 
   const stakeDistributionOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "top" as const,
+        display: false,
       },
       title: {
         display: true,
@@ -187,12 +206,24 @@ const StakeDistribution: FC<{ stakePoolHistory: StakePoolMetrics[] }> = ({ stake
   ];
 
   return (
-    <Bar
-      options={stakeDistributionOptions}
-      data={{
-        labels,
-        datasets: datasets,
-      }}
-    />
+    <div>
+      <div className="h-[400px]">
+        <Bar
+          options={stakeDistributionOptions}
+          data={{
+            labels,
+            datasets,
+          }}
+        />
+      </div>
+      <div className="w-full flex justify-center items-center gap-4 text-xs text-[#868E95]/50 mt-4">
+        {datasets.map((dataset, i) => (
+          <div key={i} className="flex flex-col gap-2 font-medium justidy-center text-center">
+            <span className="h-2" style={{ backgroundColor: dataset.backgroundColor }}></span>
+            <span>{dataset.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };

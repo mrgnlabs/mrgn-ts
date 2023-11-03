@@ -131,32 +131,34 @@ const StakePoolsStats = () => {
             <div className="space-y-1.5 flex flex-col items-end text-sm">
               <p>Select Stake Pool</p>
               {selectedPool && selectedEpochStats && (
-                <Select
-                  className="bg-[#1C2125] text-white text-base rounded-lg h-12 w-[210px]"
-                  MenuProps={{
-                    PaperProps: {
-                      style: { backgroundColor: "#1C2125", color: "#fff" },
-                    },
-                  }}
-                  variant="outlined"
-                  classes={{ standard: "test-white" }}
-                  value={selectedPool.name}
-                  onChange={(event) => {
-                    const selected = selectedEpochStats.find((sp) => sp.name === event.target.value);
-                    if (!selected) throw new Error("Selected stake pool not found");
-                    setSelectedPool(selected);
-                  }}
-                >
-                  {selectedEpochStats
-                    .filter((stats) => stats.apy_effective > APY_THRESHOLD)
-                    .map((stakePoolStats) => {
-                      return (
-                        <MenuItem key={stakePoolStats.address} value={stakePoolStats.name}>
-                          {stakePoolStats.name}
-                        </MenuItem>
-                      );
-                    })}
-                </Select>
+                <FormControl size="small">
+                  <Select
+                    className="bg-[#1C2125] text-white text-sm h-10 rounded-lg w-[210px]"
+                    MenuProps={{
+                      PaperProps: {
+                        style: { backgroundColor: "#1C2125", color: "#fff" },
+                      },
+                    }}
+                    variant="outlined"
+                    classes={{ standard: "test-white" }}
+                    value={selectedPool.name}
+                    onChange={(event) => {
+                      const selected = selectedEpochStats.find((sp) => sp.name === event.target.value);
+                      if (!selected) throw new Error("Selected stake pool not found");
+                      setSelectedPool(selected);
+                    }}
+                  >
+                    {selectedEpochStats
+                      .filter((stats) => stats.apy_effective > APY_THRESHOLD)
+                      .map((stakePoolStats) => {
+                        return (
+                          <MenuItem key={stakePoolStats.address} value={stakePoolStats.name}>
+                            {stakePoolStats.name}
+                          </MenuItem>
+                        );
+                      })}
+                  </Select>
+                </FormControl>
               )}
             </div>
           </header>
