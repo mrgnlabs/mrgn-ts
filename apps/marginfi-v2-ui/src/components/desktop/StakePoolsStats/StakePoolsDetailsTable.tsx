@@ -1,5 +1,18 @@
-import { shortenAddress, nativeToUi, numeralFormatter, percentFormatter, percentFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { createColumnHelper, SortingState, useReactTable, getCoreRowModel, getSortedRowModel, flexRender } from "@tanstack/react-table";
+import {
+  shortenAddress,
+  nativeToUi,
+  numeralFormatter,
+  percentFormatter,
+  percentFormatterDyn,
+} from "@mrgnlabs/mrgn-common";
+import {
+  createColumnHelper,
+  SortingState,
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  flexRender,
+} from "@tanstack/react-table";
 import { FC, useState } from "react";
 import { StakePoolStatsWithMeta } from "~/store/stakePoolStatsStore";
 
@@ -9,7 +22,7 @@ const columns = [
     header: () => <span className="w-full flex justify-start">Address</span>,
     cell: (info) => (
       <a href={`https://solscan.io/account/${info.row.original.address}`} target="_blank" rel="noreferrer">
-        {info.getValue()}
+        <div className="w-[100px] truncate">{info.getValue()}</div>
       </a>
     ),
   }),
@@ -22,7 +35,7 @@ const columns = [
     ),
   }),
   columnHelper.accessor("staked_validator_count", {
-    header: () => <span className="w-full flex justify-start"># Validators</span>,
+    header: () => <span className="w-full flex justify-end"># Validators</span>,
     cell: (info) => <span className="flex justify-end">{info.getValue()}</span>,
   }),
   columnHelper.accessor(
@@ -31,7 +44,7 @@ const columns = [
     },
     {
       id: "yielding_sol",
-      header: () => <span className="w-full flex justify-start">Yielding (SOL)</span>,
+      header: () => <span className="w-full flex justify-end">Yielding (SOL)</span>,
       cell: (info) => <span className="flex justify-end">{numeralFormatter(info.getValue())}</span>,
     }
   ),
@@ -41,12 +54,12 @@ const columns = [
     },
     {
       id: "yielding_sol_percent",
-      header: () => <span className="w-full flex justify-start">Yielding (%)</span>,
+      header: () => <span className="w-full flex justify-end">Yielding (%)</span>,
       cell: (info) => <span className="flex justify-end">{percentFormatter.format(info.getValue())}</span>,
     }
   ),
   columnHelper.accessor("apy_effective", {
-    header: () => <span className="w-full flex justify-start">APY (effective)</span>,
+    header: () => <span className="w-full flex justify-end">APY (effective)</span>,
     cell: (info) => (
       <span className="flex justify-end">
         {info.getValue() !== null ? percentFormatter.format(info.getValue()!) : "-"}
@@ -54,7 +67,7 @@ const columns = [
     ),
   }),
   columnHelper.accessor("apy_baseline", {
-    header: () => <span className="w-full flex justify-start">APY (baseline)</span>,
+    header: () => <span className="w-full flex justify-end">APY (baseline)</span>,
     cell: (info) => <span className="flex justify-end">{percentFormatter.format(info.getValue())}</span>,
   }),
   // columnHelper.accessor("inflation_rewards", {
@@ -70,7 +83,7 @@ const columns = [
   //   ),
   // }),
   columnHelper.accessor("management_fee", {
-    header: () => <span className="w-full flex justify-start">Management fee (%)</span>,
+    header: () => <span className="w-full flex justify-end">Management fee (%)</span>,
     cell: (info) => <span className="flex justify-end">{percentFormatterDyn.format(info.getValue())}</span>,
   }),
 ];
@@ -91,12 +104,12 @@ export const StakePoolDetailsTable: FC<{ stakePools: StakePoolStatsWithMeta[] }>
 
   return (
     <div className="w-full p-2">
-      <table className="w-full p-2">
+      <table className="w-full p-2 text-sm">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
+            <tr key={headerGroup.id} className="bg-zinc-700 text-white">
               {headerGroup.headers.map((header) => (
-                <th key={header.id}>
+                <th key={header.id} className="font-medium px-2 py-3">
                   {header.isPlaceholder ? null : (
                     <div
                       {...{
@@ -104,13 +117,13 @@ export const StakePoolDetailsTable: FC<{ stakePools: StakePoolStatsWithMeta[] }>
                         onClick: header.column.getToggleSortingHandler(),
                       }}
                     >
-                      <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
-                      {{
-                        asc: <span className="text-sm pl-3">&#9650;</span>,
-                        desc: <span className="text-sm pl-3">&#9660;</span>,
-                      }[header.column.getIsSorted() as string] ?? (
-                        <span className="text-sm pl-3 text-transparent">&#9660;</span>
-                      )}
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {
+                        {
+                          asc: <span className="text-sm pl-3">&#9650;</span>,
+                          desc: <span className="text-sm pl-3">&#9660;</span>,
+                        }[header.column.getIsSorted() as string]
+                      }
                     </div>
                   )}
                 </th>
@@ -120,9 +133,11 @@ export const StakePoolDetailsTable: FC<{ stakePools: StakePoolStatsWithMeta[] }>
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
+            <tr key={row.id} className="even:bg-zinc-800">
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                <td key={cell.id} className="px-2 py-3">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
               ))}
             </tr>
           ))}

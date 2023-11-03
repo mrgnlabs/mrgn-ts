@@ -26,6 +26,9 @@ let averageApyDelayed: boolean;
 const averageApyOptions = {
   indexAxis: "x" as const,
   plugins: {
+    legend: {
+      display: false,
+    },
     title: {
       display: true,
       text: "Stake pool APY (%)",
@@ -36,6 +39,7 @@ const averageApyOptions = {
       },
     },
   },
+  maintainAspectRatio: false,
   responsive: true,
   animation: {
     onComplete: () => {
@@ -62,7 +66,7 @@ const averageApyOptions = {
   },
 };
 
-export const AverageApyBarChar: FC<{
+export const AverageApyBarChart: FC<{
   epochs: number[];
   historicalMetrics: Record<string, StakePoolMetrics[]>;
 }> = ({ epochs, historicalMetrics }) => {
@@ -120,8 +124,8 @@ export const AverageApyBarChar: FC<{
   };
 
   return (
-    <div className="flex flex-col justify-start">
-      <div className="flex justify-start gap-2 items-center">
+    <div className="flex flex-col justify-start h-full">
+      <div className="flex justify-start gap-1 items-center text-sm">
         <MrgnContainedSwitch
           checked={sortByBaseline}
           onChange={(event) => {
@@ -130,7 +134,17 @@ export const AverageApyBarChar: FC<{
         />
         Sort by baseline APY
       </div>
-      <Bar options={averageApyOptions} data={apyBarChartData} />
+      <div className="h-[400px]">
+        <Bar options={averageApyOptions} data={apyBarChartData} />
+      </div>
+      <div className="w-full flex justify-center items-center gap-4 text-xs text-[#868E95]/50 mt-4">
+        {apyBarChartData.datasets.map((dataset, i) => (
+          <div key={i} className="flex flex-col gap-2 font-medium justidy-center text-center">
+            <span className="h-2" style={{ backgroundColor: dataset.backgroundColor }}></span>
+            <span>{dataset.label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

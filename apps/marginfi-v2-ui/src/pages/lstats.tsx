@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MenuItem, Select } from "@mui/material";
+import { MenuItem, Select, FormControl } from "@mui/material";
 import {
   StakePoolsStatsPerEpoch,
   StakePoolStatsWithMeta,
@@ -7,7 +7,7 @@ import {
 } from "~/store/stakePoolStatsStore";
 import {
   ApyBarChart,
-  AverageApyBarChar,
+  AverageApyBarChart,
   HistoricalApy,
   StakePoolDetailsTable,
   StakePoolStats,
@@ -62,65 +62,74 @@ const StakePoolsStats = () => {
 
   return (
     <div className="flex flex-col w-[90%]">
-      <div className="w-full flex flex-col">
-        <div className="w-full flex flex-col">
-          <span className="w-full flex justify-center text-lg font-bold">Historical stats</span>
-          <div className="w-full flex flex-row">
-            <div className="w-1/2">
+      <div className="w-full flex flex-col space-y-10 pt-16 pb-32">
+        <div className="w-full flex flex-col border-b border-solid border-[#868E95]/30 pb-12">
+          <span className="w-full flex text-3xl font-medium mb-6">Historical stats</span>
+          <div className="w-full grid grid-cols-12 gap-8">
+            <div className="col-span-7">
               {stakePoolsStatsPerEpoch && (
                 <HistoricalApy epochs={[...stakePoolsStatsPerEpoch.keys()]} historicalMetrics={historicalMetrics} />
               )}
             </div>
-            <div className="w-1/2">
+            <div className="col-span-5 h-full">
               {stakePoolsStatsPerEpoch && (
-                <AverageApyBarChar epochs={[...stakePoolsStatsPerEpoch.keys()]} historicalMetrics={historicalMetrics} />
+                <AverageApyBarChart
+                  epochs={[...stakePoolsStatsPerEpoch.keys()]}
+                  historicalMetrics={historicalMetrics}
+                />
               )}
             </div>
           </div>
         </div>
-        <div className="w-full flex flex-col">
-          <span className="w-full flex justify-center text-lg font-bold">Epoch stats</span>
-          <div className="flex flex-row gap-5 items-center">
-            Epoch:
-            {selectedEpoch && (
-              <Select
-                className="bg-[#1C2125] text-white text-base rounded-lg h-12 w-[210px]"
-                MenuProps={{
-                  PaperProps: {
-                    style: { backgroundColor: "#1C2125", color: "#fff" },
-                  },
-                }}
-                variant="outlined"
-                classes={{ standard: "test-white" }}
-                value={selectedEpoch}
-                onChange={(event) => {
-                  setSelectedEpoch(event.target.value as number);
-                }}
-              >
-                {[...(stakePoolsStatsPerEpoch?.keys() ?? [])].map((epoch) => {
-                  return (
-                    <MenuItem key={epoch} value={epoch}>
-                      {epoch}
-                    </MenuItem>
-                  );
-                })}
-              </Select>
-            )}
-          </div>
+        <div className="w-full flex flex-col border-b border-solid border-[#868E95]/30 pb-12">
+          <header className="flex items-center justify-between">
+            <span className="w-full flex text-3xl font-medium mb-6">Epoch stats</span>
+            <div className="space-y-1.5 flex flex-col items-end text-sm">
+              <p>Select Epoch</p>
+              {selectedEpoch && (
+                <FormControl size="small">
+                  <Select
+                    className="bg-[#1C2125] text-white text-sm h-10 rounded-lg w-[210px]"
+                    MenuProps={{
+                      PaperProps: {
+                        style: { backgroundColor: "#1C2125", color: "#fff" },
+                      },
+                    }}
+                    variant="outlined"
+                    classes={{ standard: "test-white" }}
+                    value={selectedEpoch}
+                    onChange={(event) => {
+                      setSelectedEpoch(event.target.value as number);
+                    }}
+                  >
+                    {[...(stakePoolsStatsPerEpoch?.keys() ?? [])].map((epoch) => {
+                      return (
+                        <MenuItem key={epoch} value={epoch}>
+                          {epoch}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+              )}
+            </div>
+          </header>
           {selectedEpochStats && (
-            <div className="w-full flex justify-between gap-8">
-              <div className="w-1/2">
+            <div className="w-full grid grid-cols-12 gap-12 mt-8">
+              <div className="col-span-5">
                 <ApyBarChart stakePools={selectedEpochStats} />
               </div>
-              <div className="w-1/2">
+              <div className="col-span-7">
                 <StakePoolDetailsTable stakePools={selectedEpochStats} />
               </div>
             </div>
           )}
-          <div className="w-full flex flex-col">
-            <span className="w-full flex justify-center text-lg font-bold">Stake pool stats</span>
-            <div className="flex flex-row gap-5 items-center">
-              Stake pool:
+        </div>
+        <div>
+          <header className="flex items-center justify-between">
+            <span className="w-full flex text-3xl font-medium mb-6">Stake pool stats</span>
+            <div className="space-y-1.5 flex flex-col items-end text-sm">
+              <p>Select Stake Pool</p>
               {selectedPool && selectedEpochStats && (
                 <Select
                   className="bg-[#1C2125] text-white text-base rounded-lg h-12 w-[210px]"
@@ -150,15 +159,14 @@ const StakePoolsStats = () => {
                 </Select>
               )}
             </div>
-            {selectedPool && (
-              <div className="w-full">
-                <StakePoolStats stakePool={selectedPool} stakePoolHistory={historicalMetrics[selectedPool.address]} />
-              </div>
-            )}
-          </div>
+          </header>
+          {selectedPool && (
+            <div className="w-full">
+              <StakePoolStats stakePool={selectedPool} stakePoolHistory={historicalMetrics[selectedPool.address]} />
+            </div>
+          )}
         </div>
       </div>
-      <div className="h-20" />
     </div>
   );
 };
@@ -192,7 +200,7 @@ function makeHistoricalApyPerPool(availableEpochsStats: StakePoolsStatsPerEpoch)
     ...new Set([...availableEpochsStats.values()].flatMap((stats) => (stats ? stats.map((sp) => sp.address) : []))),
   ];
 
-  const historicalMetricsPerPool: Record<string, (StakePoolMetrics)[]> = {};
+  const historicalMetricsPerPool: Record<string, StakePoolMetrics[]> = {};
   [...availableEpochsStats.entries()]
     .sort((a, b) => a[0] - b[0])
     .forEach(([_, epochStats]) => {

@@ -7,7 +7,6 @@ import {
   PointElement,
   Title,
   Tooltip,
-  Legend,
   Filler,
   TooltipItem,
 } from "chart.js";
@@ -18,7 +17,7 @@ import { MrgnContainedSwitch } from "~/components/common";
 import { APY_THRESHOLD, StakePoolMetrics } from "~/pages/lstats";
 import { STAKE_POOLS_METAS } from "~/store/stakePoolStatsStore";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler);
 
 export const HistoricalApy: FC<{
   epochs: number[];
@@ -59,14 +58,15 @@ export const HistoricalApy: FC<{
     });
 
   const historicalMetricsOptions = {
+    maintainAspectRatio: false,
     responsive: true,
     plugins: {
-      legend: {
-        position: "left" as const,
-      },
       title: {
         display: true,
         text: `Historical APY - ${showBaseline ? "baseline" : "effective"} (%)`,
+      },
+      legend: {
+        display: false,
       },
       tooltip: {
         callbacks: {
@@ -82,7 +82,7 @@ export const HistoricalApy: FC<{
 
   return (
     <div className="flex flex-col justify-start">
-      <div className="flex justify-start gap-2 items-center">
+      <div className="flex justify-start gap-1 items-center text-sm">
         <MrgnContainedSwitch
           checked={showBaseline}
           onChange={(event) => {
@@ -91,13 +91,23 @@ export const HistoricalApy: FC<{
         />
         Show baseline APY
       </div>
-      <Line
-        options={historicalMetricsOptions}
-        data={{
-          labels: epochs,
-          datasets: datasets,
-        }}
-      />
+      <div className="h-[400px]">
+        <Line
+          options={historicalMetricsOptions}
+          data={{
+            labels: epochs,
+            datasets: datasets,
+          }}
+        />
+      </div>
+      <div className="grid grid-cols-9 w-4/5 mx-auto gap-4 text-xs text-[#868E95]/50 mt-4">
+        {datasets.map((dataset, i) => (
+          <div key={i} className="flex flex-col gap-2 font-medium justidy-center text-center">
+            <span className="h-2" style={{ backgroundColor: dataset.backgroundColor }}></span>
+            <span>{dataset.label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

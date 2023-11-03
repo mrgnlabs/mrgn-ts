@@ -24,6 +24,9 @@ let epochApyDelayed: boolean;
 const options = {
   indexAxis: "x" as const,
   plugins: {
+    legend: {
+      display: false,
+    },
     title: {
       display: true,
       text: "Stake pool APY (%)",
@@ -34,6 +37,7 @@ const options = {
       },
     },
   },
+  maintainAspectRatio: false,
   responsive: true,
   animation: {
     onComplete: () => {
@@ -99,7 +103,7 @@ export const ApyBarChart: FC<{ stakePools: StakePoolStatsWithMeta[] }> = ({ stak
 
   return (
     <div className="flex flex-col justify-start">
-      <div className="flex justify-start gap-2 items-center">
+      <div className="flex justify-start gap-1 items-center text-sm">
         <MrgnContainedSwitch
           checked={sortByBaseline}
           onChange={(event) => {
@@ -108,7 +112,17 @@ export const ApyBarChart: FC<{ stakePools: StakePoolStatsWithMeta[] }> = ({ stak
         />
         Sort by baseline APY
       </div>
-      <Bar options={options} data={apyBarChartData} />
+      <div className="h-[400px]">
+        <Bar options={options} data={apyBarChartData} />
+      </div>
+      <div className="w-full flex justify-center items-center gap-4 text-xs text-[#868E95]/50 mt-4">
+        {apyBarChartData.datasets.map((dataset, i) => (
+          <div key={i} className="flex flex-col gap-2 font-medium justidy-center text-center">
+            <span className="h-2" style={{ backgroundColor: dataset.backgroundColor }}></span>
+            <span>{dataset.label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
