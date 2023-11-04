@@ -40,12 +40,19 @@ export const StakePoolStats: FC<{ stakePool: StakePoolStatsWithMeta; stakePoolHi
   };
 
   return (
-    <div className="grid grid-cols-12 gap-12 mt-8">
-      <div className="col-span-4">
-        <RewardsDistribution stakePool={stakePool} />
+    <div className="w-full">
+      <div className="grid grid-cols-12 gap-12 mt-8">
+        <div className="col-span-4">
+          <RewardsDistribution stakePool={stakePool} />
+        </div>
+        <div className="col-span-8">
+          <StakeDistribution stakePoolHistory={stakePoolHistory} />
+        </div>
       </div>
-      <div className="col-span-8">
-        <StakeDistribution stakePoolHistory={stakePoolHistory} />
+      <div className="grid grid-cols-12 gap-12 mt-8">
+        <div className="col-span-4">
+        <LiquidityDeltas stakePoolHistory={stakePoolHistory} />
+        </div>
       </div>
     </div>
   );
@@ -116,7 +123,6 @@ const RewardsDistribution: FC<{ stakePool: StakePoolStatsWithMeta }> = ({ stakeP
 };
 
 const StakeDistribution: FC<{ stakePoolHistory: StakePoolMetrics[] }> = ({ stakePoolHistory }) => {
-  console.log(stakePoolHistory);
   const { labels, activeSol, activatingSol, deactivatingSol, undelegatedSol } = stakePoolHistory
     .sort((a, b) => a.epoch - b.epoch)
     .reduce(
@@ -223,6 +229,82 @@ const StakeDistribution: FC<{ stakePoolHistory: StakePoolMetrics[] }> = ({ stake
             <span>{dataset.label}</span>
           </div>
         ))}
+      </div>
+    </div>
+  );
+};
+
+const LiquidityDeltas: FC<{ stakePoolHistory: StakePoolMetrics[] }> = ({ stakePoolHistory }) => {
+  const { labels, liquidityDelta } = stakePoolHistory
+    .sort((a, b) => a.epoch - b.epoch)
+    .reduce(
+      (acc, epochMetrics) => {
+        acc.labels.push(epochMetrics.epoch);
+        acc.liquidityDelta.push(epochMetrics.liquidityDelta / 1e9);
+        return acc;
+      },
+      {
+        labels: [] as number[],
+        liquidityDelta: [] as number[],
+      }
+    );
+
+  if (liquidityDelta[0] === 0) {
+    labels.splice(0, 1);
+    liquidityDelta.splice(0, 1);
+  }
+
+  const liquidityDeltasOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      title: {
+        display: true,
+        text: `Inflows/outflows (SOL)`,
+      },
+      tooltip: {
+        callbacks: {
+          label: (tooltipItem: TooltipItem<"bar">) =>
+            `${tooltipItem.dataset.label}: ${groupedNumberFormatterDyn.format(tooltipItem.parsed.y)}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        stacked: true,
+      },
+      y: {
+        stacked: true,
+      },
+    },
+    interaction: {
+      mode: "point" as const,
+    },
+  };
+
+  const datasets = [
+    {
+      label: "Liquidity delta",
+      data: liquidityDelta,
+      borderColor: chroma("#00A86B").darken().hex(),
+      backgroundColor: liquidityDelta.map(ld => ld > 0 ? "#00A86B" : "#663399"),
+      stack: "stack0",
+    },
+  ];
+
+  return (
+    <div>
+      <div className="h-[400px]">
+        <Bar
+          options={liquidityDeltasOptions}
+          data={{
+            labels,
+            datasets,
+          }}
+        />
       </div>
     </div>
   );

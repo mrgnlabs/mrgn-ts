@@ -3,10 +3,23 @@ import { create, StateCreator } from "zustand";
 
 export type StakePoolStatsWithMeta = StakePoolStats & StakePoolMeta & { epoch: number };
 export type StakePoolsStatsPerEpoch = Map<number, StakePoolStatsWithMeta[] | null>;
+export type GeneralStatsPerEpoch = Map<number, EpochStats | null>;
+
+export interface RawStats {
+  epoch: number;
+  total_sol_supply: number;
+  total_native_stake: number;
+  total_liquid_stake: number;
+  total_undelegated_lamports: number;
+  stake_pools: StakePoolStats[];
+}
 
 export interface EpochStats {
   epoch: number;
-  stake_pools: StakePoolStats[];
+  totalSolSupply: number;
+  totalNativeStake: number;
+  totalLiquidStake: number;
+  totalUndelegatedLamports: number;
 }
 
 export interface Manifest {
@@ -16,15 +29,16 @@ export interface Manifest {
 
 export interface StakePoolStats {
   address: string;
-  is_valid: boolean;
-  provider: string;
+  manager: number;
   management_fee: number;
+  provider: string;
+  is_valid: boolean;
   mint: string;
   lst_price: number;
+  lst_supply: number;
   staked_validator_count: number;
-  total_lamports_locked: number;
-  pool_token_supply: number;
   undelegated_lamports: number;
+  total_lamports_locked: number;
   active_lamports: number;
   activating_lamports: number;
   deactivating_lamports: number;
@@ -34,6 +48,7 @@ export interface StakePoolStats {
   apy_baseline: number;
   apr_effective: number;
   apy_effective: number;
+  liquidity_delta: number;
 }
 
 export interface StakePoolMeta {
@@ -63,6 +78,7 @@ const EPOCH_WINDOW = 10;
 interface StakePoolsStatsState {
   // State
   stakePoolsStatsPerEpoch: StakePoolsStatsPerEpoch | null;
+  generalStatsPerEpoch: GeneralStatsPerEpoch | null;
 
   // Actions
   fetchStats: () => void;
@@ -75,6 +91,7 @@ function createStakePoolsStatsStore() {
 const stateCreator: StateCreator<StakePoolsStatsState, [], []> = (set, get) => ({
   // State
   stakePoolsStatsPerEpoch: null,
+  generalStatsPerEpoch: null,
 
   // Actions
   fetchStats: async () => {
@@ -88,12 +105,13 @@ const stateCreator: StateCreator<StakePoolsStatsState, [], []> = (set, get) => (
       const stakePoolStats = await Promise.all(
         manifest.epochs.map(async (epoch) => {
           const response = await fetch(STAT_FILE_URL_PREFIX + epoch + STAT_FILE_URL_SUFFIX);
-          const data = (await response.json()) as EpochStats;
+          const data = (await response.json()) as RawStats;
           return data;
         })
       );
 
       const stakePoolsStatsPerEpoch: StakePoolsStatsPerEpoch = new Map();
+      const generalStatsPerEpoch: GeneralStatsPerEpoch = new Map();
       epochsInWindow.forEach((epoch, index) => {
         const epochStats = stakePoolStats[index];
         const stakePoolsStats = epochStats.stake_pools.map((pool) => {
@@ -102,19 +120,28 @@ const stateCreator: StateCreator<StakePoolsStatsState, [], []> = (set, get) => (
             ...pool,
             name: meta ? meta.name : `Unknown (${shortenAddress(pool.address)})`,
             epoch,
-          };
+          } as StakePoolStatsWithMeta;
         });
         stakePoolsStatsPerEpoch.set(epoch, stakePoolsStats);
+        generalStatsPerEpoch.set(epoch, {
+          epoch,
+          totalSolSupply: epochStats.total_sol_supply,
+          totalNativeStake: epochStats.total_native_stake,
+          totalLiquidStake: epochStats.total_liquid_stake,
+          totalUndelegatedLamports: epochStats.total_undelegated_lamports,
+        });
       });
 
       for (const epoch of epochsInWindow) {
         if (!stakePoolsStatsPerEpoch.get(epoch)) {
           stakePoolsStatsPerEpoch.set(epoch, null);
+          generalStatsPerEpoch.set(epoch, null);
         }
       }
 
       set({
         stakePoolsStatsPerEpoch,
+        generalStatsPerEpoch,
       });
     } catch (e) {
       console.error(e);

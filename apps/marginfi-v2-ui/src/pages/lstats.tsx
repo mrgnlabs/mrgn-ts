@@ -9,6 +9,7 @@ import {
   ApyBarChart,
   AverageApyBarChart,
   HistoricalApy,
+  HistoricalSolSupplyDistribution,
   StakePoolDetailsTable,
   StakePoolStats,
 } from "~/components/desktop/StakePoolsStats";
@@ -19,9 +20,10 @@ const StakePoolsStats = () => {
   const [selectedEpoch, setSelectedEpoch] = useState<number | null>(null);
   const [selectedPool, setSelectedPool] = useState<StakePoolStatsWithMeta | null>(null);
 
-  const [fetchStats, stakePoolsStatsPerEpoch] = useStakePoolsStatsStore((state) => [
+  const [fetchStats, stakePoolsStatsPerEpoch, generalStatsPerEpoch] = useStakePoolsStatsStore((state) => [
     state.fetchStats,
     state.stakePoolsStatsPerEpoch,
+    state.generalStatsPerEpoch
   ]);
 
   const selectedEpochStats =
@@ -65,6 +67,13 @@ const StakePoolsStats = () => {
       <div className="w-full flex flex-col space-y-10 pt-16 pb-32">
         <div className="w-full flex flex-col border-b border-solid border-[#868E95]/30 pb-12">
           <span className="w-full flex text-3xl font-medium mb-6">Historical stats</span>
+          <div className="w-full grid grid-cols-12 gap-8">
+          <div className="col-span-7">
+              {generalStatsPerEpoch && (
+                <HistoricalSolSupplyDistribution epochs={[...generalStatsPerEpoch.keys()]} generalMetricsPerEpoch={generalStatsPerEpoch} />
+              )}
+            </div>
+          </div>
           <div className="w-full grid grid-cols-12 gap-8">
             <div className="col-span-7">
               {stakePoolsStatsPerEpoch && (
@@ -185,6 +194,7 @@ export type StakePoolMetrics = {
   deactivatingSol: number;
   undelegatedSol: number;
   activatingSol: number;
+  liquidityDelta: number;
 };
 
 const DEFAULT_METRICS: StakePoolMetrics = {
@@ -195,6 +205,7 @@ const DEFAULT_METRICS: StakePoolMetrics = {
   deactivatingSol: 0,
   undelegatedSol: 0,
   activatingSol: 0,
+  liquidityDelta: 0,
 };
 
 function makeHistoricalApyPerPool(availableEpochsStats: StakePoolsStatsPerEpoch): Record<string, StakePoolMetrics[]> {
@@ -232,6 +243,7 @@ function makeHistoricalApyPerPool(availableEpochsStats: StakePoolsStatsPerEpoch)
             deactivatingSol: spStats.deactivating_lamports,
             undelegatedSol: spStats.undelegated_lamports,
             activatingSol: spStats.activating_lamports,
+            liquidityDelta: spStats.liquidity_delta,
           });
         }
       });
