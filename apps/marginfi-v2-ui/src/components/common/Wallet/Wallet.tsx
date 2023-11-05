@@ -230,10 +230,12 @@ export const Wallet = () => {
                     </div>
                     <ul className="w-full space-y-2">
                       <li>
-                        <Button variant="outline" className="w-full cursor-help" disabled>
-                          <IconCoins size={14} />
-                          Buy crypto
-                        </Button>
+                        <MrgnTooltip title="Coming soon...">
+                          <Button variant="outline" className="w-full cursor-help opacity-50 hover:bg-background">
+                            <IconCoins size={14} />
+                            Buy crypto
+                          </Button>
+                        </MrgnTooltip>
                       </li>
                     </ul>
 
