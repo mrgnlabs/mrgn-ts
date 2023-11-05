@@ -36,7 +36,7 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
           {tokens[0].image && <img src={tokens[0].image} alt={tokens[0].symbol} className="w-4 h-4 mr-1" />}
           <span className="mr-1">{tokens[0].symbol}</span>
           <div className="text-xs space-x-2">
-            <span>{tokens[0].formattedValue}</span>
+            {tokens[0].value > 0 && <span>{tokens[0].formattedValue}</span>}
             <span className="text-xs font-light">({tokens[0].formattedValueUSD})</span>
           </div>
         </Button>

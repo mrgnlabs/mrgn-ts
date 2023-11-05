@@ -1,5 +1,4 @@
 import React from "react";
-import Link from "next/link";
 import { LAMPORTS_PER_SOL, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
@@ -13,6 +12,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { IconCheck, IconChevronDown, IconCoins, IconCopy } from "~/components/ui/icons";
+import { MrgnTooltip } from "../MrgnTooltip";
 
 export const Wallet = () => {
   const [sortedBanks] = useMrgnlendStore((state) => [state.extendedBankInfos]);
@@ -27,6 +27,8 @@ export const Wallet = () => {
     resetPk,
     connected: web3authConnected,
   } = useWeb3AuthWallet();
+  const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
+  const [isFundingAddressCopied, setIsFundingAddressCopied] = React.useState(false);
   const [isPrivateKeyCopied, setIsPrivateKeyCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
@@ -163,11 +165,31 @@ export const Wallet = () => {
             <div className="pt-4 px-4 h-full flex flex-col">
               <header className="space-y-2 flex flex-col items-center mb-8">
                 <WalletAvatar pfp={pfp} address={walletData.address} size="lg" />
-                <h1 className="font-medium">
-                  <Link href={`https://solscan.io/address/${walletData.address}`} target="_blank" rel="noreferrer">
-                    {walletData.shortAddress}
-                  </Link>
-                </h1>
+                <CopyToClipboard
+                  text={walletData.address}
+                  onCopy={() => {
+                    setIsWalletAddressCopied(true);
+                    setTimeout(() => {
+                      setIsWalletAddressCopied(false);
+                    }, 2000);
+                  }}
+                >
+                  <MrgnTooltip title="Click to copy wallet address">
+                    <button className="font-medium flex items-center gap-1 cursor-pointer">
+                      {isWalletAddressCopied && (
+                        <>
+                          copied! <IconCheck size={14} />
+                        </>
+                      )}
+                      {!isWalletAddressCopied && (
+                        <>
+                          {walletData.shortAddress}
+                          <IconCopy size={14} />
+                        </>
+                      )}
+                    </button>
+                  </MrgnTooltip>
+                </CopyToClipboard>
               </header>
               <div className="flex flex-col items-center h-full">
                 <div className="text-center">
@@ -177,16 +199,35 @@ export const Wallet = () => {
                 <WalletTokens tokens={walletData.tokens} />
                 {web3authConnected && (
                   <div className="mt-8 space-y-4">
-                    <p className="text-sm text-white/50 text-center">
-                      Tranfer funds to this wallet (
-                      <CopyToClipboard text={walletData.address}>
-                        <button className="cursor-pointer inline-flex items-center gap-1 group">
-                          {shortenAddress(walletData.address)}
-                          <IconCopy size={12} />
-                        </button>
+                    <div className="text-sm text-white/50 text-center">
+                      Tranfer funds to this wallet
+                      <CopyToClipboard
+                        text={walletData.address}
+                        onCopy={() => {
+                          setIsFundingAddressCopied(true);
+                          setTimeout(() => {
+                            setIsFundingAddressCopied(false);
+                          }, 2000);
+                        }}
+                      >
+                        <MrgnTooltip title="Click to copy wallet address">
+                          <button className="font-medium inline-flex mx-1 items-center gap-1 cursor-pointer">
+                            {isFundingAddressCopied && (
+                              <>
+                                copied! <IconCheck size={12} />
+                              </>
+                            )}
+                            {!isFundingAddressCopied && (
+                              <>
+                                {shortenAddress(walletData.address)}
+                                <IconCopy size={12} />
+                              </>
+                            )}
+                          </button>
+                        </MrgnTooltip>
                       </CopyToClipboard>
-                      ) to get started. On-ramp coming soon...
-                    </p>
+                      to get started. On-ramp coming soon...
+                    </div>
                     <ul className="w-full space-y-2">
                       <li>
                         <Button variant="outline" className="w-full cursor-help" disabled>
@@ -255,18 +296,20 @@ export const Wallet = () => {
                 }, 2000);
               }}
             >
-              <button className="flex items-center gap-1 text-xs outline-none mt-4">
-                {!isPrivateKeyCopied && (
-                  <>
-                    <IconCopy size="14" /> Copy to clipboard
-                  </>
-                )}
-                {isPrivateKeyCopied && (
-                  <>
-                    <IconCheck size="14" /> Copied to clipboard!
-                  </>
-                )}
-              </button>
+              <MrgnTooltip title="Click to copy private key">
+                <button className="font-medium flex items-center gap-1 cursor-pointer">
+                  {isPrivateKeyCopied && (
+                    <>
+                      <IconCheck size={14} /> copied!
+                    </>
+                  )}
+                  {!isPrivateKeyCopied && (
+                    <>
+                      <IconCopy size={14} /> Copy to clipboard
+                    </>
+                  )}
+                </button>
+              </MrgnTooltip>
             </CopyToClipboard>
             <div className="break-words font-mono text-xs p-2 border rounded-md max-w-[540px]">{pk}</div>
           </div>
