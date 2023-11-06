@@ -10,7 +10,7 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const signature = crypto
-      .createHmac("sha256", process.env.NEXT_PUBLIC_MOONPAY_SECRET_KEY!)
+      .createHmac("sha256", process.env.MOONPAY_SECRET_KEY!)
       .update(new URL(urlForSignature).search)
       .digest("base64");
 
