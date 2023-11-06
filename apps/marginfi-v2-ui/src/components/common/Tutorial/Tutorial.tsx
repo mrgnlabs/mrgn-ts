@@ -125,11 +125,11 @@ export const Tutorial = () => {
               >
                 <div className="space-y-8 pb-2 max-w-[35rem] mx-auto flex flex-col justify-center">
                   <p>
-                    marginfi allows users to lend tokens and earn interest. Interest is paid by borrowers to lenders
-                    when borrowing tokens. All borrowing is over-collateralized.
+                    marginfi allows users to lend tokens and earn interest. Interest is paid by borrowers to lenders.
+                    All borrowing is over-collateralized.
                   </p>
                   <p>
-                    Deposits in marginfi&apos;s Earn program may be locked according to the parameters each campaign.
+                    Deposits in marginfi&apos;s Earn program may be locked according to the parameters of each campaign.
                     Campaigns can be created on marginfi by new teams looking to bootstrap liquidity for their token.
                   </p>
                   <p>
