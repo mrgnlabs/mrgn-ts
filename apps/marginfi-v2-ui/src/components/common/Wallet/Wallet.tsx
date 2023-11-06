@@ -7,11 +7,11 @@ import { useMrgnlendStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
-import { WalletAvatar, WalletTokens, Token } from "~/components/common/Wallet";
+import { WalletAvatar, WalletTokens, Token, WalletOnramp } from "~/components/common/Wallet";
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
-import { IconCheck, IconChevronDown, IconCoins, IconCopy } from "~/components/ui/icons";
+import { IconCheck, IconChevronDown, IconCopy } from "~/components/ui/icons";
 import { MrgnTooltip } from "../MrgnTooltip";
 
 export const Wallet = () => {
@@ -198,8 +198,8 @@ export const Wallet = () => {
                 </div>
                 <WalletTokens tokens={walletData.tokens} />
                 {web3authConnected && (
-                  <div className="mt-8 space-y-4">
-                    <div className="text-sm text-white/50 text-center">
+                  <div className="pt-8">
+                    <div className="text-sm text-white/50 text-center mb-4">
                       Tranfer funds to this wallet
                       <CopyToClipboard
                         text={walletData.address}
@@ -228,18 +228,7 @@ export const Wallet = () => {
                       </CopyToClipboard>
                       to get started. On-ramp coming soon...
                     </div>
-                    <ul className="w-full space-y-2">
-                      <li>
-                        <MrgnTooltip title="Coming soon...">
-                          <Button variant="outline" className="w-full cursor-help opacity-50 hover:bg-background">
-                            <IconCoins size={14} />
-                            Buy crypto
-                          </Button>
-                        </MrgnTooltip>
-                      </li>
-                    </ul>
-
-                    {pk && <div className="mt-8">{pk}</div>}
+                    <WalletOnramp />
                   </div>
                 )}
                 <SheetFooter className="mt-auto">
