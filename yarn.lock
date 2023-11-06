@@ -5187,6 +5187,11 @@
     "@mongodb-js/zstd-linux-x64-musl" "1.2.0"
     "@mongodb-js/zstd-win32-x64-msvc" "1.2.0"
 
+"@moonpay/moonpay-js@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@moonpay/moonpay-js/-/moonpay-js-0.1.0.tgz#1d3b6a633b1e208ce8996a22c66a45a7c7e623a2"
+  integrity sha512-TSO22GtW3AettrHG7GkLjFqDW2x8IkndB3aoQJkISgIbMv7+d+9RfnrJJJTONdcQIGWkwQBqOMa8Tjv1ZZdQWA==
+
 "@motionone/animation@^10.15.1", "@motionone/animation@^10.16.3":
   version "10.16.3"
   resolved "https://registry.yarnpkg.com/@motionone/animation/-/animation-10.16.3.tgz#f5b71e27fd8b88b61f983adb0ed6c8e3e89281f9"
