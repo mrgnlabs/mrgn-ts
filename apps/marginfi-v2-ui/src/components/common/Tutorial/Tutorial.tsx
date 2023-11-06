@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import { useCookies } from "react-cookie";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowRight from "@mui/icons-material/ArrowRight";
 import { Button, Dialog, DialogContent } from "@mui/material";
@@ -68,18 +67,17 @@ const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialS
 
 export const Tutorial = () => {
   const [open, setOpen] = React.useState(false);
-  const [cookies, setCookie] = useCookies(["tutorialAcknowledged"]);
 
   const handleDialogClose = () => {
-    setCookie("tutorialAcknowledged", "true", { path: "/" });
+    localStorage.setItem("tutorialAcknowledged", "true");
     setOpen(false);
   };
 
   React.useEffect(() => {
-    if (!cookies.tutorialAcknowledged) {
+    if (!localStorage.getItem("tutorialAcknowledged")) {
       setOpen(true);
     }
-  }, [cookies.tutorialAcknowledged]);
+  }, []);
 
   return (
     <Dialog
