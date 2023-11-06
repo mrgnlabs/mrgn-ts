@@ -158,12 +158,6 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
           privateKeyProvider,
           adapterSettings: {
             uxMode: "redirect",
-            whiteLabel: {
-              mode: "dark",
-              theme: {
-                primary: "#dce85d",
-              },
-            },
           },
         });
 
