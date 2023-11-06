@@ -197,40 +197,38 @@ export const Wallet = () => {
                   <p className="text-muted-foreground text-sm">~{walletData.balanceSOL} SOL</p>
                 </div>
                 <WalletTokens tokens={walletData.tokens} />
-                {web3authConnected && (
-                  <div className="pt-8">
-                    <div className="text-sm text-white/50 text-center mb-4">
-                      Tranfer funds to this wallet
-                      <CopyToClipboard
-                        text={walletData.address}
-                        onCopy={() => {
-                          setIsFundingAddressCopied(true);
-                          setTimeout(() => {
-                            setIsFundingAddressCopied(false);
-                          }, 2000);
-                        }}
-                      >
-                        <MrgnTooltip title="Click to copy wallet address">
-                          <button className="font-medium inline-flex mx-1 items-center gap-1 cursor-pointer">
-                            {isFundingAddressCopied && (
-                              <>
-                                copied! <IconCheck size={12} />
-                              </>
-                            )}
-                            {!isFundingAddressCopied && (
-                              <>
-                                {shortenAddress(walletData.address)}
-                                <IconCopy size={12} />
-                              </>
-                            )}
-                          </button>
-                        </MrgnTooltip>
-                      </CopyToClipboard>
-                      to get started. On-ramp coming soon...
-                    </div>
-                    <WalletOnramp />
+                <div className="pt-8">
+                  <div className="text-sm text-white/50 text-center mb-4">
+                    Tranfer funds to this wallet
+                    <CopyToClipboard
+                      text={walletData.address}
+                      onCopy={() => {
+                        setIsFundingAddressCopied(true);
+                        setTimeout(() => {
+                          setIsFundingAddressCopied(false);
+                        }, 2000);
+                      }}
+                    >
+                      <MrgnTooltip title="Click to copy wallet address">
+                        <button className="font-medium inline-flex mx-1 items-center gap-1 cursor-pointer">
+                          {isFundingAddressCopied && (
+                            <>
+                              copied! <IconCheck size={12} />
+                            </>
+                          )}
+                          {!isFundingAddressCopied && (
+                            <>
+                              {shortenAddress(walletData.address)}
+                              <IconCopy size={12} />
+                            </>
+                          )}
+                        </button>
+                      </MrgnTooltip>
+                    </CopyToClipboard>
+                    to get started. On-ramp coming soon...
                   </div>
-                )}
+                  <WalletOnramp />
+                </div>
                 <SheetFooter className="mt-auto">
                   <ul>
                     <li>
