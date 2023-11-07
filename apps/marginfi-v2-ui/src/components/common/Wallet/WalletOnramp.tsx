@@ -70,7 +70,7 @@ export const WalletOnramp = () => {
   }, [moonPay]);
 
   return (
-    <MrgnTooltip title="Coming soon...">
+    <MrgnTooltip title="Coming soon..." className="hidden md:block">
       <Button variant="outline" className="w-full cursor-help opacity-50 hover:bg-background">
         <IconCoins size={14} />
         Buy crypto
