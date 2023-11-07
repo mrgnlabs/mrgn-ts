@@ -7,6 +7,7 @@ import { useMrgnlendStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
+import { useIsMobile } from "~/hooks/useIsMobile";
 import { WalletAvatar, WalletTokens, Token, WalletOnramp } from "~/components/common/Wallet";
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
@@ -18,6 +19,7 @@ export const Wallet = () => {
   const [sortedBanks] = useMrgnlendStore((state) => [state.extendedBankInfos]);
   const { connection } = useConnection();
   const { wallet, connected, logout } = useWalletContext();
+  const isMobile = useIsMobile();
   const {
     isOpenWallet,
     setIsOpenWallet,
@@ -229,17 +231,22 @@ export const Wallet = () => {
                   </div>
                   <WalletOnramp />
                 </div>
-                <SheetFooter className="mt-auto">
-                  <ul>
+                <SheetFooter className="mt-auto w-full">
+                  <ul className="space-y-3 mb-4 md:space-y-0 md:mb-0">
                     <li>
-                      <Button onClick={() => logout()} variant="link" size="sm" className="p-0 w-full opacity-50">
+                      <Button
+                        onClick={() => logout()}
+                        variant={isMobile ? "outline" : "link"}
+                        size="sm"
+                        className="p-0 w-full opacity-50"
+                      >
                         Logout
                       </Button>
                     </li>
                     {web3authConnected && (
                       <li>
                         <Button
-                          variant="link"
+                          variant={isMobile ? "outline" : "link"}
                           size="sm"
                           className="p-0 w-full opacity-50 gap-1"
                           onClick={() => {
