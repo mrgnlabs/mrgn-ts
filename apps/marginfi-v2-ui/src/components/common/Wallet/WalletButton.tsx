@@ -3,7 +3,6 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { Wallet } from "~/components/common/Wallet";
 import { Button } from "~/components/ui/button";
-import { IconWallet } from "~/components/ui/icons";
 
 export const WalletButton = () => {
   const { connected } = useWalletContext();
@@ -13,7 +12,7 @@ export const WalletButton = () => {
     <>
       {!connected ? (
         <Button onClick={() => setIsOpenAuthDialog(true)} className="gap-1.5">
-          <IconWallet size={20} /> Connect
+          Sign In
         </Button>
       ) : (
         <Wallet />
