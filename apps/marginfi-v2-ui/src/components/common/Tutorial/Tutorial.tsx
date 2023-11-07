@@ -7,7 +7,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import { useSwiper } from "swiper/react";
-import { Mrgn, ReceiveMoney, Alert } from "~/components/common/icons";
+import { IconMrgn, IconReceiveMoney, IconAlertTriangle } from "~/components/ui/icons";
 
 type TutorialSlideProps = {
   icon?: React.ReactNode;
@@ -102,7 +102,7 @@ export const Tutorial = () => {
         <div className="w-full max-w-4xl">
           <Swiper modules={[Pagination]} slidesPerView={1} navigation pagination={{ clickable: true }}>
             <SwiperSlide className="h-full">
-              <TutorialSlide icon={<Mrgn color="#fff" height={48} />} heading="Welcome to marginfi" next="Fees & yield">
+              <TutorialSlide icon={<IconMrgn size={48} />} heading="Welcome to marginfi" next="Fees & yield">
                 <div className="space-y-8 pb-2 max-w-xl mx-auto flex flex-col justify-center">
                   <p>
                     marginfi is a decentralized lending protocol on Solana that prioritizes risk management to provide a
@@ -116,11 +116,7 @@ export const Tutorial = () => {
               </TutorialSlide>
             </SwiperSlide>
             <SwiperSlide className="h-full">
-              <TutorialSlide
-                icon={<ReceiveMoney color="#fff" height={48} />}
-                heading="Fees & yield"
-                next="Account health"
-              >
+              <TutorialSlide icon={<IconReceiveMoney size={48} />} heading="Fees & yield" next="Account health">
                 <div className="space-y-8 pb-2 max-w-[35rem] mx-auto flex flex-col justify-center">
                   <p>
                     marginfi allows users to lend tokens and earn interest. Interest is paid by borrowers to lenders.
@@ -139,7 +135,7 @@ export const Tutorial = () => {
             </SwiperSlide>
             <SwiperSlide className="h-full">
               <TutorialSlide
-                icon={<Alert color="#fff" height={48} />}
+                icon={<IconAlertTriangle size={48} />}
                 heading="Account health"
                 closeDialog={handleDialogClose}
               >
@@ -150,7 +146,7 @@ export const Tutorial = () => {
                     how well-collateralized your account is based on your borrowed liabilities.
                   </p>
                   <p className="font-bold mx-auto flex items-center gap-3 border border-solid border-white/50 px-4 py-2 rounded-lg">
-                    <Alert height={20} className="hidden md:block" />
+                    <IconAlertTriangle height={20} className="hidden md:block" />
                     When your account health reaches 0% or below, you are exposed to liquidation.
                   </p>
                   <p>
