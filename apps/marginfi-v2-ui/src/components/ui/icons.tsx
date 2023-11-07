@@ -10,6 +10,7 @@ import {
   IconX,
   IconLoader2,
   IconCopy,
+  IconAlertTriangle,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -285,6 +286,7 @@ export {
   IconSearch,
   IconX,
   IconCopy,
+  IconAlertTriangle,
 
   // customed icons
   IconBraveWallet,
