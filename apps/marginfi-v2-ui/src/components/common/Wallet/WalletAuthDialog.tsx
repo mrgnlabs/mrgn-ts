@@ -63,7 +63,7 @@ export const WalletAuthDialog = () => {
   }, [wallets]);
 
   const isPhantomInstalled = React.useMemo(() => {
-    return wallets.some((wallet) => wallet.adapter.name === "Phantom" && wallet.readyState === "Installed");
+    return wallets.some((wallet) => wallet.adapter.name === "Phantom" && wallet.readyState === "Loadable");
   }, [wallets]);
 
   React.useEffect(() => {
