@@ -174,7 +174,7 @@ export const Wallet = () => {
                     }, 2000);
                   }}
                 >
-                  <MrgnTooltip title="Click to copy wallet address">
+                  <MrgnTooltip title="Click to copy wallet address" className="hidden md:block">
                     <button className="font-medium flex items-center gap-1 cursor-pointer">
                       {isWalletAddressCopied && (
                         <>
@@ -209,7 +209,7 @@ export const Wallet = () => {
                         }, 2000);
                       }}
                     >
-                      <MrgnTooltip title="Click to copy wallet address">
+                      <MrgnTooltip title="Click to copy wallet address" className="hidden md:block">
                         <button className="font-medium inline-flex mx-1 items-center gap-1 cursor-pointer">
                           {isFundingAddressCopied && (
                             <>
