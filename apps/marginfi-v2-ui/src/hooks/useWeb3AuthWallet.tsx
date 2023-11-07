@@ -36,7 +36,7 @@ type Web3AuthContextProps = {
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.SOLANA,
   chainId: "0x1",
-  rpcTarget: process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || '"https://mrgn.rpcpool.com/',
+  rpcTarget: process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || "https://mrgn.rpcpool.com/",
   displayName: "Solana Mainnet",
   blockExplorer: "https://explorer.solana.com",
   ticker: "SOL",
