@@ -158,6 +158,16 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
           privateKeyProvider,
           adapterSettings: {
             uxMode: "redirect",
+            whiteLabel: {
+              appName: "marginfi",
+              appUrl: "https://app.marginfi.com",
+              logoLight: "https://marginfi-v2-ui-git-staging-mrgn.vercel.app/mrgn.svg",
+              mode: "dark",
+              theme: {
+                primary: "#dce85d",
+              },
+              useLogoLoader: true,
+            },
           },
         });
 
