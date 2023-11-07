@@ -149,7 +149,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
         const web3authInstance = new Web3AuthNoModal({
           clientId: process.env.NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID || "",
           chainConfig,
-          web3AuthNetwork: "sapphire_devnet",
+          web3AuthNetwork: "sapphire_mainnet",
         });
 
         const privateKeyProvider = new SolanaPrivateKeyProvider({ config: { chainConfig } });
