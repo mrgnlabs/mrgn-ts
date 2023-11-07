@@ -33,7 +33,13 @@ const useWalletContext = () => {
         isOverride: true,
       };
     }
-    return { wallet: anchorWallet, isOverride: false };
+    return {
+      wallet: {
+        ...anchorWallet,
+        signMessage: walletContextState.signMessage,
+      },
+      isOverride: false,
+    };
   }, [anchorWallet, web3AuthWalletData, query]);
 
   const logout = useCallback(() => {
