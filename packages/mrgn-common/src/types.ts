@@ -11,9 +11,9 @@ export type ProgramReadonly<T extends Idl> = AnchorProgram<T>;
 
 export type Amount = BigNumber | number | string;
 
-export type Wallet = Pick<SignerWalletAdapter, "signAllTransactions" | "signTransaction"> & {
-  publicKey: PublicKey;
-  signMessage?: (message: Uint8Array) => Promise<Uint8Array> | undefined;
+export type Wallet = Partial<Pick<SignerWalletAdapter, "signAllTransactions" | "signTransaction">> & {
+  publicKey?: PublicKey;
+  signMessage?: (message: Uint8Array) => Promise<Uint8Array>;
 };
 
 export interface TransactionOptions extends ConfirmOptions {
