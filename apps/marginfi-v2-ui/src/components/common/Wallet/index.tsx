@@ -7,3 +7,4 @@ export * from "./WalletAvatar";
 export * from "./WalletTokens";
 export * from "./WalletOnramp";
 export * from "./WalletPkDialog";
+export * from "./WalletIntroDialog";

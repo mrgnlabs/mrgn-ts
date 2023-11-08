@@ -8,7 +8,14 @@ import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { WalletAvatar, WalletTokens, Token, WalletOnramp, WalletPkDialog } from "~/components/common/Wallet";
+import {
+  WalletAvatar,
+  WalletTokens,
+  Token,
+  WalletOnramp,
+  WalletPkDialog,
+  WalletIntroDialog,
+} from "~/components/common/Wallet";
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Button } from "~/components/ui/button";
 import { IconCheck, IconChevronDown, IconCopy } from "~/components/ui/icons";
@@ -175,7 +182,7 @@ export const Wallet = () => {
                     }, 2000);
                   }}
                 >
-                  <MrgnTooltip title="Click to copy wallet address" className="hidden md:block">
+                  <MrgnTooltip title="Click to copy" className="hidden md:block" placement="top">
                     <button className="font-medium flex items-center gap-1 cursor-pointer">
                       {isWalletAddressCopied && (
                         <>
@@ -210,7 +217,7 @@ export const Wallet = () => {
                         }, 2000);
                       }}
                     >
-                      <MrgnTooltip title="Click to copy wallet address" className="hidden md:block">
+                      <MrgnTooltip title="Click to copy" className="hidden md:block" placement="top">
                         <button className="font-medium inline-flex mx-1 items-center gap-1 cursor-pointer">
                           {isFundingAddressCopied && (
                             <>
@@ -266,6 +273,7 @@ export const Wallet = () => {
         </SheetContent>
       </Sheet>
       <WalletPkDialog pk={pk} resetPk={resetPk} />
+      <WalletIntroDialog />
     </>
   );
 };
