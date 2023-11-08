@@ -58,11 +58,10 @@ export const WalletIntroDialog = () => {
             </div>
           )}
           <p>
-            marginfi uses the Solana blockchain, which requires SOL to pay for network fees. Solana is ideal because
-            transactions can be completed for a fraction of a penny. You need to hold a sufficient amount of Solana to
-            be able to use marginfi (we recommend starting with $5 of value).
+            marginfi uses the Solana blockchain, which requires SOL to pay for network fees. Solana enables transactions
+            on marginfi to be completed for a fraction of a penny. You must hold a balance of Solana in your wallet to
+            use the network (we recommend starting with $5 worth of SOL)..
           </p>
-          <p>To get started with marginfi, transfer funds to the wallet address above.</p>
           <Button
             onClick={() => {
               setIsWalletIntroOpen(false);
