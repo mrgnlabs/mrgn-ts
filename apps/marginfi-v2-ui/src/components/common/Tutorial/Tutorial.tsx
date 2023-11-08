@@ -77,9 +77,9 @@ export const Tutorial = () => {
   };
 
   React.useEffect(() => {
-    if (!localStorage.getItem("tutorialAcknowledged")) {
-      setOpen(true);
-    }
+    // if (!localStorage.getItem("tutorialAcknowledged")) {
+    setOpen(true);
+    // }
   }, []);
 
   return (
@@ -167,7 +167,7 @@ export const Tutorial = () => {
           </div>
         </DialogContent>
       </Dialog>
-      {/* <PWABanner open={pwaBannerOpen} onOpenChange={(open) => setPwaBannerOpen(open)} /> */}
+      <PWABanner open={pwaBannerOpen} onOpenChange={(open) => setPwaBannerOpen(open)} />
     </>
   );
 };
