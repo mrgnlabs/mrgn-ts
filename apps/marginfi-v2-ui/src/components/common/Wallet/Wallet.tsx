@@ -273,7 +273,7 @@ export const Wallet = () => {
         </SheetContent>
       </Sheet>
       <WalletPkDialog pk={pk} resetPk={resetPk} />
-      <WalletIntroDialog />
+      {web3authConnected && <WalletIntroDialog />}
     </>
   );
 };
