@@ -5,10 +5,11 @@ import { useRouter } from "next/router";
 import { useCallback, useMemo, useState } from "react";
 import { useWeb3AuthWallet } from "./useWeb3AuthWallet";
 
-type WalletContextOveride = {
+export type WalletContextOverride = {
   connected: boolean;
   connecting: boolean;
   icon: string;
+  connect: () => void;
   disconnect: () => void;
   select: () => void;
   publicKey: PublicKey | undefined;
@@ -17,17 +18,18 @@ type WalletContextOveride = {
   signMessage?: (message: Uint8Array) => Promise<Uint8Array>;
 };
 
-type WalletContextStateOveride = {
+export type WalletContextStateOverride = {
   wallet: {
-    adapter: WalletContextOveride;
+    adapter: WalletContextOverride;
   };
-} & WalletContextOveride;
+} & WalletContextOverride;
 
-const makeWeb3AuthWalletContextState = (wallet: Wallet): WalletContextStateOveride => {
-  const walletProps: WalletContextOveride = {
+const makeWeb3AuthWalletContextState = (wallet: Wallet): WalletContextStateOverride => {
+  const walletProps: WalletContextOverride = {
     connected: true,
     connecting: false,
     icon: "https://app.marginfi.com/mrgn-white.svg",
+    connect: () => {},
     disconnect: () => {},
     select: () => {},
     publicKey: wallet?.publicKey,
@@ -55,7 +57,7 @@ const useWalletContext = () => {
     logout: web3AuthLogout,
   } = useWeb3AuthWallet();
   const { query } = useRouter();
-  const [walletContextState, setWalletContextState] = useState<WalletContextState | WalletContextStateOveride>(
+  const [walletContextState, setWalletContextState] = useState<WalletContextState | WalletContextStateOverride>(
     walletContextStateDefault
   );
 
@@ -73,11 +75,11 @@ const useWalletContext = () => {
         wallet: {
           ...anchorWallet,
           publicKey: new PublicKey(override) as PublicKey,
-          signMessage: walletContextState.signMessage,
-          signTransaction: walletContextState.signTransaction as <T extends Transaction | VersionedTransaction>(
+          signMessage: walletContextState?.signMessage,
+          signTransaction: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
             transactions: T
           ) => Promise<T>,
-          signAllTransactions: walletContextState.signTransaction as <T extends Transaction | VersionedTransaction>(
+          signAllTransactions: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
             transactions: T[]
           ) => Promise<T[]>,
         },
@@ -89,11 +91,11 @@ const useWalletContext = () => {
       wallet: {
         ...anchorWallet,
         publicKey: anchorWallet?.publicKey as PublicKey,
-        signMessage: walletContextState.signMessage,
-        signTransaction: walletContextState.signTransaction as <T extends Transaction | VersionedTransaction>(
+        signMessage: walletContextState?.signMessage,
+        signTransaction: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
           transactions: T
         ) => Promise<T>,
-        signAllTransactions: walletContextState.signTransaction as <T extends Transaction | VersionedTransaction>(
+        signAllTransactions: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
           transactions: T[]
         ) => Promise<T[]>,
       },
@@ -105,7 +107,7 @@ const useWalletContext = () => {
     if (web3AuthConnected) {
       web3AuthLogout();
     } else {
-      walletContextState.disconnect();
+      walletContextState?.disconnect();
     }
   }, [walletContextState, web3AuthConnected, web3AuthLogout]);
 
@@ -113,8 +115,8 @@ const useWalletContext = () => {
     wallet,
     walletAddress: wallet?.publicKey,
     isOverride,
-    connected: walletContextState.connected || web3AuthConnected,
-    connecting: walletContextState.connecting,
+    connected: walletContextState?.connected || web3AuthConnected,
+    connecting: walletContextState?.connecting,
     walletContextState,
     login: web3AuthLogin,
     logout,
