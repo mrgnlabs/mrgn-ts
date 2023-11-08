@@ -2,7 +2,7 @@ import { Wallet } from "@mrgnlabs/mrgn-common";
 import { useAnchorWallet, useWallet, WalletContextState } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { useRouter } from "next/router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useWeb3AuthWallet } from "./useWeb3AuthWallet";
 
 export type WalletContextOverride = {
@@ -70,7 +70,6 @@ const useWalletContext = () => {
         isOverride: false,
       };
     } else if (anchorWallet && override) {
-      setWalletContextState(walletContextStateDefault);
       return {
         wallet: {
           ...anchorWallet,
@@ -86,7 +85,6 @@ const useWalletContext = () => {
         isOverride: true,
       };
     }
-    setWalletContextState(walletContextStateDefault);
     return {
       wallet: {
         ...anchorWallet,
@@ -102,6 +100,10 @@ const useWalletContext = () => {
       isOverride: false,
     };
   }, [anchorWallet, web3AuthWalletData, query]);
+
+  useEffect(() => {
+    setWalletContextState(walletContextStateDefault);
+  }, [walletContextStateDefault]);
 
   const logout = useCallback(() => {
     if (web3AuthConnected) {
