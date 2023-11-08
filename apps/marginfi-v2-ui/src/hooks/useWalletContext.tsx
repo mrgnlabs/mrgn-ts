@@ -70,6 +70,7 @@ const useWalletContext = () => {
         isOverride: false,
       };
     } else if (anchorWallet && override) {
+      setWalletContextState(walletContextStateDefault);
       return {
         wallet: {
           ...anchorWallet,
@@ -85,6 +86,7 @@ const useWalletContext = () => {
         isOverride: true,
       };
     }
+    setWalletContextState(walletContextStateDefault);
     return {
       wallet: {
         ...anchorWallet,
@@ -99,19 +101,16 @@ const useWalletContext = () => {
       },
       isOverride: false,
     };
-  }, [anchorWallet, web3AuthWalletData, query]);
-
-  useEffect(() => {
-    setWalletContextState(walletContextStateDefault);
-  }, [walletContextStateDefault]);
+  }, [anchorWallet, web3AuthWalletData, query, web3AuthConnected, walletContextStateDefault.wallet]);
 
   const logout = useCallback(() => {
     if (web3AuthConnected) {
       web3AuthLogout();
     } else {
       walletContextState?.disconnect();
+      setWalletContextState(walletContextStateDefault);
     }
-  }, [walletContextState, web3AuthConnected, web3AuthLogout]);
+  }, [walletContextState, web3AuthConnected, web3AuthLogout, walletContextStateDefault]);
 
   return {
     wallet,
