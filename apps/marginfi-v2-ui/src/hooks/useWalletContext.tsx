@@ -101,7 +101,7 @@ const useWalletContext = () => {
       },
       isOverride: false,
     };
-  }, [anchorWallet, web3AuthWalletData, query, walletContextStateDefault, web3AuthConnected]);
+  }, [anchorWallet, web3AuthWalletData, query]);
 
   const logout = useCallback(() => {
     if (web3AuthConnected) {
