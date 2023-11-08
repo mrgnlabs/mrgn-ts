@@ -68,7 +68,7 @@ export const Wallet = () => {
       value: balance / LAMPORTS_PER_SOL,
       valueUSD: solBank ? (balance / LAMPORTS_PER_SOL) * solBank.info.state.price : 0,
       formattedValue: numeralFormatter(balance / LAMPORTS_PER_SOL),
-      formattedValueUSD: usdFormatter.format(balance / LAMPORTS_PER_SOL),
+      formattedValueUSD: usdFormatter.format(solBank ? (balance / LAMPORTS_PER_SOL) * solBank.info.state.price : 0),
     });
 
     const totalBalance = tokens.reduce((acc, token) => acc + (token?.valueUSD || 0), 0);
