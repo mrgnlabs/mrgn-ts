@@ -57,24 +57,23 @@ const useWalletContext = () => {
     logout: web3AuthLogout,
   } = useWeb3AuthWallet();
   const { query } = useRouter();
-  const [walletContextState, setWalletContextState] = useState<WalletContextState | WalletContextStateOverride>(
-    walletContextStateDefault
-  );
 
-  const updateWalletContext = useCallback(async () => {
-    setWalletContextState(walletContextStateDefault);
-  }, [walletContextStateDefault]);
+  const walletContextState = useMemo(() => {
+    if (web3AuthConnected && web3AuthWalletData) {
+      return makeWeb3AuthWalletContextState(web3AuthWalletData);
+    } else {
+      return walletContextStateDefault;
+    }
+  }, [web3AuthConnected, walletContextStateDefault.connected]);
 
   const { wallet, isOverride }: { wallet: Wallet | undefined; isOverride: boolean } = useMemo(() => {
     const override = query?.wallet as string;
     if (web3AuthWalletData && web3AuthConnected) {
-      setWalletContextState(makeWeb3AuthWalletContextState(web3AuthWalletData));
       return {
         wallet: web3AuthWalletData,
         isOverride: false,
       };
     } else if (anchorWallet && override) {
-      updateWalletContext();
       return {
         wallet: {
           ...anchorWallet,
@@ -90,7 +89,6 @@ const useWalletContext = () => {
         isOverride: true,
       };
     }
-    updateWalletContext();
     return {
       wallet: {
         ...anchorWallet,
@@ -112,7 +110,6 @@ const useWalletContext = () => {
       web3AuthLogout();
     } else {
       walletContextState?.disconnect();
-      setWalletContextState(walletContextStateDefault);
     }
   }, [walletContextState, web3AuthConnected, web3AuthLogout, walletContextStateDefault]);
 
