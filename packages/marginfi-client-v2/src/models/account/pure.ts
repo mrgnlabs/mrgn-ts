@@ -300,25 +300,6 @@ class MarginfiAccount {
     const priceLiabMarket = liabilityBank.getPrice(liabilityPriceInfo, PriceBias.None);
     const liabMaintWeight = liabilityBank.config.liabilityWeightMaint;
 
-    // MAX amount of asset to liquidate to bring account maint health to 0, regardless of existing balances
-    //                      h
-    // q_a = ----------------------------------
-    //       p_al * w_a - p_al * d * p_lh * w_l
-    //                   ----------------------
-    //                            p_lm
-    // const underwaterMaintValue = currentHealth.div(
-    //   priceAssetLower
-    //     .times(assetMaintWeight)
-    //     .minus(
-    //       priceAssetLower
-    //         .times(liquidationDiscount)
-    //         .times(priceLiabHighest)
-    //         .times(liabMaintWeight)
-    //         .div(priceLiabMarket)
-    //     )
-    // );
-
-
     const underwaterMaintValue = currentHealth.div(assetMaintWeight.minus(liabMaintWeight.times(liquidationDiscount)));
 
     // MAX asset amount bounded by available asset amount

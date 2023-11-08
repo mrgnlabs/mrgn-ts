@@ -611,7 +611,7 @@ class Liquidator {
       liquidatorMaxLiqCapacityAssetAmount
     );
 
-    const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.75);
+    const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.5);
 
     if (slippageAdjustedCollateralAmountToLiquidate.lt(MIN_LIQUIDATION_AMOUNT_USD_UI)) {
       debug("No collateral to liquidate");
