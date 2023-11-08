@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import React from "react";
 import config from "~/config";
 import { PageHeader } from "~/components/common/PageHeader";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -8,7 +8,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 const SwapPage = () => {
   const { walletContextState } = useWalletContext();
 
-  useEffect(() => {
+  React.useEffect(() => {
     window.Jupiter.init({
       displayMode: "integrated",
       integratedTargetId: "integrated-terminal",
