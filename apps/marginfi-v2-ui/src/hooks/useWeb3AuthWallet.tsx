@@ -161,7 +161,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
             whiteLabel: {
               appName: "marginfi",
               appUrl: "https://app.marginfi.com",
-              logoLight: "https://marginfi-v2-ui-git-staging-mrgn.vercel.app/mrgn.svg",
+              logoDark: "https://marginfi-v2-ui-git-staging-mrgn.vercel.app/mrgn.svg",
               mode: "dark",
               theme: {
                 primary: "#dce85d",
