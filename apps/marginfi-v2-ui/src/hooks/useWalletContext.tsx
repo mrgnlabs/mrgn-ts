@@ -61,6 +61,10 @@ const useWalletContext = () => {
     walletContextStateDefault
   );
 
+  const updateWalletContext = useCallback(async () => {
+    setWalletContextState(walletContextStateDefault);
+  }, [walletContextStateDefault]);
+
   const { wallet, isOverride }: { wallet: Wallet | undefined; isOverride: boolean } = useMemo(() => {
     const override = query?.wallet as string;
     if (web3AuthWalletData && web3AuthConnected) {
@@ -70,7 +74,7 @@ const useWalletContext = () => {
         isOverride: false,
       };
     } else if (anchorWallet && override) {
-      setWalletContextState(walletContextStateDefault);
+      updateWalletContext();
       return {
         wallet: {
           ...anchorWallet,
@@ -86,7 +90,7 @@ const useWalletContext = () => {
         isOverride: true,
       };
     }
-    setWalletContextState(walletContextStateDefault);
+    updateWalletContext();
     return {
       wallet: {
         ...anchorWallet,
