@@ -90,6 +90,12 @@ let config = withBundleAnalyzer({
         port: "",
         pathname: "/assets/**",
       },
+      {
+        protocol: "https",
+        hostname: "s.gravatar.com",
+        port: "",
+        pathname: "/avatar/**",
+      },
     ],
   },
 });
