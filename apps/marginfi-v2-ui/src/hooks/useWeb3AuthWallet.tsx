@@ -164,7 +164,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
               logoDark: "https://marginfi-v2-ui-git-staging-mrgn.vercel.app/mrgn.svg",
               mode: "dark",
               theme: {
-                primary: "#dce85d",
+                gray: "#0E1010",
               },
               useLogoLoader: true,
             },
