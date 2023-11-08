@@ -5,6 +5,7 @@ import { isWholePosition } from "./mrgnUtils";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Wallet, processTransaction } from "@mrgnlabs/mrgn-common";
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import { WalletContextStateOverride } from "~/hooks/useWalletContext";
 
 const CLOSE_BALANCE_TOAST_ID = "close-balance";
 const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
@@ -61,7 +62,7 @@ export type BorrowOrLendParams = {
   borrowOrLendAmount: number;
   nativeSolBalance: number;
   marginfiAccount: MarginfiAccountWrapper | null;
-  walletContextState?: WalletContextState;
+  walletContextState?: WalletContextState | WalletContextStateOverride;
 };
 
 export const borrowOrLend = async ({
