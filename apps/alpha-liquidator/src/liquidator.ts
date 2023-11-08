@@ -11,12 +11,12 @@ import BigNumber from "bignumber.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { captureException, captureMessage, env_config } from "./config";
-import BN from "bn.js";
+import BN, { min } from "bn.js";
 import { BankMetadataMap, loadBankMetadatas } from "./utils/bankMetadata";
 import { Bank } from "@mrgnlabs/marginfi-client-v2/dist/models/bank";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
-const DUST_THRESHOLD_UI = new BigNumber(0.1);
+const DUST_THRESHOLD_UI = new BigNumber(0.01);
 const MIN_LIQUIDATION_AMOUNT_USD_UI = env_config.MIN_LIQUIDATION_AMOUNT_USD_UI;
 
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
@@ -73,12 +73,18 @@ class Liquidator {
     await this.mainLoop();
   }
 
+  private async reload() {
+    await this.client.reload();
+    await this.account.reload();
+  }
+
   private async mainLoop() {
     const debug = getDebugLogger("main-loop");
     drawSpinner("Scanning");
     try {
-      await this.swapNonUsdcInTokenAccounts();
+      this.reload();
       while (true) {
+        await this.swapNonUsdcInTokenAccounts();
         debug("Started main loop iteration");
         if (await this.needsToBeRebalanced()) {
           await this.rebalancingStage();
@@ -88,6 +94,7 @@ class Liquidator {
         // Don't sleep after liquidating an account, start rebalance immediately
         if (!(await this.liquidationStage())) {
           await sleep(env_config.SLEEP_INTERVAL);
+          this.reload();
         }
       }
     } catch (e) {
@@ -103,7 +110,7 @@ class Liquidator {
   private async swap(mintIn: PublicKey, mintOut: PublicKey, amountIn: BN) {
     const debug = getDebugLogger("swap");
 
-    debug("Swapping %s %s to %s", amountIn, mintIn.toBase58(), mintOut.toBase58());
+    console.log("Swapping %s %s to %s", amountIn, mintIn.toBase58(), mintOut.toBase58());
 
     const swapUrl = `https://quote-api.jup.ag/v6/quote?inputMint=${mintIn.toBase58()}&outputMint=${mintOut.toBase58()}&amount=${amountIn.toString()}&slippageBps=${SLIPPAGE_BPS}`;
     const quoteApiResponse = await fetch(swapUrl);
@@ -186,6 +193,7 @@ class Liquidator {
       const balance = await this.getTokenAccountBalance(bank.mint);
 
       await this.swap(bank.mint, USDC_MINT, uiToNative(balance, bank.mintDecimals));
+      await this.account.reload();
     }
   }
 
@@ -266,6 +274,8 @@ class Liquidator {
 
       const depositSig = await this.account.repay(liabBalance, bank.address, liabBalance.gte(liabsUi));
       debug("Deposit tx: %s", depositSig);
+
+      await this.reload();
     }
   }
 
@@ -301,6 +311,7 @@ class Liquidator {
   }
 
   private async getTokenAccountBalance(mint: PublicKey, ignoreNativeMint: boolean = false): Promise<BigNumber> {
+    const debug = getDebugLogger("getTokenAccountBalances");
     const tokenAccount = await associatedAddress({ mint, owner: this.wallet.publicKey });
     const nativeAmount = nativeToUi(
       mint.equals(NATIVE_MINT)
@@ -313,11 +324,14 @@ class Liquidator {
       9
     );
 
+    debug!("Checking token account %s for %s", tokenAccount, mint);
+
     try {
       return new BigNumber((await this.connection.getTokenAccountBalance(tokenAccount)).value.uiAmount!).plus(
         nativeAmount
       );
     } catch (e) {
+      debug("Error getting token account balance: %s", e);
       return new BigNumber(0).plus(nativeAmount);
     }
   }
@@ -333,9 +347,16 @@ class Liquidator {
         continue;
       }
 
-      let amount = await this.getTokenAccountBalance(bank.mint);
+      let uiAmount = await this.getTokenAccountBalance(bank.mint);
+      let price = this.client.getOraclePriceByBank(bank.address)!;
+      let usdValue = bank.computeUsdValue(price, new BigNumber(uiAmount), PriceBias.None, undefined, false);
 
-      if (amount.lte(DUST_THRESHOLD_UI)) {
+      let amount = uiToNative(uiAmount, bank.mintDecimals).toNumber();
+
+      debug("Account has %d %s", uiAmount, this.getTokenSymbol(bank));
+
+      if (usdValue.lte(DUST_THRESHOLD_UI)) {
+        debug!("Not enough %s to swap, skipping...", this.getTokenSymbol(bank));
         continue;
       }
 
@@ -344,17 +365,22 @@ class Liquidator {
 
       if (liabilities.gt(0)) {
         debug("Account has %d liabilities in %s", liabilities, this.getTokenSymbol(bank));
-        const depositAmount = BigNumber.min(amount, liabilities);
+        const depositAmount = BigNumber.min(uiAmount, liabilities);
 
         debug("Paying off %d %s liabilities", depositAmount, this.getTokenSymbol(bank));
-        await this.account.repay(depositAmount, bank.address, amount.gte(liabilities));
+        await this.account.repay(depositAmount, bank.address, uiAmount.gte(liabilities));
 
-        amount = await this.getTokenAccountBalance(bank.mint);
+        uiAmount = await this.getTokenAccountBalance(bank.mint);
+
+        if (uiAmount.lte(DUST_THRESHOLD_UI)) {
+          debug("Account has no more %s, skipping...", this.getTokenSymbol(bank));
+          continue;
+        }
       }
 
-      debug("Swapping %d %s to USDC", amount, this.getTokenSymbol(bank));
+      debug("Swapping %d %s to USDC", uiAmount, this.getTokenSymbol(bank));
 
-      await this.swap(bank.mint, USDC_MINT, uiToNative(amount, bank.mintDecimals));
+      await this.swap(bank.mint, USDC_MINT, uiToNative(uiAmount, bank.mintDecimals));
     }
 
     const usdcBalance = await this.getTokenAccountBalance(USDC_MINT);
@@ -369,14 +395,15 @@ class Liquidator {
     const tx = await this.account.deposit(usdcBalance, usdcBank.address);
 
     debug("Deposit tx: %s", tx);
+
+    await this.reload();
   }
 
   private async needsToBeRebalanced(): Promise<boolean> {
     const debug = getDebugLogger("rebalance-check");
 
     debug("Checking if liquidator needs to be rebalanced");
-    await this.client.reload();
-    await this.account.reload();
+    await this.reload();
 
     const lendingAccountToRebalance = this.account.activeBalances
       .map((lendingAccount) => {
@@ -531,7 +558,7 @@ class Liquidator {
     }
 
     debug(
-      "Max collateral USD value: %d, mint: %s",
+      "Max collateral $%d, mint: %s",
       maxCollateralUsd,
       this.client.getBankByPk(marginfiAccount.activeBalances[bestCollateralIndex].bankPk)!.mint
     );
@@ -550,8 +577,6 @@ class Liquidator {
       collateralBank.address,
       liabBank.address
     );
-
-    debug("Max collateral amount to liquidate: %d", maxCollateralAmountToLiquidate);
 
     // MAX collateral amount to liquidate given liquidators current margin account
     const liquidatorMaxLiquidationCapacityLiabAmount = liquidatorAccount.computeMaxBorrowForBank(liabBank.address);
@@ -574,6 +599,12 @@ class Liquidator {
       liquidatorMaxLiquidationCapacityUsd,
       liabBank.mint
     );
+
+    debug(
+      "Collateral amount to liquidate: $%d for bank %s",
+      maxCollateralAmountToLiquidate,
+      collateralBank.mint
+    )
 
     const collateralAmountToLiquidate = BigNumber.min(
       maxCollateralAmountToLiquidate,

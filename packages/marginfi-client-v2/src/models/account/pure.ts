@@ -301,17 +301,25 @@ class MarginfiAccount {
     const liabMaintWeight = liabilityBank.config.liabilityWeightMaint;
 
     // MAX amount of asset to liquidate to bring account maint health to 0, regardless of existing balances
-    const underwaterMaintValue = currentHealth.div(
-      priceAssetLower
-        .times(assetMaintWeight)
-        .minus(
-          priceAssetMarket
-            .times(liquidationDiscount)
-            .times(priceLiabHighest)
-            .times(liabMaintWeight)
-            .div(priceLiabMarket)
-        )
-    );
+    //                      h
+    // q_a = ----------------------------------
+    //       p_al * w_a - p_al * d * p_lh * w_l
+    //                   ----------------------
+    //                            p_lm
+    // const underwaterMaintValue = currentHealth.div(
+    //   priceAssetLower
+    //     .times(assetMaintWeight)
+    //     .minus(
+    //       priceAssetLower
+    //         .times(liquidationDiscount)
+    //         .times(priceLiabHighest)
+    //         .times(liabMaintWeight)
+    //         .div(priceLiabMarket)
+    //     )
+    // );
+
+
+    const underwaterMaintValue = currentHealth.div(assetMaintWeight.minus(liabMaintWeight.times(liquidationDiscount)));
 
     // MAX asset amount bounded by available asset amount
     const assetBalance = this.getBalance(assetBankAddress);
@@ -319,14 +327,18 @@ class MarginfiAccount {
 
     // MAX asset amount bounded by available liability amount
     const liabilityBalance = this.getBalance(liabilityBankAddress);
-    const liabilitiesForBank = liabilityBalance.computeQuantityUi(assetBank).liabilities;
+    const liabilitiesForBank = liabilityBalance.computeQuantityUi(liabilityBank).liabilities;
     const liabilityCap = liabilitiesForBank.times(priceLiabMarket).div(priceAssetMarket.times(liquidationDiscount));
+
+    debug("Liab amount: %d, price: %d, value: %d", liabilitiesForBank.toFixed(6), priceLiabMarket.toFixed(6), liabilitiesForBank.times(priceLiabMarket).toFixed(6));
+
+    debug("Collateral amount: %d, price: %d, value: %d", assetsCap.toFixed(6), priceAssetMarket.toFixed(6), assetsCap.times(priceAssetMarket).toFixed(6));
 
     debug("underwaterValue", underwaterMaintValue.toFixed(6));
     debug("assetsCap", assetsCap.toFixed(6));
     debug("liabilityCap", liabilityCap.toFixed(6));
 
-    return BigNumber.min(assetsCap, liabilityCap, underwaterMaintValue);
+    return BigNumber.min(assetsCap, underwaterMaintValue, liabilityCap);
   }
 
   getHealthCheckAccounts(
