@@ -167,7 +167,7 @@ export const Tutorial = () => {
           </div>
         </DialogContent>
       </Dialog>
-      <PWABanner open={pwaBannerOpen} onOpenChange={(open) => setPwaBannerOpen(open)} />
+      {/* <PWABanner open={pwaBannerOpen} onOpenChange={(open) => setPwaBannerOpen(open)} /> */}
     </>
   );
 };
