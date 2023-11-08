@@ -8,7 +8,20 @@ import { Button } from "~/components/ui/button";
 import CopyToClipboard from "react-copy-to-clipboard";
 
 export const WalletIntroDialog = () => {
-  const [isWalletIntroOpen, setIsWalletIntroOpen] = React.useState(true);
+  const [isWalletIntroOpen, setIsWalletIntroOpen] = React.useState(false);
+
+  const handleDialogClose = () => {
+    localStorage.setItem("fundingWalletAcknowledged", "true");
+    setIsWalletIntroOpen(false);
+    setIsOpenWallet(true);
+  };
+
+  React.useEffect(() => {
+    if (!localStorage.getItem("fundingWalletAcknowledged")) {
+      setIsWalletIntroOpen(true);
+    }
+  }, []);
+
   const [isCopied, setIsCopied] = React.useState(false);
   const { wallet } = useWalletContext();
   const { setIsOpenWallet } = useWeb3AuthWallet();
@@ -17,7 +30,9 @@ export const WalletIntroDialog = () => {
     <Dialog
       open={isWalletIntroOpen}
       onOpenChange={(open) => {
-        setIsWalletIntroOpen(open);
+        if (!open) {
+          handleDialogClose();
+        }
       }}
     >
       <DialogContent className="md:max-w-[640px]">
@@ -62,14 +77,7 @@ export const WalletIntroDialog = () => {
             on marginfi to be completed for a fraction of a penny. You must hold a balance of Solana in your wallet to
             use the network (we recommend starting with $5 worth of SOL)..
           </p>
-          <Button
-            onClick={() => {
-              setIsWalletIntroOpen(false);
-              setIsOpenWallet(true);
-            }}
-          >
-            Get Started
-          </Button>
+          <Button onClick={() => handleDialogClose()}>Get Started</Button>
         </div>
       </DialogContent>
     </Dialog>
