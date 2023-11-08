@@ -39,7 +39,7 @@ export const WalletPkDialog = ({ pk, resetPk }: WalletPkDialogProps) => {
               }, 2000);
             }}
           >
-            <MrgnTooltip title="Click to copy private key">
+            <MrgnTooltip title="Click to copy" placement="top">
               <button className="font-medium flex items-center gap-1 cursor-pointer">
                 {isPrivateKeyCopied && (
                   <>
