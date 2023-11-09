@@ -1,14 +1,19 @@
 import React from "react";
 import Link from "next/link";
-import CloseIcon from "@mui/icons-material/Close";
-import ArrowRight from "@mui/icons-material/ArrowRight";
-import { Button, Dialog, DialogContent } from "@mui/material";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import { useSwiper } from "swiper/react";
 import { PWABanner } from "~/components/mobile/PWABanner";
-import { IconMrgn, IconReceiveMoney, IconAlertTriangle } from "~/components/ui/icons";
+import { Dialog, DialogContent } from "~/components/ui/dialog";
+import { Button } from "~/components/ui/button";
+import {
+  IconMrgn,
+  IconReceiveMoney,
+  IconAlertTriangle,
+  IconChevronRight,
+  IconExternalLink,
+  IconCheck,
+} from "~/components/ui/icons";
 
 type TutorialSlideProps = {
   icon?: React.ReactNode;
@@ -22,8 +27,8 @@ const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialS
   const swiper = useSwiper();
 
   return (
-    <div className="py-16 md:pb-20 md:pt-14 px-4 space-y-8 h-full md:h-auto">
-      <header className="space-y-6 flex flex-col items-center">
+    <div className="pb-16 px-4 space-y-4 md:space-y-8 h-full md:h-auto text-center">
+      <header className="space-y-2 md:space-y-6 flex flex-col items-center">
         {icon && icon}
         {heading && <h2 className="text-3xl font-medium">{heading}</h2>}
       </header>
@@ -31,34 +36,29 @@ const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialS
       {next && (
         <div className="flex items-center justify-center">
           <Button
-            variant="contained"
-            className="bg-white text-black gap-2 flex items-center w-full md:w-auto"
+            className="w-full md:w-auto"
             onClick={() => {
               swiper.slideNext();
             }}
           >
-            {next} <ArrowRight />
+            {next} <IconChevronRight size={16} />
           </Button>
         </div>
       )}
       {!next && (
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+          <Link href="https://docs.marginfi.com/" target="_blank" rel="noreferrer">
+            <Button variant="outline" className="w-full md:w-auto">
+              Read docs <IconExternalLink size={16} />
+            </Button>
+          </Link>
           <Button
-            variant="contained"
-            className="bg-transparent text-white border border-solid border-white gap-2 flex items-center w-full md:w-auto"
-          >
-            <Link href="https://docs.marginfi.com/" target="_blank" rel="noreferrer">
-              Read docs <OpenInNewIcon className="text-sm" />
-            </Link>
-          </Button>
-          <Button
-            variant="contained"
-            className="bg-white text-black gap-2 flex items-center w-full md:w-auto"
+            className="w-full md:w-auto"
             onClick={() => {
               if (closeDialog) closeDialog();
             }}
           >
-            Get started
+            Get started <IconCheck size={16} />
           </Button>
         </div>
       )}
@@ -84,30 +84,13 @@ export const Tutorial = () => {
 
   return (
     <>
-      <Dialog
-        open={open}
-        maxWidth="xl"
-        slotProps={{
-          backdrop: {
-            style: {
-              backdropFilter: "blur(4px)",
-            },
-          },
-        }}
-        PaperProps={{
-          style: {
-            backgroundColor: "transparent",
-            boxShadow: "none",
-            margin: 0,
-          },
-        }}
-      >
-        <DialogContent className="bg-[#0F1111] w-full rounded-lg text-white items-center justify-center text-center p-0">
-          <div className="w-full max-w-4xl">
+      <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
+        <DialogContent className="p-4 md:max-w-4xl md:py-8">
+          <div className="max-w-3xl">
             <Swiper modules={[Pagination]} slidesPerView={1} navigation pagination={{ clickable: true }}>
               <SwiperSlide className="h-full">
                 <TutorialSlide icon={<IconMrgn size={48} />} heading="Welcome to marginfi" next="Fees & yield">
-                  <div className="space-y-8 pb-2 max-w-xl mx-auto flex flex-col justify-center">
+                  <div className="space-y-6 md:space-y-8 pb-2 max-w-xl mx-auto flex flex-col justify-center">
                     <p>
                       marginfi is a decentralized lending protocol on Solana that prioritizes risk management to provide
                       a safe and reliable solution for users looking to access leverage and maximize capital efficiency.
@@ -121,7 +104,7 @@ export const Tutorial = () => {
               </SwiperSlide>
               <SwiperSlide className="h-full">
                 <TutorialSlide icon={<IconReceiveMoney size={48} />} heading="Fees & yield" next="Account health">
-                  <div className="space-y-8 pb-2 max-w-[35rem] mx-auto flex flex-col justify-center">
+                  <div className="space-y-6 md:space-y-8 pb-2 max-w-[35rem] mx-auto flex flex-col justify-center">
                     <p>
                       marginfi allows users to lend tokens and earn interest. Interest is paid by borrowers to lenders.
                       All borrowing is over-collateralized.
@@ -144,13 +127,13 @@ export const Tutorial = () => {
                   heading="Account health"
                   closeDialog={handleDialogClose}
                 >
-                  <div className="space-y-8 pb-2 max-w-[44rem] mx-auto flex flex-col justify-center">
-                    <p>
+                  <div className="space-y-6 md:space-y-8 pb-2 max-w-[44rem] mx-auto flex-col justify-center">
+                    <p className="hidden tall:flex">
                       Account health is only for borrowing activity on marginfi. If you&apos;re not borrowing on
                       marginfi, you will always have 100% account health. Your account health is a single value that
                       encapsulates how well-collateralized your account is based on your borrowed liabilities.
                     </p>
-                    <p className="font-bold mx-auto flex items-center gap-3 border border-solid border-white/50 px-4 py-2 rounded-lg">
+                    <p className="text-sm sm:text-base flex font-bold mx-auto items-center gap-3 border border-solid border-white/50 px-4 py-2 rounded-lg">
                       <IconAlertTriangle height={20} className="hidden md:block" />
                       When your account health reaches 0% or below, you are exposed to liquidation.
                     </p>
@@ -163,7 +146,6 @@ export const Tutorial = () => {
                 </TutorialSlide>
               </SwiperSlide>
             </Swiper>
-            <CloseIcon className="absolute top-4 right-4 cursor-pointer z-20 opacity-75" onClick={handleDialogClose} />
           </div>
         </DialogContent>
       </Dialog>

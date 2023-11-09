@@ -73,6 +73,9 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      screens: {
+        tall: { raw: "(min-height: 800px)" },
+      },
       maxWidth: {
         "8xl": "90rem",
       },
