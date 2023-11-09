@@ -81,7 +81,12 @@ export const Tutorial = () => {
 
   return (
     <>
-      <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
+      <Dialog
+        open={open}
+        onOpenChange={(open) => {
+          if (!open) handleDialogClose();
+        }}
+      >
         <DialogContent className="p-4 md:max-w-4xl md:py-8">
           <div className="max-w-3xl">
             <Swiper modules={[Pagination]} slidesPerView={1} navigation pagination={{ clickable: true }}>
