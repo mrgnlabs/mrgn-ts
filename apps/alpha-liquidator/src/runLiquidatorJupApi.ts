@@ -25,7 +25,15 @@ async function start() {
   await liquidator.start();
 }
 
-start().catch((e) => {
-  console.log(e);
-  process.exit(1);
-});
+async function startWithRestart() {
+  try {
+    await start();
+  } catch (e) {
+    console.log(e);
+    console.log("Restarting due to crash...");
+    startWithRestart();
+  }
+}
+
+startWithRestart();
+

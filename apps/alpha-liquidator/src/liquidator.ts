@@ -667,11 +667,12 @@ class Liquidator {
     }
 
     console.log(
-      "Liquidating %d ($%d) %s for %s",
-      slippageAdjustedCollateralAmountToLiquidate,
-      collateralUsdValue,
+      "Liquidating %d ($%d) %s for %s, account: %s",
+      slippageAdjustedCollateralAmountToLiquidate.toFixed(6),
+      collateralUsdValue.toFixed(3),
       this.getTokenSymbol(collateralBank),
-      this.getTokenSymbol(liabBank)
+      this.getTokenSymbol(liabBank),
+      marginfiAccount.address.toBase58()
     );
 
     const sig = await liquidatorAccount.lendingAccountLiquidate(
