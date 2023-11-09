@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import { useSwiper } from "swiper/react";
-import { PWABanner } from "~/components/mobile/PWABanner";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import {
@@ -68,18 +67,16 @@ const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialS
 
 export const Tutorial = () => {
   const [open, setOpen] = React.useState(false);
-  const [pwaBannerOpen, setPwaBannerOpen] = React.useState(false);
 
   const handleDialogClose = () => {
     localStorage.setItem("tutorialAcknowledged", "true");
     setOpen(false);
-    setPwaBannerOpen(true);
   };
 
   React.useEffect(() => {
-    // if (!localStorage.getItem("tutorialAcknowledged")) {
-    setOpen(true);
-    // }
+    if (!localStorage.getItem("tutorialAcknowledged")) {
+      setOpen(true);
+    }
   }, []);
 
   return (
@@ -149,7 +146,6 @@ export const Tutorial = () => {
           </div>
         </DialogContent>
       </Dialog>
-      <PWABanner open={pwaBannerOpen} onOpenChange={(open) => setPwaBannerOpen(open)} />
     </>
   );
 };
