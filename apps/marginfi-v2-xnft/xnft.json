@@ -4,14 +4,16 @@
   "version": "0.1.0",
   "description": "Lending force of nature on Solana.",
   "website": "https://marginfi.com",
+  "tag": "defi",
   "storage": "aws",
   "contact": "https://t.me/mrgncommunity",
+  "programIds": ["MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA"],
   "icon": {
     "sm": "./assets/icon.png",
     "md": "./assets/icon.png",
     "lg": "./assets/icon.png"
   },
-  "screenshots": ["./assets/screenshot-1.png", "./assets/screenshot-2.png"],
+  "screenshots": ["./assets/screenshot-1.png", "./assets/screenshot-2.png", "./assets/screenshot-3.png"],
   "entrypoints": {
     "default": {
       "web": "./web-build/index.html"
