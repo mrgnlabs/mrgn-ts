@@ -68,7 +68,8 @@ class Liquidator {
       }
     }, 10 * 60 * 1000); // refresh cache every 10 minutes
 
-    setInterval(this.printAccountValue, 30 * 1000);
+    setInterval(() => this.printAccountValue(), 30 * 1000);
+
     this.printAccountValue();
 
     console.log("Liquidating on %s banks", this.client.banks.size);
@@ -84,10 +85,9 @@ class Liquidator {
       const accountValue = assets.minus(liabilities);
       console.log("Account Value: $%s", accountValue);
     } catch (e) {
-      console.error("Failed to fetch account value");
+      console.error("Failed to fetch account value %s", e);
     }
   }
-
 
   private async reload() {
     await this.client.reload();
