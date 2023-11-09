@@ -294,32 +294,45 @@ class MarginfiAccount {
     const priceAssetMarket = assetBank.getPrice(assetPriceInfo, PriceBias.None);
     const assetMaintWeight = assetBank.config.assetWeightMaint;
 
-    const liquidationDiscount = new BigNumber(1 - 0.05);
+    const liquidationDiscount = new BigNumber(0.95);
 
     const priceLiabHighest = liabilityBank.getPrice(liabilityPriceInfo, PriceBias.Highest);
     const priceLiabMarket = liabilityBank.getPrice(liabilityPriceInfo, PriceBias.None);
     const liabMaintWeight = liabilityBank.config.liabilityWeightMaint;
 
-    const underwaterMaintValue = currentHealth.div(assetMaintWeight.minus(liabMaintWeight.times(liquidationDiscount)));
+    debug("h: %d, w_a: %d, w_l: %d, d: %d", currentHealth.toFixed(6), assetMaintWeight, liabMaintWeight, liquidationDiscount);
+
+    const underwaterMaintUsdValue = currentHealth.div(assetMaintWeight.minus(liabMaintWeight.times(liquidationDiscount)));
+
+    debug("Underwater maint usd to adjust: $%d", underwaterMaintUsdValue.toFixed(6));
 
     // MAX asset amount bounded by available asset amount
     const assetBalance = this.getBalance(assetBankAddress);
-    const assetsCap = assetBalance.computeQuantityUi(assetBank).assets;
+    const assetsAmountUi = assetBalance.computeQuantityUi(assetBank).assets;
+    const assetsUsdValue = assetsAmountUi.times(priceAssetLower);
 
     // MAX asset amount bounded by available liability amount
     const liabilityBalance = this.getBalance(liabilityBankAddress);
-    const liabilitiesForBank = liabilityBalance.computeQuantityUi(liabilityBank).liabilities;
-    const liabilityCap = liabilitiesForBank.times(priceLiabMarket).div(priceAssetMarket.times(liquidationDiscount));
+    const liabilitiesAmountUi = liabilityBalance.computeQuantityUi(liabilityBank).liabilities;
+    const liabUsdValue = liabilitiesAmountUi.times(liquidationDiscount).times(priceLiabHighest);
 
-    debug("Liab amount: %d, price: %d, value: %d", liabilitiesForBank.toFixed(6), priceLiabMarket.toFixed(6), liabilitiesForBank.times(priceLiabMarket).toFixed(6));
+    debug("Collateral amount: %d, price: %d, value: %d",
+      assetsAmountUi.toFixed(6),
+      priceAssetMarket.toFixed(6),
+      assetsUsdValue.times(priceAssetMarket).toFixed(6)
+    );
 
-    debug("Collateral amount: %d, price: %d, value: %d", assetsCap.toFixed(6), priceAssetMarket.toFixed(6), assetsCap.times(priceAssetMarket).toFixed(6));
+    debug("Liab amount: %d, price: %d, value: %d",
+      liabilitiesAmountUi.toFixed(6),
+      priceLiabMarket.toFixed(6),
+      liabUsdValue.toFixed(6)
+    );
 
-    debug("underwaterValue", underwaterMaintValue.toFixed(6));
-    debug("assetsCap", assetsCap.toFixed(6));
-    debug("liabilityCap", liabilityCap.toFixed(6));
+    const maxLiquidatableUsdValue = BigNumber.min(assetsAmountUi, underwaterMaintUsdValue, liabUsdValue);
 
-    return BigNumber.min(assetsCap, underwaterMaintValue, liabilityCap);
+    debug("Max liquidatable usd value: %d", maxLiquidatableUsdValue.toFixed(6));
+
+    return maxLiquidatableUsdValue.div(priceAssetLower);
   }
 
   getHealthCheckAccounts(

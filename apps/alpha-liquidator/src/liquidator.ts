@@ -643,7 +643,7 @@ class Liquidator {
     );
 
     debug(
-      "Collateral amount to liquidate: $%d for bank %s",
+      "Collateral amount to liquidate: %d for bank %s",
       maxCollateralAmountToLiquidate,
       collateralBank.mint
     )
@@ -653,7 +653,7 @@ class Liquidator {
       liquidatorMaxLiqCapacityAssetAmount
     );
 
-    const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.25);
+    const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.95);
 
     const collateralUsdValue = collateralBank.computeUsdValue(
       collateralPriceInfo,
