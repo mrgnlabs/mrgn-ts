@@ -1,24 +1,32 @@
-import { Sheet, SheetContent } from "~/components/ui/sheet";
-import { IconMrgn, IconShare2, IconArrowDown } from "~/components/ui/icons";
+import React from "react";
+import { IconShare2, IconX } from "~/components/ui/icons";
 
-type PWABannerProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-};
+export const PWABanner = () => {
+  const [open, setOpen] = React.useState(false);
 
-export const PWABanner = ({ open, onOpenChange }: PWABannerProps) => {
+  const handleClose = () => {
+    setOpen(false);
+    localStorage.setItem("pwaBannerDismissed", "true");
+  };
+
+  React.useEffect(() => {
+    if (!localStorage.getItem("pwaBannerDismissed")) {
+      setOpen(true);
+    }
+  }, []);
+
+  if (!open) return null;
+
   return (
-    <Sheet open={open} onOpenChange={(open) => onOpenChange(open)}>
-      <SheetContent className="outline-none" side="bottom">
-        <div className="flex flex-col items-center gap-4 justify-center px-4">
-          <IconMrgn size={40} />
-          <p>
-            Install the marginfi app. Open in safari, tap share{" "}
-            <IconShare2 size={16} className="inline relative -translate-y-0.5" />, and then add to home screen{" "}
-            <IconArrowDown size={16} className="inline relative -translate-y-[1px]" />
-          </p>
-        </div>
-      </SheetContent>
-    </Sheet>
+    <div className="relative pl-4 pr-8 py-2 bg-chartreuse text-background">
+      <p>
+        <strong className="font-medium">Install the mrgnmobile app</strong>. Open in a browser,
+        <br /> tap share
+        <IconShare2 size={16} className="inline relative -translate-y-0.5" />, and add to home screen.
+      </p>
+      <button className="absolute top-0 right-0 p-3" onClick={() => handleClose()}>
+        <IconX size={16} />
+      </button>
+    </div>
   );
 };

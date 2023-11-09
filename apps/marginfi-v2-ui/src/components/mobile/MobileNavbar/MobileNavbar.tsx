@@ -9,6 +9,7 @@ import { MenuModal } from "./MenuModal";
 import { ORDERED_MOBILE_NAVBAR_LINKS } from "~/config/navigationLinks";
 import { useSwipeGesture } from "~/hooks/useSwipeGesture";
 import { useLstStore } from "~/pages/stake";
+import { PWABanner } from "~/components/mobile/PWABanner";
 
 const MobileNavbar: FC = () => {
   useFirebaseAccount();
@@ -49,6 +50,7 @@ const MobileNavbar: FC = () => {
 
   return (
     <header>
+      <PWABanner />
       <nav className="fixed w-full bottom-0 h-[84px] z-50 bg-[#0F1111]">
         <div className="h-full w-full text-sm font-[500] text-[#868E95] z-50 flex justify-around relative lg:gap-8">
           {ORDERED_MOBILE_NAVBAR_LINKS.map((linkInfo, index) => {
