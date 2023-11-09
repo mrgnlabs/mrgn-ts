@@ -328,7 +328,7 @@ class MarginfiAccount {
       liabUsdValue.toFixed(6)
     );
 
-    const maxLiquidatableUsdValue = BigNumber.min(assetsAmountUi, underwaterMaintUsdValue, liabUsdValue);
+    const maxLiquidatableUsdValue = BigNumber.min(assetsUsdValue, underwaterMaintUsdValue, liabUsdValue);
 
     debug("Max liquidatable usd value: %d", maxLiquidatableUsdValue.toFixed(6));
 
