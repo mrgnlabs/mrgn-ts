@@ -56,7 +56,7 @@ export const ExchangeRate = ({
   }, []);
 
   return (
-    <Pressable style={tw`flex flex-row cursor-pointeralign-center`} onPress={() => onReverse()}>
+    <Pressable style={tw`flex flex-row cursor-pointer`} onPress={() => onReverse()}>
       <View style={tw`max-w-full flex flex-row whitespace-nowrap`}>
         {reverse ? (
           <ExchangeRateLine fromTokenInfo={fromTokenInfo} toTokenInfo={toTokenInfo} rate={rate} />

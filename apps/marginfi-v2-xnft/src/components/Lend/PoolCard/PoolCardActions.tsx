@@ -1,9 +1,13 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, Pressable } from "react-native";
-import tw from "~/styles/tailwind";
-import { NumberInput, PrimaryButton, SecondaryButton } from "~/components/Common";
+
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { uiToNative } from "@mrgnlabs/mrgn-common";
+
+import tw from "~/styles/tailwind";
+import { NumberInput, PrimaryButton, SecondaryButton } from "~/components/Common";
+import { useWallet } from "~/context/WalletContext";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 type Props = {
   currentAction: ActionType;
@@ -14,6 +18,8 @@ type Props = {
 
 export function PoolCardActions({ currentAction, bank, onAction }: Props) {
   const [amount, setAmount] = useState<string>("0");
+  const { publicKey } = useWallet();
+  const isMobile = useIsMobile();
 
   const maxAmount = useMemo(() => {
     switch (currentAction) {
@@ -43,18 +49,19 @@ export function PoolCardActions({ currentAction, bank, onAction }: Props) {
   );
 
   const buttonText = useMemo(() => {
+    if (!publicKey && isMobile) return "Connect your wallet";
     if (isDust) return "Close";
     switch (currentAction) {
       case ActionType.Deposit:
-        return isDisabled ? "Deposits reached the limit" : "Supply";
+        return isDisabled ? (maxAmount === 0 ? "No wallet balance found" : "Deposits reached the limit") : "Supply";
       case ActionType.Withdraw:
         return "Withdraw";
       case ActionType.Borrow:
-        return isDisabled ? "Borrows reached the limit" : "Borrow";
+        return isDisabled ? (maxAmount === 0 ? "No wallet balance found" : "Borrows reached the limit") : "Borrow";
       case ActionType.Repay:
         return "Repay";
     }
-  }, [currentAction, isDisabled, isDust]);
+  }, [currentAction, isDisabled, isDust, publicKey]);
 
   return (
     <>
@@ -77,7 +84,7 @@ export function PoolCardActions({ currentAction, bank, onAction }: Props) {
           {currentAction == ActionType.Withdraw || currentAction == ActionType.Repay ? (
             <SecondaryButton title={buttonText ?? ""} onPress={() => (isDust ? onAction() : onAction(amount))} />
           ) : (
-            <PrimaryButton title={buttonText ?? ""} onPress={() => onAction(amount)} />
+            <PrimaryButton title={buttonText ?? ""} onPress={() => (isDust ? onAction() : onAction(amount))} />
           )}
         </View>
       ) : (

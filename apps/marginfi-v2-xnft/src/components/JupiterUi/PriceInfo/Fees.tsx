@@ -1,38 +1,47 @@
 import React from "react";
-import { RouteInfo } from "@jup-ag/react-hook";
+import { QuoteResponse, SwapMode } from "@jup-ag/react-hook";
 
 import Decimal from "decimal.js";
 import { formatNumber } from "~/utils";
 import { View, Text } from "react-native";
 import tw from "~/styles/tailwind";
-import { useJupiterStore } from "~/store";
+import { useJupiterStore } from "~/store/store";
 
 interface props {
-  marketInfos: RouteInfo["marketInfos"] | undefined;
+  routePlan: QuoteResponse["routePlan"] | undefined;
+  swapMode: SwapMode | undefined;
 }
 
-export const Fees = ({ marketInfos }: props) => {
+export const Fees = ({ routePlan, swapMode }: props) => {
   const [tokenMap] = useJupiterStore((state) => [state.tokenMap]);
 
-  if (!marketInfos || (marketInfos && marketInfos.length === 0)) {
+  if (!routePlan || (routePlan && routePlan.length === 0)) {
     return null;
   }
-
   return (
     <>
-      {marketInfos.map((item, idx) => {
-        const tokenMint = tokenMap.get(item.lpFee.mint);
+      {routePlan.map((item, idx) => {
+        const tokenMint = tokenMap.get(item.swapInfo.feeMint.toString());
         const decimals = tokenMint?.decimals ?? 6;
 
         const feeAmount = formatNumber.format(
-          new Decimal(item.lpFee.amount.toString()).div(Math.pow(10, decimals)).toNumber()
+          new Decimal(item.swapInfo.feeAmount.toString()).div(Math.pow(10, decimals)).toNumber()
         );
+        const feePct = new Decimal(item.swapInfo.feeAmount.toString())
+          .div(
+            new Decimal(
+              item.swapInfo.inputMint.toString() === item.swapInfo.feeMint.toString()
+                ? item.swapInfo.inAmount.toString()
+                : item.swapInfo.outAmount.toString()
+            )
+          )
+          .toDP(4);
 
         return (
           <View key={idx} style={tw`flex flex-row items-center space-x-4 justify-between`}>
-            <Text style={tw`text-secondary text-xs`}>Fees paid to {item.label} LP</Text>
+            <Text style={tw`text-secondary text-xs`}>Fees paid to {item.swapInfo.label} LP</Text>
             <Text style={tw`text-secondary text-right text-xs`}>
-              {feeAmount} {tokenMint?.symbol} ({formatNumber.format(new Decimal(item.lpFee.pct).mul(100).toNumber())}
+              {feeAmount} {tokenMint?.symbol} ({formatNumber.format(new Decimal(feePct).mul(100).toNumber())}
               %)
             </Text>
           </View>

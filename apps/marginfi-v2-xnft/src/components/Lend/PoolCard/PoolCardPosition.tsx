@@ -1,7 +1,9 @@
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import React, { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
+
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { usdFormatter } from "@mrgnlabs/mrgn-common";
+
 import tw from "~/styles/tailwind";
 
 type Props = {
@@ -48,10 +50,6 @@ export function PoolCardPosition({ activeBank }: Props) {
               {usdFormatter.format((activeBank as ActiveBankInfo).position.usdValue)}
             </Text>
           </View>
-          {/* <View style={tw`flex flex-row justify-between`}>
-            <Text style={tw`text-secondary`}>WTD</Text>
-            <Text style={tw`text-primary text-base`}>$122.121.44</Text>
-          </View> */}
         </View>
       )}
     </View>

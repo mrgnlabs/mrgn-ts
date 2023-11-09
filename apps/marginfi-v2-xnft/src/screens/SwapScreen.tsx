@@ -1,41 +1,33 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { View, Text, Modal, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import Modal from "react-native-modal";
+import { PublicKey } from "@solana/web3.js";
+import { TokenInfo } from "@solana/spl-token-registry/dist/main/lib/tokenlist";
 
+import { IForm, useSwapContext } from "~/context";
+import { useJupiterStore, useMrgnlendStore } from "~/store/store";
 import tw from "~/styles/tailwind";
+import { WSOL_MINT } from "~/config";
 
 import { Screen } from "~/components/Common";
-import {
-  SwapForm,
-  PriceInfo,
-  SetSlippage,
-  FormPairSelector,
-  ReviewOrderModal,
-  ConfirmOrderModal,
-} from "~/components/JupiterUi";
-import { TokenInfo } from "@solana/spl-token-registry/dist/main/lib/tokenlist";
-import { IForm, useSwapContext } from "~/context";
-import { WSOL_MINT } from "~/config";
-import { PublicKey } from "@solana/web3.js";
-import { useJupiterStore, useMrgnlendStore } from "~/store";
+import { SwapForm, SetSlippage, FormPairSelector, ReviewOrderModal, ConfirmOrderModal } from "~/components/JupiterUi";
 
 export function SwapScreen() {
   const [showRouteSelector, setShowRouteSelector] = useState<boolean>(false);
   const [selectPairSelector, setSelectPairSelector] = useState<"fromMint" | "toMint" | null>(null);
+  const [showUnknownToken, setShowUnknownToken] = useState<TokenInfo | null>(null);
   const [tokenMap, tokenAccountMap] = useJupiterStore((state) => [state.tokenMap, state.tokenAccountMap]);
 
   const {
     form,
     setForm,
     setErrors,
-    selectedSwapRoute,
-    fromTokenInfo,
-    toTokenInfo,
-    formProps: { initialOutputMint, fixedOutputMint },
+    quoteReponseMeta,
     onSubmit: onSubmitJupiter,
-    jupiter: { routes, loading },
+    formProps: { initialOutputMint, fixedOutputMint },
+    jupiter: { loading },
   } = useSwapContext();
-  // const { tokenAccountMap } = useTokenAccounts();
-  const [showUnknownToken, setShowUnknownToken] = useState<TokenInfo | null>(null);
+
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
   const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
@@ -53,7 +45,7 @@ export function SwapScreen() {
   }, [tokenAccountMap, nativeSolBalance, form.fromMint]);
 
   useEffect(() => {
-    if (!form.fromValue || !form.fromMint || !form.toMint || !form.toValue || !selectedSwapRoute || loading) {
+    if (!form.fromValue || !form.fromMint || !form.toMint || !form.toValue || !quoteReponseMeta || loading) {
       setErrors({});
       setIsDisabled(true);
       return;
@@ -137,23 +129,11 @@ export function SwapScreen() {
           setShowSettingsModal={() => setShowSettingsModal(!showSettingsModal)}
         />
 
-        {routes && selectedSwapRoute && fromTokenInfo && toTokenInfo ? (
-          <PriceInfo
-            routes={routes}
-            selectedSwapRoute={selectedSwapRoute}
-            fromTokenInfo={fromTokenInfo}
-            toTokenInfo={toTokenInfo}
-            loading={loading}
-          />
-        ) : (
-          <></>
-        )}
-
         <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showSettingsModal}
-          onRequestClose={() => {
+          animationIn="slideInLeft"
+          animationOut="slideOutLeft"
+          isVisible={showSettingsModal}
+          onBackdropPress={() => {
             setShowSettingsModal(false);
           }}
         >
@@ -165,10 +145,10 @@ export function SwapScreen() {
         </Modal>
 
         <Modal
-          animationType="slide"
-          transparent={true}
-          visible={selectPairSelector !== null}
-          onRequestClose={() => {
+          animationIn="slideInLeft"
+          animationOut="slideOutLeft"
+          isVisible={selectPairSelector !== null}
+          onBackdropPress={() => {
             setSelectPairSelector(null);
           }}
         >
@@ -184,10 +164,10 @@ export function SwapScreen() {
         </Modal>
 
         <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showReviewModal}
-          onRequestClose={() => {
+          animationIn="slideInLeft"
+          animationOut="slideOutLeft"
+          isVisible={showReviewModal}
+          onBackdropPress={() => {
             setShowReviewModal(false);
           }}
         >
@@ -199,10 +179,10 @@ export function SwapScreen() {
         </Modal>
 
         <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showConfirmModal}
-          onRequestClose={() => {
+          animationIn="slideInLeft"
+          animationOut="slideOutLeft"
+          isVisible={showConfirmModal}
+          onBackdropPress={() => {
             setShowConfirmModal(false);
           }}
         >
