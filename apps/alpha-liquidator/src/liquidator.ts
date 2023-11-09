@@ -183,13 +183,10 @@ class Liquidator {
 
     const rawTransaction = transaction.serialize()
     const txid = await this.connection.sendRawTransaction(rawTransaction, {
-      skipPreflight: true,
       maxRetries: 2
     });
 
     debug("Swap transaction sent: %s", txid);
-
-    await this.connection.confirmTransaction(txid);
   }
 
   /**
