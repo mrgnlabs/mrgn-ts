@@ -35,8 +35,8 @@ export const WalletIntroDialog = () => {
         }
       }}
     >
-      <DialogContent className="md:max-w-[640px]">
-        <div className="flex flex-col space-y-8 items-start">
+      <DialogContent className="md:max-w-[640px] px-4">
+        <div className="flex flex-col space-y-8 items-center text-center">
           <header className="flex flex-col items-center justify-center w-full gap-3">
             <IconCoins size={48} />
             <h2 className="font-medium text-2xl">Funding your wallet</h2>
@@ -54,7 +54,7 @@ export const WalletIntroDialog = () => {
                 }}
               >
                 <MrgnTooltip title="Click to copy" placement="top" className="hidden md:block">
-                  <button className="font-mono font-light border py-1 px-2 text-sm flex items-center justify-between hover:bg-muted transition-colors rounded-md w-full">
+                  <button className="font-mono font-light border py-1 px-2 text-xs sm:text-sm flex items-center justify-between hover:bg-muted transition-colors rounded-md w-full overflow-auto">
                     {isCopied && (
                       <>
                         Copied!
@@ -64,18 +64,31 @@ export const WalletIntroDialog = () => {
                     {!isCopied && (
                       <>
                         {wallet.publicKey.toString()}
-                        <IconCopy size={16} />
+                        <IconCopy size={16} className="hidden xs:block" />
                       </>
                     )}
                   </button>
                 </MrgnTooltip>
+              </CopyToClipboard>
+              <CopyToClipboard
+                text={wallet.publicKey.toString()}
+                onCopy={() => {
+                  setIsCopied(true);
+                  setTimeout(() => {
+                    setIsCopied(false);
+                  }, 2000);
+                }}
+              >
+                <small className="xs:hidden text-xs flex items-center gap-1 -translate-y-0.5 justify-center">
+                  <IconCopy size={16} /> Click to copy
+                </small>
               </CopyToClipboard>
             </div>
           )}
           <p>
             marginfi uses the Solana blockchain, which requires SOL to pay for network fees. Solana enables transactions
             on marginfi to be completed for a fraction of a penny. You must hold a balance of Solana in your wallet to
-            use the network (we recommend starting with $5 worth of SOL)..
+            use the network (we recommend starting with $5 worth of SOL).
           </p>
           <Button onClick={() => handleDialogClose()}>Get Started</Button>
         </div>

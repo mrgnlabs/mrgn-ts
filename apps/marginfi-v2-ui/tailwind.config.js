@@ -74,6 +74,7 @@ module.exports = {
         },
       },
       screens: {
+        xs: "25rem",
         tall: { raw: "(min-height: 800px)" },
       },
       maxWidth: {
