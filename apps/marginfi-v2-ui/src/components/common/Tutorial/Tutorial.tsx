@@ -47,7 +47,7 @@ const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialS
       )}
       {!next && (
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-          <Link href="https://docs.marginfi.com/" target="_blank" rel="noreferrer">
+          <Link href="https://docs.marginfi.com/" target="_blank" rel="noreferrer" className="block w-full md:w-auto">
             <Button variant="outline" className="w-full md:w-auto">
               Read docs <IconExternalLink size={16} />
             </Button>
