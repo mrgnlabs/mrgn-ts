@@ -2,6 +2,7 @@ import {
   IconCaretUpDownFilled,
   IconCheck,
   IconChevronDown,
+  IconChevronRight,
   IconBrandX,
   IconBrandApple,
   IconBrandGoogleFilled,
@@ -13,6 +14,7 @@ import {
   IconAlertTriangle,
   IconShare2,
   IconArrowDown,
+  IconExternalLink,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -281,6 +283,7 @@ export {
   IconCaretUpDownFilled,
   IconCheck,
   IconChevronDown,
+  IconChevronRight,
   IconBrandX,
   IconBrandApple,
   IconBrandGoogleFilled,
@@ -291,6 +294,7 @@ export {
   IconAlertTriangle,
   IconShare2,
   IconArrowDown,
+  IconExternalLink,
 
   // customed icons
   IconBraveWallet,
