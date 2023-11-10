@@ -165,6 +165,7 @@ export const MobileAssetsList: FC = () => {
             <div className="flex flew-row flex-wrap gap-5 justify-center items-center pt-2">
               {[...Array(6)].map((_, i) => (
                 <Skeleton
+                  key={i}
                   className="bg-background-gray rounded-xl min-w-[300px] w-full flex-1"
                   variant="rounded"
                   height={208}
@@ -217,6 +218,7 @@ export const MobileAssetsList: FC = () => {
             <div className="flex flew-row flex-wrap gap-5 justify-center items-center pt-2">
               {[...Array(6)].map((_, i) => (
                 <Skeleton
+                  key={i}
                   className="bg-background-gray rounded-xl min-w-[300px] w-full"
                   variant="rounded"
                   height={208}
