@@ -97,29 +97,28 @@ class Liquidator {
   private async mainLoop() {
     const debug = getDebugLogger("main-loop");
     drawSpinner("Scanning");
-    try {
-      this.reload();
-      while (true) {
-        await this.swapNonUsdcInTokenAccounts();
-        debug("Started main loop iteration");
-        if (await this.needsToBeRebalanced()) {
-          await this.rebalancingStage();
-          continue;
-        }
+    while (true) {
+      try {
+        this.reload();
+        while (true) {
+          await this.swapNonUsdcInTokenAccounts();
+          debug("Started main loop iteration");
+          if (await this.needsToBeRebalanced()) {
+            await this.rebalancingStage();
+            continue;
+          }
 
-        // Don't sleep after liquidating an account, start rebalance immediately
-        if (!(await this.liquidationStage())) {
-          await sleep(env_config.SLEEP_INTERVAL);
-          this.reload();
+          // Don't sleep after liquidating an account, start rebalance immediately
+          if (!(await this.liquidationStage())) {
+            await sleep(env_config.SLEEP_INTERVAL);
+            this.reload();
+          }
         }
+      } catch (e) {
+        console.error(e);
+        captureException(e);
+        await sleep(env_config.SLEEP_INTERVAL);
       }
-    } catch (e) {
-      console.error(e);
-
-      captureException(e);
-
-      await sleep(env_config.SLEEP_INTERVAL);
-      await this.mainLoop();
     }
   }
 
@@ -311,7 +310,7 @@ class Liquidator {
       );
 
       const liabsUi = new BigNumber(nativeToUi(liabilities, bank.mintDecimals));
-      const liabBalance = BigNumber.min(await this.getTokenAccountBalance(bank.mint, true), liabsUi);
+      const liabBalance = BigNumber.min(await this.getTokenAccountBalance(bank.mint, false), liabsUi);
 
       debug("Got %s of %s, depositing to marginfi", liabBalance, bank.mint);
 
@@ -360,12 +359,13 @@ class Liquidator {
       mint.equals(NATIVE_MINT)
         ? Math.max(
           (await this.connection.getBalance(this.wallet.publicKey)) -
-          (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE),
+          (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE) * LAMPORTS_PER_SOL,
           0
         )
         : 0,
       9
     );
+
 
     // debug!("Checking token account %s for %s", tokenAccount, mint);
 
@@ -388,7 +388,7 @@ class Liquidator {
         return;
       }
 
-      let uiAmount = await this.getTokenAccountBalance(bank.mint);
+      let uiAmount = await this.getTokenAccountBalance(bank.mint, false);
       let price = this.client.getOraclePriceByBank(bank.address)!;
       let usdValue = bank.computeUsdValue(price, new BigNumber(uiAmount), PriceBias.None, undefined, false);
 
