@@ -129,84 +129,86 @@ export const MobileAssetsList: FC = () => {
           </Select>
         </div>
       </div>
-      <div className="w-full">
-        <Typography className="font-aeonik font-normal flex items-center text-2xl text-white pt-2 pb-3">
-          Global pool
-        </Typography>
-        {isStoreInitialized && globalBanks ? (
-          globalBanks.length > 0 ? (
-            <div className="flex flew-row flex-wrap gap-6 justify-center items-center pt-2">
-              {globalBanks.map((bank) => (
-                <AssetCard
-                  key={bank.meta.tokenSymbol}
-                  nativeSolBalance={nativeSolBalance}
-                  bank={bank}
-                  isInLendingMode={isInLendingMode}
-                  isConnected={connected}
-                  marginfiAccount={selectedAccount}
-                  inputRefs={inputRefs}
-                  showLSTDialog={(variant: LSTDialogVariants, onClose?: () => void) => {
-                    setLSTDialogVariant(variant);
-                    setIsLSTDialogOpen(true);
-                    if (onClose) {
-                      setLSTDialogCallback(() => onClose);
-                    }
-                  }}
-                />
-              ))}
-            </div>
+      <div className="pb-8">
+        <div className="w-full">
+          <Typography className="font-aeonik font-normal flex items-center text-2xl text-white pt-2 pb-3">
+            Global pool
+          </Typography>
+          {isStoreInitialized && globalBanks ? (
+            globalBanks.length > 0 ? (
+              <div className="flex flew-row flex-wrap gap-6 justify-center items-center pt-2">
+                {globalBanks.map((bank) => (
+                  <AssetCard
+                    key={bank.meta.tokenSymbol}
+                    nativeSolBalance={nativeSolBalance}
+                    bank={bank}
+                    isInLendingMode={isInLendingMode}
+                    isConnected={connected}
+                    marginfiAccount={selectedAccount}
+                    inputRefs={inputRefs}
+                    showLSTDialog={(variant: LSTDialogVariants, onClose?: () => void) => {
+                      setLSTDialogVariant(variant);
+                      setIsLSTDialogOpen(true);
+                      if (onClose) {
+                        setLSTDialogCallback(() => onClose);
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
+                No {isInLendingMode ? "lending" : "borrowing"} {isFiltered ? "positions" : "pools"} found.
+              </Typography>
+            )
           ) : (
-            <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
-              No {isInLendingMode ? "lending" : "borrowing"} {isFiltered ? "positions" : "pools"} found.
-            </Typography>
-          )
-        ) : (
-          <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
-        )}
-      </div>
-      <div className="w-full">
-        <Typography className="font-aeonik font-normal flex gap-2 items-center text-2xl text-white pt-2 pb-3">
-          Isolated pool
-          <MrgnTooltip
-            title={
-              <>
-                <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                  Isolated pools are risky ⚠️
-                </Typography>
-                Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot
-                borrow other assets. Isolated pools should be considered particularly risky. As always, remember that
-                marginfi is a decentralized protocol and all deposited funds are at risk.
-              </>
-            }
-            placement="top"
-          >
-            <Image src="/info_icon.png" alt="info" height={16} width={16} />
-          </MrgnTooltip>
-        </Typography>
+            <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+          )}
+        </div>
+        <div className="w-full">
+          <Typography className="font-aeonik font-normal flex gap-2 items-center text-2xl text-white pt-2 pb-3">
+            Isolated pool
+            <MrgnTooltip
+              title={
+                <>
+                  <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                    Isolated pools are risky ⚠️
+                  </Typography>
+                  Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot
+                  borrow other assets. Isolated pools should be considered particularly risky. As always, remember that
+                  marginfi is a decentralized protocol and all deposited funds are at risk.
+                </>
+              }
+              placement="top"
+            >
+              <Image src="/info_icon.png" alt="info" height={16} width={16} />
+            </MrgnTooltip>
+          </Typography>
 
-        {isStoreInitialized && globalBanks ? (
-          isolatedBanks.length > 0 ? (
-            <div className="flex flew-row flex-wrap gap-6 justify-center items-center pt-2">
-              {isolatedBanks.map((bank, i) => (
-                <AssetCard
-                  key={bank.meta.tokenSymbol}
-                  nativeSolBalance={nativeSolBalance}
-                  bank={bank}
-                  isInLendingMode={isInLendingMode}
-                  isConnected={connected}
-                  marginfiAccount={selectedAccount}
-                  inputRefs={inputRefs}
-                />
-              ))}
-            </div>
+          {isStoreInitialized && globalBanks ? (
+            isolatedBanks.length > 0 ? (
+              <div className="flex flew-row flex-wrap gap-6 justify-center items-center pt-2">
+                {isolatedBanks.map((bank, i) => (
+                  <AssetCard
+                    key={bank.meta.tokenSymbol}
+                    nativeSolBalance={nativeSolBalance}
+                    bank={bank}
+                    isInLendingMode={isInLendingMode}
+                    isConnected={connected}
+                    marginfiAccount={selectedAccount}
+                    inputRefs={inputRefs}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
+                No {isInLendingMode ? "lending" : "borrowing"} {isFiltered ? "positions" : "pools"} found.
+              </Typography>
+            )
           ) : (
-            <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
-              No {isInLendingMode ? "lending" : "borrowing"} {isFiltered ? "positions" : "pools"} found.
-            </Typography>
-          )
-        ) : (
-          <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
-        )}
+            <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+          )}
+        </div>
       </div>
 
       <LSTDialog
