@@ -355,26 +355,25 @@ class Liquidator {
   private async getTokenAccountBalance(mint: PublicKey, ignoreNativeMint: boolean = false): Promise<BigNumber> {
     const debug = getDebugLogger("getTokenAccountBalances");
     const tokenAccount = await associatedAddress({ mint, owner: this.wallet.publicKey });
-    const nativeAmount = nativeToUi(
-      mint.equals(NATIVE_MINT)
-        ? Math.max(
-          (await this.connection.getBalance(this.wallet.publicKey)) -
-          (ignoreNativeMint ? MIN_SOL_BALANCE / 2 : MIN_SOL_BALANCE) * LAMPORTS_PER_SOL,
-          0
-        )
-        : 0,
-      9
-    );
 
+    debug!("Checking token account %s for %s", tokenAccount, mint);
 
-    // debug!("Checking token account %s for %s", tokenAccount, mint);
+    let nativeAmountUi = 0;
+
+    if (mint.equals(NATIVE_MINT)) {
+
+      let nativeAmount = await this.connection.getBalance(this.wallet.publicKey);
+      nativeAmountUi = nativeToUi(Math.max(nativeAmount - MIN_SOL_BALANCE, 0), 9);
+
+      debug("Native amount: %d", nativeAmountUi);
+    }
 
     try {
       return new BigNumber((await this.connection.getTokenAccountBalance(tokenAccount)).value.uiAmount!).plus(
-        nativeAmount
+        nativeAmountUi
       );
     } catch (e) {
-      return new BigNumber(0).plus(nativeAmount);
+      return new BigNumber(0).plus(nativeAmountUi);
     }
   }
 
@@ -384,11 +383,12 @@ class Liquidator {
     const banks = this.client.banks.values();
     const usdcBank = this.client.getBankByMint(USDC_MINT)!;
     await Promise.all([...banks].map(async (bank) => {
-      if (bank.mint.equals(USDC_MINT) || bank.mint.equals(NATIVE_MINT)) {
+      if (bank.mint.equals(USDC_MINT)) {
         return;
       }
 
       let uiAmount = await this.getTokenAccountBalance(bank.mint, false);
+      debug("Account has %d %s", uiAmount, this.getTokenSymbol(bank));
       let price = this.client.getOraclePriceByBank(bank.address)!;
       let usdValue = bank.computeUsdValue(price, new BigNumber(uiAmount), PriceBias.None, undefined, false);
 
