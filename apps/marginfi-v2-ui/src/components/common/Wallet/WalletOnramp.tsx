@@ -25,11 +25,15 @@ export const WalletOnramp = () => {
         containerNodeSelector: "#moonpay",
         params: {
           apiKey: process.env.NEXT_PUBLIC_MOONPAY_API_KEY!,
-          walletAddress: "0xb35Ea231b18dC4339f9Bb82F95915d65E5b30bE5",
+          // walletAddress: "0xb35Ea231b18dC4339f9Bb82F95915d65E5b30bE5",
           // walletAddress: wallet?.publicKey?.toString(),
           theme: "dark",
-          currencyCode: "eth",
-          defaultCurrencyCode: "eth",
+          // currencyCode: "sol",
+          // defaultCurrencyCode: "eth",
+          walletAddresses: JSON.stringify({
+            SOL: wallet?.publicKey?.toString(),
+            USDC_SOL: wallet?.publicKey?.toString(),
+          }),
           baseCurrencyCode: "usd",
           baseCurrencyAmount: "100",
           colorCode: "#7d01ff",
@@ -60,7 +64,7 @@ export const WalletOnramp = () => {
 
   React.useEffect(() => {
     if (!window) return;
-    // initMoonpay();
+    initMoonpay();
   }, [window]);
 
   const triggerMoonpay = React.useCallback(() => {
@@ -69,58 +73,58 @@ export const WalletOnramp = () => {
     setIsMoonPayActive(true);
   }, [moonPay]);
 
-  return (
-    <MrgnTooltip title="Coming soon..." className="hidden md:block" placement="top">
-      <Button variant="outline" className="w-full cursor-help opacity-50 hover:bg-background">
-        <IconCoins size={14} />
-        Buy crypto
-      </Button>
-    </MrgnTooltip>
-  );
-
   // return (
-  //   <>
-  //     <Button
-  //       variant="outline"
-  //       className="w-full"
-  //       onClick={() => {
-  //         triggerMoonpay();
-  //       }}
-  //       disabled={isMoonPayActive}
-  //     >
+  //   <MrgnTooltip title="Coming soon..." className="hidden md:block" placement="top">
+  //     <Button variant="outline" className="w-full cursor-help opacity-50 hover:bg-background">
   //       <IconCoins size={14} />
-  //       {isMoonPayActive ? "Loading..." : "Buy crypto"}
+  //       Buy crypto
   //     </Button>
-  //     <div
-  //       style={{
-  //         position: "absolute",
-  //         top: 0,
-  //         left: 0,
-  //         width: "100%",
-  //         height: "100%",
-  //         background: "#1c1c1e",
-  //         zIndex: 60,
-  //         opacity: isMoonPayActive ? 1 : 0,
-  //         pointerEvents: isMoonPayActive ? "auto" : "none",
-  //       }}
-  //     >
-  //       <button
-  //         onClick={() => {
-  //           moonPay.close();
-  //           setIsMoonPayActive(false);
-  //         }}
-  //         className="h-12 items-center px-1.5 flex gap-1 w-full font-medium text-[#98989E] text-sm justify-center text-center"
-  //       >
-  //         <IconX size={18} /> back to wallet
-  //       </button>
-  //       <div
-  //         id="moonpay"
-  //         style={{
-  //           width: "100%",
-  //           height: "calc(100% - 48px)",
-  //         }}
-  //       />
-  //     </div>
-  //   </>
+  //   </MrgnTooltip>
   // );
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={() => {
+          triggerMoonpay();
+        }}
+        disabled={isMoonPayActive}
+      >
+        <IconCoins size={14} />
+        {isMoonPayActive ? "Loading..." : "Buy crypto"}
+      </Button>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          background: "#1c1c1e",
+          zIndex: 60,
+          opacity: isMoonPayActive ? 1 : 0,
+          pointerEvents: isMoonPayActive ? "auto" : "none",
+        }}
+      >
+        <button
+          onClick={() => {
+            moonPay.close();
+            setIsMoonPayActive(false);
+          }}
+          className="h-12 items-center px-1.5 flex gap-1 w-full font-medium text-[#98989E] text-sm justify-center text-center"
+        >
+          <IconX size={18} /> back to wallet
+        </button>
+        <div
+          id="moonpay"
+          style={{
+            width: "100%",
+            height: "calc(100% - 48px)",
+          }}
+        />
+      </div>
+    </>
+  );
 };
