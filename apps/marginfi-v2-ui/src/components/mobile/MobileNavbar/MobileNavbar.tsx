@@ -51,7 +51,7 @@ const MobileNavbar: FC = () => {
   return (
     <header>
       <PWABanner />
-      <nav className="fixed w-full bottom-0 h-[84px] z-50 bg-[#0F1111]">
+      <nav className="fixed w-full bottom-0 z-50 bg-[#0F1111]">
         <div className="h-full w-full text-sm font-[500] text-[#868E95] z-50 flex justify-around relative lg:gap-8">
           {ORDERED_MOBILE_NAVBAR_LINKS.map((linkInfo, index) => {
             const isActive = activeLink === `link${index}`;
@@ -61,7 +61,7 @@ const MobileNavbar: FC = () => {
                 onClick={() => linkInfo.label === "more" && setIsMenuModalOpen(true)}
                 href={linkInfo.href}
                 className={cn(
-                  "w-1/4 h-full flex flex-col pt-3 items-center",
+                  "w-1/4 py-3 flex flex-col pt-3 items-center",
                   isActive ? "text-[#DCE85D]" : "text-[#999]"
                 )}
               >

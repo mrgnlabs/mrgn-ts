@@ -79,7 +79,7 @@ const Home = () => {
 
       <Mobile>
         <PageHeader>lend</PageHeader>
-        <div className="flex flex-col w-full h-full justify-start content-start pt-[16px] px-[12px] gap-4 mb-20">
+        <div className="flex flex-col w-full h-full justify-start content-start pt-4 px-4 gap-4 mb-20">
           <MobileAssetsList />
         </div>
       </Mobile>

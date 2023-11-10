@@ -129,14 +129,14 @@ export const MobileAssetsList: FC = () => {
           </Select>
         </div>
       </div>
-      <div className="pb-8">
+      <div className="pb-2">
         <div className="w-full">
           <Typography className="font-aeonik font-normal flex items-center text-2xl text-white pt-2 pb-3">
             Global pool
           </Typography>
           {isStoreInitialized && globalBanks ? (
             globalBanks.length > 0 ? (
-              <div className="flex flew-row flex-wrap gap-6 justify-center items-center pt-2">
+              <div className="flex flew-row flex-wrap gap-5 justify-center items-center pt-2">
                 {globalBanks.map((bank) => (
                   <AssetCard
                     key={bank.meta.tokenSymbol}
