@@ -16,7 +16,9 @@ const PageHeader: FC<PageHeaderProps> = ({ children }) => {
       <div className="w-full px-4 sm:w-4/5 sm:max-w-7xl flex flex-row justify-between items-center border-solid font-aeonik font-normal text-2xl sm:text-3xl">
         <div className="flex gap-4 justify-center items-center">
           <Mobile>
-            <IconMrgn size={18} className={`${isFetchingData ? "animate-pulse" : ""}`} />
+            <div className="ml-[4px]">
+              <IconMrgn size={18} className={`${isFetchingData ? "animate-pulse" : ""}`} />
+            </div>
           </Mobile>
           <div>{children}</div>
         </div>
