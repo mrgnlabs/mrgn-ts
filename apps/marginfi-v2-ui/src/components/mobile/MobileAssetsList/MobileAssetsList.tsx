@@ -113,7 +113,7 @@ export const MobileAssetsList: FC = () => {
             value={sortOption.value}
             onValueChange={(value) => setSortOption(SORT_OPTIONS_MAP[value as SortType])}
           >
-            <SelectTrigger className="h-10 bg-background-gray">
+            <SelectTrigger className="bg-background-gray">
               <SelectValue placeholder="Order by" />
             </SelectTrigger>
             <SelectContent className="bg-background-gray" sideOffset={8} align="end">
