@@ -4,7 +4,7 @@ import { IconShare2, IconX } from "~/components/ui/icons";
 
 export const PWABanner = () => {
   const [open, setOpen] = React.useState(false);
-  const { isIOS } = useOs();
+  const { isIOS, isPWA } = useOs();
 
   const handleClose = () => {
     setOpen(false);
@@ -17,7 +17,9 @@ export const PWABanner = () => {
     }
   }, []);
 
-  if (!open || !isIOS) return null;
+  console.log("isIOS", isIOS);
+
+  if (!open || !isIOS || isPWA) return null;
 
   return (
     <div className="relative pl-4 pr-8 py-2 bg-chartreuse text-background">
