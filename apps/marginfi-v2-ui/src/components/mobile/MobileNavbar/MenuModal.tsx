@@ -8,8 +8,6 @@ import TwitterIcon from "@mui/icons-material/Twitter";
 import TelegramIcon from "@mui/icons-material/Telegram";
 import AutoStoriesOutlinedIcon from "@mui/icons-material/AutoStoriesOutlined";
 import InsightsIcon from "@mui/icons-material/Insights";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useUiStore } from "~/store";
 
 interface MenuModalProps {
   isOpen: boolean;
@@ -17,9 +15,6 @@ interface MenuModalProps {
 }
 
 export const MenuModal: FC<MenuModalProps> = ({ isOpen, handleClose }) => {
-  const { connected, walletContextState, logout } = useWalletContext();
-  const [setIsMenuDrawerOpen] = useUiStore((state) => [state.setIsMenuDrawerOpen]);
-
   return (
     <Modal open={isOpen} onClose={handleClose} className="h-full">
       <Slide direction="right" in={isOpen} mountOnEnter unmountOnExit>
@@ -109,17 +104,6 @@ export const MenuModal: FC<MenuModalProps> = ({ isOpen, handleClose }) => {
                   <QuestionMark className="pb-1 text-xl cursor-pointer hover:fill-[#DCE85D] text-[#868E95]" />
                 </Link>
               </div>
-              {connected && (
-                <div
-                  onClick={() => {
-                    logout();
-                    setIsMenuDrawerOpen(false);
-                  }}
-                  className="flex w-full h-[40px] text-[#999] font-aeonik font-[400] justify-center items-center"
-                >
-                  sign out
-                </div>
-              )}
             </div>
           </div>
         </div>
