@@ -1,10 +1,19 @@
 import React, { FC, useCallback, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { FormControl, MenuItem, Select, SelectChangeEvent, Skeleton, Typography } from "@mui/material";
+import { FormControl, MenuItem, SelectChangeEvent, Skeleton, Typography } from "@mui/material";
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { MrgnContainedSwitch, MrgnLabeledSwitch, MrgnTooltip } from "~/components/common";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 import { AssetCard } from "./AssetCard";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
@@ -91,57 +100,24 @@ export const MobileAssetsList: FC = () => {
           <div>Filter my positions</div>
         </div>
         <div>
-          <FormControl sx={{ m: 1, width: "102px", height: "36px", color: "white", margin: 0 }}>
-            <Select
-              value={sortOption.value}
-              onChange={handleSortChange}
-              inputProps={{ "aria-label": "Without label" }}
-              disableUnderline
-              variant="standard"
-              placeholder="Sort"
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    backgroundColor: "#22282c",
-                    color: "red",
-                  },
-                },
-              }}
-              sx={{
-                color: "white",
-                height: "36px",
-                fontSize: "16px",
-                fontWeight: 400,
-                marginRight: "4px",
-                padding: "8px 12px",
-                borderWidth: 0,
-                backgroundColor: "#22282c",
-                borderRadius: "6px",
-                "& .MuiSvgIcon-root": {
-                  color: "white",
-                },
-              }}
-            >
+          <Select
+            value={sortOption.value}
+            onValueChange={(value) => setSortOption(SORT_OPTIONS_MAP[value as SortType])}
+          >
+            <SelectTrigger className="h-10 bg-background-gray">
+              <SelectValue placeholder="Order by" />
+            </SelectTrigger>
+            <SelectContent className="bg-background-gray" sideOffset={8} align="end">
               {Object.values(SORT_OPTIONS_MAP).map((option) => (
-                <MenuItem
-                  key={option.value}
-                  sx={{
-                    color: "white",
-                    backgroundColor: "#22282c",
-                    display: "flex",
-                    justifyContent: "space-around",
-                    alignItems: "center",
-                    width: "100%",
-                    paddingRight: "12px",
-                  }}
-                  value={option.value}
-                >
-                  {isInLendingMode || !option.borrowLabel ? option.label : option.borrowLabel}
-                  <option.Icon className="w-[18px] h-[18px]" />
-                </MenuItem>
+                <SelectItem key={option.value} value={option.value} className="py-2">
+                  <div className="flex items-center gap-2 pr-4 uppercase">
+                    <option.Icon className="w-[18px] h-[18px]" />
+                    {isInLendingMode || !option.borrowLabel ? option.label : option.borrowLabel}
+                  </div>
+                </SelectItem>
               ))}
-            </Select>
-          </FormControl>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <div className="w-full">
