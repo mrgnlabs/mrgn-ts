@@ -17,8 +17,6 @@ export const PWABanner = () => {
     }
   }, []);
 
-  console.log("isIOS", isIOS);
-
   if (!open || !isIOS || isPWA) return null;
 
   return (
