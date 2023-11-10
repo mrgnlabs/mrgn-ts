@@ -4,6 +4,7 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { FormControl, MenuItem, SelectChangeEvent, Skeleton, Typography } from "@mui/material";
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { MrgnContainedSwitch, MrgnLabeledSwitch, MrgnTooltip } from "~/components/common";
 import {
   Select,
@@ -18,6 +19,7 @@ import {
 import { AssetCard } from "./AssetCard";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { SORT_OPTIONS_MAP, SortAssetOption, SortType, sortApRate, sortTvl } from "./MobileAssetsList.utils";
+import { cn } from "~/utils/themeUtils";
 
 export const MobileAssetsList: FC = () => {
   const [isFiltered, setIsFiltered] = useState(false);
@@ -25,6 +27,7 @@ export const MobileAssetsList: FC = () => {
   const togglePositions = () => setIsFiltered((previousState) => !previousState);
 
   const { connected } = useWalletContext();
+  const { setIsOpenAuthDialog } = useWeb3AuthWallet();
   const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
@@ -91,7 +94,13 @@ export const MobileAssetsList: FC = () => {
         </div>
       </div>
       <div className="flex justify-between items-center align-center">
-        <div className="flex items-center gap-1">
+        <div
+          className={cn("flex items-center gap-1", !connected && "opacity-50")}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpenAuthDialog(true);
+          }}
+        >
           <MrgnContainedSwitch
             checked={isFiltered}
             onChange={togglePositions}
