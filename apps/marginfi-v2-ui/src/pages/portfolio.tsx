@@ -87,7 +87,7 @@ const PortfolioPage = () => {
   return (
     <>
       <PageHeader>portfolio</PageHeader>
-      <div className="flex flex-col w-full h-full justify-start items-center px-[12px] gap-6 mb-20">
+      <div className="flex flex-col w-full h-full justify-start items-center px-4 gap-6 mb-20">
         <MobileAccountSummary />
         <EmissionsBanner />
         <MobilePortfolioOverview />
