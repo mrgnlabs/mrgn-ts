@@ -162,7 +162,15 @@ export const MobileAssetsList: FC = () => {
               </Typography>
             )
           ) : (
-            <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+            <div className="flex flew-row flex-wrap gap-5 justify-center items-center pt-2">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton
+                  className="bg-background-gray rounded-xl min-w-[300px] w-full flex-1"
+                  variant="rounded"
+                  height={208}
+                />
+              ))}
+            </div>
           )}
         </div>
         <div className="w-full">
@@ -206,7 +214,15 @@ export const MobileAssetsList: FC = () => {
               </Typography>
             )
           ) : (
-            <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+            <div className="flex flew-row flex-wrap gap-5 justify-center items-center pt-2">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton
+                  className="bg-background-gray rounded-xl min-w-[300px] w-full"
+                  variant="rounded"
+                  height={208}
+                />
+              ))}
+            </div>
           )}
         </div>
       </div>
