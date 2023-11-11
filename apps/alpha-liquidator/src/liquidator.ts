@@ -169,6 +169,7 @@ class Liquidator {
           wrapUnwrapSOL: true,
           // feeAccount is optional. Use if you want to charge a fee.  feeBps must have been passed in /quote API.
           // feeAccount: "fee_account_public_key"
+          computeUnitPriceMicroLamports: 50
         })
       })
     ).json();
@@ -182,7 +183,7 @@ class Liquidator {
 
     const rawTransaction = transaction.serialize()
     const txid = await this.connection.sendRawTransaction(rawTransaction, {
-      maxRetries: 2
+      maxRetries: 2,
     });
 
     await this.connection.confirmTransaction(txid, 'confirmed');
