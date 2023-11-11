@@ -98,6 +98,7 @@ export const MobileAssetsList: FC = () => {
           className={cn("flex items-center gap-1", !connected && "opacity-50")}
           onClick={(e) => {
             e.stopPropagation();
+            if (connected) return;
             setIsOpenAuthDialog(true);
           }}
         >
