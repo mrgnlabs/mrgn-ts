@@ -185,6 +185,8 @@ class Liquidator {
       maxRetries: 2
     });
 
+    await this.connection.confirmTransaction(txid, 'confirmed');
+
     debug("Swap transaction sent: %s", txid);
   }
 
@@ -310,11 +312,13 @@ class Liquidator {
       );
 
       const liabsUi = new BigNumber(nativeToUi(liabilities, bank.mintDecimals));
-      const liabBalance = BigNumber.min(await this.getTokenAccountBalance(bank.mint, false), liabsUi);
+      const liabsTokenAccountUi = await this.getTokenAccountBalance(bank.mint, false);
+      const liabsUiAmountToRepay = BigNumber.min(liabsTokenAccountUi, liabsUi);
 
-      debug("Got %s of %s, depositing to marginfi", liabBalance, bank.mint);
+      debug("Got %d %s (debt: %d), depositing to marginfi", liabsUiAmountToRepay, this.getTokenSymbol(bank), liabsUi);
+      debug("Paying off %d %s liabilities", liabsUiAmountToRepay, this.getTokenSymbol(bank));
 
-      const depositSig = await this.account.repay(liabBalance, bank.address, liabBalance.gte(liabsUi));
+      const depositSig = await this.account.repay(liabsUiAmountToRepay, bank.address, liabsUiAmountToRepay.gte(liabsUi));
       debug("Deposit tx: %s", depositSig);
 
       await this.reload();
@@ -358,22 +362,21 @@ class Liquidator {
 
     debug!("Checking token account %s for %s", tokenAccount, mint);
 
-    let nativeAmountUi = 0;
+    let nativeAmoutnUi = 0;
 
     if (mint.equals(NATIVE_MINT)) {
-
       let nativeAmount = await this.connection.getBalance(this.wallet.publicKey);
-      nativeAmountUi = nativeToUi(Math.max(nativeAmount - MIN_SOL_BALANCE, 0), 9);
+      nativeAmoutnUi = nativeToUi(Math.max(nativeAmount - MIN_SOL_BALANCE, 0), 9);
 
-      debug("Native amount: %d", nativeAmountUi);
+      debug("Native amount: %d", nativeAmoutnUi);
     }
 
     try {
       return new BigNumber((await this.connection.getTokenAccountBalance(tokenAccount)).value.uiAmount!).plus(
-        nativeAmountUi
+        nativeAmoutnUi
       );
     } catch (e) {
-      return new BigNumber(0).plus(nativeAmountUi);
+      return new BigNumber(0).plus(nativeAmoutnUi);
     }
   }
 
