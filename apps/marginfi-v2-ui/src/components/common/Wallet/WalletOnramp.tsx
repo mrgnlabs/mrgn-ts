@@ -20,7 +20,7 @@ export const WalletOnramp = () => {
 
       const moonPaySdk = moonPayConstructor({
         flow: "buy",
-        environment: "sandbox",
+        environment: "production",
         variant: "embedded",
         containerNodeSelector: "#moonpay",
         params: {
