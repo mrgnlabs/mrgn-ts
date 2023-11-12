@@ -30,6 +30,7 @@ if (!process.env.RPC_ENDPOINT) {
 
 /*eslint sort-keys: "error"*/
 let envSchema = z.object({
+  ACCOUNT_COOL_DOWN_SECONDS: z.string().default("120").transform((s) => parseInt(s, 10)),
   IS_DEV: z
     .string()
     .optional()
@@ -69,6 +70,11 @@ let envSchema = z.object({
     .string()
     .default("10000")
     .transform((s) => parseInt(s, 10)),
+  SORT_ACCOUNTS_MODE: z
+    .string()
+    .optional()
+    .default("false")
+    .transform((s) => s === "true" || s === "1"),
   WALLET_KEYPAIR: z.string().transform((keypairStr) => {
     if (fs.existsSync(resolveHome(keypairStr))) {
       return loadKeypair(keypairStr);

@@ -1,12 +1,13 @@
 import { Connection, LAMPORTS_PER_SOL, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import {
   MarginRequirementType,
+  MarginfiAccount,
   MarginfiAccountWrapper,
   MarginfiClient,
   PriceBias,
   USDC_DECIMALS,
 } from "@mrgnlabs/marginfi-client-v2";
-import { nativeToUi, NodeWallet, shortenAddress, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
+import { nativeToUi, NodeWallet, shortenAddress, sleep, toBigNumber, uiToNative, uiToNativeBigNumber } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { NATIVE_MINT } from "@solana/spl-token";
@@ -32,6 +33,7 @@ function getDebugLogger(context: string) {
 
 class Liquidator {
   private bankMetadataMap: BankMetadataMap;
+  private accountCooldowns: Map<string, number> = new Map();
 
   constructor(
     readonly connection: Connection,
@@ -212,23 +214,22 @@ class Liquidator {
       .filter(({ assets, bank }) => !bank.mint.equals(USDC_MINT));
 
     for (let { bank } of balancesWithNonUsdcDeposits) {
-      // const maxWithdrawAmount = nativeToBigNumber(uiToNative(this.account.computeMaxWithdrawForBank(bank.address), bank.mintDecimals));
-      const balanceAssetAmount = this.account.getBalance(bank.address).computeQuantity(bank).assets;
-      // TODO: Fix dumbass conversion
-      const maxWithdrawAmount = balanceAssetAmount;
+      const maxWithdrawAmount = this.account.computeMaxWithdrawForBank(bank.address);
+      const balanceAssetAmount = nativeToUi(this.account.getBalance(bank.address).computeQuantity(bank).assets, bank.mintDecimals);
+      const withdrawAmount = BigNumber.min(maxWithdrawAmount, balanceAssetAmount);
 
-      debug("Balance: %d, max withdraw: %d", balanceAssetAmount, maxWithdrawAmount);
+      debug("Balance: %d, max withdraw: %d", balanceAssetAmount, withdrawAmount);
 
-      if (maxWithdrawAmount.eq(0)) {
+      if (withdrawAmount.eq(0)) {
         debug("No untied %s to withdraw", this.getTokenSymbol(bank));
         continue;
       }
 
-      debug("Withdrawing %d %s", maxWithdrawAmount, this.getTokenSymbol(bank));
+      debug("Withdrawing %d %s", withdrawAmount, this.getTokenSymbol(bank));
       let withdrawSig = await this.account.withdraw(
-        maxWithdrawAmount,
+        withdrawAmount,
         bank.address,
-        true
+        withdrawAmount.gte(balanceAssetAmount)
       );
 
       debug("Withdraw tx: %s", withdrawSig)
@@ -284,7 +285,7 @@ class Liquidator {
 
       /// When a liab value is super small (1 BONK), we cannot feasibly buy it for the exact amount,
       // so the solution is to buy more (trivial amount more), and then over repay.
-      const liabUsdcValue = BigNumber.max(baseLiabUsdcValue, new BigNumber(1));
+      const liabUsdcValue = BigNumber.max(baseLiabUsdcValue, new BigNumber(0.05));
 
       debug("Liab usd value %s", liabUsdcValue);
 
@@ -489,7 +490,14 @@ class Liquidator {
       return true;
     });
 
-    const accounts = shuffle(targetAccounts);
+    let accounts = [];
+
+    if (env_config.SORT_ACCOUNTS_MODE) {
+      accounts = this.sortByLiquidationAmount(targetAccounts);
+    } else {
+      accounts = shuffle(targetAccounts);
+    }
+
     debug("Found %s accounts in total", allAccounts.length);
     debug("Monitoring %s accounts", targetAccounts.length);
 
@@ -654,7 +662,7 @@ class Liquidator {
       liquidatorMaxLiqCapacityAssetAmount
     );
 
-    const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.95);
+    const slippageAdjustedCollateralAmountToLiquidate = collateralAmountToLiquidate.times(0.9);
 
     const collateralUsdValue = collateralBank.computeUsdValue(
       collateralPriceInfo,
@@ -676,15 +684,56 @@ class Liquidator {
       marginfiAccount.address.toBase58()
     );
 
-    const sig = await liquidatorAccount.lendingAccountLiquidate(
-      marginfiAccount.data,
-      collateralBank.address,
-      slippageAdjustedCollateralAmountToLiquidate,
-      liabBank.address
-    );
-    console.log("Liquidation tx: %s", sig);
+    try {
+      const sig = await liquidatorAccount.lendingAccountLiquidate(
+        marginfiAccount.data,
+        collateralBank.address,
+        slippageAdjustedCollateralAmountToLiquidate,
+        liabBank.address
+      );
+
+      console.log("Liquidation tx: %s", sig);
+
+    } catch (e) {
+      console.error("Failed to liquidate account %s", marginfiAccount.address.toBase58());
+      console.error(e);
+
+      this.addAccountToCoolDown(marginfiAccount.address);
+
+      return false;
+    }
 
     return true;
+  }
+
+  isAccountInCoolDown(address: PublicKey): boolean {
+    const cooldown = this.accountCooldowns.get(address.toBase58());
+    if (!cooldown) {
+      return false;
+    }
+
+    return cooldown > Date.now();
+  }
+
+  addAccountToCoolDown(address: PublicKey) {
+    const debug = getDebugLogger("add-account-to-cooldown");
+    debug("Adding account %s to cooldown for %d seconds", address.toBase58(), env_config.ACCOUNT_COOL_DOWN_SECONDS);
+    this.accountCooldowns.set(address.toBase58(), Date.now() + env_config.ACCOUNT_COOL_DOWN_SECONDS * 1000);
+  }
+
+  sortByLiquidationAmount(accounts: MarginfiAccountWrapper[]): MarginfiAccountWrapper[] {
+    return accounts
+      .filter(a => a.canBeLiquidated())
+      .filter(a => !this.isAccountInCoolDown(a.address))
+      .sort((a, b) => {
+        const { assets: aAssets, liabilities: aLiabilities } = a.computeHealthComponents(MarginRequirementType.Maintenance);
+        const { assets: bAssets, liabilities: bLiabilities } = b.computeHealthComponents(MarginRequirementType.Maintenance);
+
+        const aMaxLiabilityPaydown = aAssets.minus(aLiabilities);
+        const bMaxLiabilityPaydown = bAssets.minus(bLiabilities);
+
+        return aMaxLiabilityPaydown.comparedTo(bMaxLiabilityPaydown);
+      });
   }
 
   getTokenSymbol(bank: Bank): string {
