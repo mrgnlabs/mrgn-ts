@@ -207,7 +207,7 @@ export const Wallet = () => {
                 <WalletTokens tokens={walletData.tokens} />
                 <div className="pt-8">
                   <div className="text-sm text-white/50 text-center mb-4">
-                    Tranfer funds to this wallet
+                    Tranfer funds to your marginfi wallet
                     <CopyToClipboard
                       text={walletData.address}
                       onCopy={() => {
@@ -233,7 +233,7 @@ export const Wallet = () => {
                         </button>
                       </MrgnTooltip>
                     </CopyToClipboard>
-                    to get started. On-ramp coming soon...
+                    or buy directly with MoonPay.
                   </div>
                   <WalletOnramp />
                 </div>

@@ -17,6 +17,8 @@ type Web3AuthContextProps = {
   connected: boolean;
   isOpenAuthDialog: boolean;
   setIsOpenAuthDialog: (open: boolean) => void;
+  isMoonPayActive: boolean;
+  setIsMoonPayActive: (active: boolean) => void;
   isOpenWallet: boolean;
   setIsOpenWallet: (open: boolean) => void;
   login: (
@@ -51,6 +53,7 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
   const [web3auth, setWeb3auth] = React.useState<Web3AuthNoModal | null>(null);
   const [web3authProvider, setWeb3authProvider] = React.useState<IProvider | null>(null);
   const [isOpenAuthDialog, setIsOpenAuthDialog] = React.useState<boolean>(false);
+  const [isMoonPayActive, setIsMoonPayActive] = React.useState<boolean>(false);
   const [isOpenWallet, setIsOpenWallet] = React.useState<boolean>(false);
   const [pfp, setPfp] = React.useState<string>("");
   const [pk, setPk] = React.useState<string>("");
@@ -195,6 +198,8 @@ export const Web3AuthProvider = ({ children }: { children: React.ReactNode }) =>
         setIsOpenAuthDialog,
         isOpenWallet,
         setIsOpenWallet,
+        isMoonPayActive,
+        setIsMoonPayActive,
         walletData,
         connected: Boolean(web3auth?.connected),
         login,
