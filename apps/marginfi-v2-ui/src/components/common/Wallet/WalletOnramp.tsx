@@ -51,21 +51,25 @@ export const WalletOnramp = () => {
       moonPaySdk.updateSignature(data.signature);
 
       setMoonPay(moonPaySdk);
+
+      if (isMoonPayActive) {
+        moonPaySdk.show();
+      }
     } catch (e) {
       console.log("initMoonpay error", e);
     }
   }, []);
-
-  React.useEffect(() => {
-    if (!window) return;
-    initMoonpay();
-  }, [window]);
 
   const triggerMoonpay = React.useCallback(() => {
     if (!moonPay) return;
     moonPay.show();
     setIsMoonPayActive(true);
   }, [moonPay]);
+
+  React.useEffect(() => {
+    if (!window) return;
+    initMoonpay();
+  }, [window]);
 
   return (
     <>
