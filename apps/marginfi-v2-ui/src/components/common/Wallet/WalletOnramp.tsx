@@ -29,7 +29,7 @@ export const WalletOnramp = () => {
             usdc_sol: wallet?.publicKey?.toString(),
           }),
           baseCurrencyCode: "usd",
-          baseCurrencyAmount: "100",
+          baseCurrencyAmount: "30",
           colorCode: "#7d01ff",
         },
         debug: true,
