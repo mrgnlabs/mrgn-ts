@@ -31,8 +31,8 @@ export const WalletOnramp = () => {
           // currencyCode: "sol",
           // defaultCurrencyCode: "eth",
           walletAddresses: JSON.stringify({
-            SOL: wallet?.publicKey?.toString(),
-            USDC_SOL: wallet?.publicKey?.toString(),
+            sol: wallet?.publicKey?.toString(),
+            usdc_sol: wallet?.publicKey?.toString(),
           }),
           baseCurrencyCode: "usd",
           baseCurrencyAmount: "100",
