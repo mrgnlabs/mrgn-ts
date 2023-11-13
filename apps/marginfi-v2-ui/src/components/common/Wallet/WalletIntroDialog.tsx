@@ -8,7 +8,7 @@ import { Button } from "~/components/ui/button";
 import CopyToClipboard from "react-copy-to-clipboard";
 
 export const WalletIntroDialog = () => {
-  const [isWalletIntroOpen, setIsWalletIntroOpen] = React.useState(true);
+  const [isWalletIntroOpen, setIsWalletIntroOpen] = React.useState(false);
   const [isCopied, setIsCopied] = React.useState(false);
   const { wallet } = useWalletContext();
   const { setIsOpenWallet, setIsMoonPayActive } = useWeb3AuthWallet();
@@ -20,8 +20,8 @@ export const WalletIntroDialog = () => {
   };
 
   const handleDialogCloseWithOnRamp = () => {
+    setIsMoonPayActive(true);
     handleDialogClose();
-    setTimeout(() => setIsMoonPayActive(true), 1000);
   };
 
   React.useEffect(() => {
