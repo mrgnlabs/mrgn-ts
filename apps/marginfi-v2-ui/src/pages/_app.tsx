@@ -1,6 +1,7 @@
 import React from "react";
 
 import type { AppProps } from "next/app";
+import { useRouter } from "next/router";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 
@@ -41,6 +42,7 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 const MATOMO_URL = "https://mrgn.matomo.cloud";
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
+  const router = useRouter();
   const [setIsFetchingData] = useUiStore((state) => [state.setIsFetchingData]);
   const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore] = useMrgnlendStore((state) => [
     state.initialized,
@@ -76,6 +78,16 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   React.useEffect(() => {
     setReady(true);
   }, []);
+
+  // if account set in query param then store inn local storage and remove from url
+  useEffect(() => {
+    const { account } = router.query;
+
+    if (!account) return;
+
+    localStorage.setItem("mfiAccount", account as string);
+    router.replace(router.pathname, undefined, { shallow: true });
+  }, [router.isReady]);
 
   return (
     <>
