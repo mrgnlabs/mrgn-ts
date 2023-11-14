@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useOs } from "~/hooks/useOs";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useWalletStore } from "~/store";
 import { Web3AuthSocialProvider, useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { WalletAuthButton, WalletAuthEmailForm } from "~/components/common/Wallet";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
@@ -49,10 +50,14 @@ const walletIcons: { [key: string]: React.ReactNode } = {
 export const WalletAuthDialog = () => {
   const { select, wallets } = useWallet();
   const { connected, login } = useWalletContext();
-  const { isOpenAuthDialog, setIsOpenAuthDialog } = useWeb3AuthWallet();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
   const { isAndroid, isIOS } = useOs();
+
+  const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useWalletStore((state) => [
+    state.isWalletAuthDialogOpen,
+    state.setIsWalletAuthDialogOpen,
+  ]);
 
   const filteredWallets = React.useMemo(() => {
     return wallets.filter((wallet) => {
@@ -66,15 +71,15 @@ export const WalletAuthDialog = () => {
   }, [wallets]);
 
   React.useEffect(() => {
-    if (!isOpenAuthDialog) {
+    if (!isWalletAuthDialogOpen) {
       setIsLoading(false);
       setIsActiveLoading("");
     }
-  }, [isOpenAuthDialog]);
+  }, [isWalletAuthDialogOpen]);
 
   React.useEffect(() => {
     if (connected) {
-      setIsOpenAuthDialog(false);
+      setIsWalletAuthDialogOpen(false);
       setIsLoading(false);
       setIsActiveLoading("");
     }
@@ -82,7 +87,7 @@ export const WalletAuthDialog = () => {
 
   return (
     <div>
-      <Dialog open={isOpenAuthDialog} onOpenChange={(open) => setIsOpenAuthDialog(open)}>
+      <Dialog open={isWalletAuthDialogOpen} onOpenChange={(open) => setIsWalletAuthDialogOpen(open)}>
         <DialogContent>
           <DialogHeader>
             <IconMrgn size={48} />
@@ -151,7 +156,7 @@ export const WalletAuthDialog = () => {
                             setIsLoading(true);
                             setIsActiveLoading(wallet.adapter.name);
                             select(wallet.adapter.name);
-                            setIsOpenAuthDialog(false);
+                            setIsWalletAuthDialogOpen(false);
                           }}
                         />
                       </li>

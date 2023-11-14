@@ -17,7 +17,6 @@ import { collectRewardsBatch } from "~/utils";
 import { IconMrgn } from "~/components/ui/icons";
 import { useLstStore } from "~/pages/stake";
 import { WalletButton } from "~/components/common/Wallet";
-import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 
 // @todo implement second pretty navbar row
 const DesktopNavbar: FC = () => {
@@ -25,7 +24,6 @@ const DesktopNavbar: FC = () => {
 
   const { connection } = useConnection();
   const { connected, walletAddress, wallet } = useWalletContext();
-  const { logout, setIsOpenAuthDialog } = useWeb3AuthWallet();
   const router = useRouter();
   const [selectedAccount, extendedBankInfos, lendUserDataFetched, resetLendUserData] = useMrgnlendStore((state) => [
     state.selectedAccount,

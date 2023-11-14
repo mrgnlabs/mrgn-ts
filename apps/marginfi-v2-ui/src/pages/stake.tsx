@@ -1,6 +1,5 @@
 import { JupiterProvider } from "@jup-ag/react-hook";
 import { createJupiterStore } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Typography } from "@mui/material";
 import { useConnection } from "~/hooks/useConnection";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
