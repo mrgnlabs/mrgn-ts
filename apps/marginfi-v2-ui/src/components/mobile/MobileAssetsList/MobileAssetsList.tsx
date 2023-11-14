@@ -1,8 +1,8 @@
 import React, { FC, useCallback, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { FormControl, MenuItem, SelectChangeEvent, Skeleton, Typography } from "@mui/material";
-import { useMrgnlendStore } from "~/store";
+import { SelectChangeEvent, Skeleton, Typography } from "@mui/material";
+import { useMrgnlendStore, useWalletStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { MrgnContainedSwitch, MrgnLabeledSwitch, MrgnTooltip } from "~/components/common";
@@ -27,7 +27,8 @@ export const MobileAssetsList: FC = () => {
   const togglePositions = () => setIsFiltered((previousState) => !previousState);
 
   const { connected } = useWalletContext();
-  const { setIsOpenAuthDialog } = useWeb3AuthWallet();
+
+  const [setIsWalletAuthDialogOpen] = useWalletStore((state) => [state.setIsWalletAuthDialogOpen]);
   const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
@@ -99,7 +100,7 @@ export const MobileAssetsList: FC = () => {
           onClick={(e) => {
             e.stopPropagation();
             if (connected) return;
-            setIsOpenAuthDialog(true);
+            setIsWalletAuthDialogOpen(true);
           }}
         >
           <MrgnContainedSwitch

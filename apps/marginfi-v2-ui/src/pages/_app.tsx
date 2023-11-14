@@ -11,7 +11,6 @@ import { Analytics } from "@vercel/analytics/react";
 import dynamic from "next/dynamic";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
-import { WalletSelector } from "~/components/mobile/WalletSelector";
 import { Tutorial } from "~/components/common/Tutorial";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "./stake";
@@ -102,7 +101,6 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
                 <div className="w-full flex flex-col justify-center items-center sm:pt-[24px]">
                   <Component {...pageProps} />
                 </div>
-                <WalletSelector />
               </Mobile>
               <Analytics />
               <Tutorial />

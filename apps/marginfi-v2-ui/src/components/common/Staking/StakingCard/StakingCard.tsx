@@ -5,6 +5,7 @@ import * as solanaStakePool from "@solana/spl-stake-pool";
 import { WalletIcon } from "./WalletIcon";
 import { PrimaryButton } from "./PrimaryButton";
 import { useLstStore } from "~/pages/stake";
+import { useWalletStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
@@ -45,7 +46,6 @@ import { Spinner } from "~/components/common/Spinner";
 import BN from "bn.js";
 import debounce from "lodash.debounce";
 import { Desktop, Mobile } from "~/mediaQueries";
-import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 
 const QUOTE_EXPIRY_MS = 30_000;
 const DEFAULT_DEPOSIT_OPTION: DepositOption = { type: "native", amount: new BN(0), maxAmount: new BN(0) };
@@ -72,7 +72,8 @@ export const StakingCard: FC = () => {
   const router = useRouter();
   const { connection } = useConnection();
   const { connected, wallet, walletAddress } = useWalletContext();
-  const { isOpenAuthDialog, setIsOpenAuthDialog } = useWeb3AuthWallet();
+
+  const [setIsWalletAuthDialogOpen] = useWalletStore((state) => [state.setIsWalletAuthDialogOpen]);
   const [
     lstData,
     userDataFetched,
@@ -519,7 +520,7 @@ export const StakingCard: FC = () => {
                   !!ongoingAction)
               }
               loading={connected && !!ongoingAction}
-              onClick={connected ? onMint : () => setIsOpenAuthDialog(true)}
+              onClick={connected ? onMint : () => setIsWalletAuthDialogOpen(true)}
             >
               {!connected ? "connect" : ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? <Spinner /> : "mint"}
             </PrimaryButton>

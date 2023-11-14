@@ -7,9 +7,8 @@ import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
 import { PageHeader } from "~/components/common/PageHeader";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
-import { useUserProfileStore } from "~/store";
+import { useUserProfileStore, useWalletStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { Desktop } from "~/mediaQueries";
 
 const tokens = [
@@ -67,9 +66,10 @@ const configs: MayanWidgetConfigType[] = [
 ];
 const BridgePage = () => {
   const { walletAddress, walletContextState } = useWalletContext();
-  const { setIsOpenAuthDialog } = useWeb3AuthWallet();
   const [isBridgeIn, setIsBridgeIn] = useState<boolean>(true);
   const setShowBadges = useUserProfileStore((state) => state.setShowBadges);
+
+  const [setIsWalletAuthDialogOpen] = useWalletStore((state) => [state.setIsWalletAuthDialogOpen]);
 
   // Enter hotkey mode
   useHotkeys(
@@ -88,14 +88,14 @@ const BridgePage = () => {
     console.log("handleConnect", walletContextState);
     try {
       if (!walletContextState.wallet) {
-        setIsOpenAuthDialog(true);
+        setIsWalletAuthDialogOpen(true);
       } else {
         await walletContextState.connect();
       }
     } catch (err) {
       console.error(err);
     }
-  }, [walletContextState, setIsOpenAuthDialog]);
+  }, [walletContextState, setIsWalletAuthDialogOpen]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && typeof window.MayanSwap !== "undefined") {
