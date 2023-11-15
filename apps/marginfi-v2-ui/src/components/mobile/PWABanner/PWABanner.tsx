@@ -1,5 +1,7 @@
 import React from "react";
+
 import { useOs } from "~/hooks/useOs";
+
 import { IconShare2, IconX } from "~/components/ui/icons";
 
 export const PWABanner = () => {
@@ -8,11 +10,11 @@ export const PWABanner = () => {
 
   const handleClose = () => {
     setOpen(false);
-    localStorage.setItem("pwaBannerDismissed", "true");
+    localStorage.setItem("mrgnPwaBannerDismissed", "true");
   };
 
   React.useEffect(() => {
-    if (!localStorage.getItem("pwaBannerDismissed")) {
+    if (!localStorage.getItem("mrgnPwaBannerDismissed")) {
       setOpen(true);
     }
   }, []);

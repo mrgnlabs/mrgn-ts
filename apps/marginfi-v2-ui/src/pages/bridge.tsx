@@ -1,15 +1,16 @@
-"use client";
+import React from "react";
 
-import { useState, useEffect, useCallback } from "react";
-import config from "~/config";
 import Script from "next/script";
+
 import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
-import { PageHeader } from "~/components/common/PageHeader";
+
+import config from "~/config";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
-import { useUserProfileStore, useWalletStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { useUserProfileStore, useUiStore } from "~/store";
 import { Desktop } from "~/mediaQueries";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { PageHeader } from "~/components/common/PageHeader";
 
 const tokens = [
   "0x0000000000000000000000000000000000000000", // SOL
@@ -66,10 +67,10 @@ const configs: MayanWidgetConfigType[] = [
 ];
 const BridgePage = () => {
   const { walletAddress, walletContextState } = useWalletContext();
-  const [isBridgeIn, setIsBridgeIn] = useState<boolean>(true);
   const setShowBadges = useUserProfileStore((state) => state.setShowBadges);
+  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
-  const [setIsWalletAuthDialogOpen] = useWalletStore((state) => [state.setIsWalletAuthDialogOpen]);
+  const [isBridgeIn, setIsBridgeIn] = React.useState<boolean>(true);
 
   // Enter hotkey mode
   useHotkeys(
@@ -84,7 +85,7 @@ const BridgePage = () => {
     { preventDefault: true, enableOnFormTags: true }
   );
 
-  const handleConnect = useCallback(async () => {
+  const handleConnect = React.useCallback(async () => {
     console.log("handleConnect", walletContextState);
     try {
       if (!walletContextState.wallet) {
@@ -97,7 +98,7 @@ const BridgePage = () => {
     }
   }, [walletContextState, setIsWalletAuthDialogOpen]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (typeof window !== "undefined" && typeof window.MayanSwap !== "undefined") {
       window.MayanSwap.updateSolanaWallet({
         signTransaction: walletContextState.signTransaction,
@@ -108,7 +109,7 @@ const BridgePage = () => {
     }
   }, [walletContextState, handleConnect, walletAddress]);
 
-  const handleLoadMayanWidget = useCallback(() => {
+  const handleLoadMayanWidget = React.useCallback(() => {
     const configIndex = isBridgeIn ? 0 : 1;
     const config = {
       ...configs[configIndex],
@@ -145,7 +146,7 @@ const BridgePage = () => {
     });
   }, [handleConnect, isBridgeIn, walletAddress, walletContextState.disconnect, walletContextState.signTransaction]);
 
-  const handleUpdateConfig = useCallback(() => {
+  const handleUpdateConfig = React.useCallback(() => {
     const newConfigIndex = isBridgeIn ? 1 : 0;
     const config = {
       ...configs[newConfigIndex],
@@ -164,7 +165,7 @@ const BridgePage = () => {
     setIsBridgeIn((prevState) => !prevState);
   }, [handleConnect, isBridgeIn, walletAddress, walletContextState]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     handleUpdateConfig;
   }, [handleUpdateConfig]);
 
@@ -174,7 +175,7 @@ const BridgePage = () => {
         <div className="flex flex-row gap-1">
           <span>bridge</span>
           <Desktop>
-            <div className="hidden sm:block flex flex-row items-center gap-1">
+            <div className="hidden sm:block flex-row items-center gap-1">
               <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
               <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
               <span className="text-sm h-[48px] pt-[28px] bg-mayan-gradient-colors bg-clip-text text-transparent ml-1">
@@ -184,7 +185,7 @@ const BridgePage = () => {
           </Desktop>
         </div>
       </PageHeader>
-      <div className="w-full h-full flex flex-col justify-start items-center content-start py-[32px] gap-8 w-4/5">
+      <div className="w-full h-full flex flex-col justify-start items-center content-start py-[32px] gap-8">
         <Script
           src="https://cdn.mayan.finance/widget_solana-0-4-5.js"
           integrity="sha256-mTVQLKvE422WDwtZQUcz/9u5ZK3T1vMfSO0omQvla0E="

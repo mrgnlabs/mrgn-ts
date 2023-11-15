@@ -1,21 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import dynamic from "next/dynamic";
+
 import { WalletProvider } from "@solana/wallet-adapter-react";
-import { ConnectionProvider } from "~/hooks/useConnection";
-import { Web3AuthProvider } from "~/hooks/useWeb3AuthWallet";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { init, push } from "@socialgouv/matomo-next";
-import config from "~/config";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-import dynamic from "next/dynamic";
-import { Desktop, Mobile } from "~/mediaQueries";
-import { MobileNavbar } from "~/components/mobile/MobileNavbar";
-import { Tutorial } from "~/components/common/Tutorial";
+
+import config from "~/config";
+import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "./stake";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import { WALLET_ADAPTERS } from "~/config/wallets";
+import { Desktop, Mobile } from "~/mediaQueries";
+import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
+import { ConnectionProvider } from "~/hooks/useConnection";
+
+import { MobileNavbar } from "~/components/mobile/MobileNavbar";
+import { Tutorial } from "~/components/common/Tutorial";
 import { WalletAuthDialog } from "~/components/common/Wallet";
 
 import "swiper/css";
@@ -31,9 +35,9 @@ require("~/styles/asset-borders.css");
 const DesktopNavbar = dynamic(async () => (await import("~/components/desktop/DesktopNavbar")).DesktopNavbar, {
   ssr: false,
 });
+
 const Footer = dynamic(async () => (await import("~/components/desktop/Footer")).Footer, { ssr: false });
 
-// Matomo
 const MATOMO_URL = "https://mrgn.matomo.cloud";
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
@@ -48,7 +52,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   ]);
 
   // enable matomo heartbeat
-  useEffect(() => {
+  React.useEffect(() => {
     if (process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT === "alpha") {
       init({ url: MATOMO_URL, siteId: "1" });
       // accurately measure the time spent in the visit
@@ -56,7 +60,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     }
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const isFetchingData = isRefreshingMrgnlendStore || isRefreshingLstStore;
     setIsFetchingData(isFetchingData);
   }, [
@@ -67,9 +71,9 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     setIsFetchingData,
   ]);
 
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setReady(true);
   }, []);
 
@@ -85,7 +89,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
           <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
-            <Web3AuthProvider>
+            <MrgnWalletProvider>
               <Desktop>
                 <WalletModalProvider>
                   <DesktopNavbar />
@@ -106,7 +110,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
               <Tutorial />
               <WalletAuthDialog />
               <ToastContainer position="bottom-left" theme="dark" />
-            </Web3AuthProvider>
+            </MrgnWalletProvider>
           </WalletProvider>
         </ConnectionProvider>
       )}

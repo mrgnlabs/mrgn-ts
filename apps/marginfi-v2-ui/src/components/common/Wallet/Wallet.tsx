@@ -1,13 +1,17 @@
 import React from "react";
+
 import { LAMPORTS_PER_SOL, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { useMrgnlendStore } from "~/store";
+
+import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { useIsMobile } from "~/hooks/useIsMobile";
+
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import {
   WalletAvatar,
   WalletTokens,
@@ -16,28 +20,21 @@ import {
   WalletPkDialog,
   WalletIntroDialog,
 } from "~/components/common/Wallet";
+
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Button } from "~/components/ui/button";
 import { IconCheck, IconChevronDown, IconCopy } from "~/components/ui/icons";
-import { MrgnTooltip } from "../MrgnTooltip";
 
 export const Wallet = () => {
   const [sortedBanks] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const [isWalletOpen, setIsWalletOpen] = useUiStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
+
   const { connection } = useConnection();
-  const { wallet, connected, logout } = useWalletContext();
+  const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected } = useWalletContext();
   const isMobile = useIsMobile();
-  const {
-    isOpenWallet,
-    setIsOpenWallet,
-    pfp,
-    requestPrivateKey,
-    pk,
-    resetPk,
-    connected: web3authConnected,
-  } = useWeb3AuthWallet();
+
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   const [isFundingAddressCopied, setIsFundingAddressCopied] = React.useState(false);
-  const [isPrivateKeyCopied, setIsPrivateKeyCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
@@ -52,6 +49,7 @@ export const Wallet = () => {
     tokens: [],
   });
 
+  // filter out SOL bank from sortedBanks
   const solBank = React.useMemo(() => {
     if (!sortedBanks) return undefined;
     return sortedBanks.find((bank) => bank.address.toString() === "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh");
@@ -62,6 +60,8 @@ export const Wallet = () => {
     return shortenAddress(wallet?.publicKey?.toString());
   }, [wallet?.publicKey]);
 
+  // fetch wallet data and store in state
+  // address, sol balance, token balances
   const getWalletData = React.useCallback(async () => {
     if (!connection || !wallet?.publicKey) return;
     const balance = await connection.getBalance(wallet?.publicKey);
@@ -88,6 +88,8 @@ export const Wallet = () => {
     });
   }, [connection, wallet?.publicKey, address, solBank]);
 
+  // fetch token accounts for wallet
+  // and filter out unsupported tokens
   const getSupportedTokens = React.useCallback(
     async (wallet: PublicKey) => {
       try {
@@ -145,6 +147,7 @@ export const Wallet = () => {
     [connection, sortedBanks]
   );
 
+  // fetch wallet data on mount and every 20 seconds
   React.useEffect(() => {
     getWalletData();
     const intervalId = setInterval(() => {
@@ -158,7 +161,7 @@ export const Wallet = () => {
 
   return (
     <>
-      <Sheet open={isOpenWallet} onOpenChange={(open) => setIsOpenWallet(open)}>
+      <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
         <SheetTrigger asChild>
           {walletData && (
             <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
@@ -237,7 +240,7 @@ export const Wallet = () => {
                   </div>
                   <WalletOnramp />
                 </div>
-                <SheetFooter className="mt-auto w-full">
+                <SheetFooter className="text-red-400 mt-auto w-full">
                   <ul className="space-y-3 mb-4 md:space-y-0 md:mb-0">
                     <li>
                       <Button
@@ -249,13 +252,14 @@ export const Wallet = () => {
                         Logout
                       </Button>
                     </li>
-                    {web3authConnected && (
+                    {web3AuthConncected && (
                       <li>
                         <Button
                           variant={isMobile ? "outline" : "link"}
                           size="sm"
                           className="p-0 w-full opacity-50 gap-1"
                           onClick={() => {
+                            localStorage.setItem("mrgnPrivateKeyRequested", "true");
                             requestPrivateKey();
                           }}
                         >
@@ -272,8 +276,13 @@ export const Wallet = () => {
           )}
         </SheetContent>
       </Sheet>
-      <WalletPkDialog pk={pk} resetPk={resetPk} />
-      {web3authConnected && <WalletIntroDialog />}
+
+      {web3AuthConncected && (
+        <>
+          <WalletPkDialog pk={web3AuthPk} />
+          <WalletIntroDialog />
+        </>
+      )}
     </>
   );
 };

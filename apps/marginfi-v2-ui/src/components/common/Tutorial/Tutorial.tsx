@@ -1,8 +1,11 @@
 import React from "react";
+
 import Link from "next/link";
+
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import { useSwiper } from "swiper/react";
+
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import {
@@ -69,12 +72,12 @@ export const Tutorial = () => {
   const [open, setOpen] = React.useState(false);
 
   const handleDialogClose = () => {
-    localStorage.setItem("tutorialAcknowledged", "true");
+    localStorage.setItem("mrgnTutorialAcknowledged", "true");
     setOpen(false);
   };
 
   React.useEffect(() => {
-    if (!localStorage.getItem("tutorialAcknowledged")) {
+    if (!localStorage.getItem("mrgnTutorialAcknowledged")) {
       setOpen(true);
     }
   }, []);

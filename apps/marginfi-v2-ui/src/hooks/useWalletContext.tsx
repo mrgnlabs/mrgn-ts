@@ -1,13 +1,23 @@
-import { Wallet } from "@mrgnlabs/mrgn-common";
+import React from "react";
+
+import { useRouter } from "next/router";
+import { toast } from "react-toastify";
+import { useCookies } from "react-cookie";
+import { minidenticon } from "minidenticons";
 import { useAnchorWallet, useWallet, WalletContextState } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
-import { useRouter } from "next/router";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useWeb3AuthWallet } from "./useWeb3AuthWallet";
+import { CHAIN_NAMESPACES, IProvider, ADAPTER_EVENTS, WALLET_ADAPTERS } from "@web3auth/base";
+import { Web3AuthNoModal } from "@web3auth/no-modal";
+import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
+import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 
-export type WalletContextOverride = {
-  connected: boolean;
+import { Wallet } from "@mrgnlabs/mrgn-common";
+
+// wallet adapter context type to override with web3auth data
+// this allows us to pass web3auth wallet to 3rd party services that expect wallet adapter
+type WalletContextOverride = {
   connecting: boolean;
+  connected: boolean;
   icon: string;
   connect: () => void;
   disconnect: () => void;
@@ -18,13 +28,63 @@ export type WalletContextOverride = {
   signMessage?: (message: Uint8Array) => Promise<Uint8Array>;
 };
 
-export type WalletContextStateOverride = {
+// wallet adapter context has a nested wallet object
+type WalletContextStateOverride = {
   wallet: {
     adapter: WalletContextOverride;
   };
 } & WalletContextOverride;
 
-const makeWeb3AuthWalletContextState = (wallet: Wallet): WalletContextStateOverride => {
+type WalletContextProps = {
+  connecting: boolean;
+  connected: boolean;
+  web3AuthConncected?: boolean;
+  wallet: Wallet;
+  walletAddress: PublicKey;
+  walletContextState: WalletContextStateOverride | WalletContextState;
+  isOverride: boolean;
+  loginWeb3Auth: (
+    provider: string,
+    extraLoginOptions?: Partial<{
+      login_hint: string;
+    }>,
+    cb?: () => void
+  ) => void;
+  logout: () => void;
+  requestPrivateKey: () => void;
+  pfp: string;
+  web3AuthPk: string;
+};
+
+type Web3AuthSocialProvider = "google" | "twitter" | "apple";
+type Web3AuthProvider = "email_passwordless" | Web3AuthSocialProvider;
+
+const web3AuthChainConfig = {
+  chainNamespace: CHAIN_NAMESPACES.SOLANA,
+  chainId: "0x1",
+  rpcTarget: process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || "https://mrgn.rpcpool.com/",
+  displayName: "Solana Mainnet",
+  blockExplorer: "https://explorer.solana.com",
+  ticker: "SOL",
+  tickerName: "Solana",
+} as const;
+
+const web3AuthOpenLoginAdapterSettings = {
+  uxMode: "redirect",
+  whiteLabel: {
+    appName: "marginfi",
+    appUrl: "https://app.marginfi.com",
+    logoDark: "https://marginfi-v2-ui-git-staging-mrgn.vercel.app/mrgn.svg",
+    mode: "dark",
+    theme: {
+      gray: "#0E1010",
+    },
+    useLogoLoader: true,
+  },
+} as const;
+
+// create a wallet adapter context state from web3auth wallet
+const makeweb3AuthWalletContextState = (wallet: Wallet): WalletContextStateOverride => {
   const walletProps: WalletContextOverride = {
     connected: true,
     connecting: false,
@@ -47,37 +107,68 @@ const makeWeb3AuthWalletContextState = (wallet: Wallet): WalletContextStateOverr
   };
 };
 
-const useWalletContext = () => {
+const WalletContext = React.createContext<WalletContextProps | undefined>(undefined);
+
+const WalletProvider = ({ children }: { children: React.ReactNode }) => {
+  const { query } = useRouter();
+  const [web3AuthPkCookie, setWeb3AuthPkCookie] = useCookies(["mrgnPrivateKeyRequested"]);
+
+  // default wallet adapter context, overwritten when web3auth is connected
   let walletContextStateDefault = useWallet();
   const anchorWallet = useAnchorWallet();
-  const {
-    walletData: web3AuthWalletData,
-    connected: web3AuthConnected,
-    login: web3AuthLogin,
-    logout: web3AuthLogout,
-  } = useWeb3AuthWallet();
-  const { query } = useRouter();
 
-  const walletContextState = useMemo(() => {
-    if (web3AuthConnected && web3AuthWalletData) {
-      return makeWeb3AuthWalletContextState(web3AuthWalletData);
+  const [web3Auth, setweb3Auth] = React.useState<Web3AuthNoModal | null>(null);
+  const [web3AuthWalletData, setWeb3AuthWalletData] = React.useState<Wallet>();
+  const [pfp, setPfp] = React.useState<string>("");
+  const [web3AuthLoginType, setWeb3AuthLoginType] = React.useState<string>("");
+  const [web3AuthPk, setWeb3AuthPk] = React.useState<string>("");
+
+  // if web3auth is connected, override wallet adapter context, otherwise use default
+  const walletContextState = React.useMemo(() => {
+    if (web3Auth?.connected && web3AuthWalletData) {
+      return makeweb3AuthWalletContextState(web3AuthWalletData);
     } else {
       return walletContextStateDefault;
     }
-  }, [web3AuthConnected, walletContextStateDefault.connected]);
+  }, [web3Auth?.connected, web3AuthWalletData, walletContextStateDefault.connected]);
 
-  const { wallet, isOverride }: { wallet: Wallet | undefined; isOverride: boolean } = useMemo(() => {
+  // update wallet object, 3 potential sources: web3auth, anchor, override
+  const { wallet, isOverride }: { wallet: Wallet | undefined; isOverride: boolean } = React.useMemo(() => {
     const override = query?.wallet as string;
-    if (web3AuthWalletData && web3AuthConnected) {
+    // web3auth wallet
+    if (web3AuthWalletData && web3Auth?.connected) {
       return {
         wallet: web3AuthWalletData,
         isOverride: false,
       };
-    } else if (anchorWallet && override) {
+    } else {
+      // set identicon pfp as no pfp is available
+      setPfp(
+        "data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(anchorWallet?.publicKey.toString() || "mrgn"))
+      );
+
+      // wallet address override
+      if (override) {
+        return {
+          wallet: {
+            ...anchorWallet,
+            publicKey: new PublicKey(override) as PublicKey,
+            signMessage: walletContextState?.signMessage,
+            signTransaction: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
+              transactions: T
+            ) => Promise<T>,
+            signAllTransactions: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
+              transactions: T[]
+            ) => Promise<T[]>,
+          },
+          isOverride: true,
+        };
+      }
+
       return {
         wallet: {
           ...anchorWallet,
-          publicKey: new PublicKey(override) as PublicKey,
+          publicKey: anchorWallet?.publicKey as PublicKey,
           signMessage: walletContextState?.signMessage,
           signTransaction: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
             transactions: T
@@ -86,43 +177,174 @@ const useWalletContext = () => {
             transactions: T[]
           ) => Promise<T[]>,
         },
-        isOverride: true,
+        isOverride: false,
       };
     }
-    return {
-      wallet: {
-        ...anchorWallet,
-        publicKey: anchorWallet?.publicKey as PublicKey,
-        signMessage: walletContextState?.signMessage,
-        signTransaction: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
-          transactions: T
-        ) => Promise<T>,
-        signAllTransactions: walletContextState?.signTransaction as <T extends Transaction | VersionedTransaction>(
-          transactions: T[]
-        ) => Promise<T[]>,
-      },
-      isOverride: false,
-    };
-  }, [anchorWallet, web3AuthWalletData, query, web3AuthConnected, walletContextStateDefault.wallet]);
+  }, [anchorWallet, web3AuthWalletData, query, web3Auth?.connected, walletContextState]);
 
-  const logout = useCallback(() => {
-    if (web3AuthConnected) {
-      web3AuthLogout();
+  // if web3auth is connected, update wallet object
+  // and override signTransaction methods with web3auth sdk
+  const makeweb3AuthWalletData = React.useCallback(
+    async (web3AuthProvider: IProvider) => {
+      if (!web3Auth) return;
+
+      const solanaWallet = new SolanaWallet(web3AuthProvider);
+      const accounts = await solanaWallet.requestAccounts();
+
+      if (web3Auth.getUserInfo) {
+        const userData = await web3Auth.getUserInfo();
+        setWeb3AuthLoginType(userData.typeOfLogin || "");
+        setPfp(userData.profileImage || "");
+      }
+
+      checkPrivateKeyRequested(web3AuthProvider);
+
+      setWeb3AuthWalletData({
+        publicKey: new PublicKey(accounts[0]),
+        async signTransaction<T extends Transaction | VersionedTransaction>(transaction: T): Promise<T> {
+          const solanaWallet = new SolanaWallet(web3AuthProvider);
+          const signedTransaction = await solanaWallet.signTransaction(transaction);
+          return signedTransaction;
+        },
+        async signAllTransactions<T extends Transaction | VersionedTransaction>(transactions: T[]): Promise<T[]> {
+          const solanaWallet = new SolanaWallet(web3AuthProvider);
+          const signedTransactions = await solanaWallet.signAllTransactions(transactions);
+          return signedTransactions;
+        },
+        async signMessage(message: Uint8Array): Promise<Uint8Array> {
+          const solanaWallet = new SolanaWallet(web3AuthProvider);
+          const signedMessage = await solanaWallet.signMessage(message);
+          return signedMessage;
+        },
+      });
+    },
+    [web3Auth]
+  );
+
+  // called when user requests private key
+  // stores short lived cookie and forces login
+  const requestPrivateKey = React.useCallback(async () => {
+    if (!web3AuthLoginType) return;
+    setWeb3AuthPkCookie("mrgnPrivateKeyRequested", true, { expires: new Date(Date.now() + 5 * 60 * 1000) });
+    await logout();
+    await loginWeb3Auth(web3AuthLoginType);
+  }, [web3AuthLoginType]);
+
+  // if private key requested cookie is found then fetch pk, store in state, and clear cookie
+  const checkPrivateKeyRequested = React.useCallback(
+    async (provider: IProvider) => {
+      if (!web3AuthPkCookie.mrgnPrivateKeyRequested) return;
+
+      const pk = await provider.request({
+        method: "solanaPrivateKey",
+      });
+
+      setWeb3AuthPkCookie("mrgnPrivateKeyRequested", false);
+      setWeb3AuthPk(pk as string);
+    },
+    [web3AuthPkCookie]
+  );
+
+  // login to web3auth with specified social provider
+  const loginWeb3Auth = React.useCallback(
+    async (provider: string, extraLoginOptions: any = {}, cb?: () => void) => {
+      if (!web3Auth) {
+        toast.error("Error connecting to web3Auth");
+        return;
+      }
+
+      try {
+        await web3Auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
+          loginProvider: provider,
+          extraLoginOptions,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [web3Auth]
+  );
+
+  // logout of web3auth or solana wallet adapter
+  const logout = React.useCallback(async () => {
+    if (web3Auth?.connected && web3Auth) {
+      await web3Auth.logout();
+      setWeb3AuthWalletData(undefined);
     } else {
       walletContextState?.disconnect();
     }
-  }, [walletContextState, web3AuthConnected, web3AuthLogout, walletContextStateDefault]);
+    setPfp("");
+  }, [walletContextState, web3Auth?.connected, walletContextStateDefault]);
 
-  return {
-    wallet,
-    walletAddress: wallet?.publicKey,
-    isOverride,
-    connected: walletContextState?.connected || web3AuthConnected,
-    connecting: walletContextState?.connecting,
-    walletContextState,
-    login: web3AuthLogin,
-    logout,
-  };
+  // if web3auth is connected, fetch wallet data
+  React.useEffect(() => {
+    if (!web3Auth?.connected || !web3Auth?.provider || web3AuthWalletData) return;
+    makeweb3AuthWalletData(web3Auth.provider);
+  }, [web3Auth?.connected, web3Auth?.provider, web3AuthWalletData]);
+
+  // initialize web3auth sdk on page load
+  React.useEffect(() => {
+    const init = async () => {
+      try {
+        const web3AuthInstance = new Web3AuthNoModal({
+          clientId: process.env.NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID!,
+          chainConfig: web3AuthChainConfig,
+          web3AuthNetwork: "sapphire_mainnet",
+        });
+
+        const privateKeyProvider = new SolanaPrivateKeyProvider({ config: { chainConfig: web3AuthChainConfig } });
+
+        const openloginAdapter = new OpenloginAdapter({
+          privateKeyProvider,
+          adapterSettings: web3AuthOpenLoginAdapterSettings,
+        });
+
+        web3AuthInstance.configureAdapter(openloginAdapter);
+
+        web3AuthInstance.on(ADAPTER_EVENTS.CONNECTED, async (provider) => {
+          await makeweb3AuthWalletData(provider);
+        });
+
+        await web3AuthInstance.init();
+
+        setweb3Auth(web3AuthInstance);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    init();
+  }, []);
+
+  return (
+    <WalletContext.Provider
+      value={{
+        connecting: walletContextState?.connecting,
+        connected: Boolean(walletContextState?.connected || web3Auth?.connected),
+        web3AuthConncected: web3Auth?.connected,
+        wallet,
+        walletAddress: wallet?.publicKey as PublicKey,
+        walletContextState,
+        isOverride,
+        loginWeb3Auth,
+        logout,
+        requestPrivateKey,
+        pfp,
+        web3AuthPk,
+      }}
+    >
+      {children}
+    </WalletContext.Provider>
+  );
 };
 
-export { useWalletContext };
+const useWalletContext = () => {
+  const context = React.useContext(WalletContext);
+  if (!context) {
+    throw new Error("useWalletContext must be used within a WalletProvider");
+  }
+  return context;
+};
+
+export type { WalletContextStateOverride, Web3AuthSocialProvider, Web3AuthProvider };
+export { WalletProvider, useWalletContext };

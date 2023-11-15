@@ -70,7 +70,7 @@ const Home = () => {
           )}
           <DesktopAccountSummary />
         </div>
-        <div className="flex flex-col justify-start content-start pt-[16px] pb-[64px] grid w-4/5 max-w-7xl gap-4 grid-cols-1 xl:grid-cols-2">
+        <div className="pt-[16px] pb-[64px] grid w-4/5 max-w-7xl gap-4 grid-cols-1 xl:grid-cols-2">
           <AssetsList />
           {walletAddress && <UserPositions />}
         </div>

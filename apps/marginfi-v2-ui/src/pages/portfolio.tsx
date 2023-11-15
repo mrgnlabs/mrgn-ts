@@ -1,25 +1,22 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import React from "react";
+
 import { useRouter } from "next/router";
 import Link from "next/link";
+
+import { Button, Skeleton, Typography } from "@mui/material";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import CheckIcon from "@mui/icons-material/Check";
-import { useConnection } from "~/hooks/useConnection";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
+
 import config from "~/config/marginfi";
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { PageHeader } from "~/components/common/PageHeader";
 import { MobileAccountSummary } from "~/components/mobile/MobileAccountSummary";
 import { MobilePortfolioOverview } from "~/components/mobile/MobilePortfolioOverview";
-import {
-  PointsOverview,
-  PointsSignIn,
-  PointsSignUp,
-  PointsCheckingUser,
-  PointsConnectWallet,
-} from "~/components/desktop/Points";
+import { PointsOverview, PointsSignIn, PointsSignUp, PointsCheckingUser } from "~/components/desktop/Points";
 import { AssetCard } from "~/components/mobile/MobileAssetsList/AssetCard";
-import { Button, Skeleton, Typography } from "@mui/material";
 import { EmissionsBanner } from "~/components/mobile/EmissionsBanner";
 
 const PortfolioPage = () => {
@@ -41,10 +38,10 @@ const PortfolioPage = () => {
     state.userPointsData,
   ]);
 
-  const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
-  const [isReferralCopied, setIsReferralCopied] = useState(false);
+  const referralCode = React.useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
+  const [isReferralCopied, setIsReferralCopied] = React.useState(false);
 
-  const lendingBanks = useMemo(
+  const lendingBanks = React.useMemo(
     () =>
       sortedBanks && isStoreInitialized
         ? sortedBanks
@@ -58,7 +55,7 @@ const PortfolioPage = () => {
     [sortedBanks, isStoreInitialized]
   );
 
-  const borrowingBanks = useMemo(
+  const borrowingBanks = React.useMemo(
     () =>
       sortedBanks && isStoreInitialized
         ? sortedBanks
@@ -72,7 +69,7 @@ const PortfolioPage = () => {
     [sortedBanks, isStoreInitialized]
   );
 
-  useEffect(() => {
+  React.useEffect(() => {
     setIsRefreshingStore(true);
     fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
     const id = setInterval(() => {

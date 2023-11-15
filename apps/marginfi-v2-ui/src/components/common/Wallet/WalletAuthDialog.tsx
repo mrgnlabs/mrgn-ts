@@ -1,11 +1,16 @@
 import React from "react";
+
 import Image from "next/image";
+
 import { useWallet } from "@solana/wallet-adapter-react";
+
+import { useUiStore } from "~/store";
 import { useOs } from "~/hooks/useOs";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useWalletStore } from "~/store";
-import { Web3AuthSocialProvider, useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
+import { Web3AuthSocialProvider } from "~/hooks/useWalletContext";
+
 import { WalletAuthButton, WalletAuthEmailForm } from "~/components/common/Wallet";
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import {
   IconMrgn,
@@ -20,6 +25,7 @@ import {
   IconGlowWallet,
 } from "~/components/ui/icons";
 
+// social login options
 const socialProviders: {
   name: Web3AuthSocialProvider;
   image: React.ReactNode;
@@ -38,6 +44,7 @@ const socialProviders: {
   },
 ];
 
+// wallet login options
 const walletIcons: { [key: string]: React.ReactNode } = {
   "Brave Wallet": <IconBraveWallet />,
   Phantom: <IconPhantomWallet />,
@@ -49,16 +56,19 @@ const walletIcons: { [key: string]: React.ReactNode } = {
 
 export const WalletAuthDialog = () => {
   const { select, wallets } = useWallet();
-  const { connected, login } = useWalletContext();
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
+  const { connected, loginWeb3Auth } = useWalletContext();
+
   const { isAndroid, isIOS } = useOs();
 
-  const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useWalletStore((state) => [
+  const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useUiStore((state) => [
     state.isWalletAuthDialogOpen,
     state.setIsWalletAuthDialogOpen,
   ]);
 
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
+
+  // installed and available wallets
   const filteredWallets = React.useMemo(() => {
     return wallets.filter((wallet) => {
       if (wallet.adapter.name === "Mobile Wallet Adapter" && isIOS) return false;
@@ -66,6 +76,8 @@ export const WalletAuthDialog = () => {
     });
   }, [wallets]);
 
+  // check if phantom is loadable, we will overwrite with a deep link on iOS
+  // this improves the PWA UX on iOS by allowing users to open the app directly
   const isPhantomInstalled = React.useMemo(() => {
     return wallets.some((wallet) => wallet.adapter.name === "Phantom" && wallet.readyState === "Loadable");
   }, [wallets]);
@@ -105,7 +117,7 @@ export const WalletAuthDialog = () => {
               onSubmit={(email) => {
                 setIsLoading(true);
                 setIsActiveLoading("email");
-                login("email_passwordless", { login_hint: email });
+                loginWeb3Auth("email_passwordless", { login_hint: email });
               }}
             />
 
@@ -126,7 +138,7 @@ export const WalletAuthDialog = () => {
                     onClick={() => {
                       setIsLoading(true);
                       setIsActiveLoading(provider.name);
-                      login(provider.name);
+                      loginWeb3Auth(provider.name);
                     }}
                   />
                 </li>

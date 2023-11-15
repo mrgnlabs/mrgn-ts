@@ -1,37 +1,34 @@
 import React from "react";
+
 import CopyToClipboard from "react-copy-to-clipboard";
+
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+
+import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { IconCheck, IconCopy } from "~/components/ui/icons";
 
 type WalletPkDialogProps = {
-  pk: string;
-  resetPk: () => void;
+  pk?: string;
 };
 
-export const WalletPkDialog = ({ pk, resetPk }: WalletPkDialogProps) => {
+export const WalletPkDialog = ({ pk }: WalletPkDialogProps) => {
+  const [isOpen, setIsOpen] = React.useState(true);
   const [isPrivateKeyCopied, setIsPrivateKeyCopied] = React.useState(false);
 
   return (
-    <Dialog
-      open={Boolean(pk)}
-      onOpenChange={(open) => {
-        if (!open) {
-          resetPk();
-        }
-      }}
-    >
+    <Dialog open={Boolean(isOpen && pk)} onOpenChange={(open) => setIsOpen(open)}>
       <DialogContent className="md:max-w-[640px]">
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex flex-col items-center justify-center text-center space-y-6">
           <h2 className="font-medium text-2xl">Your private key</h2>
           <p>
             Your private key grants access to your wallet. Keep it safe at all time. marginfi does not store your
             private key and cannot help you recover your wallet.
           </p>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 flex flex-col justify-center mt-4">
           <CopyToClipboard
-            text={pk}
+            text={pk!}
             onCopy={() => {
               setIsPrivateKeyCopied(true);
               setTimeout(() => {
@@ -40,7 +37,7 @@ export const WalletPkDialog = ({ pk, resetPk }: WalletPkDialogProps) => {
             }}
           >
             <MrgnTooltip title="Click to copy" placement="top">
-              <button className="font-medium flex items-center gap-1 cursor-pointer">
+              <button className="font-medium flex items-center justify-center gap-1 cursor-pointer">
                 {isPrivateKeyCopied && (
                   <>
                     <IconCheck size={14} /> copied!
@@ -54,8 +51,23 @@ export const WalletPkDialog = ({ pk, resetPk }: WalletPkDialogProps) => {
               </button>
             </MrgnTooltip>
           </CopyToClipboard>
-          <div className="break-words font-mono text-xs p-2 border rounded-md max-w-[540px]">{pk}</div>
+          <CopyToClipboard
+            text={pk!}
+            onCopy={() => {
+              setIsPrivateKeyCopied(true);
+              setTimeout(() => {
+                setIsPrivateKeyCopied(false);
+              }, 2000);
+            }}
+          >
+            <button className="break-words font-mono text-xs p-2 border rounded-md hover:bg-muted transition-colors max-w-[540px] text-center cursor-pointer">
+              {pk}
+            </button>
+          </CopyToClipboard>
         </div>
+        <Button className="mx-auto mt-4" onClick={() => setIsOpen(false)}>
+          Get Started
+        </Button>
       </DialogContent>
     </Dialog>
   );

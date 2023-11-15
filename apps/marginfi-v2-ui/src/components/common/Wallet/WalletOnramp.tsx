@@ -1,15 +1,23 @@
 import React from "react";
+
 import { loadMoonPay } from "@moonpay/moonpay-js";
+
+import { useUiStore } from "~/store";
+
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
+
 import { Button } from "~/components/ui/button";
 import { IconX } from "~/components/ui/icons";
 
 export const WalletOnramp = () => {
   const [moonPay, setMoonPay] = React.useState<any>(null);
-  const { isMoonPayActive, setIsMoonPayActive } = useWeb3AuthWallet();
   const { wallet } = useWalletContext();
+  const [isOnrampActive, setIsOnrampActive] = useUiStore((state) => [
+    state.isWalletOnrampActive,
+    state.setIsOnrampActive,
+  ]);
 
+  // initialize moonPay sdk on mount
   const initMoonpay = React.useCallback(async () => {
     try {
       const moonPayConstructor = await loadMoonPay();
@@ -37,8 +45,8 @@ export const WalletOnramp = () => {
 
       if (!moonPaySdk) return;
 
+      // moonPay requires a signature to be generated on the server
       const urlForSignature = moonPaySdk.generateUrlForSigning();
-
       const response = await fetch("/api/moonpay", {
         method: "POST",
         headers: {
@@ -49,10 +57,10 @@ export const WalletOnramp = () => {
       const data = await response.json();
 
       moonPaySdk.updateSignature(data.signature);
-
       setMoonPay(moonPaySdk);
 
-      if (isMoonPayActive) {
+      // show if onramp already set to active (e.g from wallet funding popup)
+      if (isOnrampActive) {
         moonPaySdk.show();
       }
     } catch (e) {
@@ -63,7 +71,7 @@ export const WalletOnramp = () => {
   const triggerMoonpay = React.useCallback(() => {
     if (!moonPay) return;
     moonPay.show();
-    setIsMoonPayActive(true);
+    setIsOnrampActive(true);
   }, [moonPay]);
 
   React.useEffect(() => {
@@ -79,9 +87,9 @@ export const WalletOnramp = () => {
         onClick={() => {
           triggerMoonpay();
         }}
-        disabled={isMoonPayActive}
+        disabled={isOnrampActive}
       >
-        {isMoonPayActive ? (
+        {isOnrampActive ? (
           "Loading..."
         ) : (
           <>
@@ -107,14 +115,14 @@ export const WalletOnramp = () => {
           height: "100%",
           background: "#1c1c1e",
           zIndex: 60,
-          opacity: isMoonPayActive ? 1 : 0,
-          pointerEvents: isMoonPayActive ? "auto" : "none",
+          opacity: isOnrampActive ? 1 : 0,
+          pointerEvents: isOnrampActive ? "auto" : "none",
         }}
       >
         <button
           onClick={() => {
             moonPay.close();
-            setIsMoonPayActive(false);
+            setIsOnrampActive(false);
           }}
           className="h-12 items-center px-1.5 flex gap-1 w-full font-medium text-[#98989E] text-sm justify-center text-center"
         >

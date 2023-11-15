@@ -1,13 +1,13 @@
-import React, { useMemo, FC, useEffect, useState, useCallback, useRef } from "react";
+import React from "react";
+
 import Link from "next/link";
+import { useRouter } from "next/router";
+
 import { Button } from "@mui/material";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import CheckIcon from "@mui/icons-material/Check";
-import { useRouter } from "next/router";
-import { getFavoriteDomain } from "@bonfida/spl-name-service";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { useConnection } from "~/hooks/useConnection";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+
 import { useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { PageHeader } from "~/components/common/PageHeader";
@@ -20,7 +20,7 @@ import {
   PointsConnectWallet,
 } from "~/components/desktop/Points";
 
-const Points: FC = () => {
+const Points = () => {
   const { connected } = useWalletContext();
   const { query: routerQuery } = useRouter();
   const [currentFirebaseUser, hasUser, userPointsData] = useUserProfileStore((state) => [
@@ -29,8 +29,8 @@ const Points: FC = () => {
     state.userPointsData,
   ]);
 
-  const referralCode = useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
-  const [isReferralCopied, setIsReferralCopied] = useState(false);
+  const referralCode = React.useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
+  const [isReferralCopied, setIsReferralCopied] = React.useState(false);
 
   return (
     <>

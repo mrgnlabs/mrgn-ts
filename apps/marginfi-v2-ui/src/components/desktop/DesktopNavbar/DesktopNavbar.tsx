@@ -23,7 +23,7 @@ const DesktopNavbar: FC = () => {
   useFirebaseAccount();
 
   const { connection } = useConnection();
-  const { connected, walletAddress, wallet } = useWalletContext();
+  const { connected, wallet, walletAddress } = useWalletContext();
   const router = useRouter();
   const [selectedAccount, extendedBankInfos, lendUserDataFetched, resetLendUserData] = useMrgnlendStore((state) => [
     state.selectedAccount,

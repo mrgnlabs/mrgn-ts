@@ -5,7 +5,7 @@ import * as solanaStakePool from "@solana/spl-stake-pool";
 import { WalletIcon } from "./WalletIcon";
 import { PrimaryButton } from "./PrimaryButton";
 import { useLstStore } from "~/pages/stake";
-import { useWalletStore } from "~/store";
+import { useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
@@ -73,7 +73,7 @@ export const StakingCard: FC = () => {
   const { connection } = useConnection();
   const { connected, wallet, walletAddress } = useWalletContext();
 
-  const [setIsWalletAuthDialogOpen] = useWalletStore((state) => [state.setIsWalletAuthDialogOpen]);
+  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
   const [
     lstData,
     userDataFetched,
