@@ -1,21 +1,19 @@
 import React from "react";
+
 import Image from "next/image";
-import { minidenticon } from "minidenticons";
+
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+
 import { cn } from "~/utils/themeUtils";
 
 type WalletAvatarProps = {
-  pfp?: string;
+  pfp: string;
   address: string;
   size?: "sm" | "md" | "lg";
   className?: string;
 };
 
 export const WalletAvatar = ({ pfp, address, size = "md", className }: WalletAvatarProps) => {
-  const imageSrc = React.useMemo(() => {
-    return pfp ? pfp : "data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(address));
-  }, [pfp, address]);
-
   const sizeInPx = React.useMemo(() => {
     if (size === "sm") return pfp ? 30 : 32;
     if (size === "md") return pfp ? 34 : 40;
@@ -35,7 +33,7 @@ export const WalletAvatar = ({ pfp, address, size = "md", className }: WalletAva
         height: containerSizeInPx,
       }}
     >
-      <Image src={imageSrc} alt={shortenAddress(address)} width={sizeInPx} height={sizeInPx} className="rounded-full" />
+      <Image src={pfp} alt={shortenAddress(address)} width={sizeInPx} height={sizeInPx} className="rounded-full" />
     </div>
   );
 };

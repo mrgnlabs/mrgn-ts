@@ -1,16 +1,19 @@
-import { JupiterProvider } from "@jup-ag/react-hook";
-import { createJupiterStore } from "@mrgnlabs/marginfi-v2-ui-state";
-import { useConnection } from "~/hooks/useConnection";
+import React from "react";
+
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+
+import { JupiterProvider } from "@jup-ag/react-hook";
+
+import { createJupiterStore } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { Desktop } from "~/mediaQueries";
+import { usePrevious, Features, isActive } from "~/utils";
+import { createLstStore } from "~/store/lstStore";
+import { useConnection } from "~/hooks/useConnection";
+import { useWalletContext } from "~/hooks/useWalletContext";
 import { StakingCard, StakingStats } from "~/components/common/Staking";
 import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
 import { PageHeader } from "~/components/common/PageHeader";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { Desktop } from "~/mediaQueries";
-import { createLstStore } from "~/store/lstStore";
-import { usePrevious } from "~/utils";
-import { Features, isActive } from "~/utils/featureGates";
 
 export const useLstStore = createLstStore();
 export const useJupiterStore = createJupiterStore();
@@ -18,11 +21,11 @@ export const useJupiterStore = createJupiterStore();
 const StakePage = () => {
   const { wallet, walletAddress } = useWalletContext();
   const { connection } = useConnection();
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = React.useState(false);
 
   const router = useRouter();
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (router.pathname.startsWith("/stake") && !isActive(Features.STAKE)) {
       router.push("/");
     } else {
@@ -40,7 +43,7 @@ const StakePage = () => {
       state.resetUserData,
     ]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setIsRefreshingStore(true);
     fetchLstState({ connection, wallet }).catch(console.error);
     const id = setInterval(() => {
@@ -53,13 +56,13 @@ const StakePage = () => {
   // TODO: fix...
 
   const prevWalletAddress = usePrevious(walletAddress);
-  useEffect(() => {
+  React.useEffect(() => {
     if (!prevWalletAddress && walletAddress) {
       resetUserData();
     }
   }, [walletAddress, prevWalletAddress, resetUserData]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!walletAddress && userDataFetched) {
       resetUserData();
     }

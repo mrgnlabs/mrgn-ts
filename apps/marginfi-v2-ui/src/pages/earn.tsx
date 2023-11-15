@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
-import React from "react";
-import { PageHeader } from "~/components/common/PageHeader";
+
 import { LipClientProvider } from "~/context";
+import { PageHeader } from "~/components/common/PageHeader";
 
 const Earn = dynamic(async () => (await import("~/components/desktop/Earn")).Earn, { ssr: false });
 

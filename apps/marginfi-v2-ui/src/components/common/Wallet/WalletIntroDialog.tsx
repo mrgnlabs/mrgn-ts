@@ -1,31 +1,35 @@
 import React from "react";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
-import { Dialog, DialogContent } from "~/components/ui/dialog";
-import { IconCoins, IconCopy, IconCheck } from "~/components/ui/icons";
-import { Button } from "~/components/ui/button";
+
 import CopyToClipboard from "react-copy-to-clipboard";
+
+import { useUiStore } from "~/store";
+import { useWalletContext } from "~/hooks/useWalletContext";
+
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+
+import { Dialog, DialogContent } from "~/components/ui/dialog";
+import { Button } from "~/components/ui/button";
+import { IconCoins, IconCopy, IconCheck } from "~/components/ui/icons";
 
 export const WalletIntroDialog = () => {
   const [isWalletIntroOpen, setIsWalletIntroOpen] = React.useState(false);
   const [isCopied, setIsCopied] = React.useState(false);
   const { wallet } = useWalletContext();
-  const { setIsOpenWallet, setIsMoonPayActive } = useWeb3AuthWallet();
+  const [setIsWalletOpen, setIsOnrampActive] = useUiStore((state) => [state.setIsWalletOpen, state.setIsOnrampActive]);
 
   const handleDialogClose = () => {
-    localStorage.setItem("fundingWalletAcknowledged", "true");
+    localStorage.setItem("mrgnFundingWalletAcknowledged", "true");
     setIsWalletIntroOpen(false);
-    setIsOpenWallet(true);
+    setIsWalletOpen(true);
   };
 
   const handleDialogCloseWithOnRamp = () => {
-    setIsMoonPayActive(true);
+    setIsOnrampActive(true);
     handleDialogClose();
   };
 
   React.useEffect(() => {
-    if (!localStorage.getItem("fundingWalletAcknowledged")) {
+    if (!localStorage.getItem("mrgnFundingWalletAcknowledged")) {
       setIsWalletIntroOpen(true);
     }
   }, []);

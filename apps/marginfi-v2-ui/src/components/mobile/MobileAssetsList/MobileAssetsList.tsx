@@ -2,9 +2,8 @@ import React, { FC, useCallback, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { SelectChangeEvent, Skeleton, Typography } from "@mui/material";
-import { useMrgnlendStore, useWalletStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useWeb3AuthWallet } from "~/hooks/useWeb3AuthWallet";
 import { MrgnContainedSwitch, MrgnLabeledSwitch, MrgnTooltip } from "~/components/common";
 import {
   Select,
@@ -28,7 +27,7 @@ export const MobileAssetsList: FC = () => {
 
   const { connected } = useWalletContext();
 
-  const [setIsWalletAuthDialogOpen] = useWalletStore((state) => [state.setIsWalletAuthDialogOpen]);
+  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
   const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
