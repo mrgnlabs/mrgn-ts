@@ -6,6 +6,8 @@ import {
   IconBrandX,
   IconBrandApple,
   IconBrandGoogleFilled,
+  IconBrandTelegram,
+  IconBrandDiscordFilled,
   IconWallet,
   IconSearch,
   IconX,
@@ -15,6 +17,7 @@ import {
   IconShare2,
   IconArrowDown,
   IconExternalLink,
+  IconUserPlus,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -287,6 +290,7 @@ export {
   IconBrandX,
   IconBrandApple,
   IconBrandGoogleFilled,
+  IconBrandTelegram,
   IconWallet,
   IconSearch,
   IconX,
@@ -295,6 +299,8 @@ export {
   IconShare2,
   IconArrowDown,
   IconExternalLink,
+  IconUserPlus,
+  IconBrandDiscordFilled,
 
   // customed icons
   IconBraveWallet,

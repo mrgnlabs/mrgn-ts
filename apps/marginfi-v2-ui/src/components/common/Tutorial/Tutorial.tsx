@@ -6,6 +6,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import { useSwiper } from "swiper/react";
 
+import { useUiStore } from "~/store";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import {
@@ -15,18 +16,36 @@ import {
   IconChevronRight,
   IconExternalLink,
   IconCheck,
+  IconUserPlus,
+  IconBrandX,
+  IconBrandTelegram,
+  IconBrandDiscordFilled,
 } from "~/components/ui/icons";
 
 type TutorialSlideProps = {
   icon?: React.ReactNode;
   heading?: string;
   next?: string;
+  docs?: boolean;
   children: React.ReactNode;
   closeDialog?: () => void;
 };
 
-const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialSlideProps) => {
+const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialog }: TutorialSlideProps) => {
+  const [setIsWalletOpen] = useUiStore((state) => [state.setIsWalletOpen]);
   const swiper = useSwiper();
+
+  const closeBtn = (
+    <Button
+      className="w-full md:w-auto"
+      onClick={() => {
+        if (closeDialog) closeDialog();
+        setIsWalletOpen(true);
+      }}
+    >
+      Get started <IconCheck size={16} />
+    </Button>
+  );
 
   return (
     <div className="pb-16 px-4 space-y-4 md:space-y-8 h-full md:h-auto text-center">
@@ -35,7 +54,7 @@ const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialS
         {heading && <h2 className="text-3xl font-medium">{heading}</h2>}
       </header>
       {children}
-      {next && (
+      {!docs && next && (
         <div className="flex items-center justify-center">
           <Button
             className="w-full md:w-auto"
@@ -47,29 +66,33 @@ const TutorialSlide = ({ children, icon, heading, next, closeDialog }: TutorialS
           </Button>
         </div>
       )}
-      {!next && (
+      {docs && (
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
           <Link href="https://docs.marginfi.com/" target="_blank" rel="noreferrer" className="block w-full md:w-auto">
             <Button variant="outline" className="w-full md:w-auto">
               Read docs <IconExternalLink size={16} />
             </Button>
           </Link>
-          <Button
-            className="w-full md:w-auto"
-            onClick={() => {
-              if (closeDialog) closeDialog();
-            }}
-          >
-            Get started <IconCheck size={16} />
-          </Button>
+          {next && (
+            <Button
+              className="w-full md:w-auto"
+              onClick={() => {
+                swiper.slideNext();
+              }}
+            >
+              {next} <IconChevronRight size={16} />
+            </Button>
+          )}
+          {!next && closeBtn}
         </div>
       )}
+      {!docs && !next && closeBtn}
     </div>
   );
 };
 
 export const Tutorial = () => {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(true);
 
   const handleDialogClose = () => {
     localStorage.setItem("mrgnTutorialAcknowledged", "true");
@@ -130,7 +153,8 @@ export const Tutorial = () => {
                 <TutorialSlide
                   icon={<IconAlertTriangle size={48} />}
                   heading="Account health"
-                  closeDialog={handleDialogClose}
+                  next="Follow marginfi"
+                  docs={true}
                 >
                   <div className="space-y-6 md:space-y-8 pb-2 max-w-[44rem] mx-auto flex-col justify-center">
                     <p className="hidden tall:flex">
@@ -147,6 +171,37 @@ export const Tutorial = () => {
                       0%, you are exposed to liquidation. Liquidations on marginfi are automatic and permissionless.
                       Liquidators can buy and sell assets once accounts reach 0% account health for profit.
                     </p>
+                  </div>
+                </TutorialSlide>
+              </SwiperSlide>
+              <SwiperSlide className="h-full">
+                <TutorialSlide
+                  icon={<IconUserPlus size={48} />}
+                  heading="Follow marginfi"
+                  closeDialog={handleDialogClose}
+                >
+                  <div className="space-y-6 md:space-y-8 pb-2 max-w-[35rem] mx-auto flex-col justify-center">
+                    <p>
+                      Join the fastest growing crypto community and keep up with the latest industry news, product
+                      releases, and alpha.
+                    </p>
+                    <ul className="flex items-center justify-center gap-3">
+                      <li className="p-4 rounded-full bg-muted">
+                        <a href="https://t.me/mrgncommunity" target="_blank" rel="noreferrer">
+                          <IconBrandTelegram />
+                        </a>
+                      </li>
+                      <li className="p-4 rounded-full bg-muted">
+                        <a href="https://discord.gg/mrgn" target="_blank" rel="noreferrer">
+                          <IconBrandDiscordFilled />
+                        </a>
+                      </li>
+                      <li className="p-4 rounded-full bg-muted">
+                        <a href="https://twitter.com/marginfi" target="_blank" rel="noreferrer">
+                          <IconBrandX />
+                        </a>
+                      </li>
+                    </ul>
                   </div>
                 </TutorialSlide>
               </SwiperSlide>
