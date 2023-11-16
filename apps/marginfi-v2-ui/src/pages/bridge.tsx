@@ -86,7 +86,6 @@ const BridgePage = () => {
   );
 
   const handleConnect = React.useCallback(async () => {
-    console.log("handleConnect", walletContextState);
     try {
       if (!walletContextState.wallet) {
         setIsWalletAuthDialogOpen(true);

@@ -8,8 +8,6 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 const SwapPage = () => {
   const { walletContextState } = useWalletContext();
 
-  console.log("walletContextState", walletContextState);
-
   React.useEffect(() => {
     window.Jupiter.init({
       displayMode: "integrated",
