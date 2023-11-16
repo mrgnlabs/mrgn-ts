@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import dynamic from "next/dynamic";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
@@ -31,6 +31,7 @@ const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/
 const Home = () => {
   const { walletAddress, wallet, isOverride } = useWalletContext();
   const { connection } = useConnection();
+  const debounceId = React.useRef<NodeJS.Timeout | null>(null);
   const [fetchMrgnlendState, setIsRefreshingStore, marginfiAccountCount, selectedAccount] = useMrgnlendStore(
     (state) => [state.fetchMrgnlendState, state.setIsRefreshingStore, state.marginfiAccountCount, state.selectedAccount]
   );
@@ -40,14 +41,35 @@ const Home = () => {
     state.isRefreshingStore,
   ]);
 
-  useEffect(() => {
-    setIsRefreshingStore(true);
-    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
-    const id = setInterval(() => {
+  React.useEffect(() => {
+    const fetchData = () => {
       setIsRefreshingStore(true);
-      fetchMrgnlendState().catch(console.error);
-    }, 30_000);
-    return () => clearInterval(id);
+      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
+    };
+
+    if (debounceId.current) {
+      clearTimeout(debounceId.current);
+    }
+
+    debounceId.current = setTimeout(() => {
+      fetchData();
+
+      const id = setInterval(() => {
+        setIsRefreshingStore(true);
+        fetchMrgnlendState().catch(console.error);
+      }, 30_000);
+
+      return () => {
+        clearInterval(id);
+        clearTimeout(debounceId.current!);
+      };
+    }, 1000);
+
+    return () => {
+      if (debounceId.current) {
+        clearTimeout(debounceId.current);
+      }
+    };
   }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
   // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
   // TODO: fix...
