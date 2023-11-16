@@ -92,7 +92,7 @@ const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialo
 };
 
 export const Tutorial = () => {
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
 
   const handleDialogClose = () => {
     localStorage.setItem("mrgnTutorialAcknowledged", "true");
