@@ -5,6 +5,7 @@ import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS } from "..";
 import { OracleSetup } from "./bank";
 
 interface OraclePrice {
+  priceRealtime?: BigNumber;
   price: BigNumber;
   confidenceInterval: BigNumber;
   lowestPrice: BigNumber;
@@ -22,12 +23,14 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
     case OracleSetup.PythEma:
       const pythPriceData = parsePriceData(rawData);
 
+      const pythPriceRealtime = new BigNumber(pythPriceData.price!);
       const pythPrice = new BigNumber(pythPriceData.emaPrice.value);
       const pythConfInterval = new BigNumber(pythPriceData.emaConfidence.value);
       const pythLowestPrice = pythPrice.minus(pythConfInterval.times(PYTH_PRICE_CONF_INTERVALS));
       const pythHighestPrice = pythPrice.plus(pythConfInterval.times(PYTH_PRICE_CONF_INTERVALS));
 
       return {
+        priceRealtime: pythPriceRealtime,
         price: pythPrice,
         confidenceInterval: pythConfInterval,
         lowestPrice: pythLowestPrice,
