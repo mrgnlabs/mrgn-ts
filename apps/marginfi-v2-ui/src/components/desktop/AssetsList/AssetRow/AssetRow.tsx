@@ -6,14 +6,12 @@ import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import Badge from "@mui/material/Badge";
 import {
   WSOL_MINT,
-  groupedNumberFormatterDyn,
   numeralFormatter,
   percentFormatter,
-  uiToNative,
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType, getCurrentAction, ExtendedBankMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, PriceBias, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { AssetRowInputBox, AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
@@ -98,18 +96,40 @@ const AssetRow: FC<{
     }
   }, [bank, currentAction]);
 
-  const isDust = useMemo(
-    () => bank.isActive && uiToNative(bank.position.amount, bank.info.state.mintDecimals).isZero(),
-    [bank]
-  );
+  const isDisabled = useMemo(() => maxAmount === 0, [maxAmount]);
 
-  const isDisabled = useMemo(
-    () =>
-      (isDust &&
-        uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero() &&
-        currentAction == ActionType.Borrow) ||
-      (!isDust && maxAmount === 0),
-    [currentAction, bank, isDust, maxAmount]
+  const actionBorrowOrLend = useCallback(
+    async ({
+      mfiClient,
+      currentAction,
+      bank,
+      borrowOrLendAmount,
+      nativeSolBalance,
+      marginfiAccount,
+      walletContextState,
+    }: BorrowOrLendParams) => {
+      await borrowOrLend({
+        mfiClient,
+        currentAction,
+        bank,
+        borrowOrLendAmount,
+        nativeSolBalance,
+        marginfiAccount,
+        walletContextState,
+      });
+
+      setBorrowOrLendAmount(0);
+
+      // -------- Refresh state
+      try {
+        setIsRefreshingStore(true);
+        await fetchMrgnlendState();
+      } catch (error: any) {
+        console.log("Error while reloading state");
+        console.log(error);
+      }
+    },
+    [fetchMrgnlendState, setIsRefreshingStore]
   );
 
   // Reset b/l amounts on toggle
@@ -178,50 +198,17 @@ const AssetRow: FC<{
       return;
     }
   }, [
-    bank,
-    borrowOrLendAmount,
     currentAction,
-    marginfiAccount,
-    mfiClient,
-    nativeSolBalance,
-    fetchMrgnlendState,
-    setIsRefreshingStore,
+    bank,
+    hasLSTDialogShown,
     showLSTDialog,
+    actionBorrowOrLend,
+    mfiClient,
+    borrowOrLendAmount,
+    nativeSolBalance,
+    marginfiAccount,
+    walletContextState,
   ]);
-
-  const actionBorrowOrLend = useCallback(
-    async ({
-      mfiClient,
-      currentAction,
-      bank,
-      borrowOrLendAmount,
-      nativeSolBalance,
-      marginfiAccount,
-      walletContextState,
-    }: BorrowOrLendParams) => {
-      await borrowOrLend({
-        mfiClient,
-        currentAction,
-        bank,
-        borrowOrLendAmount,
-        nativeSolBalance,
-        marginfiAccount,
-        walletContextState,
-      });
-
-      setBorrowOrLendAmount(0);
-
-      // -------- Refresh state
-      try {
-        setIsRefreshingStore(true);
-        await fetchMrgnlendState();
-      } catch (error: any) {
-        console.log("Error while reloading state");
-        console.log(error);
-      }
-    },
-    []
-  );
 
   return (
     <TableRow className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]">
@@ -463,7 +450,7 @@ const AssetRow: FC<{
             maxValue={maxAmount}
             maxDecimals={bank.info.state.mintDecimals}
             inputRefs={inputRefs}
-            disabled={isDust || maxAmount === 0}
+            disabled={maxAmount === 0}
             onEnter={handleBorrowOrLend}
           />
         </Badge>
@@ -481,10 +468,10 @@ const AssetRow: FC<{
                   ? "rgb(227, 227, 227)"
                   : "rgba(0,0,0,0)"
               }
-              onClick={isDust ? handleCloseBalance : handleBorrowOrLend}
+              onClick={handleBorrowOrLend}
               disabled={isDisabled}
             >
-              {isDust ? "Close" : currentAction}
+              {currentAction}
             </AssetRowAction>
           </div>
         </Tooltip>
