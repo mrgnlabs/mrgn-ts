@@ -74,7 +74,7 @@
     "react-responsive": "^9.0.2",
     "react-spinners": "^0.13.8",
     "react-toastify": "^9.1.1",
-    "sharp": "^0.31.3",
+    "sharp": "^0.32.6",
     "superstruct": "^1.0.3",
     "swiper": "^11.0.3",
     "tailwind-merge": "^1.14.0",
