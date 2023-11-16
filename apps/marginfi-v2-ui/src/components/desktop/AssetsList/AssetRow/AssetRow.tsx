@@ -66,6 +66,12 @@ const AssetRow: FC<{
   const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
   const { walletContextState } = useWalletContext();
 
+  const assetPrice = useMemo(
+    () =>
+      bank.info.oraclePrice.priceRealtime ? bank.info.oraclePrice.priceRealtime.toNumber() : bank.info.state.price,
+    [bank.info.state.price]
+  );
+
   const assetPriceOffset = useMemo(
     () =>
       Math.max(
@@ -255,27 +261,25 @@ const AssetRow: FC<{
             </React.Fragment>
           }
           placement="right"
-          className={`${assetPriceOffset > bank.info.state.price * 0.1 ? "cursor-pointer" : "hidden"}`}
+          className={`${assetPriceOffset > assetPrice * 0.1 ? "cursor-pointer" : "hidden"}`}
         >
           <Badge
-            badgeContent={assetPriceOffset > bank.info.state.price * 0.1 ? "⚠️" : ""}
+            badgeContent={assetPriceOffset > assetPrice * 0.1 ? "⚠️" : ""}
             className="bg-transparent"
             sx={{
               "& .MuiBadge-badge": {
                 fontSize: 20,
               },
             }}
-            invisible={assetPriceOffset > bank.info.state.price * 0.1 ? false : true}
+            invisible={assetPriceOffset > assetPrice * 0.1 ? false : true}
           >
-            {bank.info.state.price >= 0.01
+            {assetPrice >= 0.01
               ? lendZoomLevel < 2
                 ? `${
-                    bank.info.state.price > 9999
-                      ? numeralFormatter(bank.info.state.price)
-                      : usdFormatter.format(bank.info.state.price)
+                    assetPrice > 9999 ? numeralFormatter(assetPrice) : usdFormatter.format(assetPrice)
                   } ± ${assetPriceOffset.toFixed(2)}`
-                : usdFormatter.format(bank.info.state.price)
-              : `$${bank.info.state.price.toExponential(2)}`}
+                : usdFormatter.format(assetPrice)
+              : `$${assetPrice.toExponential(2)}`}
           </Badge>
         </MrgnTooltip>
       </TableCell>
