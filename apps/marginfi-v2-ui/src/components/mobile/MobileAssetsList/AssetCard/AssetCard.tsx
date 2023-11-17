@@ -3,7 +3,7 @@ import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { useMrgnlendStore } from "~/store";
-import { borrowOrLend, closeBalance, BorrowOrLendParams } from "~/utils";
+import { executeLendingAction, closeBalance, MarginfiActionParams } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { LSTDialogVariants } from "~/components/common/AssetList";
@@ -64,7 +64,41 @@ export const AssetCard: FC<{
     }
   }, [bank, marginfiAccount, fetchMrgnlendState, setIsRefreshingStore]);
 
-  const handleBorrowOrLend = useCallback(
+  const executeLendingActionCb = useCallback(
+    async (
+      amount: number,
+      {
+        mfiClient,
+        actionType: currentAction,
+        bank,
+        nativeSolBalance,
+        marginfiAccount,
+        walletContextState,
+      }: Omit<MarginfiActionParams, "amount">
+    ) => {
+      await executeLendingAction({
+        mfiClient,
+        actionType: currentAction,
+        bank,
+        amount,
+        nativeSolBalance,
+        marginfiAccount,
+        walletContextState,
+      });
+
+      // -------- Refresh state
+      try {
+        setIsRefreshingStore(true);
+        await fetchMrgnlendState();
+      } catch (error: any) {
+        console.log("Error while reloading state");
+        console.log(error);
+      }
+    },
+    [fetchMrgnlendState, setIsRefreshingStore]
+  );
+
+  const handleLendingAction = useCallback(
     async (borrowOrLendAmount: number) => {
       if (
         currentAction === ActionType.Deposit &&
@@ -74,9 +108,9 @@ export const AssetCard: FC<{
       ) {
         setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
         showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants, async () => {
-          await actionBorrowOrLend(borrowOrLendAmount, {
+          await executeLendingActionCb(borrowOrLendAmount, {
             mfiClient,
-            currentAction,
+            actionType: currentAction,
             bank,
             nativeSolBalance,
             marginfiAccount,
@@ -86,9 +120,9 @@ export const AssetCard: FC<{
         return;
       }
 
-      await actionBorrowOrLend(borrowOrLendAmount, {
+      await executeLendingActionCb(borrowOrLendAmount, {
         mfiClient,
-        currentAction,
+        actionType: currentAction,
         bank,
         nativeSolBalance,
         marginfiAccount,
@@ -107,49 +141,16 @@ export const AssetCard: FC<{
       }
     },
     [
-      bank,
       currentAction,
-      marginfiAccount,
+      bank,
+      hasLSTDialogShown,
+      showLSTDialog,
+      executeLendingActionCb,
       mfiClient,
       nativeSolBalance,
-      fetchMrgnlendState,
-      setIsRefreshingStore,
-      showLSTDialog,
+      marginfiAccount,
+      walletContextState,
     ]
-  );
-
-  const actionBorrowOrLend = useCallback(
-    async (
-      borrowOrLendAmount: number,
-      {
-        mfiClient,
-        currentAction,
-        bank,
-        nativeSolBalance,
-        marginfiAccount,
-        walletContextState,
-      }: Omit<BorrowOrLendParams, "borrowOrLendAmount">
-    ) => {
-      await borrowOrLend({
-        mfiClient,
-        currentAction,
-        bank,
-        borrowOrLendAmount,
-        nativeSolBalance,
-        marginfiAccount,
-        walletContextState,
-      });
-
-      // -------- Refresh state
-      try {
-        setIsRefreshingStore(true);
-        await fetchMrgnlendState();
-      } catch (error: any) {
-        console.log("Error while reloading state");
-        console.log(error);
-      }
-    },
-    []
   );
 
   return (
@@ -172,8 +173,8 @@ export const AssetCard: FC<{
         isBankFilled={isBankFilled}
         isInLendingMode={isInLendingMode}
         currentAction={currentAction}
-        onCloseBalance={() => handleCloseBalance()}
-        onBorrowOrLend={(amount) => handleBorrowOrLend(amount)}
+        onCloseBalance={handleCloseBalance}
+        onBorrowOrLend={handleLendingAction}
       />
     </div>
   );

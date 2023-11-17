@@ -2,16 +2,13 @@ import Image from "next/image";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { TableCell, TableRow } from "@mui/material";
 import { FC, Fragment, useCallback, useState } from "react";
-import { toast } from "react-toastify";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
 import { groupedNumberFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { isWholePosition } from "~/utils";
+import { closeBalance, repay, withdraw } from "~/utils";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
-const CLOSE_BALANCE_TOAST_ID = "close-balance";
-const WITHDRAW_OR_REPAY_TOAST_ID = "withdraw-or-repay";
+import { showErrorToast } from "~/utils/toastUtils";
 
 interface UserPositionRowProps {
   activeBankInfo: ActiveBankInfo;
@@ -29,38 +26,8 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
   const showCloseBalance = activeBankInfo.position.isLending && isDust;
   const isActionDisabled = maxAmount === 0 && !showCloseBalance;
 
-  const closeBalance = useCallback(async () => {
-    if (!marginfiAccount) {
-      toast.error("marginfi account not ready.");
-      return;
-    }
-
-    toast.loading("Closing dust balance", {
-      toastId: CLOSE_BALANCE_TOAST_ID,
-    });
-
-    try {
-      if (activeBankInfo.position.isLending) {
-        await marginfiAccount.withdraw(0, activeBankInfo.address, true);
-      } else {
-        await marginfiAccount.repay(0, activeBankInfo.address, true);
-      }
-      toast.update(CLOSE_BALANCE_TOAST_ID, {
-        render: "Closing 👍",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      toast.update(CLOSE_BALANCE_TOAST_ID, {
-        render: `Error while closing balance: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
-      console.log(`Error while closing balance`);
-      console.log(error);
-    }
+  const closeBalanceCb = useCallback(async () => {
+    closeBalance({ marginfiAccount, bank: activeBankInfo });
 
     setWithdrawOrRepayAmount(0);
 
@@ -74,48 +41,19 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
 
   const withdrawOrRepay = useCallback(async () => {
     if (!marginfiAccount) {
-      toast.error("marginfi account not ready.");
+      showErrorToast("marginfi account not ready.");
       return;
     }
     if (withdrawOrRepayAmount <= 0) {
-      toast.error("Please enter an amount over 0.");
+      showErrorToast("Please enter an amount over 0.");
       return;
     }
 
-    toast.loading(`${activeBankInfo.position.isLending ? "Withdrawing" : "Repaying"} ${withdrawOrRepayAmount}`, {
-      toastId: WITHDRAW_OR_REPAY_TOAST_ID,
+    await (activeBankInfo.position.isLending ? withdraw : repay)({
+      marginfiAccount,
+      bank: activeBankInfo,
+      amount: withdrawOrRepayAmount,
     });
-
-    try {
-      if (activeBankInfo.position.isLending) {
-        await marginfiAccount.withdraw(
-          withdrawOrRepayAmount,
-          activeBankInfo.address,
-          isWholePosition(activeBankInfo, withdrawOrRepayAmount)
-        );
-      } else {
-        await marginfiAccount.repay(
-          withdrawOrRepayAmount,
-          activeBankInfo.address,
-          isWholePosition(activeBankInfo, withdrawOrRepayAmount)
-        );
-      }
-      toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
-        render: activeBankInfo.position.isLending ? "Withdrawing 👍" : "Repaying 👍",
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
-    } catch (error: any) {
-      toast.update(WITHDRAW_OR_REPAY_TOAST_ID, {
-        render: `Error while ${activeBankInfo.position.isLending ? "withdrawing" : "repaying"}: ${error.message}`,
-        type: toast.TYPE.ERROR,
-        autoClose: 5000,
-        isLoading: false,
-      });
-      console.log(`Error while ${activeBankInfo.position.isLending ? "withdrawing" : "repaying"}`);
-      console.log(error);
-    }
 
     setWithdrawOrRepayAmount(0);
 
@@ -191,7 +129,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       <TableCell className="text-white font-aeonik p-0 border-none" align="right">
         <div className="h-full w-full flex justify-end items-center pl-2 sm:px-2">
           <UserPositionRowAction
-            onClick={showCloseBalance ? closeBalance : withdrawOrRepay}
+            onClick={showCloseBalance ? closeBalanceCb : withdrawOrRepay}
             disabled={isActionDisabled}
           >
             {showCloseBalance ? "Close" : activeBankInfo.position.isLending ? "Withdraw" : "Repay"}
