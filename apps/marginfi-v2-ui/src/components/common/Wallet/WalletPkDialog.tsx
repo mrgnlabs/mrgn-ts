@@ -60,7 +60,7 @@ export const WalletPkDialog = ({ pk }: WalletPkDialogProps) => {
               }, 2000);
             }}
           >
-            <button className="break-words font-mono text-xs p-2 border rounded-md hover:bg-muted transition-colors max-w-[540px] text-center cursor-pointer">
+            <button className="break-words font-mono text-xs p-2 border rounded-md hover:bg-muted transition-colors max-w-[540px] text-left cursor-pointer">
               {pk}
             </button>
           </CopyToClipboard>
