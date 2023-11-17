@@ -7,6 +7,7 @@ import {
   Connection,
   Keypair,
   PublicKey,
+  SendTransactionError,
   Signer,
   Transaction,
   TransactionMessage,
@@ -30,6 +31,7 @@ import {
 import { MarginfiGroup } from "./models/group";
 import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, OraclePrice, ADDRESS_LOOKUP_TABLE_FOR_GROUP } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
+import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLogs } from "./errors";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
@@ -411,6 +413,11 @@ class MarginfiClient {
   // Helpers
   // --------------------------------------------------------------------------
 
+  /**
+   * Process a transaction, sign it and send it to the network.
+   *
+   * @throws ProcessTransactionError
+   */
   async processTransaction(
     transaction: Transaction | VersionedTransaction,
     signers?: Array<Signer>,
@@ -418,14 +425,18 @@ class MarginfiClient {
   ): Promise<TransactionSignature> {
     let signature: TransactionSignature = "";
 
-    try {
-      let versionedTransaction: VersionedTransaction;
-      const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
+    let versionedTransaction: VersionedTransaction;
+    const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
+    let minContextSlot: number;
+    let blockhash: string;
+    let lastValidBlockHeight: number;
 
-      const {
-        context: { slot: minContextSlot },
-        value: { blockhash, lastValidBlockHeight },
-      } = await connection.getLatestBlockhashAndContext();
+    try {
+      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext();
+
+      minContextSlot = getLatestBlockhashAndContext.context.slot;
+      blockhash = getLatestBlockhashAndContext.value.blockhash;
+      lastValidBlockHeight = getLatestBlockhashAndContext.value.lastValidBlockHeight;
 
       if (transaction instanceof Transaction) {
         const versionedMessage = new TransactionMessage({
@@ -440,7 +451,12 @@ class MarginfiClient {
       }
 
       if (signers) versionedTransaction.sign(signers);
+    } catch (error: any) {
+      console.log("Failed to build the transaction", error);
+      throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
+    }
 
+    try {
       if (opts?.dryRun || this.isReadOnly) {
         const response = await connection.simulateTransaction(
           versionedTransaction,
@@ -493,12 +509,21 @@ class MarginfiClient {
         return signature;
       }
     } catch (error: any) {
-      if (error.logs) {
-        console.log("------ Logs 👇 ------");
-        console.log(error.logs.join("\n"));
+      if (error instanceof SendTransactionError) {
+        if (error.logs) {
+          console.log("------ Logs 👇 ------");
+          console.log(error.logs.join("\n"));
+          const errorParsed = parseErrorFromLogs(error.logs);
+          console.log("Parsed:", errorParsed);
+          throw new ProcessTransactionError(
+            errorParsed?.description ?? error.message,
+            ProcessTransactionErrorType.SimulationError,
+            error.logs
+          );
+        }
       }
-
-      throw `Transaction failed! ${error?.message}`;
+      console.log(error);
+      throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.FallthroughError);
     }
   }
 }

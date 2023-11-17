@@ -1,212 +1,217 @@
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, FEE_MARGIN, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { toast } from "react-toastify";
 import { isWholePosition } from "./mrgnUtils";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Wallet, processTransaction } from "@mrgnlabs/mrgn-common";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
+import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
 
-const CLOSE_BALANCE_TOAST_ID = "close-balance";
-const BORROW_OR_LEND_TOAST_ID = "borrow-or-lend";
-
-export const closeBalance = async ({
-  bank,
-  marginfiAccount,
-}: {
-  bank: ExtendedBankInfo;
-  marginfiAccount: MarginfiAccountWrapper | null;
-}) => {
-  if (!marginfiAccount) {
-    toast.error("marginfi account not ready.");
-    throw new Error("marginfi account not ready.");
-  }
-
-  if (!bank.isActive) {
-    toast.error("no position to close.");
-    throw new Error("no position to close.");
-  }
-
-  toast.loading("Closing dust balance", {
-    toastId: CLOSE_BALANCE_TOAST_ID,
-  });
-
-  try {
-    if (bank.position.isLending) {
-      await marginfiAccount.withdraw(0, bank.address, true);
-    } else {
-      await marginfiAccount.repay(0, bank.address, true);
-    }
-    toast.update(CLOSE_BALANCE_TOAST_ID, {
-      render: "Closing 👍",
-      type: toast.TYPE.SUCCESS,
-      autoClose: 2000,
-      isLoading: false,
-    });
-  } catch (error: any) {
-    toast.update(CLOSE_BALANCE_TOAST_ID, {
-      render: `Error while closing balance: ${error.message}`,
-      type: toast.TYPE.ERROR,
-      autoClose: 5000,
-      isLoading: false,
-    });
-    console.log(`Error while closing balance`);
-    console.log(error);
-  }
-};
-
-export type BorrowOrLendParams = {
+export type MarginfiActionParams = {
   mfiClient: MarginfiClient | null;
   bank: ExtendedBankInfo;
-  currentAction: ActionType | "Connect";
-  borrowOrLendAmount: number;
+  actionType: ActionType;
+  amount: number;
   nativeSolBalance: number;
   marginfiAccount: MarginfiAccountWrapper | null;
   walletContextState?: WalletContextState | WalletContextStateOverride;
 };
 
-export const borrowOrLend = async ({
+export async function executeLendingAction({
   mfiClient,
-  currentAction,
+  actionType,
   bank,
-  borrowOrLendAmount,
+  amount,
   nativeSolBalance,
   marginfiAccount,
   walletContextState,
-}: BorrowOrLendParams) => {
-  if (mfiClient === null) throw Error("Marginfi client not ready");
-
-  if (currentAction === ActionType.Deposit && bank.info.state.totalDeposits >= bank.info.rawBank.config.depositLimit) {
-    toast.error(
-      `${bank.meta.tokenSymbol} deposit limit has been been reached. Additional deposits are not currently available.`
-    );
-    return;
-  }
-
-  if (currentAction === ActionType.Borrow && bank.info.state.totalBorrows >= bank.info.rawBank.config.borrowLimit) {
-    toast.error(
-      `${bank.meta.tokenSymbol} borrow limit has been been reached. Additional borrows are not currently available.`
-    );
-    return;
-  }
-
-  if (currentAction === ActionType.Deposit && bank.userInfo.maxDeposit === 0) {
-    toast.error(`You don't have any ${bank.meta.tokenSymbol} to lend in your wallet.`);
-    return;
-  }
-
-  if (currentAction === ActionType.Borrow && bank.userInfo.maxBorrow === 0) {
-    toast.error(`You cannot borrow any ${bank.meta.tokenSymbol} right now.`);
-    return;
-  }
-
-  if (borrowOrLendAmount <= 0) {
-    toast.error("Please enter an amount over 0.");
-    return;
-  }
-
-  let _marginfiAccount = marginfiAccount;
-
+}: MarginfiActionParams) {
   if (nativeSolBalance < FEE_MARGIN) {
-    toast.error("Not enough sol for fee.");
+    showErrorToast("Not enough sol for fee.");
     return;
   }
 
-  // -------- Create marginfi account if needed
-  try {
-    if (!_marginfiAccount) {
-      if (currentAction !== ActionType.Deposit) {
-        toast.error("An account is required for anything operation except deposit.");
-        return;
-      }
-
-      toast.loading("Creating account", {
-        toastId: BORROW_OR_LEND_TOAST_ID,
-      });
-
-      // If the connected wallet is SquadsX, use the ephemeral signer address provided by the wallet to create the marginfi account.
-      const adapter = walletContextState?.wallet?.adapter;
-      const ephemeralSignerAddress =
-        adapter &&
-        "standard" in adapter &&
-        "fuse:getEphemeralSigners" in adapter.wallet.features &&
-        // @ts-ignore
-        (await adapter.wallet.features["fuse:getEphemeralSigners"].getEphemeralSigners(1))[0];
-      const ephemeralSignerPubkey = ephemeralSignerAddress ? new PublicKey(ephemeralSignerAddress) : undefined;
-
-      _marginfiAccount = await mfiClient.createMarginfiAccount(undefined, {
-        newAccountKey: ephemeralSignerPubkey,
-      });
-      toast.update(BORROW_OR_LEND_TOAST_ID, {
-        render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol}`,
-      });
+  if (actionType === ActionType.Deposit) {
+    if (marginfiAccount) {
+      await deposit({ marginfiAccount, bank, amount });
+    } else {
+      await createAccountAndDeposit({ mfiClient, bank, amount, walletContextState });
     }
+    return;
+  }
+
+  if (!marginfiAccount) {
+    showErrorToast("Marginfi account not ready.");
+    return;
+  }
+
+  if (actionType === ActionType.Borrow) {
+    await borrow({ marginfiAccount, bank, amount });
+  }
+
+  if (actionType === ActionType.Withdraw) {
+    await withdraw({ marginfiAccount, bank, amount });
+  }
+
+  if (actionType === ActionType.Repay) {
+    await repay({ marginfiAccount, bank, amount });
+  }
+}
+
+// ------------------------------------------------------------------//
+// Individual action flows - non-throwing - for use in UI components //
+// ------------------------------------------------------------------//
+
+async function createAccountAndDeposit({
+  mfiClient,
+  bank,
+  amount,
+  walletContextState,
+}: {
+  mfiClient: MarginfiClient | null;
+  bank: ExtendedBankInfo;
+  amount: number;
+  walletContextState?: WalletContextState | WalletContextStateOverride;
+}) {
+  if (mfiClient === null) {
+    showErrorToast("Marginfi client not ready");
+    return;
+  }
+
+  const multiStepToast = new MultiStepToastHandle("Initial deposit", [
+    { label: "Creating account" },
+    { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
+  ]);
+  multiStepToast.start();
+
+  let marginfiAccount: MarginfiAccountWrapper;
+  try {
+    const squadsOptions = await getMaybeSquadsOptions(walletContextState);
+    marginfiAccount = await mfiClient.createMarginfiAccount(undefined, squadsOptions);
+    multiStepToast.setSuccessAndNext();
   } catch (error: any) {
-    toast.update(BORROW_OR_LEND_TOAST_ID, {
-      render: typeof error === "string" ? error : `Error while ${currentAction.toLowerCase() + "ing"}`,
-      type: toast.TYPE.ERROR,
-      autoClose: 5000,
-      isLoading: false,
-    });
-    console.log(`Error while ${currentAction + "ing"}`);
+    const msg = extractErrorString(error);
+    multiStepToast.setFailed(msg);
+    console.log(`Error while depositing: ${msg}`);
     console.log(error);
     return;
   }
 
-  // -------- Perform relevant operation
   try {
-    if (currentAction === ActionType.Deposit) {
-      await _marginfiAccount.deposit(borrowOrLendAmount, bank.address);
-
-      toast.update(BORROW_OR_LEND_TOAST_ID, {
-        render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol} 👍`,
-        type: toast.TYPE.SUCCESS,
-        autoClose: 2000,
-        isLoading: false,
-      });
-    }
-
-    toast.loading(`${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol}`, {
-      toastId: BORROW_OR_LEND_TOAST_ID,
-    });
-    if (_marginfiAccount === null) {
-      // noinspection ExceptionCaughtLocallyJS
-      throw Error("Marginfi account not ready");
-    }
-
-    if (currentAction === ActionType.Borrow) {
-      await _marginfiAccount.borrow(borrowOrLendAmount, bank.address);
-    } else if (currentAction === ActionType.Repay) {
-      await _marginfiAccount.repay(
-        borrowOrLendAmount,
-        bank.address,
-        bank.isActive && isWholePosition(bank, borrowOrLendAmount)
-      );
-    } else if (currentAction === ActionType.Withdraw) {
-      await _marginfiAccount.withdraw(
-        borrowOrLendAmount,
-        bank.address,
-        bank.isActive && isWholePosition(bank, borrowOrLendAmount)
-      );
-    }
-
-    toast.update(BORROW_OR_LEND_TOAST_ID, {
-      render: `${currentAction + "ing"} ${borrowOrLendAmount} ${bank.meta.tokenSymbol} 👍`,
-      type: toast.TYPE.SUCCESS,
-      autoClose: 2000,
-      isLoading: false,
-    });
+    await marginfiAccount.deposit(amount, bank.address);
+    multiStepToast.setSuccessAndNext();
   } catch (error: any) {
-    toast.update(BORROW_OR_LEND_TOAST_ID, {
-      render: typeof error === "string" ? error : `Error while ${currentAction.toLowerCase() + "ing"}`,
-      type: toast.TYPE.ERROR,
-      autoClose: 5000,
-      isLoading: false,
-    });
-    console.log(`Error while ${currentAction + "ing"}`);
+    const msg = extractErrorString(error);
+    multiStepToast.setFailed(msg);
+    console.log(`Error while depositing: ${msg}`);
     console.log(error);
+    return;
   }
-};
+}
+
+export async function deposit({
+  marginfiAccount,
+  bank,
+  amount,
+}: {
+  marginfiAccount: MarginfiAccountWrapper;
+  bank: ExtendedBankInfo;
+  amount: number;
+}) {
+  const multiStepToast = new MultiStepToastHandle("Deposit", [
+    { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
+  ]);
+  multiStepToast.start();
+
+  try {
+    await marginfiAccount.deposit(amount, bank.address);
+    multiStepToast.setSuccessAndNext();
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    multiStepToast.setFailed(msg);
+    console.log(`Error while depositing: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
+
+export async function borrow({
+  marginfiAccount,
+  bank,
+  amount,
+}: {
+  marginfiAccount: MarginfiAccountWrapper;
+  bank: ExtendedBankInfo;
+  amount: number;
+}) {
+  const multiStepToast = new MultiStepToastHandle("Borrow", [
+    { label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` },
+  ]);
+
+  multiStepToast.start();
+  try {
+    await marginfiAccount.borrow(amount, bank.address);
+    multiStepToast.setSuccessAndNext();
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    multiStepToast.setFailed(msg);
+    console.log(`Error while borrowing: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
+
+export async function withdraw({
+  marginfiAccount,
+  bank,
+  amount,
+}: {
+  marginfiAccount: MarginfiAccountWrapper;
+  bank: ExtendedBankInfo;
+  amount: number;
+}) {
+  const multiStepToast = new MultiStepToastHandle("Withdrawal", [
+    { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
+  ]);
+  multiStepToast.start();
+
+  try {
+    await marginfiAccount.withdraw(amount, bank.address, bank.isActive && isWholePosition(bank, amount));
+    multiStepToast.setSuccessAndNext();
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    multiStepToast.setFailed(msg);
+    console.log(`Error while withdrawing: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
+
+export async function repay({
+  marginfiAccount,
+  bank,
+  amount,
+}: {
+  marginfiAccount: MarginfiAccountWrapper;
+  bank: ExtendedBankInfo;
+  amount: number;
+}) {
+  const multiStepToast = new MultiStepToastHandle("Repayment", [
+    { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
+  ]);
+  multiStepToast.start();
+
+  try {
+    await marginfiAccount.repay(amount, bank.address, bank.isActive && isWholePosition(bank, amount));
+    multiStepToast.setSuccessAndNext();
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    multiStepToast.setFailed(msg);
+    console.log(`Error while repaying: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
 
 export async function collectRewardsBatch(
   connection: Connection,
@@ -214,14 +219,84 @@ export async function collectRewardsBatch(
   marginfiAccount: MarginfiAccountWrapper,
   bankAddresses: PublicKey[]
 ) {
-  const tx = new Transaction();
-  const ixs = [];
-  const signers = [];
-  for (const bankAddress of bankAddresses) {
-    const ix = await marginfiAccount.makeWithdrawEmissionsIx(bankAddress);
-    ixs.push(...ix.instructions);
-    signers.push(ix.keys);
+  try {
+    const tx = new Transaction();
+    const ixs = [];
+    const signers = [];
+    for (const bankAddress of bankAddresses) {
+      const ix = await marginfiAccount.makeWithdrawEmissionsIx(bankAddress);
+      ixs.push(...ix.instructions);
+      signers.push(ix.keys);
+    }
+    tx.add(...ixs);
+    await processTransaction(connection, wallet, tx);
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    showErrorToast(msg);
+    console.log(`Error while collecting rewards: ${msg}`);
+    console.log(error);
+    return;
   }
-  tx.add(...ixs);
-  await processTransaction(connection, wallet, tx);
+}
+
+export const closeBalance = async ({
+  bank,
+  marginfiAccount,
+}: {
+  bank: ExtendedBankInfo;
+  marginfiAccount: MarginfiAccountWrapper | null | undefined;
+}) => {
+  if (!marginfiAccount) {
+    showErrorToast("marginfi account not ready.");
+    return;
+  }
+  if (!bank.isActive) {
+    showErrorToast("no position to close.");
+    return;
+  }
+
+  const multiStepToast = new MultiStepToastHandle("Closing balance", [
+    { label: `Closing ${bank.position.isLending ? "lending" : "borrow"} balance for ${bank.meta.tokenSymbol}` },
+  ]);
+  multiStepToast.start();
+
+  try {
+    if (bank.position.isLending) {
+      await marginfiAccount.withdraw(0, bank.address, true);
+    } else {
+      await marginfiAccount.repay(0, bank.address, true);
+    }
+    multiStepToast.setSuccessAndNext();
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    multiStepToast.setFailed(msg);
+    console.log(`Error while closing balance`);
+    console.log(error);
+  }
+};
+
+function extractErrorString(error: any, fallback?: string): string {
+  if (error instanceof ProcessTransactionError) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  return fallback ?? "Unrecognized error";
+}
+
+async function getMaybeSquadsOptions(walletContextState?: WalletContextState | WalletContextStateOverride) {
+  // If the connected wallet is SquadsX, use the ephemeral signer address provided by the wallet to create the marginfi account.
+  const adapter = walletContextState?.wallet?.adapter;
+  const ephemeralSignerAddress =
+    adapter &&
+    "standard" in adapter &&
+    "fuse:getEphemeralSigners" in adapter.wallet.features &&
+    // @ts-ignore
+    (await adapter.wallet.features["fuse:getEphemeralSigners"].getEphemeralSigners(1))[0];
+  const ephemeralSignerPubkey = ephemeralSignerAddress ? new PublicKey(ephemeralSignerAddress) : undefined;
+
+  return ephemeralSignerPubkey ? { newAccountKey: ephemeralSignerPubkey } : undefined;
 }

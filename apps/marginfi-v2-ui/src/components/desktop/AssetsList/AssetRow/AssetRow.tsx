@@ -11,7 +11,7 @@ import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { AssetRowInputBox, AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { closeBalance, borrowOrLend, BorrowOrLendParams } from "~/utils";
+import { closeBalance, executeLendingAction, MarginfiActionParams } from "~/utils";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
   [
@@ -74,7 +74,7 @@ const AssetRow: FC<{
     [bank.info]
   );
 
-  const [borrowOrLendAmount, setBorrowOrLendAmount] = useState(0);
+  const [amount, setAmount] = useState(0);
 
   const currentAction: ActionType = useMemo(() => getCurrentAction(isInLendingMode, bank), [isInLendingMode, bank]);
 
@@ -94,27 +94,50 @@ const AssetRow: FC<{
   const showCloseBalance = currentAction === ActionType.Withdraw && isDust; // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
   const isActionDisabled = maxAmount === 0 && !showCloseBalance;
 
-  const actionBorrowOrLend = useCallback(
+  // Reset b/l amounts on toggle
+  useEffect(() => {
+    setAmount(0);
+  }, [isInLendingMode]);
+
+  const handleCloseBalance = useCallback(async () => {
+    try {
+      await closeBalance({ marginfiAccount, bank });
+    } catch (error) {
+      return;
+    }
+
+    setAmount(0);
+
+    try {
+      setIsRefreshingStore(true);
+      await fetchMrgnlendState();
+    } catch (error: any) {
+      console.log("Error while reloading state");
+      console.log(error);
+    }
+  }, [bank, marginfiAccount, fetchMrgnlendState, setIsRefreshingStore]);
+
+  const executeLendingActionCb = useCallback(
     async ({
       mfiClient,
-      currentAction,
+      actionType: currentAction,
       bank,
-      borrowOrLendAmount,
+      amount: borrowOrLendAmount,
       nativeSolBalance,
       marginfiAccount,
       walletContextState,
-    }: BorrowOrLendParams) => {
-      await borrowOrLend({
+    }: MarginfiActionParams) => {
+      await executeLendingAction({
         mfiClient,
-        currentAction,
+        actionType: currentAction,
         bank,
-        borrowOrLendAmount,
+        amount: borrowOrLendAmount,
         nativeSolBalance,
         marginfiAccount,
         walletContextState,
       });
 
-      setBorrowOrLendAmount(0);
+      setAmount(0);
 
       // -------- Refresh state
       try {
@@ -128,30 +151,7 @@ const AssetRow: FC<{
     [fetchMrgnlendState, setIsRefreshingStore]
   );
 
-  // Reset b/l amounts on toggle
-  useEffect(() => {
-    setBorrowOrLendAmount(0);
-  }, [isInLendingMode]);
-
-  const handleCloseBalance = useCallback(async () => {
-    try {
-      await closeBalance({ marginfiAccount, bank });
-    } catch (error) {
-      return;
-    }
-
-    setBorrowOrLendAmount(0);
-
-    try {
-      setIsRefreshingStore(true);
-      await fetchMrgnlendState();
-    } catch (error: any) {
-      console.log("Error while reloading state");
-      console.log(error);
-    }
-  }, [bank, marginfiAccount, fetchMrgnlendState, setIsRefreshingStore]);
-
-  const handleBorrowOrLend = useCallback(async () => {
+  const handleLendingAction = useCallback(async () => {
     if (
       currentAction === ActionType.Deposit &&
       (bank.meta.tokenSymbol === "SOL" || bank.meta.tokenSymbol === "stSOL") &&
@@ -160,11 +160,11 @@ const AssetRow: FC<{
     ) {
       setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
       showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants, async () => {
-        await actionBorrowOrLend({
+        await executeLendingActionCb({
           mfiClient,
-          currentAction,
+          actionType: currentAction,
           bank,
-          borrowOrLendAmount,
+          amount: amount,
           nativeSolBalance,
           marginfiAccount,
           walletContextState,
@@ -173,11 +173,11 @@ const AssetRow: FC<{
       return;
     }
 
-    await actionBorrowOrLend({
+    await executeLendingActionCb({
       mfiClient,
-      currentAction,
+      actionType: currentAction,
       bank,
-      borrowOrLendAmount,
+      amount: amount,
       nativeSolBalance,
       marginfiAccount,
       walletContextState,
@@ -198,9 +198,9 @@ const AssetRow: FC<{
     bank,
     hasLSTDialogShown,
     showLSTDialog,
-    actionBorrowOrLend,
+    executeLendingActionCb,
     mfiClient,
-    borrowOrLendAmount,
+    amount,
     nativeSolBalance,
     marginfiAccount,
     walletContextState,
@@ -441,13 +441,13 @@ const AssetRow: FC<{
         >
           <AssetRowInputBox
             tokenName={bank.meta.tokenSymbol}
-            value={borrowOrLendAmount}
-            setValue={setBorrowOrLendAmount}
+            value={amount}
+            setValue={setAmount}
             maxValue={maxAmount}
             maxDecimals={bank.info.state.mintDecimals}
             inputRefs={inputRefs}
             disabled={showCloseBalance || isActionDisabled}
-            onEnter={handleBorrowOrLend}
+            onEnter={handleLendingAction}
           />
         </Badge>
       </TableCell>
@@ -464,7 +464,7 @@ const AssetRow: FC<{
                   ? "rgb(227, 227, 227)"
                   : "rgba(0,0,0,0)"
               }
-              onClick={showCloseBalance ? handleCloseBalance : handleBorrowOrLend}
+              onClick={showCloseBalance ? handleCloseBalance : handleLendingAction}
               disabled={isActionDisabled}
             >
               {showCloseBalance ? "Close" : currentAction}
