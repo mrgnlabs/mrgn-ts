@@ -513,7 +513,7 @@ class MarginfiClient {
         if (error.logs) {
           console.log("------ Logs 👇 ------");
           console.log(error.logs.join("\n"));
-          const errorParsed = parseErrorFromLogs(error.logs);
+          const errorParsed = parseErrorFromLogs(error.logs, this.config.programId);
           console.log("Parsed:", errorParsed);
           throw new ProcessTransactionError(
             errorParsed?.description ?? error.message,

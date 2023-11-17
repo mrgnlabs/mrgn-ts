@@ -1,5 +1,7 @@
 import { LangErrorMessage } from "@coral-xyz/anchor";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { IDL } from "./idl/marginfi-types";
+import { PublicKey } from "@solana/web3.js";
 
 export enum ProcessTransactionErrorType {
   TransactionBuildingError,
@@ -27,15 +29,21 @@ export interface ProgramErrorWithDescription extends ProgramError {
   description: string;
 }
 
-export function parseErrorFromLogs(logs: string[]): ProgramErrorWithDescription | null {
+const MFI_ERROR_CODE_MAP: Map<number, string> = new Map(IDL.errors.map((error) => [error.code, error.msg]));
+
+export function parseErrorFromLogs(logs: string[], mfiProgramId: PublicKey): ProgramErrorWithDescription | null {
   const error = parseCustomProgramError(logs);
   if (error === null) {
     return null;
   }
 
-  let errorMsg = LangErrorMessage.get(error.code);
-  if (errorMsg !== undefined) {
-    return { code: error.code, programId: error.programId, description: errorMsg };
+  let errorMsg: string | undefined = undefined;
+
+  if (error.programId === mfiProgramId.toBase58()) {
+    const mfiError = MFI_ERROR_CODE_MAP.get(error.code);
+    if (mfiError !== undefined) {
+      return { code: error.code, programId: error.programId, description: mfiError };
+    }
   }
 
   let programErrors = ERROR_CODE_MAPS.get(error.programId);
@@ -44,6 +52,11 @@ export function parseErrorFromLogs(logs: string[]): ProgramErrorWithDescription 
     if (errorMsg !== undefined) {
       return { code: error.code, programId: error.programId, description: errorMsg };
     }
+  }
+
+  errorMsg = LangErrorMessage.get(error.code);
+  if (errorMsg !== undefined) {
+    return { code: error.code, programId: error.programId, description: errorMsg };
   }
 
   return null;
