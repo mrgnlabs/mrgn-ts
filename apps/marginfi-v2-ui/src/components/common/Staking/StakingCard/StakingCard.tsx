@@ -42,7 +42,7 @@ import { SettingsModal } from "./SettingsModal";
 import { SettingsIcon } from "./SettingsIcon";
 import { LST_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
 import { RefreshIcon } from "./RefreshIcon";
-import { Spinner } from "~/components/common/Spinner";
+import { IconLoader } from "~/components/ui/icons";
 import BN from "bn.js";
 import debounce from "lodash.debounce";
 import { Desktop, Mobile } from "~/mediaQueries";
@@ -413,8 +413,8 @@ export const StakingCard: FC = () => {
                 <WalletIcon />
               </div>
               <Typography className="font-aeonik font-[400] text-sm leading-5">{maxDepositString}</Typography>
-              <a
-                className={`p-2 ml-1 h-5 flex flex-row items-center justify-center text-sm border rounded-full border-white/10 bg-black/10 text-secondary fill-current cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out`}
+              <button
+                className="text-xs ml-1 h-5 py-1 px-1.5 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground cursor-pointer hover:bg-muted-foreground/30 transition-colors"
                 onClick={() =>
                   setDepositOption((currentDepositOption) => {
                     const updatedAmount =
@@ -432,7 +432,7 @@ export const StakingCard: FC = () => {
                 }
               >
                 MAX
-              </a>
+              </button>
             </div>
           )}
         </div>
@@ -522,7 +522,15 @@ export const StakingCard: FC = () => {
               loading={connected && !!ongoingAction}
               onClick={connected ? onMint : () => setIsWalletAuthDialogOpen(true)}
             >
-              {!connected ? "connect" : ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? <Spinner /> : "mint"}
+              {!connected ? (
+                "connect"
+              ) : ongoingAction ? (
+                `${ongoingAction}...`
+              ) : refreshingQuotes ? (
+                <IconLoader />
+              ) : (
+                "mint"
+              )}
             </PrimaryButton>
           </Desktop>
           <Mobile>
@@ -538,7 +546,7 @@ export const StakingCard: FC = () => {
               loading={connected && !!ongoingAction}
               onClick={connected ? onMint : undefined}
             >
-              {ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? <Spinner /> : "mint"}
+              {ongoingAction ? `${ongoingAction}...` : refreshingQuotes ? <IconLoader /> : "mint"}
             </PrimaryButton>
           </Mobile>
         </div>
