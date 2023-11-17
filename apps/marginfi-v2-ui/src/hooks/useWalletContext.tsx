@@ -122,6 +122,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [pfp, setPfp] = React.useState<string>("");
   const [web3AuthLoginType, setWeb3AuthLoginType] = React.useState<string>("");
   const [web3AuthPk, setWeb3AuthPk] = React.useState<string>("");
+  const [web3AuthEmail, setWeb3AuthEmail] = React.useState<string>("");
 
   // if web3auth is connected, override wallet adapter context, otherwise use default
   const walletContextState = React.useMemo(() => {
@@ -194,7 +195,12 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       if (web3Auth.getUserInfo) {
         const userData = await web3Auth.getUserInfo();
         const loginType = userData.typeOfLogin === "jwt" ? "email_passwordless" : userData.typeOfLogin;
+
         setWeb3AuthLoginType(loginType!);
+
+        if (userData.email) {
+          setWeb3AuthEmail(userData.email);
+        }
 
         if (userData.profileImage) {
           setPfp(userData.profileImage);
@@ -231,7 +237,9 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     if (!web3AuthLoginType || !web3Auth) return;
     setWeb3AuthPkCookie("mrgnPrivateKeyRequested", true, { expires: new Date(Date.now() + 5 * 60 * 1000) });
     await web3Auth.logout();
-    await loginWeb3Auth(web3AuthLoginType);
+    await loginWeb3Auth(web3AuthLoginType, {
+      login_hint: web3AuthLoginType === "email_passwordless" ? web3AuthEmail : undefined,
+    });
   }, [web3Auth, web3AuthLoginType]);
 
   // if private key requested cookie is found then fetch pk, store in state, and clear cookie
