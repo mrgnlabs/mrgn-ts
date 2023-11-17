@@ -193,8 +193,12 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (web3Auth.getUserInfo) {
         const userData = await web3Auth.getUserInfo();
-        setWeb3AuthLoginType(userData.typeOfLogin || "");
-        setPfp(userData.profileImage || "");
+        const loginType = userData.typeOfLogin === "jwt" ? "email_passwordless" : userData.typeOfLogin;
+        setWeb3AuthLoginType(loginType!);
+
+        if (userData.profileImage) {
+          setPfp(userData.profileImage);
+        }
       }
 
       checkPrivateKeyRequested(web3AuthProvider);
@@ -224,20 +228,20 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   // called when user requests private key
   // stores short lived cookie and forces login
   const requestPrivateKey = React.useCallback(async () => {
-    if (!web3AuthLoginType) return;
+    if (!web3AuthLoginType || !web3Auth) return;
     setWeb3AuthPkCookie("mrgnPrivateKeyRequested", true, { expires: new Date(Date.now() + 5 * 60 * 1000) });
-    await logout();
+    await web3Auth.logout();
     await loginWeb3Auth(web3AuthLoginType);
-  }, [web3AuthLoginType]);
+  }, [web3Auth, web3AuthLoginType]);
 
   // if private key requested cookie is found then fetch pk, store in state, and clear cookie
   const checkPrivateKeyRequested = React.useCallback(
     async (provider: IProvider) => {
       if (!web3AuthPkCookie.mrgnPrivateKeyRequested) return;
 
-      const privateKeyHexString = await provider.request({
+      const privateKeyHexString = (await provider.request({
         method: "solanaPrivateKey",
-      }) as string;
+      })) as string;
       const privateKeyBytes = new Uint8Array(privateKeyHexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
       const privateKeyBase58 = base58.encode(privateKeyBytes);
 
