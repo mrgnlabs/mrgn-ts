@@ -17,6 +17,7 @@ import {
   IconArrowDown,
   IconExternalLink,
   IconUserPlus,
+  IconClockHour4,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -362,6 +363,7 @@ export {
   IconExternalLink,
   IconUserPlus,
   IconBrandDiscordFilled,
+  IconClockHour4,
 
   // customed icons
   IconBrandGoogle,
