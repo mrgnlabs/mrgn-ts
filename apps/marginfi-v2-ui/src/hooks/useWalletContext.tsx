@@ -10,7 +10,7 @@ import { CHAIN_NAMESPACES, IProvider, ADAPTER_EVENTS, WALLET_ADAPTERS } from "@w
 import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
-
+import base58 from "bs58";
 import { Wallet } from "@mrgnlabs/mrgn-common";
 
 // wallet adapter context type to override with web3auth data
@@ -235,12 +235,14 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     async (provider: IProvider) => {
       if (!web3AuthPkCookie.mrgnPrivateKeyRequested) return;
 
-      const pk = await provider.request({
+      const privateKeyHexString = await provider.request({
         method: "solanaPrivateKey",
-      });
+      }) as string;
+      const privateKeyBytes = new Uint8Array(privateKeyHexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+      const privateKeyBase58 = base58.encode(privateKeyBytes);
 
       setWeb3AuthPkCookie("mrgnPrivateKeyRequested", false);
-      setWeb3AuthPk(pk as string);
+      setWeb3AuthPk(privateKeyBase58);
     },
     [web3AuthPkCookie]
   );
