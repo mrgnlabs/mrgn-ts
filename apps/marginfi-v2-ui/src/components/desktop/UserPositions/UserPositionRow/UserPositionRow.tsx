@@ -22,23 +22,12 @@ interface UserPositionRowProps {
 const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAccount, reloadPositions }) => {
   const [withdrawOrRepayAmount, setWithdrawOrRepayAmount] = useState(0);
 
-  const maxAmount = useMemo(
-    () => (activeBankInfo.position.isLending ? activeBankInfo.userInfo.maxWithdraw : activeBankInfo.userInfo.maxRepay),
-    [activeBankInfo]
-  );
-
-  const isDust = useMemo(() => {
-    return uiToNative(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals).isZero();
-  }, [activeBankInfo]);
-
-  const isDisabled = useMemo(
-    () =>
-      (isDust &&
-        uiToNative(activeBankInfo.userInfo.tokenAccount.balance, activeBankInfo.info.state.mintDecimals).isZero() &&
-        !activeBankInfo.position.isLending) ||
-      (!isDust && maxAmount === 0),
-    [isDust, activeBankInfo, maxAmount]
-  );
+  const maxAmount = activeBankInfo.position.isLending
+    ? activeBankInfo.userInfo.maxWithdraw
+    : activeBankInfo.userInfo.maxRepay;
+  const isDust = uiToNative(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals).isZero();
+  const showCloseBalance = activeBankInfo.position.isLending && isDust;
+  const isActionDisabled = maxAmount === 0 && !showCloseBalance;
 
   const closeBalance = useCallback(async () => {
     if (!marginfiAccount) {
@@ -194,7 +183,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
           setValue={setWithdrawOrRepayAmount}
           maxValue={maxAmount}
           maxDecimals={activeBankInfo.info.state.mintDecimals}
-          disabled={maxAmount === 0 || isDisabled}
+          disabled={showCloseBalance || isActionDisabled}
           onEnter={withdrawOrRepay}
         />
       </TableCell>
@@ -202,8 +191,8 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
       <TableCell className="text-white font-aeonik p-0 border-none" align="right">
         <div className="h-full w-full flex justify-end items-center pl-2 sm:px-2">
           <UserPositionRowAction
-            onClick={isDust ? closeBalance : withdrawOrRepay}
-            disabled={maxAmount === 0 || isDisabled}
+            onClick={showCloseBalance ? closeBalance : withdrawOrRepay}
+            disabled={isActionDisabled}
           >
             {isDust ? "Close" : activeBankInfo.position.isLending ? "Withdraw" : "Repay"}
           </UserPositionRowAction>

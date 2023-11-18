@@ -4,12 +4,7 @@ import Image from "next/image";
 import { TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import Badge from "@mui/material/Badge";
-import {
-  WSOL_MINT,
-  numeralFormatter,
-  percentFormatter,
-  usdFormatter,
-} from "@mrgnlabs/mrgn-common";
+import { WSOL_MINT, numeralFormatter, percentFormatter, uiToNative, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType, getCurrentAction, ExtendedBankMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
@@ -67,7 +62,7 @@ const AssetRow: FC<{
   const assetPrice = useMemo(
     () =>
       bank.info.oraclePrice.priceRealtime ? bank.info.oraclePrice.priceRealtime.toNumber() : bank.info.state.price,
-    [bank.info.state.price]
+    [bank.info.oraclePrice.priceRealtime, bank.info.state.price]
   );
 
   const assetPriceOffset = useMemo(
@@ -95,8 +90,9 @@ const AssetRow: FC<{
         return bank.userInfo.maxRepay;
     }
   }, [bank, currentAction]);
-
-  const isDisabled = useMemo(() => maxAmount === 0, [maxAmount]);
+  const isDust = bank.isActive && uiToNative(bank.position.amount, bank.info.state.mintDecimals).isZero();
+  const showCloseBalance = currentAction === ActionType.Withdraw && isDust; // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
+  const isActionDisabled = maxAmount === 0 && !showCloseBalance;
 
   const actionBorrowOrLend = useCallback(
     async ({
@@ -450,7 +446,7 @@ const AssetRow: FC<{
             maxValue={maxAmount}
             maxDecimals={bank.info.state.mintDecimals}
             inputRefs={inputRefs}
-            disabled={maxAmount === 0}
+            disabled={showCloseBalance || isActionDisabled}
             onEnter={handleBorrowOrLend}
           />
         </Badge>
@@ -468,10 +464,10 @@ const AssetRow: FC<{
                   ? "rgb(227, 227, 227)"
                   : "rgba(0,0,0,0)"
               }
-              onClick={handleBorrowOrLend}
-              disabled={isDisabled}
+              onClick={showCloseBalance ? handleCloseBalance : handleBorrowOrLend}
+              disabled={isActionDisabled}
             >
-              {currentAction}
+              {showCloseBalance ? "Close" : currentAction}
             </AssetRowAction>
           </div>
         </Tooltip>
