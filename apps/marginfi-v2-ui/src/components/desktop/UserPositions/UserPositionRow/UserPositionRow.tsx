@@ -25,7 +25,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
   const maxAmount = activeBankInfo.position.isLending
     ? activeBankInfo.userInfo.maxWithdraw
     : activeBankInfo.userInfo.maxRepay;
-  const isDust = uiToNative(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals).isZero();
+  const isDust = activeBankInfo.position.isDust;
   const showCloseBalance = activeBankInfo.position.isLending && isDust;
   const isActionDisabled = maxAmount === 0 && !showCloseBalance;
 

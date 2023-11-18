@@ -90,7 +90,7 @@ const AssetRow: FC<{
         return bank.userInfo.maxRepay;
     }
   }, [bank, currentAction]);
-  const isDust = bank.isActive && uiToNative(bank.position.amount, bank.info.state.mintDecimals).isZero();
+  const isDust = bank.isActive && bank.position.isDust;
   const showCloseBalance = currentAction === ActionType.Withdraw && isDust; // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
   const isActionDisabled = maxAmount === 0 && !showCloseBalance;
 

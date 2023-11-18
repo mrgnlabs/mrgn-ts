@@ -321,13 +321,20 @@ function makeLendingPosition(
   const usdValues = balance.computeUsdValue(bank, oraclePrice, MarginRequirementType.Equity);
   const weightedUSDValues = balance.getUsdValueWithPriceBias(bank, oraclePrice, MarginRequirementType.Maintenance);
   const isLending = usdValues.liabilities.isZero();
+
+  const amount = isLending
+  ? nativeToUi(amounts.assets.toNumber(), bankInfo.mintDecimals)
+  : nativeToUi(amounts.liabilities.toNumber(), bankInfo.mintDecimals);
+  const isDust = uiToNative(amount, bankInfo.mintDecimals).isZero();
+  const weightedUSDValue = isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber();
+  const usdValue = isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber();
+
   return {
-    amount: isLending
-      ? nativeToUi(amounts.assets.toNumber(), bankInfo.mintDecimals)
-      : nativeToUi(amounts.liabilities.toNumber(), bankInfo.mintDecimals),
-    usdValue: isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber(),
-    weightedUSDValue: isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber(),
+    amount,
+    usdValue,
+    weightedUSDValue,
     isLending,
+    isDust,
   };
 }
 
@@ -484,6 +491,7 @@ interface LendingPosition {
   amount: number;
   usdValue: number;
   weightedUSDValue: number;
+  isDust: boolean;
 }
 
 interface BankInfo {
