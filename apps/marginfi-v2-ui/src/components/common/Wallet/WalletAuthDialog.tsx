@@ -109,7 +109,7 @@ export const WalletAuthDialog = () => {
   return (
     <div>
       <Dialog open={isWalletAuthDialogOpen} onOpenChange={(open) => setIsWalletAuthDialogOpen(open)}>
-        <DialogContent className="md:block overflow-hidden">
+        <DialogContent className="md:block overflow-hidden p-4">
           <DialogHeader>
             <IconMrgn size={48} />
             <DialogTitle>Sign in to marginfi</DialogTitle>
