@@ -17,7 +17,7 @@ import {
   IconMrgn,
   IconBrandX,
   IconBrandApple,
-  IconBrandGoogleFilled,
+  IconBrandGoogle,
   IconBraveWallet,
   IconPhantomWallet,
   IconBackpackWallet,
@@ -40,7 +40,7 @@ const socialProviders: {
 }[] = [
   {
     name: "google",
-    image: <IconBrandGoogleFilled />,
+    image: <IconBrandGoogle />,
   },
   {
     name: "twitter",
@@ -54,12 +54,12 @@ const socialProviders: {
 
 // wallet login options
 const walletIcons: { [key: string]: React.ReactNode } = {
-  "Brave Wallet": <IconBraveWallet />,
-  Phantom: <IconPhantomWallet />,
-  Solflare: <IconSolflareWallet />,
-  Backpack: <IconBackpackWallet />,
-  WalletConnect: <IconWalletConnectWallet />,
-  Glow: <IconGlowWallet />,
+  "Brave Wallet": <IconBraveWallet size={28} />,
+  Phantom: <IconPhantomWallet size={28} />,
+  Solflare: <IconSolflareWallet size={28} />,
+  Backpack: <IconBackpackWallet size={28} />,
+  WalletConnect: <IconWalletConnectWallet size={28} />,
+  Glow: <IconGlowWallet size={28} />,
 };
 
 export const WalletAuthDialog = () => {
@@ -216,14 +216,14 @@ export const WalletAuthDialog = () => {
                 />
 
                 <h2 className="font-semibold text-2xl text-white">Use a wallet</h2>
-                <p className="mt-2">If you're a pro, connect your wallet</p>
+                <p className="mt-2">If you&apos;re a pro, connect your wallet</p>
               </header>
 
               {(filteredWallets.length > 0 || isAndroid || isIOS) && (
                 <ul className="flex items-center justify-center gap-4 mt-6 mb-2">
                   {filteredWallets.map((wallet, i) => {
                     const img = walletIcons[wallet.adapter.name] || (
-                      <Image src={wallet.adapter.icon} width={24} height={24} alt={wallet.adapter.name} />
+                      <Image src={wallet.adapter.icon} alt={wallet.adapter.name} />
                     );
                     return (
                       <li key={i}>
