@@ -60,10 +60,12 @@ module.exports = {
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
+          highlight: "hsl(var(--muted-highlight))",
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
+          highlight: "hsl(var(--accent-highlight))",
           foreground: "hsl(var(--accent-foreground))",
         },
         popover: {

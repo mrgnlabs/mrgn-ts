@@ -16,7 +16,7 @@ export const WalletAuthEmailForm = ({ loading, active, onSubmit }: WalletAuthEma
 
   return (
     <form
-      className="flex flex-col gap-2"
+      className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
 

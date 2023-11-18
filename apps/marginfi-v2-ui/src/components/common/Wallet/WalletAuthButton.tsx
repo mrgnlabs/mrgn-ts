@@ -19,7 +19,7 @@ export const WalletAuthButton = ({ name, image, loading, active, onClick }: Wall
       variant="secondary"
       size="icon"
       disabled={!active}
-      className="w-14 h-14"
+      className="w-14 h-14 transition-colors bg-accent hover:bg-accent-highlight"
     >
       {loading && <IconLoader />}
       {!loading && image}
