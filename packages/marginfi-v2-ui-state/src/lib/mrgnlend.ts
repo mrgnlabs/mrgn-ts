@@ -11,8 +11,10 @@ import {
   MintLayout,
   getAssociatedTokenAddressSync,
   nativeToUi,
+  uiToNative,
   unpackAccount,
   floor,
+  ceil,
   WSOL_MINT,
   TokenMetadata,
 } from "@mrgnlabs/mrgn-common";
@@ -229,7 +231,7 @@ function makeExtendedBankInfo(
   // Calculate user-specific info relevant regardless of whether they have an active position in this bank
   const isWrappedSol = bankInfo.mint.equals(WSOL_MINT);
 
-  const maxDeposit = floor(
+  const walletBalance = floor(
     isWrappedSol
       ? Math.max(userData.tokenAccount.balance + userData.nativeSolBalance - FEE_MARGIN, 0)
       : userData.tokenAccount.balance,
@@ -251,7 +253,7 @@ function makeExtendedBankInfo(
   if (!positionRaw) {
     const userInfo = {
       tokenAccount: userData.tokenAccount,
-      maxDeposit,
+      maxDeposit: walletBalance,
       maxRepay: 0,
       maxWithdraw: 0,
       maxBorrow,
@@ -280,16 +282,16 @@ function makeExtendedBankInfo(
         bankInfo.mintDecimals
       )
     : 0;
-  let maxRepay: number;
-  if (isWrappedSol) {
-    maxRepay = !!position ? Math.min(position.amount, maxDeposit) : maxDeposit;
-  } else {
-    maxRepay = !!position ? Math.min(position.amount, maxDeposit) : maxDeposit;
+
+  let maxRepay = 0;
+  if (position) {
+    const debtAmount = ceil(position.amount, bankInfo.mintDecimals);
+    maxRepay = Math.min(debtAmount, walletBalance);
   }
 
   const userInfo = {
     tokenAccount: userData.tokenAccount,
-    maxDeposit,
+    maxDeposit: walletBalance,
     maxRepay,
     maxWithdraw,
     maxBorrow,
@@ -315,13 +317,20 @@ function makeLendingPosition(
   const usdValues = balance.computeUsdValue(bank, oraclePrice, MarginRequirementType.Equity);
   const weightedUSDValues = balance.getUsdValueWithPriceBias(bank, oraclePrice, MarginRequirementType.Maintenance);
   const isLending = usdValues.liabilities.isZero();
+
+  const amount = isLending
+    ? nativeToUi(amounts.assets.toNumber(), bankInfo.mintDecimals)
+    : nativeToUi(amounts.liabilities.toNumber(), bankInfo.mintDecimals);
+  const isDust = uiToNative(amount, bankInfo.mintDecimals).isZero();
+  const weightedUSDValue = isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber();
+  const usdValue = isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber();
+
   return {
-    amount: isLending
-      ? nativeToUi(amounts.assets.toNumber(), bankInfo.mintDecimals)
-      : nativeToUi(amounts.liabilities.toNumber(), bankInfo.mintDecimals),
-    usdValue: isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber(),
-    weightedUSDValue: isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber(),
+    amount,
+    usdValue,
+    weightedUSDValue,
     isLending,
+    isDust,
   };
 }
 
@@ -478,6 +487,7 @@ interface LendingPosition {
   amount: number;
   usdValue: number;
   weightedUSDValue: number;
+  isDust: boolean;
 }
 
 interface BankInfo {

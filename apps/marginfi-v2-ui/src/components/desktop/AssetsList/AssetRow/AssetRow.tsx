@@ -4,16 +4,9 @@ import Image from "next/image";
 import { TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import Badge from "@mui/material/Badge";
-import {
-  WSOL_MINT,
-  groupedNumberFormatterDyn,
-  numeralFormatter,
-  percentFormatter,
-  uiToNative,
-  usdFormatter,
-} from "@mrgnlabs/mrgn-common";
+import { WSOL_MINT, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType, getCurrentAction, ExtendedBankMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, PriceBias, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { AssetRowInputBox, AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
@@ -69,7 +62,7 @@ const AssetRow: FC<{
   const assetPrice = useMemo(
     () =>
       bank.info.oraclePrice.priceRealtime ? bank.info.oraclePrice.priceRealtime.toNumber() : bank.info.state.price,
-    [bank.info.state.price]
+    [bank.info.oraclePrice.priceRealtime, bank.info.state.price]
   );
 
   const assetPriceOffset = useMemo(
@@ -97,19 +90,42 @@ const AssetRow: FC<{
         return bank.userInfo.maxRepay;
     }
   }, [bank, currentAction]);
+  const isDust = bank.isActive && bank.position.isDust;
+  const showCloseBalance = currentAction === ActionType.Withdraw && isDust; // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
+  const isActionDisabled = maxAmount === 0 && !showCloseBalance;
 
-  const isDust = useMemo(
-    () => bank.isActive && uiToNative(bank.position.amount, bank.info.state.mintDecimals).isZero(),
-    [bank]
-  );
+  const actionBorrowOrLend = useCallback(
+    async ({
+      mfiClient,
+      currentAction,
+      bank,
+      borrowOrLendAmount,
+      nativeSolBalance,
+      marginfiAccount,
+      walletContextState,
+    }: BorrowOrLendParams) => {
+      await borrowOrLend({
+        mfiClient,
+        currentAction,
+        bank,
+        borrowOrLendAmount,
+        nativeSolBalance,
+        marginfiAccount,
+        walletContextState,
+      });
 
-  const isDisabled = useMemo(
-    () =>
-      (isDust &&
-        uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero() &&
-        currentAction == ActionType.Borrow) ||
-      (!isDust && maxAmount === 0),
-    [currentAction, bank, isDust, maxAmount]
+      setBorrowOrLendAmount(0);
+
+      // -------- Refresh state
+      try {
+        setIsRefreshingStore(true);
+        await fetchMrgnlendState();
+      } catch (error: any) {
+        console.log("Error while reloading state");
+        console.log(error);
+      }
+    },
+    [fetchMrgnlendState, setIsRefreshingStore]
   );
 
   // Reset b/l amounts on toggle
@@ -178,50 +194,17 @@ const AssetRow: FC<{
       return;
     }
   }, [
-    bank,
-    borrowOrLendAmount,
     currentAction,
-    marginfiAccount,
-    mfiClient,
-    nativeSolBalance,
-    fetchMrgnlendState,
-    setIsRefreshingStore,
+    bank,
+    hasLSTDialogShown,
     showLSTDialog,
+    actionBorrowOrLend,
+    mfiClient,
+    borrowOrLendAmount,
+    nativeSolBalance,
+    marginfiAccount,
+    walletContextState,
   ]);
-
-  const actionBorrowOrLend = useCallback(
-    async ({
-      mfiClient,
-      currentAction,
-      bank,
-      borrowOrLendAmount,
-      nativeSolBalance,
-      marginfiAccount,
-      walletContextState,
-    }: BorrowOrLendParams) => {
-      await borrowOrLend({
-        mfiClient,
-        currentAction,
-        bank,
-        borrowOrLendAmount,
-        nativeSolBalance,
-        marginfiAccount,
-        walletContextState,
-      });
-
-      setBorrowOrLendAmount(0);
-
-      // -------- Refresh state
-      try {
-        setIsRefreshingStore(true);
-        await fetchMrgnlendState();
-      } catch (error: any) {
-        console.log("Error while reloading state");
-        console.log(error);
-      }
-    },
-    []
-  );
 
   return (
     <TableRow className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]">
@@ -463,7 +446,7 @@ const AssetRow: FC<{
             maxValue={maxAmount}
             maxDecimals={bank.info.state.mintDecimals}
             inputRefs={inputRefs}
-            disabled={isDust || maxAmount === 0}
+            disabled={showCloseBalance || isActionDisabled}
             onEnter={handleBorrowOrLend}
           />
         </Badge>
@@ -481,10 +464,10 @@ const AssetRow: FC<{
                   ? "rgb(227, 227, 227)"
                   : "rgba(0,0,0,0)"
               }
-              onClick={isDust ? handleCloseBalance : handleBorrowOrLend}
-              disabled={isDisabled}
+              onClick={showCloseBalance ? handleCloseBalance : handleBorrowOrLend}
+              disabled={isActionDisabled}
             >
-              {isDust ? "Close" : currentAction}
+              {showCloseBalance ? "Close" : currentAction}
             </AssetRowAction>
           </div>
         </Tooltip>

@@ -35,7 +35,7 @@ const UserPositions: FC = () => {
     <>
       {lendPositions.length > 0 && selectedAccount && (
         <Card elevation={0} className="bg-transparent w-full p-0 grid">
-          <div className="font-aeonik font-normal text-2xl my-0 lg:mt-2 mb-[-20px] text-white">Lending</div>
+          <div className="font-aeonik font-normal text-2xl my-0 lg:mt-2 text-white">Lending</div>
           <TableContainer>
             <Table
               className="table-fixed"
@@ -48,20 +48,23 @@ const UserPositions: FC = () => {
                 <TableRow>
                   <TableCell className="border-none"></TableCell>
                   <TableCell
-                    className="hidden md:table-cell border-none"
+                    className="hidden md:table-cell border-none p-2"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                     align="right"
                   >
-                    <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1">
+                    <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex justify-end gap-1">
                       Lending
                     </Typography>
                   </TableCell>
                   <TableCell
-                    className="hidden md:table-cell border-none"
+                    className="hidden md:table-cell border-none p-2"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                     align="right"
                   >
-                    <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1" component="div">
+                    <Typography
+                      className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex justify-end gap-1"
+                      component="div"
+                    >
                       Wtd
                       <div className="self-center">
                         <MrgnTooltip
@@ -89,11 +92,14 @@ const UserPositions: FC = () => {
                     </Typography>
                   </TableCell>
                   <TableCell
-                    className="hidden md:table-cell border-none"
+                    className="hidden md:table-cell border-none p-2"
                     style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                     align="right"
                   >
-                    <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1" component="div">
+                    <Typography
+                      className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1 justify-end"
+                      component="div"
+                    >
                       USD
                       <div className="self-center">
                         <MrgnTooltip
@@ -146,7 +152,7 @@ const UserPositions: FC = () => {
       <div>
         {borrowPositions.length > 0 && selectedAccount && (
           <Card elevation={0} className="bg-transparent w-full p-0 grid">
-            <div className="font-aeonik font-normal text-2xl my-0 lg:mt-2 mb-[-20px] text-white">Borrowing</div>
+            <div className="font-aeonik font-normal text-2xl my-0 lg:mt-2 text-white">Borrowing</div>
             <TableContainer>
               <Table
                 className="table-fixed"
@@ -159,20 +165,23 @@ const UserPositions: FC = () => {
                   <TableRow>
                     <TableCell className="border-none"></TableCell>
                     <TableCell
-                      className="hidden md:table-cell border-none"
+                      className="hidden md:table-cell border-none p-2"
                       style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                       align="right"
                     >
-                      <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1">
+                      <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex justify-end gap-1">
                         Borrowing
                       </Typography>
                     </TableCell>
                     <TableCell
-                      className="hidden md:table-cell border-none"
+                      className="hidden md:table-cell border-none p-2"
                       style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                       align="right"
                     >
-                      <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1" component="div">
+                      <Typography
+                        className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex justify-end gap-1"
+                        component="div"
+                      >
                         Wtd
                         <div className="self-center">
                           <MrgnTooltip
@@ -200,11 +209,14 @@ const UserPositions: FC = () => {
                       </Typography>
                     </TableCell>
                     <TableCell
-                      className="hidden md:table-cell border-none"
+                      className="hidden md:table-cell border-none p-2"
                       style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
                       align="right"
                     >
-                      <Typography className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex gap-1" component="div">
+                      <Typography
+                        className="text-[#A1A1A1] font-aeonik font-[300] text-sm flex justify-end gap-1"
+                        component="div"
+                      >
                         USD
                         <div className="self-center">
                           <MrgnTooltip

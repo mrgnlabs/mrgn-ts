@@ -1,6 +1,6 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
-import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { TOKEN_PROGRAM_ID, ceil, floor } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useEffect, useRef } from "react";
 
@@ -31,11 +31,16 @@ export function makeAirdropCollateralIx(
   });
 }
 
+export function computeClosePositionTokenAmount(activeBankInfo: ActiveBankInfo): number {
+  const closePositionTokenAmount = activeBankInfo.position.isLending
+    ? floor(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals)
+    : ceil(activeBankInfo.position.amount, activeBankInfo.info.state.mintDecimals);
+  return closePositionTokenAmount;
+}
+
 export function isWholePosition(activeBankInfo: ActiveBankInfo, amount: number): boolean {
-  const positionTokenAmount =
-    Math.floor(activeBankInfo.position.amount * Math.pow(10, activeBankInfo.info.state.mintDecimals)) /
-    Math.pow(10, activeBankInfo.info.state.mintDecimals);
-  return amount >= positionTokenAmount;
+  const closePositionTokenAmount = computeClosePositionTokenAmount(activeBankInfo);
+  return amount >= closePositionTokenAmount;
 }
 
 export function usePrevious<T>(value: T): T | undefined {
