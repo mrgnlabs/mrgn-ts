@@ -19,26 +19,27 @@ export interface ToastStepWithStatus extends ToastStep {
 
 export const MultiStepToast: FC<MultiStepToastProps> = ({ title, steps }) => {
   return (
-    <div className="w-full h-full bg-black text-white rounded-lg shadow-lg z-50 p-1">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <div className="py-3 text-sm space-y-2">
-        {steps.map((step, index) => (
-          <div key={index}>
-            <div className="flex items-center space-x-2">
-              <h3>{step.label}</h3>
-              {step.status === "success" ? (
-                <IconCheck size={18} className="text-green-400" />
-              ) : step.status === "error" ? (
-                <IconAlertTriangle size={18} className="text-red-400" />
-              ) : step.status === "pending" ? (
-                <IconLoader size={18} />
-              ) : (
-                <IconClockHour4 size={18} />
+    <div className="w-full h-full bg-black text-white rounded-xl shadow-lg z-50">
+      <h2 className="text-xl font-medium">{title}</h2>
+      <div className="pb-3 pt-6 space-y-2">
+        {steps.map((step, index) => {
+          if (step.status === "todo" || step.status === "canceled") return null;
+          return (
+            <div key={index}>
+              <div className="flex items-center space-x-2">
+                <h3 className="text-gray-400">
+                  {steps.length > 0 && <>{index + 1}</>}. {step.label}
+                </h3>
+                {step.status === "success" && <IconCheck size={18} className="text-green-400" />}
+                {step.status === "error" && <IconAlertTriangle size={18} className="text-red-400" />}
+                {step.status === "pending" && <IconLoader size={18} />}
+              </div>
+              {step.message && (
+                <p className="bg-destructive py-3 px-4 rounded-xl mt-2.5 text-destructive-foreground">{step.message}</p>
               )}
             </div>
-            {step.message && <p className="text-red-400 mt-1">{step.message}</p>}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
