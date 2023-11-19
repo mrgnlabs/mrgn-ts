@@ -8,12 +8,12 @@ export interface ErrorToastProps {
 
 export const ErrorToast: FC<ErrorToastProps> = ({ title, message }) => {
   return (
-    <div className="w-full h-full bg-black text-white rounded-lg shadow-lg z-50 p-1">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <div className="py-3 text-sm">
-        <div className="flex items-center space-x-2">
-          <p className="text-red-400">{message}</p>
-          <IconAlertTriangle size={18} className="text-red-400" />
+    <div className="w-full h-full bg-black text-white rounded-lg shadow-lg z-50">
+      <h2 className="text-xl font-medium">{title}</h2>
+      <div className="pb-3 pt-6 space-y-2">
+        <div className="flex items-start space-x-2 py-3 px-4 rounded-xl text-destructive-foreground bg-destructive">
+          <p>{message}</p>
+          <IconAlertTriangle size={18} />
         </div>
       </div>
     </div>
