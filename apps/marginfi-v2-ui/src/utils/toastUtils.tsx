@@ -26,8 +26,9 @@ export class MultiStepToastHandle {
       style: {
         width: "100%",
         height: "100%",
+        bottom: "12px",
       },
-      className: "bg-black",
+      className: "bg-black rounded-xl pt-3 pb-2 px-3.5",
     });
   }
 
@@ -80,6 +81,6 @@ export function showErrorToast(msgOrOptions: string | { message: string }) {
       width: "100%",
       height: "100%",
     },
-    className: "bg-black",
+    className: "bg-black p-4 bottom-4 rounded-xl",
   });
 }
