@@ -1,12 +1,12 @@
 import Image from "next/image";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { TableCell, TableRow, Typography } from "@mui/material";
-import { FC, Fragment, useCallback, useMemo, useState } from "react";
+import { TableCell, TableRow } from "@mui/material";
+import { FC, Fragment, useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { UserPositionRowAction } from "./UserPositionRowAction";
 import { UserPositionRowInputBox } from "./UserPositionRowInputBox";
-import { groupedNumberFormatter, uiToNative, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { groupedNumberFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { isWholePosition } from "~/utils";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -194,7 +194,7 @@ const UserPositionRow: FC<UserPositionRowProps> = ({ activeBankInfo, marginfiAcc
             onClick={showCloseBalance ? closeBalance : withdrawOrRepay}
             disabled={isActionDisabled}
           >
-            {isDust ? "Close" : activeBankInfo.position.isLending ? "Withdraw" : "Repay"}
+            {showCloseBalance ? "Close" : activeBankInfo.position.isLending ? "Withdraw" : "Repay"}
           </UserPositionRowAction>
         </div>
       </TableCell>

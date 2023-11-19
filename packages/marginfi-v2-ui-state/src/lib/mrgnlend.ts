@@ -231,7 +231,7 @@ function makeExtendedBankInfo(
   // Calculate user-specific info relevant regardless of whether they have an active position in this bank
   const isWrappedSol = bankInfo.mint.equals(WSOL_MINT);
 
-  const maxDeposit = floor(
+  const walletBalance = floor(
     isWrappedSol
       ? Math.max(userData.tokenAccount.balance + userData.nativeSolBalance - FEE_MARGIN, 0)
       : userData.tokenAccount.balance,
@@ -253,7 +253,7 @@ function makeExtendedBankInfo(
   if (!positionRaw) {
     const userInfo = {
       tokenAccount: userData.tokenAccount,
-      maxDeposit,
+      maxDeposit: walletBalance,
       maxRepay: 0,
       maxWithdraw: 0,
       maxBorrow,
@@ -283,19 +283,15 @@ function makeExtendedBankInfo(
       )
     : 0;
 
-  let maxRepay = maxDeposit;
-
-  // round up to 1 unit of smallest denomination if maxRepay is dust
+  let maxRepay = 0;
   if (position) {
-    const maxRepayNative = uiToNative(position.amount, bankInfo.mintDecimals);
-    maxRepay = maxRepayNative.isZero()
-      ? ceil(position.amount, bankInfo.mintDecimals)
-      : Math.min(position.amount, maxDeposit);
+    const debtAmount = ceil(position.amount, bankInfo.mintDecimals);
+    maxRepay = Math.min(debtAmount, walletBalance);
   }
 
   const userInfo = {
     tokenAccount: userData.tokenAccount,
-    maxDeposit,
+    maxDeposit: walletBalance,
     maxRepay,
     maxWithdraw,
     maxBorrow,
@@ -323,8 +319,8 @@ function makeLendingPosition(
   const isLending = usdValues.liabilities.isZero();
 
   const amount = isLending
-  ? nativeToUi(amounts.assets.toNumber(), bankInfo.mintDecimals)
-  : nativeToUi(amounts.liabilities.toNumber(), bankInfo.mintDecimals);
+    ? nativeToUi(amounts.assets.toNumber(), bankInfo.mintDecimals)
+    : nativeToUi(amounts.liabilities.toNumber(), bankInfo.mintDecimals);
   const isDust = uiToNative(amount, bankInfo.mintDecimals).isZero();
   const weightedUSDValue = isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber();
   const usdValue = isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber();

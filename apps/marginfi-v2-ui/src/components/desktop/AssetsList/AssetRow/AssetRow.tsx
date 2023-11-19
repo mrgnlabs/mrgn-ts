@@ -4,7 +4,7 @@ import Image from "next/image";
 import { TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import Badge from "@mui/material/Badge";
-import { WSOL_MINT, numeralFormatter, percentFormatter, uiToNative, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { WSOL_MINT, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType, getCurrentAction, ExtendedBankMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
