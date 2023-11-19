@@ -88,9 +88,14 @@ export const WalletAuthDialog = () => {
   // check if phantom is loadable, we will overwrite with a deep link on iOS
   // this improves the PWA UX on iOS by allowing users to open the app directly
   const isPhantomInstalled = React.useMemo(() => {
-    return wallets.some((wallet) => wallet.adapter.name === "Phantom" && wallet.readyState === "Loadable");
+    return wallets.some((wallet) => {
+      return (
+        wallet.adapter.name === "Phantom" && (wallet.readyState === "Loadable" || wallet.readyState === "Installed")
+      );
+    });
   }, [wallets]);
 
+  // alert(`${isAndroid}, ${isIOS}, ${isPhantomInstalled}`);
   React.useEffect(() => {
     if (!isWalletAuthDialogOpen) {
       setIsLoading(false);
