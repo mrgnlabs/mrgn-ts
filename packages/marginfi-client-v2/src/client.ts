@@ -480,6 +480,9 @@ class MarginfiClient {
         console.log("------ Inspect 👇 ------");
         console.log(urlEscaped);
 
+        if (response.value.err)
+          throw new SendTransactionError(JSON.stringify(response.value.err), response.value.logs ?? []);
+
         return versionedTransaction.signatures[0].toString();
       } else {
         versionedTransaction = await this.wallet.signTransaction(versionedTransaction);
