@@ -96,6 +96,12 @@ let config = withBundleAnalyzer({
         port: "",
         pathname: "/avatar/**",
       },
+      {
+        protocol: "https",
+        hostname: "pyth.network",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 });
