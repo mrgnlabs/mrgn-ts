@@ -19,6 +19,7 @@ import {
   IconBrandApple,
   IconBrandGoogle,
   IconBraveWallet,
+  IconCoinbaseWallet,
   IconPhantomWallet,
   IconBackpackWallet,
   IconSolflareWallet,
@@ -55,6 +56,7 @@ const socialProviders: {
 // wallet login options
 const walletIcons: { [key: string]: React.ReactNode } = {
   "Brave Wallet": <IconBraveWallet size={28} />,
+  "Coinbase Wallet": <IconCoinbaseWallet size={28} />,
   Phantom: <IconPhantomWallet size={28} />,
   Solflare: <IconSolflareWallet size={28} />,
   Backpack: <IconBackpackWallet size={28} />,
@@ -228,7 +230,7 @@ export const WalletAuthDialog = () => {
                 <ul className="flex items-center justify-center gap-4 mt-6 mb-2">
                   {filteredWallets.map((wallet, i) => {
                     const img = walletIcons[wallet.adapter.name] || (
-                      <Image src={wallet.adapter.icon} alt={wallet.adapter.name} />
+                      <Image src={wallet.adapter.icon} width={28} height={28} alt={wallet.adapter.name} />
                     );
                     return (
                       <li key={i}>
