@@ -4,6 +4,7 @@ import {
   GlowWalletAdapter,
   BackpackWalletAdapter,
   WalletConnectWalletAdapter,
+  CoinbaseWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import {
   createDefaultAddressSelector,
@@ -29,6 +30,7 @@ export const WALLET_ADAPTERS = [
   new SolflareWalletAdapter(),
   new BackpackWalletAdapter(),
   new GlowWalletAdapter(),
+  new CoinbaseWalletAdapter(),
   new WalletConnectWalletAdapter({
     network: WalletAdapterNetwork.Mainnet,
     options: {
