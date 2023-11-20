@@ -2363,7 +2363,7 @@ export type Marginfi = {
     {
       code: 6013;
       name: "IllegalLiquidation";
-      msg: "Illegal post liquidation state, account is either not unhealthy or liquidation was too big";
+      msg: "Illegal liquidation";
     },
     {
       code: 6014;
@@ -2469,6 +2469,31 @@ export type Marginfi = {
       code: 6034;
       name: "InvalidSwitchboardDecimalConversion";
       msg: "Invalid swithcboard decimal conversion";
+    },
+    {
+      code: 6035;
+      name: "CannotCloseOutstandingEmissions";
+      msg: "Cannot close balance because of outstanding emissions";
+    },
+    {
+      code: 6036;
+      name: "EmissionsUpdateError";
+      msg: "Update emissions error";
+    },
+    {
+      code: 6037;
+      name: "AccountDisabled";
+      msg: "Account disabled";
+    },
+    {
+      code: 6038;
+      name: "AccountTempActiveBalanceLimitExceeded";
+      msg: "Account can't temporarily open new balances, please close a balance first";
+    },
+    {
+      code: 6039;
+      name: "IllegalBalanceState";
+      msg: "Illegal balance state";
     }
   ];
 };
@@ -4838,7 +4863,7 @@ export const IDL: Marginfi = {
     {
       code: 6013,
       name: "IllegalLiquidation",
-      msg: "Illegal post liquidation state, account is either not unhealthy or liquidation was too big",
+      msg: "Illegal liquidation",
     },
     {
       code: 6014,
@@ -4944,6 +4969,31 @@ export const IDL: Marginfi = {
       code: 6034,
       name: "InvalidSwitchboardDecimalConversion",
       msg: "Invalid swithcboard decimal conversion",
+    },
+    {
+      code: 6035,
+      name: "CannotCloseOutstandingEmissions",
+      msg: "Cannot close balance because of outstanding emissions",
+    },
+    {
+      code: 6036,
+      name: "EmissionsUpdateError",
+      msg: "Update emissions error",
+    },
+    {
+      code: 6037,
+      name: "AccountDisabled",
+      msg: "Account disabled",
+    },
+    {
+      code: 6038,
+      name: "AccountTempActiveBalanceLimitExceeded",
+      msg: "Account can't temporarily open new balances, please close a balance first",
+    },
+    {
+      code: 6039,
+      name: "IllegalBalanceState",
+      msg: "Illegal balance state",
     },
   ],
 };

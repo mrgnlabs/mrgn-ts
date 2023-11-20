@@ -64,12 +64,9 @@ export function parseErrorFromLogs(logs: string[], mfiProgramId: PublicKey): Pro
 
 function parseCustomProgramError(logs: string[]): ProgramError | null {
   const log = logs.find((log) => log.includes("failed: custom program error"));
-  console.log("finding:", logs);
-  console.log("found:", log);
   if (!log) return null;
   const regex = /^Program (?<program>\S+) failed: custom program error: (?<code>0x[0-9a-fA-F]+)/g;
   const match = regex.exec(log);
-  console.log(match);
   if (!match?.groups) return null;
   const code = parseInt(match.groups.code);
   return { programId: match.groups.program, code };
