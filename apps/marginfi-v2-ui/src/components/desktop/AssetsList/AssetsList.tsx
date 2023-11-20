@@ -8,7 +8,7 @@ import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { LoadingAsset, AssetRow } from "./AssetRow";
-import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
+import { LSTDialog, LSTDialogVariants, NewAssetBannerList } from "~/components/common/AssetList";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { MrgnLabeledSwitch } from "~/components/common";
 
@@ -99,7 +99,7 @@ const AssetsList: FC = () => {
 
   return (
     <>
-      <div className="col-span-full">
+      <div className="col-span-full w-full space-y-5">
         <div className="flex w-[150px] h-[42px]">
           <MrgnLabeledSwitch
             labelLeft="Lend"
@@ -108,6 +108,20 @@ const AssetsList: FC = () => {
             onClick={() => setIsInLendingMode(!isInLendingMode)}
           />
         </div>
+
+        <NewAssetBannerList
+          assets={[
+            {
+              asset: "pyth",
+              image: "https://pyth.network/token.svg",
+            },
+            {
+              asset: "shdw",
+              image:
+                "https://shdw-drive.genesysgo.net/FDcC9gn12fFkSU2KuQYH4TUjihrZxiTodFRWNF4ns9Kt/250x250_with_padding.png",
+            },
+          ]}
+        />
       </div>
 
       <div className="col-span-full">
