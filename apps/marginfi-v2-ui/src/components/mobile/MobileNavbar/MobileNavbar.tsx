@@ -4,6 +4,7 @@ import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useRouter } from "next/router";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useOs } from "~/hooks/useOs";
 import { cn } from "~/utils/themeUtils";
 import { MenuModal } from "./MenuModal";
 import { ORDERED_MOBILE_NAVBAR_LINKS } from "~/config/navigationLinks";
@@ -26,6 +27,8 @@ const MobileNavbar: FC = () => {
     state.resetUserData,
   ]);
   const [lstUserDataFetched, resetLstUserData] = useLstStore((state) => [state.userDataFetched, state.resetUserData]);
+
+  const { isIOS } = useOs();
 
   useSwipeGesture(() => setIsMenuModalOpen(true));
 
@@ -61,7 +64,8 @@ const MobileNavbar: FC = () => {
                 onClick={() => linkInfo.label === "more" && setIsMenuModalOpen(true)}
                 href={linkInfo.href}
                 className={cn(
-                  "w-1/4 py-3 flex flex-col pt-3 items-center",
+                  "w-1/4 pt-3 flex flex-col items-center",
+                  isIOS ? "pb-7" : "pb-3",
                   isActive ? "text-[#DCE85D]" : "text-[#999]"
                 )}
               >
