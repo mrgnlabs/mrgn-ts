@@ -387,9 +387,9 @@ class Liquidator {
     debug("Swapping any remaining non-usdc to usdc");
     const banks = this.client.banks.values();
     const usdcBank = this.client.getBankByMint(USDC_MINT)!;
-    await Promise.all([...banks].map(async (bank) => {
+    for (const bank of banks) {
       if (bank.mint.equals(USDC_MINT)) {
-        return;
+        continue;
       }
 
       let uiAmount = await this.getTokenAccountBalance(bank.mint, false);
@@ -399,7 +399,7 @@ class Liquidator {
 
       if (usdValue.lte(DUST_THRESHOLD_UI)) {
         // debug!("Not enough %s to swap, skipping...", this.getTokenSymbol(bank));
-        return;
+        continue;
       } else {
         debug("Account has %d ($%d) %s", uiAmount, usdValue, this.getTokenSymbol(bank));
       }
@@ -418,14 +418,14 @@ class Liquidator {
 
         if (uiAmount.lte(DUST_THRESHOLD_UI)) {
           debug("Account has no more %s, skipping...", this.getTokenSymbol(bank));
-          return;
+          continue;
         }
       }
 
       debug("Swapping %d %s to USDC", uiAmount, this.getTokenSymbol(bank));
 
       await this.swap(bank.mint, USDC_MINT, uiToNative(uiAmount, bank.mintDecimals));
-    }));
+    }
 
     const usdcBalance = await this.getTokenAccountBalance(USDC_MINT);
 
