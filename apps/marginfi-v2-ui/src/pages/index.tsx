@@ -20,10 +20,6 @@ const DesktopAccountSummary = dynamic(
 );
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
 
-const UserPositions = dynamic(async () => (await import("~/components/desktop/UserPositions")).UserPositions, {
-  ssr: false,
-});
-
 const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/MobileAssetsList")).MobileAssetsList, {
   ssr: false,
 });
@@ -94,7 +90,6 @@ const Home = () => {
         </div>
         <div className="pt-[16px] pb-[64px] grid w-4/5 max-w-7xl gap-4 grid-cols-1 xl:grid-cols-2">
           <AssetsList />
-          {walletAddress && <UserPositions />}
         </div>
         <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
       </Desktop>

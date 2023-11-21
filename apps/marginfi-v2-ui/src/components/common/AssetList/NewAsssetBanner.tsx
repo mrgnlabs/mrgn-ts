@@ -1,5 +1,3 @@
-import { LendingModes, PoolTypes } from "~/types";
-
 import React from "react";
 import Image from "next/image";
 
@@ -8,13 +6,20 @@ import { useUiStore } from "~/store";
 import { Button } from "~/components/ui/button";
 import { IconX } from "~/components/ui/icons";
 
+import { LendingModes, PoolTypes } from "~/types";
+
 type NewAssetBannerProps = {
   asset: string;
   image: string;
 };
 
 export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
-  const [setLendingMode, setPoolFilter] = useUiStore((state) => [state.setLendingMode, state.setPoolFilter]);
+  const [poolFilter, setLendingMode, setPoolFilter, setIsFilteredUserPositions] = useUiStore((state) => [
+    state.poolFilter,
+    state.setLendingMode,
+    state.setPoolFilter,
+    state.setIsFilteredUserPositions,
+  ]);
 
   const assetTicker = React.useMemo(() => "$" + asset.toUpperCase(), [asset]);
 
@@ -28,24 +33,24 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
     assetRows.forEach((row) => row.classList.add("opacity-30", "hover:bg-[#171C1F]"));
     assetRow.scrollIntoView({ behavior: "smooth", block: "center" });
     assetRow.classList.remove("opacity-30");
-    assetRow.classList.add("duration-500", "opacity-100");
+    assetRow.classList.add("animate-pulse");
 
     setTimeout(() => {
-      assetRow.classList.remove("duration-150");
-    }, 1000);
-
-    setTimeout(() => {
-      assetRows.forEach((row) => row.classList.remove("opacity-30", "opacity-100", "hover:bg-[#171C1F]"));
-    }, 3000);
+      assetRows.forEach((row) => row.classList.remove("opacity-30", "animate-pulse", "hover:bg-[#171C1F]"));
+    }, 2500);
   }, [asset]);
 
   const deposit = React.useCallback(() => {
     setLendingMode(LendingModes.LEND);
+    if (poolFilter === PoolTypes.GLOBAL) setPoolFilter(PoolTypes.ALL);
+    setIsFilteredUserPositions(false);
     setTimeout(() => highlightAsset(), 100);
   }, [setLendingMode, setPoolFilter, asset]);
 
   const borrow = React.useCallback(() => {
     setLendingMode(LendingModes.BORROW);
+    if (poolFilter === PoolTypes.GLOBAL) setPoolFilter(PoolTypes.ALL);
+    setIsFilteredUserPositions(false);
     setTimeout(() => highlightAsset(), 100);
   }, [setLendingMode, setPoolFilter, asset]);
 
