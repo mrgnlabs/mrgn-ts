@@ -9,6 +9,7 @@ import { PrimaryButton } from "~/components/Common";
 
 import { SwapFormCard } from "./SwapFormCard";
 import { FormHeader } from "./FormHeader";
+import { PriceInfo } from "../PriceInfo";
 
 export const SwapForm: React.FC<{
   onSubmit: () => void;
@@ -23,12 +24,13 @@ export const SwapForm: React.FC<{
     errors,
     fromTokenInfo,
     toTokenInfo,
-    selectedSwapRoute,
+    quoteReponseMeta,
     formProps: { swapMode, fixedAmount, fixedInputMint, fixedOutputMint },
-    jupiter: { routes, loading, refresh },
+    jupiter: { quoteResponseMeta: route, loading, error, refresh },
   } = useSwapContext();
-
-  const marketRoutes = selectedSwapRoute ? selectedSwapRoute.marketInfos.map(({ label }) => label).join(", ") : "";
+  const marketRoutes = quoteReponseMeta
+    ? quoteReponseMeta.quoteResponse.routePlan.map(({ swapInfo }) => swapInfo.label).join(", ")
+    : "";
 
   const onClickSwitchPair = () => {
     setForm((prev) => ({
@@ -68,9 +70,9 @@ export const SwapForm: React.FC<{
         <View style={tw`flex justify-center items-center`}>
           <Pressable
             onPress={() => onClickSwitchPair()}
-            style={tw`border border-black/50 fill-current text-black bg-black/10 dark:text-white-35 dark:hover:text-white/50 dark:border dark:border-white-35 dark:hover:border-white/50 h-8 w-8 rounded-full flex items-center justify-center cursor-pointer`}
+            style={tw`border border-black/50 text-black bg-black/10 dark:text-white-35 dark:border dark:border-white-35 h-8 w-8 rounded-full flex items-center justify-center cursor-pointer`}
           >
-            <View style={tw`block rotate-45`}>
+            <View>
               <icons.SwitchPairIcon />
             </View>
           </Pressable>
@@ -85,13 +87,13 @@ export const SwapForm: React.FC<{
           />
         )}
       </View>
-      {routes ? (
-        <View style={tw`flex flex-row items-center mt-2 text-xs space-x-1 gap-4px`}>
+      {route?.quoteResponse ? (
+        <View style={tw`flex flex-row items-center mt-2 text-xs gap-4px`}>
           <Pressable
-            style={tw`bg-black/20 rounded-xl px-2 py-1 cursor-pointer text-white/50 flex flex-row items-center space-x-1 gap-2px`}
+            style={tw`bg-black/20 rounded-xl px-2 py-1 cursor-pointer text-white/50 flex flex-row items-center gap-2px`}
             onPress={() => setShowRouteSelector(true)}
           >
-            <Text style={tw`text-secondary`}>{routes?.length}</Text>
+            <Text style={tw`text-secondary`}>{marketRoutes?.length}</Text>
             <icons.RoutesSVG width={7} height={9} />
           </Pressable>
           <Text style={tw`text-secondary`}>using</Text>
@@ -111,6 +113,17 @@ export const SwapForm: React.FC<{
           }}
         />
       </View>
+
+      {route && quoteReponseMeta && fromTokenInfo && toTokenInfo ? (
+        <PriceInfo
+          quoteResponse={quoteReponseMeta.quoteResponse}
+          fromTokenInfo={fromTokenInfo}
+          toTokenInfo={toTokenInfo}
+          loading={loading}
+        />
+      ) : (
+        <></>
+      )}
     </View>
   );
 };

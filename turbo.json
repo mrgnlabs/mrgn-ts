@@ -5,13 +5,8 @@
       "cache": false
     },
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**"]
     },
     "lint": {
       "outputs": []
@@ -60,6 +55,10 @@
     "NEXT_PUBLIC_POLYGON_ENDPOINT",
     "NEXT_PUBLIC_AVALANCE_ENDPOINT",
     "NEXT_PUBLIC_ARBITRUM_ENDPOINT",
-    "SENTRY_DSN"
+    "SENTRY_DSN",
+    "NEXT_PUBLIC_BIRDEYE_API_KEY",
+    "NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID",
+    "NEXT_PUBLIC_MOONPAY_API_KEY",
+    "MOONPAY_SECRET_KEY"
   ]
 }

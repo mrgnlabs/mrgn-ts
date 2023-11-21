@@ -2,6 +2,7 @@ import MarginfiClient from "./client";
 
 export * from "./config";
 export * from "./client";
+export * from "./errors";
 export * from "./instructions";
 export * from "./constants";
 export * from "./models/bank";

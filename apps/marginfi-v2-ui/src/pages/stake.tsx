@@ -1,17 +1,19 @@
-import { JupiterProvider } from "@jup-ag/react-hook";
-import { createJupiterStore } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Typography } from "@mui/material";
-import { useConnection } from "@solana/wallet-adapter-react";
+import React from "react";
+
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import { OverlaySpinner } from "~/components/OverlaySpinner";
-import { PageHeader } from "~/components/PageHeader";
-import { StakingStats } from "~/components/Staking";
-import { StakingCard } from "~/components/Staking/StakingCard/StakingCard";
-import { useWalletContext } from "~/components/useWalletContext";
+
+import { JupiterProvider } from "@jup-ag/react-hook";
+
+import { createJupiterStore } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { Desktop } from "~/mediaQueries";
+import { usePrevious, Features, isActive } from "~/utils";
 import { createLstStore } from "~/store/lstStore";
-import { usePrevious } from "~/utils";
-import { Features, isActive } from "~/utils/featureGates";
+import { useConnection } from "~/hooks/useConnection";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { StakingCard, StakingStats } from "~/components/common/Staking";
+import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
+import { PageHeader } from "~/components/common/PageHeader";
 
 export const useLstStore = createLstStore();
 export const useJupiterStore = createJupiterStore();
@@ -19,11 +21,11 @@ export const useJupiterStore = createJupiterStore();
 const StakePage = () => {
   const { wallet, walletAddress } = useWalletContext();
   const { connection } = useConnection();
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = React.useState(false);
 
   const router = useRouter();
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (router.pathname.startsWith("/stake") && !isActive(Features.STAKE)) {
       router.push("/");
     } else {
@@ -41,7 +43,7 @@ const StakePage = () => {
       state.resetUserData,
     ]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setIsRefreshingStore(true);
     fetchLstState({ connection, wallet }).catch(console.error);
     const id = setInterval(() => {
@@ -54,13 +56,13 @@ const StakePage = () => {
   // TODO: fix...
 
   const prevWalletAddress = usePrevious(walletAddress);
-  useEffect(() => {
+  React.useEffect(() => {
     if (!prevWalletAddress && walletAddress) {
       resetUserData();
     }
   }, [walletAddress, prevWalletAddress, resetUserData]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!walletAddress && userDataFetched) {
       resetUserData();
     }
@@ -69,30 +71,37 @@ const StakePage = () => {
   if (!mounted) return null;
 
   return (
-    <JupiterProvider connection={connection} wrapUnwrapSOL={false}>
+    <JupiterProvider connection={connection} wrapUnwrapSOL={false} platformFeeAndAccounts={undefined}>
       <PageHeader>stake</PageHeader>
-      <div className="flex flex-col h-full max-w-[480px] w-full justify-center content-center pt-[64px] sm:pt-[16px] gap-4 px-4">
-        <StakingStats />
-        <StakingCard />
-        <div className="flex flex-col mt-10 pb-[64px] gap-5 justify-center font-aeonik">
-          <Typography className="text-center w-full text-xl">
-            <span className="font-bold text-[#DCE85D]">$LST</span>, by mrgn
-          </Typography>
-          <Typography className="text-center w-full text-xl">
-            Introducing the best way to get exposure to SOL. <span className="font-bold text-[#DCE85D]">$LST</span> is
-            built on mrgn&apos;s validator network and Jito&apos;s MEV rewards. For the first time,{" "}
-            <span className="font-bold text-[#DCE85D]">$LST</span> holders can get the best staking yield available on
-            Solana, combined with the biggest MEV rewards from Solana&apos;s trader network.
-          </Typography>
-          <Typography className="text-center w-full text-xl">
-            <span className="font-bold text-[#DCE85D]">$LST</span> has 0% commission. The yield goes to you. Stop paying
-            middlemen. Stop using underperforming validators. Stop missing out on MEV rewards.
-          </Typography>
-        </div>
-      </div>
-      <OverlaySpinner fetching={!initialized || isRefreshingStore} />
+      <StakingContent />
+      <Desktop>
+        <OverlaySpinner fetching={!initialized || isRefreshingStore} />
+      </Desktop>
     </JupiterProvider>
   );
 };
+
+const StakingContent = () => (
+  <div className="flex flex-col max-w-[640px] h-full w-full justify-center items-center pt-10 pb-32 lg:pb-16 px-4">
+    <div className="space-y-6 text-center mb-4">
+      <h1 className="font-bold text-3xl">LST — mrgn&apos;s Liquid Staking Token.</h1>
+      <p>The highest natural yield available from any LST on Solana. By a lot.</p>
+      <div className="text-[#DCE85D] space-y-2 font-bold">
+        <p>LST is the only 8% yielding LST.</p>
+        <p>LST is the only 0% commission LST.</p>
+        <p>LST is the only 0 fee LST.</p>
+      </div>
+    </div>
+    <div className="max-w-[480px] w-full space-y-4">
+      <StakingStats />
+      <StakingCard />
+    </div>
+    <p className="text-white/75 mt-8 text-center">
+      Using mrgn&apos;s sophisticated validator set, you pay no fees, earn more yield, and get more utility out of your
+      staked SOL than anywhere else. Maximum liquidity with Sanctum, maximum utility with marginfi, maximum flexibility
+      with Solana DeFi.
+    </p>
+  </div>
+);
 
 export default StakePage;

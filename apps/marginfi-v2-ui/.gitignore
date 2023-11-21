@@ -42,3 +42,9 @@ next-env.d.ts
 
 # Sentry Auth Token
 .sentryclirc
+
+# PWA
+public/sw.js
+public/workbox-*.js
+public/sw.js.map
+public/workbox-*.js.map

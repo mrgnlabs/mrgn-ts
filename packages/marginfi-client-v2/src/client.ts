@@ -7,6 +7,7 @@ import {
   Connection,
   Keypair,
   PublicKey,
+  SendTransactionError,
   Signer,
   Transaction,
   TransactionMessage,
@@ -30,6 +31,7 @@ import {
 import { MarginfiGroup } from "./models/group";
 import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, OraclePrice, ADDRESS_LOOKUP_TABLE_FOR_GROUP } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
+import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLogs } from "./errors";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
@@ -358,15 +360,14 @@ class MarginfiClient {
    *
    * @returns transaction instruction
    */
-  async makeCreateMarginfiAccountIx(marginfiAccountKeypair?: Keypair): Promise<InstructionsWrapper> {
+  async makeCreateMarginfiAccountIx(marginfiAccountPk: PublicKey): Promise<InstructionsWrapper> {
     const dbg = require("debug")("mfi:client");
-    const accountKeypair = marginfiAccountKeypair || Keypair.generate();
 
-    dbg("Generating marginfi account ix for %s", accountKeypair.publicKey);
+    dbg("Generating marginfi account ix for %s", marginfiAccountPk);
 
     const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
       marginfiGroupPk: this.groupAddress,
-      marginfiAccountPk: accountKeypair.publicKey,
+      marginfiAccountPk,
       authorityPk: this.provider.wallet.publicKey,
       feePayerPk: this.provider.wallet.publicKey,
     });
@@ -375,7 +376,7 @@ class MarginfiClient {
 
     return {
       instructions: ixs,
-      keys: [accountKeypair],
+      keys: [],
     };
   }
 
@@ -384,26 +385,39 @@ class MarginfiClient {
    *
    * @returns MarginfiAccount instance
    */
-  async createMarginfiAccount(opts?: TransactionOptions): Promise<MarginfiAccountWrapper> {
+  async createMarginfiAccount(
+    opts?: TransactionOptions,
+    createOpts?: { newAccountKey?: PublicKey | undefined }
+  ): Promise<MarginfiAccountWrapper> {
     const dbg = require("debug")("mfi:client");
 
     const accountKeypair = Keypair.generate();
+    const newAccountKey = createOpts?.newAccountKey ?? accountKeypair.publicKey;
 
-    const ixs = await this.makeCreateMarginfiAccountIx(accountKeypair);
+    const ixs = await this.makeCreateMarginfiAccountIx(newAccountKey);
+    const signers = [...ixs.keys];
+    // If there was no newAccountKey provided, we need to sign with the ephemeraKeypair we generated.
+    if (!createOpts?.newAccountKey) signers.push(accountKeypair);
+
     const tx = new Transaction().add(...ixs.instructions);
-    const sig = await this.processTransaction(tx, ixs.keys, opts);
+    const sig = await this.processTransaction(tx, signers, opts);
 
     dbg("Created Marginfi account %s", sig);
 
     return opts?.dryRun
       ? Promise.resolve(undefined as unknown as MarginfiAccountWrapper)
-      : MarginfiAccountWrapper.fetch(accountKeypair.publicKey, this, opts?.commitment);
+      : MarginfiAccountWrapper.fetch(newAccountKey, this, opts?.commitment);
   }
 
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
 
+  /**
+   * Process a transaction, sign it and send it to the network.
+   *
+   * @throws ProcessTransactionError
+   */
   async processTransaction(
     transaction: Transaction | VersionedTransaction,
     signers?: Array<Signer>,
@@ -411,14 +425,18 @@ class MarginfiClient {
   ): Promise<TransactionSignature> {
     let signature: TransactionSignature = "";
 
-    try {
-      let versionedTransaction: VersionedTransaction;
-      const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
+    let versionedTransaction: VersionedTransaction;
+    const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
+    let minContextSlot: number;
+    let blockhash: string;
+    let lastValidBlockHeight: number;
 
-      const {
-        context: { slot: minContextSlot },
-        value: { blockhash, lastValidBlockHeight },
-      } = await connection.getLatestBlockhashAndContext();
+    try {
+      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext();
+
+      minContextSlot = getLatestBlockhashAndContext.context.slot;
+      blockhash = getLatestBlockhashAndContext.value.blockhash;
+      lastValidBlockHeight = getLatestBlockhashAndContext.value.lastValidBlockHeight;
 
       if (transaction instanceof Transaction) {
         const versionedMessage = new TransactionMessage({
@@ -433,7 +451,12 @@ class MarginfiClient {
       }
 
       if (signers) versionedTransaction.sign(signers);
+    } catch (error: any) {
+      console.log("Failed to build the transaction", error);
+      throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
+    }
 
+    try {
       if (opts?.dryRun || this.isReadOnly) {
         const response = await connection.simulateTransaction(
           versionedTransaction,
@@ -456,6 +479,9 @@ class MarginfiClient {
         const urlEscaped = `https://explorer.solana.com/tx/inspector?cluster=${this.config.cluster}&signatures=${signaturesEncoded}&message=${messageEncoded}`;
         console.log("------ Inspect 👇 ------");
         console.log(urlEscaped);
+
+        if (response.value.err)
+          throw new SendTransactionError(JSON.stringify(response.value.err), response.value.logs ?? []);
 
         return versionedTransaction.signatures[0].toString();
       } else {
@@ -486,12 +512,21 @@ class MarginfiClient {
         return signature;
       }
     } catch (error: any) {
-      if (error.logs) {
-        console.log("------ Logs 👇 ------");
-        console.log(error.logs.join("\n"));
+      if (error instanceof SendTransactionError) {
+        if (error.logs) {
+          console.log("------ Logs 👇 ------");
+          console.log(error.logs.join("\n"));
+          const errorParsed = parseErrorFromLogs(error.logs, this.config.programId);
+          console.log("Parsed:", errorParsed);
+          throw new ProcessTransactionError(
+            errorParsed?.description ?? error.message,
+            ProcessTransactionErrorType.SimulationError,
+            error.logs
+          );
+        }
       }
-
-      throw `Transaction failed! ${error?.message}`;
+      console.log(error);
+      throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.FallthroughError);
     }
   }
 }

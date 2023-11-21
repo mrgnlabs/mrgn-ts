@@ -1,14 +1,17 @@
 import React, { useCallback, useMemo } from "react";
 import { StyleSheet, View, Text, Image } from "react-native";
+
+import { ActionType, Emissions, ExtendedBankInfo, FEE_MARGIN, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+
+import { showErrorToast, showSuccessToast } from "~/utils";
 import tw from "~/styles/tailwind";
+import { useConnection } from "~/context/ConnectionContext";
+
 import { PoolCardStats } from "./PoolCardStats";
 import { PoolCardActions } from "./PoolCardActions";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { PoolCardPosition } from "./PoolCardPosition";
-import { useConnection } from "~/hooks/useConnection";
-import { ActionType, Emissions, ExtendedBankInfo, FEE_MARGIN, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
-import { showErrorToast } from "~/utils";
-import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 type Props = {
   bankInfo: ExtendedBankInfo;
@@ -52,7 +55,7 @@ export function PoolCard({
     [bankInfo]
   );
 
-  const connection = useConnection();
+  const { connection } = useConnection();
 
   const borrowOrLend = useCallback(
     async (amount: string) => {
@@ -85,16 +88,19 @@ export function PoolCard({
 
       // -------- Create marginfi account if needed
       try {
-        if (_marginfiAccount === null) {
+        if (_marginfiAccount === null || !_marginfiAccount) {
           if (currentAction !== ActionType.Deposit) {
             showErrorToast("An account is required for anything operation except deposit.");
             return;
           }
           // Creating account
-
           _marginfiAccount = await marginfiClient.createMarginfiAccount();
         }
       } catch (error: any) {
+        const lamportError = String(error).includes("0x1");
+        if (lamportError) {
+          showErrorToast("Not enough SOL");
+        }
         console.log(`Error while ${currentAction + "ing"}`);
         console.log(error);
         return;
@@ -102,46 +108,81 @@ export function PoolCard({
 
       // -------- Perform relevant operation
       try {
+        let signature = "";
         if (currentAction === ActionType.Deposit) {
-          await _marginfiAccount.deposit(borrowOrLendAmount, bankInfo.address);
+          signature = await _marginfiAccount.deposit(borrowOrLendAmount, bankInfo.address);
         }
 
-        if (_marginfiAccount === null) {
+        if (_marginfiAccount === null || !_marginfiAccount) {
           // noinspection ExceptionCaughtLocallyJS
           throw Error("Marginfi account not ready");
         }
 
         if (currentAction === ActionType.Borrow) {
-          await _marginfiAccount.borrow(borrowOrLendAmount, bankInfo.address);
+          signature = await _marginfiAccount.borrow(borrowOrLendAmount, bankInfo.address);
         } else if (currentAction === ActionType.Repay) {
           const repayAll = bankInfo.isActive ? borrowOrLendAmount === bankInfo.position.amount : false;
-          await _marginfiAccount.repay(borrowOrLendAmount, bankInfo.address, repayAll);
+          signature = await _marginfiAccount.repay(borrowOrLendAmount, bankInfo.address, repayAll);
         } else if (currentAction === ActionType.Withdraw) {
           const withdrawAll = bankInfo.isActive ? borrowOrLendAmount === bankInfo.position.amount : false;
-          await _marginfiAccount.withdraw(borrowOrLendAmount, bankInfo.address, withdrawAll);
+          signature = await _marginfiAccount.withdraw(borrowOrLendAmount, bankInfo.address, withdrawAll);
         }
+        showSuccessToast(`${currentAction + "ing"} ${borrowOrLendAmount} ${bankInfo.meta.tokenSymbol} 👍`);
+        const aha = await connection.confirmTransaction(signature, "confirmed");
       } catch (error: any) {
         console.log(`Error while ${currentAction + "ing"}`);
         console.log(error);
-      }
-
-      // TODO: set values back to 0
-      try {
-        await reloadBanks();
-      } catch (error: any) {
-        console.log("Error while reloading state");
-        console.log(error);
+      } finally {
+        try {
+          await reloadBanks();
+        } catch (error: any) {
+          console.log("Error while reloading state");
+          console.log(error);
+        }
       }
     },
     [bankInfo, connection, currentAction, marginfiAccount, marginfiClient, nativeSolBalance, reloadBanks]
   );
 
+  const closeBalance = useCallback(async () => {
+    if (!marginfiAccount) {
+      showErrorToast("Marginfi account not ready.");
+      return;
+    }
+
+    if (!bankInfo.isActive) {
+      showErrorToast("No position to close.");
+      return;
+    }
+
+    try {
+      if (bankInfo.position.isLending) {
+        await marginfiAccount.withdraw(0, bankInfo.address, true);
+      } else {
+        await marginfiAccount.repay(0, bankInfo.address, true);
+      }
+      showSuccessToast("Closing 👍");
+    } catch (error: any) {
+      showSuccessToast(`Error while closing balance: ${error.message}`);
+      console.log(`Error while closing balance`);
+      console.log(error);
+    }
+
+    // TODO: set values back to 0
+    try {
+      await reloadBanks();
+    } catch (error: any) {
+      console.log("Error while reloading state");
+      console.log(error);
+    }
+  }, [bankInfo, marginfiAccount, reloadBanks]);
+
   return (
-    <View style={tw`bg-[#1C2125] rounded-xl px-12px py-16px flex flex-column gap-16px `}>
+    <View style={[tw`bg-[#1C2125] rounded-xl px-12px py-16px flex flex-col gap-[16px] max-w-sm min-w-[300px] flex-1`]}>
       <View style={tw`flex flex-row justify-between`}>
         <View style={tw`flex flex-row gap-7px`}>
           <Image style={styles.logo} source={{ uri: bankInfo.meta.tokenLogoUri }} alt={bankInfo.meta.tokenSymbol} />
-          <View style={tw`flex flex-column`}>
+          <View style={tw`flex flex-col`}>
             <Text style={tw`text-primary text-base`}>{bankInfo.meta.tokenSymbol}</Text>
             <Text style={tw`text-tertiary`}>{usdFormatter.format(bankInfo.info.state.price)}</Text>
           </View>
@@ -154,7 +195,7 @@ export function PoolCard({
       </View>
       <PoolCardStats
         bank={bankInfo}
-        bankFilled={isInLendingMode ? depositFilled : borrowFilled}
+        bankFilledPercentage={isInLendingMode ? depositFilled : borrowFilled}
         nativeSolBalance={nativeSolBalance}
         isInLendingMode={isInLendingMode}
       />
@@ -163,7 +204,7 @@ export function PoolCard({
         currentAction={currentAction}
         isBankFilled={isInLendingMode ? depositFilled >= 0.9999 : borrowFilled >= 0.9999}
         bank={bankInfo}
-        onAction={(amount) => borrowOrLend(amount)}
+        onAction={(amount) => (amount ? borrowOrLend(amount) : closeBalance())}
       />
     </View>
   );

@@ -11,4 +11,5 @@ interface Window {
     removeSwapRefundListener(): void;
   };
   Jupiter: any;
+  MoonPayWebSdk: any;
 }

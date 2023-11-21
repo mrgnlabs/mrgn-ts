@@ -13,6 +13,7 @@ export type Amount = BigNumber | number | string;
 
 export type Wallet = Pick<SignerWalletAdapter, "signAllTransactions" | "signTransaction"> & {
   publicKey: PublicKey;
+  signMessage?: (message: Uint8Array) => Promise<Uint8Array>;
 };
 
 export interface TransactionOptions extends ConfirmOptions {

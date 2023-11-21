@@ -16,7 +16,7 @@ import instructions from "../../instructions";
 import { MarginfiProgram } from "../../types";
 import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
 import { Balance, BalanceRaw } from "../balance";
-import { BankMap, OraclePriceMap } from "../..";
+import { BankMap, OraclePriceMap, RiskTier } from "../..";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -234,30 +234,42 @@ class MarginfiAccount {
 
     const _volatilityFactor = opts?.volatilityFactor ?? 1;
 
-    const assetWeight = bank.getAssetWeight(MarginRequirementType.Initial);
+    const initAssetWeight = bank.getAssetWeight(MarginRequirementType.Initial);
+    const maintAssetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance);
     const balance = this.getBalance(bankAddress);
 
-    if (assetWeight.eq(0)) {
-      return balance.computeQuantityUi(bank).assets;
-    } else {
-      const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
-      const collateralForBank = bank.computeAssetUsdValue(
-        priceInfo,
-        balance.assetShares,
-        MarginRequirementType.Initial,
-        PriceBias.Lowest
-      );
-      let untiedCollateralForBank: BigNumber;
-      if (collateralForBank.lte(freeCollateral)) {
-        untiedCollateralForBank = collateralForBank;
-      } else {
-        untiedCollateralForBank = freeCollateral.times(_volatilityFactor);
-      }
+    const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
+    const collateralForBank = bank.computeAssetUsdValue(
+      priceInfo,
+      balance.assetShares,
+      MarginRequirementType.Initial,
+      PriceBias.Lowest
+    );
 
-      const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
+    const entireBalance = balance.computeQuantityUi(bank).assets;
 
-      return untiedCollateralForBank.div(priceLowestBias.times(assetWeight));
+    const { liabilities: liabilitiesInit } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Initial);
+    if (liabilitiesInit.isZero() || collateralForBank.eq(freeCollateral)) {
+      return entireBalance;
     }
+
+    let untiedCollateralForBank: BigNumber;
+    if (collateralForBank.lt(freeCollateral)) {
+      untiedCollateralForBank = collateralForBank;
+    } else {
+      untiedCollateralForBank = freeCollateral.times(_volatilityFactor);
+    }
+
+    const { liabilities: liabilitiesMaint, assets: assetsMaint } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Maintenance);
+    const maintMargin = assetsMaint.minus(liabilitiesMaint);
+
+    const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
+    const initWeightedPrice = priceLowestBias.times(initAssetWeight);
+    const maintWeightedPrice = priceLowestBias.times(maintAssetWeight);
+    
+    const maxWithdraw = initWeightedPrice.isZero() ? maintMargin.div(maintWeightedPrice) : untiedCollateralForBank.div(initWeightedPrice);
+
+    return maxWithdraw;
   }
 
   // Calculate the max amount of collateral to liquidate to bring an account maint health to 0 (assuming negative health).
@@ -508,7 +520,7 @@ class MarginfiAccount {
       ixs.push(...(await this.makeWithdrawEmissionsIx(program, banks, bankAddress)).instructions);
     }
 
-    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority);
+    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true);
     const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
       this.authority,
       userAta,

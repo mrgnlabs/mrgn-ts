@@ -1,14 +1,16 @@
-"use client";
+import React from "react";
 
-import { useState, useEffect, useCallback } from "react";
-import config from "~/config";
 import Script from "next/script";
+
 import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
-import { PageHeader } from "~/components/PageHeader";
+
+import config from "~/config";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
-import { useUserProfileStore } from "~/store";
-import { useWalletContext } from "~/components/useWalletContext";
+import { useUserProfileStore, useUiStore } from "~/store";
+import { Desktop } from "~/mediaQueries";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { PageHeader } from "~/components/common/PageHeader";
 
 const tokens = [
   "0x0000000000000000000000000000000000000000", // SOL
@@ -25,6 +27,8 @@ const tokens = [
   "DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ", // DUST
   "kinXdEcpDQeHPEuQnqmUgtYykqKGVFq6CeVX5iAHJq6", // KIN
   "hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux", // HNT
+  "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3", // PYTH
+  "SHDWyBxihqiCj6YekG2GUr7wqKLeLAMK1gHZck9pL6y", // SHDW
 ];
 
 const appIdentity = {
@@ -64,9 +68,11 @@ const configs: MayanWidgetConfigType[] = [
   },
 ];
 const BridgePage = () => {
-  const { walletAddress, walletContextState, openWalletSelector } = useWalletContext();
-  const [isBridgeIn, setIsBridgeIn] = useState<boolean>(true);
+  const { walletAddress, walletContextState } = useWalletContext();
   const setShowBadges = useUserProfileStore((state) => state.setShowBadges);
+  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
+
+  const [isBridgeIn, setIsBridgeIn] = React.useState<boolean>(true);
 
   // Enter hotkey mode
   useHotkeys(
@@ -81,19 +87,19 @@ const BridgePage = () => {
     { preventDefault: true, enableOnFormTags: true }
   );
 
-  const handleConnect = useCallback(async () => {
+  const handleConnect = React.useCallback(async () => {
     try {
       if (!walletContextState.wallet) {
-        openWalletSelector();
+        setIsWalletAuthDialogOpen(true);
       } else {
         await walletContextState.connect();
       }
     } catch (err) {
       console.error(err);
     }
-  }, [walletContextState, openWalletSelector]);
+  }, [walletContextState, setIsWalletAuthDialogOpen]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (typeof window !== "undefined" && typeof window.MayanSwap !== "undefined") {
       window.MayanSwap.updateSolanaWallet({
         signTransaction: walletContextState.signTransaction,
@@ -104,7 +110,7 @@ const BridgePage = () => {
     }
   }, [walletContextState, handleConnect, walletAddress]);
 
-  const handleLoadMayanWidget = useCallback(() => {
+  const handleLoadMayanWidget = React.useCallback(() => {
     const configIndex = isBridgeIn ? 0 : 1;
     const config = {
       ...configs[configIndex],
@@ -141,7 +147,7 @@ const BridgePage = () => {
     });
   }, [handleConnect, isBridgeIn, walletAddress, walletContextState.disconnect, walletContextState.signTransaction]);
 
-  const handleUpdateConfig = useCallback(() => {
+  const handleUpdateConfig = React.useCallback(() => {
     const newConfigIndex = isBridgeIn ? 1 : 0;
     const config = {
       ...configs[newConfigIndex],
@@ -160,36 +166,34 @@ const BridgePage = () => {
     setIsBridgeIn((prevState) => !prevState);
   }, [handleConnect, isBridgeIn, walletAddress, walletContextState]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     handleUpdateConfig;
   }, [handleUpdateConfig]);
 
   return (
     <>
       <PageHeader>
-        <div className="flex flex-row gap-1 pt-3">
+        <div className="flex flex-row gap-1">
           <span>bridge</span>
-          <div className="flex flex-row items-center gap-1">
-            <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
-            {/* Different components here by word so spacing can be the same */}
-            <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
-            <span className="text-sm h-[48px] pt-[28px] bg-mayan-gradient-colors bg-clip-text text-transparent">
-              Mayan
-            </span>
-          </div>
+          <Desktop>
+            <div className="hidden sm:block flex-row items-center gap-1">
+              <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
+              <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
+              <span className="text-sm h-[48px] pt-[28px] bg-mayan-gradient-colors bg-clip-text text-transparent ml-1">
+                Mayan
+              </span>
+            </div>
+          </Desktop>
         </div>
       </PageHeader>
-      <div className="w-full h-full flex flex-col justify-start items-center content-start py-[96px] sm:py-[32px] gap-8 w-4/5 max-w-7xl">
-        <div className="text-[#fff] text-3xl min-w-[600px] text-center">
-          Zero fees. <span className="text-[#DCE85D]">Always.</span>
-        </div>
+      <div className="w-full h-full flex flex-col justify-start items-center content-start py-[32px] gap-8">
         <Script
           src="https://cdn.mayan.finance/widget_solana-0-4-5.js"
           integrity="sha256-mTVQLKvE422WDwtZQUcz/9u5ZK3T1vMfSO0omQvla0E="
           crossOrigin="anonymous"
           onReady={handleLoadMayanWidget}
         />
-        <div className="max-h-[500px]" id="swap_widget"></div>
+        <div className="max-w-[420px] max-h-[500px]" id="swap_widget" />
       </div>
     </>
   );

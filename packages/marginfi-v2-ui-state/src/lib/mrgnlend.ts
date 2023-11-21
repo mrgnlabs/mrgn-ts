@@ -11,8 +11,10 @@ import {
   MintLayout,
   getAssociatedTokenAddressSync,
   nativeToUi,
+  uiToNative,
   unpackAccount,
   floor,
+  ceil,
   WSOL_MINT,
   TokenMetadata,
 } from "@mrgnlabs/mrgn-common";
@@ -123,11 +125,22 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
 }
 
 const BIRDEYE_API = "https://public-api.birdeye.so";
-export async function fetchBirdeyePrices(mints: PublicKey[]): Promise<BigNumber[]> {
+export async function fetchBirdeyePrices(mints: PublicKey[], apiKey?: string): Promise<BigNumber[]> {
   const mintList = mints.map((mint) => mint.toBase58()).join(",");
+
+  // use abort controller to restrict fetch to 10 seconds
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, 10000);
   const response = await fetch(`${BIRDEYE_API}/public/multi_price?list_address=${mintList}`, {
-    headers: { Accept: "application/json" },
+    headers: {
+      Accept: "application/json",
+      "X-Api-Key": process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || apiKey || "",
+    },
+    signal: controller.signal,
   });
+  clearTimeout(timeoutId);
 
   const responseBody = await response.json();
   if (responseBody.success) {
@@ -145,14 +158,24 @@ export async function fetchBirdeyePrices(mints: PublicKey[]): Promise<BigNumber[
   throw new Error("Failed to fetch price");
 }
 
-export async function fetchEmissionsPriceMap(banks: Bank[], connection: Connection): Promise<TokenPriceMap> {
+export async function fetchEmissionsPriceMap(
+  banks: Bank[],
+  connection: Connection,
+  apiKey?: string
+): Promise<TokenPriceMap> {
   const banksWithEmissions = banks.filter((bank) => !bank.emissionsMint.equals(PublicKey.default));
   const emissionsMints = banksWithEmissions.map((bank) => bank.emissionsMint);
 
-  const [birdeyePrices, mintAis] = await Promise.all([
-    fetchBirdeyePrices(emissionsMints),
-    connection.getMultipleAccountsInfo(emissionsMints),
-  ]);
+  let birdeyePrices = emissionsMints.map((m) => new BigNumber(0));
+
+  try {
+    birdeyePrices = await fetchBirdeyePrices(emissionsMints, apiKey);
+  } catch (err) {
+    console.log("Failed to fetch emissions prices from Birdeye", err);
+  }
+
+  const mintAis = await connection.getMultipleAccountsInfo(emissionsMints);
+
   const mint = mintAis.map((ai) => MintLayout.decode(ai!.data));
   const emissionsPrices = banksWithEmissions.map((bank, i) => ({
     mint: bank.emissionsMint,
@@ -222,7 +245,7 @@ function makeExtendedBankInfo(
   // Calculate user-specific info relevant regardless of whether they have an active position in this bank
   const isWrappedSol = bankInfo.mint.equals(WSOL_MINT);
 
-  const maxDeposit = floor(
+  const walletBalance = floor(
     isWrappedSol
       ? Math.max(userData.tokenAccount.balance + userData.nativeSolBalance - FEE_MARGIN, 0)
       : userData.tokenAccount.balance,
@@ -244,7 +267,7 @@ function makeExtendedBankInfo(
   if (!positionRaw) {
     const userInfo = {
       tokenAccount: userData.tokenAccount,
-      maxDeposit,
+      maxDeposit: walletBalance,
       maxRepay: 0,
       maxWithdraw: 0,
       maxBorrow,
@@ -273,16 +296,16 @@ function makeExtendedBankInfo(
         bankInfo.mintDecimals
       )
     : 0;
-  let maxRepay: number;
-  if (isWrappedSol) {
-    maxRepay = !!position ? Math.min(position.amount, maxDeposit) : maxDeposit;
-  } else {
-    maxRepay = !!position ? Math.min(position.amount, maxDeposit) : maxDeposit;
+
+  let maxRepay = 0;
+  if (position) {
+    const debtAmount = ceil(position.amount, bankInfo.mintDecimals);
+    maxRepay = Math.min(debtAmount, walletBalance);
   }
 
   const userInfo = {
     tokenAccount: userData.tokenAccount,
-    maxDeposit,
+    maxDeposit: walletBalance,
     maxRepay,
     maxWithdraw,
     maxBorrow,
@@ -308,13 +331,20 @@ function makeLendingPosition(
   const usdValues = balance.computeUsdValue(bank, oraclePrice, MarginRequirementType.Equity);
   const weightedUSDValues = balance.getUsdValueWithPriceBias(bank, oraclePrice, MarginRequirementType.Maintenance);
   const isLending = usdValues.liabilities.isZero();
+
+  const amount = isLending
+    ? nativeToUi(amounts.assets.toNumber(), bankInfo.mintDecimals)
+    : nativeToUi(amounts.liabilities.toNumber(), bankInfo.mintDecimals);
+  const isDust = uiToNative(amount, bankInfo.mintDecimals).isZero();
+  const weightedUSDValue = isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber();
+  const usdValue = isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber();
+
   return {
-    amount: isLending
-      ? nativeToUi(amounts.assets.toNumber(), bankInfo.mintDecimals)
-      : nativeToUi(amounts.liabilities.toNumber(), bankInfo.mintDecimals),
-    usdValue: isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber(),
-    weightedUSDValue: isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber(),
+    amount,
+    usdValue,
+    weightedUSDValue,
     isLending,
+    isDust,
   };
 }
 
@@ -471,6 +501,7 @@ interface LendingPosition {
   amount: number;
   usdValue: number;
   weightedUSDValue: number;
+  isDust: boolean;
 }
 
 interface BankInfo {

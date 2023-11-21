@@ -1,19 +1,16 @@
-import { AnchorProvider } from "@coral-xyz/anchor";
 import { vendor } from "@mrgnlabs/marginfi-client-v2";
 import { ACCOUNT_SIZE, TOKEN_PROGRAM_ID, Wallet, aprToApy, uiToNative } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { create, StateCreator } from "zustand";
 import * as solanaStakePool from "@solana/spl-stake-pool";
-import { EPOCHS_PER_YEAR } from "~/utils";
+import { EPOCHS_PER_YEAR, StakeData, fetchStakeAccounts } from "~/utils";
 import { TokenInfo, TokenInfoMap, TokenListContainer } from "@solana/spl-token-registry";
 import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
 import { persist } from "zustand/middleware";
-import { StakePoolProxyProgram, getStakePoolProxyProgram } from "~/utils/stakePoolProxy";
-import { StakeData, fetchStakeAccounts } from "~/utils/stakeAcounts";
 import BN from "bn.js";
 
 const STAKEVIEW_APP_URL = "https://stakeview.app/apy/prev3.json";
-const BASELINE_VALIDATOR_ID = "FugJZepeGfh1Ruunhep19JC4F3Hr2FL3oKUMezoK8ajp";
+const BASELINE_VALIDATOR_ID = "mrgn28BhocwdAUEenen3Sw2MR9cPKDpLkDvzDdR7DBD";
 
 export const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 export const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
@@ -50,7 +47,6 @@ interface LstState {
   stakeAccounts: StakeData[];
   solUsdValue: number | null;
   slippagePct: SupportedSlippagePercent;
-  stakePoolProxyProgram: StakePoolProxyProgram | null;
 
   // Actions
   fetchLstState: (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => Promise<void>;
@@ -106,12 +102,6 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
       if (!connection) throw new Error("Connection not found");
 
       const wallet = args?.wallet || get().wallet;
-
-      const provider = new AnchorProvider(connection, wallet ?? ({} as Wallet), {
-        ...AnchorProvider.defaultOptions(),
-        commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
-      });
-      const stakePoolProxyProgram = getStakePoolProxyProgram(provider);
 
       let lstData: LstData | null = null;
       let availableLamports: BN | null = null;
@@ -196,7 +186,6 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
         tokenDataMap,
         stakeAccounts,
         solUsdValue,
-        stakePoolProxyProgram,
       });
     } catch (err) {
       console.error("error refreshing state: ", err);
@@ -237,7 +226,7 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
 
   const lstSolValue = poolTokenSupply > 0 ? totalLamports / poolTokenSupply : 1;
 
-  let projectedApy;
+  let projectedApy: number;
   if (lastTotalLamports === 0 || lastPoolTokenSupply === 0) {
     projectedApy = 0.08;
   } else {
@@ -247,11 +236,9 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
     projectedApy = aprToApy(apr, EPOCHS_PER_YEAR);
   }
 
-  if (projectedApy < 7) {
+  if (projectedApy < 0.08) {
     // temporarily use baseline validator APY waiting for a few epochs to pass
-    const baselineValidatorData = apyData.validators.find(
-      (validator: any) => validator.id === BASELINE_VALIDATOR_ID
-    );
+    const baselineValidatorData = apyData.validators.find((validator: any) => validator.id === BASELINE_VALIDATOR_ID);
     if (baselineValidatorData) projectedApy = baselineValidatorData.apy;
   }
 

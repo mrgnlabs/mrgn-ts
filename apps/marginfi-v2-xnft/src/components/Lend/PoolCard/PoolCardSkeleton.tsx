@@ -1,10 +1,11 @@
 import React from "react";
-import ContentLoader, { Rect, Circle, IContentLoaderProps } from "react-content-loader/native";
 import { View } from "react-native";
+import ContentLoader, { Rect, Circle, IContentLoaderProps } from "react-content-loader/native";
+
 import tw from "~/styles/tailwind";
 
 export const PoolCardSkeleton = (props?: JSX.IntrinsicAttributes & IContentLoaderProps) => (
-  <View style={tw`bg-[#1C2125] rounded-xl px-12px py-16px gap-16px `}>
+  <View style={tw`bg-[#1C2125] rounded-xl px-12px py-16px gap-16px max-w-sm min-w-[300px]`}>
     <ContentLoader
       speed={2}
       width={310.4}
@@ -13,6 +14,7 @@ export const PoolCardSkeleton = (props?: JSX.IntrinsicAttributes & IContentLoade
       backgroundColor="#454545"
       foregroundColor="#ecebeb"
       animate={false}
+      collapsable={"false" as any}
       {...props}
     >
       {/* token icon */}

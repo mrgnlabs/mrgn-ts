@@ -11,13 +11,24 @@ import {
   getDoc,
   getCountFromServer,
   where,
+  QueryDocumentSnapshot,
 } from "firebase/firestore";
-import { FavouriteDomain, NAME_OFFERS_ID, reverseLookupBatch } from "@bonfida/spl-name-service";
+import {
+  FavouriteDomain,
+  NAME_OFFERS_ID,
+  reverseLookupBatch,
+  reverseLookup,
+  getAllDomains,
+  getFavoriteDomain,
+} from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { firebaseApi } from ".";
 
 type LeaderboardRow = {
   id: string;
+  shortAddress?: string;
+  domain?: string;
+  doc: QueryDocumentSnapshot<DocumentData>;
   total_activity_deposit_points: number;
   total_activity_borrow_points: number;
   total_referral_deposit_points: number;
@@ -27,51 +38,61 @@ type LeaderboardRow = {
   socialPoints: number;
 };
 
-async function fetchLeaderboardData(connection?: Connection, rowCap = 100, pageSize = 50): Promise<LeaderboardRow[]> {
+async function fetchLeaderboardData({
+  connection,
+  queryCursor,
+  pageSize = 50,
+  orderCol = "total_points",
+  orderDir = "desc",
+}: {
+  connection?: Connection;
+  queryCursor?: QueryDocumentSnapshot<DocumentData>;
+  pageSize?: number;
+  orderCol?: string;
+  orderDir?: "desc" | "asc";
+}): Promise<LeaderboardRow[]> {
   const pointsCollection = collection(firebaseApi.db, "points");
 
-  const leaderboardMap = new Map();
-  let initialQueryCursor = null;
-  do {
-    let pointsQuery: Query<DocumentData>;
-    if (initialQueryCursor) {
-      pointsQuery = query(
-        pointsCollection,
-        orderBy("total_points", "desc"),
-        startAfter(initialQueryCursor),
-        limit(pageSize)
-      );
-    } else {
-      pointsQuery = query(pointsCollection, orderBy("total_points", "desc"), limit(pageSize));
-    }
+  const pointsQuery: Query<DocumentData> = query(
+    pointsCollection,
+    orderBy(orderCol, orderDir),
+    ...(queryCursor ? [startAfter(queryCursor)] : []),
+    limit(pageSize)
+  );
 
-    const querySnapshot = await getDocs(pointsQuery);
-    const leaderboardSlice = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    const leaderboardSliceFiltered = leaderboardSlice.filter(
-      (item) => item.id !== null && item.id !== undefined && item.id != "None"
-    );
-
-    for (const row of leaderboardSliceFiltered) {
-      leaderboardMap.set(row.id, row);
-    }
-
-    initialQueryCursor = querySnapshot.docs.length > 0 ? querySnapshot.docs[querySnapshot.docs.length - 1] : null;
-  } while (initialQueryCursor !== null && leaderboardMap.size < rowCap);
-
-  const leaderboardFinalSlice = [...leaderboardMap.values()].slice(0, 100);
-
-  if (connection) {
-    const publicKeys = leaderboardFinalSlice.map((value) => {
-      const [favoriteDomains] = FavouriteDomain.getKeySync(NAME_OFFERS_ID, new PublicKey(value.id));
-      return favoriteDomains;
+  const querySnapshot = await getDocs(pointsQuery);
+  const leaderboardSlice = querySnapshot.docs
+    .filter((item) => item.id !== null && item.id !== undefined && item.id != "None")
+    .map((doc) => {
+      const data = { id: doc.id, doc, ...doc.data() } as LeaderboardRow;
+      return data;
     });
-    const favoriteDomainsInfo = (await connection.getMultipleAccountsInfo(publicKeys)).map((accountInfo, idx) =>
-      accountInfo ? FavouriteDomain.deserialize(accountInfo.data).nameAccount : publicKeys[idx]
-    );
-    const reverseLookup = await reverseLookupBatch(connection, favoriteDomainsInfo);
 
-    leaderboardFinalSlice.map((value, idx) => (value.id = reverseLookup[idx] ? `${reverseLookup[idx]}.sol` : value.id));
+  const leaderboardFinalSlice: LeaderboardRow[] = [...leaderboardSlice];
+
+  if (!connection) {
+    return leaderboardFinalSlice;
   }
+
+  // batch fetch all favorite domains and update array
+  const publicKeys = leaderboardFinalSlice.map((value) => {
+    const [favoriteDomains] = FavouriteDomain.getKeySync(NAME_OFFERS_ID, new PublicKey(value.id));
+    return favoriteDomains;
+  });
+  const favoriteDomainsInfo = (await connection.getMultipleAccountsInfo(publicKeys)).map((accountInfo, idx) =>
+    accountInfo ? FavouriteDomain.deserialize(accountInfo.data).nameAccount : publicKeys[idx]
+  );
+  const reverseLookup = await reverseLookupBatch(connection, favoriteDomainsInfo);
+
+  leaderboardFinalSlice.map((value, idx) => {
+    const domain = reverseLookup[idx];
+    if (domain) {
+      value.domain = `${domain}.sol`;
+    }
+
+    return value;
+  });
+
   return leaderboardFinalSlice;
 }
 
@@ -95,7 +116,15 @@ async function fetchUserRank(userPoints: number): Promise<number> {
   const nullGreaterDocsCount = querySnapshot1.data().count;
   const allGreaterDocsCount = querySnapshot2.data().count;
 
-  return allGreaterDocsCount - nullGreaterDocsCount;
+  return allGreaterDocsCount - nullGreaterDocsCount + 1;
+}
+
+async function fetchTotalUserCount() {
+  const q1 = query(collection(firebaseApi.db, "points"));
+  const q2 = query(collection(firebaseApi.db, "points"), where("owner", "==", null));
+  const q1Count = await getCountFromServer(q1);
+  const q2Count = await getCountFromServer(q2);
+  return q1Count.data().count - q2Count.data().count;
 }
 
 interface UserPointsData {
@@ -183,6 +212,13 @@ async function getPointsSummary() {
   return pointSummary;
 }
 
-export { fetchLeaderboardData, fetchUserRank, getPointsSummary, getPointsDataForUser, DEFAULT_USER_POINTS_DATA };
+export {
+  fetchLeaderboardData,
+  fetchUserRank,
+  fetchTotalUserCount,
+  getPointsSummary,
+  getPointsDataForUser,
+  DEFAULT_USER_POINTS_DATA,
+};
 
 export type { LeaderboardRow, UserPointsData };

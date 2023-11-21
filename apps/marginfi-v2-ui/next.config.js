@@ -1,8 +1,13 @@
+const withPWA = require("next-pwa")({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+});
+
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
   enabled: process.env.ANALYZE === "true",
 });
 
-module.exports = withBundleAnalyzer({
+let config = withBundleAnalyzer({
   /**
    * Dynamic configuration available for the browser and server.
    * Note: requires `ssr: true` or a `getInitialProps` in `_app.tsx`
@@ -57,6 +62,18 @@ module.exports = withBundleAnalyzer({
       },
       {
         protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "pbs.twimg.com",
+        port: "",
+        pathname: "/profile_images/**",
+      },
+      {
+        protocol: "https",
         hostname: "arweave.net",
         port: "",
         pathname: "/**",
@@ -65,7 +82,25 @@ module.exports = withBundleAnalyzer({
         protocol: "https",
         hostname: "shdw-drive.genesysgo.net",
         port: "",
-        pathname: "/6tcnBSybPG7piEDShBcrVtYJDPSvGrDbVvXmXKpzBvWP/**",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "solblaze.org",
+        port: "",
+        pathname: "/assets/**",
+      },
+      {
+        protocol: "https",
+        hostname: "s.gravatar.com",
+        port: "",
+        pathname: "/avatar/**",
+      },
+      {
+        protocol: "https",
+        hostname: "pyth.network",
+        port: "",
+        pathname: "/**",
       },
     ],
   },
@@ -73,8 +108,8 @@ module.exports = withBundleAnalyzer({
 
 const { withSentryConfig } = require("@sentry/nextjs");
 
-module.exports = withSentryConfig(
-  module.exports,
+config = withSentryConfig(
+  config,
   {
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options
@@ -105,3 +140,5 @@ module.exports = withSentryConfig(
     disableLogger: true,
   }
 );
+
+module.exports = withPWA(config);
