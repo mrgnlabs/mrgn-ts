@@ -207,7 +207,10 @@ const AssetRow: FC<{
   ]);
 
   return (
-    <TableRow className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]">
+    <TableRow
+      data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
+      className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122] transition-all hover:bg-accent"
+    >
       <TableCell
         className={`text-white p-0 font-aeonik border-none`}
         style={{
