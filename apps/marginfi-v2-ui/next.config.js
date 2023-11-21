@@ -102,6 +102,12 @@ let config = withBundleAnalyzer({
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "static.jup.ag",
+        port: "",
+        pathname: "/jlp/**",
+      },
     ],
   },
 });
