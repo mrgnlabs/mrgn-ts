@@ -60,6 +60,14 @@ const LoginPayloadStruct = object({
 });
 type LoginPayload = Infer<typeof LoginPayloadStruct>;
 
+async function loginOrSignup(wallet: Wallet) {
+  const user = await getUser(wallet.publicKey);
+
+  if (user) {
+  } else {
+  }
+}
+
 async function login(
   wallet: Wallet,
   signingMethod: SigningMethod,
@@ -143,6 +151,10 @@ async function loginWithAuthData(signingMethod: SigningMethod, signedAuthDataRaw
   await signinFirebaseAuth(data.token);
 }
 
+/**
+ * @deprecated
+ * Will be re-added once data is sensitive
+ */
 async function signSignupMemo(wallet: Wallet, authData: SignupPayload): Promise<string> {
   if (!wallet.publicKey) {
     throw new Error("Wallet not connected!");
@@ -162,6 +174,10 @@ async function signSignupMemo(wallet: Wallet, authData: SignupPayload): Promise<
   return signedData;
 }
 
+/**
+ * @deprecated
+ * Will be re-added once data is sensitive
+ */
 async function signSignupTx(
   wallet: Wallet,
   authData: SignupPayload,
@@ -183,6 +199,10 @@ async function signSignupTx(
   return signedData;
 }
 
+/**
+ * @deprecated
+ * Will be re-added once data is sensitive
+ */
 async function signLoginMemo(wallet: Wallet, authData: LoginPayload): Promise<string> {
   if (!wallet.publicKey) {
     throw new Error("Wallet not connected!");
@@ -202,6 +222,10 @@ async function signLoginMemo(wallet: Wallet, authData: LoginPayload): Promise<st
   return signedData;
 }
 
+/**
+ * @deprecated
+ * Will be re-added once data is sensitive
+ */
 async function signLoginTx(
   wallet: Wallet,
   authData: LoginPayload,
