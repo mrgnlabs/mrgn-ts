@@ -18,6 +18,37 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
 
   const assetTicker = React.useMemo(() => "$" + asset.toUpperCase(), [asset]);
 
+  const highlightAsset = React.useCallback(() => {
+    if (!document) return;
+    const assetRows = document.querySelectorAll("[data-asset-row]");
+    const assetRow = document.querySelector(`[data-asset-row="${asset}"]`);
+    console.log(asset, assetRow);
+    if (!assetRow) return;
+
+    assetRows.forEach((row) => row.classList.add("opacity-30", "hover:bg-[#171C1F]"));
+    assetRow.scrollIntoView({ behavior: "smooth", block: "center" });
+    assetRow.classList.remove("opacity-30");
+    assetRow.classList.add("duration-500", "opacity-100");
+
+    setTimeout(() => {
+      assetRow.classList.remove("duration-150");
+    }, 1000);
+
+    setTimeout(() => {
+      assetRows.forEach((row) => row.classList.remove("opacity-30", "opacity-100", "hover:bg-[#171C1F]"));
+    }, 3000);
+  }, [asset]);
+
+  const deposit = React.useCallback(() => {
+    setLendingMode(LendingModes.LEND);
+    setTimeout(() => highlightAsset(), 100);
+  }, [setLendingMode, setPoolFilter, asset]);
+
+  const borrow = React.useCallback(() => {
+    setLendingMode(LendingModes.BORROW);
+    setTimeout(() => highlightAsset(), 100);
+  }, [setLendingMode, setPoolFilter, asset]);
+
   return (
     <div className="bg-muted text-white/80 py-4 pl-5 pr-12 rounded-sm max-w-fit relative">
       <div className="flex gap-6 items-center">
@@ -28,28 +59,12 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
           <h2 className="font-medium">{assetTicker} is now available on margnfi</h2>
           <ul className="flex items-center gap-2 justify-center">
             <li className="w-full">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={() => {
-                  setLendingMode(LendingModes.LEND);
-                  setPoolFilter(PoolTypes.ISOLATED);
-                }}
-              >
+              <Button variant="outline" size="sm" className="w-full" onClick={() => deposit()}>
                 Deposit {assetTicker}
               </Button>
             </li>
             <li className="w-full">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={() => {
-                  setLendingMode(LendingModes.BORROW);
-                  setPoolFilter(PoolTypes.ISOLATED);
-                }}
-              >
+              <Button variant="outline" size="sm" className="w-full" onClick={() => borrow()}>
                 Borrow {assetTicker}
               </Button>
             </li>
