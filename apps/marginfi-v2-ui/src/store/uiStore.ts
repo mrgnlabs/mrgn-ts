@@ -1,3 +1,4 @@
+import { PoolTypes } from "~/types";
 import { create, StateCreator } from "zustand";
 
 interface UiState {
@@ -7,6 +8,7 @@ interface UiState {
   isWalletAuthDialogOpen: boolean;
   isWalletOpen: boolean;
   isWalletOnrampActive: boolean;
+  poolFilter: PoolTypes;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -14,6 +16,7 @@ interface UiState {
   setIsWalletAuthDialogOpen: (isOpen: boolean) => void;
   setIsWalletOpen: (isOpen: boolean) => void;
   setIsOnrampActive: (isOnrampActive: boolean) => void;
+  setPoolFilter: (poolType: PoolTypes) => void;
 }
 
 function createUiStore() {
@@ -27,6 +30,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   isWalletAuthDialogOpen: false,
   isWalletOpen: false,
   isWalletOnrampActive: false,
+  poolFilter: PoolTypes.ALL,
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -34,6 +38,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setIsWalletAuthDialogOpen: (isOpen: boolean) => set({ isWalletAuthDialogOpen: isOpen }),
   setIsWalletOpen: (isOpen: boolean) => set({ isWalletOpen: isOpen }),
   setIsOnrampActive: (isOnrampActive: boolean) => set({ isWalletOnrampActive: isOnrampActive }),
+  setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
 });
 
 export { createUiStore };
