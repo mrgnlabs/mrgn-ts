@@ -8,15 +8,19 @@ import { useWalletContext } from "./useWalletContext";
 const useFirebaseAccount = () => {
   const { connected, walletAddress } = useWalletContext();
 
-  const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser, fetchPoints, resetPoints] = useUserProfileStore(
-    (state) => [
+  const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser, fetchPoints, resetPoints, hasUser] =
+    useUserProfileStore((state) => [
       state.checkForFirebaseUser,
       state.setFirebaseUser,
       state.signoutFirebaseUser,
       state.fetchPoints,
       state.resetPoints,
-    ]
-  );
+      state.hasUser,
+    ]);
+
+  useEffect(() => {
+    console.log({ hasUser });
+  }, [hasUser]);
 
   useEffect(() => {
     // NOTE: if more point-specific logic is added, move this to a separate hook
