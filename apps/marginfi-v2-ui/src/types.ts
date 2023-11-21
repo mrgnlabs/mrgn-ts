@@ -78,3 +78,9 @@ export type MayanSwapInfo = {
   toToken: string;
   fromAmount: number;
 };
+
+export enum PoolTypes {
+  ALL = "all",
+  GLOBAL = "global",
+  ISOLATED = "isolated",
+}
