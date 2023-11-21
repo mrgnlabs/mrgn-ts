@@ -4,13 +4,15 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Card, Table, TableHead, TableBody, TableContainer, TableCell, TableRow } from "@mui/material";
 import Typography from "@mui/material/Typography";
 
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { cn } from "~/utils";
 
 import { LoadingAsset, AssetRow } from "./AssetRow";
 import { LSTDialog, LSTDialogVariants, NewAssetBannerList } from "~/components/common/AssetList";
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
-import { MrgnLabeledSwitch } from "~/components/common";
+import { MrgnTooltip, MrgnLabeledSwitch, MrgnContainedSwitch } from "~/components/common";
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 
 const AssetsList: FC = () => {
   // const { selectedAccount, nativeSolBalance } = useStore();
@@ -26,6 +28,7 @@ const AssetsList: FC = () => {
     state.showBadges,
     state.setShowBadges,
   ]);
+  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [isInLendingMode, setIsInLendingMode] = useState(true);
@@ -33,6 +36,8 @@ const AssetsList: FC = () => {
   const [isLSTDialogOpen, setIsLSTDialogOpen] = useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = useState<LSTDialogVariants | null>(null);
   const [lstDialogCallback, setLSTDialogCallback] = useState<(() => void) | null>(null);
+  const [isFiltered, setIsFiltered] = useState(false);
+  const togglePositions = () => setIsFiltered((previousState) => !previousState);
 
   // Enter hotkey mode
   useHotkeys(
@@ -100,13 +105,45 @@ const AssetsList: FC = () => {
   return (
     <>
       <div className="col-span-full w-full space-y-5">
-        <div className="flex w-[150px] h-[42px]">
-          <MrgnLabeledSwitch
-            labelLeft="Lend"
-            labelRight="Borrow"
-            checked={!isInLendingMode}
-            onClick={() => setIsInLendingMode(!isInLendingMode)}
+        <div className="flex items-center justify-between">
+          <div className="flex w-[150px] h-[42px]">
+            <MrgnLabeledSwitch
+              labelLeft="Lend"
+              labelRight="Borrow"
+              checked={!isInLendingMode}
+              onClick={() => setIsInLendingMode(!isInLendingMode)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            Filter pools
+            <Select value="allpools">
+              <SelectTrigger className="w-[180px]">
+                <SelectValue defaultValue="allpools" placeholder="Select pools" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="allpools">All pools</SelectItem>
+                <SelectItem value="globalpools">Global pools</SelectItem>
+                <SelectItem value="isolatedpools">Isolated pools</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div
+          className={cn("flex items-center gap-1", !connected && "opacity-50")}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (connected) return;
+            setIsWalletAuthDialogOpen(true);
+          }}
+        >
+          <MrgnContainedSwitch
+            checked={isFiltered}
+            onChange={togglePositions}
+            inputProps={{ "aria-label": "controlled" }}
+            className={cn(!connected && "pointer-events-none")}
           />
+          <div>Filter my positions</div>
         </div>
 
         <NewAssetBannerList
