@@ -170,12 +170,16 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           return;
         }
 
-        const tokenMetadata = getValueInsensitive(tokenMetadataMap, bankMetadata.tokenSymbol);
-        if (!tokenMetadata) {
-          return;
-        }
+        try {
+          const tokenMetadata = getValueInsensitive(tokenMetadataMap, bankMetadata.tokenSymbol);
+          if (!tokenMetadata) {
+            return;
+          }
 
-        banksWithPriceAndToken.push({ bank, oraclePrice, tokenMetadata });
+          banksWithPriceAndToken.push({ bank, oraclePrice, tokenMetadata });
+        } catch (err) {
+          console.error("error fetching token metadata: ", err);
+        }
       });
 
       const [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
@@ -185,7 +189,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           let userData;
           if (wallet?.publicKey) {
             const tokenAccount = tokenAccountMap!.get(bank.mint.toBase58());
-            if (!tokenAccount) throw new Error(`Token account not found for ${bank.mint.toBase58()}`);
+            if (!tokenAccount) {
+              return acc;
+            }
             userData = {
               nativeSolBalance,
               tokenAccount,
