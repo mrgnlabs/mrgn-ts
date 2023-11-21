@@ -79,6 +79,11 @@ export type MayanSwapInfo = {
   fromAmount: number;
 };
 
+export enum LendingModes {
+  LEND = "lend",
+  BORROW = "borrow",
+}
+
 export enum PoolTypes {
   ALL = "all",
   GLOBAL = "global",

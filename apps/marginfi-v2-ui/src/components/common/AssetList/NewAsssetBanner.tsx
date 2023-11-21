@@ -1,5 +1,10 @@
+import { LendingModes, PoolTypes } from "~/types";
+
 import React from "react";
 import Image from "next/image";
+
+import { useUiStore } from "~/store";
+
 import { Button } from "~/components/ui/button";
 import { IconX } from "~/components/ui/icons";
 
@@ -9,6 +14,8 @@ type NewAssetBannerProps = {
 };
 
 export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
+  const [setLendingMode, setPoolFilter] = useUiStore((state) => [state.setLendingMode, state.setPoolFilter]);
+
   const assetTicker = React.useMemo(() => "$" + asset.toUpperCase(), [asset]);
 
   return (
@@ -21,12 +28,28 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
           <h2 className="font-medium">{assetTicker} is now available on margnfi</h2>
           <ul className="flex items-center gap-2 justify-center">
             <li className="w-full">
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  setLendingMode(LendingModes.LEND);
+                  setPoolFilter(PoolTypes.ISOLATED);
+                }}
+              >
                 Deposit {assetTicker}
               </Button>
             </li>
             <li className="w-full">
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  setLendingMode(LendingModes.BORROW);
+                  setPoolFilter(PoolTypes.ISOLATED);
+                }}
+              >
                 Borrow {assetTicker}
               </Button>
             </li>

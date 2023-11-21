@@ -1,4 +1,4 @@
-import type { PoolTypes } from "~/types";
+import { LendingModes, PoolTypes } from "~/types";
 
 import React, { FC, useEffect, useRef, useState } from "react";
 import Image from "next/image";
@@ -30,20 +30,23 @@ const AssetsList: FC = () => {
     state.showBadges,
     state.setShowBadges,
   ]);
-  const [setIsWalletAuthDialogOpen, poolFilter, setPoolFilter] = useUiStore((state) => [
-    state.setIsWalletAuthDialogOpen,
+  const [lendingMode, setLendingMode, poolFilter, setPoolFilter, setIsWalletAuthDialogOpen] = useUiStore((state) => [
+    state.lendingMode,
+    state.setLendingMode,
     state.poolFilter,
     state.setPoolFilter,
+    state.setIsWalletAuthDialogOpen,
   ]);
 
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const [isInLendingMode, setIsInLendingMode] = useState(true);
   const [isHotkeyMode, setIsHotkeyMode] = useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = useState<LSTDialogVariants | null>(null);
   const [lstDialogCallback, setLSTDialogCallback] = useState<(() => void) | null>(null);
   const [isFiltered, setIsFiltered] = useState(false);
   const togglePositions = () => setIsFiltered((previousState) => !previousState);
+
+  const isInLendingMode = React.useMemo(() => lendingMode === LendingModes.LEND, [lendingMode]);
 
   // Enter hotkey mode
   useHotkeys(
@@ -91,7 +94,7 @@ const AssetsList: FC = () => {
     "q",
     () => {
       if (isHotkeyMode) {
-        setIsInLendingMode((prevMode) => !prevMode);
+        setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND);
         setIsHotkeyMode(false);
         setShowBadges(false);
       }
@@ -116,8 +119,10 @@ const AssetsList: FC = () => {
             <MrgnLabeledSwitch
               labelLeft="Lend"
               labelRight="Borrow"
-              checked={!isInLendingMode}
-              onClick={() => setIsInLendingMode(!isInLendingMode)}
+              checked={lendingMode === LendingModes.BORROW}
+              onClick={() =>
+                setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND)
+              }
             />
           </div>
           <div className="flex items-center gap-2">
