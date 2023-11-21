@@ -20,9 +20,8 @@ import {
 const Points = () => {
   const { connected } = useWalletContext();
 
-  const [currentFirebaseUser, hasUser, userPointsData] = useUserProfileStore((state) => [
+  const [currentFirebaseUser, userPointsData] = useUserProfileStore((state) => [
     state.currentFirebaseUser,
-    state.hasUser,
     state.userPointsData,
   ]);
 
