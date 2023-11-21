@@ -1,5 +1,6 @@
-import { LendingModes, PoolTypes } from "~/types";
 import { create, StateCreator } from "zustand";
+
+import { LendingModes, PoolTypes } from "~/types";
 
 interface UiState {
   // State
@@ -8,6 +9,7 @@ interface UiState {
   isWalletAuthDialogOpen: boolean;
   isWalletOpen: boolean;
   isWalletOnrampActive: boolean;
+  isFilteredUserPositions: boolean;
   lendingMode: LendingModes;
   poolFilter: PoolTypes;
 
@@ -17,6 +19,7 @@ interface UiState {
   setIsWalletAuthDialogOpen: (isOpen: boolean) => void;
   setIsWalletOpen: (isOpen: boolean) => void;
   setIsOnrampActive: (isOnrampActive: boolean) => void;
+  setIsFilteredUserPositions: (isFilteredUserPositions: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
 }
@@ -32,6 +35,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   isWalletAuthDialogOpen: false,
   isWalletOpen: false,
   isWalletOnrampActive: false,
+  isFilteredUserPositions: false,
   lendingMode: LendingModes.LEND,
   poolFilter: PoolTypes.ALL,
 
@@ -41,6 +45,8 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setIsWalletAuthDialogOpen: (isOpen: boolean) => set({ isWalletAuthDialogOpen: isOpen }),
   setIsWalletOpen: (isOpen: boolean) => set({ isWalletOpen: isOpen }),
   setIsOnrampActive: (isOnrampActive: boolean) => set({ isWalletOnrampActive: isOnrampActive }),
+  setIsFilteredUserPositions: (isFilteredUserPositions: boolean) =>
+    set({ isFilteredUserPositions: isFilteredUserPositions }),
   setLendingMode: (lendingMode: LendingModes) => set({ lendingMode: lendingMode }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
 });
