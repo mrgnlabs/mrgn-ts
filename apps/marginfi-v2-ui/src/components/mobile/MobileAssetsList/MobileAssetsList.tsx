@@ -106,6 +106,7 @@ export const MobileAssetsList: FC = () => {
             checked={isFiltered}
             onChange={togglePositions}
             inputProps={{ "aria-label": "controlled" }}
+            className={cn(!connected && "pointer-events-none")}
           />
           <div>Filter my positions</div>
         </div>
