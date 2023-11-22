@@ -189,6 +189,7 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
   const totalPoints =
     pointsData.total_deposit_points +
     pointsData.total_borrow_points +
+    (pointsData.total_referral_deposit_points + pointsData.total_referral_borrow_points) +
     (pointsData.socialPoints ? pointsData.socialPoints : 0);
 
   const userRank = await fetchUserRank(totalPoints);
