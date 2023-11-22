@@ -10,7 +10,6 @@ import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletButton } from "~/components/common/Wallet";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
-
 interface PointsSignInProps {}
 
 export const PointsSignIn: FC<PointsSignInProps> = ({}) => {
@@ -23,10 +22,8 @@ export const PointsSignIn: FC<PointsSignInProps> = ({}) => {
       return;
     }
     toast.info("Logging in...");
-    const blockhashInfo = await connection.getLatestBlockhash();
     try {
-      await firebaseApi.login(wallet);
-      // localStorage.setItem("authData", JSON.stringify(signedAuthData));
+      await firebaseApi.login(wallet.publicKey.toBase58());
       toast.success("Logged in successfully");
     } catch (loginError: any) {
       toast.error(loginError.message);
