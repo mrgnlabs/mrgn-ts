@@ -9,7 +9,6 @@ import base58 from "bs58";
 import nacl from "tweetnacl";
 import {
   SigningMethod,
-  SignupPayload,
   STATUS_BAD_REQUEST,
   STATUS_UNAUTHORIZED,
   STATUS_INTERNAL_ERROR,
@@ -21,9 +20,7 @@ initFirebaseIfNeeded();
 
 export interface SignupRequest {
   walletAddress: string;
-  payload: SignupPayload;
-  // method: SigningMethod;
-  // signedAuthDataRaw: string;
+  payload: firebaseApi.SignupPayload;
 }
 
 export default async function handler(req: NextApiRequest<SignupRequest>, res: any) {
@@ -33,26 +30,27 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
     walletAddress,
   });
 
-  // try {
-  //   const signupData = validateAndUnpackSignupData(signedAuthDataRaw, method);
-  //   signer = signupData.signer.toBase58();
-  //   payload = signupData.payload;
-  // } catch (error: any) {
-  //   Sentry.captureException(error);
-  //   let status;
-  //   switch (error.message) {
-  //     case "Invalid signup tx":
-  //     case "Invalid signup payload":
-  //       status = STATUS_BAD_REQUEST;
-  //       break;
-  //     case "Invalid signature":
-  //       status = STATUS_UNAUTHORIZED;
-  //       break;
-  //     default:
-  //       status = STATUS_INTERNAL_ERROR;
-  //   }
-  //   return res.status(status).json({ error: error.message });
-  // }
+  /* signing logic
+   try {
+    const signupData = validateAndUnpackSignupData(signedAuthDataRaw, method);
+    signer = signupData.signer.toBase58();
+    payload = signupData.payload;
+  } catch (error: any) {
+    Sentry.captureException(error);
+    let status;
+    switch (error.message) {
+      case "Invalid signup tx":
+      case "Invalid signup payload":
+        status = STATUS_BAD_REQUEST;
+        break;
+      case "Invalid signature":
+        status = STATUS_UNAUTHORIZED;
+        break;
+      default:
+        status = STATUS_INTERNAL_ERROR;
+    }
+    return res.status(status).json({ error: error.message });
+  }*/
 
   try {
     const user = await getFirebaseUserByWallet(walletAddress);
