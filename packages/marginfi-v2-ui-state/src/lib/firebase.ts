@@ -32,14 +32,13 @@ interface UserData {
   id: string;
 }
 
-async function loginOrSignup(wallet: Wallet) {
-  const walletAddress = wallet.publicKey.toBase58();
+async function loginOrSignup(walletAddress: string, referralCode?: string) {
   const user = await getUser(walletAddress);
 
   if (user) {
-    await login(wallet);
+    await login(walletAddress);
   } else {
-    await signup(wallet);
+    await signup(walletAddress, referralCode);
   }
 }
 
@@ -71,13 +70,8 @@ const LoginPayloadStruct = object({
 });
 type LoginPayload = Infer<typeof LoginPayloadStruct>;
 
-async function login(wallet: Wallet) {
-  // const authData = { uuid: uuidv4() };
-  // const signedAuthDataRaw =
-  //   signingMethod === "tx" ? await signLoginTx(wallet, authData, blockhash) : await signLoginMemo(wallet, authData);
-  await loginWithAddress(wallet.publicKey.toBase58());
-
-  // return { signingMethod, signedAuthDataRaw };
+async function login(walletAddress: string) {
+  await loginWithAddress(walletAddress);
 }
 
 const SignupPayloadStruct = object({
@@ -86,7 +80,7 @@ const SignupPayloadStruct = object({
 });
 type SignupPayload = Infer<typeof SignupPayloadStruct>;
 
-async function signup(wallet: Wallet, referralCode?: string) {
+async function signup(walletAddress: string, referralCode?: string) {
   if (referralCode !== undefined && typeof referralCode !== "string") {
     throw new Error("Invalid referral code provided.");
   }
@@ -96,15 +90,11 @@ async function signup(wallet: Wallet, referralCode?: string) {
     uuid,
     referralCode,
   };
-  // const signedAuthDataRaw =
-  //   signingMethod === "tx" ? await signSignupTx(wallet, authData, blockhash) : await signSignupMemo(wallet, authData);
 
-  await signupWithAddress(wallet.publicKey.toBase58(), authData);
-
-  // return { signingMethod, signedAuthDataRaw };
+  await signupWithAddress(walletAddress, authData);
 }
 
-export { getUser, signup, login, SignupPayloadStruct, LoginPayloadStruct };
+export { getUser, loginOrSignup, signup, login, SignupPayloadStruct, LoginPayloadStruct };
 export type { UserData, SignupPayload };
 
 // ----------------------------------------------------------------------------
