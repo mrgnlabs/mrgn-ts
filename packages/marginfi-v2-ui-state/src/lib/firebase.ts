@@ -32,6 +32,17 @@ interface UserData {
   id: string;
 }
 
+async function loginOrSignup(wallet: Wallet) {
+  const walletAddress = wallet.publicKey.toBase58();
+  const user = await getUser(walletAddress);
+
+  if (user) {
+    await login(wallet);
+  } else {
+    await signup(wallet);
+  }
+}
+
 async function getUser(walletAddress: string): Promise<UserData | undefined> {
   const response = await fetch("/api/user/get", {
     method: "POST",
@@ -60,25 +71,13 @@ const LoginPayloadStruct = object({
 });
 type LoginPayload = Infer<typeof LoginPayloadStruct>;
 
-async function loginOrSignup(wallet: Wallet) {
-  const user = await getUser(wallet.publicKey);
+async function login(wallet: Wallet) {
+  // const authData = { uuid: uuidv4() };
+  // const signedAuthDataRaw =
+  //   signingMethod === "tx" ? await signLoginTx(wallet, authData, blockhash) : await signLoginMemo(wallet, authData);
+  await loginWithAddress(wallet.publicKey.toBase58());
 
-  if (user) {
-  } else {
-  }
-}
-
-async function login(
-  wallet: Wallet,
-  signingMethod: SigningMethod,
-  blockhash: BlockhashWithExpiryBlockHeight
-): Promise<{ signingMethod: SigningMethod; signedAuthDataRaw: string }> {
-  const authData = { uuid: uuidv4() };
-  const signedAuthDataRaw =
-    signingMethod === "tx" ? await signLoginTx(wallet, authData, blockhash) : await signLoginMemo(wallet, authData);
-  await loginWithAuthData(signingMethod, signedAuthDataRaw);
-
-  return { signingMethod, signedAuthDataRaw };
+  // return { signingMethod, signedAuthDataRaw };
 }
 
 const SignupPayloadStruct = object({
@@ -87,12 +86,7 @@ const SignupPayloadStruct = object({
 });
 type SignupPayload = Infer<typeof SignupPayloadStruct>;
 
-async function signup(
-  wallet: Wallet,
-  signingMethod: SigningMethod,
-  blockhash: BlockhashWithExpiryBlockHeight,
-  referralCode?: string
-): Promise<{ signingMethod: SigningMethod; signedAuthDataRaw: string }> {
+async function signup(wallet: Wallet, referralCode?: string) {
   if (referralCode !== undefined && typeof referralCode !== "string") {
     throw new Error("Invalid referral code provided.");
   }
@@ -102,9 +96,64 @@ async function signup(
     uuid,
     referralCode,
   };
-  const signedAuthDataRaw =
-    signingMethod === "tx" ? await signSignupTx(wallet, authData, blockhash) : await signSignupMemo(wallet, authData);
+  // const signedAuthDataRaw =
+  //   signingMethod === "tx" ? await signSignupTx(wallet, authData, blockhash) : await signSignupMemo(wallet, authData);
 
+  await signupWithAddress(wallet.publicKey.toBase58(), authData);
+
+  // return { signingMethod, signedAuthDataRaw };
+}
+
+export { getUser, signup, login, SignupPayloadStruct, LoginPayloadStruct };
+export type { UserData, SignupPayload };
+
+// ----------------------------------------------------------------------------
+// Helpers
+// ----------------------------------------------------------------------------
+
+async function signupWithAddress(walletAddress: string, payload: SignupPayload) {
+  const response = await fetch("/api/user/signup", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ walletAddress, payload }),
+  });
+  const data = await response.json();
+
+  switch (response.status) {
+    case STATUS_BAD_REQUEST:
+      throw new Error(data.error);
+    case STATUS_UNAUTHORIZED:
+    case STATUS_INTERNAL_ERROR:
+      throw new Error("Something went wrong during sign-up");
+    default: {
+    }
+  }
+
+  if (!data.token) throw new Error("Something went wrong during sign-up");
+  await signinFirebaseAuth(data.token);
+}
+
+async function loginWithAddress(walletAddress: string) {
+  const response = await fetch("/api/user/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ walletAddress }),
+  });
+  const data = await response.json();
+
+  if (!data.token) throw new Error("Something went wrong during sign-in");
+  await signinFirebaseAuth(data.token);
+}
+
+/**
+ * @deprecated
+ * Signing functionality
+ */
+async function signupWithAuthData(signingMethod: SigningMethod, signedAuthDataRaw: string) {
   const response = await fetch("/api/user/signup", {
     method: "POST",
     headers: {
@@ -126,17 +175,12 @@ async function signup(
 
   if (!data.token) throw new Error("Something went wrong during sign-up");
   await signinFirebaseAuth(data.token);
-
-  return { signingMethod, signedAuthDataRaw };
 }
 
-export { getUser, signup, login, SignupPayloadStruct, LoginPayloadStruct };
-export type { UserData, SignupPayload };
-
-// ----------------------------------------------------------------------------
-// Helpers
-// ----------------------------------------------------------------------------
-
+/**
+ * @deprecated
+ * Signing functionality
+ */
 async function loginWithAuthData(signingMethod: SigningMethod, signedAuthDataRaw: string) {
   const response = await fetch("/api/user/login", {
     method: "POST",
@@ -153,7 +197,7 @@ async function loginWithAuthData(signingMethod: SigningMethod, signedAuthDataRaw
 
 /**
  * @deprecated
- * Will be re-added once data is sensitive
+ * Signing functionality
  */
 async function signSignupMemo(wallet: Wallet, authData: SignupPayload): Promise<string> {
   if (!wallet.publicKey) {
@@ -176,7 +220,7 @@ async function signSignupMemo(wallet: Wallet, authData: SignupPayload): Promise<
 
 /**
  * @deprecated
- * Will be re-added once data is sensitive
+ * Signing functionality
  */
 async function signSignupTx(
   wallet: Wallet,
@@ -201,7 +245,7 @@ async function signSignupTx(
 
 /**
  * @deprecated
- * Will be re-added once data is sensitive
+ * Signing functionality
  */
 async function signLoginMemo(wallet: Wallet, authData: LoginPayload): Promise<string> {
   if (!wallet.publicKey) {
@@ -224,7 +268,7 @@ async function signLoginMemo(wallet: Wallet, authData: LoginPayload): Promise<st
 
 /**
  * @deprecated
- * Will be re-added once data is sensitive
+ * Signing functionality
  */
 async function signLoginTx(
   wallet: Wallet,

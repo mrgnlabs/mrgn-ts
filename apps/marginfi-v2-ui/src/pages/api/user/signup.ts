@@ -9,6 +9,7 @@ import base58 from "bs58";
 import nacl from "tweetnacl";
 import {
   SigningMethod,
+  SignupPayload,
   STATUS_BAD_REQUEST,
   STATUS_UNAUTHORIZED,
   STATUS_INTERNAL_ERROR,
@@ -19,43 +20,42 @@ import {
 initFirebaseIfNeeded();
 
 export interface SignupRequest {
-  method: SigningMethod;
-  signedAuthDataRaw: string;
+  walletAddress: string;
+  payload: SignupPayload;
+  // method: SigningMethod;
+  // signedAuthDataRaw: string;
 }
 
 export default async function handler(req: NextApiRequest<SignupRequest>, res: any) {
-  const { method, signedAuthDataRaw } = req.body;
+  const { walletAddress, payload } = req.body;
 
   Sentry.setContext("signup_args", {
-    method,
-    signedAuthDataRaw,
+    walletAddress,
   });
 
-  let signer;
-  let payload;
-  try {
-    const signupData = validateAndUnpackSignupData(signedAuthDataRaw, method);
-    signer = signupData.signer.toBase58();
-    payload = signupData.payload;
-  } catch (error: any) {
-    Sentry.captureException(error);
-    let status;
-    switch (error.message) {
-      case "Invalid signup tx":
-      case "Invalid signup payload":
-        status = STATUS_BAD_REQUEST;
-        break;
-      case "Invalid signature":
-        status = STATUS_UNAUTHORIZED;
-        break;
-      default:
-        status = STATUS_INTERNAL_ERROR;
-    }
-    return res.status(status).json({ error: error.message });
-  }
+  // try {
+  //   const signupData = validateAndUnpackSignupData(signedAuthDataRaw, method);
+  //   signer = signupData.signer.toBase58();
+  //   payload = signupData.payload;
+  // } catch (error: any) {
+  //   Sentry.captureException(error);
+  //   let status;
+  //   switch (error.message) {
+  //     case "Invalid signup tx":
+  //     case "Invalid signup payload":
+  //       status = STATUS_BAD_REQUEST;
+  //       break;
+  //     case "Invalid signature":
+  //       status = STATUS_UNAUTHORIZED;
+  //       break;
+  //     default:
+  //       status = STATUS_INTERNAL_ERROR;
+  //   }
+  //   return res.status(status).json({ error: error.message });
+  // }
 
   try {
-    const user = await getFirebaseUserByWallet(signer);
+    const user = await getFirebaseUserByWallet(walletAddress);
     if (user) {
       Sentry.captureException({ message: "User already exists" });
       return res.status(STATUS_BAD_REQUEST).json({ error: "User already exists" });
@@ -66,23 +66,27 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
   }
 
   try {
-    await createFirebaseUser(signer, payload.referralCode);
+    await createFirebaseUser(walletAddress, payload.referralCode);
     console.log("successfully created new user");
   } catch (createUserError: any) {
     Sentry.captureException(createUserError);
     return res.status(STATUS_INTERNAL_ERROR).json({ error: createUserError.message });
   }
 
-  await logSignupAttempt(signer, payload.uuid, signedAuthDataRaw, true);
+  await logSignupAttempt(walletAddress, payload.uuid, "", true);
 
   // Generate a custom token for the client to sign in
-  const customToken = await admin.auth().createCustomToken(signer);
+  const customToken = await admin.auth().createCustomToken(walletAddress);
 
-  return res.status(STATUS_OK).json({ status: "success", uid: signer, token: customToken });
+  return res.status(STATUS_OK).json({ status: "success", uid: walletAddress, token: customToken });
 }
 
 // -------- Helpers
 
+/**
+ * @deprecated
+ * Signing functionality
+ */
 export function validateAndUnpackSignupData(
   signedAuthDataRaw: string,
   signingMethod: SigningMethod
