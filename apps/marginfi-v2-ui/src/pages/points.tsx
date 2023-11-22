@@ -23,9 +23,7 @@ import {
 const Points = () => {
   const { connected } = useWalletContext();
   const { query: routerQuery } = useRouter();
-  // useUserProfileStore(() => {
-  //   state
-  // })
+
   const [currentFirebaseUser, hasUser, userPointsData] = useUserProfileStore((state) => [
     state.currentFirebaseUser,
     state.hasUser,
@@ -34,17 +32,6 @@ const Points = () => {
 
   const referralCode = React.useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
-
-  // React.useEffect(() => {
-  //   fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
-  //   const id = setInterval(() => {
-  //     setIsRefreshingStore(true);
-  //     fetchMrgnlendState().catch(console.error);
-  //   }, 30_000);
-  //   return () => clearInterval(id);
-  // }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
-  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
-  // TODO: fix...
 
   return (
     <>

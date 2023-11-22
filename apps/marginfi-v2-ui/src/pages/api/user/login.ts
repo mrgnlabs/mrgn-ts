@@ -20,13 +20,15 @@ import {
 initFirebaseIfNeeded();
 
 export interface LoginRequest {
-  method: SigningMethod;
-  signedAuthDataRaw: string;
+  walletAddress: string;
+  // method: SigningMethod;
+  // signedAuthDataRaw: string;
 }
 
 export default async function handler(req: NextApiRequest<LoginRequest>, res: any) {
-  const { method, signedAuthDataRaw } = req.body;
+  const { walletAddress } = req.body;
 
+  /* signing logic
   let signer;
   try {
     const loginData = validateAndUnpackLoginData(signedAuthDataRaw, method);
@@ -46,15 +48,17 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: an
         status = STATUS_INTERNAL_ERROR;
     }
     return res.status(status).json({ error: error.message });
-  }
+  }*/
 
   let user;
   try {
-    const userResult = await getFirebaseUserByWallet(signer);
+    const userResult = await getFirebaseUserByWallet(walletAddress);
     if (userResult === undefined) {
-      await logLoginAttempt(signer, null, signedAuthDataRaw, false);
+      await logLoginAttempt(walletAddress, null, "", false);
       Sentry.captureException({ message: "User not found" });
       return res.status(STATUS_NOT_FOUND).json({ error: "User not found" });
+    } else {
+      await logLoginAttempt(walletAddress, user.uid, "", true);
     }
     user = userResult;
   } catch (error: any) {
@@ -62,16 +66,18 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: an
     return res.status(STATUS_INTERNAL_ERROR).json({ error: error.message }); // An unexpected error occurred
   }
 
-  await logLoginAttempt(signer, user.uid, signedAuthDataRaw, true);
-
   // Generate a custom token for the client to log in
-  const customToken = await admin.auth().createCustomToken(signer);
+  const customToken = await admin.auth().createCustomToken(walletAddress);
 
-  return res.status(STATUS_OK).json({ status: "success", uid: signer, token: customToken });
+  return res.status(STATUS_OK).json({ status: "success", uid: walletAddress, token: customToken });
 }
 
 // -------- Helpers
 
+/**
+ * @deprecated
+ * Signing functionality
+ */
 export function validateAndUnpackLoginData(
   signedAuthDataRaw: string,
   signingMethod: SigningMethod
