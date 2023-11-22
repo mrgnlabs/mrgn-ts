@@ -41,7 +41,7 @@ export const PointsSignUp: FC<PointsSignUpProps> = ({ referralCode }) => {
     toast.info("Logging in...");
     const blockhashInfo = await connection.getLatestBlockhash();
     try {
-      await firebaseApi.signup(wallet, useAuthTx ? "tx" : "memo", blockhashInfo, finalReferralCode);
+      await firebaseApi.signup(wallet, finalReferralCode);
       // localStorage.setItem("authData", JSON.stringify(signedAuthData));
       toast.success("Signed up successfully");
     } catch (signupError: any) {

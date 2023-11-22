@@ -25,7 +25,7 @@ export const PointsSignIn: FC<PointsSignInProps> = ({}) => {
     toast.info("Logging in...");
     const blockhashInfo = await connection.getLatestBlockhash();
     try {
-      await firebaseApi.login(wallet, useAuthTx ? "tx" : "memo", blockhashInfo);
+      await firebaseApi.login(wallet);
       // localStorage.setItem("authData", JSON.stringify(signedAuthData));
       toast.success("Logged in successfully");
     } catch (loginError: any) {
