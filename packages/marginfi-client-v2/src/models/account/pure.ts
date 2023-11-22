@@ -239,7 +239,7 @@ class MarginfiAccount {
     const balance = this.getBalance(bankAddress);
 
     const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
-    const collateralForBank = bank.computeAssetUsdValue(
+    const initCollateralForBank = bank.computeAssetUsdValue(
       priceInfo,
       balance.assetShares,
       MarginRequirementType.Initial,
@@ -253,33 +253,62 @@ class MarginfiAccount {
       oraclePrices,
       MarginRequirementType.Initial
     );
-    if (liabilitiesInit.isZero() || collateralForBank.eq(freeCollateral)) {
+
+    // ----------------------------------------------------------------------------------------------------------------- //
+    // isolated bank (=> init weight = maint weight = 0) or collateral bank with 0-weights (does not happen in practice) //
+    // ----------------------------------------------------------------------------------------------------------------- //
+
+    if (bank.config.riskTier === RiskTier.Isolated || (initAssetWeight.isZero() && maintAssetWeight.isZero())) {
+      if (freeCollateral.isZero() && !liabilitiesInit.isZero()) {
+        // if account is already below init requirements and has active debt, prevent any withdrawal even if those don't count as collateral
+        // inefficient, but reflective of contract which does not look at action delta, but only end state atm
+        return new BigNumber(0); 
+      } else {
+        return entireBalance;
+      }
+    }
+
+    // ----------------------------- //
+    // collateral bank being retired //
+    // ----------------------------- //
+
+    if (initAssetWeight.isZero() && !maintAssetWeight.isZero()) {
+      if (freeCollateral.isZero()) {
+        return new BigNumber(0); // inefficient, but reflective of contract which does not look at action delta, but only end state
+      } else {
+        const { liabilities: maintLiabilities, assets: maintAssets } = this.computeHealthComponents(
+          banks,
+          oraclePrices,
+          MarginRequirementType.Maintenance
+        );
+        const maintUntiedCollateral = maintAssets.minus(maintLiabilities);
+
+        const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
+        const maintWeightedPrice = priceLowestBias.times(maintAssetWeight);
+
+        return maintUntiedCollateral.div(maintWeightedPrice);
+      }
+    }
+
+    // ------------------------------------- //
+    // collateral bank with positive weights //
+    // ------------------------------------- //
+    console.log("here")
+    // bypass volatility factor if no liabilities or if all collateral is untied
+    if (liabilitiesInit.isZero() || initCollateralForBank.lte(freeCollateral)) {
+      console.log("aqui")
       return entireBalance;
     }
 
-    let untiedCollateralForBank: BigNumber;
-    if (collateralForBank.lt(freeCollateral)) {
-      untiedCollateralForBank = collateralForBank;
-    } else {
-      untiedCollateralForBank = freeCollateral.times(_volatilityFactor);
-    }
-
-    const { liabilities: liabilitiesMaint, assets: assetsMaint } = this.computeHealthComponents(
-      banks,
-      oraclePrices,
-      MarginRequirementType.Maintenance
-    );
-    const maintMargin = assetsMaint.minus(liabilitiesMaint);
-
+    // apply volatility factor to avoid failure due to price volatility / slippage
+    const initUntiedCollateralForBank = freeCollateral.times(_volatilityFactor);
+    console.log("initUntiedCollateralForBank", initUntiedCollateralForBank.toFixed(6))
     const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
+    console.log("priceLowestBias", priceLowestBias.toFixed(6))
     const initWeightedPrice = priceLowestBias.times(initAssetWeight);
-    const maintWeightedPrice = priceLowestBias.times(maintAssetWeight);
-
-    const maxWithdraw = initWeightedPrice.isZero()
-      ? maintWeightedPrice.isZero()
-        ? entireBalance
-        : maintMargin.div(maintWeightedPrice)
-      : untiedCollateralForBank.div(initWeightedPrice);
+    console.log("initWeightedPrice", initWeightedPrice.toFixed(6))
+    const maxWithdraw = initUntiedCollateralForBank.div(initWeightedPrice);
+    console.log("maxWithdraw", maxWithdraw.toFixed(6))
 
     return maxWithdraw;
   }
