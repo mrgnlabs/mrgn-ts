@@ -132,7 +132,7 @@ export async function fetchBirdeyePrices(mints: PublicKey[], apiKey?: string): P
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-  }, 10000);
+  }, 5000);
   const response = await fetch(`${BIRDEYE_API}/public/multi_price?list_address=${mintList}`, {
     headers: {
       Accept: "application/json",
