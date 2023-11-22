@@ -6,7 +6,9 @@ import {
   loadTokenMetadatas,
   BankMetadataMap,
   TokenMetadataMap,
+  TokenMetadata,
 } from "@mrgnlabs/mrgn-common";
+import { Bank, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { Connection, PublicKey } from "@solana/web3.js";
 import {
   DEFAULT_ACCOUNT_SUMMARY,
@@ -151,17 +153,33 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         userDataFetched = true;
       }
 
-      const banksWithPriceAndToken = banks.map((bank) => {
+      const banksWithPriceAndToken: {
+        bank: Bank;
+        oraclePrice: OraclePrice;
+        tokenMetadata: TokenMetadata;
+      }[] = [];
+
+      banks.forEach((bank) => {
         const oraclePrice = marginfiClient.getOraclePriceByBank(bank.address);
-        if (!oraclePrice) throw new Error(`Price info not found for bank ${bank.address.toBase58()}`);
+        if (!oraclePrice) {
+          return;
+        }
 
         const bankMetadata = bankMetadataMap[bank.address.toBase58()];
-        if (bankMetadata === undefined) throw new Error(`Bank metadata not found for ${bank.address.toBase58()}`);
+        if (bankMetadata === undefined) {
+          return;
+        }
 
-        const tokenMetadata = getValueInsensitive(tokenMetadataMap, bankMetadata.tokenSymbol);
-        if (!tokenMetadata) throw new Error(`Token metadata not found for ${bankMetadata.tokenSymbol}`);
+        try {
+          const tokenMetadata = getValueInsensitive(tokenMetadataMap, bankMetadata.tokenSymbol);
+          if (!tokenMetadata) {
+            return;
+          }
 
-        return { bank, oraclePrice, tokenMetadata };
+          banksWithPriceAndToken.push({ bank, oraclePrice, tokenMetadata });
+        } catch (err) {
+          console.error("error fetching token metadata: ", err);
+        }
       });
 
       const [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
@@ -171,7 +189,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           let userData;
           if (wallet?.publicKey) {
             const tokenAccount = tokenAccountMap!.get(bank.mint.toBase58());
-            if (!tokenAccount) throw new Error(`Token account not found for ${bank.mint.toBase58()}`);
+            if (!tokenAccount) {
+              return acc;
+            }
             userData = {
               nativeSolBalance,
               tokenAccount,
