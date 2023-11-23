@@ -81,12 +81,16 @@ class MarginfiAccount {
   computeHealthComponents(
     banks: Map<string, Bank>,
     oraclePrices: Map<string, OraclePrice>,
-    marginReqType: MarginRequirementType
+    marginReqType: MarginRequirementType,
+    excludedBanks: PublicKey[] = []
   ): {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    const [assets, liabilities] = this.activeBalances
+    const filteredBalances = this.activeBalances.filter(
+      (accountBalance) => !excludedBanks.find(b => b.equals(accountBalance.bankPk))
+    );
+    const [assets, liabilities] = filteredBalances
       .map((accountBalance) => {
         const bank = banks.get(accountBalance.bankPk.toBase58());
         if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
@@ -307,6 +311,42 @@ class MarginfiAccount {
     const maxWithdraw = initUntiedCollateralForBank.div(initWeightedPrice);
 
     return maxWithdraw;
+  }
+
+  /**
+   * Calculate the price at which the user position for the given bank will lead to liquidation, all other prices constant.
+   */
+  public computeLiquidationPriceForBank(
+    banks: Map<string, Bank>,
+    oraclePrices: Map<string, OraclePrice>,
+    bankAddress: PublicKey,
+  ): number | null {
+    const bank = banks.get(bankAddress.toBase58());
+    if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+    const priceInfo = oraclePrices.get(bankAddress.toBase58());
+    if (!priceInfo) throw Error(`Price info for ${bankAddress.toBase58()} not found`);
+
+    const balance = this.getBalance(bankAddress);
+
+    if (!balance.active) return null;
+
+    const isLending = balance.liabilityShares.isZero();
+    const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Maintenance, [bankAddress]);
+    const { assets: assetQuantityUi, liabilities: liabQuantitiesUi } = balance.computeQuantityUi(bank);
+
+    if (isLending) {
+      if (liabilities.eq(0)) return null;
+
+      const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance);
+      const priceConfidence = bank.getPrice(priceInfo, PriceBias.None).minus(bank.getPrice(priceInfo, PriceBias.Lowest));
+      const liquidationPrice = liabilities.minus(assets).div(assetQuantityUi.times(assetWeight)).plus(priceConfidence);
+      return liquidationPrice.toNumber();
+    } else {
+      const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
+      const priceConfidence = bank.getPrice(priceInfo, PriceBias.Highest).minus(bank.getPrice(priceInfo, PriceBias.None));
+      const liquidationPrice = assets.minus(liabilities).div(liabQuantitiesUi.times(liabWeight)).minus(priceConfidence);
+      return liquidationPrice.toNumber();
+    }
   }
 
   // Calculate the max amount of collateral to liquidate to bring an account maint health to 0 (assuming negative health).

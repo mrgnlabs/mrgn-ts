@@ -160,6 +160,12 @@ class MarginfiAccountWrapper {
     );
   }
 
+  public computeLiquidationPriceForBank(
+    bankAddress: PublicKey,
+  ): number | null {
+    return this._marginfiAccount.computeLiquidationPriceForBank(this.client.banks, this.client.oraclePrices, bankAddress);
+  }
+
   public computeNetApy(): number {
     return this._marginfiAccount.computeNetApy(this.client.banks, this.client.oraclePrices);
   }
