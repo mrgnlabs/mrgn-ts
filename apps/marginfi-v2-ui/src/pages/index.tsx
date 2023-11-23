@@ -1,16 +1,22 @@
-import React, { useState } from "react";
+import React from "react";
+
 import dynamic from "next/dynamic";
+
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+
 import config from "~/config/marginfi";
+import { Desktop, Mobile } from "~/mediaQueries";
 import { useMrgnlendStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
+
 import { Banner } from "~/components/desktop/Banner";
-import { PageHeader } from "~/components/common/PageHeader";
 import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
-import { Desktop, Mobile } from "~/mediaQueries";
-import { IconAlertTriangleFilled, IconChevronRight } from "@tabler/icons-react";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { PageHeader } from "~/components/common/PageHeader";
+
+import { IconAlertTriangle } from "~/components/ui/icons";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 
 const DesktopAccountSummary = dynamic(
   async () => (await import("~/components/desktop/DesktopAccountSummary")).DesktopAccountSummary,
@@ -95,6 +101,8 @@ const Home = () => {
               selectedAccount={selectedAccount}
               marginfiAccounts={marginfiAccounts}
               fetchMrgnlendState={fetchMrgnlendState}
+              isRefreshing={isRefreshingStore}
+              setIsRefreshing={setIsRefreshingStore}
             />
           )}
           <DesktopAccountSummary />
@@ -122,44 +130,53 @@ const MultipleAccountsBanner = ({
   selectedAccount,
   marginfiAccounts,
   fetchMrgnlendState,
+  isRefreshing,
+  setIsRefreshing,
 }: {
   selectedAccount: MarginfiAccountWrapper;
   marginfiAccounts: MarginfiAccountWrapper[];
   fetchMrgnlendState: any;
+  isRefreshing: boolean;
+  setIsRefreshing: (isRefreshingStore: boolean) => void;
 }) => {
-  const [expanded, setExpanded] = useState(false);
+  const shortAddress = React.useMemo(
+    () => shortenAddress(selectedAccount.address.toBase58()),
+    [selectedAccount.address]
+  );
+
   return (
-    <div className="bg-muted text-white/80 py-4 pl-5 pr-12 rounded-sm w-full relative flex flex-row hover:bg-muted/80">
+    <div className="bg-muted text-white/80 py-4 px-5 rounded-sm w-full flex">
       <div className="w-full flex flex-col gap-2">
-        <div
-          className="w-full flex flex-row cursor-pointer items-center"
-          onClick={() => setExpanded((current) => !current)}
-        >
-          <IconAlertTriangleFilled className="text-[#FF0]/80" size={16} />
-          <div className="flex gap-6 items-center">
-            <div className="mr-auto flex items-start"></div>
-            <div className="space-y-2.5">
-              <h2 className="font-medium">Multiple accounts were found (support coming soon).</h2>
-            </div>
-          </div>
+        <div className="w-full flex gap-2 items-center">
+          <IconAlertTriangle className="text-[#FF0]/80" size={16} />
+          <h2 className="font-medium">
+            Multiple accounts found <span className="font-light text-sm ml-1">(support coming soon)</span>
+          </h2>
         </div>
-        {expanded && (
-          <div className="pl-5">
-            {marginfiAccounts.map((account, index) => (
-              <div
-                key={index}
-                className="flex flex-row items-center gap-2 cursor-pointer"
-                onClick={() => {
-                  localStorage.setItem("mfiAccount", account.address.toBase58());
-                  fetchMrgnlendState();
-                }}
-              >
-                <div className="w-4">{selectedAccount.address.equals(account.address) && <IconChevronRight />}</div>{" "}
-                {account.address.toBase58()}
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-normal">Select account:</p>
+          <Select
+            value={selectedAccount.address.toBase58()}
+            disabled={isRefreshing}
+            onValueChange={(value) => {
+              setIsRefreshing(true);
+              localStorage.setItem("mfiAccount", value);
+              fetchMrgnlendState();
+            }}
+          >
+            <SelectTrigger className="w-[180px]">{isRefreshing ? "Loading..." : shortAddress}</SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Accounts</SelectLabel>
+                {marginfiAccounts.map((account, index) => (
+                  <SelectItem key={index} value={account.address.toBase58()}>
+                    {account.address.toBase58()}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   );
