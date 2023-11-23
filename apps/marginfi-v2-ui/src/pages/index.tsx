@@ -116,6 +116,15 @@ const Home = () => {
 
       <Mobile>
         <PageHeader>lend</PageHeader>
+        {walletAddress && selectedAccount && marginfiAccounts.length > 1 && (
+          <MultipleAccountsBanner
+            selectedAccount={selectedAccount}
+            marginfiAccounts={marginfiAccounts}
+            fetchMrgnlendState={fetchMrgnlendState}
+            isRefreshing={isRefreshingStore}
+            setIsRefreshing={setIsRefreshingStore}
+          />
+        )}
         <div className="flex flex-col w-full h-full justify-start content-start pt-4 px-4 gap-4 mb-20">
           <MobileAssetsList />
         </div>
@@ -165,11 +174,11 @@ const MultipleAccountsBanner = ({
             }}
           >
             <SelectTrigger className="w-[180px]">{isRefreshing ? "Loading..." : shortAddress}</SelectTrigger>
-            <SelectContent>
+            <SelectContent className="w-full">
               <SelectGroup>
                 <SelectLabel>Accounts</SelectLabel>
                 {marginfiAccounts.map((account, index) => (
-                  <SelectItem key={index} value={account.address.toBase58()}>
+                  <SelectItem key={index} value={account.address.toBase58()} className="!text-xs">
                     {account.address.toBase58()}
                   </SelectItem>
                 ))}
