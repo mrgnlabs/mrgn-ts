@@ -283,19 +283,18 @@ function makeExtendedBankInfo(
   }
 
   // Calculate user-specific info relevant to their active position in this bank
-  const position = makeLendingPosition(positionRaw, bank, bankInfo, oraclePrice);
 
-  const maxWithdraw = userData.marginfiAccount
-    ? floor(
-        Math.min(
-          userData.marginfiAccount
-            .computeMaxWithdrawForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR })
-            .toNumber(),
-          bankInfo.availableLiquidity
-        ),
-        bankInfo.mintDecimals
-      )
-    : 0;
+  const marginfiAccount = userData.marginfiAccount as MarginfiAccountWrapper;
+
+  const position = makeLendingPosition(positionRaw, bank, bankInfo, oraclePrice, marginfiAccount);
+
+  const maxWithdraw = floor(
+    Math.min(
+      marginfiAccount.computeMaxWithdrawForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR }).toNumber(),
+      bankInfo.availableLiquidity
+    ),
+    bankInfo.mintDecimals
+  );
 
   let maxRepay = 0;
   if (position) {
@@ -325,7 +324,8 @@ function makeLendingPosition(
   balance: Balance,
   bank: Bank,
   bankInfo: BankState,
-  oraclePrice: OraclePrice
+  oraclePrice: OraclePrice,
+  marginfiAccount: MarginfiAccountWrapper
 ): LendingPosition {
   const amounts = balance.computeQuantity(bank);
   const usdValues = balance.computeUsdValue(bank, oraclePrice, MarginRequirementType.Equity);
@@ -338,11 +338,13 @@ function makeLendingPosition(
   const isDust = uiToNative(amount, bankInfo.mintDecimals).isZero();
   const weightedUSDValue = isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber();
   const usdValue = isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber();
+  const liquidationPrice = marginfiAccount.computeLiquidationPriceForBank(bank.address);
 
   return {
     amount,
     usdValue,
     weightedUSDValue,
+    liquidationPrice,
     isLending,
     isDust,
   };
@@ -501,6 +503,7 @@ interface LendingPosition {
   amount: number;
   usdValue: number;
   weightedUSDValue: number;
+  liquidationPrice: number | null;
   isDust: boolean;
 }
 
