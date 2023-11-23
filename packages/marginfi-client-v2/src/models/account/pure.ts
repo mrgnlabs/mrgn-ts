@@ -295,10 +295,8 @@ class MarginfiAccount {
     // ------------------------------------- //
     // collateral bank with positive weights //
     // ------------------------------------- //
-    console.log("here");
     // bypass volatility factor if no liabilities or if all collateral is untied
     if (liabilitiesInit.isZero() || initCollateralForBank.lte(freeCollateral)) {
-      console.log("aqui");
       return entireBalance;
     }
 
