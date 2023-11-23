@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
@@ -44,9 +44,10 @@ const MATOMO_URL = "https://mrgn.matomo.cloud";
 const MyApp = ({ Component, pageProps }: AppProps) => {
   const router = useRouter();
   const [setIsFetchingData] = useUiStore((state) => [state.setIsFetchingData]);
-  const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore] = useMrgnlendStore((state) => [
+  const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
     state.isRefreshingStore,
+    state.fetchMrgnlendState,
   ]);
   const [isLstStoreInitialised, isRefreshingLstStore] = useLstStore((state) => [
     state.initialized,
@@ -82,12 +83,15 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   // if account set in query param then store inn local storage and remove from url
   useEffect(() => {
     const { account } = router.query;
-
     if (!account) return;
+
+    const prevMfiAccount = localStorage.getItem("mfiAccount");
+    if (prevMfiAccount === account) return;
 
     localStorage.setItem("mfiAccount", account as string);
     router.replace(router.pathname, undefined, { shallow: true });
-  }, [router.isReady]);
+    fetchMrgnlendState();
+  }, [router.query]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
