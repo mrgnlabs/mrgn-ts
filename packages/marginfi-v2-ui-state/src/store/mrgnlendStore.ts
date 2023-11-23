@@ -39,12 +39,12 @@ interface MrgnlendState {
   userDataFetched: boolean;
   isRefreshingStore: boolean;
   marginfiClient: MarginfiClient | null;
+  marginfiAccounts: MarginfiAccountWrapper[];
   bankMetadataMap: BankMetadataMap;
   tokenMetadataMap: TokenMetadataMap;
   extendedBankMetadatas: ExtendedBankMetadata[];
   extendedBankInfos: ExtendedBankInfo[];
   protocolStats: ProtocolStats;
-  marginfiAccountCount: number;
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
   accountSummary: AccountSummary;
@@ -86,6 +86,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   userDataFetched: false,
   isRefreshingStore: false,
   marginfiClient: null,
+  marginfiAccounts: [],
   bankMetadataMap: {},
   tokenMetadataMap: {},
   extendedBankMetadatas: [],
@@ -149,7 +150,27 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         nativeSolBalance = tokenData.nativeSolBalance;
         tokenAccountMap = tokenData.tokenAccountMap;
         marginfiAccounts = marginfiAccountWrappers;
-        selectedAccount = marginfiAccounts[0];
+
+        //@ts-ignore
+        const selectedAccountAddress = localStorage.getItem("mfiAccount");
+        if (!selectedAccountAddress && marginfiAccounts.length > 0) {
+          // if no account is saved, select the highest value account (first one)
+          selectedAccount = marginfiAccounts[0];
+        } else {
+          // if account is saved, select it if found, otherwise forget saved one
+          const maybeSelectedAccount = marginfiAccounts.find(
+            (account) => account.address.toBase58() === selectedAccountAddress
+          );
+
+          if (maybeSelectedAccount) {
+            selectedAccount = maybeSelectedAccount;
+          } else {
+            //@ts-ignore
+            localStorage.removeItem("mfiAccount");
+            selectedAccount = null;
+          }
+        }
+
         userDataFetched = true;
       }
 
@@ -238,6 +259,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         userDataFetched,
         isRefreshingStore: false,
         marginfiClient,
+        marginfiAccounts,
         bankMetadataMap,
         tokenMetadataMap,
         extendedBankInfos: sortedExtendedBankInfos,
@@ -248,7 +270,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           tvl: deposits - borrows,
           pointsTotal: pointSummary.points_total,
         },
-        marginfiAccountCount: marginfiAccounts.length,
         selectedAccount,
         nativeSolBalance,
         accountSummary,
