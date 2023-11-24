@@ -21,6 +21,8 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
     state.setIsFilteredUserPositions,
   ]);
 
+  const [isHidden, setIsHidden] = React.useState(true);
+
   const assetTicker = React.useMemo(() => "$" + asset.toUpperCase(), [asset]);
 
   const highlightAsset = React.useCallback(() => {
@@ -30,7 +32,7 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
     console.log(asset, assetRow);
     if (!assetRow) return;
 
-    assetRows.forEach((row) => row.classList.add("opacity-30", "hover:bg-[#171C1F]"));
+    assetRows.forEach((row) => row.classList.add("opacity-30", "hover:!bg-[#171C1F]"));
     assetRow.scrollIntoView({ behavior: "smooth", block: "center" });
     assetRow.classList.remove("opacity-30");
     assetRow.classList.add("animate-pulse");
@@ -42,17 +44,29 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
 
   const deposit = React.useCallback(() => {
     setLendingMode(LendingModes.LEND);
-    if (poolFilter === PoolTypes.GLOBAL) setPoolFilter(PoolTypes.ALL);
+    if (poolFilter === PoolTypes.ALL) setPoolFilter(PoolTypes.ALL);
     setIsFilteredUserPositions(false);
     setTimeout(() => highlightAsset(), 100);
   }, [setLendingMode, setPoolFilter, asset]);
 
   const borrow = React.useCallback(() => {
     setLendingMode(LendingModes.BORROW);
-    if (poolFilter === PoolTypes.GLOBAL) setPoolFilter(PoolTypes.ALL);
+    if (poolFilter === PoolTypes.ALL) setPoolFilter(PoolTypes.ALL);
     setIsFilteredUserPositions(false);
     setTimeout(() => highlightAsset(), 100);
   }, [setLendingMode, setPoolFilter, asset]);
+
+  const hideBanner = React.useCallback(() => {
+    setIsHidden(true);
+    localStorage.setItem("mfiHideNewAssetBanner", "true");
+  }, [setIsHidden]);
+
+  React.useEffect(() => {
+    const isHidden = localStorage.getItem("mfiHideNewAssetBanner");
+    if (!isHidden) setIsHidden(false);
+  }, []);
+
+  if (isHidden) return null;
 
   return (
     <div className="bg-muted text-white/80 py-4 pl-5 pr-12 rounded-sm max-w-fit relative">
@@ -76,7 +90,7 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
           </ul>
         </div>
       </div>
-      <button className="absolute top-3 right-3">
+      <button className="absolute top-3 right-3" onClick={hideBanner}>
         <IconX className="text-white/80" size={16} />
       </button>
     </div>
