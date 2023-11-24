@@ -9,8 +9,9 @@ import { MrgnContainedSwitch } from "~/components/common/MrgnContainedSwitch";
 import { NewAssetBanner } from "~/components/common/AssetList";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { IconFilter, IconSortAscending, IconSortDescending } from "~/components/ui/icons";
 
-import { LendingModes, PoolTypes, SortType, SortAssetOption } from "~/types";
+import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption } from "~/types";
 
 export const AssetListFilters = () => {
   const { connected } = useWalletContext();
@@ -38,8 +39,8 @@ export const AssetListFilters = () => {
 
   return (
     <div className="col-span-full w-full space-y-5">
-      <div className="flex items-center justify-between">
-        <div className="flex w-[150px] h-[42px]">
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-8">
+        <div className="flex w-[150px] h-[42px] mr-auto">
           <MrgnLabeledSwitch
             labelLeft="Lend"
             labelRight="Borrow"
@@ -47,65 +48,73 @@ export const AssetListFilters = () => {
             onClick={() => setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND)}
           />
         </div>
-        <div className="space-y-2">
-          Filter
-          <Select
-            value={poolFilter}
-            onValueChange={(value) => {
-              setPoolFilter(value as PoolTypes);
-            }}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue defaultValue="allpools" placeholder="Select pools" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All pools</SelectItem>
-              <SelectItem value="isolated">Isolated pools</SelectItem>
-            </SelectContent>
-          </Select>
+        <div
+          className={cn("flex items-center gap-1 text-sm", !connected && "opacity-50")}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (connected) return;
+            setIsWalletAuthDialogOpen(true);
+          }}
+        >
+          <MrgnContainedSwitch
+            checked={isFilteredUserPositions}
+            onChange={() => setIsFilteredUserPositions(!isFilteredUserPositions)}
+            inputProps={{ "aria-label": "controlled" }}
+            className={cn(!connected && "pointer-events-none")}
+          />
+          <div>Filter my positions</div>
         </div>
-        <div className="space-y-2">
-          Sort
-          <Select
-            value={sortOption.value}
-            onValueChange={(value) => setSortOption(SORT_OPTIONS_MAP[value as SortType])}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Order by" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.values(SORT_OPTIONS_MAP).map((option) => {
-                const opt = option as SortAssetOption;
-                return (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    <div className="flex items-center gap-2">
-                      {lendingMode === LendingModes.LEND || !opt.borrowLabel ? opt.label : opt.borrowLabel}
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col md:flex-row md:items-center gap-3">
+          <div className="space-y-2 w-full md:w-auto">
+            <Select
+              value={poolFilter}
+              onValueChange={(value) => {
+                setPoolFilter(value as PoolTypes);
+              }}
+            >
+              <SelectTrigger className="md:w-[180px]">
+                <div className="flex items-center gap-2">
+                  <IconFilter size={18} />
+                  <SelectValue defaultValue="allpools" placeholder="Select pools" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All pools</SelectItem>
+                <SelectItem value="isolated">Isolated pools</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2 w-full md:w-auto">
+            <Select
+              value={sortOption.value}
+              onValueChange={(value) => setSortOption(SORT_OPTIONS_MAP[value as SortType])}
+            >
+              <SelectTrigger className="md:w-[220px]">
+                <div className="flex items-center gap-2">
+                  {sortOption.direction === sortDirection.ASC ? (
+                    <IconSortAscending size={18} />
+                  ) : (
+                    <IconSortDescending size={18} />
+                  )}
+                  <SelectValue placeholder="Order by" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(SORT_OPTIONS_MAP).map((option) => {
+                  const opt = option as SortAssetOption;
+                  return (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      <div className="flex items-center gap-2">
+                        {lendingMode === LendingModes.LEND || !opt.borrowLabel ? opt.label : opt.borrowLabel}
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
-
-      <div
-        className={cn("flex items-center gap-1", !connected && "opacity-50")}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (connected) return;
-          setIsWalletAuthDialogOpen(true);
-        }}
-      >
-        <MrgnContainedSwitch
-          checked={isFilteredUserPositions}
-          onChange={() => setIsFilteredUserPositions(!isFilteredUserPositions)}
-          inputProps={{ "aria-label": "controlled" }}
-          className={cn(!connected && "pointer-events-none")}
-        />
-        <div>Filter my positions</div>
-      </div>
-
       <NewAssetBanner asset="jlp" image="https://static.jup.ag/jlp/icon.png" />
     </div>
   );

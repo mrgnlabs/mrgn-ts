@@ -20,6 +20,9 @@ import {
   IconExternalLink,
   IconUserPlus,
   IconClockHour4,
+  IconFilter,
+  IconSortAscending,
+  IconSortDescending,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -397,6 +400,9 @@ export {
   IconUserPlus,
   IconBrandDiscordFilled,
   IconClockHour4,
+  IconFilter,
+  IconSortAscending,
+  IconSortDescending,
 
   // customed icons
   IconBrandGoogle,
