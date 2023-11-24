@@ -11,16 +11,16 @@ import { Button } from "~/components/ui/button";
 
 const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {
   google: {
-    icon: <IconBrandGoogle />,
+    icon: <IconBrandGoogle size={20} />,
   },
   twitter: {
-    icon: <IconBrandX />,
+    icon: <IconBrandX size={20} />,
   },
   apple: {
-    icon: <IconBrandApple />,
+    icon: <IconBrandApple size={20} />,
   },
   email_passwordless: {
-    icon: <IconMrgn />,
+    icon: <IconMrgn size={20} />,
   },
 };
 
@@ -38,11 +38,15 @@ export const WalletButton = () => {
     if (walletInfo?.icon) {
       const iconSrc = walletInfo?.icon;
       return function WalletIconComp() {
-        return <Image src={iconSrc} alt="wallet_icon" width={24} height={24} />;
+        return <Image src={iconSrc} alt="wallet_icon" width={20} height={20} />;
       };
     } else {
       return function WalletIconComp() {
-        return walletInfo ? web3AuthIconMap[walletInfo.name as Web3AuthProvider]?.icon || <IconMrgn /> : <IconMrgn />;
+        return walletInfo ? (
+          web3AuthIconMap[walletInfo.name as Web3AuthProvider]?.icon || <IconMrgn size={20} />
+        ) : (
+          <IconMrgn size={20} />
+        );
       };
     }
   }, [walletInfo]);
@@ -67,17 +71,17 @@ export const WalletButton = () => {
   return (
     <>
       {!connected ? (
-        <Button className="gap-1.5 py-0">
-          <div className="flex flex-row relative h-full relative gap-4">
+        <Button className="gap-1.5 py-0 pr-2">
+          <div className="flex flex-row relative h-full gap-4">
             <div onClick={() => handleWalletConnect()} className="inline-flex items-center gap-2">
-              Sign In with {walletInfo && <WalletIcon />}
+              Sign in with {walletInfo && <WalletIcon />}
             </div>
             {walletInfo && (
               <div
                 onClick={() => setIsWalletAuthDialogOpen(true)}
-                className="pl-1 -mr-2 border-l-2 border-[#0f1010] inline-flex items-center"
+                className="pl-2 border-l border-border inline-flex items-center"
               >
-                <IconChevronDown />
+                <IconChevronDown size={20} />
               </div>
             )}
           </div>
