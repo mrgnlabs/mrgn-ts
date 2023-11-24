@@ -44,14 +44,14 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
 
   const deposit = React.useCallback(() => {
     setLendingMode(LendingModes.LEND);
-    if (poolFilter === PoolTypes.ALL) setPoolFilter(PoolTypes.ALL);
+    if (poolFilter !== PoolTypes.ALL) setPoolFilter(PoolTypes.ALL);
     setIsFilteredUserPositions(false);
     setTimeout(() => highlightAsset(), 100);
   }, [setLendingMode, poolFilter, setPoolFilter, asset, setIsFilteredUserPositions, highlightAsset]);
 
   const borrow = React.useCallback(() => {
     setLendingMode(LendingModes.BORROW);
-    if (poolFilter === PoolTypes.ALL) setPoolFilter(PoolTypes.ALL);
+    if (poolFilter !== PoolTypes.ALL) setPoolFilter(PoolTypes.ALL);
     setIsFilteredUserPositions(false);
     setTimeout(() => highlightAsset(), 100);
   }, [setLendingMode, poolFilter, setPoolFilter, asset, setIsFilteredUserPositions, highlightAsset]);
