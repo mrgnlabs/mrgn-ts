@@ -58,6 +58,12 @@ type WalletContextProps = {
 
 type Web3AuthSocialProvider = "google" | "twitter" | "apple";
 type Web3AuthProvider = "email_passwordless" | Web3AuthSocialProvider;
+type WalletInfo = {
+  name: string;
+  web3Auth: boolean;
+  icon?: string;
+  email?: string;
+};
 
 const web3AuthChainConfig = {
   chainNamespace: CHAIN_NAMESPACES.SOLANA,
@@ -129,6 +135,14 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     if (web3Auth?.connected && web3AuthWalletData) {
       return makeweb3AuthWalletContextState(web3AuthWalletData);
     } else {
+      if (walletContextStateDefault.wallet) {
+        const walletInfo: WalletInfo = {
+          name: walletContextStateDefault.wallet.adapter.name,
+          icon: walletContextStateDefault.wallet.adapter.icon,
+          web3Auth: false,
+        };
+        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+      }
       return walletContextStateDefault;
     }
   }, [web3Auth?.connected, web3AuthWalletData, walletContextStateDefault.connected]);
@@ -272,6 +286,13 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           loginProvider: provider,
           extraLoginOptions,
         });
+
+        const walletInfo: WalletInfo = {
+          name: provider!,
+          web3Auth: true,
+          email: extraLoginOptions.login_hint,
+        };
+        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
       } catch (error) {
         console.error(error);
       }
@@ -360,5 +381,5 @@ const useWalletContext = () => {
   return context;
 };
 
-export type { WalletContextStateOverride, Web3AuthSocialProvider, Web3AuthProvider };
+export type { WalletContextStateOverride, Web3AuthSocialProvider, Web3AuthProvider, WalletInfo };
 export { WalletProvider, useWalletContext };
