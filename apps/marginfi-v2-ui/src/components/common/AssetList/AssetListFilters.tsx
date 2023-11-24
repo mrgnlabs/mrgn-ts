@@ -68,6 +68,7 @@ export const AssetListFilters = () => {
           <div className="space-y-2 w-full md:w-auto">
             <Select
               value={poolFilter}
+              disabled={isFilteredUserPositions}
               onValueChange={(value) => {
                 setPoolFilter(value as PoolTypes);
               }}
@@ -89,6 +90,7 @@ export const AssetListFilters = () => {
           <div className="space-y-2 w-full md:w-auto">
             <Select
               value={sortOption.value}
+              disabled={isFilteredUserPositions}
               onValueChange={(value) => setSortOption(SORT_OPTIONS_MAP[value as SortType])}
             >
               <SelectTrigger className="md:w-[220px]">
