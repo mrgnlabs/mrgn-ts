@@ -3,7 +3,7 @@ import type { sortDirection } from "~/types";
 
 export const STABLECOINS = ["USDC", "USDT", "UXD"];
 
-export const LSTS = ["LST", "stSOL", "jitoSOL", "bSOL", "mSOL"];
+export const LSTS = ["SOL", "LST", "stSOL", "JitoSOL", "bSOL", "mSOL"];
 
 export const sortApRate = (banks: ExtendedBankInfo[], isInLendingMode: boolean, direction: sortDirection) => {
   return banks.sort((a, b) => {
