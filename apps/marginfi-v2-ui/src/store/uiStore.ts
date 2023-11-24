@@ -27,7 +27,7 @@ const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
     label: "TVL lowest to highest",
     value: SortType.TVL_ASC,
     field: "TVL",
-    direction: sortDirection.DESC,
+    direction: sortDirection.ASC,
   },
 };
 
