@@ -9,7 +9,15 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { MrgnTooltip } from "~/components/common";
-import { LSTDialog, LSTDialogVariants, AssetListFilters, sortApRate, sortTvl } from "~/components/common/AssetList";
+import {
+  LSTDialog,
+  LSTDialogVariants,
+  AssetListFilters,
+  sortApRate,
+  sortTvl,
+  STABLECOINS,
+  LSTS,
+} from "~/components/common/AssetList";
 import { AssetCard } from "~/components/mobile/MobileAssetsList/AssetCard";
 
 import { LendingModes } from "~/types";
@@ -90,24 +98,28 @@ export const MobileAssetsList = () => {
             {isStoreInitialized && globalBanks ? (
               globalBanks.length > 0 ? (
                 <div className="flex flew-row flex-wrap gap-5 justify-center items-center pt-2">
-                  {globalBanks.map((bank) => (
-                    <AssetCard
-                      key={bank.meta.tokenSymbol}
-                      nativeSolBalance={nativeSolBalance}
-                      bank={bank}
-                      isInLendingMode={isInLendingMode}
-                      isConnected={connected}
-                      marginfiAccount={selectedAccount}
-                      inputRefs={inputRefs}
-                      showLSTDialog={(variant: LSTDialogVariants, onClose?: () => void) => {
-                        setLSTDialogVariant(variant);
-                        setIsLSTDialogOpen(true);
-                        if (onClose) {
-                          setLSTDialogCallback(() => onClose);
-                        }
-                      }}
-                    />
-                  ))}
+                  {globalBanks.map((bank) => {
+                    if (poolFilter === "stable" && !STABLECOINS.includes(bank.meta.tokenSymbol)) return null;
+                    if (poolFilter === "lst" && !LSTS.includes(bank.meta.tokenSymbol)) return null;
+                    return (
+                      <AssetCard
+                        key={bank.meta.tokenSymbol}
+                        nativeSolBalance={nativeSolBalance}
+                        bank={bank}
+                        isInLendingMode={isInLendingMode}
+                        isConnected={connected}
+                        marginfiAccount={selectedAccount}
+                        inputRefs={inputRefs}
+                        showLSTDialog={(variant: LSTDialogVariants, onClose?: () => void) => {
+                          setLSTDialogVariant(variant);
+                          setIsLSTDialogOpen(true);
+                          if (onClose) {
+                            setLSTDialogCallback(() => onClose);
+                          }
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               ) : (
                 <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
@@ -129,7 +141,7 @@ export const MobileAssetsList = () => {
             )}
           </div>
         )}
-        {poolFilter === "isolated" && (
+        {poolFilter !== "stable" && poolFilter !== "lst" && (
           <div className="w-full">
             <Typography className="font-aeonik font-normal flex gap-2 items-center text-2xl text-white pt-2 pb-3">
               Isolated pools
@@ -153,17 +165,19 @@ export const MobileAssetsList = () => {
             {isStoreInitialized && globalBanks ? (
               isolatedBanks.length > 0 ? (
                 <div className="flex flew-row flex-wrap gap-6 justify-center items-center pt-2">
-                  {isolatedBanks.map((bank, i) => (
-                    <AssetCard
-                      key={bank.meta.tokenSymbol}
-                      nativeSolBalance={nativeSolBalance}
-                      bank={bank}
-                      isInLendingMode={isInLendingMode}
-                      isConnected={connected}
-                      marginfiAccount={selectedAccount}
-                      inputRefs={inputRefs}
-                    />
-                  ))}
+                  {isolatedBanks.map((bank, i) => {
+                    return (
+                      <AssetCard
+                        key={bank.meta.tokenSymbol}
+                        nativeSolBalance={nativeSolBalance}
+                        bank={bank}
+                        isInLendingMode={isInLendingMode}
+                        isConnected={connected}
+                        marginfiAccount={selectedAccount}
+                        inputRefs={inputRefs}
+                      />
+                    );
+                  })}
                 </div>
               ) : (
                 <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
