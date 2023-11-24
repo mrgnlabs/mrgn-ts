@@ -81,6 +81,8 @@ export const AssetListFilters = () => {
               <SelectContent>
                 <SelectItem value="all">All pools</SelectItem>
                 <SelectItem value="isolated">Isolated pools</SelectItem>
+                <SelectItem value="stable">Stablecoins</SelectItem>
+                <SelectItem value="lst">LSTs</SelectItem>
               </SelectContent>
             </Select>
           </div>

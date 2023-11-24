@@ -1,6 +1,10 @@
 import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 import type { sortDirection } from "~/types";
 
+export const STABLECOINS = ["USDC", "USDT", "UXD"];
+
+export const LSTS = ["LST", "stSOL", "jitoSOL", "bSOL", "mSOL"];
+
 export const sortApRate = (banks: ExtendedBankInfo[], isInLendingMode: boolean, direction: sortDirection) => {
   return banks.sort((a, b) => {
     const apRateA =
