@@ -29,13 +29,21 @@ export const WalletButton = () => {
   const { connected, loginWeb3Auth } = useWalletContext();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
-  const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo")) as WalletInfo | null, [connected]);
+  const walletInfo = useMemo(
+    () => (connected ? null : (JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo | null)),
+    [connected]
+  );
 
   const WalletIcon = useMemo(() => {
     if (walletInfo?.icon) {
-      return () => <Image src={walletInfo.icon} alt="wallet_icon" width={24} height={24} />;
+      const iconSrc = walletInfo?.icon;
+      return function WalletIconComp() {
+        return <Image src={iconSrc} alt="wallet_icon" width={24} height={24} />;
+      };
     } else {
-      return () => web3AuthIconMap[walletInfo?.name]?.icon ?? <IconMrgn />;
+      return function WalletIconComp() {
+        return walletInfo ? web3AuthIconMap[walletInfo.name as Web3AuthProvider]?.icon || <IconMrgn /> : <IconMrgn />;
+      };
     }
   }, [walletInfo]);
 
@@ -54,7 +62,7 @@ export const WalletButton = () => {
     } catch (error) {
       setIsWalletAuthDialogOpen(true);
     }
-  }, [walletInfo]);
+  }, [walletInfo, setIsWalletAuthDialogOpen]);
 
   return (
     <>
