@@ -47,14 +47,14 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
     if (poolFilter === PoolTypes.ALL) setPoolFilter(PoolTypes.ALL);
     setIsFilteredUserPositions(false);
     setTimeout(() => highlightAsset(), 100);
-  }, [setLendingMode, setPoolFilter, asset]);
+  }, [setLendingMode, poolFilter, setPoolFilter, asset, setIsFilteredUserPositions, highlightAsset]);
 
   const borrow = React.useCallback(() => {
     setLendingMode(LendingModes.BORROW);
     if (poolFilter === PoolTypes.ALL) setPoolFilter(PoolTypes.ALL);
     setIsFilteredUserPositions(false);
     setTimeout(() => highlightAsset(), 100);
-  }, [setLendingMode, setPoolFilter, asset]);
+  }, [setLendingMode, poolFilter, setPoolFilter, asset, setIsFilteredUserPositions, highlightAsset]);
 
   const hideBanner = React.useCallback(() => {
     setIsHidden(true);
