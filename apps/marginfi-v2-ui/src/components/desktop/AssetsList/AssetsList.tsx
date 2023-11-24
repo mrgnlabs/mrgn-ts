@@ -2,20 +2,18 @@ import React, { FC, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useHotkeys } from "react-hotkeys-hook";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Card, Table, TableHead, TableBody, TableContainer, TableCell, TableRow } from "@mui/material";
 import Typography from "@mui/material/Typography";
 
 import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { cn } from "~/utils";
 
 import { LoadingAsset, AssetRow } from "./AssetRow";
-import { LSTDialog, LSTDialogVariants, NewAssetBanner, NewAssetBannerList } from "~/components/common/AssetList";
-import { MrgnTooltip, MrgnLabeledSwitch, MrgnContainedSwitch } from "~/components/common";
+import { LSTDialog, LSTDialogVariants, AssetListFilters, sortApRate, sortTvl } from "~/components/common/AssetList";
+import { MrgnTooltip } from "~/components/common";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-
-import { LendingModes, PoolTypes } from "~/types";
+import { LendingModes } from "~/types";
 
 const UserPositions = dynamic(async () => (await import("~/components/desktop/UserPositions")).UserPositions, {
   ssr: false,
@@ -24,7 +22,7 @@ const UserPositions = dynamic(async () => (await import("~/components/desktop/Us
 const AssetsList: FC = () => {
   // const { selectedAccount, nativeSolBalance } = useStore();
   const { connected, walletAddress } = useWalletContext();
-  const [isStoreInitialized, sortedBanks, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
+  const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
     state.nativeSolBalance,
@@ -35,22 +33,13 @@ const AssetsList: FC = () => {
     state.showBadges,
     state.setShowBadges,
   ]);
-  const [
-    lendingMode,
-    setLendingMode,
-    poolFilter,
-    setPoolFilter,
-    isFilteredUserPositions,
-    setIsFilteredUserPositions,
-    setIsWalletAuthDialogOpen,
-  ] = useUiStore((state) => [
+  const [lendingMode, setLendingMode, poolFilter, isFilteredUserPositions, sortOption] = useUiStore((state) => [
     state.lendingMode,
     state.setLendingMode,
     state.poolFilter,
-    state.setPoolFilter,
     state.isFilteredUserPositions,
-    state.setIsFilteredUserPositions,
-    state.setIsWalletAuthDialogOpen,
+    state.sortOption,
+    state.setSortOption,
   ]);
 
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -60,6 +49,47 @@ const AssetsList: FC = () => {
   const [lstDialogCallback, setLSTDialogCallback] = useState<(() => void) | null>(null);
 
   const isInLendingMode = React.useMemo(() => lendingMode === LendingModes.LEND, [lendingMode]);
+
+  const sortBanks = React.useCallback(
+    (banks: ExtendedBankInfo[]) => {
+      if (sortOption.field === "APY") {
+        return sortApRate(banks, isInLendingMode, sortOption.direction);
+      } else if (sortOption.field === "TVL") {
+        return sortTvl(banks, sortOption.direction);
+      } else {
+        return banks;
+      }
+    },
+    [isInLendingMode, sortOption]
+  );
+
+  const globalBanks = React.useMemo(() => {
+    const filteredBanks =
+      extendedBankInfos &&
+      extendedBankInfos
+        .filter((b) => !b.info.state.isIsolated)
+        .filter((b) => (isFilteredUserPositions ? b.isActive : true));
+
+    if (isStoreInitialized && sortOption && filteredBanks) {
+      return sortBanks(filteredBanks);
+    } else {
+      return filteredBanks;
+    }
+  }, [isStoreInitialized, extendedBankInfos, sortOption, isFilteredUserPositions, sortBanks]);
+
+  const isolatedBanks = React.useMemo(() => {
+    const filteredBanks =
+      extendedBankInfos &&
+      extendedBankInfos
+        .filter((b) => b.info.state.isIsolated)
+        .filter((b) => (isFilteredUserPositions ? b.isActive : true));
+
+    if (isStoreInitialized && sortOption && filteredBanks) {
+      return sortBanks(filteredBanks);
+    } else {
+      return filteredBanks;
+    }
+  }, [isStoreInitialized, extendedBankInfos, sortOption, isFilteredUserPositions, sortBanks]);
 
   // Enter hotkey mode
   useHotkeys(
@@ -78,13 +108,13 @@ const AssetsList: FC = () => {
 
   // Handle number keys in hotkey mode
   useHotkeys(
-    sortedBanks
+    extendedBankInfos
       .filter((b) => !b.info.state.isIsolated)
       .map((_, i) => `${i + 1}`)
       .join(", "),
     (_, handler) => {
       if (isHotkeyMode) {
-        const globalBankTokenNames = sortedBanks
+        const globalBankTokenNames = extendedBankInfos
           .filter((b) => !b.info.state.isIsolated)
           .sort(
             (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
@@ -127,56 +157,7 @@ const AssetsList: FC = () => {
   return (
     <>
       <>
-        <div className="col-span-full w-full space-y-5">
-          <div className="flex items-center justify-between">
-            <div className="flex w-[150px] h-[42px]">
-              <MrgnLabeledSwitch
-                labelLeft="Lend"
-                labelRight="Borrow"
-                checked={lendingMode === LendingModes.BORROW}
-                onClick={() =>
-                  setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND)
-                }
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              Filter pools
-              <Select
-                value={poolFilter}
-                onValueChange={(value) => {
-                  setPoolFilter(value as PoolTypes);
-                }}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue defaultValue="allpools" placeholder="Select pools" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All pools</SelectItem>
-                  <SelectItem value="isolated">Isolated pools</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div
-            className={cn("flex items-center gap-1", !connected && "opacity-50")}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (connected) return;
-              setIsWalletAuthDialogOpen(true);
-            }}
-          >
-            <MrgnContainedSwitch
-              checked={isFilteredUserPositions}
-              onChange={() => setIsFilteredUserPositions(!isFilteredUserPositions)}
-              inputProps={{ "aria-label": "controlled" }}
-              className={cn(!connected && "pointer-events-none")}
-            />
-            <div>Filter my positions</div>
-          </div>
-
-          <NewAssetBanner asset="jlp" image="https://static.jup.ag/jlp/icon.png" />
-        </div>
+        <AssetListFilters />
 
         {!isFilteredUserPositions && (
           <div className="col-span-full">
@@ -373,7 +354,7 @@ const AssetsList: FC = () => {
                     </TableHead>
 
                     <TableBody>
-                      {sortedBanks
+                      {globalBanks
                         .filter((b) => !b.info.state.isIsolated)
                         .map((bank, i) =>
                           isStoreInitialized ? (
@@ -608,7 +589,7 @@ const AssetsList: FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {sortedBanks
+                    {isolatedBanks
                       .filter((b) => b.info.state.isIsolated)
                       .map((bank) =>
                         isStoreInitialized ? (

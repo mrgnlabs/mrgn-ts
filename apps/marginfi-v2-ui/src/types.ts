@@ -88,3 +88,23 @@ export enum PoolTypes {
   ALL = "all",
   ISOLATED = "isolated",
 }
+
+export type SortAssetOption = {
+  label: string;
+  borrowLabel?: string;
+  value: SortType;
+  field: "APY" | "TVL";
+  direction: sortDirection;
+};
+
+export enum sortDirection {
+  ASC = "ASC",
+  DESC = "DESC",
+}
+
+export enum SortType {
+  APY_ASC = "APY_ASC",
+  APY_DESC = "APY_DESC",
+  TVL_ASC = "TVL_ASC",
+  TVL_DESC = "TVL_DESC",
+}

@@ -1,6 +1,35 @@
 import { create, StateCreator } from "zustand";
 
-import { LendingModes, PoolTypes } from "~/types";
+import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption } from "~/types";
+
+const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
+  APY_DESC: {
+    label: "APY highest to lowest",
+    borrowLabel: "APR highest to lowest",
+    value: SortType.APY_DESC,
+    field: "APY",
+    direction: sortDirection.DESC,
+  },
+  APY_ASC: {
+    label: "APY lowest to highest",
+    borrowLabel: "APR lowest to highest",
+    value: SortType.APY_ASC,
+    field: "APY",
+    direction: sortDirection.ASC,
+  },
+  TVL_DESC: {
+    label: "TVL highest to lowest",
+    value: SortType.TVL_DESC,
+    field: "TVL",
+    direction: sortDirection.DESC,
+  },
+  TVL_ASC: {
+    label: "TVL lowest to highest",
+    value: SortType.TVL_ASC,
+    field: "TVL",
+    direction: sortDirection.DESC,
+  },
+};
 
 interface UiState {
   // State
@@ -12,6 +41,7 @@ interface UiState {
   isFilteredUserPositions: boolean;
   lendingMode: LendingModes;
   poolFilter: PoolTypes;
+  sortOption: SortAssetOption;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -22,6 +52,7 @@ interface UiState {
   setIsFilteredUserPositions: (isFilteredUserPositions: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
+  setSortOption: (sortOption: SortAssetOption) => void;
 }
 
 function createUiStore() {
@@ -38,6 +69,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   isFilteredUserPositions: false,
   lendingMode: LendingModes.LEND,
   poolFilter: PoolTypes.ALL,
+  sortOption: SORT_OPTIONS_MAP[SortType.APY_DESC],
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -49,7 +81,8 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     set({ isFilteredUserPositions: isFilteredUserPositions }),
   setLendingMode: (lendingMode: LendingModes) => set({ lendingMode: lendingMode }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
+  setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
 });
 
-export { createUiStore };
+export { createUiStore, SORT_OPTIONS_MAP };
 export type { UiState };

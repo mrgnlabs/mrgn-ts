@@ -1,7 +1,9 @@
 import {
   IconCaretUpDownFilled,
   IconCheck,
+  IconChevronUp,
   IconChevronDown,
+  IconChevronLeft,
   IconChevronRight,
   IconBrandX,
   IconBrandApple,
@@ -377,7 +379,9 @@ export {
   // tabler icons
   IconCaretUpDownFilled,
   IconCheck,
+  IconChevronUp,
   IconChevronDown,
+  IconChevronLeft,
   IconChevronRight,
   IconBrandX,
   IconBrandApple,
