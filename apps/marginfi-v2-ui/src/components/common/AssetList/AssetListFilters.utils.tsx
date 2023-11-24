@@ -1,51 +1,5 @@
 import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
-
-export type SortAssetOption = {
-  label: string;
-  borrowLabel?: string;
-  Icon: any;
-  value: SortType;
-  field: "APY" | "TVL";
-  direction: sortDirection;
-};
-
-type sortDirection = "ASC" | "DESC";
-
-export type SortType = "APY_ASC" | "APY_DESC" | "TVL_ASC" | "TVL_DESC";
-
-export const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
-  APY_DESC: {
-    label: "Apy",
-    borrowLabel: "Apr",
-    Icon: ArrowDownward,
-    value: "APY_DESC",
-    field: "APY",
-    direction: "DESC",
-  },
-  APY_ASC: {
-    label: "Apy",
-    borrowLabel: "Apr",
-    Icon: ArrowUpward,
-    value: "APY_ASC",
-    field: "APY",
-    direction: "ASC",
-  },
-  TVL_DESC: {
-    label: "Tvl",
-    Icon: ArrowDownward,
-    value: "TVL_DESC",
-    field: "TVL",
-    direction: "DESC",
-  },
-  TVL_ASC: {
-    label: "Tvl",
-    Icon: ArrowUpward,
-    value: "TVL_ASC",
-    field: "TVL",
-    direction: "ASC",
-  },
-};
+import type { sortDirection } from "~/types";
 
 export const sortApRate = (banks: ExtendedBankInfo[], isInLendingMode: boolean, direction: sortDirection) => {
   return banks.sort((a, b) => {
