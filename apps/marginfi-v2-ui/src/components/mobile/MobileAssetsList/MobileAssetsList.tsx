@@ -8,9 +8,11 @@ import { Skeleton, Typography } from "@mui/material";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
-import { MrgnLabeledSwitch, MrgnTooltip } from "~/components/common";
+import { MrgnTooltip } from "~/components/common";
 import { LSTDialog, LSTDialogVariants, AssetListFilters, sortApRate, sortTvl } from "~/components/common/AssetList";
 import { AssetCard } from "~/components/mobile/MobileAssetsList/AssetCard";
+
+import { LendingModes } from "~/types";
 
 export const MobileAssetsList = () => {
   const { connected } = useWalletContext();
@@ -22,14 +24,15 @@ export const MobileAssetsList = () => {
     state.selectedAccount,
   ]);
 
-  const [isFilteredUserPositions, sortOption, poolFilter] = useUiStore((state) => [
+  const [lendingMode, isFilteredUserPositions, sortOption, poolFilter] = useUiStore((state) => [
+    state.lendingMode,
     state.isFilteredUserPositions,
     state.sortOption,
     state.poolFilter,
   ]);
 
+  const isInLendingMode = React.useMemo(() => lendingMode === LendingModes.LEND, [lendingMode]);
   const inputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
-  const [isInLendingMode, setIsInLendingMode] = React.useState(true);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
@@ -78,17 +81,6 @@ export const MobileAssetsList = () => {
   return (
     <>
       <AssetListFilters />
-      <div className="flex justify-between items-center">
-        <div className="flex w-[150px] h-[42px]">
-          <MrgnLabeledSwitch
-            labelLeft="Lend"
-            labelRight="Borrow"
-            checked={!isInLendingMode}
-            onClick={() => setIsInLendingMode(!isInLendingMode)}
-          />
-        </div>
-      </div>
-
       <div className="pb-2">
         {poolFilter !== "isolated" && (
           <div className="w-full">
