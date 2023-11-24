@@ -264,6 +264,68 @@ const IconGlowWallet = ({ size = 24, className }: IconProps) => (
   </svg>
 );
 
+const IconTrustWallet = ({ size = 24, className }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <g clipPath="url(#clip0_6_2)">
+      <path
+        d="M3.42871 7.51045L11.9589 4.72638V24C5.86584 21.43 3.42871 16.5046 3.42871 13.7209V7.51045Z"
+        fill="#0500FF"
+      />
+      <path
+        d="M20.4891 7.51045L11.959 4.72638V24C18.052 21.43 20.4891 16.5046 20.4891 13.7209V7.51045Z"
+        fill="url(#paint0_linear_6_2)"
+      />
+      <path
+        d="M6.78749 0.0954895H7.97775V0.762048C8.36795 0.162877 8.81671 0.0954895 9.47385 0.0954895V1.27381H9.17455C8.38721 1.27381 8.01011 1.64425 8.01011 2.37781V3.63006H6.78711V0.0954895H6.78749Z"
+        fill="#0500FF"
+      />
+      <path
+        d="M13.4463 3.6297H12.2233V3.29276C11.9564 3.60274 11.5924 3.73713 11.1436 3.73713C10.2916 3.73713 9.81006 3.2323 9.81006 2.30312V0.0951233H11.0331V2.02741C11.0331 2.46485 11.2476 2.72054 11.6116 2.72054C11.9756 2.72054 12.2233 2.4714 12.2233 2.04744V0.0951233H13.4463V3.6297Z"
+        fill="#0500FF"
+      />
+      <path
+        d="M13.7456 2.53878H14.8908C14.9432 2.79447 15.1184 2.9019 15.541 2.9019C15.8858 2.9019 16.0876 2.82142 16.0876 2.67317C16.0876 2.55842 15.9898 2.48448 15.7105 2.42403L14.7868 2.21532C14.1689 2.07438 13.8565 1.71742 13.8565 1.14482C13.8565 0.390463 14.4093 0 15.4825 0C16.5556 0 17.0826 0.380451 17.1739 1.19526H16.0356C16.0163 0.980008 15.7948 0.848313 15.4308 0.848313C15.1385 0.848313 14.9497 0.94227 14.9497 1.08398C14.9497 1.20489 15.073 1.29923 15.3207 1.36046L16.2898 1.59612C16.9269 1.75054 17.2332 2.074 17.2332 2.59923C17.2332 3.32663 16.6022 3.75753 15.5294 3.75753C14.4567 3.75753 13.7471 3.29313 13.7471 2.53878H13.746H13.7456Z"
+        fill="#0500FF"
+      />
+      <path
+        d="M20.4892 1.19487V0.0954895H17.4712V1.19525H18.3718V3.62968H19.5882V1.19448H20.4892V1.19487Z"
+        fill="#0500FF"
+      />
+      <path
+        d="M6.4477 1.19487V0.0954895H3.42969V1.19525H4.33028V3.62968H5.54672V1.19448H6.44731L6.4477 1.19487Z"
+        fill="#0500FF"
+      />
+    </g>
+    <defs>
+      <linearGradient
+        id="paint0_linear_6_2"
+        x1="18.2411"
+        y1="3.38286"
+        x2="11.7486"
+        y2="23.7266"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="0.02" stop-color="#0000FF" />
+        <stop offset="0.08" stop-color="#0094FF" />
+        <stop offset="0.16" stop-color="#48FF91" />
+        <stop offset="0.42" stop-color="#0094FF" />
+        <stop offset="0.68" stop-color="#0038FF" />
+        <stop offset="0.9" stop-color="#0500FF" />
+      </linearGradient>
+      <clipPath id="clip0_6_2">
+        <rect width="24" height="24" fill="white" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
 const IconLoader = ({ size = 24, className }: IconProps) => (
   <IconLoader2 size={size} className={cn("animate-spin", className)} />
 );
@@ -403,6 +465,7 @@ export {
   IconBackpackWallet,
   IconWalletConnectWallet,
   IconGlowWallet,
+  IconTrustWallet,
   IconLoader,
   IconPieChart,
   IconReceiveMoney,
