@@ -505,7 +505,7 @@ const AssetRow: FC<{
                 <dt className="mr-1.5">{userPosition.position.isLending ? "Lending" : "Borrowing"}</dt>
                 <dd className="mr-4 pr-4 border-accent-foreground/50 border-r text-white font-medium">
                   {userPosition.position.amount < 0.01 && "< "}
-                  {numeralFormatter(userPosition.position.amount)}
+                  {numeralFormatter(userPosition.position.amount) + " " + bank.meta.tokenSymbol}
                 </dd>
                 <dt className="mr-1.5">USD Value</dt>
                 <dd
@@ -540,34 +540,37 @@ const LoadingAsset: FC<{ isInLendingMode: boolean; bankMetadata: ExtendedBankMet
   isInLendingMode,
   bankMetadata,
 }) => (
-  <TableRow className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]">
-    <TableCell
-      className={`w-full text-white p-0 font-aeonik border-none`}
-      style={{
-        fontWeight: 300,
-      }}
-    >
-      <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
-        {bankMetadata.tokenLogoUri && (
-          <Image src={bankMetadata.tokenLogoUri} alt={bankMetadata.tokenSymbol} height={25} width={25} />
-        )}
-        <div className="font-aeonik hidden lg:block">{bankMetadata.tokenSymbol}</div>
-      </div>
-    </TableCell>
-    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}></TableCell>
-    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
-    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
-    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
-    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
-    <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
-    <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
-      <AssetRowInputBox tokenName={bankMetadata.tokenSymbol} value={0} setValue={() => {}} disabled={true} />
-    </TableCell>
-    <TableCell className="text-white border-none font-aeonik p-0">
-      <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
-        <AssetRowAction bgColor={"rgb(227, 227, 227)"}>{isInLendingMode ? "Supply" : "Borrow"}</AssetRowAction>
-      </div>
-    </TableCell>
-  </TableRow>
+  <>
+    <TableRow className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]">
+      <TableCell
+        className={`w-full text-white p-0 font-aeonik border-none`}
+        style={{
+          fontWeight: 300,
+        }}
+      >
+        <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
+          {bankMetadata.tokenLogoUri && (
+            <Image src={bankMetadata.tokenLogoUri} alt={bankMetadata.tokenSymbol} height={25} width={25} />
+          )}
+          <div className="font-aeonik hidden lg:block">{bankMetadata.tokenSymbol}</div>
+        </div>
+      </TableCell>
+      <TableCell className={`w-full text-white p-0 font-aeonik border-none`}></TableCell>
+      <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
+      <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
+      <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
+      <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
+      <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
+      <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
+        <AssetRowInputBox tokenName={bankMetadata.tokenSymbol} value={0} setValue={() => {}} disabled={true} />
+      </TableCell>
+      <TableCell className="text-white border-none font-aeonik p-0">
+        <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
+          <AssetRowAction bgColor={"rgb(227, 227, 227)"}>{isInLendingMode ? "Supply" : "Borrow"}</AssetRowAction>
+        </div>
+      </TableCell>
+    </TableRow>
+    <TableRow className="w-full h-2"></TableRow>
+  </>
 );
 export { AssetRow, LoadingAsset };
