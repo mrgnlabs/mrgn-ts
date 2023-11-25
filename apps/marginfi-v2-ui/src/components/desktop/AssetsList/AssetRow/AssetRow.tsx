@@ -17,7 +17,7 @@ import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { AssetRowInputBox, AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { closeBalance, executeLendingAction, MarginfiActionParams } from "~/utils";
+import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
   [
@@ -501,15 +501,29 @@ const AssetRow: FC<{
           >
             <div className="bg-accent m-3 p-4 rounded-lg">
               <h3>Your position details</h3>
-              <dl>
-                <dt>{userPosition.position.isLending ? "Lending" : "Borrowing"}</dt>
-                <dd>{userPosition.position.amount}</dd>
-                <dt>USD Value</dt>
-                <dd>{userPosition.position.usdValue}</dd>
+              <dl className="flex items-center text-accent-foreground mt-2 text-sm">
+                <dt className="mr-1.5">{userPosition.position.isLending ? "Lending" : "Borrowing"}</dt>
+                <dd className="mr-4 pr-4 border-accent-foreground/50 border-r text-white font-medium">
+                  {userPosition.position.amount < 0.01 && "< "}
+                  {numeralFormatter(userPosition.position.amount)}
+                </dd>
+                <dt className="mr-1.5">USD Value</dt>
+                <dd
+                  className={cn(
+                    "mr-4 text-white font-medium",
+                    userPosition.position.liquidationPrice &&
+                      userPosition.position.liquidationPrice > 0 &&
+                      "pr-4 border-accent-foreground/50 border-r"
+                  )}
+                >
+                  {usdFormatter.format(userPosition.position.usdValue)}
+                </dd>
                 {userPosition.position.liquidationPrice && userPosition.position.liquidationPrice > 0 && (
                   <>
-                    <dt>Liq price</dt>
-                    <dd>{userPosition.position.liquidationPrice}</dd>
+                    <dt className="mr-1.5">Liq price</dt>
+                    <dd className="text-white font-medium">
+                      {usdFormatter.format(userPosition.position.liquidationPrice)}
+                    </dd>
                   </>
                 )}
               </dl>
