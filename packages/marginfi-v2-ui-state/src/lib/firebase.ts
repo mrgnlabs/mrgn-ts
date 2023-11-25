@@ -284,7 +284,6 @@ async function signLoginTx(
 async function signinFirebaseAuth(token: string) {
   try {
     await signInWithCustomToken(auth, token);
-    console.log("Signed user in.");
   } catch (error: any) {
     console.error("Error signing in with custom token: ", error);
     if (error.code === "auth/network-request-failed") {
