@@ -7,9 +7,9 @@ import { cn } from "~/utils";
 
 export const AssetCardPosition = ({ activeBank }: { activeBank: ActiveBankInfo }) => {
   return (
-    <div className="bg-accent p-3.5 rounded-lg">
+    <div className="bg-accent p-3.5 rounded-lg text-sm">
       <h3>Your position details</h3>
-      <dl className="grid grid-cols-2 text-accent-foreground mt-2 text-sm w-full space-y-1">
+      <dl className="grid grid-cols-2 text-accent-foreground mt-2 w-full space-y-1">
         <dt>{activeBank.position.isLending ? "Lending" : "Borrowing"}</dt>
         <dd className="text-white font-medium text-right">
           {activeBank.position.amount < 0.01 && "< "}
@@ -19,7 +19,7 @@ export const AssetCardPosition = ({ activeBank }: { activeBank: ActiveBankInfo }
         <dd className="text-white font-medium text-right">{usdFormatter.format(activeBank.position.usdValue)}</dd>
         {activeBank.position.liquidationPrice && activeBank.position.liquidationPrice > 0 && (
           <>
-            <dt>Liq price</dt>
+            <dt>Liquidation price</dt>
             <dd className="text-white font-medium text-right">
               {usdFormatter.format(activeBank.position.liquidationPrice)}
             </dd>
