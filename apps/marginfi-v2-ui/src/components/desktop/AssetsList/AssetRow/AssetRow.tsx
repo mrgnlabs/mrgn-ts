@@ -467,7 +467,7 @@ const AssetRow: FC<{
           </Badge>
         </TableCell>
 
-        <TableCell className="text-white border-none font-aeonik p-0">
+        <TableCell className="text-white border-none font-aeonik px-0.5 py-2.5">
           <Tooltip
             title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
             placement="top"
@@ -500,7 +500,7 @@ const AssetRow: FC<{
               fontWeight: 300,
             }}
           >
-            <div className="bg-accent m-3 p-4 rounded-lg">
+            <div className="bg-accent m-2.5 mt-1 p-4 rounded-lg">
               <h3>Your position details</h3>
               <dl className="flex items-center text-accent-foreground mt-2 text-sm">
                 <dt className="mr-1.5">{userPosition.position.isLending ? "Lending" : "Borrowing"}</dt>
