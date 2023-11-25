@@ -34,16 +34,20 @@ const Home = () => {
   const { walletAddress, wallet, isOverride } = useWalletContext();
   const { connection } = useConnection();
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const [fetchMrgnlendState, setIsRefreshingStore, marginfiAccounts, selectedAccount] = useMrgnlendStore((state) => [
+  const [
+    fetchMrgnlendState,
+    isStoreInitialized,
+    isRefreshingStore,
+    setIsRefreshingStore,
+    marginfiAccounts,
+    selectedAccount,
+  ] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,
+    state.initialized,
+    state.isRefreshingStore,
     state.setIsRefreshingStore,
     state.marginfiAccounts,
     state.selectedAccount,
-  ]);
-
-  const [isStoreInitialized, isRefreshingStore] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.isRefreshingStore,
   ]);
 
   React.useEffect(() => {
