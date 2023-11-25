@@ -58,11 +58,11 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
 
   const hideBanner = React.useCallback(() => {
     setIsHidden(true);
-    localStorage.setItem("mfiHideNewAssetBanner", "true");
+    localStorage.setItem("mrgnNewAssetAcknowledged", "true");
   }, [setIsHidden]);
 
   React.useEffect(() => {
-    const isHidden = localStorage.getItem("mfiHideNewAssetBanner");
+    const isHidden = localStorage.getItem("mrgnNewAssetAcknowledged");
     if (!isHidden) setIsHidden(false);
   }, []);
 
