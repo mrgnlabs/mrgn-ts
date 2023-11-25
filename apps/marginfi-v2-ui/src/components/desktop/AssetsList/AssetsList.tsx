@@ -195,7 +195,7 @@ const AssetsList = () => {
                     className="table-fixed"
                     style={{
                       borderCollapse: "separate",
-                      borderSpacing: "0px 8px",
+                      borderSpacing: "0px 0px",
                     }}
                   >
                     <TableHead>
@@ -386,6 +386,12 @@ const AssetsList = () => {
                         .map((bank, i) => {
                           if (poolFilter === "stable" && !STABLECOINS.includes(bank.meta.tokenSymbol)) return null;
                           if (poolFilter === "lst" && !LSTS.includes(bank.meta.tokenSymbol)) return null;
+
+                          // check to see if bank is in open positions
+                          const userPosition = activeBankInfos.filter(
+                            (activeBankInfo) => activeBankInfo.meta.tokenSymbol === bank.meta.tokenSymbol
+                          );
+
                           return isStoreInitialized ? (
                             <AssetRow
                               key={bank.meta.tokenSymbol}
@@ -398,6 +404,7 @@ const AssetsList = () => {
                               hasHotkey={true}
                               showHotkeyBadges={showBadges}
                               badgeContent={`${i + 1}`}
+                              userPosition={userPosition.length > 0 ? userPosition[0] : undefined}
                               showLSTDialog={(variant: LSTDialogVariants, onClose?: () => void) => {
                                 setLSTDialogVariant(variant);
                                 setIsLSTDialogOpen(true);
@@ -418,7 +425,7 @@ const AssetsList = () => {
                   </Table>
                 )}
                 {poolFilter !== "stable" && poolFilter !== "lst" && (
-                  <Table className="table-fixed" style={{ borderCollapse: "separate", borderSpacing: "0px 8px" }}>
+                  <Table className="table-fixed" style={{ borderCollapse: "separate", borderSpacing: "0px 0px" }}>
                     <TableHead>
                       <TableRow>
                         <TableCell className="text-white border-none p-0">
