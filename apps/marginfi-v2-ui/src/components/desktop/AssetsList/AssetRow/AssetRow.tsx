@@ -17,6 +17,7 @@ import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { AssetRowInputBox, AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useIsMobile } from "~/hooks/useIsMobile";
 import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
@@ -66,6 +67,20 @@ const AssetRow: FC<{
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
   const { walletContextState } = useWalletContext();
+  const isMobile = useIsMobile();
+
+  const userPositionColSpan = useMemo(() => {
+    if (isMobile) {
+      return 6;
+    }
+    if (lendZoomLevel === 3) {
+      return 9;
+    }
+    if (lendZoomLevel === 2) {
+      return 10;
+    }
+    return 11;
+  }, [isMobile, lendZoomLevel]);
 
   const assetPrice = useMemo(
     () =>
@@ -219,7 +234,7 @@ const AssetRow: FC<{
       <TableRow
         data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
         data-asset-row-position={userPosition ? "true" : "false"}
-        className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122] transition-all hover:bg-accent"
+        className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]"
       >
         <TableCell
           className={`text-white p-0 font-aeonik border-none`}
@@ -494,7 +509,7 @@ const AssetRow: FC<{
           className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122] transition-all"
         >
           <TableCell
-            colSpan={lendZoomLevel === 3 ? 9 : lendZoomLevel === 2 ? 10 : 11}
+            colSpan={userPositionColSpan}
             className={`text-white p-0 font-aeonik border-none w-full`}
             style={{
               fontWeight: 300,
@@ -521,7 +536,7 @@ const AssetRow: FC<{
                 </dd>
                 {userPosition.position.liquidationPrice && userPosition.position.liquidationPrice > 0 && (
                   <>
-                    <dt className="mr-1.5">Liq price</dt>
+                    <dt className="mr-1.5">Liquidation price</dt>
                     <dd className="text-white font-medium">
                       {usdFormatter.format(userPosition.position.liquidationPrice)}
                     </dd>
