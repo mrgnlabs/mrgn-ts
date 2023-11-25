@@ -1,15 +1,18 @@
-import React, { FC, useEffect, useRef, useState } from "react";
+import React from "react";
+
 import dynamic from "next/dynamic";
 import Image from "next/image";
+
 import { useHotkeys } from "react-hotkeys-hook";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Card, Table, TableHead, TableBody, TableContainer, TableCell, TableRow } from "@mui/material";
 import Typography from "@mui/material/Typography";
+
+import { ExtendedBankInfo, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
-import { LoadingAsset, AssetRow } from "./AssetRow";
+import { LoadingAsset, AssetRow } from "~/components/desktop/AssetsList/AssetRow";
 import {
   LSTDialog,
   LSTDialogVariants,
@@ -27,7 +30,7 @@ const UserPositions = dynamic(async () => (await import("~/components/desktop/Us
   ssr: false,
 });
 
-const AssetsList: FC = () => {
+const AssetsList = () => {
   // const { selectedAccount, nativeSolBalance } = useStore();
   const { connected, walletAddress } = useWalletContext();
   const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
@@ -50,11 +53,11 @@ const AssetsList: FC = () => {
     state.setSortOption,
   ]);
 
-  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
-  const [isLSTDialogOpen, setIsLSTDialogOpen] = useState(false);
-  const [lstDialogVariant, setLSTDialogVariant] = useState<LSTDialogVariants | null>(null);
-  const [lstDialogCallback, setLSTDialogCallback] = useState<(() => void) | null>(null);
+  const inputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
+  const [isHotkeyMode, setIsHotkeyMode] = React.useState(false);
+  const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
+  const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
+  const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
 
   const isInLendingMode = React.useMemo(() => lendingMode === LendingModes.LEND, [lendingMode]);
 
@@ -98,6 +101,22 @@ const AssetsList: FC = () => {
       return filteredBanks;
     }
   }, [isStoreInitialized, extendedBankInfos, sortOption, isFilteredUserPositions, sortBanks]);
+
+  const activeBankInfos = React.useMemo(
+    () => extendedBankInfos.filter((balance) => balance.isActive),
+    [extendedBankInfos]
+  ) as ActiveBankInfo[];
+
+  const { lendPositions, borrowPositions } = React.useMemo(
+    () => ({
+      lendPositions: activeBankInfos.filter((bankInfo) => bankInfo.position.isLending),
+      borrowPositions: activeBankInfos.filter((bankInfo) => !bankInfo.position.isLending),
+    }),
+    [activeBankInfos]
+  );
+
+  console.log("lendPositions", lendPositions);
+  console.log("borrowPositions", borrowPositions);
 
   // Enter hotkey mode
   useHotkeys(
@@ -154,8 +173,8 @@ const AssetsList: FC = () => {
   );
 
   // Hack required to circumvent rehydration error
-  const [hasMounted, setHasMounted] = useState(false);
-  useEffect(() => {
+  const [hasMounted, setHasMounted] = React.useState(false);
+  React.useEffect(() => {
     setHasMounted(true);
   }, []);
   if (!hasMounted) {
