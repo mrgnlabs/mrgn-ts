@@ -39,6 +39,8 @@ export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tok
   ],
 ]);
 
+const REDUCE_ONLY_BANKS = ["stSOL"];
+
 const AssetRow: FC<{
   bank: ExtendedBankInfo;
   nativeSolBalance: number;
@@ -74,6 +76,11 @@ const AssetRow: FC<{
   const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
   const { walletContextState } = useWalletContext();
   const isMobile = useIsMobile();
+
+  const isReduceOnly = useMemo(
+    () => (bank?.meta?.tokenSymbol ? REDUCE_ONLY_BANKS.includes(bank.meta.tokenSymbol) : false),
+    [bank.meta.tokenSymbol]
+  );
 
   const isUserPositionPoorHealth = useMemo(() => {
     if (!activeBank || !activeBank.position.liquidationPrice) {
@@ -390,7 +397,7 @@ const AssetRow: FC<{
             title={
               <React.Fragment>
                 <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                  {isBankHigh && (isBankFilled ? "Limit Reached" : "Approaching Limit")}
+                  {isReduceOnly ? "Reduce Only" : isBankHigh && (isBankFilled ? "Limit Reached" : "Approaching Limit")}
                 </Typography>
                 {`${bank.meta.tokenSymbol} ${isInLendingMode ? "deposits" : "borrows"} are at ${percentFormatter.format(
                   (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
@@ -405,14 +412,14 @@ const AssetRow: FC<{
             className={``}
           >
             <Badge
-              badgeContent={isBankHigh && (isBankFilled ? "💯" : "❗")}
+              badgeContent={isReduceOnly ? "‼️" : isBankHigh && isBankFilled ? "💯" : "❗"}
               className="bg-transparent"
               sx={{
                 "& .MuiBadge-badge": {
                   fontSize: 20,
                 },
               }}
-              invisible={!isBankHigh}
+              invisible={!isBankHigh && !isReduceOnly}
             >
               {denominationUSD
                 ? usdFormatter.format(
