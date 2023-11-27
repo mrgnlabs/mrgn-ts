@@ -70,26 +70,27 @@ export const WalletButton = () => {
 
   return (
     <>
-      {!connected ? (
-        <Button className="gap-1.5 py-0 pr-2">
-          <div className="flex flex-row relative h-full gap-4">
-            <div onClick={() => (isLoading ? {} : handleWalletConnect())} className="inline-flex items-center gap-2">
-              {isLoading || connecting ? "Connecting..." : "Sign in with"}
-              {walletInfo && <WalletIcon />}
-            </div>
-            {walletInfo && (
-              <div
-                onClick={() => setIsWalletAuthDialogOpen(true)}
-                className="pl-2 border-l border-border inline-flex items-center"
-              >
-                <IconChevronDown size={20} />
+      {!isLoading &&
+        (!connected ? (
+          <Button className="gap-1.5 py-0 pr-2">
+            <div className="flex flex-row relative h-full gap-4">
+              <div onClick={() => handleWalletConnect()} className="inline-flex items-center gap-2">
+                Sign in with
+                {walletInfo && <WalletIcon />}
               </div>
-            )}
-          </div>
-        </Button>
-      ) : (
-        <Wallet />
-      )}
+              {walletInfo && (
+                <div
+                  onClick={() => setIsWalletAuthDialogOpen(true)}
+                  className="pl-2 border-l border-border inline-flex items-center"
+                >
+                  <IconChevronDown size={20} />
+                </div>
+              )}
+            </div>
+          </Button>
+        ) : (
+          <Wallet />
+        ))}
     </>
   );
 };

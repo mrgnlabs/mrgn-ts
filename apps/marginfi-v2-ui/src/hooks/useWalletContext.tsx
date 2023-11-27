@@ -205,10 +205,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   // and override signTransaction methods with web3auth sdk
   const makeweb3AuthWalletData = React.useCallback(
     async (web3AuthProvider: IProvider) => {
-      if (!web3Auth) {
-        setIsLoading(false);
-        return;
-      }
+      if (!web3Auth) return;
 
       const solanaWallet = new SolanaWallet(web3AuthProvider);
       const accounts = await solanaWallet.requestAccounts();
@@ -248,7 +245,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           return signedMessage;
         },
       });
-      setIsLoading(false);
     },
     [web3Auth]
   );
@@ -331,6 +327,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     if (!web3Auth?.connected || !web3Auth?.provider || web3AuthWalletData) return;
     setIsLoading(true);
     makeweb3AuthWalletData(web3Auth.provider);
+    setIsLoading(false);
   }, [web3Auth?.connected, web3Auth?.provider, web3AuthWalletData]);
 
   // initialize web3auth sdk on page load
@@ -361,6 +358,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         setweb3Auth(web3AuthInstance);
       } catch (error) {
         console.error(error);
+      } finally {
         setIsLoading(false);
       }
     };
