@@ -13,6 +13,8 @@ import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provide
 import base58 from "bs58";
 import { Wallet } from "@mrgnlabs/mrgn-common";
 
+import { showErrorToast } from "~/utils/toastUtils";
+
 // wallet adapter context type to override with web3auth data
 // this allows us to pass web3auth wallet to 3rd party services that expect wallet adapter
 type WalletContextOverride = {
@@ -43,6 +45,7 @@ type WalletContextProps = {
   walletAddress: PublicKey;
   walletContextState: WalletContextStateOverride | WalletContextState;
   isOverride: boolean;
+  isLoading: boolean;
   loginWeb3Auth: (
     provider: string,
     extraLoginOptions?: Partial<{
@@ -116,7 +119,7 @@ const makeweb3AuthWalletContextState = (wallet: Wallet): WalletContextStateOverr
 const WalletContext = React.createContext<WalletContextProps | undefined>(undefined);
 
 const WalletProvider = ({ children }: { children: React.ReactNode }) => {
-  const { query } = useRouter();
+  const { query, asPath, replace } = useRouter();
   const [web3AuthPkCookie, setWeb3AuthPkCookie] = useCookies(["mrgnPrivateKeyRequested"]);
 
   // default wallet adapter context, overwritten when web3auth is connected
@@ -129,6 +132,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [web3AuthLoginType, setWeb3AuthLoginType] = React.useState<string>("");
   const [web3AuthPk, setWeb3AuthPk] = React.useState<string>("");
   const [web3AuthEmail, setWeb3AuthEmail] = React.useState<string>("");
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   // if web3auth is connected, override wallet adapter context, otherwise use default
   const walletContextState = React.useMemo(() => {
@@ -201,7 +205,10 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   // and override signTransaction methods with web3auth sdk
   const makeweb3AuthWalletData = React.useCallback(
     async (web3AuthProvider: IProvider) => {
-      if (!web3Auth) return;
+      if (!web3Auth) {
+        setIsLoading(false);
+        return;
+      }
 
       const solanaWallet = new SolanaWallet(web3AuthProvider);
       const accounts = await solanaWallet.requestAccounts();
@@ -241,6 +248,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           return signedMessage;
         },
       });
+      setIsLoading(false);
     },
     [web3Auth]
   );
@@ -277,7 +285,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const loginWeb3Auth = React.useCallback(
     async (provider: string, extraLoginOptions: any = {}, cb?: () => void) => {
       if (!web3Auth) {
-        toast.error("Error connecting to web3Auth");
+        showErrorToast("marginfi account not ready.");
         return;
       }
 
@@ -306,14 +314,22 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       await web3Auth.logout();
       setWeb3AuthWalletData(undefined);
     } else {
-      walletContextState?.disconnect();
+      await walletContextState?.disconnect();
     }
+
+    if (asPath.includes("#")) {
+      // Remove the hash and update the URL
+      const newUrl = asPath.split("#")[0];
+      replace(newUrl);
+    }
+    setIsLoading(false);
     setPfp("");
   }, [walletContextState, web3Auth?.connected, walletContextStateDefault]);
 
   // if web3auth is connected, fetch wallet data
   React.useEffect(() => {
     if (!web3Auth?.connected || !web3Auth?.provider || web3AuthWalletData) return;
+    setIsLoading(true);
     makeweb3AuthWalletData(web3Auth.provider);
   }, [web3Auth?.connected, web3Auth?.provider, web3AuthWalletData]);
 
@@ -345,9 +361,10 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         setweb3Auth(web3AuthInstance);
       } catch (error) {
         console.error(error);
+        setIsLoading(false);
       }
     };
-
+    setIsLoading(true);
     init();
   }, []);
 
@@ -361,6 +378,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         walletAddress: wallet?.publicKey as PublicKey,
         walletContextState,
         isOverride,
+        isLoading,
         loginWeb3Auth,
         logout,
         requestPrivateKey,
