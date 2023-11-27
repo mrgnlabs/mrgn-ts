@@ -549,7 +549,7 @@ const AssetRow: FC<{
                 >
                   {usdFormatter.format(userPosition.position.usdValue)}
                 </dd>
-                {userPosition.position.liquidationPrice && (
+                {userPosition.position.liquidationPrice && userPosition.position.liquidationPrice > 0 && (
                   <>
                     <dt
                       className={cn(

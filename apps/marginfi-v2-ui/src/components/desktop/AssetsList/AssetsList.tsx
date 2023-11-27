@@ -102,14 +102,6 @@ const AssetsList = () => {
     [extendedBankInfos]
   ) as ActiveBankInfo[];
 
-  const { lendPositions, borrowPositions } = React.useMemo(
-    () => ({
-      lendPositions: activeBankInfos.filter((bankInfo) => bankInfo.position.isLending),
-      borrowPositions: activeBankInfos.filter((bankInfo) => !bankInfo.position.isLending),
-    }),
-    [activeBankInfos]
-  );
-
   // Enter hotkey mode
   useHotkeys(
     "meta + k",
