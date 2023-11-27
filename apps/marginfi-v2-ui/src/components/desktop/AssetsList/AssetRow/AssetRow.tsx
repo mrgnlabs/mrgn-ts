@@ -399,9 +399,14 @@ const AssetRow: FC<{
                 <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                   {isReduceOnly ? "Reduce Only" : isBankHigh && (isBankFilled ? "Limit Reached" : "Approaching Limit")}
                 </Typography>
-                {`${bank.meta.tokenSymbol} ${isInLendingMode ? "deposits" : "borrows"} are at ${percentFormatter.format(
-                  (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
-                )} capacity.`}
+
+                {isReduceOnly
+                  ? "stSOL is being discontinued."
+                  : `${bank.meta.tokenSymbol} ${
+                      isInLendingMode ? "deposits" : "borrows"
+                    } are at ${percentFormatter.format(
+                      (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
+                    )} capacity.`}
                 <br />
                 <a href="https://docs.marginfi.com">
                   <u>Learn more.</u>
