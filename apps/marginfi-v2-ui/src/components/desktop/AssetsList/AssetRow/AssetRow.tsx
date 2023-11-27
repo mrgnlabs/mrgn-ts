@@ -2,7 +2,7 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import Image from "next/image";
 import { TableCell, TableRow, Tooltip, Typography } from "@mui/material";
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
 import Badge from "@mui/material/Badge";
 import { WSOL_MINT, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import {
@@ -20,6 +20,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
 import { IconAlertTriangle } from "~/components/ui/icons";
+import { LendingModes } from "~/types";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
   [
@@ -48,7 +49,7 @@ const AssetRow: FC<{
   hasHotkey: boolean;
   showHotkeyBadges?: boolean;
   badgeContent?: string;
-  userPosition?: ActiveBankInfo;
+  activeBank: ActiveBankInfo;
   showLSTDialog?: (variant: LSTDialogVariants, callback?: () => void) => void;
 }> = ({
   bank,
@@ -59,24 +60,38 @@ const AssetRow: FC<{
   hasHotkey,
   showHotkeyBadges,
   badgeContent,
-  userPosition,
+  activeBank,
   showLSTDialog,
 }) => {
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
+  const [lendingMode, isFilteredUserPositions] = useUiStore((state) => [
+    state.lendingMode,
+    state.isFilteredUserPositions,
+  ]);
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
   const { walletContextState } = useWalletContext();
   const isMobile = useIsMobile();
 
   const isUserPositionPoorHealth = useMemo(() => {
-    if (!userPosition || !userPosition.position.liquidationPrice) {
+    if (!activeBank || !activeBank.position.liquidationPrice) {
       return false;
     }
 
-    return bank.info.state.price < userPosition.position.liquidationPrice * (1 + 0.05);
-  }, [userPosition]);
+    const alertRange = 0.05;
+
+    if (activeBank.position.isLending) {
+      return (
+        bank.info.state.price < activeBank.position.liquidationPrice + activeBank.position.liquidationPrice * alertRange
+      );
+    } else {
+      return (
+        bank.info.state.price > activeBank.position.liquidationPrice - activeBank.position.liquidationPrice * alertRange
+      );
+    }
+  }, [activeBank]);
 
   const userPositionColSpan = useMemo(() => {
     if (isMobile) {
@@ -242,7 +257,7 @@ const AssetRow: FC<{
     <>
       <TableRow
         data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
-        data-asset-row-position={userPosition ? "true" : "false"}
+        data-asset-row-position={activeBank?.position.amount ? "true" : "false"}
         className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]"
       >
         <TableCell
@@ -512,73 +527,74 @@ const AssetRow: FC<{
           </Tooltip>
         </TableCell>
       </TableRow>
-      {userPosition && (
-        <TableRow
-          data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
-          className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122] transition-all"
-        >
-          <TableCell
-            colSpan={userPositionColSpan}
-            className={`text-white p-0 font-aeonik border-none w-full`}
-            style={{
-              fontWeight: 300,
-            }}
+      {activeBank?.position &&
+        (isFilteredUserPositions || activeBank?.position.isLending === (lendingMode === LendingModes.LEND)) && (
+          <TableRow
+            data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
+            className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122] transition-all"
           >
-            <div className={cn("bg-accent m-2.5 mt-1 p-4 rounded-lg", isUserPositionPoorHealth && "bg-destructive")}>
-              <h3>Your position details</h3>
-              <dl className="flex items-center text-accent-foreground mt-2 text-sm">
-                <dt className="mr-1.5">{userPosition.position.isLending ? "Lending" : "Borrowing"}</dt>
-                <dd className="mr-4 pr-4 border-accent-foreground/50 border-r text-white font-medium flex items-center gap-1.5">
-                  {userPosition.position.amount < 0.01 && "< 0.01"}
-                  {userPosition.position.amount >= 0.01 &&
-                    numeralFormatter(userPosition.position.amount) + " " + bank.meta.tokenSymbol}
-                  {userPosition.position.amount < 0.01 && (
-                    <MrgnTooltip title={<>{userPosition.position.amount}</>} placement="top">
-                      <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                    </MrgnTooltip>
+            <TableCell
+              colSpan={userPositionColSpan}
+              className={`text-white p-0 font-aeonik border-none w-full`}
+              style={{
+                fontWeight: 300,
+              }}
+            >
+              <div className={cn("bg-accent m-2.5 mt-1 p-4 rounded-lg", isUserPositionPoorHealth && "bg-destructive")}>
+                <h3>Your position details</h3>
+                <dl className="flex items-center text-accent-foreground mt-2 text-sm">
+                  <dt className="mr-1.5">{activeBank.position.isLending ? "Lending" : "Borrowing"}</dt>
+                  <dd className="mr-4 pr-4 border-accent-foreground/50 border-r text-white font-medium flex items-center gap-1.5">
+                    {activeBank.position.amount < 0.01 && "< 0.01"}
+                    {activeBank.position.amount >= 0.01 &&
+                      numeralFormatter(activeBank.position.amount) + " " + bank.meta.tokenSymbol}
+                    {activeBank.position.amount < 0.01 && (
+                      <MrgnTooltip title={<>{activeBank.position.amount}</>} placement="top">
+                        <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                      </MrgnTooltip>
+                    )}
+                  </dd>
+                  <dt className="mr-1.5">USD Value</dt>
+                  <dd
+                    className={cn(
+                      "mr-4 text-white font-medium",
+                      activeBank.position.liquidationPrice &&
+                        activeBank.position.liquidationPrice > 0 &&
+                        "pr-4 border-accent-foreground/50 border-r"
+                    )}
+                  >
+                    {usdFormatter.format(activeBank.position.usdValue)}
+                  </dd>
+                  {activeBank.position.liquidationPrice && activeBank.position.liquidationPrice > 0 && (
+                    <>
+                      <dt
+                        className={cn(
+                          "mr-1.5 flex items-center gap-1.5",
+                          isUserPositionPoorHealth && "text-destructive-foreground"
+                        )}
+                      >
+                        {isUserPositionPoorHealth && (
+                          <MrgnTooltip title="Your account is at risk of liquidation" placement="left">
+                            <IconAlertTriangle size={16} />
+                          </MrgnTooltip>
+                        )}
+                        Liquidation price
+                      </dt>
+                      <dd
+                        className={cn(
+                          "text-white font-medium",
+                          isUserPositionPoorHealth && "text-destructive-foreground"
+                        )}
+                      >
+                        {usdFormatter.format(activeBank.position.liquidationPrice)}
+                      </dd>
+                    </>
                   )}
-                </dd>
-                <dt className="mr-1.5">USD Value</dt>
-                <dd
-                  className={cn(
-                    "mr-4 text-white font-medium",
-                    userPosition.position.liquidationPrice &&
-                      userPosition.position.liquidationPrice > 0 &&
-                      "pr-4 border-accent-foreground/50 border-r"
-                  )}
-                >
-                  {usdFormatter.format(userPosition.position.usdValue)}
-                </dd>
-                {userPosition.position.liquidationPrice && userPosition.position.liquidationPrice > 0 && (
-                  <>
-                    <dt
-                      className={cn(
-                        "mr-1.5 flex items-center gap-1.5",
-                        isUserPositionPoorHealth && "text-destructive-foreground"
-                      )}
-                    >
-                      {isUserPositionPoorHealth && (
-                        <MrgnTooltip title="Your account is at risk of liquidation" placement="left">
-                          <IconAlertTriangle size={16} />
-                        </MrgnTooltip>
-                      )}
-                      Liquidation price
-                    </dt>
-                    <dd
-                      className={cn(
-                        "text-white font-medium",
-                        isUserPositionPoorHealth && "text-destructive-foreground"
-                      )}
-                    >
-                      {usdFormatter.format(userPosition.position.liquidationPrice)}
-                    </dd>
-                  </>
-                )}
-              </dl>
-            </div>
-          </TableCell>
-        </TableRow>
-      )}
+                </dl>
+              </div>
+            </TableCell>
+          </TableRow>
+        )}
       <TableRow className="h-2 w-full"></TableRow>
     </>
   );
