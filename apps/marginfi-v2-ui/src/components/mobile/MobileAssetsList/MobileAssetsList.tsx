@@ -2,7 +2,7 @@ import React from "react";
 
 import Image from "next/image";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Skeleton, Typography } from "@mui/material";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -44,6 +44,11 @@ export const MobileAssetsList = () => {
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
+
+  const activeBankInfos = React.useMemo(
+    () => extendedBankInfos.filter((balance) => balance.isActive),
+    [extendedBankInfos]
+  ) as ActiveBankInfo[];
 
   const sortBanks = React.useCallback(
     (banks: ExtendedBankInfo[]) => {
@@ -102,6 +107,10 @@ export const MobileAssetsList = () => {
                     if (poolFilter === "stable" && !STABLECOINS.includes(bank.meta.tokenSymbol)) return null;
                     if (poolFilter === "lst" && !LSTS.includes(bank.meta.tokenSymbol)) return null;
 
+                    const activeBank = activeBankInfos.filter(
+                      (activeBankInfo) => activeBankInfo.meta.tokenSymbol === bank.meta.tokenSymbol
+                    );
+
                     return (
                       <AssetCard
                         key={bank.meta.tokenSymbol}
@@ -111,6 +120,7 @@ export const MobileAssetsList = () => {
                         isConnected={connected}
                         marginfiAccount={selectedAccount}
                         inputRefs={inputRefs}
+                        activeBank={activeBank[0]}
                         showLSTDialog={(variant: LSTDialogVariants, onClose?: () => void) => {
                           setLSTDialogVariant(variant);
                           setIsLSTDialogOpen(true);
@@ -167,6 +177,10 @@ export const MobileAssetsList = () => {
               isolatedBanks.length > 0 ? (
                 <div className="flex flew-row flex-wrap gap-6 justify-center items-center pt-2">
                   {isolatedBanks.map((bank, i) => {
+                    const activeBank = activeBankInfos.filter(
+                      (activeBankInfo) => activeBankInfo.meta.tokenSymbol === bank.meta.tokenSymbol
+                    );
+
                     return (
                       <AssetCard
                         key={bank.meta.tokenSymbol}
@@ -176,6 +190,7 @@ export const MobileAssetsList = () => {
                         isConnected={connected}
                         marginfiAccount={selectedAccount}
                         inputRefs={inputRefs}
+                        activeBank={activeBank[0]}
                       />
                     );
                   })}

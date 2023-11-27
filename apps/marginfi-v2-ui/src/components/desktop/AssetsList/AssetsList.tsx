@@ -388,7 +388,7 @@ const AssetsList = () => {
                           hasHotkey={true}
                           showHotkeyBadges={showBadges}
                           badgeContent={`${i + 1}`}
-                          userPosition={userPosition.length > 0 ? userPosition[0] : undefined}
+                          activeBank={userPosition[0]}
                           showLSTDialog={(variant: LSTDialogVariants, onClose?: () => void) => {
                             setLSTDialogVariant(variant);
                             setIsLSTDialogOpen(true);
@@ -612,8 +612,14 @@ const AssetsList = () => {
                 <TableBody>
                   {isolatedBanks
                     .filter((b) => b.info.state.isIsolated)
-                    .map((bank) =>
-                      isStoreInitialized ? (
+                    .map((bank) => {
+                      const activeBank = activeBankInfos.filter(
+                        (activeBankInfo) => activeBankInfo.meta.tokenSymbol === bank.meta.tokenSymbol
+                      );
+
+                      if (isFilteredUserPositions && !activeBank.length) return null;
+
+                      return isStoreInitialized ? (
                         <AssetRow
                           key={bank.meta.tokenSymbol}
                           nativeSolBalance={nativeSolBalance}
@@ -621,6 +627,7 @@ const AssetsList = () => {
                           isInLendingMode={isInLendingMode}
                           isConnected={connected}
                           marginfiAccount={selectedAccount}
+                          activeBank={activeBank[0]}
                           inputRefs={inputRefs}
                           hasHotkey={false}
                         />
@@ -630,8 +637,8 @@ const AssetsList = () => {
                           isInLendingMode={isInLendingMode}
                           bankMetadata={bank.meta}
                         />
-                      )
-                    )}
+                      );
+                    })}
                 </TableBody>
               </Table>
             )}
