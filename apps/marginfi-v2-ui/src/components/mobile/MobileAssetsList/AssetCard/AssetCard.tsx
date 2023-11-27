@@ -15,7 +15,7 @@ import { LendingModes } from "~/types";
 
 export const AssetCard: FC<{
   bank: ExtendedBankInfo;
-  activeBank: ActiveBankInfo;
+  activeBank?: ActiveBankInfo;
   nativeSolBalance: number;
   isInLendingMode: boolean;
   isConnected: boolean;

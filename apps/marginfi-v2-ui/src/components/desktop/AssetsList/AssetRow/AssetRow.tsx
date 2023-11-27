@@ -84,11 +84,13 @@ const AssetRow: FC<{
 
     if (activeBank.position.isLending) {
       return (
-        bank.info.state.price < activeBank.position.liquidationPrice + activeBank.position.liquidationPrice * alertRange
+        activeBank.info.state.price <
+        activeBank.position.liquidationPrice + activeBank.position.liquidationPrice * alertRange
       );
     } else {
       return (
-        bank.info.state.price > activeBank.position.liquidationPrice - activeBank.position.liquidationPrice * alertRange
+        activeBank.info.state.price >
+        activeBank.position.liquidationPrice - activeBank.position.liquidationPrice * alertRange
       );
     }
   }, [activeBank]);
@@ -541,7 +543,10 @@ const AssetRow: FC<{
               }}
             >
               <div className={cn("bg-accent m-2.5 mt-1 p-4 rounded-lg", isUserPositionPoorHealth && "bg-destructive")}>
-                <h3>Your position details</h3>
+                <h3>
+                  Your {isFilteredUserPositions ? (activeBank.position.isLending ? "lending " : "borrowing ") : ""}{" "}
+                  position details
+                </h3>
                 <dl className="flex items-center text-accent-foreground mt-2 text-sm">
                   <dt className="mr-1.5">{activeBank.position.isLending ? "Lending" : "Borrowing"}</dt>
                   <dd className="mr-4 pr-4 border-accent-foreground/50 border-r text-white font-medium flex items-center gap-1.5">
@@ -557,13 +562,19 @@ const AssetRow: FC<{
                   <dt className="mr-1.5">USD Value</dt>
                   <dd
                     className={cn(
-                      "mr-4 text-white font-medium",
+                      "mr-4 text-white font-medium flex items-center gap-1.5",
                       activeBank.position.liquidationPrice &&
                         activeBank.position.liquidationPrice > 0 &&
                         "pr-4 border-accent-foreground/50 border-r"
                     )}
                   >
-                    {usdFormatter.format(activeBank.position.usdValue)}
+                    {activeBank.position.usdValue < 0.01 && "< $0.01"}
+                    {activeBank.position.usdValue >= 0.01 && usdFormatter.format(activeBank.position.usdValue)}
+                    {activeBank.position.usdValue < 0.01 && (
+                      <MrgnTooltip title={<>${activeBank.position.usdValue}</>} placement="top">
+                        <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                      </MrgnTooltip>
+                    )}
                   </dd>
                   {activeBank.position.liquidationPrice && activeBank.position.liquidationPrice > 0 && (
                     <>
@@ -586,7 +597,9 @@ const AssetRow: FC<{
                           isUserPositionPoorHealth && "text-destructive-foreground"
                         )}
                       >
-                        {usdFormatter.format(activeBank.position.liquidationPrice)}
+                        {activeBank.position.liquidationPrice > 0.01
+                          ? usdFormatter.format(activeBank.position.liquidationPrice)
+                          : `$${activeBank.position.liquidationPrice.toExponential(2)}`}
                       </dd>
                     </>
                   )}
