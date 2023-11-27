@@ -2,7 +2,6 @@ import React from "react";
 
 import Script from "next/script";
 
-import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import config from "~/config";
@@ -11,6 +10,7 @@ import { useUserProfileStore, useUiStore } from "~/store";
 import { Desktop } from "~/mediaQueries";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { PageHeader } from "~/components/common/PageHeader";
+import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 const tokens = [
   "0x0000000000000000000000000000000000000000", // SOL
@@ -111,6 +111,7 @@ const BridgePage = () => {
   }, [walletContextState, handleConnect, walletAddress]);
 
   const handleLoadMayanWidget = React.useCallback(() => {
+    const multiStepToast = new MultiStepToastHandle("Bridge", [{ label: `Cross-chain swap/bridge in progress` }]);
     const configIndex = isBridgeIn ? 0 : 1;
     const config = {
       ...configs[configIndex],
@@ -123,27 +124,13 @@ const BridgePage = () => {
     };
     window.MayanSwap.init("swap_widget", config);
     window.MayanSwap.setSwapInitiateListener((data) => {
-      toast.loading("Cross-chain swap/bridge in progress", {
-        toastId: data.hash,
-      });
+      multiStepToast.start();
     });
     window.MayanSwap.setSwapCompleteListener((data) => {
-      toast.update(data.hash, {
-        render: "Cross-chain swap/bridge done",
-        toastId: data.hash,
-        type: toast.TYPE.SUCCESS,
-        autoClose: 5000,
-        isLoading: false,
-      });
+      multiStepToast.setSuccessAndNext();
     });
     window.MayanSwap.setSwapRefundListener((data) => {
-      toast.update(data.hash, {
-        render: "Cross-chain swap/bridge refunded",
-        toastId: data.hash,
-        type: toast.TYPE.WARNING,
-        autoClose: 5000,
-        isLoading: false,
-      });
+      multiStepToast.setFailed("Cross-chain swap/bridge refunded");
     });
   }, [handleConnect, isBridgeIn, walletAddress, walletContextState.disconnect, walletContextState.signTransaction]);
 

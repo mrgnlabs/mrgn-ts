@@ -11,7 +11,6 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { Features, isActive } from "~/utils/featureGates";
 import { PublicKey } from "@solana/web3.js";
 import { useConnection } from "~/hooks/useConnection";
-import { toast } from "react-toastify";
 import { EMISSION_MINT_INFO_MAP } from "../AssetsList/AssetRow";
 import { collectRewardsBatch } from "~/utils";
 import { IconMrgn } from "~/components/ui/icons";
@@ -301,7 +300,6 @@ const DesktopNavbar: FC = () => {
               onClick={async () => {
                 if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
                 await collectRewardsBatch(connection, wallet, selectedAccount, bankAddressesWithEmissions);
-                toast.success("Withdrawal successful");
               }}
             >
               collect rewards

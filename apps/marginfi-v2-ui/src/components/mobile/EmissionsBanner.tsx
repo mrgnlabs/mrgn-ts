@@ -5,7 +5,6 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useMrgnlendStore } from "~/store";
 import { collectRewardsBatch } from "~/utils";
 import { EMISSION_MINT_INFO_MAP } from "../desktop/AssetsList/AssetRow";
-import { toast } from "react-toastify";
 
 const EmissionsBanner: FC = () => {
   const { connection } = useConnection();
@@ -33,7 +32,6 @@ const EmissionsBanner: FC = () => {
       onClick={async () => {
         if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
         await collectRewardsBatch(connection, wallet, selectedAccount, bankAddressesWithEmissions);
-        toast.success("Withdrawal successful");
       }}
     >
       <div className="text-white text-normal font-[500]">Collect LM rewards</div>
