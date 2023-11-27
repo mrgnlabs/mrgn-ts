@@ -25,8 +25,8 @@ const web3AuthIconMap: { [key in Web3AuthProvider]: { icon: JSX.Element } } = {
 };
 
 export const WalletButton = () => {
-  const { select, wallets } = useWallet();
-  const { connected, loginWeb3Auth } = useWalletContext();
+  const { select } = useWallet();
+  const { connected, connecting, isLoading, loginWeb3Auth } = useWalletContext();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
   const walletInfo = useMemo(
@@ -73,8 +73,9 @@ export const WalletButton = () => {
       {!connected ? (
         <Button className="gap-1.5 py-0 pr-2">
           <div className="flex flex-row relative h-full gap-4">
-            <div onClick={() => handleWalletConnect()} className="inline-flex items-center gap-2">
-              Sign in with {walletInfo && <WalletIcon />}
+            <div onClick={() => (isLoading ? {} : handleWalletConnect())} className="inline-flex items-center gap-2">
+              {isLoading || connecting ? "Connecting..." : "Sign in with"}
+              {walletInfo && <WalletIcon />}
             </div>
             {walletInfo && (
               <div
