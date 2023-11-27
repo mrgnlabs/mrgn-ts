@@ -75,24 +75,7 @@ const AssetRow: FC<{
       return false;
     }
 
-    const alertRange = bank.info.state.price * 0.05;
-    const lowerBound = bank.info.state.price - alertRange;
-    const upperBound = bank.info.state.price + alertRange;
-
-    console.log(
-      bank.meta.tokenName,
-      bank.info.state.price,
-      alertRange,
-      lowerBound,
-      upperBound,
-      userPosition.position.liquidationPrice
-    );
-
-    if (userPosition.position.isLending) {
-      return userPosition.position.liquidationPrice >= lowerBound;
-    } else {
-      return userPosition.position.liquidationPrice <= upperBound;
-    }
+    return bank.info.state.price < userPosition.position.liquidationPrice * (1 + 0.05);
   }, [userPosition]);
 
   const userPositionColSpan = useMemo(() => {
@@ -546,7 +529,7 @@ const AssetRow: FC<{
               <dl className="flex items-center text-accent-foreground mt-2 text-sm">
                 <dt className="mr-1.5">{userPosition.position.isLending ? "Lending" : "Borrowing"}</dt>
                 <dd className="mr-4 pr-4 border-accent-foreground/50 border-r text-white font-medium flex items-center gap-1.5">
-                  {userPosition.position.amount < 0.01 && "< 0.00"}
+                  {userPosition.position.amount < 0.01 && "< 0.01"}
                   {userPosition.position.amount >= 0.01 &&
                     numeralFormatter(userPosition.position.amount) + " " + bank.meta.tokenSymbol}
                   {userPosition.position.amount < 0.01 && (
