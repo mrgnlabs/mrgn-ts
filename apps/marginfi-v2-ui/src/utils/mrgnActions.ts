@@ -219,10 +219,14 @@ export async function collectRewardsBatch(
   marginfiAccount: MarginfiAccountWrapper,
   bankAddresses: PublicKey[]
 ) {
+  const multiStepToast = new MultiStepToastHandle("Collect rewards", [{ label: "Collecting rewards" }]);
+  multiStepToast.start();
+
   try {
     const tx = new Transaction();
     const ixs = [];
     const signers = [];
+
     for (const bankAddress of bankAddresses) {
       const ix = await marginfiAccount.makeWithdrawEmissionsIx(bankAddress);
       ixs.push(...ix.instructions);
@@ -230,9 +234,10 @@ export async function collectRewardsBatch(
     }
     tx.add(...ixs);
     await processTransaction(connection, wallet, tx);
+    multiStepToast.setSuccessAndNext();
   } catch (error: any) {
     const msg = extractErrorString(error);
-    showErrorToast(msg);
+    multiStepToast.setFailed(msg);
     console.log(`Error while collecting rewards: ${msg}`);
     console.log(error);
     return;

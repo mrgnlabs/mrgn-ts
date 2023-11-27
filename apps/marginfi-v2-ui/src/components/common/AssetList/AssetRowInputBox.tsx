@@ -1,7 +1,7 @@
 import { InputAdornment, TextField } from "@mui/material";
 import { FC, MouseEventHandler, useCallback } from "react";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
-import { toast } from "react-toastify";
+import { showErrorToast } from "~/utils/toastUtils";
 
 interface AssetRowInputBox {
   value: number;
@@ -28,7 +28,7 @@ const AssetRowInputBox: FC<AssetRowInputBox> = ({
     if (maxValue !== undefined) {
       setValue(maxValue);
     } else {
-      toast.error("Not implemented");
+      showErrorToast("Not implemented");
     }
   }, [maxValue, setValue]);
 

@@ -28,11 +28,11 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import { Bank, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { Countdown } from "~/components/desktop/Countdown";
-import { toast } from "react-toastify";
 import BigNumber from "bignumber.js";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useMrgnlendStore } from "~/store";
 import { Desktop } from "~/mediaQueries";
+import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 const Earn = () => {
   const { wallet, isOverride, connected, walletAddress } = useWalletContext();
@@ -181,25 +181,14 @@ const Earn = () => {
   const closeDeposit = useCallback(
     async (deposit: Deposit) => {
       if (!lipAccount) return;
-      toast.loading(`Closing deposit`, {
-        toastId: "close-deposit",
-      });
+      const multiStepToast = new MultiStepToastHandle("Close deposit", [{ label: "Closing deposit" }]);
+      multiStepToast.start();
       try {
         await lipAccount.closePosition(deposit);
-        toast.update("close-deposit", {
-          render: `Closing deposit 👍`,
-          type: toast.TYPE.SUCCESS,
-          autoClose: 2000,
-          isLoading: false,
-        });
+        multiStepToast.setSuccessAndNext();
       } catch (e) {
         console.error(e);
-        toast.update("close-deposit", {
-          render: `Error closing deposit: ${e}`,
-          type: toast.TYPE.ERROR,
-          autoClose: 2000,
-          isLoading: false,
-        });
+        multiStepToast.setFailed(`Error closing deposit: ${e}`);
       }
       setReloading(true);
       setLipAccount(await lipAccount.reloadAndClone());
