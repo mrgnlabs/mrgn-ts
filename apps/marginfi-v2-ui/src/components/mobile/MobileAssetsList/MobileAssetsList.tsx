@@ -101,6 +101,7 @@ export const MobileAssetsList = () => {
                   {globalBanks.map((bank) => {
                     if (poolFilter === "stable" && !STABLECOINS.includes(bank.meta.tokenSymbol)) return null;
                     if (poolFilter === "lst" && !LSTS.includes(bank.meta.tokenSymbol)) return null;
+
                     return (
                       <AssetCard
                         key={bank.meta.tokenSymbol}
