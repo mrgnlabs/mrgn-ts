@@ -19,6 +19,7 @@ import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
+import { IconAlertTriangle } from "~/components/ui/icons";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
   [
@@ -68,6 +69,17 @@ const AssetRow: FC<{
   const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
   const { walletContextState } = useWalletContext();
   const isMobile = useIsMobile();
+
+  const isUserPositionPoorHealth = useMemo(() => {
+    if (!userPosition || !userPosition.position.liquidationPrice) {
+      return false;
+    }
+
+    const alertRange = userPosition.position.liquidationPrice * 0.05;
+    const lowerBound = userPosition.position.liquidationPrice - alertRange;
+
+    return userPosition.position.isLending ? bank.info.state.price <= lowerBound : bank.info.state.price >= lowerBound;
+  }, [userPosition]);
 
   const userPositionColSpan = useMemo(() => {
     if (isMobile) {
@@ -515,13 +527,19 @@ const AssetRow: FC<{
               fontWeight: 300,
             }}
           >
-            <div className="bg-accent m-2.5 mt-1 p-4 rounded-lg">
+            <div className={cn("bg-accent m-2.5 mt-1 p-4 rounded-lg", isUserPositionPoorHealth && "bg-destructive")}>
               <h3>Your position details</h3>
               <dl className="flex items-center text-accent-foreground mt-2 text-sm">
                 <dt className="mr-1.5">{userPosition.position.isLending ? "Lending" : "Borrowing"}</dt>
-                <dd className="mr-4 pr-4 border-accent-foreground/50 border-r text-white font-medium">
-                  {userPosition.position.amount < 0.01 && "< "}
-                  {numeralFormatter(userPosition.position.amount) + " " + bank.meta.tokenSymbol}
+                <dd className="mr-4 pr-4 border-accent-foreground/50 border-r text-white font-medium flex items-center gap-1.5">
+                  {userPosition.position.amount < 0.01 && "< 0.00"}
+                  {userPosition.position.amount >= 0.01 &&
+                    numeralFormatter(userPosition.position.amount) + " " + bank.meta.tokenSymbol}
+                  {userPosition.position.amount < 0.01 && (
+                    <MrgnTooltip title={<>{userPosition.position.amount}</>} placement="top">
+                      <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                    </MrgnTooltip>
+                  )}
                 </dd>
                 <dt className="mr-1.5">USD Value</dt>
                 <dd
@@ -536,8 +554,25 @@ const AssetRow: FC<{
                 </dd>
                 {userPosition.position.liquidationPrice && userPosition.position.liquidationPrice > 0 && (
                   <>
-                    <dt className="mr-1.5">Liquidation price</dt>
-                    <dd className="text-white font-medium">
+                    <dt
+                      className={cn(
+                        "mr-1.5 flex items-center gap-1.5",
+                        isUserPositionPoorHealth && "text-destructive-foreground"
+                      )}
+                    >
+                      {isUserPositionPoorHealth && (
+                        <MrgnTooltip title="Your account is at risk of liquidation" placement="left">
+                          <IconAlertTriangle size={16} />
+                        </MrgnTooltip>
+                      )}
+                      Liquidation price
+                    </dt>
+                    <dd
+                      className={cn(
+                        "text-white font-medium",
+                        isUserPositionPoorHealth && "text-destructive-foreground"
+                      )}
+                    >
                       {usdFormatter.format(userPosition.position.liquidationPrice)}
                     </dd>
                   </>

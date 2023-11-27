@@ -110,9 +110,6 @@ const AssetsList = () => {
     [activeBankInfos]
   );
 
-  console.log("lendPositions", lendPositions);
-  console.log("borrowPositions", borrowPositions);
-
   // Enter hotkey mode
   useHotkeys(
     "meta + k",
