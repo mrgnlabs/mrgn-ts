@@ -59,7 +59,10 @@ export const AssetListFilters = () => {
         >
           <MrgnContainedSwitch
             checked={isFilteredUserPositions}
-            onChange={() => setIsFilteredUserPositions(!isFilteredUserPositions)}
+            onChange={() => {
+              setIsFilteredUserPositions(!isFilteredUserPositions);
+              setPoolFilter(PoolTypes.ALL);
+            }}
             inputProps={{ "aria-label": "controlled" }}
             className={cn(!connected && "pointer-events-none")}
           />
