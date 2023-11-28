@@ -12,7 +12,7 @@ import { Bank, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { Connection, PublicKey } from "@solana/web3.js";
 import {
   DEFAULT_ACCOUNT_SUMMARY,
-  fetchEmissionsPriceMap,
+  makeEmissionsPriceMap,
   computeAccountSummary,
   fetchTokenAccounts,
   makeExtendedBankInfo,
@@ -21,6 +21,7 @@ import {
   TokenAccountMap,
   ExtendedBankMetadata,
   makeExtendedBankMetadata,
+  makeExtendedBankEmission,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -131,7 +132,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const banks = [...marginfiClient.banks.values()];
 
       const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
-      const priceMap = await fetchEmissionsPriceMap(banks, connection, birdEyeApiKey);
+      const priceMap = await makeEmissionsPriceMap(banks, connection);
 
       let nativeSolBalance: number = 0;
       let tokenAccountMap: TokenAccountMap;
@@ -252,7 +253,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         accountSummary = computeAccountSummary(selectedAccount, extendedBankInfos);
       }
 
-      const pointSummary = await getPointsSummary();
+      const pointsTotal = get().protocolStats.pointsTotal;
 
       set({
         initialized: true,
@@ -268,12 +269,30 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           deposits,
           borrows,
           tvl: deposits - borrows,
-          pointsTotal: pointSummary.points_total,
+          pointsTotal: pointsTotal,
         },
         selectedAccount,
         nativeSolBalance,
         accountSummary,
         birdEyeApiKey,
+      });
+
+      const pointSummary = await getPointsSummary();
+
+      set({
+        protocolStats: { deposits, borrows, tvl: deposits - borrows, pointsTotal: pointSummary.points_total },
+      });
+
+      const [sortedExtendedBankEmission, sortedExtendedBankMetadatasEmission] = await makeExtendedBankEmission(
+        sortedExtendedBankInfos,
+        sortedExtendedBankMetadatas,
+        priceMap,
+        birdEyeApiKey
+      );
+
+      set({
+        extendedBankInfos: sortedExtendedBankEmission,
+        extendedBankMetadatas: sortedExtendedBankMetadatasEmission,
       });
     } catch (err) {
       console.error("error refreshing state: ", err);

@@ -158,15 +158,14 @@ export async function fetchBirdeyePrices(mints: PublicKey[], apiKey?: string): P
   throw new Error("Failed to fetch price");
 }
 
-export async function fetchEmissionsPriceMap(
-  banks: Bank[],
-  connection: Connection,
+export async function makeExtendedBankEmission(
+  banks: ExtendedBankInfo[],
+  extendedBankMetadatas: ExtendedBankMetadata[],
+  tokenMap: TokenPriceMap,
   apiKey?: string
-): Promise<TokenPriceMap> {
-  const banksWithEmissions = banks.filter((bank) => !bank.emissionsMint.equals(PublicKey.default));
-  const emissionsMints = banksWithEmissions.map((bank) => bank.emissionsMint);
-
-  let birdeyePrices = emissionsMints.map((m) => new BigNumber(0));
+): Promise<[ExtendedBankInfo[], ExtendedBankMetadata[]]> {
+  const emissionsMints = Object.keys(tokenMap).map((key) => new PublicKey(key));
+  let birdeyePrices = emissionsMints.map(() => new BigNumber(0));
 
   try {
     birdeyePrices = await fetchBirdeyePrices(emissionsMints, apiKey);
@@ -174,12 +173,60 @@ export async function fetchEmissionsPriceMap(
     console.log("Failed to fetch emissions prices from Birdeye", err);
   }
 
+  emissionsMints.map((mint, idx) => {
+    tokenMap[mint.toBase58()] = { ...tokenMap[mint.toBase58()], price: birdeyePrices[idx] };
+  });
+
+  const updatedBanks = banks.map((bank) => {
+    const rawBank = bank.info.rawBank;
+    const emissionTokenData = tokenMap[rawBank.emissionsMint.toBase58()];
+    let emissionsRate: number = 0;
+    let emissions = Emissions.Inactive;
+    if ((rawBank.emissionsActiveLending || rawBank.emissionsActiveBorrowing) && emissionTokenData) {
+      const emissionsRateAmount = new BigNumber(nativeToUi(rawBank.emissionsRate, emissionTokenData.decimals));
+      const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
+      const emissionsRateAdditionalyApy = emissionsRateValue.div(bank.info.oraclePrice.price);
+
+      emissionsRate = emissionsRateAdditionalyApy.toNumber();
+
+      if (rawBank.emissionsActiveBorrowing) {
+        emissions = Emissions.Borrowing;
+      } else if (rawBank.emissionsActiveLending) {
+        emissions = Emissions.Lending;
+      }
+
+      bank.info.state = {
+        ...bank.info.state,
+        emissionsRate,
+        emissions,
+      };
+    }
+    return bank;
+  });
+
+  const sortedExtendedBankInfos = updatedBanks.sort(
+    (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
+  );
+
+  const sortedExtendedBankMetadatas = extendedBankMetadatas.sort((am, bm) => {
+    const a = sortedExtendedBankInfos.find((a) => a.address.equals(am.address))!;
+    const b = sortedExtendedBankInfos.find((b) => b.address.equals(bm.address))!;
+    return b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price;
+  });
+
+  return [sortedExtendedBankInfos, sortedExtendedBankMetadatas];
+}
+
+export async function makeEmissionsPriceMap(banks: Bank[], connection: Connection): Promise<TokenPriceMap> {
+  const banksWithEmissions = banks.filter((bank) => !bank.emissionsMint.equals(PublicKey.default));
+  const emissionsMints = banksWithEmissions.map((bank) => bank.emissionsMint);
+
   const mintAis = await connection.getMultipleAccountsInfo(emissionsMints);
 
   const mint = mintAis.map((ai) => MintLayout.decode(ai!.data));
   const emissionsPrices = banksWithEmissions.map((bank, i) => ({
     mint: bank.emissionsMint,
-    price: birdeyePrices[i],
+    price: new BigNumber(0),
     decimals: mint[0].decimals,
   }));
 
