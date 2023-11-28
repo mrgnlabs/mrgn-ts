@@ -370,7 +370,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     <WalletContext.Provider
       value={{
         connecting: walletContextState?.connecting,
-        connected: Boolean(walletContextState?.connected || web3Auth?.connected),
+        connected: Boolean(walletContextState?.connected),
         web3AuthConncected: web3Auth?.connected,
         wallet,
         walletAddress: wallet?.publicKey as PublicKey,
