@@ -39,7 +39,10 @@ export const AssetListFilters = () => {
 
   return (
     <div className="col-span-full w-full space-y-5">
-      <NewAssetBanner asset="jlp" image="https://static.jup.ag/jlp/icon.png" />
+      <NewAssetBanner
+        asset="render"
+        image="https://shdw-drive.genesysgo.net/5zseP54TGrcz9C8HdjZwJJsZ6f3VbP11p1abwKWGykZH/rndr.png"
+      />
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-8">
         <div className="flex w-[150px] h-[42px] mr-auto">
           <MrgnLabeledSwitch
