@@ -102,7 +102,7 @@ export const MobileAssetsList = () => {
             </Typography>
             {isStoreInitialized && globalBanks ? (
               globalBanks.length > 0 ? (
-                <div className="flex flew-row flex-wrap gap-5 justify-center items-center pt-2">
+                <div className="space-y-5 justify-center items-center pt-2">
                   {globalBanks.map((bank) => {
                     if (poolFilter === "stable" && !STABLECOINS.includes(bank.meta.tokenSymbol)) return null;
                     if (poolFilter === "lst" && !LSTS.includes(bank.meta.tokenSymbol)) return null;
