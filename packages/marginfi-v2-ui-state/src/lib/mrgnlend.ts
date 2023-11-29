@@ -163,9 +163,9 @@ export async function makeExtendedBankEmission(
   extendedBankMetadatas: ExtendedBankMetadata[],
   tokenMap: TokenPriceMap,
   apiKey?: string
-): Promise<[ExtendedBankInfo[], ExtendedBankMetadata[], TokenPriceMap]> {
+): Promise<[ExtendedBankInfo[], ExtendedBankMetadata[], TokenPriceMap | null]> {
   const emissionsMints = Object.keys(tokenMap).map((key) => new PublicKey(key));
-  let birdeyePrices = emissionsMints.map(() => new BigNumber(0));
+  let birdeyePrices: null | BigNumber[] = emissionsMints.map(() => new BigNumber(0));
 
   try {
     birdeyePrices = await fetchBirdeyePrices(emissionsMints, apiKey);
@@ -224,7 +224,7 @@ export async function makeExtendedBankEmission(
 export async function makeEmissionsPriceMap(
   banks: Bank[],
   connection: Connection,
-  emissionTokenMap: TokenPriceMap
+  emissionTokenMap: TokenPriceMap | null
 ): Promise<TokenPriceMap> {
   const banksWithEmissions = banks.filter((bank) => !bank.emissionsMint.equals(PublicKey.default));
   const emissionsMints = banksWithEmissions.map((bank) => bank.emissionsMint);
@@ -234,7 +234,9 @@ export async function makeEmissionsPriceMap(
   const mint = mintAis.map((ai) => MintLayout.decode(ai!.data));
   const emissionsPrices = banksWithEmissions.map((bank, i) => ({
     mint: bank.emissionsMint,
-    price: emissionTokenMap ? emissionTokenMap[bank.emissionsMint]?.price ?? new BigNumber(0) : new BigNumber(0),
+    price: emissionTokenMap
+      ? emissionTokenMap[bank.emissionsMint.toBase58()]?.price ?? new BigNumber(0)
+      : new BigNumber(0),
     decimals: mint[0].decimals,
   }));
 
