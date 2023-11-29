@@ -16,6 +16,7 @@ import {
   STATUS_OK,
   firebaseApi,
 } from "@mrgnlabs/marginfi-v2-ui-state";
+import posthog from "posthog-js";
 
 initFirebaseIfNeeded();
 
@@ -56,6 +57,13 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: an
       return res.status(STATUS_NOT_FOUND).json({ error: "User not found" });
     } else {
       await logLoginAttempt(walletAddress, userResult.uid, "", true);
+      posthog.capture("user_login", {
+        publicKey: walletAddress,
+        uuid: userResult.uid,
+      });
+      posthog.identify(userResult.uid, {
+        publicKey: walletAddress,
+      });
     }
   } catch (error: any) {
     Sentry.captureException(error);
