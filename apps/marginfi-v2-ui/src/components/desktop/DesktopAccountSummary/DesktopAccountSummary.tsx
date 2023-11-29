@@ -22,9 +22,9 @@ const AccountSummary = () => {
   const { connected } = useWalletContext();
 
   return (
-    <div className={cn("flex flex-col lg:flex-row w-full justify-between items-center")}>
+    <div className={cn("flex flex-col py-[10px] px-4 lg:flex-row w-full justify-between items-center")}>
       <div className="font-[500] lg:block w-full h-[118px]">
-        <div className="h-full rounded-xl p-[10px]">
+        <div className="h-full rounded-xl">
           <span className="w-full flex justify-start text-xl">Global stats</span>
           <GlobalStats
             tvl={protocolStats.tvl}
@@ -37,7 +37,7 @@ const AccountSummary = () => {
 
       <div className="w-full">
         {connected && (
-          <div className="font-[500] h-full rounded-xl p-[10px]">
+          <div className="font-[500] h-full rounded-xl">
             <span className="w-full h-full flex justify-start text-xl text-white">Your account</span>
             <UserStats
               accountSummary={isStoreInitialized && selectedAccount ? accountSummary : null}

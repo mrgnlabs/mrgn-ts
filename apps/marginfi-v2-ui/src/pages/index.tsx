@@ -87,7 +87,7 @@ const Home = () => {
     <>
       <Desktop>
         <PageHeader>lend</PageHeader>
-        <div className="flex flex-col h-full justify-start content-start pt-[16px] w-4/5 max-w-7xl gap-4">
+        <div className="flex flex-col h-full justify-start content-start pt-[16px] w-full xl:w-4/5 xl:max-w-7xl gap-4">
           {walletAddress && selectedAccount && isOverride && (
             <Banner
               text={`Read-only view of ${selectedAccount.address.toBase58()} (owner: ${shortenAddress(
@@ -107,7 +107,7 @@ const Home = () => {
           )}
           <DesktopAccountSummary />
         </div>
-        <div className="pt-[16px] pb-[64px] grid w-4/5 max-w-7xl gap-4 grid-cols-1 xl:grid-cols-2">
+        <div className="pt-[16px] pb-[64px] px-4 grid w-full xl:w-4/5 xl:max-w-7xl gap-4 grid-cols-1 xl:grid-cols-2">
           <AssetsList />
         </div>
         <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
