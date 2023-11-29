@@ -34,6 +34,7 @@ import {
 } from "@solana/web3.js";
 import { useConnection } from "~/hooks/useConnection";
 import { SwapMode, useJupiter } from "@jup-ag/react-hook";
+import posthog from "posthog-js";
 import JSBI from "jsbi";
 import { StakeData, usePrevious } from "~/utils";
 import { createJupiterApiClient } from "@jup-ag/api";
@@ -367,6 +368,9 @@ export const StakingCard: FC = () => {
       multiStepToast.setFailed(errorMsg);
     } finally {
       await Promise.all([refresh(), fetchLstState()]);
+      posthog.capture("user_stake", {
+        amount: depositAmountUi,
+      });
       setDepositOption((currentDepositOption) =>
         currentDepositOption.type === "stake" ? DEFAULT_DEPOSIT_OPTION : { ...currentDepositOption, amount: new BN(0) }
       );

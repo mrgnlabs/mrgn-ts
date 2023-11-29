@@ -15,6 +15,7 @@ import {
   STATUS_OK,
   firebaseApi,
 } from "@mrgnlabs/marginfi-v2-ui-state";
+import posthog from "posthog-js";
 
 initFirebaseIfNeeded();
 
@@ -72,6 +73,13 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
   }
 
   await logSignupAttempt(walletAddress, payload.uuid, "", true);
+  posthog.capture("user_login", {
+    publicKey: walletAddress,
+    uuid: payload.uuid,
+  });
+  posthog.identify(payload.uuid, {
+    publicKey: walletAddress,
+  });
 
   // Generate a custom token for the client to sign in
   const customToken = await admin.auth().createCustomToken(walletAddress);
