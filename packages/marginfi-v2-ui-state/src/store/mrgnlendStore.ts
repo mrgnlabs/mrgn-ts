@@ -22,6 +22,7 @@ import {
   ExtendedBankMetadata,
   makeExtendedBankMetadata,
   makeExtendedBankEmission,
+  TokenPriceMap,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -49,6 +50,7 @@ interface MrgnlendState {
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
   accountSummary: AccountSummary;
+  emissionTokenMap: TokenPriceMap | null;
   birdEyeApiKey: string;
 
   // Actions
@@ -103,6 +105,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   nativeSolBalance: 0,
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
   birdEyeApiKey: "",
+  emissionTokenMap: {},
 
   // Actions
   fetchMrgnlendState: async (args?: {
@@ -132,7 +135,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const banks = [...marginfiClient.banks.values()];
 
       const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
-      const priceMap = await makeEmissionsPriceMap(banks, connection);
+      const priceMap = await makeEmissionsPriceMap(banks, connection, get().emissionTokenMap);
 
       let nativeSolBalance: number = 0;
       let tokenAccountMap: TokenAccountMap;
@@ -283,16 +286,13 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         protocolStats: { deposits, borrows, tvl: deposits - borrows, pointsTotal: pointSummary.points_total },
       });
 
-      const [sortedExtendedBankEmission, sortedExtendedBankMetadatasEmission] = await makeExtendedBankEmission(
-        sortedExtendedBankInfos,
-        sortedExtendedBankMetadatas,
-        priceMap,
-        birdEyeApiKey
-      );
+      const [sortedExtendedBankEmission, sortedExtendedBankMetadatasEmission, emissionTokenMap] =
+        await makeExtendedBankEmission(sortedExtendedBankInfos, sortedExtendedBankMetadatas, priceMap, birdEyeApiKey);
 
       set({
         extendedBankInfos: sortedExtendedBankEmission,
         extendedBankMetadatas: sortedExtendedBankMetadatasEmission,
+        emissionTokenMap: emissionTokenMap,
       });
     } catch (err) {
       console.error("error refreshing state: ", err);
