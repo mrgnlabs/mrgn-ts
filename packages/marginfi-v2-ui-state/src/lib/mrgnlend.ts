@@ -163,7 +163,7 @@ export async function makeExtendedBankEmission(
   extendedBankMetadatas: ExtendedBankMetadata[],
   tokenMap: TokenPriceMap,
   apiKey?: string
-): Promise<[ExtendedBankInfo[], ExtendedBankMetadata[]]> {
+): Promise<[ExtendedBankInfo[], ExtendedBankMetadata[], TokenPriceMap]> {
   const emissionsMints = Object.keys(tokenMap).map((key) => new PublicKey(key));
   let birdeyePrices = emissionsMints.map(() => new BigNumber(0));
 
@@ -171,10 +171,14 @@ export async function makeExtendedBankEmission(
     birdeyePrices = await fetchBirdeyePrices(emissionsMints, apiKey);
   } catch (err) {
     console.log("Failed to fetch emissions prices from Birdeye", err);
+    birdeyePrices = null;
   }
 
   emissionsMints.map((mint, idx) => {
-    tokenMap[mint.toBase58()] = { ...tokenMap[mint.toBase58()], price: birdeyePrices[idx] };
+    tokenMap[mint.toBase58()] = {
+      ...tokenMap[mint.toBase58()],
+      price: birdeyePrices ? birdeyePrices[idx] : new BigNumber(0),
+    };
   });
 
   const updatedBanks = banks.map((bank) => {
@@ -214,10 +218,14 @@ export async function makeExtendedBankEmission(
     return b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price;
   });
 
-  return [sortedExtendedBankInfos, sortedExtendedBankMetadatas];
+  return [sortedExtendedBankInfos, sortedExtendedBankMetadatas, birdeyePrices ? tokenMap : null];
 }
 
-export async function makeEmissionsPriceMap(banks: Bank[], connection: Connection): Promise<TokenPriceMap> {
+export async function makeEmissionsPriceMap(
+  banks: Bank[],
+  connection: Connection,
+  emissionTokenMap: TokenPriceMap
+): Promise<TokenPriceMap> {
   const banksWithEmissions = banks.filter((bank) => !bank.emissionsMint.equals(PublicKey.default));
   const emissionsMints = banksWithEmissions.map((bank) => bank.emissionsMint);
 
@@ -226,7 +234,7 @@ export async function makeEmissionsPriceMap(banks: Bank[], connection: Connectio
   const mint = mintAis.map((ai) => MintLayout.decode(ai!.data));
   const emissionsPrices = banksWithEmissions.map((bank, i) => ({
     mint: bank.emissionsMint,
-    price: new BigNumber(0),
+    price: emissionTokenMap ? emissionTokenMap[bank.emissionsMint]?.price ?? new BigNumber(0) : new BigNumber(0),
     decimals: mint[0].decimals,
   }));
 

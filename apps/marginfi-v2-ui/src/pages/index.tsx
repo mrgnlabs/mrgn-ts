@@ -17,6 +17,7 @@ import { PageHeader } from "~/components/common/PageHeader";
 
 import { IconAlertTriangle } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
+import { showErrorToast } from "~/utils/toastUtils";
 
 const DesktopAccountSummary = dynamic(
   async () => (await import("~/components/desktop/DesktopAccountSummary")).DesktopAccountSummary,
@@ -41,6 +42,7 @@ const Home = () => {
     setIsRefreshingStore,
     marginfiAccounts,
     selectedAccount,
+    emissionTokenMap,
   ] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,
     state.initialized,
@@ -48,7 +50,14 @@ const Home = () => {
     state.setIsRefreshingStore,
     state.marginfiAccounts,
     state.selectedAccount,
+    state.emissionTokenMap,
   ]);
+
+  React.useEffect(() => {
+    if (emissionTokenMap === null) {
+      showErrorToast("Failed to fetch prices, emission APY may be incorrect.");
+    }
+  }, [emissionTokenMap]);
 
   React.useEffect(() => {
     const fetchData = () => {
