@@ -4,10 +4,11 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { create, StateCreator } from "zustand";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { EPOCHS_PER_YEAR, StakeData, fetchStakeAccounts } from "~/utils";
-import { TokenInfo, TokenInfoMap, TokenListContainer } from "@solana/spl-token-registry";
 import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
 import { persist } from "zustand/middleware";
 import BN from "bn.js";
+
+import type { TokenInfo, TokenInfoMap } from "@solana/spl-token-registry";
 
 const STAKEVIEW_APP_URL = "https://stakeview.app/apy/prev3.json";
 const BASELINE_VALIDATOR_ID = "mrgn28BhocwdAUEenen3Sw2MR9cPKDpLkDvzDdR7DBD";
@@ -259,6 +260,10 @@ async function fetchJupiterTokenInfo(): Promise<TokenInfoMap> {
     ? await fetch("https://token.jup.ag/strict")
     : await fetch("https://token.jup.ag/all")
   ).json();
+
+  // Dynamically import TokenListContainer when needed
+  const { TokenListContainer } = await import("@solana/spl-token-registry");
+
   const res = new TokenListContainer(tokens);
   const list = res.filterByChainId(101).getList();
   const tokenMap = list
