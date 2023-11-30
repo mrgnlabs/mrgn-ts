@@ -1,14 +1,4 @@
-import { MarginfiAccountWrapper, MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
-import {
-  Wallet,
-  getValueInsensitive,
-  loadBankMetadatas,
-  loadTokenMetadatas,
-  BankMetadataMap,
-  TokenMetadataMap,
-  TokenMetadata,
-} from "@mrgnlabs/mrgn-common";
-import { Bank, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import { getValueInsensitive } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import {
   DEFAULT_ACCOUNT_SUMMARY,
@@ -27,6 +17,11 @@ import {
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
+
+import type { Bank, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import type { Wallet, BankMetadataMap, TokenMetadataMap, TokenMetadata } from "@mrgnlabs/mrgn-common";
+import type { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import type { MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
 
 interface ProtocolStats {
   deposits: number;
@@ -116,6 +111,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     birdEyeApiKey?: string;
   }) => {
     try {
+      const { MarginfiClient } = await import("@mrgnlabs/marginfi-client-v2");
+      const { loadBankMetadatas, loadTokenMetadatas } = await import("@mrgnlabs/mrgn-common");
+
       let userDataFetched = false;
 
       const connection = args?.connection ?? get().marginfiClient?.provider.connection;
