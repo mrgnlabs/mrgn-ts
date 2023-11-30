@@ -69,7 +69,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   isFilteredUserPositions: false,
   lendingMode: LendingModes.LEND,
   poolFilter: PoolTypes.ALL,
-  sortOption: SORT_OPTIONS_MAP[SortType.APY_DESC],
+  sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
