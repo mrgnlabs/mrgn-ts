@@ -9,24 +9,14 @@ type ActionBoxDialogProps = {
 };
 
 export const ActionBoxDialog = ({ children }: ActionBoxDialogProps) => {
-  const [open, setOpen] = React.useState(false);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   return (
     <div>
-      <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
+      <Dialog open={isDialogOpen} onOpenChange={(open) => setIsDialogOpen(open)}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="md:flex">
-          <div className="flex items-center justify-center w-full">
-            <ActionBox />
-          </div>
+        <DialogContent className="md:flex md:max-w-[520px] md:p-4">
+          <ActionBox />
         </DialogContent>
       </Dialog>
     </div>

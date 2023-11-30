@@ -175,7 +175,7 @@ const AssetsList = () => {
     <>
       <ActionBox />
       <ActionBoxDialog>
-        <Button>Open Action Box</Button>
+        <Button>Open Action Box Dialog</Button>
       </ActionBoxDialog>
       <AssetListFilters />
 
