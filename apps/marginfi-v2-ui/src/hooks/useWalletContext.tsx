@@ -1,7 +1,6 @@
 import React from "react";
 
 import { useRouter } from "next/router";
-import { toast } from "react-toastify";
 import { useCookies } from "react-cookie";
 import { minidenticon } from "minidenticons";
 import { useAnchorWallet, useWallet, WalletContextState } from "@solana/wallet-adapter-react";
@@ -11,9 +10,10 @@ import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 import base58 from "bs58";
-import { Wallet } from "@mrgnlabs/mrgn-common";
 
 import { showErrorToast } from "~/utils/toastUtils";
+
+import type { Wallet } from "@mrgnlabs/mrgn-common";
 
 // wallet adapter context type to override with web3auth data
 // this allows us to pass web3auth wallet to 3rd party services that expect wallet adapter
