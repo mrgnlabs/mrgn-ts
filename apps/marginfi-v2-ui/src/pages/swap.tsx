@@ -1,24 +1,30 @@
 "use client";
 
 import React from "react";
+
+import Script from "next/script";
+
 import config from "~/config";
-import { PageHeader } from "~/components/common/PageHeader";
 import { useWalletContext } from "~/hooks/useWalletContext";
+
+import { PageHeader } from "~/components/common/PageHeader";
 
 const SwapPage = () => {
   const { walletContextState } = useWalletContext();
 
-  React.useEffect(() => {
-    window.Jupiter.init({
-      displayMode: "integrated",
-      integratedTargetId: "integrated-terminal",
-      endpoint: config.rpcEndpoint,
-      passThroughWallet: walletContextState.wallet,
-    });
-  }, [walletContextState.wallet]);
-
   return (
     <>
+      <Script
+        src="https://terminal.jup.ag/main-v1.js"
+        onReady={() => {
+          window.Jupiter.init({
+            displayMode: "integrated",
+            integratedTargetId: "integrated-terminal",
+            endpoint: config.rpcEndpoint,
+            passThroughWallet: walletContextState.wallet,
+          });
+        }}
+      />
       <PageHeader>
         <div className="h-full flex flex-row gap-1 items-center">
           <span>swap</span>
