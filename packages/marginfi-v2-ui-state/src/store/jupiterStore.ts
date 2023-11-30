@@ -1,9 +1,9 @@
-import { Wallet, nativeToUi, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
-import { TokenInfo, TokenListContainer } from "@solana/spl-token-registry";
+import { Wallet, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { TokenAccountMap, TokenAccount } from "../lib";
 import { create, StateCreator } from "zustand";
-import { BN } from "@coral-xyz/anchor";
+
+import type { TokenInfo } from "@solana/spl-token-registry";
 
 interface JupiterState {
   // State
@@ -42,6 +42,10 @@ const stateCreator: StateCreator<JupiterState, [], []> = (set, get) => ({
         ? await fetch("https://token.jup.ag/strict")
         : await fetch("https://token.jup.ag/all")
       ).json();
+
+      // Dynamically import TokenListContainer when needed
+      const { TokenListContainer } = await import("@solana/spl-token-registry");
+
       const res = new TokenListContainer(tokens);
       const list = res.filterByChainId(101).getList();
       tokenMap = list.reduce((acc, item) => {
