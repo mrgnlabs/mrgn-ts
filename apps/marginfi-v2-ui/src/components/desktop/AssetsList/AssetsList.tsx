@@ -22,9 +22,11 @@ import {
   STABLECOINS,
   LSTS,
 } from "~/components/common/AssetList";
+import { ActionBox, ActionBoxDialog } from "~/components/common/ActionBox";
 import { MrgnTooltip } from "~/components/common";
 
 import { LendingModes } from "~/types";
+import { Button } from "~/components/ui/button";
 
 const UserPositions = dynamic(async () => (await import("~/components/desktop/UserPositions")).UserPositions, {
   ssr: false,
@@ -171,6 +173,10 @@ const AssetsList = () => {
 
   return (
     <>
+      <ActionBox />
+      <ActionBoxDialog>
+        <Button>Open Action Box</Button>
+      </ActionBoxDialog>
       <AssetListFilters />
 
       <div className="col-span-full">
