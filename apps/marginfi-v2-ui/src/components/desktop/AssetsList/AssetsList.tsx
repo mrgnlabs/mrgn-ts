@@ -204,9 +204,20 @@ const AssetsList = () => {
                               <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                                 Realtime prices
                               </Typography>
-                              <span style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
-                                Powered by Pyth and Switchboard.
-                              </span>
+                              <div className="space-y-1 mt-1">
+                                <p>
+                                  Powered by{" "}
+                                  <a href="https://pyth.network/" target="_blank" className="border-b border-border">
+                                    Pyth
+                                  </a>{" "}
+                                  and{" "}
+                                  <a href="https://switchboard.xyz/" target="_blank" className="border-b border-border">
+                                    Switchboard
+                                  </a>
+                                  .
+                                </p>
+                                <p>Oracle providers have differing implementations that may effect prices.</p>
+                              </div>
                             </React.Fragment>
                           }
                           placement="top"
