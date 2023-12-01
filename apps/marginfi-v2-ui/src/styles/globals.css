@@ -239,6 +239,12 @@ a {
   background: #555;
 }
 
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 @keyframes wavyGradientAnimation {
   0% {
     background-position: 200% 0;
