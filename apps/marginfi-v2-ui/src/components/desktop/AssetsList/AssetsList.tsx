@@ -23,6 +23,7 @@ import {
   LSTS,
 } from "~/components/common/AssetList";
 import { ActionBox, ActionBoxDialog } from "~/components/common/ActionBox";
+import { Portfolio } from "~/components/common/Portfolio";
 import { MrgnTooltip } from "~/components/common";
 
 import { LendingModes } from "~/types";
@@ -173,10 +174,13 @@ const AssetsList = () => {
 
   return (
     <>
-      <ActionBox />
-      <ActionBoxDialog>
-        <Button>Open Action Box Dialog</Button>
-      </ActionBoxDialog>
+      <div className="flex flex-col justify-center items-center gap-8 mb-16">
+        <ActionBox />
+        <ActionBoxDialog>
+          <Button>Open Action Box Dialog</Button>
+        </ActionBoxDialog>
+      </div>
+
       <AssetListFilters />
 
       <div className="col-span-full">
@@ -677,7 +681,7 @@ const AssetsList = () => {
         </Card>
       </div>
 
-      {walletAddress && <UserPositions />}
+      {walletAddress && <Portfolio />}
 
       <LSTDialog
         variant={lstDialogVariant}
