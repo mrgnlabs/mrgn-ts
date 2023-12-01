@@ -7,6 +7,9 @@ import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { SWITCHBOARD_BANKS } from "~/components/common/AssetList";
+
+import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 
 export const AssetCardHeader: FC<{
   bank: ExtendedBankInfo;
@@ -29,7 +32,21 @@ export const AssetCardHeader: FC<{
         </div>
         <div className="flex flex-col">
           <div className="text-base">{bank.meta.tokenSymbol}</div>
-          <div className="text-[#A1A1A1]">{usdFormatter.format(bank.info.state.price)}</div>
+          <div className="text-[#A1A1A1] flex items-center gap-1.5">
+            {usdFormatter.format(bank.info.state.price)}
+            <MrgnTooltip
+              title={`Powered by ${SWITCHBOARD_BANKS.includes(bank.meta.tokenSymbol) ? "Switchboard" : "Pyth"}`}
+              placement="right"
+            >
+              <div>
+                {SWITCHBOARD_BANKS.includes(bank.meta.tokenSymbol) ? (
+                  <IconSwitchboard size={14} />
+                ) : (
+                  <IconPyth size={14} />
+                )}
+              </div>
+            </MrgnTooltip>
+          </div>
         </div>
       </div>
       <div className={`${isInLendingMode ? "text-[#75ba80]" : "text-[#e07d6f]"} text-base flex items-center gap-2`}>

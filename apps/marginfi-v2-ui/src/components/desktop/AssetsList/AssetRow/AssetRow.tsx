@@ -14,12 +14,12 @@ import {
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
-import { AssetRowInputBox, AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
+import { AssetRowInputBox, AssetRowAction, LSTDialogVariants, SWITCHBOARD_BANKS } from "~/components/common/AssetList";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
-import { IconAlertTriangle } from "~/components/ui/icons";
+import { IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { LendingModes } from "~/types";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
@@ -288,44 +288,58 @@ const AssetRow: FC<{
           align="right"
           style={{ fontWeight: 300 }}
         >
-          <MrgnTooltip
-            title={
-              <React.Fragment>
-                <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                  Wide oracle price bands
-                </Typography>
-                {`${bank.meta.tokenSymbol} price estimates is
+          <div className="flex items-center justify-end gap-1.5">
+            <MrgnTooltip
+              title={
+                <React.Fragment>
+                  <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                    Wide oracle price bands
+                  </Typography>
+                  {`${bank.meta.tokenSymbol} price estimates is
                 ${usdFormatter.format(bank.info.state.price)} ± ${assetPriceOffset.toFixed(
-                  2
-                )}, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`}
-                <br />
-                <a href="https://docs.marginfi.com">
-                  <u>Learn more.</u>
-                </a>
-              </React.Fragment>
-            }
-            placement="right"
-            className={`${assetPriceOffset > assetPrice * 0.1 ? "cursor-pointer" : "hidden"}`}
-          >
-            <Badge
-              badgeContent={assetPriceOffset > assetPrice * 0.1 ? "⚠️" : ""}
-              className="bg-transparent"
-              sx={{
-                "& .MuiBadge-badge": {
-                  fontSize: 20,
-                },
-              }}
-              invisible={assetPriceOffset > assetPrice * 0.1 ? false : true}
+                    2
+                  )}, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`}
+                  <br />
+                  <a href="https://docs.marginfi.com">
+                    <u>Learn more.</u>
+                  </a>
+                </React.Fragment>
+              }
+              placement="right"
+              className={`${assetPriceOffset > assetPrice * 0.1 ? "cursor-pointer" : "hidden"}`}
             >
-              {assetPrice >= 0.01
-                ? lendZoomLevel < 2
-                  ? `${
-                      assetPrice > 9999 ? numeralFormatter(assetPrice) : usdFormatter.format(assetPrice)
-                    } ± ${assetPriceOffset.toFixed(2)}`
-                  : usdFormatter.format(assetPrice)
-                : `$${assetPrice.toExponential(2)}`}
-            </Badge>
-          </MrgnTooltip>
+              <Badge
+                badgeContent={assetPriceOffset > assetPrice * 0.1 ? "⚠️" : ""}
+                className="bg-transparent flex items-center justify-end gap-1.5"
+                sx={{
+                  "& .MuiBadge-badge": {
+                    fontSize: 20,
+                  },
+                }}
+                invisible={assetPriceOffset > assetPrice * 0.1 ? false : true}
+              >
+                {assetPrice >= 0.01
+                  ? lendZoomLevel < 2
+                    ? `${
+                        assetPrice > 9999 ? numeralFormatter(assetPrice) : usdFormatter.format(assetPrice)
+                      } ± ${assetPriceOffset.toFixed(2)}`
+                    : usdFormatter.format(assetPrice)
+                  : `$${assetPrice.toExponential(2)}`}
+              </Badge>
+            </MrgnTooltip>
+            <MrgnTooltip
+              title={`Powered by ${SWITCHBOARD_BANKS.includes(bank.meta.tokenSymbol) ? "Switchboard" : "Pyth"}`}
+              placement="right"
+            >
+              <div>
+                {SWITCHBOARD_BANKS.includes(bank.meta.tokenSymbol) ? (
+                  <IconSwitchboard size={14} />
+                ) : (
+                  <IconPyth size={14} />
+                )}
+              </div>
+            </MrgnTooltip>
+          </div>
         </TableCell>
 
         <TableCell
