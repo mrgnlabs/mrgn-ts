@@ -23,6 +23,7 @@ import {
   IconFilter,
   IconSortAscending,
   IconSortDescending,
+  IconInfoCircle,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -465,6 +466,7 @@ export {
   IconFilter,
   IconSortAscending,
   IconSortDescending,
+  IconInfoCircle,
 
   // customed icons
   IconBrandGoogle,
