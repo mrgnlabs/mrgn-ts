@@ -13,13 +13,7 @@ const GlobalStats = dynamic(async () => (await import("~/components/common/Accou
 });
 
 const AccountSummary = () => {
-  const [isStoreInitialized, accountSummary, protocolStats, selectedAccount] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.accountSummary,
-    state.protocolStats,
-    state.selectedAccount,
-  ]);
-  const { connected } = useWalletContext();
+  const [protocolStats] = useMrgnlendStore((state) => [state.protocolStats]);
 
   return (
     <div className={cn("flex flex-col py-[10px] px-4 lg:flex-row w-full justify-between items-center")}>
@@ -33,18 +27,6 @@ const AccountSummary = () => {
             deposits={protocolStats.deposits}
           />
         </div>
-      </div>
-
-      <div className="w-full">
-        {connected && (
-          <div className="font-[500] rounded-xl">
-            <span className="w-full h-full flex justify-start text-xl text-white">Your account</span>
-            <UserStats
-              accountSummary={isStoreInitialized && selectedAccount ? accountSummary : null}
-              healthFactor={accountSummary.healthFactor}
-            />
-          </div>
-        )}
       </div>
     </div>
   );
