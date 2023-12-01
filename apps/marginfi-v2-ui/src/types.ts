@@ -110,3 +110,8 @@ export enum SortType {
   TVL_ASC = "TVL_ASC",
   TVL_DESC = "TVL_DESC",
 }
+
+export enum UserMode {
+  LITE = "lite",
+  PRO = "pro",
+}
