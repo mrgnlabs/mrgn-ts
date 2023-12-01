@@ -45,6 +45,7 @@ module.exports = {
         background: "hsl(var(--background))",
         "background-gray": "#1C2125",
         "background-gray-light": "#303030",
+        "background-gray-dark": "#131618",
         foreground: "hsl(var(--foreground))",
         chartreuse: "#DCE85D",
         primary: {
