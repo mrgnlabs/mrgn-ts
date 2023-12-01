@@ -8,16 +8,18 @@ import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import config from "~/config/marginfi";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { useMrgnlendStore } from "~/store";
+import { showErrorToast } from "~/utils/toastUtils";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Banner } from "~/components/desktop/Banner";
 import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
 import { PageHeader } from "~/components/common/PageHeader";
+import { ActionBox } from "~/components/common/ActionBox";
+import { Stats } from "~/components/common/Stats";
 
 import { IconAlertTriangle } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
-import { showErrorToast } from "~/utils/toastUtils";
 
 const DesktopAccountSummary = dynamic(
   async () => (await import("~/components/desktop/DesktopAccountSummary")).DesktopAccountSummary,
@@ -114,9 +116,10 @@ const Home = () => {
               setIsRefreshing={setIsRefreshingStore}
             />
           )}
-          <DesktopAccountSummary />
+          <Stats />
+          <ActionBox />
         </div>
-        <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl gap-4">
+        <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl mt-8 gap-4">
           <AssetsList />
         </div>
         <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
@@ -133,7 +136,9 @@ const Home = () => {
             setIsRefreshing={setIsRefreshingStore}
           />
         )}
-        <div className="flex flex-col w-full h-full justify-start content-start pt-4 px-4 gap-4 mb-20">
+        <Stats />
+        <ActionBox />
+        <div className="flex flex-col w-full h-full justify-start content-start pt-4 px-4 gap-4 mt-8 mb-20">
           <MobileAssetsList />
         </div>
       </Mobile>

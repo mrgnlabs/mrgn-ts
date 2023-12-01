@@ -38,7 +38,7 @@ export const ActionBox = () => {
             }}
           />
         </div>
-        <p>Supply. Earn interest. Borrow. Repeat.</p>
+        <p className="text-muted-foreground">Supply. Earn interest. Borrow. Repeat.</p>
       </div>
       <div className="p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl">
         <p className="text-lg mb-3">You {lendingMode === LendingModes.LEND ? "supply" : "borrow"}</p>
