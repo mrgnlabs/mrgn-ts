@@ -207,11 +207,21 @@ const AssetsList = () => {
                               <div className="space-y-1 mt-1">
                                 <p>
                                   Powered by{" "}
-                                  <a href="https://pyth.network/" target="_blank" className="border-b border-border">
+                                  <a
+                                    href="https://pyth.network/"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="border-b border-border"
+                                  >
                                     Pyth
                                   </a>{" "}
                                   and{" "}
-                                  <a href="https://switchboard.xyz/" target="_blank" className="border-b border-border">
+                                  <a
+                                    href="https://switchboard.xyz/"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="border-b border-border"
+                                  >
                                     Switchboard
                                   </a>
                                   .
