@@ -101,6 +101,11 @@ async function createAccountAndDeposit({
   try {
     await marginfiAccount.deposit(amount, bank.address);
     multiStepToast.setSuccessAndNext();
+    posthog.capture("user_deposit", {
+      amount,
+      bankAddress: bank.address.toBase58(),
+      tokenSymbol: bank.meta.tokenSymbol,
+    });
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);

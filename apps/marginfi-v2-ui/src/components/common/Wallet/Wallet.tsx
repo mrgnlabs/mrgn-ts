@@ -3,6 +3,7 @@ import React from "react";
 import { LAMPORTS_PER_SOL, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import posthog from "posthog-js";
 
 import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -85,6 +86,15 @@ export const Wallet = () => {
       balanceUSD: usdFormatter.format(totalBalance),
       balanceSOL: solBank ? numeralFormatter(totalBalance / solBank?.info.state.price) : "0.00",
       tokens: (tokens || []) as Token[],
+    });
+
+    posthog.setPersonProperties({
+      walletAddress: wallet?.publicKey.toString(),
+      tokens: tokens.map((token) => ({
+        name: token?.name,
+        symbol: token?.symbol,
+        value: token?.value,
+      })),
     });
   }, [connection, wallet?.publicKey, address, solBank]);
 
