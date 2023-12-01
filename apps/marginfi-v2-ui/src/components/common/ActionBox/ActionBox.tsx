@@ -3,6 +3,7 @@ import React from "react";
 import Image from "next/image";
 
 import { cn } from "~/utils";
+import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import { useMrgnlendStore, useUiStore } from "~/store";
 
 import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
@@ -22,7 +23,7 @@ export const ActionBox = () => {
   const [lendingMode, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
   const [isTokenPopoverOpen, setIsTokenPopoverOpen] = React.useState(false);
   const [currentToken, setCurrentToken] = React.useState<ExtendedBankInfo | null>(null);
-  const amountRef = React.useRef<HTMLInputElement>(null);
+  const [amount, setAmount] = React.useState<number | null>(null);
 
   return (
     <div className="bg-background p-4 flex flex-col items-center gap-4">
@@ -131,12 +132,27 @@ export const ActionBox = () => {
           </Popover>
           <Input
             type="number"
-            ref={amountRef}
+            value={amount!}
+            onChange={(e) => setAmount(Number(e.target.value))}
             placeholder="0"
             className="bg-transparent w-full text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-3xl font-medium"
           />
         </div>
         <Button className="w-full py-6">Select token and amount</Button>
+        {currentToken !== null && amount !== null && (
+          <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
+            <dt>Your deposited amount:</dt>
+            <dd className="text-white font-medium text-right">
+              {amount} {currentToken.meta.tokenSymbol}
+            </dd>
+            <dt>Liquidation price:</dt>
+            <dd className="text-white font-medium text-right">{usdFormatter.format(amount)}</dd>
+            <dt>Some property:</dt>
+            <dd className="text-white font-medium text-right">--</dd>
+            <dt>Some property:</dt>
+            <dd className="text-white font-medium text-right">--</dd>
+          </dl>
+        )}
       </div>
     </div>
   );
