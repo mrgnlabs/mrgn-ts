@@ -4,7 +4,7 @@ import { useMrgnlendStore } from "~/store";
 
 import { cn } from "~/utils";
 
-import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 
 export const Stats = () => {
   const [protocolStats] = useMrgnlendStore((state) => [state.protocolStats]);
@@ -13,15 +13,15 @@ export const Stats = () => {
     return [
       {
         label: "Total deposits",
-        value: usdFormatter.format(protocolStats.deposits),
+        value: `$${numeralFormatter(protocolStats?.deposits)}`,
       },
       {
         label: "Total borrows",
-        value: usdFormatter.format(protocolStats.borrows),
+        value: `$${numeralFormatter(protocolStats?.borrows)}`,
       },
       {
         label: "Total points",
-        value: numeralFormatter(protocolStats.pointsTotal),
+        value: numeralFormatter(protocolStats?.pointsTotal),
       },
     ];
   }, [protocolStats]);
