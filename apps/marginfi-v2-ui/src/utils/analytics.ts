@@ -1,7 +1,6 @@
 import posthog from "posthog-js";
 
-const _checkEnv = () =>
-  !process.env.NEXT_PUBLIC_POSTHOG_API_KEY || process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT !== "production";
+const _checkEnv = () => !process.env.NEXT_PUBLIC_POSTHOG_API_KEY || process.env.NEXT_PUBLIC_ANALYTICS !== "true";
 
 export const init = () => {
   if (_checkEnv()) return;
