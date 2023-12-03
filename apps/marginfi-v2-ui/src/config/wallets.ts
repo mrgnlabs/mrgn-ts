@@ -3,7 +3,6 @@ import {
   SolflareWalletAdapter,
   GlowWalletAdapter,
   BackpackWalletAdapter,
-  CoinbaseWalletAdapter,
   TrustWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import {
@@ -29,6 +28,5 @@ export const WALLET_ADAPTERS = [
   new SolflareWalletAdapter(),
   new BackpackWalletAdapter(),
   new GlowWalletAdapter(),
-  new CoinbaseWalletAdapter(),
   new TrustWalletAdapter(),
 ];
