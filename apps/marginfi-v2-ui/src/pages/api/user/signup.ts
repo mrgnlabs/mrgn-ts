@@ -15,7 +15,7 @@ import {
   STATUS_OK,
   firebaseApi,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import posthog from "posthog-js";
+import { useAnalytics } from "~/hooks/useAnalytics";
 
 initFirebaseIfNeeded();
 
@@ -26,6 +26,8 @@ export interface SignupRequest {
 
 export default async function handler(req: NextApiRequest<SignupRequest>, res: any) {
   const { walletAddress, payload } = req.body;
+
+  const { capture, identify } = useAnalytics();
 
   Sentry.setContext("signup_args", {
     walletAddress,
@@ -73,11 +75,11 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
   }
 
   await logSignupAttempt(walletAddress, payload.uuid, "", true);
-  posthog.capture("user_login", {
+  capture("user_login", {
     publicKey: walletAddress,
     uuid: payload.uuid,
   });
-  posthog.identify(payload.uuid, {
+  identify(payload.uuid, {
     publicKey: walletAddress,
   });
 

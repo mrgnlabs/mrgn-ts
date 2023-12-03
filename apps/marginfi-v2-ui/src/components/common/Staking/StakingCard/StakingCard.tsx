@@ -33,8 +33,8 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import { useConnection } from "~/hooks/useConnection";
+import { useAnalytics } from "~/hooks/useAnalytics";
 import { SwapMode, useJupiter } from "@jup-ag/react-hook";
-import posthog from "posthog-js";
 import JSBI from "jsbi";
 import { StakeData, usePrevious } from "~/utils";
 import { createJupiterApiClient } from "@jup-ag/api";
@@ -73,6 +73,7 @@ export const StakingCard: FC = () => {
   const router = useRouter();
   const { connection } = useConnection();
   const { connected, wallet, walletAddress } = useWalletContext();
+  const { capture } = useAnalytics();
 
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
   const [
@@ -368,7 +369,7 @@ export const StakingCard: FC = () => {
       multiStepToast.setFailed(errorMsg);
     } finally {
       await Promise.all([refresh(), fetchLstState()]);
-      posthog.capture("user_stake", {
+      capture("user_stake", {
         amount: depositAmountUi,
       });
       setDepositOption((currentDepositOption) =>

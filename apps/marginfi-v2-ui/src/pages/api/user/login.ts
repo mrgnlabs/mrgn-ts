@@ -16,7 +16,7 @@ import {
   STATUS_OK,
   firebaseApi,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import posthog from "posthog-js";
+import { useAnalytics } from "~/hooks/useAnalytics";
 
 initFirebaseIfNeeded();
 
@@ -26,6 +26,7 @@ export interface LoginRequest {
 
 export default async function handler(req: NextApiRequest<LoginRequest>, res: any) {
   const { walletAddress } = req.body;
+  const { capture, identify } = useAnalytics();
 
   /* signing logic
   let signer;
@@ -57,11 +58,12 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: an
       return res.status(STATUS_NOT_FOUND).json({ error: "User not found" });
     } else {
       await logLoginAttempt(walletAddress, userResult.uid, "", true);
-      posthog.capture("user_login", {
+
+      capture("user_login", {
         publicKey: walletAddress,
         uuid: userResult.uid,
       });
-      posthog.identify(userResult.uid, {
+      identify(userResult.uid, {
         publicKey: walletAddress,
       });
     }

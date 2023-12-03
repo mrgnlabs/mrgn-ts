@@ -3,7 +3,6 @@ import React from "react";
 import { LAMPORTS_PER_SOL, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import posthog from "posthog-js";
 
 import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -11,6 +10,7 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
+import { useAnalytics } from "~/hooks/useAnalytics";
 
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import {
@@ -33,6 +33,7 @@ export const Wallet = () => {
   const { connection } = useConnection();
   const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected } = useWalletContext();
   const isMobile = useIsMobile();
+  const { setPersonProperties } = useAnalytics();
 
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   const [isFundingAddressCopied, setIsFundingAddressCopied] = React.useState(false);
@@ -88,7 +89,7 @@ export const Wallet = () => {
       tokens: (tokens || []) as Token[],
     });
 
-    posthog.setPersonProperties({
+    setPersonProperties({
       walletAddress: wallet?.publicKey.toString(),
       tokens: tokens.map((token) => ({
         name: token?.name,

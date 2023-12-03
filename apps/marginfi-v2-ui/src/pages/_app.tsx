@@ -10,7 +10,6 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
-import posthog from "posthog-js";
 
 import config from "~/config";
 import { WALLET_ADAPTERS } from "~/config/wallets";
@@ -19,6 +18,7 @@ import { useLstStore } from "./stake";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";
+import { useAnalytics } from "~/hooks/useAnalytics";
 
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
@@ -55,6 +55,8 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     state.isRefreshingStore,
   ]);
 
+  const { init: initAnalytics } = useAnalytics();
+
   // enable matomo heartbeat
   React.useEffect(() => {
     if (process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT === "alpha") {
@@ -79,7 +81,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   React.useEffect(() => {
     setReady(true);
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_API_KEY!, { api_host: "https://app.posthog.com" });
+    initAnalytics();
   }, []);
 
   // if account set in query param then store inn local storage and remove from url

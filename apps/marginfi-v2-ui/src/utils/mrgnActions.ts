@@ -4,8 +4,8 @@ import { isWholePosition } from "./mrgnUtils";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Wallet, processTransaction } from "@mrgnlabs/mrgn-common";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import posthog from "posthog-js";
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
+import { useAnalytics } from "~/hooks/useAnalytics";
 import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
 
 export type MarginfiActionParams = {
@@ -79,6 +79,8 @@ async function createAccountAndDeposit({
     return;
   }
 
+  const { capture } = useAnalytics();
+
   const multiStepToast = new MultiStepToastHandle("Initial deposit", [
     { label: "Creating account" },
     { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
@@ -101,7 +103,7 @@ async function createAccountAndDeposit({
   try {
     await marginfiAccount.deposit(amount, bank.address);
     multiStepToast.setSuccessAndNext();
-    posthog.capture("user_deposit", {
+    capture("user_deposit", {
       amount,
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
@@ -124,6 +126,8 @@ export async function deposit({
   bank: ExtendedBankInfo;
   amount: number;
 }) {
+  const { capture } = useAnalytics();
+
   const multiStepToast = new MultiStepToastHandle("Deposit", [
     { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
@@ -132,7 +136,7 @@ export async function deposit({
   try {
     await marginfiAccount.deposit(amount, bank.address);
     multiStepToast.setSuccessAndNext();
-    posthog.capture("user_deposit", {
+    capture("user_deposit", {
       amount,
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
@@ -155,6 +159,8 @@ export async function borrow({
   bank: ExtendedBankInfo;
   amount: number;
 }) {
+  const { capture } = useAnalytics();
+
   const multiStepToast = new MultiStepToastHandle("Borrow", [
     { label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
@@ -163,7 +169,7 @@ export async function borrow({
   try {
     await marginfiAccount.borrow(amount, bank.address);
     multiStepToast.setSuccessAndNext();
-    posthog.capture("user_borrow", {
+    capture("user_borrow", {
       amount,
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
@@ -186,6 +192,8 @@ export async function withdraw({
   bank: ExtendedBankInfo;
   amount: number;
 }) {
+  const { capture } = useAnalytics();
+
   const multiStepToast = new MultiStepToastHandle("Withdrawal", [
     { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
@@ -194,7 +202,7 @@ export async function withdraw({
   try {
     await marginfiAccount.withdraw(amount, bank.address, bank.isActive && isWholePosition(bank, amount));
     multiStepToast.setSuccessAndNext();
-    posthog.capture("user_withdraw", {
+    capture("user_withdraw", {
       amount,
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
@@ -217,6 +225,8 @@ export async function repay({
   bank: ExtendedBankInfo;
   amount: number;
 }) {
+  const { capture } = useAnalytics();
+
   const multiStepToast = new MultiStepToastHandle("Repayment", [
     { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
   ]);
@@ -225,7 +235,7 @@ export async function repay({
   try {
     await marginfiAccount.repay(amount, bank.address, bank.isActive && isWholePosition(bank, amount));
     multiStepToast.setSuccessAndNext();
-    posthog.capture("user_repay", {
+    capture("user_repay", {
       amount,
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
@@ -245,6 +255,7 @@ export async function collectRewardsBatch(
   marginfiAccount: MarginfiAccountWrapper,
   bankAddresses: PublicKey[]
 ) {
+  const { capture } = useAnalytics();
   const multiStepToast = new MultiStepToastHandle("Collect rewards", [{ label: "Collecting rewards" }]);
   multiStepToast.start();
 
@@ -261,7 +272,7 @@ export async function collectRewardsBatch(
     tx.add(...ixs);
     await processTransaction(connection, wallet, tx);
     multiStepToast.setSuccessAndNext();
-    posthog.capture("user_collect_rewards", {
+    capture("user_collect_rewards", {
       bankAddresses,
     });
   } catch (error: any) {
@@ -289,6 +300,8 @@ export const closeBalance = async ({
     return;
   }
 
+  const { capture } = useAnalytics();
+
   const multiStepToast = new MultiStepToastHandle("Closing balance", [
     { label: `Closing ${bank.position.isLending ? "lending" : "borrow"} balance for ${bank.meta.tokenSymbol}` },
   ]);
@@ -301,7 +314,7 @@ export const closeBalance = async ({
       await marginfiAccount.repay(0, bank.address, true);
     }
     multiStepToast.setSuccessAndNext();
-    posthog.capture("user_close_balance", {
+    capture("user_close_balance", {
       positionType: bank.position.isLending ? "lending" : "borrow",
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
