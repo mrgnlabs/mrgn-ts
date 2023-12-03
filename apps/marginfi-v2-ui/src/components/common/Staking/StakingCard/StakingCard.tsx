@@ -33,7 +33,7 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import { useConnection } from "~/hooks/useConnection";
-import { useAnalytics } from "~/hooks/useAnalytics";
+import { capture } from "~/utils/analytics";
 import { SwapMode, useJupiter } from "@jup-ag/react-hook";
 import JSBI from "jsbi";
 import { StakeData, usePrevious } from "~/utils";
@@ -73,7 +73,6 @@ export const StakingCard: FC = () => {
   const router = useRouter();
   const { connection } = useConnection();
   const { connected, wallet, walletAddress } = useWalletContext();
-  const { capture } = useAnalytics();
 
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
   const [

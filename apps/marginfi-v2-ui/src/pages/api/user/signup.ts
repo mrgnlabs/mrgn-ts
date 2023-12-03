@@ -15,7 +15,7 @@ import {
   STATUS_OK,
   firebaseApi,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { useAnalytics } from "~/hooks/useAnalytics";
+import { capture, identify } from "~/utils/analytics";
 
 initFirebaseIfNeeded();
 
@@ -26,8 +26,6 @@ export interface SignupRequest {
 
 export default async function handler(req: NextApiRequest<SignupRequest>, res: any) {
   const { walletAddress, payload } = req.body;
-
-  const { capture, identify } = useAnalytics();
 
   Sentry.setContext("signup_args", {
     walletAddress,

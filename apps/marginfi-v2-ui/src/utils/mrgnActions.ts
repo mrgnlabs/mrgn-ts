@@ -5,7 +5,7 @@ import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Wallet, processTransaction } from "@mrgnlabs/mrgn-common";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
-import { useAnalytics } from "~/hooks/useAnalytics";
+import { capture } from "~/utils/analytics";
 import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
 
 export type MarginfiActionParams = {
@@ -79,8 +79,6 @@ async function createAccountAndDeposit({
     return;
   }
 
-  const { capture } = useAnalytics();
-
   const multiStepToast = new MultiStepToastHandle("Initial deposit", [
     { label: "Creating account" },
     { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
@@ -126,8 +124,6 @@ export async function deposit({
   bank: ExtendedBankInfo;
   amount: number;
 }) {
-  const { capture } = useAnalytics();
-
   const multiStepToast = new MultiStepToastHandle("Deposit", [
     { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
@@ -159,8 +155,6 @@ export async function borrow({
   bank: ExtendedBankInfo;
   amount: number;
 }) {
-  const { capture } = useAnalytics();
-
   const multiStepToast = new MultiStepToastHandle("Borrow", [
     { label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
@@ -192,8 +186,6 @@ export async function withdraw({
   bank: ExtendedBankInfo;
   amount: number;
 }) {
-  const { capture } = useAnalytics();
-
   const multiStepToast = new MultiStepToastHandle("Withdrawal", [
     { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
@@ -225,8 +217,6 @@ export async function repay({
   bank: ExtendedBankInfo;
   amount: number;
 }) {
-  const { capture } = useAnalytics();
-
   const multiStepToast = new MultiStepToastHandle("Repayment", [
     { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
   ]);
@@ -255,7 +245,6 @@ export async function collectRewardsBatch(
   marginfiAccount: MarginfiAccountWrapper,
   bankAddresses: PublicKey[]
 ) {
-  const { capture } = useAnalytics();
   const multiStepToast = new MultiStepToastHandle("Collect rewards", [{ label: "Collecting rewards" }]);
   multiStepToast.start();
 
@@ -299,8 +288,6 @@ export const closeBalance = async ({
     showErrorToast("no position to close.");
     return;
   }
-
-  const { capture } = useAnalytics();
 
   const multiStepToast = new MultiStepToastHandle("Closing balance", [
     { label: `Closing ${bank.position.isLending ? "lending" : "borrow"} balance for ${bank.meta.tokenSymbol}` },

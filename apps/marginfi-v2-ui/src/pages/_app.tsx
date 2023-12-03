@@ -18,7 +18,7 @@ import { useLstStore } from "./stake";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";
-import { useAnalytics } from "~/hooks/useAnalytics";
+import { init as initAnalytics } from "~/utils/analytics";
 
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
@@ -54,8 +54,6 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     state.initialized,
     state.isRefreshingStore,
   ]);
-
-  const { init: initAnalytics } = useAnalytics();
 
   // enable matomo heartbeat
   React.useEffect(() => {
