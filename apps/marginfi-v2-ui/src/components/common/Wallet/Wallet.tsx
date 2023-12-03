@@ -10,7 +10,7 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { useAnalytics } from "~/hooks/useAnalytics";
+import { setPersonProperties } from "~/utils/analytics";
 
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import {
@@ -33,7 +33,6 @@ export const Wallet = () => {
   const { connection } = useConnection();
   const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected } = useWalletContext();
   const isMobile = useIsMobile();
-  const { setPersonProperties } = useAnalytics();
 
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   const [isFundingAddressCopied, setIsFundingAddressCopied] = React.useState(false);

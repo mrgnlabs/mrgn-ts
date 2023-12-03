@@ -16,7 +16,7 @@ import {
   STATUS_OK,
   firebaseApi,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { useAnalytics } from "~/hooks/useAnalytics";
+import { capture, identify } from "~/utils/analytics";
 
 initFirebaseIfNeeded();
 
@@ -26,7 +26,6 @@ export interface LoginRequest {
 
 export default async function handler(req: NextApiRequest<LoginRequest>, res: any) {
   const { walletAddress } = req.body;
-  const { capture, identify } = useAnalytics();
 
   /* signing logic
   let signer;
