@@ -2,6 +2,8 @@ import React from "react";
 
 import Image from "next/image";
 
+import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+
 import { useMrgnlendStore, useUiStore } from "~/store";
 
 import { cn } from "~/utils";
@@ -21,7 +23,10 @@ type ActionBoxTokensProps = {
 };
 
 export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxTokensProps) => {
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
+    state.extendedBankInfos,
+    state.nativeSolBalance,
+  ]);
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isTokenPopoverOpen, setIsTokenPopoverOpen] = React.useState(false);
@@ -41,12 +46,16 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
   const filteredBanksUserOwns = React.useMemo(() => {
     const lowerCaseSearchQuery = searchQuery.toLowerCase();
 
-    return extendedBankInfos.filter((bankInfo) => {
-      return (
-        bankInfo.userInfo.tokenAccount.balance > 0 &&
-        bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery)
-      );
-    });
+    return extendedBankInfos
+      .filter((bankInfo) => {
+        return (
+          bankInfo.userInfo.tokenAccount.balance > 0 &&
+          bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery)
+        );
+      })
+      .sort((a, b) => {
+        return b.userInfo.tokenAccount.balance - a.userInfo.tokenAccount.balance;
+      });
   }, [extendedBankInfos, searchQuery]);
 
   return (
@@ -74,12 +83,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
           <IconChevronDown className="shrink-0 ml-2" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        className="p-2 w-[320px] max-h-96 bg-background-gray"
-        align="start"
-        side="bottom"
-        sideOffset={-50}
-      >
+      <PopoverContent className="p-2 w-[320px] bg-background-gray" align="start" side="bottom" sideOffset={-50}>
         <Command className="bg-background-gray relative" shouldFilter={false}>
           <CommandInput
             placeholder="Search token..."
@@ -91,8 +95,8 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
           </button>
           <CommandEmpty>No tokens found.</CommandEmpty>
           {lendingMode === LendingModes.LEND && filteredBanksUserOwns.length > 0 && (
-            <CommandGroup heading="In your wallet">
-              {filteredBanksUserOwns.slice(0, searchQuery.length === 0 ? 8 : 3).map((bank, index) => (
+            <CommandGroup heading="Available in your wallet">
+              {filteredBanksUserOwns.slice(0, searchQuery.length === 0 ? 5 : 3).map((bank, index) => (
                 <CommandItem
                   key={index}
                   value={bank?.address?.toString().toLowerCase()}
@@ -105,25 +109,37 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
 
                     setIsTokenPopoverOpen(false);
                   }}
-                  className="text-lg py-2 font-medium flex gap-3"
+                  className="text-lg h-16 font-medium flex items-start justify-between gap-2 data-[selected=true]:bg-transparent data-[selected=true]:text-white"
                 >
-                  {bank.meta.tokenLogoUri && (
-                    <Image
-                      src={bank.meta.tokenLogoUri}
-                      alt={bank.meta.tokenName}
-                      width={24}
-                      height={24}
-                      className="rounded-full"
-                    />
-                  )}
-                  <span>{bank.meta.tokenSymbol}</span>
+                  <div className="flex items-start gap-3">
+                    {bank.meta.tokenLogoUri && (
+                      <Image
+                        src={bank.meta.tokenLogoUri}
+                        alt={bank.meta.tokenName}
+                        width={24}
+                        height={24}
+                        className="rounded-full translate-y-0.5"
+                      />
+                    )}
+                    <span>{bank.meta.tokenSymbol}</span>
+                  </div>
+                  <div className="space-y-0.5 text-right">
+                    <p className="text-lg font-medium">
+                      {bank.userInfo.tokenAccount.balance < 0.01
+                        ? "< 0.01"
+                        : numeralFormatter(bank.userInfo.tokenAccount.balance)}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {usdFormatter.format(bank.userInfo.tokenAccount.balance * bank.info.state.price)}
+                    </p>
+                  </div>
                 </CommandItem>
               ))}
             </CommandGroup>
           )}
           {(searchQuery.length > 0 || lendingMode === LendingModes.BORROW) && filteredBanks.length > 0 && (
             <CommandGroup heading="All tokens">
-              {filteredBanks.slice(0, searchQuery.length === 0 ? 8 : 3).map((bank, index) => (
+              {filteredBanks.slice(0, searchQuery.length === 0 ? 5 : 3).map((bank, index) => (
                 <CommandItem
                   key={index}
                   value={bank.address?.toString().toLowerCase()}
@@ -134,18 +150,37 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                       ) ?? null
                     );
                   }}
-                  className="text-lg py-2 font-medium flex gap-3"
-                >
-                  {bank.meta.tokenLogoUri && (
-                    <Image
-                      src={bank.meta.tokenLogoUri}
-                      alt={bank.meta.tokenName}
-                      width={24}
-                      height={24}
-                      className="rounded-full"
-                    />
+                  className={cn(
+                    "text-lg font-medium flex items-start justify-between gap-2 data-[selected=true]:bg-transparent data-[selected=true]:text-white",
+                    lendingMode === LendingModes.LEND && "py-2",
+                    lendingMode === LendingModes.BORROW && "h-16"
                   )}
-                  <span>{bank.meta.tokenSymbol}</span>
+                >
+                  <div className="flex items-start gap-3">
+                    {bank.meta.tokenLogoUri && (
+                      <Image
+                        src={bank.meta.tokenLogoUri}
+                        alt={bank.meta.tokenName}
+                        width={24}
+                        height={24}
+                        className="rounded-full"
+                      />
+                    )}
+                    <span>{bank.meta.tokenSymbol}</span>
+                  </div>
+
+                  {lendingMode === LendingModes.BORROW && bank.userInfo.tokenAccount.balance > 0 && (
+                    <div className="space-y-0.5 text-right">
+                      <p className="text-lg font-medium">
+                        {bank.userInfo.tokenAccount.balance < 0.01
+                          ? "< 0.01"
+                          : numeralFormatter(bank.userInfo.tokenAccount.balance)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {usdFormatter.format(bank.userInfo.tokenAccount.balance * bank.info.state.price)}
+                      </p>
+                    </div>
+                  )}
                 </CommandItem>
               ))}
             </CommandGroup>
