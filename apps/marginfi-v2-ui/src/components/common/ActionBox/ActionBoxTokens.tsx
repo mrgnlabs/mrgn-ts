@@ -29,12 +29,13 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
   const filteredBanks = React.useMemo(() => {
     const lowerCaseSearchQuery = searchQuery.toLowerCase();
 
-    return extendedBankInfos.filter((bankInfo) => {
-      return (
-        bankInfo.userInfo.tokenAccount.balance === 0 &&
-        bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery)
-      );
-    });
+    return extendedBankInfos
+      .filter((bankInfo) => {
+        return bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery);
+      })
+      .filter((bankInfo) => {
+        return lendingMode === LendingModes.LEND ? bankInfo.userInfo.tokenAccount.balance === 0 : true;
+      });
   }, [extendedBankInfos, searchQuery]);
 
   const filteredBanksUserOwns = React.useMemo(() => {
@@ -89,7 +90,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
             <IconX size={18} className="text-white/50" />
           </button>
           <CommandEmpty>No tokens found.</CommandEmpty>
-          {filteredBanksUserOwns.length > 0 && (
+          {lendingMode === LendingModes.LEND && filteredBanksUserOwns.length > 0 && (
             <CommandGroup heading="In your wallet">
               {filteredBanksUserOwns.slice(0, searchQuery.length === 0 ? 8 : 3).map((bank, index) => (
                 <CommandItem
@@ -122,7 +123,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
           )}
           {(searchQuery.length > 0 || lendingMode === LendingModes.BORROW) && filteredBanks.length > 0 && (
             <CommandGroup heading="All tokens">
-              {filteredBanks.slice(0, 3).map((bank, index) => (
+              {filteredBanks.slice(0, searchQuery.length === 0 ? 8 : 3).map((bank, index) => (
                 <CommandItem
                   key={index}
                   value={bank.address?.toString().toLowerCase()}
