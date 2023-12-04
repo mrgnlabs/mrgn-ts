@@ -7,7 +7,7 @@ import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { IconInfoCircle } from "~/components/ui/icons";
 import { UserStats } from "./UserStats";
-import { AssetCard } from "./AssetCard";
+import { AssetCard, AssetCardSkeleton } from "./AssetCard";
 
 export const Portfolio = () => {
   const [isStoreInitialized, sortedBanks, accountSummary] = useMrgnlendStore((state) => [
@@ -76,7 +76,7 @@ export const Portfolio = () => {
 
   const healthColor = React.useMemo(() => {
     if (accountSummary.healthFactor) {
-      let color;
+      let color: string;
 
       if (accountSummary.healthFactor >= 0.5) {
         color = "#75BA80"; // green color " : "#",
@@ -138,8 +138,7 @@ export const Portfolio = () => {
               </div>
             )
           ) : (
-            <></>
-            // <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+            <AssetCardSkeleton />
           )}
         </div>
         <div className="flex flex-col flex-1 gap-4">
@@ -160,8 +159,7 @@ export const Portfolio = () => {
               </div>
             )
           ) : (
-            <></>
-            // <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
+            <AssetCardSkeleton />
           )}
         </div>
       </div>
