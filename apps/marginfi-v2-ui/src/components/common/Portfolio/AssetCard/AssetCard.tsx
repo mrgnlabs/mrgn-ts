@@ -7,6 +7,7 @@ import { IconAlertTriangle } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
+import { Skeleton } from "~/components/ui/skeleton";
 
 interface props {
   bank: ActiveBankInfo;
@@ -15,6 +16,8 @@ interface props {
 
 export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
+
+  const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
     if (!bank || !bank?.position?.liquidationPrice) {
@@ -33,7 +36,7 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
   return (
     <Accordion type="single" collapsible className="bg-background-gray rounded-xl px-3">
       <AccordionItem value="key-1">
-        <AccordionTrigger>
+        <AccordionTrigger className="hover:no-underline">
           <div className="flex justify-between items-center w-full gap-2">
             <div className="flex text-left gap-3">
               <div className="flex items-center">
@@ -49,7 +52,9 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
               </div>
               <dl>
                 <dt className="font-medium text-lg">{bank.meta.tokenSymbol}</dt>
-                <dd className="text-[#A1A1A1] text-sm">{rateAP.concat(...[" ", isInLendingMode ? "APY" : "APR"])}</dd>
+                <dd className={`${isInLendingMode ? "text-[#75BA80]" : "text-[#CF6F6F]"} text-sm`}>
+                  {rateAP.concat(...[" ", isInLendingMode ? "APY" : "APR"])}
+                </dd>
               </dl>
             </div>
             <div className="font-medium text-lg mr-2">
@@ -65,6 +70,13 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
               <span>Liquidation risk</span>
             </div>
           )}
+
+          {isIsolated && (
+            <div className="flex w-fit gap-2 text-[#686E75] items-center border border-[#686E75] rounded-3xl px-4 py-0.5">
+              <span>Isolated pool</span>
+            </div>
+          )}
+
           <div className="bg-background p-3 rounded-xl">
             <dl className="flex justify-between">
               <dt className="text-base font-normal text-muted-foreground">USD value</dt>
@@ -91,12 +103,31 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
               </dd>
             </dl>
           </div>
-          <div>
-            {/* <Button variant="outline">Withdraw </Button>
-            <Button variant="default">Supply more</Button> */}
+          <div className="flex w-full gap-3">
+            <Button className="flex-1 h-12" variant="outline">
+              Withdraw
+            </Button>
+            <Button className="flex-1 h-12" variant="default">
+              Supply more
+            </Button>
           </div>
         </AccordionContent>
       </AccordionItem>
     </Accordion>
+  );
+};
+
+export const AssetCardSkeleton = () => {
+  return (
+    <div className="flex justify-between items-center w-full p-3 gap-2">
+      <div className="flex items-center space-x-4">
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-[50px]" />
+          <Skeleton className="h-4 w-[65px]" />
+        </div>
+      </div>
+      <Skeleton className="h-6 w-[80px] " />
+    </div>
   );
 };
