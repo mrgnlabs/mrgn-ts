@@ -1,5 +1,5 @@
 import { FC, useEffect, useMemo, useState } from "react";
-import { useUserProfileStore } from "~/store";
+import { useUiStore, useUserProfileStore } from "~/store";
 import Switch from "@mui/material/Switch";
 import { useRouter } from "next/router";
 import SvgIcon from "@mui/material/SvgIcon";
@@ -9,17 +9,18 @@ import AutoStoriesOutlinedIcon from "@mui/icons-material/AutoStoriesOutlined";
 import InsightsIcon from "@mui/icons-material/Insights";
 import Link from "next/link";
 import { GitHub, QuestionMark } from "@mui/icons-material";
+import { UserMode } from "~/types";
 
-type FooterConfig = { hotkeys: boolean; zoom: boolean; unit: boolean; links: boolean };
+type FooterConfig = { hotkeys: boolean; zoom: boolean; unit: boolean; links: boolean; userMode: boolean };
 
 const DISPLAY_TABLE: { [basePath: string]: FooterConfig } = {
-  "/swap": { hotkeys: true, zoom: false, unit: false, links: true },
-  "/bridge": { hotkeys: true, zoom: false, unit: false, links: true },
-  "/earn": { hotkeys: true, zoom: false, unit: false, links: true },
+  "/swap": { hotkeys: true, zoom: false, unit: false, links: true, userMode: true },
+  "/bridge": { hotkeys: true, zoom: false, unit: false, links: true, userMode: true },
+  "/earn": { hotkeys: true, zoom: false, unit: false, links: true, userMode: true },
 };
 
-const DEFAULT_FOOTER_CONFIG: FooterConfig = { hotkeys: true, zoom: false, unit: false, links: true };
-const ROOT_CONFIG: FooterConfig = { hotkeys: true, zoom: true, unit: true, links: true };
+const DEFAULT_FOOTER_CONFIG: FooterConfig = { hotkeys: true, zoom: false, unit: false, links: true, userMode: true };
+const ROOT_CONFIG: FooterConfig = { hotkeys: true, zoom: true, unit: true, links: true, userMode: true };
 
 const Footer: FC = () => {
   const router = useRouter();
@@ -44,6 +45,7 @@ const Footer: FC = () => {
         {footerConfig.zoom && <LendZoomControl />}
         {footerConfig.unit && <LendUnitControl />}
         {footerConfig.links && <QuickLinks />}
+        {footerConfig.userMode && <UserModeControl />}
       </div>
     </header>
   );
@@ -110,6 +112,35 @@ const LendZoomControl: FC = () => {
           </svg>
         </SvgIcon>
       </div>
+    </div>
+  );
+};
+
+const UserModeControl: FC = () => {
+  const [userMode, setUserMode] = useUiStore((state) => [state.userMode, state.setUserMode]);
+
+  return (
+    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] pr-6">
+      <div className="h-full flex justify-center items-center font-bold">Lite</div>
+      <Switch
+        onChange={(_, checked) => setUserMode(checked ? UserMode.PRO : UserMode.LITE)}
+        sx={{
+          color: "#868E95",
+          "& .MuiSwitch-switchBase": {
+            "&.Mui-checked": {
+              "& .MuiSwitch-thumb": {
+                backgroundColor: "#DCE85D",
+              },
+              "& + .MuiSwitch-track": {
+                backgroundColor: "#DCE85D",
+                color: "#DCE85D",
+              },
+            },
+          },
+        }}
+        checked={userMode === UserMode.PRO}
+      />
+      <div className="h-full flex justify-center items-center font-bold">Pro</div>
     </div>
   );
 };
