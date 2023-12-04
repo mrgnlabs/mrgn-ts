@@ -88,11 +88,11 @@ const StakingContent = () => (
       <p>The highest natural yield available from any LST on Solana. By a lot.</p>
       <div className="text-chartreuse space-y-2 font-bold">
         <p>LST is the highest natural yielding LST</p>
-        <p>LST is powered by Jito's MEV-boosted client</p>
+        <p>LST is powered by Jito&apos;s MEV-boosted client</p>
         <p>
           LST only stakes to{" "}
           <a
-            href=""
+            href="https://stakewiz.com/validator/mrgn2vsZ5EJ8YEfAMNPXmRux7th9cNfBasQ1JJvVwPn"
             target="_blank"
             rel="noreferrer"
             className="border-b border-chartreuse/50 transition-colors hover:border-transparent"
