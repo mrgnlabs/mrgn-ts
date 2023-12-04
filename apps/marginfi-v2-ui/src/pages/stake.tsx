@@ -90,7 +90,7 @@ const StakingContent = () => (
         <p>LST is the highest natural yielding LST</p>
         <p>LST is powered by Jito&apos;s MEV-boosted client</p>
         <p>
-          LST only stakes to{" "}
+          LST only stakes to 0% commission{" "}
           <a
             href="https://stakewiz.com/validator/mrgn2vsZ5EJ8YEfAMNPXmRux7th9cNfBasQ1JJvVwPn"
             target="_blank"
