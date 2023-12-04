@@ -2,7 +2,7 @@ import React from "react";
 
 import Image from "next/image";
 
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 
 import { cn } from "~/utils";
 
@@ -12,6 +12,7 @@ import { Button } from "~/components/ui/button";
 
 import { IconChevronDown, IconX } from "~/components/ui/icons";
 
+import { LendingModes } from "~/types";
 import type { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type ActionBoxTokensProps = {
@@ -21,6 +22,7 @@ type ActionBoxTokensProps = {
 
 export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxTokensProps) => {
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const [lendingMode] = useUiStore((state) => [state.lendingMode]);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isTokenPopoverOpen, setIsTokenPopoverOpen] = React.useState(false);
 
@@ -89,7 +91,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
           <CommandEmpty>No tokens found.</CommandEmpty>
           {filteredBanksUserOwns.length > 0 && (
             <CommandGroup heading="In your wallet">
-              {filteredBanksUserOwns.slice(0, 3).map((bank, index) => (
+              {filteredBanksUserOwns.slice(0, searchQuery.length === 0 ? 8 : 3).map((bank, index) => (
                 <CommandItem
                   key={index}
                   value={bank?.address?.toString().toLowerCase()}
@@ -118,7 +120,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
               ))}
             </CommandGroup>
           )}
-          {filteredBanks.length > 0 && (
+          {(searchQuery.length > 0 || lendingMode === LendingModes.BORROW) && filteredBanks.length > 0 && (
             <CommandGroup heading="All tokens">
               {filteredBanks.slice(0, 3).map((bank, index) => (
                 <CommandItem
