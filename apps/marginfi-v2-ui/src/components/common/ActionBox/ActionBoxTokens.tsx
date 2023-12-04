@@ -2,7 +2,8 @@ import React from "react";
 
 import Image from "next/image";
 
-import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, usdFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 
@@ -15,7 +16,6 @@ import { Button } from "~/components/ui/button";
 import { IconChevronDown, IconX } from "~/components/ui/icons";
 
 import { LendingModes } from "~/types";
-import type { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type ActionBoxTokensProps = {
   currentToken: ExtendedBankInfo | null;
@@ -57,6 +57,12 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
         return b.userInfo.tokenAccount.balance - a.userInfo.tokenAccount.balance;
       });
   }, [extendedBankInfos, searchQuery]);
+
+  React.useEffect(() => {
+    if (!isTokenPopoverOpen) {
+      setSearchQuery("");
+    }
+  }, [isTokenPopoverOpen]);
 
   return (
     <Popover open={isTokenPopoverOpen} onOpenChange={(open) => setIsTokenPopoverOpen(open)}>
@@ -111,17 +117,32 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                   }}
                   className="text-lg h-16 font-medium flex items-start justify-between gap-2 data-[selected=true]:bg-transparent data-[selected=true]:text-white"
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-center gap-3">
                     {bank.meta.tokenLogoUri && (
                       <Image
                         src={bank.meta.tokenLogoUri}
                         alt={bank.meta.tokenName}
                         width={24}
                         height={24}
-                        className="rounded-full translate-y-0.5"
+                        className="rounded-full"
                       />
                     )}
-                    <span>{bank.meta.tokenSymbol}</span>
+                    <div>
+                      <p>{bank.meta.tokenSymbol}</p>
+                      <p className="text-sm text-success">
+                        {percentFormatter.format(
+                          (lendingMode === LendingModes.LEND
+                            ? bank.info.state.lendingRate
+                            : bank.info.state.borrowingRate) +
+                            (lendingMode === LendingModes.LEND && bank.info.state.emissions == Emissions.Lending
+                              ? bank.info.state.emissionsRate
+                              : 0) +
+                            (lendingMode !== LendingModes.LEND && bank.info.state.emissions == Emissions.Borrowing
+                              ? bank.info.state.emissionsRate
+                              : 0)
+                        )}
+                      </p>
+                    </div>
                   </div>
                   <div className="space-y-0.5 text-right">
                     <p className="text-lg font-medium">
@@ -156,7 +177,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                     lendingMode === LendingModes.BORROW && "h-16"
                   )}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-center gap-3">
                     {bank.meta.tokenLogoUri && (
                       <Image
                         src={bank.meta.tokenLogoUri}
@@ -166,7 +187,28 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                         className="rounded-full"
                       />
                     )}
-                    <span>{bank.meta.tokenSymbol}</span>
+                    <div>
+                      <p>{bank.meta.tokenSymbol}</p>
+                      <p
+                        className={cn(
+                          "text-sm",
+                          lendingMode === LendingModes.LEND && "text-success",
+                          lendingMode === LendingModes.BORROW && "text-error"
+                        )}
+                      >
+                        {percentFormatter.format(
+                          (lendingMode === LendingModes.LEND
+                            ? bank.info.state.lendingRate
+                            : bank.info.state.borrowingRate) +
+                            (lendingMode === LendingModes.LEND && bank.info.state.emissions == Emissions.Lending
+                              ? bank.info.state.emissionsRate
+                              : 0) +
+                            (lendingMode !== LendingModes.LEND && bank.info.state.emissions == Emissions.Borrowing
+                              ? bank.info.state.emissionsRate
+                              : 0)
+                        )}
+                      </p>
+                    </div>
                   </div>
 
                   {lendingMode === LendingModes.BORROW && bank.userInfo.tokenAccount.balance > 0 && (
