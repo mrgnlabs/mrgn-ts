@@ -86,10 +86,20 @@ const StakingContent = () => (
     <div className="space-y-6 text-center mb-4">
       <h1 className="font-bold text-3xl">LST — mrgn&apos;s Liquid Staking Token.</h1>
       <p>The highest natural yield available from any LST on Solana. By a lot.</p>
-      <div className="text-[#DCE85D] space-y-2 font-bold">
-        <p>LST is the only 8% yielding LST.</p>
-        <p>LST is the only 0% commission LST.</p>
-        <p>LST is the only 0 fee LST.</p>
+      <div className="text-chartreuse space-y-2 font-bold">
+        <p>LST is the highest natural yielding LST</p>
+        <p>LST is powered by Jito's MEV-boosted client</p>
+        <p>
+          LST only stakes to{" "}
+          <a
+            href=""
+            target="_blank"
+            rel="noreferrer"
+            className="border-b border-chartreuse/50 transition-colors hover:border-transparent"
+          >
+            mrgn validators
+          </a>
+        </p>
       </div>
     </div>
     <div className="max-w-[480px] w-full space-y-4">
@@ -98,8 +108,8 @@ const StakingContent = () => (
     </div>
     <p className="text-white/75 mt-8 text-center">
       Using mrgn&apos;s sophisticated validator set, you pay no fees, earn more yield, and get more utility out of your
-      staked SOL than anywhere else. Maximum liquidity with Sanctum, maximum utility with marginfi, maximum flexibility
-      with Solana DeFi.
+      staked SOL than anywhere else. Maximum liquidity with Sanctum, maximum MEV rewards with Jito, maximum utility with
+      marginfi, maximum flexibility with Solana DeFi.
     </p>
   </div>
 );
