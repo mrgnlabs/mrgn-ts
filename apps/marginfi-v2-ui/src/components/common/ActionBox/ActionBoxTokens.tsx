@@ -50,7 +50,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
 
     return extendedBankInfos
       .filter((bankInfo) => {
-        const isWSOL = bankInfo.info.state.mint.equals(WSOL_MINT);
+        const isWSOL = bankInfo.info.state.mint?.equals ? bankInfo.info.state.mint.equals(WSOL_MINT) : false;
         const balance = isWSOL
           ? bankInfo.userInfo.tokenAccount.balance + nativeSolBalance
           : bankInfo.userInfo.tokenAccount.balance;
@@ -93,7 +93,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="p-2 w-[320px] bg-background-gray"
+        className="p-1 w-[320px] bg-background-gray"
         align="start"
         side="bottom"
         sideOffset={-50}
@@ -102,7 +102,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
         <Command className="bg-background-gray relative" shouldFilter={false}>
           <CommandInput
             placeholder="Search token..."
-            className="h-9"
+            className="h-12"
             onValueChange={(value) => setSearchQuery(value)}
           />
           <button onClick={() => setIsTokenPopoverOpen(false)} className="absolute top-2.5 right-2">
@@ -124,7 +124,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
 
                     setIsTokenPopoverOpen(false);
                   }}
-                  className="h-[60px] font-medium flex items-start justify-between gap-2 data-[selected=true]:bg-transparent data-[selected=true]:text-white"
+                  className="h-[60px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
                 >
                   <div className="flex items-center gap-3">
                     {bank.meta.tokenLogoUri && (
@@ -183,7 +183,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                     );
                   }}
                   className={cn(
-                    "font-medium flex items-start justify-between gap-2 data-[selected=true]:bg-transparent data-[selected=true]:text-white",
+                    "font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
                     lendingMode === LendingModes.LEND && "py-2",
                     lendingMode === LendingModes.BORROW && "h-[60px]"
                   )}
