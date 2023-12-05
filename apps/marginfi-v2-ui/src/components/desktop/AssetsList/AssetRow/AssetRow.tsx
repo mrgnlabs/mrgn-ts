@@ -15,11 +15,13 @@ import {
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { AssetRowInputBox, AssetRowAction, LSTDialogVariants, SWITCHBOARD_BANKS } from "~/components/common/AssetList";
+import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
 import { IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { Button } from "~/components/ui/button";
 import { LendingModes } from "~/types";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
@@ -543,8 +545,8 @@ const AssetRow: FC<{
             title={marginfiAccount === null ? "User account will be automatically created on first deposit" : ""}
             placement="top"
           >
-            <div className="h-full w-full flex justify-end items-center xl:ml-0 pl-2 sm:px-2">
-              <AssetRowAction
+            <div className="h-full w-full flex items-center xl:ml-0 pl-2 sm:px-2">
+              {/* <AssetRowAction
                 bgColor={
                   currentAction === ActionType.Deposit || currentAction === ActionType.Borrow
                     ? "rgb(227, 227, 227)"
@@ -554,7 +556,10 @@ const AssetRow: FC<{
                 disabled={isActionDisabled}
               >
                 {showCloseBalance ? "Close" : currentAction}
-              </AssetRowAction>
+              </AssetRowAction> */}
+              <ActionBoxDialog>
+                <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
+              </ActionBoxDialog>
             </div>
           </Tooltip>
         </TableCell>
