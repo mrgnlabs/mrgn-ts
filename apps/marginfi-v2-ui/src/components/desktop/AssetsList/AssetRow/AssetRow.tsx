@@ -15,10 +15,12 @@ import {
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { AssetRowInputBox, AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
+import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
+import { Button } from "~/components/ui/button";
 import { IconAlertTriangle } from "~/components/ui/icons";
 import { LendingModes } from "~/types";
 
@@ -525,8 +527,8 @@ const AssetRow: FC<{
             title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
             placement="top"
           >
-            <div className="h-full w-full flex justify-end items-center xl:ml-0 pl-2 sm:px-2">
-              <AssetRowAction
+            <div className="h-full w-full flex items-center xl:ml-0 pl-2 sm:px-2">
+              {/* <AssetRowAction
                 bgColor={
                   currentAction === ActionType.Deposit || currentAction === ActionType.Borrow
                     ? "rgb(227, 227, 227)"
@@ -536,7 +538,10 @@ const AssetRow: FC<{
                 disabled={isActionDisabled}
               >
                 {showCloseBalance ? "Close" : currentAction}
-              </AssetRowAction>
+              </AssetRowAction> */}
+              <ActionBoxDialog>
+                <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
+              </ActionBoxDialog>
             </div>
           </Tooltip>
         </TableCell>
