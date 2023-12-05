@@ -27,19 +27,13 @@ export const AssetCardActions: FC<{
     }
   }, [bank.userInfo, currentAction]);
 
-  const isDust = useMemo(
-    () => bank.isActive && uiToNative(bank.position.amount, bank.info.state.mintDecimals).isZero(),
-    [bank]
-  );
-
-  const isDisabled = useMemo(
-    () =>
-      (isDust &&
-        uiToNative(bank.userInfo.tokenAccount.balance, bank.info.state.mintDecimals).isZero() &&
-        currentAction == ActionType.Borrow) ||
-      (!isDust && maxAmount === 0),
-    [currentAction, bank, isDust, maxAmount]
-  );
+  const isDust = useMemo(() => bank.isActive && bank.position.isDust, [bank]);
+  const showCloseBalance = useMemo(() => currentAction === ActionType.Withdraw && isDust, [isDust, currentAction]); // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
+  const isActionDisabled = useMemo(() => {
+    const isValidInput = borrowOrLendAmount > 0;
+    return (maxAmount === 0 || !isValidInput) && !showCloseBalance;
+  }, [borrowOrLendAmount, showCloseBalance, maxAmount]);
+  const isInputDisabled = useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
 
   return (
     <>
@@ -51,7 +45,7 @@ export const AssetCardActions: FC<{
           maxValue={maxAmount}
           maxDecimals={bank.info.state.mintDecimals}
           inputRefs={inputRefs}
-          disabled={isDust || maxAmount === 0}
+          disabled={isInputDisabled}
           onEnter={() => onBorrowOrLend(borrowOrLendAmount)}
         />
         <AssetRowAction
@@ -60,10 +54,10 @@ export const AssetCardActions: FC<{
               ? "rgb(227, 227, 227)"
               : "rgba(0,0,0,0)"
           }
-          onClick={() => (isDust ? onCloseBalance() : onBorrowOrLend(borrowOrLendAmount))}
-          disabled={isDisabled}
+          onClick={() => (showCloseBalance ? onCloseBalance() : onBorrowOrLend(borrowOrLendAmount))}
+          disabled={isActionDisabled}
         >
-          {isDust ? "Close" : currentAction}
+          {showCloseBalance ? "Close" : currentAction}
         </AssetRowAction>
       </div>
     </>
