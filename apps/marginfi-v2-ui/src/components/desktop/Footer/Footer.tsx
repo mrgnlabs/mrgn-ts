@@ -24,6 +24,7 @@ const ROOT_CONFIG: FooterConfig = { hotkeys: true, zoom: true, unit: true, links
 
 const Footer: FC = () => {
   const router = useRouter();
+  const [userMode] = useUiStore((state) => [state.userMode]);
 
   const footerConfig = useMemo(() => {
     if (router.pathname === "/") return ROOT_CONFIG;
@@ -40,12 +41,14 @@ const Footer: FC = () => {
 
   return (
     <header>
-      <div className="hidden sm:flex fixed w-full bottom-0 h-[34px] z-20 gap-4 bg-[#0F1111] border-t border-[#4E5257]">
-        {footerConfig.hotkeys && <HotkeysInfo />}
-        {footerConfig.zoom && <LendZoomControl />}
-        {footerConfig.unit && <LendUnitControl />}
+      <div className="hidden sm:flex justify-between gap-4 fixed w-full bottom-0 h-[34px] z-20 bg-[#0F1111]  border-t border-[#4E5257]">
+        <div className=" flex gap-4">
+          {footerConfig.userMode && <UserModeControl />}
+          {footerConfig.hotkeys && userMode === UserMode.PRO && <HotkeysInfo />}
+          {footerConfig.zoom && userMode === UserMode.PRO && <LendZoomControl />}
+          {footerConfig.unit && userMode === UserMode.PRO && <LendUnitControl />}
+        </div>
         {footerConfig.links && <QuickLinks />}
-        {footerConfig.userMode && <UserModeControl />}
       </div>
     </header>
   );
@@ -59,7 +62,7 @@ const HotkeysInfo: FC = () => {
   }, []);
 
   return (
-    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] px-4 font-[500]">
+    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] pr-4 font-[500]">
       {isMac ? "⌘" : "^"}+K to see hotkeys
     </div>
   );
@@ -120,7 +123,7 @@ const UserModeControl: FC = () => {
   const [userMode, setUserMode] = useUiStore((state) => [state.userMode, state.setUserMode]);
 
   return (
-    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] pr-6">
+    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] px-6">
       <div className="h-full flex justify-center items-center font-bold">Lite</div>
       <Switch
         onChange={(_, checked) => setUserMode(checked ? UserMode.PRO : UserMode.LITE)}
@@ -177,7 +180,7 @@ const LendUnitControl: FC = () => {
 };
 
 const QuickLinks: FC = () => (
-  <div className="flex gap-4 items-center justify-center pt-1 border-r border-[#4E5257] pr-4">
+  <div className="flex gap-4 items-center justify-center pt-1 border-l border-[#4E5257] px-4">
     <Link
       href="https://discord.gg/mrgn"
       target="_blank"
