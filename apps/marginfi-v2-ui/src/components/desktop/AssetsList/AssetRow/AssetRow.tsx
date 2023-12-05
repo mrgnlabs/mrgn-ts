@@ -148,7 +148,11 @@ const AssetRow: FC<{
   }, [bank, currentAction]);
   const isDust = bank.isActive && bank.position.isDust;
   const showCloseBalance = currentAction === ActionType.Withdraw && isDust; // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
-  const isActionDisabled = maxAmount === 0 && !showCloseBalance;
+  const isActionDisabled = useMemo(() => {
+    const isValidInput = amount > 0;
+    return (maxAmount === 0 || !isValidInput) && !showCloseBalance;
+  }, [amount, showCloseBalance, maxAmount]);
+  const isInputDisabled = useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
 
   // Reset b/l amounts on toggle
   useEffect(() => {
@@ -528,7 +532,7 @@ const AssetRow: FC<{
               maxValue={maxAmount}
               maxDecimals={bank.info.state.mintDecimals}
               inputRefs={inputRefs}
-              disabled={showCloseBalance || isActionDisabled}
+              disabled={isInputDisabled}
               onEnter={handleLendingAction}
             />
           </Badge>
