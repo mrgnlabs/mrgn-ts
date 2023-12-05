@@ -10,12 +10,48 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 
 import { LendingModes } from "~/types";
-import type { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export const ActionBox = () => {
-  const [lendingMode, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
-  const [currentToken, setCurrentToken] = React.useState<ExtendedBankInfo | null>(null);
+  const [lendingMode, setLendingMode, selectedToken, setSelectedToken] = useUiStore((state) => [
+    state.lendingMode,
+    state.setLendingMode,
+    state.selectedToken,
+    state.setSelectedToken,
+  ]);
+  const [preview, setPreview] = React.useState<{ key: string; value: string }[]>([]);
   const [amount, setAmount] = React.useState<number | null>(null);
+  const amountInputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (!selectedToken || !amount) {
+      setPreview([]);
+      return;
+    }
+
+    setPreview([
+      {
+        key: "Your deposited amount",
+        value: `${amount} ${selectedToken.meta.tokenSymbol}`,
+      },
+      {
+        key: "Liquidation price",
+        value: usdFormatter.format(amount),
+      },
+      {
+        key: "Some property",
+        value: "--",
+      },
+      {
+        key: "Some property",
+        value: "--",
+      },
+    ]);
+  }, [selectedToken, amount]);
+
+  React.useEffect(() => {
+    if (!selectedToken || !amountInputRef.current) return;
+    amountInputRef.current.focus();
+  }, [selectedToken]);
 
   return (
     <div className="bg-background p-4 flex flex-col items-center gap-4">
@@ -35,9 +71,10 @@ export const ActionBox = () => {
       <div className="p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl">
         <p className="text-lg mb-3">You {lendingMode === LendingModes.LEND ? "supply" : "borrow"}</p>
         <div className="bg-background text-3xl rounded-lg flex justify-between items-center p-4 font-medium mb-5">
-          <ActionBoxTokens currentToken={currentToken} setCurrentToken={setCurrentToken} />
+          <ActionBoxTokens currentToken={selectedToken} setCurrentToken={setSelectedToken} />
           <Input
             type="number"
+            ref={amountInputRef}
             value={amount!}
             onChange={(e) => setAmount(Number(e.target.value))}
             placeholder="0"
@@ -45,18 +82,14 @@ export const ActionBox = () => {
           />
         </div>
         <Button className="w-full py-6">Select token and amount</Button>
-        {currentToken !== null && amount !== null && (
+        {selectedToken !== null && amount !== null && preview.length > 0 && (
           <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
-            <dt>Your deposited amount:</dt>
-            <dd className="text-white font-medium text-right">
-              {amount} {currentToken.meta.tokenSymbol}
-            </dd>
-            <dt>Liquidation price:</dt>
-            <dd className="text-white font-medium text-right">{usdFormatter.format(amount)}</dd>
-            <dt>Some property:</dt>
-            <dd className="text-white font-medium text-right">--</dd>
-            <dt>Some property:</dt>
-            <dd className="text-white font-medium text-right">--</dd>
+            {preview.map((item) => (
+              <React.Fragment key={item.key}>
+                <dt>{item.key}</dt>
+                <dd className="text-white font-medium text-right">{item.value}</dd>
+              </React.Fragment>
+            ))}
           </dl>
         )}
       </div>

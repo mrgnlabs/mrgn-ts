@@ -19,7 +19,7 @@ import { LendingModes } from "~/types";
 
 type ActionBoxTokensProps = {
   currentToken: ExtendedBankInfo | null;
-  setCurrentToken: React.Dispatch<React.SetStateAction<ExtendedBankInfo | null>>;
+  setCurrentToken: (selectedToken: ExtendedBankInfo | null) => void;
 };
 
 export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxTokensProps) => {
@@ -34,8 +34,6 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
   ]);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isTokenPopoverOpen, setIsTokenPopoverOpen] = React.useState(false);
-
-  console.log(extendedBankInfos);
 
   const filteredBanks = React.useMemo(() => {
     const lowerCaseSearchQuery = searchQuery.toLowerCase();
@@ -106,8 +104,10 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
         <Command
           className="bg-background-gray relative"
           shouldFilter={false}
-          value={selectedToken || ""}
-          onValueChange={(value) => setSelectedToken(value)}
+          value={selectedToken?.address?.toString().toLowerCase() ?? ""}
+          onValueChange={(value) =>
+            setSelectedToken(extendedBankInfos.find((bank) => bank.address.toString() === value) || null)
+          }
         >
           <CommandInput
             placeholder="Search token..."
