@@ -1,5 +1,7 @@
 import { create, StateCreator } from "zustand";
 
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+
 import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, UserMode } from "~/types";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
@@ -43,7 +45,7 @@ interface UiState {
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
   userMode: UserMode;
-  selectedToken: string | null;
+  selectedToken: ExtendedBankInfo | null;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -56,7 +58,7 @@ interface UiState {
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
   setUserMode: (userMode: UserMode) => void;
-  setSelectedToken: (selectedToken: string | null) => void;
+  setSelectedToken: (selectedToken: ExtendedBankInfo | null) => void;
 }
 
 function createUiStore() {
@@ -89,7 +91,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setUserMode: (userMode: UserMode) => set({ userMode: userMode }),
-  setSelectedToken: (selectedToken: string | null) => set({ selectedToken: selectedToken }),
+  setSelectedToken: (selectedToken: ExtendedBankInfo | null) => set({ selectedToken: selectedToken }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };
