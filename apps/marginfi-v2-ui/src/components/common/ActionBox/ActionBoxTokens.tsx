@@ -27,7 +27,11 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
     state.extendedBankInfos,
     state.nativeSolBalance,
   ]);
-  const [lendingMode] = useUiStore((state) => [state.lendingMode]);
+  const [lendingMode, selectedToken, setSelectedToken] = useUiStore((state) => [
+    state.lendingMode,
+    state.selectedToken,
+    state.setSelectedToken,
+  ]);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isTokenPopoverOpen, setIsTokenPopoverOpen] = React.useState(false);
 
@@ -99,7 +103,12 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
         sideOffset={-50}
         avoidCollisions={false}
       >
-        <Command className="bg-background-gray relative" shouldFilter={false}>
+        <Command
+          className="bg-background-gray relative"
+          shouldFilter={false}
+          value={selectedToken || ""}
+          onValueChange={(value) => setSelectedToken(value)}
+        >
           <CommandInput
             placeholder="Search token..."
             className="h-12"

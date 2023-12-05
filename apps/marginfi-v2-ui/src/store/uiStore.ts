@@ -43,6 +43,7 @@ interface UiState {
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
   userMode: UserMode;
+  selectedToken: string | null;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -55,6 +56,7 @@ interface UiState {
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
   setUserMode: (userMode: UserMode) => void;
+  setSelectedToken: (selectedToken: string | null) => void;
 }
 
 function createUiStore() {
@@ -73,6 +75,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   poolFilter: PoolTypes.ALL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
   userMode: UserMode.LITE,
+  selectedToken: null,
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -86,6 +89,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setUserMode: (userMode: UserMode) => set({ userMode: userMode }),
+  setSelectedToken: (selectedToken: string | null) => set({ selectedToken: selectedToken }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };
