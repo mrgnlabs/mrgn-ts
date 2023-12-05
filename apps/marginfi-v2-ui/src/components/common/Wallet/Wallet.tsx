@@ -1,7 +1,5 @@
 import React from "react";
 
-import { LAMPORTS_PER_SOL, GetProgramAccountsFilter, PublicKey } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
 import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
@@ -27,7 +25,10 @@ import { Button } from "~/components/ui/button";
 import { IconCheck, IconChevronDown, IconCopy } from "~/components/ui/icons";
 
 export const Wallet = () => {
-  const [sortedBanks] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
+    state.extendedBankInfos,
+    state.nativeSolBalance,
+  ]);
   const [isWalletOpen, setIsWalletOpen] = useUiStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
 
   const { connection } = useConnection();
@@ -50,12 +51,6 @@ export const Wallet = () => {
     tokens: [],
   });
 
-  // filter out SOL bank from sortedBanks
-  const solBank = React.useMemo(() => {
-    if (!sortedBanks) return undefined;
-    return sortedBanks.find((bank) => bank.address.toString() === "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh");
-  }, [sortedBanks]);
-
   const address = React.useMemo(() => {
     if (!wallet?.publicKey) return "";
     return shortenAddress(wallet?.publicKey?.toString());
@@ -64,98 +59,64 @@ export const Wallet = () => {
   // fetch wallet data and store in state
   // address, sol balance, token balances
   const getWalletData = React.useCallback(async () => {
-    if (!connection || !wallet?.publicKey) return;
-    const balance = await connection.getBalance(wallet?.publicKey);
-    const tokens = await getSupportedTokens(wallet?.publicKey);
+    if (!connection || !wallet?.publicKey || !extendedBankInfos || !nativeSolBalance) return;
 
-    tokens.splice(0, 0, {
-      name: "Solana",
-      symbol: "SOL",
-      image: solBank?.meta.tokenLogoUri,
-      value: balance / LAMPORTS_PER_SOL,
-      valueUSD: solBank ? (balance / LAMPORTS_PER_SOL) * solBank.info.state.price : 0,
-      formattedValue: numeralFormatter(balance / LAMPORTS_PER_SOL),
-      formattedValueUSD: usdFormatter.format(solBank ? (balance / LAMPORTS_PER_SOL) * solBank.info.state.price : 0),
-    });
+    const userBanks = extendedBankInfos.filter(
+      (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
+    );
 
-    const totalBalance = tokens.reduce((acc, token) => acc + (token?.valueUSD || 0), 0);
+    const prioritizedSymbols = ["SOL"];
+
+    const solBank = userBanks.find(
+      (bank) => bank.address.toString() === "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"
+    );
+
+    const userTokens = userBanks
+      .map((bank) => {
+        const isSolBank = bank.meta.tokenSymbol === "SOL";
+        const value = isSolBank
+          ? nativeSolBalance + bank.userInfo.tokenAccount.balance
+          : bank.userInfo.tokenAccount.balance;
+        const valueUSD =
+          (isSolBank ? nativeSolBalance + bank.userInfo.tokenAccount.balance : bank.userInfo.tokenAccount.balance) *
+          bank.info.state.price;
+
+        return {
+          name: isSolBank ? "Solana" : bank.meta.tokenName,
+          image: bank.meta.tokenLogoUri,
+          symbol: bank.meta.tokenSymbol,
+          value: value,
+          valueUSD: valueUSD,
+          formattedValue: value < 0.01 ? `< 0.01` : numeralFormatter(value),
+          formattedValueUSD: usdFormatter.format(valueUSD),
+        };
+      })
+      .sort((a, b) => {
+        return (
+          (prioritizedSymbols.includes(b.symbol) ? 1 : 0) - (prioritizedSymbols.includes(a.symbol) ? 1 : 0) ||
+          b.valueUSD - a.valueUSD
+        );
+      });
+
+    const totalBalance = userTokens.reduce((acc, token) => acc + (token?.valueUSD || 0), 0);
 
     setWalletData({
       address: wallet?.publicKey.toString(),
       shortAddress: address,
       balanceUSD: usdFormatter.format(totalBalance),
       balanceSOL: solBank ? numeralFormatter(totalBalance / solBank?.info.state.price) : "0.00",
-      tokens: (tokens || []) as Token[],
+      tokens: (userTokens || []) as Token[],
     });
 
     setPersonProperties({
       walletAddress: wallet?.publicKey.toString(),
-      tokens: tokens.map((token) => ({
+      tokens: userTokens.map((token) => ({
         name: token?.name,
         symbol: token?.symbol,
         value: token?.value,
       })),
     });
-  }, [connection, wallet?.publicKey, address, solBank]);
-
-  // fetch token accounts for wallet
-  // and filter out unsupported tokens
-  const getSupportedTokens = React.useCallback(
-    async (wallet: PublicKey) => {
-      try {
-        const filters: GetProgramAccountsFilter[] = [
-          {
-            dataSize: 165,
-          },
-          {
-            memcmp: {
-              offset: 32,
-              bytes: wallet.toString(),
-            },
-          },
-        ];
-        const accounts = await connection.getParsedProgramAccounts(TOKEN_PROGRAM_ID, { filters: filters });
-
-        const supportedTokens = accounts
-          .filter((account) => {
-            const parsedAccountInfo: any = account.account.data;
-
-            return sortedBanks.find((bank) => {
-              return bank.info.rawBank.mint.toString() === parsedAccountInfo["parsed"]["info"]["mint"];
-            });
-          })
-          .map((account) => {
-            const parsedAccountInfo: any = account.account.data;
-            const matchedBank = sortedBanks.find(
-              (bank) => bank.info.rawBank.mint.toString() === parsedAccountInfo["parsed"]["info"]["mint"]
-            );
-
-            if (!matchedBank || parsedAccountInfo.parsed.info.tokenAmount.uiAmount <= 0) {
-              return null;
-            }
-
-            const val = parsedAccountInfo.parsed.info.tokenAmount.uiAmount;
-
-            return {
-              name: matchedBank?.meta.tokenName,
-              image: matchedBank?.meta.tokenLogoUri,
-              symbol: matchedBank?.meta.tokenSymbol,
-              value: val,
-              valueUSD: val * matchedBank.info.state.price,
-              formattedValue: val < 0.01 ? `< 0.01` : numeralFormatter(val),
-              formattedValueUSD: usdFormatter.format(val * matchedBank.info.state.price),
-            };
-          })
-          .filter((token) => token !== null);
-
-        return supportedTokens;
-      } catch (error) {
-        console.error("Error fetching token accounts:", error);
-        return [];
-      }
-    },
-    [connection, sortedBanks]
-  );
+  }, [connection, wallet?.publicKey, address]);
 
   // fetch wallet data on mount and every 20 seconds
   React.useEffect(() => {
@@ -167,7 +128,7 @@ export const Wallet = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [connected, wallet?.publicKey, getWalletData]);
+  }, [connected, wallet?.publicKey, extendedBankInfos, getWalletData]);
 
   return (
     <>
