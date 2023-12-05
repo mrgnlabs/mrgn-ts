@@ -12,13 +12,11 @@ export const ActionBoxDialog = ({ children }: ActionBoxDialogProps) => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   return (
-    <div>
-      <Dialog open={isDialogOpen} onOpenChange={(open) => setIsDialogOpen(open)}>
-        <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="md:flex md:max-w-[520px] md:p-4">
-          <ActionBox />
-        </DialogContent>
-      </Dialog>
-    </div>
+    <Dialog open={isDialogOpen} onOpenChange={(open) => setIsDialogOpen(open)}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="md:flex md:max-w-[520px] md:p-4">
+        <ActionBox />
+      </DialogContent>
+    </Dialog>
   );
 };
