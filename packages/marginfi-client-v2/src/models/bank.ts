@@ -4,6 +4,9 @@ import BigNumber from "bignumber.js";
 import BN from "bn.js";
 import { MarginRequirementType } from "./account";
 import { PriceBias, OraclePrice } from "./price";
+import { BorshCoder } from "@coral-xyz/anchor";
+import { AccountType } from "../types";
+import { MARGINFI_IDL } from "../idl";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -180,6 +183,16 @@ class Bank {
     this.emissionsRate = emissionsRate;
     this.emissionsMint = emissionsMint;
     this.emissionsRemaining = emissionsRemaining;
+  }
+
+  static decodeBankRaw(encoded: Buffer): BankRaw {
+    const coder = new BorshCoder(MARGINFI_IDL);
+    return coder.accounts.decode(AccountType.Bank, encoded);
+  }
+
+  static fromBuffer(address: PublicKey, buffer: Buffer): Bank {
+    const accountParsed = Bank.decodeBankRaw(buffer);
+    return Bank.fromAccountParsed(address, accountParsed);
   }
 
   static fromAccountParsed(address: PublicKey, accountParsed: BankRaw): Bank {

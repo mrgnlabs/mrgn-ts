@@ -73,10 +73,10 @@ async function createAccountAndDeposit({
   bank: ExtendedBankInfo;
   amount: number;
   walletContextState?: WalletContextState | WalletContextStateOverride;
-}) {
+}): Promise<boolean> {
   if (mfiClient === null) {
     showErrorToast("Marginfi client not ready");
-    return;
+    return false;
   }
 
   const multiStepToast = new MultiStepToastHandle("Initial deposit", [
@@ -95,7 +95,7 @@ async function createAccountAndDeposit({
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
-    return;
+    return false;
   }
 
   try {
@@ -106,12 +106,13 @@ async function createAccountAndDeposit({
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
     });
+    return true;
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
-    return;
+    return false;
   }
 }
 
@@ -123,7 +124,7 @@ export async function deposit({
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
-}) {
+}): Promise<boolean> {
   const multiStepToast = new MultiStepToastHandle("Deposit", [
     { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
@@ -137,12 +138,13 @@ export async function deposit({
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
     });
+    return true;
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
-    return;
+    return false;
   }
 }
 
@@ -154,7 +156,7 @@ export async function borrow({
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
-}) {
+}): Promise<boolean> {
   const multiStepToast = new MultiStepToastHandle("Borrow", [
     { label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
@@ -168,12 +170,13 @@ export async function borrow({
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
     });
+    return true;
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
     console.log(`Error while borrowing: ${msg}`);
     console.log(error);
-    return;
+    return false;
   }
 }
 
@@ -185,7 +188,7 @@ export async function withdraw({
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
-}) {
+}): Promise<boolean> {
   const multiStepToast = new MultiStepToastHandle("Withdrawal", [
     { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
   ]);
@@ -199,12 +202,13 @@ export async function withdraw({
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
     });
+    return true;
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
     console.log(`Error while withdrawing: ${msg}`);
     console.log(error);
-    return;
+    return false;
   }
 }
 
@@ -216,7 +220,7 @@ export async function repay({
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
-}) {
+}): Promise<boolean> {
   const multiStepToast = new MultiStepToastHandle("Repayment", [
     { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
   ]);
@@ -230,12 +234,13 @@ export async function repay({
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
     });
+    return true;
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
     console.log(`Error while repaying: ${msg}`);
     console.log(error);
-    return;
+    return false;
   }
 }
 
@@ -279,14 +284,14 @@ export const closeBalance = async ({
 }: {
   bank: ExtendedBankInfo;
   marginfiAccount: MarginfiAccountWrapper | null | undefined;
-}) => {
+}): Promise<boolean> => {
   if (!marginfiAccount) {
     showErrorToast("marginfi account not ready.");
-    return;
+    return false;
   }
   if (!bank.isActive) {
     showErrorToast("no position to close.");
-    return;
+    return false;
   }
 
   const multiStepToast = new MultiStepToastHandle("Closing balance", [
@@ -306,11 +311,13 @@ export const closeBalance = async ({
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
     });
+    return true;
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
     console.log(`Error while closing balance`);
     console.log(error);
+    return false;
   }
 };
 
