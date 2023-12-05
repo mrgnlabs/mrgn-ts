@@ -2,7 +2,7 @@ import React from "react";
 
 import Image from "next/image";
 
-import { numeralFormatter, usdFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, usdFormatter, percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -31,6 +31,8 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isTokenPopoverOpen, setIsTokenPopoverOpen] = React.useState(false);
 
+  console.log(extendedBankInfos);
+
   const filteredBanks = React.useMemo(() => {
     const lowerCaseSearchQuery = searchQuery.toLowerCase();
 
@@ -48,10 +50,11 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
 
     return extendedBankInfos
       .filter((bankInfo) => {
-        return (
-          bankInfo.userInfo.tokenAccount.balance > 0 &&
-          bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery)
-        );
+        const isWSOL = bankInfo.info.state.mint.equals(WSOL_MINT);
+        const balance = isWSOL
+          ? bankInfo.userInfo.tokenAccount.balance + nativeSolBalance
+          : bankInfo.userInfo.tokenAccount.balance;
+        return balance > 0 && bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery);
       })
       .sort((a, b) => {
         return b.userInfo.tokenAccount.balance - a.userInfo.tokenAccount.balance;
@@ -69,7 +72,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
       <PopoverTrigger asChild>
         <Button
           className={cn(
-            "bg-background-gray-light text-white text-xl p-6 pr-5 gap-2.5 transition-colors hover:bg-background-gray",
+            "bg-background-gray-light text-white text-lg p-6 pr-5 gap-2.5 transition-colors hover:bg-background-gray",
             isTokenPopoverOpen && "bg-background-gray w-[300px]"
           )}
         >
@@ -89,7 +92,13 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
           <IconChevronDown className="shrink-0 ml-2" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-2 w-[320px] bg-background-gray" align="start" side="bottom" sideOffset={-50}>
+      <PopoverContent
+        className="p-2 w-[320px] bg-background-gray"
+        align="start"
+        side="bottom"
+        sideOffset={-50}
+        avoidCollisions={false}
+      >
         <Command className="bg-background-gray relative" shouldFilter={false}>
           <CommandInput
             placeholder="Search token..."
@@ -115,7 +124,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
 
                     setIsTokenPopoverOpen(false);
                   }}
-                  className="text-lg h-16 font-medium flex items-start justify-between gap-2 data-[selected=true]:bg-transparent data-[selected=true]:text-white"
+                  className="h-[60px] font-medium flex items-start justify-between gap-2 data-[selected=true]:bg-transparent data-[selected=true]:text-white"
                 >
                   <div className="flex items-center gap-3">
                     {bank.meta.tokenLogoUri && (
@@ -145,13 +154,15 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                     </div>
                   </div>
                   <div className="space-y-0.5 text-right">
-                    <p className="text-lg font-medium">
-                      {bank.userInfo.tokenAccount.balance < 0.01
-                        ? "< 0.01"
-                        : numeralFormatter(bank.userInfo.tokenAccount.balance)}
+                    <p className="font-medium">
+                      {bank.userInfo.tokenAccount.balance > 0.01
+                        ? numeralFormatter(bank.userInfo.tokenAccount.balance)
+                        : "< 0.01"}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {usdFormatter.format(bank.userInfo.tokenAccount.balance * bank.info.state.price)}
+                      {bank.userInfo.tokenAccount.balance * bank.info.state.price > 0.01
+                        ? usdFormatter.format(bank.userInfo.tokenAccount.balance * bank.info.state.price)
+                        : `$${(bank.userInfo.tokenAccount.balance * bank.info.state.price).toExponential(2)}`}
                     </p>
                   </div>
                 </CommandItem>
@@ -172,9 +183,9 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                     );
                   }}
                   className={cn(
-                    "text-lg font-medium flex items-start justify-between gap-2 data-[selected=true]:bg-transparent data-[selected=true]:text-white",
+                    "font-medium flex items-start justify-between gap-2 data-[selected=true]:bg-transparent data-[selected=true]:text-white",
                     lendingMode === LendingModes.LEND && "py-2",
-                    lendingMode === LendingModes.BORROW && "h-16"
+                    lendingMode === LendingModes.BORROW && "h-[60px]"
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -213,13 +224,15 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
 
                   {lendingMode === LendingModes.BORROW && bank.userInfo.tokenAccount.balance > 0 && (
                     <div className="space-y-0.5 text-right">
-                      <p className="text-lg font-medium">
-                        {bank.userInfo.tokenAccount.balance < 0.01
-                          ? "< 0.01"
-                          : numeralFormatter(bank.userInfo.tokenAccount.balance)}
+                      <p className="font-medium">
+                        {bank.userInfo.tokenAccount.balance > 0.01
+                          ? numeralFormatter(bank.userInfo.tokenAccount.balance)
+                          : "< 0.01"}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {usdFormatter.format(bank.userInfo.tokenAccount.balance * bank.info.state.price)}
+                        {bank.userInfo.tokenAccount.balance * bank.info.state.price > 0.01
+                          ? usdFormatter.format(bank.userInfo.tokenAccount.balance * bank.info.state.price)
+                          : `$${(bank.userInfo.tokenAccount.balance * bank.info.state.price).toExponential(2)}`}
                       </p>
                     </div>
                   )}
