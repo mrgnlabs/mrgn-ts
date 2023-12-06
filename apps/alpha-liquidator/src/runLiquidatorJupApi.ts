@@ -10,16 +10,6 @@ async function start() {
   console.log("Initializing");
   const wallet = new NodeWallet(env_config.WALLET_KEYPAIR);
 
-  const jupiter = await Jupiter.load({
-    connection: connection,
-    cluster: "mainnet-beta",
-    routeCacheDuration: 5_000,
-    restrictIntermediateTokens: true,
-    ammsToExclude,
-    usePreloadedAddressLookupTableCache: true,
-    user: wallet.payer,
-  });
-
   const config = getConfig(env_config.MRGN_ENV);
   const client = await MarginfiClient.fetch(config, wallet, connection);
 
@@ -29,14 +19,21 @@ async function start() {
     liquidatorAccount,
     client,
     wallet,
-    jupiter,
     env_config.MARGINFI_ACCOUNT_WHITELIST,
     env_config.MARGINFI_ACCOUNT_BLACKLIST
   );
   await liquidator.start();
 }
 
-start().catch((e) => {
-  console.log(e);
-  process.exit(1);
-});
+async function startWithRestart() {
+  try {
+    await start();
+  } catch (e) {
+    console.log(e);
+    console.log("Restarting due to crash...");
+    startWithRestart();
+  }
+}
+
+startWithRestart();
+

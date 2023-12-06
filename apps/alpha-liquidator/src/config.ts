@@ -30,6 +30,7 @@ if (!process.env.RPC_ENDPOINT) {
 
 /*eslint sort-keys: "error"*/
 let envSchema = z.object({
+  ACCOUNT_COOL_DOWN_SECONDS: z.string().default("120").transform((s) => parseInt(s, 10)),
   IS_DEV: z
     .string()
     .optional()
@@ -48,6 +49,7 @@ let envSchema = z.object({
       return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
     })
     .optional(),
+  MAX_SLIPPAGE_BPS: z.string().optional().default("250").transform((s) => Number.parseInt(s, 10)),
   MIN_LIQUIDATION_AMOUNT_USD_UI: z
     .string()
     .default("0.1")
@@ -68,11 +70,15 @@ let envSchema = z.object({
     .string()
     .default("10000")
     .transform((s) => parseInt(s, 10)),
+  SORT_ACCOUNTS_MODE: z
+    .string()
+    .optional()
+    .default("false")
+    .transform((s) => s === "true" || s === "1"),
   WALLET_KEYPAIR: z.string().transform((keypairStr) => {
     if (fs.existsSync(resolveHome(keypairStr))) {
       return loadKeypair(keypairStr);
     } else {
-      console.log(keypairStr);
       return Keypair.fromSecretKey(new Uint8Array(JSON.parse(keypairStr)));
     }
   }),

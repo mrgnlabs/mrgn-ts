@@ -48,6 +48,11 @@ export function uiToNative(amount: Amount, decimals: number): BN {
   return new BN(amt.times(10 ** decimals).toFixed(0, BigNumber.ROUND_FLOOR));
 }
 
+export function uiToNativeBigNumber(amount: Amount, decimals: number): BigNumber {
+  let amt = toBigNumber(amount);
+  return amt.times(10 ** decimals);
+}
+
 /**
  * Converts a native representation of a token amount into its UI value as `number`, given the specified mint decimal amount (default to 6 for USDC).
  */

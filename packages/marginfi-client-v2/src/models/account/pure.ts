@@ -383,39 +383,45 @@ class MarginfiAccount {
     const priceAssetMarket = assetBank.getPrice(assetPriceInfo, PriceBias.None);
     const assetMaintWeight = assetBank.config.assetWeightMaint;
 
-    const liquidationDiscount = new BigNumber(1 - 0.05);
+    const liquidationDiscount = new BigNumber(0.95);
 
     const priceLiabHighest = liabilityBank.getPrice(liabilityPriceInfo, PriceBias.Highest);
     const priceLiabMarket = liabilityBank.getPrice(liabilityPriceInfo, PriceBias.None);
     const liabMaintWeight = liabilityBank.config.liabilityWeightMaint;
 
-    // MAX amount of asset to liquidate to bring account maint health to 0, regardless of existing balances
-    const underwaterMaintValue = currentHealth.div(
-      priceAssetLower
-        .times(assetMaintWeight)
-        .minus(
-          priceAssetMarket
-            .times(liquidationDiscount)
-            .times(priceLiabHighest)
-            .times(liabMaintWeight)
-            .div(priceLiabMarket)
-        )
-    );
+    debug("h: %d, w_a: %d, w_l: %d, d: %d", currentHealth.toFixed(6), assetMaintWeight, liabMaintWeight, liquidationDiscount);
+
+    const underwaterMaintUsdValue = currentHealth.div(assetMaintWeight.minus(liabMaintWeight.times(liquidationDiscount)));
+
+    debug("Underwater maint usd to adjust: $%d", underwaterMaintUsdValue.toFixed(6));
 
     // MAX asset amount bounded by available asset amount
     const assetBalance = this.getBalance(assetBankAddress);
-    const assetsCap = assetBalance.computeQuantityUi(assetBank).assets;
+    const assetsAmountUi = assetBalance.computeQuantityUi(assetBank).assets;
+    const assetsUsdValue = assetsAmountUi.times(priceAssetLower);
 
     // MAX asset amount bounded by available liability amount
     const liabilityBalance = this.getBalance(liabilityBankAddress);
-    const liabilitiesForBank = liabilityBalance.computeQuantityUi(assetBank).liabilities;
-    const liabilityCap = liabilitiesForBank.times(priceLiabMarket).div(priceAssetMarket.times(liquidationDiscount));
+    const liabilitiesAmountUi = liabilityBalance.computeQuantityUi(liabilityBank).liabilities;
+    const liabUsdValue = liabilitiesAmountUi.times(liquidationDiscount).times(priceLiabHighest);
 
-    debug("underwaterValue", underwaterMaintValue.toFixed(6));
-    debug("assetsCap", assetsCap.toFixed(6));
-    debug("liabilityCap", liabilityCap.toFixed(6));
+    debug("Collateral amount: %d, price: %d, value: %d",
+      assetsAmountUi.toFixed(6),
+      priceAssetMarket.toFixed(6),
+      assetsUsdValue.times(priceAssetMarket).toFixed(6)
+    );
 
-    return BigNumber.min(assetsCap, liabilityCap, underwaterMaintValue);
+    debug("Liab amount: %d, price: %d, value: %d",
+      liabilitiesAmountUi.toFixed(6),
+      priceLiabMarket.toFixed(6),
+      liabUsdValue.toFixed(6)
+    );
+
+    const maxLiquidatableUsdValue = BigNumber.min(assetsUsdValue, underwaterMaintUsdValue, liabUsdValue);
+
+    debug("Max liquidatable usd value: %d", maxLiquidatableUsdValue.toFixed(6));
+
+    return maxLiquidatableUsdValue.div(priceAssetLower);
   }
 
   getHealthCheckAccounts(
@@ -725,7 +731,7 @@ class MarginfiAccount {
 
     let ixs = [];
 
-    ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
+    ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }));
     const liquidateIx = await instructions.makeLendingAccountLiquidateIx(
       program,
       {
