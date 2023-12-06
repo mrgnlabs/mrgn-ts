@@ -14,5 +14,5 @@ export const SWB_PRICE_CONF_INTERVALS = new BigNumber(2.12);
 export const USDC_DECIMALS = 6;
 
 export const ADDRESS_LOOKUP_TABLE_FOR_GROUP: { [key: string]: [PublicKey] } = {
-  "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8": [new PublicKey("Ed6FZFDbVPFjjfqFZmVnyLNxicnsRuzkYp6tqxRZzbwe")],
+    "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8": [new PublicKey("2FyGQ8UZ6PegCSN2Lu7QD1U2UY28GpJdDfdwEfbwxN7p")],
 };
