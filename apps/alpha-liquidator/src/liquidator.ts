@@ -229,7 +229,7 @@ class Liquidator {
       let withdrawSig = await this.account.withdraw(
         withdrawAmount,
         bank.address,
-        withdrawAmount.gte(balanceAssetAmount)
+        withdrawAmount.gte(balanceAssetAmount * 0.95)
       );
 
       debug("Withdraw tx: %s", withdrawSig)
