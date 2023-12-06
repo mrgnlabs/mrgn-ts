@@ -56,6 +56,8 @@ Below are the environment variables used by the application, along with their ex
 
 - `SORT_ACCOUNTS_MODE`: An experimental feature flag indicating whether accounts should be sorted by the liquidation amount, with accounts having more to liquidate being prioritized. It accepts a string and converts it to a boolean. Default is `"false"`.
 
+- `EXCLUDE_ISOLATED_BANKS`: A flag indicating whether isolated banks should be excluded from liquidation. It accepts a string and converts it to a boolean. Default is `"false"`.
+
 - `MARGINFI_ACCOUNT_BLACKLIST`: A comma-separated string of MarginFi account public keys to be blacklisted. It gets transformed into an array of `PublicKey` objects. This field is optional.
 
 - `MARGINFI_ACCOUNT_WHITELIST`: A comma-separated string of MarginFi account public keys to be whitelisted. It gets transformed into an array of `PublicKey` objects. This field is optional.

@@ -25,7 +25,7 @@ const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const MIN_SOL_BALANCE = env_config.MIN_SOL_BALANCE * LAMPORTS_PER_SOL;
 const SLIPPAGE_BPS = env_config.MAX_SLIPPAGE_BPS;
 
-const EXCLUDE_ISOLATED_BANKS: boolean = process.env.EXCLUDE_ISOLATED_BANKS === "true"; // eslint-disable-line
+const EXCLUDE_ISOLATED_BANKS = env_config.EXCLUDE_ISOLATED_BANKS;
 
 function getDebugLogger(context: string) {
   return require("debug")(`mfi:liquidator:${context}`);
