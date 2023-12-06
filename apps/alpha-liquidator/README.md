@@ -18,7 +18,7 @@ yarn build
 
 Make sure to configure the environment variables as described in the [Alpha Liquidator Configuration](#alpha-liquidator-configuration) section.
 
-## ⚠⚠️️⚠️ **IMPORTANT** ⚠️⚠️⚠️
+## **⚠⚠️️⚠️ IMPORTANT ⚠️⚠️⚠️**
 
 The liquidator operates with SOL and token accounts in the provided wallet. This means it will convert non-USDC tokens (including excess SOL) to USDC and deposit the USDC into Marginfi to be used for liquidations.
 
