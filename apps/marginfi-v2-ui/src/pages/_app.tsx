@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import type { AppProps } from "next/app";
+import { useRouter } from "next/router";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 
@@ -17,6 +18,7 @@ import { useLstStore } from "./stake";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";
+import { init as initAnalytics } from "~/utils/analytics";
 
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
@@ -41,10 +43,12 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 const MATOMO_URL = "https://mrgn.matomo.cloud";
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
+  const router = useRouter();
   const [setIsFetchingData] = useUiStore((state) => [state.setIsFetchingData]);
-  const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore] = useMrgnlendStore((state) => [
+  const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
     state.isRefreshingStore,
+    state.fetchMrgnlendState,
   ]);
   const [isLstStoreInitialised, isRefreshingLstStore] = useLstStore((state) => [
     state.initialized,
@@ -75,7 +79,21 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   React.useEffect(() => {
     setReady(true);
+    initAnalytics();
   }, []);
+
+  // if account set in query param then store inn local storage and remove from url
+  useEffect(() => {
+    const { account } = router.query;
+    if (!account) return;
+
+    const prevMfiAccount = localStorage.getItem("mfiAccount");
+    if (prevMfiAccount === account) return;
+
+    localStorage.setItem("mfiAccount", account as string);
+    router.replace(router.pathname, undefined, { shallow: true });
+    fetchMrgnlendState();
+  }, [router.query]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>

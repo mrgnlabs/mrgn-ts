@@ -1,42 +1,83 @@
-import React, { FC, useState } from "react";
+import React from "react";
 
-import { usdFormatter } from "@mrgnlabs/mrgn-common";
+import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { useUiStore } from "~/store";
 
-export const AssetCardPosition: FC<{
+import { MrgnTooltip } from "~/components/common";
+
+import { IconAlertTriangle } from "~/components/ui/icons";
+
+import { cn } from "~/utils";
+
+type AssetCardPositionProps = {
   activeBank: ActiveBankInfo;
-}> = ({ activeBank }) => {
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(true);
+};
+
+export const AssetCardPosition = ({ activeBank }: AssetCardPositionProps) => {
+  const [lendingMode, isFilteredUserPositions] = useUiStore((state) => [
+    state.lendingMode,
+    state.isFilteredUserPositions,
+  ]);
+
+  const isUserPositionPoorHealth = React.useMemo(() => {
+    if (!activeBank || !activeBank.position.liquidationPrice) {
+      return false;
+    }
+
+    const alertRange = 0.2;
+
+    if (activeBank.position.isLending) {
+      return (
+        activeBank.info.state.price <
+        activeBank.position.liquidationPrice + activeBank.position.liquidationPrice * alertRange
+      );
+    } else {
+      return (
+        activeBank.info.state.price >
+        activeBank.position.liquidationPrice - activeBank.position.liquidationPrice * alertRange
+      );
+    }
+  }, [activeBank]);
 
   return (
-    <div className="flex flex-col bg-[#23272B] p-[12px] rounded-lg">
-      <div className="flex flex-row justify-between" onClick={() => setIsCollapsed(!isCollapsed)}>
-        <div className="my-auto">Your position details</div>
-        <span className="cursor-pointer">{isCollapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />}</span>
-      </div>
-      {!isCollapsed && (
-        <div className="flex flex-col gap-[8px] pt-[8px]">
-          <div className="flex flex-row justify-between">
-            <div className="text-[#A1A1A1] my-auto text-sm">
-              {(activeBank as ActiveBankInfo).position.isLending ? "Lending" : "Borrowing"}
-            </div>
-            <div className="text-primary text-sm my-auto">
-              {(activeBank as ActiveBankInfo).position.amount.toFixed(activeBank.info.state.mintDecimals) +
-                " " +
-                activeBank.meta.tokenSymbol}
-            </div>
-          </div>
-          <div className="flex flex-row justify-between">
-            <div className="text-[#A1A1A1] text-sm my-auto">USD value</div>
-            <div className="text-sm my-auto">
-              {usdFormatter.format((activeBank as ActiveBankInfo).position.usdValue)}
-            </div>
-          </div>
-        </div>
-      )}
+    <div className={cn("bg-accent p-3.5 rounded-lg text-sm", isUserPositionPoorHealth && "bg-destructive")}>
+      <h3>
+        Your {isFilteredUserPositions ? (activeBank.position.isLending ? "lending " : "borrowing ") : ""} position
+        details
+      </h3>
+      <dl className="grid grid-cols-2 text-accent-foreground mt-2 w-full space-y-1">
+        <dt>{activeBank.position.isLending ? "Lending" : "Borrowing"}</dt>
+        <dd className="text-white font-medium text-right">
+          {activeBank.position.amount < 0.01 && "< "}
+          {numeralFormatter(activeBank.position.amount) + " " + activeBank.meta.tokenSymbol}
+        </dd>
+        <dt>USD Value</dt>
+        <dd className="text-white font-medium text-right">{usdFormatter.format(activeBank.position.usdValue)}</dd>
+        {activeBank.position.liquidationPrice && activeBank.position.liquidationPrice > 0 && (
+          <>
+            <dt
+              className={cn(
+                "mr-1.5 flex items-center gap-1.5",
+                isUserPositionPoorHealth && "text-destructive-foreground"
+              )}
+            >
+              {isUserPositionPoorHealth && (
+                <MrgnTooltip title="Your account is at risk of liquidation" placement="left">
+                  <IconAlertTriangle size={16} />
+                </MrgnTooltip>
+              )}
+              Liquidation price
+            </dt>
+            <dd className="text-white font-medium text-right">
+              {activeBank.position.liquidationPrice > 0.01
+                ? usdFormatter.format(activeBank.position.liquidationPrice)
+                : `$${activeBank.position.liquidationPrice.toExponential(2)}`}
+            </dd>
+          </>
+        )}
+      </dl>
     </div>
   );
 };

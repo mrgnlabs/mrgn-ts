@@ -81,12 +81,16 @@ class MarginfiAccount {
   computeHealthComponents(
     banks: Map<string, Bank>,
     oraclePrices: Map<string, OraclePrice>,
-    marginReqType: MarginRequirementType
+    marginReqType: MarginRequirementType,
+    excludedBanks: PublicKey[] = []
   ): {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    const [assets, liabilities] = this.activeBalances
+    const filteredBalances = this.activeBalances.filter(
+      (accountBalance) => !excludedBanks.find(b => b.equals(accountBalance.bankPk))
+    );
+    const [assets, liabilities] = filteredBalances
       .map((accountBalance) => {
         const bank = banks.get(accountBalance.bankPk.toBase58());
         if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
@@ -239,7 +243,7 @@ class MarginfiAccount {
     const balance = this.getBalance(bankAddress);
 
     const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
-    const collateralForBank = bank.computeAssetUsdValue(
+    const initCollateralForBank = bank.computeAssetUsdValue(
       priceInfo,
       balance.assetShares,
       MarginRequirementType.Initial,
@@ -248,28 +252,101 @@ class MarginfiAccount {
 
     const entireBalance = balance.computeQuantityUi(bank).assets;
 
-    const { liabilities: liabilitiesInit } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Initial);
-    if (liabilitiesInit.isZero() || collateralForBank.eq(freeCollateral)) {
+    const { liabilities: liabilitiesInit } = this.computeHealthComponents(
+      banks,
+      oraclePrices,
+      MarginRequirementType.Initial
+    );
+
+    // -------------------------------------------------- //
+    // isolated bank (=> init weight = maint weight = 0)  //
+    // or collateral bank with 0-weights (does not happen //
+    // in practice)                                       //
+    // -------------------------------------------------- //
+
+    if (bank.config.riskTier === RiskTier.Isolated || (initAssetWeight.isZero() && maintAssetWeight.isZero())) {
+      if (freeCollateral.isZero() && !liabilitiesInit.isZero()) {
+        // if account is already below init requirements and has active debt, prevent any withdrawal even if those don't count as collateral
+        // inefficient, but reflective of contract which does not look at action delta, but only end state atm
+        return new BigNumber(0);
+      } else {
+        return entireBalance;
+      }
+    }
+
+    // ----------------------------- //
+    // collateral bank being retired //
+    // ----------------------------- //
+
+    if (initAssetWeight.isZero() && !maintAssetWeight.isZero()) {
+      if (freeCollateral.isZero()) {
+        return new BigNumber(0); // inefficient, but reflective of contract which does not look at action delta, but only end state
+      } else {
+        const { liabilities: maintLiabilities, assets: maintAssets } = this.computeHealthComponents(
+          banks,
+          oraclePrices,
+          MarginRequirementType.Maintenance
+        );
+        const maintUntiedCollateral = maintAssets.minus(maintLiabilities);
+
+        const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
+        const maintWeightedPrice = priceLowestBias.times(maintAssetWeight);
+
+        return maintUntiedCollateral.div(maintWeightedPrice);
+      }
+    }
+
+    // ------------------------------------- //
+    // collateral bank with positive weights //
+    // ------------------------------------- //
+    // bypass volatility factor if no liabilities or if all collateral is untied
+    if (liabilitiesInit.isZero() || initCollateralForBank.lte(freeCollateral)) {
       return entireBalance;
     }
 
-    let untiedCollateralForBank: BigNumber;
-    if (collateralForBank.lt(freeCollateral)) {
-      untiedCollateralForBank = collateralForBank;
-    } else {
-      untiedCollateralForBank = freeCollateral.times(_volatilityFactor);
-    }
-
-    const { liabilities: liabilitiesMaint, assets: assetsMaint } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Maintenance);
-    const maintMargin = assetsMaint.minus(liabilitiesMaint);
-
+    // apply volatility factor to avoid failure due to price volatility / slippage
+    const initUntiedCollateralForBank = freeCollateral.times(_volatilityFactor);
     const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
     const initWeightedPrice = priceLowestBias.times(initAssetWeight);
-    const maintWeightedPrice = priceLowestBias.times(maintAssetWeight);
-    
-    const maxWithdraw = initWeightedPrice.isZero() ? maintMargin.div(maintWeightedPrice) : untiedCollateralForBank.div(initWeightedPrice);
+    const maxWithdraw = initUntiedCollateralForBank.div(initWeightedPrice);
 
     return maxWithdraw;
+  }
+
+  /**
+   * Calculate the price at which the user position for the given bank will lead to liquidation, all other prices constant.
+   */
+  public computeLiquidationPriceForBank(
+    banks: Map<string, Bank>,
+    oraclePrices: Map<string, OraclePrice>,
+    bankAddress: PublicKey,
+  ): number | null {
+    const bank = banks.get(bankAddress.toBase58());
+    if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+    const priceInfo = oraclePrices.get(bankAddress.toBase58());
+    if (!priceInfo) throw Error(`Price info for ${bankAddress.toBase58()} not found`);
+
+    const balance = this.getBalance(bankAddress);
+
+    if (!balance.active) return null;
+
+    const isLending = balance.liabilityShares.isZero();
+    const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Maintenance, [bankAddress]);
+    const { assets: assetQuantityUi, liabilities: liabQuantitiesUi } = balance.computeQuantityUi(bank);
+
+    if (isLending) {
+      if (liabilities.eq(0)) return null;
+
+      const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance);
+      const priceConfidence = bank.getPrice(priceInfo, PriceBias.None).minus(bank.getPrice(priceInfo, PriceBias.Lowest));
+      const liquidationPrice = liabilities.minus(assets).div(assetQuantityUi.times(assetWeight)).plus(priceConfidence);
+      return liquidationPrice.toNumber();
+    } else {
+      const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
+      const priceConfidence = bank.getPrice(priceInfo, PriceBias.Highest).minus(bank.getPrice(priceInfo, PriceBias.None));
+      const liquidationPrice = assets.minus(liabilities).div(liabQuantitiesUi.times(liabWeight)).minus(priceConfidence);
+      return liquidationPrice.toNumber();
+    }
   }
 
   // Calculate the max amount of collateral to liquidate to bring an account maint health to 0 (assuming negative health).

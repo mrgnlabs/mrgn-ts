@@ -1,7 +1,9 @@
 import {
   IconCaretUpDownFilled,
   IconCheck,
+  IconChevronUp,
   IconChevronDown,
+  IconChevronLeft,
   IconChevronRight,
   IconBrandX,
   IconBrandApple,
@@ -18,6 +20,9 @@ import {
   IconExternalLink,
   IconUserPlus,
   IconClockHour4,
+  IconFilter,
+  IconSortAscending,
+  IconSortDescending,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -103,6 +108,64 @@ const IconCoinbaseWallet = ({ size = 24, className }: IconProps) => (
     </g>
     <defs>
       <clipPath id="clip0_3_2">
+        <rect width="24" height="24" fill="white" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+const IconPyth = ({ size = 24, className }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <g clipPath="url(#clip0_8_14)">
+      <path
+        d="M14.4999 10.0002C14.4999 11.3256 13.3805 12.4003 11.9999 12.4003V14.8003C14.7611 14.8003 16.9999 12.651 16.9999 10.0002C16.9999 7.34948 14.7611 5.2002 11.9999 5.2002C11.0897 5.2002 10.2348 5.43358 9.49988 5.84281C8.00507 6.67212 6.99988 8.2233 6.99988 10.0002V22.0004L9.24772 24.1583L9.49988 24.4004V10.0002C9.49988 8.67486 10.6193 7.60023 11.9999 7.60023C13.3805 7.60023 14.4999 8.67486 14.4999 10.0002Z"
+        fill="#E6DAFE"
+      />
+      <path
+        d="M12 0C10.1784 0 8.47105 0.467847 7 1.28522C6.05811 1.80734 5.21461 2.47275 4.5 3.25106C2.94414 4.94333 2 7.16643 2 9.6001V16.8002L4.5 19.2002V9.6001C4.5 7.4682 5.46563 5.5523 7 4.23343C7.72139 3.61469 8.5683 3.12622 9.5 2.81144C10.2813 2.54439 11.1237 2.40003 12 2.40003C16.1418 2.40003 19.5 5.62395 19.5 9.6001C19.5 13.5763 16.1418 16.8002 12 16.8002V19.2002C17.5235 19.2002 22 14.9017 22 9.6001C22 4.29856 17.5235 0 12 0Z"
+        fill="#E6DAFE"
+      />
+    </g>
+    <defs>
+      <clipPath id="clip0_8_14">
+        <rect width="20" height="24" fill="white" transform="translate(2)" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+const IconSwitchboard = ({ size = 24, className }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <g clipPath="url(#clip0_8_2)">
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M2.37646 9.41978C2.37646 5.61559 5.02977 3.07328 9.12039 3H23.9999C23.1124 4.94922 22.398 5.93753 21.8566 5.96491H8.98822C6.76043 5.97088 5.4193 7.26038 5.4193 9.41978C5.4193 11.5558 6.75623 12.9367 8.91309 12.9453L14.6116 12.9367C15.4392 12.9453 16.1485 13.6553 16.1485 14.5102C16.1485 15.365 15.5027 15.8595 14.6907 15.9005L9.0787 15.907C5.08057 15.907 2.43789 13.2778 2.37752 9.55013L2.37646 9.41978Z"
+        fill="#4C6FFF"
+      />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M21.5558 14.4787C21.5558 18.2828 18.9025 20.8252 14.8119 20.8984H-0.0676524C0.819851 18.9492 1.53429 17.9609 2.07568 17.9335H14.944C17.1718 17.9276 18.5129 16.6381 18.5129 14.4787C18.5129 12.3427 17.176 10.9617 15.0192 10.9531L9.32069 10.9617C8.49304 10.9531 7.78374 10.2431 7.78374 9.38826C7.78374 8.5334 8.42952 8.03898 9.2416 7.9979L14.8535 7.99145C18.8517 7.99145 21.4944 10.6206 21.5547 14.3483L21.5558 14.4787Z"
+        fill="#4C6FFF"
+      />
+    </g>
+    <defs>
+      <clipPath id="clip0_8_2">
         <rect width="24" height="24" fill="white" />
       </clipPath>
     </defs>
@@ -264,6 +327,68 @@ const IconGlowWallet = ({ size = 24, className }: IconProps) => (
   </svg>
 );
 
+const IconTrustWallet = ({ size = 24, className }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <g clipPath="url(#clip0_6_2)">
+      <path
+        d="M3.42871 7.51045L11.9589 4.72638V24C5.86584 21.43 3.42871 16.5046 3.42871 13.7209V7.51045Z"
+        fill="#0500FF"
+      />
+      <path
+        d="M20.4891 7.51045L11.959 4.72638V24C18.052 21.43 20.4891 16.5046 20.4891 13.7209V7.51045Z"
+        fill="url(#paint0_linear_6_2)"
+      />
+      <path
+        d="M6.78749 0.0954895H7.97775V0.762048C8.36795 0.162877 8.81671 0.0954895 9.47385 0.0954895V1.27381H9.17455C8.38721 1.27381 8.01011 1.64425 8.01011 2.37781V3.63006H6.78711V0.0954895H6.78749Z"
+        fill="#0500FF"
+      />
+      <path
+        d="M13.4463 3.6297H12.2233V3.29276C11.9564 3.60274 11.5924 3.73713 11.1436 3.73713C10.2916 3.73713 9.81006 3.2323 9.81006 2.30312V0.0951233H11.0331V2.02741C11.0331 2.46485 11.2476 2.72054 11.6116 2.72054C11.9756 2.72054 12.2233 2.4714 12.2233 2.04744V0.0951233H13.4463V3.6297Z"
+        fill="#0500FF"
+      />
+      <path
+        d="M13.7456 2.53878H14.8908C14.9432 2.79447 15.1184 2.9019 15.541 2.9019C15.8858 2.9019 16.0876 2.82142 16.0876 2.67317C16.0876 2.55842 15.9898 2.48448 15.7105 2.42403L14.7868 2.21532C14.1689 2.07438 13.8565 1.71742 13.8565 1.14482C13.8565 0.390463 14.4093 0 15.4825 0C16.5556 0 17.0826 0.380451 17.1739 1.19526H16.0356C16.0163 0.980008 15.7948 0.848313 15.4308 0.848313C15.1385 0.848313 14.9497 0.94227 14.9497 1.08398C14.9497 1.20489 15.073 1.29923 15.3207 1.36046L16.2898 1.59612C16.9269 1.75054 17.2332 2.074 17.2332 2.59923C17.2332 3.32663 16.6022 3.75753 15.5294 3.75753C14.4567 3.75753 13.7471 3.29313 13.7471 2.53878H13.746H13.7456Z"
+        fill="#0500FF"
+      />
+      <path
+        d="M20.4892 1.19487V0.0954895H17.4712V1.19525H18.3718V3.62968H19.5882V1.19448H20.4892V1.19487Z"
+        fill="#0500FF"
+      />
+      <path
+        d="M6.4477 1.19487V0.0954895H3.42969V1.19525H4.33028V3.62968H5.54672V1.19448H6.44731L6.4477 1.19487Z"
+        fill="#0500FF"
+      />
+    </g>
+    <defs>
+      <linearGradient
+        id="paint0_linear_6_2"
+        x1="18.2411"
+        y1="3.38286"
+        x2="11.7486"
+        y2="23.7266"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="0.02" stop-color="#0000FF" />
+        <stop offset="0.08" stop-color="#0094FF" />
+        <stop offset="0.16" stop-color="#48FF91" />
+        <stop offset="0.42" stop-color="#0094FF" />
+        <stop offset="0.68" stop-color="#0038FF" />
+        <stop offset="0.9" stop-color="#0500FF" />
+      </linearGradient>
+      <clipPath id="clip0_6_2">
+        <rect width="24" height="24" fill="white" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
 const IconLoader = ({ size = 24, className }: IconProps) => (
   <IconLoader2 size={size} className={cn("animate-spin", className)} />
 );
@@ -377,7 +502,9 @@ export {
   // tabler icons
   IconCaretUpDownFilled,
   IconCheck,
+  IconChevronUp,
   IconChevronDown,
+  IconChevronLeft,
   IconChevronRight,
   IconBrandX,
   IconBrandApple,
@@ -393,6 +520,9 @@ export {
   IconUserPlus,
   IconBrandDiscordFilled,
   IconClockHour4,
+  IconFilter,
+  IconSortAscending,
+  IconSortDescending,
 
   // customed icons
   IconBrandGoogle,
@@ -403,6 +533,9 @@ export {
   IconBackpackWallet,
   IconWalletConnectWallet,
   IconGlowWallet,
+  IconTrustWallet,
+  IconPyth,
+  IconSwitchboard,
   IconLoader,
   IconPieChart,
   IconReceiveMoney,

@@ -25,6 +25,7 @@ import {
   IconSolflareWallet,
   IconWalletConnectWallet,
   IconGlowWallet,
+  IconTrustWallet,
   IconChevronDown,
 } from "~/components/ui/icons";
 
@@ -62,6 +63,7 @@ const walletIcons: { [key: string]: React.ReactNode } = {
   Backpack: <IconBackpackWallet size={28} />,
   WalletConnect: <IconWalletConnectWallet size={28} />,
   Glow: <IconGlowWallet size={28} />,
+  Trust: <IconTrustWallet size={28} />,
 };
 
 export const WalletAuthDialog = () => {

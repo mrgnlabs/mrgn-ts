@@ -1,7 +1,6 @@
 import React from "react";
 
 import { useRouter } from "next/router";
-import { toast } from "react-toastify";
 import { useCookies } from "react-cookie";
 import { minidenticon } from "minidenticons";
 import { useAnchorWallet, useWallet, WalletContextState } from "@solana/wallet-adapter-react";
@@ -11,7 +10,10 @@ import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 import base58 from "bs58";
-import { Wallet } from "@mrgnlabs/mrgn-common";
+
+import { showErrorToast } from "~/utils/toastUtils";
+
+import type { Wallet } from "@mrgnlabs/mrgn-common";
 
 // wallet adapter context type to override with web3auth data
 // this allows us to pass web3auth wallet to 3rd party services that expect wallet adapter
@@ -43,6 +45,7 @@ type WalletContextProps = {
   walletAddress: PublicKey;
   walletContextState: WalletContextStateOverride | WalletContextState;
   isOverride: boolean;
+  isLoading: boolean;
   loginWeb3Auth: (
     provider: string,
     extraLoginOptions?: Partial<{
@@ -58,6 +61,12 @@ type WalletContextProps = {
 
 type Web3AuthSocialProvider = "google" | "twitter" | "apple";
 type Web3AuthProvider = "email_passwordless" | Web3AuthSocialProvider;
+type WalletInfo = {
+  name: string;
+  web3Auth: boolean;
+  icon?: string;
+  email?: string;
+};
 
 const web3AuthChainConfig = {
   chainNamespace: CHAIN_NAMESPACES.SOLANA,
@@ -110,7 +119,7 @@ const makeweb3AuthWalletContextState = (wallet: Wallet): WalletContextStateOverr
 const WalletContext = React.createContext<WalletContextProps | undefined>(undefined);
 
 const WalletProvider = ({ children }: { children: React.ReactNode }) => {
-  const { query } = useRouter();
+  const { query, asPath, replace } = useRouter();
   const [web3AuthPkCookie, setWeb3AuthPkCookie] = useCookies(["mrgnPrivateKeyRequested"]);
 
   // default wallet adapter context, overwritten when web3auth is connected
@@ -123,12 +132,21 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [web3AuthLoginType, setWeb3AuthLoginType] = React.useState<string>("");
   const [web3AuthPk, setWeb3AuthPk] = React.useState<string>("");
   const [web3AuthEmail, setWeb3AuthEmail] = React.useState<string>("");
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   // if web3auth is connected, override wallet adapter context, otherwise use default
   const walletContextState = React.useMemo(() => {
     if (web3Auth?.connected && web3AuthWalletData) {
       return makeweb3AuthWalletContextState(web3AuthWalletData);
     } else {
+      if (walletContextStateDefault.wallet) {
+        const walletInfo: WalletInfo = {
+          name: walletContextStateDefault.wallet.adapter.name,
+          icon: walletContextStateDefault.wallet.adapter.icon,
+          web3Auth: false,
+        };
+        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+      }
       return walletContextStateDefault;
     }
   }, [web3Auth?.connected, web3AuthWalletData, walletContextStateDefault.connected]);
@@ -263,7 +281,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const loginWeb3Auth = React.useCallback(
     async (provider: string, extraLoginOptions: any = {}, cb?: () => void) => {
       if (!web3Auth) {
-        toast.error("Error connecting to web3Auth");
+        showErrorToast("marginfi account not ready.");
         return;
       }
 
@@ -272,6 +290,13 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           loginProvider: provider,
           extraLoginOptions,
         });
+
+        const walletInfo: WalletInfo = {
+          name: provider!,
+          web3Auth: true,
+          email: extraLoginOptions.login_hint,
+        };
+        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
       } catch (error) {
         console.error(error);
       }
@@ -285,15 +310,24 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       await web3Auth.logout();
       setWeb3AuthWalletData(undefined);
     } else {
-      walletContextState?.disconnect();
+      await walletContextState?.disconnect();
     }
+
+    if (asPath.includes("#")) {
+      // Remove the hash and update the URL
+      const newUrl = asPath.split("#")[0];
+      replace(newUrl);
+    }
+    setIsLoading(false);
     setPfp("");
   }, [walletContextState, web3Auth?.connected, walletContextStateDefault]);
 
   // if web3auth is connected, fetch wallet data
   React.useEffect(() => {
     if (!web3Auth?.connected || !web3Auth?.provider || web3AuthWalletData) return;
+    setIsLoading(true);
     makeweb3AuthWalletData(web3Auth.provider);
+    setIsLoading(false);
   }, [web3Auth?.connected, web3Auth?.provider, web3AuthWalletData]);
 
   // initialize web3auth sdk on page load
@@ -324,9 +358,11 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         setweb3Auth(web3AuthInstance);
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoading(false);
       }
     };
-
+    setIsLoading(true);
     init();
   }, []);
 
@@ -334,12 +370,13 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     <WalletContext.Provider
       value={{
         connecting: walletContextState?.connecting,
-        connected: Boolean(walletContextState?.connected || web3Auth?.connected),
+        connected: Boolean(walletContextState?.connected),
         web3AuthConncected: web3Auth?.connected,
         wallet,
         walletAddress: wallet?.publicKey as PublicKey,
         walletContextState,
         isOverride,
+        isLoading,
         loginWeb3Auth,
         logout,
         requestPrivateKey,
@@ -360,5 +397,5 @@ const useWalletContext = () => {
   return context;
 };
 
-export type { WalletContextStateOverride, Web3AuthSocialProvider, Web3AuthProvider };
+export type { WalletContextStateOverride, Web3AuthSocialProvider, Web3AuthProvider, WalletInfo };
 export { WalletProvider, useWalletContext };

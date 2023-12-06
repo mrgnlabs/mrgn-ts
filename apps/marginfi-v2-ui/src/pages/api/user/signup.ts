@@ -15,25 +15,24 @@ import {
   STATUS_OK,
   firebaseApi,
 } from "@mrgnlabs/marginfi-v2-ui-state";
+import { capture, identify } from "~/utils/analytics";
 
 initFirebaseIfNeeded();
 
 export interface SignupRequest {
-  method: SigningMethod;
-  signedAuthDataRaw: string;
+  walletAddress: string;
+  payload: firebaseApi.SignupPayload;
 }
 
 export default async function handler(req: NextApiRequest<SignupRequest>, res: any) {
-  const { method, signedAuthDataRaw } = req.body;
+  const { walletAddress, payload } = req.body;
 
   Sentry.setContext("signup_args", {
-    method,
-    signedAuthDataRaw,
+    walletAddress,
   });
 
-  let signer;
-  let payload;
-  try {
+  /* signing logic
+   try {
     const signupData = validateAndUnpackSignupData(signedAuthDataRaw, method);
     signer = signupData.signer.toBase58();
     payload = signupData.payload;
@@ -52,10 +51,10 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
         status = STATUS_INTERNAL_ERROR;
     }
     return res.status(status).json({ error: error.message });
-  }
+  }*/
 
   try {
-    const user = await getFirebaseUserByWallet(signer);
+    const user = await getFirebaseUserByWallet(walletAddress);
     if (user) {
       Sentry.captureException({ message: "User already exists" });
       return res.status(STATUS_BAD_REQUEST).json({ error: "User already exists" });
@@ -66,23 +65,34 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
   }
 
   try {
-    await createFirebaseUser(signer, payload.referralCode);
+    await createFirebaseUser(walletAddress, payload.referralCode);
     console.log("successfully created new user");
   } catch (createUserError: any) {
     Sentry.captureException(createUserError);
     return res.status(STATUS_INTERNAL_ERROR).json({ error: createUserError.message });
   }
 
-  await logSignupAttempt(signer, payload.uuid, signedAuthDataRaw, true);
+  await logSignupAttempt(walletAddress, payload.uuid, "", true);
+  capture("user_login", {
+    publicKey: walletAddress,
+    uuid: payload.uuid,
+  });
+  identify(payload.uuid, {
+    publicKey: walletAddress,
+  });
 
   // Generate a custom token for the client to sign in
-  const customToken = await admin.auth().createCustomToken(signer);
+  const customToken = await admin.auth().createCustomToken(walletAddress);
 
-  return res.status(STATUS_OK).json({ status: "success", uid: signer, token: customToken });
+  return res.status(STATUS_OK).json({ status: "success", uid: walletAddress, token: customToken });
 }
 
 // -------- Helpers
 
+/**
+ * @deprecated
+ * Signing functionality
+ */
 export function validateAndUnpackSignupData(
   signedAuthDataRaw: string,
   signingMethod: SigningMethod

@@ -33,11 +33,11 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import { useConnection } from "~/hooks/useConnection";
+import { capture } from "~/utils/analytics";
 import { SwapMode, useJupiter } from "@jup-ag/react-hook";
 import JSBI from "jsbi";
 import { StakeData, usePrevious } from "~/utils";
 import { createJupiterApiClient } from "@jup-ag/api";
-import { toast } from "react-toastify";
 import { SettingsModal } from "./SettingsModal";
 import { SettingsIcon } from "./SettingsIcon";
 import { LST_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
@@ -46,6 +46,7 @@ import { IconLoader } from "~/components/ui/icons";
 import BN from "bn.js";
 import debounce from "lodash.debounce";
 import { Desktop, Mobile } from "~/mediaQueries";
+import { MultiStepToastHandle, showErrorToast } from "~/utils/toastUtils";
 
 const QUOTE_EXPIRY_MS = 30_000;
 const DEFAULT_DEPOSIT_OPTION: DepositOption = { type: "native", amount: new BN(0), maxAmount: new BN(0) };
@@ -182,7 +183,7 @@ export const StakingCard: FC = () => {
     [depositOption, refresh, lastRefreshTimestamp]
   );
 
-  const showErrotToast = useRef(debounce(() => toast.error("Failed to find route"), 250));
+  const showErrotToast = useRef(debounce(() => showErrorToast("Failed to find route"), 250));
 
   const prevError = usePrevious(error);
   useEffect(() => {
@@ -267,6 +268,9 @@ export const StakingCard: FC = () => {
 
     setOngoingAction("minting");
 
+    const multiStepToast = new MultiStepToastHandle("Stake", [{ label: "Minting LST" }]);
+    multiStepToast.start();
+
     try {
       if (depositOption.type === "stake") {
         const { instructions, signers } = await makeDepositStakeToStakePoolIx(
@@ -293,6 +297,7 @@ export const StakingCard: FC = () => {
       } else if (depositOption.type === "token") {
         const quote = quoteResponseMeta?.original;
         if (!quote) {
+          multiStepToast.setFailed("Route not calculated yet");
           console.error("Route not calculated yet");
           return;
         }
@@ -346,10 +351,10 @@ export const StakingCard: FC = () => {
           "confirmed"
         );
       } else {
-        throw new Error("Invalid deposit option");
+        multiStepToast.setFailed("Invalid deposit option");
       }
 
-      toast.success("Minting complete");
+      multiStepToast.setSuccessAndNext();
     } catch (error: any) {
       if (error.logs) {
         console.log("------ Logs 👇 ------");
@@ -360,9 +365,12 @@ export const StakingCard: FC = () => {
       if (errorMsg) {
         errorMsg = errorMsg ? errorMsg : "Transaction failed!";
       }
-      toast.error(errorMsg);
+      multiStepToast.setFailed(errorMsg);
     } finally {
       await Promise.all([refresh(), fetchLstState()]);
+      capture("user_stake", {
+        amount: depositAmountUi,
+      });
       setDepositOption((currentDepositOption) =>
         currentDepositOption.type === "stake" ? DEFAULT_DEPOSIT_OPTION : { ...currentDepositOption, amount: new BN(0) }
       );

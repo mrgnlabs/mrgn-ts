@@ -1,8 +1,8 @@
 import React, { FC, useCallback, useMemo, useState } from "react";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, ActionType, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActiveBankInfo, ActionType, getCurrentAction } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { executeLendingAction, closeBalance, MarginfiActionParams } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -11,19 +11,25 @@ import { AssetCardStats } from "./AssetCardStats";
 import { AssetCardActions } from "./AssetCardActions";
 import { AssetCardPosition } from "./AssetCardPosition";
 import { AssetCardHeader } from "./AssetCardHeader";
+import { LendingModes } from "~/types";
 
 export const AssetCard: FC<{
   bank: ExtendedBankInfo;
+  activeBank?: ActiveBankInfo;
   nativeSolBalance: number;
   isInLendingMode: boolean;
   isConnected: boolean;
   marginfiAccount: MarginfiAccountWrapper | null;
   inputRefs?: React.MutableRefObject<Record<string, HTMLInputElement | null>>;
   showLSTDialog?: (variant: LSTDialogVariants, callback?: () => void) => void;
-}> = ({ bank, nativeSolBalance, isInLendingMode, marginfiAccount, inputRefs, showLSTDialog }) => {
+}> = ({ bank, activeBank, nativeSolBalance, isInLendingMode, marginfiAccount, inputRefs, showLSTDialog }) => {
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
+  const [lendingMode, isFilteredUserPositions] = useUiStore((state) => [
+    state.lendingMode,
+    state.isFilteredUserPositions,
+  ]);
   const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
   const { walletContextState } = useWalletContext();
 
@@ -154,7 +160,10 @@ export const AssetCard: FC<{
   );
 
   return (
-    <div className="bg-[#1A1F22] rounded-xl px-[12px] py-[16px] flex flex-col gap-[16px] w-full min-w-[300px] flex-1">
+    <div
+      className="bg-[#1A1F22] rounded-xl px-[12px] py-[16px] flex flex-col gap-[16px] w-full min-w-[300px] flex-1"
+      data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
+    >
       <AssetCardHeader bank={bank} isInLendingMode={isInLendingMode} rateAP={rateAP} />
       <AssetCardStats
         bank={bank}
@@ -166,7 +175,10 @@ export const AssetCard: FC<{
         isBankHigh={isBankHigh}
         bankCap={bankCap}
       />
-      {bank.isActive && <AssetCardPosition activeBank={bank} />}
+      {activeBank?.position &&
+        (isFilteredUserPositions || activeBank?.position.isLending === (lendingMode === LendingModes.LEND)) && (
+          <AssetCardPosition activeBank={activeBank} />
+        )}
       <AssetCardActions
         bank={bank}
         inputRefs={inputRefs}

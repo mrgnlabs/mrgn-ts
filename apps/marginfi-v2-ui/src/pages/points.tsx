@@ -1,7 +1,6 @@
 import React from "react";
 
 import Link from "next/link";
-import { useRouter } from "next/router";
 
 import { Button } from "@mui/material";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
@@ -14,22 +13,18 @@ import { PageHeader } from "~/components/common/PageHeader";
 import {
   PointsLeaderBoard,
   PointsOverview,
-  PointsSignIn,
-  PointsSignUp,
   PointsCheckingUser,
   PointsConnectWallet,
 } from "~/components/desktop/Points";
 
 const Points = () => {
   const { connected } = useWalletContext();
-  const { query: routerQuery } = useRouter();
-  const [currentFirebaseUser, hasUser, userPointsData] = useUserProfileStore((state) => [
+
+  const [currentFirebaseUser, userPointsData] = useUserProfileStore((state) => [
     state.currentFirebaseUser,
-    state.hasUser,
     state.userPointsData,
   ]);
 
-  const referralCode = React.useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
 
   return (
@@ -40,12 +35,8 @@ const Points = () => {
           <PointsConnectWallet />
         ) : currentFirebaseUser ? (
           <PointsOverview userPointsData={userPointsData} />
-        ) : hasUser === null ? (
-          <PointsCheckingUser />
-        ) : hasUser ? (
-          <PointsSignIn />
         ) : (
-          <PointsSignUp referralCode={referralCode} />
+          <PointsCheckingUser />
         )}
         <div className="w-2/3 flex justify-center items-center gap-5">
           <Button
