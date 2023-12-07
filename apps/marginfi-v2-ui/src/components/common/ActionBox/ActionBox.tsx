@@ -230,6 +230,9 @@ export const ActionBox = () => {
 
   const handleCloseBalance = React.useCallback(async () => {
     try {
+      if (!selectedToken || !selectedAccount) {
+        throw new Error();
+      }
       await closeBalance({ marginfiAccount: selectedAccount, bank: selectedToken });
     } catch (error) {
       return;
@@ -248,6 +251,9 @@ export const ActionBox = () => {
 
   const handleLendingAction = React.useCallback(async () => {
     // TODO implement LST dialog
+    if (!selectedMode || !selectedToken || !selectedAccount || !amount) {
+      return;
+    }
 
     await executeLendingActionCb({
       mfiClient,
