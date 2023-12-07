@@ -27,11 +27,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
     state.extendedBankInfos,
     state.nativeSolBalance,
   ]);
-  const [lendingMode, selectedToken, setSelectedToken] = useUiStore((state) => [
-    state.lendingMode,
-    state.selectedToken,
-    state.setSelectedToken,
-  ]);
+  const [lendingMode] = useUiStore((state) => [state.lendingMode]);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isTokenPopoverOpen, setIsTokenPopoverOpen] = React.useState(false);
 
@@ -62,7 +58,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
     return extendedBankInfos
       .filter((bankInfo) => bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery))
       .filter((bankInfo) => bankInfo.isActive && bankInfo.position?.isLending)
-      .sort((a, b) => b.userInfo.position?.amount - a.userInfo.position?.amount);
+      .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
   }, [extendedBankInfos, searchQuery]);
 
   const filteredBanksActiveBorrowing = React.useMemo(() => {
@@ -70,7 +66,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
     return extendedBankInfos
       .filter((bankInfo) => bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery))
       .filter((bankInfo) => bankInfo.isActive && !bankInfo.position?.isLending)
-      .sort((a, b) => b.userInfo.position?.amount - a.userInfo.position?.amount);
+      .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
   }, [extendedBankInfos, searchQuery]);
 
   const filteredBanksUserOwns = React.useMemo(() => {
@@ -131,7 +127,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                     lendingMode === LendingModes.BORROW && "text-error"
                   )}
                 >
-                  {calculateRate(selectedToken) + ` ${lendingMode === LendingModes.LEND ? "APY" : "APR"}`}
+                  {calculateRate(currentToken) + ` ${lendingMode === LendingModes.LEND ? "APY" : "APR"}`}
                 </p>
               </div>
             </>
@@ -150,9 +146,9 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
         <Command
           className="bg-background-gray relative"
           shouldFilter={false}
-          value={selectedToken?.address?.toString().toLowerCase() ?? ""}
+          value={currentToken?.address?.toString().toLowerCase() ?? ""}
           onValueChange={(value) =>
-            setSelectedToken(extendedBankInfos.find((bank) => bank.address.toString() === value) || selectedToken)
+            setCurrentToken(extendedBankInfos.find((bank) => bank.address.toString() === value) || currentToken)
           }
         >
           <CommandInput
