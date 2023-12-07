@@ -28,22 +28,26 @@ export const ActionBox = () => {
       state.selectedAccount,
     ]
   );
-  const [lendingMode, setLendingMode, selectedToken, setSelectedToken] = useUiStore((state) => [
-    state.lendingMode,
-    state.setLendingMode,
-    state.selectedToken,
-    state.setSelectedToken,
-  ]);
+  const [lendingMode, setLendingMode, actionMode, setActionMode, selectedToken, setSelectedToken] = useUiStore(
+    (state) => [
+      state.lendingMode,
+      state.setLendingMode,
+      state.actionMode,
+      state.setActionMode,
+      state.selectedToken,
+      state.setSelectedToken,
+    ]
+  );
   const { walletContextState } = useWalletContext();
-  const [selectedMode, setSelectMode] = React.useState<ActionType>();
+
   const [preview, setPreview] = React.useState<{ key: string; value: string }[]>([]);
   const [amount, setAmount] = React.useState<number | null>(null);
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
   const isDust = React.useMemo(() => selectedToken?.isActive && selectedToken?.position.isDust, [selectedToken]);
-  const showCloseBalance = React.useMemo(() => selectedMode === ActionType.Withdraw && isDust, [selectedMode, isDust]);
+  const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
   const maxAmount = React.useMemo(() => {
-    switch (selectedMode) {
+    switch (actionMode) {
       case ActionType.Deposit:
         return selectedToken?.userInfo.maxDeposit ?? 0;
       case ActionType.Withdraw:
@@ -55,7 +59,7 @@ export const ActionBox = () => {
       default:
         return 0;
     }
-  }, [selectedToken, selectedMode]);
+  }, [selectedToken, actionMode]);
   const isInputDisabled = React.useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
   const walletAmount = React.useMemo(
     () =>
@@ -67,19 +71,14 @@ export const ActionBox = () => {
   const hasActivePosition = React.useMemo(
     () =>
       selectedToken?.isActive &&
-      ((!selectedToken.position.isLending && lendingMode === LendingModes.LEND) ||
-        (selectedToken.position.isLending && lendingMode === LendingModes.BORROW)),
+      ((selectedToken.position.isLending && lendingMode === LendingModes.LEND) ||
+        (!selectedToken.position.isLending && lendingMode === LendingModes.BORROW)),
     [selectedToken, lendingMode]
   );
 
   React.useEffect(() => {
     setAmount(0);
-    if (lendingMode === LendingModes.LEND) {
-      setSelectMode(ActionType.Deposit);
-    } else if (lendingMode === LendingModes.BORROW) {
-      setSelectMode(ActionType.Borrow);
-    }
-  }, [lendingMode, setSelectMode, setAmount, selectedToken]);
+  }, [lendingMode, setAmount, selectedToken]);
 
   React.useEffect(() => {
     if (!selectedToken || !amount) {
@@ -170,13 +169,13 @@ export const ActionBox = () => {
 
   const handleLendingAction = React.useCallback(async () => {
     // TODO implement LST dialog
-    if (!selectedMode || !selectedToken || !selectedAccount || !amount) {
+    if (!actionMode || !selectedToken || !selectedAccount || !amount) {
       return;
     }
 
     await executeLendingActionCb({
       mfiClient,
-      actionType: selectedMode,
+      actionType: actionMode,
       bank: selectedToken,
       amount: amount,
       nativeSolBalance,
@@ -184,7 +183,7 @@ export const ActionBox = () => {
       walletContextState,
     });
   }, [
-    selectedMode,
+    actionMode,
     selectedToken,
     executeLendingActionCb,
     mfiClient,
@@ -294,10 +293,10 @@ export const ActionBox = () => {
         <div className="flex flex-row items-baseline justify-between">
           {hasActivePosition ? (
             <Select
-              value={selectedMode}
+              value={actionMode}
               disabled={!hasActivePosition}
               onValueChange={(value) => {
-                setSelectMode(value as ActionType);
+                setActionMode(value as ActionType);
               }}
             >
               <SelectTrigger
@@ -354,7 +353,7 @@ export const ActionBox = () => {
           />
         </div>
         <ActionBoxActions
-          selectedMode={selectedMode}
+          selectedMode={actionMode}
           amount={amount ?? 0}
           maxAmount={maxAmount}
           showCloseBalance={showCloseBalance ?? false}
