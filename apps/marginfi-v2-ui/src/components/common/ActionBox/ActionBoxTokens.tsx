@@ -35,16 +35,42 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isTokenPopoverOpen, setIsTokenPopoverOpen] = React.useState(false);
 
+  const calculateRate = React.useCallback(
+    (bank: ExtendedBankInfo) =>
+      percentFormatter.format(
+        (lendingMode === LendingModes.LEND ? bank.info.state.lendingRate : bank.info.state.borrowingRate) +
+          (lendingMode === LendingModes.LEND && bank.info.state.emissions == Emissions.Lending
+            ? bank.info.state.emissionsRate
+            : 0) +
+          (lendingMode !== LendingModes.LEND && bank.info.state.emissions == Emissions.Borrowing
+            ? bank.info.state.emissionsRate
+            : 0)
+      ),
+    [lendingMode]
+  );
+
   const filteredBanks = React.useMemo(() => {
     const lowerCaseSearchQuery = searchQuery.toLowerCase();
 
     return extendedBankInfos
-      .filter((bankInfo) => {
-        return bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery);
-      })
-      .filter((bankInfo) => {
-        return lendingMode === LendingModes.LEND ? bankInfo.userInfo.tokenAccount.balance === 0 : true;
-      });
+      .filter((bankInfo) => bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery))
+      .filter((bankInfo) => (lendingMode === LendingModes.LEND ? bankInfo.userInfo.tokenAccount.balance === 0 : true));
+  }, [extendedBankInfos, searchQuery]);
+
+  const filteredBanksActiveLending = React.useMemo(() => {
+    const lowerCaseSearchQuery = searchQuery.toLowerCase();
+    return extendedBankInfos
+      .filter((bankInfo) => bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery))
+      .filter((bankInfo) => bankInfo.isActive && bankInfo.position?.isLending)
+      .sort((a, b) => b.userInfo.position?.amount - a.userInfo.position?.amount);
+  }, [extendedBankInfos, searchQuery]);
+
+  const filteredBanksActiveBorrowing = React.useMemo(() => {
+    const lowerCaseSearchQuery = searchQuery.toLowerCase();
+    return extendedBankInfos
+      .filter((bankInfo) => bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery))
+      .filter((bankInfo) => bankInfo.isActive && !bankInfo.position?.isLending)
+      .sort((a, b) => b.userInfo.position?.amount - a.userInfo.position?.amount);
   }, [extendedBankInfos, searchQuery]);
 
   const filteredBanksUserOwns = React.useMemo(() => {
@@ -59,7 +85,16 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
         return balance > 0 && bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery);
       })
       .sort((a, b) => {
-        return b.userInfo.tokenAccount.balance - a.userInfo.tokenAccount.balance;
+        const isFirstWSOL = a.info.state.mint?.equals ? a.info.state.mint.equals(WSOL_MINT) : false;
+        const isSecondWSOL = b.info.state.mint?.equals ? b.info.state.mint.equals(WSOL_MINT) : false;
+        const firstBalance =
+          (isFirstWSOL ? a.userInfo.tokenAccount.balance + nativeSolBalance : a.userInfo.tokenAccount.balance) *
+          a.info.state.price;
+        const secondBalance =
+          (isSecondWSOL ? b.userInfo.tokenAccount.balance + nativeSolBalance : b.userInfo.tokenAccount.balance) *
+          b.info.state.price;
+
+        return secondBalance - firstBalance;
       });
   }, [extendedBankInfos, searchQuery]);
 
@@ -74,7 +109,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
       <PopoverTrigger asChild>
         <Button
           className={cn(
-            "bg-background-gray-light text-white text-lg p-6 pr-5 gap-2.5 transition-colors hover:bg-background-gray",
+            "bg-background-gray-light text-white text-left text-lg p-6 pr-5 gap-2.5 transition-colors hover:bg-background-gray",
             isTokenPopoverOpen && "bg-background-gray w-[300px]"
           )}
         >
@@ -87,7 +122,18 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                 height={28}
                 className="rounded-full"
               />
-              <span>{currentToken.meta.tokenSymbol}</span>
+              <div className="">
+                <p className="leading-none">{currentToken.meta.tokenSymbol}</p>
+                <p
+                  className={cn(
+                    "text-sm font-normal leading-none",
+                    lendingMode === LendingModes.LEND && "text-success",
+                    lendingMode === LendingModes.BORROW && "text-error"
+                  )}
+                >
+                  {calculateRate(selectedToken) + ` ${lendingMode === LendingModes.LEND ? "APY" : "APR"}`}
+                </p>
+              </div>
             </>
           )}
           {!currentToken && <>Select token</>}
@@ -106,7 +152,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
           shouldFilter={false}
           value={selectedToken?.address?.toString().toLowerCase() ?? ""}
           onValueChange={(value) =>
-            setSelectedToken(extendedBankInfos.find((bank) => bank.address.toString() === value) || null)
+            setSelectedToken(extendedBankInfos.find((bank) => bank.address.toString() === value) || selectedToken)
           }
         >
           <CommandInput
@@ -133,47 +179,73 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
 
                     setIsTokenPopoverOpen(false);
                   }}
-                  className="h-[60px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                  className="cursor-pointer h-[60px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
                 >
-                  <div className="flex items-center gap-3">
-                    {bank.meta.tokenLogoUri && (
-                      <Image
-                        src={bank.meta.tokenLogoUri}
-                        alt={bank.meta.tokenName}
-                        width={24}
-                        height={24}
-                        className="rounded-full"
-                      />
-                    )}
-                    <div>
-                      <p>{bank.meta.tokenSymbol}</p>
-                      <p className="text-sm text-success">
-                        {percentFormatter.format(
-                          (lendingMode === LendingModes.LEND
-                            ? bank.info.state.lendingRate
-                            : bank.info.state.borrowingRate) +
-                            (lendingMode === LendingModes.LEND && bank.info.state.emissions == Emissions.Lending
-                              ? bank.info.state.emissionsRate
-                              : 0) +
-                            (lendingMode !== LendingModes.LEND && bank.info.state.emissions == Emissions.Borrowing
-                              ? bank.info.state.emissionsRate
-                              : 0)
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="space-y-0.5 text-right">
-                    <p className="font-medium">
-                      {bank.userInfo.tokenAccount.balance > 0.01
-                        ? numeralFormatter(bank.userInfo.tokenAccount.balance)
-                        : "< 0.01"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {bank.userInfo.tokenAccount.balance * bank.info.state.price > 0.01
-                        ? usdFormatter.format(bank.userInfo.tokenAccount.balance * bank.info.state.price)
-                        : `$${(bank.userInfo.tokenAccount.balance * bank.info.state.price).toExponential(2)}`}
-                    </p>
-                  </div>
+                  <ActionBoxItem
+                    rate={calculateRate(bank)}
+                    lendingMode={lendingMode}
+                    bank={bank}
+                    showBalanceOverride={true}
+                    nativeSolBalance={nativeSolBalance}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+          {searchQuery.length > 0 && filteredBanksActiveBorrowing.length > 0 && (
+            <CommandGroup heading="Currently supplying">
+              {filteredBanksActiveBorrowing.slice(0, searchQuery.length === 0 ? 5 : 3).map((bank, index) => (
+                <CommandItem
+                  key={index}
+                  value={bank.address?.toString().toLowerCase()}
+                  onSelect={(currentValue) => {
+                    setCurrentToken(
+                      extendedBankInfos.find(
+                        (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                      ) ?? null
+                    );
+                  }}
+                  className={cn(
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
+                    lendingMode === LendingModes.LEND && "py-2"
+                  )}
+                >
+                  <ActionBoxItem
+                    rate={calculateRate(bank)}
+                    lendingMode={lendingMode}
+                    bank={bank}
+                    showBalanceOverride={false}
+                    nativeSolBalance={nativeSolBalance}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+          {searchQuery.length > 0 && filteredBanksActiveLending.length > 0 && (
+            <CommandGroup heading="Currently supplying">
+              {filteredBanksActiveLending.slice(0, searchQuery.length === 0 ? 5 : 3).map((bank, index) => (
+                <CommandItem
+                  key={index}
+                  value={bank.address?.toString().toLowerCase()}
+                  onSelect={(currentValue) => {
+                    setCurrentToken(
+                      extendedBankInfos.find(
+                        (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                      ) ?? null
+                    );
+                  }}
+                  className={cn(
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
+                    lendingMode === LendingModes.LEND && "py-2"
+                  )}
+                >
+                  <ActionBoxItem
+                    rate={calculateRate(bank)}
+                    lendingMode={lendingMode}
+                    bank={bank}
+                    showBalanceOverride={false}
+                    nativeSolBalance={nativeSolBalance}
+                  />
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -192,59 +264,18 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                     );
                   }}
                   className={cn(
-                    "font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
                     lendingMode === LendingModes.LEND && "py-2",
                     lendingMode === LendingModes.BORROW && "h-[60px]"
                   )}
                 >
-                  <div className="flex items-center gap-3">
-                    {bank.meta.tokenLogoUri && (
-                      <Image
-                        src={bank.meta.tokenLogoUri}
-                        alt={bank.meta.tokenName}
-                        width={24}
-                        height={24}
-                        className="rounded-full"
-                      />
-                    )}
-                    <div>
-                      <p>{bank.meta.tokenSymbol}</p>
-                      <p
-                        className={cn(
-                          "text-sm",
-                          lendingMode === LendingModes.LEND && "text-success",
-                          lendingMode === LendingModes.BORROW && "text-error"
-                        )}
-                      >
-                        {percentFormatter.format(
-                          (lendingMode === LendingModes.LEND
-                            ? bank.info.state.lendingRate
-                            : bank.info.state.borrowingRate) +
-                            (lendingMode === LendingModes.LEND && bank.info.state.emissions == Emissions.Lending
-                              ? bank.info.state.emissionsRate
-                              : 0) +
-                            (lendingMode !== LendingModes.LEND && bank.info.state.emissions == Emissions.Borrowing
-                              ? bank.info.state.emissionsRate
-                              : 0)
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  {lendingMode === LendingModes.BORROW && bank.userInfo.tokenAccount.balance > 0 && (
-                    <div className="space-y-0.5 text-right">
-                      <p className="font-medium">
-                        {bank.userInfo.tokenAccount.balance > 0.01
-                          ? numeralFormatter(bank.userInfo.tokenAccount.balance)
-                          : "< 0.01"}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {bank.userInfo.tokenAccount.balance * bank.info.state.price > 0.01
-                          ? usdFormatter.format(bank.userInfo.tokenAccount.balance * bank.info.state.price)
-                          : `$${(bank.userInfo.tokenAccount.balance * bank.info.state.price).toExponential(2)}`}
-                      </p>
-                    </div>
-                  )}
+                  <ActionBoxItem
+                    rate={calculateRate(bank)}
+                    lendingMode={lendingMode}
+                    bank={bank}
+                    showBalanceOverride={false}
+                    nativeSolBalance={nativeSolBalance}
+                  />
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -252,5 +283,64 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
         </Command>
       </PopoverContent>
     </Popover>
+  );
+};
+
+type ActionBoxItemProps = {
+  rate: string;
+  lendingMode: LendingModes;
+  bank: ExtendedBankInfo;
+  nativeSolBalance: number;
+  showBalanceOverride: boolean;
+};
+
+const ActionBoxItem = ({ rate, lendingMode, bank, nativeSolBalance, showBalanceOverride }: ActionBoxItemProps) => {
+  const balance = React.useMemo(() => {
+    const isWSOL = bank.info.state.mint?.equals ? bank.info.state.mint.equals(WSOL_MINT) : false;
+
+    return isWSOL ? bank.userInfo.tokenAccount.balance + nativeSolBalance : bank.userInfo.tokenAccount.balance;
+  }, [bank, nativeSolBalance]);
+
+  const balancePrice = React.useMemo(
+    () =>
+      balance * bank.info.state.price > 0.01
+        ? usdFormatter.format(balance * bank.info.state.price)
+        : `$${(balance * bank.info.state.price).toExponential(2)}`,
+    [bank, balance]
+  );
+
+  return (
+    <>
+      <div className="flex items-center gap-3">
+        {bank.meta.tokenLogoUri && (
+          <Image
+            src={bank.meta.tokenLogoUri}
+            alt={bank.meta.tokenName}
+            width={24}
+            height={24}
+            className="rounded-full"
+          />
+        )}
+        <div>
+          <p>{bank.meta.tokenSymbol}</p>
+          <p
+            className={cn(
+              "text-sm",
+              lendingMode === LendingModes.LEND && "text-success",
+              lendingMode === LendingModes.BORROW && "text-error"
+            )}
+          >
+            {rate}
+          </p>
+        </div>
+      </div>
+
+      {((lendingMode === LendingModes.BORROW && balance > 0) || showBalanceOverride) && (
+        <div className="space-y-0.5 text-right">
+          <p className="font-medium">{balance > 0.01 ? numeralFormatter(balance) : "< 0.01"}</p>
+          <p className="text-sm text-muted-foreground">{balancePrice}</p>
+        </div>
+      )}
+    </>
   );
 };
