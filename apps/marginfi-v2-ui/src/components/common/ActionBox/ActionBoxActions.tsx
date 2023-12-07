@@ -7,7 +7,7 @@ import { useUiStore } from "~/store";
 import { Button } from "~/components/ui/button";
 
 type ActionBoxActionsProps = {
-  selectedMode: ActionType;
+  selectedMode?: ActionType;
   amount: number;
   maxAmount: number;
   showCloseBalance: boolean;

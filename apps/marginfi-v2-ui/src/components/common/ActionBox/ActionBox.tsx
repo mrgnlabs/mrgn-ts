@@ -45,13 +45,15 @@ export const ActionBox = () => {
   const maxAmount = React.useMemo(() => {
     switch (selectedMode) {
       case ActionType.Deposit:
-        return selectedToken?.userInfo.maxDeposit;
+        return selectedToken?.userInfo.maxDeposit ?? 0;
       case ActionType.Withdraw:
-        return selectedToken?.userInfo.maxWithdraw;
+        return selectedToken?.userInfo.maxWithdraw ?? 0;
       case ActionType.Borrow:
-        return selectedToken?.userInfo.maxBorrow;
+        return selectedToken?.userInfo.maxBorrow ?? 0;
       case ActionType.Repay:
-        return selectedToken?.userInfo.maxRepay;
+        return selectedToken?.userInfo.maxRepay ?? 0;
+      default:
+        return 0;
     }
   }, [selectedToken, selectedMode]);
   const isInputDisabled = React.useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
@@ -65,18 +67,19 @@ export const ActionBox = () => {
   const hasActivePosition = React.useMemo(
     () =>
       selectedToken?.isActive &&
-      ((!selectedToken.isLending && lendingMode === LendingModes.LEND) ||
-        (selectedToken.isLending && lendingMode === LendingModes.BORROW)),
+      ((!selectedToken.position.isLending && lendingMode === LendingModes.LEND) ||
+        (selectedToken.position.isLending && lendingMode === LendingModes.BORROW)),
     [selectedToken, lendingMode]
   );
 
   React.useEffect(() => {
+    setAmount(0);
     if (lendingMode === LendingModes.LEND) {
       setSelectMode(ActionType.Deposit);
     } else if (lendingMode === LendingModes.BORROW) {
       setSelectMode(ActionType.Borrow);
     }
-  }, [lendingMode, setSelectMode, selectedToken]);
+  }, [lendingMode, setSelectMode, setAmount, selectedToken]);
 
   React.useEffect(() => {
     if (!selectedToken || !amount) {
@@ -108,7 +111,7 @@ export const ActionBox = () => {
     if (!selectedToken || !amountInputRef.current) return;
     setAmount(0);
     amountInputRef.current.focus();
-  }, [selectedToken]);
+  }, [selectedToken, setAmount]);
 
   const executeLendingActionCb = React.useCallback(
     async ({
@@ -146,6 +149,9 @@ export const ActionBox = () => {
 
   const handleCloseBalance = React.useCallback(async () => {
     try {
+      if (!selectedToken || !selectedAccount) {
+        throw new Error();
+      }
       await closeBalance({ marginfiAccount: selectedAccount, bank: selectedToken });
     } catch (error) {
       return;
@@ -164,6 +170,9 @@ export const ActionBox = () => {
 
   const handleLendingAction = React.useCallback(async () => {
     // TODO implement LST dialog
+    if (!selectedMode || !selectedToken || !selectedAccount || !amount) {
+      return;
+    }
 
     await executeLendingActionCb({
       mfiClient,
@@ -240,7 +249,7 @@ export const ActionBox = () => {
                 <IconWallet size={16} />
               </div>
               <span className="text-sm font-normal">
-                {(walletAmount > 0.01 ? numeralFormatter(walletAmount) : "< 0.01").concat(
+                {(walletAmount && walletAmount > 0.01 ? numeralFormatter(walletAmount) : "< 0.01").concat(
                   " ",
                   selectedToken?.meta.tokenSymbol
                 )}
@@ -265,9 +274,9 @@ export const ActionBox = () => {
         </div>
         <ActionBoxActions
           selectedMode={selectedMode}
-          amount={amount}
+          amount={amount ?? 0}
           maxAmount={maxAmount}
-          showCloseBalance={showCloseBalance}
+          showCloseBalance={showCloseBalance ?? false}
           handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
         />
         {selectedToken !== null && amount !== null && preview.length > 0 && (
