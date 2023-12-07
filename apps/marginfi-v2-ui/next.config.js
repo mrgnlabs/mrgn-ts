@@ -108,6 +108,12 @@ let config = withBundleAnalyzer({
         port: "",
         pathname: "/jlp/**",
       },
+      {
+        protocol: "https",
+        hostname: "metadata.jito.network",
+        port: "",
+        pathname: "/token/**",
+      },
     ],
   },
 });
