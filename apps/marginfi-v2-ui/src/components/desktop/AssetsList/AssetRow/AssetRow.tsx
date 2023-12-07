@@ -70,9 +70,10 @@ const AssetRow: FC<{
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
   const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
-  const [lendingMode, isFilteredUserPositions] = useUiStore((state) => [
+  const [lendingMode, isFilteredUserPositions, setSelectedToken] = useUiStore((state) => [
     state.lendingMode,
     state.isFilteredUserPositions,
+    state.setSelectedToken,
   ]);
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
@@ -106,15 +107,15 @@ const AssetRow: FC<{
 
   const userPositionColSpan = useMemo(() => {
     if (isMobile) {
-      return 6;
+      return 4;
     }
     if (lendZoomLevel === 3) {
-      return 9;
+      return 7;
     }
     if (lendZoomLevel === 2) {
-      return 10;
+      return 8;
     }
-    return 11;
+    return 9;
   }, [isMobile, lendZoomLevel]);
 
   const assetPrice = useMemo(
@@ -512,7 +513,7 @@ const AssetRow: FC<{
               )}
         </TableCell>
 
-        <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
+        {/* <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
           <Badge
             anchorOrigin={{
               vertical: "bottom",
@@ -538,7 +539,7 @@ const AssetRow: FC<{
               onEnter={handleLendingAction}
             />
           </Badge>
-        </TableCell>
+        </TableCell> */}
 
         <TableCell className="text-white border-none font-aeonik py-1.5 px-0">
           <Tooltip
@@ -546,19 +547,10 @@ const AssetRow: FC<{
             placement="top"
           >
             <div className="h-full w-full flex items-center xl:ml-0 pl-2 sm:px-2">
-              {/* <AssetRowAction
-                bgColor={
-                  currentAction === ActionType.Deposit || currentAction === ActionType.Borrow
-                    ? "rgb(227, 227, 227)"
-                    : "rgba(0,0,0,0)"
-                }
-                onClick={showCloseBalance ? handleCloseBalance : handleLendingAction}
-                disabled={isActionDisabled}
-              >
-                {showCloseBalance ? "Close" : currentAction}
-              </AssetRowAction> */}
               <ActionBoxDialog>
-                <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
+                <Button onClick={() => setSelectedToken(bank)} className="w-full">
+                  {showCloseBalance ? "Close" : currentAction}
+                </Button>
               </ActionBoxDialog>
             </div>
           </Tooltip>
@@ -673,9 +665,9 @@ const LoadingAsset: FC<{ isInLendingMode: boolean; bankMetadata: ExtendedBankMet
       <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
       <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
       <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
-      <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
+      {/* <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
         <AssetRowInputBox tokenName={bankMetadata.tokenSymbol} value={0} setValue={() => {}} disabled={true} />
-      </TableCell>
+      </TableCell> */}
       <TableCell className="text-white border-none font-aeonik p-0">
         <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
           <AssetRowAction bgColor={"rgb(227, 227, 227)"}>{isInLendingMode ? "Supply" : "Borrow"}</AssetRowAction>
