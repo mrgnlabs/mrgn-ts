@@ -1,6 +1,6 @@
 import { create, StateCreator } from "zustand";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, UserMode } from "~/types";
 
@@ -42,6 +42,7 @@ interface UiState {
   isWalletOnrampActive: boolean;
   isFilteredUserPositions: boolean;
   lendingMode: LendingModes;
+  actionMode: ActionType;
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
   userMode: UserMode;
@@ -55,6 +56,7 @@ interface UiState {
   setIsOnrampActive: (isOnrampActive: boolean) => void;
   setIsFilteredUserPositions: (isFilteredUserPositions: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
+  setActionMode: (actionMode: ActionType) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
   setUserMode: (userMode: UserMode) => void;
@@ -74,6 +76,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   isWalletOnrampActive: false,
   isFilteredUserPositions: false,
   lendingMode: LendingModes.LEND,
+  actionMode: ActionType.Deposit,
   poolFilter: PoolTypes.ALL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
   userMode: UserMode.LITE,
@@ -87,7 +90,12 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setIsOnrampActive: (isOnrampActive: boolean) => set({ isWalletOnrampActive: isOnrampActive }),
   setIsFilteredUserPositions: (isFilteredUserPositions: boolean) =>
     set({ isFilteredUserPositions: isFilteredUserPositions }),
-  setLendingMode: (lendingMode: LendingModes) => set({ lendingMode: lendingMode }),
+  setLendingMode: (lendingMode: LendingModes) =>
+    set({
+      lendingMode: lendingMode,
+      actionMode: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
+    }),
+  setActionMode: (actionMode: ActionType) => set({ actionMode: actionMode }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setUserMode: (userMode: UserMode) => set({ userMode: userMode }),
