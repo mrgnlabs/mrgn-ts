@@ -6,8 +6,6 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
 import { MrgnContainedSwitch } from "~/components/common/MrgnContainedSwitch";
-import { NewAssetBanner } from "~/components/common/AssetList";
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { IconFilter, IconSortAscending, IconSortDescending } from "~/components/ui/icons";
 
@@ -39,10 +37,6 @@ export const AssetListFilters = () => {
 
   return (
     <div className="col-span-full w-full space-y-5">
-      <NewAssetBanner
-        asset="render"
-        image="https://shdw-drive.genesysgo.net/5zseP54TGrcz9C8HdjZwJJsZ6f3VbP11p1abwKWGykZH/rndr.png"
-      />
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-8">
         <div className="flex w-[150px] h-[42px] mr-auto">
           <MrgnLabeledSwitch
