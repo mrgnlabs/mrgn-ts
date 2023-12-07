@@ -1,13 +1,16 @@
 import Image from "next/image";
 import React, { FC } from "react";
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { IconAlertTriangle } from "~/components/ui/icons";
+import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { Skeleton } from "~/components/ui/skeleton";
+import { useUiStore } from "~/store";
+import { LendingModes } from "~/types";
 
 interface props {
   bank: ActiveBankInfo;
@@ -15,7 +18,12 @@ interface props {
 }
 
 export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
-  const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
+  const [setActionMode, setSelectedToken, setLendingMode] = useUiStore((state) => [
+    state.setActionMode,
+    state.setSelectedToken,
+    state.setLendingMode,
+  ]);
+  const { rateAP } = useAssetItemData({ bank, isInLendingMode });
 
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
@@ -103,14 +111,32 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
               </dd>
             </dl>
           </div>
-          <div className="flex w-full gap-3">
-            <Button className="flex-1 h-12" variant="outline">
-              Withdraw
-            </Button>
-            <Button className="flex-1 h-12" variant="default">
-              Supply more
-            </Button>
-          </div>
+          <ActionBoxDialog>
+            <div className="flex w-full gap-3">
+              <Button
+                onClick={() => {
+                  setLendingMode(isInLendingMode ? LendingModes.LEND : LendingModes.BORROW);
+                  setSelectedToken(bank);
+                  setActionMode(isInLendingMode ? ActionType.Withdraw : ActionType.Repay);
+                }}
+                className="flex-1 h-12"
+                variant="outline"
+              >
+                {isInLendingMode ? "Withdraw" : "Repay"}
+              </Button>
+              <Button
+                onClick={() => {
+                  setLendingMode(isInLendingMode ? LendingModes.LEND : LendingModes.BORROW);
+                  setSelectedToken(bank);
+                  setActionMode(isInLendingMode ? ActionType.Deposit : ActionType.Borrow);
+                }}
+                className="flex-1 h-12"
+                variant="default"
+              >
+                {isInLendingMode ? "Supply more" : "Borrow more"}
+              </Button>
+            </div>
+          </ActionBoxDialog>
         </AccordionContent>
       </AccordionItem>
     </Accordion>
