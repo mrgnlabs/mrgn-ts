@@ -7,9 +7,13 @@ export const config = {
 export function middleware(req: NextRequest) {
   const basicAuth = req.headers.get("authorization");
   const url = req.nextUrl;
+  const response = NextResponse.next();
+  response.headers.set('Vercel-CDN-Cache-Control', 'private, max-age=10');
+  response.headers.set('CDN-Cache-Control', 'private, max-age=10');
+  response.headers.set('Cache-Control', 'private, max-age=10');
 
   if (process.env.AUTHENTICATION_DISABLED === "true") {
-    return NextResponse.next();
+    return response;
   }
 
   if (basicAuth) {
@@ -20,7 +24,7 @@ export function middleware(req: NextRequest) {
     const expectedPassword = process.env.AUTHENTICATION_PASSWORD || "admin";
 
     if (providedUser === expectedUser && providedPassword === expectedPassword) {
-      return NextResponse.next();
+      return response;
     }
   }
   url.pathname = "/api/auth";
