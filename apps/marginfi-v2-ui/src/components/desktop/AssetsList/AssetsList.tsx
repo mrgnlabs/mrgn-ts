@@ -362,7 +362,7 @@ const AssetsList = () => {
                     >
                       <div className="h-full w-full flex justify-end items-center gap-2">Wallet Amt.</div>
                     </TableCell>
-                    <TableCell className="border-none"></TableCell>
+                    {/* <TableCell className="border-none"></TableCell> */}
                     <TableCell className="border-none"></TableCell>
                   </TableRow>
                 </TableHead>
@@ -610,7 +610,7 @@ const AssetsList = () => {
                     >
                       <div className="h-full w-full flex justify-end items-center gap-2">Wallet Amt.</div>
                     </TableCell>
-                    <TableCell className="border-none"></TableCell>
+                    {/* <TableCell className="border-none"></TableCell> */}
                     <TableCell className="border-none"></TableCell>
                   </TableRow>
                 </TableHead>
