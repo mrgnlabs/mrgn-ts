@@ -194,6 +194,81 @@ export const ActionBox = () => {
     walletContextState,
   ]);
 
+  const executeLendingActionCb = React.useCallback(
+    async ({
+      mfiClient,
+      actionType: currentAction,
+      bank,
+      amount: borrowOrLendAmount,
+      nativeSolBalance,
+      marginfiAccount,
+      walletContextState,
+    }: MarginfiActionParams) => {
+      await executeLendingAction({
+        mfiClient,
+        actionType: currentAction,
+        bank,
+        amount: borrowOrLendAmount,
+        nativeSolBalance,
+        marginfiAccount,
+        walletContextState,
+      });
+
+      setAmount(0);
+
+      // -------- Refresh state
+      try {
+        setIsRefreshingStore(true);
+        await fetchMrgnlendState();
+      } catch (error: any) {
+        console.log("Error while reloading state");
+        console.log(error);
+      }
+    },
+    [fetchMrgnlendState, setIsRefreshingStore]
+  );
+
+  const handleCloseBalance = React.useCallback(async () => {
+    try {
+      await closeBalance({ marginfiAccount: selectedAccount, bank: selectedToken });
+    } catch (error) {
+      return;
+    }
+
+    setAmount(0);
+
+    try {
+      setIsRefreshingStore(true);
+      await fetchMrgnlendState();
+    } catch (error: any) {
+      console.log("Error while reloading state");
+      console.log(error);
+    }
+  }, [selectedToken, selectedAccount, fetchMrgnlendState, setIsRefreshingStore]);
+
+  const handleLendingAction = React.useCallback(async () => {
+    // TODO implement LST dialog
+
+    await executeLendingActionCb({
+      mfiClient,
+      actionType: selectedMode,
+      bank: selectedToken,
+      amount: amount,
+      nativeSolBalance,
+      marginfiAccount: selectedAccount,
+      walletContextState,
+    });
+  }, [
+    selectedMode,
+    selectedToken,
+    executeLendingActionCb,
+    mfiClient,
+    amount,
+    nativeSolBalance,
+    selectedAccount,
+    walletContextState,
+  ]);
+
   return (
     <div className="bg-background p-4 flex flex-col items-center gap-4">
       <div className="space-y-6 text-center w-full flex flex-col items-center">
