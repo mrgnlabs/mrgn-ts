@@ -8,7 +8,9 @@ export function middleware(req: NextRequest) {
   const basicAuth = req.headers.get("authorization");
   const url = req.nextUrl;
   const response = NextResponse.next();
-  response.headers.set('Cache-Control', 'public, max-age=14400');
+  response.headers.set('Vercel-CDN-Cache-Control', 'private, max-age=10');
+  response.headers.set('CDN-Cache-Control', 'private, max-age=10');
+  response.headers.set('Cache-Control', 'private, max-age=10');
 
   if (process.env.AUTHENTICATION_DISABLED === "true") {
     return response;
