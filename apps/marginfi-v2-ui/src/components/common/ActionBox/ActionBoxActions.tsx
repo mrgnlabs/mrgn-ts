@@ -5,28 +5,29 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useUiStore } from "~/store";
 
 import { Button } from "~/components/ui/button";
+import { IconLoader } from "~/components/ui/icons";
 
 type ActionBoxActionsProps = {
-  selectedMode?: ActionType;
   amount: number;
   maxAmount: number;
   showCloseBalance: boolean;
+  isLoading: boolean;
   handleAction: () => void;
 };
 
 export const ActionBoxActions = ({
-  selectedMode,
   amount,
   maxAmount,
   showCloseBalance,
+  isLoading,
   handleAction,
 }: ActionBoxActionsProps) => {
-  const [selectedToken] = useUiStore((state) => [state.selectedToken]);
+  const [actionMode, selectedToken] = useUiStore((state) => [state.actionMode, state.selectedToken]);
 
   const isActionDisabled = React.useMemo(() => {
     const isValidInput = amount > 0;
-    return (maxAmount === 0 || !isValidInput) && !showCloseBalance;
-  }, [amount, showCloseBalance, maxAmount]);
+    return ((maxAmount === 0 || !isValidInput) && !showCloseBalance) || isLoading;
+  }, [amount, showCloseBalance, maxAmount, isLoading]);
 
   const actionText = React.useMemo(() => {
     if (!selectedToken) {
@@ -36,9 +37,10 @@ export const ActionBoxActions = ({
     if (showCloseBalance) {
       return "Close account";
     }
+    console.log({ actionMode });
 
     if (maxAmount === 0) {
-      switch (selectedMode) {
+      switch (actionMode) {
         case ActionType.Deposit:
           return `Insufficient ${selectedToken.meta.tokenSymbol} in wallet`;
         case ActionType.Withdraw:
@@ -56,12 +58,12 @@ export const ActionBoxActions = ({
       return "Add an amount";
     }
 
-    return selectedMode;
-  }, [selectedMode, amount, selectedToken, maxAmount, showCloseBalance]);
+    return actionMode;
+  }, [actionMode, amount, selectedToken, maxAmount, showCloseBalance]);
 
   return (
     <Button disabled={isActionDisabled} className="w-full py-6" onClick={handleAction}>
-      {actionText}
+      {isLoading ? <IconLoader /> : actionText}
     </Button>
   );
 };
