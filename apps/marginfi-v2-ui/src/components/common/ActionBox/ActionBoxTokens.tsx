@@ -172,7 +172,6 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                         (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
                       ) ?? null
                     );
-
                     setIsTokenPopoverOpen(false);
                   }}
                   className="cursor-pointer h-[60px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
@@ -200,6 +199,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                         (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
                       ) ?? null
                     );
+                    setIsTokenPopoverOpen(false);
                   }}
                   className={cn(
                     "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
@@ -229,6 +229,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                         (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
                       ) ?? null
                     );
+                    setIsTokenPopoverOpen(false);
                   }}
                   className={cn(
                     "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
@@ -258,6 +259,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                         (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
                       ) ?? null
                     );
+                    setIsTokenPopoverOpen(false);
                   }}
                   className={cn(
                     "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
