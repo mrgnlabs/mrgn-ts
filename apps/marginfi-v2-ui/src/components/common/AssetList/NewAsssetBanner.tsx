@@ -1,25 +1,36 @@
 import React from "react";
 import Image from "next/image";
 
-import { useUiStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 
+import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
 import { IconX } from "~/components/ui/icons";
 
-import { LendingModes, PoolTypes } from "~/types";
+import { LendingModes, PoolTypes, UserMode } from "~/types";
 
 type NewAssetBannerProps = {
   asset: string;
+  symbol: string;
   image: string;
 };
 
-export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
-  const [poolFilter, setLendingMode, setPoolFilter, setIsFilteredUserPositions] = useUiStore((state) => [
-    state.poolFilter,
-    state.setLendingMode,
-    state.setPoolFilter,
-    state.setIsFilteredUserPositions,
-  ]);
+export const NewAssetBanner = ({ asset, symbol, image }: NewAssetBannerProps) => {
+  const [userMode, poolFilter, setLendingMode, setPoolFilter, setIsFilteredUserPositions, setSelectedToken] =
+    useUiStore((state) => [
+      state.userMode,
+      state.poolFilter,
+      state.setLendingMode,
+      state.setPoolFilter,
+      state.setIsFilteredUserPositions,
+      state.setSelectedToken,
+    ]);
+  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+
+  const renderBank = React.useMemo(
+    () => extendedBankInfos.find((x) => x.meta.tokenSymbol === symbol),
+    [extendedBankInfos]
+  );
 
   const [isHidden, setIsHidden] = React.useState(true);
 
@@ -78,14 +89,46 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
           <h2 className="font-medium">{assetTicker} is now available on margnfi</h2>
           <ul className="flex items-center gap-2 justify-center">
             <li className="w-full">
-              <Button variant="outline" size="sm" className="w-full" onClick={() => deposit()}>
-                Deposit {assetTicker}
-              </Button>
+              {userMode === UserMode.LITE ? (
+                <ActionBoxDialog>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      renderBank && setSelectedToken(renderBank);
+                      setLendingMode(LendingModes.LEND);
+                    }}
+                  >
+                    Deposit {assetTicker}
+                  </Button>
+                </ActionBoxDialog>
+              ) : (
+                <Button variant="outline" size="sm" className="w-full" onClick={() => deposit()}>
+                  Deposit {assetTicker}
+                </Button>
+              )}
             </li>
             <li className="w-full">
-              <Button variant="outline" size="sm" className="w-full" onClick={() => borrow()}>
-                Borrow {assetTicker}
-              </Button>
+              {userMode === UserMode.LITE ? (
+                <ActionBoxDialog>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      renderBank && setSelectedToken(renderBank);
+                      setLendingMode(LendingModes.BORROW);
+                    }}
+                  >
+                    Borrow {assetTicker}
+                  </Button>
+                </ActionBoxDialog>
+              ) : (
+                <Button variant="outline" size="sm" className="w-full" onClick={() => borrow()}>
+                  Borrow {assetTicker}
+                </Button>
+              )}
             </li>
           </ul>
         </div>
@@ -100,6 +143,7 @@ export const NewAssetBanner = ({ asset, image }: NewAssetBannerProps) => {
 type NewAssetBannerListProps = {
   assets: {
     asset: string;
+    symbol: string;
     image: string;
   }[];
 };

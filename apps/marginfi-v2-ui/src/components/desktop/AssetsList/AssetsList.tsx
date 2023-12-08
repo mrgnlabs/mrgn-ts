@@ -178,6 +178,7 @@ const AssetsList = () => {
       <div className="mb-[20px]">
         <NewAssetBanner
           asset="render"
+          symbol="RENDER"
           image="https://shdw-drive.genesysgo.net/5zseP54TGrcz9C8HdjZwJJsZ6f3VbP11p1abwKWGykZH/rndr.png"
         />
       </div>
