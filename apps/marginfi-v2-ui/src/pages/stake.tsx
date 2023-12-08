@@ -22,6 +22,7 @@ const StakePage = () => {
   const { wallet, walletAddress } = useWalletContext();
   const { connection } = useConnection();
   const [mounted, setMounted] = React.useState(false);
+  const debounceId = React.useRef<NodeJS.Timeout | null>(null);
 
   const router = useRouter();
 
@@ -42,6 +43,39 @@ const StakePage = () => {
       state.userDataFetched,
       state.resetUserData,
     ]);
+
+  React.useEffect(() => {
+    const fetchData = () => {
+      setIsRefreshingStore(true);
+      fetchLstState({ connection, wallet }).catch(console.error);
+    };
+
+    if (debounceId.current) {
+      clearTimeout(debounceId.current);
+    }
+
+    debounceId.current = setTimeout(() => {
+      fetchData();
+
+      const id = setInterval(() => {
+        setIsRefreshingStore(true);
+        fetchLstState().catch(console.error);
+      }, 30_000);
+
+      return () => {
+        clearInterval(id);
+        clearTimeout(debounceId.current!);
+      };
+    }, 1000);
+
+    return () => {
+      if (debounceId.current) {
+        clearTimeout(debounceId.current);
+      }
+    };
+  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
+  // TODO: fix...
 
   React.useEffect(() => {
     setIsRefreshingStore(true);
