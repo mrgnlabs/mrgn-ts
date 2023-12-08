@@ -1,4 +1,4 @@
-import { Connection, LAMPORTS_PER_SOL, PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { AccountInfo, Connection, LAMPORTS_PER_SOL, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import {
   MarginRequirementType,
   MarginfiAccount,
@@ -15,6 +15,7 @@ import { captureException, captureMessage, env_config } from "./config";
 import BN, { min } from "bn.js";
 import { BankMetadataMap, loadBankMetadatas } from "./utils/bankMetadata";
 import { Bank } from "@mrgnlabs/marginfi-client-v2/dist/models/bank";
+import { chunkedGetRawMultipleAccountInfos, convertBase64StringArrayToBuffer } from "./utils/chunks";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(0.01);
@@ -34,6 +35,8 @@ function getDebugLogger(context: string) {
 class Liquidator {
   private bankMetadataMap: BankMetadataMap;
   private accountCooldowns: Map<string, number> = new Map();
+  accountInfos: Map<PublicKey, MarginfiAccountWrapper> = new Map();
+  accountKeys: PublicKey[] = [];
 
   constructor(
     readonly connection: Connection,
@@ -78,6 +81,7 @@ class Liquidator {
 
     console.log("Start with DEBUG=mfi:* to see more logs");
 
+    await this.startLiquidatorDataLoader();
     await this.mainLoop();
   }
 
@@ -96,6 +100,16 @@ class Liquidator {
     await this.account.reload();
   }
 
+  private async rebalanceIfNeeded(): Promise<boolean> {
+    if (await this.needsToBeRebalanced()) {
+      await this.rebalancingStage();
+
+      return true;
+    }
+
+    return false;
+  }
+
   private async mainLoop() {
     const debug = getDebugLogger("main-loop");
     drawSpinner("Scanning");
@@ -105,21 +119,20 @@ class Liquidator {
         while (true) {
           await this.swapNonUsdcInTokenAccounts();
           debug("Started main loop iteration");
-          if (await this.needsToBeRebalanced()) {
-            await this.rebalancingStage();
+          if (await this.rebalanceIfNeeded()) {
             continue;
           }
 
           // Don't sleep after liquidating an account, start rebalance immediately
           if (!(await this.liquidationStage())) {
-            await sleep(env_config.SLEEP_INTERVAL);
+            await sleep(env_config.SLEEP_INTERVAL_SECONDS * 1000);
             this.reload();
           }
         }
       } catch (e) {
         console.error(e);
         captureException(e);
-        await sleep(env_config.SLEEP_INTERVAL);
+        await sleep(env_config.SLEEP_INTERVAL_SECONDS * 1000);
       }
     }
   }
@@ -193,6 +206,91 @@ class Liquidator {
     debug("Swap transaction sent: %s", txid);
   }
 
+  private async startLiquidatorDataLoader() {
+    const debug = getDebugLogger("start-liquidator-data-loader");
+    debug("Starting liquidator data loader");
+
+    // Start a job that periodically loads all marginfi account pubkeys, and then refreshes them in batches.
+    // Start a websocket that updates the accounts.
+    debug("Loading all Marginfi accounts for the first time");
+    await this.loadAllMarginfiAccounts();
+    debug("Starting websocket account updater");
+    this.startWebsocketAccountUpdater();
+
+    setInterval(async () => {
+      debug("Refreshing all Marginfi accounts");
+      await this.loadAllMarginfiAccounts();
+    }, env_config.ACCOUNT_REFRESH_INTERVAL_SECONDS * 1000);
+  }
+
+  private async loadAllMarginfiAccounts() {
+    console.log("Loading data, this may take a moment...")
+    const debug = getDebugLogger("load-all-marginfi-accounts");
+    debug("Loading all Marginfi accounts");
+    const allKeys = (await this.client.getAllMarginfiAccountAddresses());
+    debug("Retrieved all Marginfi account addresses, found: %d", allKeys.length);
+    const [slot, ais] = await chunkedGetRawMultipleAccountInfos(this.connection, allKeys.map((k) => k.toBase58()), 16 * 64, 64);
+    debug("Received account information for slot %d, got: %d accounts", slot, ais.size);
+    this.accountKeys = allKeys;
+
+    const totalAccounts = ais.size;
+    let processedAccounts = 0;
+    for (const [key, accountInfo] of ais) {
+
+      const pubkey = new PublicKey(key);
+      const account = MarginfiAccountWrapper.fromAccountDataRaw(pubkey, this.client, accountInfo.data);
+      this.accountInfos.set(pubkey, account);
+
+      processedAccounts++;
+      if (processedAccounts % 1000 === 0) {
+        const progress = ((processedAccounts / totalAccounts) * 100).toFixed(2);
+        debug("Processed %d accounts out of %d (%s%%)", processedAccounts, totalAccounts, progress);
+      }
+    }
+    if (processedAccounts % 1000 !== 0) {
+      const progress = ((processedAccounts / totalAccounts) * 100).toFixed(2);
+      debug("Final progress: %s%%", progress);
+    }
+
+    console.log("Finished loading all Marginfi accounts");
+  }
+
+  private async startWebsocketAccountUpdater() {
+    const debug = getDebugLogger("start-websocket-account-updater");
+    debug("Starting websocket account updater");
+    /// Start a websocket that updates the accounts.
+    let connection = 0;
+
+    const fn = () => {
+      if (connection != 0) {
+        debug("Resetting websocket connection");
+        this.connection.removeAccountChangeListener(connection);
+      }
+
+      debug("Starting websocket connection");
+      connection = this.connection.onProgramAccountChange(this.client.program.programId, (info) => {
+        const pubkey = info.accountId;
+        const accountInfo = info.accountInfo;
+
+        if (accountInfo.data.length !== this.client.program.account.marginfiAccount.size) {
+          debug("Received account update for account with public key: %s, but data length is incorrect", pubkey.toBase58());
+          return;
+        }
+
+        try {
+          const account = MarginfiAccountWrapper.fromAccountDataRaw(pubkey, this.client, accountInfo.data);
+          this.accountInfos.set(pubkey, account);
+          debug("Updated Marginfi account for public key: %s", pubkey.toBase58());
+        } catch (error) {
+          debug("Failed to decode Marginfi account for public key: %s, Error: %s", pubkey.toBase58(), error);
+        }
+      });
+    }
+
+    setInterval(() => fn, env_config.WS_RESET_INTERVAL_SECONDS * 1000);
+    fn()
+  }
+
   /**
    * 1. step of the account re-balancing
 
@@ -236,7 +334,7 @@ class Liquidator {
       this.reload();
     }
 
-    this.swapNonUsdcInTokenAccounts();
+    await this.swapNonUsdcInTokenAccounts();
   }
 
   /**
@@ -476,7 +574,7 @@ class Liquidator {
   private async liquidationStage(): Promise<boolean> {
     const debug = getDebugLogger("liquidation-stage");
     debug("Started liquidation stage");
-    const allAccounts = await this.client.getAllMarginfiAccounts();
+    const allAccounts = Array.from(this.accountInfos.values());
     const targetAccounts = allAccounts.filter((account) => {
       if (this.account_whitelist) {
         return (

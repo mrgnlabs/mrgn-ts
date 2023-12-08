@@ -29,7 +29,7 @@ import {
   Wallet,
 } from "@mrgnlabs/mrgn-common";
 import { MarginfiGroup } from "./models/group";
-import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, OraclePrice, ADDRESS_LOOKUP_TABLE_FOR_GROUP } from ".";
+import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, OraclePrice, ADDRESS_LOOKUP_TABLE_FOR_GROUP, MarginfiAccountRaw } from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
 import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLogs } from "./errors";
 
@@ -243,6 +243,36 @@ class MarginfiClient {
         },
       ])
     ).map((a) => MarginfiAccountWrapper.fromAccountParsed(a.publicKey, this, a.account as MarginfiAccountRaw));
+  }
+
+  async getAllMarginfiAccountPubkeys(): Promise<PublicKey[]> {
+    return (await this.provider.connection.getProgramAccounts(this.programId, {
+      filters: [{
+        memcmp: {
+          bytes: this.config.groupPk.toBase58(),
+          offset: 8, // marginfiGroup is the first field in the account, so only offset is the discriminant
+        },
+      }],
+      dataSlice: { offset: 0, length: 0 }
+    })).map(a => a.pubkey);
+  }
+
+
+  /**
+   * Fetches multiple marginfi accounts based on an array of public keys using the getMultipleAccounts RPC call.
+   *
+   * @param pubkeys - The public keys of the marginfi accounts to fetch.
+   * @returns An array of MarginfiAccountWrapper instances.
+   */
+  async getMultipleMarginfiAccounts(pubkeys: PublicKey[]): Promise<MarginfiAccountWrapper[]> {
+    const accountsInfo = await this.provider.connection.getMultipleAccountsInfo(pubkeys);
+    return accountsInfo
+      .map((accountInfo, index) => {
+        if (accountInfo === null) {
+          throw new Error(`Account not found for pubkey: ${pubkeys[index].toBase58()}`);
+        }
+        return MarginfiAccountWrapper.fromAccountParsed(pubkeys[index], this, this.program.coder.accounts.decode<MarginfiAccountRaw>("MarginfiAccount", accountInfo.data));
+      });
   }
 
   /**
