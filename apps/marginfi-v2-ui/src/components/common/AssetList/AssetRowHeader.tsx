@@ -1,18 +1,16 @@
-import { InputAdornment, TableCell, TableRow, TextField, Typography } from "@mui/material";
+import { TableCell, TableRow, Typography } from "@mui/material";
 import React from "react";
 import Image from "next/image";
-import { FC, MouseEventHandler, useCallback } from "react";
-import { NumberFormatValues, NumericFormat } from "react-number-format";
-import { showErrorToast } from "~/utils/toastUtils";
-import { MrgnTooltip } from "../MrgnTooltip";
 import { useUserProfileStore } from "~/store";
+
+import { MrgnTooltip } from "../MrgnTooltip";
 
 interface AssetRowHeaderProps {
   isInLendingMode: boolean;
   isGlobalPool: boolean;
 }
 
-export const AssetRowHeader: FC<AssetRowHeaderProps> = ({ isGlobalPool, isInLendingMode }) => {
+export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, isInLendingMode }) => {
   const [lendZoomLevel] = useUserProfileStore((state) => [state.lendZoomLevel]);
 
   return (
@@ -21,7 +19,7 @@ export const AssetRowHeader: FC<AssetRowHeaderProps> = ({ isGlobalPool, isInLend
         className="text-[#A1A1A1] text-base border-none px-2 hidden md:table-cell text-left"
         style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
       >
-        <div className="h-full w-full flex items-center ">Asset</div>
+        <div className="h-full w-full flex items-center">Asset</div>
       </TableCell>
       <TableCell
         className="text-[#A1A1A1] text-base border-none px-2 hidden lg:table-cell"
@@ -72,7 +70,7 @@ export const AssetRowHeader: FC<AssetRowHeaderProps> = ({ isGlobalPool, isInLend
         </div>
       </TableCell>
       <TableCell
-        className="text-[#A1A1A1] text-sm border-none px-2 hidden md:table-cell"
+        className="text-[#A1A1A1] text-base border-none px-2 hidden md:table-cell"
         style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
         align="right"
       >
@@ -98,7 +96,7 @@ export const AssetRowHeader: FC<AssetRowHeaderProps> = ({ isGlobalPool, isInLend
         </div>
       </TableCell>
       <TableCell
-        className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell"
+        className="text-[#A1A1A1] text-base border-none px-2 hidden lg:table-cell"
         style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
         align="right"
       >
@@ -130,7 +128,7 @@ export const AssetRowHeader: FC<AssetRowHeaderProps> = ({ isGlobalPool, isInLend
 
       {lendZoomLevel < 2 && (
         <TableCell
-          className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
+          className="text-[#A1A1A1] text-base border-none px-2 hidden xl:table-cell"
           style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
           align="right"
         >
@@ -156,7 +154,7 @@ export const AssetRowHeader: FC<AssetRowHeaderProps> = ({ isGlobalPool, isInLend
 
       {lendZoomLevel < 3 && (
         <TableCell
-          className="text-[#A1A1A1] text-sm border-none px-2 hidden xl:table-cell"
+          className="text-[#A1A1A1] text-base border-none px-2 hidden xl:table-cell"
           style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
           align="right"
         >
@@ -185,14 +183,14 @@ export const AssetRowHeader: FC<AssetRowHeaderProps> = ({ isGlobalPool, isInLend
       {/*******************************/}
 
       <TableCell
-        className="text-[#A1A1A1] text-sm border-none px-2 hidden lg:table-cell"
+        className="text-[#A1A1A1] text-base border-none px-2 hidden lg:table-cell"
         style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
         align="right"
       >
         <div className="h-full w-full flex justify-end items-center gap-2">Wallet Amt.</div>
       </TableCell>
       {/* <TableCell className="border-none"></TableCell> */}
-      <TableCell className="border-none"></TableCell>
+      <TableCell className="border-none "></TableCell>
     </TableRow>
   );
 };

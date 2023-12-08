@@ -190,7 +190,7 @@ const AssetsList = () => {
               <TableContainer>
                 {poolFilter !== "isolated" && (
                   <>
-                    <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white gap-1">
+                    <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 gap-1">
                       Global <span className="hidden lg:block">pool</span>
                     </div>
                     <Table
@@ -201,7 +201,7 @@ const AssetsList = () => {
                       }}
                     >
                       <TableHead>
-                        <AssetRowHeader isInLendingMode={isInLendingMode} isGlobalPool={true} />{" "}
+                        <AssetRowHeader isInLendingMode={isInLendingMode} isGlobalPool={true} />
                       </TableHead>
 
                       <TableBody>
