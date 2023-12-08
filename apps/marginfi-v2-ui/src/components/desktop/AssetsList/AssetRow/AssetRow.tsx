@@ -270,7 +270,7 @@ const AssetRow: FC<{
       <TableRow
         data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
         data-asset-row-position={activeBank?.position.amount ? "true" : "false"}
-        className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]"
+        className="h-[54px] w-full hover:bg-[#171C1F] rounded-lg border border-[#1E2122]"
       >
         <TableCell
           className={`text-white p-0 font-aeonik border-none`}
@@ -495,40 +495,12 @@ const AssetRow: FC<{
               )}
         </TableCell>
 
-        {/* <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
-          <Badge
-            anchorOrigin={{
-              vertical: "bottom",
-              horizontal: "right",
-            }}
-            sx={{
-              "& .MuiBadge-badge": {
-                backgroundColor: "rgb(220, 232, 93)",
-                color: "#1C2125",
-              },
-            }}
-            badgeContent={hasHotkey ? badgeContent : ""}
-            invisible={hasHotkey ? !showHotkeyBadges : true}
-          >
-            <AssetRowInputBox
-              tokenName={bank.meta.tokenSymbol}
-              value={amount}
-              setValue={setAmount}
-              maxValue={maxAmount}
-              maxDecimals={bank.info.state.mintDecimals}
-              inputRefs={inputRefs}
-              disabled={showCloseBalance || isActionDisabled}
-              onEnter={handleLendingAction}
-            />
-          </Badge>
-        </TableCell> */}
-
         <TableCell className="text-white border-none font-aeonik py-1.5 px-0">
           <Tooltip
             title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
             placement="top"
           >
-            <div className="h-full w-full flex items-center xl:ml-0 pl-2 sm:px-2">
+            <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
               <ActionBoxDialog>
                 <Button onClick={() => setSelectedToken(bank)} className="w-full">
                   {showCloseBalance ? "Close" : currentAction}
@@ -542,7 +514,7 @@ const AssetRow: FC<{
         (isFilteredUserPositions || activeBank?.position.isLending === (lendingMode === LendingModes.LEND)) && (
           <TableRow
             data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
-            className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122] transition-all"
+            className="h-[54px] w-full border border-[#1E2122] transition-all"
           >
             <TableCell
               colSpan={userPositionColSpan}
@@ -647,9 +619,8 @@ const LoadingAsset: FC<{ isInLendingMode: boolean; bankMetadata: ExtendedBankMet
       <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
       <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
       <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
-      {/* <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
-        <AssetRowInputBox tokenName={bankMetadata.tokenSymbol} value={0} setValue={() => {}} disabled={true} />
-      </TableCell> */}
+
+      <TableCell className="border-none"></TableCell>
       <TableCell className="text-white border-none font-aeonik p-0">
         <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
           <AssetRowAction bgColor={"rgb(227, 227, 227)"}>{isInLendingMode ? "Supply" : "Borrow"}</AssetRowAction>
