@@ -1,9 +1,9 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import Image from "next/image";
-import { TableCell, TableRow, Tooltip, Typography } from "@mui/material";
-import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
 import Badge from "@mui/material/Badge";
+import { TableCell, TableRow, Tooltip, Typography } from "@mui/material";
+
 import { WSOL_MINT, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import {
   ExtendedBankInfo,
@@ -13,16 +13,19 @@ import {
   ExtendedBankMetadata,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
-import { AssetRowInputBox, AssetRowAction, LSTDialogVariants, SWITCHBOARD_BANKS } from "~/components/common/AssetList";
+import { AssetRowAction, LSTDialogVariants, SWITCHBOARD_BANKS } from "~/components/common/AssetList";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
 import { IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { LendingModes } from "~/types";
+
+import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
+import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
+
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
   [
