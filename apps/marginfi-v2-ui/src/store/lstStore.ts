@@ -176,7 +176,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
 
       tokenDataMap.forEach((value, key, map) => {
         const price = tokenPrices.get(value.address);
-        value.price = price;
+        value.price = price ?? 0;
       });
 
       set({
