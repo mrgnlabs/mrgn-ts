@@ -18,7 +18,7 @@ import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "./typ
 import { MARGINFI_IDL } from "./idl";
 import { getConfig } from "./config";
 import instructions from "./instructions";
-import { MarginRequirementType, MarginfiAccountRaw } from "./models/account";
+import { MarginRequirementType } from "./models/account";
 import {
   DEFAULT_COMMITMENT,
   DEFAULT_CONFIRM_OPTS,
