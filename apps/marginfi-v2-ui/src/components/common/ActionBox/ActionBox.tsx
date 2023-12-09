@@ -5,7 +5,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WSOL_MINT, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { MarginfiActionParams, closeBalance, executeLendingAction } from "~/utils";
+import { MarginfiActionParams, closeBalance, cn, executeLendingAction } from "~/utils";
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -20,15 +20,15 @@ import { IconWallet } from "~/components/ui/icons";
 import { ActionBoxActions } from "./ActionBoxActions";
 
 export const ActionBox = () => {
-  const [mfiClient, nativeSolBalance, setIsRefreshingStore, fetchMrgnlendState, selectedAccount] = useMrgnlendStore(
-    (state) => [
+  const [mfiClient, nativeSolBalance, setIsRefreshingStore, fetchMrgnlendState, selectedAccount, accountSummary] =
+    useMrgnlendStore((state) => [
       state.marginfiClient,
       state.nativeSolBalance,
       state.setIsRefreshingStore,
       state.fetchMrgnlendState,
       state.selectedAccount,
-    ]
-  );
+      state.accountSummary,
+    ]);
   const [lendingMode, setLendingMode, actionMode, setActionMode, selectedToken, setSelectedToken] = useUiStore(
     (state) => [
       state.lendingMode,
@@ -92,31 +92,84 @@ export const ActionBox = () => {
     }
   }, [lendingMode, selectedToken, setAmount, setActionMode]);
 
+  const liquidationPrice = React.useMemo(() => {
+    const isActive = selectedToken?.isActive;
+    const isLending = lendingMode === LendingModes.LEND;
+    let liquidationPrice = 0;
+
+    if (isActive) {
+      if (!amount || amount === 0 || isLending || !selectedAccount || !selectedToken) {
+        liquidationPrice = selectedToken?.position.liquidationPrice ?? 0;
+      } else {
+        const borrowed = selectedToken?.position.amount ?? 0;
+
+        liquidationPrice =
+          selectedAccount.computeLiquidationPriceForBankAmount(selectedToken?.address, isLending, amount + borrowed) ??
+          0;
+      }
+    }
+
+    return liquidationPrice;
+  }, [selectedToken, amount, lendingMode]);
+
+  const healthColorLiquidation = React.useMemo(() => {
+    const isActive = selectedToken?.isActive;
+
+    if (isActive) {
+      const price = selectedToken.info.oraclePrice.price.toNumber();
+      const safety = liquidationPrice / price;
+      let color: string;
+      if (safety >= 0.5) {
+        color = "#75BA80"; // green color " : "#",
+      } else if (safety >= 0.25) {
+        color = "#B8B45F"; // yellow color
+      } else {
+        color = "#CF6F6F"; // red color
+      }
+
+      return color;
+    } else {
+      return "#fff";
+    }
+  }, [selectedToken, liquidationPrice]);
+
   React.useEffect(() => {
-    if (!selectedToken || !amount) {
+    if (!selectedToken) {
       setPreview([]);
       return;
     }
 
+    const isActive = selectedToken?.isActive;
+    let supplied = 0;
+    let borrowed = 0;
+
+    if (isActive) {
+      const isLending = selectedToken?.position?.isLending;
+      if (isLending) supplied = selectedToken?.position.amount ?? 0;
+      else borrowed = selectedToken?.position.amount ?? 0;
+    }
+    const healthFactor = accountSummary.healthFactor;
+
     setPreview([
       {
-        key: "Your deposited amount",
-        value: `${amount} ${selectedToken.meta.tokenSymbol}`,
+        key: "Supplied amount",
+        value: `${numeralFormatter(supplied)}`,
+      },
+      {
+        key: "Borrowed amount",
+        value: `${numeralFormatter(borrowed)}`,
       },
       {
         key: "Liquidation price",
-        value: usdFormatter.format(amount),
+        value:
+          liquidationPrice > 0.01 ? usdFormatter.format(liquidationPrice) : `$${liquidationPrice.toExponential(2)}`,
       },
       {
-        key: "Some propertya",
-        value: "--",
-      },
-      {
-        key: "Some propertyb",
-        value: "--",
+        key: "Health factor",
+        value: `${numeralFormatter(healthFactor * 100)}%`,
       },
     ]);
-  }, [selectedToken, amount]);
+  }, [selectedToken, amount, liquidationPrice]);
 
   React.useEffect(() => {
     if (!selectedToken || !amountInputRef.current) return;
@@ -204,7 +257,7 @@ export const ActionBox = () => {
       !hasLSTDialogShown.includes(selectedToken.meta.tokenSymbol as LSTDialogVariants)
     ) {
       setHasLSTDialogShown((prev) => [...prev, selectedToken.meta.tokenSymbol as LSTDialogVariants]);
-      setLSTDialogVariant(selectedToken.meta.tokenSymbol);
+      setLSTDialogVariant(selectedToken.meta.tokenSymbol as LSTDialogVariants);
       setIsLSTDialogOpen(true);
       setLSTDialogCallback(() => action);
 
@@ -219,7 +272,7 @@ export const ActionBox = () => {
       !hasLSTDialogShown.includes(selectedToken.meta.tokenSymbol as LSTDialogVariants)
     ) {
       setHasLSTDialogShown((prev) => [...prev, selectedToken.meta.tokenSymbol as LSTDialogVariants]);
-      setLSTDialogVariant(selectedToken.meta.tokenSymbol);
+      setLSTDialogVariant(selectedToken.meta.tokenSymbol as LSTDialogVariants);
       return;
     }
   }, [
@@ -321,12 +374,20 @@ export const ActionBox = () => {
             handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
             isLoading={isLoading}
           />
-          {selectedToken !== null && amount !== null && preview.length > 0 && (
+          {selectedToken !== null && preview.length > 0 && (
             <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
-              {preview.map((item) => (
+              {preview.map((item, idx) => (
                 <React.Fragment key={item.key}>
                   <dt>{item.key}</dt>
-                  <dd className="text-white font-medium text-right">{item.value}</dd>
+                  <dd
+                    className={cn(
+                      `text-[${
+                        item.key === "Liquidation price" ? healthColorLiquidation : "white"
+                      }] font-medium text-right`
+                    )}
+                  >
+                    {item.value}
+                  </dd>
                 </React.Fragment>
               ))}
             </dl>

@@ -119,8 +119,8 @@ export const Portfolio = () => {
           interest={accountInterest}
         />
       </div>
-      <div className="flex justify-between gap-20">
-        <div className="flex flex-col flex-1 gap-4">
+      <div className="flex justify-between flex-wrap gap-20">
+        <div className="flex flex-col flex-1 gap-4 min-w-[340px]">
           <dl className="flex justify-between items-center gap-2 ">
             <dt className="text-xl font-medium">Supplied</dt>
             <dt className="text-muted-foreground">{accountSupplied}</dt>
@@ -141,7 +141,7 @@ export const Portfolio = () => {
             <AssetCardSkeleton />
           )}
         </div>
-        <div className="flex flex-col flex-1 gap-4">
+        <div className="flex flex-col flex-1 gap-4 min-w-[340px]">
           <dl className="flex justify-between items-center gap-2">
             <dt className="text-xl font-medium">Borrowed</dt>
             <dt className="text-muted-foreground">{accountBorrowed}</dt>

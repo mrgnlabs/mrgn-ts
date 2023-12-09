@@ -14,7 +14,7 @@ export const ActionBoxDialog = ({ children }: ActionBoxDialogProps) => {
   return (
     <Dialog open={isDialogOpen} onOpenChange={(open) => setIsDialogOpen(open)}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="md:flex md:max-w-[520px] md:p-4">
+      <DialogContent className="md:flex md:max-w-[520px] md:p-4 p-0">
         <ActionBox />
       </DialogContent>
     </Dialog>

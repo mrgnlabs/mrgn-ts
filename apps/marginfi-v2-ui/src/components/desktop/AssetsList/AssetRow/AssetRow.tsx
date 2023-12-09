@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React from "react";
 import clsx from "clsx";
 import Image from "next/image";
 import Badge from "@mui/material/Badge";
@@ -14,11 +14,9 @@ import {
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 
-import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
-import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
+import { useUserProfileStore, useUiStore } from "~/store";
 import { LendingModes } from "~/types";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
@@ -26,6 +24,7 @@ import { AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
 import { IconAlertTriangle } from "~/components/ui/icons";
+import { cn } from "~/utils";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
   [
@@ -46,7 +45,7 @@ export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tok
 
 const REDUCE_ONLY_BANKS = ["stSOL"];
 
-const AssetRow: FC<{
+const AssetRow: React.FC<{
   bank: ExtendedBankInfo;
   nativeSolBalance: number;
   isInLendingMode: boolean;
@@ -71,24 +70,20 @@ const AssetRow: FC<{
   showLSTDialog,
 }) => {
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
-  const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
-  const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
   const [lendingMode, isFilteredUserPositions, setSelectedToken] = useUiStore((state) => [
     state.lendingMode,
     state.isFilteredUserPositions,
     state.setSelectedToken,
   ]);
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
-  const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
-  const { walletContextState } = useWalletContext();
   const isMobile = useIsMobile();
 
-  const isReduceOnly = useMemo(
+  const isReduceOnly = React.useMemo(
     () => (bank?.meta?.tokenSymbol ? REDUCE_ONLY_BANKS.includes(bank.meta.tokenSymbol) : false),
     [bank.meta.tokenSymbol]
   );
 
-  const isUserPositionPoorHealth = useMemo(() => {
+  const isUserPositionPoorHealth = React.useMemo(() => {
     if (!activeBank || !activeBank.position.liquidationPrice) {
       return false;
     }
@@ -108,7 +103,7 @@ const AssetRow: FC<{
     }
   }, [activeBank]);
 
-  const userPositionColSpan = useMemo(() => {
+  const userPositionColSpan = React.useMemo(() => {
     if (isMobile) {
       return 4;
     }
@@ -121,13 +116,13 @@ const AssetRow: FC<{
     return 9;
   }, [isMobile, lendZoomLevel]);
 
-  const assetPrice = useMemo(
+  const assetPrice = React.useMemo(
     () =>
       bank.info.oraclePrice.priceRealtime ? bank.info.oraclePrice.priceRealtime.toNumber() : bank.info.state.price,
     [bank.info.oraclePrice.priceRealtime, bank.info.state.price]
   );
 
-  const assetPriceOffset = useMemo(
+  const assetPriceOffset = React.useMemo(
     () =>
       Math.max(
         bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
@@ -136,137 +131,13 @@ const AssetRow: FC<{
     [bank.info]
   );
 
-  const [amount, setAmount] = useState(0);
-
-  const currentAction: ActionType = useMemo(() => getCurrentAction(isInLendingMode, bank), [isInLendingMode, bank]);
-
-  const maxAmount = useMemo(() => {
-    switch (currentAction) {
-      case ActionType.Deposit:
-        return bank.userInfo.maxDeposit;
-      case ActionType.Withdraw:
-        return bank.userInfo.maxWithdraw;
-      case ActionType.Borrow:
-        return bank.userInfo.maxBorrow;
-      case ActionType.Repay:
-        return bank.userInfo.maxRepay;
-    }
-  }, [bank, currentAction]);
-  const isDust = bank.isActive && bank.position.isDust;
-  const showCloseBalance = currentAction === ActionType.Withdraw && isDust; // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
-  const isActionDisabled = maxAmount === 0 && !showCloseBalance;
-
-  // Reset b/l amounts on toggle
-  useEffect(() => {
-    setAmount(0);
-  }, [isInLendingMode]);
-
-  const handleCloseBalance = useCallback(async () => {
-    try {
-      await closeBalance({ marginfiAccount, bank });
-    } catch (error) {
-      return;
-    }
-
-    setAmount(0);
-
-    try {
-      setIsRefreshingStore(true);
-      await fetchMrgnlendState();
-    } catch (error: any) {
-      console.log("Error while reloading state");
-      console.log(error);
-    }
-  }, [bank, marginfiAccount, fetchMrgnlendState, setIsRefreshingStore]);
-
-  const executeLendingActionCb = useCallback(
-    async ({
-      mfiClient,
-      actionType: currentAction,
-      bank,
-      amount: borrowOrLendAmount,
-      nativeSolBalance,
-      marginfiAccount,
-      walletContextState,
-    }: MarginfiActionParams) => {
-      await executeLendingAction({
-        mfiClient,
-        actionType: currentAction,
-        bank,
-        amount: borrowOrLendAmount,
-        nativeSolBalance,
-        marginfiAccount,
-        walletContextState,
-      });
-
-      setAmount(0);
-
-      // -------- Refresh state
-      try {
-        setIsRefreshingStore(true);
-        await fetchMrgnlendState();
-      } catch (error: any) {
-        console.log("Error while reloading state");
-        console.log(error);
-      }
-    },
-    [fetchMrgnlendState, setIsRefreshingStore]
+  const currentAction: ActionType = React.useMemo(
+    () => getCurrentAction(isInLendingMode, bank),
+    [isInLendingMode, bank]
   );
 
-  const handleLendingAction = useCallback(async () => {
-    if (
-      currentAction === ActionType.Deposit &&
-      (bank.meta.tokenSymbol === "SOL" || bank.meta.tokenSymbol === "stSOL") &&
-      !hasLSTDialogShown.includes(bank.meta.tokenSymbol as LSTDialogVariants) &&
-      showLSTDialog
-    ) {
-      setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
-      showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants, async () => {
-        await executeLendingActionCb({
-          mfiClient,
-          actionType: currentAction,
-          bank,
-          amount: amount,
-          nativeSolBalance,
-          marginfiAccount,
-          walletContextState,
-        });
-      });
-      return;
-    }
-
-    await executeLendingActionCb({
-      mfiClient,
-      actionType: currentAction,
-      bank,
-      amount: amount,
-      nativeSolBalance,
-      marginfiAccount,
-      walletContextState,
-    });
-
-    if (
-      currentAction === ActionType.Withdraw &&
-      (bank.meta.tokenSymbol === "SOL" || bank.meta.tokenSymbol === "stSOL") &&
-      !hasLSTDialogShown.includes(bank.meta.tokenSymbol as LSTDialogVariants) &&
-      showLSTDialog
-    ) {
-      setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
-      showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
-      return;
-    }
-  }, [
-    currentAction,
-    bank,
-    hasLSTDialogShown,
-    showLSTDialog,
-    executeLendingActionCb,
-    mfiClient,
-    amount,
-    nativeSolBalance,
-    marginfiAccount,
-    walletContextState,
-  ]);
+  const isDust = React.useMemo(() => bank.isActive && bank.position.isDust, [bank]);
+  const showCloseBalance = currentAction === ActionType.Withdraw && isDust; // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
 
   return (
     <>
@@ -597,7 +468,7 @@ const AssetRow: FC<{
   );
 };
 
-const LoadingAsset: FC<{ isInLendingMode: boolean; bankMetadata: ExtendedBankMetadata }> = ({
+const LoadingAsset: React.FC<{ isInLendingMode: boolean; bankMetadata: ExtendedBankMetadata }> = ({
   isInLendingMode,
   bankMetadata,
 }) => (

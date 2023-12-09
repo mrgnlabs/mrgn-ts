@@ -87,7 +87,7 @@ const PortfolioPage = () => {
       <div className="flex flex-col w-full h-full justify-start items-center px-4 gap-6 mb-20">
         <MobileAccountSummary />
         <EmissionsBanner />
-        <MobilePortfolioOverview />
+        {/* <MobilePortfolioOverview /> */}
         {!connected ? null : currentFirebaseUser ? (
           <PointsOverview userPointsData={userPointsData} />
         ) : hasUser === null ? (
@@ -167,8 +167,6 @@ const PortfolioPage = () => {
                       nativeSolBalance={nativeSolBalance}
                       bank={bank}
                       isInLendingMode={true}
-                      isConnected={connected}
-                      marginfiAccount={selectedAccount}
                     />
                   ))}
                 </div>
@@ -198,8 +196,6 @@ const PortfolioPage = () => {
                       nativeSolBalance={nativeSolBalance}
                       bank={bank}
                       isInLendingMode={false}
-                      isConnected={connected}
-                      marginfiAccount={selectedAccount}
                     />
                   ))}
                 </div>
