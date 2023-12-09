@@ -4,6 +4,7 @@
     "outDir": "dist",
     "jsx": "preserve",
     "downlevelIteration": true,
+    "lib": [ "dom" ]
   },
   "include": [
     "."

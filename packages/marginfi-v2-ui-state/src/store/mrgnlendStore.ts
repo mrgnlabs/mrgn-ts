@@ -78,6 +78,30 @@ function createPersistentMrgnlendStore() {
   );
 }
 
+async function getCachedMarginfiAccountsForAuthority(
+  authority: PublicKey,
+  client: MarginfiClient
+): Promise<MarginfiAccountWrapper[]> {
+  const debug = require("debug")("mfi:getCachedMarginfiAccountsForAuthority");
+  if (typeof window === "undefined") {
+    return client.getMarginfiAccountsForAuthority(authority);
+  }
+
+  const cacheKey = `marginfiAccounts-${authority.toString()}`;
+  const cachedAccounts = window.localStorage.getItem(cacheKey);
+  debug("cachedAccounts", cachedAccounts);
+  if (cachedAccounts) {
+    const accountAddresses: PublicKey[] = JSON.parse(cachedAccounts).map((address: string) => new PublicKey(address));
+    debug("Loading ", accountAddresses.length, "accounts from cache");
+    return client.getMultipleMarginfiAccounts(accountAddresses);
+  } else {
+    const accounts = await client.getMarginfiAccountsForAuthority(authority);
+    const accountAddresses = accounts.map((account) => account.address.toString());
+    window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses));
+    return accounts;
+  }
+}
+
 const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   // State
   initialized: false,
@@ -125,11 +149,16 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       if (!marginfiConfig) throw new Error("Marginfi config must be provided at least once");
 
       const isReadOnly = args?.isOverride !== undefined ? args.isOverride : get().marginfiClient?.isReadOnly ?? false;
-      const [marginfiClient, bankMetadataMap, tokenMetadataMap] = await Promise.all([
-        MarginfiClient.fetch(marginfiConfig, wallet ?? ({} as any), connection, undefined, isReadOnly),
-        loadBankMetadatas(),
-        loadTokenMetadatas(),
-      ]);
+      const [bankMetadataMap, tokenMetadataMap] = await Promise.all([loadBankMetadatas(), loadTokenMetadatas()]);
+      const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
+      const marginfiClient = await MarginfiClient.fetch(
+        marginfiConfig,
+        wallet ?? ({} as any),
+        connection,
+        undefined,
+        isReadOnly,
+        { preloadedBankAddresses: bankAddresses }
+      );
       const banks = [...marginfiClient.banks.values()];
 
       const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
@@ -146,7 +175,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
             wallet.publicKey,
             banks.map((bank) => ({ mint: bank.mint, mintDecimals: bank.mintDecimals }))
           ),
-          marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey),
+          getCachedMarginfiAccountsForAuthority(wallet.publicKey, marginfiClient),
         ]);
 
         nativeSolBalance = tokenData.nativeSolBalance;

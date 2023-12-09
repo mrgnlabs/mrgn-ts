@@ -29,7 +29,15 @@ import {
   Wallet,
 } from "@mrgnlabs/mrgn-common";
 import { MarginfiGroup } from "./models/group";
-import { BankRaw, parseOracleSetup, parsePriceInfo, Bank, OraclePrice, ADDRESS_LOOKUP_TABLE_FOR_GROUP, MarginfiAccountRaw } from ".";
+import {
+  BankRaw,
+  parseOracleSetup,
+  parsePriceInfo,
+  Bank,
+  OraclePrice,
+  ADDRESS_LOOKUP_TABLE_FOR_GROUP,
+  MarginfiAccountRaw,
+} from ".";
 import { MarginfiAccountWrapper } from "./models/account/wrapper";
 import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLogs } from "./errors";
 
@@ -44,6 +52,7 @@ class MarginfiClient {
   public banks: BankMap;
   public oraclePrices: OraclePriceMap;
   private addressLookupTables: AddressLookupTableAccount[];
+  private preloadedBankAddresses?: PublicKey[];
 
   // --------------------------------------------------------------------------
   // Factories
@@ -60,12 +69,14 @@ class MarginfiClient {
     group: MarginfiGroup,
     banks: BankMap,
     priceInfos: OraclePriceMap,
-    addressLookupTables?: AddressLookupTableAccount[]
+    addressLookupTables?: AddressLookupTableAccount[],
+    preloadedBankAddresses?: PublicKey[]
   ) {
     this.group = group;
     this.banks = banks;
     this.oraclePrices = priceInfos;
     this.addressLookupTables = addressLookupTables ?? [];
+    this.preloadedBankAddresses = preloadedBankAddresses;
   }
 
   /**
@@ -77,6 +88,8 @@ class MarginfiClient {
    * @param wallet User wallet (used to pay fees and sign transactions)
    * @param connection Solana web.js Connection object
    * @param opts Solana web.js ConfirmOptions object
+   * @param readOnly Whether the client should be read-only or not
+   * @param { preloadedBankAddresses } Optional list of bank addresses to skip the gpa call
    * @returns MarginfiClient instance
    */
   static async fetch(
@@ -84,7 +97,8 @@ class MarginfiClient {
     wallet: Wallet,
     connection: Connection,
     opts?: ConfirmOptions,
-    readOnly: boolean = false
+    readOnly: boolean = false,
+    { preloadedBankAddresses }: { preloadedBankAddresses?: PublicKey[] } = {}
   ) {
     const debug = require("debug")("mfi:client");
     debug(
@@ -101,7 +115,12 @@ class MarginfiClient {
     });
     const program = new Program(MARGINFI_IDL, config.programId, provider) as any as MarginfiProgram;
 
-    const { marginfiGroup, banks, priceInfos } = await this.fetchGroupData(program, config.groupPk, opts?.commitment);
+    const { marginfiGroup, banks, priceInfos } = await MarginfiClient.fetchGroupData(
+      program,
+      config.groupPk,
+      connection.commitment,
+      preloadedBankAddresses
+    );
 
     const addressLookupTableAddresses = ADDRESS_LOOKUP_TABLE_FOR_GROUP[config.groupPk.toString()] ?? [];
     debug("Fetching address lookup tables for %s", addressLookupTableAddresses);
@@ -111,7 +130,17 @@ class MarginfiClient {
       .map((response) => response!.value)
       .filter((table) => table !== null) as AddressLookupTableAccount[];
 
-    return new MarginfiClient(config, program, wallet, readOnly, marginfiGroup, banks, priceInfos, addressLookupTables);
+    return new MarginfiClient(
+      config,
+      program,
+      wallet,
+      readOnly,
+      marginfiGroup,
+      banks,
+      priceInfos,
+      addressLookupTables,
+      preloadedBankAddresses
+    );
   }
 
   static async fromEnv(
@@ -156,19 +185,34 @@ class MarginfiClient {
   }
 
   // NOTE: 2 RPC calls
+  // Pass in bankAddresses to skip the gpa call
   static async fetchGroupData(
     program: MarginfiProgram,
     groupAddress: PublicKey,
-    commitment?: Commitment
+    commitment?: Commitment,
+    bankAddresses?: PublicKey[]
   ): Promise<{ marginfiGroup: MarginfiGroup; banks: Map<string, Bank>; priceInfos: Map<string, OraclePrice> }> {
+    const debug = require("debug")("mfi:client");
     // Fetch & shape all accounts of Bank type (~ bank discovery)
-    let bankAccountsData = await program.account.bank.all([
-      { memcmp: { offset: 8 + 32 + 1, bytes: groupAddress.toBase58() } },
-    ]);
-    const bankDatasKeyed = bankAccountsData.map((account) => ({
-      address: account.publicKey,
-      data: account.account as any as BankRaw,
-    }));
+    let bankDatasKeyed: { address: PublicKey; data: BankRaw }[] = [];
+    if (bankAddresses && bankAddresses.length > 0) {
+      debug("Using preloaded bank addresses, skipping gpa call", bankAddresses.length, "banks");
+      let bankAccountsData = await program.account.bank.fetchMultiple(bankAddresses);
+      for (let i = 0; i < bankAccountsData.length; i++) {
+        bankDatasKeyed.push({
+          address: bankAddresses[i],
+          data: bankAccountsData[i] as any as BankRaw,
+        });
+      }
+    } else {
+      let bankAccountsData = await program.account.bank.all([
+        { memcmp: { offset: 8 + 32 + 1, bytes: groupAddress.toBase58() } },
+      ]);
+      bankDatasKeyed = bankAccountsData.map((account: any) => ({
+        address: account.publicKey,
+        data: account.account as any as BankRaw,
+      }));
+    }
 
     // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
     const [groupAi, ...priceFeedAis] = await program.provider.connection.getMultipleAccountsInfo(
@@ -180,9 +224,11 @@ class MarginfiClient {
     if (!groupAi) throw new Error("Failed to fetch the on-chain group data");
     const marginfiGroup = MarginfiGroup.fromBuffer(groupAi.data);
 
+    debug("Decoding bank data");
     const banks = new Map(
       bankDatasKeyed.map(({ address, data }) => [address.toBase58(), Bank.fromAccountParsed(address, data)])
     );
+    debug("Decoded banks");
 
     const priceInfos = new Map(
       bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
@@ -192,6 +238,8 @@ class MarginfiClient {
         return [bankAddress.toBase58(), parsePriceInfo(oracleSetup, priceDataRaw.data)];
       })
     );
+
+    debug("Fetched %s banks and %s price feeds", banks.size, priceInfos.size);
 
     return {
       marginfiGroup,
@@ -204,7 +252,8 @@ class MarginfiClient {
     const { marginfiGroup, banks, priceInfos } = await MarginfiClient.fetchGroupData(
       this.program,
       this.config.groupPk,
-      this.program.provider.connection.commitment
+      this.program.provider.connection.commitment,
+      this.preloadedBankAddresses
     );
     this.group = marginfiGroup;
     this.banks = banks;
@@ -227,36 +276,21 @@ class MarginfiClient {
     return this.program.programId;
   }
 
-  /**
-   * Retrieves the addresses of all marginfi accounts in the underlying group.
-   *
-   * @returns Account addresses
-   */
-  async getAllMarginfiAccounts(): Promise<MarginfiAccountWrapper[]> {
-    return (
-      await this.program.account.marginfiAccount.all([
-        {
-          memcmp: {
-            bytes: this.config.groupPk.toBase58(),
-            offset: 8, // marginfiGroup is the first field in the account, so only offset is the discriminant
-          },
-        },
-      ])
-    ).map((a) => MarginfiAccountWrapper.fromAccountParsed(a.publicKey, this, a.account as MarginfiAccountRaw));
-  }
-
   async getAllMarginfiAccountPubkeys(): Promise<PublicKey[]> {
-    return (await this.provider.connection.getProgramAccounts(this.programId, {
-      filters: [{
-        memcmp: {
-          bytes: this.config.groupPk.toBase58(),
-          offset: 8, // marginfiGroup is the first field in the account, so only offset is the discriminant
-        },
-      }],
-      dataSlice: { offset: 0, length: 0 }
-    })).map(a => a.pubkey);
+    return (
+      await this.provider.connection.getProgramAccounts(this.programId, {
+        filters: [
+          {
+            memcmp: {
+              bytes: this.config.groupPk.toBase58(),
+              offset: 8, // marginfiGroup is the first field in the account, so only offset is the discriminant
+            },
+          },
+        ],
+        dataSlice: { offset: 0, length: 0 },
+      })
+    ).map((a) => a.pubkey);
   }
-
 
   /**
    * Fetches multiple marginfi accounts based on an array of public keys using the getMultipleAccounts RPC call.
@@ -265,14 +299,15 @@ class MarginfiClient {
    * @returns An array of MarginfiAccountWrapper instances.
    */
   async getMultipleMarginfiAccounts(pubkeys: PublicKey[]): Promise<MarginfiAccountWrapper[]> {
-    const accountsInfo = await this.provider.connection.getMultipleAccountsInfo(pubkeys);
-    return accountsInfo
-      .map((accountInfo, index) => {
-        if (accountInfo === null) {
-          throw new Error(`Account not found for pubkey: ${pubkeys[index].toBase58()}`);
-        }
-        return MarginfiAccountWrapper.fromAccountParsed(pubkeys[index], this, this.program.coder.accounts.decode<MarginfiAccountRaw>("MarginfiAccount", accountInfo.data));
-      });
+    require("debug")("mfi:client")("Fetching %s marginfi accounts", pubkeys);
+
+    const accounts = await this.program.account.marginfiAccount.fetchMultiple(pubkeys);
+    return accounts.map((account, index) => {
+      if (!account) {
+        throw new Error(`Account not found for pubkey: ${pubkeys[index].toBase58()}`);
+      }
+      return MarginfiAccountWrapper.fromAccountParsed(pubkeys[index], this, account);
+    });
   }
 
   /**
