@@ -352,6 +352,43 @@ class MarginfiAccount {
     }
   }
 
+      /**
+   * Calculate the price at which the user position for the given bank and amount will lead to liquidation, all other prices constant.
+   */
+      public computeLiquidationPriceForBankAmount(
+        banks: Map<string, Bank>,
+        oraclePrices: Map<string, OraclePrice>,
+        bankAddress: PublicKey,
+        isLending: boolean,
+        amount: number,
+      ): number | null {
+        const bank = banks.get(bankAddress.toBase58());
+        if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+        const priceInfo = oraclePrices.get(bankAddress.toBase58());
+        if (!priceInfo) throw Error(`Price info for ${bankAddress.toBase58()} not found`);
+    
+        const balance = this.getBalance(bankAddress);
+    
+        if (!balance.active) return null;
+    
+        const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Maintenance, [bankAddress]);
+        const amountBn = new BigNumber(amount)
+    
+        if (isLending) {
+          if (liabilities.eq(0)) return null;
+    
+          const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance);
+          const priceConfidence = bank.getPrice(priceInfo, PriceBias.None).minus(bank.getPrice(priceInfo, PriceBias.Lowest));
+          const liquidationPrice = liabilities.minus(assets).div(amountBn.times(assetWeight)).plus(priceConfidence);
+          return liquidationPrice.toNumber();
+        } else {
+          const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
+          const priceConfidence = bank.getPrice(priceInfo, PriceBias.Highest).minus(bank.getPrice(priceInfo, PriceBias.None));
+          const liquidationPrice = assets.minus(liabilities).div(amountBn.times(liabWeight)).minus(priceConfidence);
+          return liquidationPrice.toNumber();
+        }
+      }
+
   // Calculate the max amount of collateral to liquidate to bring an account maint health to 0 (assuming negative health).
   //
   // The asset amount is bounded by 2 constraints,
