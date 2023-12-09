@@ -155,31 +155,46 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
   const userPointsDoc = doc(firebaseApi.db, "points", wallet);
   const userPublicProfileDoc = doc(firebaseApi.db, "users_public", wallet);
 
-  const [userPointsSnap, userPublicProfileSnap] = await Promise.all([
-    getDoc(userPointsDoc),
-    getDoc(userPublicProfileDoc),
-  ]);
+  let userPointsSnap;
+  let userPublicProfileSnap;
+  let userReferralData;
+  let userReferralCode = "";
+  let isCustomReferralLink = false;
 
-  if (!userPointsSnap.exists() || !userPublicProfileSnap.exists()) {
+  try {
+    userPointsSnap = await getDoc(userPointsDoc);
+  } catch (e) {
     return {
       ...DEFAULT_USER_POINTS_DATA,
       owner: wallet,
     };
   }
 
-  const userReferralData = userPublicProfileSnap.data();
-  let userReferralCode = "";
-  let isCustomReferralLink;
-  if (userReferralData && Array.isArray(userReferralData?.referralCode)) {
-    const uuidPattern = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-\b[0-9a-fA-F]{12}$/;
-    userReferralCode = userReferralData.referralCode.find((code) => !uuidPattern.test(code));
-    isCustomReferralLink = true;
-  } else {
-    userReferralCode = userReferralData?.referralCode || "";
-    isCustomReferralLink = false;
+  try {
+    userPublicProfileSnap = await getDoc(userPublicProfileDoc);
+    userReferralData = userPublicProfileSnap.data();
+    if (userReferralData && Array.isArray(userReferralData?.referralCode)) {
+      const uuidPattern = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-\b[0-9a-fA-F]{12}$/;
+      userReferralCode = userReferralData.referralCode.find((code) => !uuidPattern.test(code));
+      isCustomReferralLink = true;
+    } else {
+      userReferralCode = userReferralData?.referralCode || "";
+      isCustomReferralLink = false;
+    }
+  } catch (e) {
+    console.log("error", e);
   }
 
   const pointsData = userPointsSnap.data();
+
+  if (!pointsData) {
+    return {
+      ...DEFAULT_USER_POINTS_DATA,
+      owner: wallet,
+    };
+  }
+
+  console.log("pointsData", pointsData);
 
   const depositPoints = pointsData.total_deposit_points.toFixed(4);
   const borrowPoints = pointsData.total_borrow_points.toFixed(4);
