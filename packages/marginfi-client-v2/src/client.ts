@@ -464,7 +464,7 @@ class MarginfiClient {
     try {
       const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext();
 
-      minContextSlot = getLatestBlockhashAndContext.context.slot;
+      minContextSlot = getLatestBlockhashAndContext.context.slot - 4;
       blockhash = getLatestBlockhashAndContext.value.blockhash;
       lastValidBlockHeight = getLatestBlockhashAndContext.value.lastValidBlockHeight;
 
@@ -526,7 +526,7 @@ class MarginfiClient {
         };
 
         signature = await connection.sendTransaction(versionedTransaction, {
-          minContextSlot: mergedOpts.minContextSlot,
+          // minContextSlot: mergedOpts.minContextSlot,
           skipPreflight: mergedOpts.skipPreflight,
           preflightCommitment: mergedOpts.preflightCommitment,
           maxRetries: mergedOpts.maxRetries,

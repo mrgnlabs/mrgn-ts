@@ -14,6 +14,7 @@ const createConnection = () =>
   new Connection(env_config.RPC_ENDPOINT, {
     commitment,
     fetch: fetchWithRetry,
+    wsEndpoint: env_config.WS_ENDPOINT,
   });
 
 export let connection = createConnection();

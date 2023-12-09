@@ -81,6 +81,12 @@ class Liquidator {
 
     console.log("Start with DEBUG=mfi:* to see more logs");
 
+    try {
+      await this.rebalanceIfNeeded();
+    } catch (e) {
+      console.error("Error during initial rebalance: ", e);
+    }
+
     await this.startLiquidatorDataLoader();
     await this.mainLoop();
   }
@@ -227,7 +233,15 @@ class Liquidator {
     console.log("Loading data, this may take a moment...")
     const debug = getDebugLogger("load-all-marginfi-accounts");
     debug("Loading all Marginfi accounts");
-    const allKeys = (await this.client.getAllMarginfiAccountAddresses());
+    let allKeys = [];
+
+    // If whitelist is set, filter out all accounts that are not in the whitelist
+    if (env_config.MARGINFI_ACCOUNT_WHITELIST) {
+      allKeys = env_config.MARGINFI_ACCOUNT_WHITELIST;
+    } else {
+      allKeys = (await this.client.getAllMarginfiAccountAddresses());
+    }
+
     debug("Retrieved all Marginfi account addresses, found: %d", allKeys.length);
     const [slot, ais] = await chunkedGetRawMultipleAccountInfos(this.connection, allKeys.map((k) => k.toBase58()), 16 * 64, 64);
     debug("Received account information for slot %d, got: %d accounts", slot, ais.size);
@@ -242,14 +256,10 @@ class Liquidator {
       this.accountInfos.set(pubkey, account);
 
       processedAccounts++;
-      if (processedAccounts % 1000 === 0) {
+      if (processedAccounts % 5000 === 0) {
         const progress = ((processedAccounts / totalAccounts) * 100).toFixed(2);
         debug("Processed %d accounts out of %d (%s%%)", processedAccounts, totalAccounts, progress);
       }
-    }
-    if (processedAccounts % 1000 !== 0) {
-      const progress = ((processedAccounts / totalAccounts) * 100).toFixed(2);
-      debug("Final progress: %s%%", progress);
     }
 
     console.log("Finished loading all Marginfi accounts");
@@ -273,14 +283,12 @@ class Liquidator {
         const accountInfo = info.accountInfo;
 
         if (accountInfo.data.length !== this.client.program.account.marginfiAccount.size) {
-          debug("Received account update for account with public key: %s, but data length is incorrect", pubkey.toBase58());
           return;
         }
 
         try {
           const account = MarginfiAccountWrapper.fromAccountDataRaw(pubkey, this.client, accountInfo.data);
           this.accountInfos.set(pubkey, account);
-          debug("Updated Marginfi account for public key: %s", pubkey.toBase58());
         } catch (error) {
           debug("Failed to decode Marginfi account for public key: %s, Error: %s", pubkey.toBase58(), error);
         }
@@ -450,7 +458,6 @@ class Liquidator {
   private async rebalancingStage() {
     const debug = getDebugLogger("rebalancing-stage");
     debug("Starting rebalancing stage");
-    captureMessage("Starting rebalancing stage");
     await this.sellNonUsdcDeposits();
     await this.repayAllDebt();
     await this.depositRemainingUsdc();
@@ -478,6 +485,14 @@ class Liquidator {
     } catch (e) {
       return new BigNumber(0).plus(nativeAmoutnUi);
     }
+  }
+
+  private async swapNonUsdcInTokenAccounts2() {
+    const debug = getDebugLogger("swap-non-usdc-in-token-accounts");
+    debug("Swapping any remaining non-usdc to usdc");
+
+    const banks = Array.from(this.client.banks.values()).filter((bank) => !bank.mint.equals(USDC_MINT));
+    const usdcBank = this.client.getBankByMint(USDC_MINT)!;
   }
 
   private async swapNonUsdcInTokenAccounts() {
