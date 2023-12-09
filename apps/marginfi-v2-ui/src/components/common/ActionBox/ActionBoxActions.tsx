@@ -6,6 +6,7 @@ import { useUiStore } from "~/store";
 
 import { Button } from "~/components/ui/button";
 import { IconLoader } from "~/components/ui/icons";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 type ActionBoxActionsProps = {
   amount: number;
@@ -23,13 +24,17 @@ export const ActionBoxActions = ({
   handleAction,
 }: ActionBoxActionsProps) => {
   const [actionMode, selectedToken] = useUiStore((state) => [state.actionMode, state.selectedToken]);
+  const { connected } = useWalletContext();
 
   const isActionDisabled = React.useMemo(() => {
     const isValidInput = amount > 0;
-    return ((maxAmount === 0 || !isValidInput) && !showCloseBalance) || isLoading;
+    return ((maxAmount === 0 || !isValidInput) && !showCloseBalance) || isLoading || !connected;
   }, [amount, showCloseBalance, maxAmount, isLoading]);
 
   const actionText = React.useMemo(() => {
+    if (!connected) {
+      return "Connect your wallet";
+    }
     if (!selectedToken) {
       return "Select token and amount";
     }
@@ -37,7 +42,6 @@ export const ActionBoxActions = ({
     if (showCloseBalance) {
       return "Close account";
     }
-    console.log({ actionMode });
 
     if (maxAmount === 0) {
       switch (actionMode) {
@@ -59,7 +63,7 @@ export const ActionBoxActions = ({
     }
 
     return actionMode;
-  }, [actionMode, amount, selectedToken, maxAmount, showCloseBalance]);
+  }, [actionMode, amount, selectedToken, connected, maxAmount, showCloseBalance]);
 
   return (
     <Button disabled={isActionDisabled} className="w-full py-6" onClick={handleAction}>
