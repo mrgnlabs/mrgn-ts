@@ -78,6 +78,25 @@ function createPersistentMrgnlendStore() {
   );
 }
 
+
+async function getCachedMarginfiAccountsForAuthority(authority: PublicKey, client: MarginfiClient): Promise<MarginfiAccountWrapper[]> {
+  if (typeof window === "undefined") {
+    return client.getMarginfiAccountsForAuthority(authority)
+  }
+
+  const cacheKey = `marginfiAccounts-${authority.toString()}`;
+  const cachedAccounts = window.localStorage.getItem(cacheKey);
+  if (cachedAccounts) {
+    const accountAddresses: PublicKey[] = JSON.parse(cachedAccounts).map((address: string) => new PublicKey(address));
+    return client.getMultipleMarginfiAccounts(accountAddresses);
+  } else {
+    const accounts = await client.getMarginfiAccountsForAuthority(authority);
+    const accountAddresses = accounts.map(account => account.address.toString());
+    window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses));
+    return accounts
+  }
+}
+
 const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   // State
   initialized: false,
@@ -146,7 +165,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
             wallet.publicKey,
             banks.map((bank) => ({ mint: bank.mint, mintDecimals: bank.mintDecimals }))
           ),
-          marginfiClient.getMarginfiAccountsForAuthority(wallet.publicKey),
+          getCachedMarginfiAccountsForAuthority(wallet.publicKey, marginfiClient),
         ]);
 
         nativeSolBalance = tokenData.nativeSolBalance;
