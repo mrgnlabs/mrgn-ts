@@ -191,7 +191,7 @@ const AssetsList = () => {
               <TableContainer>
                 {poolFilter !== "isolated" && (
                   <>
-                    <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 gap-1">
+                    <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 pb-2 gap-1">
                       Global <span className="hidden lg:block">pool</span>
                     </div>
                     <Table
@@ -206,9 +206,8 @@ const AssetsList = () => {
                       </TableHead>
 
                       <TableBody>
-                        {globalBanks
-                          .filter((b) => !b.info.state.isIsolated)
-                          .map((bank, i) => {
+                        {globalBanks.length ? (
+                          globalBanks.map((bank, i) => {
                             if (poolFilter === "stable" && !STABLECOINS.includes(bank.meta.tokenSymbol)) return null;
                             if (poolFilter === "lst" && !LSTS.includes(bank.meta.tokenSymbol)) return null;
 
@@ -247,14 +246,21 @@ const AssetsList = () => {
                                 bankMetadata={bank.meta}
                               />
                             );
-                          })}
+                          })
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={4} className="border-none">
+                              <div className="font-aeonik font-normal text-lg text-input">No global banks found.</div>
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </TableBody>
                     </Table>
                   </>
                 )}
                 {poolFilter !== "stable" && poolFilter !== "lst" && (
                   <>
-                    <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white my-4 gap-2">
+                    <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 pb-2 gap-2">
                       <span className="gap-1 flex">
                         Isolated <span className="hidden lg:block">pools</span>
                       </span>
@@ -280,9 +286,8 @@ const AssetsList = () => {
                         <AssetRowHeader isInLendingMode={isInLendingMode} isGlobalPool={false} />
                       </TableHead>
                       <TableBody>
-                        {isolatedBanks
-                          .filter((b) => b.info.state.isIsolated)
-                          .map((bank) => {
+                        {isolatedBanks.length ? (
+                          isolatedBanks.map((bank) => {
                             const activeBank = activeBankInfos.filter(
                               (activeBankInfo) => activeBankInfo.meta.tokenSymbol === bank.meta.tokenSymbol
                             );
@@ -308,7 +313,14 @@ const AssetsList = () => {
                                 bankMetadata={bank.meta}
                               />
                             );
-                          })}
+                          })
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={4} className="border-none">
+                              <div className="font-aeonik font-normal text-lg text-input">No isolated banks found.</div>
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </TableBody>
                     </Table>
                   </>
