@@ -1,5 +1,5 @@
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, FEE_MARGIN, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 import { isWholePosition } from "./mrgnUtils";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Wallet, processTransaction } from "@mrgnlabs/mrgn-common";
@@ -89,6 +89,9 @@ async function createAccountAndDeposit({
   try {
     const squadsOptions = await getMaybeSquadsOptions(walletContextState);
     marginfiAccount = await mfiClient.createMarginfiAccount(undefined, squadsOptions);
+
+    clearAccountCache(mfiClient.provider.publicKey);
+
     multiStepToast.setSuccessAndNext();
   } catch (error: any) {
     const msg = extractErrorString(error);
