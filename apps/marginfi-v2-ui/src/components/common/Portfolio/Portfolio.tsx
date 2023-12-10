@@ -92,7 +92,7 @@ export const Portfolio = () => {
     }
   }, [accountSummary.healthFactor]);
   return (
-    <div className="bg-background-gray-dark p-6 rounded-xl space-y-3 w-full my-10">
+    <div className="bg-background-gray-dark p-6 rounded-xl space-y-3 w-full mb-10">
       <h2 className="font-medium text-3xl">Portfolio</h2>
       <div className="text-muted-foreground">
         <dl className="flex justify-between items-center gap-2">
