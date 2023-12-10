@@ -35,9 +35,9 @@ const Footer: FC = () => {
             <Link href={"https://twitter.com/marginfi"}>
               <NavbarCenterItem text="Twitter" />
             </Link>
-            <Link href={"https://t.me/mrgncommunity"}>
+            {/* <Link href={"https://t.me/mrgncommunity"}>
               <NavbarCenterItem text="Telegram" />
-            </Link>
+            </Link> */}
             <Link href={"https://app.marginfi.com/"}>
               <NavbarCenterItem text="© 2023 MRGN, Inc." disabled />
             </Link>
