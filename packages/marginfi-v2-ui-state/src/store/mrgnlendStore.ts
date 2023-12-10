@@ -78,6 +78,10 @@ function createPersistentMrgnlendStore() {
   );
 }
 
+function createLocalStorageKey(authority: PublicKey): string {
+  return `marginfi_accounts-${authority.toString()}`;
+}
+
 async function getCachedMarginfiAccountsForAuthority(
   authority: PublicKey,
   client: MarginfiClient
@@ -87,7 +91,7 @@ async function getCachedMarginfiAccountsForAuthority(
     return client.getMarginfiAccountsForAuthority(authority);
   }
 
-  const cacheKey = `marginfiAccounts-${authority.toString()}`;
+  const cacheKey = createLocalStorageKey(authority);
   const cachedAccounts = window.localStorage.getItem(cacheKey);
   debug("cachedAccounts", cachedAccounts);
   if (cachedAccounts) {
@@ -100,6 +104,11 @@ async function getCachedMarginfiAccountsForAuthority(
     window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses));
     return accounts;
   }
+}
+
+export function clearAccountCache(authority: PublicKey) {
+  const cacheKey = createLocalStorageKey(authority);
+  window.localStorage.removeItem(cacheKey);
 }
 
 const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
