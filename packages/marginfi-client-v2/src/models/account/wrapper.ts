@@ -1,4 +1,4 @@
-import { Amount, DEFAULT_COMMITMENT, InstructionsWrapper, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { Amount, DEFAULT_COMMITMENT, InstructionsWrapper, Wallet, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { Address, BorshCoder, translateAddress } from "@coral-xyz/anchor";
 import { AccountMeta, Commitment, PublicKey, Transaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
@@ -8,6 +8,11 @@ import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
 import { Bank } from "../bank";
 import { Balance } from "../balance";
+
+export interface SimulationResult {
+  banks: Map<string, Bank>;
+  marginfiAccount: MarginfiAccountWrapper;
+}
 
 class MarginfiAccountWrapper {
   public readonly address: PublicKey;
@@ -195,6 +200,32 @@ class MarginfiAccountWrapper {
     const sig = await this.client.processTransaction(tx, []);
     debug("Depositing successful %s", sig);
     return sig;
+  }
+
+  async simulateDeposit(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
+    const ixs = await this.makeDepositIx(amount, bankAddress);
+    const tx = new Transaction().add(...ixs.instructions);
+    const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
+    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate deposit");
+    const previewBanks = this.client.banks;
+    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData));
+    const previewClient = new MarginfiClient(
+      this._config,
+      this.client.program,
+      {} as Wallet,
+      true,
+      this.client.group,
+      this.client.banks,
+      this.client.oraclePrices
+    );
+    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+      this.address,
+      previewClient,
+      mfiAccountData
+    );
+    return { 
+      banks: previewBanks,
+      marginfiAccount: previewMarginfiAccount };
   }
 
   async makeRepayIx(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<InstructionsWrapper> {
