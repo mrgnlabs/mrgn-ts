@@ -1,7 +1,7 @@
-import React from "react";
+import React, { FC, useEffect } from "react";
 
-import { usdFormatter } from "@mrgnlabs/mrgn-common";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WSOL_MINT, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { IconWallet } from "~/components/ui/icons";
 
 import { ActionBoxActions } from "./ActionBoxActions";
+import { Bank, MarginRequirementType, MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 export const ActionBox = () => {
   const [mfiClient, nativeSolBalance, setIsRefreshingStore, fetchMrgnlendState, selectedAccount, accountSummary] =
@@ -47,7 +48,6 @@ export const ActionBox = () => {
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
 
-  const [preview, setPreview] = React.useState<{ key: string; value: string }[]>([]);
   const [amount, setAmount] = React.useState<number | null>(null);
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -132,44 +132,6 @@ export const ActionBox = () => {
       return "#fff";
     }
   }, [selectedToken, liquidationPrice]);
-
-  React.useEffect(() => {
-    if (!selectedToken) {
-      setPreview([]);
-      return;
-    }
-
-    const isActive = selectedToken?.isActive;
-    let supplied = 0;
-    let borrowed = 0;
-
-    if (isActive) {
-      const isLending = selectedToken?.position?.isLending;
-      if (isLending) supplied = selectedToken?.position.amount ?? 0;
-      else borrowed = selectedToken?.position.amount ?? 0;
-    }
-    const healthFactor = accountSummary.healthFactor;
-
-    setPreview([
-      {
-        key: "Supplied amount",
-        value: `${numeralFormatter(supplied)}`,
-      },
-      {
-        key: "Borrowed amount",
-        value: `${numeralFormatter(borrowed)}`,
-      },
-      {
-        key: "Liquidation price",
-        value:
-          liquidationPrice > 0.01 ? usdFormatter.format(liquidationPrice) : `$${liquidationPrice.toExponential(2)}`,
-      },
-      {
-        key: "Health factor",
-        value: `${numeralFormatter(healthFactor * 100)}%`,
-      },
-    ]);
-  }, [selectedToken, amount, liquidationPrice]);
 
   React.useEffect(() => {
     if (!selectedToken || !amountInputRef.current) return;
@@ -374,24 +336,13 @@ export const ActionBox = () => {
             handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
             isLoading={isLoading}
           />
-          {selectedToken !== null && preview.length > 0 && (
-            <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
-              {preview.map((item, idx) => (
-                <React.Fragment key={item.key}>
-                  <dt>{item.key}</dt>
-                  <dd
-                    className={cn(
-                      `text-[${
-                        item.key === "Liquidation price" ? healthColorLiquidation : "white"
-                      }] font-medium text-right`
-                    )}
-                  >
-                    {item.value}
-                  </dd>
-                </React.Fragment>
-              ))}
-            </dl>
-          )}
+          <ActionPreview
+            marginfiAccount={selectedAccount}
+            healthColorLiquidation={healthColorLiquidation}
+            selectedToken={selectedToken}
+            actionAmount={amount}
+            actionMode={actionMode}
+          />
         </div>
       </div>
       <LSTDialog
@@ -407,5 +358,107 @@ export const ActionBox = () => {
         }}
       />
     </>
+  );
+};
+
+interface ActionPreview {
+  health: number;
+  liquidationPrice: number | null;
+  depositRate: number;
+  borrowRate: number;
+} // TODO: to extend with any other fields we want to display
+
+const ActionPreview: FC<{
+  marginfiAccount: MarginfiAccountWrapper | null;
+  healthColorLiquidation: string;
+  selectedToken: ExtendedBankInfo | null;
+  actionAmount: number | null;
+  actionMode: ActionType;
+}> = ({ marginfiAccount, healthColorLiquidation, selectedToken, actionAmount, actionMode }) => {
+  const [preview, setPreview] = React.useState<ActionPreview | null>(null);
+
+  useEffect(() => {
+    const computePreview = async () => {
+      if (!marginfiAccount || !selectedToken || !actionAmount) {
+        return;
+      }
+
+      try {
+        let simulationResult: SimulationResult;
+        if (actionMode === ActionType.Deposit) {
+          simulationResult = await marginfiAccount.simulateDeposit(actionAmount, selectedToken.address);
+        } else if (actionMode === ActionType.Withdraw) {
+          throw new Error("Not implemented");
+        } else if (actionMode === ActionType.Borrow) {
+          throw new Error("Not implemented");
+        } else if (actionMode === ActionType.Repay) {
+          throw new Error("Not implemented");
+        } else {
+          throw new Error("Unknown action mode");
+        }
+
+        const { assets, liabilities } = simulationResult.marginfiAccount.computeHealthComponents(
+          MarginRequirementType.Maintenance
+        );
+        const health = assets.minus(liabilities).dividedBy(assets).toNumber();
+        const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBankAmount(
+          selectedToken.address,
+          (actionMode === ActionType.Deposit) || (actionMode === ActionType.Withdraw),
+          actionAmount
+        );
+        const { lendingRate, borrowingRate } = simulationResult.banks
+          .get(selectedToken.address.toBase58())!
+          .computeInterestRates();
+        setPreview({
+          health,
+          liquidationPrice,
+          depositRate: lendingRate.toNumber(),
+          borrowRate: borrowingRate.toNumber(),
+        });
+      } catch (error) {
+        setPreview(null);
+        console.log("Error computing action preview", error);
+      }
+    };
+
+    // TODO 1: debounce that call on actionAmount change
+    // TODO 2: this effect seems to be called periodically (more frequently than full state refetch it seems)
+    computePreview();
+  }, [actionAmount, actionMode, marginfiAccount, selectedToken]);
+
+  if (!selectedToken || !marginfiAccount || !actionAmount) {
+    return null;
+  }
+
+  return (
+    <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
+      <>
+        <dt>Health</dt>
+        <dd className={cn(`text-[white] font-medium text-right`)}>
+          {preview ? percentFormatter.format(preview.health) : "-"}
+        </dd>
+      </>
+      <>
+        <dt>Liquidation price</dt>
+        <dd className={cn(`text-[${healthColorLiquidation}] font-medium text-right`)}>
+          {preview && preview.liquidationPrice ? numeralFormatter(preview.liquidationPrice) : "-"}
+        </dd>
+      </>
+      {actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw ? (
+        <>
+          <dt>Deposit rate</dt>
+          <dd className={cn(`text-[white] font-medium text-right`)}>
+            {preview ? percentFormatter.format(preview.depositRate) : "-"}
+          </dd>
+        </>
+      ) : (
+        <>
+          <dt>Borrow rate</dt>
+          <dd className={cn(`text-[white] font-medium text-right`)}>
+            {preview ? percentFormatter.format(preview.borrowRate) : "-"}
+          </dd>
+        </>
+      )}
+    </dl>
   );
 };
