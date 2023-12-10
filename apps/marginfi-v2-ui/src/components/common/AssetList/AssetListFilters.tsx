@@ -3,6 +3,7 @@ import React from "react";
 import { useUiStore, SORT_OPTIONS_MAP } from "~/store";
 import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
 import { MrgnContainedSwitch } from "~/components/common/MrgnContainedSwitch";
@@ -13,6 +14,7 @@ import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, User
 
 export const AssetListFilters = () => {
   const { connected } = useWalletContext();
+  const isMobile = useIsMobile();
   const [
     userMode,
     setUserMode,
@@ -53,21 +55,8 @@ export const AssetListFilters = () => {
               }
             />
           </div>
-          <div className="md:hidden">
-            <div className={cn("flex items-center gap-1 text-sm")}>
-              <MrgnContainedSwitch
-                checked={userMode === UserMode.PRO}
-                onChange={() => {
-                  setUserMode(userMode === UserMode.PRO ? UserMode.LITE : UserMode.PRO);
-                }}
-                inputProps={{ "aria-label": "controlled" }}
-                className={cn(`${!connected && "pointer-events-none"}`)}
-              />
-              <div>Pro mode</div>
-            </div>
-          </div>
         </div>
-        {userMode === UserMode.PRO && (
+        {(userMode === UserMode.PRO || isMobile) && (
           <div
             className={cn("flex items-center gap-1 text-sm", !connected && "opacity-50")}
             onClick={(e) => {
@@ -88,7 +77,7 @@ export const AssetListFilters = () => {
             <div>Filter my positions</div>
           </div>
         )}
-        {userMode === UserMode.PRO && (
+        {(userMode === UserMode.PRO || isMobile) && (
           <div className="flex flex-col md:flex-row md:items-center gap-3">
             <div className="space-y-2 w-full md:w-auto">
               <Select
