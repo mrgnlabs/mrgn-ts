@@ -7,7 +7,7 @@ import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import config from "~/config/marginfi";
 import { Desktop, Mobile } from "~/mediaQueries";
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { showErrorToast } from "~/utils/toastUtils";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -20,6 +20,7 @@ import { Stats } from "~/components/common/Stats";
 
 import { IconAlertTriangle } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
+import { UserMode } from "~/types";
 
 const DesktopAccountSummary = dynamic(
   async () => (await import("~/components/desktop/DesktopAccountSummary")).DesktopAccountSummary,
@@ -37,6 +38,7 @@ const Home = () => {
   const { walletAddress, wallet, isOverride } = useWalletContext();
   const { connection } = useConnection();
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
+  const [userMode] = useUiStore((state) => [state.userMode]);
   const [
     fetchMrgnlendState,
     isStoreInitialized,
@@ -117,7 +119,7 @@ const Home = () => {
             />
           )}
           <Stats />
-          <ActionBox />
+          {userMode === UserMode.LITE && <ActionBox />}
         </div>
         <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl mt-8 gap-4">
           <AssetsList />

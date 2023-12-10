@@ -107,7 +107,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
       <PopoverTrigger asChild>
         <Button
           className={cn(
-            "bg-background-gray-light text-white text-left text-lg p-6 pr-5 gap-2.5 transition-colors hover:bg-background-gray",
+            "bg-background-gray-light text-white text-left text-base p-6 pr-5 gap-2.5 transition-colors hover:bg-background-gray",
             isTokenPopoverOpen && "bg-background-gray w-[300px]"
           )}
         >
@@ -120,7 +120,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                 height={28}
                 className="rounded-full"
               />
-              <div className="">
+              <div className="flex flex-col gap-1">
                 <p className="leading-none">{currentToken.meta.tokenSymbol}</p>
                 <p
                   className={cn(
