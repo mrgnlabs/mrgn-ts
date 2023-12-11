@@ -40,6 +40,7 @@ export const ActionBox = () => {
       state.setSelectedToken,
     ]
   );
+
   const { walletContextState } = useWalletContext();
 
   const [isLoading, setIsLoading] = React.useState(false);
@@ -85,12 +86,7 @@ export const ActionBox = () => {
 
   React.useEffect(() => {
     setAmount(0);
-    if (lendingMode === LendingModes.LEND) {
-      setActionMode(ActionType.Deposit);
-    } else {
-      setActionMode(ActionType.Borrow);
-    }
-  }, [lendingMode, selectedToken, setAmount, setActionMode]);
+  }, [lendingMode, selectedToken]);
 
   const liquidationPrice = React.useMemo(() => {
     const isActive = selectedToken?.isActive;
