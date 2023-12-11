@@ -19,7 +19,7 @@ import {
   TokenMetadata,
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 import BN from "bn.js";
 
 const FEE_MARGIN = 0.01;
@@ -448,21 +448,24 @@ async function fetchTokenAccounts(
   const [walletAi, ...ataAiList] = accountsAiList;
   const nativeSolBalance = walletAi?.lamports ? walletAi.lamports / 1e9 : 0;
 
-  const ataList: TokenAccount[] = ataAiList.map((ai, index) => {
-    if (!ai) {
+  const ataList: TokenAccount[] = ataAiList
+    .filter((ai) => !ai?.owner?.equals(SystemProgram.programId))
+    .map((ai, index) => {
+      if (!ai) {
+        return {
+          created: false,
+          mint: mintList[index].address,
+          balance: 0,
+        };
+      }
+
+      const decoded = unpackAccount(ataAddresses[index], ai);
       return {
-        created: false,
-        mint: mintList[index].address,
-        balance: 0,
+        created: true,
+        mint: decoded.mint,
+        balance: nativeToUi(new BN(decoded.amount.toString()), mintList[index].decimals),
       };
-    }
-    const decoded = unpackAccount(ataAddresses[index], ai);
-    return {
-      created: true,
-      mint: decoded.mint,
-      balance: nativeToUi(new BN(decoded.amount.toString()), mintList[index].decimals),
-    };
-  });
+    });
 
   return { nativeSolBalance, tokenAccountMap: new Map(ataList.map((ata) => [ata.mint.toString(), ata])) };
 }
