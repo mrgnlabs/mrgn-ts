@@ -275,16 +275,16 @@ export const ActionBox = () => {
                 }}
               >
                 <SelectTrigger
-                  className="w-[160px] h-[35px] rounded-[100px] bg-background-gray-light border-none mb-3"
+                  className="w-[160px] h-[35px] bg-background-gray-light border-none mb-3 focus:ring-0 focus:outline-none"
                   icon={<ChevronDownIcon className="h-5 w-5 opacity-70" />}
                 >
-                  <div className="flex items-center gap-2 text-lg">
-                    <SelectValue className="text-lg" defaultValue={LendingModes.LEND} placeholder="Select pools" />
+                  <div className="flex items-center gap-2">
+                    <SelectValue defaultValue={LendingModes.LEND} placeholder="Select pools" />
                   </div>
                 </SelectTrigger>
 
                 {lendingMode === LendingModes.LEND ? (
-                  <SelectContent>
+                  <SelectContent className="bg-background-gray">
                     <SelectItem value={ActionType.Deposit}>You supply</SelectItem>
                     <SelectItem value={ActionType.Withdraw}>You withdraw</SelectItem>
                   </SelectContent>
@@ -403,7 +403,7 @@ const ActionPreview: FC<{
         const health = assets.minus(liabilities).dividedBy(assets).toNumber();
         const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBankAmount(
           selectedToken.address,
-          (actionMode === ActionType.Deposit) || (actionMode === ActionType.Withdraw),
+          actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw,
           actionAmount
         );
         const { lendingRate, borrowingRate } = simulationResult.banks
