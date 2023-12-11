@@ -60,9 +60,6 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                             accountSummary.balanceUnbiased
                           )}. With bias, your account balance is ${usdFormatter.format(accountSummary.balance)}.`}
                         </div>
-                        <Link href="https://t.me/mrgncommunity">
-                          <u>Learn why price bias matters.</u>
-                        </Link>
                       </React.Fragment>
                     }
                     placement="top"
@@ -118,9 +115,6 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                             accountSummary.lendingAmount
                           )} with price bias.`}
                         </div>
-                        <Link href="https://t.me/mrgncommunity">
-                          <u>Learn why price bias matters.</u>
-                        </Link>
                       </React.Fragment>
                     }
                     placement="top"
@@ -176,9 +170,6 @@ const UserStats: FC<UserStatsProps> = ({ accountSummary, healthFactor }) => {
                             accountSummary.borrowingAmount
                           )} with price bias.`}
                         </div>
-                        <Link href="https://t.me/mrgncommunity">
-                          <u>Learn why price bias matters.</u>
-                        </Link>
                       </React.Fragment>
                     }
                     placement="top"
