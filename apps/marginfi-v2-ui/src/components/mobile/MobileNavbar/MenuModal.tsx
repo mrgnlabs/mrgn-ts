@@ -63,14 +63,6 @@ export const MenuModal: FC<MenuModalProps> = ({ isOpen, handleClose }) => {
                 >
                   <TwitterIcon className="pb-1 text-2xl cursor-pointer hover:fill-[#DCE85D] text-[#868E95]" />
                 </Link>
-                {/* <Link
-                  href="https://t.me/mrgncommunity"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-0 m-0 h-full flex justify-center items-center"
-                >
-                  <TelegramIcon className="pb-1 text-2xl cursor-pointer hover:fill-[#DCE85D] text-[#868E95]" />
-                </Link> */}
                 <Link
                   href="https://docs.marginfi.com/"
                   target="_blank"

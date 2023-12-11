@@ -79,9 +79,6 @@ const UserPositions: FC = () => {
                               <div className="flex flex-col gap-2 pb-2">
                                 Weighted prices used in risk calculations and are relevant to your health factor.
                               </div>
-                              <Link href="https://t.me/mrgncommunity">
-                                <u>Learn more here.</u>
-                              </Link>
                             </React.Fragment>
                           }
                           placement="top"
@@ -116,9 +113,6 @@ const UserPositions: FC = () => {
                                 Unadjusted USD values are not used in risk calculations. Values with price bias are used
                                 because they are more conservative, and can control for oracle inaccuracies.
                               </div>
-                              <Link href="https://t.me/mrgncommunity">
-                                <u>Learn more here.</u>
-                              </Link>
                             </React.Fragment>
                           }
                           placement="top"
@@ -196,9 +190,6 @@ const UserPositions: FC = () => {
                                 <div className="flex flex-col gap-2 pb-2">
                                   Weighted prices used in risk calculations and are relevant to your health factor.
                                 </div>
-                                <Link href="https://t.me/mrgncommunity">
-                                  <u>Learn more here.</u>
-                                </Link>
                               </React.Fragment>
                             }
                             placement="top"
@@ -233,9 +224,6 @@ const UserPositions: FC = () => {
                                   Unadjusted USD values are not used in risk calculations. Values with price bias are
                                   used because they are more conservative, and can control for oracle inaccuracies.
                                 </div>
-                                <Link href="https://t.me/mrgncommunity">
-                                  <u>Learn more here.</u>
-                                </Link>
                               </React.Fragment>
                             }
                             placement="top"
