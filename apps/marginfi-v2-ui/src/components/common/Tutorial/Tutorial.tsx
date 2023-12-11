@@ -186,11 +186,6 @@ export const Tutorial = () => {
                       releases, and alpha.
                     </p>
                     <ul className="flex items-center justify-center gap-3">
-                      {/* <li className="p-4 rounded-full bg-muted">
-                        <a href="https://t.me/mrgncommunity" target="_blank" rel="noreferrer">
-                          <IconBrandTelegram />
-                        </a>
-                      </li> */}
                       <li className="p-4 rounded-full bg-muted">
                         <a href="https://discord.gg/mrgn" target="_blank" rel="noreferrer">
                           <IconBrandDiscordFilled />
