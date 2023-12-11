@@ -84,6 +84,7 @@ export const WalletOnramp = () => {
       <Button
         variant="outline"
         className="w-full"
+        id="moonpay-btn"
         onClick={() => {
           triggerMoonpay();
         }}
