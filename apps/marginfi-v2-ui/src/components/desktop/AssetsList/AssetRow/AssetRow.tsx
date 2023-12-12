@@ -79,6 +79,8 @@ const AssetRow: React.FC<{
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const isMobile = useIsMobile();
 
+  const [isHovering, setIsHovering] = React.useState(false);
+
   const isReduceOnly = React.useMemo(
     () => (bank?.meta?.tokenSymbol ? REDUCE_ONLY_BANKS.includes(bank.meta.tokenSymbol) : false),
     [bank.meta.tokenSymbol]
@@ -145,7 +147,9 @@ const AssetRow: React.FC<{
       <TableRow
         data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
         data-asset-row-position={activeBank?.position.amount ? "true" : "false"}
-        className="h-[54px] w-full hover:bg-[#171C1F] rounded-lg border border-[#1E2122]"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        className={cn("h-[54px] w-full transition-colors", isHovering && "bg-background-gray")}
       >
         <TableCell
           className={`text-white p-0 font-aeonik border-none`}
@@ -403,7 +407,9 @@ const AssetRow: React.FC<{
         (isFilteredUserPositions || activeBank?.position.isLending === (lendingMode === LendingModes.LEND)) && (
           <TableRow
             data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
-            className="h-[54px] w-full border border-[#1E2122] transition-all"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            className={cn("h-[54px] w-full transition-colors", isHovering && "bg-background-gray")}
           >
             <TableCell
               colSpan={userPositionColSpan}
