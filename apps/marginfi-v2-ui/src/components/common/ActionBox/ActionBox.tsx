@@ -5,7 +5,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WSOL_MINT, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { MarginfiActionParams, closeBalance, cn, executeLendingAction } from "~/utils";
+import { MarginfiActionParams, closeBalance, cn, executeLendingAction, isWholePosition } from "~/utils";
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -347,6 +347,7 @@ export const ActionBox = () => {
             selectedToken={selectedToken}
             actionAmount={amount}
             actionMode={actionMode}
+            extendedBankInfos={extendedBankInfos}
           />
         </div>
       </div>
@@ -379,7 +380,8 @@ const ActionPreview: FC<{
   selectedToken: ExtendedBankInfo | null;
   actionAmount: number | null;
   actionMode: ActionType;
-}> = ({ marginfiAccount, healthColorLiquidation, selectedToken, actionAmount, actionMode }) => {
+  extendedBankInfos: ExtendedBankInfo[];
+}> = ({ marginfiAccount, healthColorLiquidation, selectedToken, actionAmount, actionMode, extendedBankInfos }) => {
   const [preview, setPreview] = React.useState<ActionPreview | null>(null);
 
   useEffect(() => {
@@ -388,16 +390,17 @@ const ActionPreview: FC<{
         return;
       }
 
+      const targetBank = extendedBankInfos.find((bank) => bank.address.equals(selectedToken?.address))!;
       try {
         let simulationResult: SimulationResult;
         if (actionMode === ActionType.Deposit) {
           simulationResult = await marginfiAccount.simulateDeposit(actionAmount, selectedToken.address);
         } else if (actionMode === ActionType.Withdraw) {
-          simulationResult = await marginfiAccount.simulateWithdraw(actionAmount, selectedToken.address);
+          simulationResult = await marginfiAccount.simulateWithdraw(actionAmount, selectedToken.address, targetBank.isActive && isWholePosition(targetBank, actionAmount));
         } else if (actionMode === ActionType.Borrow) {
           simulationResult = await marginfiAccount.simulateBorrow(actionAmount, selectedToken.address);
         } else if (actionMode === ActionType.Repay) {
-          simulationResult = await marginfiAccount.simulateRepay(actionAmount, selectedToken.address);
+          simulationResult = await marginfiAccount.simulateRepay(actionAmount, selectedToken.address, targetBank.isActive && isWholePosition(targetBank, actionAmount));
         } else {
           throw new Error("Unknown action mode");
         }
@@ -435,6 +438,9 @@ const ActionPreview: FC<{
     return null;
   }
 
+  const isBorrowing = marginfiAccount.activeBalances.find(b => b.active && b.liabilityShares.gt(0)) !== undefined;
+  console.log("isBorrowing", isBorrowing)
+  console.log(actionMode === ActionType.Borrow)
   return (
     <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
       <>
@@ -443,12 +449,12 @@ const ActionPreview: FC<{
           {preview ? percentFormatter.format(preview.health) : "-"}
         </dd>
       </>
-      <>
+      {(actionMode === ActionType.Borrow || isBorrowing) && <>
         <dt>Liquidation price</dt>
         <dd className={cn(`text-[${healthColorLiquidation}] font-medium text-right`)}>
           {preview && preview.liquidationPrice ? numeralFormatter(preview.liquidationPrice) : "-"}
         </dd>
-      </>
+      </>}
       {actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw ? (
         <>
           <dt>Deposit rate</dt>
