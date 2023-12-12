@@ -23,7 +23,7 @@ import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 import BN from "bn.js";
 
 const FEE_MARGIN = 0.01;
-const VOLATILITY_FACTOR = 0.95;
+const VOLATILITY_FACTOR = 1;
 
 const DEFAULT_ACCOUNT_SUMMARY = {
   healthFactor: 0,
@@ -64,9 +64,9 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
   const healthFactor = maintenanceComponentsWithBiasAndWeighted.assets.isZero()
     ? 1
     : maintenanceComponentsWithBiasAndWeighted.assets
-        .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
-        .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
-        .toNumber();
+      .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
+      .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
+      .toNumber();
 
   return {
     healthFactor,
@@ -310,12 +310,12 @@ function makeExtendedBankInfo(
   );
   const maxBorrow = userData.marginfiAccount
     ? floor(
-        Math.min(
-          userData.marginfiAccount.computeMaxBorrowForBank(bank.address).toNumber() * VOLATILITY_FACTOR,
-          bankInfo.availableLiquidity
-        ),
-        bankInfo.mintDecimals
-      )
+      Math.min(
+        userData.marginfiAccount.computeMaxBorrowForBank(bank.address).toNumber() * VOLATILITY_FACTOR,
+        bankInfo.availableLiquidity
+      ),
+      bankInfo.mintDecimals
+    )
     : 0;
 
   const positionRaw =
