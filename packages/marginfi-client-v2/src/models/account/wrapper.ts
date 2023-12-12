@@ -256,8 +256,8 @@ class MarginfiAccountWrapper {
     return sig;
   }
 
-  async simulateRepay(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
-    const ixs = await this.makeRepayIx(amount, bankAddress);
+  async simulateRepay(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<SimulationResult> {
+    const ixs = await this.makeRepayIx(amount, bankAddress, repayAll);
     const tx = new Transaction().add(...ixs.instructions);
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay");
@@ -301,8 +301,8 @@ class MarginfiAccountWrapper {
     return sig;
   }
 
-  async simulateWithdraw(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
-    const ixs = await this.makeWithdrawIx(amount, bankAddress);
+  async simulateWithdraw(amount: Amount, bankAddress: PublicKey, withdrawAll: boolean = false): Promise<SimulationResult> {
+    const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll);
     const tx = new Transaction().add(...ixs.instructions);
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate withdraw");
