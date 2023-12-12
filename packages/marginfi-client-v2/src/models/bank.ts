@@ -206,7 +206,7 @@ class Bank {
     const accountParsed = Bank.decodeBankRaw(buffer);
     return Bank.fromAccountParsed(address, accountParsed);
   }
-  
+
   static fromAccountParsed(address: PublicKey, accountParsed: BankRaw): Bank {
     const emissionsFlags = accountParsed.emissionsFlags.toNumber();
 
