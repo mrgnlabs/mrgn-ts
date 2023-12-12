@@ -23,7 +23,7 @@ import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 import BN from "bn.js";
 
 const FEE_MARGIN = 0.01;
-const VOLATILITY_FACTOR = 1;
+const VOLATILITY_FACTOR = 0.98;
 
 const DEFAULT_ACCOUNT_SUMMARY = {
   healthFactor: 0,
@@ -347,7 +347,7 @@ function makeExtendedBankInfo(
 
   const maxWithdraw = floor(
     Math.min(
-      marginfiAccount.computeMaxWithdrawForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR }).toNumber(),
+      marginfiAccount.computeMaxWithdrawForBank(bank.address).toNumber(),
       bankInfo.availableLiquidity
     ),
     bankInfo.mintDecimals
