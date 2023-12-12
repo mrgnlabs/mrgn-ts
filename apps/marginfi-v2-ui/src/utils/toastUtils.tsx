@@ -1,5 +1,5 @@
 import { Id, toast } from "react-toastify";
-import { ToastStep, ToastStepWithStatus, MultiStepToast, ErrorToast } from "~/components/common/Toast";
+import { ToastStep, ToastStepWithStatus, MultiStepToast, ErrorToast, WarningToast } from "~/components/common/Toast";
 
 export class MultiStepToastHandle {
   private _title: string;
@@ -75,6 +75,25 @@ export function showErrorToast(msgOrOptions: string | { message: string }) {
   }
 
   toast(() => <ErrorToast title={"Error"} message={msg} />, {
+    hideProgressBar: true,
+    autoClose: 2000,
+    style: {
+      width: "100%",
+      height: "100%",
+    },
+    className: "bg-black p-4 bottom-4 rounded-xl",
+  });
+}
+
+export function showWarningToast(msgOrOptions: string | { message: string }) {
+  let msg: string;
+  if (typeof msgOrOptions === "string") {
+    msg = msgOrOptions;
+  } else {
+    msg = msgOrOptions.message;
+  }
+
+  toast(() => <WarningToast title={"Warning"} message={msg} />, {
     hideProgressBar: true,
     autoClose: 2000,
     style: {

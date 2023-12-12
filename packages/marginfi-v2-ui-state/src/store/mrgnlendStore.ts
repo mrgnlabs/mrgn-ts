@@ -171,7 +171,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const banks = [...marginfiClient.banks.values()];
 
       const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
-      const priceMap = await makeEmissionsPriceMap(banks, connection, get().emissionTokenMap);
+      const emissionsTokenMap = get().emissionTokenMap ?? null;
+      const priceMap = await makeEmissionsPriceMap(banks, connection, emissionsTokenMap);
 
       let nativeSolBalance: number = 0;
       let tokenAccountMap: TokenAccountMap;
@@ -322,14 +323,24 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         protocolStats: { deposits, borrows, tvl: deposits - borrows, pointsTotal: pointSummary.points_total },
       });
 
-      const [sortedExtendedBankEmission, sortedExtendedBankMetadatasEmission, emissionTokenMap] =
+      const [sortedExtendedBankEmission, sortedExtendedBankMetadatasEmission, newEmissionsTokenMap] =
         await makeExtendedBankEmission(sortedExtendedBankInfos, sortedExtendedBankMetadatas, priceMap, birdEyeApiKey);
 
-      set({
-        extendedBankInfos: sortedExtendedBankEmission,
-        extendedBankMetadatas: sortedExtendedBankMetadatasEmission,
-        emissionTokenMap: emissionTokenMap,
-      });
+      if (newEmissionsTokenMap !== null) {
+        set({
+          extendedBankInfos: sortedExtendedBankEmission,
+          extendedBankMetadatas: sortedExtendedBankMetadatasEmission,
+          emissionTokenMap: newEmissionsTokenMap,
+        });
+      } else {
+        if (emissionsTokenMap && Object.keys(emissionsTokenMap).length === 0) {
+          set({
+            extendedBankInfos: sortedExtendedBankEmission,
+            extendedBankMetadatas: sortedExtendedBankMetadatasEmission,
+            emissionTokenMap: null,
+          });
+        }
+      }
     } catch (err) {
       console.error("error refreshing state: ", err);
       set({ isRefreshingStore: false });
