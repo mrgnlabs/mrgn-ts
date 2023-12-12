@@ -88,7 +88,7 @@ class MarginfiAccount {
     liabilities: BigNumber;
   } {
     const filteredBalances = this.activeBalances.filter(
-      (accountBalance) => !excludedBanks.find(b => b.equals(accountBalance.bankPk))
+      (accountBalance) => !excludedBanks.find((b) => b.equals(accountBalance.bankPk))
     );
     const [assets, liabilities] = filteredBalances
       .map((accountBalance) => {
@@ -191,16 +191,19 @@ class MarginfiAccount {
   computeMaxBorrowForBank(
     banks: Map<string, Bank>,
     oraclePrices: Map<string, OraclePrice>,
-    bankAddress: PublicKey
-  ): BigNumber {
+    bankAddress: PublicKey,
+    opts?: { volatilityFactor?: number }
+    ): BigNumber {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
     const priceInfo = oraclePrices.get(bankAddress.toBase58());
     if (!priceInfo) throw Error(`Price info for ${bankAddress.toBase58()} not found`);
 
+    const _volatilityFactor = opts?.volatilityFactor ?? 1;
+
     const balance = this.getBalance(bankAddress);
 
-    const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
+    const freeCollateral = this.computeFreeCollateral(banks, oraclePrices).times(_volatilityFactor);
     const untiedCollateralForBank = BigNumber.min(
       bank.computeAssetUsdValue(priceInfo, balance.assetShares, MarginRequirementType.Initial, PriceBias.Lowest),
       freeCollateral
@@ -322,7 +325,7 @@ class MarginfiAccount {
   public computeLiquidationPriceForBank(
     banks: Map<string, Bank>,
     oraclePrices: Map<string, OraclePrice>,
-    bankAddress: PublicKey,
+    bankAddress: PublicKey
   ): number | null {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
@@ -334,60 +337,78 @@ class MarginfiAccount {
     if (!balance.active) return null;
 
     const isLending = balance.liabilityShares.isZero();
-    const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Maintenance, [bankAddress]);
+    const { assets, liabilities } = this.computeHealthComponents(
+      banks,
+      oraclePrices,
+      MarginRequirementType.Maintenance,
+      [bankAddress]
+    );
     const { assets: assetQuantityUi, liabilities: liabQuantitiesUi } = balance.computeQuantityUi(bank);
 
     if (isLending) {
       if (liabilities.eq(0)) return null;
 
       const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance);
-      const priceConfidence = bank.getPrice(priceInfo, PriceBias.None).minus(bank.getPrice(priceInfo, PriceBias.Lowest));
+      const priceConfidence = bank
+        .getPrice(priceInfo, PriceBias.None)
+        .minus(bank.getPrice(priceInfo, PriceBias.Lowest));
       const liquidationPrice = liabilities.minus(assets).div(assetQuantityUi.times(assetWeight)).plus(priceConfidence);
       return liquidationPrice.toNumber();
     } else {
       const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
-      const priceConfidence = bank.getPrice(priceInfo, PriceBias.Highest).minus(bank.getPrice(priceInfo, PriceBias.None));
+      const priceConfidence = bank
+        .getPrice(priceInfo, PriceBias.Highest)
+        .minus(bank.getPrice(priceInfo, PriceBias.None));
       const liquidationPrice = assets.minus(liabilities).div(liabQuantitiesUi.times(liabWeight)).minus(priceConfidence);
       return liquidationPrice.toNumber();
     }
   }
 
-      /**
+  /**
    * Calculate the price at which the user position for the given bank and amount will lead to liquidation, all other prices constant.
    */
-      public computeLiquidationPriceForBankAmount(
-        banks: Map<string, Bank>,
-        oraclePrices: Map<string, OraclePrice>,
-        bankAddress: PublicKey,
-        isLending: boolean,
-        amount: number,
-      ): number | null {
-        const bank = banks.get(bankAddress.toBase58());
-        if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
-        const priceInfo = oraclePrices.get(bankAddress.toBase58());
-        if (!priceInfo) throw Error(`Price info for ${bankAddress.toBase58()} not found`);
-    
-        const balance = this.getBalance(bankAddress);
-    
-        if (!balance.active) return null;
-    
-        const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Maintenance, [bankAddress]);
-        const amountBn = new BigNumber(amount)
-    
-        if (isLending) {
-          if (liabilities.eq(0)) return null;
-    
-          const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance);
-          const priceConfidence = bank.getPrice(priceInfo, PriceBias.None).minus(bank.getPrice(priceInfo, PriceBias.Lowest));
-          const liquidationPrice = liabilities.minus(assets).div(amountBn.times(assetWeight)).plus(priceConfidence);
-          return liquidationPrice.toNumber();
-        } else {
-          const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
-          const priceConfidence = bank.getPrice(priceInfo, PriceBias.Highest).minus(bank.getPrice(priceInfo, PriceBias.None));
-          const liquidationPrice = assets.minus(liabilities).div(amountBn.times(liabWeight)).minus(priceConfidence);
-          return liquidationPrice.toNumber();
-        }
-      }
+  public computeLiquidationPriceForBankAmount(
+    banks: Map<string, Bank>,
+    oraclePrices: Map<string, OraclePrice>,
+    bankAddress: PublicKey,
+    isLending: boolean,
+    amount: number
+  ): number | null {
+    const bank = banks.get(bankAddress.toBase58());
+    if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+    const priceInfo = oraclePrices.get(bankAddress.toBase58());
+    if (!priceInfo) throw Error(`Price info for ${bankAddress.toBase58()} not found`);
+
+    const balance = this.getBalance(bankAddress);
+
+    if (!balance.active) return null;
+
+    const { assets, liabilities } = this.computeHealthComponents(
+      banks,
+      oraclePrices,
+      MarginRequirementType.Maintenance,
+      [bankAddress]
+    );
+    const amountBn = new BigNumber(amount);
+
+    if (isLending) {
+      if (liabilities.eq(0)) return null;
+
+      const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance);
+      const priceConfidence = bank
+        .getPrice(priceInfo, PriceBias.None)
+        .minus(bank.getPrice(priceInfo, PriceBias.Lowest));
+      const liquidationPrice = liabilities.minus(assets).div(amountBn.times(assetWeight)).plus(priceConfidence);
+      return liquidationPrice.toNumber();
+    } else {
+      const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
+      const priceConfidence = bank
+        .getPrice(priceInfo, PriceBias.Highest)
+        .minus(bank.getPrice(priceInfo, PriceBias.None));
+      const liquidationPrice = assets.minus(liabilities).div(amountBn.times(liabWeight)).minus(priceConfidence);
+      return liquidationPrice.toNumber();
+    }
+  }
 
   // Calculate the max amount of collateral to liquidate to bring an account maint health to 0 (assuming negative health).
   //
@@ -429,9 +450,17 @@ class MarginfiAccount {
     const priceLiabMarket = liabilityBank.getPrice(liabilityPriceInfo, PriceBias.None);
     const liabMaintWeight = liabilityBank.config.liabilityWeightMaint;
 
-    debug("h: %d, w_a: %d, w_l: %d, d: %d", currentHealth.toFixed(6), assetMaintWeight, liabMaintWeight, liquidationDiscount);
+    debug(
+      "h: %d, w_a: %d, w_l: %d, d: %d",
+      currentHealth.toFixed(6),
+      assetMaintWeight,
+      liabMaintWeight,
+      liquidationDiscount
+    );
 
-    const underwaterMaintUsdValue = currentHealth.div(assetMaintWeight.minus(liabMaintWeight.times(liquidationDiscount)));
+    const underwaterMaintUsdValue = currentHealth.div(
+      assetMaintWeight.minus(liabMaintWeight.times(liquidationDiscount))
+    );
 
     debug("Underwater maint usd to adjust: $%d", underwaterMaintUsdValue.toFixed(6));
 
@@ -445,13 +474,15 @@ class MarginfiAccount {
     const liabilitiesAmountUi = liabilityBalance.computeQuantityUi(liabilityBank).liabilities;
     const liabUsdValue = liabilitiesAmountUi.times(liquidationDiscount).times(priceLiabHighest);
 
-    debug("Collateral amount: %d, price: %d, value: %d",
+    debug(
+      "Collateral amount: %d, price: %d, value: %d",
       assetsAmountUi.toFixed(6),
       priceAssetMarket.toFixed(6),
       assetsUsdValue.times(priceAssetMarket).toFixed(6)
     );
 
-    debug("Liab amount: %d, price: %d, value: %d",
+    debug(
+      "Liab amount: %d, price: %d, value: %d",
       liabilitiesAmountUi.toFixed(6),
       priceLiabMarket.toFixed(6),
       liabUsdValue.toFixed(6)
