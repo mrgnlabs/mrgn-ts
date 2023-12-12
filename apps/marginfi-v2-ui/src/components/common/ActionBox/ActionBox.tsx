@@ -1,8 +1,7 @@
 import React, { FC, useEffect } from "react";
 
-import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, numeralFormatter, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { WSOL_MINT, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { MarginfiActionParams, closeBalance, cn, executeLendingAction, isWholePosition, usePrevious } from "~/utils";
@@ -15,7 +14,7 @@ import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 
 import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import { IconWallet } from "~/components/ui/icons";
+import { IconArrowRight, IconInfoCircle, IconWallet } from "~/components/ui/icons";
 
 import { ActionBoxActions } from "./ActionBoxActions";
 import { MarginRequirementType, MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
@@ -410,6 +409,11 @@ const ActionPreview: FC<{
 }> = ({ marginfiAccount, healthColorLiquidation, selectedBank, actionAmount, actionMode }) => {
   const [preview, setPreview] = React.useState<ActionPreview | null>(null);
 
+  const showLending = React.useMemo(
+    () => actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw,
+    [actionMode]
+  );
+
   useEffect(() => {
     const computePreview = async () => {
       if (!marginfiAccount || !selectedBank || !actionAmount) {
@@ -475,6 +479,16 @@ const ActionPreview: FC<{
   return (
     <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
       <>
+        <dt>{`Your ${showLending ? "deposited" : "borrowed"} amount`}</dt>
+        <dd className={cn(`text-[white] font-medium text-right`)}>
+          {(showLending ? selectedToken?.position?.isLending : !selectedToken?.position?.isLending)
+            ? selectedToken.position.amount < 0.01
+              ? "< $0.01"
+              : numeralFormatter(selectedToken.position.amount) ?? 0
+            : 0}
+        </dd>
+      </>
+      <>
         <dt>Health</dt>
         <dd className={cn(`text-[white] font-medium text-right`)}>
           {preview ? percentFormatter.format(preview.health) : "-"}
@@ -482,8 +496,19 @@ const ActionPreview: FC<{
       </>
       {(actionMode === ActionType.Borrow || isBorrowing) && (
         <>
-          <dt>Liquidation price</dt>
-          <dd className={cn(`text-[${healthColorLiquidation}] font-medium text-right`)}>
+          <dt className="flex gap-2">
+            Liquidation price <IconInfoCircle size={16} />
+          </dt>
+          <dd
+            className={cn(
+              `text-[${healthColorLiquidation}] flex justify-end font-medium text-right items-center gap-2`
+            )}
+          >
+            {selectedToken?.position?.liquidationPrice &&
+              (selectedToken.position.liquidationPrice > 0.01
+                ? usdFormatter.format(selectedToken.position.liquidationPrice)
+                : `$${selectedToken.position.liquidationPrice.toExponential(2)}`)}
+            {selectedToken?.position?.liquidationPrice && <IconArrowRight width={12} height={12} />}
             {preview && preview.liquidationPrice ? numeralFormatter(preview.liquidationPrice) : "-"}
           </dd>
         </>
