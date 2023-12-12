@@ -540,7 +540,7 @@ const AssetRow: FC<{
 
         <TableCell className="text-white border-none font-aeonik py-1.5 px-0">
           <Tooltip
-            title={marginfiAccount === null ? "User account while be automatically created on first deposit" : ""}
+            title={marginfiAccount === null ? "User account will be automatically created on first deposit" : ""}
             placement="top"
           >
             <div className="h-full w-full flex justify-end items-center xl:ml-0 pl-2 sm:px-2">
