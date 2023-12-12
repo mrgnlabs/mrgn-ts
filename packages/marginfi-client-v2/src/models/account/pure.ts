@@ -342,6 +342,7 @@ class MarginfiAccount {
     );
     const { assets: assetQuantityUi, liabilities: liabQuantitiesUi } = balance.computeQuantityUi(bank);
 
+    let liquidationPrice: BigNumber;
     if (isLending) {
       if (liabilities.eq(0)) return null;
 
@@ -349,16 +350,16 @@ class MarginfiAccount {
       const priceConfidence = bank
         .getPrice(priceInfo, PriceBias.None)
         .minus(bank.getPrice(priceInfo, PriceBias.Lowest));
-      const liquidationPrice = liabilities.minus(assets).div(assetQuantityUi.times(assetWeight)).plus(priceConfidence);
-      return liquidationPrice.toNumber();
+      liquidationPrice = liabilities.minus(assets).div(assetQuantityUi.times(assetWeight)).plus(priceConfidence);
     } else {
       const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
       const priceConfidence = bank
         .getPrice(priceInfo, PriceBias.Highest)
         .minus(bank.getPrice(priceInfo, PriceBias.None));
-      const liquidationPrice = assets.minus(liabilities).div(liabQuantitiesUi.times(liabWeight)).minus(priceConfidence);
-      return liquidationPrice.toNumber();
+      liquidationPrice = assets.minus(liabilities).div(liabQuantitiesUi.times(liabWeight)).minus(priceConfidence);
     }
+    if (liquidationPrice.isNaN() || liquidationPrice.lt(0)) return null;
+    return liquidationPrice.toNumber();
   }
 
   /**
@@ -388,6 +389,7 @@ class MarginfiAccount {
     );
     const amountBn = new BigNumber(amount);
 
+    let liquidationPrice: BigNumber;
     if (isLending) {
       if (liabilities.eq(0)) return null;
 
@@ -395,16 +397,16 @@ class MarginfiAccount {
       const priceConfidence = bank
         .getPrice(priceInfo, PriceBias.None)
         .minus(bank.getPrice(priceInfo, PriceBias.Lowest));
-      const liquidationPrice = liabilities.minus(assets).div(amountBn.times(assetWeight)).plus(priceConfidence);
-      return liquidationPrice.toNumber();
+      liquidationPrice = liabilities.minus(assets).div(amountBn.times(assetWeight)).plus(priceConfidence);
     } else {
       const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
       const priceConfidence = bank
         .getPrice(priceInfo, PriceBias.Highest)
         .minus(bank.getPrice(priceInfo, PriceBias.None));
-      const liquidationPrice = assets.minus(liabilities).div(amountBn.times(liabWeight)).minus(priceConfidence);
-      return liquidationPrice.toNumber();
+      liquidationPrice = assets.minus(liabilities).div(amountBn.times(liabWeight)).minus(priceConfidence);
     }
+    if (liquidationPrice.isNaN() || liquidationPrice.lt(0)) return null;
+    return liquidationPrice.toNumber();
   }
 
   // Calculate the max amount of collateral to liquidate to bring an account maint health to 0 (assuming negative health).
