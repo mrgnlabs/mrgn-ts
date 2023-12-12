@@ -21,14 +21,15 @@ import { ActionBoxActions } from "./ActionBoxActions";
 import { Bank, MarginRequirementType, MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 export const ActionBox = () => {
-  const [mfiClient, nativeSolBalance, setIsRefreshingStore, fetchMrgnlendState, selectedAccount, accountSummary] =
+  const [mfiClient, nativeSolBalance, setIsRefreshingStore, fetchMrgnlendState, selectedAccount, extendedBankInfos, isInitialized] =
     useMrgnlendStore((state) => [
       state.marginfiClient,
       state.nativeSolBalance,
       state.setIsRefreshingStore,
       state.fetchMrgnlendState,
       state.selectedAccount,
-      state.accountSummary,
+      state.extendedBankInfos,
+      state.initialized,
     ]);
   const [lendingMode, setLendingMode, actionMode, setActionMode, selectedToken, setSelectedToken] = useUiStore(
     (state) => [
@@ -55,19 +56,27 @@ export const ActionBox = () => {
   const isDust = React.useMemo(() => selectedToken?.isActive && selectedToken?.position.isDust, [selectedToken]);
   const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
   const maxAmount = React.useMemo(() => {
+    if (!selectedToken || !isInitialized) {
+      return 0;
+    }
+    const relevantBank = extendedBankInfos.find((bank) => bank.address.equals(selectedToken?.address));
+    if (!relevantBank) {
+      return 0;
+    }
+
     switch (actionMode) {
       case ActionType.Deposit:
-        return selectedToken?.userInfo.maxDeposit ?? 0;
+        return relevantBank.userInfo.maxDeposit;
       case ActionType.Withdraw:
-        return selectedToken?.userInfo.maxWithdraw ?? 0;
+        return relevantBank.userInfo.maxWithdraw;
       case ActionType.Borrow:
-        return selectedToken?.userInfo.maxBorrow ?? 0;
+        return relevantBank.userInfo.maxBorrow;
       case ActionType.Repay:
-        return selectedToken?.userInfo.maxRepay ?? 0;
+        return relevantBank.userInfo.maxRepay;
       default:
         return 0;
     }
-  }, [selectedToken, actionMode]);
+  }, [selectedToken, actionMode, extendedBankInfos, isInitialized]);
   const isInputDisabled = React.useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
   const walletAmount = React.useMemo(
     () =>
@@ -384,11 +393,11 @@ const ActionPreview: FC<{
         if (actionMode === ActionType.Deposit) {
           simulationResult = await marginfiAccount.simulateDeposit(actionAmount, selectedToken.address);
         } else if (actionMode === ActionType.Withdraw) {
-          throw new Error("Not implemented");
+          simulationResult = await marginfiAccount.simulateWithdraw(actionAmount, selectedToken.address);
         } else if (actionMode === ActionType.Borrow) {
-          throw new Error("Not implemented");
+          simulationResult = await marginfiAccount.simulateBorrow(actionAmount, selectedToken.address);
         } else if (actionMode === ActionType.Repay) {
-          throw new Error("Not implemented");
+          simulationResult = await marginfiAccount.simulateRepay(actionAmount, selectedToken.address);
         } else {
           throw new Error("Unknown action mode");
         }

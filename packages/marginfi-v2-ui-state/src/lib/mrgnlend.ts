@@ -117,7 +117,9 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
     emissionsRate,
     emissions,
     totalDeposits,
+    depositCap: nativeToUi(bank.config.depositLimit, bank.mintDecimals),
     totalBorrows,
+    borrowCap: nativeToUi(bank.config.borrowLimit, bank.mintDecimals),
     availableLiquidity: liquidity,
     utilizationRate,
     isIsolated: bank.config.riskTier === RiskTier.Isolated,
@@ -308,15 +310,23 @@ function makeExtendedBankInfo(
       : userData.tokenAccount.balance,
     bankInfo.mintDecimals
   );
-  const maxBorrow = userData.marginfiAccount
-    ? floor(
-        Math.min(
-          userData.marginfiAccount.computeMaxBorrowForBank(bank.address).toNumber() * VOLATILITY_FACTOR,
-          bankInfo.availableLiquidity
-        ),
-        bankInfo.mintDecimals
-      )
-    : 0;
+
+  const { depositCapacity: depositCapacityBN, borrowCapacity: borrowCapacityBN } = bank.computeRemainingCapacity();
+  const depositCapacity = nativeToUi(depositCapacityBN, bankInfo.mintDecimals);
+  const borrowCapacity = nativeToUi(borrowCapacityBN, bankInfo.mintDecimals);
+
+  let maxDeposit = floor(Math.max(0, Math.min(walletBalance, depositCapacity)), bankInfo.mintDecimals);
+
+  let maxBorrow = 0;
+  if (userData.marginfiAccount) {
+    const borrowPower = userData.marginfiAccount
+      .computeMaxBorrowForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR })
+      .toNumber();
+    maxBorrow = floor(
+      Math.max(0, Math.min(borrowPower, borrowCapacity, bankInfo.availableLiquidity)),
+      bankInfo.mintDecimals
+    );
+  }
 
   const positionRaw =
     userData.marginfiAccount &&
@@ -324,7 +334,7 @@ function makeExtendedBankInfo(
   if (!positionRaw) {
     const userInfo = {
       tokenAccount: userData.tokenAccount,
-      maxDeposit: walletBalance,
+      maxDeposit,
       maxRepay: 0,
       maxWithdraw: 0,
       maxBorrow,
@@ -361,7 +371,7 @@ function makeExtendedBankInfo(
 
   const userInfo = {
     tokenAccount: userData.tokenAccount,
-    maxDeposit: walletBalance,
+    maxDeposit,
     maxRepay,
     maxWithdraw,
     maxBorrow,
@@ -549,7 +559,9 @@ interface BankState {
   emissionsRate: number;
   emissions: Emissions;
   totalDeposits: number;
+  depositCap: number;
   totalBorrows: number;
+  borrowCap: number;
   availableLiquidity: number;
   utilizationRate: number;
   isIsolated: boolean;
