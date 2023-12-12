@@ -143,8 +143,13 @@ class MarginfiAccountWrapper {
     );
   }
 
-  public computeMaxBorrowForBank(bankAddress: PublicKey): BigNumber {
-    return this._marginfiAccount.computeMaxBorrowForBank(this.client.banks, this.client.oraclePrices, bankAddress);
+  public computeMaxBorrowForBank(bankAddress: PublicKey, opts?: { volatilityFactor?: number }): BigNumber {
+    return this._marginfiAccount.computeMaxBorrowForBank(
+      this.client.banks,
+      this.client.oraclePrices,
+      bankAddress,
+      opts
+    );
   }
 
   public computeMaxWithdrawForBank(bankAddress: PublicKey, opts?: { volatilityFactor?: number }): BigNumber {
@@ -165,10 +170,12 @@ class MarginfiAccountWrapper {
     );
   }
 
-  public computeLiquidationPriceForBank(
-    bankAddress: PublicKey,
-  ): number | null {
-    return this._marginfiAccount.computeLiquidationPriceForBank(this.client.banks, this.client.oraclePrices, bankAddress);
+  public computeLiquidationPriceForBank(bankAddress: PublicKey): number | null {
+    return this._marginfiAccount.computeLiquidationPriceForBank(
+      this.client.banks,
+      this.client.oraclePrices,
+      bankAddress
+    );
   }
 
   public computeLiquidationPriceForBankAmount(
@@ -176,9 +183,14 @@ class MarginfiAccountWrapper {
     isLending: boolean,
     amount: number
   ): number | null {
-    return this._marginfiAccount.computeLiquidationPriceForBankAmount(this.client.banks, this.client.oraclePrices, bankAddress, isLending, amount);
+    return this._marginfiAccount.computeLiquidationPriceForBankAmount(
+      this.client.banks,
+      this.client.oraclePrices,
+      bankAddress,
+      isLending,
+      amount
+    );
   }
-
 
   public computeNetApy(): number {
     return this._marginfiAccount.computeNetApy(this.client.banks, this.client.oraclePrices);
@@ -223,9 +235,10 @@ class MarginfiAccountWrapper {
       previewClient,
       mfiAccountData
     );
-    return { 
+    return {
       banks: previewBanks,
-      marginfiAccount: previewMarginfiAccount };
+      marginfiAccount: previewMarginfiAccount,
+    };
   }
 
   async makeRepayIx(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<InstructionsWrapper> {
@@ -241,6 +254,33 @@ class MarginfiAccountWrapper {
     debug("Depositing successful %s", sig);
 
     return sig;
+  }
+
+  async simulateRepay(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
+    const ixs = await this.makeRepayIx(amount, bankAddress);
+    const tx = new Transaction().add(...ixs.instructions);
+    const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
+    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay");
+    const previewBanks = this.client.banks;
+    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData));
+    const previewClient = new MarginfiClient(
+      this._config,
+      this.client.program,
+      {} as Wallet,
+      true,
+      this.client.group,
+      this.client.banks,
+      this.client.oraclePrices
+    );
+    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+      this.address,
+      previewClient,
+      mfiAccountData
+    );
+    return {
+      banks: previewBanks,
+      marginfiAccount: previewMarginfiAccount,
+    };
   }
 
   async makeWithdrawIx(
@@ -261,6 +301,33 @@ class MarginfiAccountWrapper {
     return sig;
   }
 
+  async simulateWithdraw(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
+    const ixs = await this.makeWithdrawIx(amount, bankAddress);
+    const tx = new Transaction().add(...ixs.instructions);
+    const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
+    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate withdraw");
+    const previewBanks = this.client.banks;
+    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData));
+    const previewClient = new MarginfiClient(
+      this._config,
+      this.client.program,
+      {} as Wallet,
+      true,
+      this.client.group,
+      this.client.banks,
+      this.client.oraclePrices
+    );
+    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+      this.address,
+      previewClient,
+      mfiAccountData
+    );
+    return {
+      banks: previewBanks,
+      marginfiAccount: previewMarginfiAccount,
+    };
+  }
+
   async makeBorrowIx(
     amount: Amount,
     bankAddress: PublicKey,
@@ -277,6 +344,33 @@ class MarginfiAccountWrapper {
     const sig = await this.client.processTransaction(tx, []);
     debug("Borrowing successful %s", sig);
     return sig;
+  }
+
+  async simulateBorrow(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
+    const ixs = await this.makeBorrowIx(amount, bankAddress);
+    const tx = new Transaction().add(...ixs.instructions);
+    const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
+    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate borrow");
+    const previewBanks = this.client.banks;
+    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData));
+    const previewClient = new MarginfiClient(
+      this._config,
+      this.client.program,
+      {} as Wallet,
+      true,
+      this.client.group,
+      this.client.banks,
+      this.client.oraclePrices
+    );
+    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+      this.address,
+      previewClient,
+      mfiAccountData
+    );
+    return {
+      banks: previewBanks,
+      marginfiAccount: previewMarginfiAccount,
+    };
   }
 
   async makeWithdrawEmissionsIx(bankAddress: PublicKey): Promise<InstructionsWrapper> {
