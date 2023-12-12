@@ -169,7 +169,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
           {!hasTokens && (
             <>
               <div className="text-sm text-[#C0BFBF] font-normal p-3">
-                You don't own any supported tokens in marginfi. Check out what marginfi supports.
+                You don&apos;t own any supported tokens in marginfi. Check out what marginfi supports.
               </div>
               <Button variant="outline" className="w-fit mx-auto mb-3" onClick={() => setIsWalletOpen(true)}>
                 <>
