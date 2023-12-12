@@ -17,7 +17,7 @@ import { PageHeader } from "~/components/common/PageHeader";
 
 import { IconAlertTriangle } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
-import { showErrorToast } from "~/utils/toastUtils";
+import { showErrorToast, showWarningToast } from "~/utils/toastUtils";
 
 const DesktopAccountSummary = dynamic(
   async () => (await import("~/components/desktop/DesktopAccountSummary")).DesktopAccountSummary,
@@ -55,7 +55,7 @@ const Home = () => {
 
   React.useEffect(() => {
     if (emissionTokenMap === null) {
-      showErrorToast("Failed to fetch prices, emission APY may be incorrect.");
+      showWarningToast("Failed to fetch prices, emission APY may be incorrect.");
     }
   }, [emissionTokenMap]);
 
