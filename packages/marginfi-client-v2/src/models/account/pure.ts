@@ -305,7 +305,10 @@ class MarginfiAccount {
     }
 
     // apply volatility factor to avoid failure due to price volatility / slippage
-    const initUntiedCollateralForBank = freeCollateral.times(_volatilityFactor);
+    // initCollateralForBank > freeCollateral, so volatilityBuffer > 0
+    const volatilityBuffer = (initCollateralForBank.minus(freeCollateral)).times(1 - _volatilityFactor);
+    const initUntiedCollateralForBank = freeCollateral.minus(volatilityBuffer);
+
     const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
     const initWeightedPrice = priceLowestBias.times(initAssetWeight);
     const maxWithdraw = initUntiedCollateralForBank.div(initWeightedPrice);
