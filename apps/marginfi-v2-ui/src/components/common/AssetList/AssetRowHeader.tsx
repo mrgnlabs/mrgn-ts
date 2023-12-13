@@ -22,7 +22,7 @@ export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, is
         <div className="h-full w-full flex items-center">Asset</div>
       </TableCell>
       <TableCell
-        className="text-[#A1A1A1] text-base border-none px-2 hidden lg:table-cell"
+        className="text-[#A1A1A1] text-base border-none px-2 table-cell"
         style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
         align="right"
       >
@@ -183,7 +183,7 @@ export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, is
       {/*******************************/}
 
       <TableCell
-        className="text-[#A1A1A1] text-base border-none px-2 hidden lg:table-cell"
+        className="text-[#A1A1A1] text-base border-none px-2 table-cell"
         style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
         align="right"
       >

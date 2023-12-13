@@ -184,8 +184,8 @@ const AssetsList = () => {
               <TableContainer>
                 {poolFilter !== "isolated" && (
                   <>
-                    <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 pb-2 gap-1">
-                      Global <span className="hidden lg:block">pool</span>
+                    <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 mt-4 pb-2 gap-1">
+                      Global <span className="block">pool</span>
                     </div>
                     <Table
                       className="table-fixed"
