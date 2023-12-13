@@ -214,7 +214,7 @@ export const ActionBoxTokens = ({ currentTokenBank, setCurrentTokenBank }: Actio
             {lendingMode === LendingModes.LEND && connected && filteredBanksUserOwns.length > 0 && (
               <CommandGroup heading="Available in your wallet">
                 {filteredBanksUserOwns.slice(0, searchQuery.length === 0 ? 5 : 3).map((bank, index) => {
-                  if (isActiveBank(bank.address)) return null;
+                  if (searchQuery.length > 0 && isActiveBank(bank.address)) return null;
                   return (
                     <CommandItem
                       key={index}
@@ -241,7 +241,7 @@ export const ActionBoxTokens = ({ currentTokenBank, setCurrentTokenBank }: Actio
                 })}
               </CommandGroup>
             )}
-            {searchQuery.length > 0 && filteredBanksActiveBorrowing.length > 0 && (
+            {searchQuery.length > 0 && filteredBanksActiveBorrowing.length > 0 && lendingMode !== LendingModes.LEND && (
               <CommandGroup heading="Currently borrowing">
                 {filteredBanksActiveBorrowing.map((bank, index) => (
                   <CommandItem
@@ -254,10 +254,7 @@ export const ActionBoxTokens = ({ currentTokenBank, setCurrentTokenBank }: Actio
                       );
                       setIsTokenPopoverOpen(false);
                     }}
-                    className={cn(
-                      "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
-                      lendingMode === LendingModes.LEND && "py-2"
-                    )}
+                    className="cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
                   >
                     <ActionBoxItem
                       rate={calculateRate(bank)}
@@ -270,7 +267,7 @@ export const ActionBoxTokens = ({ currentTokenBank, setCurrentTokenBank }: Actio
                 ))}
               </CommandGroup>
             )}
-            {searchQuery.length > 0 && filteredBanksActiveLending.length > 0 && (
+            {searchQuery.length > 0 && filteredBanksActiveLending.length > 0 && lendingMode !== LendingModes.BORROW && (
               <CommandGroup heading="Currently supplying">
                 {filteredBanksActiveLending.map((bank, index) => (
                   <CommandItem
