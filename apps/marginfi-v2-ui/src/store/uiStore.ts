@@ -1,8 +1,9 @@
 import { create, StateCreator } from "zustand";
 
-import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, UserMode } from "~/types";
+import { PublicKey } from "@solana/web3.js";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {
@@ -46,7 +47,7 @@ interface UiState {
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
   userMode: UserMode;
-  selectedToken: ExtendedBankInfo | null;
+  selectedTokenBank: PublicKey | null;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -60,7 +61,7 @@ interface UiState {
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
   setUserMode: (userMode: UserMode) => void;
-  setSelectedToken: (selectedToken: ExtendedBankInfo | null) => void;
+  setSelectedTokenBank: (selectedTokenBank: PublicKey | null) => void;
 }
 
 function createUiStore() {
@@ -80,7 +81,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   poolFilter: PoolTypes.ALL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
   userMode: UserMode.LITE,
-  selectedToken: null,
+  selectedTokenBank: null,
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -99,7 +100,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setUserMode: (userMode: UserMode) => set({ userMode: userMode }),
-  setSelectedToken: (selectedToken: ExtendedBankInfo | null) => set({ selectedToken: selectedToken }),
+  setSelectedTokenBank: (selectedTokenBank: PublicKey | null) => set({ selectedTokenBank: selectedTokenBank }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };

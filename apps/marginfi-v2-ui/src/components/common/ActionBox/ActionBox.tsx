@@ -5,7 +5,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WSOL_MINT, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { MarginfiActionParams, closeBalance, cn, executeLendingAction, isWholePosition } from "~/utils";
+import { MarginfiActionParams, closeBalance, cn, executeLendingAction, isWholePosition, usePrevious } from "~/utils";
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -18,27 +18,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { IconWallet } from "~/components/ui/icons";
 
 import { ActionBoxActions } from "./ActionBoxActions";
-import { Bank, MarginRequirementType, MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { MarginRequirementType, MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 export const ActionBox = () => {
-  const [mfiClient, nativeSolBalance, setIsRefreshingStore, fetchMrgnlendState, selectedAccount, extendedBankInfos, isInitialized] =
-    useMrgnlendStore((state) => [
-      state.marginfiClient,
-      state.nativeSolBalance,
-      state.setIsRefreshingStore,
-      state.fetchMrgnlendState,
-      state.selectedAccount,
-      state.extendedBankInfos,
-      state.initialized,
-    ]);
-  const [lendingMode, setLendingMode, actionMode, setActionMode, selectedToken, setSelectedToken] = useUiStore(
+  const [
+    mfiClient,
+    nativeSolBalance,
+    setIsRefreshingStore,
+    fetchMrgnlendState,
+    selectedAccount,
+    extendedBankInfos,
+    isInitialized,
+  ] = useMrgnlendStore((state) => [
+    state.marginfiClient,
+    state.nativeSolBalance,
+    state.setIsRefreshingStore,
+    state.fetchMrgnlendState,
+    state.selectedAccount,
+    state.extendedBankInfos,
+    state.initialized,
+  ]);
+  const [lendingMode, setLendingMode, actionMode, setActionMode, selectedTokenBank, setSelectedTokenBank] = useUiStore(
     (state) => [
       state.lendingMode,
       state.setLendingMode,
       state.actionMode,
       state.setActionMode,
-      state.selectedToken,
-      state.setSelectedToken,
+      state.selectedTokenBank,
+      state.setSelectedTokenBank,
     ]
   );
 
@@ -53,75 +60,93 @@ export const ActionBox = () => {
   const [amount, setAmount] = React.useState<number | null>(null);
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
-  const isDust = React.useMemo(() => selectedToken?.isActive && selectedToken?.position.isDust, [selectedToken]);
+  const selectedBank = React.useMemo(
+    () => (selectedTokenBank ? extendedBankInfos.find((bank) => bank.address.equals(selectedTokenBank)) ?? null : null),
+    [extendedBankInfos, selectedTokenBank]
+  );
+  const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
   const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
   const maxAmount = React.useMemo(() => {
-    if (!selectedToken || !isInitialized) {
-      return 0;
-    }
-    const relevantBank = extendedBankInfos.find((bank) => bank.address.equals(selectedToken?.address));
-    if (!relevantBank) {
+    if (!selectedBank || !isInitialized) {
       return 0;
     }
 
     switch (actionMode) {
       case ActionType.Deposit:
-        return relevantBank.userInfo.maxDeposit;
+        return selectedBank.userInfo.maxDeposit;
       case ActionType.Withdraw:
-        return relevantBank.userInfo.maxWithdraw;
+        return selectedBank.userInfo.maxWithdraw;
       case ActionType.Borrow:
-        return relevantBank.userInfo.maxBorrow;
+        return selectedBank.userInfo.maxBorrow;
       case ActionType.Repay:
-        return relevantBank.userInfo.maxRepay;
+        return selectedBank.userInfo.maxRepay;
       default:
         return 0;
     }
-  }, [selectedToken, actionMode, extendedBankInfos, isInitialized]);
+  }, [selectedBank, actionMode, isInitialized]);
   const isInputDisabled = React.useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
   const walletAmount = React.useMemo(
     () =>
-      selectedToken?.info.state.mint?.equals && selectedToken?.info.state.mint?.equals(WSOL_MINT)
-        ? selectedToken?.userInfo.tokenAccount.balance + nativeSolBalance
-        : selectedToken?.userInfo.tokenAccount.balance,
-    [selectedToken]
+      selectedBank?.info.state.mint?.equals && selectedBank?.info.state.mint?.equals(WSOL_MINT)
+        ? selectedBank?.userInfo.tokenAccount.balance + nativeSolBalance
+        : selectedBank?.userInfo.tokenAccount.balance,
+    [nativeSolBalance, selectedBank]
   );
   const hasActivePosition = React.useMemo(
     () =>
-      selectedToken?.isActive &&
-      ((selectedToken.position.isLending && lendingMode === LendingModes.LEND) ||
-        (!selectedToken.position.isLending && lendingMode === LendingModes.BORROW)),
-    [selectedToken, lendingMode]
+      selectedBank?.isActive &&
+      ((selectedBank.position.isLending && lendingMode === LendingModes.LEND) ||
+        (!selectedBank.position.isLending && lendingMode === LendingModes.BORROW)),
+    [selectedBank, lendingMode]
   );
+
+  const actionModePrev = usePrevious(actionMode);
+  React.useEffect(() => {
+    if (actionModePrev !== null && actionModePrev !== actionMode) {
+      console.log("resetting amount due to actionMode", actionMode);
+      setAmount(0);
+    }
+  }, [actionModePrev, actionMode]);
 
   React.useEffect(() => {
     setAmount(0);
-  }, [lendingMode, selectedToken]);
+  }, [lendingMode, selectedTokenBank]);
+
+  React.useEffect(() => {
+    if (hasActivePosition) return;
+
+    if (actionMode === ActionType.Withdraw) {
+      setActionMode(ActionType.Deposit);
+    } else if (actionMode === ActionType.Repay) {
+      setActionMode(ActionType.Borrow);
+    }
+  }, [hasActivePosition, actionMode, setActionMode]);
 
   const liquidationPrice = React.useMemo(() => {
-    const isActive = selectedToken?.isActive;
+    const isActive = selectedBank?.isActive;
     const isLending = lendingMode === LendingModes.LEND;
     let liquidationPrice = 0;
 
     if (isActive) {
-      if (!amount || amount === 0 || isLending || !selectedAccount || !selectedToken) {
-        liquidationPrice = selectedToken?.position.liquidationPrice ?? 0;
+      if (!amount || amount === 0 || isLending || !selectedAccount || !selectedBank) {
+        liquidationPrice = selectedBank?.position.liquidationPrice ?? 0;
       } else {
-        const borrowed = selectedToken?.position.amount ?? 0;
+        const borrowed = selectedBank?.position.amount ?? 0;
 
         liquidationPrice =
-          selectedAccount.computeLiquidationPriceForBankAmount(selectedToken?.address, isLending, amount + borrowed) ??
+          selectedAccount.computeLiquidationPriceForBankAmount(selectedBank?.address, isLending, amount + borrowed) ??
           0;
       }
     }
 
     return liquidationPrice;
-  }, [selectedToken, amount, lendingMode]);
+  }, [selectedBank, lendingMode, amount, selectedAccount]);
 
   const healthColorLiquidation = React.useMemo(() => {
-    const isActive = selectedToken?.isActive;
+    const isActive = selectedBank?.isActive;
 
     if (isActive) {
-      const price = selectedToken.info.oraclePrice.price.toNumber();
+      const price = selectedBank.info.oraclePrice.price.toNumber();
       const safety = liquidationPrice / price;
       let color: string;
       if (safety >= 0.5) {
@@ -136,13 +161,13 @@ export const ActionBox = () => {
     } else {
       return "#fff";
     }
-  }, [selectedToken, liquidationPrice]);
+  }, [selectedBank, liquidationPrice]);
 
-  React.useEffect(() => {
-    if (!selectedToken || !amountInputRef.current) return;
-    setAmount(0);
-    amountInputRef.current.focus();
-  }, [selectedToken, setAmount]);
+  // React.useEffect(() => {
+  //   if (!selectedBank || !amountInputRef.current) return;
+  //   setAmount(0);
+  //   amountInputRef.current.focus();
+  // }, [selectedBank, setAmount]);
 
   const executeLendingActionCb = React.useCallback(
     async ({
@@ -182,10 +207,10 @@ export const ActionBox = () => {
 
   const handleCloseBalance = React.useCallback(async () => {
     try {
-      if (!selectedToken || !selectedAccount) {
+      if (!selectedBank || !selectedAccount) {
         throw new Error();
       }
-      await closeBalance({ marginfiAccount: selectedAccount, bank: selectedToken });
+      await closeBalance({ marginfiAccount: selectedAccount, bank: selectedBank });
     } catch (error) {
       return;
     }
@@ -199,10 +224,10 @@ export const ActionBox = () => {
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [selectedToken, selectedAccount, fetchMrgnlendState, setIsRefreshingStore]);
+  }, [selectedBank, selectedAccount, fetchMrgnlendState, setIsRefreshingStore]);
 
   const handleLendingAction = React.useCallback(async () => {
-    if (!actionMode || !selectedToken || !selectedAccount || !amount) {
+    if (!actionMode || !selectedBank || !selectedAccount || !amount) {
       return;
     }
 
@@ -210,7 +235,7 @@ export const ActionBox = () => {
       executeLendingActionCb({
         mfiClient,
         actionType: actionMode,
-        bank: selectedToken,
+        bank: selectedBank,
         amount: amount,
         nativeSolBalance,
         marginfiAccount: selectedAccount,
@@ -220,11 +245,11 @@ export const ActionBox = () => {
 
     if (
       actionMode === ActionType.Deposit &&
-      (selectedToken.meta.tokenSymbol === "SOL" || selectedToken.meta.tokenSymbol === "stSOL") &&
-      !hasLSTDialogShown.includes(selectedToken.meta.tokenSymbol as LSTDialogVariants)
+      (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL") &&
+      !hasLSTDialogShown.includes(selectedBank.meta.tokenSymbol as LSTDialogVariants)
     ) {
-      setHasLSTDialogShown((prev) => [...prev, selectedToken.meta.tokenSymbol as LSTDialogVariants]);
-      setLSTDialogVariant(selectedToken.meta.tokenSymbol as LSTDialogVariants);
+      setHasLSTDialogShown((prev) => [...prev, selectedBank.meta.tokenSymbol as LSTDialogVariants]);
+      setLSTDialogVariant(selectedBank.meta.tokenSymbol as LSTDialogVariants);
       setIsLSTDialogOpen(true);
       setLSTDialogCallback(() => action);
 
@@ -235,21 +260,22 @@ export const ActionBox = () => {
 
     if (
       actionMode === ActionType.Withdraw &&
-      (selectedToken.meta.tokenSymbol === "SOL" || selectedToken.meta.tokenSymbol === "stSOL") &&
-      !hasLSTDialogShown.includes(selectedToken.meta.tokenSymbol as LSTDialogVariants)
+      (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL") &&
+      !hasLSTDialogShown.includes(selectedBank.meta.tokenSymbol as LSTDialogVariants)
     ) {
-      setHasLSTDialogShown((prev) => [...prev, selectedToken.meta.tokenSymbol as LSTDialogVariants]);
-      setLSTDialogVariant(selectedToken.meta.tokenSymbol as LSTDialogVariants);
+      setHasLSTDialogShown((prev) => [...prev, selectedBank.meta.tokenSymbol as LSTDialogVariants]);
+      setLSTDialogVariant(selectedBank.meta.tokenSymbol as LSTDialogVariants);
       return;
     }
   }, [
     actionMode,
-    selectedToken,
+    selectedBank,
+    selectedAccount,
+    amount,
+    hasLSTDialogShown,
     executeLendingActionCb,
     mfiClient,
-    amount,
     nativeSolBalance,
-    selectedAccount,
     walletContextState,
   ]);
 
@@ -303,7 +329,7 @@ export const ActionBox = () => {
             ) : (
               <p className="text-lg mb-3">You {lendingMode === LendingModes.LEND ? "supply" : "borrow"}</p>
             )}
-            {selectedToken && (
+            {selectedBank && (
               <div className="inline-flex gap-2 items-baseline">
                 <div className="h-3.5">
                   <IconWallet size={16} />
@@ -314,7 +340,7 @@ export const ActionBox = () => {
                     : walletAmount == 0
                     ? "0"
                     : "< 0.01"
-                  ).concat(" ", selectedToken?.meta.tokenSymbol)}
+                  ).concat(" ", selectedBank?.meta.tokenSymbol)}
                 </span>
                 <div onClick={() => setAmount(maxAmount)} className="text-base font-bold cursor-pointer">
                   MAX
@@ -323,7 +349,7 @@ export const ActionBox = () => {
             )}
           </div>
           <div className="bg-background text-3xl rounded-lg flex justify-between items-center p-4 font-medium mb-5">
-            <ActionBoxTokens currentToken={selectedToken} setCurrentToken={setSelectedToken} />
+            <ActionBoxTokens currentTokenBank={selectedTokenBank} setCurrentTokenBank={setSelectedTokenBank} />
             <Input
               type="number"
               ref={amountInputRef}
@@ -340,14 +366,15 @@ export const ActionBox = () => {
             showCloseBalance={showCloseBalance ?? false}
             handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
             isLoading={isLoading}
+            selectedBank={selectedBank}
+            actionMode={actionMode}
           />
           <ActionPreview
             marginfiAccount={selectedAccount}
             healthColorLiquidation={healthColorLiquidation}
-            selectedToken={selectedToken}
+            selectedBank={selectedBank}
             actionAmount={amount}
             actionMode={actionMode}
-            extendedBankInfos={extendedBankInfos}
           />
         </div>
       </div>
@@ -377,30 +404,36 @@ interface ActionPreview {
 const ActionPreview: FC<{
   marginfiAccount: MarginfiAccountWrapper | null;
   healthColorLiquidation: string;
-  selectedToken: ExtendedBankInfo | null;
+  selectedBank: ExtendedBankInfo | null;
   actionAmount: number | null;
   actionMode: ActionType;
-  extendedBankInfos: ExtendedBankInfo[];
-}> = ({ marginfiAccount, healthColorLiquidation, selectedToken, actionAmount, actionMode, extendedBankInfos }) => {
+}> = ({ marginfiAccount, healthColorLiquidation, selectedBank, actionAmount, actionMode }) => {
   const [preview, setPreview] = React.useState<ActionPreview | null>(null);
 
   useEffect(() => {
     const computePreview = async () => {
-      if (!marginfiAccount || !selectedToken || !actionAmount) {
+      if (!marginfiAccount || !selectedBank || !actionAmount) {
         return;
       }
 
-      const targetBank = extendedBankInfos.find((bank) => bank.address.equals(selectedToken?.address))!;
       try {
         let simulationResult: SimulationResult;
         if (actionMode === ActionType.Deposit) {
-          simulationResult = await marginfiAccount.simulateDeposit(actionAmount, selectedToken.address);
+          simulationResult = await marginfiAccount.simulateDeposit(actionAmount, selectedBank.address);
         } else if (actionMode === ActionType.Withdraw) {
-          simulationResult = await marginfiAccount.simulateWithdraw(actionAmount, selectedToken.address, targetBank.isActive && isWholePosition(targetBank, actionAmount));
+          simulationResult = await marginfiAccount.simulateWithdraw(
+            actionAmount,
+            selectedBank.address,
+            selectedBank.isActive && isWholePosition(selectedBank, actionAmount)
+          );
         } else if (actionMode === ActionType.Borrow) {
-          simulationResult = await marginfiAccount.simulateBorrow(actionAmount, selectedToken.address);
+          simulationResult = await marginfiAccount.simulateBorrow(actionAmount, selectedBank.address);
         } else if (actionMode === ActionType.Repay) {
-          simulationResult = await marginfiAccount.simulateRepay(actionAmount, selectedToken.address, targetBank.isActive && isWholePosition(targetBank, actionAmount));
+          simulationResult = await marginfiAccount.simulateRepay(
+            actionAmount,
+            selectedBank.address,
+            selectedBank.isActive && isWholePosition(selectedBank, actionAmount)
+          );
         } else {
           throw new Error("Unknown action mode");
         }
@@ -410,12 +443,12 @@ const ActionPreview: FC<{
         );
         const health = assets.minus(liabilities).dividedBy(assets).toNumber();
         const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBankAmount(
-          selectedToken.address,
+          selectedBank.address,
           actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw,
           actionAmount
         );
         const { lendingRate, borrowingRate } = simulationResult.banks
-          .get(selectedToken.address.toBase58())!
+          .get(selectedBank.address.toBase58())!
           .computeInterestRates();
         setPreview({
           health,
@@ -432,15 +465,13 @@ const ActionPreview: FC<{
     // TODO 1: debounce that call on actionAmount change
     // TODO 2: this effect seems to be called periodically (more frequently than full state refetch it seems)
     computePreview();
-  }, [actionAmount, actionMode, marginfiAccount, selectedToken]);
+  }, [actionAmount, actionMode, marginfiAccount, selectedBank]);
 
-  if (!selectedToken || !marginfiAccount || !actionAmount) {
+  if (!selectedBank || !marginfiAccount || !actionAmount) {
     return null;
   }
 
-  const isBorrowing = marginfiAccount.activeBalances.find(b => b.active && b.liabilityShares.gt(0)) !== undefined;
-  console.log("isBorrowing", isBorrowing)
-  console.log(actionMode === ActionType.Borrow)
+  const isBorrowing = marginfiAccount.activeBalances.find((b) => b.active && b.liabilityShares.gt(0)) !== undefined;
   return (
     <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
       <>
@@ -449,12 +480,14 @@ const ActionPreview: FC<{
           {preview ? percentFormatter.format(preview.health) : "-"}
         </dd>
       </>
-      {(actionMode === ActionType.Borrow || isBorrowing) && <>
-        <dt>Liquidation price</dt>
-        <dd className={cn(`text-[${healthColorLiquidation}] font-medium text-right`)}>
-          {preview && preview.liquidationPrice ? numeralFormatter(preview.liquidationPrice) : "-"}
-        </dd>
-      </>}
+      {(actionMode === ActionType.Borrow || isBorrowing) && (
+        <>
+          <dt>Liquidation price</dt>
+          <dd className={cn(`text-[${healthColorLiquidation}] font-medium text-right`)}>
+            {preview && preview.liquidationPrice ? numeralFormatter(preview.liquidationPrice) : "-"}
+          </dd>
+        </>
+      )}
       {actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw ? (
         <>
           <dt>Deposit rate</dt>
