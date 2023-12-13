@@ -6,7 +6,6 @@ import { useUiStore } from "~/store";
 import { LendingModes } from "~/types";
 
 import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { LSTDialogVariants } from "~/components/common/AssetList";
 
 import { AssetCardStats } from "./AssetCardStats";
 import { AssetCardActions } from "./AssetCardActions";

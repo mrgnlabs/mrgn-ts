@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore } from "~/store";
 
@@ -13,6 +13,8 @@ type ActionBoxActionsProps = {
   maxAmount: number;
   showCloseBalance: boolean;
   isLoading: boolean;
+  selectedBank: ExtendedBankInfo | null;
+  actionMode: ActionType;
   handleAction: () => void;
 };
 
@@ -21,21 +23,22 @@ export const ActionBoxActions = ({
   maxAmount,
   showCloseBalance,
   isLoading,
+  selectedBank,
+  actionMode,
   handleAction,
 }: ActionBoxActionsProps) => {
-  const [actionMode, selectedToken] = useUiStore((state) => [state.actionMode, state.selectedToken]);
   const { connected } = useWalletContext();
 
   const isActionDisabled = React.useMemo(() => {
     const isValidInput = amount > 0;
     return ((maxAmount === 0 || !isValidInput) && !showCloseBalance) || isLoading || !connected;
-  }, [amount, showCloseBalance, maxAmount, isLoading]);
+  }, [amount, maxAmount, showCloseBalance, isLoading, connected]);
 
   const actionText = React.useMemo(() => {
     if (!connected) {
       return "Connect your wallet";
     }
-    if (!selectedToken) {
+    if (!selectedBank) {
       return "Select token and amount";
     }
 
@@ -46,13 +49,13 @@ export const ActionBoxActions = ({
     if (maxAmount === 0) {
       switch (actionMode) {
         case ActionType.Deposit:
-          return `Insufficient ${selectedToken.meta.tokenSymbol} in wallet`;
+          return `Insufficient ${selectedBank.meta.tokenSymbol} in wallet`;
         case ActionType.Withdraw:
           return "Nothing to withdraw";
         case ActionType.Borrow:
           return "Deposit a collateral first (lend)";
         case ActionType.Repay:
-          return `Insufficient ${selectedToken.meta.tokenSymbol} in wallet for loan repayment`;
+          return `Insufficient ${selectedBank.meta.tokenSymbol} in wallet for loan repayment`;
         default:
           return "Invalid action";
       }
@@ -63,7 +66,7 @@ export const ActionBoxActions = ({
     }
 
     return actionMode;
-  }, [actionMode, amount, selectedToken, connected, maxAmount, showCloseBalance]);
+  }, [actionMode, amount, selectedBank, connected, maxAmount, showCloseBalance]);
 
   return (
     <Button disabled={isActionDisabled} className="w-full py-6" onClick={handleAction}>

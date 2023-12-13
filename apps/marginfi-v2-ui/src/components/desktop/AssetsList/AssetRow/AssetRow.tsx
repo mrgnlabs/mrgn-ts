@@ -74,7 +74,7 @@ const AssetRow: React.FC<{
   const [lendingMode, isFilteredUserPositions, setSelectedToken] = useUiStore((state) => [
     state.lendingMode,
     state.isFilteredUserPositions,
-    state.setSelectedToken,
+    state.setSelectedTokenBank,
   ]);
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
   const isMobile = useIsMobile();
@@ -395,7 +395,7 @@ const AssetRow: React.FC<{
           >
             <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
               <ActionBoxDialog>
-                <Button onClick={() => setSelectedToken(bank)} className="w-full">
+                <Button onClick={() => setSelectedToken(bank.address)} className="w-full">
                   {showCloseBalance ? "Close" : currentAction}
                 </Button>
               </ActionBoxDialog>
