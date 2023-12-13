@@ -185,6 +185,7 @@ export const ActionBoxTokens = ({ currentTokenBank, setCurrentTokenBank }: Actio
           <CommandInput
             placeholder="Search token..."
             className="h-12"
+            autoFocus={false}
             onValueChange={(value) => setSearchQuery(value)}
           />
           {!hasTokens && (
