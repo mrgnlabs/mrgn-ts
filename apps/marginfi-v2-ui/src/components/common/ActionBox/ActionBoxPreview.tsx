@@ -21,7 +21,7 @@ interface ActionPreview {
 
 interface ActionBoxPreviewProps {
   marginfiAccount: MarginfiAccountWrapper | null;
-  selectedBank: ExtendedBankInfo | null;
+  selectedBank: ExtendedBankInfo;
   actionAmount: number | null;
   actionMode: ActionType;
 }
@@ -38,7 +38,7 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
     [actionMode]
   );
 
-  const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({
+  const { isBankFilled, isBankHigh, bankCap } = useAssetItemData({
     bank: selectedBank,
     isInLendingMode: showLending,
   });
@@ -84,8 +84,8 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
   }, [selectedBank, preview]);
 
   const isReduceOnly = React.useMemo(
-    () => (selectedBank?.meta?.tokenSymbol ? REDUCE_ONLY_BANKS.includes(selectedBank.meta.tokenSymbol) : false),
-    [selectedBank.meta.tokenSymbol]
+    () => (selectedBank?.meta?.tokenSymbol ? REDUCE_ONLY_BANKS.includes(selectedBank?.meta.tokenSymbol) : false),
+    [selectedBank]
   );
 
   React.useEffect(() => {
@@ -148,21 +148,23 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
     computePreview();
   }, [actionAmount, actionMode, marginfiAccount, selectedBank]);
 
+  const isBorrowing = marginfiAccount?.activeBalances.find((b) => b.active && b.liabilityShares.gt(0)) !== undefined;
+
   if (!selectedBank || !marginfiAccount || !actionAmount) {
     return null;
   }
-
-  const isBorrowing = marginfiAccount.activeBalances.find((b) => b.active && b.liabilityShares.gt(0)) !== undefined;
 
   return (
     <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
       <>
         <dt>{`Your ${showLending ? "deposited" : "borrowed"} amount`}</dt>
         <dd className={cn(`text-[white] font-medium text-right`)}>
-          {(showLending ? selectedBank?.position?.isLending : !selectedBank?.position?.isLending)
-            ? selectedBank?.position?.amount < 0.01
-              ? "< $0.01"
-              : numeralFormatter(selectedBank?.position?.amount ?? 0)
+          {selectedBank.isActive
+            ? (showLending ? selectedBank?.position?.isLending : !selectedBank?.position?.isLending)
+              ? selectedBank?.position?.amount < 0.01
+                ? "< $0.01"
+                : numeralFormatter(selectedBank?.position?.amount ?? 0)
+              : 0
             : 0}
         </dd>
       </>
@@ -211,10 +213,13 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
               `text-[${healthColorLiquidation}] flex justify-end font-medium text-right items-center gap-2`
             )}
           >
-            {selectedBank?.position?.liquidationPrice &&
+            {selectedBank.isActive &&
+              selectedBank?.position?.liquidationPrice &&
               selectedBank.position.liquidationPrice > 0.01 &&
               numeralFormatter(selectedBank.position.liquidationPrice)}
-            {selectedBank?.position?.liquidationPrice && <IconArrowRight width={12} height={12} />}
+            {selectedBank.isActive && selectedBank?.position?.liquidationPrice && (
+              <IconArrowRight width={12} height={12} />
+            )}
             {preview?.liquidationPrice ? numeralFormatter(preview.liquidationPrice) : "-"}
           </dd>
         </>
