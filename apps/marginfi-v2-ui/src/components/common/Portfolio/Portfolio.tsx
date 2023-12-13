@@ -92,14 +92,14 @@ export const Portfolio = () => {
     }
   }, [accountSummary.healthFactor]);
   return (
-    <div className="bg-background-gray-dark p-6 rounded-xl space-y-3 w-full mb-10">
-      <h2 className="font-medium text-3xl">Portfolio</h2>
+    <div className="bg-background-gray-dark p-4 md:p-6 rounded-xl space-y-3 w-full mb-10">
+      <h2 className="font-medium text-2xl md:text-3xl">Portfolio</h2>
       <div className="text-muted-foreground">
         <dl className="flex justify-between items-center gap-2">
           <dt className="flex items-center gap-1.5 text-sm">
             Health factor <IconInfoCircle size={16} />
           </dt>
-          <dd className="text-2xl font-bold" style={{ color: healthColor }}>
+          <dd className="text-xl md:text-2xl font-bold" style={{ color: healthColor }}>
             {numeralFormatter(accountSummary.healthFactor * 100)}%
           </dd>
         </dl>
@@ -120,7 +120,7 @@ export const Portfolio = () => {
         />
       </div>
       <div className="flex justify-between flex-wrap gap-20">
-        <div className="flex flex-col flex-1 gap-4 min-w-[340px]">
+        <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
           <dl className="flex justify-between items-center gap-2 ">
             <dt className="text-xl font-medium">Supplied</dt>
             <dt className="text-muted-foreground">{accountSupplied}</dt>
@@ -141,7 +141,7 @@ export const Portfolio = () => {
             <AssetCardSkeleton />
           )}
         </div>
-        <div className="flex flex-col flex-1 gap-4 min-w-[340px]">
+        <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
           <dl className="flex justify-between items-center gap-2">
             <dt className="text-xl font-medium">Borrowed</dt>
             <dt className="text-muted-foreground">{accountBorrowed}</dt>
