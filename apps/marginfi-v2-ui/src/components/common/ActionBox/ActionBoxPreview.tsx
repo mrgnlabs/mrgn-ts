@@ -191,7 +191,7 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
               </MrgnTooltip>{" "}
             </>
           ) : (
-            "Global pool"
+            <>Global pool</>
           )}
         </dd>
       </>
