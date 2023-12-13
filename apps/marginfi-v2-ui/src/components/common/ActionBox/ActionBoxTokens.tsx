@@ -296,40 +296,39 @@ export const ActionBoxTokens = ({ currentTokenBank, setCurrentTokenBank }: Actio
                 ))}
               </CommandGroup>
             )}
-            {(searchQuery.length > 0 || lendingMode === LendingModes.BORROW || !connected) &&
-              filteredBanks.length > 0 && (
-                <CommandGroup heading="All tokens">
-                  {filteredBanks.map((bank, index) => {
-                    return (
-                      <CommandItem
-                        key={index}
-                        value={bank.address?.toString().toLowerCase()}
-                        onSelect={(currentValue) => {
-                          setCurrentTokenBank(
-                            extendedBankInfos.find(
-                              (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                            )?.address ?? null
-                          );
-                          setIsTokenPopoverOpen(false);
-                        }}
-                        className={cn(
-                          "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
-                          lendingMode === LendingModes.LEND && "py-2",
-                          lendingMode === LendingModes.BORROW && "h-[60px]"
-                        )}
-                      >
-                        <ActionBoxItem
-                          rate={calculateRate(bank)}
-                          lendingMode={lendingMode}
-                          bank={bank}
-                          showBalanceOverride={false}
-                          nativeSolBalance={nativeSolBalance}
-                        />
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              )}
+            {filteredBanks.length > 0 && (
+              <CommandGroup heading="All tokens">
+                {filteredBanks.map((bank, index) => {
+                  return (
+                    <CommandItem
+                      key={index}
+                      value={bank.address?.toString().toLowerCase()}
+                      onSelect={(currentValue) => {
+                        setCurrentTokenBank(
+                          extendedBankInfos.find(
+                            (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                          )?.address ?? null
+                        );
+                        setIsTokenPopoverOpen(false);
+                      }}
+                      className={cn(
+                        "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
+                        lendingMode === LendingModes.LEND && "py-2",
+                        lendingMode === LendingModes.BORROW && "h-[60px]"
+                      )}
+                    >
+                      <ActionBoxItem
+                        rate={calculateRate(bank)}
+                        lendingMode={lendingMode}
+                        bank={bank}
+                        showBalanceOverride={false}
+                        nativeSolBalance={nativeSolBalance}
+                      />
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
           </div>
         </Command>
       </PopoverContent>
