@@ -1,7 +1,7 @@
-import React, { FC, useMemo, useState } from "react";
+import React, { FC } from "react";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { AssetRowAction, AssetRowInputBox } from "~/components/common/AssetList";
+import { AssetRowAction } from "~/components/common/AssetList";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { useUiStore } from "~/store";
 
@@ -9,7 +9,7 @@ export const AssetCardActions: FC<{
   bank: ExtendedBankInfo;
   currentAction: ActionType;
 }> = ({ bank, currentAction }) => {
-  const [setSelectedToken] = useUiStore((state) => [state.setSelectedToken]);
+  const [setSelectedToken] = useUiStore((state) => [state.setSelectedTokenBank]);
 
   const isDust = React.useMemo(() => bank.isActive && bank.position.isDust, [bank]);
   const showCloseBalance = React.useMemo(
@@ -28,7 +28,7 @@ export const AssetCardActions: FC<{
                 ? "rgb(227, 227, 227)"
                 : "rgba(0,0,0,0)"
             }
-            onClick={() => setSelectedToken(bank)}
+            onClick={() => setSelectedToken(bank.address)}
           >
             {showCloseBalance ? "Close" : currentAction}
           </AssetRowAction>
