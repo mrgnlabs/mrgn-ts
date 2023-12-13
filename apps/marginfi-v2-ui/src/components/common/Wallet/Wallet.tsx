@@ -181,7 +181,7 @@ export const Wallet = () => {
                 <WalletTokens tokens={walletData.tokens} />
                 <div className="pt-8">
                   <div className="text-sm text-white/50 text-center mb-4">
-                    Tranfer funds to your marginfi wallet
+                    Transfer funds to your marginfi wallet
                     <CopyToClipboard
                       text={walletData.address}
                       onCopy={() => {
