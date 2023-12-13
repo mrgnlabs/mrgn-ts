@@ -44,7 +44,7 @@ export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tok
   ],
 ]);
 
-const REDUCE_ONLY_BANKS = ["stSOL"];
+export const REDUCE_ONLY_BANKS = ["stSOL"];
 
 const AssetRow: React.FC<{
   bank: ExtendedBankInfo;
@@ -77,6 +77,7 @@ const AssetRow: React.FC<{
     state.setSelectedTokenBank,
   ]);
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
+
   const isMobile = useIsMobile();
 
   const [isHovering, setIsHovering] = React.useState(false);

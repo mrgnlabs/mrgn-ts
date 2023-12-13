@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useMrgnlendStore } from "~/store";
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -17,6 +17,8 @@ export const Portfolio = () => {
     state.extendedBankInfos,
     state.accountSummary,
   ]);
+
+  const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
   const lendingBanks = React.useMemo(
     () =>
@@ -71,8 +73,6 @@ export const Portfolio = () => {
         : "-",
     [accountSummary.balanceUnbiased]
   );
-  // TODO
-  const accountInterest = React.useMemo(() => (12 > 10000 ? usdFormatterDyn.format(12) : usdFormatter.format(12)), []);
 
   const healthColor = React.useMemo(() => {
     if (accountSummary.healthFactor) {
@@ -142,7 +142,7 @@ export const Portfolio = () => {
           supplied={accountSupplied}
           borrowed={accountBorrowed}
           netValue={accountNetValue}
-          interest={accountInterest}
+          points={numeralFormatter(userPointsData.totalPoints)}
         />
       </div>
       <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-20">
