@@ -145,7 +145,7 @@ export const Portfolio = () => {
           interest={accountInterest}
         />
       </div>
-      <div className="flex justify-between flex-wrap gap-20">
+      <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-20">
         <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
           <dl className="flex justify-between items-center gap-2 ">
             <dt className="text-xl font-medium">Supplied</dt>
