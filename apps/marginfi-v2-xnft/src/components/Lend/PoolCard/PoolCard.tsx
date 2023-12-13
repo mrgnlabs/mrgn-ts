@@ -47,11 +47,11 @@ export function PoolCard({
   const currentAction = useMemo(() => getCurrentAction(isInLendingMode, bankInfo), [isInLendingMode, bankInfo]);
 
   const depositFilled = useMemo(
-    () => bankInfo.info.state.totalDeposits / bankInfo.info.rawBank.config.depositLimit,
+    () => bankInfo.info.state.totalDeposits / bankInfo.info.rawBank.config.depositLimit.toNumber(),
     [bankInfo]
   );
   const borrowFilled = useMemo(
-    () => bankInfo.info.state.totalBorrows / bankInfo.info.rawBank.config.borrowLimit,
+    () => bankInfo.info.state.totalBorrows / bankInfo.info.rawBank.config.borrowLimit.toNumber(),
     [bankInfo]
   );
 

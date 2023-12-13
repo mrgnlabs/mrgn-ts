@@ -20,7 +20,7 @@ interface props {
 export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
   const [setActionMode, setSelectedToken, setLendingMode] = useUiStore((state) => [
     state.setActionMode,
-    state.setSelectedToken,
+    state.setSelectedTokenBank,
     state.setLendingMode,
   ]);
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
@@ -119,7 +119,7 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
               <Button
                 onClick={() => {
                   setLendingMode(isInLendingMode ? LendingModes.LEND : LendingModes.BORROW);
-                  setSelectedToken(bank);
+                  setSelectedToken(bank.address);
                   setActionMode(isInLendingMode ? ActionType.Withdraw : ActionType.Repay);
                 }}
                 className="flex-1 h-12"
@@ -130,7 +130,7 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
               <Button
                 onClick={() => {
                   setLendingMode(isInLendingMode ? LendingModes.LEND : LendingModes.BORROW);
-                  setSelectedToken(bank);
+                  setSelectedToken(bank.address);
                   setActionMode(isInLendingMode ? ActionType.Deposit : ActionType.Borrow);
                 }}
                 className="flex-1 h-12"

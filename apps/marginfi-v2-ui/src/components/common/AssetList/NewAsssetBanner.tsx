@@ -23,13 +23,13 @@ export const NewAssetBanner = ({ asset, symbol, image }: NewAssetBannerProps) =>
       state.setLendingMode,
       state.setPoolFilter,
       state.setIsFilteredUserPositions,
-      state.setSelectedToken,
+      state.setSelectedTokenBank,
     ]);
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
   const renderBank = React.useMemo(
     () => extendedBankInfos.find((x) => x.meta.tokenSymbol === symbol),
-    [extendedBankInfos]
+    [extendedBankInfos, symbol]
   );
 
   const [isHidden, setIsHidden] = React.useState(true);
@@ -96,7 +96,7 @@ export const NewAssetBanner = ({ asset, symbol, image }: NewAssetBannerProps) =>
                     size="sm"
                     className="w-full"
                     onClick={() => {
-                      renderBank && setSelectedToken(renderBank);
+                      renderBank && setSelectedToken(renderBank.address);
                       setLendingMode(LendingModes.LEND);
                     }}
                   >
@@ -117,7 +117,7 @@ export const NewAssetBanner = ({ asset, symbol, image }: NewAssetBannerProps) =>
                     size="sm"
                     className="w-full"
                     onClick={() => {
-                      renderBank && setSelectedToken(renderBank);
+                      renderBank && setSelectedToken(renderBank.address);
                       setLendingMode(LendingModes.BORROW);
                     }}
                   >

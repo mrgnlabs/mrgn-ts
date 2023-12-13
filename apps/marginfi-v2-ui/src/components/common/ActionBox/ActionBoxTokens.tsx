@@ -17,13 +17,14 @@ import { Button } from "~/components/ui/button";
 import { IconChevronDown, IconX } from "~/components/ui/icons";
 
 import { LendingModes } from "~/types";
+import { PublicKey } from "@solana/web3.js";
 
 type ActionBoxTokensProps = {
-  currentToken: ExtendedBankInfo | null;
-  setCurrentToken: (selectedToken: ExtendedBankInfo | null) => void;
+  currentTokenBank: PublicKey | null;
+  setCurrentTokenBank: (selectedTokenBank: PublicKey | null) => void;
 };
 
-export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxTokensProps) => {
+export const ActionBoxTokens = ({ currentTokenBank, setCurrentTokenBank }: ActionBoxTokensProps) => {
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
@@ -32,6 +33,11 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isTokenPopoverOpen, setIsTokenPopoverOpen] = React.useState(false);
   const { connected } = useWalletContext();
+
+  const selectedBank = React.useMemo(
+    () => (currentTokenBank ? extendedBankInfos.find((bank) => bank.address.equals(currentTokenBank)) : null),
+    [extendedBankInfos, currentTokenBank]
+  );
 
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) =>
@@ -61,7 +67,7 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
     return extendedBankInfos
       .filter((bankInfo) => bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery))
       .filter((bankInfo) => (lendingMode === LendingModes.LEND ? bankInfo.userInfo.tokenAccount.balance === 0 : true));
-  }, [extendedBankInfos, searchQuery]);
+  }, [extendedBankInfos, lendingMode, searchQuery]);
 
   const filteredBanksActiveLending = React.useMemo(() => {
     const lowerCaseSearchQuery = searchQuery.toLowerCase();
@@ -119,17 +125,17 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
             isTokenPopoverOpen && "bg-background-gray w-[300px]"
           )}
         >
-          {currentToken && (
+          {selectedBank && (
             <>
               <Image
-                src={currentToken.meta.tokenLogoUri!}
-                alt={currentToken.meta.tokenName}
+                src={selectedBank.meta.tokenLogoUri!}
+                alt={selectedBank.meta.tokenName}
                 width={28}
                 height={28}
                 className="rounded-full"
               />
               <div className="flex flex-col gap-1">
-                <p className="leading-none">{currentToken.meta.tokenSymbol}</p>
+                <p className="leading-none">{selectedBank.meta.tokenSymbol}</p>
                 <p
                   className={cn(
                     "text-sm font-normal leading-none",
@@ -137,12 +143,12 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                     lendingMode === LendingModes.BORROW && "text-error"
                   )}
                 >
-                  {calculateRate(currentToken) + ` ${lendingMode === LendingModes.LEND ? "APY" : "APR"}`}
+                  {calculateRate(selectedBank) + ` ${lendingMode === LendingModes.LEND ? "APY" : "APR"}`}
                 </p>
               </div>
             </>
           )}
-          {!currentToken && <>Select token</>}
+          {!selectedBank && <>Select token</>}
           <IconChevronDown className="shrink-0 ml-2" />
         </Button>
       </PopoverTrigger>
@@ -156,9 +162,9 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
         <Command
           className="bg-background-gray relative"
           shouldFilter={false}
-          value={currentToken?.address?.toString().toLowerCase() ?? ""}
+          value={selectedBank?.address?.toString().toLowerCase() ?? ""}
           onValueChange={(value) =>
-            setCurrentToken(extendedBankInfos.find((bank) => bank.address.toString() === value) || currentToken)
+            setCurrentTokenBank(extendedBankInfos.find((bank) => bank.address.toString() === value)?.address || selectedBank?.address || null)
           }
         >
           <CommandInput
@@ -198,10 +204,10 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                   key={index}
                   value={bank?.address?.toString().toLowerCase()}
                   onSelect={(currentValue) => {
-                    setCurrentToken(
+                    setCurrentTokenBank(
                       extendedBankInfos.find(
                         (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                      ) ?? null
+                      )?.address ?? null
                     );
                     setIsTokenPopoverOpen(false);
                   }}
@@ -225,10 +231,10 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                   key={index}
                   value={bank.address?.toString().toLowerCase()}
                   onSelect={(currentValue) => {
-                    setCurrentToken(
+                    setCurrentTokenBank(
                       extendedBankInfos.find(
                         (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                      ) ?? null
+                      )?.address ?? null
                     );
                     setIsTokenPopoverOpen(false);
                   }}
@@ -255,10 +261,10 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                   key={index}
                   value={bank.address?.toString().toLowerCase()}
                   onSelect={(currentValue) => {
-                    setCurrentToken(
+                    setCurrentTokenBank(
                       extendedBankInfos.find(
                         (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                      ) ?? null
+                      )?.address ?? null
                     );
                     setIsTokenPopoverOpen(false);
                   }}
@@ -286,10 +292,10 @@ export const ActionBoxTokens = ({ currentToken, setCurrentToken }: ActionBoxToke
                     key={index}
                     value={bank.address?.toString().toLowerCase()}
                     onSelect={(currentValue) => {
-                      setCurrentToken(
+                      setCurrentTokenBank(
                         extendedBankInfos.find(
                           (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                        ) ?? null
+                        )?.address ?? null
                       );
                       setIsTokenPopoverOpen(false);
                     }}
