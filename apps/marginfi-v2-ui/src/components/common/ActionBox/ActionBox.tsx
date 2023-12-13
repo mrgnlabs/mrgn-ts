@@ -338,12 +338,14 @@ export const ActionBox = () => {
             actionMode={actionMode}
           />
 
-          <ActionBoxPreview
-            marginfiAccount={selectedAccount}
-            selectedBank={selectedBank}
-            actionAmount={amount}
-            actionMode={actionMode}
-          />
+          {selectedBank && (
+            <ActionBoxPreview
+              marginfiAccount={selectedAccount}
+              selectedBank={selectedBank}
+              actionAmount={amount}
+              actionMode={actionMode}
+            />
+          )}
         </div>
       </div>
       <LSTDialog
