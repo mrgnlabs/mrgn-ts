@@ -3,22 +3,14 @@ import { useMemo } from "react";
 import { nativeToUi, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
-export function useAssetItemData({
-  bank,
-  isInLendingMode,
-}: {
-  bank: ExtendedBankInfo | null;
-  isInLendingMode: boolean;
-}) {
+export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBankInfo; isInLendingMode: boolean }) {
   const rateAP = useMemo(
     () =>
-      bank
-        ? percentFormatter.format(
-            (isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate) +
-              (isInLendingMode && bank.info.state.emissions == Emissions.Lending ? bank.info.state.emissionsRate : 0) +
-              (!isInLendingMode && bank.info.state.emissions == Emissions.Borrowing ? bank.info.state.emissionsRate : 0)
-          )
-        : 0,
+      percentFormatter.format(
+        (isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate) +
+          (isInLendingMode && bank.info.state.emissions == Emissions.Lending ? bank.info.state.emissionsRate : 0) +
+          (!isInLendingMode && bank.info.state.emissions == Emissions.Borrowing ? bank.info.state.emissionsRate : 0)
+      ),
     [isInLendingMode, bank.info.state]
   );
 
