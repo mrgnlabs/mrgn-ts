@@ -5,7 +5,9 @@ import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { IconInfoCircle } from "~/components/ui/icons";
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+
+import { IconInfoCircle, IconAlertTriangle } from "~/components/ui/icons";
 import { UserStats } from "./UserStats";
 import { AssetCard, AssetCardSkeleton } from "./AssetCard";
 
@@ -97,7 +99,33 @@ export const Portfolio = () => {
       <div className="text-muted-foreground">
         <dl className="flex justify-between items-center gap-2">
           <dt className="flex items-center gap-1.5 text-sm">
-            Health factor <IconInfoCircle size={16} />
+            Health factor
+            <MrgnTooltip
+              title={
+                <React.Fragment>
+                  <div className="flex flex-col gap-2 pb-2">
+                    <p>
+                      Health factor is based off of <b>price biased</b> and <b>weighted</b> asset and liability values.
+                    </p>
+                    <div className="font-bold pb-2">
+                      <IconAlertTriangle height={16} className="inline -translate-y-[1px]" /> When your account health
+                      reaches 0% or below, you are exposed to liquidation.
+                    </div>
+                    <p>The formula is:</p>
+                    <p className="text-sm text-center">{"(assets - liabilities) / (assets)"}</p>
+                    <p>Your math is:</p>
+                    <p className="text-sm text-center">{`(${usdFormatter.format(
+                      accountSummary.lendingAmountWithBiasAndWeighted
+                    )} - ${usdFormatter.format(
+                      accountSummary.borrowingAmountWithBiasAndWeighted
+                    )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</p>
+                  </div>
+                </React.Fragment>
+              }
+              placement="top"
+            >
+              <IconInfoCircle size={16} />
+            </MrgnTooltip>
           </dt>
           <dd className="text-xl md:text-2xl font-bold" style={{ color: healthColor }}>
             {numeralFormatter(accountSummary.healthFactor * 100)}%
