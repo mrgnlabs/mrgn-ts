@@ -162,12 +162,12 @@ const AssetRow: React.FC<{
             {bank.meta.tokenLogoUri && (
               <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} height={25} width={25} />
             )}
-            <div className="font-aeonik hidden lg:block">{bank.meta.tokenSymbol}</div>
+            <div className="font-aeonik block">{bank.meta.tokenSymbol}</div>
           </div>
         </TableCell>
 
         <TableCell
-          className={`text-white border-none px-2 font-aeonik hidden lg:table-cell`}
+          className={`text-white border-none px-2 font-aeonik table-cell`}
           align="right"
           style={{ fontWeight: 300 }}
         >
@@ -372,7 +372,7 @@ const AssetRow: React.FC<{
         {/*******************************/}
 
         <TableCell
-          className="text-white border-none font-aeonik px-2 hidden lg:table-cell"
+          className="text-white border-none font-aeonik px-2 table-cell"
           align="right"
           style={{ fontWeight: 300 }}
         >
