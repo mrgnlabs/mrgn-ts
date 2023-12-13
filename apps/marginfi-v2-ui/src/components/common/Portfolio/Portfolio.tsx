@@ -22,7 +22,6 @@ export const Portfolio = () => {
     () =>
       sortedBanks && isStoreInitialized
         ? sortedBanks
-            .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
             .filter((b) => b.isActive && b.position.isLending)
             .sort(
               (a, b) =>
@@ -36,7 +35,6 @@ export const Portfolio = () => {
     () =>
       sortedBanks && isStoreInitialized
         ? sortedBanks
-            .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
             .filter((b) => b.isActive && !b.position.isLending)
             .sort(
               (a, b) =>
