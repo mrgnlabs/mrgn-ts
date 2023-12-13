@@ -47,7 +47,7 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
         value="key-1"
         className="bg-background-gray transition rounded-xl px-3 data-[state=closed]:hover:bg-background-gray-hover"
       >
-        <AccordionTrigger className="hover:no-underline">
+        <AccordionTrigger className="hover:no-underline outline-none">
           <div className="flex justify-between items-center w-full gap-2">
             <div className="flex text-left gap-3">
               <div className="flex items-center">
