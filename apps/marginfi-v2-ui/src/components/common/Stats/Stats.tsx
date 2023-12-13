@@ -27,7 +27,7 @@ export const Stats = () => {
   }, [protocolStats]);
 
   return (
-    <ul className="flex text-muted-foreground gap-4 justify-center mt-10 mb-6 text-sm md:gap-8 md:text-base">
+    <ul className="flex text-muted-foreground gap-4 justify-center mt-10 mb-6 text-base md:gap-8 md:text-base">
       {statsList.map((stat, index) => (
         <li key={index} className={cn(index !== statsList.length - 1 && "border-r-2 border-white/20 pr-8")}>
           <dl className="space-y-1 md:space-y-2">

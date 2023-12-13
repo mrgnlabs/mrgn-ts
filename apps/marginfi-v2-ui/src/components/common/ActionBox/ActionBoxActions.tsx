@@ -2,8 +2,6 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useUiStore } from "~/store";
-
 import { Button } from "~/components/ui/button";
 import { IconLoader } from "~/components/ui/icons";
 import { useWalletContext } from "~/hooks/useWalletContext";

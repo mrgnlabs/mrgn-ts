@@ -3,21 +3,19 @@ import React from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
-import { Button, Skeleton, Typography } from "@mui/material";
+import { Button } from "@mui/material";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import CheckIcon from "@mui/icons-material/Check";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
 import config from "~/config/marginfi";
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { PageHeader } from "~/components/common/PageHeader";
-import { MobileAccountSummary } from "~/components/mobile/MobileAccountSummary";
-import { MobilePortfolioOverview } from "~/components/mobile/MobilePortfolioOverview";
 import { PointsOverview, PointsSignIn, PointsSignUp, PointsCheckingUser } from "~/components/desktop/Points";
-import { AssetCard } from "~/components/mobile/MobileAssetsList/AssetCard";
 import { EmissionsBanner } from "~/components/mobile/EmissionsBanner";
+import { Portfolio } from "~/components/common/Portfolio";
 
 const PortfolioPage = () => {
   const { connected, wallet, isOverride } = useWalletContext();
@@ -37,37 +35,10 @@ const PortfolioPage = () => {
     state.hasUser,
     state.userPointsData,
   ]);
+  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
   const referralCode = React.useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
-
-  const lendingBanks = React.useMemo(
-    () =>
-      sortedBanks && isStoreInitialized
-        ? sortedBanks
-            .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
-            .filter((b) => b.isActive && b.position.isLending)
-            .sort(
-              (a, b) =>
-                b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
-            )
-        : [],
-    [sortedBanks, isStoreInitialized]
-  );
-
-  const borrowingBanks = React.useMemo(
-    () =>
-      sortedBanks && isStoreInitialized
-        ? sortedBanks
-            .filter((b) => b.info.rawBank.config.assetWeightInit.toNumber() > 0)
-            .filter((b) => b.isActive && !b.position.isLending)
-            .sort(
-              (a, b) =>
-                b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
-            )
-        : [],
-    [sortedBanks, isStoreInitialized]
-  );
 
   React.useEffect(() => {
     setIsRefreshingStore(true);
@@ -85,7 +56,7 @@ const PortfolioPage = () => {
     <>
       <PageHeader>portfolio</PageHeader>
       <div className="flex flex-col w-full h-full justify-start items-center px-4 gap-6 mb-20">
-        <MobileAccountSummary />
+        {/* <MobileAccountSummary /> */}
         <EmissionsBanner />
         {/* <MobilePortfolioOverview /> */}
         {!connected ? null : currentFirebaseUser ? (
@@ -113,38 +84,40 @@ const PortfolioPage = () => {
           >
             How do points work?
           </Button>
-          {userPointsData.referralLink && userPointsData.referralLink.length > 0 && (
-            <CopyToClipboard
-              text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
-              onCopy={() => {
+          <CopyToClipboard
+            text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
+            onCopy={() => {
+              if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
                 setIsReferralCopied(true);
                 setTimeout(() => setIsReferralCopied(false), 2000);
+              } else {
+                setIsWalletAuthDialogOpen(true);
+              }
+            }}
+          >
+            <Button
+              className={`normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap min-w-[260px] max-w-[260px]`}
+              style={{
+                backgroundImage: userPointsData.isCustomReferralLink
+                  ? "radial-gradient(ellipse at center, #fff 0%, #fff 10%, #DCE85D 60%, #DCE85D 100%)"
+                  : "none",
+                backgroundColor: userPointsData.isCustomReferralLink ? "transparent" : "rgb(227, 227, 227)",
+
+                border: "none",
+                color: "black",
+                zIndex: 10,
               }}
             >
-              <Button
-                className={`normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap min-w-[260px] max-w-[260px]`}
-                style={{
-                  backgroundImage: userPointsData.isCustomReferralLink
-                    ? "radial-gradient(ellipse at center, #fff 0%, #fff 10%, #DCE85D 60%, #DCE85D 100%)"
-                    : "none",
-                  backgroundColor: userPointsData.isCustomReferralLink ? "transparent" : "rgb(227, 227, 227)",
-
-                  border: "none",
-                  color: "black",
-                  zIndex: 10,
-                }}
-              >
-                {isReferralCopied
-                  ? "Link copied"
-                  : `${
-                      userPointsData.isCustomReferralLink
-                        ? userPointsData.referralLink?.replace("https://", "")
-                        : "Copy referral link"
-                    }`}
-                {isReferralCopied ? <CheckIcon /> : <FileCopyIcon />}
-              </Button>
-            </CopyToClipboard>
-          )}
+              {isReferralCopied
+                ? "Link copied"
+                : `${
+                    userPointsData.isCustomReferralLink
+                      ? userPointsData.referralLink?.replace("https://", "")
+                      : "Copy referral link"
+                  }`}
+              {isReferralCopied ? <CheckIcon /> : <FileCopyIcon />}
+            </Button>
+          </CopyToClipboard>
         </div>
         <div className="text-center text-[#868E95] text-xs flex justify-center gap-1">
           <div>We reserve the right to update point calculations at any time.</div>
@@ -154,61 +127,7 @@ const PortfolioPage = () => {
             </Link>
           </div>
         </div>
-        {sortedBanks && (
-          <div className="col-span-full w-full max-w-[900px]">
-            <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">Lending positions</div>
-
-            {isStoreInitialized ? (
-              lendingBanks.length > 0 ? (
-                <div className="flex flew-row flex-wrap gap-4 justify-center items-center">
-                  {lendingBanks.map((bank) => (
-                    <AssetCard
-                      key={bank.meta.tokenSymbol}
-                      nativeSolBalance={nativeSolBalance}
-                      bank={bank}
-                      isInLendingMode={true}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1" gutterBottom>
-                  No lending positions found.
-                </Typography>
-              )
-            ) : (
-              <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
-            )}
-          </div>
-        )}
-
-        {sortedBanks && (
-          <div className="col-span-full w-full max-w-[900px]">
-            <div className="font-aeonik font-normal flex items-center text-2xl text-white pb-2">
-              Borrowing positions
-            </div>
-
-            {isStoreInitialized ? (
-              borrowingBanks.length > 0 ? (
-                <div className="flex flew-row flex-wrap gap-4 justify-center items-center">
-                  {borrowingBanks.map((bank) => (
-                    <AssetCard
-                      key={bank.meta.tokenSymbol}
-                      nativeSolBalance={nativeSolBalance}
-                      bank={bank}
-                      isInLendingMode={false}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <Typography color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1 pb-5" gutterBottom>
-                  No borrowing positions found.
-                </Typography>
-              )
-            ) : (
-              <Skeleton sx={{ bgcolor: "grey.900" }} variant="rounded" width={390} height={215} />
-            )}
-          </div>
-        )}
+        <Portfolio />
       </div>
     </>
   );
