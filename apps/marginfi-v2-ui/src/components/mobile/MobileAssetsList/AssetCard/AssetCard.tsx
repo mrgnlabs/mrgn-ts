@@ -30,7 +30,8 @@ export const AssetCard: FC<{
         ? bank.info.state.totalDeposits
         : Math.max(
             0,
-            Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) - bank.info.state.totalBorrows
+            Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
+              bank.info.state.totalBorrows
           ),
     [isInLendingMode, bank.info]
   );

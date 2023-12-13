@@ -16,7 +16,7 @@ export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, is
   return (
     <TableRow>
       <TableCell
-        className="text-[#A1A1A1] text-base border-none px-2 hidden md:table-cell text-left"
+        className="text-[#A1A1A1] text-base border-none px-2 table-cell text-left"
         style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
       >
         <div className="h-full w-full flex items-center">Asset</div>

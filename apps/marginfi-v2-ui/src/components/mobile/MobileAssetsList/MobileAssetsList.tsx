@@ -1,102 +1,22 @@
 import React from "react";
 
-import Image from "next/image";
+import { useUiStore } from "~/store";
+import { LendingModes } from "~/types";
 
-import { ExtendedBankInfo, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Skeleton, Typography } from "@mui/material";
-
-import { useMrgnlendStore, useUiStore } from "~/store";
-
-import { MrgnTooltip } from "~/components/common";
-import {
-  LSTDialog,
-  LSTDialogVariants,
-  AssetListFilters,
-  sortApRate,
-  sortTvl,
-  STABLECOINS,
-  LSTS,
-} from "~/components/common/AssetList";
-import { AssetCard } from "~/components/mobile/MobileAssetsList/AssetCard";
-
-import { LendingModes, UserMode } from "~/types";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { Portfolio } from "~/components/common/Portfolio";
-import { useIsMobile } from "~/hooks/useIsMobile";
+import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 
 export const MobileAssetsList = () => {
-  const { connected, walletAddress } = useWalletContext();
-  const isMobile = useIsMobile();
-
-  const [isStoreInitialized, extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-  ]);
-
-  const [userMode, lendingMode, isFilteredUserPositions, sortOption, poolFilter] = useUiStore((state) => [
-    state.userMode,
-    state.lendingMode,
-    state.isFilteredUserPositions,
-    state.sortOption,
-    state.poolFilter,
-  ]);
+  const [lendingMode] = useUiStore((state) => [state.lendingMode]);
 
   const isInLendingMode = React.useMemo(() => lendingMode === LendingModes.LEND, [lendingMode]);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
 
-  const activeBankInfos = React.useMemo(
-    () => extendedBankInfos.filter((balance) => balance.isActive),
-    [extendedBankInfos]
-  ) as ActiveBankInfo[];
-
-  const sortBanks = React.useCallback(
-    (banks: ExtendedBankInfo[]) => {
-      if (sortOption.field === "APY") {
-        return sortApRate(banks, isInLendingMode, sortOption.direction);
-      } else if (sortOption.field === "TVL") {
-        return sortTvl(banks, sortOption.direction);
-      } else {
-        return banks;
-      }
-    },
-    [isInLendingMode, sortOption]
-  );
-
-  const globalBanks = React.useMemo(() => {
-    const filteredBanks =
-      extendedBankInfos &&
-      extendedBankInfos
-        .filter((b) => !b.info.state.isIsolated)
-        .filter((b) => (isFilteredUserPositions ? b.isActive : true));
-
-    if (isStoreInitialized && sortOption && filteredBanks) {
-      return sortBanks(filteredBanks);
-    } else {
-      return filteredBanks;
-    }
-  }, [isStoreInitialized, extendedBankInfos, sortOption, isFilteredUserPositions, sortBanks]);
-
-  const isolatedBanks = React.useMemo(() => {
-    const filteredBanks =
-      extendedBankInfos &&
-      extendedBankInfos
-        .filter((b) => b.info.state.isIsolated)
-        .filter((b) => (isFilteredUserPositions ? b.isActive : true));
-
-    if (isStoreInitialized && sortOption && filteredBanks) {
-      return sortBanks(filteredBanks);
-    } else {
-      return filteredBanks;
-    }
-  }, [isStoreInitialized, extendedBankInfos, sortOption, isFilteredUserPositions, sortBanks]);
-
   return (
     <>
-      {walletAddress && <Portfolio />}
-      <AssetListFilters />
+      {/* {walletAddress && <Portfolio />} */}
+      {/* <AssetListFilters />
 
       <div className="pb-2">
         {poolFilter !== "isolated" && (
@@ -206,7 +126,7 @@ export const MobileAssetsList = () => {
             )}
           </div>
         )}
-      </div>
+      </div> */}
 
       <LSTDialog
         variant={lstDialogVariant}
