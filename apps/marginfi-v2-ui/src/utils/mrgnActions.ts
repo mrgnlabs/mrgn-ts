@@ -319,6 +319,7 @@ export const closeBalance = async ({
 
 function extractErrorString(error: any, fallback?: string): string {
   if (error instanceof ProcessTransactionError) {
+    if (error.message === "Bank deposit capacity exceeded") return "We've reached maximum capacity for this asset";
     return error.message;
   }
 

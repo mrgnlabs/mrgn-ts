@@ -74,10 +74,4 @@ export const ORDERED_MOBILE_LAUNCHER_LINKS: NavLinkInfo[] = [
     label: "bridge",
     Icon: IconBridge,
   },
-  {
-    href: "/earn",
-    alt: "coins icon",
-    label: "earn",
-    Icon: IconCoins,
-  },
 ];
