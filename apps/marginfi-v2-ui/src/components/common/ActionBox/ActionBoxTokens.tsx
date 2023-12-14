@@ -35,7 +35,10 @@ export const ActionBoxTokens = ({ currentTokenBank, setCurrentTokenBank }: Actio
   const { connected } = useWalletContext();
 
   const selectedBank = React.useMemo(
-    () => (currentTokenBank ? extendedBankInfos.find((bank) => bank.address.equals(currentTokenBank)) : null),
+    () =>
+      currentTokenBank
+        ? extendedBankInfos.find((bank) => bank?.address?.equals && bank?.address?.equals(currentTokenBank))
+        : null,
     [extendedBankInfos, currentTokenBank]
   );
 
@@ -88,6 +91,13 @@ export const ActionBoxTokens = ({ currentTokenBank, setCurrentTokenBank }: Actio
           : bankInfo.userInfo.tokenAccount.balance;
         return balance > 0 && bankInfo.meta.tokenSymbol.toLowerCase().includes(lowerCaseSearchQuery);
       })
+      .filter((bankInfo) =>
+        bankInfo.isActive
+          ? lendingMode === LendingModes.LEND
+            ? bankInfo.position?.isLending
+            : !bankInfo.position?.isLending
+          : true
+      )
       .sort((a, b) => {
         const isFirstWSOL = a.info.state.mint?.equals ? a.info.state.mint.equals(WSOL_MINT) : false;
         const isSecondWSOL = b.info.state.mint?.equals ? b.info.state.mint.equals(WSOL_MINT) : false;

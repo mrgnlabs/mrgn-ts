@@ -1,10 +1,10 @@
-import React, { FC, useEffect } from "react";
+import React from "react";
 
-import { percentFormatter, numeralFormatter, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { numeralFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { MarginfiActionParams, closeBalance, cn, executeLendingAction, isWholePosition, usePrevious } from "~/utils";
+import { MarginfiActionParams, closeBalance, executeLendingAction, usePrevious } from "~/utils";
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -14,10 +14,9 @@ import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 
 import { Input } from "~/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import { IconArrowRight, IconInfoCircle, IconWallet } from "~/components/ui/icons";
+import { IconWallet } from "~/components/ui/icons";
 
 import { ActionBoxActions } from "./ActionBoxActions";
-import { MarginRequirementType, MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionBoxPreview } from "./ActionBoxPreview";
 
 export const ActionBox = () => {
@@ -63,7 +62,9 @@ export const ActionBox = () => {
 
   const selectedBank = React.useMemo(
     () =>
-      selectedTokenBank ? extendedBankInfos.find((bank) => bank?.address?.equals(selectedTokenBank)) ?? null : null,
+      selectedTokenBank
+        ? extendedBankInfos.find((bank) => bank?.address?.equals && bank?.address?.equals(selectedTokenBank)) ?? null
+        : null,
     [extendedBankInfos, selectedTokenBank]
   );
   const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
@@ -308,9 +309,12 @@ export const ActionBox = () => {
                     : "< 0.01"
                   ).concat(" ", selectedBank?.meta.tokenSymbol)}
                 </span>
-                <div onClick={() => setAmount(maxAmount)} className="text-base font-bold cursor-pointer">
+                <button
+                  className="text-xs ml-1 h-5 py-1 px-1.5 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground cursor-pointer hover:bg-muted-foreground/30 transition-colors"
+                  onClick={() => setAmount(maxAmount)}
+                >
                   MAX
-                </div>
+                </button>
               </div>
             )}
           </div>
@@ -324,7 +328,7 @@ export const ActionBox = () => {
               disabled={isInputDisabled}
               onChange={(e) => handleInputChange(Number(e.target.value))}
               placeholder="0"
-              className="bg-transparent w-full text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-3xl font-medium"
+              className="bg-transparent w-full text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
             />
           </div>
 
