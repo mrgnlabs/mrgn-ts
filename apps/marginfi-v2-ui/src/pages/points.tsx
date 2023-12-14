@@ -7,7 +7,7 @@ import FileCopyIcon from "@mui/icons-material/FileCopy";
 import CheckIcon from "@mui/icons-material/Check";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
-import { useUserProfileStore } from "~/store";
+import { useUiStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { PageHeader } from "~/components/common/PageHeader";
 import {
@@ -24,6 +24,7 @@ const Points = () => {
     state.currentFirebaseUser,
     state.userPointsData,
   ]);
+  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
 
@@ -54,38 +55,41 @@ const Points = () => {
           >
             How do points work?
           </Button>
-          {userPointsData.referralLink && userPointsData.referralLink.length > 0 && (
-            <CopyToClipboard
-              text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
-              onCopy={() => {
+
+          <CopyToClipboard
+            text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
+            onCopy={() => {
+              if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
                 setIsReferralCopied(true);
                 setTimeout(() => setIsReferralCopied(false), 2000);
+              } else {
+                setIsWalletAuthDialogOpen(true);
+              }
+            }}
+          >
+            <Button
+              className={`normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap min-w-[260px] max-w-[260px]`}
+              style={{
+                backgroundImage: userPointsData.isCustomReferralLink
+                  ? "radial-gradient(ellipse at center, #fff 0%, #fff 10%, #DCE85D 60%, #DCE85D 100%)"
+                  : "none",
+                backgroundColor: userPointsData.isCustomReferralLink ? "transparent" : "rgb(227, 227, 227)",
+
+                border: "none",
+                color: "black",
+                zIndex: 10,
               }}
             >
-              <Button
-                className={`normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap min-w-[260px] max-w-[260px]`}
-                style={{
-                  backgroundImage: userPointsData.isCustomReferralLink
-                    ? "radial-gradient(ellipse at center, #fff 0%, #fff 10%, #DCE85D 60%, #DCE85D 100%)"
-                    : "none",
-                  backgroundColor: userPointsData.isCustomReferralLink ? "transparent" : "rgb(227, 227, 227)",
-
-                  border: "none",
-                  color: "black",
-                  zIndex: 10,
-                }}
-              >
-                {isReferralCopied
-                  ? "Link copied"
-                  : `${
-                      userPointsData.isCustomReferralLink
-                        ? userPointsData.referralLink?.replace("https://", "")
-                        : "Copy referral link"
-                    }`}
-                {isReferralCopied ? <CheckIcon /> : <FileCopyIcon />}
-              </Button>
-            </CopyToClipboard>
-          )}
+              {isReferralCopied
+                ? "Link copied"
+                : `${
+                    userPointsData.isCustomReferralLink
+                      ? userPointsData.referralLink?.replace("https://", "")
+                      : "Copy referral link"
+                  }`}
+              {isReferralCopied ? <CheckIcon /> : <FileCopyIcon />}
+            </Button>
+          </CopyToClipboard>
         </div>
         <div className="w-4/5 text-center text-[#868E95] text-xs flex justify-center gap-1">
           <div>We reserve the right to update point calculations at any time.</div>

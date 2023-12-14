@@ -103,9 +103,6 @@ const DesktopNavbar: FC = () => {
           case "b":
             router.push("/bridge");
             break;
-          case "e":
-            router.push("/earn");
-            break;
           case "o":
             router.push("https://omni.marginfi.com");
             break;
@@ -233,31 +230,6 @@ const DesktopNavbar: FC = () => {
                 } hidden md:block`}
               >
                 bridge
-              </Link>
-            </Badge>
-
-            <Badge
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              sx={{
-                "& .MuiBadge-badge": {
-                  backgroundColor: "rgb(220, 232, 93)",
-                  color: "#1C2125",
-                },
-              }}
-              badgeContent={"e"}
-              invisible={!showBadges}
-              className="hidden md:block"
-            >
-              <Link
-                href={"/earn"}
-                className={`${
-                  router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"
-                } hidden md:block`}
-              >
-                earn
               </Link>
             </Badge>
 
