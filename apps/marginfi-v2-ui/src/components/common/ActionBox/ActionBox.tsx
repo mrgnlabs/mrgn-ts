@@ -442,11 +442,7 @@ const ActionPreview: FC<{
           MarginRequirementType.Maintenance
         );
         const health = assets.minus(liabilities).dividedBy(assets).toNumber();
-        const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBankAmount(
-          selectedBank.address,
-          actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw,
-          actionAmount
-        );
+        const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBank(selectedBank.address);
         const { lendingRate, borrowingRate } = simulationResult.banks
           .get(selectedBank.address.toBase58())!
           .computeInterestRates();
