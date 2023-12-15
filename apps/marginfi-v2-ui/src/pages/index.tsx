@@ -58,12 +58,6 @@ const Home = () => {
   ]);
 
   React.useEffect(() => {
-    if (emissionTokenMap === null) {
-      showWarningToast("Failed to fetch prices, emission APY may be incorrect.");
-    }
-  }, [emissionTokenMap]);
-
-  React.useEffect(() => {
     const fetchData = () => {
       setIsRefreshingStore(true);
       fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
