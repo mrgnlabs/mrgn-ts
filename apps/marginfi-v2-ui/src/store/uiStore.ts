@@ -90,13 +90,10 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setLendingMode: (lendingMode: LendingModes) =>
     set({
       lendingMode: lendingMode,
-      actionMode: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
     }),
-  // setActionMode: (actionMode: ActionType) => set({ actionMode: actionMode }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setUserMode: (userMode: UserMode) => set({ userMode: userMode }),
-  setSelectedTokenBank: (selectedTokenBank: PublicKey | null) => set({ selectedTokenBank: selectedTokenBank }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };
