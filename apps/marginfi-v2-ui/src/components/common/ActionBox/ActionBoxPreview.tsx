@@ -146,6 +146,16 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
 
   const isBorrowing = marginfiAccount?.activeBalances.find((b) => b.active && b.liabilityShares.gt(0)) !== undefined;
 
+  const amount = React.useMemo(
+    () =>
+      selectedBank.isActive
+        ? (showLending ? selectedBank?.position?.isLending : !selectedBank?.position?.isLending)
+          ? selectedBank?.position?.amount
+          : 0
+        : 0,
+    [selectedBank, showLending]
+  );
+
   if (!selectedBank || !marginfiAccount || !actionAmount) {
     return null;
   }
@@ -154,14 +164,10 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
     <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
       <>
         <dt>{`Your ${showLending ? "deposited" : "borrowed"} amount`}</dt>
-        <dd className={cn(`text-[white] font-medium text-right`)}>
-          {selectedBank.isActive
-            ? (showLending ? selectedBank?.position?.isLending : !selectedBank?.position?.isLending)
-              ? selectedBank?.position?.amount < 0.01
-                ? "< $0.01"
-                : numeralFormatter(selectedBank?.position?.amount ?? 0)
-              : 0
-            : 0}
+        <dd className={cn(`text-[white] flex justify-end font-medium text-right items-center gap-2`)}>
+          {amount < 0.01 ? (amount === 0 ? 0 : "< $0.01") : numeralFormatter(selectedBank?.position?.amount ?? 0)}
+          {actionAmount && <IconArrowRight width={12} height={12} />}
+          {actionAmount && numeralFormatter(actionAmount)}
         </dd>
       </>
       <>
