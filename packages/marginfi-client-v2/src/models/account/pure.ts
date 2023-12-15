@@ -279,7 +279,9 @@ class MarginfiAccount {
     // ----------------------------- //
 
     if (initAssetWeight.isZero() && !maintAssetWeight.isZero()) {
-      if (freeCollateral.isZero()) {
+      if (liabilitiesInit.eq(0)) {
+        return entireBalance;
+      } else if (freeCollateral.isZero()) {
         return new BigNumber(0); // inefficient, but reflective of contract which does not look at action delta, but only end state
       } else {
         const { liabilities: maintLiabilities, assets: maintAssets } = this.computeHealthComponents(
