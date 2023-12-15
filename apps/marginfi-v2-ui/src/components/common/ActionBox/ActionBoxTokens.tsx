@@ -147,7 +147,7 @@ export const ActionBoxTokens = ({ currentTokenBank, setCurrentTokenBank }: Actio
         <Button
           className={cn(
             "bg-background-gray-light text-white text-left text-base p-6 pr-5 gap-2.5 transition-colors hover:bg-background-gray",
-            isTokenPopoverOpen && "bg-background-gray w-[300px]"
+            isTokenPopoverOpen && "bg-background-gray md:w-[300px]"
           )}
         >
           {selectedBank && (
@@ -178,7 +178,7 @@ export const ActionBoxTokens = ({ currentTokenBank, setCurrentTokenBank }: Actio
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="p-1 w-[320px] bg-background-gray"
+        className="p-1 md:w-[320px] bg-background-gray"
         align="start"
         side="bottom"
         sideOffset={-50}
