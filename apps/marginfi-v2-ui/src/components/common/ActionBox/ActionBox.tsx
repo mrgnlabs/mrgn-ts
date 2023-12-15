@@ -2,7 +2,6 @@ import React from "react";
 
 import { numeralFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { MarginfiActionParams, closeBalance, executeLendingAction, usePrevious } from "~/utils";
 import { LendingModes } from "~/types";
@@ -13,18 +12,19 @@ import { ActionBoxTokens } from "~/components/common/ActionBox/ActionBoxTokens";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 
 import { Input } from "~/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { IconWallet } from "~/components/ui/icons";
 
 import { ActionBoxActions } from "./ActionBoxActions";
 import { ActionBoxPreview } from "./ActionBoxPreview";
+import { PublicKey } from "@solana/web3.js";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
+  requestedToken?: PublicKey;
   isDialog?: boolean;
 };
 
-export const ActionBox = ({ requestedAction, isDialog }: ActionBoxProps) => {
+export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionBoxProps) => {
   const [
     mfiClient,
     nativeSolBalance,
@@ -42,14 +42,10 @@ export const ActionBox = ({ requestedAction, isDialog }: ActionBoxProps) => {
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingMode, setLendingMode, selectedTokenBank, setSelectedTokenBank] = useUiStore((state) => [
-    state.lendingMode,
-    state.setLendingMode,
-    state.selectedTokenBank,
-    state.setSelectedTokenBank,
-  ]);
+  const [lendingMode, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
 
-  const [actionMode, setActionMode] = React.useState<ActionType>();
+  const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
+  const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
 
   const { walletContextState } = useWalletContext();
 
@@ -120,6 +116,12 @@ export const ActionBox = ({ requestedAction, isDialog }: ActionBoxProps) => {
   React.useEffect(() => {
     setAmount(0);
   }, [lendingMode, selectedTokenBank]);
+
+  React.useEffect(() => {
+    if (requestedToken) {
+      setSelectedTokenBank(requestedToken);
+    }
+  }, [requestedToken, setSelectedTokenBank]);
 
   React.useEffect(() => {
     if (!requestedAction) {

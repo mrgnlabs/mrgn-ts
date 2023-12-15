@@ -3,14 +3,11 @@ import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { AssetRowAction } from "~/components/common/AssetList";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
-import { useUiStore } from "~/store";
 
 export const AssetCardActions: FC<{
   bank: ExtendedBankInfo;
   currentAction: ActionType;
 }> = ({ bank, currentAction }) => {
-  const [setSelectedToken] = useUiStore((state) => [state.setSelectedTokenBank]);
-
   const isDust = React.useMemo(() => bank.isActive && bank.position.isDust, [bank]);
   const showCloseBalance = React.useMemo(
     () => currentAction === ActionType.Withdraw && isDust,
@@ -20,7 +17,7 @@ export const AssetCardActions: FC<{
   return (
     <>
       <div className="flex flex-row gap-[10px] justify-between w-full">
-        <ActionBoxDialog>
+        <ActionBoxDialog requestedToken={bank.address}>
           <AssetRowAction
             className="w-full"
             bgColor={
@@ -28,7 +25,6 @@ export const AssetCardActions: FC<{
                 ? "rgb(227, 227, 227)"
                 : "rgba(0,0,0,0)"
             }
-            onClick={() => setSelectedToken(bank.address)}
           >
             {showCloseBalance ? "Close" : currentAction}
           </AssetRowAction>
