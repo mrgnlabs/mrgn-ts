@@ -43,11 +43,9 @@ interface UiState {
   isWalletOnrampActive: boolean;
   isFilteredUserPositions: boolean;
   lendingMode: LendingModes;
-  actionMode: ActionType;
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
   userMode: UserMode;
-  selectedTokenBank: PublicKey | null;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -57,11 +55,9 @@ interface UiState {
   setIsOnrampActive: (isOnrampActive: boolean) => void;
   setIsFilteredUserPositions: (isFilteredUserPositions: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
-  // setActionMode: (actionMode: ActionType) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
   setUserMode: (userMode: UserMode) => void;
-  setSelectedTokenBank: (selectedTokenBank: PublicKey | null) => void;
 }
 
 function createUiStore() {

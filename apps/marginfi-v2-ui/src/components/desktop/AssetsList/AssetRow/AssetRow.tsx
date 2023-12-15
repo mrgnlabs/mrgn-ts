@@ -71,10 +71,9 @@ const AssetRow: React.FC<{
   showLSTDialog,
 }) => {
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
-  const [lendingMode, isFilteredUserPositions, setSelectedToken] = useUiStore((state) => [
+  const [lendingMode, isFilteredUserPositions] = useUiStore((state) => [
     state.lendingMode,
     state.isFilteredUserPositions,
-    state.setSelectedTokenBank,
   ]);
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
 
@@ -395,10 +394,8 @@ const AssetRow: React.FC<{
             placement="top"
           >
             <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
-              <ActionBoxDialog>
-                <Button onClick={() => setSelectedToken(bank.address)} className="w-full">
-                  {showCloseBalance ? "Close" : currentAction}
-                </Button>
+              <ActionBoxDialog requestedToken={bank.address}>
+                <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
               </ActionBoxDialog>
             </div>
           </Tooltip>
