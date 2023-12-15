@@ -1,4 +1,4 @@
-import { WrappedI80F48, nativeToUi, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
+import { BankMetadata, WrappedI80F48, nativeToUi, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
@@ -61,6 +61,7 @@ interface BankConfigRaw {
   depositLimit: BN;
   borrowLimit: BN;
   riskTier: RiskTierRaw;
+  totalAssetValueInitLimit: BN;
 
   interestRateConfig: InterestRateConfigRaw;
 
@@ -93,6 +94,7 @@ export type { BankRaw, BankConfigRaw, RiskTierRaw, InterestRateConfigRaw, Oracle
 
 class Bank {
   public address: PublicKey;
+  public tokenSymbol: string | undefined;
 
   public group: PublicKey;
   public mint: PublicKey;
@@ -154,9 +156,11 @@ class Bank {
     emissionsActiveLending: boolean,
     emissionsRate: number,
     emissionsMint: PublicKey,
-    emissionsRemaining: BigNumber
+    emissionsRemaining: BigNumber,
+    tokenSymbol?: string
   ) {
     this.address = address;
+    this.tokenSymbol = tokenSymbol;
 
     this.group = group;
     this.mint = mint;
@@ -203,7 +207,7 @@ class Bank {
     return Bank.fromAccountParsed(address, accountParsed);
   }
 
-  static fromAccountParsed(address: PublicKey, accountParsed: BankRaw): Bank {
+  static fromAccountParsed(address: PublicKey, accountParsed: BankRaw, bankMetadata?: BankMetadata): Bank {
     const emissionsFlags = accountParsed.emissionsFlags.toNumber();
 
     const mint = accountParsed.mint;
@@ -270,7 +274,8 @@ class Bank {
       emissionsActiveLending,
       emissionsRate,
       emissionsMint,
-      emissionsRemaining
+      emissionsRemaining,
+      bankMetadata?.tokenSymbol
     );
   }
 
@@ -361,6 +366,25 @@ class Bank {
       default:
         throw new Error("Invalid margin requirement type");
     }
+  }
+
+  getEffectiveAssetWeight(marginRequirementType: MarginRequirementType, oraclePrice: OraclePrice): BigNumber {
+    switch (marginRequirementType) {
+      case MarginRequirementType.Initial:
+        const totalBankCollateralValue = this.computeAssetUsdValue(oraclePrice, this.totalAssetShares, MarginRequirementType.Equity, PriceBias.Lowest);
+        if (totalBankCollateralValue.isGreaterThan(this.config.totalAssetValueInitLimit)) {
+            return this.config.totalAssetValueInitLimit.div(totalBankCollateralValue).times(this.config.assetWeightInit);
+        } else {
+            return this.config.assetWeightInit;
+        }
+      case MarginRequirementType.Maintenance:
+        return this.config.assetWeightMaint;
+      case MarginRequirementType.Equity:
+        return new BigNumber(1);
+      default:
+        throw new Error("Invalid margin requirement type");
+    }
+
   }
 
   getLiabilityWeight(marginRequirementType: MarginRequirementType): BigNumber {
@@ -515,6 +539,7 @@ class BankConfig {
   public borrowLimit: BigNumber;
 
   public riskTier: RiskTier;
+  public totalAssetValueInitLimit: BigNumber;
 
   public interestRateConfig: InterestRateConfig;
 
@@ -529,6 +554,7 @@ class BankConfig {
     depositLimit: BigNumber,
     borrowLimit: BigNumber,
     riskTier: RiskTier,
+    totalAssetValueInitLimit: BigNumber,
     oracleSetup: OracleSetup,
     oracleKeys: PublicKey[],
     interestRateConfig: InterestRateConfig
@@ -540,6 +566,7 @@ class BankConfig {
     this.depositLimit = depositLimit;
     this.borrowLimit = borrowLimit;
     this.riskTier = riskTier;
+    this.totalAssetValueInitLimit = totalAssetValueInitLimit;
     this.oracleSetup = oracleSetup;
     this.oracleKeys = oracleKeys;
     this.interestRateConfig = interestRateConfig;
@@ -553,6 +580,7 @@ class BankConfig {
     const depositLimit = BigNumber(bankConfigRaw.depositLimit.toString());
     const borrowLimit = BigNumber(bankConfigRaw.borrowLimit.toString());
     const riskTier = parseRiskTier(bankConfigRaw.riskTier);
+    const totalAssetValueInitLimit = BigNumber(bankConfigRaw.totalAssetValueInitLimit.toString());
     const oracleSetup = parseOracleSetup(bankConfigRaw.oracleSetup);
     const oracleKeys = bankConfigRaw.oracleKeys;
     const interestRateConfig = {
@@ -573,6 +601,7 @@ class BankConfig {
       depositLimit,
       borrowLimit,
       riskTier,
+      totalAssetValueInitLimit,
       oracleSetup,
       oracleKeys,
       interestRateConfig,
