@@ -244,23 +244,8 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
           </dd>
         </>
       )}
-      {actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw ? (
-        <>
-          <dt>Deposit rate</dt>
-          <dd className={cn(`text-[white] font-medium text-right`)}>
-            {preview?.depositRate ? percentFormatter.format(preview.depositRate) : "-"}
-          </dd>
-        </>
-      ) : (
-        <>
-          <dt>Borrow rate</dt>
-          <dd className={cn(`text-[white] font-medium text-right`)}>
-            {preview?.borrowRate ? percentFormatter.format(preview.borrowRate) : "-"}
-          </dd>
-        </>
-      )}
       <>
-        <dt>{showLending ? "Deposits" : "Available"}</dt>
+        <dt>{showLending ? "Global deposits" : "Available"}</dt>
         <dd className={cn(`text-[white] flex justify-end font-medium text-right items-center gap-2`)}>
           <MrgnTooltip
             title={

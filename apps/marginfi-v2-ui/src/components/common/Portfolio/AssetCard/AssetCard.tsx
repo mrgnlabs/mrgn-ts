@@ -18,12 +18,10 @@ interface props {
 }
 
 export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
-  const [setActionMode, setSelectedToken, setLendingMode] = useUiStore((state) => [
-    state.setActionMode,
-    state.setSelectedTokenBank,
-    state.setLendingMode,
-  ]);
+  const [setSelectedToken, setLendingMode] = useUiStore((state) => [state.setSelectedTokenBank, state.setLendingMode]);
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
+
+  const [requestedAction, setRequestedAction] = React.useState<ActionType>();
 
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
@@ -114,13 +112,13 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
               </dd>
             </dl>
           </div>
-          <ActionBoxDialog>
+          <ActionBoxDialog requestedAction={requestedAction}>
             <div className="flex w-full gap-3">
               <Button
                 onClick={() => {
                   setLendingMode(isInLendingMode ? LendingModes.LEND : LendingModes.BORROW);
+                  setRequestedAction(isInLendingMode ? ActionType.Withdraw : ActionType.Repay);
                   setSelectedToken(bank.address);
-                  setActionMode(isInLendingMode ? ActionType.Withdraw : ActionType.Repay);
                 }}
                 className="flex-1 h-12"
                 variant="outline"
@@ -130,8 +128,8 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
               <Button
                 onClick={() => {
                   setLendingMode(isInLendingMode ? LendingModes.LEND : LendingModes.BORROW);
+                  setRequestedAction(isInLendingMode ? ActionType.Deposit : ActionType.Borrow);
                   setSelectedToken(bank.address);
-                  setActionMode(isInLendingMode ? ActionType.Deposit : ActionType.Borrow);
                 }}
                 className="flex-1 h-12"
                 variant="default"
