@@ -31,7 +31,12 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
       isInLendingMode
         ? bank.info.rawBank.config.depositLimit.toNumber() / Math.pow(10, bank.info.rawBank.mintDecimals)
         : bank.info.rawBank.config.borrowLimit.toNumber() / Math.pow(10, bank.info.rawBank.mintDecimals),
-    [isInLendingMode, bank.info.rawBank.config]
+    [
+      isInLendingMode,
+      bank.info.rawBank.config.depositLimit,
+      bank.info.rawBank.config.borrowLimit,
+      bank.info.rawBank.mintDecimals,
+    ]
   );
   const isBankFilled = useMemo(
     () => (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.99999,
