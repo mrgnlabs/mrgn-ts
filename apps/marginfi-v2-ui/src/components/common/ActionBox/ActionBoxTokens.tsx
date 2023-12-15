@@ -235,32 +235,33 @@ export const ActionBoxTokens = ({ currentTokenBank, setCurrentTokenBank }: Actio
               actionMode !== ActionType.Withdraw &&
               actionMode !== ActionType.Repay && (
                 <CommandGroup heading="Available in your wallet">
-                  {filteredBanksUserOwns.slice(0, searchQuery.length === 0 ? 5 : 3).map((bank, index) => {
-                    if (searchQuery.length > 0 && isActiveBank(bank.address)) return null;
-                    return (
-                      <CommandItem
-                        key={index}
-                        value={bank?.address?.toString().toLowerCase()}
-                        onSelect={(currentValue) => {
-                          setCurrentTokenBank(
-                            extendedBankInfos.find(
-                              (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                            )?.address ?? null
-                          );
-                          setIsTokenPopoverOpen(false);
-                        }}
-                        className="cursor-pointer h-[60px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
-                      >
-                        <ActionBoxItem
-                          rate={calculateRate(bank)}
-                          lendingMode={lendingMode}
-                          bank={bank}
-                          showBalanceOverride={true}
-                          nativeSolBalance={nativeSolBalance}
-                        />
-                      </CommandItem>
-                    );
-                  })}
+                  {filteredBanksUserOwns
+                    .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
+                    .map((bank, index) => {
+                      return (
+                        <CommandItem
+                          key={index}
+                          value={bank?.address?.toString().toLowerCase()}
+                          onSelect={(currentValue) => {
+                            setCurrentTokenBank(
+                              extendedBankInfos.find(
+                                (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                              )?.address ?? null
+                            );
+                            setIsTokenPopoverOpen(false);
+                          }}
+                          className="cursor-pointer h-[60px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                        >
+                          <ActionBoxItem
+                            rate={calculateRate(bank)}
+                            lendingMode={lendingMode}
+                            bank={bank}
+                            showBalanceOverride={true}
+                            nativeSolBalance={nativeSolBalance}
+                          />
+                        </CommandItem>
+                      );
+                    })}
                 </CommandGroup>
               )}
             {(searchQuery.length > 0 || actionMode === ActionType.Repay) &&
