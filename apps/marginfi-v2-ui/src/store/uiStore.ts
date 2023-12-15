@@ -57,7 +57,7 @@ interface UiState {
   setIsOnrampActive: (isOnrampActive: boolean) => void;
   setIsFilteredUserPositions: (isFilteredUserPositions: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
-  setActionMode: (actionMode: ActionType) => void;
+  // setActionMode: (actionMode: ActionType) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
   setUserMode: (userMode: UserMode) => void;
@@ -96,7 +96,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
       lendingMode: lendingMode,
       actionMode: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
     }),
-  setActionMode: (actionMode: ActionType) => set({ actionMode: actionMode }),
+  // setActionMode: (actionMode: ActionType) => set({ actionMode: actionMode }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setUserMode: (userMode: UserMode) => set({ userMode: userMode }),
