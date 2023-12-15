@@ -110,7 +110,6 @@ export const ActionBox = () => {
   const actionModePrev = usePrevious(actionMode);
   React.useEffect(() => {
     if (actionModePrev !== null && actionModePrev !== actionMode) {
-      console.log("resetting amount due to actionMode", actionMode);
       setAmount(0);
     }
   }, [actionModePrev, actionMode]);
