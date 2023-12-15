@@ -17,6 +17,7 @@ interface ActionPreview {
   liquidationPrice: number | null;
   depositRate: number;
   borrowRate: number;
+  positionAmount: number;
 } // TODO: to extend with any other fields we want to display
 
 interface ActionBoxPreviewProps {
@@ -127,11 +128,23 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
         const { lendingRate, borrowingRate } = simulationResult.banks
           .get(selectedBank.address.toBase58())!
           .computeInterestRates();
+
+        const position = simulationResult.marginfiAccount.activeBalances.find(
+          (b) => b.active && b.bankPk.equals(selectedBank.address)
+        );
+        let positionAmount = 0;
+        if (position?.active && position?.liabilityShares.gt(0)) {
+          positionAmount = position.computeQuantityUi(selectedBank.info.rawBank).liabilities.toNumber();
+        } else if (position?.active && position?.assetShares.gt(0)) {
+          positionAmount = position.computeQuantityUi(selectedBank.info.rawBank).assets.toNumber();
+        }
+
         setPreview({
           health,
           liquidationPrice,
           depositRate: lendingRate.toNumber(),
           borrowRate: borrowingRate.toNumber(),
+          positionAmount,
         });
       } catch (error) {
         setPreview(null);
@@ -160,14 +173,16 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
     return null;
   }
 
+  const currentPositionAmount = selectedBank.isActive ? selectedBank.position.amount : 0; 
+
   return (
     <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
       <>
         <dt>{`Your ${showLending ? "deposited" : "borrowed"} amount`}</dt>
         <dd className={cn(`text-[white] flex justify-end font-medium text-right items-center gap-2`)}>
-          {amount < 0.01 ? (amount === 0 ? 0 : "< $0.01") : numeralFormatter(selectedBank?.position?.amount ?? 0)}
-          {actionAmount && <IconArrowRight width={12} height={12} />}
-          {actionAmount && numeralFormatter(actionAmount)}
+          {currentPositionAmount < 0.01 ? (currentPositionAmount === 0 ? 0 : "< $0.01") : numeralFormatter(currentPositionAmount)}
+          {preview && <IconArrowRight width={12} height={12} />}
+          {preview && numeralFormatter(preview.positionAmount)}
         </dd>
       </>
       <>

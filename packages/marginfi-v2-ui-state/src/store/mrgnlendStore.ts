@@ -65,12 +65,11 @@ function createMrgnlendStore() {
 }
 
 function createPersistentMrgnlendStore() {
-  return create<MrgnlendState, [["zustand/persist", Pick<MrgnlendState, "extendedBankInfos" | "protocolStats">]]>(
+  return create<MrgnlendState, [["zustand/persist", Pick<MrgnlendState, "protocolStats">]]>(
     persist(stateCreator, {
       name: "mrgnlend-peristent-store",
       partialize(state) {
         return {
-          extendedBankInfos: state.extendedBankInfos,
           protocolStats: state.protocolStats,
         };
       },
