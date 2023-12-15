@@ -112,6 +112,10 @@ export const ActionBox = () => {
   }, [actionModePrev, actionMode]);
 
   React.useEffect(() => {
+    setSelectedTokenBank(null);
+  }, [lendingMode, setSelectedTokenBank]);
+
+  React.useEffect(() => {
     setAmount(0);
   }, [lendingMode, selectedTokenBank]);
 
