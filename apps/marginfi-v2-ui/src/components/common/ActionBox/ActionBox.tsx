@@ -60,6 +60,10 @@ export const ActionBox = () => {
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
+  const hasActivePositions = React.useMemo(
+    () => extendedBankInfos.find((bank) => bank.isActive),
+    [extendedBankInfos, selectedTokenBank]
+  );
   const selectedBank = React.useMemo(
     () =>
       selectedTokenBank
@@ -116,14 +120,18 @@ export const ActionBox = () => {
   }, [lendingMode, selectedTokenBank]);
 
   React.useEffect(() => {
-    if (hasActivePosition) return;
-
-    if (actionMode === ActionType.Withdraw) {
-      setActionMode(ActionType.Deposit);
-    } else if (actionMode === ActionType.Repay) {
-      setActionMode(ActionType.Borrow);
+    if (
+      actionMode === ActionType.Withdraw &&
+      !(selectedBank?.position?.isLending && lendingMode === LendingModes.LEND)
+    ) {
+      setSelectedTokenBank(undefined);
+    } else if (
+      actionMode === ActionType.Repay &&
+      !(selectedBank?.position?.isLending && lendingMode === LendingModes.BORROW)
+    ) {
+      setSelectedTokenBank(undefined);
     }
-  }, [hasActivePosition, actionMode, setActionMode]);
+  }, [actionMode, setActionMode]);
 
   const executeLendingActionCb = React.useCallback(
     async ({
@@ -265,10 +273,10 @@ export const ActionBox = () => {
         </div>
         <div className="p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl">
           <div className="flex flex-row items-baseline justify-between">
-            {hasActivePosition ? (
+            {hasActivePositions && (
               <Select
                 value={actionMode}
-                disabled={!hasActivePosition}
+                // disabled={!hasActivePosition}
                 onValueChange={(value) => {
                   setActionMode(value as ActionType);
                 }}
@@ -294,8 +302,6 @@ export const ActionBox = () => {
                   </SelectContent>
                 )}
               </Select>
-            ) : (
-              <p className="text-lg mb-3">You {lendingMode === LendingModes.LEND ? "supply" : "borrow"}</p>
             )}
             {selectedBank && (
               <div className="inline-flex gap-2 items-baseline">
