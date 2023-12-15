@@ -59,7 +59,6 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
       } else {
         color = "#CF6F6F"; // red color
       }
-
       return color;
     } else {
       return "#fff";
@@ -173,14 +172,18 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
     return null;
   }
 
-  const currentPositionAmount = selectedBank.isActive ? selectedBank.position.amount : 0; 
+  const currentPositionAmount = selectedBank.isActive ? selectedBank.position.amount : 0;
 
   return (
     <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
       <>
         <dt>{`Your ${showLending ? "deposited" : "borrowed"} amount`}</dt>
         <dd className={cn(`text-[white] flex justify-end font-medium text-right items-center gap-2`)}>
-          {currentPositionAmount < 0.01 ? (currentPositionAmount === 0 ? 0 : "< $0.01") : numeralFormatter(currentPositionAmount)}
+          {currentPositionAmount < 0.01
+            ? currentPositionAmount === 0
+              ? 0
+              : "< $0.01"
+            : numeralFormatter(currentPositionAmount)}
           {preview && <IconArrowRight width={12} height={12} />}
           {preview && numeralFormatter(preview.positionAmount)}
         </dd>
