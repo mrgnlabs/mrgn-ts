@@ -126,7 +126,7 @@ export const ActionBox = () => {
       setSelectedTokenBank(null);
     } else if (
       actionMode === ActionType.Repay &&
-      !(selectedBank?.isActive && selectedBank?.position?.isLending && lendingMode === LendingModes.BORROW)
+      !(selectedBank?.isActive && !selectedBank?.position?.isLending && lendingMode === LendingModes.BORROW)
     ) {
       setSelectedTokenBank(null);
     }
