@@ -112,10 +112,6 @@ export const ActionBox = () => {
   }, [actionModePrev, actionMode]);
 
   React.useEffect(() => {
-    setSelectedTokenBank(null);
-  }, [lendingMode, setSelectedTokenBank]);
-
-  React.useEffect(() => {
     setAmount(0);
   }, [lendingMode, selectedTokenBank]);
 
@@ -260,6 +256,7 @@ export const ActionBox = () => {
               labelRight="Borrow"
               checked={lendingMode === LendingModes.BORROW}
               onClick={() => {
+                setSelectedTokenBank(null);
                 setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND);
               }}
             />
