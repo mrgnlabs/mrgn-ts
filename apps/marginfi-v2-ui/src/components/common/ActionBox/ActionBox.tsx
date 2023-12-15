@@ -122,16 +122,16 @@ export const ActionBox = () => {
   React.useEffect(() => {
     if (
       actionMode === ActionType.Withdraw &&
-      !(selectedBank?.position?.isLending && lendingMode === LendingModes.LEND)
+      !(selectedBank?.isActive && selectedBank?.position?.isLending && lendingMode === LendingModes.LEND)
     ) {
-      setSelectedTokenBank(undefined);
+      setSelectedTokenBank(null);
     } else if (
       actionMode === ActionType.Repay &&
-      !(selectedBank?.position?.isLending && lendingMode === LendingModes.BORROW)
+      !(selectedBank?.isActive && selectedBank?.position?.isLending && lendingMode === LendingModes.BORROW)
     ) {
-      setSelectedTokenBank(undefined);
+      setSelectedTokenBank(null);
     }
-  }, [actionMode, setActionMode]);
+  }, [selectedBank, actionMode, setActionMode]);
 
   const executeLendingActionCb = React.useCallback(
     async ({
