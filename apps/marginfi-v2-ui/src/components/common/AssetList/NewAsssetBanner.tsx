@@ -16,15 +16,13 @@ type NewAssetBannerProps = {
 };
 
 export const NewAssetBanner = ({ asset, symbol, image }: NewAssetBannerProps) => {
-  const [userMode, poolFilter, setLendingMode, setPoolFilter, setIsFilteredUserPositions, setSelectedToken] =
-    useUiStore((state) => [
-      state.userMode,
-      state.poolFilter,
-      state.setLendingMode,
-      state.setPoolFilter,
-      state.setIsFilteredUserPositions,
-      state.setSelectedTokenBank,
-    ]);
+  const [userMode, poolFilter, setLendingMode, setPoolFilter, setIsFilteredUserPositions] = useUiStore((state) => [
+    state.userMode,
+    state.poolFilter,
+    state.setLendingMode,
+    state.setPoolFilter,
+    state.setIsFilteredUserPositions,
+  ]);
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
   const renderBank = React.useMemo(
@@ -89,7 +87,7 @@ export const NewAssetBanner = ({ asset, symbol, image }: NewAssetBannerProps) =>
           <h2 className="font-medium">{assetTicker} is now available on margnfi</h2>
           <ul className="flex items-center gap-2 justify-center">
             <li className="w-full">
-              {userMode === UserMode.LITE ? (
+              {/* {userMode === UserMode.LITE ? (
                 <ActionBoxDialog>
                   <Button
                     variant="outline"
@@ -107,9 +105,9 @@ export const NewAssetBanner = ({ asset, symbol, image }: NewAssetBannerProps) =>
                 <Button variant="outline" size="sm" className="w-full" onClick={() => deposit()}>
                   Deposit {assetTicker}
                 </Button>
-              )}
+              )} */}
             </li>
-            <li className="w-full">
+            {/* <li className="w-full">
               {userMode === UserMode.LITE ? (
                 <ActionBoxDialog>
                   <Button
@@ -129,7 +127,7 @@ export const NewAssetBanner = ({ asset, symbol, image }: NewAssetBannerProps) =>
                   Borrow {assetTicker}
                 </Button>
               )}
-            </li>
+            </li> */}
           </ul>
         </div>
       </div>

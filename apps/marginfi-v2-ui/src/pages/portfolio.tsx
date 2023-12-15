@@ -12,18 +12,11 @@ import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { PageHeader } from "~/components/common/PageHeader";
-import {
-  PointsOverview,
-  PointsSignIn,
-  PointsSignUp,
-  PointsCheckingUser,
-  PointsConnectWallet,
-} from "~/components/desktop/Points";
+import { PointsCheckingUser, PointsConnectWallet } from "~/components/desktop/Points";
 import { EmissionsBanner } from "~/components/mobile/EmissionsBanner";
 import { Portfolio } from "~/components/common/Portfolio";
-import { MobileAccountSummary } from "~/components/mobile/MobileAccountSummary";
-import { MobilePointsOverview } from "~/components/mobile/Points";
 import { Button } from "~/components/ui/button";
+import { MobilePointsOverview } from "~/components/mobile/Points/MobilePointsOverview";
 
 const PortfolioPage = () => {
   const { connected, wallet, isOverride } = useWalletContext();

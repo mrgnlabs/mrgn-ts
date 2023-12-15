@@ -410,7 +410,7 @@ const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemProps) =>
             lendingMode === LendingModes.BORROW && "text-error"
           )}
         >
-          {rate + ` ${bank === LendingModes.LEND ? "APY" : "APR"}`}
+          {rate + ` ${lendingMode === LendingModes.LEND ? "APY" : "APR"}`}
         </p>
       </div>
     </>
