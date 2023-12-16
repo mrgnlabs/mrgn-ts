@@ -1,5 +1,6 @@
 import Image from "next/image";
 import React, { FC } from "react";
+import { PublicKey } from "@solana/web3.js";
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -18,12 +19,11 @@ interface props {
 }
 
 export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
-  const [setActionMode, setSelectedToken, setLendingMode] = useUiStore((state) => [
-    state.setActionMode,
-    state.setSelectedTokenBank,
-    state.setLendingMode,
-  ]);
+  const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
+
+  const [requestedAction, setRequestedAction] = React.useState<ActionType>();
+  const [requestedToken, setRequestedToken] = React.useState<PublicKey>();
 
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
@@ -114,13 +114,13 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
               </dd>
             </dl>
           </div>
-          <ActionBoxDialog>
+          <ActionBoxDialog requestedAction={requestedAction} requestedToken={requestedToken}>
             <div className="flex w-full gap-3">
               <Button
                 onClick={() => {
                   setLendingMode(isInLendingMode ? LendingModes.LEND : LendingModes.BORROW);
-                  setSelectedToken(bank.address);
-                  setActionMode(isInLendingMode ? ActionType.Withdraw : ActionType.Repay);
+                  setRequestedAction(isInLendingMode ? ActionType.Withdraw : ActionType.Repay);
+                  setRequestedToken(bank.address);
                 }}
                 className="flex-1 h-12"
                 variant="outline"
@@ -130,8 +130,8 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
               <Button
                 onClick={() => {
                   setLendingMode(isInLendingMode ? LendingModes.LEND : LendingModes.BORROW);
-                  setSelectedToken(bank.address);
-                  setActionMode(isInLendingMode ? ActionType.Deposit : ActionType.Borrow);
+                  setRequestedAction(isInLendingMode ? ActionType.Deposit : ActionType.Borrow);
+                  setRequestedToken(bank.address);
                 }}
                 className="flex-1 h-12"
                 variant="default"

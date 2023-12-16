@@ -2,7 +2,6 @@ import React from "react";
 
 import { numeralFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { MarginfiActionParams, closeBalance, executeLendingAction, usePrevious } from "~/utils";
 import { LendingModes } from "~/types";
@@ -13,13 +12,19 @@ import { ActionBoxTokens } from "~/components/common/ActionBox/ActionBoxTokens";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 
 import { Input } from "~/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { IconWallet } from "~/components/ui/icons";
 
 import { ActionBoxActions } from "./ActionBoxActions";
 import { ActionBoxPreview } from "./ActionBoxPreview";
+import { PublicKey } from "@solana/web3.js";
 
-export const ActionBox = () => {
+type ActionBoxProps = {
+  requestedAction?: ActionType;
+  requestedToken?: PublicKey;
+  isDialog?: boolean;
+};
+
+export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionBoxProps) => {
   const [
     mfiClient,
     nativeSolBalance,
@@ -37,16 +42,10 @@ export const ActionBox = () => {
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingMode, setLendingMode, actionMode, setActionMode, selectedTokenBank, setSelectedTokenBank] = useUiStore(
-    (state) => [
-      state.lendingMode,
-      state.setLendingMode,
-      state.actionMode,
-      state.setActionMode,
-      state.selectedTokenBank,
-      state.setSelectedTokenBank,
-    ]
-  );
+  const [lendingMode, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
+
+  const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
+  const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
 
   const { walletContextState } = useWalletContext();
 
@@ -117,6 +116,28 @@ export const ActionBox = () => {
   React.useEffect(() => {
     setAmount(0);
   }, [lendingMode, selectedTokenBank]);
+
+  React.useEffect(() => {
+    if (requestedToken) {
+      setSelectedTokenBank(requestedToken);
+    }
+  }, [requestedToken, setSelectedTokenBank]);
+
+  React.useEffect(() => {
+    if (!requestedAction) {
+      if (lendingMode === LendingModes.LEND) {
+        setActionMode(ActionType.Deposit);
+      } else {
+        setActionMode(ActionType.Borrow);
+      }
+    }
+  }, [lendingMode, setActionMode]);
+
+  React.useEffect(() => {
+    if (requestedAction) {
+      setActionMode(requestedAction);
+    }
+  }, [requestedAction, setActionMode]);
 
   React.useEffect(() => {
     if (
@@ -257,53 +278,35 @@ export const ActionBox = () => {
     <>
       <div className="bg-background p-4 flex flex-col items-center gap-4">
         <div className="space-y-6 text-center w-full flex flex-col items-center">
-          <div className="flex w-[150px] h-[42px]">
-            <MrgnLabeledSwitch
-              labelLeft="Lend"
-              labelRight="Borrow"
-              checked={lendingMode === LendingModes.BORROW}
-              onClick={() => {
-                setSelectedTokenBank(null);
-                setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND);
-              }}
-            />
-          </div>
-          <p className="text-muted-foreground">Supply. Earn interest. Borrow. Repeat.</p>
+          {!isDialog && (
+            <>
+              <div className="flex w-[150px] h-[42px]">
+                <MrgnLabeledSwitch
+                  labelLeft="Lend"
+                  labelRight="Borrow"
+                  checked={lendingMode === LendingModes.BORROW}
+                  onClick={() => {
+                    setSelectedTokenBank(null);
+                    setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND);
+                  }}
+                />
+              </div>
+
+              <p className="text-muted-foreground">Supply. Earn interest. Borrow. Repeat.</p>
+            </>
+          )}
         </div>
         <div className="p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl">
           <div className="flex flex-row items-baseline justify-between">
-            {hasActivePositions && (
-              <Select
-                value={actionMode}
-                // disabled={!hasActivePosition}
-                onValueChange={(value) => {
-                  setActionMode(value as ActionType);
-                }}
-              >
-                <SelectTrigger
-                  className="w-[160px] h-[35px] bg-background-gray-light border-none mb-3 focus:ring-0 focus:outline-none"
-                  icon={<ChevronDownIcon className="h-5 w-5 opacity-70" />}
-                >
-                  <div className="flex items-center gap-2">
-                    <SelectValue defaultValue={LendingModes.LEND} placeholder="Select pools" />
-                  </div>
-                </SelectTrigger>
-
-                {lendingMode === LendingModes.LEND ? (
-                  <SelectContent className="bg-background-gray">
-                    <SelectItem value={ActionType.Deposit}>You supply</SelectItem>
-                    <SelectItem value={ActionType.Withdraw}>You withdraw</SelectItem>
-                  </SelectContent>
-                ) : (
-                  <SelectContent>
-                    <SelectItem value={ActionType.Borrow}>You borrow</SelectItem>
-                    <SelectItem value={ActionType.Repay}>You repay</SelectItem>
-                  </SelectContent>
-                )}
-              </Select>
+            {hasActivePositions && !isDialog ? (
+              <div className="text-lg font-normal mb-3">
+                {lendingMode === LendingModes.LEND ? "You supply" : "You borrow"}
+              </div>
+            ) : (
+              <div />
             )}
             {selectedBank && (
-              <div className="inline-flex gap-2 items-baseline">
+              <div className="inline-flex gap-2 items-baseline mb-3">
                 <div className="h-3.5">
                   <IconWallet size={16} />
                 </div>
@@ -325,7 +328,12 @@ export const ActionBox = () => {
             )}
           </div>
           <div className="bg-background text-3xl rounded-lg flex justify-between items-center p-4 font-medium mb-5">
-            <ActionBoxTokens currentTokenBank={selectedTokenBank} setCurrentTokenBank={setSelectedTokenBank} />
+            <ActionBoxTokens
+              actionMode={actionMode}
+              isDialog={isDialog}
+              currentTokenBank={selectedTokenBank}
+              setCurrentTokenBank={setSelectedTokenBank}
+            />
             <Input
               type="number"
               ref={amountInputRef}

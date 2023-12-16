@@ -43,11 +43,9 @@ interface UiState {
   isWalletOnrampActive: boolean;
   isFilteredUserPositions: boolean;
   lendingMode: LendingModes;
-  actionMode: ActionType;
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
   userMode: UserMode;
-  selectedTokenBank: PublicKey | null;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -57,11 +55,9 @@ interface UiState {
   setIsOnrampActive: (isOnrampActive: boolean) => void;
   setIsFilteredUserPositions: (isFilteredUserPositions: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
-  setActionMode: (actionMode: ActionType) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
   setUserMode: (userMode: UserMode) => void;
-  setSelectedTokenBank: (selectedTokenBank: PublicKey | null) => void;
 }
 
 function createUiStore() {
@@ -94,13 +90,10 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setLendingMode: (lendingMode: LendingModes) =>
     set({
       lendingMode: lendingMode,
-      actionMode: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
     }),
-  setActionMode: (actionMode: ActionType) => set({ actionMode: actionMode }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setUserMode: (userMode: UserMode) => set({ userMode: userMode }),
-  setSelectedTokenBank: (selectedTokenBank: PublicKey | null) => set({ selectedTokenBank: selectedTokenBank }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };
