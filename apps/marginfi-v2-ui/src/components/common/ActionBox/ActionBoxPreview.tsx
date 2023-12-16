@@ -1,6 +1,6 @@
 import React, { FC } from "react";
 import { MarginRequirementType, MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, numeralFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import Image from "next/image";
 
@@ -18,7 +18,11 @@ interface ActionPreview {
   depositRate: number;
   borrowRate: number;
   positionAmount: number;
-} // TODO: to extend with any other fields we want to display
+  availableCollateral: {
+    ratio: number;
+    amount: number;
+  };
+}
 
 interface ActionBoxPreviewProps {
   marginfiAccount: MarginfiAccountWrapper | null;
@@ -120,6 +124,9 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
         const { assets, liabilities } = simulationResult.marginfiAccount.computeHealthComponents(
           MarginRequirementType.Maintenance
         );
+        const { assets: assetsInit } = simulationResult.marginfiAccount.computeHealthComponents(
+          MarginRequirementType.Maintenance
+        );
         const health = assets.minus(liabilities).dividedBy(assets).toNumber();
 
         const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBank(selectedBank.address);
@@ -137,6 +144,7 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
         } else if (position?.active && position?.assetShares.gt(0)) {
           positionAmount = position.computeQuantityUi(selectedBank.info.rawBank).assets.toNumber();
         }
+        const availableCollateral = simulationResult.marginfiAccount.computeFreeCollateral().toNumber();
 
         setPreview({
           health,
@@ -144,6 +152,10 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
           depositRate: lendingRate.toNumber(),
           borrowRate: borrowingRate.toNumber(),
           positionAmount,
+          availableCollateral: {
+            amount: availableCollateral,
+            ratio: availableCollateral / assetsInit.toNumber(),
+          },
         });
       } catch (error) {
         setPreview(null);
@@ -173,129 +185,169 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
   }
 
   const currentPositionAmount = selectedBank.isActive ? selectedBank.position.amount : 0;
+  const currentAvailableCollateralAmount = marginfiAccount.computeFreeCollateral().toNumber();
+  const currentAvailableCollateralRatio =
+    currentAvailableCollateralAmount /
+    marginfiAccount.computeHealthComponents(MarginRequirementType.Initial).assets.toNumber();
 
   return (
-    <dl className="grid grid-cols-2 text-muted-foreground gap-y-2 mt-4 text-sm">
-      <>
-        <dt>{`Your ${showLending ? "deposited" : "borrowed"} amount`}</dt>
-        <dd className={cn(`text-[white] flex justify-end font-medium text-right items-center gap-2`)}>
-          {currentPositionAmount < 0.01
-            ? currentPositionAmount === 0
-              ? 0
-              : "< $0.01"
-            : numeralFormatter(currentPositionAmount)}
-          {preview && <IconArrowRight width={12} height={12} />}
-          {preview && numeralFormatter(preview.positionAmount)}
-        </dd>
-      </>
-      <>
-        <dt>Pool</dt>
-        <dd className={cn(`text-[white] flex justify-end font-medium text-right items-center gap-2`)}>
-          {selectedBank?.info?.state?.isIsolated ? (
-            <>
-              Isolated pool{" "}
-              <MrgnTooltip
-                title={
-                  <React.Fragment>
-                    <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                      Isolated pools are risky ⚠️
-                    </Typography>
-                    Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot
-                    borrow other assets. Isolated pools should be considered particularly risky. As always, remember
-                    that marginfi is a decentralized protocol and all deposited funds are at risk.
-                  </React.Fragment>
-                }
-                placement="top"
-              >
-                <Image src="/info_icon.png" alt="info" height={12} width={12} />
-              </MrgnTooltip>{" "}
-            </>
-          ) : (
-            <>Global pool</>
-          )}
-        </dd>
-      </>
-      <>
-        <dt>Health</dt>
-        <dd className={cn(`text-[${healthColor}] flex justify-end font-medium text-right items-center gap-2`)}>
-          {accountSummary?.healthFactor && percentFormatter.format(accountSummary?.healthFactor)}
-          {accountSummary?.healthFactor && <IconArrowRight width={12} height={12} />}
-          {preview?.health ? percentFormatter.format(preview.health) : "-"}
-        </dd>
-      </>
-      {(actionMode === ActionType.Borrow || isBorrowing) && (
-        <>
-          <dt className="flex gap-2">
-            Liquidation price <IconInfoCircle size={16} />
+    <>
+      <div>
+        <dl className="flex justify-between mt-4 items-center gap-2">
+          <dt className="flex items-center gap-1.5 text-sm">
+            Available collateral
+            <MrgnTooltip
+              title={
+                <React.Fragment>
+                  <div className="flex flex-col gap-2 pb-2">
+                    <p>Available collateral is the USD value of your collateral not actively backing a loan.</p>
+                    <p>It can be used to open additional borrows or withdraw part of your collateral.</p>
+                  </div>
+                </React.Fragment>
+              }
+              placement="top"
+            >
+              <IconInfoCircle size={16} />
+            </MrgnTooltip>
           </dt>
-          <dd
-            className={cn(
-              `text-[${healthColorLiquidation}] flex justify-end font-medium text-right items-center gap-2`
-            )}
-          >
-            {selectedBank.isActive &&
-              selectedBank?.position?.liquidationPrice &&
-              selectedBank.position.liquidationPrice > 0.01 &&
-              numeralFormatter(selectedBank.position.liquidationPrice)}
-            {selectedBank.isActive && selectedBank?.position?.liquidationPrice && (
-              <IconArrowRight width={12} height={12} />
-            )}
-            {preview?.liquidationPrice ? numeralFormatter(preview.liquidationPrice) : "-"}
+          <dd className="text-xl md:text-sm font-bold" style={{ color: healthColor }}>
+            {usdFormatterDyn.format(preview?.availableCollateral.amount ?? currentAvailableCollateralAmount)}
+          </dd>
+        </dl>
+        <div className="h-2 mb-2 bg-background-gray-light">
+          <div
+            className="h-2"
+            style={{
+              backgroundColor: healthColor,
+              width: `${(preview?.availableCollateral.ratio ?? currentAvailableCollateralRatio) * 100}%`,
+            }}
+          />
+        </div>
+      </div>
+      <dl className="grid grid-cols-2 gap-y-2 text-muted-foreground text-sm">
+        <>
+          <dt>{`Your ${showLending ? "deposited" : "borrowed"} amount`}</dt>
+          <dd className={cn(`text-[white] flex justify-end font-medium text-right items-center gap-2`)}>
+            {currentPositionAmount < 0.01
+              ? currentPositionAmount === 0
+                ? 0
+                : "< $0.01"
+              : numeralFormatter(currentPositionAmount)}
+            {preview && <IconArrowRight width={12} height={12} />}
+            {preview && numeralFormatter(preview.positionAmount)}
           </dd>
         </>
-      )}
-      <>
-        <dt>{showLending ? "Global deposits" : "Available"}</dt>
-        <dd className={cn(`text-[white] flex justify-end font-medium text-right items-center gap-2`)}>
-          <MrgnTooltip
-            title={
-              <React.Fragment>
-                <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                  {isReduceOnly ? "Reduce Only" : isBankHigh && (isBankFilled ? "Limit Reached" : "Approaching Limit")}
-                </Typography>
-
-                {isReduceOnly
-                  ? "stSOL is being discontinued."
-                  : `${selectedBank.meta.tokenSymbol} ${
-                      showLending ? "deposits" : "borrows"
-                    } are at ${percentFormatter.format(
-                      (showLending ? selectedBank.info.state.totalDeposits : selectedBank.info.state.totalBorrows) /
-                        bankCap
-                    )} capacity.`}
-                <br />
-                <a href="https://docs.marginfi.com">
-                  <u>Learn more.</u>
-                </a>
-              </React.Fragment>
-            }
-            placement="right"
-            className={``}
-          >
-            <Badge
-              badgeContent={isReduceOnly ? "‼️" : isBankHigh && isBankFilled ? "💯" : "❗"}
-              className="bg-transparent"
-              sx={{
-                "& .MuiBadge-badge": {
-                  fontSize: 20,
-                },
-              }}
-              invisible={!isBankHigh && !isReduceOnly}
-            >
-              {numeralFormatter(
-                showLending
-                  ? selectedBank.info.state.totalDeposits
-                  : Math.max(
-                      0,
-                      Math.min(
-                        selectedBank.info.state.totalDeposits,
-                        selectedBank.info.rawBank.config.borrowLimit.toNumber()
-                      ) - selectedBank.info.state.totalBorrows
-                    )
+        <>
+          <dt>Pool</dt>
+          <dd className={cn(`text-[white] flex justify-end font-medium text-right items-center gap-2`)}>
+            {selectedBank?.info?.state?.isIsolated ? (
+              <>
+                Isolated pool{" "}
+                <MrgnTooltip
+                  title={
+                    <React.Fragment>
+                      <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                        Isolated pools are risky ⚠️
+                      </Typography>
+                      Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you
+                      cannot borrow other assets. Isolated pools should be considered particularly risky. As always,
+                      remember that marginfi is a decentralized protocol and all deposited funds are at risk.
+                    </React.Fragment>
+                  }
+                  placement="top"
+                >
+                  <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                </MrgnTooltip>{" "}
+              </>
+            ) : (
+              <>Global pool</>
+            )}
+          </dd>
+        </>
+        <>
+          <dt>Health</dt>
+          <dd className={cn(`text-[${healthColor}] flex justify-end font-medium text-right items-center gap-2`)}>
+            {accountSummary?.healthFactor && percentFormatter.format(accountSummary?.healthFactor)}
+            {accountSummary?.healthFactor && <IconArrowRight width={12} height={12} />}
+            {preview?.health ? percentFormatter.format(preview.health) : "-"}
+          </dd>
+        </>
+        {(actionMode === ActionType.Borrow || isBorrowing) && (
+          <>
+            <dt className="flex gap-2">
+              Liquidation price <IconInfoCircle size={16} />
+            </dt>
+            <dd
+              className={cn(
+                `text-[${healthColorLiquidation}] flex justify-end font-medium text-right items-center gap-2`
               )}
-            </Badge>
-          </MrgnTooltip>
-        </dd>
-      </>
-    </dl>
+            >
+              {selectedBank.isActive &&
+                selectedBank?.position?.liquidationPrice &&
+                selectedBank.position.liquidationPrice > 0.01 &&
+                numeralFormatter(selectedBank.position.liquidationPrice)}
+              {selectedBank.isActive && selectedBank?.position?.liquidationPrice && (
+                <IconArrowRight width={12} height={12} />
+              )}
+              {preview?.liquidationPrice ? numeralFormatter(preview.liquidationPrice) : "-"}
+            </dd>
+          </>
+        )}
+        <>
+          <dt>{showLending ? "Global deposits" : "Available"}</dt>
+          <dd className={cn(`text-[white] flex justify-end font-medium text-right items-center gap-2`)}>
+            <MrgnTooltip
+              title={
+                <React.Fragment>
+                  <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                    {isReduceOnly
+                      ? "Reduce Only"
+                      : isBankHigh && (isBankFilled ? "Limit Reached" : "Approaching Limit")}
+                  </Typography>
+
+                  {isReduceOnly
+                    ? "stSOL is being discontinued."
+                    : `${selectedBank.meta.tokenSymbol} ${
+                        showLending ? "deposits" : "borrows"
+                      } are at ${percentFormatter.format(
+                        (showLending ? selectedBank.info.state.totalDeposits : selectedBank.info.state.totalBorrows) /
+                          bankCap
+                      )} capacity.`}
+                  <br />
+                  <a href="https://docs.marginfi.com">
+                    <u>Learn more.</u>
+                  </a>
+                </React.Fragment>
+              }
+              placement="right"
+              className={``}
+            >
+              <Badge
+                badgeContent={isReduceOnly ? "‼️" : isBankHigh && isBankFilled ? "💯" : "❗"}
+                className="bg-transparent"
+                sx={{
+                  "& .MuiBadge-badge": {
+                    fontSize: 20,
+                  },
+                }}
+                invisible={!isBankHigh && !isReduceOnly}
+              >
+                {numeralFormatter(
+                  showLending
+                    ? selectedBank.info.state.totalDeposits
+                    : Math.max(
+                        0,
+                        Math.min(
+                          selectedBank.info.state.totalDeposits,
+                          selectedBank.info.rawBank.config.borrowLimit.toNumber()
+                        ) - selectedBank.info.state.totalBorrows
+                      )
+                )}
+              </Badge>
+            </MrgnTooltip>
+          </dd>
+        </>
+      </dl>
+    </>
   );
 };
