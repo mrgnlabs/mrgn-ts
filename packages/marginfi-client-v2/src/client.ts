@@ -20,9 +20,11 @@ import { getConfig } from "./config";
 import instructions from "./instructions";
 import { MarginRequirementType } from "./models/account";
 import {
+  BankMetadataMap,
   DEFAULT_COMMITMENT,
   DEFAULT_CONFIRM_OPTS,
   InstructionsWrapper,
+  loadBankMetadatas,
   loadKeypair,
   NodeWallet,
   TransactionOptions,
@@ -70,8 +72,9 @@ class MarginfiClient {
     banks: BankMap,
     priceInfos: OraclePriceMap,
     addressLookupTables?: AddressLookupTableAccount[],
-    preloadedBankAddresses?: PublicKey[]
-  ) {
+    preloadedBankAddresses?: PublicKey[],
+    readonly bankMetadataMap?: BankMetadataMap,
+    ) {
     this.group = group;
     this.banks = banks;
     this.oraclePrices = priceInfos;
@@ -115,11 +118,19 @@ class MarginfiClient {
     });
     const program = new Program(MARGINFI_IDL, config.programId, provider) as any as MarginfiProgram;
 
+    let bankMetadataMap: BankMetadataMap | undefined = undefined;
+    try {
+      bankMetadataMap = await loadBankMetadatas();
+    } catch (error) {
+      console.error("Failed to load bank metadatas. Convenience getter by symbol will not be available", error);
+    }
+
     const { marginfiGroup, banks, priceInfos } = await MarginfiClient.fetchGroupData(
       program,
       config.groupPk,
       connection.commitment,
-      preloadedBankAddresses
+      preloadedBankAddresses,
+      bankMetadataMap
     );
 
     const addressLookupTableAddresses = ADDRESS_LOOKUP_TABLE_FOR_GROUP[config.groupPk.toString()] ?? [];
@@ -139,7 +150,8 @@ class MarginfiClient {
       banks,
       priceInfos,
       addressLookupTables,
-      preloadedBankAddresses
+      preloadedBankAddresses,
+      bankMetadataMap,
     );
   }
 
@@ -190,7 +202,8 @@ class MarginfiClient {
     program: MarginfiProgram,
     groupAddress: PublicKey,
     commitment?: Commitment,
-    bankAddresses?: PublicKey[]
+    bankAddresses?: PublicKey[],
+    bankMetadataMap?: BankMetadataMap
   ): Promise<{ marginfiGroup: MarginfiGroup; banks: Map<string, Bank>; priceInfos: Map<string, OraclePrice> }> {
     const debug = require("debug")("mfi:client");
     // Fetch & shape all accounts of Bank type (~ bank discovery)
@@ -226,7 +239,9 @@ class MarginfiClient {
 
     debug("Decoding bank data");
     const banks = new Map(
-      bankDatasKeyed.map(({ address, data }) => [address.toBase58(), Bank.fromAccountParsed(address, data)])
+      bankDatasKeyed.map(({ address, data }) => {
+        const bankMetadata = bankMetadataMap ? bankMetadataMap[address.toBase58()] : undefined;
+        return [address.toBase58(), Bank.fromAccountParsed(address, data, bankMetadata)]})
     );
     debug("Decoded banks");
 
@@ -410,6 +425,11 @@ class MarginfiClient {
   getBankByMint(mint: Address): Bank | null {
     const _mint = translateAddress(mint);
     return [...this.banks.values()].find((bank) => bank.mint.equals(_mint)) ?? null;
+  }
+
+  getBankByTokenSymbol(tokenSymbol: string): Bank | null {
+    if (tokenSymbol === undefined) return null;
+    return [...this.banks.values()].find((bank) => bank.tokenSymbol === tokenSymbol) ?? null;
   }
 
   getOraclePriceByBank(bankAddress: Address): OraclePrice | null {

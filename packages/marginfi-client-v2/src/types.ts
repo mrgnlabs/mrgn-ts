@@ -35,4 +35,5 @@ export interface BankAddress {
 export enum AccountType {
   MarginfiGroup = "marginfiGroup",
   MarginfiAccount = "marginfiAccount",
+  Bank = "bank",
 }

@@ -1,9 +1,15 @@
-import { WrappedI80F48, nativeToUi, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
+import { BankMetadata, WrappedI80F48, nativeToUi, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
 import { MarginRequirementType } from "./account";
 import { PriceBias, OraclePrice } from "./price";
+import { BorshCoder } from "@coral-xyz/anchor";
+import { AccountType } from "../types";
+import { MARGINFI_IDL } from "../idl";
+
+const SECONDS_PER_DAY = 24 * 60 * 60;
+const SECONDS_PER_YEAR = SECONDS_PER_DAY * 365.25;
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -55,6 +61,7 @@ interface BankConfigRaw {
   depositLimit: BN;
   borrowLimit: BN;
   riskTier: RiskTierRaw;
+  totalAssetValueInitLimit: BN;
 
   interestRateConfig: InterestRateConfigRaw;
 
@@ -87,6 +94,7 @@ export type { BankRaw, BankConfigRaw, RiskTierRaw, InterestRateConfigRaw, Oracle
 
 class Bank {
   public address: PublicKey;
+  public tokenSymbol: string | undefined;
 
   public group: PublicKey;
   public mint: PublicKey;
@@ -108,6 +116,8 @@ class Bank {
   public feeVaultBump: number;
   public feeVaultAuthorityBump: number;
   public collectedGroupFeesOutstanding: BigNumber;
+
+  public lastUpdate: number;
 
   public config: BankConfig;
 
@@ -138,6 +148,7 @@ class Bank {
     feeVaultBump: number,
     feeVaultAuthorityBump: number,
     collectedGroupFeesOutstanding: BigNumber,
+    lastUpdate: BN,
     config: BankConfig,
     totalAssetShares: BigNumber,
     totalLiabilityShares: BigNumber,
@@ -145,9 +156,11 @@ class Bank {
     emissionsActiveLending: boolean,
     emissionsRate: number,
     emissionsMint: PublicKey,
-    emissionsRemaining: BigNumber
+    emissionsRemaining: BigNumber,
+    tokenSymbol?: string
   ) {
     this.address = address;
+    this.tokenSymbol = tokenSymbol;
 
     this.group = group;
     this.mint = mint;
@@ -170,6 +183,8 @@ class Bank {
     this.feeVaultAuthorityBump = feeVaultAuthorityBump;
     this.collectedGroupFeesOutstanding = collectedGroupFeesOutstanding;
 
+    this.lastUpdate = lastUpdate.toNumber();
+
     this.config = config;
 
     this.totalAssetShares = totalAssetShares;
@@ -182,7 +197,17 @@ class Bank {
     this.emissionsRemaining = emissionsRemaining;
   }
 
-  static fromAccountParsed(address: PublicKey, accountParsed: BankRaw): Bank {
+  static decodeBankRaw(encoded: Buffer): BankRaw {
+    const coder = new BorshCoder(MARGINFI_IDL);
+    return coder.accounts.decode(AccountType.Bank, encoded);
+  }
+
+  static fromBuffer(address: PublicKey, buffer: Buffer): Bank {
+    const accountParsed = Bank.decodeBankRaw(buffer);
+    return Bank.fromAccountParsed(address, accountParsed);
+  }
+
+  static fromAccountParsed(address: PublicKey, accountParsed: BankRaw, bankMetadata?: BankMetadata): Bank {
     const emissionsFlags = accountParsed.emissionsFlags.toNumber();
 
     const mint = accountParsed.mint;
@@ -208,7 +233,7 @@ class Bank {
 
     const collectedGroupFeesOutstanding = wrappedI80F48toBigNumber(accountParsed.collectedGroupFeesOutstanding);
 
-    const config = BankConfig.fromAccountParsed(accountParsed.config, accountParsed.mintDecimals);
+    const config = BankConfig.fromAccountParsed(accountParsed.config);
 
     const totalAssetShares = wrappedI80F48toBigNumber(accountParsed.totalAssetShares);
     const totalLiabilityShares = wrappedI80F48toBigNumber(accountParsed.totalLiabilityShares);
@@ -241,6 +266,7 @@ class Bank {
       feeVaultBump,
       feeVaultAuthorityBump,
       collectedGroupFeesOutstanding,
+      accountParsed.lastUpdate,
       config,
       totalAssetShares,
       totalLiabilityShares,
@@ -248,7 +274,8 @@ class Bank {
       emissionsActiveLending,
       emissionsRate,
       emissionsMint,
-      emissionsRemaining
+      emissionsRemaining,
+      bankMetadata?.tokenSymbol
     );
   }
 
@@ -283,7 +310,7 @@ class Bank {
     priceBias: PriceBias
   ): BigNumber {
     const assetQuantity = this.getAssetQuantity(assetShares);
-    const assetWeight = this.getAssetWeight(marginRequirementType);
+    const assetWeight = this.getAssetWeight(marginRequirementType, oraclePrice);
     return this.computeUsdValue(oraclePrice, assetQuantity, priceBias, assetWeight);
   }
 
@@ -328,10 +355,25 @@ class Bank {
     }
   }
 
-  getAssetWeight(marginRequirementType: MarginRequirementType): BigNumber {
+  getAssetWeight(
+    marginRequirementType: MarginRequirementType,
+    oraclePrice: OraclePrice,
+    ignoreSoftLimits: boolean = false
+  ): BigNumber {
     switch (marginRequirementType) {
       case MarginRequirementType.Initial:
-        return this.config.assetWeightInit;
+        if (ignoreSoftLimits) return this.config.assetWeightInit;
+        const totalBankCollateralValue = this.computeAssetUsdValue(
+          oraclePrice,
+          this.totalAssetShares,
+          MarginRequirementType.Equity,
+          PriceBias.Lowest
+        );
+        if (totalBankCollateralValue.isGreaterThan(this.config.totalAssetValueInitLimit)) {
+          return this.config.totalAssetValueInitLimit.div(totalBankCollateralValue).times(this.config.assetWeightInit);
+        } else {
+          return this.config.assetWeightInit;
+        }
       case MarginRequirementType.Maintenance:
         return this.config.assetWeightMaint;
       case MarginRequirementType.Equity:
@@ -411,6 +453,38 @@ class Bank {
     return liabilities.div(assets);
   }
 
+  computeRemainingCapacity(): {
+    depositCapacity: BigNumber;
+    borrowCapacity: BigNumber;
+  } {
+    const totalDeposits = this.getTotalAssetQuantity();
+    const remainingCapacity = BigNumber.max(0, this.config.depositLimit.minus(totalDeposits));
+
+    const totalBorrows = this.getTotalLiabilityQuantity();
+    const remainingBorrowCapacity = BigNumber.max(0, this.config.borrowLimit.minus(totalBorrows));
+
+    const durationSinceLastAccrual = Date.now() / 1000 - this.lastUpdate;
+
+    const { lendingRate, borrowingRate } = this.computeInterestRates();
+
+    const outstandingLendingInterest = lendingRate
+      .times(durationSinceLastAccrual)
+      .dividedBy(SECONDS_PER_YEAR)
+      .times(totalDeposits);
+    const outstandingBorrowInterest = borrowingRate
+      .times(durationSinceLastAccrual)
+      .dividedBy(SECONDS_PER_YEAR)
+      .times(totalBorrows);
+
+    const depositCapacity = remainingCapacity.minus(outstandingLendingInterest.times(2));
+    const borrowCapacity = remainingBorrowCapacity.minus(outstandingBorrowInterest.times(2));
+
+    return {
+      depositCapacity,
+      borrowCapacity,
+    };
+  }
+
   describe(oraclePrice: OraclePrice): string {
     return `
 Bank address: ${this.address.toBase58()}
@@ -457,10 +531,11 @@ class BankConfig {
   public liabilityWeightInit: BigNumber;
   public liabilityWeightMaint: BigNumber;
 
-  public depositLimit: number;
-  public borrowLimit: number;
+  public depositLimit: BigNumber;
+  public borrowLimit: BigNumber;
 
   public riskTier: RiskTier;
+  public totalAssetValueInitLimit: BigNumber;
 
   public interestRateConfig: InterestRateConfig;
 
@@ -472,9 +547,10 @@ class BankConfig {
     assetWeightMaint: BigNumber,
     liabilityWeightInit: BigNumber,
     liabilityWeightMaint: BigNumber,
-    depositLimit: number,
-    borrowLimit: number,
+    depositLimit: BigNumber,
+    borrowLimit: BigNumber,
     riskTier: RiskTier,
+    totalAssetValueInitLimit: BigNumber,
     oracleSetup: OracleSetup,
     oracleKeys: PublicKey[],
     interestRateConfig: InterestRateConfig
@@ -486,19 +562,21 @@ class BankConfig {
     this.depositLimit = depositLimit;
     this.borrowLimit = borrowLimit;
     this.riskTier = riskTier;
+    this.totalAssetValueInitLimit = totalAssetValueInitLimit;
     this.oracleSetup = oracleSetup;
     this.oracleKeys = oracleKeys;
     this.interestRateConfig = interestRateConfig;
   }
 
-  static fromAccountParsed(bankConfigRaw: BankConfigRaw, mintDecimals: number): BankConfig {
+  static fromAccountParsed(bankConfigRaw: BankConfigRaw): BankConfig {
     const assetWeightInit = wrappedI80F48toBigNumber(bankConfigRaw.assetWeightInit);
     const assetWeightMaint = wrappedI80F48toBigNumber(bankConfigRaw.assetWeightMaint);
     const liabilityWeightInit = wrappedI80F48toBigNumber(bankConfigRaw.liabilityWeightInit);
     const liabilityWeightMaint = wrappedI80F48toBigNumber(bankConfigRaw.liabilityWeightMaint);
-    const depositLimit = nativeToUi(bankConfigRaw.depositLimit, mintDecimals);
-    const borrowLimit = nativeToUi(bankConfigRaw.borrowLimit, mintDecimals);
+    const depositLimit = BigNumber(bankConfigRaw.depositLimit.toString());
+    const borrowLimit = BigNumber(bankConfigRaw.borrowLimit.toString());
     const riskTier = parseRiskTier(bankConfigRaw.riskTier);
+    const totalAssetValueInitLimit = BigNumber(bankConfigRaw.totalAssetValueInitLimit.toString());
     const oracleSetup = parseOracleSetup(bankConfigRaw.oracleSetup);
     const oracleKeys = bankConfigRaw.oracleKeys;
     const interestRateConfig = {
@@ -519,6 +597,7 @@ class BankConfig {
       depositLimit,
       borrowLimit,
       riskTier,
+      totalAssetValueInitLimit,
       oracleSetup,
       oracleKeys,
       interestRateConfig,

@@ -39,7 +39,7 @@ export const AssetCard: FC<{
         ? bank.info.state.totalDeposits
         : Math.max(
             0,
-            Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit) - bank.info.state.totalBorrows
+            Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) - bank.info.state.totalBorrows
           ),
     [isInLendingMode, bank.info]
   );
@@ -173,7 +173,7 @@ export const AssetCard: FC<{
         isInLendingMode={isInLendingMode}
         isBankFilled={isBankFilled}
         isBankHigh={isBankHigh}
-        bankCap={bankCap}
+        bankCap={bankCap.toNumber()}
       />
       {activeBank?.position &&
         (isFilteredUserPositions || activeBank?.position.isLending === (lendingMode === LendingModes.LEND)) && (

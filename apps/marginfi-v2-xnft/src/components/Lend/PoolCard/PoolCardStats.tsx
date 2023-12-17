@@ -30,7 +30,7 @@ export function PoolCardStats({ bank, isInLendingMode, nativeSolBalance, bankFil
       numeralFormatter(
         isInLendingMode
           ? bank.info.state.totalDeposits
-          : Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit) - bank.info.state.totalBorrows
+          : Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) - bank.info.state.totalBorrows
       ),
     [isInLendingMode, bank]
   );

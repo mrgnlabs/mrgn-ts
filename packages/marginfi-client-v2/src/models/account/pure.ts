@@ -208,7 +208,7 @@ class MarginfiAccount {
 
     const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
     const priceHighestBias = bank.getPrice(priceInfo, PriceBias.Highest);
-    const assetWeight = bank.getAssetWeight(MarginRequirementType.Initial);
+    const assetWeight = bank.getAssetWeight(MarginRequirementType.Initial, priceInfo);
     const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Initial);
 
     if (assetWeight.eq(0)) {
@@ -238,8 +238,8 @@ class MarginfiAccount {
 
     const _volatilityFactor = opts?.volatilityFactor ?? 1;
 
-    const initAssetWeight = bank.getAssetWeight(MarginRequirementType.Initial);
-    const maintAssetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance);
+    const initAssetWeight = bank.getAssetWeight(MarginRequirementType.Initial, priceInfo);
+    const maintAssetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance, priceInfo);
     const balance = this.getBalance(bankAddress);
 
     const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
@@ -307,9 +307,7 @@ class MarginfiAccount {
     }
 
     // apply volatility factor to avoid failure due to price volatility / slippage
-    // initCollateralForBank > freeCollateral, so volatilityBuffer > 0
-    const volatilityBuffer = (initCollateralForBank.minus(freeCollateral)).times(1 - _volatilityFactor);
-    const initUntiedCollateralForBank = freeCollateral.minus(volatilityBuffer);
+    const initUntiedCollateralForBank = freeCollateral.times(_volatilityFactor);
 
     const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
     const initWeightedPrice = priceLowestBias.times(initAssetWeight);
@@ -342,7 +340,7 @@ class MarginfiAccount {
     if (isLending) {
       if (liabilities.eq(0)) return null;
 
-      const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance);
+      const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance, priceInfo);
       const priceConfidence = bank.getPrice(priceInfo, PriceBias.None).minus(bank.getPrice(priceInfo, PriceBias.Lowest));
       const liquidationPrice = liabilities.minus(assets).div(assetQuantityUi.times(assetWeight)).plus(priceConfidence);
       return liquidationPrice.toNumber();

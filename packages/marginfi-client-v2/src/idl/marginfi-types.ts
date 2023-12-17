@@ -1626,9 +1626,19 @@ export type Marginfi = {
             };
           },
           {
+            name: "ignore2",
+            type: {
+              array: ["u8", 7],
+            },
+          },
+          {
+            name: "totalAssetValueInitLimit",
+            type: "u64",
+          },
+          {
             name: "padding";
             type: {
-              array: ["u8", 55];
+              array: ["u8", 40];
             };
           }
         ];
@@ -4126,9 +4136,19 @@ export const IDL: Marginfi = {
             },
           },
           {
+            name: "ignore2",
+            type: {
+              array: ["u8", 7],
+            },
+          },
+          {
+            name: "totalAssetValueInitLimit",
+            type: "u64",
+          },
+          {
             name: "padding",
             type: {
-              array: ["u8", 55],
+              array: ["u8", 40],
             },
           },
         ],
