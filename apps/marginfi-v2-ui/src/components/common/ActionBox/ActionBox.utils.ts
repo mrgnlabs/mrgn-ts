@@ -3,13 +3,13 @@ import { ActionType, ActiveBankInfo, ExtendedBankInfo, FEE_MARGIN } from "@mrgnl
 import { MarginfiAccountWrapper, MarginRequirementType, RiskTier } from "@mrgnlabs/marginfi-client-v2";
 
 interface props {
-  amount: number;
+  amount: number | null;
   connected: boolean;
   nativeSolBalance: number;
-  showCloseBalance: boolean;
+  showCloseBalance?: boolean;
   selectedBank: ExtendedBankInfo | null;
   extendedBankInfos: ExtendedBankInfo[];
-  marginfiAccount?: MarginfiAccountWrapper;
+  marginfiAccount: MarginfiAccountWrapper | null;
   actionMode: ActionType;
 }
 
@@ -29,10 +29,15 @@ export function checkActionAvailable({
   marginfiAccount,
   actionMode,
 }: props): ActionMethod {
-  let check: ActionMethod;
+  let check: ActionMethod | null = null;
 
   check = generalChecks(connected, selectedBank, showCloseBalance);
   if (check) return check;
+
+  if (!selectedBank) {
+    // this shouldn't happen
+    return { instruction: "Something went wrong", isEnabled: false };
+  }
 
   switch (actionMode) {
     case ActionType.Deposit:
@@ -53,7 +58,7 @@ export function checkActionAvailable({
       break;
   }
 
-  if (amount <= 0) {
+  if (amount && amount <= 0) {
     return {
       instruction: "Add an amount",
       isEnabled: false,
@@ -69,7 +74,7 @@ export function checkActionAvailable({
 function generalChecks(
   connected: boolean,
   selectedBank: ExtendedBankInfo | null,
-  showCloseBalance: boolean
+  showCloseBalance?: boolean
 ): ActionMethod | null {
   if (!connected) {
     return { instruction: "Connect your wallet", isEnabled: false };
@@ -182,7 +187,7 @@ function canBeBorrowed(
   const attemptingToBorrowIsolatedAssetWithActiveDebt =
     targetBankInfo.info.rawBank.config.riskTier === RiskTier.Isolated &&
     !marginfiAccount
-      .computeHealthComponents(MarginRequirementType.Equity, [targetBankInfo.address])
+      ?.computeHealthComponents(MarginRequirementType.Equity, [targetBankInfo.address])
       .liabilities.isZero();
   if (attemptingToBorrowIsolatedAssetWithActiveDebt) {
     return {
