@@ -18,6 +18,7 @@ import { ActionBoxActions } from "./ActionBoxActions";
 import { ActionBoxPreview } from "./ActionBoxPreview";
 import { PublicKey } from "@solana/web3.js";
 import { MarginfiAccountWrapper, MarginRequirementType, RiskTier } from "@mrgnlabs/marginfi-client-v2";
+import { checkActionAvailable } from "./ActionBox.utils";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -48,7 +49,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
   const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
 
-  const { walletContextState } = useWalletContext();
+  const { walletContextState, connected } = useWalletContext();
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
@@ -99,29 +100,30 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
         : selectedBank?.userInfo.tokenAccount.balance,
     [nativeSolBalance, selectedBank]
   );
-  // const hasActivePosition = React.useMemo(
-  //   () =>
-  //     selectedBank?.isActive &&
-  //     ((selectedBank.position.isLending && lendingMode === LendingModes.LEND) ||
-  //       (!selectedBank.position.isLending && lendingMode === LendingModes.BORROW)),
-  //   [selectedBank, lendingMode]
-  // );
 
-  const cannotPerformAction = React.useMemo(() => {
-    if (!selectedBank || !selectedAccount) return null;
-
-    if (actionMode === ActionType.Borrow) {
-      const { result, reason } = canBeBorrowed(selectedBank.address, extendedBankInfos, selectedAccount);
-      if (!result) {
-        return reason;
-      }
-    } else if (actionMode === ActionType.Deposit) {
-      const { result, reason } = canBeLent(selectedBank.address, extendedBankInfos, nativeSolBalance);
-      if (!result) {
-        return reason;
-      }
-    }
-  }, [selectedBank, selectedAccount, actionMode, extendedBankInfos, nativeSolBalance]);
+  const actionMethod = React.useMemo(
+    () =>
+      checkActionAvailable({
+        amount,
+        connected,
+        showCloseBalance,
+        selectedBank,
+        extendedBankInfos,
+        marginfiAccount: selectedAccount,
+        nativeSolBalance,
+        actionMode,
+      }),
+    [
+      amount,
+      connected,
+      showCloseBalance,
+      selectedBank,
+      extendedBankInfos,
+      selectedAccount,
+      nativeSolBalance,
+      actionMode,
+    ]
+  );
 
   const actionModePrev = usePrevious(actionMode);
   React.useEffect(() => {
@@ -362,24 +364,14 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
             />
           </div>
 
-          {cannotPerformAction && (
+          {actionMethod.description && (
             <div className="pb-6">
-              <div className="flex items-start space-x-2 py-3 px-4 rounded-xl text-warning-foreground bg-warning">
+              <div className="flex items-start space-x-2 py-3 px-4 rounded-xl text-alert-foreground bg-alert">
                 <IconAlertTriangle className="shrink-0" size={18} />
-                <p>{cannotPerformAction}</p>
+                <p className="text-alert-foreground">{actionMethod.description}</p>
               </div>
             </div>
           )}
-
-          <ActionBoxActions
-            amount={amount ?? 0}
-            maxAmount={maxAmount}
-            showCloseBalance={showCloseBalance ?? false}
-            handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
-            isLoading={isLoading}
-            selectedBank={selectedBank}
-            actionMode={actionMode}
-          />
 
           {selectedBank && (
             <ActionBoxPreview
@@ -387,6 +379,9 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
               selectedBank={selectedBank}
               actionAmount={amount}
               actionMode={actionMode}
+              actionMethod={actionMethod}
+              handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
+              isLoading={isLoading}
             />
           )}
         </div>
@@ -406,93 +401,3 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
     </>
   );
 };
-
-function canBeBorrowed(
-  targetBank: PublicKey,
-  extendedBankInfos: ExtendedBankInfo[],
-  marginfiAccount: MarginfiAccountWrapper
-): { result: boolean; reason?: string } {
-  const targetBankInfo = extendedBankInfos.find((bankInfo) => bankInfo.address.equals(targetBank));
-  if (!targetBankInfo) {
-    return { result: false, reason: "Bank not found." };
-  }
-
-  const alreadyLending = targetBankInfo.isActive && targetBankInfo.position.isLending;
-  if (alreadyLending) {
-    return {
-      result: false,
-      reason: "You are already lending this asset, you need to close that position first to start borrowing.",
-    };
-  }
-
-  const isFull = targetBankInfo.info.rawBank.computeRemainingCapacity().borrowCapacity.lte(0);
-  if (isFull) {
-    return { result: false, reason: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is at borrow capacity.` };
-  }
-
-  const freeCollateral = marginfiAccount.computeFreeCollateral();
-  if (freeCollateral.eq(0)) {
-    return { result: false, reason: "You don't have any available collateral." };
-  }
-
-  const existingLiabilityBanks = extendedBankInfos.filter((b) => b.isActive) as ActiveBankInfo[];
-  const existingIsolatedBorrow = existingLiabilityBanks.find(
-    (b) => b.info.rawBank.config.riskTier === RiskTier.Isolated && !b.address.equals(targetBank)
-  );
-  if (existingIsolatedBorrow) {
-    return {
-      result: false,
-      reason: `You have an active isolated borrow (${existingIsolatedBorrow.meta.tokenSymbol}). You cannot borrow another asset while you do.`,
-    };
-  }
-
-  const attemptingToBorrowIsolatedAssetWithActiveDebt =
-    targetBankInfo.info.rawBank.config.riskTier === RiskTier.Isolated &&
-    !marginfiAccount.computeHealthComponents(MarginRequirementType.Equity, [targetBank]).liabilities.isZero();
-  if (attemptingToBorrowIsolatedAssetWithActiveDebt) {
-    return {
-      result: false,
-      reason: `You cannot borrow an isolated asset with existing borrows.`,
-    };
-  }
-
-  return { result: true };
-}
-
-function canBeLent(
-  targetBank: PublicKey,
-  extendedBankInfos: ExtendedBankInfo[],
-  nativeSolBalance: number
-): { result: boolean; reason?: string } {
-  const targetBankInfo = extendedBankInfos.find((bankInfo) => bankInfo.address.equals(targetBank));
-  if (!targetBankInfo) {
-    return { result: false, reason: "Bank not found." };
-  }
-
-  const alreadyBorrowing = targetBankInfo.isActive && !targetBankInfo.position.isLending;
-  if (alreadyBorrowing) {
-    return {
-      result: false,
-      reason: "You are already borrowing this asset, you need to repay that position first to start lending.",
-    };
-  }
-
-  const isFull = targetBankInfo.info.rawBank.computeRemainingCapacity().depositCapacity.lte(0);
-  if (isFull) {
-    return { result: false, reason: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is at deposit capacity.` };
-  }
-
-  const isWrappedSol = targetBankInfo.info.state.mint.equals(WSOL_MINT);
-  const walletBalance = floor(
-    isWrappedSol
-      ? Math.max(targetBankInfo.userInfo.tokenAccount.balance + nativeSolBalance - FEE_MARGIN, 0)
-      : targetBankInfo.userInfo.tokenAccount.balance,
-    targetBankInfo.info.state.mintDecimals
-  );
-
-  if (walletBalance === 0) {
-    return { result: false, reason: `Not enough ${targetBankInfo.meta.tokenSymbol} in wallet.` };
-  }
-
-  return { result: true };
-}

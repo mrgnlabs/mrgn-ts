@@ -125,23 +125,9 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
       .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
   }, [extendedBankInfos, searchFilter, positionFilter]);
 
-  // const hasExistingBorrow = React.useMemo(
-  //   () => filteredBanksActive.some((bank) => bank.isActive && !bank.position.isLending),
-  //   [filteredBanksActive]
-  // );
-  // const hasIsolatedBorrow = React.useMemo(
-  //   () => filteredBanksActive.some((bank) => bank.isActive && !bank.position.isLending && bank.info.state.isIsolated),
-  //   [filteredBanksActive]
-  // );
-
   // other banks without positions
   const filteredBanks = React.useMemo(() => {
-    return (
-      extendedBankInfos
-        .filter(searchFilter)
-        // .filter((bankInfo) => (lendingMode === LendingModes.LEND ? bankInfo.userInfo.tokenAccount.balance === 0 : true))
-        .filter((bankInfo) => positionFilter(bankInfo, true))
-    );
+    return extendedBankInfos.filter(searchFilter);
   }, [extendedBankInfos, lendingMode, searchFilter]);
 
   const globalBanks = React.useMemo(() => filteredBanks.filter((bank) => !bank.info.state.isIsolated), [filteredBanks]);
@@ -273,7 +259,6 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
                         }}
                         className={cn(
                           "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2"
-                          // !ownedBanksPk.includes(bank.address) && "pointer-events-none bg-muted opacity-60"
                         )}
                       >
                         <ActionBoxItem
@@ -338,11 +323,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
                           className={cn(
                             "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
                             lendingMode === LendingModes.LEND && "py-2",
-                            // lendingMode === LendingModes.LEND &&
-                            //   !ownedBanksPk.includes(bank.address) &&
-                            //   "pointer-events-none bg-muted opacity-60",
                             lendingMode === LendingModes.BORROW && "h-[60px]"
-                            // hasIsolatedBorrow && "pointer-events-none bg-muted opacity-60"
                           )}
                         >
                           <ActionBoxItem
@@ -375,11 +356,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
                           className={cn(
                             "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
                             lendingMode === LendingModes.LEND && "py-2",
-                            // lendingMode === LendingModes.LEND &&
-                            //   !ownedBanksPk.includes(bank.address) &&
-                            //   "pointer-events-none bg-muted opacity-60",
                             lendingMode === LendingModes.BORROW && "h-[60px]"
-                            // hasExistingBorrow && "pointer-events-none bg-muted opacity-60"
                           )}
                         >
                           <ActionBoxItem
