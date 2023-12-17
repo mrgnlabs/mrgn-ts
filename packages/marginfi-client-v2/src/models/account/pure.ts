@@ -374,7 +374,7 @@ class MarginfiAccount {
     if (isLending) {
       if (liabilities.eq(0)) return null;
 
-      const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance);
+      const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance, priceInfo);
       const priceConfidence = bank
         .getPrice(priceInfo, PriceBias.None)
         .minus(bank.getPrice(priceInfo, PriceBias.Lowest));
@@ -421,7 +421,7 @@ class MarginfiAccount {
     if (isLending) {
       if (liabilities.eq(0)) return null;
 
-      const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance);
+      const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance, priceInfo);
       const priceConfidence = bank
         .getPrice(priceInfo, PriceBias.None)
         .minus(bank.getPrice(priceInfo, PriceBias.Lowest));
