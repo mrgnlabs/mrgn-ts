@@ -1,21 +1,20 @@
-import { AccountInfo, Connection, LAMPORTS_PER_SOL, PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import {
   MarginRequirementType,
-  MarginfiAccount,
   MarginfiAccountWrapper,
   MarginfiClient,
   PriceBias,
   USDC_DECIMALS,
 } from "@mrgnlabs/marginfi-client-v2";
-import { nativeToUi, NodeWallet, shortenAddress, sleep, toBigNumber, uiToNative, uiToNativeBigNumber } from "@mrgnlabs/mrgn-common";
+import { nativeToUi, NodeWallet, shortenAddress, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { captureException, captureMessage, env_config } from "./config";
-import BN, { min } from "bn.js";
+import BN from "bn.js";
 import { BankMetadataMap, loadBankMetadatas } from "./utils/bankMetadata";
 import { Bank } from "@mrgnlabs/marginfi-client-v2/dist/models/bank";
-import { chunkedGetRawMultipleAccountInfos, convertBase64StringArrayToBuffer } from "./utils/chunks";
+import { chunkedGetRawMultipleAccountInfos } from "./utils/chunks";
 
 const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(0.01);
@@ -93,7 +92,9 @@ class Liquidator {
 
   private async printAccountValue() {
     try {
-      const { assets, liabilities } = await this.account.computeHealthComponentsWithoutBias(MarginRequirementType.Equity);
+      const { assets, liabilities } = await this.account.computeHealthComponentsWithoutBias(
+        MarginRequirementType.Equity
+      );
       const accountValue = assets.minus(liabilities);
       console.log("Account Value: $%s", accountValue);
     } catch (e) {
@@ -152,34 +153,26 @@ class Liquidator {
       const mintInSymbol = this.getTokenSymbol(mintInBank);
       const mintOutSymbol = this.getTokenSymbol(mintOutBank);
       const amountScaled = nativeToUi(amount, mintInBank.mintDecimals);
-      console.log("Swapping %s %s to %s",
-        amountScaled,
-        mintInSymbol,
-        mintOutSymbol
-      );
+      console.log("Swapping %s %s to %s", amountScaled, mintInSymbol, mintOutSymbol);
     } else {
       const mintInBank = this.client.getBankByMint(mintIn)!;
       const mintOutBank = this.client.getBankByMint(mintOut)!;
       const mintInSymbol = this.getTokenSymbol(mintInBank);
       const mintOutSymbol = this.getTokenSymbol(mintOutBank);
       const amountScaled = nativeToUi(amount, mintOutBank.mintDecimals);
-      console.log("Swapping %s to %s %s",
-        mintInSymbol,
-        amountScaled,
-        mintOutSymbol,
-      );
+      console.log("Swapping %s to %s %s", mintInSymbol, amountScaled, mintOutSymbol);
     }
 
-    const swapMode = swapModeExactOut ? 'ExactOut' : 'ExactIn';
+    const swapMode = swapModeExactOut ? "ExactOut" : "ExactIn";
     const swapUrl = `https://quote-api.jup.ag/v6/quote?inputMint=${mintIn.toBase58()}&outputMint=${mintOut.toBase58()}&amount=${amount.toString()}&slippageBps=${SLIPPAGE_BPS}&swapMode=${swapMode}`;
     const quoteApiResponse = await fetch(swapUrl);
     const data = await quoteApiResponse.json();
 
     const transactionResponse = await (
-      await fetch('https://quote-api.jup.ag/v6/swap', {
-        method: 'POST',
+      await fetch("https://quote-api.jup.ag/v6/swap", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           // quoteResponse from /quote api
@@ -191,23 +184,23 @@ class Liquidator {
           // feeAccount is optional. Use if you want to charge a fee.  feeBps must have been passed in /quote API.
           // feeAccount: "fee_account_public_key"
           computeUnitPriceMicroLamports: 50000,
-        })
+        }),
       })
     ).json();
 
     const { swapTransaction } = transactionResponse;
 
-    const swapTransactionBuf = Buffer.from(swapTransaction, 'base64');
+    const swapTransactionBuf = Buffer.from(swapTransaction, "base64");
     const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
 
     transaction.sign([this.wallet.payer]);
 
-    const rawTransaction = transaction.serialize()
+    const rawTransaction = transaction.serialize();
     const txid = await this.connection.sendRawTransaction(rawTransaction, {
       maxRetries: 2,
     });
 
-    await this.connection.confirmTransaction(txid, 'confirmed');
+    await this.connection.confirmTransaction(txid, "confirmed");
 
     debug("Swap transaction sent: %s", txid);
   }
@@ -230,7 +223,7 @@ class Liquidator {
   }
 
   private async loadAllMarginfiAccounts() {
-    console.log("Loading data, this may take a moment...")
+    console.log("Loading data, this may take a moment...");
     const debug = getDebugLogger("load-all-marginfi-accounts");
     debug("Loading all Marginfi accounts");
     let allKeys = [];
@@ -239,18 +232,22 @@ class Liquidator {
     if (env_config.MARGINFI_ACCOUNT_WHITELIST) {
       allKeys = env_config.MARGINFI_ACCOUNT_WHITELIST;
     } else {
-      allKeys = (await this.client.getAllMarginfiAccountAddresses());
+      allKeys = await this.client.getAllMarginfiAccountAddresses();
     }
 
     debug("Retrieved all Marginfi account addresses, found: %d", allKeys.length);
-    const [slot, ais] = await chunkedGetRawMultipleAccountInfos(this.connection, allKeys.map((k) => k.toBase58()), 16 * 64, 64);
+    const [slot, ais] = await chunkedGetRawMultipleAccountInfos(
+      this.connection,
+      allKeys.map((k) => k.toBase58()),
+      16 * 64,
+      64
+    );
     debug("Received account information for slot %d, got: %d accounts", slot, ais.size);
     this.accountKeys = allKeys;
 
     const totalAccounts = ais.size;
     let processedAccounts = 0;
     for (const [key, accountInfo] of ais) {
-
       const pubkey = new PublicKey(key);
       const account = MarginfiAccountWrapper.fromAccountDataRaw(pubkey, this.client, accountInfo.data);
       this.accountInfos.set(pubkey, account);
@@ -293,10 +290,10 @@ class Liquidator {
           debug("Failed to decode Marginfi account for public key: %s, Error: %s", pubkey.toBase58(), error);
         }
       });
-    }
+    };
 
     setInterval(() => fn, env_config.WS_RESET_INTERVAL_SECONDS * 1000);
-    fn()
+    fn();
   }
 
   /**
@@ -321,7 +318,10 @@ class Liquidator {
 
     for (let { bank } of balancesWithNonUsdcDeposits) {
       const maxWithdrawAmount = this.account.computeMaxWithdrawForBank(bank.address);
-      const balanceAssetAmount = nativeToUi(this.account.getBalance(bank.address).computeQuantity(bank).assets, bank.mintDecimals);
+      const balanceAssetAmount = nativeToUi(
+        this.account.getBalance(bank.address).computeQuantity(bank).assets,
+        bank.mintDecimals
+      );
       const withdrawAmount = BigNumber.min(maxWithdrawAmount, balanceAssetAmount);
 
       debug("Balance: %d, max withdraw: %d", balanceAssetAmount, withdrawAmount);
@@ -338,7 +338,7 @@ class Liquidator {
         withdrawAmount.gte(balanceAssetAmount * 0.95)
       );
 
-      debug("Withdraw tx: %s", withdrawSig)
+      debug("Withdraw tx: %s", withdrawSig);
       this.reload();
     }
 
@@ -413,11 +413,7 @@ class Liquidator {
 
       debug("Swapping %d USDC to %s", usdcBuyingPower, this.getTokenSymbol(bank));
 
-      await this.swap(
-        USDC_MINT,
-        bank.mint,
-        uiToNative(usdcBuyingPower, usdcBank.mintDecimals),
-      );
+      await this.swap(USDC_MINT, bank.mint, uiToNative(usdcBuyingPower, usdcBank.mintDecimals));
 
       const liabsUi = new BigNumber(nativeToUi(liabilities, bank.mintDecimals));
       const liabsTokenAccountUi = await this.getTokenAccountBalance(bank.mint, false);
@@ -426,7 +422,11 @@ class Liquidator {
       debug("Got %d %s (debt: %d), depositing to marginfi", liabsUiAmountToRepay, this.getTokenSymbol(bank), liabsUi);
       debug("Paying off %d %s liabilities", liabsUiAmountToRepay, this.getTokenSymbol(bank));
 
-      const depositSig = await this.account.repay(liabsUiAmountToRepay, bank.address, liabsUiAmountToRepay.gte(liabsUi));
+      const depositSig = await this.account.repay(
+        liabsUiAmountToRepay,
+        bank.address,
+        liabsUiAmountToRepay.gte(liabsUi)
+      );
       debug("Deposit tx: %s", depositSig);
 
       await this.reload();
@@ -764,11 +764,7 @@ class Liquidator {
       liabBank.mint
     );
 
-    debug(
-      "Collateral amount to liquidate: %d for bank %s",
-      maxCollateralAmountToLiquidate,
-      collateralBank.mint
-    )
+    debug("Collateral amount to liquidate: %d for bank %s", maxCollateralAmountToLiquidate, collateralBank.mint);
 
     const collateralAmountToLiquidate = BigNumber.min(
       maxCollateralAmountToLiquidate,
@@ -780,7 +776,7 @@ class Liquidator {
     const collateralUsdValue = collateralBank.computeUsdValue(
       collateralPriceInfo,
       new BigNumber(uiToNative(slippageAdjustedCollateralAmountToLiquidate, collateralBank.mintDecimals).toNumber()),
-      PriceBias.None,
+      PriceBias.None
     );
 
     if (collateralUsdValue.lt(MIN_LIQUIDATION_AMOUNT_USD_UI)) {
@@ -806,7 +802,6 @@ class Liquidator {
       );
 
       console.log("Liquidation tx: %s", sig);
-
     } catch (e) {
       console.error("Failed to liquidate account %s", marginfiAccount.address.toBase58());
       console.error(e);
@@ -836,11 +831,15 @@ class Liquidator {
 
   sortByLiquidationAmount(accounts: MarginfiAccountWrapper[]): MarginfiAccountWrapper[] {
     return accounts
-      .filter(a => a.canBeLiquidated())
-      .filter(a => !this.isAccountInCoolDown(a.address))
+      .filter((a) => a.canBeLiquidated())
+      .filter((a) => !this.isAccountInCoolDown(a.address))
       .sort((a, b) => {
-        const { assets: aAssets, liabilities: aLiabilities } = a.computeHealthComponents(MarginRequirementType.Maintenance);
-        const { assets: bAssets, liabilities: bLiabilities } = b.computeHealthComponents(MarginRequirementType.Maintenance);
+        const { assets: aAssets, liabilities: aLiabilities } = a.computeHealthComponents(
+          MarginRequirementType.Maintenance
+        );
+        const { assets: bAssets, liabilities: bLiabilities } = b.computeHealthComponents(
+          MarginRequirementType.Maintenance
+        );
 
         const aMaxLiabilityPaydown = aAssets.minus(aLiabilities);
         const bMaxLiabilityPaydown = bAssets.minus(bLiabilities);

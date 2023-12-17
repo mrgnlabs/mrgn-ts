@@ -1626,14 +1626,14 @@ export type Marginfi = {
             };
           },
           {
-            name: "ignore2",
+            name: "ignore2";
             type: {
-              array: ["u8", 7],
-            },
+              array: ["u8", 7];
+            };
           },
           {
-            name: "totalAssetValueInitLimit",
-            type: "u64",
+            name: "totalAssetValueInitLimit";
+            type: "u64";
           },
           {
             name: "padding";

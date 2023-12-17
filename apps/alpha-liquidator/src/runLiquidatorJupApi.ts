@@ -36,4 +36,3 @@ async function startWithRestart() {
 }
 
 startWithRestart();
-

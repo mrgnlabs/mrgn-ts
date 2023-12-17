@@ -30,10 +30,20 @@ if (!process.env.RPC_ENDPOINT) {
 
 /*eslint sort-keys: "error"*/
 let envSchema = z.object({
-  ACCOUNT_COOL_DOWN_SECONDS: z.string().default("120").transform((s) => parseInt(s, 10)),
+  ACCOUNT_COOL_DOWN_SECONDS: z
+    .string()
+    .default("120")
+    .transform((s) => parseInt(s, 10)),
   /// 30 minutes
-  ACCOUNT_REFRESH_INTERVAL_SECONDS: z.string().default("1800").transform((s) => parseInt(s, 10)),
-  EXCLUDE_ISOLATED_BANKS: z.string().optional().default("false").transform((s) => s === "true" || s === "1"),
+  ACCOUNT_REFRESH_INTERVAL_SECONDS: z
+    .string()
+    .default("1800")
+    .transform((s) => parseInt(s, 10)),
+  EXCLUDE_ISOLATED_BANKS: z
+    .string()
+    .optional()
+    .default("false")
+    .transform((s) => s === "true" || s === "1"),
   IS_DEV: z
     .string()
     .optional()
@@ -52,7 +62,11 @@ let envSchema = z.object({
       return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
     })
     .optional(),
-  MAX_SLIPPAGE_BPS: z.string().optional().default("250").transform((s) => Number.parseInt(s, 10)),
+  MAX_SLIPPAGE_BPS: z
+    .string()
+    .optional()
+    .default("250")
+    .transform((s) => Number.parseInt(s, 10)),
   MIN_LIQUIDATION_AMOUNT_USD_UI: z
     .string()
     .default("0.1")
@@ -86,7 +100,11 @@ let envSchema = z.object({
     }
   }),
   WS_ENDPOINT: z.string().url().optional(),
-  WS_RESET_INTERVAL_SECONDS: z.string().optional().default("300").transform((s) => parseInt(s, 10)),
+  WS_RESET_INTERVAL_SECONDS: z
+    .string()
+    .optional()
+    .default("300")
+    .transform((s) => parseInt(s, 10)),
 });
 
 type EnvSchema = z.infer<typeof envSchema>;

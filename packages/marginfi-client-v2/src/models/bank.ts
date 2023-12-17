@@ -386,11 +386,16 @@ class Bank {
   getEffectiveAssetWeight(marginRequirementType: MarginRequirementType, oraclePrice: OraclePrice): BigNumber {
     switch (marginRequirementType) {
       case MarginRequirementType.Initial:
-        const totalBankCollateralValue = this.computeAssetUsdValue(oraclePrice, this.totalAssetShares, MarginRequirementType.Equity, PriceBias.Lowest);
+        const totalBankCollateralValue = this.computeAssetUsdValue(
+          oraclePrice,
+          this.totalAssetShares,
+          MarginRequirementType.Equity,
+          PriceBias.Lowest
+        );
         if (totalBankCollateralValue.isGreaterThan(this.config.totalAssetValueInitLimit)) {
-            return this.config.totalAssetValueInitLimit.div(totalBankCollateralValue).times(this.config.assetWeightInit);
+          return this.config.totalAssetValueInitLimit.div(totalBankCollateralValue).times(this.config.assetWeightInit);
         } else {
-            return this.config.assetWeightInit;
+          return this.config.assetWeightInit;
         }
       case MarginRequirementType.Maintenance:
         return this.config.assetWeightMaint;
@@ -399,7 +404,6 @@ class Bank {
       default:
         throw new Error("Invalid margin requirement type");
     }
-
   }
 
   getLiabilityWeight(marginRequirementType: MarginRequirementType): BigNumber {
