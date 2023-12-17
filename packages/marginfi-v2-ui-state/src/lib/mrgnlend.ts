@@ -400,8 +400,8 @@ function makeLendingPosition(
   const isLending = usdValues.liabilities.isZero();
 
   const amount = isLending
-    ? nativeToUi(amounts.assets.toNumber(), bankInfo.mintDecimals)
-    : nativeToUi(amounts.liabilities.toNumber(), bankInfo.mintDecimals);
+    ? nativeToUi(amounts.assets.integerValue(BigNumber.ROUND_DOWN).toNumber(), bankInfo.mintDecimals)
+    : nativeToUi(amounts.liabilities.integerValue(BigNumber.ROUND_UP).toNumber(), bankInfo.mintDecimals);
   const isDust = uiToNative(amount, bankInfo.mintDecimals).isZero();
   const weightedUSDValue = isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber();
   const usdValue = isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber();
