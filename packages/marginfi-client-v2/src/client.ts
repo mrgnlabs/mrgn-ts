@@ -70,8 +70,8 @@ class MarginfiClient {
     priceInfos: OraclePriceMap,
     addressLookupTables?: AddressLookupTableAccount[],
     preloadedBankAddresses?: PublicKey[],
-    readonly bankMetadataMap?: BankMetadataMap,
-    ) {
+    readonly bankMetadataMap?: BankMetadataMap
+  ) {
     this.group = group;
     this.banks = banks;
     this.oraclePrices = priceInfos;
@@ -148,7 +148,7 @@ class MarginfiClient {
       priceInfos,
       addressLookupTables,
       preloadedBankAddresses,
-      bankMetadataMap,
+      bankMetadataMap
     );
   }
 
@@ -238,7 +238,8 @@ class MarginfiClient {
     const banks = new Map(
       bankDatasKeyed.map(({ address, data }) => {
         const bankMetadata = bankMetadataMap ? bankMetadataMap[address.toBase58()] : undefined;
-        return [address.toBase58(), Bank.fromAccountParsed(address, data, bankMetadata)]})
+        return [address.toBase58(), Bank.fromAccountParsed(address, data, bankMetadata)];
+      })
     );
     debug("Decoded banks");
 

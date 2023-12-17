@@ -17,11 +17,7 @@ import { IconAlertTriangle, IconWallet } from "~/components/ui/icons";
 import { ActionBoxActions } from "./ActionBoxActions";
 import { ActionBoxPreview } from "./ActionBoxPreview";
 import { PublicKey } from "@solana/web3.js";
-import {
-  MarginfiAccountWrapper,
-  MarginRequirementType,
-  RiskTier,
-} from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginRequirementType, RiskTier } from "@mrgnlabs/marginfi-client-v2";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -491,7 +487,7 @@ function canBeLent(
     isWrappedSol
       ? Math.max(targetBankInfo.userInfo.tokenAccount.balance + nativeSolBalance - FEE_MARGIN, 0)
       : targetBankInfo.userInfo.tokenAccount.balance,
-      targetBankInfo.info.state.mintDecimals
+    targetBankInfo.info.state.mintDecimals
   );
 
   if (walletBalance === 0) {
@@ -500,4 +496,3 @@ function canBeLent(
 
   return { result: true };
 }
-

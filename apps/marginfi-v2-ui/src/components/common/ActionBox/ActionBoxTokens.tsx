@@ -96,21 +96,23 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
 
   // wallet banks
   const filteredBanksUserOwns = React.useMemo(() => {
-    return extendedBankInfos
-      .filter(balanceFilter)
-      .filter(searchFilter)
-      // .filter((bank) => positionFilter(bank, true))
-      .sort((a, b) => {
-        const isFirstWSOL = a.info.state.mint?.equals ? a.info.state.mint.equals(WSOL_MINT) : false;
-        const isSecondWSOL = b.info.state.mint?.equals ? b.info.state.mint.equals(WSOL_MINT) : false;
-        const firstBalance =
-          (isFirstWSOL ? a.userInfo.tokenAccount.balance + nativeSolBalance : a.userInfo.tokenAccount.balance) *
-          a.info.state.price;
-        const secondBalance =
-          (isSecondWSOL ? b.userInfo.tokenAccount.balance + nativeSolBalance : b.userInfo.tokenAccount.balance) *
-          b.info.state.price;
-        return secondBalance - firstBalance;
-      });
+    return (
+      extendedBankInfos
+        .filter(balanceFilter)
+        .filter(searchFilter)
+        // .filter((bank) => positionFilter(bank, true))
+        .sort((a, b) => {
+          const isFirstWSOL = a.info.state.mint?.equals ? a.info.state.mint.equals(WSOL_MINT) : false;
+          const isSecondWSOL = b.info.state.mint?.equals ? b.info.state.mint.equals(WSOL_MINT) : false;
+          const firstBalance =
+            (isFirstWSOL ? a.userInfo.tokenAccount.balance + nativeSolBalance : a.userInfo.tokenAccount.balance) *
+            a.info.state.price;
+          const secondBalance =
+            (isSecondWSOL ? b.userInfo.tokenAccount.balance + nativeSolBalance : b.userInfo.tokenAccount.balance) *
+            b.info.state.price;
+          return secondBalance - firstBalance;
+        })
+    );
   }, [extendedBankInfos, searchFilter]);
 
   // const ownedBanksPk = React.useMemo(() => filteredBanksUserOwns.map((bank) => bank.address), [filteredBanksUserOwns]);
