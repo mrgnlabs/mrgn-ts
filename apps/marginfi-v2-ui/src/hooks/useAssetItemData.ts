@@ -1,6 +1,7 @@
 import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useMemo } from "react";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
 export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBankInfo; isInLendingMode: boolean }) {
   const rateAP = useMemo(
@@ -14,13 +15,16 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
   );
 
   const assetWeight = useMemo(() => {
-    if (bank.info.rawBank.config.assetWeightInit.toNumber() <= 0) {
+    const assetWeightInit = bank.info.rawBank
+      .getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice)
+      .toNumber();
+    if (assetWeightInit <= 0) {
       return "-";
     }
     return isInLendingMode
-      ? (bank.info.rawBank.config.assetWeightInit.toNumber() * 100).toFixed(0) + "%"
+      ? (assetWeightInit * 100).toFixed(0) + "%"
       : ((1 / bank.info.rawBank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%";
-  }, [isInLendingMode, bank.info.rawBank.config]);
+  }, [bank.info.rawBank, bank.info.oraclePrice, isInLendingMode]);
 
   const bankCap = useMemo(
     () => (isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit),
