@@ -1,6 +1,6 @@
 import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useMemo } from "react";
-import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { nativeToUi, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
 export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBankInfo; isInLendingMode: boolean }) {
@@ -27,15 +27,24 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
   }, [bank.info.rawBank, bank.info.oraclePrice, isInLendingMode]);
 
   const bankCap = useMemo(
-    () => (isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit),
-    [isInLendingMode, bank.info.rawBank.config]
+    () =>
+      nativeToUi(
+        isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
+        bank.info.state.mintDecimals
+      ),
+    [
+      isInLendingMode,
+      bank.info.rawBank.config.depositLimit,
+      bank.info.rawBank.config.borrowLimit,
+      bank.info.state.mintDecimals,
+    ]
   );
   const isBankFilled = useMemo(
-    () => (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap.toNumber() * 0.99999,
+    () => (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.99999,
     [bankCap, isInLendingMode, bank.info.state]
   );
   const isBankHigh = useMemo(
-    () => (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap.toNumber() * 0.9,
+    () => (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.9,
     [bankCap, isInLendingMode, bank.info.state]
   );
 

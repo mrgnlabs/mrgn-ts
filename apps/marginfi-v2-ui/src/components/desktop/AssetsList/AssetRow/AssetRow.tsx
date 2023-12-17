@@ -423,7 +423,7 @@ const AssetRow: FC<{
                   : `${bank.meta.tokenSymbol} ${
                       isInLendingMode ? "deposits" : "borrows"
                     } are at ${percentFormatter.format(
-                      (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap.toNumber()
+                      (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
                     )} capacity.`}
                 <br />
                 <a href="https://docs.marginfi.com">
@@ -474,7 +474,7 @@ const AssetRow: FC<{
             align="right"
             style={{ fontWeight: 300 }}
           >
-            {denominationUSD ? usdFormatter.format(bankCap.toNumber() * bank.info.state.price) : numeralFormatter(bankCap.toNumber())}
+            {denominationUSD ? usdFormatter.format(bankCap * bank.info.state.price) : numeralFormatter(bankCap)}
           </TableCell>
         )}
 

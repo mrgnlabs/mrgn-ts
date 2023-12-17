@@ -173,7 +173,7 @@ export const AssetCard: FC<{
         isInLendingMode={isInLendingMode}
         isBankFilled={isBankFilled}
         isBankHigh={isBankHigh}
-        bankCap={bankCap.toNumber()}
+        bankCap={bankCap}
       />
       {activeBank?.position &&
         (isFilteredUserPositions || activeBank?.position.isLending === (lendingMode === LendingModes.LEND)) && (
