@@ -429,7 +429,6 @@ function canBeBorrowed(
     };
   }
 
-  console.log(targetBankInfo.info.rawBank.computeRemainingCapacity().borrowCapacity.toString());
   const isFull = targetBankInfo.info.rawBank.computeRemainingCapacity().borrowCapacity.lte(0);
   if (isFull) {
     return { result: false, reason: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is at borrow capacity.` };

@@ -216,7 +216,6 @@ class MarginfiAccount {
     const attemptingToBorrowNewAssetWithExistingIsolatedDebt = existingLiabilityBanks.some(
       (b) => b.config.riskTier === RiskTier.Isolated && !b.address.equals(bankAddress)
     );
-    console.log({bank: bank.tokenSymbol, attemptingToBorrowIsolatedAssetWithActiveDebt, attemptingToBorrowNewAssetWithExistingIsolatedDebt})
     if (attemptingToBorrowIsolatedAssetWithActiveDebt || attemptingToBorrowNewAssetWithExistingIsolatedDebt) {
       return BigNumber(0);
     }
