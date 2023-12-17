@@ -117,14 +117,18 @@ class MarginfiAccountWrapper {
     return assets.lt(liabilities);
   }
 
-  public computeHealthComponents(marginRequirement: MarginRequirementType): {
+  public computeHealthComponents(
+    marginRequirement: MarginRequirementType,
+    excludedBanks: PublicKey[] = []
+  ): {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
     return this._marginfiAccount.computeHealthComponents(
       this.client.banks,
       this.client.oraclePrices,
-      marginRequirement
+      marginRequirement,
+      excludedBanks
     );
   }
 
@@ -301,7 +305,11 @@ class MarginfiAccountWrapper {
     return sig;
   }
 
-  async simulateWithdraw(amount: Amount, bankAddress: PublicKey, withdrawAll: boolean = false): Promise<SimulationResult> {
+  async simulateWithdraw(
+    amount: Amount,
+    bankAddress: PublicKey,
+    withdrawAll: boolean = false
+  ): Promise<SimulationResult> {
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll);
     const tx = new Transaction().add(...ixs.instructions);
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);

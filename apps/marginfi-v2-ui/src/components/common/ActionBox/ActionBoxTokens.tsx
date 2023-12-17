@@ -22,16 +22,10 @@ import { PublicKey } from "@solana/web3.js";
 type ActionBoxTokensProps = {
   currentTokenBank: PublicKey | null;
   setCurrentTokenBank: (selectedTokenBank: PublicKey | null) => void;
-  actionMode: ActionType;
   isDialog?: boolean;
 };
 
-export const ActionBoxTokens = ({
-  currentTokenBank,
-  isDialog,
-  actionMode,
-  setCurrentTokenBank,
-}: ActionBoxTokensProps) => {
+export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBank }: ActionBoxTokensProps) => {
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
@@ -94,11 +88,7 @@ export const ActionBoxTokens = ({
   // filter on positions
   const positionFilter = React.useCallback(
     (bankInfo: ExtendedBankInfo, filterActive?: boolean) =>
-      bankInfo.isActive
-        ? lendingMode === LendingModes.LEND
-          ? bankInfo.position?.isLending
-          : !bankInfo.position?.isLending
-        : filterActive,
+      bankInfo.isActive ? lendingMode === LendingModes.LEND && bankInfo.position.isLending : filterActive,
     [lendingMode]
   );
 
@@ -109,7 +99,7 @@ export const ActionBoxTokens = ({
     return extendedBankInfos
       .filter(balanceFilter)
       .filter(searchFilter)
-      .filter((bank) => positionFilter(bank, true))
+      // .filter((bank) => positionFilter(bank, true))
       .sort((a, b) => {
         const isFirstWSOL = a.info.state.mint?.equals ? a.info.state.mint.equals(WSOL_MINT) : false;
         const isSecondWSOL = b.info.state.mint?.equals ? b.info.state.mint.equals(WSOL_MINT) : false;
@@ -121,9 +111,9 @@ export const ActionBoxTokens = ({
           b.info.state.price;
         return secondBalance - firstBalance;
       });
-  }, [extendedBankInfos, searchFilter, positionFilter]);
+  }, [extendedBankInfos, searchFilter]);
 
-  const ownedBanksPk = React.useMemo(() => filteredBanksUserOwns.map((bank) => bank.address), [filteredBanksUserOwns]);
+  // const ownedBanksPk = React.useMemo(() => filteredBanksUserOwns.map((bank) => bank.address), [filteredBanksUserOwns]);
 
   // active position banks
   const filteredBanksActive = React.useMemo(() => {
@@ -133,22 +123,24 @@ export const ActionBoxTokens = ({
       .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
   }, [extendedBankInfos, searchFilter, positionFilter]);
 
-  const hasExistingBorrow = React.useMemo(
-    () => filteredBanksActive.some((bank) => bank.isActive && !bank.position.isLending),
-    [filteredBanksActive]
-  );
-  const hasIsolatedBorrow = React.useMemo(
-    () => filteredBanksActive.some((bank) => bank.isActive && !bank.position.isLending && bank.info.state.isIsolated),
-    [filteredBanksActive]
-  );
+  // const hasExistingBorrow = React.useMemo(
+  //   () => filteredBanksActive.some((bank) => bank.isActive && !bank.position.isLending),
+  //   [filteredBanksActive]
+  // );
+  // const hasIsolatedBorrow = React.useMemo(
+  //   () => filteredBanksActive.some((bank) => bank.isActive && !bank.position.isLending && bank.info.state.isIsolated),
+  //   [filteredBanksActive]
+  // );
 
   // other banks without positions
   const filteredBanks = React.useMemo(() => {
-    return extendedBankInfos
-      .filter(searchFilter)
-      .filter((bankInfo) => (lendingMode === LendingModes.LEND ? bankInfo.userInfo.tokenAccount.balance === 0 : true))
-      .filter((bankInfo) => positionFilter(bankInfo, true));
-  }, [extendedBankInfos, lendingMode, positionFilter, searchFilter]);
+    return (
+      extendedBankInfos
+        .filter(searchFilter)
+        // .filter((bankInfo) => (lendingMode === LendingModes.LEND ? bankInfo.userInfo.tokenAccount.balance === 0 : true))
+        .filter((bankInfo) => positionFilter(bankInfo, true))
+    );
+  }, [extendedBankInfos, lendingMode, searchFilter]);
 
   const globalBanks = React.useMemo(() => filteredBanks.filter((bank) => !bank.info.state.isIsolated), [filteredBanks]);
   const isolatedBanks = React.useMemo(
@@ -268,7 +260,7 @@ export const ActionBoxTokens = ({
                       <CommandItem
                         key={index}
                         value={bank.address?.toString().toLowerCase()}
-                        disabled={!ownedBanksPk.includes(bank.address)}
+                        // disabled={!ownedBanksPk.includes(bank.address)}
                         onSelect={(currentValue) => {
                           setCurrentTokenBank(
                             extendedBankInfos.find(
@@ -278,8 +270,8 @@ export const ActionBoxTokens = ({
                           setIsTokenPopoverOpen(false);
                         }}
                         className={cn(
-                          "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
-                          !ownedBanksPk.includes(bank.address) && "pointer-events-none bg-muted opacity-60"
+                          "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2"
+                          // !ownedBanksPk.includes(bank.address) && "pointer-events-none bg-muted opacity-60"
                         )}
                       >
                         <ActionBoxItem
@@ -344,11 +336,11 @@ export const ActionBoxTokens = ({
                           className={cn(
                             "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
                             lendingMode === LendingModes.LEND && "py-2",
-                            lendingMode === LendingModes.LEND &&
-                              !ownedBanksPk.includes(bank.address) &&
-                              "pointer-events-none bg-muted opacity-60",
-                            lendingMode === LendingModes.BORROW && "h-[60px]",
-                            hasIsolatedBorrow && "pointer-events-none bg-muted opacity-60"
+                            // lendingMode === LendingModes.LEND &&
+                            //   !ownedBanksPk.includes(bank.address) &&
+                            //   "pointer-events-none bg-muted opacity-60",
+                            lendingMode === LendingModes.BORROW && "h-[60px]"
+                            // hasIsolatedBorrow && "pointer-events-none bg-muted opacity-60"
                           )}
                         >
                           <ActionBoxItem
@@ -381,11 +373,11 @@ export const ActionBoxTokens = ({
                           className={cn(
                             "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white",
                             lendingMode === LendingModes.LEND && "py-2",
-                            lendingMode === LendingModes.LEND &&
-                              !ownedBanksPk.includes(bank.address) &&
-                              "pointer-events-none bg-muted opacity-60",
-                            lendingMode === LendingModes.BORROW && "h-[60px]",
-                            hasExistingBorrow && "pointer-events-none bg-muted opacity-60"
+                            // lendingMode === LendingModes.LEND &&
+                            //   !ownedBanksPk.includes(bank.address) &&
+                            //   "pointer-events-none bg-muted opacity-60",
+                            lendingMode === LendingModes.BORROW && "h-[60px]"
+                            // hasExistingBorrow && "pointer-events-none bg-muted opacity-60"
                           )}
                         >
                           <ActionBoxItem

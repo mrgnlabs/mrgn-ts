@@ -193,11 +193,37 @@ class MarginfiAccount {
     oraclePrices: Map<string, OraclePrice>,
     bankAddress: PublicKey,
     opts?: { volatilityFactor?: number }
-    ): BigNumber {
+  ): BigNumber {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
     const priceInfo = oraclePrices.get(bankAddress.toBase58());
     if (!priceInfo) throw Error(`Price info for ${bankAddress.toBase58()} not found`);
+
+    // -------------------------- //
+    // isolated asset constraints //
+    // -------------------------- //
+
+    const attemptingToBorrowIsolatedAssetWithActiveDebt =
+      bank.config.riskTier === RiskTier.Isolated &&
+      !this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Equity, [
+        bankAddress,
+      ]).liabilities.isZero();
+
+    const existingLiabilityBanks = this.activeBalances
+      .filter((b) => b.liabilityShares.gt(0))
+      .map((b) => banks.get(b.bankPk.toBase58())!);
+
+    const attemptingToBorrowNewAssetWithExistingIsolatedDebt = existingLiabilityBanks.some(
+      (b) => b.config.riskTier === RiskTier.Isolated && !b.address.equals(bankAddress)
+    );
+    console.log({bank: bank.tokenSymbol, attemptingToBorrowIsolatedAssetWithActiveDebt, attemptingToBorrowNewAssetWithExistingIsolatedDebt})
+    if (attemptingToBorrowIsolatedAssetWithActiveDebt || attemptingToBorrowNewAssetWithExistingIsolatedDebt) {
+      return BigNumber(0);
+    }
+
+    // ------------- //
+    // FC-based calc //
+    // ------------- //
 
     const _volatilityFactor = opts?.volatilityFactor ?? 1;
 
