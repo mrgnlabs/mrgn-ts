@@ -60,10 +60,7 @@ class MarginfiClient {
   // Factories
   // --------------------------------------------------------------------------
 
-  /**
-   * @internal
-   */
-  private constructor(
+  constructor(
     readonly config: MarginfiConfig,
     readonly program: MarginfiProgram,
     readonly wallet: Wallet,
@@ -73,8 +70,8 @@ class MarginfiClient {
     priceInfos: OraclePriceMap,
     addressLookupTables?: AddressLookupTableAccount[],
     preloadedBankAddresses?: PublicKey[],
-    readonly bankMetadataMap?: BankMetadataMap,
-    ) {
+    readonly bankMetadataMap?: BankMetadataMap
+  ) {
     this.group = group;
     this.banks = banks;
     this.oraclePrices = priceInfos;
@@ -151,7 +148,7 @@ class MarginfiClient {
       priceInfos,
       addressLookupTables,
       preloadedBankAddresses,
-      bankMetadataMap,
+      bankMetadataMap
     );
   }
 
@@ -241,7 +238,8 @@ class MarginfiClient {
     const banks = new Map(
       bankDatasKeyed.map(({ address, data }) => {
         const bankMetadata = bankMetadataMap ? bankMetadataMap[address.toBase58()] : undefined;
-        return [address.toBase58(), Bank.fromAccountParsed(address, data, bankMetadata)]})
+        return [address.toBase58(), Bank.fromAccountParsed(address, data, bankMetadata)];
+      })
     );
     debug("Decoded banks");
 
@@ -612,6 +610,48 @@ class MarginfiClient {
       }
       console.log(error);
       throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.FallthroughError);
+    }
+  }
+
+  async simulateTransaction(
+    transaction: Transaction | VersionedTransaction,
+    accountsToInspect: PublicKey[]
+  ): Promise<(Buffer | null)[]> {
+    let versionedTransaction: VersionedTransaction;
+    const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
+    let blockhash: string;
+
+    try {
+      const getLatestBlockhashAndContext = await connection.getLatestBlockhashAndContext();
+
+      blockhash = getLatestBlockhashAndContext.value.blockhash;
+
+      if (transaction instanceof Transaction) {
+        const versionedMessage = new TransactionMessage({
+          instructions: transaction.instructions,
+          payerKey: this.provider.publicKey,
+          recentBlockhash: blockhash,
+        });
+
+        versionedTransaction = new VersionedTransaction(versionedMessage.compileToV0Message(this.addressLookupTables));
+      } else {
+        versionedTransaction = transaction;
+      }
+    } catch (error: any) {
+      console.log("Failed to build the transaction", error);
+      throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.TransactionBuildingError);
+    }
+
+    try {
+      const response = await connection.simulateTransaction(versionedTransaction, {
+        sigVerify: false,
+        accounts: { encoding: "base64", addresses: accountsToInspect.map((a) => a.toBase58()) },
+      });
+      if (response.value.err) throw new Error(JSON.stringify(response.value.err));
+      return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
+    } catch (error: any) {
+      console.log(error);
+      throw new Error("Failed to simulate transaction");
     }
   }
 }

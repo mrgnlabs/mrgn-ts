@@ -1,6 +1,9 @@
 import { create, StateCreator } from "zustand";
 
-import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption } from "~/types";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, UserMode } from "~/types";
+import { PublicKey } from "@solana/web3.js";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {
@@ -42,6 +45,7 @@ interface UiState {
   lendingMode: LendingModes;
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
+  userMode: UserMode;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -53,6 +57,7 @@ interface UiState {
   setLendingMode: (lendingMode: LendingModes) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
+  setUserMode: (userMode: UserMode) => void;
 }
 
 function createUiStore() {
@@ -68,8 +73,11 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   isWalletOnrampActive: false,
   isFilteredUserPositions: false,
   lendingMode: LendingModes.LEND,
+  actionMode: ActionType.Deposit,
   poolFilter: PoolTypes.ALL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
+  userMode: UserMode.LITE,
+  selectedTokenBank: null,
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -79,9 +87,13 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setIsOnrampActive: (isOnrampActive: boolean) => set({ isWalletOnrampActive: isOnrampActive }),
   setIsFilteredUserPositions: (isFilteredUserPositions: boolean) =>
     set({ isFilteredUserPositions: isFilteredUserPositions }),
-  setLendingMode: (lendingMode: LendingModes) => set({ lendingMode: lendingMode }),
+  setLendingMode: (lendingMode: LendingModes) =>
+    set({
+      lendingMode: lendingMode,
+    }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
+  setUserMode: (userMode: UserMode) => set({ userMode: userMode }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };

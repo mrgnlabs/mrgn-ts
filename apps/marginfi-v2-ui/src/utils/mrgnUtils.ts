@@ -3,6 +3,7 @@ import BN from "bn.js";
 import { TOKEN_PROGRAM_ID, ceil, floor } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useEffect, useRef } from "react";
+import numeral from "numeral";
 
 // ================ development utils ================
 
@@ -50,3 +51,46 @@ export function usePrevious<T>(value: T): T | undefined {
   }, [value]);
   return ref.current;
 }
+
+export function getInitHealthColor(health: number): string {
+  if (health >= 0.5) {
+    return "#75BA80"; // green color " : "#",
+  } else if (health >= 0.25) {
+    return "#b8b45f"; // yellow color
+  } else {
+    return "#CF6F6F"; // red color
+  }
+}
+
+export function getMaintHealthColor(health: number): string {
+  if (health >= 0.5) {
+    return "#75BA80"; // green color " : "#",
+  } else if (health >= 0.25) {
+    return "#b8b45f"; // yellow color
+  } else {
+    return "#CF6F6F"; // red color
+  }
+}
+
+export function getLiquidationPriceColor(currentPrice: number, liquidationPrice: number): string {
+  const safety = liquidationPrice / currentPrice;
+  let color: string;
+  if (safety >= 0.5) {
+    color = "#75BA80";
+  } else if (safety >= 0.25) {
+    color = "#B8B45F";
+  } else {
+    color = "#CF6F6F";
+  }
+  return color;
+}
+
+export const clampedNumeralFormatter = (value: number) => {
+  if (value === 0) {
+    return "0";
+  } else if (value < 0.01) {
+    return "< 0.01";
+  } else {
+    return numeral(value).format("0.00a");
+  }
+};

@@ -83,7 +83,7 @@ export async function chunkedGetRawMultipleAccountInfos(
 }
 
 export function convertBase64StringArrayToBuffer(stringArray: string[]): Buffer {
-  return Buffer.concat(stringArray.map(s => Buffer.from(s, 'base64')));
+  return Buffer.concat(stringArray.map((s) => Buffer.from(s, "base64")));
 }
 
 export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
@@ -93,5 +93,3 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   }
   return chunks;
 }
-
-
