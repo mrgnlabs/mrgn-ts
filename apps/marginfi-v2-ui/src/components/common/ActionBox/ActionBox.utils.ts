@@ -123,7 +123,7 @@ function canBeWithdrawn(
   if (noFreeCollateral) {
     return {
       description: "No available collateral.",
-      isEnabled: false,
+      isEnabled: true,
     };
   }
 
@@ -222,7 +222,9 @@ function canBeBorrowed(
     };
   }
 
-  const existingLiabilityBanks = extendedBankInfos.filter((b) => b.isActive) as ActiveBankInfo[];
+  const existingLiabilityBanks = extendedBankInfos.filter(
+    (b) => b.isActive && !b.position.isLending
+  ) as ActiveBankInfo[];
   const existingIsolatedBorrow = existingLiabilityBanks.find(
     (b) => b.info.rawBank.config.riskTier === RiskTier.Isolated && !b.address.equals(targetBankInfo.address)
   );

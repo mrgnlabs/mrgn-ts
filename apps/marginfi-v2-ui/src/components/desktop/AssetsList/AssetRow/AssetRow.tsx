@@ -71,10 +71,12 @@ const AssetRow: React.FC<{
   showLSTDialog,
 }) => {
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
-  const [lendingMode, isFilteredUserPositions] = useUiStore((state) => [
+  const [lendingMode,setLendingMode, isFilteredUserPositions] = useUiStore((state) => [
     state.lendingMode,
+    state.setLendingMode,
     state.isFilteredUserPositions,
   ]);
+
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
 
   const isMobile = useIsMobile();
@@ -394,7 +396,7 @@ const AssetRow: React.FC<{
             placement="top"
           >
             <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
-              <ActionBoxDialog requestedToken={bank.address}>
+              <ActionBoxDialog requestedToken={bank.address} requestedAction={currentAction} requestedLendingMode={currentAction === ActionType.Repay ? LendingModes.BORROW : currentAction === ActionType.Withdraw ? LendingModes.LEND : undefined}>
                 <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
               </ActionBoxDialog>
             </div>

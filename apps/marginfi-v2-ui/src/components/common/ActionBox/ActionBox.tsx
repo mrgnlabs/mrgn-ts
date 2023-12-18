@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 
 import { usdFormatterDyn, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -45,10 +45,11 @@ export interface ActionPreview {
 type ActionBoxProps = {
   requestedAction?: ActionType;
   requestedToken?: PublicKey;
+  requestedLendingMode?: LendingModes;
   isDialog?: boolean;
 };
 
-export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionBoxProps) => {
+export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMode, isDialog }: ActionBoxProps) => {
   const [
     mfiClient,
     nativeSolBalance,
@@ -66,8 +67,10 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingMode, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
+  const [lendingModeFromStore, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
   const { walletContextState, connected } = useWalletContext();
+
+  const lendingMode = useMemo(() => requestedLendingMode ?? lendingModeFromStore, [lendingModeFromStore, requestedLendingMode])
 
   const [amount, setAmount] = React.useState<number | null>(null);
   const debouncedAmount = useDebounce<number | null>(amount, 500)
@@ -210,10 +213,13 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
 
   const computePreview = React.useCallback(async () => {
     if (!selectedAccount || !selectedBank || debouncedAmount === null) {
+      setIsAmountLoading(false)
+      setIsLoading(false)
       return;
     }
 
     try {
+
       let simulationResult: SimulationResult;
 
       if (debouncedAmount === 0) {
@@ -288,7 +294,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
 
   React.useEffect(() => {
     computePreview();
-  }, [computePreview]);
+  }, [computePreview, debouncedAmount]);
 
   const executeLendingActionCb = React.useCallback(
     async ({
@@ -348,7 +354,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
   }, [selectedBank, selectedAccount, fetchMrgnlendState, setIsRefreshingStore]);
 
   const handleLendingAction = React.useCallback(async () => {
-    if (!actionMode || !selectedBank || !selectedAccount || !amount) {
+    if (!actionMode || !selectedBank || !amount) {
       return;
     }
 
@@ -435,7 +441,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
         </div>
         <div className="p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl">
           <div className="flex flex-row items-baseline justify-between">
-            {hasActivePositions && !isDialog ? (
+            {!isDialog ? (
               <div className="text-lg font-normal mb-3">
                 {lendingMode === LendingModes.LEND ? "You supply" : "You borrow"}
               </div>
