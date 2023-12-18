@@ -1,7 +1,8 @@
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
 
 import { usdFormatterDyn, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { PublicKey } from "@solana/web3.js";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import {
   MarginfiActionParams,
@@ -13,20 +14,20 @@ import {
 } from "~/utils";
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useDebounce } from "~/hooks/useDebounce";
 
 import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
 import { ActionBoxTokens } from "~/components/common/ActionBox/ActionBoxTokens";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-
 import { Input } from "~/components/ui/input";
 import { IconAlertTriangle, IconInfoCircle, IconWallet } from "~/components/ui/icons";
 
 import { ActionBoxPreview } from "./ActionBoxPreview";
-import { PublicKey } from "@solana/web3.js";
 import { checkActionAvailable } from "./ActionBox.utils";
 import { MrgnTooltip } from "../MrgnTooltip";
 import { MarginfiAccountWrapper, MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionBoxActions } from "./ActionBoxActions";
+import { Skeleton } from "~/components/ui/skeleton";
 
 export interface ActionPreview {
   health: number;
@@ -68,6 +69,9 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
   const { walletContextState, connected } = useWalletContext();
 
   const [amount, setAmount] = React.useState<number | null>(null);
+  const debouncedAmount = useDebounce<number | null>(amount, 500)
+  const [isAmountLoading, setIsAmountLoading] = React.useState<boolean>(false)
+
   const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
   const [preview, setPreview] = React.useState<ActionPreview | null>(null);
@@ -174,6 +178,17 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
   }, [requestedAction, setActionMode]);
 
   React.useEffect(() => {
+    if (selectedBank && amount) {
+      setIsAmountLoading(true)
+      setIsLoading(true)
+    } else {
+      setIsAmountLoading(false)
+      setIsLoading(false)
+    }
+  }, [setIsAmountLoading, setIsLoading, amount, selectedBank])
+
+  React.useEffect(() => {
+
     if (amount && amount > maxAmount) {
       setAmount(maxAmount);
     }
@@ -194,33 +209,33 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
   }, [selectedBank, actionMode, setActionMode, lendingMode]);
 
   const computePreview = React.useCallback(async () => {
-    if (!selectedAccount || !selectedBank || amount === null) {
+    if (!selectedAccount || !selectedBank || debouncedAmount === null) {
       return;
     }
 
     try {
       let simulationResult: SimulationResult;
 
-      if (amount === 0) {
+      if (debouncedAmount === 0) {
         setPreview(null);
         return;
       }
 
       if (actionMode === ActionType.Deposit) {
-        simulationResult = await selectedAccount.simulateDeposit(amount, selectedBank.address);
+        simulationResult = await selectedAccount.simulateDeposit(debouncedAmount, selectedBank.address);
       } else if (actionMode === ActionType.Withdraw) {
         simulationResult = await selectedAccount.simulateWithdraw(
-          amount,
+          debouncedAmount,
           selectedBank.address,
-          selectedBank.isActive && isWholePosition(selectedBank, amount)
+          selectedBank.isActive && isWholePosition(selectedBank, debouncedAmount)
         );
       } else if (actionMode === ActionType.Borrow) {
-        simulationResult = await selectedAccount.simulateBorrow(amount, selectedBank.address);
+        simulationResult = await selectedAccount.simulateBorrow(debouncedAmount, selectedBank.address);
       } else if (actionMode === ActionType.Repay) {
         simulationResult = await selectedAccount.simulateRepay(
-          amount,
+          debouncedAmount,
           selectedBank.address,
-          selectedBank.isActive && isWholePosition(selectedBank, amount)
+          selectedBank.isActive && isWholePosition(selectedBank, debouncedAmount)
         );
       } else {
         throw new Error("Unknown action mode");
@@ -265,8 +280,11 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
     } catch (error) {
       setPreview(null);
       console.log("Error computing action preview", error);
+    } finally {
+      setIsAmountLoading(false)
+      setIsLoading(false)
     }
-  }, [actionMode, amount, selectedAccount, selectedBank]);
+  }, [actionMode, debouncedAmount, selectedAccount, selectedBank]);
 
   React.useEffect(() => {
     computePreview();
@@ -435,9 +453,8 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
                     : "-"}
                 </span>
                 <button
-                  className={`text-xs ml-1 h-5 py-1 px-1.5 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground ${
-                    maxAmount === 0 ? "" : "cursor-pointer hover:bg-muted-foreground/30"
-                  } transition-colors`}
+                  className={`text-xs ml-1 h-5 py-1 px-1.5 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground ${maxAmount === 0 ? "" : "cursor-pointer hover:bg-muted-foreground/30"
+                    } transition-colors`}
                   onClick={() => setAmount(maxAmount)}
                   disabled={maxAmount === 0}
                 >
@@ -473,17 +490,19 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
             </div>
           )}
 
-          {selectedAccount && <ActionBoxAvailableCollateral marginfiAccount={selectedAccount} preview={preview} />}
+          {selectedAccount && <ActionBoxAvailableCollateral isLoading={isAmountLoading} marginfiAccount={selectedAccount} preview={preview} />}
 
           <ActionBoxActions
             handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
             isLoading={isLoading}
-            actionMethod={actionMethod}
+            isEnabled={actionMethod.isEnabled}
+            actionMode={actionMode}
             disabled={amount === 0}
           />
 
           {selectedBank && actionMethod.isEnabled && (
             <ActionBoxPreview
+              isLoading={isAmountLoading}
               marginfiAccount={selectedAccount}
               selectedBank={selectedBank}
               actionMode={actionMode}
@@ -509,9 +528,10 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
 };
 
 const ActionBoxAvailableCollateral: FC<{
+  isLoading: boolean
   marginfiAccount: MarginfiAccountWrapper;
   preview: ActionPreview | null;
-}> = ({ marginfiAccount, preview }) => {
+}> = ({ isLoading, marginfiAccount, preview }) => {
   const currentAvailableCollateralAmount = marginfiAccount.computeFreeCollateral().toNumber();
   const currentAvailableCollateralRatio =
     currentAvailableCollateralAmount /
@@ -522,8 +542,8 @@ const ActionBoxAvailableCollateral: FC<{
       ? "#b8b45f"
       : "white"
     : currentAvailableCollateralAmount === 0
-    ? "#b8b45f"
-    : "white";
+      ? "#b8b45f"
+      : "white";
 
   return (
     <div className="pb-6">
@@ -545,7 +565,7 @@ const ActionBoxAvailableCollateral: FC<{
           </MrgnTooltip>
         </dt>
         <dd className="text-xl md:text-sm font-bold" style={{ color: accentColor }}>
-          {usdFormatterDyn.format(preview?.availableCollateral.amount ?? currentAvailableCollateralAmount)}
+          {isLoading ? <Skeleton className="h-4 w-[45px]" /> : (usdFormatterDyn.format(preview?.availableCollateral.amount ?? currentAvailableCollateralAmount))}
         </dd>
       </dl>
       <div className="h-2 mb-2 bg-background-gray-light">

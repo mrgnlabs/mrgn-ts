@@ -19,7 +19,6 @@ interface props {
 }
 
 export interface ActionMethod {
-  instruction: string;
   isEnabled: boolean;
   description?: string;
 }
@@ -41,7 +40,7 @@ export function checkActionAvailable({
 
   if (!selectedBank) {
     // this shouldn't happen
-    return { instruction: "Something went wrong", isEnabled: false };
+    return { description: "Something went wrong",  isEnabled: false };
   }
 
   switch (actionMode) {
@@ -65,13 +64,12 @@ export function checkActionAvailable({
 
   if (amount && amount <= 0) {
     return {
-      instruction: "Add an amount",
+      description: "Add an amount",
       isEnabled: false,
     };
   }
 
   return {
-    instruction: actionMode,
     isEnabled: true,
   };
 }
@@ -82,14 +80,14 @@ function generalChecks(
   showCloseBalance?: boolean
 ): ActionMethod | null {
   if (!connected) {
-    return { instruction: "Connect your wallet", isEnabled: false };
+    return {  isEnabled: false };
   }
   if (!selectedBank) {
-    return { instruction: "Select token and amount", isEnabled: false };
+    return { description: "Select token and amount.", isEnabled: false };
   }
 
   if (showCloseBalance) {
-    return { instruction: "Close account", isEnabled: true };
+    return { description: "Close account.", isEnabled: true };
   }
 
   return null;
@@ -101,7 +99,6 @@ function canBeWithdrawn(targetBankInfo: ExtendedBankInfo,
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
     return {
-      instruction: "Bank is paused",
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
     };
@@ -109,14 +106,14 @@ function canBeWithdrawn(targetBankInfo: ExtendedBankInfo,
 
   if (!targetBankInfo.isActive) {
     return {
-      instruction: "No position found",
+      description: "No position found.",
       isEnabled: false,
     };
   }
 
   if (!targetBankInfo.position.isLending) {
     return {
-      instruction: `You&apos;re not lending ${targetBankInfo.meta.tokenSymbol}`,
+      description: `You&apos;re not lending ${targetBankInfo.meta.tokenSymbol}.`,
       isEnabled: false,
     };
   }
@@ -124,7 +121,7 @@ function canBeWithdrawn(targetBankInfo: ExtendedBankInfo,
   const noFreeCollateral = marginfiAccount && marginfiAccount.computeFreeCollateral().isZero();
   if (noFreeCollateral) {
     return {
-      instruction: "No available collateral",
+      description: "No available collateral.",
       isEnabled: false,
     };
   }
@@ -136,7 +133,6 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
     return {
-      instruction: "Bank is paused",
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
     };
@@ -144,21 +140,21 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
 
   if (!targetBankInfo.isActive) {
     return {
-      instruction: "No position found",
+      description: "No position found.",
       isEnabled: false,
     };
   }
 
   if (targetBankInfo.position.isLending) {
     return {
-      instruction: `You are not borrowing ${targetBankInfo.meta.tokenSymbol}`,
+      description: `You are not borrowing ${targetBankInfo.meta.tokenSymbol}.`,
       isEnabled: false,
     };
   }
 
   if (targetBankInfo.userInfo.maxRepay === 0) {
     return {
-      instruction: `Insufficient ${targetBankInfo.meta.tokenSymbol} in wallet for loan repayment`,
+      description: `Insufficient ${targetBankInfo.meta.tokenSymbol} in wallet for loan repayment.`,
       isEnabled: false,
     };
   }
@@ -174,7 +170,6 @@ function canBeBorrowed(
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
     return {
-      instruction: "Bank is paused",
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
     };
@@ -183,7 +178,6 @@ function canBeBorrowed(
   const isReduceOnly = targetBankInfo.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
   if (isReduceOnly) {
     return {
-      instruction: "Bank is reduce-only",
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is in reduce-only mode. You may only withdraw a deposit or repay a loan.`,
       isEnabled: false,
     };
@@ -198,7 +192,6 @@ function canBeBorrowed(
       .gt(0);
   if (isBeingRetired) {
     return {
-      instruction: "Bank is being retired",
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is being retired. You may only withdraw a deposit or repay a loan.`,
       isEnabled: false,
     };
@@ -207,7 +200,6 @@ function canBeBorrowed(
   const isFull = targetBankInfo.info.rawBank.computeRemainingCapacity().borrowCapacity.lte(0);
   if (isFull) {
     return {
-      instruction: "Bank is full",
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is at borrow capacity.`,
       isEnabled: false,
     };
@@ -216,7 +208,6 @@ function canBeBorrowed(
   const alreadyLending = targetBankInfo.isActive && targetBankInfo.position.isLending;
   if (alreadyLending) {
     return {
-      instruction: "Close your position first",
       description: "You are already lending this asset, you need to close that position first to start borrowing.",
       isEnabled: false,
     };
@@ -225,7 +216,6 @@ function canBeBorrowed(
   const freeCollateral = marginfiAccount && marginfiAccount.computeFreeCollateral();
   if (freeCollateral && freeCollateral.eq(0)) {
     return {
-      instruction: "Insufficient collateral",
       description: "You don't have any available collateral.",
       isEnabled: false,
     };
@@ -237,7 +227,6 @@ function canBeBorrowed(
   );
   if (existingIsolatedBorrow) {
     return {
-      instruction: "Existing isolated borrow",
       description: `You have an active isolated borrow (${existingIsolatedBorrow.meta.tokenSymbol}). You cannot borrow another asset while you do.`,
       isEnabled: false,
     };
@@ -250,7 +239,6 @@ function canBeBorrowed(
       .liabilities.isZero();
   if (attemptingToBorrowIsolatedAssetWithActiveDebt) {
     return {
-      instruction: "Existing borrow",
       description: "You cannot borrow an isolated asset with existing borrows.",
       isEnabled: false,
     };
@@ -263,7 +251,6 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
     return {
-      instruction: "Bank is paused",
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
     };
@@ -272,7 +259,6 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   const isReduceOnly = targetBankInfo.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
   if (isReduceOnly) {
     return {
-      instruction: "Bank is reduce-only",
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is in reduce-only mode. You may only withdraw a deposit or repay a loan.`,
       isEnabled: false,
     };
@@ -287,7 +273,6 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
       .gt(0);
   if (isBeingRetired) {
     return {
-      instruction: "Bank is being retired",
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is being retired. You may only withdraw a deposit or repay a loan.`,
       isEnabled: false,
     };
@@ -296,7 +281,6 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   const alreadyBorrowing = targetBankInfo.isActive && !targetBankInfo.position.isLending;
   if (alreadyBorrowing) {
     return {
-      instruction: "Repay your position first",
       description: "You are already borrowing this asset, you need to repay that position first to start lending.",
       isEnabled: false,
     };
@@ -305,7 +289,6 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   const isFull = targetBankInfo.info.rawBank.computeRemainingCapacity().depositCapacity.lte(0);
   if (isFull) {
     return {
-      instruction: "Bank is full",
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is at deposit capacity.`,
       isEnabled: false,
     };
@@ -320,7 +303,7 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   );
 
   if (walletBalance === 0) {
-    return { instruction: `Insufficient ${targetBankInfo.meta.tokenSymbol} in wallet`, isEnabled: false };
+    return { description: `Insufficient ${targetBankInfo.meta.tokenSymbol} in wallet.`, isEnabled: false };
   }
 
   return null;
