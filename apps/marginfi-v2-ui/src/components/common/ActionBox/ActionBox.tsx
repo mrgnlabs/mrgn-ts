@@ -568,7 +568,7 @@ const ActionBoxAvailableCollateral: FC<{
           </MrgnTooltip>
         </dt>
         <dd className="text-xl md:text-sm font-bold text-white" >
-          {isLoading ? <Skeleton className="h-4 w-[45px]" /> : (usdFormatterDyn.format(preview?.availableCollateral.amount ?? availableAmount))}
+          {isLoading ? <Skeleton className="h-4 w-[45px] bg-[#373F45]" /> : (usdFormatterDyn.format(preview?.availableCollateral.amount ?? availableAmount))}
         </dd>
       </dl>
       <div className="h-2 mb-2 bg-background-gray-light">

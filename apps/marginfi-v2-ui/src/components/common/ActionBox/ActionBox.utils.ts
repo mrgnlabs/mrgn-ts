@@ -40,7 +40,7 @@ export function checkActionAvailable({
 
   if (!selectedBank) {
     // this shouldn't happen
-    return { description: "Something went wrong",  isEnabled: false };
+    return { description: "Something went wrong", isEnabled: false };
   }
 
   switch (actionMode) {
@@ -80,10 +80,10 @@ function generalChecks(
   showCloseBalance?: boolean
 ): ActionMethod | null {
   if (!connected) {
-    return {  isEnabled: false };
+    return { isEnabled: false };
   }
   if (!selectedBank) {
-    return { description: "Select token and amount.", isEnabled: false };
+    return { isEnabled: false };
   }
 
   if (showCloseBalance) {
@@ -93,9 +93,10 @@ function generalChecks(
   return null;
 }
 
-function canBeWithdrawn(targetBankInfo: ExtendedBankInfo,
+function canBeWithdrawn(
+  targetBankInfo: ExtendedBankInfo,
   marginfiAccount: MarginfiAccountWrapper | null
-  ): ActionMethod | null {
+): ActionMethod | null {
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
     return {

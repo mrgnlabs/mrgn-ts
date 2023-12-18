@@ -83,7 +83,7 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({ marginfiAccount, s
       <Stat classNames={`text-[${healthColor}]`} label="Health">
         {accountSummary.healthFactor && percentFormatter.format(accountSummary.healthFactor)}
         {accountSummary.healthFactor && <IconArrowRight width={12} height={12} />}
-        {isLoading ? <Skeleton className="h-4 w-[45px]" /> : (preview?.health ? percentFormatter.format(preview.health) : "-")}
+        {isLoading ? <Skeleton className="h-4 w-[45px] bg-[#373F45]" /> : (preview?.health ? percentFormatter.format(preview.health) : "-")}
       </Stat>
       {(actionMode === ActionType.Borrow || isBorrowing) && (
         <Stat classNames={`text-[${liquidationColor}]`} label="Liquidation price">
@@ -92,7 +92,7 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({ marginfiAccount, s
             selectedBank.position.liquidationPrice > 0.01 &&
             numeralFormatter(selectedBank.position.liquidationPrice)}
           {selectedBank.isActive && selectedBank.position.liquidationPrice && <IconArrowRight width={12} height={12} />}
-          {isLoading ? <Skeleton className="h-4 w-[45px]" /> : (preview?.liquidationPrice ? numeralFormatter(preview.liquidationPrice) : "-")}
+          {isLoading ? <Skeleton className="h-4 w-[45px] bg-[#373F45]" /> : (preview?.liquidationPrice ? numeralFormatter(preview.liquidationPrice) : "-")}
         </Stat>
       )}
       <Stat classNames="text-[white]" label={showLending ? "Global deposits" : "Available"}>
