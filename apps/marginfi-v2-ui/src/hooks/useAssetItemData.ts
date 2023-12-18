@@ -36,7 +36,7 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
       isInLendingMode,
       bank.info.rawBank.config.depositLimit,
       bank.info.rawBank.config.borrowLimit,
-      bank.info.rawBank.mintDecimals,
+      bank.info.state.mintDecimals,
     ]
   );
   const isBankFilled = useMemo(
