@@ -38,7 +38,6 @@ export const NewAssetBanner = ({ asset, symbol, image }: NewAssetBannerProps) =>
     if (!document) return;
     const assetRows = document.querySelectorAll("[data-asset-row]");
     const assetRow = document.querySelector(`[data-asset-row="${asset}"]`);
-    console.log(asset, assetRow);
     if (!assetRow) return;
 
     assetRows.forEach((row) => row.classList.add("opacity-30", "hover:!bg-[#171C1F]"));

@@ -64,12 +64,15 @@ interface BankConfigRaw {
   totalAssetValueInitLimit: BN;
 
   interestRateConfig: InterestRateConfigRaw;
+  operationalState: OperationalStateRaw;
 
   oracleSetup: OracleSetupRaw;
   oracleKeys: PublicKey[];
 }
 
 type RiskTierRaw = { collateral: {} } | { isolated: {} };
+
+type OperationalStateRaw = number;
 
 interface InterestRateConfigRaw {
   // Curve Params
@@ -561,6 +564,7 @@ class BankConfig {
   public totalAssetValueInitLimit: BigNumber;
 
   public interestRateConfig: InterestRateConfig;
+  public operationalState: OperationalState;
 
   public oracleSetup: OracleSetup;
   public oracleKeys: PublicKey[];
@@ -576,7 +580,8 @@ class BankConfig {
     totalAssetValueInitLimit: BigNumber,
     oracleSetup: OracleSetup,
     oracleKeys: PublicKey[],
-    interestRateConfig: InterestRateConfig
+    interestRateConfig: InterestRateConfig,
+    operationalState: OperationalState
   ) {
     this.assetWeightInit = assetWeightInit;
     this.assetWeightMaint = assetWeightMaint;
@@ -589,6 +594,7 @@ class BankConfig {
     this.oracleSetup = oracleSetup;
     this.oracleKeys = oracleKeys;
     this.interestRateConfig = interestRateConfig;
+    this.operationalState = operationalState;
   }
 
   static fromAccountParsed(bankConfigRaw: BankConfigRaw): BankConfig {
@@ -599,6 +605,7 @@ class BankConfig {
     const depositLimit = BigNumber(bankConfigRaw.depositLimit.toString());
     const borrowLimit = BigNumber(bankConfigRaw.borrowLimit.toString());
     const riskTier = parseRiskTier(bankConfigRaw.riskTier);
+    const operationalState = parseOperationalState(bankConfigRaw.operationalState);
     const totalAssetValueInitLimit = BigNumber(bankConfigRaw.totalAssetValueInitLimit.toString());
     const oracleSetup = parseOracleSetup(bankConfigRaw.oracleSetup);
     const oracleKeys = bankConfigRaw.oracleKeys;
@@ -620,6 +627,7 @@ class BankConfig {
       depositLimit,
       borrowLimit,
       riskTier,
+      operationalState,
       totalAssetValueInitLimit,
       oracleSetup,
       oracleKeys,
@@ -631,6 +639,12 @@ class BankConfig {
 enum RiskTier {
   Collateral = "Collateral",
   Isolated = "Isolated",
+}
+
+enum OperationalState {
+  Paused = "Paused",
+  Operational = "Operational",
+  ReduceOnly = "ReduceOnly",
 }
 
 interface InterestRateConfig {
@@ -663,6 +677,19 @@ function parseRiskTier(riskTierRaw: RiskTierRaw): RiskTier {
   }
 }
 
+function parseOperationalState(operationalStateRaw: OperationalStateRaw): OperationalState {
+  switch (Object.keys(operationalStateRaw)[0].toLowerCase()) {
+    case "paused":
+      return OperationalState.Paused;
+    case "operational":
+      return OperationalState.Operational;
+    case "reduceonly":
+      return OperationalState.ReduceOnly;
+    default:
+      throw new Error(`Invalid operational state "${operationalStateRaw}"`);
+  }
+}
+
 function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
   switch (oracleSetupRaw) {
     case 0:
@@ -677,7 +704,7 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
 }
 
 export type { InterestRateConfig };
-export { Bank, BankConfig, RiskTier, OracleSetup, parseRiskTier, parseOracleSetup };
+export { Bank, BankConfig, RiskTier, OperationalState, OracleSetup, parseRiskTier, parseOracleSetup };
 
 // ----------------------------------------------------------------------------
 // Attributes

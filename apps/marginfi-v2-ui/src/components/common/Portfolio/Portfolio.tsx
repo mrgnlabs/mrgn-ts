@@ -23,12 +23,9 @@ export const Portfolio = () => {
   const lendingBanks = React.useMemo(
     () =>
       sortedBanks && isStoreInitialized
-        ? sortedBanks
-            .filter((b) => b.isActive && b.position.isLending)
-            .sort(
-              (a, b) =>
-                b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
-            )
+        ? (sortedBanks.filter((b) => b.isActive && b.position.isLending) as ActiveBankInfo[]).sort(
+            (a, b) => b.position.usdValue - a.position.usdValue
+          )
         : [],
     [sortedBanks, isStoreInitialized]
   ) as ActiveBankInfo[];
@@ -36,12 +33,9 @@ export const Portfolio = () => {
   const borrowingBanks = React.useMemo(
     () =>
       sortedBanks && isStoreInitialized
-        ? sortedBanks
-            .filter((b) => b.isActive && !b.position.isLending)
-            .sort(
-              (a, b) =>
-                b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
-            )
+        ? (sortedBanks.filter((b) => b.isActive && !b.position.isLending) as ActiveBankInfo[]).sort(
+            (a, b) => b.position.usdValue - a.position.usdValue
+          )
         : [],
     [sortedBanks, isStoreInitialized]
   ) as ActiveBankInfo[];
