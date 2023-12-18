@@ -120,6 +120,12 @@ let config = withBundleAnalyzer({
         port: "",
         pathname: "/token/**",
       },
+      {
+        protocol: "https",
+        hostname: "bafkreibk3covs5ltyqxa272uodhculbr6kea6betidfwy3ajsav2vjzyum.ipfs.nftstorage.link",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 });
