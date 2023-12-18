@@ -197,6 +197,28 @@ const DesktopNavbar: FC = () => {
                   color: "#1C2125",
                 },
               }}
+              badgeContent={"e"}
+              invisible={!showBadges}
+            >
+              <Link
+                href={"/earn"}
+                className={router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"}
+              >
+                earn
+              </Link>
+            </Badge>
+
+            <Badge
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              sx={{
+                "& .MuiBadge-badge": {
+                  backgroundColor: "rgb(220, 232, 93)",
+                  color: "#1C2125",
+                },
+              }}
               badgeContent={"s2"}
               invisible={!showBadges}
             >
