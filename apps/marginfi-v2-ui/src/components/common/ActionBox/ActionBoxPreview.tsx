@@ -43,10 +43,10 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({ marginfiAccount, s
   const isBorrowing = marginfiAccount?.activeBalances.find((b) => b.active && b.liabilityShares.gt(0)) !== undefined;
 
   const currentPositionAmount = selectedBank.isActive ? selectedBank.position.amount : 0;
-  const liquidationPriceColor =
-    preview && preview.liquidationPrice
-      ? getLiquidationPriceColor(selectedBank.info.oraclePrice.price.toNumber(), preview.liquidationPrice)
-      : "white";
+
+
+  const liquidationColor = React.useMemo(() => preview && preview.liquidationPrice ? getMaintHealthColor(preview.liquidationPrice / selectedBank.info.oraclePrice.price.toNumber()) : "white")
+  const healthColor = React.useMemo(() => getMaintHealthColor(preview?.health ?? accountSummary.healthFactor), [preview?.health, accountSummary.healthFactor])
 
   return (
     <dl className="grid grid-cols-2 h-40 gap-y-2 pt-6 text-muted-foreground text-sm">
@@ -80,13 +80,13 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({ marginfiAccount, s
         )}
       </Stat>
 
-      <Stat classNames={`text-[${getMaintHealthColor(accountSummary.healthFactor)}]`} label="Health">
+      <Stat classNames={`text-[${healthColor}]`} label="Health">
         {accountSummary.healthFactor && percentFormatter.format(accountSummary.healthFactor)}
         {accountSummary.healthFactor && <IconArrowRight width={12} height={12} />}
         {isLoading ? <Skeleton className="h-4 w-[45px]" /> : (preview?.health ? percentFormatter.format(preview.health) : "-")}
       </Stat>
       {(actionMode === ActionType.Borrow || isBorrowing) && (
-        <Stat classNames={`text-[${liquidationPriceColor}]`} label="Liquidation price">
+        <Stat classNames={`text-[${liquidationColor}]`} label="Liquidation price">
           {selectedBank.isActive &&
             selectedBank.position.liquidationPrice &&
             selectedBank.position.liquidationPrice > 0.01 &&
