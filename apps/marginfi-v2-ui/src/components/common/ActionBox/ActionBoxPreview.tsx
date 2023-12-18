@@ -45,7 +45,7 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({ marginfiAccount, s
   const currentPositionAmount = selectedBank.isActive ? selectedBank.position.amount : 0;
 
 
-  const liquidationColor = React.useMemo(() => preview && preview.liquidationPrice ? getMaintHealthColor(preview.liquidationPrice / selectedBank.info.oraclePrice.price.toNumber()) : "white")
+  const liquidationColor = React.useMemo(() => preview && preview.liquidationPrice ? getMaintHealthColor(preview.liquidationPrice / selectedBank.info.oraclePrice.price.toNumber()) : "white", [preview, selectedBank])
   const healthColor = React.useMemo(() => getMaintHealthColor(preview?.health ?? accountSummary.healthFactor), [preview?.health, accountSummary.healthFactor])
 
   return (
