@@ -1,6 +1,11 @@
 import { floor, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, MarginRequirementType, RiskTier } from "@mrgnlabs/marginfi-client-v2";
+import {
+  MarginfiAccountWrapper,
+  MarginRequirementType,
+  OperationalState,
+  RiskTier,
+} from "@mrgnlabs/marginfi-client-v2";
 
 interface props {
   amount: number | null;
@@ -91,6 +96,15 @@ function generalChecks(
 }
 
 function canBeWithdrawn(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
+  const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
+  if (isPaused) {
+    return {
+      instruction: "Bank is paused",
+      description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      isEnabled: false,
+    };
+  }
+
   if (!targetBankInfo.isActive) {
     return {
       instruction: "No position found",
@@ -116,6 +130,15 @@ function canBeWithdrawn(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
 }
 
 function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
+  const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
+  if (isPaused) {
+    return {
+      instruction: "Bank is paused",
+      description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      isEnabled: false,
+    };
+  }
+
   if (!targetBankInfo.isActive) {
     return {
       instruction: "No position found",
@@ -145,11 +168,35 @@ function canBeBorrowed(
   extendedBankInfos: ExtendedBankInfo[],
   marginfiAccount: MarginfiAccountWrapper | null
 ): ActionMethod | null {
-  const alreadyLending = targetBankInfo.isActive && targetBankInfo.position.isLending;
-  if (alreadyLending) {
+  const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
+  if (isPaused) {
     return {
-      instruction: "Close your position first",
-      description: "You are already lending this asset, you need to close that position first to start borrowing.",
+      instruction: "Bank is paused",
+      description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      isEnabled: false,
+    };
+  }
+
+  const isReduceOnly = targetBankInfo.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
+  if (isReduceOnly) {
+    return {
+      instruction: "Bank is reduce-only",
+      description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is in reduce-only mode. You may only withdraw a deposit or repay a loan.`,
+      isEnabled: false,
+    };
+  }
+
+  const isBeingRetired =
+    targetBankInfo.info.rawBank
+      .getAssetWeight(MarginRequirementType.Initial, targetBankInfo.info.oraclePrice, true)
+      .eq(0) &&
+    targetBankInfo.info.rawBank
+      .getAssetWeight(MarginRequirementType.Maintenance, targetBankInfo.info.oraclePrice)
+      .gt(0);
+  if (isBeingRetired) {
+    return {
+      instruction: "Bank is being retired",
+      description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is being retired. You may only withdraw a deposit or repay a loan.`,
       isEnabled: false,
     };
   }
@@ -159,6 +206,15 @@ function canBeBorrowed(
     return {
       instruction: "Bank is full",
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is at borrow capacity.`,
+      isEnabled: false,
+    };
+  }
+
+  const alreadyLending = targetBankInfo.isActive && targetBankInfo.position.isLending;
+  if (alreadyLending) {
+    return {
+      instruction: "Close your position first",
+      description: "You are already lending this asset, you need to close that position first to start borrowing.",
       isEnabled: false,
     };
   }
@@ -201,6 +257,39 @@ function canBeBorrowed(
 }
 
 function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): ActionMethod | null {
+  const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
+  if (isPaused) {
+    return {
+      instruction: "Bank is paused",
+      description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      isEnabled: false,
+    };
+  }
+
+  const isReduceOnly = targetBankInfo.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
+  if (isReduceOnly) {
+    return {
+      instruction: "Bank is reduce-only",
+      description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is in reduce-only mode. You may only withdraw a deposit or repay a loan.`,
+      isEnabled: false,
+    };
+  }
+
+  const isBeingRetired =
+    targetBankInfo.info.rawBank
+      .getAssetWeight(MarginRequirementType.Initial, targetBankInfo.info.oraclePrice, true)
+      .eq(0) &&
+    targetBankInfo.info.rawBank
+      .getAssetWeight(MarginRequirementType.Maintenance, targetBankInfo.info.oraclePrice)
+      .gt(0);
+  if (isBeingRetired) {
+    return {
+      instruction: "Bank is being retired",
+      description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is being retired. You may only withdraw a deposit or repay a loan.`,
+      isEnabled: false,
+    };
+  }
+
   const alreadyBorrowing = targetBankInfo.isActive && !targetBankInfo.position.isLending;
   if (alreadyBorrowing) {
     return {

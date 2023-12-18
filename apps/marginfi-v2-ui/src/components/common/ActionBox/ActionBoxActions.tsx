@@ -9,11 +9,12 @@ type ActionBoxActionsProps = {
   isLoading: boolean;
   actionMethod: ActionMethod;
   handleAction: () => void;
+  disabled?: boolean;
 };
 
-export const ActionBoxActions = ({ isLoading, actionMethod, handleAction }: ActionBoxActionsProps) => {
+export const ActionBoxActions = ({ isLoading, actionMethod, handleAction, disabled }: ActionBoxActionsProps) => {
   return (
-    <Button disabled={isLoading || !actionMethod.isEnabled} className="w-full py-6" onClick={handleAction}>
+    <Button disabled={disabled || isLoading || !actionMethod.isEnabled} className="w-full py-6" onClick={handleAction}>
       {isLoading ? <IconLoader /> : actionMethod.instruction}
     </Button>
   );
