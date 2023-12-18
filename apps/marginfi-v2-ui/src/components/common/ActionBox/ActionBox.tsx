@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 
 import { usdFormatterDyn, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -45,10 +45,11 @@ export interface ActionPreview {
 type ActionBoxProps = {
   requestedAction?: ActionType;
   requestedToken?: PublicKey;
+  requestedLendingMode?: LendingModes;
   isDialog?: boolean;
 };
 
-export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionBoxProps) => {
+export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMode, isDialog }: ActionBoxProps) => {
   const [
     mfiClient,
     nativeSolBalance,
@@ -66,8 +67,10 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingMode, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
+  const [lendingModeFromStore, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
   const { walletContextState, connected } = useWalletContext();
+
+  const lendingMode = useMemo(() => requestedLendingMode ?? lendingModeFromStore, [lendingModeFromStore, requestedLendingMode])
 
   const [amount, setAmount] = React.useState<number | null>(null);
   const debouncedAmount = useDebounce<number | null>(amount, 500)
