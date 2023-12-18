@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 
 import { usdFormatterDyn, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -9,6 +9,7 @@ import {
   clampedNumeralFormatter,
   closeBalance,
   executeLendingAction,
+  getMaintHealthColor,
   isWholePosition,
   usePrevious,
 } from "~/utils";
@@ -188,7 +189,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
   }, [setIsAmountLoading, setIsLoading, amount, selectedBank])
 
   React.useEffect(() => {
-
     if (amount && amount > maxAmount) {
       setAmount(maxAmount);
     }
@@ -532,18 +532,21 @@ const ActionBoxAvailableCollateral: FC<{
   marginfiAccount: MarginfiAccountWrapper;
   preview: ActionPreview | null;
 }> = ({ isLoading, marginfiAccount, preview }) => {
-  const currentAvailableCollateralAmount = marginfiAccount.computeFreeCollateral().toNumber();
-  const currentAvailableCollateralRatio =
-    currentAvailableCollateralAmount /
-    marginfiAccount.computeHealthComponents(MarginRequirementType.Initial).assets.toNumber();
+  const [availableRatio, setAvailableRatio] = React.useState<number>(0)
+  const [availableAmount, setAvailableAmount] = React.useState<number>(0)
 
-  const accentColor = preview
-    ? preview.availableCollateral.amount === 0
-      ? "#b8b45f"
-      : "white"
-    : currentAvailableCollateralAmount === 0
-      ? "#b8b45f"
-      : "white";
+  const healthColor = React.useMemo(() => getMaintHealthColor(preview?.availableCollateral.ratio ?? availableRatio), [preview?.health, availableRatio])
+
+  useEffect(() => {
+    const currentAvailableCollateralAmount = marginfiAccount.computeFreeCollateral().toNumber();
+    const currentAvailableCollateralRatio =
+      currentAvailableCollateralAmount /
+      marginfiAccount.computeHealthComponents(MarginRequirementType.Initial).assets.toNumber();
+    setAvailableAmount(currentAvailableCollateralAmount)
+    setAvailableRatio(currentAvailableCollateralRatio)
+  }, [marginfiAccount])
+
+
 
   return (
     <div className="pb-6">
@@ -564,16 +567,16 @@ const ActionBoxAvailableCollateral: FC<{
             <IconInfoCircle size={16} />
           </MrgnTooltip>
         </dt>
-        <dd className="text-xl md:text-sm font-bold" style={{ color: accentColor }}>
-          {isLoading ? <Skeleton className="h-4 w-[45px]" /> : (usdFormatterDyn.format(preview?.availableCollateral.amount ?? currentAvailableCollateralAmount))}
+        <dd className="text-xl md:text-sm font-bold text-white" >
+          {isLoading ? <Skeleton className="h-4 w-[45px]" /> : (usdFormatterDyn.format(preview?.availableCollateral.amount ?? availableAmount))}
         </dd>
       </dl>
       <div className="h-2 mb-2 bg-background-gray-light">
         <div
           className="h-2"
           style={{
-            backgroundColor: "#75BA80",
-            width: `${(preview?.availableCollateral.ratio ?? currentAvailableCollateralRatio) * 100}%`,
+            backgroundColor: `${healthColor}`,
+            width: `${(preview?.availableCollateral.ratio ?? availableRatio) * 100}%`,
           }}
         />
       </div>
