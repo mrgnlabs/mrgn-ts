@@ -179,14 +179,14 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog }: ActionB
   }, [requestedAction, setActionMode]);
 
   React.useEffect(() => {
-    if (selectedBank && amount) {
+    if (amount) {
       setIsAmountLoading(true)
       setIsLoading(true)
     } else {
       setIsAmountLoading(false)
       setIsLoading(false)
     }
-  }, [setIsAmountLoading, setIsLoading, amount, selectedBank])
+  }, [setIsAmountLoading, setIsLoading, amount])
 
   React.useEffect(() => {
     if (amount && amount > maxAmount) {
