@@ -123,7 +123,7 @@ function canBeWithdrawn(
   if (noFreeCollateral) {
     return {
       description: "No available collateral.",
-      isEnabled: false,
+      isEnabled: true,
     };
   }
 
