@@ -50,7 +50,7 @@ export function checkActionAvailable({
       if (check) return check;
       break;
     case ActionType.Withdraw:
-      check = canBeWithdrawn(selectedBank);
+      check = canBeWithdrawn(selectedBank, marginfiAccount);
       if (check) return check;
       break;
     case ActionType.Borrow:
@@ -95,7 +95,9 @@ function generalChecks(
   return null;
 }
 
-function canBeWithdrawn(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
+function canBeWithdrawn(targetBankInfo: ExtendedBankInfo,
+  marginfiAccount: MarginfiAccountWrapper | null
+  ): ActionMethod | null {
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
     return {
@@ -119,9 +121,10 @@ function canBeWithdrawn(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
     };
   }
 
-  if (targetBankInfo.userInfo.maxWithdraw === 0) {
+  const noFreeCollateral = marginfiAccount && marginfiAccount.computeFreeCollateral().isZero();
+  if (noFreeCollateral) {
     return {
-      instruction: "Nothing to withdraw",
+      instruction: "No available collateral",
       isEnabled: false,
     };
   }

@@ -517,7 +517,13 @@ const ActionBoxAvailableCollateral: FC<{
     currentAvailableCollateralAmount /
     marginfiAccount.computeHealthComponents(MarginRequirementType.Initial).assets.toNumber();
 
-  const accentColor = currentAvailableCollateralAmount === 0 ? "#b8b45f" : "white";
+  const accentColor = preview
+    ? preview.availableCollateral.amount === 0
+      ? "#b8b45f"
+      : "white"
+    : currentAvailableCollateralAmount === 0
+    ? "#b8b45f"
+    : "white";
 
   return (
     <div className="pb-6">
