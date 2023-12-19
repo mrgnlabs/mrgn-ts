@@ -3,7 +3,6 @@ import {
   SolflareWalletAdapter,
   GlowWalletAdapter,
   BackpackWalletAdapter,
-  TrustWalletAdapter,
   WalletConnectWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import {
@@ -30,7 +29,6 @@ export const WALLET_ADAPTERS = [
   new SolflareWalletAdapter(),
   new BackpackWalletAdapter(),
   new GlowWalletAdapter(),
-  new TrustWalletAdapter(),
   new WalletConnectWalletAdapter({
     network: WalletAdapterNetwork.Mainnet,
     options: {
