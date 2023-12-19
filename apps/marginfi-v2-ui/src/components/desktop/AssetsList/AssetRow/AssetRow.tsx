@@ -71,7 +71,7 @@ const AssetRow: React.FC<{
   showLSTDialog,
 }) => {
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
-  const [lendingMode,setLendingMode, isFilteredUserPositions] = useUiStore((state) => [
+  const [lendingMode, setLendingMode, isFilteredUserPositions] = useUiStore((state) => [
     state.lendingMode,
     state.setLendingMode,
     state.isFilteredUserPositions,
@@ -144,24 +144,68 @@ const AssetRow: React.FC<{
   const isDust = React.useMemo(() => bank.isActive && bank.position.isDust, [bank]);
   const showCloseBalance = currentAction === ActionType.Withdraw && isDust; // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
 
+  const dogWifHatRef = React.useRef<HTMLTableRowElement>(null);
+  const [showDogWifHatImage, setShowDogWifHatImage] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setShowDogWifHatImage(false);
+    };
+
+    document.body.addEventListener("scroll", handleScroll);
+
+    return () => {
+      document.body.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
     <>
+      {bank.meta.tokenSymbol === "$WIF" && dogWifHatRef.current && (
+        <Image
+          src="/dogwifhat.png"
+          alt="wif"
+          height={25}
+          width={25}
+          style={{
+            position: "absolute",
+            zIndex: 1,
+            left: dogWifHatRef.current.getBoundingClientRect().left - 6,
+            top: dogWifHatRef.current.getBoundingClientRect().top - 12,
+            transform: "rotate(-15deg)",
+            opacity: showDogWifHatImage ? 1 : 0,
+          }}
+        />
+      )}
       <TableRow
+        ref={bank.meta.tokenSymbol === "$WIF" ? dogWifHatRef : null}
         data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
         data-asset-row-position={activeBank?.position.amount ? "true" : "false"}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
-        className={cn("h-[54px] w-full transition-colors", isHovering && "bg-background-gray")}
+        onMouseEnter={() => {
+          setIsHovering(true);
+          setShowDogWifHatImage(true);
+        }}
+        onMouseLeave={() => {
+          setIsHovering(false);
+          setShowDogWifHatImage(false);
+        }}
+        className={cn("h-[54px] w-full transition-colors z-10", isHovering && "bg-background-gray")}
       >
         <TableCell
-          className={`text-white p-0 font-aeonik border-none`}
+          className="text-white p-0 font-aeonik border-none"
           style={{
             fontWeight: 300,
           }}
         >
           <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
             {bank.meta.tokenLogoUri && (
-              <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} height={25} width={25} />
+              <Image
+                src={bank.meta.tokenLogoUri}
+                alt={bank.meta.tokenSymbol}
+                height={25}
+                width={25}
+                className="rounded-full"
+              />
             )}
             <div className="font-aeonik block">{bank.meta.tokenSymbol}</div>
           </div>
@@ -396,7 +440,17 @@ const AssetRow: React.FC<{
             placement="top"
           >
             <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
-              <ActionBoxDialog requestedToken={bank.address} requestedAction={currentAction} requestedLendingMode={currentAction === ActionType.Repay ? LendingModes.BORROW : currentAction === ActionType.Withdraw ? LendingModes.LEND : undefined}>
+              <ActionBoxDialog
+                requestedToken={bank.address}
+                requestedAction={currentAction}
+                requestedLendingMode={
+                  currentAction === ActionType.Repay
+                    ? LendingModes.BORROW
+                    : currentAction === ActionType.Withdraw
+                    ? LendingModes.LEND
+                    : undefined
+                }
+              >
                 <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
               </ActionBoxDialog>
             </div>
