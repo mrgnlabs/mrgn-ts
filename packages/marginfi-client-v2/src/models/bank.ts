@@ -2,8 +2,8 @@ import { BankMetadata, WrappedI80F48, nativeToUi, wrappedI80F48toBigNumber } fro
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
-import { MarginRequirementType } from "./account";
-import { PriceBias, OraclePrice } from "./price";
+import { isWeightedPrice, MarginRequirementType } from "./account";
+import { PriceBias, OraclePrice, getPriceWithConfidence } from "./price";
 import { BorshCoder } from "@coral-xyz/anchor";
 import { AccountType } from "../types";
 import { MARGINFI_IDL } from "../idl";
@@ -314,7 +314,8 @@ class Bank {
   ): BigNumber {
     const assetQuantity = this.getAssetQuantity(assetShares);
     const assetWeight = this.getAssetWeight(marginRequirementType, oraclePrice);
-    return this.computeUsdValue(oraclePrice, assetQuantity, priceBias, assetWeight);
+    const isWeighted = isWeightedPrice(marginRequirementType);
+    return this.computeUsdValue(oraclePrice, assetQuantity, priceBias, isWeighted, assetWeight);
   }
 
   computeLiabilityUsdValue(
@@ -325,36 +326,44 @@ class Bank {
   ): BigNumber {
     const liabilityQuantity = this.getLiabilityQuantity(liabilityShares);
     const liabilityWeight = this.getLiabilityWeight(marginRequirementType);
-    return this.computeUsdValue(oraclePrice, liabilityQuantity, priceBias, liabilityWeight);
+    const isWeighted = isWeightedPrice(marginRequirementType);
+    return this.computeUsdValue(oraclePrice, liabilityQuantity, priceBias, isWeighted, liabilityWeight);
   }
 
   computeUsdValue(
     oraclePrice: OraclePrice,
     quantity: BigNumber,
     priceBias: PriceBias,
+    weightedPrice: boolean,
     weight?: BigNumber,
     scaleToBase: boolean = true
   ): BigNumber {
-    const price = this.getPrice(oraclePrice, priceBias);
+    const price = this.getPrice(oraclePrice, priceBias, weightedPrice);
     return quantity
       .times(price)
       .times(weight ?? 1)
       .dividedBy(scaleToBase ? 10 ** this.mintDecimals : 1);
   }
 
-  computeQuantityFromUsdValue(oraclePrice: OraclePrice, usdValue: BigNumber, priceBias: PriceBias): BigNumber {
-    const price = this.getPrice(oraclePrice, priceBias);
+  computeQuantityFromUsdValue(
+    oraclePrice: OraclePrice,
+    usdValue: BigNumber,
+    priceBias: PriceBias,
+    weightedPrice: boolean
+  ): BigNumber {
+    const price = this.getPrice(oraclePrice, priceBias, weightedPrice);
     return usdValue.div(price);
   }
 
-  getPrice(oraclePrice: OraclePrice, priceBias: PriceBias = PriceBias.None): BigNumber {
+  getPrice(oraclePrice: OraclePrice, priceBias: PriceBias = PriceBias.None, weightedPrice: boolean = false): BigNumber {
+    const price = getPriceWithConfidence(oraclePrice, weightedPrice);
     switch (priceBias) {
       case PriceBias.Lowest:
-        return oraclePrice.lowestPrice;
+        return price.lowestPrice;
       case PriceBias.Highest:
-        return oraclePrice.highestPrice;
+        return price.highestPrice;
       case PriceBias.None:
-        return oraclePrice.price;
+        return price.price;
     }
   }
 
@@ -532,7 +541,8 @@ Total liabilities (USD value): ${this.computeLiabilityUsdValue(
       PriceBias.None
     )}
 
-Asset price (USD): ${this.getPrice(oraclePrice, PriceBias.None)}
+Asset price (USD): ${this.getPrice(oraclePrice, PriceBias.None, false)}
+Asset price Weighted (USD): ${this.getPrice(oraclePrice, PriceBias.None, true)}
 
 Config:
 - Asset weight init: ${this.config.assetWeightInit.toFixed(2)}

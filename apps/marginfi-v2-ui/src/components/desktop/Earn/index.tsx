@@ -394,6 +394,7 @@ const DepositTile: FC<DepositTileProps> = ({ deposit, closeDepositCb, bankMetada
                 deposit.campaign.oraclePrice,
                 new BigNumber(deposit.maturityAmount),
                 PriceBias.None,
+                false,
                 undefined,
                 false
               )

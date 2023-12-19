@@ -194,6 +194,7 @@ class MarginfiAccount {
     bankAddress: PublicKey,
     opts?: { volatilityFactor?: number }
   ): BigNumber {
+    const debug = require("debug")("mfi:computeMaxBorrowForBank");
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
     const priceInfo = oraclePrices.get(bankAddress.toBase58());
@@ -229,13 +230,16 @@ class MarginfiAccount {
     const balance = this.getBalance(bankAddress);
 
     const freeCollateral = this.computeFreeCollateral(banks, oraclePrices).times(_volatilityFactor);
+
+    debug("Free collateral: %d", freeCollateral.toFixed(6));
+
     const untiedCollateralForBank = BigNumber.min(
       bank.computeAssetUsdValue(priceInfo, balance.assetShares, MarginRequirementType.Initial, PriceBias.Lowest),
       freeCollateral
     );
 
-    const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
-    const priceHighestBias = bank.getPrice(priceInfo, PriceBias.Highest);
+    const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest, true);
+    const priceHighestBias = bank.getPrice(priceInfo, PriceBias.Highest, true);
     const assetWeight = bank.getAssetWeight(MarginRequirementType.Initial, priceInfo);
     const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Initial);
 
@@ -319,7 +323,7 @@ class MarginfiAccount {
         );
         const maintUntiedCollateral = maintAssets.minus(maintLiabilities);
 
-        const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
+        const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest, true);
         const maintWeightedPrice = priceLowestBias.times(maintAssetWeight);
 
         return maintUntiedCollateral.div(maintWeightedPrice);
@@ -337,7 +341,7 @@ class MarginfiAccount {
     // apply volatility factor to avoid failure due to price volatility / slippage
     const initUntiedCollateralForBank = freeCollateral.times(_volatilityFactor);
 
-    const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest);
+    const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest, true);
     const initWeightedPrice = priceLowestBias.times(initAssetWeight);
     const maxWithdraw = initUntiedCollateralForBank.div(initWeightedPrice);
 
@@ -376,14 +380,14 @@ class MarginfiAccount {
 
       const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance, priceInfo);
       const priceConfidence = bank
-        .getPrice(priceInfo, PriceBias.None)
-        .minus(bank.getPrice(priceInfo, PriceBias.Lowest));
+        .getPrice(priceInfo, PriceBias.None, false)
+        .minus(bank.getPrice(priceInfo, PriceBias.Lowest, false));
       liquidationPrice = liabilities.minus(assets).div(assetQuantityUi.times(assetWeight)).plus(priceConfidence);
     } else {
       const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
       const priceConfidence = bank
-        .getPrice(priceInfo, PriceBias.Highest)
-        .minus(bank.getPrice(priceInfo, PriceBias.None));
+        .getPrice(priceInfo, PriceBias.Highest, false)
+        .minus(bank.getPrice(priceInfo, PriceBias.None, false));
       liquidationPrice = assets.minus(liabilities).div(liabQuantitiesUi.times(liabWeight)).minus(priceConfidence);
     }
     if (liquidationPrice.isNaN() || liquidationPrice.lt(0)) return null;
@@ -423,14 +427,14 @@ class MarginfiAccount {
 
       const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance, priceInfo);
       const priceConfidence = bank
-        .getPrice(priceInfo, PriceBias.None)
-        .minus(bank.getPrice(priceInfo, PriceBias.Lowest));
+        .getPrice(priceInfo, PriceBias.None, false)
+        .minus(bank.getPrice(priceInfo, PriceBias.Lowest, false));
       liquidationPrice = liabilities.minus(assets).div(amountBn.times(assetWeight)).plus(priceConfidence);
     } else {
       const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
       const priceConfidence = bank
-        .getPrice(priceInfo, PriceBias.Highest)
-        .minus(bank.getPrice(priceInfo, PriceBias.None));
+        .getPrice(priceInfo, PriceBias.Highest, false)
+        .minus(bank.getPrice(priceInfo, PriceBias.None, false));
       liquidationPrice = assets.minus(liabilities).div(amountBn.times(liabWeight)).minus(priceConfidence);
     }
     if (liquidationPrice.isNaN() || liquidationPrice.lt(0)) return null;
@@ -467,14 +471,14 @@ class MarginfiAccount {
     );
     const currentHealth = assets.minus(liabilities);
 
-    const priceAssetLower = assetBank.getPrice(assetPriceInfo, PriceBias.Lowest);
-    const priceAssetMarket = assetBank.getPrice(assetPriceInfo, PriceBias.None);
+    const priceAssetLower = assetBank.getPrice(assetPriceInfo, PriceBias.Lowest, false);
+    const priceAssetMarket = assetBank.getPrice(assetPriceInfo, PriceBias.None, false);
     const assetMaintWeight = assetBank.config.assetWeightMaint;
 
     const liquidationDiscount = new BigNumber(0.95);
 
-    const priceLiabHighest = liabilityBank.getPrice(liabilityPriceInfo, PriceBias.Highest);
-    const priceLiabMarket = liabilityBank.getPrice(liabilityPriceInfo, PriceBias.None);
+    const priceLiabHighest = liabilityBank.getPrice(liabilityPriceInfo, PriceBias.Highest, false);
+    const priceLiabMarket = liabilityBank.getPrice(liabilityPriceInfo, PriceBias.None, false);
     const liabMaintWeight = liabilityBank.config.liabilityWeightMaint;
 
     debug(
@@ -885,6 +889,10 @@ enum MarginRequirementType {
   Initial = 0,
   Maintenance = 1,
   Equity = 2,
+}
+
+export function isWeightedPrice(reqType: MarginRequirementType): boolean {
+  return reqType === MarginRequirementType.Initial;
 }
 
 export { MarginfiAccount, MarginRequirementType };

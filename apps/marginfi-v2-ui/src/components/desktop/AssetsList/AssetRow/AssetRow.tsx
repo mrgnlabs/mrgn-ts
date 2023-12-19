@@ -12,7 +12,7 @@ import {
   getCurrentAction,
   ExtendedBankMetadata,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
+import { getPriceWithConfidence, MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { AssetRowAction, LSTDialogVariants, SWITCHBOARD_BANKS } from "~/components/common/AssetList";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 
@@ -71,7 +71,7 @@ const AssetRow: React.FC<{
   showLSTDialog,
 }) => {
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
-  const [lendingMode,setLendingMode, isFilteredUserPositions] = useUiStore((state) => [
+  const [lendingMode, setLendingMode, isFilteredUserPositions] = useUiStore((state) => [
     state.lendingMode,
     state.setLendingMode,
     state.isFilteredUserPositions,
@@ -122,9 +122,8 @@ const AssetRow: React.FC<{
   }, [isMobile, lendZoomLevel]);
 
   const assetPrice = React.useMemo(
-    () =>
-      bank.info.oraclePrice.priceRealtime ? bank.info.oraclePrice.priceRealtime.toNumber() : bank.info.state.price,
-    [bank.info.oraclePrice.priceRealtime, bank.info.state.price]
+    () => getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber(),
+    [getPriceWithConfidence(bank.info.oraclePrice, false).price, bank.info.state.price]
   );
 
   const assetPriceOffset = React.useMemo(
@@ -396,7 +395,17 @@ const AssetRow: React.FC<{
             placement="top"
           >
             <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
-              <ActionBoxDialog requestedToken={bank.address} requestedAction={currentAction} requestedLendingMode={currentAction === ActionType.Repay ? LendingModes.BORROW : currentAction === ActionType.Withdraw ? LendingModes.LEND : undefined}>
+              <ActionBoxDialog
+                requestedToken={bank.address}
+                requestedAction={currentAction}
+                requestedLendingMode={
+                  currentAction === ActionType.Repay
+                    ? LendingModes.BORROW
+                    : currentAction === ActionType.Withdraw
+                    ? LendingModes.LEND
+                    : undefined
+                }
+              >
                 <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
               </ActionBoxDialog>
             </div>
