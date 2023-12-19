@@ -13,7 +13,7 @@ import {
   ExtendedBankMetadata,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { AssetRowAction, LSTDialogVariants, SWITCHBOARD_BANKS } from "~/components/common/AssetList";
+import { AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 
 import { LendingModes } from "~/types";
@@ -144,6 +144,11 @@ const AssetRow: React.FC<{
   const isDust = React.useMemo(() => bank.isActive && bank.position.isDust, [bank]);
   const showCloseBalance = currentAction === ActionType.Withdraw && isDust; // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
 
+  const oracle = React.useMemo(
+    () => (bank.info.rawBank.config.oracleSetup === 1 ? "Pyth" : "Switchboard"),
+    [bank.info.rawBank.config.oracleSetup]
+  );
+
   const dogWifHatRef = React.useRef<HTMLTableRowElement>(null);
   const [showDogWifHatImage, setShowDogWifHatImage] = React.useState(false);
 
@@ -255,17 +260,8 @@ const AssetRow: React.FC<{
                   : `$${assetPrice.toExponential(2)}`}
               </Badge>
             </MrgnTooltip>
-            <MrgnTooltip
-              title={`Powered by ${SWITCHBOARD_BANKS.includes(bank.meta.tokenSymbol) ? "Switchboard" : "Pyth"}`}
-              placement="right"
-            >
-              <div>
-                {SWITCHBOARD_BANKS.includes(bank.meta.tokenSymbol) ? (
-                  <IconSwitchboard size={14} />
-                ) : (
-                  <IconPyth size={14} />
-                )}
-              </div>
+            <MrgnTooltip title={`Powered by ${oracle}`} placement="right">
+              <div>{oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}</div>
             </MrgnTooltip>
           </div>
         </TableCell>
