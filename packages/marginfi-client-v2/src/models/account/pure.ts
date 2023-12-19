@@ -210,6 +210,8 @@ class MarginfiAccount {
         bankAddress,
       ]).liabilities.isZero();
 
+    debug("attemptingToBorrowIsolatedAssetWithActiveDebt: %s", attemptingToBorrowIsolatedAssetWithActiveDebt);
+
     const existingLiabilityBanks = this.activeBalances
       .filter((b) => b.liabilityShares.gt(0))
       .map((b) => banks.get(b.bankPk.toBase58())!);
@@ -217,8 +219,12 @@ class MarginfiAccount {
     const attemptingToBorrowNewAssetWithExistingIsolatedDebt = existingLiabilityBanks.some(
       (b) => b.config.riskTier === RiskTier.Isolated && !b.address.equals(bankAddress)
     );
+
+    debug("attemptingToBorrowNewAssetWithExistingIsolatedDebt: %s", attemptingToBorrowNewAssetWithExistingIsolatedDebt);
+
     if (attemptingToBorrowIsolatedAssetWithActiveDebt || attemptingToBorrowNewAssetWithExistingIsolatedDebt) {
-      return BigNumber(0);
+      // User can only withdraw
+      return this.computeMaxWithdrawForBank(banks, oraclePrices, bankAddress, opts);
     }
 
     // ------------- //
