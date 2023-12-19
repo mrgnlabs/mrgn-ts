@@ -13,6 +13,4 @@ ENV PORT=8080
 
 WORKDIR /app/apps/alpha-liquidator
 
-# https://redis.io/docs/manual/eviction/
-# volatile-lru: Removes least recently used keys with the expire field set to true.
 CMD "./scripts/start.sh"
