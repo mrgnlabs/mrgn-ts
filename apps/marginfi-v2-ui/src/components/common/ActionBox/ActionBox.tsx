@@ -70,11 +70,14 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
   const [lendingModeFromStore, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
   const { walletContextState, connected } = useWalletContext();
 
-  const lendingMode = useMemo(() => requestedLendingMode ?? lendingModeFromStore, [lendingModeFromStore, requestedLendingMode])
+  const lendingMode = useMemo(
+    () => requestedLendingMode ?? lendingModeFromStore,
+    [lendingModeFromStore, requestedLendingMode]
+  );
 
   const [amount, setAmount] = React.useState<number | null>(null);
-  const debouncedAmount = useDebounce<number | null>(amount, 500)
-  const [isAmountLoading, setIsAmountLoading] = React.useState<boolean>(false)
+  const debouncedAmount = useDebounce<number | null>(amount, 500);
+  const [isAmountLoading, setIsAmountLoading] = React.useState<boolean>(false);
 
   const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
@@ -183,13 +186,13 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
 
   React.useEffect(() => {
     if (amount) {
-      setIsAmountLoading(true)
-      setIsLoading(true)
+      setIsAmountLoading(true);
+      setIsLoading(true);
     } else {
-      setIsAmountLoading(false)
-      setIsLoading(false)
+      setIsAmountLoading(false);
+      setIsLoading(false);
     }
-  }, [setIsAmountLoading, setIsLoading, amount])
+  }, [setIsAmountLoading, setIsLoading, amount]);
 
   React.useEffect(() => {
     if (amount && amount > maxAmount) {
@@ -213,13 +216,12 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
 
   const computePreview = React.useCallback(async () => {
     if (!selectedAccount || !selectedBank || debouncedAmount === null) {
-      setIsAmountLoading(false)
-      setIsLoading(false)
+      setIsAmountLoading(false);
+      setIsLoading(false);
       return;
     }
 
     try {
-
       let simulationResult: SimulationResult;
 
       if (debouncedAmount === 0) {
@@ -287,8 +289,8 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
       setPreview(null);
       console.log("Error computing action preview", error);
     } finally {
-      setIsAmountLoading(false)
-      setIsLoading(false)
+      setIsAmountLoading(false);
+      setIsLoading(false);
     }
   }, [actionMode, debouncedAmount, selectedAccount, selectedBank]);
 
@@ -440,32 +442,42 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
           )}
         </div>
         <div className="p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl">
-          <div className="flex flex-row items-baseline justify-between">
+          <div className="flex flex-row items-center justify-between mb-3">
             {!isDialog ? (
-              <div className="text-lg font-normal mb-3">
+              <div className="text-lg font-normal flex items-center">
                 {lendingMode === LendingModes.LEND ? "You supply" : "You borrow"}
               </div>
             ) : (
               <div />
             )}
             {selectedBank && (
-              <div className="inline-flex gap-2 items-baseline mb-3">
-                <div className="h-3.5">
-                  <IconWallet size={16} />
-                </div>
+              <div className="inline-flex gap-1.5 items-center">
+                <IconWallet size={16} />
                 <span className="text-sm font-normal">
                   {walletAmount !== undefined
                     ? clampedNumeralFormatter(walletAmount).concat(" ", selectedBank.meta.tokenSymbol)
                     : "-"}
                 </span>
-                <button
-                  className={`text-xs ml-1 h-5 py-1 px-1.5 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground ${maxAmount === 0 ? "" : "cursor-pointer hover:bg-muted-foreground/30"
+                <div className="flex items-center gap-0.5">
+                  <button
+                    className={`text-[11px] ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground ${
+                      maxAmount === 0 ? "" : "cursor-pointer hover:bg-muted-foreground/30"
                     } transition-colors`}
-                  onClick={() => setAmount(maxAmount)}
-                  disabled={maxAmount === 0}
-                >
-                  MAX
-                </button>
+                    onClick={() => setAmount(maxAmount / 2)}
+                    disabled={maxAmount === 0}
+                  >
+                    HALF
+                  </button>
+                  <button
+                    className={`text-[11px] ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground ${
+                      maxAmount === 0 ? "" : "cursor-pointer hover:bg-muted-foreground/30"
+                    } transition-colors`}
+                    onClick={() => setAmount(maxAmount)}
+                    disabled={maxAmount === 0}
+                  >
+                    MAX
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -496,7 +508,13 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
             </div>
           )}
 
-          {selectedAccount && <ActionBoxAvailableCollateral isLoading={isAmountLoading} marginfiAccount={selectedAccount} preview={preview} />}
+          {selectedAccount && (
+            <ActionBoxAvailableCollateral
+              isLoading={isAmountLoading}
+              marginfiAccount={selectedAccount}
+              preview={preview}
+            />
+          )}
 
           <ActionBoxActions
             handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
@@ -534,25 +552,26 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
 };
 
 const ActionBoxAvailableCollateral: FC<{
-  isLoading: boolean
+  isLoading: boolean;
   marginfiAccount: MarginfiAccountWrapper;
   preview: ActionPreview | null;
 }> = ({ isLoading, marginfiAccount, preview }) => {
-  const [availableRatio, setAvailableRatio] = React.useState<number>(0)
-  const [availableAmount, setAvailableAmount] = React.useState<number>(0)
+  const [availableRatio, setAvailableRatio] = React.useState<number>(0);
+  const [availableAmount, setAvailableAmount] = React.useState<number>(0);
 
-  const healthColor = React.useMemo(() => getMaintHealthColor(preview?.availableCollateral.ratio ?? availableRatio), [preview?.health, availableRatio])
+  const healthColor = React.useMemo(
+    () => getMaintHealthColor(preview?.availableCollateral.ratio ?? availableRatio),
+    [preview?.health, availableRatio]
+  );
 
   useEffect(() => {
     const currentAvailableCollateralAmount = marginfiAccount.computeFreeCollateral().toNumber();
     const currentAvailableCollateralRatio =
       currentAvailableCollateralAmount /
       marginfiAccount.computeHealthComponents(MarginRequirementType.Initial).assets.toNumber();
-    setAvailableAmount(currentAvailableCollateralAmount)
-    setAvailableRatio(currentAvailableCollateralRatio)
-  }, [marginfiAccount])
-
-
+    setAvailableAmount(currentAvailableCollateralAmount);
+    setAvailableRatio(currentAvailableCollateralRatio);
+  }, [marginfiAccount]);
 
   return (
     <div className="pb-6">
@@ -573,8 +592,12 @@ const ActionBoxAvailableCollateral: FC<{
             <IconInfoCircle size={16} />
           </MrgnTooltip>
         </dt>
-        <dd className="text-xl md:text-sm font-bold text-white" >
-          {isLoading ? <Skeleton className="h-4 w-[45px] bg-[#373F45]" /> : (usdFormatterDyn.format(preview?.availableCollateral.amount ?? availableAmount))}
+        <dd className="text-xl md:text-sm font-bold text-white">
+          {isLoading ? (
+            <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+          ) : (
+            usdFormatterDyn.format(preview?.availableCollateral.amount ?? availableAmount)
+          )}
         </dd>
       </dl>
       <div className="h-2 mb-2 bg-background-gray-light">
