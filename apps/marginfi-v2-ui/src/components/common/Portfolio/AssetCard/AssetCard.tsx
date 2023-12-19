@@ -63,7 +63,7 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
               </div>
               <dl>
                 <dt className="font-medium text-lg">{bank.meta.tokenSymbol}</dt>
-                <dd className={`${isInLendingMode ? "text-[#75BA80]" : "text-[#CF6F6F]"} text-sm`}>
+                <dd className={`${isInLendingMode ? "text-[#75BA80]" : "text-[#FBA43A]"} text-sm`}>
                   {rateAP.concat(...[" ", isInLendingMode ? "APY" : "APR"])}
                 </dd>
               </dl>
