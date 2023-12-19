@@ -22,7 +22,13 @@ interface ActionBoxPreviewProps {
   preview: ActionPreview | null;
 }
 
-export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({ marginfiAccount, selectedBank, actionMode, isLoading, preview }) => {
+export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
+  marginfiAccount,
+  selectedBank,
+  actionMode,
+  isLoading,
+  preview,
+}) => {
   const showLending = React.useMemo(
     () => actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw,
     [actionMode]
@@ -42,11 +48,21 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({ marginfiAccount, s
 
   const isBorrowing = marginfiAccount?.activeBalances.find((b) => b.active && b.liabilityShares.gt(0)) !== undefined;
 
+  const isLending = marginfiAccount?.activeBalances.find((b) => b.active) !== undefined;
+
   const currentPositionAmount = selectedBank.isActive ? selectedBank.position.amount : 0;
 
-
-  const liquidationColor = React.useMemo(() => preview && preview.liquidationPrice ? getMaintHealthColor(preview.liquidationPrice / selectedBank.info.oraclePrice.price.toNumber()) : "white", [preview, selectedBank])
-  const healthColor = React.useMemo(() => getMaintHealthColor(preview?.health ?? accountSummary.healthFactor), [preview?.health, accountSummary.healthFactor])
+  const liquidationColor = React.useMemo(
+    () =>
+      preview && preview.liquidationPrice
+        ? getMaintHealthColor(preview.liquidationPrice / selectedBank.info.oraclePrice.price.toNumber())
+        : "white",
+    [preview, selectedBank]
+  );
+  const healthColor = React.useMemo(
+    () => (!isLending ? "#75BA80" : getMaintHealthColor(preview?.health ?? accountSummary.healthFactor)),
+    [preview?.health, accountSummary.healthFactor, isLending]
+  );
 
   return (
     <dl className="grid grid-cols-2 h-40 gap-y-2 pt-6 text-muted-foreground text-sm">
@@ -80,19 +96,37 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({ marginfiAccount, s
         )}
       </Stat>
 
-      <Stat classNames={`text-[${healthColor}]`} label="Health">
-        {accountSummary.healthFactor && percentFormatter.format(accountSummary.healthFactor)}
-        {accountSummary.healthFactor && <IconArrowRight width={12} height={12} />}
-        {isLoading ? <Skeleton className="h-4 w-[45px] bg-[#373F45]" /> : (preview?.health ? percentFormatter.format(preview.health) : "-")}
+      <Stat style={{ color: healthColor }} label="Health">
+        {!isLending ? (
+          "100%"
+        ) : (
+          <>
+            {accountSummary.healthFactor && percentFormatter.format(accountSummary.healthFactor)}
+            {accountSummary.healthFactor && <IconArrowRight width={12} height={12} />}
+            {isLoading ? (
+              <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+            ) : preview?.health ? (
+              percentFormatter.format(preview.health)
+            ) : (
+              "-"
+            )}
+          </>
+        )}
       </Stat>
       {(actionMode === ActionType.Borrow || isBorrowing) && (
-        <Stat classNames={`text-[${liquidationColor}]`} label="Liquidation price">
+        <Stat style={{ color: liquidationColor }} label="Liquidation price">
           {selectedBank.isActive &&
             selectedBank.position.liquidationPrice &&
             selectedBank.position.liquidationPrice > 0.01 &&
             numeralFormatter(selectedBank.position.liquidationPrice)}
           {selectedBank.isActive && selectedBank.position.liquidationPrice && <IconArrowRight width={12} height={12} />}
-          {isLoading ? <Skeleton className="h-4 w-[45px] bg-[#373F45]" /> : (preview?.liquidationPrice ? numeralFormatter(preview.liquidationPrice) : "-")}
+          {isLoading ? (
+            <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+          ) : preview?.liquidationPrice ? (
+            numeralFormatter(preview.liquidationPrice)
+          ) : (
+            "-"
+          )}
         </Stat>
       )}
       <Stat classNames="text-[white]" label={showLending ? "Global deposits" : "Available"}>
@@ -105,11 +139,12 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({ marginfiAccount, s
 
               {isReduceOnly
                 ? "stSOL is being discontinued."
-                : `${selectedBank.meta.tokenSymbol} ${showLending ? "deposits" : "borrows"
-                } are at ${percentFormatter.format(
-                  (showLending ? selectedBank.info.state.totalDeposits : selectedBank.info.state.totalBorrows) /
-                  bankCap
-                )} capacity.`}
+                : `${selectedBank.meta.tokenSymbol} ${
+                    showLending ? "deposits" : "borrows"
+                  } are at ${percentFormatter.format(
+                    (showLending ? selectedBank.info.state.totalDeposits : selectedBank.info.state.totalBorrows) /
+                      bankCap
+                  )} capacity.`}
               <br />
               <a href="https://docs.marginfi.com">
                 <u>Learn more.</u>
@@ -133,12 +168,12 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({ marginfiAccount, s
               showLending
                 ? selectedBank.info.state.totalDeposits
                 : Math.max(
-                  0,
-                  Math.min(
-                    selectedBank.info.state.totalDeposits,
-                    selectedBank.info.rawBank.config.borrowLimit.toNumber()
-                  ) - selectedBank.info.state.totalBorrows
-                )
+                    0,
+                    Math.min(
+                      selectedBank.info.state.totalDeposits,
+                      selectedBank.info.rawBank.config.borrowLimit.toNumber()
+                    ) - selectedBank.info.state.totalBorrows
+                  )
             )}
           </Badge>
         </MrgnTooltip>
@@ -151,12 +186,15 @@ interface StatProps {
   label: string;
   classNames?: string;
   children: React.ReactNode;
+  style?: React.CSSProperties;
 }
-const Stat = ({ label, classNames, children }: StatProps) => {
+const Stat = ({ label, classNames, children, style }: StatProps) => {
   return (
     <>
       <dt>{label}</dt>
-      <dd className={cn(`${classNames} flex justify-end font-medium text-right items-center gap-2`)}>{children}</dd>
+      <dd className={cn(`${classNames} flex justify-end font-medium text-right items-center gap-2`)} style={style}>
+        {children}
+      </dd>
     </>
   );
 };
