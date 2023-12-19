@@ -178,6 +178,7 @@ const AssetRow: React.FC<{
             left: dogWifHatRef.current.getBoundingClientRect().left - 6,
             top: dogWifHatRef.current.getBoundingClientRect().top - 12,
             transform: "rotate(-15deg)",
+            transition: "opacity 0.2s ease-in-out",
             opacity: showDogWifHatImage ? 1 : 0,
           }}
         />
