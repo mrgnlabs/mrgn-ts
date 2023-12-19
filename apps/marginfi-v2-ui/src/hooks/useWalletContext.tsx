@@ -289,6 +289,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         await web3Auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
           loginProvider: provider,
           extraLoginOptions,
+          mfaLevel: "none",
         });
 
         const walletInfo: WalletInfo = {
