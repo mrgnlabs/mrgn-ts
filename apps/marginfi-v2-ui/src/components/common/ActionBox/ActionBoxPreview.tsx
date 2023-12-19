@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { getPriceWithConfidence, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import Image from "next/image";
@@ -52,16 +52,15 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
 
   const currentPositionAmount = selectedBank.isActive ? selectedBank.position.amount : 0;
 
+  const price = getPriceWithConfidence(selectedBank.info.oraclePrice, false).price.toNumber();
+
   const liquidationColor = React.useMemo(
-    () =>
-      preview && preview.liquidationPrice
-        ? getMaintHealthColor(preview.liquidationPrice / selectedBank.info.oraclePrice.price.toNumber())
-        : "white",
+    () => (preview && preview.liquidationPrice ? getMaintHealthColor(preview.liquidationPrice / price) : "white"),
     [preview, selectedBank]
   );
   const healthColor = React.useMemo(
-    () => (!isLending ? "#75BA80" : getMaintHealthColor(preview?.health ?? accountSummary.healthFactor)),
-    [preview?.health, accountSummary.healthFactor, isLending]
+    () => getMaintHealthColor(preview?.health ?? accountSummary.healthFactor),
+    [preview?.health, accountSummary.healthFactor]
   );
 
   return (
@@ -96,21 +95,15 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
         )}
       </Stat>
 
-      <Stat style={{ color: healthColor }} label="Health">
-        {!isLending ? (
-          "100%"
+      <Stat classNames={`text-[${healthColor}]`} label="Health">
+        {accountSummary.healthFactor && percentFormatter.format(accountSummary.healthFactor)}
+        {accountSummary.healthFactor && <IconArrowRight width={12} height={12} />}
+        {isLoading ? (
+          <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+        ) : preview?.health ? (
+          percentFormatter.format(preview.health)
         ) : (
-          <>
-            {accountSummary.healthFactor && percentFormatter.format(accountSummary.healthFactor)}
-            {accountSummary.healthFactor && <IconArrowRight width={12} height={12} />}
-            {isLoading ? (
-              <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-            ) : preview?.health ? (
-              percentFormatter.format(preview.health)
-            ) : (
-              "-"
-            )}
-          </>
+          "-"
         )}
       </Stat>
       {(actionMode === ActionType.Borrow || isBorrowing) && (

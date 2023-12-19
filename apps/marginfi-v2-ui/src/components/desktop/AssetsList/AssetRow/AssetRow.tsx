@@ -12,7 +12,7 @@ import {
   getCurrentAction,
   ExtendedBankMetadata,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
+import { getPriceWithConfidence, MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
 import { AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 
@@ -122,9 +122,8 @@ const AssetRow: React.FC<{
   }, [isMobile, lendZoomLevel]);
 
   const assetPrice = React.useMemo(
-    () =>
-      bank.info.oraclePrice.priceRealtime ? bank.info.oraclePrice.priceRealtime.toNumber() : bank.info.state.price,
-    [bank.info.oraclePrice.priceRealtime, bank.info.state.price]
+    () => getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber(),
+    [getPriceWithConfidence(bank.info.oraclePrice, false).price, bank.info.state.price]
   );
 
   const assetPriceOffset = React.useMemo(

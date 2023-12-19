@@ -1,6 +1,7 @@
 import {
   Balance,
   Bank,
+  getPriceWithConfidence,
   MarginfiAccountWrapper,
   MarginRequirementType,
   OraclePrice,
@@ -97,7 +98,7 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
   if ((bank.emissionsActiveLending || bank.emissionsActiveBorrowing) && emissionTokenData) {
     const emissionsRateAmount = new BigNumber(nativeToUi(bank.emissionsRate, emissionTokenData.decimals));
     const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
-    const emissionsRateAdditionalyApy = emissionsRateValue.div(oraclePrice.price);
+    const emissionsRateAdditionalyApy = emissionsRateValue.div(getPriceWithConfidence(oraclePrice, false).price);
 
     emissionsRate = emissionsRateAdditionalyApy.toNumber();
 
@@ -191,7 +192,9 @@ export async function makeExtendedBankEmission(
     if ((rawBank.emissionsActiveLending || rawBank.emissionsActiveBorrowing) && emissionTokenData) {
       const emissionsRateAmount = new BigNumber(nativeToUi(rawBank.emissionsRate, emissionTokenData.decimals));
       const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
-      const emissionsRateAdditionalyApy = emissionsRateValue.div(bank.info.oraclePrice.price);
+      const emissionsRateAdditionalyApy = emissionsRateValue.div(
+        getPriceWithConfidence(bank.info.oraclePrice, false).price
+      );
 
       emissionsRate = emissionsRateAdditionalyApy.toNumber();
 

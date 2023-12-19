@@ -393,7 +393,12 @@ class Liquidator {
       // so the solution is to buy more (trivial amount more), and then over repay.
       const liabUsdcValue = BigNumber.max(baseLiabUsdcValue, new BigNumber(0.05));
 
-      debug("Liab usd value %s", liabUsdcValue);
+      debug(
+        "Liab usd value %s, USDC in TA %d, USDC available: %d",
+        liabUsdcValue,
+        availableUsdcInTokenAccount,
+        availableUsdcLiquidity
+      );
 
       // We can possibly withdraw some usdc from the lending account if we are short.
       let usdcBuyingPower = BigNumber.min(availableUsdcInTokenAccount, liabUsdcValue);
@@ -508,7 +513,7 @@ class Liquidator {
       let uiAmount = await this.getTokenAccountBalance(bank.mint, false);
       debug("Account has %d %s", uiAmount, this.getTokenSymbol(bank));
       let price = this.client.getOraclePriceByBank(bank.address)!;
-      let usdValue = bank.computeUsdValue(price, new BigNumber(uiAmount), PriceBias.None, undefined, false);
+      let usdValue = bank.computeUsdValue(price, new BigNumber(uiAmount), PriceBias.None, false, undefined, false);
 
       if (usdValue.lte(DUST_THRESHOLD_UI)) {
         // debug!("Not enough %s to swap, skipping...", this.getTokenSymbol(bank));
@@ -671,6 +676,7 @@ class Liquidator {
         priceInfo,
         maxLiabCoverage,
         PriceBias.None,
+        false,
         undefined,
         false
       );
@@ -748,13 +754,15 @@ class Liquidator {
       liabPriceInfo,
       liquidatorMaxLiquidationCapacityLiabAmount,
       PriceBias.None,
+      true,
       undefined,
       false
     );
     const liquidatorMaxLiqCapacityAssetAmount = collateralBank.computeQuantityFromUsdValue(
       collateralPriceInfo,
       liquidatorMaxLiquidationCapacityUsd,
-      PriceBias.None
+      PriceBias.None,
+      true
     );
 
     debug(
@@ -776,7 +784,8 @@ class Liquidator {
     const collateralUsdValue = collateralBank.computeUsdValue(
       collateralPriceInfo,
       new BigNumber(uiToNative(slippageAdjustedCollateralAmountToLiquidate, collateralBank.mintDecimals).toNumber()),
-      PriceBias.None
+      PriceBias.None,
+      false
     );
 
     if (collateralUsdValue.lt(MIN_LIQUIDATION_AMOUNT_USD_UI)) {
