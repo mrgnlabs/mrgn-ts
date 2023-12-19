@@ -81,7 +81,7 @@ class Liquidator {
     console.log("Start with DEBUG=mfi:* to see more logs");
 
     try {
-      await this.rebalanceIfNeeded();
+      while (await this.rebalanceIfNeeded()) {}
     } catch (e) {
       console.error("Error during initial rebalance: ", e);
     }
