@@ -36,17 +36,6 @@ const PortfolioPage = () => {
   const referralCode = React.useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
 
-  React.useEffect(() => {
-    setIsRefreshingStore(true);
-    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
-    const id = setInterval(() => {
-      setIsRefreshingStore(true);
-      fetchMrgnlendState().catch(console.error);
-    }, 30_000);
-    return () => clearInterval(id);
-  }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
-  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
-  // TODO: fix...
 
   return (
     <>
@@ -82,11 +71,10 @@ const PortfolioPage = () => {
             <Button>
               {isReferralCopied
                 ? "Link copied"
-                : `${
-                    userPointsData.isCustomReferralLink
-                      ? userPointsData.referralLink?.replace("https://", "")
-                      : "Copy referral link"
-                  }`}
+                : `${userPointsData.isCustomReferralLink
+                  ? userPointsData.referralLink?.replace("https://", "")
+                  : "Copy referral link"
+                }`}
               {isReferralCopied ? <CheckIcon /> : <FileCopyIcon />}
             </Button>
           </CopyToClipboard>
