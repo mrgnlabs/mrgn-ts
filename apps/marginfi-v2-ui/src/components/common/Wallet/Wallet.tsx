@@ -25,9 +25,10 @@ import { Button } from "~/components/ui/button";
 import { IconCheck, IconChevronDown, IconCopy } from "~/components/ui/icons";
 
 export const Wallet = () => {
-  const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
+  const [extendedBankInfos, nativeSolBalance, initialized] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
+    state.initialized,
   ]);
   const [isWalletOpen, setIsWalletOpen] = useUiStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
 
@@ -52,8 +53,8 @@ export const Wallet = () => {
   });
 
   useEffect(() => {
-    if (walletData && walletData.tokens.length === 0) highlightMoonPay();
-  }, [walletData]);
+    if (walletData && walletData.address && walletData.tokens.length === 0 && initialized) highlightMoonPay();
+  }, [walletData, initialized]);
 
   const highlightMoonPay = () => {
     if (!document) return;
@@ -155,7 +156,7 @@ export const Wallet = () => {
     <>
       <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
         <SheetTrigger asChild>
-          {walletData && (
+          {walletData && initialized && (
             <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
               <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
               {walletData.shortAddress}
