@@ -79,7 +79,8 @@ export const Wallet = () => {
   // fetch wallet data and store in state
   // address, sol balance, token balances
   const getWalletData = React.useCallback(async () => {
-    if (!connection || !wallet?.publicKey || !extendedBankInfos || !nativeSolBalance) return;
+    if (!connection || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance) || walletData.address)
+      return;
 
     const userBanks = extendedBankInfos.filter(
       (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
