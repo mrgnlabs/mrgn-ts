@@ -7,7 +7,6 @@ import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
-import { SWITCHBOARD_BANKS } from "~/components/common/AssetList";
 
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 
@@ -16,6 +15,11 @@ export const AssetCardHeader: FC<{
   isInLendingMode: boolean;
   rateAP: string;
 }> = ({ bank, isInLendingMode, rateAP }) => {
+  const oracle = React.useMemo(
+    () => (bank.info.rawBank.config.oracleSetup === 1 ? "Pyth" : "Switchboard"),
+    [bank.info.rawBank.config.oracleSetup]
+  );
+
   return (
     <div className="flex flex-row justify-between items-center">
       <div className="flex flex-row gap-3 items-center">
@@ -34,17 +38,8 @@ export const AssetCardHeader: FC<{
           <div className="text-base">{bank.meta.tokenSymbol}</div>
           <div className="text-[#A1A1A1] flex items-center gap-1.5">
             {usdFormatter.format(bank.info.state.price)}
-            <MrgnTooltip
-              title={`Powered by ${SWITCHBOARD_BANKS.includes(bank.meta.tokenSymbol) ? "Switchboard" : "Pyth"}`}
-              placement="right"
-            >
-              <div>
-                {SWITCHBOARD_BANKS.includes(bank.meta.tokenSymbol) ? (
-                  <IconSwitchboard size={14} />
-                ) : (
-                  <IconPyth size={14} />
-                )}
-              </div>
+            <MrgnTooltip title={`Powered by ${oracle}`} placement="right">
+              <div>{oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}</div>
             </MrgnTooltip>
           </div>
         </div>
