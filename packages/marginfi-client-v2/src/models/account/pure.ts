@@ -678,7 +678,7 @@ class MarginfiAccount {
     // Add additional CU request if necessary
     const activeBalances = this.balances.filter((b) => b.active);
     if (activeBalances.length >= 4) {
-      ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
+      ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 }));
     }
 
     // Add emissions-related instructions if necessary
@@ -746,7 +746,7 @@ class MarginfiAccount {
     // Add additional CU request if necessary
     const activeBalances = this.balances.filter((b) => b.active);
     if (activeBalances.length >= 4) {
-      ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
+      ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 }));
     }
 
     // Add borrow-related instructions
