@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
-import config from "~/config/marginfi";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
@@ -20,14 +19,7 @@ import { Stats } from "~/components/common/Stats";
 import { IconAlertTriangle } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 import { UserMode } from "~/types";
-import { showWarningToast } from "~/utils/toastUtils";
 
-const DesktopAccountSummary = dynamic(
-  async () => (await import("~/components/desktop/DesktopAccountSummary")).DesktopAccountSummary,
-  {
-    ssr: false,
-  }
-);
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
 
 const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/MobileAssetsList")).MobileAssetsList, {
@@ -35,9 +27,7 @@ const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/
 });
 
 const Home = () => {
-  const { walletAddress, wallet, isOverride } = useWalletContext();
-  const { connection } = useConnection();
-  const debounceId = React.useRef<NodeJS.Timeout | null>(null);
+  const { walletAddress, isOverride } = useWalletContext();
   const [userMode] = useUiStore((state) => [state.userMode]);
   const [
     fetchMrgnlendState,
@@ -46,7 +36,6 @@ const Home = () => {
     setIsRefreshingStore,
     marginfiAccounts,
     selectedAccount,
-    emissionTokenMap,
   ] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,
     state.initialized,
@@ -54,41 +43,7 @@ const Home = () => {
     state.setIsRefreshingStore,
     state.marginfiAccounts,
     state.selectedAccount,
-    state.emissionTokenMap,
   ]);
-
-  React.useEffect(() => {
-    const fetchData = () => {
-      setIsRefreshingStore(true);
-      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
-    };
-
-    if (debounceId.current) {
-      clearTimeout(debounceId.current);
-    }
-
-    debounceId.current = setTimeout(() => {
-      fetchData();
-
-      const id = setInterval(() => {
-        setIsRefreshingStore(true);
-        fetchMrgnlendState().catch(console.error);
-      }, 30_000);
-
-      return () => {
-        clearInterval(id);
-        clearTimeout(debounceId.current!);
-      };
-    }, 1000);
-
-    return () => {
-      if (debounceId.current) {
-        clearTimeout(debounceId.current);
-      }
-    };
-  }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
-  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
-  // TODO: fix...
 
   return (
     <>
