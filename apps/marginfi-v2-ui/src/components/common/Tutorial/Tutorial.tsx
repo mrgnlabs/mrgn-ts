@@ -13,6 +13,7 @@ import {
   IconMrgn,
   IconReceiveMoney,
   IconAlertTriangle,
+  IconTrophy,
   IconChevronRight,
   IconExternalLink,
   IconCheck,
@@ -49,7 +50,7 @@ const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialo
 
   return (
     <div className="pb-16 px-4 space-y-4 md:space-y-8 h-full md:h-auto text-center">
-      <header className="space-y-2 md:space-y-6 flex flex-col items-center">
+      <header className="space-y-2 md:space-y-4 flex flex-col items-center">
         {icon && icon}
         {heading && <h2 className="text-3xl font-medium">{heading}</h2>}
       </header>
@@ -92,7 +93,7 @@ const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialo
 };
 
 export const Tutorial = () => {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(true);
 
   const handleDialogClose = () => {
     localStorage.setItem("mrgnTutorialAcknowledged", "true");
@@ -153,7 +154,7 @@ export const Tutorial = () => {
                 <TutorialSlide
                   icon={<IconAlertTriangle size={48} />}
                   heading="Account health"
-                  next="Follow marginfi"
+                  next="Pro Mode"
                   docs={true}
                 >
                   <div className="space-y-6 md:space-y-8 pb-2 max-w-[44rem] mx-auto flex-col justify-center">
@@ -170,6 +171,16 @@ export const Tutorial = () => {
                       When borrowed positions fall below configured margin requirements and your account health goes to
                       0%, you are exposed to liquidation. Liquidations on marginfi are automatic and permissionless.
                       Liquidators can buy and sell assets once accounts reach 0% account health for profit.
+                    </p>
+                  </div>
+                </TutorialSlide>
+              </SwiperSlide>
+              <SwiperSlide className="h-full">
+                <TutorialSlide icon={<IconTrophy size={48} />} heading="Pro Mode" next="Follow marginfi">
+                  <div className="space-y-6 md:space-y-8 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
+                    <p className="hidden tall:flex">
+                      Toggle pro mode in the toolbar to access a full table of global and isolated pools with enhanced
+                      data and advanced features.
                     </p>
                   </div>
                 </TutorialSlide>

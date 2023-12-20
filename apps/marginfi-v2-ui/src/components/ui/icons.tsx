@@ -25,6 +25,7 @@ import {
   IconSortDescending,
   IconInfoCircle,
   IconArrowRight,
+  IconTrophy,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -539,6 +540,7 @@ export {
   IconSortDescending,
   IconInfoCircle,
   IconArrowRight,
+  IconTrophy,
 
   // customed icons
   IconBrandGoogle,
