@@ -21,7 +21,7 @@ export const ActionBoxDialog = ({ requestedAction, requestedToken, requestedLend
     <Dialog open={isDialogOpen} onOpenChange={(open) => setIsDialogOpen(open)}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="md:flex md:max-w-[520px] md:p-4 p-0">
-        <ActionBox isDialog={true} requestedAction={requestedAction} requestedToken={requestedToken} requestedLendingMode={requestedLendingMode} />
+        <ActionBox isDialog={true} handleCloseDialog={() => setIsDialogOpen(false)} requestedAction={requestedAction} requestedToken={requestedToken} requestedLendingMode={requestedLendingMode} />
       </DialogContent>
     </Dialog>
   );
