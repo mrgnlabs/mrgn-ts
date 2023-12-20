@@ -8,9 +8,10 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import { useSwiper } from "swiper/react";
 
+import { cn } from "~/utils";
 import { UserMode } from "~/types";
-
 import { useUiStore } from "~/store";
+
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -94,8 +95,8 @@ const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialo
 };
 
 export const Tutorial = () => {
-  const [open, setOpen] = React.useState(true);
-  const [proModeOnly, setProModeOnly] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
+  const [proModeOnly, setProModeOnly] = React.useState(false);
 
   const handleDialogClose = () => {
     localStorage.setItem("mrgnTutorialAcknowledged", "true");
@@ -123,7 +124,7 @@ export const Tutorial = () => {
           if (!open) handleDialogClose();
         }}
       >
-        <DialogContent className="p-4 md:max-w-3xl md:py-8">
+        <DialogContent className={cn("p-4 md:py-8", proModeOnly ? "md:max-w-3xl" : "md:max-w-4xl")}>
           <div className="max-w-3xl">
             {proModeOnly && (
               <div className="pb-8 px-4 space-y-4 md:space-y-8 h-full md:h-auto text-center">
@@ -133,7 +134,7 @@ export const Tutorial = () => {
                 </header>
                 <div className="space-y-6 md:space-y-10 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
                   <p className="-translate-y-3">You can change the mode any time using the toolbar toggle.</p>
-                  <div className="flex justify-between gap-16">
+                  <div className="flex flex-col md:flex-row justify-between gap-8 md:gap-16">
                     <div className="space-y-3 text-left">
                       <h2 className="text-xl font-medium relative">
                         Lite mode{" "}
@@ -221,7 +222,7 @@ export const Tutorial = () => {
                   <TutorialSlide
                     icon={<IconAlertTriangle size={48} />}
                     heading="Account health"
-                    next="Follow marginfi"
+                    next="User modes"
                     docs={true}
                   >
                     <div className="space-y-6 md:space-y-8 pb-2 max-w-[44rem] mx-auto flex-col justify-center">
@@ -247,7 +248,7 @@ export const Tutorial = () => {
                   <TutorialSlide icon={<IconSettings size={48} />} heading="Choose your mode" next="Follow marginfi">
                     <div className="space-y-6 md:space-y-10 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
                       <p className="-translate-y-3">You can change the mode any time using the toolbar toggle.</p>
-                      <div className="flex justify-between gap-16">
+                      <div className="flex flex-col md:flex-row justify-between gap-8 md:gap-16">
                         <div className="space-y-3 text-left">
                           <h2 className="text-xl font-medium relative">
                             Lite mode{" "}
