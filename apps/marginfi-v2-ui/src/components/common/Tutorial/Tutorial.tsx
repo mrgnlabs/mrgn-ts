@@ -6,6 +6,8 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import { useSwiper } from "swiper/react";
 
+import { UserMode } from "~/types";
+
 import { useUiStore } from "~/store";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
@@ -31,19 +33,28 @@ type TutorialSlideProps = {
 };
 
 const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialog }: TutorialSlideProps) => {
-  const [setIsWalletOpen] = useUiStore((state) => [state.setIsWalletOpen]);
+  const [setUserMode] = useUiStore((state) => [state.setUserMode]);
   const swiper = useSwiper();
 
-  const closeBtn = (
-    <Button
-      className="w-full md:w-auto"
-      onClick={() => {
-        if (closeDialog) closeDialog();
-        setIsWalletOpen(true);
-      }}
-    >
-      Get started
-    </Button>
+  const closeBtns = (
+    <div className="flex items-center justify-center gap-2">
+      <Button
+        onClick={() => {
+          if (closeDialog) closeDialog();
+          setUserMode(UserMode.LITE);
+        }}
+      >
+        Lite Mode
+      </Button>
+      <Button
+        onClick={() => {
+          if (closeDialog) closeDialog();
+          setUserMode(UserMode.PRO);
+        }}
+      >
+        Pro Mode
+      </Button>
+    </div>
   );
 
   return (
@@ -82,16 +93,16 @@ const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialo
               {next} <IconChevronRight size={16} />
             </Button>
           )}
-          {!next && closeBtn}
+          {!next && closeBtns}
         </div>
       )}
-      {!docs && !next && closeBtn}
+      {!docs && !next && closeBtns}
     </div>
   );
 };
 
 export const Tutorial = () => {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(true);
   const [proModeOnly, setProModeOnly] = React.useState(false);
 
   const handleDialogClose = () => {
@@ -120,7 +131,7 @@ export const Tutorial = () => {
           if (!open) handleDialogClose();
         }}
       >
-        <DialogContent className="p-4 md:max-w-3xl md:py-8">
+        <DialogContent className="p-4 md:max-w-4xl md:py-8">
           <div className="max-w-3xl">
             {proModeOnly && (
               <div className="pb-8 px-4 space-y-4 md:space-y-8 h-full md:h-auto text-center">
@@ -187,7 +198,7 @@ export const Tutorial = () => {
                   <TutorialSlide
                     icon={<IconAlertTriangle size={48} />}
                     heading="Account health"
-                    next="Pro Mode"
+                    next="Follow marginfi"
                     docs={true}
                   >
                     <div className="space-y-6 md:space-y-8 pb-2 max-w-[44rem] mx-auto flex-col justify-center">
@@ -209,22 +220,9 @@ export const Tutorial = () => {
                     </div>
                   </TutorialSlide>
                 </SwiperSlide>
+
                 <SwiperSlide className="h-full">
-                  <TutorialSlide icon={<IconTrophy size={48} />} heading="Pro Mode" next="Follow marginfi">
-                    <div className="space-y-6 md:space-y-8 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
-                      <p className="hidden tall:flex">
-                        Toggle pro mode in the toolbar to access a full table of global and isolated pools with enhanced
-                        data and advanced features.
-                      </p>
-                    </div>
-                  </TutorialSlide>
-                </SwiperSlide>
-                <SwiperSlide className="h-full">
-                  <TutorialSlide
-                    icon={<IconUserPlus size={48} />}
-                    heading="Follow marginfi"
-                    closeDialog={handleDialogClose}
-                  >
+                  <TutorialSlide icon={<IconUserPlus size={48} />} heading="Follow marginfi" next="Lite / Pro Mode">
                     <div className="space-y-6 md:space-y-8 pb-2 max-w-[35rem] mx-auto flex-col justify-center">
                       <p>
                         Join the fastest growing crypto community and keep up with the latest industry news, product
@@ -242,6 +240,20 @@ export const Tutorial = () => {
                           </a>
                         </li>
                       </ul>
+                    </div>
+                  </TutorialSlide>
+                </SwiperSlide>
+                <SwiperSlide className="h-full">
+                  <TutorialSlide
+                    icon={<IconTrophy size={48} />}
+                    heading="Lite / Pro Mode"
+                    closeDialog={handleDialogClose}
+                  >
+                    <div className="space-y-6 md:space-y-8 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
+                      <p className="hidden tall:flex">
+                        Toggle pro mode in the toolbar to access a full table of global and isolated pools with enhanced
+                        data and advanced features.
+                      </p>
                     </div>
                   </TutorialSlide>
                 </SwiperSlide>
