@@ -2,6 +2,8 @@ import React from "react";
 
 import Link from "next/link";
 
+import Switch from "@mui/material/Switch";
+
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
 import { useSwiper } from "swiper/react";
@@ -11,11 +13,13 @@ import { UserMode } from "~/types";
 import { useUiStore } from "~/store";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
+import { Badge } from "~/components/ui/badge";
 import {
   IconMrgn,
   IconReceiveMoney,
   IconAlertTriangle,
-  IconTrophy,
+  IconSettings,
+  IconCheck,
   IconChevronRight,
   IconExternalLink,
   IconUserPlus,
@@ -33,28 +37,16 @@ type TutorialSlideProps = {
 };
 
 const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialog }: TutorialSlideProps) => {
-  const [setUserMode] = useUiStore((state) => [state.setUserMode]);
   const swiper = useSwiper();
 
-  const closeBtns = (
-    <div className="flex items-center justify-center gap-2">
-      <Button
-        onClick={() => {
-          if (closeDialog) closeDialog();
-          setUserMode(UserMode.LITE);
-        }}
-      >
-        Lite Mode
-      </Button>
-      <Button
-        onClick={() => {
-          if (closeDialog) closeDialog();
-          setUserMode(UserMode.PRO);
-        }}
-      >
-        Pro Mode
-      </Button>
-    </div>
+  const closeBtn = (
+    <Button
+      onClick={() => {
+        if (closeDialog) closeDialog();
+      }}
+    >
+      Get Started <IconCheck size={16} />
+    </Button>
   );
 
   return (
@@ -93,17 +85,17 @@ const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialo
               {next} <IconChevronRight size={16} />
             </Button>
           )}
-          {!next && closeBtns}
+          {!next && closeBtn}
         </div>
       )}
-      {!docs && !next && closeBtns}
+      {!docs && !next && closeBtn}
     </div>
   );
 };
 
 export const Tutorial = () => {
   const [open, setOpen] = React.useState(true);
-  const [proModeOnly, setProModeOnly] = React.useState(false);
+  const [proModeOnly, setProModeOnly] = React.useState(true);
 
   const handleDialogClose = () => {
     localStorage.setItem("mrgnTutorialAcknowledged", "true");
@@ -131,19 +123,50 @@ export const Tutorial = () => {
           if (!open) handleDialogClose();
         }}
       >
-        <DialogContent className="p-4 md:max-w-4xl md:py-8">
+        <DialogContent className="p-4 md:max-w-3xl md:py-8">
           <div className="max-w-3xl">
             {proModeOnly && (
               <div className="pb-8 px-4 space-y-4 md:space-y-8 h-full md:h-auto text-center">
                 <header className="space-y-2 md:space-y-4 flex flex-col items-center">
-                  <IconTrophy size={48} />
-                  <h2 className="text-3xl font-medium">Pro Mode</h2>
+                  <IconSettings size={48} />
+                  <h2 className="text-3xl font-medium">Choose your mode</h2>
                 </header>
-                <div className="space-y-6 md:space-y-8 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
-                  <p className="hidden tall:flex">
-                    Toggle pro mode in the toolbar to access a full table of global and isolated pools with enhanced
-                    data and advanced features.
-                  </p>
+                <div className="space-y-6 md:space-y-10 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
+                  <p className="-translate-y-3">You can change the mode any time using the toolbar toggle.</p>
+                  <div className="flex justify-between gap-16">
+                    <div className="space-y-3 text-left">
+                      <h2 className="text-xl font-medium relative">
+                        Lite mode{" "}
+                        <Badge className="-translate-y-1.5" variant="primary">
+                          new
+                        </Badge>
+                      </h2>
+                      <ul className="space-y-2">
+                        <li className="flex gap-2">
+                          <IconCheck size={20} className="text-chartreuse shrink-0" /> Quickly get started with lending
+                          &amp; borrowing
+                        </li>
+                        <li className="flex gap-2">
+                          <IconCheck size={20} className="text-chartreuse shrink-0" /> Simplified and minimized user
+                          interface
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="space-y-3 text-left">
+                      <h2 className="text-xl font-medium">Pro mode</h2>
+                      <ul className="space-y-2">
+                        <li className="flex gap-2">
+                          <IconCheck size={20} className="text-chartreuse shrink-0" /> Full table of global and isolated
+                          pools
+                        </li>
+                        <li className="flex gap-2">
+                          <IconCheck size={20} className="text-chartreuse shrink-0" /> Enhanced data &amp; advanced
+                          features
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <UserModeControl />
                 </div>
                 <div className="flex items-center justify-center">
                   <Button
@@ -220,9 +243,53 @@ export const Tutorial = () => {
                     </div>
                   </TutorialSlide>
                 </SwiperSlide>
-
                 <SwiperSlide className="h-full">
-                  <TutorialSlide icon={<IconUserPlus size={48} />} heading="Follow marginfi" next="Lite / Pro Mode">
+                  <TutorialSlide icon={<IconSettings size={48} />} heading="Choose your mode" next="Follow marginfi">
+                    <div className="space-y-6 md:space-y-10 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
+                      <p className="-translate-y-3">You can change the mode any time using the toolbar toggle.</p>
+                      <div className="flex justify-between gap-16">
+                        <div className="space-y-3 text-left">
+                          <h2 className="text-xl font-medium relative">
+                            Lite mode{" "}
+                            <Badge className="-translate-y-1.5" variant="primary">
+                              new
+                            </Badge>
+                          </h2>
+                          <ul className="space-y-2">
+                            <li className="flex gap-2">
+                              <IconCheck size={20} className="text-chartreuse shrink-0" /> Quickly get started with
+                              lending &amp; borrowing
+                            </li>
+                            <li className="flex gap-2">
+                              <IconCheck size={20} className="text-chartreuse shrink-0" /> Simplified and minimized user
+                              interface
+                            </li>
+                          </ul>
+                        </div>
+                        <div className="space-y-3 text-left">
+                          <h2 className="text-xl font-medium">Pro mode</h2>
+                          <ul className="space-y-2">
+                            <li className="flex gap-2">
+                              <IconCheck size={20} className="text-chartreuse shrink-0" /> Full table of global and
+                              isolated pools
+                            </li>
+                            <li className="flex gap-2">
+                              <IconCheck size={20} className="text-chartreuse shrink-0" /> Enhanced data &amp; advanced
+                              features
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                      <UserModeControl />
+                    </div>
+                  </TutorialSlide>
+                </SwiperSlide>
+                <SwiperSlide className="h-full">
+                  <TutorialSlide
+                    icon={<IconUserPlus size={48} />}
+                    heading="Follow marginfi"
+                    closeDialog={handleDialogClose}
+                  >
                     <div className="space-y-6 md:space-y-8 pb-2 max-w-[35rem] mx-auto flex-col justify-center">
                       <p>
                         Join the fastest growing crypto community and keep up with the latest industry news, product
@@ -243,25 +310,40 @@ export const Tutorial = () => {
                     </div>
                   </TutorialSlide>
                 </SwiperSlide>
-                <SwiperSlide className="h-full">
-                  <TutorialSlide
-                    icon={<IconTrophy size={48} />}
-                    heading="Lite / Pro Mode"
-                    closeDialog={handleDialogClose}
-                  >
-                    <div className="space-y-6 md:space-y-8 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
-                      <p className="hidden tall:flex">
-                        Toggle pro mode in the toolbar to access a full table of global and isolated pools with enhanced
-                        data and advanced features.
-                      </p>
-                    </div>
-                  </TutorialSlide>
-                </SwiperSlide>
               </Swiper>
             )}
           </div>
         </DialogContent>
       </Dialog>
     </>
+  );
+};
+
+const UserModeControl = () => {
+  const [userMode, setUserMode] = useUiStore((state) => [state.userMode, state.setUserMode]);
+
+  return (
+    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center">
+      <div className="h-full flex justify-center items-center font-bold">Lite</div>
+      <Switch
+        onChange={(_, checked) => setUserMode(checked ? UserMode.PRO : UserMode.LITE)}
+        sx={{
+          color: "#868E95",
+          "& .MuiSwitch-switchBase": {
+            "&.Mui-checked": {
+              "& .MuiSwitch-thumb": {
+                backgroundColor: "#DCE85D",
+              },
+              "& + .MuiSwitch-track": {
+                backgroundColor: "#DCE85D",
+                color: "#DCE85D",
+              },
+            },
+          },
+        }}
+        checked={userMode === UserMode.PRO}
+      />
+      <div className="h-full flex justify-center items-center font-bold">Pro</div>
+    </div>
   );
 };
