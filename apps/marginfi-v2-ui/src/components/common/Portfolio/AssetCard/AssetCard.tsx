@@ -4,6 +4,8 @@ import { PublicKey } from "@solana/web3.js";
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
+import { cn } from "~/utils";
+
 import { IconAlertTriangle } from "~/components/ui/icons";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
@@ -63,7 +65,7 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
               </div>
               <dl>
                 <dt className="font-medium text-lg">{bank.meta.tokenSymbol}</dt>
-                <dd className={`${isInLendingMode ? "text-[#75BA80]" : "text-[#FBA43A]"} text-sm`}>
+                <dd className={cn("text-sm", isInLendingMode ? "text-[#75BA80]" : "text-[#FBA43A]")}>
                   {rateAP.concat(...[" ", isInLendingMode ? "APY" : "APR"])}
                 </dd>
               </dl>
@@ -83,35 +85,35 @@ export const AssetCard: FC<props> = ({ bank, isInLendingMode }) => {
           )}
 
           {isIsolated && (
-            <div className="flex w-fit gap-2 text-[#686E75] items-center border border-[#686E75] rounded-3xl px-4 py-0.5">
+            <div className="flex w-fit gap-2 text-[#686E75] items-center border border-[#474c51] rounded-3xl px-3 py-0.5">
               <span>Isolated pool</span>
             </div>
           )}
 
-          <div className="bg-background p-3 rounded-xl">
-            <dl className="flex justify-between">
-              <dt className="text-base font-normal text-muted-foreground">USD value</dt>
-              <dd className="text-lg font-medium text-white">
+          <div className="bg-background/60 py-3 px-4 rounded-lg">
+            <dl className="grid grid-cols-2 gap-y-0.5">
+              <dt className="text-muted-foreground">USD value</dt>
+              <dd className="text-right font-medium text-white">
                 {bank.position.usdValue < 0.01 ? "< $0.01" : usdFormatter.format(bank.position.usdValue)}
               </dd>
-            </dl>
-            <dl className="flex justify-between">
-              <dt className="text-base font-normal text-muted-foreground">Current price</dt>
-              <dd className="text-lg font-medium text-white">{usdFormatter.format(bank.info.state.price)}</dd>
-            </dl>
-            <dl className="flex justify-between">
-              <dt className="text-base font-normal text-muted-foreground">Liquidation price</dt>
-              <dd
-                className={`flex items-center gap-1 text-lg font-medium ${
-                  isUserPositionPoorHealth ? "text-error" : "text-white"
-                }`}
-              >
-                {isUserPositionPoorHealth && <IconAlertTriangle width={"16px"} height={"16px"} />}
-                {bank?.position?.liquidationPrice &&
-                  (bank.position.liquidationPrice > 0.01
-                    ? usdFormatter.format(bank.position.liquidationPrice)
-                    : `$${bank.position.liquidationPrice.toExponential(2)}`)}
-              </dd>
+              <dt className="text-muted-foreground">Current price</dt>
+              <dd className="text-right font-medium text-white">{usdFormatter.format(bank.info.state.price)}</dd>
+              {bank.position.liquidationPrice && (
+                <>
+                  <dt className="text-muted-foreground">Liquidation price</dt>
+                  <dd
+                    className={cn(
+                      "justify-end flex items-center gap-1 font-medium",
+                      isUserPositionPoorHealth ? "text-error" : "text-white"
+                    )}
+                  >
+                    {isUserPositionPoorHealth && <IconAlertTriangle width={"16px"} height={"16px"} />}
+                    {bank.position.liquidationPrice > 0.01
+                      ? usdFormatter.format(bank.position.liquidationPrice)
+                      : `$${bank.position.liquidationPrice.toExponential(2)}`}
+                  </dd>
+                </>
+              )}
             </dl>
           </div>
           <ActionBoxDialog requestedAction={requestedAction} requestedToken={requestedToken}>
