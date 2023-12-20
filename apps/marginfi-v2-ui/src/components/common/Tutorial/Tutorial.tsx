@@ -16,10 +16,8 @@ import {
   IconTrophy,
   IconChevronRight,
   IconExternalLink,
-  IconCheck,
   IconUserPlus,
   IconBrandX,
-  IconBrandTelegram,
   IconBrandDiscordFilled,
 } from "~/components/ui/icons";
 
@@ -44,7 +42,7 @@ const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialo
         setIsWalletOpen(true);
       }}
     >
-      Get started <IconCheck size={16} />
+      Get started
     </Button>
   );
 
@@ -93,15 +91,23 @@ const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialo
 };
 
 export const Tutorial = () => {
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
+  const [proModeOnly, setProModeOnly] = React.useState(false);
 
   const handleDialogClose = () => {
     localStorage.setItem("mrgnTutorialAcknowledged", "true");
+    localStorage.setItem("mrgnProModeAcknowledged", "true");
     setOpen(false);
   };
 
   React.useEffect(() => {
     if (!localStorage.getItem("mrgnTutorialAcknowledged")) {
+      setOpen(true);
+      return;
+    }
+
+    if (localStorage.getItem("mrgnTutorialAcknowledged") && !localStorage.getItem("mrgnProModeAcknowledged")) {
+      setProModeOnly(true);
       setOpen(true);
     }
   }, []);
@@ -114,104 +120,133 @@ export const Tutorial = () => {
           if (!open) handleDialogClose();
         }}
       >
-        <DialogContent className="p-4 md:max-w-4xl md:py-8">
+        <DialogContent className="p-4 md:max-w-3xl md:py-8">
           <div className="max-w-3xl">
-            <Swiper modules={[Pagination]} slidesPerView={1} navigation pagination={{ clickable: true }}>
-              <SwiperSlide className="h-full">
-                <TutorialSlide icon={<IconMrgn size={48} />} heading="Welcome to marginfi" next="Fees & yield">
-                  <div className="space-y-6 md:space-y-8 pb-2 max-w-xl mx-auto flex flex-col justify-center">
-                    <p>
-                      marginfi is a decentralized lending protocol on Solana that prioritizes risk management to provide
-                      a safe and reliable solution for users looking to access leverage and maximize capital efficiency.
-                    </p>
-                    <p>
-                      Today marginfi allows you to do two things: Lend tokens and earn yield on them. Borrow tokens
-                      using tokens you&apos;ve lent as collateral.
-                    </p>
-                  </div>
-                </TutorialSlide>
-              </SwiperSlide>
-              <SwiperSlide className="h-full">
-                <TutorialSlide icon={<IconReceiveMoney size={48} />} heading="Fees & yield" next="Account health">
-                  <div className="space-y-6 md:space-y-8 pb-2 max-w-[35rem] mx-auto flex flex-col justify-center">
-                    <p>
-                      marginfi allows users to lend tokens and earn interest. Interest is paid by borrowers to lenders.
-                      All borrowing is over-collateralized.
-                    </p>
-                    <p>
-                      Deposits in marginfi&apos;s Earn program may be locked according to the parameters of each
-                      campaign. Campaigns can be created on marginfi by new teams looking to bootstrap liquidity for
-                      their token.
-                    </p>
-                    <p>
-                      Borrowers in marginfi pay interest specific to each asset. Both lending and borrowing interest on
-                      marginfi is variable.
-                    </p>
-                  </div>
-                </TutorialSlide>
-              </SwiperSlide>
-              <SwiperSlide className="h-full">
-                <TutorialSlide
-                  icon={<IconAlertTriangle size={48} />}
-                  heading="Account health"
-                  next="Pro Mode"
-                  docs={true}
-                >
-                  <div className="space-y-6 md:space-y-8 pb-2 max-w-[44rem] mx-auto flex-col justify-center">
-                    <p className="hidden tall:flex">
-                      Account health is only for borrowing activity on marginfi. If you&apos;re not borrowing on
-                      marginfi, you will always have 100% account health. Your account health is a single value that
-                      encapsulates how well-collateralized your account is based on your borrowed liabilities.
-                    </p>
-                    <p className="text-sm sm:text-base flex font-bold mx-auto items-center gap-3 border border-solid border-white/50 px-4 py-2 rounded-lg">
-                      <IconAlertTriangle height={20} className="hidden md:block" />
-                      When your account health reaches 0% or below, you are exposed to liquidation.
-                    </p>
-                    <p>
-                      When borrowed positions fall below configured margin requirements and your account health goes to
-                      0%, you are exposed to liquidation. Liquidations on marginfi are automatic and permissionless.
-                      Liquidators can buy and sell assets once accounts reach 0% account health for profit.
-                    </p>
-                  </div>
-                </TutorialSlide>
-              </SwiperSlide>
-              <SwiperSlide className="h-full">
-                <TutorialSlide icon={<IconTrophy size={48} />} heading="Pro Mode" next="Follow marginfi">
-                  <div className="space-y-6 md:space-y-8 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
-                    <p className="hidden tall:flex">
-                      Toggle pro mode in the toolbar to access a full table of global and isolated pools with enhanced
-                      data and advanced features.
-                    </p>
-                  </div>
-                </TutorialSlide>
-              </SwiperSlide>
-              <SwiperSlide className="h-full">
-                <TutorialSlide
-                  icon={<IconUserPlus size={48} />}
-                  heading="Follow marginfi"
-                  closeDialog={handleDialogClose}
-                >
-                  <div className="space-y-6 md:space-y-8 pb-2 max-w-[35rem] mx-auto flex-col justify-center">
-                    <p>
-                      Join the fastest growing crypto community and keep up with the latest industry news, product
-                      releases, and alpha.
-                    </p>
-                    <ul className="flex items-center justify-center gap-3">
-                      <li className="p-4 rounded-full bg-muted">
-                        <a href="https://discord.gg/mrgn" target="_blank" rel="noreferrer">
-                          <IconBrandDiscordFilled />
-                        </a>
-                      </li>
-                      <li className="p-4 rounded-full bg-muted">
-                        <a href="https://twitter.com/marginfi" target="_blank" rel="noreferrer">
-                          <IconBrandX />
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                </TutorialSlide>
-              </SwiperSlide>
-            </Swiper>
+            {proModeOnly && (
+              <div className="pb-8 px-4 space-y-4 md:space-y-8 h-full md:h-auto text-center">
+                <header className="space-y-2 md:space-y-4 flex flex-col items-center">
+                  <IconTrophy size={48} />
+                  <h2 className="text-3xl font-medium">Pro Mode</h2>
+                </header>
+                <div className="space-y-6 md:space-y-8 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
+                  <p className="hidden tall:flex">
+                    Toggle pro mode in the toolbar to access a full table of global and isolated pools with enhanced
+                    data and advanced features.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center">
+                  <Button
+                    className="w-full md:w-auto"
+                    onClick={() => {
+                      setOpen(false);
+                      localStorage.setItem("mrgnProModeAcknowledged", "true");
+                    }}
+                  >
+                    Get Started
+                  </Button>
+                </div>
+              </div>
+            )}
+            {!proModeOnly && (
+              <Swiper modules={[Pagination]} slidesPerView={1} navigation pagination={{ clickable: true }}>
+                <SwiperSlide className="h-full">
+                  <TutorialSlide icon={<IconMrgn size={48} />} heading="Welcome to marginfi" next="Fees & yield">
+                    <div className="space-y-6 md:space-y-8 pb-2 max-w-xl mx-auto flex flex-col justify-center">
+                      <p>
+                        marginfi is a decentralized lending protocol on Solana that prioritizes risk management to
+                        provide a safe and reliable solution for users looking to access leverage and maximize capital
+                        efficiency.
+                      </p>
+                      <p>
+                        Today marginfi allows you to do two things: Lend tokens and earn yield on them. Borrow tokens
+                        using tokens you&apos;ve lent as collateral.
+                      </p>
+                    </div>
+                  </TutorialSlide>
+                </SwiperSlide>
+                <SwiperSlide className="h-full">
+                  <TutorialSlide icon={<IconReceiveMoney size={48} />} heading="Fees & yield" next="Account health">
+                    <div className="space-y-6 md:space-y-8 pb-2 max-w-[35rem] mx-auto flex flex-col justify-center">
+                      <p>
+                        marginfi allows users to lend tokens and earn interest. Interest is paid by borrowers to
+                        lenders. All borrowing is over-collateralized.
+                      </p>
+                      <p>
+                        Deposits in marginfi&apos;s Earn program may be locked according to the parameters of each
+                        campaign. Campaigns can be created on marginfi by new teams looking to bootstrap liquidity for
+                        their token.
+                      </p>
+                      <p>
+                        Borrowers in marginfi pay interest specific to each asset. Both lending and borrowing interest
+                        on marginfi is variable.
+                      </p>
+                    </div>
+                  </TutorialSlide>
+                </SwiperSlide>
+                <SwiperSlide className="h-full">
+                  <TutorialSlide
+                    icon={<IconAlertTriangle size={48} />}
+                    heading="Account health"
+                    next="Pro Mode"
+                    docs={true}
+                  >
+                    <div className="space-y-6 md:space-y-8 pb-2 max-w-[44rem] mx-auto flex-col justify-center">
+                      <p className="hidden tall:flex">
+                        Account health is only for borrowing activity on marginfi. If you&apos;re not borrowing on
+                        marginfi, you will always have 100% account health. Your account health is a single value that
+                        encapsulates how well-collateralized your account is based on your borrowed liabilities.
+                      </p>
+                      <p className="text-sm sm:text-base flex font-bold mx-auto items-center gap-3 border border-solid border-white/50 px-4 py-2 rounded-lg">
+                        <IconAlertTriangle height={20} className="hidden md:block" />
+                        When your account health reaches 0% or below, you are exposed to liquidation.
+                      </p>
+                      <p>
+                        When borrowed positions fall below configured margin requirements and your account health goes
+                        to 0%, you are exposed to liquidation. Liquidations on marginfi are automatic and
+                        permissionless. Liquidators can buy and sell assets once accounts reach 0% account health for
+                        profit.
+                      </p>
+                    </div>
+                  </TutorialSlide>
+                </SwiperSlide>
+                <SwiperSlide className="h-full">
+                  <TutorialSlide icon={<IconTrophy size={48} />} heading="Pro Mode" next="Follow marginfi">
+                    <div className="space-y-6 md:space-y-8 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
+                      <p className="hidden tall:flex">
+                        Toggle pro mode in the toolbar to access a full table of global and isolated pools with enhanced
+                        data and advanced features.
+                      </p>
+                    </div>
+                  </TutorialSlide>
+                </SwiperSlide>
+                <SwiperSlide className="h-full">
+                  <TutorialSlide
+                    icon={<IconUserPlus size={48} />}
+                    heading="Follow marginfi"
+                    closeDialog={handleDialogClose}
+                  >
+                    <div className="space-y-6 md:space-y-8 pb-2 max-w-[35rem] mx-auto flex-col justify-center">
+                      <p>
+                        Join the fastest growing crypto community and keep up with the latest industry news, product
+                        releases, and alpha.
+                      </p>
+                      <ul className="flex items-center justify-center gap-3">
+                        <li className="p-4 rounded-full bg-muted">
+                          <a href="https://discord.gg/mrgn" target="_blank" rel="noreferrer">
+                            <IconBrandDiscordFilled />
+                          </a>
+                        </li>
+                        <li className="p-4 rounded-full bg-muted">
+                          <a href="https://twitter.com/marginfi" target="_blank" rel="noreferrer">
+                            <IconBrandX />
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </TutorialSlide>
+                </SwiperSlide>
+              </Swiper>
+            )}
           </div>
         </DialogContent>
       </Dialog>
