@@ -124,7 +124,7 @@ const UserModeControl: FC = () => {
 
   return (
     <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] px-6">
-      <div className="h-full flex justify-center items-center font-bold">Lite</div>
+      <div className="h-full flex justify-center items-center font-medium">Lite</div>
       <Switch
         onChange={(_, checked) => setUserMode(checked ? UserMode.PRO : UserMode.LITE)}
         sx={{
@@ -139,11 +139,14 @@ const UserModeControl: FC = () => {
                 color: "#DCE85D",
               },
             },
+            "& + .MuiSwitch-track": {
+              backgroundColor: "#868E95",
+            },
           },
         }}
         checked={userMode === UserMode.PRO}
       />
-      <div className="h-full flex justify-center items-center font-bold">Pro</div>
+      <div className="h-full flex justify-center items-center font-medium">Pro</div>
     </div>
   );
 };
