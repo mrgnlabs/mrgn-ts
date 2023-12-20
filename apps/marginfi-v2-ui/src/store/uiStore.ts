@@ -1,9 +1,9 @@
 import { create, StateCreator } from "zustand";
+import { persist } from "zustand/middleware";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, UserMode } from "~/types";
-import { PublicKey } from "@solana/web3.js";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {
@@ -61,7 +61,7 @@ interface UiState {
 }
 
 function createUiStore() {
-  return create<UiState>(stateCreator);
+  return create<UiState>()(persist(stateCreator, { name: "uiStore" }));
 }
 
 const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
