@@ -323,27 +323,39 @@ const UserModeControl = () => {
   const [userMode, setUserMode] = useUiStore((state) => [state.userMode, state.setUserMode]);
 
   return (
-    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center">
-      <div className="h-full flex justify-center items-center font-bold">Lite</div>
+    <div className="text-[#868E95] whitespace-nowrap flex justify-center items-center">
+      <div className="h-full flex justify-center items-center font-medium">Lite</div>
       <Switch
+        size="medium"
         onChange={(_, checked) => setUserMode(checked ? UserMode.PRO : UserMode.LITE)}
         sx={{
+          width: 70,
+          height: 42,
           color: "#868E95",
+          "& .MuiSwitch-thumb": {
+            boxSizing: "border-box",
+            height: 25,
+            width: 25,
+          },
           "& .MuiSwitch-switchBase": {
             "&.Mui-checked": {
               "& .MuiSwitch-thumb": {
                 backgroundColor: "#DCE85D",
+                transform: "translateX(5px)",
               },
               "& + .MuiSwitch-track": {
                 backgroundColor: "#DCE85D",
                 color: "#DCE85D",
               },
             },
+            "& + .MuiSwitch-track": {
+              backgroundColor: "#868E95",
+            },
           },
         }}
         checked={userMode === UserMode.PRO}
       />
-      <div className="h-full flex justify-center items-center font-bold">Pro</div>
+      <div className="h-full flex justify-center items-center font-medium">Pro</div>
     </div>
   );
 };
