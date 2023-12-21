@@ -183,7 +183,7 @@ class Liquidator {
           wrapUnwrapSOL: true,
           // feeAccount is optional. Use if you want to charge a fee.  feeBps must have been passed in /quote API.
           // feeAccount: "fee_account_public_key"
-          computeUnitPriceMicroLamports: 50000,
+          computeUnitPriceMicroLamports: env_config.TX_FEE,
         }),
       })
     ).json();
@@ -391,7 +391,7 @@ class Liquidator {
 
       /// When a liab value is super small (1 BONK), we cannot feasibly buy it for the exact amount,
       // so the solution is to buy more (trivial amount more), and then over repay.
-      const liabUsdcValue = BigNumber.max(baseLiabUsdcValue, new BigNumber(0.05));
+      const liabUsdcValue = BigNumber.max(baseLiabUsdcValue, new BigNumber(1));
 
       debug(
         "Liab usd value %s, USDC in TA %d, USDC available: %d",
@@ -546,8 +546,9 @@ class Liquidator {
     }
 
     const usdcBalance = await this.getTokenAccountBalance(USDC_MINT);
+    const { liabilities } = this.account.computeHealthComponentsWithoutBias(MarginRequirementType.Equity);
 
-    if (usdcBalance.eq(0)) {
+    if (usdcBalance.eq(0) || liabilities.gt(0)) {
       debug("No USDC to deposit");
       return;
     }
