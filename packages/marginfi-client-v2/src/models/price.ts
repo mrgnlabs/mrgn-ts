@@ -28,8 +28,18 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
     case OracleSetup.PythEma:
       const pythPriceData = parsePriceData(rawData);
 
-      const pythPriceRealtime = new BigNumber(pythPriceData.price!);
-      const pythConfidenceRealtime = new BigNumber(pythPriceData.confidence!);
+      let priceData = pythPriceData.price;
+      if (priceData === undefined) {
+        priceData = pythPriceData.previousPrice;
+      }
+
+      let confidenceData = pythPriceData.confidence;
+      if (confidenceData === undefined) {
+        confidenceData = pythPriceData.previousConfidence;
+      }
+
+      const pythPriceRealtime = new BigNumber(priceData!);
+      const pythConfidenceRealtime = new BigNumber(confidenceData!);
       const pythLowestPriceRealtime = pythPriceRealtime.minus(pythConfidenceRealtime.times(PYTH_PRICE_CONF_INTERVALS));
       const pythHighestPriceRealtime = pythPriceRealtime.plus(pythConfidenceRealtime.times(PYTH_PRICE_CONF_INTERVALS));
 
