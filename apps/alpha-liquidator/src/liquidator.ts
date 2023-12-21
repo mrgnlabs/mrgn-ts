@@ -515,7 +515,7 @@ class Liquidator {
       let price = this.client.getOraclePriceByBank(bank.address)!;
       let usdValue = bank.computeUsdValue(price, new BigNumber(uiAmount), PriceBias.None, false, undefined, false);
 
-      if (usdValue.lte(DUST_THRESHOLD_UI)) {
+      if (usdValue.lte(DUST_THRESHOLD_UI) || uiAmount.isNaN()) {
         // debug!("Not enough %s to swap, skipping...", this.getTokenSymbol(bank));
         continue;
       } else {
