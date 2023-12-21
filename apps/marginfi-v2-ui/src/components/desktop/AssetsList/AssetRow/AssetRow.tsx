@@ -367,18 +367,24 @@ const AssetRow: React.FC<{
             >
               {denominationUSD
                 ? usdFormatter.format(
-                    (isInLendingMode
+                    isInLendingMode
                       ? bank.info.state.totalDeposits
-                      : Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-                        bank.info.state.totalBorrows) * bank.info.state.price
+                      : Math.min(
+                          bank.info.state.borrowCap - bank.info.state.totalBorrows,
+                          bank.info.state.availableLiquidity
+                        ) <= 0
+                      ? 0
+                      : Math.min(
+                          bank.info.state.borrowCap - bank.info.state.totalBorrows,
+                          bank.info.state.availableLiquidity
+                        ) * bank.info.state.price
                   )
                 : numeralFormatter(
                     isInLendingMode
                       ? bank.info.state.totalDeposits
-                      : Math.max(
-                          0,
-                          Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-                            bank.info.state.totalBorrows
+                      : Math.min(
+                          bank.info.state.borrowCap - bank.info.state.totalBorrows,
+                          bank.info.state.availableLiquidity
                         )
                   )}
             </Badge>
