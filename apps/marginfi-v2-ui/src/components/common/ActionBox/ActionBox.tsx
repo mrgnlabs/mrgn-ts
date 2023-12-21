@@ -526,7 +526,7 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
 
           {actionMethod.description && (
             <div className="pb-6">
-              <div className="flex items-start space-x-2 py-3 px-4 rounded-xl text-alert-foreground bg-alert">
+              <div className="flex items-center space-x-2 py-3 px-4 rounded-xl text-alert-foreground bg-alert">
                 <IconAlertTriangle className="shrink-0" size={18} />
                 <p className="text-alert-foreground">{actionMethod.description}</p>
               </div>
