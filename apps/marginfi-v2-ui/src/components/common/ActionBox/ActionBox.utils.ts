@@ -215,7 +215,7 @@ function canBeBorrowed(
   }
 
   const freeCollateral = marginfiAccount && marginfiAccount.computeFreeCollateral();
-  if (freeCollateral && freeCollateral.eq(0)) {
+  if (!freeCollateral || (freeCollateral && freeCollateral.eq(0))) {
     return {
       description: "You don't have any available collateral.",
       isEnabled: false,
