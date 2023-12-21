@@ -15,7 +15,7 @@ const SwapPage = () => {
   return (
     <>
       <Script
-        src="https://terminal.jup.ag/main-v1.js"
+        src="https://terminal.jup.ag/main-v2.js"
         onReady={() => {
           window.Jupiter.init({
             displayMode: "integrated",
@@ -28,7 +28,7 @@ const SwapPage = () => {
       <PageHeader>
         <div className="h-full flex flex-row gap-1 items-center">
           <span>swap</span>
-          <div className="hidden sm:block flex flex-row items-center gap-1">
+          <div className="hidden sm:block flex-row items-center gap-1">
             <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
             <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
             <span className="text-sm h-[48px] pt-[28px] bg-jup-gradient-colors bg-clip-text text-transparent ml-1">
@@ -37,7 +37,7 @@ const SwapPage = () => {
           </div>
         </div>
       </PageHeader>
-      <div className="w-full h-full flex flex-col justify-start items-center content-start py-[32px] gap-8 w-4/5">
+      <div className="h-full flex flex-col justify-start items-center content-start py-[32px] gap-8 w-4/5">
         <div className="max-w-[420px] px-3" id="integrated-terminal"></div>
       </div>
     </>
