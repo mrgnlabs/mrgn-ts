@@ -17,6 +17,7 @@ import { useLstStore } from "./stake";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";
+import { LipClientProvider } from "~/context";
 import { init as initAnalytics } from "~/utils/analytics";
 
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
@@ -95,26 +96,28 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
           <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
             <MrgnWalletProvider>
               <MrgnlendProvider>
-                <Desktop>
-                  <WalletModalProvider>
-                    <DesktopNavbar />
-                    <div className="w-full flex flex-col justify-center items-center pt-[64px]">
+                <LipClientProvider>
+                  <Desktop>
+                    <WalletModalProvider>
+                      <DesktopNavbar />
+                      <div className="w-full flex flex-col justify-center items-center pt-[64px]">
+                        <Component {...pageProps} />
+                      </div>
+                      <Footer />
+                    </WalletModalProvider>
+                  </Desktop>
+
+                  <Mobile>
+                    <MobileNavbar />
+                    <div className="w-full flex flex-col justify-center items-center sm:pt-[24px]">
                       <Component {...pageProps} />
                     </div>
-                    <Footer />
-                  </WalletModalProvider>
-                </Desktop>
-
-                <Mobile>
-                  <MobileNavbar />
-                  <div className="w-full flex flex-col justify-center items-center sm:pt-[24px]">
-                    <Component {...pageProps} />
-                  </div>
-                </Mobile>
-                <Analytics />
-                <Tutorial />
-                <WalletAuthDialog />
-                <ToastContainer position="bottom-left" theme="dark" />
+                  </Mobile>
+                  <Analytics />
+                  <Tutorial />
+                  <WalletAuthDialog />
+                  <ToastContainer position="bottom-left" theme="dark" />
+                </LipClientProvider>
               </MrgnlendProvider>
             </MrgnWalletProvider>
           </WalletProvider>

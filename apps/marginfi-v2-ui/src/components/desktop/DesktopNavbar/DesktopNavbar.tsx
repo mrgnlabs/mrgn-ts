@@ -2,6 +2,7 @@ import { FC, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import { useLipClient } from "~/context";
 import { useRouter } from "next/router";
 import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
 import { Badge } from "@mui/material";
@@ -16,6 +17,7 @@ import { collectRewardsBatch } from "~/utils";
 import { IconMrgn } from "~/components/ui/icons";
 import { useLstStore } from "~/pages/stake";
 import { WalletButton } from "~/components/common/Wallet";
+import LipAccount from "@mrgnlabs/lip-client/src/account";
 
 // @todo implement second pretty navbar row
 const DesktopNavbar: FC = () => {
@@ -24,12 +26,16 @@ const DesktopNavbar: FC = () => {
   const { connection } = useConnection();
   const { connected, wallet, walletAddress } = useWalletContext();
   const router = useRouter();
-  const [selectedAccount, extendedBankInfos, lendUserDataFetched, resetLendUserData] = useMrgnlendStore((state) => [
-    state.selectedAccount,
-    state.extendedBankInfos,
-    state.userDataFetched,
-    state.resetUserData,
-  ]);
+  const { lipClient } = useLipClient();
+  const [mfiClient, selectedAccount, extendedBankInfos, lendUserDataFetched, resetLendUserData] = useMrgnlendStore(
+    (state) => [
+      state.marginfiClient,
+      state.selectedAccount,
+      state.extendedBankInfos,
+      state.userDataFetched,
+      state.resetUserData,
+    ]
+  );
   const [lstUserDataFetched, resetLstUserData] = useLstStore((state) => [state.userDataFetched, state.resetUserData]);
   const [showBadges, currentFirebaseUser, userPointsData, setShowBadges, fetchPoints] = useUserProfileStore((state) => [
     state.showBadges,
@@ -39,6 +45,10 @@ const DesktopNavbar: FC = () => {
     state.fetchPoints,
   ]);
 
+  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
+  const [currentRoute, setCurrentRoute] = useState(router.pathname);
+  const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
+
   useEffect(() => {
     if (!walletAddress && lendUserDataFetched) {
       resetLendUserData();
@@ -47,9 +57,6 @@ const DesktopNavbar: FC = () => {
       resetLstUserData();
     }
   }, [walletAddress, lendUserDataFetched, resetLendUserData, lstUserDataFetched, resetLstUserData]);
-
-  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState(router.pathname);
 
   const bankAddressesWithEmissions: PublicKey[] = useMemo(() => {
     if (!selectedAccount) return [];
@@ -69,6 +76,14 @@ const DesktopNavbar: FC = () => {
   useEffect(() => {
     setCurrentRoute(router.pathname);
   }, [router.pathname]);
+
+  useEffect(() => {
+    (async function () {
+      if (!mfiClient || !lipClient || !walletAddress) return;
+      const lipAccount = await LipAccount.fetch(walletAddress, lipClient, mfiClient);
+      setLipAccount(lipAccount);
+    })();
+  }, [lipClient, mfiClient, walletAddress]);
 
   // Enter hotkey mode
   useHotkeys(
@@ -186,27 +201,29 @@ const DesktopNavbar: FC = () => {
               </Badge>
             )}
 
-            <Badge
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              sx={{
-                "& .MuiBadge-badge": {
-                  backgroundColor: "rgb(220, 232, 93)",
-                  color: "#1C2125",
-                },
-              }}
-              badgeContent={"e"}
-              invisible={!showBadges}
-            >
-              <Link
-                href={"/earn"}
-                className={router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"}
+            {lipAccount && lipAccount.deposits.length > 0 && (
+              <Badge
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right",
+                }}
+                sx={{
+                  "& .MuiBadge-badge": {
+                    backgroundColor: "rgb(220, 232, 93)",
+                    color: "#1C2125",
+                  },
+                }}
+                badgeContent={"e"}
+                invisible={!showBadges}
               >
-                earn
-              </Link>
-            </Badge>
+                <Link
+                  href={"/earn"}
+                  className={router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"}
+                >
+                  earn
+                </Link>
+              </Badge>
+            )}
 
             <Badge
               anchorOrigin={{
