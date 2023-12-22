@@ -47,7 +47,7 @@ export const MobilePointsOverview: FC<MobilePointsOverviewProps> = ({ userPoints
                 </Typography>
                 <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
                   {userPointsData ? (
-                    `$${numeralFormatter(userPointsData.totalPoints)}`
+                    numeralFormatter(userPointsData.totalPoints)
                   ) : (
                     <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
                   )}
