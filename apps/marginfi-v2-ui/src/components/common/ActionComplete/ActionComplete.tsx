@@ -7,6 +7,8 @@ import { cn } from "~/utils";
 import { useUiStore } from "~/store";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
+import { IconCheck } from "~/components/ui/icons";
+import { Button } from "~/components/ui/button";
 
 export const ActionComplete = () => {
   const [isActionComplete, setIsActionComplete] = useUiStore((state) => [
@@ -23,7 +25,7 @@ export const ActionComplete = () => {
 
         setTimeout(() => {
           setIsConfetti(false);
-        }, 5000);
+        }, 8000);
       }, 1000);
     }
   }, [isActionComplete]);
@@ -32,14 +34,37 @@ export const ActionComplete = () => {
 
   return (
     <div>
-      <div />
       <Confetti
         width={width!}
         height={height! * 2}
         className={cn("z-[60] opacity-0 transition-opacity duration-500", isConfetti && "opacity-50")}
       />
       <Dialog open={isActionComplete} onOpenChange={(open) => setIsActionComplete(open)}>
-        <DialogContent className="z-[70]">Yay!</DialogContent>
+        <DialogContent className="z-[70]">
+          <div className="space-y-12">
+            <header className="space-y-3 text-center flex flex-col items-center justify-center">
+              <img
+                className="rounded-full w-16 h-16"
+                src="https://app.marginfi.com/_next/image?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsolana-labs%2Ftoken-list%2Fmain%2Fassets%2Fmainnet%2FSo11111111111111111111111111111111111111112%2Flogo.png&w=96&q=75"
+              />
+              <h2 className="font-medium text-xl">Deposit Complete</h2>
+            </header>
+            <div className="flex flex-col justify-center items-center">
+              <h3 className="mb-2">Total supplied</h3>
+              <p className="flex items-end gap-1.5 text-6xl font-medium">
+                0.05 <span className="text-2xl">SOL</span>
+              </p>
+              <p className="text-2xl font-medium text-success/80">+0.01</p>
+            </div>
+            {/* </div> */}
+            <div className="flex flex-col gap-3">
+              <Button className="max-w-fit mx-auto">Deposit another token</Button>
+              <button className="border-b border-white/80 max-w-fit mx-auto text-sm transition-colors hover:border-transparent">
+                Continue
+              </button>
+            </div>
+          </div>
+        </DialogContent>
       </Dialog>
     </div>
   );

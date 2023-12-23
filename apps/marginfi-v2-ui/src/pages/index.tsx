@@ -28,7 +28,7 @@ const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/
 
 const Home = () => {
   const { walletAddress, isOverride } = useWalletContext();
-  const [userMode] = useUiStore((state) => [state.userMode]);
+  const [userMode, setIsActionComplete] = useUiStore((state) => [state.userMode, state.setIsActionComplete]);
   const [
     fetchMrgnlendState,
     isStoreInitialized,
@@ -44,6 +44,10 @@ const Home = () => {
     state.marginfiAccounts,
     state.selectedAccount,
   ]);
+
+  React.useEffect(() => {
+    // setIsActionComplete(true);
+  }, []);
 
   return (
     <>
