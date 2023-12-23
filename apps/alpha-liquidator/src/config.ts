@@ -46,7 +46,7 @@ let envSchema = z.object({
     .transform((s) => s === "true" || s === "1"),
   TX_FEE: z
     .string()
-    .default("0.005")
+    .default("0.00005")
     .transform((s) => Math.round(Number.parseFloat(s) * LAMPORTS_PER_SOL)),
   IS_DEV: z
     .string()
