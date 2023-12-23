@@ -49,6 +49,7 @@ interface UiState {
   priorityFee: number;
   isActionSuccess: boolean;
   isActionSuccessShow: boolean;
+  isActionComplete: boolean;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -63,6 +64,7 @@ interface UiState {
   setUserMode: (userMode: UserMode) => void;
   setPriorityFee: (priorityFee: number) => void;
   triggerActionSuccess: () => void;
+  setIsActionComplete: (isActionSuccess: boolean) => void;
 }
 
 function createUiStore() {
@@ -86,6 +88,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   priorityFee: 0,
   isActionSuccess: false,
   isActionSuccessShow: false,
+  isActionComplete: true,
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -113,6 +116,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
       }, 2000);
     }, 5000);
   },
+  setIsActionComplete: (isActionComplete: boolean) => set({ isActionComplete: isActionComplete }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };
