@@ -215,7 +215,7 @@ export class Deposit {
 
   public computeUsdValue(oraclePrice: OraclePrice, bank: Bank): number {
     return bank
-      .computeUsdValue(oraclePrice, BigNumber(this.amount), PriceBias.None, new BigNumber(1), false)
+      .computeUsdValue(oraclePrice, BigNumber(this.amount), PriceBias.None, false, new BigNumber(1), false)
       .toNumber();
   }
 

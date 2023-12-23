@@ -1,6 +1,7 @@
 import {
   Balance,
   Bank,
+  getPriceWithConfidence,
   MarginfiAccountWrapper,
   MarginRequirementType,
   OraclePrice,
@@ -97,7 +98,7 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
   if ((bank.emissionsActiveLending || bank.emissionsActiveBorrowing) && emissionTokenData) {
     const emissionsRateAmount = new BigNumber(nativeToUi(bank.emissionsRate, emissionTokenData.decimals));
     const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
-    const emissionsRateAdditionalyApy = emissionsRateValue.div(oraclePrice.price);
+    const emissionsRateAdditionalyApy = emissionsRateValue.div(getPriceWithConfidence(oraclePrice, false).price);
 
     emissionsRate = emissionsRateAdditionalyApy.toNumber();
 
@@ -117,7 +118,9 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
     emissionsRate,
     emissions,
     totalDeposits,
+    depositCap: nativeToUi(bank.config.depositLimit, bank.mintDecimals),
     totalBorrows,
+    borrowCap: nativeToUi(bank.config.borrowLimit, bank.mintDecimals),
     availableLiquidity: liquidity,
     utilizationRate,
     isIsolated: bank.config.riskTier === RiskTier.Isolated,
@@ -189,7 +192,9 @@ export async function makeExtendedBankEmission(
     if ((rawBank.emissionsActiveLending || rawBank.emissionsActiveBorrowing) && emissionTokenData) {
       const emissionsRateAmount = new BigNumber(nativeToUi(rawBank.emissionsRate, emissionTokenData.decimals));
       const emissionsRateValue = emissionsRateAmount.times(emissionTokenData.price);
-      const emissionsRateAdditionalyApy = emissionsRateValue.div(bank.info.oraclePrice.price);
+      const emissionsRateAdditionalyApy = emissionsRateValue.div(
+        getPriceWithConfidence(bank.info.oraclePrice, false).price
+      );
 
       emissionsRate = emissionsRateAdditionalyApy.toNumber();
 
@@ -317,7 +322,9 @@ function makeExtendedBankInfo(
 
   let maxBorrow = 0;
   if (userData.marginfiAccount) {
-    const borrowPower = userData.marginfiAccount.computeMaxBorrowForBank(bank.address).toNumber() * VOLATILITY_FACTOR;
+    const borrowPower = userData.marginfiAccount
+      .computeMaxBorrowForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR })
+      .toNumber();
     maxBorrow = floor(
       Math.max(0, Math.min(borrowPower, borrowCapacity, bankInfo.availableLiquidity)),
       bankInfo.mintDecimals
@@ -396,8 +403,8 @@ function makeLendingPosition(
   const isLending = usdValues.liabilities.isZero();
 
   const amount = isLending
-    ? nativeToUi(amounts.assets.toNumber(), bankInfo.mintDecimals)
-    : nativeToUi(amounts.liabilities.toNumber(), bankInfo.mintDecimals);
+    ? nativeToUi(amounts.assets.integerValue(BigNumber.ROUND_DOWN).toNumber(), bankInfo.mintDecimals)
+    : nativeToUi(amounts.liabilities.integerValue(BigNumber.ROUND_UP).toNumber(), bankInfo.mintDecimals);
   const isDust = uiToNative(amount, bankInfo.mintDecimals).isZero();
   const weightedUSDValue = isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber();
   const usdValue = isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber();
@@ -558,7 +565,9 @@ interface BankState {
   emissionsRate: number;
   emissions: Emissions;
   totalDeposits: number;
+  depositCap: number;
   totalBorrows: number;
+  borrowCap: number;
   availableLiquidity: number;
   utilizationRate: number;
   isIsolated: boolean;

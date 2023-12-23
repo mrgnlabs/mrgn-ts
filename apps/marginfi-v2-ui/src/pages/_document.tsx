@@ -13,7 +13,6 @@ export default function Document() {
       <body className="no-scrollbar">
         <Main />
         <NextScript />
-        <Script src="https://terminal.jup.ag/main-v1.js" strategy="beforeInteractive" />
       </body>
     </Html>
   );

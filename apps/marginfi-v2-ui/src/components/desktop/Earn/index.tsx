@@ -40,11 +40,7 @@ const Earn = () => {
   const { lipClient } = useLipClient();
 
   const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
-  const [mfiClient, bankMetadataMap, fetchMrgnlendState] = useMrgnlendStore((state) => [
-    state.marginfiClient,
-    state.bankMetadataMap,
-    state.fetchMrgnlendState,
-  ]);
+  const [mfiClient, bankMetadataMap] = useMrgnlendStore((state) => [state.marginfiClient, state.bankMetadataMap]);
 
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [reloading, setReloading] = useState(false);
@@ -52,18 +48,6 @@ const Earn = () => {
   const [amount, setAmount] = useState(0);
   const [progressPercent, setProgressPercent] = useState(0);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
-
-  useEffect(() => {
-    setIsRefreshingStore(true);
-    fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
-    const id = setInterval(() => {
-      setIsRefreshingStore(true);
-      fetchMrgnlendState().catch(console.error);
-    }, 30_000);
-    return () => clearInterval(id);
-  }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
-  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
-  // TODO: fix...
 
   const whitelistedCampaignsWithMeta = useMemo(() => {
     if (!lipClient) return [];
@@ -199,101 +183,9 @@ const Earn = () => {
 
   return (
     <>
-      <div className="h-full w-[350px] sm:w-[400px] flex flex-col justify-start items-center content-start gap-4 px-[20px] sm:px-[32px] py-[12px] sm:py-[24px] rounded-xl mt-10">
-        <div className="w-full flex flex-col items-center gap-6">
-          <div className="w-full flex flex-col gap-1 justify-center">
-            {connected && (
-              <div
-                className="w-full flex justify-center items-center gap-2 text-xl sm:text-2xl"
-                style={{ fontWeight: 400 }}
-              >
-                Your total deposits:
-                <span style={{ color: "#51B56A" }}>
-                  {
-                    // Since users will only be able to deposit to the LIP,
-                    // the balance of their account should match total deposits.
-                  }
-                  {usdFormatter.format(lipAccount?.getTotalBalance().toNumber() || 0)}
-                </span>
-              </div>
-            )}
-          </div>
-          <div className="w-full px-10 mb-7 mt-3">
-            <div className="relative w-full flex flex-col justify-center items-center">
-              <LinearProgress
-                className="h-1 w-full rounded-lg"
-                variant="determinate"
-                color="inherit"
-                value={progressPercent}
-                sx={{
-                  backgroundColor: "#484848",
-                  "& .MuiLinearProgress-bar": {
-                    backgroundColor: "#51B56A",
-                  },
-                }}
-              />
-              <Marks marks={marks} />
-            </div>
-          </div>
-
-          <div className="w-full flex flex-col">
-            <div
-              className="w-full flex justify-center gap-2 text-[#484848] text-lg sm:text-xl"
-              style={{ fontWeight: 400 }}
-            >
-              FUNDS WILL BE LOCKED FOR:
-            </div>
-            <div
-              className="w-full flex justify-center gap-2 text-xl sm:text-2xl d"
-              style={{ fontWeight: 400, letterSpacing: "0.2em" }}
-            >
-              ⚠️<span style={{ color: "yellow" }}>6 MONTHS</span>⚠️
-            </div>
-            <div
-              className="w-full flex justify-center gap-2 text-[#484848] text-lg sm:text-xl"
-              style={{ fontWeight: 400 }}
-            >
-              FROM DEPOSIT DATE
-            </div>
-          </div>
-
-          <div className="w-full flex justify-center">
-            <AssetSelection
-              whitelistedCampaigns={whitelistedCampaignsWithMeta}
-              setSelectedCampaign={setSelectedCampaign}
-              bankMetadataMap={bankMetadataMap}
-            />
-          </div>
-
-          <div className="w-full flex justify-center">
-            <EarnInputBox
-              value={amount}
-              setValue={setAmount}
-              maxValue={maxDepositAmount}
-              loadingSafetyCheck={loadingSafetyCheck}
-              maxDecimals={2}
-              disabled={!connected}
-            />
-          </div>
-
-          <div className="w-full flex justify-center">
-            {
-              // You can only deposit right now.
-              // All funds will be locked up for 6 months, each from the date of its *own* deposit.
-            }
-            <EarnAction
-              onClick={depositAction}
-              spinning={!initialFetchDone || reloading}
-              disabled={!initialFetchDone || reloading}
-            >
-              Deposit
-            </EarnAction>
-          </div>
-        </div>
-      </div>
       {lipAccount && lipAccount.deposits.length > 0 && (
         <>
-          <div className="text-2xl flex justify-center gap-2 mb-[40px]" style={{ fontWeight: 400 }}>
+          <div className="text-2xl flex justify-center gap-2 my-[40px]" style={{ fontWeight: 400 }}>
             Your deposits
           </div>
           <div className="w-full max-w-[1000px] flex flex-wrap justify-center mb-[30px] gap-10">
@@ -394,6 +286,7 @@ const DepositTile: FC<DepositTileProps> = ({ deposit, closeDepositCb, bankMetada
                 deposit.campaign.oraclePrice,
                 new BigNumber(deposit.maturityAmount),
                 PriceBias.None,
+                false,
                 undefined,
                 false
               )

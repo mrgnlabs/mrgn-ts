@@ -43,7 +43,10 @@ module.exports = {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
-        "background-gray": "#1A1F22",
+        "background-gray": "#1C2125",
+        "background-gray-hover": "#292F34",
+        "background-gray-light": "#303030",
+        "background-gray-dark": "#131618",
         foreground: "hsl(var(--foreground))",
         chartreuse: "#DCE85D",
         primary: {
@@ -53,6 +56,10 @@ module.exports = {
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+        },
+        alert: {
+          DEFAULT: "hsl(35 14% 17%)",
+          foreground: "hsl(33 96% 61%)",
         },
         destructive: {
           DEFAULT: "var(--destructive)",

@@ -1,99 +1,23 @@
 import React from "react";
 
-import Image from "next/image";
-
-import { ExtendedBankInfo, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Skeleton, Typography } from "@mui/material";
-
-import { useMrgnlendStore, useUiStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
-
-import { MrgnTooltip } from "~/components/common";
-import {
-  LSTDialog,
-  LSTDialogVariants,
-  AssetListFilters,
-  sortApRate,
-  sortTvl,
-  STABLECOINS,
-  LSTS,
-} from "~/components/common/AssetList";
-import { AssetCard } from "~/components/mobile/MobileAssetsList/AssetCard";
-
+import { useUiStore } from "~/store";
 import { LendingModes } from "~/types";
 
+import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
+
 export const MobileAssetsList = () => {
-  const { connected } = useWalletContext();
-
-  const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-    state.selectedAccount,
-  ]);
-
-  const [lendingMode, isFilteredUserPositions, sortOption, poolFilter] = useUiStore((state) => [
-    state.lendingMode,
-    state.isFilteredUserPositions,
-    state.sortOption,
-    state.poolFilter,
-  ]);
+  const [lendingMode] = useUiStore((state) => [state.lendingMode]);
 
   const isInLendingMode = React.useMemo(() => lendingMode === LendingModes.LEND, [lendingMode]);
-  const inputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
 
-  const activeBankInfos = React.useMemo(
-    () => extendedBankInfos.filter((balance) => balance.isActive),
-    [extendedBankInfos]
-  ) as ActiveBankInfo[];
-
-  const sortBanks = React.useCallback(
-    (banks: ExtendedBankInfo[]) => {
-      if (sortOption.field === "APY") {
-        return sortApRate(banks, isInLendingMode, sortOption.direction);
-      } else if (sortOption.field === "TVL") {
-        return sortTvl(banks, sortOption.direction);
-      } else {
-        return banks;
-      }
-    },
-    [isInLendingMode, sortOption]
-  );
-
-  const globalBanks = React.useMemo(() => {
-    const filteredBanks =
-      extendedBankInfos &&
-      extendedBankInfos
-        .filter((b) => !b.info.state.isIsolated)
-        .filter((b) => (isFilteredUserPositions ? b.isActive : true));
-
-    if (isStoreInitialized && sortOption && filteredBanks) {
-      return sortBanks(filteredBanks);
-    } else {
-      return filteredBanks;
-    }
-  }, [isStoreInitialized, extendedBankInfos, sortOption, isFilteredUserPositions, sortBanks]);
-
-  const isolatedBanks = React.useMemo(() => {
-    const filteredBanks =
-      extendedBankInfos &&
-      extendedBankInfos
-        .filter((b) => b.info.state.isIsolated)
-        .filter((b) => (isFilteredUserPositions ? b.isActive : true));
-
-    if (isStoreInitialized && sortOption && filteredBanks) {
-      return sortBanks(filteredBanks);
-    } else {
-      return filteredBanks;
-    }
-  }, [isStoreInitialized, extendedBankInfos, sortOption, isFilteredUserPositions, sortBanks]);
-
   return (
     <>
-      <AssetListFilters />
+      {/* {walletAddress && <Portfolio />} */}
+      {/* <AssetListFilters />
+
       <div className="pb-2">
         {poolFilter !== "isolated" && (
           <div className="w-full">
@@ -117,17 +41,7 @@ export const MobileAssetsList = () => {
                         nativeSolBalance={nativeSolBalance}
                         bank={bank}
                         isInLendingMode={isInLendingMode}
-                        isConnected={connected}
-                        marginfiAccount={selectedAccount}
-                        inputRefs={inputRefs}
                         activeBank={activeBank[0]}
-                        showLSTDialog={(variant: LSTDialogVariants, onClose?: () => void) => {
-                          setLSTDialogVariant(variant);
-                          setIsLSTDialogOpen(true);
-                          if (onClose) {
-                            setLSTDialogCallback(() => onClose);
-                          }
-                        }}
                       />
                     );
                   })}
@@ -187,9 +101,6 @@ export const MobileAssetsList = () => {
                         nativeSolBalance={nativeSolBalance}
                         bank={bank}
                         isInLendingMode={isInLendingMode}
-                        isConnected={connected}
-                        marginfiAccount={selectedAccount}
-                        inputRefs={inputRefs}
                         activeBank={activeBank[0]}
                       />
                     );
@@ -215,7 +126,7 @@ export const MobileAssetsList = () => {
             )}
           </div>
         )}
-      </div>
+      </div> */}
 
       <LSTDialog
         variant={lstDialogVariant}

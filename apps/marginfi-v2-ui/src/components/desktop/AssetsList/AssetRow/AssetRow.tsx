@@ -1,9 +1,9 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React from "react";
 import clsx from "clsx";
 import Image from "next/image";
-import { TableCell, TableRow, Tooltip, Typography } from "@mui/material";
-import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
 import Badge from "@mui/material/Badge";
+import { TableCell, TableRow, Tooltip, Typography } from "@mui/material";
+
 import { WSOL_MINT, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import {
   ExtendedBankInfo,
@@ -12,15 +12,20 @@ import {
   getCurrentAction,
   ExtendedBankMetadata,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
-import { AssetRowInputBox, AssetRowAction, LSTDialogVariants, SWITCHBOARD_BANKS } from "~/components/common/AssetList";
-import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useIsMobile } from "~/hooks/useIsMobile";
-import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
-import { IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { getPriceWithConfidence, MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
+import { AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
+import { ActionBoxDialog } from "~/components/common/ActionBox";
+
 import { LendingModes } from "~/types";
+import { useAssetItemData } from "~/hooks/useAssetItemData";
+import { useIsMobile } from "~/hooks/useIsMobile";
+import { IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+
+import { useUserProfileStore, useUiStore } from "~/store";
+import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
+
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { Button } from "~/components/ui/button";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
   [
@@ -39,9 +44,9 @@ export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tok
   ],
 ]);
 
-const REDUCE_ONLY_BANKS = ["stSOL"];
+export const REDUCE_ONLY_BANKS = ["stSOL"];
 
-const AssetRow: FC<{
+const AssetRow: React.FC<{
   bank: ExtendedBankInfo;
   nativeSolBalance: number;
   isInLendingMode: boolean;
@@ -66,23 +71,24 @@ const AssetRow: FC<{
   showLSTDialog,
 }) => {
   const [lendZoomLevel, denominationUSD] = useUserProfileStore((state) => [state.lendZoomLevel, state.denominationUSD]);
-  const setIsRefreshingStore = useMrgnlendStore((state) => state.setIsRefreshingStore);
-  const [mfiClient, fetchMrgnlendState] = useMrgnlendStore((state) => [state.marginfiClient, state.fetchMrgnlendState]);
-  const [lendingMode, isFilteredUserPositions] = useUiStore((state) => [
+  const [lendingMode, setLendingMode, isFilteredUserPositions] = useUiStore((state) => [
     state.lendingMode,
+    state.setLendingMode,
     state.isFilteredUserPositions,
   ]);
+
   const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
-  const [hasLSTDialogShown, setHasLSTDialogShown] = useState<LSTDialogVariants[]>([]);
-  const { walletContextState } = useWalletContext();
+
   const isMobile = useIsMobile();
 
-  const isReduceOnly = useMemo(
+  const [isHovering, setIsHovering] = React.useState(false);
+
+  const isReduceOnly = React.useMemo(
     () => (bank?.meta?.tokenSymbol ? REDUCE_ONLY_BANKS.includes(bank.meta.tokenSymbol) : false),
     [bank.meta.tokenSymbol]
   );
 
-  const isUserPositionPoorHealth = useMemo(() => {
+  const isUserPositionPoorHealth = React.useMemo(() => {
     if (!activeBank || !activeBank.position.liquidationPrice) {
       return false;
     }
@@ -102,26 +108,25 @@ const AssetRow: FC<{
     }
   }, [activeBank]);
 
-  const userPositionColSpan = useMemo(() => {
+  const userPositionColSpan = React.useMemo(() => {
     if (isMobile) {
-      return 6;
+      return 4;
     }
     if (lendZoomLevel === 3) {
-      return 9;
+      return 7;
     }
     if (lendZoomLevel === 2) {
-      return 10;
+      return 8;
     }
-    return 11;
+    return 9;
   }, [isMobile, lendZoomLevel]);
 
-  const assetPrice = useMemo(
-    () =>
-      bank.info.oraclePrice.priceRealtime ? bank.info.oraclePrice.priceRealtime.toNumber() : bank.info.state.price,
-    [bank.info.oraclePrice.priceRealtime, bank.info.state.price]
+  const assetPrice = React.useMemo(
+    () => getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber(),
+    [getPriceWithConfidence(bank.info.oraclePrice, false).price, bank.info.state.price]
   );
 
-  const assetPriceOffset = useMemo(
+  const assetPriceOffset = React.useMemo(
     () =>
       Math.max(
         bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
@@ -130,165 +135,89 @@ const AssetRow: FC<{
     [bank.info]
   );
 
-  const [amount, setAmount] = useState(0);
-
-  const currentAction: ActionType = useMemo(() => getCurrentAction(isInLendingMode, bank), [isInLendingMode, bank]);
-
-  const maxAmount = useMemo(() => {
-    switch (currentAction) {
-      case ActionType.Deposit:
-        return bank.userInfo.maxDeposit;
-      case ActionType.Withdraw:
-        return bank.userInfo.maxWithdraw;
-      case ActionType.Borrow:
-        return bank.userInfo.maxBorrow;
-      case ActionType.Repay:
-        return bank.userInfo.maxRepay;
-    }
-  }, [bank, currentAction]);
-  const isDust = bank.isActive && bank.position.isDust;
-  const showCloseBalance = currentAction === ActionType.Withdraw && isDust; // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
-  const isActionDisabled = useMemo(() => {
-    const isValidInput = amount > 0;
-    return (maxAmount === 0 || !isValidInput) && !showCloseBalance;
-  }, [amount, showCloseBalance, maxAmount]);
-  const isInputDisabled = useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
-
-  // Reset b/l amounts on toggle
-  useEffect(() => {
-    setAmount(0);
-  }, [isInLendingMode]);
-
-  const handleCloseBalance = useCallback(async () => {
-    try {
-      await closeBalance({ marginfiAccount, bank });
-    } catch (error) {
-      return;
-    }
-
-    setAmount(0);
-
-    try {
-      setIsRefreshingStore(true);
-      await fetchMrgnlendState();
-    } catch (error: any) {
-      console.log("Error while reloading state");
-      console.log(error);
-    }
-  }, [bank, marginfiAccount, fetchMrgnlendState, setIsRefreshingStore]);
-
-  const executeLendingActionCb = useCallback(
-    async ({
-      mfiClient,
-      actionType: currentAction,
-      bank,
-      amount: borrowOrLendAmount,
-      nativeSolBalance,
-      marginfiAccount,
-      walletContextState,
-    }: MarginfiActionParams) => {
-      await executeLendingAction({
-        mfiClient,
-        actionType: currentAction,
-        bank,
-        amount: borrowOrLendAmount,
-        nativeSolBalance,
-        marginfiAccount,
-        walletContextState,
-      });
-
-      setAmount(0);
-
-      // -------- Refresh state
-      try {
-        setIsRefreshingStore(true);
-        await fetchMrgnlendState();
-      } catch (error: any) {
-        console.log("Error while reloading state");
-        console.log(error);
-      }
-    },
-    [fetchMrgnlendState, setIsRefreshingStore]
+  const currentAction: ActionType = React.useMemo(
+    () => getCurrentAction(isInLendingMode, bank),
+    [isInLendingMode, bank]
   );
 
-  const handleLendingAction = useCallback(async () => {
-    if (
-      currentAction === ActionType.Deposit &&
-      (bank.meta.tokenSymbol === "SOL" || bank.meta.tokenSymbol === "stSOL") &&
-      !hasLSTDialogShown.includes(bank.meta.tokenSymbol as LSTDialogVariants) &&
-      showLSTDialog
-    ) {
-      setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
-      showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants, async () => {
-        await executeLendingActionCb({
-          mfiClient,
-          actionType: currentAction,
-          bank,
-          amount: amount,
-          nativeSolBalance,
-          marginfiAccount,
-          walletContextState,
-        });
-      });
-      return;
-    }
+  const isDust = React.useMemo(() => bank.isActive && bank.position.isDust, [bank]);
+  const showCloseBalance = currentAction === ActionType.Withdraw && isDust; // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
 
-    await executeLendingActionCb({
-      mfiClient,
-      actionType: currentAction,
-      bank,
-      amount: amount,
-      nativeSolBalance,
-      marginfiAccount,
-      walletContextState,
-    });
+  const oracle = React.useMemo(
+    () => (bank.info.rawBank.config.oracleSetup === 1 ? "Pyth" : "Switchboard"),
+    [bank.info.rawBank.config.oracleSetup]
+  );
 
-    if (
-      currentAction === ActionType.Withdraw &&
-      (bank.meta.tokenSymbol === "SOL" || bank.meta.tokenSymbol === "stSOL") &&
-      !hasLSTDialogShown.includes(bank.meta.tokenSymbol as LSTDialogVariants) &&
-      showLSTDialog
-    ) {
-      setHasLSTDialogShown((prev) => [...prev, bank.meta.tokenSymbol as LSTDialogVariants]);
-      showLSTDialog(bank.meta.tokenSymbol as LSTDialogVariants);
-      return;
-    }
-  }, [
-    currentAction,
-    bank,
-    hasLSTDialogShown,
-    showLSTDialog,
-    executeLendingActionCb,
-    mfiClient,
-    amount,
-    nativeSolBalance,
-    marginfiAccount,
-    walletContextState,
-  ]);
+  const dogWifHatRef = React.useRef<HTMLTableRowElement>(null);
+  const [showDogWifHatImage, setShowDogWifHatImage] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setShowDogWifHatImage(false);
+    };
+
+    document.body.addEventListener("scroll", handleScroll);
+
+    return () => {
+      document.body.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   return (
     <>
+      {bank.meta.tokenSymbol === "$WIF" && dogWifHatRef.current && (
+        <Image
+          src="/dogwifhat.png"
+          alt="wif"
+          height={25}
+          width={25}
+          style={{
+            position: "absolute",
+            zIndex: 1,
+            left: dogWifHatRef.current.getBoundingClientRect().left - 6,
+            top: dogWifHatRef.current.getBoundingClientRect().top - 12,
+            transform: "rotate(-15deg)",
+            transition: "opacity 0.2s ease-in-out",
+            opacity: showDogWifHatImage ? 1 : 0,
+          }}
+        />
+      )}
       <TableRow
+        ref={bank.meta.tokenSymbol === "$WIF" ? dogWifHatRef : null}
         data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
         data-asset-row-position={activeBank?.position.amount ? "true" : "false"}
-        className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122]"
+        onMouseEnter={() => {
+          setIsHovering(true);
+          setShowDogWifHatImage(true);
+        }}
+        onMouseLeave={() => {
+          setIsHovering(false);
+          setShowDogWifHatImage(false);
+        }}
+        className={cn("h-[54px] w-full transition-colors z-10", isHovering && "bg-background-gray")}
       >
         <TableCell
-          className={`text-white p-0 font-aeonik border-none`}
+          className="text-white p-0 font-aeonik border-none"
           style={{
             fontWeight: 300,
           }}
         >
           <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
             {bank.meta.tokenLogoUri && (
-              <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} height={25} width={25} />
+              <Image
+                src={bank.meta.tokenLogoUri}
+                alt={bank.meta.tokenSymbol}
+                height={25}
+                width={25}
+                className="rounded-full"
+              />
             )}
-            <div className="font-aeonik hidden lg:block">{bank.meta.tokenSymbol}</div>
+            <div className="font-aeonik block">{bank.meta.tokenSymbol}</div>
           </div>
         </TableCell>
 
         <TableCell
-          className={`text-white border-none px-2 font-aeonik hidden lg:table-cell`}
+          className={`text-white border-none px-2 font-aeonik table-cell`}
           align="right"
           style={{ fontWeight: 300 }}
         >
@@ -331,17 +260,8 @@ const AssetRow: FC<{
                   : `$${assetPrice.toExponential(2)}`}
               </Badge>
             </MrgnTooltip>
-            <MrgnTooltip
-              title={`Powered by ${SWITCHBOARD_BANKS.includes(bank.meta.tokenSymbol) ? "Switchboard" : "Pyth"}`}
-              placement="right"
-            >
-              <div>
-                {SWITCHBOARD_BANKS.includes(bank.meta.tokenSymbol) ? (
-                  <IconSwitchboard size={14} />
-                ) : (
-                  <IconPyth size={14} />
-                )}
-              </div>
+            <MrgnTooltip title={`Powered by ${oracle}`} placement="right">
+              <div>{oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}</div>
             </MrgnTooltip>
           </div>
         </TableCell>
@@ -448,16 +368,22 @@ const AssetRow: FC<{
                 ? usdFormatter.format(
                     (isInLendingMode
                       ? bank.info.state.totalDeposits
-                      : Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-                        bank.info.state.totalBorrows) * bank.info.state.price
+                      : Math.min(
+                          bank.info.state.borrowCap - bank.info.state.totalBorrows,
+                          bank.info.state.availableLiquidity
+                        ) <= 0
+                      ? 0
+                      : Math.min(
+                          bank.info.state.borrowCap - bank.info.state.totalBorrows,
+                          bank.info.state.availableLiquidity
+                        )) * bank.info.state.price
                   )
                 : numeralFormatter(
                     isInLendingMode
                       ? bank.info.state.totalDeposits
-                      : Math.max(
-                          0,
-                          Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-                            bank.info.state.totalBorrows
+                      : Math.min(
+                          bank.info.state.borrowCap - bank.info.state.totalBorrows,
+                          bank.info.state.availableLiquidity
                         )
                   )}
             </Badge>
@@ -493,7 +419,7 @@ const AssetRow: FC<{
         {/*******************************/}
 
         <TableCell
-          className="text-white border-none font-aeonik px-2 hidden lg:table-cell"
+          className="text-white border-none font-aeonik px-2 table-cell"
           align="right"
           style={{ fontWeight: 300 }}
         >
@@ -510,51 +436,25 @@ const AssetRow: FC<{
               )}
         </TableCell>
 
-        <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
-          <Badge
-            anchorOrigin={{
-              vertical: "bottom",
-              horizontal: "right",
-            }}
-            sx={{
-              "& .MuiBadge-badge": {
-                backgroundColor: "rgb(220, 232, 93)",
-                color: "#1C2125",
-              },
-            }}
-            badgeContent={hasHotkey ? badgeContent : ""}
-            invisible={hasHotkey ? !showHotkeyBadges : true}
-          >
-            <AssetRowInputBox
-              tokenName={bank.meta.tokenSymbol}
-              value={amount}
-              setValue={setAmount}
-              maxValue={maxAmount}
-              maxDecimals={bank.info.state.mintDecimals}
-              inputRefs={inputRefs}
-              disabled={isInputDisabled}
-              onEnter={handleLendingAction}
-            />
-          </Badge>
-        </TableCell>
-
         <TableCell className="text-white border-none font-aeonik py-1.5 px-0">
           <Tooltip
             title={marginfiAccount === null ? "User account will be automatically created on first deposit" : ""}
             placement="top"
           >
-            <div className="h-full w-full flex justify-end items-center xl:ml-0 pl-2 sm:px-2">
-              <AssetRowAction
-                bgColor={
-                  currentAction === ActionType.Deposit || currentAction === ActionType.Borrow
-                    ? "rgb(227, 227, 227)"
-                    : "rgba(0,0,0,0)"
+            <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
+              <ActionBoxDialog
+                requestedToken={bank.address}
+                requestedAction={currentAction}
+                requestedLendingMode={
+                  currentAction === ActionType.Repay
+                    ? LendingModes.BORROW
+                    : currentAction === ActionType.Withdraw
+                    ? LendingModes.LEND
+                    : undefined
                 }
-                onClick={showCloseBalance ? handleCloseBalance : handleLendingAction}
-                disabled={isActionDisabled}
               >
-                {showCloseBalance ? "Close" : currentAction}
-              </AssetRowAction>
+                <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
+              </ActionBoxDialog>
             </div>
           </Tooltip>
         </TableCell>
@@ -563,7 +463,9 @@ const AssetRow: FC<{
         (isFilteredUserPositions || activeBank?.position.isLending === (lendingMode === LendingModes.LEND)) && (
           <TableRow
             data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
-            className="h-[54px] w-full bg-[#171C1F] border border-[#1E2122] transition-all"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            className={cn("h-[54px] w-full transition-colors", isHovering && "bg-background-gray")}
           >
             <TableCell
               colSpan={userPositionColSpan}
@@ -643,7 +545,7 @@ const AssetRow: FC<{
   );
 };
 
-const LoadingAsset: FC<{ isInLendingMode: boolean; bankMetadata: ExtendedBankMetadata }> = ({
+const LoadingAsset: React.FC<{ isInLendingMode: boolean; bankMetadata: ExtendedBankMetadata }> = ({
   isInLendingMode,
   bankMetadata,
 }) => (
@@ -668,9 +570,8 @@ const LoadingAsset: FC<{ isInLendingMode: boolean; bankMetadata: ExtendedBankMet
       <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
       <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
       <TableCell className={`w-full text-white p-0 font-aeonik border-none`}>-</TableCell>
-      <TableCell className="border-none p-0 w-full xl:px-4" align="right" colSpan={2}>
-        <AssetRowInputBox tokenName={bankMetadata.tokenSymbol} value={0} setValue={() => {}} disabled={true} />
-      </TableCell>
+
+      <TableCell className="border-none"></TableCell>
       <TableCell className="text-white border-none font-aeonik p-0">
         <div className="h-full w-full flex justify-end items-center ml-2 xl:ml-0 pl-2 sm:px-2">
           <AssetRowAction bgColor={"rgb(227, 227, 227)"}>{isInLendingMode ? "Supply" : "Borrow"}</AssetRowAction>

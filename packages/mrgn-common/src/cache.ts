@@ -49,7 +49,7 @@ function parseTokenMetadatas(tokenMetadataListRaw: TokenMetadataListRaw): {
 async function loadTokenMetadatas(): Promise<{
   [symbol: string]: TokenMetadata;
 }> {
-  const response = await fetch(`https://storage.googleapis.com/mrgn-public/token-metadata.json`, {
+  const response = await fetch(`https://storage.googleapis.com/mrgn-public/mrgn-token-metadata-cache.json`, {
     headers: {
       Accept: "application/json",
     },

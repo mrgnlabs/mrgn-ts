@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
@@ -25,9 +25,10 @@ import { Button } from "~/components/ui/button";
 import { IconCheck, IconChevronDown, IconCopy } from "~/components/ui/icons";
 
 export const Wallet = () => {
-  const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
+  const [extendedBankInfos, nativeSolBalance, initialized] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
+    state.initialized,
   ]);
   const [isWalletOpen, setIsWalletOpen] = useUiStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
 
@@ -51,6 +52,26 @@ export const Wallet = () => {
     tokens: [],
   });
 
+  useEffect(() => {
+    if (walletData && walletData.address && walletData.tokens.length === 0 && initialized) highlightMoonPay();
+  }, [walletData, initialized]);
+
+  const highlightMoonPay = () => {
+    if (!document) return;
+    const moonpayButton = document.querySelector(`#moonpay-btn`);
+    const walletSheetItems = document.querySelectorAll(".wallet-sheet-item");
+    if (!moonpayButton) return;
+
+    walletSheetItems.forEach((item) => item.classList.add("opacity-30"));
+    moonpayButton.classList.remove("opacity-30");
+    moonpayButton.classList.add("animate-pulse");
+
+    setTimeout(() => {
+      walletSheetItems.forEach((item) => item.classList.remove("opacity-30"));
+      moonpayButton.classList.remove("opacity-30", "animate-pulse");
+    }, 2500);
+  };
+
   const address = React.useMemo(() => {
     if (!wallet?.publicKey) return "";
     return shortenAddress(wallet?.publicKey?.toString());
@@ -59,7 +80,8 @@ export const Wallet = () => {
   // fetch wallet data and store in state
   // address, sol balance, token balances
   const getWalletData = React.useCallback(async () => {
-    if (!connection || !wallet?.publicKey || !extendedBankInfos || !nativeSolBalance) return;
+    if (!connection || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance))
+      return;
 
     const userBanks = extendedBankInfos.filter(
       (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
@@ -134,7 +156,7 @@ export const Wallet = () => {
     <>
       <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
         <SheetTrigger asChild>
-          {walletData && (
+          {walletData && initialized && (
             <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
               <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
               {walletData.shortAddress}
@@ -145,7 +167,7 @@ export const Wallet = () => {
         <SheetContent className="outline-none">
           {walletData ? (
             <div className="pt-4 px-4 h-full flex flex-col">
-              <header className="space-y-2 flex flex-col items-center mb-8">
+              <header className="space-y-2 flex flex-col items-center mb-8 wallet-sheet-item">
                 <WalletAvatar pfp={pfp} address={walletData.address} size="lg" />
                 <CopyToClipboard
                   text={walletData.address}
@@ -174,13 +196,15 @@ export const Wallet = () => {
                 </CopyToClipboard>
               </header>
               <div className="flex flex-col items-center h-full">
-                <div className="text-center">
+                <div className="text-center wallet-sheet-item">
                   <h2 className="text-3xl font-medium">{walletData.balanceUSD}</h2>
                   <p className="text-muted-foreground text-sm">~{walletData.balanceSOL} SOL</p>
                 </div>
-                <WalletTokens tokens={walletData.tokens} />
+                <div className="wallet-sheet-item">
+                  <WalletTokens tokens={walletData.tokens} />
+                </div>
                 <div className="pt-8">
-                  <div className="text-sm text-white/50 text-center mb-4">
+                  <div className="text-sm text-white/50 text-center mb-4 wallet-sheet-item">
                     Transfer funds to your marginfi wallet
                     <CopyToClipboard
                       text={walletData.address}

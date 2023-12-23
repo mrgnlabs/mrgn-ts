@@ -1,7 +1,6 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 import type { AppProps } from "next/app";
-import { useRouter } from "next/router";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 
@@ -18,6 +17,7 @@ import { useLstStore } from "./stake";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";
+import { LipClientProvider } from "~/context";
 import { init as initAnalytics } from "~/utils/analytics";
 
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
@@ -27,6 +27,7 @@ import { WalletAuthDialog } from "~/components/common/Wallet";
 import "swiper/css";
 import "swiper/css/pagination";
 import "react-toastify/dist/ReactToastify.min.css";
+import { MrgnlendProvider } from "~/context";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -43,7 +44,6 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 const MATOMO_URL = "https://mrgn.matomo.cloud";
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
-  const router = useRouter();
   const [setIsFetchingData] = useUiStore((state) => [state.setIsFetchingData]);
   const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
@@ -82,19 +82,6 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     initAnalytics();
   }, []);
 
-  // if account set in query param then store inn local storage and remove from url
-  useEffect(() => {
-    const { account } = router.query;
-    if (!account) return;
-
-    const prevMfiAccount = localStorage.getItem("mfiAccount");
-    if (prevMfiAccount === account) return;
-
-    localStorage.setItem("mfiAccount", account as string);
-    router.replace(router.pathname, undefined, { shallow: true });
-    fetchMrgnlendState();
-  }, [router.query]); // eslint-disable-line react-hooks/exhaustive-deps
-
   return (
     <>
       <Head>
@@ -108,26 +95,30 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
         <ConnectionProvider endpoint={config.rpcEndpoint}>
           <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
             <MrgnWalletProvider>
-              <Desktop>
-                <WalletModalProvider>
-                  <DesktopNavbar />
-                  <div className="w-full flex flex-col justify-center items-center pt-[64px]">
-                    <Component {...pageProps} />
-                  </div>
-                  <Footer />
-                </WalletModalProvider>
-              </Desktop>
+              <MrgnlendProvider>
+                <LipClientProvider>
+                  <Desktop>
+                    <WalletModalProvider>
+                      <DesktopNavbar />
+                      <div className="w-full flex flex-col justify-center items-center pt-[64px]">
+                        <Component {...pageProps} />
+                      </div>
+                      <Footer />
+                    </WalletModalProvider>
+                  </Desktop>
 
-              <Mobile>
-                <MobileNavbar />
-                <div className="w-full flex flex-col justify-center items-center sm:pt-[24px]">
-                  <Component {...pageProps} />
-                </div>
-              </Mobile>
-              <Analytics />
-              <Tutorial />
-              <WalletAuthDialog />
-              <ToastContainer position="bottom-left" theme="dark" />
+                  <Mobile>
+                    <MobileNavbar />
+                    <div className="w-full flex flex-col justify-center items-center sm:pt-[24px]">
+                      <Component {...pageProps} />
+                    </div>
+                  </Mobile>
+                  <Analytics />
+                  <Tutorial />
+                  <WalletAuthDialog />
+                  <ToastContainer position="bottom-left" theme="dark" />
+                </LipClientProvider>
+              </MrgnlendProvider>
             </MrgnWalletProvider>
           </WalletProvider>
         </ConnectionProvider>

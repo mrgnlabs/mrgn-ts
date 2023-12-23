@@ -18,7 +18,7 @@ import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
-import type { Bank, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import { Bank, getPriceWithConfidence, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import type { Wallet, BankMetadataMap, TokenMetadataMap, TokenMetadata } from "@mrgnlabs/mrgn-common";
 import type { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import type { MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
@@ -65,12 +65,11 @@ function createMrgnlendStore() {
 }
 
 function createPersistentMrgnlendStore() {
-  return create<MrgnlendState, [["zustand/persist", Pick<MrgnlendState, "extendedBankInfos" | "protocolStats">]]>(
+  return create<MrgnlendState, [["zustand/persist", Pick<MrgnlendState, "protocolStats">]]>(
     persist(stateCreator, {
       name: "mrgnlend-peristent-store",
       partialize(state) {
         return {
-          extendedBankInfos: state.extendedBankInfos,
           protocolStats: state.protocolStats,
         };
       },
@@ -281,8 +280,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       const { deposits, borrows } = extendedBankInfos.reduce(
         (acc, bank) => {
-          acc.deposits += bank.info.state.totalDeposits * bank.info.oraclePrice.price.toNumber();
-          acc.borrows += bank.info.state.totalBorrows * bank.info.oraclePrice.price.toNumber();
+          const price = getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber();
+          acc.deposits += bank.info.state.totalDeposits * price;
+          acc.borrows += bank.info.state.totalBorrows * price;
           return acc;
         },
         { deposits: 0, borrows: 0 }

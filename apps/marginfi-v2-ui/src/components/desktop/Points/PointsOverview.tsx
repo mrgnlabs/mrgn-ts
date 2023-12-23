@@ -11,8 +11,8 @@ interface PointsOverviewProps {
 
 export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
   return (
-    <>
-      <div className="grid grid-cols-2 gap-5 max-w-[800px] mx-auto w-full mt-2">
+    <div className="max-w-[800px] w-full mx-auto   mt-4 ">
+      <div className="grid grid-cols-2 gap-5 mb-4">
         <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
           <CardContent>
             <Typography
@@ -66,7 +66,7 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
           </CardContent>
         </Card>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-5 max-w-[800px] mx-auto w-full">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-5 ">
         <Card className="bg-[#131619]  h-24 rounded-xl" elevation={0}>
           <CardContent>
             <Typography
@@ -170,6 +170,6 @@ export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 };

@@ -1,5 +1,5 @@
 import { FC, useEffect, useMemo, useState } from "react";
-import { useUserProfileStore } from "~/store";
+import { useUiStore, useUserProfileStore } from "~/store";
 import Switch from "@mui/material/Switch";
 import { useRouter } from "next/router";
 import SvgIcon from "@mui/material/SvgIcon";
@@ -9,20 +9,22 @@ import AutoStoriesOutlinedIcon from "@mui/icons-material/AutoStoriesOutlined";
 import InsightsIcon from "@mui/icons-material/Insights";
 import Link from "next/link";
 import { GitHub, QuestionMark } from "@mui/icons-material";
+import { UserMode } from "~/types";
 
-type FooterConfig = { hotkeys: boolean; zoom: boolean; unit: boolean; links: boolean };
+type FooterConfig = { hotkeys: boolean; zoom: boolean; unit: boolean; links: boolean; userMode: boolean };
 
 const DISPLAY_TABLE: { [basePath: string]: FooterConfig } = {
-  "/swap": { hotkeys: true, zoom: false, unit: false, links: true },
-  "/bridge": { hotkeys: true, zoom: false, unit: false, links: true },
-  "/earn": { hotkeys: true, zoom: false, unit: false, links: true },
+  "/swap": { hotkeys: true, zoom: false, unit: false, links: true, userMode: true },
+  "/bridge": { hotkeys: true, zoom: false, unit: false, links: true, userMode: true },
+  "/earn": { hotkeys: true, zoom: false, unit: false, links: true, userMode: true },
 };
 
-const DEFAULT_FOOTER_CONFIG: FooterConfig = { hotkeys: true, zoom: false, unit: false, links: true };
-const ROOT_CONFIG: FooterConfig = { hotkeys: true, zoom: true, unit: true, links: true };
+const DEFAULT_FOOTER_CONFIG: FooterConfig = { hotkeys: true, zoom: false, unit: false, links: true, userMode: true };
+const ROOT_CONFIG: FooterConfig = { hotkeys: true, zoom: true, unit: true, links: true, userMode: true };
 
 const Footer: FC = () => {
   const router = useRouter();
+  const [userMode] = useUiStore((state) => [state.userMode]);
 
   const footerConfig = useMemo(() => {
     if (router.pathname === "/") return ROOT_CONFIG;
@@ -39,10 +41,13 @@ const Footer: FC = () => {
 
   return (
     <header>
-      <div className="hidden sm:flex fixed w-full bottom-0 h-[34px] z-20 gap-4 bg-[#0F1111] border-t border-[#4E5257]">
-        {footerConfig.hotkeys && <HotkeysInfo />}
-        {footerConfig.zoom && <LendZoomControl />}
-        {footerConfig.unit && <LendUnitControl />}
+      <div className="hidden sm:flex justify-between gap-4 fixed w-full bottom-0 h-[34px] z-20 bg-[#0F1111]  border-t border-[#4E5257]">
+        <div className=" flex gap-4">
+          {footerConfig.userMode && <UserModeControl />}
+          {footerConfig.hotkeys && userMode === UserMode.PRO && <HotkeysInfo />}
+          {footerConfig.zoom && userMode === UserMode.PRO && <LendZoomControl />}
+          {footerConfig.unit && userMode === UserMode.PRO && <LendUnitControl />}
+        </div>
         {footerConfig.links && <QuickLinks />}
       </div>
     </header>
@@ -57,7 +62,7 @@ const HotkeysInfo: FC = () => {
   }, []);
 
   return (
-    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] px-4 font-[500]">
+    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] pr-4 font-[500]">
       {isMac ? "⌘" : "^"}+K to see hotkeys
     </div>
   );
@@ -114,6 +119,38 @@ const LendZoomControl: FC = () => {
   );
 };
 
+const UserModeControl: FC = () => {
+  const [userMode, setUserMode] = useUiStore((state) => [state.userMode, state.setUserMode]);
+
+  return (
+    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] px-6">
+      <div className="h-full flex justify-center items-center font-medium">Lite</div>
+      <Switch
+        onChange={(_, checked) => setUserMode(checked ? UserMode.PRO : UserMode.LITE)}
+        sx={{
+          color: "#868E95",
+          "& .MuiSwitch-switchBase": {
+            "&.Mui-checked": {
+              "& .MuiSwitch-thumb": {
+                backgroundColor: "#DCE85D",
+              },
+              "& + .MuiSwitch-track": {
+                backgroundColor: "#DCE85D",
+                color: "#DCE85D",
+              },
+            },
+            "& + .MuiSwitch-track": {
+              backgroundColor: "#868E95",
+            },
+          },
+        }}
+        checked={userMode === UserMode.PRO}
+      />
+      <div className="h-full flex justify-center items-center font-medium">Pro</div>
+    </div>
+  );
+};
+
 const LendUnitControl: FC = () => {
   const [denomination, setDenominationUSD] = useUserProfileStore((state) => [
     state.denominationUSD,
@@ -146,7 +183,7 @@ const LendUnitControl: FC = () => {
 };
 
 const QuickLinks: FC = () => (
-  <div className="flex gap-4 items-center justify-center pt-1 border-r border-[#4E5257] pr-4">
+  <div className="flex gap-4 items-center justify-center pt-1 border-l border-[#4E5257] px-4">
     <Link
       href="https://discord.gg/mrgn"
       target="_blank"
