@@ -79,15 +79,15 @@ export const ActionBox = ({
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingModeFromStore, setLendingMode, priorityFee, setPriorityFee, triggerActionSuccess] = useUiStore(
-    (state) => [
+  const [lendingModeFromStore, setLendingMode, priorityFee, setPriorityFee, triggerActionSuccess, setIsActionComplete] =
+    useUiStore((state) => [
       state.lendingMode,
       state.setLendingMode,
       state.priorityFee,
       state.setPriorityFee,
       state.triggerActionSuccess,
-    ]
-  );
+      state.setIsActionComplete,
+    ]);
   const { walletContextState, connected } = useWalletContext();
 
   const lendingMode = useMemo(
@@ -220,6 +220,7 @@ export const ActionBox = ({
   }, [requestedAction, setActionMode]);
 
   React.useEffect(() => {
+    setIsActionComplete(true);
     if (amount) {
       setIsAmountLoading(true);
       setIsLoading(true);
@@ -358,7 +359,7 @@ export const ActionBox = ({
       setIsLoading(false);
       handleCloseDialog && handleCloseDialog();
       setAmountRaw("");
-      triggerActionSuccess();
+      setIsActionComplete(true);
 
       // -------- Refresh state
       try {
@@ -384,6 +385,8 @@ export const ActionBox = ({
 
     setAmountRaw("");
     handleCloseDialog && handleCloseDialog();
+
+    setIsActionComplete(true);
 
     try {
       setIsRefreshingStore(true);
