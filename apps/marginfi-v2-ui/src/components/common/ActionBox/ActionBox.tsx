@@ -3,6 +3,7 @@ import React, { FC, useEffect, useMemo, useState } from "react";
 import { usdFormatterDyn, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PublicKey } from "@solana/web3.js";
+
 import { useMrgnlendStore, useUiStore } from "~/store";
 import {
   MarginfiActionParams,
@@ -78,12 +79,15 @@ export const ActionBox = ({
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingModeFromStore, setLendingMode, priorityFee, setPriorityFee] = useUiStore((state) => [
-    state.lendingMode,
-    state.setLendingMode,
-    state.priorityFee,
-    state.setPriorityFee,
-  ]);
+  const [lendingModeFromStore, setLendingMode, priorityFee, setPriorityFee, triggerActionSuccess] = useUiStore(
+    (state) => [
+      state.lendingMode,
+      state.setLendingMode,
+      state.priorityFee,
+      state.setPriorityFee,
+      state.triggerActionSuccess,
+    ]
+  );
   const { walletContextState, connected } = useWalletContext();
 
   const lendingMode = useMemo(
@@ -354,6 +358,7 @@ export const ActionBox = ({
       setIsLoading(false);
       handleCloseDialog && handleCloseDialog();
       setAmountRaw("");
+      triggerActionSuccess();
 
       // -------- Refresh state
       try {

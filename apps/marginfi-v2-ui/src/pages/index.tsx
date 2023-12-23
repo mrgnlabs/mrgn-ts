@@ -7,7 +7,6 @@ import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { Desktop, Mobile } from "~/mediaQueries";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Banner } from "~/components/desktop/Banner";
@@ -15,6 +14,7 @@ import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
 import { PageHeader } from "~/components/common/PageHeader";
 import { ActionBox } from "~/components/common/ActionBox";
 import { Stats } from "~/components/common/Stats";
+import { MrgnConfetti } from "~/components/common/Confetti";
 
 import { IconAlertTriangle } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
@@ -47,6 +47,7 @@ const Home = () => {
 
   return (
     <>
+      <MrgnConfetti />
       <Desktop>
         <PageHeader>lend</PageHeader>
         <div className="flex flex-col h-full justify-start content-start pt-[16px] w-full xl:w-4/5 xl:max-w-7xl gap-4">
