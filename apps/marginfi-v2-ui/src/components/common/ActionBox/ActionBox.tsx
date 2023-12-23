@@ -220,7 +220,6 @@ export const ActionBox = ({
   }, [requestedAction, setActionMode]);
 
   React.useEffect(() => {
-    setIsActionComplete(true);
     if (amount) {
       setIsAmountLoading(true);
       setIsLoading(true);
