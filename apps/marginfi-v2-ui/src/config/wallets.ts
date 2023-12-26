@@ -1,9 +1,4 @@
-import {
-  PhantomWalletAdapter,
-  SolflareWalletAdapter,
-  TrustWalletAdapter,
-  WalletConnectWalletAdapter,
-} from "@solana/wallet-adapter-wallets";
+import { TrustWalletAdapter, WalletConnectWalletAdapter } from "@solana/wallet-adapter-wallets";
 import {
   createDefaultAddressSelector,
   createDefaultAuthorizationResultCache,
@@ -24,8 +19,6 @@ export const WALLET_ADAPTERS = [
     cluster: "mainnet-beta",
     onWalletNotFound: createDefaultWalletNotFoundHandler(),
   }),
-  new PhantomWalletAdapter(),
-  new SolflareWalletAdapter(),
   new TrustWalletAdapter(),
   new WalletConnectWalletAdapter({
     network: WalletAdapterNetwork.Mainnet,
