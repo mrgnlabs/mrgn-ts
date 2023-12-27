@@ -12,6 +12,7 @@ import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provide
 import base58 from "bs58";
 
 import { showErrorToast } from "~/utils/toastUtils";
+import { useUiStore } from "~/store";
 
 import type { Wallet } from "@mrgnlabs/mrgn-common";
 
@@ -121,6 +122,7 @@ const WalletContext = React.createContext<WalletContextProps | undefined>(undefi
 const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const { query, asPath, replace } = useRouter();
   const [web3AuthPkCookie, setWeb3AuthPkCookie] = useCookies(["mrgnPrivateKeyRequested"]);
+  const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
   // default wallet adapter context, overwritten when web3auth is connected
   let walletContextStateDefault = useWallet();
@@ -292,12 +294,11 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   // login to web3auth with specified social provider
   const loginWeb3Auth = React.useCallback(
     async (provider: string, extraLoginOptions: any = {}, cb?: () => void) => {
-      if (!web3Auth) {
-        showErrorToast("marginfi account not ready.");
-        return;
-      }
-
       try {
+        if (!web3Auth) {
+          showErrorToast("marginfi account not ready.");
+          throw new Error("marginfi account not ready.")
+        }
         await web3Auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
           loginProvider: provider,
           extraLoginOptions,
@@ -311,6 +312,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         };
         localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
       } catch (error) {
+        setIsWalletAuthDialogOpen(true)
         console.error(error);
       }
     },
