@@ -432,9 +432,9 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
       } else {
         const isDecimalPartInvalid = isNaN(Number.parseFloat(decimalPart))
         if (!isDecimalPartInvalid) decimalPart = decimalPart.substring(0, mintDecimals)
-
+        decimalPart = isDecimalPartInvalid ? "" : (".").concat(Number.parseFloat(decimalPart).toString())
         amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas)
-        formattedAmount = numberFormater.format(amount).split('.')[0].concat(!isDecimalPartInvalid ? (".").concat(decimalPart) : "")
+        formattedAmount = numberFormater.format(amount).split('.')[0].concat(decimalPart)
       }
 
       if (amount > maxAmount) {
