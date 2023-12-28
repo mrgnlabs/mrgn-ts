@@ -506,22 +506,26 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
               </div>
             )}
           </div>
-          <div className="bg-background text-3xl rounded-lg flex justify-between items-center p-4 font-medium mb-5">
-            <ActionBoxTokens
-              isDialog={isDialog}
-              currentTokenBank={selectedTokenBank}
-              setCurrentTokenBank={setSelectedTokenBank}
-            />
-            <Input
-              type="text"
-              ref={amountInputRef}
-              inputMode="numeric"
-              value={amountRaw ?? undefined}
-              disabled={isInputDisabled}
-              onChange={(e) => handleInputChange(e.target.value)}
-              placeholder="0"
-              className="bg-transparent w-full text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
-            />
+          <div className="bg-background text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center p-4 font-medium mb-5">
+            <div className="w-full xs:w-[162px]">
+              <ActionBoxTokens
+                isDialog={isDialog}
+                currentTokenBank={selectedTokenBank}
+                setCurrentTokenBank={setSelectedTokenBank}
+              />
+            </div>
+            <div className="flex-1">
+              <Input
+                type="text"
+                ref={amountInputRef}
+                inputMode="numeric"
+                value={amountRaw ?? undefined}
+                disabled={isInputDisabled}
+                onChange={(e) => handleInputChange(e.target.value)}
+                placeholder="0"
+                className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
+              />
+            </div>
           </div>
 
           {actionMethod.description && (
