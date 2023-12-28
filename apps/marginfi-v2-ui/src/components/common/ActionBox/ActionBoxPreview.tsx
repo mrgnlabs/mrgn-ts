@@ -96,8 +96,8 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
       </Stat>
 
       <Stat classNames={`text-[${healthColor}]`} label="Health">
-        {accountSummary.healthFactor && percentFormatter.format(accountSummary.healthFactor)}
-        {accountSummary.healthFactor && <IconArrowRight width={12} height={12} />}
+        {accountSummary.healthFactor ? percentFormatter.format(accountSummary.healthFactor) : ""}
+        {accountSummary.healthFactor ? <IconArrowRight width={12} height={12} /> : ""}
         {isLoading ? (
           <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
         ) : preview?.health ? (
@@ -132,12 +132,11 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
 
               {isReduceOnly
                 ? "stSOL is being discontinued."
-                : `${selectedBank.meta.tokenSymbol} ${
-                    showLending ? "deposits" : "borrows"
-                  } are at ${percentFormatter.format(
-                    (showLending ? selectedBank.info.state.totalDeposits : selectedBank.info.state.totalBorrows) /
-                      bankCap
-                  )} capacity.`}
+                : `${selectedBank.meta.tokenSymbol} ${showLending ? "deposits" : "borrows"
+                } are at ${percentFormatter.format(
+                  (showLending ? selectedBank.info.state.totalDeposits : selectedBank.info.state.totalBorrows) /
+                  bankCap
+                )} capacity.`}
               <br />
               <a href="https://docs.marginfi.com">
                 <u>Learn more.</u>
@@ -161,12 +160,12 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
               showLending
                 ? selectedBank.info.state.totalDeposits
                 : Math.max(
-                    0,
-                    Math.min(
-                      selectedBank.info.state.totalDeposits,
-                      selectedBank.info.rawBank.config.borrowLimit.toNumber()
-                    ) - selectedBank.info.state.totalBorrows
-                  )
+                  0,
+                  Math.min(
+                    selectedBank.info.state.totalDeposits,
+                    selectedBank.info.rawBank.config.borrowLimit.toNumber()
+                  ) - selectedBank.info.state.totalBorrows
+                )
             )}
           </Badge>
         </MrgnTooltip>
