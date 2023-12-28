@@ -47,12 +47,12 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
     (bank: ExtendedBankInfo) =>
       percentFormatter.format(
         (lendingMode === LendingModes.LEND ? bank.info.state.lendingRate : bank.info.state.borrowingRate) +
-          (lendingMode === LendingModes.LEND && bank.info.state.emissions == Emissions.Lending
-            ? bank.info.state.emissionsRate
-            : 0) +
-          (lendingMode !== LendingModes.LEND && bank.info.state.emissions == Emissions.Borrowing
-            ? bank.info.state.emissionsRate
-            : 0)
+        (lendingMode === LendingModes.LEND && bank.info.state.emissions == Emissions.Lending
+          ? bank.info.state.emissionsRate
+          : 0) +
+        (lendingMode !== LendingModes.LEND && bank.info.state.emissions == Emissions.Borrowing
+          ? bank.info.state.emissionsRate
+          : 0)
       ),
     [lendingMode]
   );
@@ -145,7 +145,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
   return (
     <>
       {isDialog ? (
-        <div className="flex gap-3 w-[300px] items-center">
+        <div className="flex gap-3 w-full items-center">
           {selectedBank && (
             <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={calculateRate(selectedBank)} />
           )}
@@ -155,8 +155,8 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
           <PopoverTrigger asChild>
             <Button
               className={cn(
-                "bg-background-gray-light text-white text-left text-base p-6 pr-5 gap-2.5 transition-colors hover:bg-background-gray",
-                isTokenPopoverOpen && "bg-background-gray md:w-[300px]"
+                "bg-background-gray-light text-white w-full text-left text-base p-6 pr-5 gap-2.5 transition-colors hover:bg-background-gray",
+                isTokenPopoverOpen && "bg-background-gray"
               )}
             >
               {selectedBank && (
@@ -180,8 +180,8 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
               onValueChange={(value) =>
                 setCurrentTokenBank(
                   extendedBankInfos.find((bank) => bank.address.toString() === value)?.address ||
-                    selectedBank?.address ||
-                    null
+                  selectedBank?.address ||
+                  null
                 )
               }
             >
