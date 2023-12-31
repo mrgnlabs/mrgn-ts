@@ -1,8 +1,6 @@
 import {
   PhantomWalletAdapter,
   SolflareWalletAdapter,
-  GlowWalletAdapter,
-  BackpackWalletAdapter,
   WalletConnectWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import {
@@ -27,8 +25,6 @@ export const WALLET_ADAPTERS = [
   }),
   new PhantomWalletAdapter(),
   new SolflareWalletAdapter(),
-  new BackpackWalletAdapter(),
-  new GlowWalletAdapter(),
   new WalletConnectWalletAdapter({
     network: WalletAdapterNetwork.Mainnet,
     options: {
