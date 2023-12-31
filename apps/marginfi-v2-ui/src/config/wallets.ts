@@ -1,7 +1,9 @@
 import {
   PhantomWalletAdapter,
   SolflareWalletAdapter,
+  TrustWalletAdapter,
   WalletConnectWalletAdapter,
+  CoinbaseWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import {
   createDefaultAddressSelector,
@@ -25,6 +27,8 @@ export const WALLET_ADAPTERS = [
   }),
   new PhantomWalletAdapter(),
   new SolflareWalletAdapter(),
+  new TrustWalletAdapter(),
+  new CoinbaseWalletAdapter(),
   new WalletConnectWalletAdapter({
     network: WalletAdapterNetwork.Mainnet,
     options: {
