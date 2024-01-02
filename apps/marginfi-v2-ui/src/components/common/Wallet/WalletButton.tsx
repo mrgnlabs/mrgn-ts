@@ -4,6 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useUiStore } from "~/store";
 import { WalletInfo, Web3AuthProvider, useWalletContext } from "~/hooks/useWalletContext";
+import { cn } from "~/utils";
 
 import { Wallet } from "~/components/common/Wallet";
 import { IconChevronDown, IconBrandGoogle, IconBrandX, IconBrandApple, IconMrgn } from "~/components/ui/icons";
@@ -29,10 +30,9 @@ export const WalletButton = () => {
   const { connected, connecting, isLoading, loginWeb3Auth } = useWalletContext();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
-  const walletInfo = useMemo(
-    () => (connected ? null : (JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo | null)),
-    [connected]
-  );
+  const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, [connected]);
+
+  const isMoongate = useMemo(() => walletInfo?.name === "Ethereum Wallet", [walletInfo]);
 
   const WalletIcon = useMemo(() => {
     if (walletInfo?.icon) {
@@ -70,33 +70,36 @@ export const WalletButton = () => {
 
   return (
     <>
-      {!isLoading &&
-        (!connected ? (
-          <Button className={`gap-1.5 py-0 ${walletInfo ? "pr-2" : "pr-4"}`}>
-            <div className="flex flex-row relative h-full gap-4">
-              <div onClick={() => handleWalletConnect()} className="inline-flex items-center gap-2">
-                Sign in
-                {walletInfo && (
-                  <>
-                    {" "}
-                    with
-                    <WalletIcon />
-                  </>
-                )}
-              </div>
+      {!isLoading && !connected && (
+        <Button className={`gap-1.5 py-0 ${walletInfo ? "pr-2" : "pr-4"}`}>
+          <div className="flex flex-row relative h-full gap-4">
+            <div onClick={() => handleWalletConnect()} className="inline-flex items-center gap-2">
+              Sign in
               {walletInfo && (
-                <div
-                  onClick={() => setIsWalletAuthDialogOpen(true)}
-                  className="pl-2 border-l border-border inline-flex items-center"
-                >
-                  <IconChevronDown size={20} />
-                </div>
+                <>
+                  {" "}
+                  with
+                  <WalletIcon />
+                </>
               )}
             </div>
-          </Button>
-        ) : (
+            {walletInfo && (
+              <div
+                onClick={() => setIsWalletAuthDialogOpen(true)}
+                className="pl-2 border-l border-border inline-flex items-center"
+              >
+                <IconChevronDown size={20} />
+              </div>
+            )}
+          </div>
+        </Button>
+      )}
+
+      {connected && (
+        <div className={cn(isMoongate && "pr-12")}>
           <Wallet />
-        ))}
+        </div>
+      )}
     </>
   );
 };

@@ -5126,6 +5126,18 @@
     "@mongodb-js/zstd-linux-x64-musl" "1.2.0"
     "@mongodb-js/zstd-win32-x64-msvc" "1.2.0"
 
+"@moongate/moongate-adapter@^0.0.99":
+  version "0.0.99"
+  resolved "https://registry.yarnpkg.com/@moongate/moongate-adapter/-/moongate-adapter-0.0.99.tgz#77b34f609e184629fab3e9136ebcfa3c04186e15"
+  integrity sha512-n9ou+Z+1XJ2EsoJdRH5mP1dONFIxA/uVMs4Dj86xBEgf58Qmo3X8xW0mpP+25mseAsz2FaTzYrXeqFqJ68jPKw==
+  dependencies:
+    "@moongate/solana-wallet-sdk" "^1.1.92"
+
+"@moongate/solana-wallet-sdk@^1.1.92":
+  version "1.1.92"
+  resolved "https://registry.yarnpkg.com/@moongate/solana-wallet-sdk/-/solana-wallet-sdk-1.1.92.tgz#869570dd74738dd79b3f7e8d2b715c9dddc467dc"
+  integrity sha512-Z1wnSru83pwReu3HIzYAHEixaK84sMRYsNr9Yk549GoVqsoHuFWt5nTf7AAGG/Z8Gv1YxEwSfnD4Y6NeKI0vpg==
+
 "@moonpay/moonpay-js@^0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@moonpay/moonpay-js/-/moonpay-js-0.1.0.tgz#1d3b6a633b1e208ce8996a22c66a45a7c7e623a2"

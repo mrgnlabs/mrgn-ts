@@ -55,7 +55,7 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
               <IconCaretUpDownFilled size={16} className="ml-auto shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="p-0 w-[304px] m-0">
+          <PopoverContent className="p-0 w-[304px] m-0 z-[1000002]">
             <Command>
               <CommandInput placeholder="Search tokens..." className="h-9" />
               <CommandEmpty>No token found.</CommandEmpty>
