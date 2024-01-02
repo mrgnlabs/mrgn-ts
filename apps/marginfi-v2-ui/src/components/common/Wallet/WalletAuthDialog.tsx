@@ -26,6 +26,7 @@ import {
   IconWalletConnectWallet,
   IconGlowWallet,
   IconTrustWallet,
+  IconEthereum,
   IconChevronDown,
 } from "~/components/ui/icons";
 
@@ -64,6 +65,7 @@ const walletIcons: { [key: string]: React.ReactNode } = {
   WalletConnect: <IconWalletConnectWallet size={28} />,
   Glow: <IconGlowWallet size={28} />,
   Trust: <IconTrustWallet size={28} />,
+  "Ethereum Wallet": <IconEthereum size={28} />,
 };
 
 export const WalletAuthDialog = () => {

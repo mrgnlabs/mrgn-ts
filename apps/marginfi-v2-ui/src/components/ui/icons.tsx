@@ -513,6 +513,24 @@ const IconMoonPay = ({ size = 80, className }: IconProps) => (
   </svg>
 );
 
+const IconEthereum = ({ size = 24, className }: IconProps) => (
+  <svg
+    data-name="Layer 1"
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    className={className}
+  >
+    <path d="M12.3679 0L12.2012 0.54678V16.4159L12.3679 16.5768L19.7361 12.2225L12.3679 0Z" fill="#343434" />
+    <path d="M12.3682 0L5 12.2225L12.3682 16.5768V8.87435V0Z" fill="#8C8C8C" />
+    <path d="M12.3681 17.9712L12.2764 18.0821V23.7349L12.3681 24L19.7363 13.6195L12.3681 17.9712Z" fill="#3C3C3B" />
+    <path d="M12.3682 23.9992V17.9712L5 13.6195L12.3682 23.9992Z" fill="#8C8C8C" />
+    <path d="M12.3682 16.5768L19.7364 12.2225L12.3682 8.87433V16.5768Z" fill="#141414" />
+    <path d="M5 12.2225L12.3682 16.5768V8.87433L5 12.2225Z" fill="#393939" />
+  </svg>
+);
+
 export {
   // tabler icons
   IconCaretUpDownFilled,
@@ -524,6 +542,7 @@ export {
   IconBrandX,
   IconBrandApple,
   IconBrandTelegram,
+  IconEthereum,
   IconWallet,
   IconSearch,
   IconX,
