@@ -47,12 +47,12 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
     (bank: ExtendedBankInfo) =>
       percentFormatter.format(
         (lendingMode === LendingModes.LEND ? bank.info.state.lendingRate : bank.info.state.borrowingRate) +
-        (lendingMode === LendingModes.LEND && bank.info.state.emissions == Emissions.Lending
-          ? bank.info.state.emissionsRate
-          : 0) +
-        (lendingMode !== LendingModes.LEND && bank.info.state.emissions == Emissions.Borrowing
-          ? bank.info.state.emissionsRate
-          : 0)
+          (lendingMode === LendingModes.LEND && bank.info.state.emissions == Emissions.Lending
+            ? bank.info.state.emissionsRate
+            : 0) +
+          (lendingMode !== LendingModes.LEND && bank.info.state.emissions == Emissions.Borrowing
+            ? bank.info.state.emissionsRate
+            : 0)
       ),
     [lendingMode]
   );
@@ -155,7 +155,8 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
           <PopoverTrigger asChild>
             <Button
               className={cn(
-                "bg-background-gray-light text-white w-full text-left text-base p-6 pr-5 gap-2.5 transition-colors hover:bg-background-gray",
+                "bg-background-gray-light text-white w-full text-left text-base items-center justify-start py-6 px-3 gap-2.5 transition-colors hover:bg-background-gray",
+                "xs:pr-5 xs:pl-6 xs:justify-center",
                 isTokenPopoverOpen && "bg-background-gray"
               )}
             >
@@ -180,8 +181,8 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
               onValueChange={(value) =>
                 setCurrentTokenBank(
                   extendedBankInfos.find((bank) => bank.address.toString() === value)?.address ||
-                  selectedBank?.address ||
-                  null
+                    selectedBank?.address ||
+                    null
                 )
               }
             >
@@ -390,11 +391,11 @@ const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemProps) =>
   return (
     <>
       <Image src={bank.meta.tokenLogoUri!} alt={bank.meta.tokenName} width={28} height={28} className="rounded-full" />
-      <div className="flex flex-col gap-1">
-        <p className="leading-none text-base">{bank.meta.tokenSymbol}</p>
+      <div className="flex flex-col gap-1 xs:gap-0 mr-auto xs:mr-0 xs:pt-1">
+        <p className="leading-none xs:leading-none text-sm xs:text-base">{bank.meta.tokenSymbol}</p>
         <p
           className={cn(
-            "text-sm font-normal leading-none",
+            "text-xs xs:text-sm font-normal leading-none",
             lendingMode === LendingModes.LEND && "text-success",
             lendingMode === LendingModes.BORROW && "text-error"
           )}
