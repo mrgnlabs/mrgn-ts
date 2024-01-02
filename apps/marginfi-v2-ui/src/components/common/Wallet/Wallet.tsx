@@ -80,8 +80,7 @@ export const Wallet = () => {
   // fetch wallet data and store in state
   // address, sol balance, token balances
   const getWalletData = React.useCallback(async () => {
-    if (!connection || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance))
-      return;
+    if (!connection || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
 
     const userBanks = extendedBankInfos.filter(
       (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
@@ -164,7 +163,7 @@ export const Wallet = () => {
             </button>
           )}
         </SheetTrigger>
-        <SheetContent className="outline-none">
+        <SheetContent className="outline-none z-[1000001]">
           {walletData ? (
             <div className="pt-4 px-4 h-full flex flex-col">
               <header className="space-y-2 flex flex-col items-center mb-8 wallet-sheet-item">
