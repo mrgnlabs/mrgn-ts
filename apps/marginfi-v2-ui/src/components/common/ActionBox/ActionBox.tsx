@@ -21,7 +21,7 @@ import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
 import { ActionBoxTokens } from "~/components/common/ActionBox/ActionBoxTokens";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { Input } from "~/components/ui/input";
-import { IconAlertTriangle, IconInfoCircle, IconWallet } from "~/components/ui/icons";
+import { IconAlertTriangle, IconInfoCircle, IconWallet, IconSortAscending } from "~/components/ui/icons";
 
 import { ActionBoxPreview } from "./ActionBoxPreview";
 import { checkActionAvailable } from "./ActionBox.utils";
@@ -489,32 +489,18 @@ export const ActionBox = ({
             )}
             {selectedBank && (
               <div className="inline-flex gap-1.5 items-center">
-                <IconWallet size={16} />
-                <span className="text-sm font-normal">
+                <button
+                  className="flex items-center gap-1 text-sm font-normal"
+                  onClick={() => setAmountRaw(numberFormater.format(maxAmount))}
+                >
+                  <IconWallet size={16} />
                   {walletAmount !== undefined
                     ? clampedNumeralFormatter(walletAmount).concat(" ", selectedBank.meta.tokenSymbol)
                     : "-"}
-                </span>
-                <div className="flex items-center gap-0.5">
-                  <button
-                    className={`text-[11px] ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground ${
-                      maxAmount === 0 ? "" : "cursor-pointer hover:bg-muted-foreground/30"
-                    } transition-colors`}
-                    onClick={() => setAmountRaw(numberFormater.format(maxAmount / 2))}
-                    disabled={maxAmount === 0}
-                  >
-                    HALF
-                  </button>
-                  <button
-                    className={`text-[11px] ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground ${
-                      maxAmount === 0 ? "" : "cursor-pointer hover:bg-muted-foreground/30"
-                    } transition-colors`}
-                    onClick={() => setAmountRaw(numberFormater.format(maxAmount))}
-                    disabled={maxAmount === 0}
-                  >
-                    MAX
-                  </button>
-                </div>
+                </button>
+                <button className="text-[11px] gap-0.5 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground">
+                  <IconSortAscending size={14} /> AUTO
+                </button>
               </div>
             )}
           </div>
