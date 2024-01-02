@@ -27,17 +27,15 @@ export const Stats = () => {
   }, [protocolStats]);
 
   return (
-    <ul className="flex text-muted-foreground gap-4 justify-center mt-10 mb-6 text-base md:gap-8 md:text-base">
+    <ul className="flex text-muted-foreground gap-4 justify-center mt-10 mb-6 text-sm md:gap-8 md:text-base">
       {statsList.map((stat, index) => (
-        <React.Fragment key={index}>
-          <li>
-            <dl className="space-y-1 md:space-y-2">
-              <dt>{stat.label}</dt>
-              <dd className="font-bold md:text-2xl text-white">{stat.value}</dd>
-            </dl>
+        <>
+          <li key={index} className="text-center">
+            <h3>{stat.label}</h3>
+            <h2 className="font-medium text-base md:text-2xl text-white">{stat.value}</h2>
           </li>
-          {index !== statsList.length - 1 && <li className={"border-r-2 border-white/20"} />}
-        </React.Fragment>
+          {index !== statsList.length - 1 && <li className="border-r-2 border-white/20 hidden md:block" />}
+        </>
       ))}
     </ul>
   );
