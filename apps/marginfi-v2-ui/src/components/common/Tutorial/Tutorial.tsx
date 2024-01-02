@@ -11,6 +11,7 @@ import { useSwiper } from "swiper/react";
 import { cn } from "~/utils";
 import { UserMode } from "~/types";
 import { useUiStore } from "~/store";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
@@ -95,6 +96,7 @@ const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialo
 };
 
 export const Tutorial = () => {
+  const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
   const [proModeOnly, setProModeOnly] = React.useState(false);
 
@@ -110,7 +112,11 @@ export const Tutorial = () => {
       return;
     }
 
-    if (localStorage.getItem("mrgnTutorialAcknowledged") && !localStorage.getItem("mrgnProModeAcknowledged")) {
+    if (
+      localStorage.getItem("mrgnTutorialAcknowledged") &&
+      !localStorage.getItem("mrgnProModeAcknowledged") &&
+      !isMobile
+    ) {
       setProModeOnly(true);
       setOpen(true);
     }
