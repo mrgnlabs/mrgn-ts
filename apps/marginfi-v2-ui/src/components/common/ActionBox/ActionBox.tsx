@@ -12,6 +12,7 @@ import {
   getMaintHealthColor,
   isWholePosition,
   usePrevious,
+  cn,
 } from "~/utils";
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -21,7 +22,7 @@ import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
 import { ActionBoxTokens } from "~/components/common/ActionBox/ActionBoxTokens";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { Input } from "~/components/ui/input";
-import { IconAlertTriangle, IconInfoCircle, IconWallet, IconSortAscending } from "~/components/ui/icons";
+import { IconAlertTriangle, IconInfoCircle, IconWallet, IconSortAscending, IconX } from "~/components/ui/icons";
 
 import { ActionBoxPreview } from "./ActionBoxPreview";
 import { checkActionAvailable } from "./ActionBox.utils";
@@ -29,6 +30,7 @@ import { MrgnTooltip } from "../MrgnTooltip";
 import { MarginfiAccountWrapper, MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionBoxActions } from "./ActionBoxActions";
 import { Skeleton } from "~/components/ui/skeleton";
+import { Button } from "~/components/ui/button";
 
 export interface ActionPreview {
   health: number;
@@ -93,6 +95,7 @@ export const ActionBox = ({
   const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
   const [preview, setPreview] = React.useState<ActionPreview | null>(null);
+  const [isPriorityFeesMode, setIsPriorityFeesMode] = React.useState<boolean>(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
@@ -478,87 +481,143 @@ export const ActionBox = ({
             </>
           )}
         </div>
-        <div className="p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl">
-          <div className="flex flex-row items-center justify-between mb-3">
-            {!isDialog ? (
-              <div className="text-lg font-normal flex items-center">
-                {lendingMode === LendingModes.LEND ? "You supply" : "You borrow"}
+        <div className="p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative">
+          {isPriorityFeesMode && (
+            <>
+              <h2 className="text-lg font-normal mb-2 flex items-center gap-2">
+                Set transaction priority <IconInfoCircle size={16} />
+              </h2>
+              <ul className="grid grid-cols-3 gap-3 mb-6">
+                <li>
+                  <Button
+                    className={cn(
+                      "flex flex-col gap-0.5 h-auto w-full font-light bg-background/50 transition-colors hover:bg-background-gray-hover",
+                      "bg-background-gray-hover"
+                    )}
+                    variant="secondary"
+                  >
+                    Normal <strong className="font-medium">0 SOL</strong>
+                  </Button>
+                </li>
+                <li>
+                  <Button
+                    className="flex flex-col gap-0.5 h-auto w-full font-light bg-background/50 transition-colors hover:bg-background-gray-hover"
+                    variant="secondary"
+                  >
+                    High <strong className="font-medium">0.000005 SOL</strong>
+                  </Button>
+                </li>
+                <li>
+                  <Button
+                    className="flex flex-col gap-0.5 h-auto w-full font-light bg-background/50 transition-colors hover:bg-background-gray-hover"
+                    variant="secondary"
+                  >
+                    Turbo <strong className="font-medium">0.005 SOL</strong>
+                  </Button>
+                </li>
+              </ul>
+              <h2 className="font-normal mb-2">or set manually</h2>
+              <div className="relative mb-6">
+                <Input
+                  type="number"
+                  className="h-auto bg-background/50 py-3 px-4 border-none text-white transition-colors focus-visible:ring-0"
+                  min={0}
+                  placeholder="0"
+                />
+                <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
               </div>
-            ) : (
-              <div />
-            )}
-            {selectedBank && (
-              <div className="inline-flex gap-1.5 items-center">
-                <button
-                  className="flex items-center gap-1 text-sm font-normal"
-                  onClick={() => setAmountRaw(numberFormater.format(maxAmount))}
-                >
-                  <IconWallet size={16} />
-                  {walletAmount !== undefined
-                    ? clampedNumeralFormatter(walletAmount).concat(" ", selectedBank.meta.tokenSymbol)
-                    : "-"}
-                </button>
-                <button className="text-[11px] gap-0.5 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground">
-                  <IconSortAscending size={14} /> AUTO
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="bg-background text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center p-4 font-medium mb-5">
-            <div className="w-full xs:w-[162px]">
-              <ActionBoxTokens
-                isDialog={isDialog}
-                currentTokenBank={selectedTokenBank}
-                setCurrentTokenBank={setSelectedTokenBank}
-              />
-            </div>
-            <div className="flex-1">
-              <Input
-                type="text"
-                ref={amountInputRef}
-                inputMode="numeric"
-                value={amountRaw ?? undefined}
-                disabled={isInputDisabled}
-                onChange={(e) => handleInputChange(e.target.value)}
-                placeholder="0"
-                className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
-              />
-            </div>
-          </div>
-
-          {actionMethod.description && (
-            <div className="pb-6">
-              <div className="flex items-center space-x-2 py-3 px-4 rounded-xl text-alert-foreground bg-alert">
-                <IconAlertTriangle className="shrink-0" size={18} />
-                <p className="text-alert-foreground">{actionMethod.description}</p>
-              </div>
-            </div>
+              <Button onClick={() => setIsPriorityFeesMode(false)} className="w-full py-6">
+                Cancel
+              </Button>
+            </>
           )}
+          {!isPriorityFeesMode && (
+            <>
+              <div className="flex flex-row items-center justify-between mb-3">
+                {!isDialog ? (
+                  <div className="text-lg font-normal flex items-center">
+                    {lendingMode === LendingModes.LEND ? "You supply" : "You borrow"}
+                  </div>
+                ) : (
+                  <div />
+                )}
+                {selectedBank && (
+                  <div className="inline-flex gap-1.5 items-center">
+                    <button
+                      className="flex items-center gap-1 text-sm font-normal"
+                      onClick={() => setAmountRaw(numberFormater.format(maxAmount))}
+                    >
+                      <IconWallet size={16} />
+                      {walletAmount !== undefined
+                        ? clampedNumeralFormatter(walletAmount).concat(" ", selectedBank.meta.tokenSymbol)
+                        : "-"}
+                    </button>
+                    <button
+                      onClick={() => setIsPriorityFeesMode(true)}
+                      className="text-[11px] gap-0.5 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground"
+                    >
+                      <IconSortAscending size={14} /> AUTO
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="bg-background text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center p-4 font-medium mb-5">
+                <div className="w-full xs:w-[162px]">
+                  <ActionBoxTokens
+                    isDialog={isDialog}
+                    currentTokenBank={selectedTokenBank}
+                    setCurrentTokenBank={setSelectedTokenBank}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Input
+                    type="text"
+                    ref={amountInputRef}
+                    inputMode="numeric"
+                    value={amountRaw ?? undefined}
+                    disabled={isInputDisabled}
+                    onChange={(e) => handleInputChange(e.target.value)}
+                    placeholder="0"
+                    className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
+                  />
+                </div>
+              </div>
 
-          {selectedAccount && (
-            <ActionBoxAvailableCollateral
-              isLoading={isAmountLoading}
-              marginfiAccount={selectedAccount}
-              preview={preview}
-            />
-          )}
+              {actionMethod.description && (
+                <div className="pb-6">
+                  <div className="flex items-center space-x-2 py-3 px-4 rounded-xl text-alert-foreground bg-alert">
+                    <IconAlertTriangle className="shrink-0" size={18} />
+                    <p className="text-alert-foreground">{actionMethod.description}</p>
+                  </div>
+                </div>
+              )}
 
-          <ActionBoxActions
-            handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
-            isLoading={isLoading}
-            isEnabled={actionMethod.isEnabled}
-            actionMode={actionMode}
-            disabled={amount === 0}
-          />
+              {selectedAccount && (
+                <ActionBoxAvailableCollateral
+                  isLoading={isAmountLoading}
+                  marginfiAccount={selectedAccount}
+                  preview={preview}
+                />
+              )}
 
-          {selectedBank && actionMethod.isEnabled && (
-            <ActionBoxPreview
-              isLoading={isAmountLoading}
-              marginfiAccount={selectedAccount}
-              selectedBank={selectedBank}
-              actionMode={actionMode}
-              preview={preview}
-            />
+              <ActionBoxActions
+                handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
+                isLoading={isLoading}
+                isEnabled={actionMethod.isEnabled}
+                actionMode={actionMode}
+                disabled={amount === 0}
+              />
+
+              {selectedBank && actionMethod.isEnabled && (
+                <ActionBoxPreview
+                  isLoading={isAmountLoading}
+                  marginfiAccount={selectedAccount}
+                  selectedBank={selectedBank}
+                  actionMode={actionMode}
+                  preview={preview}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
