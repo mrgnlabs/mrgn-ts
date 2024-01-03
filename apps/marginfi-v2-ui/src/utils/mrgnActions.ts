@@ -16,6 +16,7 @@ export type MarginfiActionParams = {
   nativeSolBalance: number;
   marginfiAccount: MarginfiAccountWrapper | null;
   walletContextState?: WalletContextState | WalletContextStateOverride;
+  priorityFee?: number;
 };
 
 export async function executeLendingAction({
@@ -26,7 +27,9 @@ export async function executeLendingAction({
   nativeSolBalance,
   marginfiAccount,
   walletContextState,
+  priorityFee,
 }: MarginfiActionParams) {
+  console.log("priorityFee", priorityFee);
   if (nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
     return;
@@ -34,9 +37,9 @@ export async function executeLendingAction({
 
   if (actionType === ActionType.Deposit) {
     if (marginfiAccount) {
-      await deposit({ marginfiAccount, bank, amount });
+      await deposit({ marginfiAccount, bank, amount, priorityFee });
     } else {
-      await createAccountAndDeposit({ mfiClient, bank, amount, walletContextState });
+      await createAccountAndDeposit({ mfiClient, bank, amount, walletContextState, priorityFee });
     }
     return;
   }
@@ -47,15 +50,15 @@ export async function executeLendingAction({
   }
 
   if (actionType === ActionType.Borrow) {
-    await borrow({ marginfiAccount, bank, amount });
+    await borrow({ marginfiAccount, bank, amount, priorityFee });
   }
 
   if (actionType === ActionType.Withdraw) {
-    await withdraw({ marginfiAccount, bank, amount });
+    await withdraw({ marginfiAccount, bank, amount, priorityFee });
   }
 
   if (actionType === ActionType.Repay) {
-    await repay({ marginfiAccount, bank, amount });
+    await repay({ marginfiAccount, bank, amount, priorityFee });
   }
 }
 
@@ -68,11 +71,13 @@ async function createAccountAndDeposit({
   bank,
   amount,
   walletContextState,
+  priorityFee,
 }: {
   mfiClient: MarginfiClient | null;
   bank: ExtendedBankInfo;
   amount: number;
   walletContextState?: WalletContextState | WalletContextStateOverride;
+  priorityFee?: number;
 }) {
   if (mfiClient === null) {
     showErrorToast("Marginfi client not ready");
@@ -102,7 +107,7 @@ async function createAccountAndDeposit({
   }
 
   try {
-    await marginfiAccount.deposit(amount, bank.address);
+    await marginfiAccount.deposit(amount, bank.address, priorityFee);
     multiStepToast.setSuccessAndNext();
     capture("user_deposit", {
       amount,
@@ -122,10 +127,12 @@ export async function deposit({
   marginfiAccount,
   bank,
   amount,
+  priorityFee,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
+  priorityFee?: number;
 }) {
   const multiStepToast = new MultiStepToastHandle("Deposit", [
     { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
@@ -133,7 +140,7 @@ export async function deposit({
   multiStepToast.start();
 
   try {
-    await marginfiAccount.deposit(amount, bank.address);
+    await marginfiAccount.deposit(amount, bank.address, priorityFee);
     multiStepToast.setSuccessAndNext();
     capture("user_deposit", {
       amount,
@@ -153,10 +160,12 @@ export async function borrow({
   marginfiAccount,
   bank,
   amount,
+  priorityFee,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
+  priorityFee?: number;
 }) {
   const multiStepToast = new MultiStepToastHandle("Borrow", [
     { label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` },
@@ -164,7 +173,7 @@ export async function borrow({
 
   multiStepToast.start();
   try {
-    await marginfiAccount.borrow(amount, bank.address);
+    await marginfiAccount.borrow(amount, bank.address, priorityFee);
     multiStepToast.setSuccessAndNext();
     capture("user_borrow", {
       amount,
@@ -184,10 +193,12 @@ export async function withdraw({
   marginfiAccount,
   bank,
   amount,
+  priorityFee,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
+  priorityFee?: number;
 }) {
   const multiStepToast = new MultiStepToastHandle("Withdrawal", [
     { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
@@ -195,7 +206,7 @@ export async function withdraw({
   multiStepToast.start();
 
   try {
-    await marginfiAccount.withdraw(amount, bank.address, bank.isActive && isWholePosition(bank, amount));
+    await marginfiAccount.withdraw(amount, bank.address, bank.isActive && isWholePosition(bank, amount), priorityFee);
     multiStepToast.setSuccessAndNext();
     capture("user_withdraw", {
       amount,
@@ -215,10 +226,12 @@ export async function repay({
   marginfiAccount,
   bank,
   amount,
+  priorityFee,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
   amount: number;
+  priorityFee?: number;
 }) {
   const multiStepToast = new MultiStepToastHandle("Repayment", [
     { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
@@ -226,7 +239,7 @@ export async function repay({
   multiStepToast.start();
 
   try {
-    await marginfiAccount.repay(amount, bank.address, bank.isActive && isWholePosition(bank, amount));
+    await marginfiAccount.repay(amount, bank.address, bank.isActive && isWholePosition(bank, amount), priorityFee);
     multiStepToast.setSuccessAndNext();
     capture("user_repay", {
       amount,
@@ -279,9 +292,11 @@ export async function collectRewardsBatch(
 export const closeBalance = async ({
   bank,
   marginfiAccount,
+  priorityFee,
 }: {
   bank: ExtendedBankInfo;
   marginfiAccount: MarginfiAccountWrapper | null | undefined;
+  priorityFee?: number;
 }) => {
   if (!marginfiAccount) {
     showErrorToast("marginfi account not ready.");
@@ -299,9 +314,9 @@ export const closeBalance = async ({
 
   try {
     if (bank.position.isLending) {
-      await marginfiAccount.withdraw(0, bank.address, true);
+      await marginfiAccount.withdraw(0, bank.address, true, priorityFee);
     } else {
-      await marginfiAccount.repay(0, bank.address, true);
+      await marginfiAccount.repay(0, bank.address, true, priorityFee);
     }
     multiStepToast.setSuccessAndNext();
     capture("user_close_balance", {

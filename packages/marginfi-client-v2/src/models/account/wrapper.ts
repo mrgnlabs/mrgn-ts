@@ -1,6 +1,14 @@
 import { Amount, DEFAULT_COMMITMENT, InstructionsWrapper, Wallet, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { Address, BorshCoder, translateAddress } from "@coral-xyz/anchor";
-import { AccountMeta, Commitment, PublicKey, Transaction } from "@solana/web3.js";
+import {
+  AccountMeta,
+  Commitment,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  ComputeBudgetProgram,
+  LAMPORTS_PER_SOL,
+} from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { MarginfiClient, MarginfiGroup } from "../..";
 import { MARGINFI_IDL } from "../../idl";
@@ -200,6 +208,25 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.computeNetApy(this.client.banks, this.client.oraclePrices);
   }
 
+  makePriorityFeeIx(priorityFee?: number): TransactionInstruction[] {
+    const priorityFeeIx: TransactionInstruction[] = [];
+    if (!priorityFee || priorityFee < 0) return priorityFeeIx;
+
+    priorityFeeIx.push(
+      ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 1_000_000,
+      })
+    );
+
+    priorityFeeIx.push(
+      ComputeBudgetProgram.setComputeUnitLimit({
+        units: priorityFee * LAMPORTS_PER_SOL,
+      })
+    );
+
+    return priorityFeeIx;
+  }
+
   // --------------------------------------------------------------------------
   // User actions
   // --------------------------------------------------------------------------
@@ -208,11 +235,12 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.makeDepositIx(this._program, this.client.banks, amount, bankAddress);
   }
 
-  async deposit(amount: Amount, bankAddress: PublicKey): Promise<string> {
+  async deposit(amount: Amount, bankAddress: PublicKey, priorityFee?: number): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:deposit`);
     debug("Depositing %s into marginfi account (bank: %s)", amount, shortenAddress(bankAddress));
+    const priorityFeeIx = this.makePriorityFeeIx(priorityFee);
     const ixs = await this.makeDepositIx(amount, bankAddress);
-    const tx = new Transaction().add(...ixs.instructions);
+    const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Depositing successful %s", sig);
     return sig;
@@ -249,11 +277,17 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.makeRepayIx(this._program, this.client.banks, amount, bankAddress, repayAll);
   }
 
-  async repay(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<string> {
+  async repay(
+    amount: Amount,
+    bankAddress: PublicKey,
+    repayAll: boolean = false,
+    priorityFee?: number
+  ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
+    const priorityFeeIx = this.makePriorityFeeIx(priorityFee);
     const ixs = await this.makeRepayIx(amount, bankAddress, repayAll);
-    const tx = new Transaction().add(...ixs.instructions);
+    const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Depositing successful %s", sig);
 
@@ -295,11 +329,17 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.makeWithdrawIx(this._program, this.client.banks, amount, bankAddress, withdrawAll);
   }
 
-  async withdraw(amount: Amount, bankAddress: PublicKey, withdrawAll: boolean = false): Promise<string> {
+  async withdraw(
+    amount: Amount,
+    bankAddress: PublicKey,
+    withdrawAll: boolean = false,
+    priorityFee?: number
+  ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
+    const priorityFeeIx = this.makePriorityFeeIx(priorityFee);
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll);
-    const tx = new Transaction().add(...ixs.instructions);
+    const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Withdrawing successful %s", sig);
     return sig;
@@ -344,11 +384,12 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.makeBorrowIx(this._program, this.client.banks, amount, bankAddress, opt);
   }
 
-  async borrow(amount: Amount, bankAddress: PublicKey): Promise<string> {
+  async borrow(amount: Amount, bankAddress: PublicKey, priorityFee?: number): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
+    const priorityFeeIx = this.makePriorityFeeIx(priorityFee);
     const ixs = await this.makeBorrowIx(amount, bankAddress);
-    const tx = new Transaction().add(...ixs.instructions);
+    const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Borrowing successful %s", sig);
     return sig;
