@@ -47,10 +47,16 @@ type ActionBoxProps = {
   requestedToken?: PublicKey;
   requestedLendingMode?: LendingModes;
   isDialog?: boolean;
-  handleCloseDialog?: () => void
+  handleCloseDialog?: () => void;
 };
 
-export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMode, isDialog, handleCloseDialog }: ActionBoxProps) => {
+export const ActionBox = ({
+  requestedAction,
+  requestedToken,
+  requestedLendingMode,
+  isDialog,
+  handleCloseDialog,
+}: ActionBoxProps) => {
   const [
     mfiClient,
     nativeSolBalance,
@@ -78,11 +84,11 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
 
   const [amountRaw, setAmountRaw] = React.useState<string>("");
   const amount = React.useMemo(() => {
-    const strippedAmount = amountRaw.replace(/,/g, '')
-    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount)
-  }, [amountRaw])
-  const debouncedAmount = useDebounce<number | null>(amount, 500)
-  const [isAmountLoading, setIsAmountLoading] = React.useState<boolean>(false)
+    const strippedAmount = amountRaw.replace(/,/g, "");
+    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+  }, [amountRaw]);
+  const debouncedAmount = useDebounce<number | null>(amount, 500);
+  const [isAmountLoading, setIsAmountLoading] = React.useState<boolean>(false);
 
   const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
@@ -93,7 +99,7 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
 
-  const numberFormater = new Intl.NumberFormat('en-US', { maximumFractionDigits: 10 })
+  const numberFormater = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -327,7 +333,7 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
       });
 
       setIsLoading(false);
-      handleCloseDialog && handleCloseBalance()
+      handleCloseDialog && handleCloseBalance();
       setAmountRaw("");
 
       // -------- Refresh state
@@ -353,7 +359,7 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
     }
 
     setAmountRaw("");
-    handleCloseDialog && handleCloseBalance()
+    handleCloseDialog && handleCloseBalance();
 
     try {
       setIsRefreshingStore(true);
@@ -419,21 +425,26 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
 
   const handleInputChange = React.useCallback(
     (newAmount: string) => {
-      let formattedAmount: string, amount: number
+      let formattedAmount: string, amount: number;
       // Remove commas from the formatted string
-      const newAmountWithoutCommas = newAmount.replace(/,/g, '');
-      let decimalPart = newAmountWithoutCommas.split('.')[1]
-      const mintDecimals = selectedBank?.info.state.mintDecimals ?? 9
+      const newAmountWithoutCommas = newAmount.replace(/,/g, "");
+      let decimalPart = newAmountWithoutCommas.split(".")[1];
+      const mintDecimals = selectedBank?.info.state.mintDecimals ?? 9;
 
-      if (((newAmount.endsWith(",")) || newAmount.endsWith(".")) && !newAmount.substring(0, newAmount.length - 1).includes('.')) {
-        amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas)
-        formattedAmount = numberFormater.format(amount).concat('.')
+      if (
+        (newAmount.endsWith(",") || newAmount.endsWith(".")) &&
+        !newAmount.substring(0, newAmount.length - 1).includes(".")
+      ) {
+        amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas);
+        formattedAmount = numberFormater.format(amount).concat(".");
       } else {
-        const isDecimalPartInvalid = isNaN(Number.parseFloat(decimalPart))
-        if (!isDecimalPartInvalid) decimalPart = decimalPart.substring(0, mintDecimals)
-        decimalPart = isDecimalPartInvalid ? "" : (".").concat(Number.parseFloat(('1').concat(decimalPart)).toString().substring(1))
-        amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas)
-        formattedAmount = numberFormater.format(amount).split('.')[0].concat(decimalPart)
+        const isDecimalPartInvalid = isNaN(Number.parseFloat(decimalPart));
+        if (!isDecimalPartInvalid) decimalPart = decimalPart.substring(0, mintDecimals);
+        decimalPart = isDecimalPartInvalid
+          ? ""
+          : ".".concat(Number.parseFloat("1".concat(decimalPart)).toString().substring(1));
+        amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas);
+        formattedAmount = numberFormater.format(amount).split(".")[0].concat(decimalPart);
       }
 
       if (amount > maxAmount) {
@@ -486,16 +497,18 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
                 </span>
                 <div className="flex items-center gap-0.5">
                   <button
-                    className={`text-[11px] ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground ${maxAmount === 0 ? "" : "cursor-pointer hover:bg-muted-foreground/30"
-                      } transition-colors`}
+                    className={`text-[11px] ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground ${
+                      maxAmount === 0 ? "" : "cursor-pointer hover:bg-muted-foreground/30"
+                    } transition-colors`}
                     onClick={() => setAmountRaw(numberFormater.format(maxAmount / 2))}
                     disabled={maxAmount === 0}
                   >
                     HALF
                   </button>
                   <button
-                    className={`text-[11px] ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground ${maxAmount === 0 ? "" : "cursor-pointer hover:bg-muted-foreground/30"
-                      } transition-colors`}
+                    className={`text-[11px] ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground ${
+                      maxAmount === 0 ? "" : "cursor-pointer hover:bg-muted-foreground/30"
+                    } transition-colors`}
                     onClick={() => setAmountRaw(numberFormater.format(maxAmount))}
                     disabled={maxAmount === 0}
                   >
