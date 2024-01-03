@@ -22,7 +22,7 @@ import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
 import { ActionBoxTokens } from "~/components/common/ActionBox/ActionBoxTokens";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { Input } from "~/components/ui/input";
-import { IconAlertTriangle, IconInfoCircle, IconWallet, IconSortAscending, IconX } from "~/components/ui/icons";
+import { IconAlertTriangle, IconInfoCircle, IconWallet, IconSettings } from "~/components/ui/icons";
 
 import { ActionBoxPreview } from "./ActionBoxPreview";
 import { checkActionAvailable } from "./ActionBox.utils";
@@ -76,7 +76,12 @@ export const ActionBox = ({
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingModeFromStore, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
+  const [lendingModeFromStore, setLendingMode, priorityFee, setPriorityFee] = useUiStore((state) => [
+    state.lendingMode,
+    state.setLendingMode,
+    state.priorityFee,
+    state.setPriorityFee,
+  ]);
   const { walletContextState, connected } = useWalletContext();
 
   const lendingMode = useMemo(
@@ -96,6 +101,8 @@ export const ActionBox = ({
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
   const [preview, setPreview] = React.useState<ActionPreview | null>(null);
   const [isPriorityFeesMode, setIsPriorityFeesMode] = React.useState<boolean>(false);
+  const [isCustomPriorityFeeMode, setIsCustomPriorityFeeMode] = React.useState<boolean>(false);
+  const [customPriorityFee, setCustomPriorityFee] = React.useState<number | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
@@ -105,6 +112,8 @@ export const ActionBox = ({
   const numberFormater = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
+
+  const priorityFeeRef = React.useRef<HTMLInputElement>(null);
 
   const hasActivePositions = React.useMemo(() => extendedBankInfos.find((bank) => bank.isActive), [extendedBankInfos]);
   const selectedBank = React.useMemo(
@@ -168,6 +177,14 @@ export const ActionBox = ({
   );
 
   const actionModePrev = usePrevious(actionMode);
+
+  const priorityFeeLabel = useMemo(() => {
+    if (priorityFee === 0.0) return "Normal";
+    if (priorityFee === 0.00005) return "High";
+    if (priorityFee === 0.005) return "Turbo";
+    return "Custom";
+  }, [priorityFee]);
+
   React.useEffect(() => {
     if (actionModePrev !== null && actionModePrev !== actionMode) {
       setAmountRaw("");
@@ -492,25 +509,46 @@ export const ActionBox = ({
                   <Button
                     className={cn(
                       "flex flex-col gap-0.5 h-auto w-full font-light bg-background/50 transition-colors hover:bg-background-gray-hover",
-                      "bg-background-gray-hover"
+                      priorityFee === 0.0 && customPriorityFee === null && "bg-background-gray-hover"
                     )}
                     variant="secondary"
+                    onClick={() => {
+                      setPriorityFee(0);
+                      setCustomPriorityFee(null);
+                      setIsCustomPriorityFeeMode(false);
+                    }}
                   >
                     Normal <strong className="font-medium">0 SOL</strong>
                   </Button>
                 </li>
                 <li>
                   <Button
-                    className="flex flex-col gap-0.5 h-auto w-full font-light bg-background/50 transition-colors hover:bg-background-gray-hover"
+                    className={cn(
+                      "flex flex-col gap-0.5 h-auto w-full font-light bg-background/50 transition-colors hover:bg-background-gray-hover",
+                      priorityFee === 0.00005 && customPriorityFee === null && "bg-background-gray-hover"
+                    )}
                     variant="secondary"
+                    onClick={() => {
+                      setPriorityFee(0.00005);
+                      setCustomPriorityFee(null);
+                      setIsCustomPriorityFeeMode(false);
+                    }}
                   >
                     High <strong className="font-medium">0.000005 SOL</strong>
                   </Button>
                 </li>
                 <li>
                   <Button
-                    className="flex flex-col gap-0.5 h-auto w-full font-light bg-background/50 transition-colors hover:bg-background-gray-hover"
+                    className={cn(
+                      "flex flex-col gap-0.5 h-auto w-full font-light bg-background/50 transition-colors hover:bg-background-gray-hover",
+                      priorityFee === 0.005 && customPriorityFee === null && "bg-background-gray-hover"
+                    )}
                     variant="secondary"
+                    onClick={() => {
+                      setPriorityFee(0.005);
+                      setCustomPriorityFee(null);
+                      setIsCustomPriorityFeeMode(false);
+                    }}
                   >
                     Turbo <strong className="font-medium">0.005 SOL</strong>
                   </Button>
@@ -519,15 +557,32 @@ export const ActionBox = ({
               <h2 className="font-normal mb-2">or set manually</h2>
               <div className="relative mb-6">
                 <Input
+                  ref={priorityFeeRef}
                   type="number"
-                  className="h-auto bg-background/50 py-3 px-4 border-none text-white transition-colors focus-visible:ring-0"
+                  className={cn(
+                    "h-auto bg-background/50 py-3 px-4 border-none text-white transition-colors focus-visible:ring-0",
+                    priorityFee !== 0.00005 && priorityFee !== 0.005 && priorityFee !== 0 && "bg-background-gray-hover"
+                  )}
+                  value={isCustomPriorityFeeMode ? customPriorityFee?.toString() : ""}
                   min={0}
-                  placeholder="0"
+                  placeholder={
+                    priorityFee !== 0.00005 && priorityFee !== 0.005 && priorityFee !== 0 ? priorityFee.toString() : "0"
+                  }
+                  onFocus={() => setIsCustomPriorityFeeMode(true)}
+                  onChange={() => setCustomPriorityFee(Number(priorityFeeRef.current?.value))}
                 />
                 <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
               </div>
-              <Button onClick={() => setIsPriorityFeesMode(false)} className="w-full py-6">
-                Cancel
+              <Button
+                onClick={() => {
+                  if (customPriorityFee) {
+                    setPriorityFee(customPriorityFee);
+                  }
+                  setIsPriorityFeesMode(false);
+                }}
+                className="w-full py-6"
+              >
+                Save Settings
               </Button>
             </>
           )}
@@ -543,20 +598,20 @@ export const ActionBox = ({
                 )}
                 {selectedBank && (
                   <div className="inline-flex gap-1.5 items-center">
-                    <button
-                      className="flex items-center gap-1 text-sm font-normal"
-                      onClick={() => setAmountRaw(numberFormater.format(maxAmount))}
-                    >
-                      <IconWallet size={16} />
+                    <IconWallet size={16} />
+                    <span className="text-sm font-normal">
                       {walletAmount !== undefined
                         ? clampedNumeralFormatter(walletAmount).concat(" ", selectedBank.meta.tokenSymbol)
                         : "-"}
-                    </button>
+                    </span>
                     <button
-                      onClick={() => setIsPriorityFeesMode(true)}
-                      className="text-[11px] gap-0.5 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center border rounded-full border-muted-foreground/30 text-muted-foreground"
+                      className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
+                        maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
+                      } transition-colors`}
+                      onClick={() => setAmountRaw(numberFormater.format(maxAmount))}
+                      disabled={maxAmount === 0}
                     >
-                      <IconSortAscending size={14} /> AUTO
+                      MAX
                     </button>
                   </div>
                 )}
@@ -607,6 +662,15 @@ export const ActionBox = ({
                 actionMode={actionMode}
                 disabled={amount === 0}
               />
+
+              <div className="flex justify-end mt-3">
+                <button
+                  onClick={() => setIsPriorityFeesMode(true)}
+                  className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
+                >
+                  Txn priority: {priorityFeeLabel} <IconSettings size={16} />
+                </button>
+              </div>
 
               {selectedBank && actionMethod.isEnabled && (
                 <ActionBoxPreview

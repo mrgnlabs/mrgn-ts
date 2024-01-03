@@ -46,6 +46,7 @@ interface UiState {
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
   userMode: UserMode;
+  priorityFee: number;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -58,6 +59,7 @@ interface UiState {
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
   setUserMode: (userMode: UserMode) => void;
+  setPriorityFee: (priorityFee: number) => void;
 }
 
 function createUiStore() {
@@ -78,6 +80,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
   userMode: UserMode.LITE,
   selectedTokenBank: null,
+  priorityFee: 0,
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -94,6 +97,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setUserMode: (userMode: UserMode) => set({ userMode: userMode }),
+  setPriorityFee: (priorityFee: number) => set({ priorityFee: priorityFee }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };
