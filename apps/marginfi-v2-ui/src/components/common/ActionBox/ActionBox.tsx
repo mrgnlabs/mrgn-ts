@@ -29,7 +29,6 @@ import { MrgnTooltip } from "../MrgnTooltip";
 import { MarginfiAccountWrapper, MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionBoxActions } from "./ActionBoxActions";
 import { Skeleton } from "~/components/ui/skeleton";
-import { SheetClose } from "~/components/ui/sheet";
 
 export interface ActionPreview {
   health: number;
@@ -432,7 +431,7 @@ export const ActionBox = ({ requestedAction, requestedToken, requestedLendingMod
       } else {
         const isDecimalPartInvalid = isNaN(Number.parseFloat(decimalPart))
         if (!isDecimalPartInvalid) decimalPart = decimalPart.substring(0, mintDecimals)
-        decimalPart = isDecimalPartInvalid ? "" : (".").concat(Number.parseFloat(decimalPart).toString())
+        decimalPart = isDecimalPartInvalid ? "" : (".").concat(Number.parseFloat(('1').concat(decimalPart)).toString().substring(1))
         amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas)
         formattedAmount = numberFormater.format(amount).split('.')[0].concat(decimalPart)
       }
