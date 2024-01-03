@@ -19,7 +19,13 @@ import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { LendingModes } from "~/types";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import {
+  IconAlertTriangle,
+  IconAlertTriangleFilled,
+  IconInfoCircle,
+  IconPyth,
+  IconSwitchboard,
+} from "~/components/ui/icons";
 
 import { useUserProfileStore, useUiStore } from "~/store";
 import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
@@ -267,11 +273,11 @@ const AssetRow: React.FC<{
         </TableCell>
 
         <TableCell
-          className="border-none font-aeonik px-2"
+          className={cn(
+            "border-none font-aeonik px-2",
+            isInLendingMode ? "text-success" : "text-destructive-foreground"
+          )}
           align="right"
-          style={{
-            color: isInLendingMode ? "#75BA80" : "#CF6F6F",
-          }}
         >
           <div className="h-full w-full flex justify-end items-center gap-3">
             {bank.info.state.emissionsRate > 0 &&
@@ -338,13 +344,32 @@ const AssetRow: React.FC<{
                   {isReduceOnly ? "Reduce Only" : isBankHigh && (isBankFilled ? "Limit Reached" : "Approaching Limit")}
                 </Typography>
 
-                {isReduceOnly
-                  ? "stSOL is being discontinued."
-                  : `${bank.meta.tokenSymbol} ${
-                      isInLendingMode ? "deposits" : "borrows"
-                    } are at ${percentFormatter.format(
-                      (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
-                    )} capacity.`}
+                {isReduceOnly ? (
+                  <span>stSOL is being discontinued.</span>
+                ) : (
+                  <>
+                    <span>
+                      {bank.meta.tokenSymbol} {isInLendingMode ? "deposits" : "borrows"} are at{" "}
+                      {percentFormatter.format(
+                        (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
+                      )}{" "}
+                      capacity.
+                    </span>
+                    {!isBankFilled && (
+                      <>
+                        <br />
+                        <br />
+                        <span>
+                          Available:{" "}
+                          {numeralFormatter(
+                            bankCap - (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows)
+                          )}
+                        </span>
+                      </>
+                    )}
+                  </>
+                )}
+                <br />
                 <br />
                 <a href="https://docs.marginfi.com">
                   <u>Learn more.</u>
@@ -354,7 +379,37 @@ const AssetRow: React.FC<{
             placement="right"
             className={``}
           >
-            <Badge
+            <span
+              className={cn(
+                "flex items-center justify-end gap-1.5 text-white",
+                (isReduceOnly || isBankHigh) && "text-warning",
+                isBankFilled && "text-destructive-foreground"
+              )}
+            >
+              {denominationUSD
+                ? usdFormatter.format(
+                    (isInLendingMode
+                      ? bank.info.state.totalDeposits
+                      : Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
+                        bank.info.state.totalBorrows) * bank.info.state.price
+                  )
+                : numeralFormatter(
+                    isInLendingMode
+                      ? bank.info.state.totalDeposits
+                      : Math.max(
+                          0,
+                          Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
+                            bank.info.state.totalBorrows
+                        )
+                  )}
+
+              {isReduceOnly || (isBankHigh && !isBankFilled) ? (
+                <IconAlertTriangle size={16} />
+              ) : isBankFilled ? (
+                <IconAlertTriangleFilled size={16} />
+              ) : null}
+            </span>
+            {/* <Badge
               badgeContent={isReduceOnly ? "‼️" : isBankHigh && isBankFilled ? "💯" : "❗"}
               className="bg-transparent"
               sx={{
@@ -380,7 +435,7 @@ const AssetRow: React.FC<{
                             bank.info.state.totalBorrows
                         )
                   )}
-            </Badge>
+            </Badge> */}
           </MrgnTooltip>
         </TableCell>
 
