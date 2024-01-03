@@ -179,7 +179,7 @@ export const ActionBox = ({
   const actionModePrev = usePrevious(actionMode);
 
   const priorityFeeLabel = useMemo(() => {
-    if (priorityFee === 0.0) return "Auto";
+    if (priorityFee === 0) return "Normal";
     if (priorityFee === 0.00005) return "High";
     if (priorityFee === 0.005) return "Turbo";
     return "Custom";
@@ -519,23 +519,23 @@ export const ActionBox = ({
                       setIsCustomPriorityFeeMode(false);
                     }}
                   >
-                    Auto <strong className="font-medium">Dynamic</strong>
+                    Normal <strong className="font-medium">0 SOL</strong>
                   </Button>
                 </li>
                 <li>
                   <Button
                     className={cn(
                       "flex flex-col gap-0.5 h-auto w-full font-light bg-background/50 transition-colors hover:bg-background-gray-hover",
-                      priorityFee === 0.0005 && customPriorityFee === null && "bg-background-gray-hover"
+                      priorityFee === 0.00005 && customPriorityFee === null && "bg-background-gray-hover"
                     )}
                     variant="secondary"
                     onClick={() => {
-                      setPriorityFee(0.0005);
+                      setPriorityFee(0.00005);
                       setCustomPriorityFee(null);
                       setIsCustomPriorityFeeMode(false);
                     }}
                   >
-                    High <strong className="font-medium">0.000005 SOL</strong>
+                    High <strong className="font-medium">0.00005 SOL</strong>
                   </Button>
                 </li>
                 <li>
@@ -562,13 +562,12 @@ export const ActionBox = ({
                   type="number"
                   className={cn(
                     "h-auto bg-background/50 py-3 px-4 border-none text-white transition-colors focus-visible:ring-0",
-                    priorityFee !== 0.0005 && priorityFee !== 0.005 && priorityFee !== 0 && "bg-background-gray-hover"
+                    priorityFee !== 0.005 && priorityFee !== 0.00005 && priorityFee !== 0 && "bg-background-gray-hover"
                   )}
                   value={customPriorityFee && !isCustomPriorityFeeMode ? customPriorityFee?.toString() : undefined}
                   min={0}
-                  step={0.000001}
                   placeholder={
-                    priorityFee !== 0.0005 && priorityFee !== 0.005 && priorityFee !== 0 ? priorityFee.toString() : "0"
+                    priorityFee !== 0.005 && priorityFee !== 0.00005 && priorityFee !== 0 ? priorityFee.toString() : "0"
                   }
                   onFocus={() => setIsCustomPriorityFeeMode(true)}
                   onChange={() => setCustomPriorityFee(parseFloat(priorityFeeRef.current?.value || "0"))}

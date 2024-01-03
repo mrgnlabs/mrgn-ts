@@ -210,17 +210,23 @@ class MarginfiAccountWrapper {
 
   makePriorityFeeIx(priorityFee?: number): TransactionInstruction[] {
     const priorityFeeIx: TransactionInstruction[] = [];
-    if (!priorityFee || priorityFee < 0) return priorityFeeIx;
-
-    priorityFeeIx.push(
-      ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports: 1_000_000,
-      })
-    );
+    const limitCU = 1_400_000;
 
     priorityFeeIx.push(
       ComputeBudgetProgram.setComputeUnitLimit({
-        units: priorityFee * LAMPORTS_PER_SOL,
+        units: limitCU,
+      })
+    );
+
+    let microLamports: number = 1;
+
+    if (priorityFee) {
+      microLamports = Math.round((priorityFee * 1_000_000_000 * 1_000_000) / limitCU);
+    }
+
+    priorityFeeIx.push(
+      ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: microLamports,
       })
     );
 
