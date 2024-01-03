@@ -350,6 +350,7 @@ export const ActionBox = ({
         nativeSolBalance,
         marginfiAccount,
         walletContextState,
+        priorityFee,
       });
 
       setIsLoading(false);
@@ -365,7 +366,7 @@ export const ActionBox = ({
         console.log(error);
       }
     },
-    [fetchMrgnlendState, setIsRefreshingStore]
+    [fetchMrgnlendState, setIsRefreshingStore, priorityFee]
   );
 
   const handleCloseBalance = React.useCallback(async () => {
@@ -373,7 +374,7 @@ export const ActionBox = ({
       if (!selectedBank || !selectedAccount) {
         throw new Error();
       }
-      await closeBalance({ marginfiAccount: selectedAccount, bank: selectedBank });
+      await closeBalance({ marginfiAccount: selectedAccount, bank: selectedBank, priorityFee });
     } catch (error) {
       return;
     }
@@ -388,7 +389,7 @@ export const ActionBox = ({
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [selectedBank, selectedAccount, fetchMrgnlendState, setIsRefreshingStore]);
+  }, [selectedBank, selectedAccount, fetchMrgnlendState, setIsRefreshingStore, priorityFee]);
 
   const handleLendingAction = React.useCallback(async () => {
     if (!actionMode || !selectedBank || !amount) {
