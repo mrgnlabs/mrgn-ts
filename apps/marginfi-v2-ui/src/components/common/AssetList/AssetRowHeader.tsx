@@ -122,65 +122,52 @@ export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, is
         </div>
       </TableCell>
 
-      {/*******************************/}
-      {/* [START]: ZOOM-BASED COLUMNS */}
-      {/*******************************/}
-
-      {lendZoomLevel < 2 && (
-        <TableCell
-          className="text-[#A1A1A1] text-base border-none px-2 hidden xl:table-cell"
-          style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
-          align="right"
-        >
-          <div className="h-full w-full flex justify-end items-center gap-2">
-            Global limit
-            <MrgnTooltip
-              title={
-                <React.Fragment>
-                  <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                    {isInLendingMode ? "Global deposit cap" : "Global borrow cap"}
-                  </Typography>
-                  Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount
-                  that all users combined can deposit or borrow of a given token.
-                </React.Fragment>
-              }
-              placement="top"
-            >
-              <Image src="/info_icon.png" alt="info" height={16} width={16} />
-            </MrgnTooltip>
-          </div>
-        </TableCell>
-      )}
-
-      {lendZoomLevel < 3 && (
-        <TableCell
-          className="text-[#A1A1A1] text-base border-none px-2 hidden xl:table-cell"
-          style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
-          align="right"
-        >
-          <div className="h-full w-full flex justify-end items-center gap-2">
-            Utilization
-            <MrgnTooltip
-              title={
-                <React.Fragment>
-                  <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                    Pool utilization
-                  </Typography>
-                  What percentage of supplied tokens have been borrowed. This helps determine interest rates. This is
-                  not based on the global pool limits, which can limit utilization.
-                </React.Fragment>
-              }
-              placement="top"
-            >
-              <Image src="/info_icon.png" alt="info" height={16} width={16} />
-            </MrgnTooltip>
-          </div>
-        </TableCell>
-      )}
-
-      {/*******************************/}
-      {/* [END]: ZOOM-BASED COLUMNS */}
-      {/*******************************/}
+      <TableCell
+        className="text-[#A1A1A1] text-base border-none px-2 hidden xl:table-cell"
+        style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+        align="right"
+      >
+        <div className="h-full w-full flex justify-end items-center gap-2">
+          Global limit
+          <MrgnTooltip
+            title={
+              <React.Fragment>
+                <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                  {isInLendingMode ? "Global deposit cap" : "Global borrow cap"}
+                </Typography>
+                Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount
+                that all users combined can deposit or borrow of a given token.
+              </React.Fragment>
+            }
+            placement="top"
+          >
+            <Image src="/info_icon.png" alt="info" height={16} width={16} />
+          </MrgnTooltip>
+        </div>
+      </TableCell>
+      <TableCell
+        className="text-[#A1A1A1] text-base border-none px-2 hidden xl:table-cell"
+        style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
+        align="right"
+      >
+        <div className="h-full w-full flex justify-end items-center gap-2">
+          Utilization
+          <MrgnTooltip
+            title={
+              <React.Fragment>
+                <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                  Pool utilization
+                </Typography>
+                What percentage of supplied tokens have been borrowed. This helps determine interest rates. This is not
+                based on the global pool limits, which can limit utilization.
+              </React.Fragment>
+            }
+            placement="top"
+          >
+            <Image src="/info_icon.png" alt="info" height={16} width={16} />
+          </MrgnTooltip>
+        </div>
+      </TableCell>
 
       <TableCell
         className="text-[#A1A1A1] text-base border-none px-2 table-cell"
