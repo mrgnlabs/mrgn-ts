@@ -44,7 +44,7 @@ export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, is
         </div>
       </TableCell>
       <TableCell
-        className="text-[#A1A1A1] text-base border-none px-2 hidden md:table-cell"
+        className="text-[#A1A1A1] text-base border-none px-2"
         style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
         align="right"
       >
@@ -70,7 +70,7 @@ export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, is
         </div>
       </TableCell>
       <TableCell
-        className="text-[#A1A1A1] text-base border-none px-2 hidden md:table-cell"
+        className="text-[#A1A1A1] text-base border-none px-2"
         style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
         align="right"
       >
@@ -96,7 +96,7 @@ export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, is
         </div>
       </TableCell>
       <TableCell
-        className="text-[#A1A1A1] text-base border-none px-2 hidden lg:table-cell"
+        className="text-[#A1A1A1] text-base border-none px-2"
         style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
         align="right"
       >
@@ -123,30 +123,32 @@ export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, is
       </TableCell>
 
       <TableCell
-        className="text-[#A1A1A1] text-base border-none px-2 hidden xl:table-cell"
+        className="text-[#A1A1A1] text-base border-none px-2"
         style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
         align="right"
       >
         <div className="h-full w-full flex justify-end items-center gap-2">
-          Global limit
-          <MrgnTooltip
-            title={
-              <React.Fragment>
-                <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                  {isInLendingMode ? "Global deposit cap" : "Global borrow cap"}
-                </Typography>
-                Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount
-                that all users combined can deposit or borrow of a given token.
-              </React.Fragment>
-            }
-            placement="top"
-          >
-            <Image src="/info_icon.png" alt="info" height={16} width={16} />
-          </MrgnTooltip>
+          {isInLendingMode ? "Global limit" : "Total Borrows"}
+          {isInLendingMode && (
+            <MrgnTooltip
+              title={
+                <React.Fragment>
+                  <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                    Global deposit cap
+                  </Typography>
+                  Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount
+                  that all users combined can deposit or borrow of a given token.
+                </React.Fragment>
+              }
+              placement="top"
+            >
+              <Image src="/info_icon.png" alt="info" height={16} width={16} />
+            </MrgnTooltip>
+          )}
         </div>
       </TableCell>
       <TableCell
-        className="text-[#A1A1A1] text-base border-none px-2 hidden xl:table-cell"
+        className="text-[#A1A1A1] text-base border-none px-2"
         style={{ fontFamily: "Aeonik Pro", fontWeight: 300 }}
         align="right"
       >
