@@ -40,17 +40,16 @@ const Footer: FC = () => {
   }, [router.pathname]);
 
   return (
-    <header>
+    <footer>
       <div className="hidden sm:flex justify-between gap-4 fixed w-full bottom-0 h-[34px] z-20 bg-[#0F1111]  border-t border-[#4E5257]">
         <div className=" flex gap-4">
           {footerConfig.userMode && <UserModeControl />}
           {footerConfig.hotkeys && userMode === UserMode.PRO && <HotkeysInfo />}
-          {footerConfig.zoom && userMode === UserMode.PRO && <LendZoomControl />}
           {footerConfig.unit && userMode === UserMode.PRO && <LendUnitControl />}
         </div>
         {footerConfig.links && <QuickLinks />}
       </div>
-    </header>
+    </footer>
   );
 };
 

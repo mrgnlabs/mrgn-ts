@@ -257,13 +257,7 @@ const AssetRow: React.FC<{
                 }}
                 invisible={assetPriceOffset > assetPrice * 0.1 ? false : true}
               >
-                {assetPrice >= 0.01
-                  ? lendZoomLevel < 2
-                    ? `${
-                        assetPrice > 9999 ? numeralFormatter(assetPrice) : usdFormatter.format(assetPrice)
-                      } ± ${assetPriceOffset.toFixed(2)}`
-                    : usdFormatter.format(assetPrice)
-                  : `$${assetPrice.toExponential(2)}`}
+                {assetPrice >= 0.01 ? usdFormatter.format(assetPrice) : `$${assetPrice.toExponential(2)}`}
               </Badge>
             </MrgnTooltip>
             <MrgnTooltip title={`Powered by ${oracle}`} placement="right">
@@ -439,33 +433,21 @@ const AssetRow: React.FC<{
           </MrgnTooltip>
         </TableCell>
 
-        {/*******************************/}
-        {/* [START]: ZOOM-BASED COLUMNS */}
-        {/*******************************/}
+        <TableCell
+          className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
+          align="right"
+          style={{ fontWeight: 300 }}
+        >
+          {denominationUSD ? usdFormatter.format(bankCap * bank.info.state.price) : numeralFormatter(bankCap)}
+        </TableCell>
 
-        {lendZoomLevel < 2 && (
-          <TableCell
-            className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
-            align="right"
-            style={{ fontWeight: 300 }}
-          >
-            {denominationUSD ? usdFormatter.format(bankCap * bank.info.state.price) : numeralFormatter(bankCap)}
-          </TableCell>
-        )}
-
-        {lendZoomLevel < 3 && (
-          <TableCell
-            className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
-            align="right"
-            style={{ fontWeight: 300 }}
-          >
-            {percentFormatter.format(bank.info.state.utilizationRate / 100)}
-          </TableCell>
-        )}
-
-        {/*******************************/}
-        {/* [END]: ZOOM-BASED COLUMNS */}
-        {/*******************************/}
+        <TableCell
+          className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
+          align="right"
+          style={{ fontWeight: 300 }}
+        >
+          {percentFormatter.format(bank.info.state.utilizationRate / 100)}
+        </TableCell>
 
         <TableCell
           className="text-white border-none font-aeonik px-2 table-cell"
@@ -517,7 +499,7 @@ const AssetRow: React.FC<{
             className={cn("h-[54px] w-full transition-colors", isHovering && "bg-background-gray")}
           >
             <TableCell
-              colSpan={userPositionColSpan}
+              colSpan={9}
               className={`text-white p-0 font-aeonik border-none w-full`}
               style={{
                 fontWeight: 300,
