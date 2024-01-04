@@ -1,26 +1,43 @@
 import React from "react";
 
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useUiStore } from "~/store";
 import { cn } from "~/utils";
 
 import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { IconInfoCircle } from "~/components/ui/icons";
+import { IconInfoCircle, IconArrowLeft } from "~/components/ui/icons";
 
 type ActionBoxPriorityFeesProps = {
+  mode: ActionType;
   setIsPriorityFeesMode: (value: boolean) => void;
 };
 
-export const ActionBoxPriorityFees = ({ setIsPriorityFeesMode }: ActionBoxPriorityFeesProps) => {
+export const ActionBoxPriorityFees = ({ mode, setIsPriorityFeesMode }: ActionBoxPriorityFeesProps) => {
   const [priorityFee, setPriorityFee] = useUiStore((state) => [state.priorityFee, state.setPriorityFee]);
 
   const priorityFeeRef = React.useRef<HTMLInputElement>(null);
   const [isCustomPriorityFeeMode, setIsCustomPriorityFeeMode] = React.useState<boolean>(false);
   const [customPriorityFee, setCustomPriorityFee] = React.useState<number | null>(null);
 
+  const modeLabel = React.useMemo(() => {
+    let label = "";
+
+    if (mode === ActionType.Deposit) {
+      label = "to lending";
+    } else if (mode === ActionType.Borrow) {
+      label = "to borrowing";
+    }
+
+    return label;
+  }, [mode]);
+
   return (
-    <>
+    <div className="space-y-6">
+      <button className="flex items-center gap-1.5 text-sm" onClick={() => setIsPriorityFeesMode(false)}>
+        <IconArrowLeft size={18} /> Back {modeLabel}
+      </button>
       <h2 className="text-lg font-normal mb-2 flex items-center gap-2">
         Set transaction priority{" "}
         <MrgnTooltip
@@ -110,6 +127,6 @@ export const ActionBoxPriorityFees = ({ setIsPriorityFeesMode }: ActionBoxPriori
       >
         Save Settings
       </Button>
-    </>
+    </div>
   );
 };

@@ -26,6 +26,7 @@ import {
   IconSortDescending,
   IconInfoCircle,
   IconArrowRight,
+  IconArrowLeft,
   IconSettings,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
@@ -561,6 +562,7 @@ export {
   IconSortDescending,
   IconInfoCircle,
   IconArrowRight,
+  IconArrowLeft,
   IconSettings,
 
   // customed icons
