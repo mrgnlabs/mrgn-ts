@@ -179,7 +179,7 @@ export const ActionBox = ({
   const priorityFeeLabel = useMemo(() => {
     if (priorityFee === 0) return "Normal";
     if (priorityFee === 0.00005) return "High";
-    if (priorityFee === 0.005) return "Turbo";
+    if (priorityFee === 0.005) return "Mamas";
     return "Custom";
   }, [priorityFee]);
 
