@@ -498,7 +498,9 @@ export const ActionBox = ({
           )}
         </div>
         <div className="p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative">
-          {isPriorityFeesMode && <ActionBoxPriorityFees setIsPriorityFeesMode={setIsPriorityFeesMode} />}
+          {isPriorityFeesMode && (
+            <ActionBoxPriorityFees mode={actionMode} setIsPriorityFeesMode={setIsPriorityFeesMode} />
+          )}
           {!isPriorityFeesMode && (
             <>
               <div className="flex flex-row items-center justify-between mb-3">
