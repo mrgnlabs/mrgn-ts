@@ -3,6 +3,7 @@ import React from "react";
 import { useUiStore } from "~/store";
 import { cn } from "~/utils";
 
+import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { IconInfoCircle } from "~/components/ui/icons";
@@ -21,7 +22,13 @@ export const ActionBoxPriorityFees = ({ setIsPriorityFeesMode }: ActionBoxPriori
   return (
     <>
       <h2 className="text-lg font-normal mb-2 flex items-center gap-2">
-        Set transaction priority <IconInfoCircle size={16} />
+        Set transaction priority{" "}
+        <MrgnTooltip
+          title="Priority fees are paid to the Solana network. This additional fee helps boost how a transaction is prioritized."
+          placement="right"
+        >
+          <IconInfoCircle size={16} />
+        </MrgnTooltip>
       </h2>
       <ul className="grid grid-cols-3 gap-3 mb-6">
         <li>
