@@ -169,6 +169,8 @@ const AssetRow: React.FC<{
     };
   }, []);
 
+  console.log(bank.info.state);
+
   return (
     <>
       {bank.meta.tokenSymbol === "$WIF" && dogWifHatRef.current && (
@@ -318,16 +320,12 @@ const AssetRow: React.FC<{
           </div>
         </TableCell>
 
-        <TableCell
-          className="text-white border-none font-aeonik px-2 hidden md:table-cell"
-          align="right"
-          style={{ fontWeight: 300 }}
-        >
+        <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
           {assetWeight}
         </TableCell>
 
         <TableCell
-          className={clsx("text-white border-none font-aeonik px-2 hidden lg:table-cell")}
+          className={clsx("text-white border-none font-aeonik px-2")}
           align="right"
           style={{ fontWeight: 300 }}
         >
@@ -390,10 +388,9 @@ const AssetRow: React.FC<{
                 : numeralFormatter(
                     isInLendingMode
                       ? bank.info.state.totalDeposits
-                      : Math.max(
-                          0,
-                          Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-                            bank.info.state.totalBorrows
+                      : Math.min(
+                          bank.info.state.availableLiquidity,
+                          bank.info.state.borrowCap - bank.info.state.totalBorrows
                         )
                   )}
 
@@ -433,19 +430,19 @@ const AssetRow: React.FC<{
           </MrgnTooltip>
         </TableCell>
 
-        <TableCell
-          className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
-          align="right"
-          style={{ fontWeight: 300 }}
-        >
-          {denominationUSD ? usdFormatter.format(bankCap * bank.info.state.price) : numeralFormatter(bankCap)}
+        <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+          {isInLendingMode ? (
+            <>{denominationUSD ? usdFormatter.format(bankCap * bank.info.state.price) : numeralFormatter(bankCap)}</>
+          ) : (
+            <>
+              {denominationUSD
+                ? usdFormatter.format(bank.info.state.totalBorrows)
+                : numeralFormatter(bank.info.state.totalBorrows)}
+            </>
+          )}
         </TableCell>
 
-        <TableCell
-          className="text-white border-none font-aeonik px-2 hidden xl:table-cell"
-          align="right"
-          style={{ fontWeight: 300 }}
-        >
+        <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
           {percentFormatter.format(bank.info.state.utilizationRate / 100)}
         </TableCell>
 
