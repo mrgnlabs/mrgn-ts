@@ -8,7 +8,6 @@ import TwitterIcon from "@mui/icons-material/Twitter";
 import TelegramIcon from "@mui/icons-material/Telegram";
 import AutoStoriesOutlinedIcon from "@mui/icons-material/AutoStoriesOutlined";
 import InsightsIcon from "@mui/icons-material/Insights";
-import { IconMrgn } from "~/components/ui/icons";
 
 interface MenuModalProps {
   isOpen: boolean;
@@ -43,17 +42,6 @@ export const MenuModal: FC<MenuModalProps> = ({ isOpen, handleClose }) => {
                   onClick={handleClose}
                 />
               ))}
-              <div className="w-full h-[70px]">
-                <Link
-                  href="https://apply.workable.com/mrgn"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full h-full flex flex-col justify-center items-center rounded-md border-[1px] border-[#999] text-[#999] no-underline"
-                >
-                  <IconMrgn />
-                  <div className="font-aeonik font-[400] text-sm text-[#999]">careers</div>
-                </Link>
-              </div>
             </div>
             <div className="w-full flex flex-col justify-center items-center">
               <div className="w-full h-[30px] flex flex-row justify-between gap-2 items-center">
