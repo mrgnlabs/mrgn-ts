@@ -509,8 +509,8 @@ export const ActionBox = ({
                 <li>
                   <Button
                     className={cn(
-                      "flex flex-col gap-0.5 h-auto w-full font-light bg-background/50 transition-colors hover:bg-background-gray-hover",
-                      priorityFee === 0.0 && customPriorityFee === null && "bg-background-gray-hover"
+                      "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
+                      priorityFee === 0.0 && customPriorityFee === null && "bg-background-gray-hover border-chartreuse"
                     )}
                     variant="secondary"
                     onClick={() => {
@@ -525,8 +525,10 @@ export const ActionBox = ({
                 <li>
                   <Button
                     className={cn(
-                      "flex flex-col gap-0.5 h-auto w-full font-light bg-background/50 transition-colors hover:bg-background-gray-hover",
-                      priorityFee === 0.00005 && customPriorityFee === null && "bg-background-gray-hover"
+                      "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
+                      priorityFee === 0.00005 &&
+                        customPriorityFee === null &&
+                        "bg-background-gray-hover border-chartreuse"
                     )}
                     variant="secondary"
                     onClick={() => {
@@ -541,8 +543,10 @@ export const ActionBox = ({
                 <li>
                   <Button
                     className={cn(
-                      "flex flex-col gap-0.5 h-auto w-full font-light bg-background/50 transition-colors hover:bg-background-gray-hover",
-                      priorityFee === 0.005 && customPriorityFee === null && "bg-background-gray-hover"
+                      "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
+                      priorityFee === 0.005 &&
+                        customPriorityFee === null &&
+                        "bg-background-gray-hover border-chartreuse"
                     )}
                     variant="secondary"
                     onClick={() => {
@@ -561,8 +565,8 @@ export const ActionBox = ({
                   ref={priorityFeeRef}
                   type="number"
                   className={cn(
-                    "h-auto bg-background/50 py-3 px-4 border-none text-white transition-colors focus-visible:ring-0",
-                    priorityFee !== 0.005 && priorityFee !== 0.00005 && priorityFee !== 0 && "bg-background-gray-hover"
+                    "h-auto bg-background/50 py-3 px-4 border border-transparent text-white transition-colors focus-visible:ring-0",
+                    priorityFee !== 0.005 && priorityFee !== 0.00005 && priorityFee !== 0 && "border-chartreuse"
                   )}
                   value={customPriorityFee && !isCustomPriorityFeeMode ? customPriorityFee?.toString() : undefined}
                   min={0}
