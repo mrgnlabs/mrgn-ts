@@ -19,18 +19,20 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useDebounce } from "~/hooks/useDebounce";
 
 import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
-import { ActionBoxTokens } from "~/components/common/ActionBox/ActionBoxTokens";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { Input } from "~/components/ui/input";
 import { IconAlertTriangle, IconInfoCircle, IconWallet, IconSettings } from "~/components/ui/icons";
+import {
+  checkActionAvailable,
+  ActionBoxActions,
+  ActionBoxPreview,
+  ActionBoxTokens,
+  ActionBoxPriorityFees,
+} from "~/components/common/ActionBox";
 
-import { ActionBoxPreview } from "./ActionBoxPreview";
-import { checkActionAvailable } from "./ActionBox.utils";
 import { MrgnTooltip } from "../MrgnTooltip";
 import { MarginfiAccountWrapper, MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { ActionBoxActions } from "./ActionBoxActions";
 import { Skeleton } from "~/components/ui/skeleton";
-import { Button } from "~/components/ui/button";
 
 export interface ActionPreview {
   health: number;
@@ -101,8 +103,6 @@ export const ActionBox = ({
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
   const [preview, setPreview] = React.useState<ActionPreview | null>(null);
   const [isPriorityFeesMode, setIsPriorityFeesMode] = React.useState<boolean>(false);
-  const [isCustomPriorityFeeMode, setIsCustomPriorityFeeMode] = React.useState<boolean>(false);
-  const [customPriorityFee, setCustomPriorityFee] = React.useState<number | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
@@ -112,8 +112,6 @@ export const ActionBox = ({
   const numberFormater = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
-
-  const priorityFeeRef = React.useRef<HTMLInputElement>(null);
 
   const hasActivePositions = React.useMemo(() => extendedBankInfos.find((bank) => bank.isActive), [extendedBankInfos]);
   const selectedBank = React.useMemo(
@@ -500,97 +498,7 @@ export const ActionBox = ({
           )}
         </div>
         <div className="p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative">
-          {isPriorityFeesMode && (
-            <>
-              <h2 className="text-lg font-normal mb-2 flex items-center gap-2">
-                Set transaction priority <IconInfoCircle size={16} />
-              </h2>
-              <ul className="grid grid-cols-3 gap-3 mb-6">
-                <li>
-                  <Button
-                    className={cn(
-                      "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
-                      priorityFee === 0.0 && customPriorityFee === null && "bg-background-gray-hover border-chartreuse"
-                    )}
-                    variant="secondary"
-                    onClick={() => {
-                      setPriorityFee(0);
-                      setCustomPriorityFee(null);
-                      setIsCustomPriorityFeeMode(false);
-                    }}
-                  >
-                    Normal <strong className="font-medium">0 SOL</strong>
-                  </Button>
-                </li>
-                <li>
-                  <Button
-                    className={cn(
-                      "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
-                      priorityFee === 0.00005 &&
-                        customPriorityFee === null &&
-                        "bg-background-gray-hover border-chartreuse"
-                    )}
-                    variant="secondary"
-                    onClick={() => {
-                      setPriorityFee(0.00005);
-                      setCustomPriorityFee(null);
-                      setIsCustomPriorityFeeMode(false);
-                    }}
-                  >
-                    High <strong className="font-medium">0.00005 SOL</strong>
-                  </Button>
-                </li>
-                <li>
-                  <Button
-                    className={cn(
-                      "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
-                      priorityFee === 0.005 &&
-                        customPriorityFee === null &&
-                        "bg-background-gray-hover border-chartreuse"
-                    )}
-                    variant="secondary"
-                    onClick={() => {
-                      setPriorityFee(0.005);
-                      setCustomPriorityFee(null);
-                      setIsCustomPriorityFeeMode(false);
-                    }}
-                  >
-                    Turbo <strong className="font-medium">0.005 SOL</strong>
-                  </Button>
-                </li>
-              </ul>
-              <h2 className="font-normal mb-2">or set manually</h2>
-              <div className="relative mb-6">
-                <Input
-                  ref={priorityFeeRef}
-                  type="number"
-                  className={cn(
-                    "h-auto bg-background/50 py-3 px-4 border border-transparent text-white transition-colors focus-visible:ring-0",
-                    priorityFee !== 0.005 && priorityFee !== 0.00005 && priorityFee !== 0 && "border-chartreuse"
-                  )}
-                  value={customPriorityFee && !isCustomPriorityFeeMode ? customPriorityFee?.toString() : undefined}
-                  min={0}
-                  placeholder={
-                    priorityFee !== 0.005 && priorityFee !== 0.00005 && priorityFee !== 0 ? priorityFee.toString() : "0"
-                  }
-                  onFocus={() => setIsCustomPriorityFeeMode(true)}
-                  onChange={() => setCustomPriorityFee(parseFloat(priorityFeeRef.current?.value || "0"))}
-                />
-                <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
-              </div>
-              <Button
-                onClick={() => {
-                  if (customPriorityFee) {
-                    setPriorityFee(customPriorityFee);
-                  }
-                  setIsPriorityFeesMode(false);
-                }}
-                className="w-full py-6"
-              >
-                Save Settings
-              </Button>
-            </>
-          )}
+          {isPriorityFeesMode && <ActionBoxPriorityFees setIsPriorityFeesMode={setIsPriorityFeesMode} />}
           {!isPriorityFeesMode && (
             <>
               <div className="flex flex-row items-center justify-between mb-3">
