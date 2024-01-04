@@ -272,17 +272,6 @@ const DesktopNavbar: FC = () => {
               </Link>
             </Badge>
 
-            <Link
-              href={"/points"}
-              className={`${
-                router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"
-              } whitespace-nowrap`}
-            >
-              {connected && currentFirebaseUser
-                ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
-                : "points"}
-            </Link>
-
             <Badge
               anchorOrigin={{
                 vertical: "bottom",
@@ -302,8 +291,26 @@ const DesktopNavbar: FC = () => {
                 omni
               </Link>
             </Badge>
+            <Link
+              href="https://apply.workable.com/mrgn"
+              target="_blank"
+              rel="noreferrer"
+              className="hover-underline-animation"
+            >
+              careers
+            </Link>
           </div>
           <div className="h-full w-1/2 flex justify-end items-center z-10 gap-4 lg:gap-8 text-[#868E95]">
+            <Link
+              href={"/points"}
+              className={`${
+                router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"
+              } whitespace-nowrap`}
+            >
+              {connected && currentFirebaseUser
+                ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
+                : "points"}
+            </Link>
             <div
               className={`whitespace-nowrap hidden md:inline-flex ${
                 bankAddressesWithEmissions.length > 0 ? "cursor-pointer hover:text-[#AAA]" : "cursor-not-allowed"
