@@ -14,6 +14,21 @@ type ActionBoxPriorityFeesProps = {
   setIsPriorityFeesMode: (value: boolean) => void;
 };
 
+const priorityFeeOptions = [
+  {
+    label: "Normal",
+    value: 0,
+  },
+  {
+    label: "High",
+    value: 0.00005,
+  },
+  {
+    label: "Mamas",
+    value: 0.005,
+  },
+];
+
 export const ActionBoxPriorityFees = ({ mode, setIsPriorityFeesMode }: ActionBoxPriorityFeesProps) => {
   const [priorityFee, setPriorityFee] = useUiStore((state) => [state.priorityFee, state.setPriorityFee]);
 
@@ -48,54 +63,26 @@ export const ActionBoxPriorityFees = ({ mode, setIsPriorityFeesMode }: ActionBox
         </MrgnTooltip>
       </h2>
       <ul className="grid grid-cols-3 gap-3 mb-6">
-        <li>
-          <Button
-            className={cn(
-              "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
-              priorityFee === 0.0 && customPriorityFee === null && "bg-background-gray-hover border-chartreuse"
-            )}
-            variant="secondary"
-            onClick={() => {
-              setPriorityFee(0);
-              setCustomPriorityFee(null);
-              setIsCustomPriorityFeeMode(false);
-            }}
-          >
-            Normal <strong className="font-medium">0 SOL</strong>
-          </Button>
-        </li>
-        <li>
-          <Button
-            className={cn(
-              "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
-              priorityFee === 0.00005 && customPriorityFee === null && "bg-background-gray-hover border-chartreuse"
-            )}
-            variant="secondary"
-            onClick={() => {
-              setPriorityFee(0.00005);
-              setCustomPriorityFee(null);
-              setIsCustomPriorityFeeMode(false);
-            }}
-          >
-            High <strong className="font-medium">0.00005 SOL</strong>
-          </Button>
-        </li>
-        <li>
-          <Button
-            className={cn(
-              "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
-              priorityFee === 0.005 && customPriorityFee === null && "bg-background-gray-hover border-chartreuse"
-            )}
-            variant="secondary"
-            onClick={() => {
-              setPriorityFee(0.005);
-              setCustomPriorityFee(null);
-              setIsCustomPriorityFeeMode(false);
-            }}
-          >
-            Turbo <strong className="font-medium">0.005 SOL</strong>
-          </Button>
-        </li>
+        {priorityFeeOptions.map((option) => (
+          <li key={option.value}>
+            <Button
+              className={cn(
+                "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
+                priorityFee === option.value &&
+                  customPriorityFee === null &&
+                  "bg-background-gray-hover border-chartreuse"
+              )}
+              variant="secondary"
+              onClick={() => {
+                setPriorityFee(option.value);
+                setCustomPriorityFee(null);
+                setIsCustomPriorityFeeMode(false);
+              }}
+            >
+              {option.label} <strong className="font-medium">{option.value} SOL</strong>
+            </Button>
+          </li>
+        ))}
       </ul>
       <h2 className="font-normal mb-2">or set manually</h2>
       <div className="relative mb-6">
