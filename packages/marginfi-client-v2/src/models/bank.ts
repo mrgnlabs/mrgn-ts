@@ -701,12 +701,12 @@ function parseOperationalState(operationalStateRaw: OperationalStateRaw): Operat
 }
 
 function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
-  switch (oracleSetupRaw) {
-    case 0:
+  switch (Object.keys(oracleSetupRaw)[0].toLowerCase()) {
+    case "none":
       return OracleSetup.None;
-    case 1:
+    case "pythema":
       return OracleSetup.PythEma;
-    case 2:
+    case "switchboardv2":
       return OracleSetup.SwitchboardV2;
     default:
       throw new Error(`Invalid oracle setup "${oracleSetupRaw}"`);

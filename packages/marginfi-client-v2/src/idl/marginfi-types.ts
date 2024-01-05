@@ -60,6 +60,11 @@ export type Marginfi = {
           isSigner: true;
         },
         {
+          name: "feePayer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
           name: "bankMint";
           isMut: false;
           isSigner: false;
@@ -203,7 +208,7 @@ export type Marginfi = {
         {
           name: "bankConfig";
           type: {
-            defined: "BankConfig";
+            defined: "BankConfigCompact";
           };
         }
       ];
@@ -337,6 +342,86 @@ export type Marginfi = {
         {
           name: "totalEmissions";
           type: "u64";
+        }
+      ];
+    },
+    {
+      name: "lendingPoolUpdateEmissionsParameters";
+      accounts: [
+        {
+          name: "marginfiGroup";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "admin";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "bank";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "emissionsMint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "emissionsTokenAccount";
+          isMut: true;
+          isSigner: false;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                type: "string";
+                value: "emissions_token_account_seed";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                path: "bank";
+              },
+              {
+                kind: "account";
+                type: "publicKey";
+                account: "Mint";
+                path: "emissions_mint";
+              }
+            ];
+          };
+        },
+        {
+          name: "emissionsFundingAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "emissionsFlags";
+          type: {
+            option: "u64";
+          };
+        },
+        {
+          name: "emissionsRate";
+          type: {
+            option: "u64";
+          };
+        },
+        {
+          name: "additionalEmissions";
+          type: {
+            option: "u64";
+          };
         }
       ];
     },
@@ -752,6 +837,32 @@ export type Marginfi = {
       ];
     },
     {
+      name: "lendingAccountCloseBalance";
+      accounts: [
+        {
+          name: "marginfiGroup";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "marginfiAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "bank";
+          isMut: true;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
       name: "lendingAccountWithdrawEmissions";
       accounts: [
         {
@@ -837,6 +948,22 @@ export type Marginfi = {
         {
           name: "tokenProgram";
           isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "lendingAccountSettleEmissions";
+      accounts: [
+        {
+          name: "marginfiAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "bank";
+          isMut: true;
           isSigner: false;
         }
       ];
@@ -1081,9 +1208,21 @@ export type Marginfi = {
             };
           },
           {
+            name: "accountFlags";
+            docs: [
+              "The flas that indicates the state of the account.",
+              "This is u64 bitfield, where each bit represents a flag.",
+              "",
+              "Flags:",
+              "- DISABLED_FLAG = 1 << 0 = 1 - This flag indicates that the account is disabled,",
+              "and no further actions can be taken on it."
+            ];
+            type: "u64";
+          },
+          {
             name: "padding";
             type: {
-              array: ["u64", 64];
+              array: ["u64", 63];
             };
           }
         ];
@@ -1131,7 +1270,7 @@ export type Marginfi = {
             type: "publicKey";
           },
           {
-            name: "ignore1";
+            name: "auto_padding_0";
             type: {
               array: ["u8", 7];
             };
@@ -1173,7 +1312,7 @@ export type Marginfi = {
             type: "u8";
           },
           {
-            name: "ignore2";
+            name: "auto_padding_1";
             type: {
               array: ["u8", 4];
             };
@@ -1197,7 +1336,7 @@ export type Marginfi = {
             type: "u8";
           },
           {
-            name: "ignore3";
+            name: "auto_padding_2";
             type: {
               array: ["u8", 6];
             };
@@ -1245,7 +1384,7 @@ export type Marginfi = {
             name: "emissionsRate";
             docs: [
               "Emissions APR.",
-              "Number of emitted tokens (emissions_mint) per 1M tokens (bank mint) (native amount) per 1 YEAR."
+              "Number of emitted tokens (emissions_mint) per 1e(bank.mint_decimal) tokens (bank mint) (native amount) per 1 YEAR."
             ];
             type: "u64";
           },
@@ -1383,7 +1522,7 @@ export type Marginfi = {
             type: "publicKey";
           },
           {
-            name: "ignore";
+            name: "auto_padding_0";
             type: {
               array: ["u8", 7];
             };
@@ -1428,6 +1567,56 @@ export type Marginfi = {
             name: "admin";
             type: {
               option: "publicKey";
+            };
+          }
+        ];
+      };
+    },
+    {
+      name: "InterestRateConfigCompact";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "optimalUtilizationRate";
+            type: {
+              defined: "WrappedI80F48";
+            };
+          },
+          {
+            name: "plateauInterestRate";
+            type: {
+              defined: "WrappedI80F48";
+            };
+          },
+          {
+            name: "maxInterestRate";
+            type: {
+              defined: "WrappedI80F48";
+            };
+          },
+          {
+            name: "insuranceFeeFixedApr";
+            type: {
+              defined: "WrappedI80F48";
+            };
+          },
+          {
+            name: "insuranceIrFee";
+            type: {
+              defined: "WrappedI80F48";
+            };
+          },
+          {
+            name: "protocolFixedFeeApr";
+            type: {
+              defined: "WrappedI80F48";
+            };
+          },
+          {
+            name: "protocolIrFee";
+            type: {
+              defined: "WrappedI80F48";
             };
           }
         ];
@@ -1554,6 +1743,103 @@ export type Marginfi = {
       };
     },
     {
+      name: "BankConfigCompact";
+      docs: ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"];
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "assetWeightInit";
+            type: {
+              defined: "WrappedI80F48";
+            };
+          },
+          {
+            name: "assetWeightMaint";
+            type: {
+              defined: "WrappedI80F48";
+            };
+          },
+          {
+            name: "liabilityWeightInit";
+            type: {
+              defined: "WrappedI80F48";
+            };
+          },
+          {
+            name: "liabilityWeightMaint";
+            type: {
+              defined: "WrappedI80F48";
+            };
+          },
+          {
+            name: "depositLimit";
+            type: "u64";
+          },
+          {
+            name: "interestRateConfig";
+            type: {
+              defined: "InterestRateConfigCompact";
+            };
+          },
+          {
+            name: "operationalState";
+            type: {
+              defined: "BankOperationalState";
+            };
+          },
+          {
+            name: "oracleSetup";
+            type: {
+              defined: "OracleSetup";
+            };
+          },
+          {
+            name: "oracleKeys";
+            type: {
+              array: ["publicKey", 5];
+            };
+          },
+          {
+            name: "auto_padding_0";
+            type: {
+              array: ["u8", 6];
+            };
+          },
+          {
+            name: "borrowLimit";
+            type: "u64";
+          },
+          {
+            name: "riskTier";
+            type: {
+              defined: "RiskTier";
+            };
+          },
+          {
+            name: "auto_padding_1";
+            type: {
+              array: ["u8", 7];
+            };
+          },
+          {
+            name: "totalAssetValueInitLimit";
+            docs: [
+              "USD denominated limit for calculating asset value for initialization margin requirements.",
+              "Example, if total SOL deposits are equal to $1M and the limit it set to $500K,",
+              "then SOL assets will be discounted by 50%.",
+              "",
+              "In other words the max value of liabilities that can be backed by the asset is $500K.",
+              "This is useful for limiting the damage of orcale attacks.",
+              "",
+              "Value is UI USD value, for example value 100 -> $100"
+            ];
+            type: "u64";
+          }
+        ];
+      };
+    },
+    {
       name: "BankConfig";
       docs: ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"];
       type: {
@@ -1601,7 +1887,9 @@ export type Marginfi = {
           },
           {
             name: "oracleSetup";
-            type: "u8";
+            type: {
+              defined: "OracleSetup";
+            };
           },
           {
             name: "oracleKeys";
@@ -1610,7 +1898,7 @@ export type Marginfi = {
             };
           },
           {
-            name: "ignore1";
+            name: "auto_padding_0";
             type: {
               array: ["u8", 6];
             };
@@ -1626,19 +1914,29 @@ export type Marginfi = {
             };
           },
           {
-            name: "ignore2";
+            name: "auto_padding_1";
             type: {
               array: ["u8", 7];
             };
           },
           {
             name: "totalAssetValueInitLimit";
+            docs: [
+              "USD denominated limit for calculating asset value for initialization margin requirements.",
+              "Example, if total SOL deposits are equal to $1M and the limit it set to $500K,",
+              "then SOL assets will be discounted by 50%.",
+              "",
+              "In other words the max value of liabilities that can be backed by the asset is $500K.",
+              "This is useful for limiting the damage of orcale attacks.",
+              "",
+              "Value is UI USD value, for example value 100 -> $100"
+            ];
             type: "u64";
           },
           {
             name: "padding";
             type: {
-              array: ["u8", 40];
+              array: ["u64", 5];
             };
           }
         ];
@@ -1736,6 +2034,12 @@ export type Marginfi = {
                 defined: "RiskTier";
               };
             };
+          },
+          {
+            name: "totalAssetValueInitLimit";
+            type: {
+              option: "u64";
+            };
           }
         ];
       };
@@ -1773,6 +2077,9 @@ export type Marginfi = {
           },
           {
             name: "DepositOnly";
+          },
+          {
+            name: "BypassDepositLimit";
           }
         ];
       };
@@ -1798,7 +2105,7 @@ export type Marginfi = {
       };
     },
     {
-      name: "WeightType";
+      name: "RequirementType";
       type: {
         kind: "enum";
         variants: [
@@ -1807,6 +2114,9 @@ export type Marginfi = {
           },
           {
             name: "Maintenance";
+          },
+          {
+            name: "Equity";
           }
         ];
       };
@@ -1903,6 +2213,34 @@ export type Marginfi = {
           },
           {
             name: "SwitchboardV2";
+          }
+        ];
+      };
+    },
+    {
+      name: "PriceBias";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Low";
+          },
+          {
+            name: "High";
+          }
+        ];
+      };
+    },
+    {
+      name: "OraclePriceType";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "TimeWeighted";
+          },
+          {
+            name: "RealTime";
           }
         ];
       };
@@ -2507,7 +2845,6 @@ export type Marginfi = {
     }
   ];
 };
-
 export const IDL: Marginfi = {
   version: "0.1.0",
   name: "marginfi",
@@ -2566,6 +2903,11 @@ export const IDL: Marginfi = {
         },
         {
           name: "admin",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "feePayer",
           isMut: true,
           isSigner: true,
         },
@@ -2713,7 +3055,7 @@ export const IDL: Marginfi = {
         {
           name: "bankConfig",
           type: {
-            defined: "BankConfig",
+            defined: "BankConfigCompact",
           },
         },
       ],
@@ -2847,6 +3189,86 @@ export const IDL: Marginfi = {
         {
           name: "totalEmissions",
           type: "u64",
+        },
+      ],
+    },
+    {
+      name: "lendingPoolUpdateEmissionsParameters",
+      accounts: [
+        {
+          name: "marginfiGroup",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "admin",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "bank",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "emissionsMint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "emissionsTokenAccount",
+          isMut: true,
+          isSigner: false,
+          pda: {
+            seeds: [
+              {
+                kind: "const",
+                type: "string",
+                value: "emissions_token_account_seed",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                path: "bank",
+              },
+              {
+                kind: "account",
+                type: "publicKey",
+                account: "Mint",
+                path: "emissions_mint",
+              },
+            ],
+          },
+        },
+        {
+          name: "emissionsFundingAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "emissionsFlags",
+          type: {
+            option: "u64",
+          },
+        },
+        {
+          name: "emissionsRate",
+          type: {
+            option: "u64",
+          },
+        },
+        {
+          name: "additionalEmissions",
+          type: {
+            option: "u64",
+          },
         },
       ],
     },
@@ -3262,6 +3684,32 @@ export const IDL: Marginfi = {
       ],
     },
     {
+      name: "lendingAccountCloseBalance",
+      accounts: [
+        {
+          name: "marginfiGroup",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "marginfiAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "bank",
+          isMut: true,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
       name: "lendingAccountWithdrawEmissions",
       accounts: [
         {
@@ -3347,6 +3795,22 @@ export const IDL: Marginfi = {
         {
           name: "tokenProgram",
           isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "lendingAccountSettleEmissions",
+      accounts: [
+        {
+          name: "marginfiAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "bank",
+          isMut: true,
           isSigner: false,
         },
       ],
@@ -3591,9 +4055,21 @@ export const IDL: Marginfi = {
             },
           },
           {
+            name: "accountFlags",
+            docs: [
+              "The flas that indicates the state of the account.",
+              "This is u64 bitfield, where each bit represents a flag.",
+              "",
+              "Flags:",
+              "- DISABLED_FLAG = 1 << 0 = 1 - This flag indicates that the account is disabled,",
+              "and no further actions can be taken on it.",
+            ],
+            type: "u64",
+          },
+          {
             name: "padding",
             type: {
-              array: ["u64", 64],
+              array: ["u64", 63],
             },
           },
         ],
@@ -3641,7 +4117,7 @@ export const IDL: Marginfi = {
             type: "publicKey",
           },
           {
-            name: "ignore1",
+            name: "auto_padding_0",
             type: {
               array: ["u8", 7],
             },
@@ -3683,7 +4159,7 @@ export const IDL: Marginfi = {
             type: "u8",
           },
           {
-            name: "ignore2",
+            name: "auto_padding_1",
             type: {
               array: ["u8", 4],
             },
@@ -3707,7 +4183,7 @@ export const IDL: Marginfi = {
             type: "u8",
           },
           {
-            name: "ignore3",
+            name: "auto_padding_2",
             type: {
               array: ["u8", 6],
             },
@@ -3755,7 +4231,7 @@ export const IDL: Marginfi = {
             name: "emissionsRate",
             docs: [
               "Emissions APR.",
-              "Number of emitted tokens (emissions_mint) per 1M tokens (bank mint) (native amount) per 1 YEAR.",
+              "Number of emitted tokens (emissions_mint) per 1e(bank.mint_decimal) tokens (bank mint) (native amount) per 1 YEAR.",
             ],
             type: "u64",
           },
@@ -3893,7 +4369,7 @@ export const IDL: Marginfi = {
             type: "publicKey",
           },
           {
-            name: "ignore",
+            name: "auto_padding_0",
             type: {
               array: ["u8", 7],
             },
@@ -3938,6 +4414,56 @@ export const IDL: Marginfi = {
             name: "admin",
             type: {
               option: "publicKey",
+            },
+          },
+        ],
+      },
+    },
+    {
+      name: "InterestRateConfigCompact",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "optimalUtilizationRate",
+            type: {
+              defined: "WrappedI80F48",
+            },
+          },
+          {
+            name: "plateauInterestRate",
+            type: {
+              defined: "WrappedI80F48",
+            },
+          },
+          {
+            name: "maxInterestRate",
+            type: {
+              defined: "WrappedI80F48",
+            },
+          },
+          {
+            name: "insuranceFeeFixedApr",
+            type: {
+              defined: "WrappedI80F48",
+            },
+          },
+          {
+            name: "insuranceIrFee",
+            type: {
+              defined: "WrappedI80F48",
+            },
+          },
+          {
+            name: "protocolFixedFeeApr",
+            type: {
+              defined: "WrappedI80F48",
+            },
+          },
+          {
+            name: "protocolIrFee",
+            type: {
+              defined: "WrappedI80F48",
             },
           },
         ],
@@ -4064,6 +4590,103 @@ export const IDL: Marginfi = {
       },
     },
     {
+      name: "BankConfigCompact",
+      docs: ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "assetWeightInit",
+            type: {
+              defined: "WrappedI80F48",
+            },
+          },
+          {
+            name: "assetWeightMaint",
+            type: {
+              defined: "WrappedI80F48",
+            },
+          },
+          {
+            name: "liabilityWeightInit",
+            type: {
+              defined: "WrappedI80F48",
+            },
+          },
+          {
+            name: "liabilityWeightMaint",
+            type: {
+              defined: "WrappedI80F48",
+            },
+          },
+          {
+            name: "depositLimit",
+            type: "u64",
+          },
+          {
+            name: "interestRateConfig",
+            type: {
+              defined: "InterestRateConfigCompact",
+            },
+          },
+          {
+            name: "operationalState",
+            type: {
+              defined: "BankOperationalState",
+            },
+          },
+          {
+            name: "oracleSetup",
+            type: {
+              defined: "OracleSetup",
+            },
+          },
+          {
+            name: "oracleKeys",
+            type: {
+              array: ["publicKey", 5],
+            },
+          },
+          {
+            name: "auto_padding_0",
+            type: {
+              array: ["u8", 6],
+            },
+          },
+          {
+            name: "borrowLimit",
+            type: "u64",
+          },
+          {
+            name: "riskTier",
+            type: {
+              defined: "RiskTier",
+            },
+          },
+          {
+            name: "auto_padding_1",
+            type: {
+              array: ["u8", 7],
+            },
+          },
+          {
+            name: "totalAssetValueInitLimit",
+            docs: [
+              "USD denominated limit for calculating asset value for initialization margin requirements.",
+              "Example, if total SOL deposits are equal to $1M and the limit it set to $500K,",
+              "then SOL assets will be discounted by 50%.",
+              "",
+              "In other words the max value of liabilities that can be backed by the asset is $500K.",
+              "This is useful for limiting the damage of orcale attacks.",
+              "",
+              "Value is UI USD value, for example value 100 -> $100",
+            ],
+            type: "u64",
+          },
+        ],
+      },
+    },
+    {
       name: "BankConfig",
       docs: ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
       type: {
@@ -4111,7 +4734,9 @@ export const IDL: Marginfi = {
           },
           {
             name: "oracleSetup",
-            type: "u8",
+            type: {
+              defined: "OracleSetup",
+            },
           },
           {
             name: "oracleKeys",
@@ -4120,7 +4745,7 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "ignore1",
+            name: "auto_padding_0",
             type: {
               array: ["u8", 6],
             },
@@ -4136,19 +4761,29 @@ export const IDL: Marginfi = {
             },
           },
           {
-            name: "ignore2",
+            name: "auto_padding_1",
             type: {
               array: ["u8", 7],
             },
           },
           {
             name: "totalAssetValueInitLimit",
+            docs: [
+              "USD denominated limit for calculating asset value for initialization margin requirements.",
+              "Example, if total SOL deposits are equal to $1M and the limit it set to $500K,",
+              "then SOL assets will be discounted by 50%.",
+              "",
+              "In other words the max value of liabilities that can be backed by the asset is $500K.",
+              "This is useful for limiting the damage of orcale attacks.",
+              "",
+              "Value is UI USD value, for example value 100 -> $100",
+            ],
             type: "u64",
           },
           {
             name: "padding",
             type: {
-              array: ["u8", 40],
+              array: ["u64", 5],
             },
           },
         ],
@@ -4247,6 +4882,12 @@ export const IDL: Marginfi = {
               },
             },
           },
+          {
+            name: "totalAssetValueInitLimit",
+            type: {
+              option: "u64",
+            },
+          },
         ],
       },
     },
@@ -4284,6 +4925,9 @@ export const IDL: Marginfi = {
           {
             name: "DepositOnly",
           },
+          {
+            name: "BypassDepositLimit",
+          },
         ],
       },
     },
@@ -4308,7 +4952,7 @@ export const IDL: Marginfi = {
       },
     },
     {
-      name: "WeightType",
+      name: "RequirementType",
       type: {
         kind: "enum",
         variants: [
@@ -4317,6 +4961,9 @@ export const IDL: Marginfi = {
           },
           {
             name: "Maintenance",
+          },
+          {
+            name: "Equity",
           },
         ],
       },
@@ -4413,6 +5060,34 @@ export const IDL: Marginfi = {
           },
           {
             name: "SwitchboardV2",
+          },
+        ],
+      },
+    },
+    {
+      name: "PriceBias",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Low",
+          },
+          {
+            name: "High",
+          },
+        ],
+      },
+    },
+    {
+      name: "OraclePriceType",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "TimeWeighted",
+          },
+          {
+            name: "RealTime",
           },
         ],
       },
