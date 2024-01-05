@@ -47,8 +47,6 @@ interface UiState {
   sortOption: SortAssetOption;
   userMode: UserMode;
   priorityFee: number;
-  isActionSuccess: boolean;
-  isActionSuccessShow: boolean;
   isActionComplete: boolean;
 
   // Actions
@@ -63,7 +61,6 @@ interface UiState {
   setSortOption: (sortOption: SortAssetOption) => void;
   setUserMode: (userMode: UserMode) => void;
   setPriorityFee: (priorityFee: number) => void;
-  triggerActionSuccess: () => void;
   setIsActionComplete: (isActionSuccess: boolean) => void;
 }
 
@@ -86,9 +83,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   userMode: UserMode.LITE,
   selectedTokenBank: null,
   priorityFee: 0,
-  isActionSuccess: false,
-  isActionSuccessShow: false,
-  isActionComplete: true,
+  isActionComplete: false,
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -106,16 +101,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setUserMode: (userMode: UserMode) => set({ userMode: userMode }),
   setPriorityFee: (priorityFee: number) => set({ priorityFee: priorityFee }),
-  triggerActionSuccess: () => {
-    set({ isActionSuccess: true, isActionSuccessShow: true });
-
-    setTimeout(() => {
-      set({ isActionSuccessShow: false });
-      setTimeout(() => {
-        set({ isActionSuccess: false });
-      }, 2000);
-    }, 5000);
-  },
   setIsActionComplete: (isActionComplete: boolean) => set({ isActionComplete: isActionComplete }),
 });
 

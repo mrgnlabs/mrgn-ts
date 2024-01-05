@@ -79,15 +79,12 @@ export const ActionBox = ({
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingModeFromStore, setLendingMode, priorityFee, setPriorityFee, triggerActionSuccess, setIsActionComplete] =
-    useUiStore((state) => [
-      state.lendingMode,
-      state.setLendingMode,
-      state.priorityFee,
-      state.setPriorityFee,
-      state.triggerActionSuccess,
-      state.setIsActionComplete,
-    ]);
+  const [lendingModeFromStore, setLendingMode, priorityFee, setIsActionComplete] = useUiStore((state) => [
+    state.lendingMode,
+    state.setLendingMode,
+    state.priorityFee,
+    state.setIsActionComplete,
+  ]);
   const { walletContextState, connected } = useWalletContext();
 
   const lendingMode = useMemo(
