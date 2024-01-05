@@ -30,15 +30,15 @@ export const ActionComplete = () => {
     }
   }, [isActionComplete]);
 
+  React.useEffect(() => {
+    setIsActionComplete(true);
+  }, []);
+
   if (!isActionComplete) return null;
 
   return (
     <div>
-      <Confetti
-        width={width!}
-        height={height! * 2}
-        className={cn("z-[60] opacity-0 transition-opacity duration-500", isConfetti && "opacity-50")}
-      />
+      <Confetti width={width!} height={height! * 2} recycle={false} opacity={0.4} className={cn("z-[60]")} />
       <Dialog open={isActionComplete} onOpenChange={(open) => setIsActionComplete(open)}>
         <DialogContent className="z-[70]">
           <div className="space-y-12">
