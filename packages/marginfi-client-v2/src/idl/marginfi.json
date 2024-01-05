@@ -60,6 +60,11 @@
           "isSigner": true
         },
         {
+          "name": "feePayer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "bankMint",
           "isMut": false,
           "isSigner": false
@@ -203,7 +208,7 @@
         {
           "name": "bankConfig",
           "type": {
-            "defined": "BankConfig"
+            "defined": "BankConfigCompact"
           }
         }
       ]
@@ -237,8 +242,194 @@
       ]
     },
     {
+      "name": "lendingPoolSetupEmissions",
+      "accounts": [
+        {
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "emissionsMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "emissionsAuth",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "emissions_auth_seed"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Mint",
+                "path": "emissions_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "emissionsTokenAccount",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "emissions_token_account_seed"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Mint",
+                "path": "emissions_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "emissionsFundingAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "flags",
+          "type": "u64"
+        },
+        {
+          "name": "rate",
+          "type": "u64"
+        },
+        {
+          "name": "totalEmissions",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "lendingPoolUpdateEmissionsParameters",
+      "accounts": [
+        {
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "emissionsMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "emissionsTokenAccount",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "emissions_token_account_seed"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Mint",
+                "path": "emissions_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "emissionsFundingAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "emissionsFlags",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "emissionsRate",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "additionalEmissions",
+          "type": {
+            "option": "u64"
+          }
+        }
+      ]
+    },
+    {
       "name": "lendingPoolHandleBankruptcy",
-      "docs": ["Handle bad debt of a bankrupt marginfi account for a given bank."],
+      "docs": [
+        "Handle bad debt of a bankrupt marginfi account for a given bank."
+      ],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -327,7 +518,9 @@
     },
     {
       "name": "marginfiAccountInitialize",
-      "docs": ["Initialize a marginfi account for a given group"],
+      "docs": [
+        "Initialize a marginfi account for a given group"
+      ],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -648,8 +841,143 @@
       ]
     },
     {
+      "name": "lendingAccountCloseBalance",
+      "accounts": [
+        {
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "lendingAccountWithdrawEmissions",
+      "accounts": [
+        {
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "emissionsMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "emissionsAuth",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "emissions_auth_seed"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Mint",
+                "path": "emissions_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "emissionsVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "emissions_token_account_seed"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Mint",
+                "path": "emissions_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "destinationAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "lendingAccountSettleEmissions",
+      "accounts": [
+        {
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "lendingAccountLiquidate",
-      "docs": ["Liquidate a lending account balance of an unhealthy marginfi account"],
+      "docs": [
+        "Liquidate a lending account balance of an unhealthy marginfi account"
+      ],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -886,9 +1214,24 @@
             }
           },
           {
+            "name": "accountFlags",
+            "docs": [
+              "The flas that indicates the state of the account.",
+              "This is u64 bitfield, where each bit represents a flag.",
+              "",
+              "Flags:",
+              "- DISABLED_FLAG = 1 << 0 = 1 - This flag indicates that the account is disabled,",
+              "and no further actions can be taken on it."
+            ],
+            "type": "u64"
+          },
+          {
             "name": "padding",
             "type": {
-              "array": ["u64", 64]
+              "array": [
+                "u64",
+                63
+              ]
             }
           }
         ]
@@ -906,13 +1249,19 @@
           {
             "name": "padding0",
             "type": {
-              "array": ["u128", 32]
+              "array": [
+                "u128",
+                32
+              ]
             }
           },
           {
             "name": "padding1",
             "type": {
-              "array": ["u128", 32]
+              "array": [
+                "u128",
+                32
+              ]
             }
           }
         ]
@@ -936,9 +1285,12 @@
             "type": "publicKey"
           },
           {
-            "name": "ignore1",
+            "name": "auto_padding_0",
             "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
@@ -966,12 +1318,6 @@
             "type": "u8"
           },
           {
-            "name": "ignore2",
-            "type": {
-              "array": ["u8", 4]
-            }
-          },
-          {
             "name": "insuranceVault",
             "type": "publicKey"
           },
@@ -984,9 +1330,12 @@
             "type": "u8"
           },
           {
-            "name": "ignore2",
+            "name": "auto_padding_1",
             "type": {
-              "array": ["u8", 4]
+              "array": [
+                "u8",
+                4
+              ]
             }
           },
           {
@@ -1008,9 +1357,12 @@
             "type": "u8"
           },
           {
-            "name": "ignore2",
+            "name": "auto_padding_2",
             "type": {
-              "array": ["u8", 6]
+              "array": [
+                "u8",
+                6
+              ]
             }
           },
           {
@@ -1056,7 +1408,7 @@
             "name": "emissionsRate",
             "docs": [
               "Emissions APR.",
-              "Number of emitted tokens (emissions_mint) per 1M tokens (bank mint) (native amount) per 1 YEAR."
+              "Number of emitted tokens (emissions_mint) per 1e(bank.mint_decimal) tokens (bank mint) (native amount) per 1 YEAR."
             ],
             "type": "u64"
           },
@@ -1073,13 +1425,19 @@
           {
             "name": "padding0",
             "type": {
-              "array": ["u128", 28]
+              "array": [
+                "u128",
+                28
+              ]
             }
           },
           {
             "name": "padding1",
             "type": {
-              "array": ["u128", 32]
+              "array": [
+                "u128",
+                32
+              ]
             }
           }
         ]
@@ -1174,7 +1532,10 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u64", 8]
+              "array": [
+                "u64",
+                8
+              ]
             }
           }
         ]
@@ -1194,9 +1555,12 @@
             "type": "publicKey"
           },
           {
-            "name": "ignore",
+            "name": "auto_padding_0",
             "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
@@ -1212,9 +1576,22 @@
             }
           },
           {
+            "name": "emissionsOutstanding",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "lastUpdate",
+            "type": "u64"
+          },
+          {
             "name": "padding",
             "type": {
-              "array": ["u64", 4]
+              "array": [
+                "u64",
+                1
+              ]
             }
           }
         ]
@@ -1229,6 +1606,56 @@
             "name": "admin",
             "type": {
               "option": "publicKey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "InterestRateConfigCompact",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "optimalUtilizationRate",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "plateauInterestRate",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "maxInterestRate",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "insuranceFeeFixedApr",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "insuranceIrFee",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "protocolFixedFeeApr",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "protocolIrFee",
+            "type": {
+              "defined": "WrappedI80F48"
             }
           }
         ]
@@ -1284,7 +1711,10 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u128", 8]
+              "array": [
+                "u128",
+                8
+              ]
             }
           }
         ]
@@ -1355,8 +1785,118 @@
       }
     },
     {
+      "name": "BankConfigCompact",
+      "docs": [
+        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "assetWeightInit",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "assetWeightMaint",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "liabilityWeightInit",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "liabilityWeightMaint",
+            "type": {
+              "defined": "WrappedI80F48"
+            }
+          },
+          {
+            "name": "depositLimit",
+            "type": "u64"
+          },
+          {
+            "name": "interestRateConfig",
+            "type": {
+              "defined": "InterestRateConfigCompact"
+            }
+          },
+          {
+            "name": "operationalState",
+            "type": {
+              "defined": "BankOperationalState"
+            }
+          },
+          {
+            "name": "oracleSetup",
+            "type": {
+              "defined": "OracleSetup"
+            }
+          },
+          {
+            "name": "oracleKeys",
+            "type": {
+              "array": [
+                "publicKey",
+                5
+              ]
+            }
+          },
+          {
+            "name": "auto_padding_0",
+            "type": {
+              "array": [
+                "u8",
+                6
+              ]
+            }
+          },
+          {
+            "name": "borrowLimit",
+            "type": "u64"
+          },
+          {
+            "name": "riskTier",
+            "type": {
+              "defined": "RiskTier"
+            }
+          },
+          {
+            "name": "auto_padding_1",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
+            "name": "totalAssetValueInitLimit",
+            "docs": [
+              "USD denominated limit for calculating asset value for initialization margin requirements.",
+              "Example, if total SOL deposits are equal to $1M and the limit it set to $500K,",
+              "then SOL assets will be discounted by 50%.",
+              "",
+              "In other words the max value of liabilities that can be backed by the asset is $500K.",
+              "This is useful for limiting the damage of orcale attacks.",
+              "",
+              "Value is UI USD value, for example value 100 -> $100"
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "BankConfig",
-      "docs": ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
+      "docs": [
+        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -1402,18 +1942,26 @@
           },
           {
             "name": "oracleSetup",
-            "type": "u8"
+            "type": {
+              "defined": "OracleSetup"
+            }
           },
           {
             "name": "oracleKeys",
             "type": {
-              "array": ["publicKey", 5]
+              "array": [
+                "publicKey",
+                5
+              ]
             }
           },
           {
-            "name": "ignore1",
+            "name": "auto_padding_0",
             "type": {
-              "array": ["u8", 6]
+              "array": [
+                "u8",
+                6
+              ]
             }
           },
           {
@@ -1427,19 +1975,35 @@
             }
           },
           {
-            "name": "ignore2",
+            "name": "auto_padding_1",
             "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
             "name": "totalAssetValueInitLimit",
+            "docs": [
+              "USD denominated limit for calculating asset value for initialization margin requirements.",
+              "Example, if total SOL deposits are equal to $1M and the limit it set to $500K,",
+              "then SOL assets will be discounted by 50%.",
+              "",
+              "In other words the max value of liabilities that can be backed by the asset is $500K.",
+              "This is useful for limiting the damage of orcale attacks.",
+              "",
+              "Value is UI USD value, for example value 100 -> $100"
+            ],
             "type": "u64"
           },
           {
             "name": "padding",
             "type": {
-              "array": ["u8", 40]
+              "array": [
+                "u64",
+                5
+              ]
             }
           }
         ]
@@ -1462,12 +2026,6 @@
       "type": {
         "kind": "struct",
         "fields": [
-          {
-            "name": "ignore1",
-            "type": {
-              "array": ["u8", 208]
-            }
-          },
           {
             "name": "assetWeightInit",
             "type": {
@@ -1513,12 +2071,6 @@
             }
           },
           {
-            "name": "ignore2",
-            "type": {
-              "array": ["u8", 272]
-            }
-          },
-          {
             "name": "operationalState",
             "type": {
               "option": {
@@ -1551,9 +2103,9 @@
             }
           },
           {
-            "name": "ignore3",
+            "name": "totalAssetValueInitLimit",
             "type": {
-              "array": ["u8", 264]
+              "option": "u64"
             }
           }
         ]
@@ -1573,7 +2125,10 @@
           {
             "name": "keys",
             "type": {
-              "array": ["publicKey", 5]
+              "array": [
+                "publicKey",
+                5
+              ]
             }
           }
         ]
@@ -1592,6 +2147,9 @@
           },
           {
             "name": "DepositOnly"
+          },
+          {
+            "name": "BypassDepositLimit"
           }
         ]
       }
@@ -1617,7 +2175,7 @@
       }
     },
     {
-      "name": "WeightType",
+      "name": "RequirementType",
       "type": {
         "kind": "enum",
         "variants": [
@@ -1626,6 +2184,9 @@
           },
           {
             "name": "Maintenance"
+          },
+          {
+            "name": "Equity"
           }
         ]
       }
@@ -1654,6 +2215,9 @@
           },
           {
             "name": "Maintenance"
+          },
+          {
+            "name": "Equity"
           }
         ]
       }
@@ -1719,6 +2283,34 @@
           },
           {
             "name": "SwitchboardV2"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PriceBias",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Low"
+          },
+          {
+            "name": "High"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OraclePriceType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "TimeWeighted"
+          },
+          {
+            "name": "RealTime"
           }
         ]
       }
@@ -2189,7 +2781,7 @@
     {
       "code": 6013,
       "name": "IllegalLiquidation",
-      "msg": "Illegal post liquidation state, account is either not unhealthy or liquidation was too big"
+      "msg": "Illegal liquidation"
     },
     {
       "code": 6014,
@@ -2283,13 +2875,43 @@
     },
     {
       "code": 6032,
+      "name": "EmissionsAlreadySetup",
+      "msg": "Emissions already setup"
+    },
+    {
+      "code": 6033,
       "name": "OracleNotSetup",
       "msg": "Oracle is not set"
     },
     {
-      "code": 6033,
+      "code": 6034,
       "name": "InvalidSwitchboardDecimalConversion",
       "msg": "Invalid swithcboard decimal conversion"
+    },
+    {
+      "code": 6035,
+      "name": "CannotCloseOutstandingEmissions",
+      "msg": "Cannot close balance because of outstanding emissions"
+    },
+    {
+      "code": 6036,
+      "name": "EmissionsUpdateError",
+      "msg": "Update emissions error"
+    },
+    {
+      "code": 6037,
+      "name": "AccountDisabled",
+      "msg": "Account disabled"
+    },
+    {
+      "code": 6038,
+      "name": "AccountTempActiveBalanceLimitExceeded",
+      "msg": "Account can't temporarily open new balances, please close a balance first"
+    },
+    {
+      "code": 6039,
+      "name": "IllegalBalanceState",
+      "msg": "Illegal balance state"
     }
   ]
 }
