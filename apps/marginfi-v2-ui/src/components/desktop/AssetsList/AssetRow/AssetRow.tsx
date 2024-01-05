@@ -400,33 +400,6 @@ const AssetRow: React.FC<{
                 <IconAlertTriangleFilled size={16} />
               ) : null}
             </span>
-            {/* <Badge
-              badgeContent={isReduceOnly ? "‼️" : isBankHigh && isBankFilled ? "💯" : "❗"}
-              className="bg-transparent"
-              sx={{
-                "& .MuiBadge-badge": {
-                  fontSize: 20,
-                },
-              }}
-              invisible={!isBankHigh && !isReduceOnly}
-            >
-              {denominationUSD
-                ? usdFormatter.format(
-                    (isInLendingMode
-                      ? bank.info.state.totalDeposits
-                      : Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-                        bank.info.state.totalBorrows) * bank.info.state.price
-                  )
-                : numeralFormatter(
-                    isInLendingMode
-                      ? bank.info.state.totalDeposits
-                      : Math.max(
-                          0,
-                          Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-                            bank.info.state.totalBorrows
-                        )
-                  )}
-            </Badge> */}
           </MrgnTooltip>
         </TableCell>
 
@@ -436,7 +409,7 @@ const AssetRow: React.FC<{
           ) : (
             <>
               {denominationUSD
-                ? usdFormatter.format(bank.info.state.totalBorrows)
+                ? usdFormatter.format(bank.info.state.totalBorrows * bank.info.state.price)
                 : numeralFormatter(bank.info.state.totalBorrows)}
             </>
           )}
