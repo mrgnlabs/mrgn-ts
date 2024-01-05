@@ -352,7 +352,7 @@ export const ActionBox = ({
       });
 
       setIsLoading(false);
-      handleCloseDialog && handleCloseBalance();
+      handleCloseDialog && handleCloseDialog();
       setAmountRaw("");
 
       // -------- Refresh state
@@ -378,7 +378,7 @@ export const ActionBox = ({
     }
 
     setAmountRaw("");
-    handleCloseDialog && handleCloseBalance();
+    handleCloseDialog && handleCloseDialog();
 
     try {
       setIsRefreshingStore(true);
