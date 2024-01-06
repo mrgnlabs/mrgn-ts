@@ -79,12 +79,15 @@ export const ActionBox = ({
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingModeFromStore, setLendingMode, priorityFee, setIsActionComplete] = useUiStore((state) => [
-    state.lendingMode,
-    state.setLendingMode,
-    state.priorityFee,
-    state.setIsActionComplete,
-  ]);
+  const [lendingModeFromStore, setLendingMode, priorityFee, setIsActionComplete, setPreviousTxn] = useUiStore(
+    (state) => [
+      state.lendingMode,
+      state.setLendingMode,
+      state.priorityFee,
+      state.setIsActionComplete,
+      state.setPreviousTxn,
+    ]
+  );
   const { walletContextState, connected } = useWalletContext();
 
   const lendingMode = useMemo(
@@ -356,6 +359,12 @@ export const ActionBox = ({
       handleCloseDialog && handleCloseDialog();
       setAmountRaw("");
       setIsActionComplete(true);
+      setPreviousTxn({
+        type: currentAction,
+        bank,
+        amount: borrowOrLendAmount,
+        txn: "asdfghjk",
+      });
 
       // -------- Refresh state
       try {
@@ -381,8 +390,6 @@ export const ActionBox = ({
 
     setAmountRaw("");
     handleCloseDialog && handleCloseDialog();
-
-    setIsActionComplete(true);
 
     try {
       setIsRefreshingStore(true);
