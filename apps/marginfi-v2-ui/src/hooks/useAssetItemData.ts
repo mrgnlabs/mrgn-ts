@@ -15,6 +15,9 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
   );
 
   const assetWeight = useMemo(() => {
+    if (!bank.info.rawBank.getAssetWeight) {
+      return "-";
+    }
     const assetWeightInit = bank.info.rawBank
       .getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice)
       .toNumber();

@@ -344,7 +344,7 @@ export const ActionBox = ({
       walletContextState,
     }: MarginfiActionParams) => {
       setIsLoading(true);
-      await executeLendingAction({
+      const txnSig = await executeLendingAction({
         mfiClient,
         actionType: currentAction,
         bank,
@@ -358,12 +358,13 @@ export const ActionBox = ({
       setIsLoading(false);
       handleCloseDialog && handleCloseDialog();
       setAmountRaw("");
+
       setIsActionComplete(true);
       setPreviousTxn({
         type: currentAction,
         bank,
         amount: borrowOrLendAmount,
-        txn: "asdfghjk",
+        txn: txnSig!,
       });
 
       // -------- Refresh state
