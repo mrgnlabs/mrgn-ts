@@ -9,7 +9,7 @@ COPY . .
 RUN yarn install
 RUN yarn build
 ENV NODE_ENV=production
-ENV PORT=8080
+ENV NODE_OPTIONS="--max-old-space-size=16384"
 
 WORKDIR /app/apps/alpha-liquidator
 
