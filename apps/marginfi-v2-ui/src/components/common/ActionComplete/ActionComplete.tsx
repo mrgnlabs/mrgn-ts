@@ -10,6 +10,7 @@ import { numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "~/utils";
 import { useUiStore } from "~/store";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
+import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { IconConfetti, IconExternalLink } from "~/components/ui/icons";
@@ -27,6 +28,7 @@ export const ActionComplete = () => {
     isInLendingMode: previousTxn?.type === ActionType.Deposit,
   });
   const { width, height } = useWindowSize();
+  const isMobile = useIsMobile();
 
   const actionTextColor = React.useMemo(() => {
     if (previousTxn?.type === ActionType.Deposit || previousTxn?.type === ActionType.Withdraw) return "text-success";
@@ -38,7 +40,13 @@ export const ActionComplete = () => {
 
   return (
     <div>
-      <Confetti width={width!} height={height! * 2} recycle={false} opacity={0.4} className={cn("z-[60]")} />
+      <Confetti
+        width={width!}
+        height={height! * 2}
+        recycle={false}
+        opacity={0.4}
+        className={cn(isMobile ? "z-[80]" : "z-[60]")}
+      />
       <Dialog open={isActionComplete} onOpenChange={(open) => setIsActionComplete(open)}>
         <DialogContent className="z-[70]">
           <div className="space-y-12 w-full">
