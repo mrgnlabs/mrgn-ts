@@ -42,7 +42,7 @@ export async function executeLendingAction({
     } else {
       txnSig = await createAccountAndDeposit({ mfiClient, bank, amount, walletContextState, priorityFee });
     }
-    return;
+    return txnSig;
   }
 
   if (!marginfiAccount) {
@@ -146,12 +146,13 @@ export async function deposit({
   try {
     const txnSig = await marginfiAccount.deposit(amount, bank.address, priorityFee);
     multiStepToast.setSuccessAndNext();
-    return txnSig;
     capture("user_deposit", {
       amount,
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
     });
+    console.log("deposit txn sig: ", txnSig);
+    return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
