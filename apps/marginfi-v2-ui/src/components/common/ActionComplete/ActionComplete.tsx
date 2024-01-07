@@ -34,10 +34,6 @@ export const ActionComplete = () => {
     return "";
   }, [previousTxn?.type]);
 
-  // React.useEffect(() => {
-  //   setIsActionComplete(true);
-  // }, []);
-
   if (!isActionComplete) return null;
 
   return (
