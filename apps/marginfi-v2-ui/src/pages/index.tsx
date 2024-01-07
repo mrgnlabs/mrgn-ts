@@ -28,7 +28,7 @@ const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/
 
 const Home = () => {
   const { walletAddress, isOverride } = useWalletContext();
-  const [userMode, setIsActionComplete] = useUiStore((state) => [state.userMode, state.setIsActionComplete]);
+  const [userMode, previousTxn] = useUiStore((state) => [state.userMode, state.previousTxn]);
   const [
     fetchMrgnlendState,
     isStoreInitialized,
@@ -45,13 +45,8 @@ const Home = () => {
     state.selectedAccount,
   ]);
 
-  React.useEffect(() => {
-    // setIsActionComplete(true);
-  }, []);
-
   return (
     <>
-      <ActionComplete />
       <Desktop>
         <PageHeader>lend</PageHeader>
         <div className="flex flex-col h-full justify-start content-start pt-[16px] w-full xl:w-4/5 xl:max-w-7xl gap-4">
@@ -98,6 +93,7 @@ const Home = () => {
           <MobileAssetsList />
         </div>
       </Mobile>
+      {isStoreInitialized && previousTxn && <ActionComplete />}
     </>
   );
 };

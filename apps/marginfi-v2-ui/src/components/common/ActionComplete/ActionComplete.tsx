@@ -34,7 +34,7 @@ export const ActionComplete = () => {
     return "";
   }, [previousTxn?.type]);
 
-  if (!isActionComplete) return null;
+  if (!isActionComplete || !previousTxn) return null;
 
   return (
     <div>
