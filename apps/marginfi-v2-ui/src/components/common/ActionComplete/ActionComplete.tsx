@@ -5,7 +5,7 @@ import Image from "next/image";
 
 import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
-import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { cn } from "~/utils";
 import { useUiStore } from "~/store";
@@ -28,6 +28,12 @@ export const ActionComplete = () => {
   });
   const { width, height } = useWindowSize();
 
+  const actionTextColor = React.useMemo(() => {
+    if (previousTxn?.type === ActionType.Deposit || previousTxn?.type === ActionType.Withdraw) return "text-success";
+    if (previousTxn?.type === ActionType.Borrow || previousTxn?.type === ActionType.Repay) return "text-warning";
+    return "";
+  }, [previousTxn?.type]);
+
   // React.useEffect(() => {
   //   setIsActionComplete(true);
   // }, []);
@@ -43,12 +49,7 @@ export const ActionComplete = () => {
             <header className="space-y-4 text-center flex flex-col items-center justify-center">
               <IconConfetti size={48} />
               <h2 className="font-medium text-xl">
-                {previousTxn?.type === ActionType.Deposit
-                  ? "Deposit"
-                  : previousTxn?.type === ActionType.Borrow
-                  ? "Borrow"
-                  : ""}{" "}
-                Completed!
+                {previousTxn?.type === ActionType.Deposit ? "Deposit" : previousTxn?.type} Completed!
               </h2>
             </header>
             <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
@@ -66,27 +67,25 @@ export const ActionComplete = () => {
               </div>
             </div>
             <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
-              <dt>Total SOL Deposits</dt>
-              <dd className="text-right">100 {previousTxn?.bank.meta.tokenSymbol}</dd>
+              {previousTxn?.bank.position && (
+                <>
+                  <dt>Total {previousTxn?.bank.meta.tokenSymbol} Deposits</dt>
+                  <dd className="text-right">
+                    {previousTxn?.bank.position.amount} {previousTxn?.bank.meta.tokenSymbol}
+                  </dd>
+                </>
+              )}
               <dt>APY</dt>
-              <dd
-                className={cn(
-                  "text-right",
-                  previousTxn?.type === ActionType.Deposit && "text-success",
-                  previousTxn?.type === ActionType.Borrow && "text-destructive-foreground"
-                )}
-              >
-                {rateAP}
-              </dd>
+              <dd className={cn("text-right", actionTextColor)}>{rateAP}</dd>
               <dt>Transaction</dt>
               <dd className="text-right">
                 <Link
                   href={`https://solscan.io/tx/${previousTxn?.txn}`}
-                  className="flex items-center justify-end gap-1 text-chartreuse"
+                  className="flex items-center justify-end gap-1.5 text-chartreuse text-sm"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {shortenAddress(previousTxn?.txn!)} <IconExternalLink size={18} />
+                  {shortenAddress(previousTxn?.txn || "")} <IconExternalLink size={15} className="-translate-y-[1px]" />
                 </Link>
               </dd>
             </dl>

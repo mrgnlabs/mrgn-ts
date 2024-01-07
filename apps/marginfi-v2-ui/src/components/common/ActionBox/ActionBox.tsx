@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useMemo, useState } from "react";
 
 import { usdFormatterDyn, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PublicKey } from "@solana/web3.js";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -362,7 +362,7 @@ export const ActionBox = ({
       setIsActionComplete(true);
       setPreviousTxn({
         type: currentAction,
-        bank,
+        bank: bank as ActiveBankInfo,
         amount: borrowOrLendAmount,
         txn: txnSig!,
       });
