@@ -194,8 +194,6 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
     };
   }
 
-  console.log("pointsData", pointsData);
-
   const depositPoints = pointsData.total_deposit_points.toFixed(4);
   const borrowPoints = pointsData.total_borrow_points.toFixed(4);
   const referralPoints = (pointsData.total_referral_deposit_points + pointsData.total_referral_borrow_points).toFixed(
