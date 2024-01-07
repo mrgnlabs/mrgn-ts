@@ -151,7 +151,6 @@ export async function deposit({
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
     });
-    console.log("deposit txn sig: ", txnSig);
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
