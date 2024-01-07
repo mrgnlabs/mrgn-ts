@@ -359,13 +359,15 @@ export const ActionBox = ({
       handleCloseDialog && handleCloseDialog();
       setAmountRaw("");
 
-      setIsActionComplete(true);
-      setPreviousTxn({
-        type: currentAction,
-        bank: bank as ActiveBankInfo,
-        amount: borrowOrLendAmount,
-        txn: txnSig!,
-      });
+      if (txnSig) {
+        setIsActionComplete(true);
+        setPreviousTxn({
+          type: currentAction,
+          bank: bank as ActiveBankInfo,
+          amount: borrowOrLendAmount,
+          txn: txnSig!,
+        });
+      }
 
       // -------- Refresh state
       try {
