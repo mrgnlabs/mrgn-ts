@@ -29,6 +29,7 @@ import {
   IconArrowLeft,
   IconSettings,
   IconBrandGithubFilled,
+  IconChartLine,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -566,6 +567,7 @@ export {
   IconArrowLeft,
   IconSettings,
   IconBrandGithubFilled,
+  IconChartLine,
 
   // customed icons
   IconBrandGoogle,
