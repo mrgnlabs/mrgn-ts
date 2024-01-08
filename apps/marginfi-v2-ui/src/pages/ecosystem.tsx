@@ -105,8 +105,8 @@ export default function Ecosystem() {
       <PageHeader>ecosystem</PageHeader>
       <div className="w-full xl:w-4/5 xl:max-w-7xl mx-auto px-4">
         <div className="text-muted-foreground text-lg text-center my-12">
-          <p>Official and community projects powered by the marginfi SDK.</p>
           <p>
+            Official and community projects powered by the marginfi SDK. <br className="hidden lg:block" />
             <Link
               href="https://docs.marginfi.com/"
               target="_blank"

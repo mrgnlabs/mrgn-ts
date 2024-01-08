@@ -5,7 +5,7 @@ import {
   IconTokenSwap,
   IconMore,
   IconBridge,
-  IconCoins,
+  IconMrgn,
   IconSteak,
 } from "~/components/ui/icons";
 export interface NavLinkInfo {
@@ -73,5 +73,11 @@ export const ORDERED_MOBILE_LAUNCHER_LINKS: NavLinkInfo[] = [
     alt: "pie chart icon",
     label: "bridge",
     Icon: IconBridge,
+  },
+  {
+    href: "/ecosystem",
+    alt: "mrgn logo",
+    label: "ecosystem",
+    Icon: IconMrgn,
   },
 ];

@@ -298,8 +298,8 @@ const DesktopNavbar: FC = () => {
               invisible={!showBadges}
               className="hidden md:block"
             >
-              <Link href={"https://omni.marginfi.com"} className="hover-underline-animation hidden md:block">
-                omni
+              <Link href="/ecosystem" className="hover-underline-animation hidden md:block">
+                ecosystem
               </Link>
             </Badge>
           </div>
