@@ -8,7 +8,7 @@ import {
   IconBrandGithubFilled,
   IconBrandDiscordFilled,
   IconBrandX,
-  IconChartLine,
+  IconChartHistogram,
 } from "~/components/ui/icons";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -28,7 +28,7 @@ const projects = [
   },
   {
     title: "marginfi ui",
-    description: "The offoicial marginfi UI",
+    description: "The official marginfi UI",
     url: "https://app.marginfi.com",
     github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-ui",
     repo: "mrgnlabs/mrgn-ts",
@@ -127,7 +127,7 @@ export default function Ecosystem() {
                 rel="noreferrer"
                 className="transition-colors hover:text-chartreuse"
               >
-                <IconBrandDiscordFilled size={20} />
+                <IconBrandDiscordFilled />
               </Link>
             </li>
             <li>
@@ -137,7 +137,7 @@ export default function Ecosystem() {
                 rel="noreferrer"
                 className="transition-colors hover:text-chartreuse"
               >
-                <IconBrandX size={20} />
+                <IconBrandX />
               </Link>
             </li>
             <li>
@@ -147,7 +147,7 @@ export default function Ecosystem() {
                 rel="noreferrer"
                 className="transition-colors hover:text-chartreuse"
               >
-                <IconBrandGithubFilled size={20} />
+                <IconBrandGithubFilled />
               </Link>
             </li>
             <li>
@@ -157,7 +157,7 @@ export default function Ecosystem() {
                 rel="noreferrer"
                 className="transition-colors hover:text-chartreuse"
               >
-                <IconChartLine />
+                <IconChartHistogram />
               </Link>
             </li>
           </ul>
