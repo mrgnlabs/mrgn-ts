@@ -62,6 +62,16 @@ const projects = [
     },
   },
   {
+    title: "dune analytics",
+    description: "MarginFi Dune Analytics dashboard",
+    url: "https://dune.com/man0s/marginfi/",
+    author: {
+      name: "man0s",
+      avatar: "https://pbs.twimg.com/profile_images/1597050177084325889/YRXpZdxn_400x400.jpg",
+      url: "https://twitter.com/losman0s",
+    },
+  },
+  {
     title: "account search",
     description: "Search accounts by wallet or .sol domain",
     url: "https://mrgn-account-search.vercel.app/",
@@ -181,14 +191,16 @@ export default function Ecosystem() {
                   {project.author.name}
                 </Link>
               </CardContent>
-              <CardFooter className="flex gap-3">
-                <Link href={project.github} target="_blank" rel="noreferrer">
-                  <Button variant="outline" className="w-full">
-                    <IconBrandGithubFilled size={16} /> GitHub
-                  </Button>
-                </Link>
+              <CardFooter className="flex gap-3 justify-between">
+                {project.github && (
+                  <Link href={project.github} target="_blank" rel="noreferrer" className="w-1/2">
+                    <Button variant="outline" className="w-full">
+                      <IconBrandGithubFilled size={16} /> GitHub
+                    </Button>
+                  </Link>
+                )}
                 {project.url && (
-                  <Link href={project.url} target="_blank" rel="noreferrer">
+                  <Link href={project.url} target="_blank" rel="noreferrer" className="w-1/2">
                     <Button variant="outline" className="w-full">
                       <IconExternalLink size={16} />
                       Demo
