@@ -49,7 +49,11 @@ type LeaderboardSettings = {
   orderDir: "desc" | "asc";
 };
 
-async function fetchLeaderboardData(connection: Connection, settings: LeaderboardSettings): Promise<LeaderboardRow[]> {
+async function fetchLeaderboardData(
+  connection: Connection,
+  settings: LeaderboardSettings,
+  search?: string
+): Promise<LeaderboardRow[]> {
   let start = 0;
   if (settings.currentPage === 1) {
     start = 2;
@@ -58,11 +62,16 @@ async function fetchLeaderboardData(connection: Connection, settings: Leaderboar
   }
   const pointsQuery = query(
     collection(firebaseApi.db, "points"),
-    orderBy("rank", "asc"),
-    startAt(start),
-    endAt(settings.currentPage === 1 ? start + settings.pageSize - 1 : settings.pageSize * settings.currentPage + 1)
+    ...(search
+      ? [where("owner", "==", search)]
+      : [
+          orderBy("rank", "asc"),
+          startAt(start),
+          endAt(
+            settings.currentPage === 1 ? start + settings.pageSize - 1 : settings.pageSize * settings.currentPage + 1
+          ),
+        ])
   );
-  console.log("start", start, "end", settings.pageSize * settings.currentPage);
   const querySnapshot = await getDocs(pointsQuery);
 
   const leaderboardSlice = querySnapshot.docs.map((doc) => ({
