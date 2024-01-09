@@ -79,7 +79,7 @@ const projects = [
     repo: "mrgnlabs/mrgn-account-search",
     author: {
       name: "chambaz",
-      avatar: "https://pbs.twimg.com/profile_images/1689607468035215360/E5jbjK2q_400x400.jpg",
+      avatar: "https://pbs.twimg.com/profile_images/1744698619947528192/7uW-BVAn_400x400.jpg",
       url: "https://twitter.com/chambaz",
     },
   },
