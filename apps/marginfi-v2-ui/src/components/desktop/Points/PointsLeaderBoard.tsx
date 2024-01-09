@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { PublicKey } from "@solana/web3.js";
 import { useDebounce } from "@uidotdev/usehooks";
+import { getDomainKeySync, NameRegistryState } from "@bonfida/spl-name-service";
 import {
   fetchLeaderboardData,
   fetchTotalLeaderboardCount,
@@ -37,7 +38,6 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
   });
   const [leaderboardSearch, setLeaderboardSearch] = React.useState<string>("");
   const debouncedLeaderboardSearch = useDebounce(leaderboardSearch, 300);
-  const [hasJumpedToRank, setHasJumpedToRank] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const getLeaderboardData = async () => {
@@ -52,7 +52,16 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
 
   React.useEffect(() => {
     const getLeaderboardData = async () => {
-      const data = await fetchLeaderboardData(connection, leaderboardSettings, leaderboardSearch);
+      let pk = leaderboardSearch;
+
+      if (leaderboardSearch.includes(".sol")) {
+        const { pubkey } = getDomainKeySync(leaderboardSearch);
+        const { registry } = await NameRegistryState.retrieve(connection, pubkey);
+
+        pk = registry.owner.toBase58();
+      }
+
+      const data = await fetchLeaderboardData(connection, leaderboardSettings, pk);
       const count = await fetchTotalLeaderboardCount();
       setLeaderboardData([...data]);
       setLeaderboardCount(count);
@@ -68,7 +77,7 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
           <IconSearch className="absolute top-1/2 left-3.5 -translate-y-1/2 text-muted-foreground" size={15} />
           <Input
             type="search"
-            placeholder="Search by wallet address..."
+            placeholder="Search by wallet address or .sol domain..."
             className="w-full max-w-xl rounded-full pl-9"
             onChange={(e) => setLeaderboardSearch(e.currentTarget.value)}
           />
