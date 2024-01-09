@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 
 import { PublicKey } from "@solana/web3.js";
+import { useDebounce } from "@uidotdev/usehooks";
 import {
   fetchLeaderboardData,
   fetchTotalLeaderboardCount,
@@ -34,6 +35,9 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
     orderCol: "rank",
     orderDir: "asc",
   });
+  const [leaderboardSearch, setLeaderboardSearch] = React.useState<string>("");
+  const debouncedLeaderboardSearch = useDebounce(leaderboardSearch, 300);
+  const [hasJumpedToRank, setHasJumpedToRank] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const getLeaderboardData = async () => {
@@ -46,7 +50,16 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
     getLeaderboardData();
   }, [leaderboardSettings]);
 
-  console.log(userPointsData);
+  React.useEffect(() => {
+    const getLeaderboardData = async () => {
+      const data = await fetchLeaderboardData(connection, leaderboardSettings, leaderboardSearch);
+      const count = await fetchTotalLeaderboardCount();
+      setLeaderboardData([...data]);
+      setLeaderboardCount(count);
+    };
+
+    getLeaderboardData();
+  }, [debouncedLeaderboardSearch]);
 
   return (
     <div className="w-full mt-10 space-y-3 pb-16">
@@ -57,6 +70,7 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
             type="search"
             placeholder="Search by wallet address..."
             className="w-full max-w-xl rounded-full pl-9"
+            onChange={(e) => setLeaderboardSearch(e.currentTarget.value)}
           />
         </div>
         <Button
@@ -86,13 +100,13 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
           {leaderboardData.map((leaderboardRow) => (
             <TableRow
               key={leaderboardRow.id}
-              className={cn(leaderboardRow.owner === userPointsData.owner && "bg-chartreuse/30")}
+              className={cn(leaderboardRow.owner === userPointsData.owner && "bg-chartreuse/30 hover:bg-chartreuse/30")}
             >
               <TableCell className="font-medium text-left font-mono">
-                {leaderboardRow.rank === 1 && <span className="text-xl">🥇</span>}
-                {leaderboardRow.rank === 2 && <span className="text-xl">🥈</span>}
-                {leaderboardRow.rank === 3 && <span className="text-xl">🥉</span>}
-                {leaderboardRow.rank > 3 && <span className="ml-1">{leaderboardRow.rank}</span>}
+                {leaderboardRow.rank === 1 && <span className="text-xl -ml-1">🥇</span>}
+                {leaderboardRow.rank === 2 && <span className="text-xl -ml-1">🥈</span>}
+                {leaderboardRow.rank === 3 && <span className="text-xl -ml-1">🥉</span>}
+                {leaderboardRow.rank > 3 && <span>{leaderboardRow.rank}</span>}
               </TableCell>
               <TableCell>
                 <Link
@@ -119,14 +133,28 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
         </TableBody>
       </Table>
       <div className="flex gap-2 py-2 text-sm items-center text-muted-foreground">
-        <p className="ml-2.5">
+        <p className="ml-2.5 mr-auto">
           Showing page {leaderboardSettings.currentPage} of {Math.ceil(leaderboardCount / leaderboardSettings.pageSize)}
         </p>
+        {leaderboardSettings.currentPage > 1 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => {
+              setLeaderboardSettings({
+                ...leaderboardSettings,
+                currentPage: 1,
+              });
+            }}
+          >
+            <span className="-translate-y-[1px]">&laquo;</span>
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"
           disabled={leaderboardSettings.currentPage === 1}
-          className="ml-auto"
           onClick={() => {
             setLeaderboardSettings({
               ...leaderboardSettings,
