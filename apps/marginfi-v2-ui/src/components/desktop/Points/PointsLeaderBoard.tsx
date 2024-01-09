@@ -8,6 +8,7 @@ import {
   fetchTotalLeaderboardCount,
   LeaderboardRow,
   LeaderboardSettings,
+  UserPointsData,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { groupedNumberFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 
@@ -15,8 +16,15 @@ import { useConnection } from "~/hooks/useConnection";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { IconSearch, IconTrophyFilled } from "~/components/ui/icons";
+import { cn } from "~/utils";
 
-export const PointsLeaderboard = () => {
+type PointsLeaderboardProps = {
+  userPointsData: UserPointsData;
+};
+
+export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) => {
   const { connection } = useConnection();
   const [leaderboardData, setLeaderboardData] = React.useState<LeaderboardRow[]>([]);
   const [leaderboardCount, setLeaderboardCount] = React.useState<number>(0);
@@ -38,8 +46,31 @@ export const PointsLeaderboard = () => {
     getLeaderboardData();
   }, [leaderboardSettings]);
 
+  console.log(userPointsData);
+
   return (
-    <div className="w-full">
+    <div className="w-full mt-10 space-y-3 pb-16">
+      <div className="flex items-center gap-2 justify-between">
+        <div className="relative w-full">
+          <IconSearch className="absolute top-1/2 left-3.5 -translate-y-1/2 text-muted-foreground" size={15} />
+          <Input
+            type="search"
+            placeholder="Search by wallet address..."
+            className="w-full max-w-xl rounded-full pl-9"
+          />
+        </div>
+        <Button
+          variant="outline"
+          onClick={() =>
+            setLeaderboardSettings({
+              ...leaderboardSettings,
+              currentPage: Math.ceil(userPointsData.rank / leaderboardSettings.pageSize),
+            })
+          }
+        >
+          <IconTrophyFilled size={16} /> Jump to your rank
+        </Button>
+      </div>
       <Table className="w-full">
         <TableHeader>
           <TableRow>
@@ -53,7 +84,10 @@ export const PointsLeaderboard = () => {
         </TableHeader>
         <TableBody>
           {leaderboardData.map((leaderboardRow) => (
-            <TableRow key={leaderboardRow.id}>
+            <TableRow
+              key={leaderboardRow.id}
+              className={cn(leaderboardRow.owner === userPointsData.owner && "bg-chartreuse/30")}
+            >
               <TableCell className="font-medium text-left font-mono">
                 {leaderboardRow.rank === 1 && <span className="text-xl">🥇</span>}
                 {leaderboardRow.rank === 2 && <span className="text-xl">🥈</span>}
@@ -63,7 +97,7 @@ export const PointsLeaderboard = () => {
               <TableCell>
                 <Link
                   href={`https://solscan.io/address/${leaderboardRow.owner}`}
-                  className="text-chartreuse font-medium"
+                  className="text-chartreuse font-medium border-b border-transparent transition-colors hover:border-chartreuse"
                 >
                   {leaderboardRow.domain ? leaderboardRow.domain : shortenAddress(new PublicKey(leaderboardRow.owner))}
                 </Link>
@@ -84,7 +118,7 @@ export const PointsLeaderboard = () => {
           ))}
         </TableBody>
       </Table>
-      <div className="flex gap-2 py-2 text-sm items-center mb-8 text-muted-foreground">
+      <div className="flex gap-2 py-2 text-sm items-center text-muted-foreground">
         <p className="ml-2.5">
           Showing page {leaderboardSettings.currentPage} of {Math.ceil(leaderboardCount / leaderboardSettings.pageSize)}
         </p>

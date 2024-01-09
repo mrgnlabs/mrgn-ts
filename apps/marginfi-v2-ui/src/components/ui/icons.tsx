@@ -31,6 +31,7 @@ import {
   IconBrandGithubFilled,
   IconChartHistogram,
   IconConfetti,
+  IconTrophyFilled,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -570,6 +571,7 @@ export {
   IconBrandGithubFilled,
   IconChartHistogram,
   IconConfetti,
+  IconTrophyFilled,
 
   // customed icons
   IconBrandGoogle,
