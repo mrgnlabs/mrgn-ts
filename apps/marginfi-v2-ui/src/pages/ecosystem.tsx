@@ -123,7 +123,7 @@ export default function Ecosystem() {
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-chartreuse border-b border-transparent transition-colors hover:border-chartreuse"
             >
-              Visit our docs
+              View the docs
               <IconExternalLink size={15} />
             </Link>{" "}
             for SDKs, examples, and more.
