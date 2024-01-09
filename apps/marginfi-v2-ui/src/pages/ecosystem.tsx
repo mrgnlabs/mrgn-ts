@@ -21,7 +21,7 @@ const projects = [
     github: "https://github.com/mrgnlabs/marginfi-v2",
     repo: "mrgnlabs/marginfi-v2",
     author: {
-      name: "marginfi",
+      name: "marginfi inc",
       avatar: "/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
@@ -33,7 +33,7 @@ const projects = [
     github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-ui",
     repo: "mrgnlabs/mrgn-ts",
     author: {
-      name: "marginfi",
+      name: "marginfi inc",
       avatar: "/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
@@ -44,7 +44,7 @@ const projects = [
     github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/alpha-liquidator",
     repo: "mrgnlabs/mrgn-ts",
     author: {
-      name: "marginfi",
+      name: "marginfi inc",
       avatar: "/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
@@ -56,7 +56,7 @@ const projects = [
     url: "https://omni.marginfi.com/",
     repo: "mrgnlabs/mrgn-ts",
     author: {
-      name: "marginfi",
+      name: "marginfi inc",
       avatar: "/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
@@ -180,7 +180,12 @@ export default function Ecosystem() {
                 {project.description && <CardDescription>{project.description}</CardDescription>}
               </CardHeader>
               <CardContent>
-                <Link href={project.author.url} className="flex items-center gap-2">
+                <Link
+                  href={project.author.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 text-white transition-colors hover:text-chartreuse font-medium text-sm"
+                >
                   <Image
                     src={project.author.avatar}
                     alt={project.author.name}
