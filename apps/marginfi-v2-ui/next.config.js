@@ -16,6 +16,9 @@ let config = withBundleAnalyzer({
   publicRuntimeConfig: {
     NODE_ENV: process.env.NODE_ENV,
   },
+  output: "export",
+  assetPrefix: "./",
+  trailingSlash: true,
   transpilePackages: ["@mrgnlabs/marginfi-client-v2", "@mrgnlabs/mrgn-common", "@mrgnlabs/lip-client"],
   reactStrictMode: true,
   webpack: (config) => {
@@ -23,6 +26,7 @@ let config = withBundleAnalyzer({
     return config;
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
