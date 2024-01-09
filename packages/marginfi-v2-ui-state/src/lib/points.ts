@@ -11,6 +11,8 @@ import {
   getDoc,
   getCountFromServer,
   where,
+  startAt,
+  endAt,
   QueryDocumentSnapshot,
 } from "firebase/firestore";
 import {
@@ -26,19 +28,77 @@ import { firebaseApi } from ".";
 
 type LeaderboardRow = {
   id: string;
-  shortAddress?: string;
-  domain?: string;
-  doc: QueryDocumentSnapshot<DocumentData>;
+  owner: string;
+  domain: string;
+  rank: number;
   total_activity_deposit_points: number;
   total_activity_borrow_points: number;
   total_referral_deposit_points: number;
   total_referral_borrow_points: number;
   total_deposit_points: number;
   total_borrow_points: number;
+  total_referral_points: number;
   socialPoints: number;
+  total_points: number;
 };
 
-async function fetchLeaderboardData({
+type LeaderboardSettings = {
+  pageSize: number;
+  currentPage: number;
+  orderCol: string;
+  orderDir: "desc" | "asc";
+};
+
+async function fetchLeaderboardData(connection: Connection, settings: LeaderboardSettings): Promise<LeaderboardRow[]> {
+  let start = 0;
+  if (settings.currentPage === 1) {
+    start = 2;
+  } else {
+    start = settings.pageSize * (settings.currentPage - 1) + 1;
+  }
+  const pointsQuery = query(
+    collection(firebaseApi.db, "points"),
+    orderBy("rank", "asc"),
+    startAt(start),
+    endAt(settings.pageSize * settings.currentPage)
+  );
+  console.log("start", start, "end", settings.pageSize * settings.currentPage);
+  const querySnapshot = await getDocs(pointsQuery);
+
+  const leaderboardSlice = querySnapshot.docs.map((doc) => ({
+    ...(doc.data() as LeaderboardRow),
+    rank: --doc.data().rank,
+  }));
+
+  const leaderboardFinalSlice: LeaderboardRow[] = [...leaderboardSlice];
+
+  // batch fetch all favorite domains and update array
+  const publicKeys = leaderboardFinalSlice
+    .map((value) => {
+      if (!value.owner) return null;
+      const [favoriteDomains] = FavouriteDomain.getKeySync(NAME_OFFERS_ID, new PublicKey(value.owner));
+      return favoriteDomains;
+    })
+    .filter((value) => value !== null) as PublicKey[];
+
+  const favoriteDomainsInfo = (await connection.getMultipleAccountsInfo(publicKeys)).map((accountInfo, idx) =>
+    accountInfo ? FavouriteDomain.deserialize(accountInfo.data).nameAccount : publicKeys[idx]
+  );
+  const reverseLookup = await reverseLookupBatch(connection, favoriteDomainsInfo);
+
+  leaderboardFinalSlice.map((value, idx) => {
+    const domain = reverseLookup[idx];
+    if (domain) {
+      value.domain = `${domain}.sol`;
+    }
+
+    return value;
+  });
+  return leaderboardSlice;
+}
+
+/*
+async function fetchLeaderboardDataOld({
   connection,
   queryCursor,
   pageSize = 50,
@@ -94,7 +154,7 @@ async function fetchLeaderboardData({
   });
 
   return leaderboardFinalSlice;
-}
+}*/
 
 // Firebase query is very constrained, so we calculate the number of users with more points
 // as the the count of users with more points inclusive of corrupted rows - the count of corrupted rows
@@ -235,4 +295,4 @@ export {
   DEFAULT_USER_POINTS_DATA,
 };
 
-export type { LeaderboardRow, UserPointsData };
+export type { LeaderboardRow, LeaderboardSettings, UserPointsData };
