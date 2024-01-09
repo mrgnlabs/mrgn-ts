@@ -1,5 +1,5 @@
 export * from "./PointsOverview";
-export * from "./PointsLeaderBoard";
+export * from "./PointsLeaderboard";
 export * from "./PointsSignIn";
 export * from "./PointsSignUp";
 export * from "./PointsCheckingUser";
