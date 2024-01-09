@@ -54,13 +54,13 @@ async function fetchLeaderboardData(connection: Connection, settings: Leaderboar
   if (settings.currentPage === 1) {
     start = 2;
   } else {
-    start = settings.pageSize * (settings.currentPage - 1) + 1;
+    start = settings.pageSize * (settings.currentPage - 1) + 2;
   }
   const pointsQuery = query(
     collection(firebaseApi.db, "points"),
     orderBy("rank", "asc"),
     startAt(start),
-    endAt(settings.pageSize * settings.currentPage)
+    endAt(settings.currentPage === 1 ? start + settings.pageSize - 1 : settings.pageSize * settings.currentPage + 1)
   );
   console.log("start", start, "end", settings.pageSize * settings.currentPage);
   const querySnapshot = await getDocs(pointsQuery);
@@ -95,6 +95,12 @@ async function fetchLeaderboardData(connection: Connection, settings: Leaderboar
     return value;
   });
   return leaderboardSlice;
+}
+
+async function fetchTotalLeaderboardCount() {
+  const q = query(collection(firebaseApi.db, "points"), where("owner", "!=", null));
+  const qCount = await getCountFromServer(q);
+  return qCount.data().count;
 }
 
 /*
@@ -288,6 +294,7 @@ async function getPointsSummary() {
 
 export {
   fetchLeaderboardData,
+  fetchTotalLeaderboardCount,
   fetchUserRank,
   fetchTotalUserCount,
   getPointsSummary,
