@@ -3,7 +3,12 @@ import React from "react";
 import Link from "next/link";
 
 import { PublicKey } from "@solana/web3.js";
-import { fetchLeaderboardData, LeaderboardRow, LeaderboardSettings } from "@mrgnlabs/marginfi-v2-ui-state";
+import {
+  fetchLeaderboardData,
+  fetchTotalLeaderboardCount,
+  LeaderboardRow,
+  LeaderboardSettings,
+} from "@mrgnlabs/marginfi-v2-ui-state";
 import { groupedNumberFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { useConnection } from "~/hooks/useConnection";
@@ -14,6 +19,7 @@ import { Button } from "~/components/ui/button";
 export const PointsLeaderboard = () => {
   const { connection } = useConnection();
   const [leaderboardData, setLeaderboardData] = React.useState<LeaderboardRow[]>([]);
+  const [leaderboardCount, setLeaderboardCount] = React.useState<number>(0);
   const [leaderboardSettings, setLeaderboardSettings] = React.useState<LeaderboardSettings>({
     pageSize: 100,
     currentPage: 1,
@@ -24,7 +30,9 @@ export const PointsLeaderboard = () => {
   React.useEffect(() => {
     const getLeaderboardData = async () => {
       const data = await fetchLeaderboardData(connection, leaderboardSettings);
+      const count = await fetchTotalLeaderboardCount();
       setLeaderboardData([...data]);
+      setLeaderboardCount(count);
     };
 
     getLeaderboardData();
@@ -77,7 +85,9 @@ export const PointsLeaderboard = () => {
         </TableBody>
       </Table>
       <div className="flex gap-2 py-2 text-sm items-center mb-8 text-muted-foreground">
-        <p className="ml-2.5">Showing page {leaderboardSettings.currentPage} of x</p>
+        <p className="ml-2.5">
+          Showing page {leaderboardSettings.currentPage} of {Math.ceil(leaderboardCount / leaderboardSettings.pageSize)}
+        </p>
         <Button
           variant="outline"
           size="sm"
@@ -95,6 +105,7 @@ export const PointsLeaderboard = () => {
         <Button
           variant="outline"
           size="sm"
+          disabled={leaderboardSettings.currentPage === Math.ceil(leaderboardCount / leaderboardSettings.pageSize)}
           onClick={() => {
             setLeaderboardSettings({
               ...leaderboardSettings,
