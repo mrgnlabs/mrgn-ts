@@ -67,7 +67,7 @@ async function fetchLeaderboardData(connection: Connection, settings: Leaderboar
 
   const leaderboardSlice = querySnapshot.docs.map((doc) => ({
     ...(doc.data() as LeaderboardRow),
-    rank: --doc.data().rank,
+    rank: doc.data().rank - 1,
   }));
 
   const leaderboardFinalSlice: LeaderboardRow[] = [...leaderboardSlice];
@@ -164,25 +164,16 @@ async function fetchLeaderboardDataOld({
 
 // Firebase query is very constrained, so we calculate the number of users with more points
 // as the the count of users with more points inclusive of corrupted rows - the count of corrupted rows
-async function fetchUserRank(userPoints: number): Promise<number> {
-  const q1 = query(
-    collection(firebaseApi.db, "points"),
-    where("owner", "==", null),
-    where("total_points", ">", userPoints),
-    orderBy("total_points", "desc")
-  );
-  const q2 = query(
-    collection(firebaseApi.db, "points"),
-    where("total_points", ">", userPoints),
-    orderBy("total_points", "desc")
-  );
+async function fetchUserRank(address: string): Promise<number> {
+  const q = query(collection(firebaseApi.db, "points"), where("owner", "==", address));
 
-  const [querySnapshot1, querySnapshot2] = await Promise.all([getCountFromServer(q1), getCountFromServer(q2)]);
+  const data = await getDocs(q);
 
-  const nullGreaterDocsCount = querySnapshot1.data().count;
-  const allGreaterDocsCount = querySnapshot2.data().count;
+  if (!data.docs.length) {
+    return 0;
+  }
 
-  return allGreaterDocsCount - nullGreaterDocsCount + 1;
+  return data.docs[0].data().rank - 1;
 }
 
 async function fetchTotalUserCount() {
@@ -202,6 +193,7 @@ interface UserPointsData {
   isCustomReferralLink: boolean;
   userRank: number | null;
   totalPoints: number;
+  rank: number;
 }
 
 const DEFAULT_USER_POINTS_DATA: UserPointsData = {
@@ -213,6 +205,7 @@ const DEFAULT_USER_POINTS_DATA: UserPointsData = {
   isCustomReferralLink: false,
   userRank: null,
   totalPoints: 0,
+  rank: 0,
 };
 
 const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPointsData> => {
@@ -271,8 +264,6 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
     (pointsData.total_referral_deposit_points + pointsData.total_referral_borrow_points) +
     (pointsData.socialPoints ? pointsData.socialPoints : 0);
 
-  const userRank = await fetchUserRank(totalPoints);
-
   return {
     owner: pointsData.owner,
     depositPoints,
@@ -280,8 +271,9 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
     referralPoints,
     referralLink: userReferralCode,
     isCustomReferralLink,
-    userRank,
+    rank: pointsData.rank,
     totalPoints,
+    userRank: pointsData.rank,
   };
 };
 

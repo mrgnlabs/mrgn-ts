@@ -99,7 +99,7 @@ const Points = () => {
             </Link>
           </div>
         </div>
-        <PointsLeaderboard />
+        <PointsLeaderboard userPointsData={userPointsData} />
       </div>
     </>
   );
