@@ -108,7 +108,7 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
         <TableBody>
           {leaderboardData.map((leaderboardRow) => (
             <TableRow
-              key={leaderboardRow.id}
+              key={leaderboardRow.owner}
               className={cn(leaderboardRow.owner === userPointsData.owner && "bg-chartreuse/30 hover:bg-chartreuse/30")}
             >
               <TableCell className="font-medium text-left font-mono">
