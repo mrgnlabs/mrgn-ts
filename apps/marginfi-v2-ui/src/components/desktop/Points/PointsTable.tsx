@@ -50,15 +50,14 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
     orderDir: TableOrderDirection.Desc,
   });
   const [leaderboardSearch, setLeaderboardSearch] = React.useState<string>("");
+  const leaderboardSearchRef = React.useRef<HTMLInputElement>(null);
   const debouncedLeaderboardSearch = useDebounce(leaderboardSearch, 500);
 
   React.useEffect(() => {
     const getLeaderboardData = async () => {
       const data = await fetchLeaderboardData(connection, leaderboardSettings);
-      const count = await fetchTotalLeaderboardCount();
       console.log(data);
       setLeaderboardData([...data]);
-      setLeaderboardCount(count);
     };
 
     getLeaderboardData();
@@ -76,13 +75,21 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
       }
 
       const data = await fetchLeaderboardData(connection, leaderboardSettings, pk);
-      const count = await fetchTotalLeaderboardCount();
       setLeaderboardData([...data]);
-      setLeaderboardCount(count);
     };
 
     getLeaderboardData();
   }, [debouncedLeaderboardSearch]);
+
+  React.useEffect(() => {
+    if (leaderboardCount > 0) return;
+    const getLeaderboardCount = async () => {
+      const count = await fetchTotalLeaderboardCount();
+      setLeaderboardCount(count);
+    };
+
+    getLeaderboardCount();
+  }, []);
 
   return (
     <div className="w-full mt-10 space-y-3 pb-16">
@@ -90,6 +97,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
         <div className="relative w-full">
           <IconSearch className="absolute top-1/2 left-3.5 -translate-y-1/2 text-muted-foreground" size={15} />
           <Input
+            ref={leaderboardSearchRef}
             type="text"
             placeholder="Search by wallet address, .sol domain, or rank..."
             className="w-full max-w-xl rounded-full pl-9"
@@ -102,7 +110,8 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
           <TableRow>
             <TableHead className="w-[100px] text-left">
               <button
-                className="flex items-center gap-0.5 cursor-pointer"
+                className={cn("flex items-center gap-0.5", !leaderboardSearch && "cursor-pointer")}
+                disabled={leaderboardSearch.length > 0}
                 onClick={() => {
                   let orderDir = leaderboardSettings.orderDir;
 
@@ -127,9 +136,14 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
               </button>
             </TableHead>
             <TableHead>Address</TableHead>
-            <TableHead className={cn(leaderboardSettings.orderCol === TableOrderCol.DepositPoints && "text-white")}>
+            <TableHead
+              className={cn(
+                leaderboardSettings.orderCol === TableOrderCol.DepositPoints && !leaderboardSearch && "text-white"
+              )}
+            >
               <button
-                className="flex items-center gap-0.5 cursor-pointer"
+                className={cn("flex items-center gap-0.5", !leaderboardSearch && "cursor-pointer")}
+                disabled={leaderboardSearch.length > 0}
                 onClick={() => {
                   let orderDir = leaderboardSettings.orderDir;
 
@@ -141,7 +155,6 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                         ? TableOrderDirection.Desc
                         : TableOrderDirection.Asc;
                   }
-
                   setLeaderboardSettings({
                     ...leaderboardSettings,
                     orderCol: TableOrderCol.DepositPoints,
@@ -161,9 +174,14 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                 Deposit Points
               </button>
             </TableHead>
-            <TableHead className={cn(leaderboardSettings.orderCol === TableOrderCol.BorrowPoints && "text-white")}>
+            <TableHead
+              className={cn(
+                leaderboardSettings.orderCol === TableOrderCol.BorrowPoints && !leaderboardSearch && "text-white"
+              )}
+            >
               <button
-                className="flex items-center gap-0.5 cursor-pointer"
+                className={cn("flex items-center gap-0.5", !leaderboardSearch && "cursor-pointer")}
+                disabled={leaderboardSearch.length > 0}
                 onClick={() => {
                   let orderDir = leaderboardSettings.orderDir;
 
@@ -175,7 +193,6 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                         ? TableOrderDirection.Desc
                         : TableOrderDirection.Asc;
                   }
-
                   setLeaderboardSettings({
                     ...leaderboardSettings,
                     orderCol: TableOrderCol.BorrowPoints,
@@ -195,9 +212,14 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                 Borrow Points
               </button>
             </TableHead>
-            <TableHead className={cn(leaderboardSettings.orderCol === TableOrderCol.ReferralPoints && "text-white")}>
+            <TableHead
+              className={cn(
+                leaderboardSettings.orderCol === TableOrderCol.ReferralPoints && !leaderboardSearch && "text-white"
+              )}
+            >
               <button
-                className="flex items-center gap-0.5 cursor-pointer"
+                className={cn("flex items-center gap-0.5", !leaderboardSearch && "cursor-pointer")}
+                disabled={leaderboardSearch.length > 0}
                 onClick={() => {
                   let orderDir = leaderboardSettings.orderDir;
 
@@ -209,7 +231,6 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                         ? TableOrderDirection.Desc
                         : TableOrderDirection.Asc;
                   }
-
                   setLeaderboardSettings({
                     ...leaderboardSettings,
                     orderCol: TableOrderCol.ReferralPoints,
@@ -230,10 +251,14 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
               </button>
             </TableHead>
             <TableHead
-              className={cn("text-right", leaderboardSettings.orderCol === TableOrderCol.TotalPoints && "text-white")}
+              className={cn(
+                "text-right",
+                leaderboardSettings.orderCol === TableOrderCol.TotalPoints && !leaderboardSearch && "text-white"
+              )}
             >
               <button
-                className="flex items-center gap-0.5 cursor-pointer text-right ml-auto"
+                className={cn("flex items-center gap-0.5 text-right ml-auto", !leaderboardSearch && "cursor-pointer")}
+                disabled={leaderboardSearch.length > 0}
                 onClick={() => {
                   let orderDir = leaderboardSettings.orderDir;
 
@@ -245,7 +270,6 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                         ? TableOrderDirection.Desc
                         : TableOrderDirection.Asc;
                   }
-
                   setLeaderboardSettings({
                     ...leaderboardSettings,
                     orderCol: TableOrderCol.TotalPoints,
@@ -335,13 +359,18 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
       </Table>
       <div className="flex gap-2 py-2 text-sm items-center text-muted-foreground">
         <p className="ml-2.5 mr-auto">
-          Showing page {leaderboardSettings.currentPage} of {Math.ceil(leaderboardCount / leaderboardSettings.pageSize)}
+          {!leaderboardSearch && (
+            <>
+              Showing page {leaderboardSettings.currentPage} of{" "}
+              {Math.ceil(leaderboardCount / leaderboardSettings.pageSize)}
+            </>
+          )}
         </p>
         <Button
           variant="outline"
           size="sm"
           className="ml-auto"
-          disabled={leaderboardSettings.currentPage === 1}
+          disabled={leaderboardSettings.currentPage === 1 || leaderboardSearch.length > 0}
           onClick={() => {
             setLeaderboardSettings({
               ...leaderboardSettings,
@@ -354,7 +383,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
         <Button
           variant="outline"
           size="sm"
-          disabled={leaderboardSettings.currentPage === 1}
+          disabled={leaderboardSettings.currentPage === 1 || leaderboardSearch.length > 0}
           onClick={() => {
             setLeaderboardSettings({
               ...leaderboardSettings,
@@ -367,7 +396,10 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
         <Button
           variant="outline"
           size="sm"
-          disabled={leaderboardSettings.currentPage === Math.ceil(leaderboardCount / leaderboardSettings.pageSize)}
+          disabled={
+            leaderboardSettings.currentPage === Math.ceil(leaderboardCount / leaderboardSettings.pageSize) ||
+            leaderboardSearch.length > 0
+          }
           onClick={() => {
             setLeaderboardSettings({
               ...leaderboardSettings,
