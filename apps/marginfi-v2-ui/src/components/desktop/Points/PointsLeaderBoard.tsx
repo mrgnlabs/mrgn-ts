@@ -27,12 +27,16 @@ type PointsLeaderboardProps = {
 };
 
 enum LeaderboardOrderCol {
-  Rank = "rank",
   Address = "owner",
   DepositPoints = "total_deposit_points",
   BorrowPoints = "total_borrow_points",
   ReferralPoints = "total_referral_points",
   TotalPoints = "total_points",
+}
+
+enum LeaderboardOrderDirection {
+  Asc = "asc",
+  Desc = "desc",
 }
 
 export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) => {
@@ -42,7 +46,8 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
   const [leaderboardSettings, setLeaderboardSettings] = React.useState<LeaderboardSettings>({
     pageSize: 100,
     currentPage: 1,
-    orderCol: LeaderboardOrderCol.Rank,
+    orderCol: LeaderboardOrderCol.TotalPoints,
+    orderDir: LeaderboardOrderDirection.Desc,
   });
   const [leaderboardSearch, setLeaderboardSearch] = React.useState<string>("");
   const debouncedLeaderboardSearch = useDebounce(leaderboardSearch, 300);
@@ -96,7 +101,8 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
           onClick={() =>
             setLeaderboardSettings({
               ...leaderboardSettings,
-              orderCol: LeaderboardOrderCol.Rank,
+              orderCol: LeaderboardOrderCol.TotalPoints,
+              orderDir: LeaderboardOrderDirection.Desc,
               currentPage: userPointsData.userRank
                 ? Math.ceil(userPointsData.userRank / leaderboardSettings.pageSize)
                 : 0,
@@ -109,26 +115,29 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
       <Table className="w-full">
         <TableHeader>
           <TableRow>
-            <TableHead
-              className={cn(
-                "w-[100px] text-left",
-                leaderboardSettings.orderCol === LeaderboardOrderCol.Rank && "text-white"
-              )}
-            >
+            <TableHead className="w-[100px] text-left">
               <button
                 className="flex items-center gap-0.5 cursor-pointer"
                 onClick={() => {
-                  if (leaderboardSettings.orderCol === LeaderboardOrderCol.Rank) return;
+                  let orderDir = leaderboardSettings.orderDir;
+
+                  if (leaderboardSettings.orderCol !== LeaderboardOrderCol.TotalPoints) {
+                    orderDir = LeaderboardOrderDirection.Desc;
+                  } else {
+                    orderDir =
+                      leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc
+                        ? LeaderboardOrderDirection.Desc
+                        : LeaderboardOrderDirection.Asc;
+                  }
+
                   setLeaderboardSettings({
                     ...leaderboardSettings,
-                    orderCol: LeaderboardOrderCol.Rank,
+                    orderCol: LeaderboardOrderCol.TotalPoints,
+                    orderDir,
                     currentPage: 1,
                   });
                 }}
               >
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.Rank && (
-                  <IconSortDescending className="mr-1" size={15} />
-                )}
                 Rank
               </button>
             </TableHead>
@@ -139,17 +148,33 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
               <button
                 className="flex items-center gap-0.5 cursor-pointer"
                 onClick={() => {
-                  if (leaderboardSettings.orderCol === LeaderboardOrderCol.DepositPoints) return;
+                  let orderDir = leaderboardSettings.orderDir;
+
+                  if (leaderboardSettings.orderCol !== LeaderboardOrderCol.DepositPoints) {
+                    orderDir = LeaderboardOrderDirection.Desc;
+                  } else {
+                    orderDir =
+                      leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc
+                        ? LeaderboardOrderDirection.Desc
+                        : LeaderboardOrderDirection.Asc;
+                  }
+
                   setLeaderboardSettings({
                     ...leaderboardSettings,
                     orderCol: LeaderboardOrderCol.DepositPoints,
+                    orderDir,
                     currentPage: 1,
                   });
                 }}
               >
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.DepositPoints && (
-                  <IconSortDescending className="mr-1" size={15} />
-                )}
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.DepositPoints &&
+                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Desc && (
+                    <IconSortDescending className="mr-1" size={15} />
+                  )}
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.DepositPoints &&
+                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc && (
+                    <IconSortAscending className="mr-1" size={15} />
+                  )}
                 Deposit Points
               </button>
             </TableHead>
@@ -159,17 +184,33 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
               <button
                 className="flex items-center gap-0.5 cursor-pointer"
                 onClick={() => {
-                  if (leaderboardSettings.orderCol === LeaderboardOrderCol.BorrowPoints) return;
+                  let orderDir = leaderboardSettings.orderDir;
+
+                  if (leaderboardSettings.orderCol !== LeaderboardOrderCol.BorrowPoints) {
+                    orderDir = LeaderboardOrderDirection.Desc;
+                  } else {
+                    orderDir =
+                      leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc
+                        ? LeaderboardOrderDirection.Desc
+                        : LeaderboardOrderDirection.Asc;
+                  }
+
                   setLeaderboardSettings({
                     ...leaderboardSettings,
                     orderCol: LeaderboardOrderCol.BorrowPoints,
+                    orderDir,
                     currentPage: 1,
                   });
                 }}
               >
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.BorrowPoints && (
-                  <IconSortDescending className="mr-1" size={15} />
-                )}
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.BorrowPoints &&
+                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Desc && (
+                    <IconSortDescending className="mr-1" size={15} />
+                  )}
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.BorrowPoints &&
+                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc && (
+                    <IconSortAscending className="mr-1" size={15} />
+                  )}
                 Borrow Points
               </button>
             </TableHead>
@@ -179,17 +220,33 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
               <button
                 className="flex items-center gap-0.5 cursor-pointer"
                 onClick={() => {
-                  if (leaderboardSettings.orderCol === LeaderboardOrderCol.ReferralPoints) return;
+                  let orderDir = leaderboardSettings.orderDir;
+
+                  if (leaderboardSettings.orderCol !== LeaderboardOrderCol.ReferralPoints) {
+                    orderDir = LeaderboardOrderDirection.Desc;
+                  } else {
+                    orderDir =
+                      leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc
+                        ? LeaderboardOrderDirection.Desc
+                        : LeaderboardOrderDirection.Asc;
+                  }
+
                   setLeaderboardSettings({
                     ...leaderboardSettings,
                     orderCol: LeaderboardOrderCol.ReferralPoints,
+                    orderDir,
                     currentPage: 1,
                   });
                 }}
               >
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.ReferralPoints && (
-                  <IconSortDescending className="mr-1" size={15} />
-                )}
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.ReferralPoints &&
+                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Desc && (
+                    <IconSortDescending className="mr-1" size={15} />
+                  )}
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.ReferralPoints &&
+                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc && (
+                    <IconSortAscending className="mr-1" size={15} />
+                  )}
                 Referral Points
               </button>
             </TableHead>
@@ -202,17 +259,33 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
               <button
                 className="flex items-center gap-0.5 cursor-pointer text-right ml-auto"
                 onClick={() => {
-                  if (leaderboardSettings.orderCol === LeaderboardOrderCol.TotalPoints) return;
+                  let orderDir = leaderboardSettings.orderDir;
+
+                  if (leaderboardSettings.orderCol !== LeaderboardOrderCol.TotalPoints) {
+                    orderDir = LeaderboardOrderDirection.Desc;
+                  } else {
+                    orderDir =
+                      leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc
+                        ? LeaderboardOrderDirection.Desc
+                        : LeaderboardOrderDirection.Asc;
+                  }
+
                   setLeaderboardSettings({
                     ...leaderboardSettings,
                     orderCol: LeaderboardOrderCol.TotalPoints,
+                    orderDir,
                     currentPage: 1,
                   });
                 }}
               >
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.TotalPoints && (
-                  <IconSortDescending className="mr-1" size={15} />
-                )}
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.TotalPoints &&
+                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Desc && (
+                    <IconSortDescending className="mr-1" size={15} />
+                  )}
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.TotalPoints &&
+                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc && (
+                    <IconSortAscending className="mr-1" size={15} />
+                  )}
                 Total Points
               </button>
             </TableHead>
@@ -248,16 +321,36 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
                   </Link>
                 )}
               </TableCell>
-              <TableCell className="font-mono">
+              <TableCell
+                className={cn(
+                  "font-mono text-muted-foreground",
+                  leaderboardSettings.orderCol === "total_deposit_points" && "text-white"
+                )}
+              >
                 {groupedNumberFormatter.format(leaderboardRow.total_deposit_points)}
               </TableCell>
-              <TableCell className="font-mono">
+              <TableCell
+                className={cn(
+                  "font-mono text-muted-foreground",
+                  leaderboardSettings.orderCol === "total_borrow_points" && "text-white"
+                )}
+              >
                 {groupedNumberFormatter.format(leaderboardRow.total_borrow_points)}
               </TableCell>
-              <TableCell className="font-mono">
+              <TableCell
+                className={cn(
+                  "font-mono text-muted-foreground",
+                  leaderboardSettings.orderCol === "total_referral_points" && "text-white"
+                )}
+              >
                 {groupedNumberFormatter.format(leaderboardRow.total_referral_points)}
               </TableCell>
-              <TableCell className="text-right font-mono">
+              <TableCell
+                className={cn(
+                  "text-right font-mono text-muted-foreground",
+                  leaderboardSettings.orderCol === "total_points" && "text-white"
+                )}
+              >
                 {groupedNumberFormatter.format(leaderboardRow.total_points)}
               </TableCell>
             </TableRow>

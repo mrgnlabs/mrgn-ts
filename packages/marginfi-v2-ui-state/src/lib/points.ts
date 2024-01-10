@@ -46,10 +46,12 @@ type LeaderboardSettings = {
   pageSize: number;
   currentPage: number;
   orderCol: string;
+  orderDir: "desc" | "asc";
 };
 
 let lastVisible: QueryDocumentSnapshot<DocumentData> | undefined;
 let lastOrderCol: string | undefined;
+let lastOrderDir: "desc" | "asc" | undefined;
 
 async function fetchLeaderboardData(
   connection: Connection,
@@ -64,9 +66,10 @@ async function fetchLeaderboardData(
   }
   console.log(settings);
 
-  if (lastOrderCol !== settings.orderCol) {
+  if (lastOrderCol !== settings.orderCol || lastOrderDir !== settings.orderDir) {
     lastVisible = undefined;
     lastOrderCol = settings.orderCol;
+    lastOrderDir = settings.orderDir;
   }
 
   const pointsQuery = query(
@@ -74,8 +77,9 @@ async function fetchLeaderboardData(
     ...(search
       ? [where("owner", "==", search)]
       : [
-          orderBy(settings.orderCol, settings.orderCol === "rank" ? "asc" : "desc"),
-          ...(lastVisible ? [startAt(lastVisible)] : []),
+          where(settings.orderCol, ">=", 1),
+          orderBy(settings.orderCol, settings.orderDir),
+          ...(lastVisible ? [startAfter(lastVisible)] : []),
           limit(settings.pageSize),
         ])
   );
