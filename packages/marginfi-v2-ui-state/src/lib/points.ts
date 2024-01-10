@@ -47,29 +47,31 @@ type LeaderboardSettings = {
   currentPage: number;
   orderCol: string;
   orderDir: "desc" | "asc";
+  pageDirection?: "next" | "prev";
 };
 
 let lastVisible: QueryDocumentSnapshot<DocumentData> | undefined;
 let lastOrderCol: string | undefined;
 let lastOrderDir: "desc" | "asc" | undefined;
+let prevPages: LeaderboardRow[][] = [];
 
 async function fetchLeaderboardData(
   connection: Connection,
   settings: LeaderboardSettings,
   search?: string
 ): Promise<LeaderboardRow[]> {
-  let start = 0;
-  if (settings.currentPage === 1) {
-    start = 2;
-  } else {
-    start = settings.pageSize * (settings.currentPage - 1) + 2;
+  if (settings.pageDirection === "prev") {
+    if (prevPages.length > 1) {
+      prevPages.pop();
+      return prevPages[prevPages.length - 1];
+    }
   }
-  console.log(settings);
 
-  if (lastOrderCol !== settings.orderCol || lastOrderDir !== settings.orderDir) {
+  if (lastOrderCol !== settings.orderCol || (lastOrderDir !== settings.orderDir && settings.pageDirection !== "prev")) {
     lastVisible = undefined;
     lastOrderCol = settings.orderCol;
     lastOrderDir = settings.orderDir;
+    prevPages = [];
   }
 
   const searchNum = parseInt(search || "");
@@ -102,6 +104,8 @@ async function fetchLeaderboardData(
     .filter((item) => item.owner !== null && item.owner !== undefined && item.owner != "None");
 
   const leaderboardFinalSlice: LeaderboardRow[] = [...leaderboardSlice];
+
+  prevPages.push(leaderboardSlice);
 
   // batch fetch all favorite domains and update array
   const publicKeys = leaderboardFinalSlice
