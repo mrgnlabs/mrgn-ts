@@ -85,11 +85,10 @@ async function fetchLeaderboardData(connection: Connection, settings: Leaderboar
     prevPages = [];
   }
 
-  const searchNum = parseInt(settings.search || "");
+  const searchNum = Number(settings.search || "");
   let searchQ = [where("owner", "==", settings.search)];
 
   if (settings.search && !isNaN(searchNum)) {
-    console.log("here!");
     searchQ = [where("rank", "==", searchNum + 1)];
   }
 
