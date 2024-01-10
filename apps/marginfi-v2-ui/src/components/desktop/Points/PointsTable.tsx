@@ -52,12 +52,15 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
   const [leaderboardSearch, setLeaderboardSearch] = React.useState<string>("");
   const leaderboardSearchRef = React.useRef<HTMLInputElement>(null);
   const debouncedLeaderboardSearch = useDebounce(leaderboardSearch, 500);
+  const [isWorking, setIsWorking] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const getLeaderboardData = async () => {
+      setIsWorking(true);
       const data = await fetchLeaderboardData(connection, leaderboardSettings);
       console.log(data);
       setLeaderboardData([...data]);
+      setIsWorking(false);
     };
 
     getLeaderboardData();
@@ -65,6 +68,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
 
   React.useEffect(() => {
     const getLeaderboardData = async () => {
+      setIsWorking(true);
       let pk = leaderboardSearch;
 
       if (leaderboardSearch.includes(".sol")) {
@@ -76,6 +80,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
 
       const data = await fetchLeaderboardData(connection, leaderboardSettings, pk);
       setLeaderboardData([...data]);
+      setIsWorking(false);
     };
 
     getLeaderboardData();
@@ -94,15 +99,27 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
   return (
     <div className="w-full mt-10 space-y-3 pb-16">
       <div className="flex items-center gap-2 justify-between">
-        <div className="relative w-full">
+        <div className="relative max-w-xl w-full">
           <IconSearch className="absolute top-1/2 left-3.5 -translate-y-1/2 text-muted-foreground" size={15} />
           <Input
             ref={leaderboardSearchRef}
             type="text"
             placeholder="Search by wallet address, .sol domain, or rank..."
-            className="w-full max-w-xl rounded-full pl-9"
+            className="w-full rounded-full pl-9"
             onChange={(e) => setLeaderboardSearch(e.currentTarget.value)}
           />
+          {leaderboardSearch.length > 0 && (
+            <button
+              onClick={() => {
+                setLeaderboardSearch("");
+                if (!leaderboardSearchRef.current) return;
+                leaderboardSearchRef.current.value = "";
+              }}
+              className="text-xs absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground border-b border-muted-foreground transition-colors hover:border-transparent"
+            >
+              clear search
+            </button>
+          )}
         </div>
       </div>
       <Table className="w-full">
@@ -113,6 +130,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                 className={cn("flex items-center gap-0.5", !leaderboardSearch && "cursor-pointer")}
                 disabled={leaderboardSearch.length > 0}
                 onClick={() => {
+                  if (isWorking) return;
                   let orderDir = leaderboardSettings.orderDir;
 
                   if (leaderboardSettings.orderCol !== TableOrderCol.TotalPoints) {
@@ -145,6 +163,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                 className={cn("flex items-center gap-0.5", !leaderboardSearch && "cursor-pointer")}
                 disabled={leaderboardSearch.length > 0}
                 onClick={() => {
+                  if (isWorking) return;
                   let orderDir = leaderboardSettings.orderDir;
 
                   if (leaderboardSettings.orderCol !== TableOrderCol.DepositPoints) {
@@ -183,6 +202,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                 className={cn("flex items-center gap-0.5", !leaderboardSearch && "cursor-pointer")}
                 disabled={leaderboardSearch.length > 0}
                 onClick={() => {
+                  if (isWorking) return;
                   let orderDir = leaderboardSettings.orderDir;
 
                   if (leaderboardSettings.orderCol !== TableOrderCol.BorrowPoints) {
@@ -221,6 +241,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                 className={cn("flex items-center gap-0.5", !leaderboardSearch && "cursor-pointer")}
                 disabled={leaderboardSearch.length > 0}
                 onClick={() => {
+                  if (isWorking) return;
                   let orderDir = leaderboardSettings.orderDir;
 
                   if (leaderboardSettings.orderCol !== TableOrderCol.ReferralPoints) {
@@ -260,6 +281,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                 className={cn("flex items-center gap-0.5 text-right ml-auto", !leaderboardSearch && "cursor-pointer")}
                 disabled={leaderboardSearch.length > 0}
                 onClick={() => {
+                  if (isWorking) return;
                   let orderDir = leaderboardSettings.orderDir;
 
                   if (leaderboardSettings.orderCol !== TableOrderCol.TotalPoints) {
@@ -357,59 +379,62 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
           ))}
         </TableBody>
       </Table>
-      <div className="flex gap-2 py-2 text-sm items-center text-muted-foreground">
-        <p className="ml-2.5 mr-auto">
-          {!leaderboardSearch && (
-            <>
-              Showing page {leaderboardSettings.currentPage} of{" "}
-              {Math.ceil(leaderboardCount / leaderboardSettings.pageSize)}
-            </>
-          )}
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto"
-          disabled={leaderboardSettings.currentPage === 1 || leaderboardSearch.length > 0}
-          onClick={() => {
-            setLeaderboardSettings({
-              ...leaderboardSettings,
-              currentPage: 1,
-            });
-          }}
-        >
-          <span className="-translate-y-[1px]">&laquo;</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={leaderboardSettings.currentPage === 1 || leaderboardSearch.length > 0}
-          onClick={() => {
-            setLeaderboardSettings({
-              ...leaderboardSettings,
-              currentPage: leaderboardSettings.currentPage - 1,
-            });
-          }}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={
-            leaderboardSettings.currentPage === Math.ceil(leaderboardCount / leaderboardSettings.pageSize) ||
-            leaderboardSearch.length > 0
-          }
-          onClick={() => {
-            setLeaderboardSettings({
-              ...leaderboardSettings,
-              currentPage: leaderboardSettings.currentPage + 1,
-            });
-          }}
-        >
-          Next
-        </Button>
-      </div>
+      {!leaderboardSearch && (
+        <div className="flex gap-2 py-2 text-sm items-center text-muted-foreground">
+          <p className="ml-2.5 mr-auto">
+            {leaderboardCount > 0 && (
+              <>
+                Showing page {leaderboardSettings.currentPage} of{" "}
+                {Math.ceil(leaderboardCount / leaderboardSettings.pageSize)}
+              </>
+            )}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            disabled={leaderboardSettings.currentPage === 1}
+            onClick={() => {
+              if (isWorking) return;
+              setLeaderboardSettings({
+                ...leaderboardSettings,
+                currentPage: 1,
+              });
+            }}
+          >
+            <span className="-translate-y-[1px]">&laquo;</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={leaderboardSettings.currentPage === 1}
+            onClick={() => {
+              if (isWorking) return;
+              setLeaderboardSettings({
+                ...leaderboardSettings,
+                currentPage: leaderboardSettings.currentPage - 1,
+                pageDirection: "prev",
+              });
+            }}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={leaderboardSettings.currentPage === Math.ceil(leaderboardCount / leaderboardSettings.pageSize)}
+            onClick={() => {
+              if (isWorking) return;
+              setLeaderboardSettings({
+                ...leaderboardSettings,
+                currentPage: leaderboardSettings.currentPage + 1,
+              });
+            }}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
