@@ -43,6 +43,7 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
     const getLeaderboardData = async () => {
       const data = await fetchLeaderboardData(connection, leaderboardSettings);
       const count = await fetchTotalLeaderboardCount();
+      console.log(data);
       setLeaderboardData([...data]);
       setLeaderboardCount(count);
     };
@@ -76,7 +77,7 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
         <div className="relative w-full">
           <IconSearch className="absolute top-1/2 left-3.5 -translate-y-1/2 text-muted-foreground" size={15} />
           <Input
-            type="search"
+            type="text"
             placeholder="Search by wallet address or .sol domain..."
             className="w-full max-w-xl rounded-full pl-9"
             onChange={(e) => setLeaderboardSearch(e.currentTarget.value)}
@@ -87,7 +88,9 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
           onClick={() =>
             setLeaderboardSettings({
               ...leaderboardSettings,
-              currentPage: Math.ceil(userPointsData.rank / leaderboardSettings.pageSize),
+              currentPage: userPointsData.userRank
+                ? Math.ceil(userPointsData.userRank / leaderboardSettings.pageSize)
+                : 0,
             })
           }
         >
@@ -120,7 +123,13 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
               <TableCell>
                 <Link
                   href={`https://solscan.io/address/${leaderboardRow.owner}`}
-                  className="text-chartreuse font-medium border-b border-transparent transition-colors hover:border-chartreuse"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    "font-medium border-b transition-colors border-transparent",
+                    leaderboardRow.domain && "text-chartreuse  hover:border-chartreuse",
+                    !leaderboardRow.domain && "text-white hover:border-white"
+                  )}
                 >
                   {leaderboardRow.domain ? leaderboardRow.domain : shortenAddress(new PublicKey(leaderboardRow.owner))}
                 </Link>
@@ -145,21 +154,20 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
         <p className="ml-2.5 mr-auto">
           Showing page {leaderboardSettings.currentPage} of {Math.ceil(leaderboardCount / leaderboardSettings.pageSize)}
         </p>
-        {leaderboardSettings.currentPage > 1 && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="ml-auto"
-            onClick={() => {
-              setLeaderboardSettings({
-                ...leaderboardSettings,
-                currentPage: 1,
-              });
-            }}
-          >
-            <span className="-translate-y-[1px]">&laquo;</span>
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          disabled={leaderboardSettings.currentPage === 1}
+          onClick={() => {
+            setLeaderboardSettings({
+              ...leaderboardSettings,
+              currentPage: 1,
+            });
+          }}
+        >
+          <span className="-translate-y-[1px]">&laquo;</span>
+        </Button>
         <Button
           variant="outline"
           size="sm"
