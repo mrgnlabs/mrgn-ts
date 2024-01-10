@@ -107,9 +107,10 @@ async function fetchLeaderboardData(
 }
 
 async function fetchTotalLeaderboardCount() {
-  const q = query(collection(firebaseApi.db, "points"), where("owner", "!=", null));
+  const q = query(collection(firebaseApi.db, "points"));
   const qCount = await getCountFromServer(q);
-  return qCount.data().count;
+  const count = qCount.data().count;
+  return count > 17000 ? 1700 : count;
 }
 
 /*
@@ -202,7 +203,6 @@ interface UserPointsData {
   isCustomReferralLink: boolean;
   userRank: number | null;
   totalPoints: number;
-  rank: number;
 }
 
 const DEFAULT_USER_POINTS_DATA: UserPointsData = {
@@ -214,7 +214,6 @@ const DEFAULT_USER_POINTS_DATA: UserPointsData = {
   isCustomReferralLink: false,
   userRank: null,
   totalPoints: 0,
-  rank: 0,
 };
 
 const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPointsData> => {
@@ -280,9 +279,8 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
     referralPoints,
     referralLink: userReferralCode,
     isCustomReferralLink,
-    rank: pointsData.rank,
+    userRank: pointsData.rank - 1,
     totalPoints,
-    userRank: pointsData.rank,
   };
 };
 
