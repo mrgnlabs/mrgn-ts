@@ -65,7 +65,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
         const { pubkey } = getDomainKeySync(debouncedLeaderboardSettings.search);
         const { registry } = await NameRegistryState.retrieve(connection, pubkey);
 
-        console.log(registry.owner.toBase58());
+        console.log(debouncedLeaderboardSettings.search, registry.owner.toBase58());
 
         pk = registry.owner.toBase58();
         newLeaderboardSettings.search = pk;
