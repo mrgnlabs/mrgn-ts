@@ -72,10 +72,18 @@ async function fetchLeaderboardData(
     lastOrderDir = settings.orderDir;
   }
 
+  const searchNum = parseInt(search || "");
+  let searchQ = [where("owner", "==", search)];
+
+  if (search && !isNaN(searchNum)) {
+    console.log("here!");
+    searchQ = [where("rank", "==", searchNum + 1)];
+  }
+
   const pointsQuery = query(
     collection(firebaseApi.db, "points"),
     ...(search
-      ? [where("owner", "==", search)]
+      ? searchQ
       : [
           where(settings.orderCol, ">=", 1),
           orderBy(settings.orderCol, settings.orderDir),
@@ -121,7 +129,7 @@ async function fetchLeaderboardData(
 }
 
 async function fetchTotalLeaderboardCount() {
-  const q = query(collection(firebaseApi.db, "points"));
+  const q = query(collection(firebaseApi.db, "points"), where("total_points", ">=", 1));
   const qCount = await getCountFromServer(q);
   const count = qCount.data().count;
   return count;
