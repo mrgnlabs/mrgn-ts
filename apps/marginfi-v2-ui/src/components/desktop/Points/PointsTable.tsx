@@ -19,7 +19,7 @@ import { useConnection } from "~/hooks/useConnection";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { IconSearch, IconTrophyFilled, IconSortAscending, IconSortDescending } from "~/components/ui/icons";
+import { IconSearch, IconTrophyFilled, IconSortAscending, IconSortDescending, IconLoader } from "~/components/ui/icons";
 import { cn } from "~/utils";
 
 type PointsTableProps = {
@@ -48,43 +48,38 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
     currentPage: 1,
     orderCol: TableOrderCol.TotalPoints,
     orderDir: TableOrderDirection.Desc,
+    search: "",
   });
-  const [leaderboardSearch, setLeaderboardSearch] = React.useState<string>("");
   const leaderboardSearchRef = React.useRef<HTMLInputElement>(null);
-  const debouncedLeaderboardSearch = useDebounce(leaderboardSearch, 500);
   const [isWorking, setIsWorking] = React.useState<boolean>(false);
+  const debouncedLeaderboardSettings = useDebounce(leaderboardSettings, 500);
 
   React.useEffect(() => {
     const getLeaderboardData = async () => {
       setIsWorking(true);
-      const data = await fetchLeaderboardData(connection, leaderboardSettings);
-      console.log(data);
-      setLeaderboardData([...data]);
-      setIsWorking(false);
-    };
 
-    getLeaderboardData();
-  }, [leaderboardSettings]);
+      let pk = debouncedLeaderboardSettings.search;
+      const newLeaderboardSettings = { ...debouncedLeaderboardSettings };
 
-  React.useEffect(() => {
-    const getLeaderboardData = async () => {
-      setIsWorking(true);
-      let pk = leaderboardSearch;
-
-      if (leaderboardSearch.includes(".sol")) {
-        const { pubkey } = getDomainKeySync(leaderboardSearch);
+      if (debouncedLeaderboardSettings.search && debouncedLeaderboardSettings.search.includes(".sol")) {
+        const { pubkey } = getDomainKeySync(debouncedLeaderboardSettings.search);
         const { registry } = await NameRegistryState.retrieve(connection, pubkey);
 
+        console.log(registry.owner.toBase58());
+
         pk = registry.owner.toBase58();
+        newLeaderboardSettings.search = pk;
       }
 
-      const data = await fetchLeaderboardData(connection, leaderboardSettings, pk);
-      setLeaderboardData([...data]);
+      const data = await fetchLeaderboardData(connection, newLeaderboardSettings);
+      if (data && data.length > 0) {
+        setLeaderboardData([...data]);
+      }
       setIsWorking(false);
     };
 
     getLeaderboardData();
-  }, [debouncedLeaderboardSearch]);
+  }, [debouncedLeaderboardSettings]);
 
   React.useEffect(() => {
     if (leaderboardCount > 0) return;
@@ -106,14 +101,25 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             type="text"
             placeholder="Search by wallet address, .sol domain, or rank..."
             className="w-full rounded-full pl-9"
-            onChange={(e) => setLeaderboardSearch(e.currentTarget.value)}
+            onChange={(e) =>
+              setLeaderboardSettings({
+                ...leaderboardSettings,
+                search: e.target.value,
+                currentPage: 1,
+              })
+            }
+            value={leaderboardSettings.search}
           />
-          {leaderboardSearch.length > 0 && (
+          {leaderboardSettings.search && leaderboardSettings.search.length > 0 && (
             <button
               onClick={() => {
-                setLeaderboardSearch("");
-                if (!leaderboardSearchRef.current) return;
-                leaderboardSearchRef.current.value = "";
+                setLeaderboardSettings({
+                  pageSize: 100,
+                  currentPage: 1,
+                  orderCol: TableOrderCol.TotalPoints,
+                  orderDir: TableOrderDirection.Desc,
+                  search: "",
+                });
               }}
               className="text-xs absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground border-b border-muted-foreground transition-colors hover:border-transparent"
             >
@@ -127,10 +133,11 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
           <TableRow>
             <TableHead className="w-[100px] text-left">
               <button
-                className={cn("flex items-center gap-0.5", !leaderboardSearch && "cursor-pointer")}
-                disabled={leaderboardSearch.length > 0}
+                className={cn("flex items-center gap-0.5", !leaderboardSettings.search && "cursor-pointer")}
+                disabled={(leaderboardSettings.search && leaderboardSettings.search.length > 0) || false}
                 onClick={() => {
                   if (isWorking) return;
+                  setIsWorking(true);
                   let orderDir = leaderboardSettings.orderDir;
 
                   if (leaderboardSettings.orderCol !== TableOrderCol.TotalPoints) {
@@ -156,14 +163,17 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             <TableHead>Address</TableHead>
             <TableHead
               className={cn(
-                leaderboardSettings.orderCol === TableOrderCol.DepositPoints && !leaderboardSearch && "text-white"
+                leaderboardSettings.orderCol === TableOrderCol.DepositPoints &&
+                  !leaderboardSettings.search &&
+                  "text-white"
               )}
             >
               <button
-                className={cn("flex items-center gap-0.5", !leaderboardSearch && "cursor-pointer")}
-                disabled={leaderboardSearch.length > 0}
+                className={cn("flex items-center gap-0.5", !leaderboardSettings.search && "cursor-pointer")}
+                disabled={(leaderboardSettings.search && leaderboardSettings.search.length > 0) || false}
                 onClick={() => {
                   if (isWorking) return;
+                  setIsWorking(true);
                   let orderDir = leaderboardSettings.orderDir;
 
                   if (leaderboardSettings.orderCol !== TableOrderCol.DepositPoints) {
@@ -195,14 +205,17 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             </TableHead>
             <TableHead
               className={cn(
-                leaderboardSettings.orderCol === TableOrderCol.BorrowPoints && !leaderboardSearch && "text-white"
+                leaderboardSettings.orderCol === TableOrderCol.BorrowPoints &&
+                  !leaderboardSettings.search &&
+                  "text-white"
               )}
             >
               <button
-                className={cn("flex items-center gap-0.5", !leaderboardSearch && "cursor-pointer")}
-                disabled={leaderboardSearch.length > 0}
+                className={cn("flex items-center gap-0.5", !leaderboardSettings.search && "cursor-pointer")}
+                disabled={(leaderboardSettings.search && leaderboardSettings.search.length > 0) || false}
                 onClick={() => {
                   if (isWorking) return;
+                  setIsWorking(true);
                   let orderDir = leaderboardSettings.orderDir;
 
                   if (leaderboardSettings.orderCol !== TableOrderCol.BorrowPoints) {
@@ -218,6 +231,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                     orderCol: TableOrderCol.BorrowPoints,
                     orderDir,
                     currentPage: 1,
+                    search: "",
                   });
                 }}
               >
@@ -234,14 +248,17 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             </TableHead>
             <TableHead
               className={cn(
-                leaderboardSettings.orderCol === TableOrderCol.ReferralPoints && !leaderboardSearch && "text-white"
+                leaderboardSettings.orderCol === TableOrderCol.ReferralPoints &&
+                  !leaderboardSettings.search &&
+                  "text-white"
               )}
             >
               <button
-                className={cn("flex items-center gap-0.5", !leaderboardSearch && "cursor-pointer")}
-                disabled={leaderboardSearch.length > 0}
+                className={cn("flex items-center gap-0.5", !leaderboardSettings.search && "cursor-pointer")}
+                disabled={(leaderboardSettings.search && leaderboardSettings.search.length > 0) || false}
                 onClick={() => {
                   if (isWorking) return;
+                  setIsWorking(true);
                   let orderDir = leaderboardSettings.orderDir;
 
                   if (leaderboardSettings.orderCol !== TableOrderCol.ReferralPoints) {
@@ -274,14 +291,20 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             <TableHead
               className={cn(
                 "text-right",
-                leaderboardSettings.orderCol === TableOrderCol.TotalPoints && !leaderboardSearch && "text-white"
+                leaderboardSettings.orderCol === TableOrderCol.TotalPoints &&
+                  !leaderboardSettings.search &&
+                  "text-white"
               )}
             >
               <button
-                className={cn("flex items-center gap-0.5 text-right ml-auto", !leaderboardSearch && "cursor-pointer")}
-                disabled={leaderboardSearch.length > 0}
+                className={cn(
+                  "flex items-center gap-0.5 text-right ml-auto",
+                  !leaderboardSettings.search && "cursor-pointer"
+                )}
+                disabled={(leaderboardSettings.search && leaderboardSettings.search.length > 0) || false}
                 onClick={() => {
                   if (isWorking) return;
+                  setIsWorking(true);
                   let orderDir = leaderboardSettings.orderDir;
 
                   if (leaderboardSettings.orderCol !== TableOrderCol.TotalPoints) {
@@ -313,73 +336,88 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             </TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
-          {leaderboardData.map((leaderboardRow) => (
-            <TableRow
-              key={leaderboardRow.owner}
-              className={cn(leaderboardRow.owner === userPointsData.owner && "bg-chartreuse/30 hover:bg-chartreuse/30")}
-            >
-              <TableCell className="font-medium text-left font-mono">
-                {leaderboardRow.rank === 1 && <span className="text-xl -ml-1">🥇</span>}
-                {leaderboardRow.rank === 2 && <span className="text-xl -ml-1">🥈</span>}
-                {leaderboardRow.rank === 3 && <span className="text-xl -ml-1">🥉</span>}
-                {leaderboardRow.rank > 3 && <span>{leaderboardRow.rank}</span>}
-              </TableCell>
-              <TableCell>
-                {leaderboardRow.owner && (
-                  <Link
-                    href={`https://solscan.io/address/${leaderboardRow.owner}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      "font-medium border-b transition-colors border-transparent",
-                      leaderboardRow.domain && "text-chartreuse  hover:border-chartreuse",
-                      !leaderboardRow.domain && "text-white hover:border-white"
-                    )}
-                  >
-                    {leaderboardRow.domain
-                      ? leaderboardRow.domain
-                      : shortenAddress(new PublicKey(leaderboardRow.owner))}
-                  </Link>
-                )}
-              </TableCell>
-              <TableCell
-                className={cn(
-                  "font-mono text-muted-foreground",
-                  leaderboardSettings.orderCol === "total_deposit_points" && "text-white"
-                )}
-              >
-                {groupedNumberFormatter.format(leaderboardRow.total_deposit_points)}
-              </TableCell>
-              <TableCell
-                className={cn(
-                  "font-mono text-muted-foreground",
-                  leaderboardSettings.orderCol === "total_borrow_points" && "text-white"
-                )}
-              >
-                {groupedNumberFormatter.format(leaderboardRow.total_borrow_points)}
-              </TableCell>
-              <TableCell
-                className={cn(
-                  "font-mono text-muted-foreground",
-                  leaderboardSettings.orderCol === "total_referral_points" && "text-white"
-                )}
-              >
-                {groupedNumberFormatter.format(leaderboardRow.total_referral_points)}
-              </TableCell>
-              <TableCell
-                className={cn(
-                  "text-right font-mono text-muted-foreground",
-                  leaderboardSettings.orderCol === "total_points" && "text-white"
-                )}
-              >
-                {groupedNumberFormatter.format(leaderboardRow.total_points)}
+        {leaderboardData.length === 0 && (
+          <TableBody>
+            <TableRow>
+              <TableCell colSpan={6} className="text-center">
+                <div className="flex items-center justify-center gap-1.5 py-4 text-muted-foreground">
+                  <IconLoader className="animate-spin" size={20} /> Loading leaderboard...
+                </div>
               </TableCell>
             </TableRow>
-          ))}
-        </TableBody>
+          </TableBody>
+        )}
+        {leaderboardData.length > 0 && (
+          <TableBody>
+            {leaderboardData.map((leaderboardRow) => (
+              <TableRow
+                key={leaderboardRow.owner}
+                className={cn(
+                  leaderboardRow.owner === userPointsData.owner && "bg-chartreuse/30 hover:bg-chartreuse/30"
+                )}
+              >
+                <TableCell className="font-medium text-left font-mono">
+                  {leaderboardRow.rank === 1 && <span className="text-xl -ml-1">🥇</span>}
+                  {leaderboardRow.rank === 2 && <span className="text-xl -ml-1">🥈</span>}
+                  {leaderboardRow.rank === 3 && <span className="text-xl -ml-1">🥉</span>}
+                  {leaderboardRow.rank > 3 && <span>{leaderboardRow.rank}</span>}
+                </TableCell>
+                <TableCell>
+                  {leaderboardRow.owner && (
+                    <Link
+                      href={`https://solscan.io/address/${leaderboardRow.owner}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "font-medium border-b transition-colors border-transparent",
+                        leaderboardRow.domain && "text-chartreuse  hover:border-chartreuse",
+                        !leaderboardRow.domain && "text-white hover:border-white"
+                      )}
+                    >
+                      {leaderboardRow.domain
+                        ? leaderboardRow.domain
+                        : shortenAddress(new PublicKey(leaderboardRow.owner))}
+                    </Link>
+                  )}
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    "font-mono text-muted-foreground",
+                    leaderboardSettings.orderCol === "total_deposit_points" && "text-white"
+                  )}
+                >
+                  {groupedNumberFormatter.format(leaderboardRow.total_deposit_points)}
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    "font-mono text-muted-foreground",
+                    leaderboardSettings.orderCol === "total_borrow_points" && "text-white"
+                  )}
+                >
+                  {groupedNumberFormatter.format(leaderboardRow.total_borrow_points)}
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    "font-mono text-muted-foreground",
+                    leaderboardSettings.orderCol === "total_referral_points" && "text-white"
+                  )}
+                >
+                  {groupedNumberFormatter.format(leaderboardRow.total_referral_points)}
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    "text-right font-mono text-muted-foreground",
+                    leaderboardSettings.orderCol === "total_points" && "text-white"
+                  )}
+                >
+                  {groupedNumberFormatter.format(leaderboardRow.total_points)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        )}
       </Table>
-      {!leaderboardSearch && (
+      {(!leaderboardSettings.search || leaderboardData.length === 0) && (
         <div className="flex gap-2 py-2 text-sm items-center text-muted-foreground">
           <p className="ml-2.5 mr-auto">
             {leaderboardCount > 0 && (
@@ -393,12 +431,14 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             variant="outline"
             size="sm"
             className="ml-auto"
-            disabled={leaderboardSettings.currentPage === 1}
+            disabled={leaderboardSettings.currentPage === 1 || isWorking}
             onClick={() => {
               if (isWorking) return;
+              setIsWorking(true);
               setLeaderboardSettings({
                 ...leaderboardSettings,
                 currentPage: 1,
+                pageDirection: "prev",
               });
             }}
           >
@@ -407,9 +447,10 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
           <Button
             variant="outline"
             size="sm"
-            disabled={leaderboardSettings.currentPage === 1}
+            disabled={leaderboardSettings.currentPage === 1 || isWorking}
             onClick={() => {
               if (isWorking) return;
+              setIsWorking(true);
               setLeaderboardSettings({
                 ...leaderboardSettings,
                 currentPage: leaderboardSettings.currentPage - 1,
@@ -422,9 +463,13 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
           <Button
             variant="outline"
             size="sm"
-            disabled={leaderboardSettings.currentPage === Math.ceil(leaderboardCount / leaderboardSettings.pageSize)}
+            disabled={
+              leaderboardSettings.currentPage === Math.ceil(leaderboardCount / leaderboardSettings.pageSize) ||
+              isWorking
+            }
             onClick={() => {
               if (isWorking) return;
+              setIsWorking(true);
               setLeaderboardSettings({
                 ...leaderboardSettings,
                 currentPage: leaderboardSettings.currentPage + 1,
