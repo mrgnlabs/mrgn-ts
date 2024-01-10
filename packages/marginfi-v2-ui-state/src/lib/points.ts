@@ -48,43 +48,54 @@ type LeaderboardSettings = {
   orderCol: string;
   orderDir: "desc" | "asc";
   pageDirection?: "next" | "prev";
+  search?: string;
 };
 
 let lastVisible: QueryDocumentSnapshot<DocumentData> | undefined;
 let lastOrderCol: string | undefined;
 let lastOrderDir: "desc" | "asc" | undefined;
 let prevPages: LeaderboardRow[][] = [];
+let lastSearch: string | undefined;
 
-async function fetchLeaderboardData(
-  connection: Connection,
-  settings: LeaderboardSettings,
-  search?: string
-): Promise<LeaderboardRow[]> {
-  if (settings.pageDirection === "prev") {
+async function fetchLeaderboardData(connection: Connection, settings: LeaderboardSettings): Promise<LeaderboardRow[]> {
+  if (settings.pageDirection === "prev" && settings.currentPage > 1) {
     if (prevPages.length > 1) {
       prevPages.pop();
       return prevPages[prevPages.length - 1];
     }
   }
 
-  if (lastOrderCol !== settings.orderCol || (lastOrderDir !== settings.orderDir && settings.pageDirection !== "prev")) {
+  if (settings.pageDirection === "prev" && settings.currentPage === 1) {
+    const rtn = prevPages[0];
+    prevPages = [];
+
+    return rtn;
+  }
+
+  console.log(settings);
+
+  if (
+    lastOrderCol !== settings.orderCol ||
+    (lastOrderDir !== settings.orderDir && settings.pageDirection !== "prev") ||
+    (settings.search && settings.search.length && lastSearch !== settings.search)
+  ) {
     lastVisible = undefined;
     lastOrderCol = settings.orderCol;
     lastOrderDir = settings.orderDir;
     prevPages = [];
   }
 
-  const searchNum = parseInt(search || "");
-  let searchQ = [where("owner", "==", search)];
+  const searchNum = parseInt(settings.search || "");
+  let searchQ = [where("owner", "==", settings.search)];
 
-  if (search && !isNaN(searchNum)) {
+  if (settings.search && !isNaN(searchNum)) {
     console.log("here!");
     searchQ = [where("rank", "==", searchNum + 1)];
   }
 
   const pointsQuery = query(
     collection(firebaseApi.db, "points"),
-    ...(search
+    ...(settings.search
       ? searchQ
       : [
           where(settings.orderCol, ">=", 1),
@@ -94,7 +105,10 @@ async function fetchLeaderboardData(
         ])
   );
   const querySnapshot = await getDocs(pointsQuery);
-  lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+  if (!settings.search) {
+    lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+  }
 
   const leaderboardSlice = querySnapshot.docs
     .map((doc) => ({
