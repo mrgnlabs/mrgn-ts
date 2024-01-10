@@ -22,11 +22,11 @@ import { Input } from "~/components/ui/input";
 import { IconSearch, IconTrophyFilled, IconSortAscending, IconSortDescending } from "~/components/ui/icons";
 import { cn } from "~/utils";
 
-type PointsLeaderboardProps = {
+type PointsTableProps = {
   userPointsData: UserPointsData;
 };
 
-enum LeaderboardOrderCol {
+enum TableOrderCol {
   Address = "owner",
   DepositPoints = "total_deposit_points",
   BorrowPoints = "total_borrow_points",
@@ -34,20 +34,20 @@ enum LeaderboardOrderCol {
   TotalPoints = "total_points",
 }
 
-enum LeaderboardOrderDirection {
+enum TableOrderDirection {
   Asc = "asc",
   Desc = "desc",
 }
 
-export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) => {
+export const PointsTable = ({ userPointsData }: PointsTableProps) => {
   const { connection } = useConnection();
   const [leaderboardData, setLeaderboardData] = React.useState<LeaderboardRow[]>([]);
   const [leaderboardCount, setLeaderboardCount] = React.useState<number>(0);
   const [leaderboardSettings, setLeaderboardSettings] = React.useState<LeaderboardSettings>({
     pageSize: 100,
     currentPage: 1,
-    orderCol: LeaderboardOrderCol.TotalPoints,
-    orderDir: LeaderboardOrderDirection.Desc,
+    orderCol: TableOrderCol.TotalPoints,
+    orderDir: TableOrderDirection.Desc,
   });
   const [leaderboardSearch, setLeaderboardSearch] = React.useState<string>("");
   const debouncedLeaderboardSearch = useDebounce(leaderboardSearch, 500);
@@ -106,18 +106,18 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
                 onClick={() => {
                   let orderDir = leaderboardSettings.orderDir;
 
-                  if (leaderboardSettings.orderCol !== LeaderboardOrderCol.TotalPoints) {
-                    orderDir = LeaderboardOrderDirection.Desc;
+                  if (leaderboardSettings.orderCol !== TableOrderCol.TotalPoints) {
+                    orderDir = TableOrderDirection.Desc;
                   } else {
                     orderDir =
-                      leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc
-                        ? LeaderboardOrderDirection.Desc
-                        : LeaderboardOrderDirection.Asc;
+                      leaderboardSettings.orderDir === TableOrderDirection.Asc
+                        ? TableOrderDirection.Desc
+                        : TableOrderDirection.Asc;
                   }
 
                   setLeaderboardSettings({
                     ...leaderboardSettings,
-                    orderCol: LeaderboardOrderCol.TotalPoints,
+                    orderCol: TableOrderCol.TotalPoints,
                     orderDir,
                     currentPage: 1,
                   });
@@ -127,148 +127,139 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
               </button>
             </TableHead>
             <TableHead>Address</TableHead>
-            <TableHead
-              className={cn(leaderboardSettings.orderCol === LeaderboardOrderCol.DepositPoints && "text-white")}
-            >
+            <TableHead className={cn(leaderboardSettings.orderCol === TableOrderCol.DepositPoints && "text-white")}>
               <button
                 className="flex items-center gap-0.5 cursor-pointer"
                 onClick={() => {
                   let orderDir = leaderboardSettings.orderDir;
 
-                  if (leaderboardSettings.orderCol !== LeaderboardOrderCol.DepositPoints) {
-                    orderDir = LeaderboardOrderDirection.Desc;
+                  if (leaderboardSettings.orderCol !== TableOrderCol.DepositPoints) {
+                    orderDir = TableOrderDirection.Desc;
                   } else {
                     orderDir =
-                      leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc
-                        ? LeaderboardOrderDirection.Desc
-                        : LeaderboardOrderDirection.Asc;
+                      leaderboardSettings.orderDir === TableOrderDirection.Asc
+                        ? TableOrderDirection.Desc
+                        : TableOrderDirection.Asc;
                   }
 
                   setLeaderboardSettings({
                     ...leaderboardSettings,
-                    orderCol: LeaderboardOrderCol.DepositPoints,
+                    orderCol: TableOrderCol.DepositPoints,
                     orderDir,
                     currentPage: 1,
                   });
                 }}
               >
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.DepositPoints &&
-                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Desc && (
+                {leaderboardSettings.orderCol === TableOrderCol.DepositPoints &&
+                  leaderboardSettings.orderDir === TableOrderDirection.Desc && (
                     <IconSortDescending className="mr-1" size={15} />
                   )}
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.DepositPoints &&
-                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc && (
+                {leaderboardSettings.orderCol === TableOrderCol.DepositPoints &&
+                  leaderboardSettings.orderDir === TableOrderDirection.Asc && (
                     <IconSortAscending className="mr-1" size={15} />
                   )}
                 Deposit Points
               </button>
             </TableHead>
-            <TableHead
-              className={cn(leaderboardSettings.orderCol === LeaderboardOrderCol.BorrowPoints && "text-white")}
-            >
+            <TableHead className={cn(leaderboardSettings.orderCol === TableOrderCol.BorrowPoints && "text-white")}>
               <button
                 className="flex items-center gap-0.5 cursor-pointer"
                 onClick={() => {
                   let orderDir = leaderboardSettings.orderDir;
 
-                  if (leaderboardSettings.orderCol !== LeaderboardOrderCol.BorrowPoints) {
-                    orderDir = LeaderboardOrderDirection.Desc;
+                  if (leaderboardSettings.orderCol !== TableOrderCol.BorrowPoints) {
+                    orderDir = TableOrderDirection.Desc;
                   } else {
                     orderDir =
-                      leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc
-                        ? LeaderboardOrderDirection.Desc
-                        : LeaderboardOrderDirection.Asc;
+                      leaderboardSettings.orderDir === TableOrderDirection.Asc
+                        ? TableOrderDirection.Desc
+                        : TableOrderDirection.Asc;
                   }
 
                   setLeaderboardSettings({
                     ...leaderboardSettings,
-                    orderCol: LeaderboardOrderCol.BorrowPoints,
+                    orderCol: TableOrderCol.BorrowPoints,
                     orderDir,
                     currentPage: 1,
                   });
                 }}
               >
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.BorrowPoints &&
-                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Desc && (
+                {leaderboardSettings.orderCol === TableOrderCol.BorrowPoints &&
+                  leaderboardSettings.orderDir === TableOrderDirection.Desc && (
                     <IconSortDescending className="mr-1" size={15} />
                   )}
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.BorrowPoints &&
-                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc && (
+                {leaderboardSettings.orderCol === TableOrderCol.BorrowPoints &&
+                  leaderboardSettings.orderDir === TableOrderDirection.Asc && (
                     <IconSortAscending className="mr-1" size={15} />
                   )}
                 Borrow Points
               </button>
             </TableHead>
-            <TableHead
-              className={cn(leaderboardSettings.orderCol === LeaderboardOrderCol.ReferralPoints && "text-white")}
-            >
+            <TableHead className={cn(leaderboardSettings.orderCol === TableOrderCol.ReferralPoints && "text-white")}>
               <button
                 className="flex items-center gap-0.5 cursor-pointer"
                 onClick={() => {
                   let orderDir = leaderboardSettings.orderDir;
 
-                  if (leaderboardSettings.orderCol !== LeaderboardOrderCol.ReferralPoints) {
-                    orderDir = LeaderboardOrderDirection.Desc;
+                  if (leaderboardSettings.orderCol !== TableOrderCol.ReferralPoints) {
+                    orderDir = TableOrderDirection.Desc;
                   } else {
                     orderDir =
-                      leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc
-                        ? LeaderboardOrderDirection.Desc
-                        : LeaderboardOrderDirection.Asc;
+                      leaderboardSettings.orderDir === TableOrderDirection.Asc
+                        ? TableOrderDirection.Desc
+                        : TableOrderDirection.Asc;
                   }
 
                   setLeaderboardSettings({
                     ...leaderboardSettings,
-                    orderCol: LeaderboardOrderCol.ReferralPoints,
+                    orderCol: TableOrderCol.ReferralPoints,
                     orderDir,
                     currentPage: 1,
                   });
                 }}
               >
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.ReferralPoints &&
-                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Desc && (
+                {leaderboardSettings.orderCol === TableOrderCol.ReferralPoints &&
+                  leaderboardSettings.orderDir === TableOrderDirection.Desc && (
                     <IconSortDescending className="mr-1" size={15} />
                   )}
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.ReferralPoints &&
-                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc && (
+                {leaderboardSettings.orderCol === TableOrderCol.ReferralPoints &&
+                  leaderboardSettings.orderDir === TableOrderDirection.Asc && (
                     <IconSortAscending className="mr-1" size={15} />
                   )}
                 Referral Points
               </button>
             </TableHead>
             <TableHead
-              className={cn(
-                "text-right",
-                leaderboardSettings.orderCol === LeaderboardOrderCol.TotalPoints && "text-white"
-              )}
+              className={cn("text-right", leaderboardSettings.orderCol === TableOrderCol.TotalPoints && "text-white")}
             >
               <button
                 className="flex items-center gap-0.5 cursor-pointer text-right ml-auto"
                 onClick={() => {
                   let orderDir = leaderboardSettings.orderDir;
 
-                  if (leaderboardSettings.orderCol !== LeaderboardOrderCol.TotalPoints) {
-                    orderDir = LeaderboardOrderDirection.Desc;
+                  if (leaderboardSettings.orderCol !== TableOrderCol.TotalPoints) {
+                    orderDir = TableOrderDirection.Desc;
                   } else {
                     orderDir =
-                      leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc
-                        ? LeaderboardOrderDirection.Desc
-                        : LeaderboardOrderDirection.Asc;
+                      leaderboardSettings.orderDir === TableOrderDirection.Asc
+                        ? TableOrderDirection.Desc
+                        : TableOrderDirection.Asc;
                   }
 
                   setLeaderboardSettings({
                     ...leaderboardSettings,
-                    orderCol: LeaderboardOrderCol.TotalPoints,
+                    orderCol: TableOrderCol.TotalPoints,
                     orderDir,
                     currentPage: 1,
                   });
                 }}
               >
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.TotalPoints &&
-                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Desc && (
+                {leaderboardSettings.orderCol === TableOrderCol.TotalPoints &&
+                  leaderboardSettings.orderDir === TableOrderDirection.Desc && (
                     <IconSortDescending className="mr-1" size={15} />
                   )}
-                {leaderboardSettings.orderCol === LeaderboardOrderCol.TotalPoints &&
-                  leaderboardSettings.orderDir === LeaderboardOrderDirection.Asc && (
+                {leaderboardSettings.orderCol === TableOrderCol.TotalPoints &&
+                  leaderboardSettings.orderDir === TableOrderDirection.Asc && (
                     <IconSortAscending className="mr-1" size={15} />
                   )}
                 Total Points
