@@ -46,8 +46,10 @@ type LeaderboardSettings = {
   pageSize: number;
   currentPage: number;
   orderCol: string;
-  orderDir: "desc" | "asc";
 };
+
+let lastVisible: QueryDocumentSnapshot<DocumentData> | undefined;
+let lastOrderCol: string | undefined;
 
 async function fetchLeaderboardData(
   connection: Connection,
@@ -60,24 +62,32 @@ async function fetchLeaderboardData(
   } else {
     start = settings.pageSize * (settings.currentPage - 1) + 2;
   }
+  console.log(settings);
+
+  if (lastOrderCol !== settings.orderCol) {
+    lastVisible = undefined;
+    lastOrderCol = settings.orderCol;
+  }
+
   const pointsQuery = query(
     collection(firebaseApi.db, "points"),
     ...(search
       ? [where("owner", "==", search)]
       : [
-          orderBy("rank", "asc"),
-          startAt(start),
-          endAt(
-            settings.currentPage === 1 ? start + settings.pageSize - 1 : settings.pageSize * settings.currentPage + 1
-          ),
+          orderBy(settings.orderCol, settings.orderCol === "rank" ? "asc" : "desc"),
+          ...(lastVisible ? [startAt(lastVisible)] : []),
+          limit(settings.pageSize),
         ])
   );
   const querySnapshot = await getDocs(pointsQuery);
+  lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
 
-  const leaderboardSlice = querySnapshot.docs.map((doc) => ({
-    ...(doc.data() as LeaderboardRow),
-    rank: doc.data().rank - 1,
-  }));
+  const leaderboardSlice = querySnapshot.docs
+    .map((doc) => ({
+      ...(doc.data() as LeaderboardRow),
+      rank: doc.data().rank - 1,
+    }))
+    .filter((item) => item.owner !== null && item.owner !== undefined && item.owner != "None");
 
   const leaderboardFinalSlice: LeaderboardRow[] = [...leaderboardSlice];
 
@@ -110,7 +120,7 @@ async function fetchTotalLeaderboardCount() {
   const q = query(collection(firebaseApi.db, "points"));
   const qCount = await getCountFromServer(q);
   const count = qCount.data().count;
-  return count > 17000 ? 1700 : count;
+  return count;
 }
 
 /*

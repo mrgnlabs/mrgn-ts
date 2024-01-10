@@ -19,12 +19,21 @@ import { useConnection } from "~/hooks/useConnection";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { IconSearch, IconTrophyFilled } from "~/components/ui/icons";
+import { IconSearch, IconTrophyFilled, IconSortAscending, IconSortDescending } from "~/components/ui/icons";
 import { cn } from "~/utils";
 
 type PointsLeaderboardProps = {
   userPointsData: UserPointsData;
 };
+
+enum LeaderboardOrderCol {
+  Rank = "rank",
+  Address = "owner",
+  DepositPoints = "total_deposit_points",
+  BorrowPoints = "total_borrow_points",
+  ReferralPoints = "total_referral_points",
+  TotalPoints = "total_points",
+}
 
 export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) => {
   const { connection } = useConnection();
@@ -33,8 +42,7 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
   const [leaderboardSettings, setLeaderboardSettings] = React.useState<LeaderboardSettings>({
     pageSize: 100,
     currentPage: 1,
-    orderCol: "rank",
-    orderDir: "asc",
+    orderCol: LeaderboardOrderCol.Rank,
   });
   const [leaderboardSearch, setLeaderboardSearch] = React.useState<string>("");
   const debouncedLeaderboardSearch = useDebounce(leaderboardSearch, 300);
@@ -88,6 +96,7 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
           onClick={() =>
             setLeaderboardSettings({
               ...leaderboardSettings,
+              orderCol: LeaderboardOrderCol.Rank,
               currentPage: userPointsData.userRank
                 ? Math.ceil(userPointsData.userRank / leaderboardSettings.pageSize)
                 : 0,
@@ -100,12 +109,113 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
       <Table className="w-full">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px] text-left">Rank</TableHead>
+            <TableHead
+              className={cn(
+                "w-[100px] text-left",
+                leaderboardSettings.orderCol === LeaderboardOrderCol.Rank && "text-white"
+              )}
+            >
+              <button
+                className="flex items-center gap-0.5 cursor-pointer"
+                onClick={() => {
+                  if (leaderboardSettings.orderCol === LeaderboardOrderCol.Rank) return;
+                  setLeaderboardSettings({
+                    ...leaderboardSettings,
+                    orderCol: LeaderboardOrderCol.Rank,
+                    currentPage: 1,
+                  });
+                }}
+              >
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.Rank && (
+                  <IconSortDescending className="mr-1" size={15} />
+                )}
+                Rank
+              </button>
+            </TableHead>
             <TableHead>Address</TableHead>
-            <TableHead>Deposit Points</TableHead>
-            <TableHead>Borrow Points</TableHead>
-            <TableHead>Referral Points</TableHead>
-            <TableHead className="text-right">Total Points</TableHead>
+            <TableHead
+              className={cn(leaderboardSettings.orderCol === LeaderboardOrderCol.DepositPoints && "text-white")}
+            >
+              <button
+                className="flex items-center gap-0.5 cursor-pointer"
+                onClick={() => {
+                  if (leaderboardSettings.orderCol === LeaderboardOrderCol.DepositPoints) return;
+                  setLeaderboardSettings({
+                    ...leaderboardSettings,
+                    orderCol: LeaderboardOrderCol.DepositPoints,
+                    currentPage: 1,
+                  });
+                }}
+              >
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.DepositPoints && (
+                  <IconSortDescending className="mr-1" size={15} />
+                )}
+                Deposit Points
+              </button>
+            </TableHead>
+            <TableHead
+              className={cn(leaderboardSettings.orderCol === LeaderboardOrderCol.BorrowPoints && "text-white")}
+            >
+              <button
+                className="flex items-center gap-0.5 cursor-pointer"
+                onClick={() => {
+                  if (leaderboardSettings.orderCol === LeaderboardOrderCol.BorrowPoints) return;
+                  setLeaderboardSettings({
+                    ...leaderboardSettings,
+                    orderCol: LeaderboardOrderCol.BorrowPoints,
+                    currentPage: 1,
+                  });
+                }}
+              >
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.BorrowPoints && (
+                  <IconSortDescending className="mr-1" size={15} />
+                )}
+                Borrow Points
+              </button>
+            </TableHead>
+            <TableHead
+              className={cn(leaderboardSettings.orderCol === LeaderboardOrderCol.ReferralPoints && "text-white")}
+            >
+              <button
+                className="flex items-center gap-0.5 cursor-pointer"
+                onClick={() => {
+                  if (leaderboardSettings.orderCol === LeaderboardOrderCol.ReferralPoints) return;
+                  setLeaderboardSettings({
+                    ...leaderboardSettings,
+                    orderCol: LeaderboardOrderCol.ReferralPoints,
+                    currentPage: 1,
+                  });
+                }}
+              >
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.ReferralPoints && (
+                  <IconSortDescending className="mr-1" size={15} />
+                )}
+                Referral Points
+              </button>
+            </TableHead>
+            <TableHead
+              className={cn(
+                "text-right",
+                leaderboardSettings.orderCol === LeaderboardOrderCol.TotalPoints && "text-white"
+              )}
+            >
+              <button
+                className="flex items-center gap-0.5 cursor-pointer text-right ml-auto"
+                onClick={() => {
+                  if (leaderboardSettings.orderCol === LeaderboardOrderCol.TotalPoints) return;
+                  setLeaderboardSettings({
+                    ...leaderboardSettings,
+                    orderCol: LeaderboardOrderCol.TotalPoints,
+                    currentPage: 1,
+                  });
+                }}
+              >
+                {leaderboardSettings.orderCol === LeaderboardOrderCol.TotalPoints && (
+                  <IconSortDescending className="mr-1" size={15} />
+                )}
+                Total Points
+              </button>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -121,18 +231,22 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
                 {leaderboardRow.rank > 3 && <span>{leaderboardRow.rank}</span>}
               </TableCell>
               <TableCell>
-                <Link
-                  href={`https://solscan.io/address/${leaderboardRow.owner}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(
-                    "font-medium border-b transition-colors border-transparent",
-                    leaderboardRow.domain && "text-chartreuse  hover:border-chartreuse",
-                    !leaderboardRow.domain && "text-white hover:border-white"
-                  )}
-                >
-                  {leaderboardRow.domain ? leaderboardRow.domain : shortenAddress(new PublicKey(leaderboardRow.owner))}
-                </Link>
+                {leaderboardRow.owner && (
+                  <Link
+                    href={`https://solscan.io/address/${leaderboardRow.owner}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      "font-medium border-b transition-colors border-transparent",
+                      leaderboardRow.domain && "text-chartreuse  hover:border-chartreuse",
+                      !leaderboardRow.domain && "text-white hover:border-white"
+                    )}
+                  >
+                    {leaderboardRow.domain
+                      ? leaderboardRow.domain
+                      : shortenAddress(new PublicKey(leaderboardRow.owner))}
+                  </Link>
+                )}
               </TableCell>
               <TableCell className="font-mono">
                 {groupedNumberFormatter.format(leaderboardRow.total_deposit_points)}
