@@ -50,7 +50,7 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
     orderDir: LeaderboardOrderDirection.Desc,
   });
   const [leaderboardSearch, setLeaderboardSearch] = React.useState<string>("");
-  const debouncedLeaderboardSearch = useDebounce(leaderboardSearch, 300);
+  const debouncedLeaderboardSearch = useDebounce(leaderboardSearch, 500);
 
   React.useEffect(() => {
     const getLeaderboardData = async () => {
@@ -91,26 +91,11 @@ export const PointsLeaderboard = ({ userPointsData }: PointsLeaderboardProps) =>
           <IconSearch className="absolute top-1/2 left-3.5 -translate-y-1/2 text-muted-foreground" size={15} />
           <Input
             type="text"
-            placeholder="Search by wallet address or .sol domain..."
+            placeholder="Search by wallet address, .sol domain, or rank..."
             className="w-full max-w-xl rounded-full pl-9"
             onChange={(e) => setLeaderboardSearch(e.currentTarget.value)}
           />
         </div>
-        <Button
-          variant="outline"
-          onClick={() =>
-            setLeaderboardSettings({
-              ...leaderboardSettings,
-              orderCol: LeaderboardOrderCol.TotalPoints,
-              orderDir: LeaderboardOrderDirection.Desc,
-              currentPage: userPointsData.userRank
-                ? Math.ceil(userPointsData.userRank / leaderboardSettings.pageSize)
-                : 0,
-            })
-          }
-        >
-          <IconTrophyFilled size={16} /> Jump to your rank
-        </Button>
       </div>
       <Table className="w-full">
         <TableHeader>
