@@ -13,6 +13,7 @@ import {
 } from "@solana-mobile/wallet-adapter-mobile";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { MoongateWalletAdapter } from "@moongate/moongate-adapter";
+import { TipLinkWalletAdapter } from "@tiplink/wallet-adapter";
 
 export const WALLET_ADAPTERS = [
   new SolanaMobileWalletAdapter({
@@ -31,6 +32,7 @@ export const WALLET_ADAPTERS = [
   new TrustWalletAdapter(),
   new CoinbaseWalletAdapter(),
   new MoongateWalletAdapter(),
+  new TipLinkWalletAdapter(),
   new WalletConnectWalletAdapter({
     network: WalletAdapterNetwork.Mainnet,
     options: {

@@ -7570,10 +7570,20 @@
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.32.1.tgz#24728cf098694d31ceb4f556164674477c6433d6"
   integrity sha512-yWS5no9Xxftgb6IGjj7iK6TvOk6rfy2H5gKcj4DrPqSWKmh0jfszUoX4B+olkt7H75sTSQqv3yiuMsySsMh+6Q==
 
-"@sentry/utils@7.106.0":
-  version "7.106.0"
-  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-7.106.0.tgz#a4c05f79672f734c1a1475428144ab97d2f7bea9"
-  integrity sha512-bVsePsXLpFu/1sH4rpJrPcnVxW2fXXfGfGxKs6Bm+dkOMbuVTlk/KAzIbdjCDIpVlrMDJmMNEv5xgTFjgWDkjw==
+"@sentry/types@7.77.0":
+  version "7.77.0"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.77.0.tgz#c5d00fe547b89ccde59cdea59143bf145cee3144"
+  integrity sha512-nfb00XRJVi0QpDHg+JkqrmEBHsqBnxJu191Ded+Cs1OJ5oPXEW6F59LVcBScGvMqe+WEk1a73eH8XezwfgrTsA==
+
+"@sentry/types@^7.46.0":
+  version "7.93.0"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.93.0.tgz#d76d26259b40cd0688e1d634462fbff31476c1ec"
+  integrity sha512-UnzUccNakhFRA/esWBWP+0v7cjNg+RilFBQC03Mv9OEMaZaS29zSbcOGtRzuFOXXLBdbr44BWADqpz3VW0XaNw==
+
+"@sentry/utils@7.77.0":
+  version "7.77.0"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-7.77.0.tgz#1f88501f0b8777de31b371cf859d13c82ebe1379"
+  integrity sha512-NmM2kDOqVchrey3N5WSzdQoCsyDkQkiRxExPaNI2oKQ/jMWHs9yt0tSy7otPBcXs0AP59ihl75Bvm1tDRcsp5g==
   dependencies:
     "@sentry/types" "7.106.0"
 
@@ -8667,6 +8677,22 @@
     lodash.isplainobject "^4.0.6"
     lodash.merge "^4.6.2"
     postcss-selector-parser "6.0.10"
+
+"@tiplink/wallet-adapter@^0.1.5":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@tiplink/wallet-adapter/-/wallet-adapter-0.1.5.tgz#2751037e94b2635cb46cd6838353ed5db833f914"
+  integrity sha512-SwZSmaZB4tDFwCzjB74uq7ids65PB6xq4t4czazBvpdwjRUazHNDS9xHkV+TOTS7O7apcbU8AmfGgBMOO+G3Xg==
+  dependencies:
+    "@sentry/types" "^7.46.0"
+    "@solana/wallet-adapter-base" "^0.9.23"
+    "@solana/wallet-standard-util" "^1.1.0"
+    assert "^2.0.0"
+    crypto-browserify "^3.12.0"
+    fast-deep-equal "^3.1.3"
+    process "^0.11.10"
+    pump "^3.0.0"
+    stream-browserify "^3.0.0"
+    uuid "^9.0.1"
 
 "@tootallnate/once@2":
   version "2.0.0"
@@ -25420,6 +25446,11 @@ uuidv4@^6.2.13:
   dependencies:
     "@types/uuid" "8.3.4"
     uuid "8.3.2"
+
+uuid@^9.0.1:
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
+  integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"
