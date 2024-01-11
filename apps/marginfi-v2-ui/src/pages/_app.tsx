@@ -3,9 +3,11 @@ import React from "react";
 import App, { AppContext, AppInitialProps, AppProps } from "next/app";
 import Head from "next/head";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
 
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { init, push } from "@socialgouv/matomo-next";
 import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
@@ -57,6 +59,8 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.isRefreshingStore,
   ]);
 
+  const { query, isReady } = useRouter();
+
   // enable matomo heartbeat
   React.useEffect(() => {
     if (process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT === "alpha") {
@@ -89,35 +93,37 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
       <Meta path={path} />
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
-          <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
-            <MrgnWalletProvider>
-              <MrgnlendProvider>
-                <LipClientProvider>
-                  <Navbar />
+          <TipLinkWalletAutoConnect isReady={isReady} query={query}>
+            <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
+              <MrgnWalletProvider>
+                <MrgnlendProvider>
+                  <LipClientProvider>
+                    <Navbar />
 
-                  <Desktop>
-                    <WalletModalProvider>
+                    <Desktop>
+                      <WalletModalProvider>
+                        <div className="w-full flex flex-col justify-center items-center">
+                          <Component {...pageProps} />
+                        </div>
+                        <Footer />
+                      </WalletModalProvider>
+                    </Desktop>
+
+                    <Mobile>
+                      <MobileNavbar />
                       <div className="w-full flex flex-col justify-center items-center">
                         <Component {...pageProps} />
                       </div>
-                      <Footer />
-                    </WalletModalProvider>
-                  </Desktop>
-
-                  <Mobile>
-                    <MobileNavbar />
-                    <div className="w-full flex flex-col justify-center items-center">
-                      <Component {...pageProps} />
-                    </div>
-                  </Mobile>
-                  <Analytics />
-                  <Tutorial />
-                  <WalletAuthDialog />
-                  <ToastContainer position="bottom-left" theme="dark" />
-                </LipClientProvider>
-              </MrgnlendProvider>
-            </MrgnWalletProvider>
-          </WalletProvider>
+                    </Mobile>
+                    <Analytics />
+                    <Tutorial />
+                    <WalletAuthDialog />
+                    <ToastContainer position="bottom-left" theme="dark" />
+                  </LipClientProvider>
+                </MrgnlendProvider>
+              </MrgnWalletProvider>
+            </WalletProvider>
+          </TipLinkWalletAutoConnect>
         </ConnectionProvider>
       )}
     </>
