@@ -1,6 +1,7 @@
 import React from "react";
 import clsx from "clsx";
 import Image from "next/image";
+import Link from "next/link";
 import Badge from "@mui/material/Badge";
 import { TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 
@@ -282,33 +283,80 @@ const AssetRow: React.FC<{
                 <div className="w-1/2 flex justify-center sm:justify-end">
                   <MrgnTooltip
                     title={
-                      <React.Fragment>
-                        <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+                      <div className="my-1 space-y-1.5">
+                        <h4 className="text-lg font-medium flex items-center gap-1.5">
+                          <Image
+                            src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
+                            alt="info"
+                            height={18}
+                            width={18}
+                          />{" "}
                           Liquidity rewards
-                        </Typography>
-                        {`${percentFormatter.format(
-                          bank.info.state.lendingRate
-                        )} Supply APY + ${percentFormatter.format(bank.info.state.emissionsRate)} ${
-                          EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenSymbol
-                        } rewards.`}
-                        <br />
-                        <a href="https://docs.marginfi.com">
-                          <u>Learn more.</u>
-                        </a>
-                      </React.Fragment>
+                        </h4>
+                        <p className="text-xs">
+                          {`${percentFormatter.format(
+                            bank.info.state.lendingRate
+                          )} Supply APY + ${percentFormatter.format(bank.info.state.emissionsRate)} ${
+                            EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenSymbol
+                          } rewards. `}
+                          <Link
+                            target="_blank"
+                            rel="noreferrer"
+                            href="https://docs.marginfi.com"
+                            className="inline-block border-b transition-colors hover:border-transparent text-xs"
+                          >
+                            Learn more.
+                          </Link>
+                        </p>
+                      </div>
                     }
                     placement="left"
                   >
                     <Image
                       src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
                       alt="info"
-                      height={16}
-                      width={16}
-                      className="pulse"
+                      height={18}
+                      width={18}
                     />
                   </MrgnTooltip>
                 </div>
               )}
+            {bank.meta.tokenSymbol === "mSOL" && (
+              <div className="w-1/2 flex justify-center sm:justify-end">
+                <MrgnTooltip
+                  title={
+                    <div className="my-1 space-y-1.5">
+                      <h4 className="text-lg font-medium flex items-center gap-1.5">
+                        <Image
+                          src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey/logo.png"
+                          alt="info"
+                          height={18}
+                          width={18}
+                        />
+                        MNDE rewards
+                      </h4>
+                      <p className="text-xs">Eligible for Marinade Earn rewards.</p>
+                      <Link
+                        target="_blank"
+                        rel="noreferrer"
+                        href="https://marinade.finance/app/earn/"
+                        className="inline-block border-b transition-colors hover:border-transparent text-xs"
+                      >
+                        Learn more
+                      </Link>
+                    </div>
+                  }
+                  placement="left"
+                >
+                  <Image
+                    src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey/logo.png"
+                    alt="info"
+                    height={18}
+                    width={18}
+                  />
+                </MrgnTooltip>
+              </div>
+            )}
             <div
               className="w-[40%] flex justify-end"
               style={{
