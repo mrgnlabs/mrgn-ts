@@ -39,6 +39,18 @@ const projects = [
     },
   },
   {
+    title: "marginfi xnft",
+    description: "The official marginfi xNFT",
+    url: "https://www.xnft.gg/app/DoXjr5LKZp9uxiwEUhffBwCQrf2xdkiDYeitGGvfcyXm",
+    github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-xnft",
+    repo: "mrgnlabs/mrgn-ts",
+    author: {
+      name: "marginfi inc",
+      avatar: "/mrgn_logo_192.png",
+      url: "https://marginfi.com",
+    },
+  },
+  {
     title: "marginfi liquidator",
     description: "Example liquidator",
     github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/alpha-liquidator",
