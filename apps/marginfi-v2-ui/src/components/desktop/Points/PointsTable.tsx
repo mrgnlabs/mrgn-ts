@@ -258,7 +258,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             ))}
           </TableRow>
         </TableHeader>
-        {leaderboardData.length === 0 && (
+        {pointsTableState === PointsTableState.Loading && (
           <TableBody>
             <TableRow>
               <TableCell colSpan={6} className="text-center">
@@ -269,8 +269,8 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             </TableRow>
           </TableBody>
         )}
-        {leaderboardData.length > 0 && (
-          <TableBody>
+        {pointsTableState !== PointsTableState.Loading && (
+          <TableBody className={cn(pointsTableState === PointsTableState.Working && "opacity-25")}>
             {leaderboardData.map((leaderboardRow) => (
               <TableRow
                 key={leaderboardRow.owner}
