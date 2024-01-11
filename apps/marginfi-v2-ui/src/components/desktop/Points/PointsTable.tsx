@@ -19,12 +19,28 @@ import { useConnection } from "~/hooks/useConnection";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { IconSearch, IconTrophyFilled, IconSortAscending, IconSortDescending, IconLoader } from "~/components/ui/icons";
+import { IconSearch, IconSortAscending, IconSortDescending, IconLoader, IconX } from "~/components/ui/icons";
 import { cn } from "~/utils";
 
 type PointsTableProps = {
   userPointsData: UserPointsData;
 };
+
+type PointsTableHeaderButtonProps = {
+  children: React.ReactNode;
+  onClick?: () => void;
+  orderCol?: TableOrderCol;
+  currentOrderCol: TableOrderCol;
+  currentOrderDir: TableOrderDirection;
+  noActiveState?: boolean;
+  className?: string;
+};
+
+enum PointsTableState {
+  Loading = "loading",
+  Working = "working",
+  Ready = "ready",
+}
 
 enum TableOrderCol {
   Address = "owner",
@@ -39,8 +55,61 @@ enum TableOrderDirection {
   Desc = "desc",
 }
 
+const PointsTableHeaderItems = [
+  {
+    label: "Rank",
+    orderCol: TableOrderCol.TotalPoints,
+    noActiveState: true,
+  },
+  {
+    label: "Address",
+  },
+  {
+    label: "Deposit Points",
+    orderCol: TableOrderCol.DepositPoints,
+  },
+  {
+    label: "Borrow Points",
+    orderCol: TableOrderCol.BorrowPoints,
+  },
+  {
+    label: "Referral Points",
+    orderCol: TableOrderCol.ReferralPoints,
+  },
+  {
+    label: "Total Points",
+    orderCol: TableOrderCol.TotalPoints,
+  },
+];
+
+const PointsTableHeaderButton = ({
+  children,
+  onClick,
+  orderCol,
+  currentOrderCol,
+  currentOrderDir,
+  noActiveState = false,
+  className,
+}: PointsTableHeaderButtonProps) => {
+  return (
+    <button
+      className={cn("flex items-center gap-0.5", currentOrderCol !== orderCol && "cursor-pointer", className)}
+      onClick={onClick}
+    >
+      {currentOrderCol === orderCol && currentOrderDir === TableOrderDirection.Desc && !noActiveState && (
+        <IconSortDescending className="mr-1" size={15} />
+      )}
+      {currentOrderCol === orderCol && currentOrderDir === TableOrderDirection.Asc && !noActiveState && (
+        <IconSortAscending className="mr-1" size={15} />
+      )}
+      {children}
+    </button>
+  );
+};
+
 export const PointsTable = ({ userPointsData }: PointsTableProps) => {
   const { connection } = useConnection();
+  const [pointsTableState, setPointsTableState] = React.useState<PointsTableState>(PointsTableState.Loading);
   const [leaderboardData, setLeaderboardData] = React.useState<LeaderboardRow[]>([]);
   const [leaderboardCount, setLeaderboardCount] = React.useState<number>(0);
   const [leaderboardSettings, setLeaderboardSettings] = React.useState<LeaderboardSettings>({
@@ -51,36 +120,42 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
     search: "",
   });
   const leaderboardSearchRef = React.useRef<HTMLInputElement>(null);
-  const [isWorking, setIsWorking] = React.useState<boolean>(false);
   const debouncedLeaderboardSettings = useDebounce(leaderboardSettings, 500);
 
+  // debounced callback on leaderboard settings changes
+  // used to fetch new data for sorting, searching, and pagination
   React.useEffect(() => {
     const getLeaderboardData = async () => {
-      setIsWorking(true);
+      if (pointsTableState !== PointsTableState.Loading) {
+        setPointsTableState(PointsTableState.Working);
+      }
 
-      let pk = debouncedLeaderboardSettings.search;
       const newLeaderboardSettings = { ...debouncedLeaderboardSettings };
 
+      // convert .sol domain to wallet address
+      let pk = debouncedLeaderboardSettings.search;
       if (debouncedLeaderboardSettings.search && debouncedLeaderboardSettings.search.includes(".sol")) {
         const { pubkey } = getDomainKeySync(debouncedLeaderboardSettings.search);
         const { registry } = await NameRegistryState.retrieve(connection, pubkey);
-
-        console.log(debouncedLeaderboardSettings.search, registry.owner.toBase58());
 
         pk = registry.owner.toBase58();
         newLeaderboardSettings.search = pk;
       }
 
+      // fetch new leaderboard data
       const data = await fetchLeaderboardData(connection, newLeaderboardSettings);
       if (data && data.length > 0) {
         setLeaderboardData([...data]);
       }
-      setIsWorking(false);
+
+      setPointsTableState(PointsTableState.Ready);
     };
 
     getLeaderboardData();
   }, [debouncedLeaderboardSettings]);
 
+  // separate call for leaderboard count as this request can be slow
+  // only required for total page count
   React.useEffect(() => {
     if (leaderboardCount > 0) return;
     const getLeaderboardCount = async () => {
@@ -121,9 +196,9 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                   search: "",
                 });
               }}
-              className="text-xs absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground border-b border-muted-foreground transition-colors hover:border-transparent"
+              className="flex items-center gap-1 text-xs absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground transition-colors hover:text-white"
             >
-              clear search
+              <IconX size={14} className="translate-y-[1px]" /> clear search
             </button>
           )}
         </div>
@@ -131,209 +206,56 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
       <Table className="w-full">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px] text-left">
-              <button
-                className={cn("flex items-center gap-0.5", !leaderboardSettings.search && "cursor-pointer")}
-                disabled={(leaderboardSettings.search && leaderboardSettings.search.length > 0) || false}
-                onClick={() => {
-                  if (isWorking) return;
-                  setIsWorking(true);
-                  let orderDir = leaderboardSettings.orderDir;
-
-                  if (leaderboardSettings.orderCol !== TableOrderCol.TotalPoints) {
-                    orderDir = TableOrderDirection.Desc;
-                  } else {
-                    orderDir =
-                      leaderboardSettings.orderDir === TableOrderDirection.Asc
-                        ? TableOrderDirection.Desc
-                        : TableOrderDirection.Asc;
-                  }
-
-                  setLeaderboardSettings({
-                    ...leaderboardSettings,
-                    orderCol: TableOrderCol.TotalPoints,
-                    orderDir,
-                    currentPage: 1,
-                  });
-                }}
-              >
-                Rank
-              </button>
-            </TableHead>
-            <TableHead>Address</TableHead>
-            <TableHead
-              className={cn(
-                leaderboardSettings.orderCol === TableOrderCol.DepositPoints &&
-                  !leaderboardSettings.search &&
-                  "text-white"
-              )}
-            >
-              <button
-                className={cn("flex items-center gap-0.5", !leaderboardSettings.search && "cursor-pointer")}
-                disabled={(leaderboardSettings.search && leaderboardSettings.search.length > 0) || false}
-                onClick={() => {
-                  if (isWorking) return;
-                  setIsWorking(true);
-                  let orderDir = leaderboardSettings.orderDir;
-
-                  if (leaderboardSettings.orderCol !== TableOrderCol.DepositPoints) {
-                    orderDir = TableOrderDirection.Desc;
-                  } else {
-                    orderDir =
-                      leaderboardSettings.orderDir === TableOrderDirection.Asc
-                        ? TableOrderDirection.Desc
-                        : TableOrderDirection.Asc;
-                  }
-                  setLeaderboardSettings({
-                    ...leaderboardSettings,
-                    orderCol: TableOrderCol.DepositPoints,
-                    orderDir,
-                    currentPage: 1,
-                  });
-                }}
-              >
-                {leaderboardSettings.orderCol === TableOrderCol.DepositPoints &&
-                  leaderboardSettings.orderDir === TableOrderDirection.Desc && (
-                    <IconSortDescending className="mr-1" size={15} />
-                  )}
-                {leaderboardSettings.orderCol === TableOrderCol.DepositPoints &&
-                  leaderboardSettings.orderDir === TableOrderDirection.Asc && (
-                    <IconSortAscending className="mr-1" size={15} />
-                  )}
-                Deposit Points
-              </button>
-            </TableHead>
-            <TableHead
-              className={cn(
-                leaderboardSettings.orderCol === TableOrderCol.BorrowPoints &&
-                  !leaderboardSettings.search &&
-                  "text-white"
-              )}
-            >
-              <button
-                className={cn("flex items-center gap-0.5", !leaderboardSettings.search && "cursor-pointer")}
-                disabled={(leaderboardSettings.search && leaderboardSettings.search.length > 0) || false}
-                onClick={() => {
-                  if (isWorking) return;
-                  setIsWorking(true);
-                  let orderDir = leaderboardSettings.orderDir;
-
-                  if (leaderboardSettings.orderCol !== TableOrderCol.BorrowPoints) {
-                    orderDir = TableOrderDirection.Desc;
-                  } else {
-                    orderDir =
-                      leaderboardSettings.orderDir === TableOrderDirection.Asc
-                        ? TableOrderDirection.Desc
-                        : TableOrderDirection.Asc;
-                  }
-                  setLeaderboardSettings({
-                    ...leaderboardSettings,
-                    orderCol: TableOrderCol.BorrowPoints,
-                    orderDir,
-                    currentPage: 1,
-                    search: "",
-                  });
-                }}
-              >
-                {leaderboardSettings.orderCol === TableOrderCol.BorrowPoints &&
-                  leaderboardSettings.orderDir === TableOrderDirection.Desc && (
-                    <IconSortDescending className="mr-1" size={15} />
-                  )}
-                {leaderboardSettings.orderCol === TableOrderCol.BorrowPoints &&
-                  leaderboardSettings.orderDir === TableOrderDirection.Asc && (
-                    <IconSortAscending className="mr-1" size={15} />
-                  )}
-                Borrow Points
-              </button>
-            </TableHead>
-            <TableHead
-              className={cn(
-                leaderboardSettings.orderCol === TableOrderCol.ReferralPoints &&
-                  !leaderboardSettings.search &&
-                  "text-white"
-              )}
-            >
-              <button
-                className={cn("flex items-center gap-0.5", !leaderboardSettings.search && "cursor-pointer")}
-                disabled={(leaderboardSettings.search && leaderboardSettings.search.length > 0) || false}
-                onClick={() => {
-                  if (isWorking) return;
-                  setIsWorking(true);
-                  let orderDir = leaderboardSettings.orderDir;
-
-                  if (leaderboardSettings.orderCol !== TableOrderCol.ReferralPoints) {
-                    orderDir = TableOrderDirection.Desc;
-                  } else {
-                    orderDir =
-                      leaderboardSettings.orderDir === TableOrderDirection.Asc
-                        ? TableOrderDirection.Desc
-                        : TableOrderDirection.Asc;
-                  }
-                  setLeaderboardSettings({
-                    ...leaderboardSettings,
-                    orderCol: TableOrderCol.ReferralPoints,
-                    orderDir,
-                    currentPage: 1,
-                  });
-                }}
-              >
-                {leaderboardSettings.orderCol === TableOrderCol.ReferralPoints &&
-                  leaderboardSettings.orderDir === TableOrderDirection.Desc && (
-                    <IconSortDescending className="mr-1" size={15} />
-                  )}
-                {leaderboardSettings.orderCol === TableOrderCol.ReferralPoints &&
-                  leaderboardSettings.orderDir === TableOrderDirection.Asc && (
-                    <IconSortAscending className="mr-1" size={15} />
-                  )}
-                Referral Points
-              </button>
-            </TableHead>
-            <TableHead
-              className={cn(
-                "text-right",
-                leaderboardSettings.orderCol === TableOrderCol.TotalPoints &&
-                  !leaderboardSettings.search &&
-                  "text-white"
-              )}
-            >
-              <button
+            {PointsTableHeaderItems.map((item) => (
+              <TableHead
+                key={item.label}
                 className={cn(
-                  "flex items-center gap-0.5 text-right ml-auto",
-                  !leaderboardSettings.search && "cursor-pointer"
+                  "w-[100px] text-left",
+                  leaderboardSettings.orderCol === item.orderCol &&
+                    !leaderboardSettings.search &&
+                    item.label !== "Rank" &&
+                    "text-white",
+                  item.orderCol === TableOrderCol.TotalPoints && item.label !== "Rank" && "text-right"
                 )}
-                disabled={(leaderboardSettings.search && leaderboardSettings.search.length > 0) || false}
-                onClick={() => {
-                  if (isWorking) return;
-                  setIsWorking(true);
-                  let orderDir = leaderboardSettings.orderDir;
-
-                  if (leaderboardSettings.orderCol !== TableOrderCol.TotalPoints) {
-                    orderDir = TableOrderDirection.Desc;
-                  } else {
-                    orderDir =
-                      leaderboardSettings.orderDir === TableOrderDirection.Asc
-                        ? TableOrderDirection.Desc
-                        : TableOrderDirection.Asc;
-                  }
-                  setLeaderboardSettings({
-                    ...leaderboardSettings,
-                    orderCol: TableOrderCol.TotalPoints,
-                    orderDir,
-                    currentPage: 1,
-                  });
-                }}
               >
-                {leaderboardSettings.orderCol === TableOrderCol.TotalPoints &&
-                  leaderboardSettings.orderDir === TableOrderDirection.Desc && (
-                    <IconSortDescending className="mr-1" size={15} />
+                <PointsTableHeaderButton
+                  orderCol={item.orderCol}
+                  currentOrderCol={leaderboardSettings.orderCol as TableOrderCol}
+                  currentOrderDir={leaderboardSettings.orderDir as TableOrderDirection}
+                  className={cn(
+                    item.orderCol === TableOrderCol.TotalPoints && item.label !== "Rank" && "text-right ml-auto"
                   )}
-                {leaderboardSettings.orderCol === TableOrderCol.TotalPoints &&
-                  leaderboardSettings.orderDir === TableOrderDirection.Asc && (
-                    <IconSortAscending className="mr-1" size={15} />
-                  )}
-                Total Points
-              </button>
-            </TableHead>
+                  noActiveState={item.noActiveState}
+                  onClick={
+                    item.orderCol
+                      ? () => {
+                          if (pointsTableState !== PointsTableState.Ready) return;
+                          setPointsTableState(PointsTableState.Working);
+
+                          let orderDir = leaderboardSettings.orderDir;
+
+                          if (leaderboardSettings.orderCol !== item.orderCol) {
+                            orderDir = TableOrderDirection.Desc;
+                          } else {
+                            orderDir =
+                              leaderboardSettings.orderDir === TableOrderDirection.Asc
+                                ? TableOrderDirection.Desc
+                                : TableOrderDirection.Asc;
+                          }
+                          setLeaderboardSettings({
+                            ...leaderboardSettings,
+                            orderCol: item.orderCol,
+                            orderDir,
+                            currentPage: 1,
+                          });
+                        }
+                      : undefined
+                  }
+                >
+                  {item.label}
+                </PointsTableHeaderButton>
+              </TableHead>
+            ))}
           </TableRow>
         </TableHeader>
         {leaderboardData.length === 0 && (
@@ -431,10 +353,10 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             variant="outline"
             size="sm"
             className="ml-auto"
-            disabled={leaderboardSettings.currentPage === 1 || isWorking}
+            disabled={leaderboardSettings.currentPage === 1 || pointsTableState !== PointsTableState.Ready}
             onClick={() => {
-              if (isWorking) return;
-              setIsWorking(true);
+              if (pointsTableState !== PointsTableState.Ready) return;
+              setPointsTableState(PointsTableState.Working);
               setLeaderboardSettings({
                 ...leaderboardSettings,
                 currentPage: 1,
@@ -447,10 +369,10 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
           <Button
             variant="outline"
             size="sm"
-            disabled={leaderboardSettings.currentPage === 1 || isWorking}
+            disabled={leaderboardSettings.currentPage === 1 || pointsTableState !== PointsTableState.Ready}
             onClick={() => {
-              if (isWorking) return;
-              setIsWorking(true);
+              if (pointsTableState !== PointsTableState.Ready) return;
+              setPointsTableState(PointsTableState.Working);
               setLeaderboardSettings({
                 ...leaderboardSettings,
                 currentPage: leaderboardSettings.currentPage - 1,
@@ -465,11 +387,11 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
             size="sm"
             disabled={
               leaderboardSettings.currentPage === Math.ceil(leaderboardCount / leaderboardSettings.pageSize) ||
-              isWorking
+              pointsTableState !== PointsTableState.Ready
             }
             onClick={() => {
-              if (isWorking) return;
-              setIsWorking(true);
+              if (pointsTableState !== PointsTableState.Ready) return;
+              setPointsTableState(PointsTableState.Working);
               setLeaderboardSettings({
                 ...leaderboardSettings,
                 currentPage: leaderboardSettings.currentPage + 1,
