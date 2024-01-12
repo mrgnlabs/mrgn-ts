@@ -8687,10 +8687,10 @@
     "@solana/wallet-adapter-base-ui" "^0.1.2"
     "@solana/wallet-adapter-react" "^0.15.35"
 
-"@tiplink/wallet-adapter@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@tiplink/wallet-adapter/-/wallet-adapter-0.1.5.tgz#2751037e94b2635cb46cd6838353ed5db833f914"
-  integrity sha512-SwZSmaZB4tDFwCzjB74uq7ids65PB6xq4t4czazBvpdwjRUazHNDS9xHkV+TOTS7O7apcbU8AmfGgBMOO+G3Xg==
+"@tiplink/wallet-adapter@0.1.6":
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/@tiplink/wallet-adapter/-/wallet-adapter-0.1.6.tgz#28bc4483dac47ee5cc0b58c7b3ea69a5d96d1a0b"
+  integrity sha512-oZBeOuukVplFEusgwCBkny4NDz1hDz3ID8aU2O4YJ9F8P/vvqWBQa4qUm2xH3JWWAI/nDGGxuw2VyGuhhM8vXA==
   dependencies:
     "@sentry/types" "^7.46.0"
     "@solana/wallet-adapter-base" "^0.9.23"
