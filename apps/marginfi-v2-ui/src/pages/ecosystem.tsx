@@ -21,7 +21,7 @@ const projects = [
     github: "https://github.com/mrgnlabs/marginfi-v2",
     repo: "mrgnlabs/marginfi-v2",
     author: {
-      name: "marginfi inc",
+      name: "marginfi",
       avatar: "/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
@@ -33,7 +33,7 @@ const projects = [
     github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-ui",
     repo: "mrgnlabs/mrgn-ts",
     author: {
-      name: "marginfi inc",
+      name: "marginfi",
       avatar: "/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
@@ -45,7 +45,7 @@ const projects = [
     github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-xnft",
     repo: "mrgnlabs/mrgn-ts",
     author: {
-      name: "marginfi inc",
+      name: "marginfi",
       avatar: "/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
@@ -56,7 +56,7 @@ const projects = [
     github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/alpha-liquidator",
     repo: "mrgnlabs/mrgn-ts",
     author: {
-      name: "marginfi inc",
+      name: "marginfi",
       avatar: "/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
@@ -68,7 +68,7 @@ const projects = [
     url: "https://omni.marginfi.com/",
     repo: "mrgnlabs/mrgn-ts",
     author: {
-      name: "marginfi inc",
+      name: "marginfi",
       avatar: "/mrgn_logo_192.png",
       url: "https://marginfi.com",
     },
