@@ -111,6 +111,13 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.balances.filter((la) => la.active);
   }
 
+  public isDisabled(): boolean {
+    return this._marginfiAccount.isDisabled();
+  }
+
+  public isFlashLoanEnabled(): boolean {
+    return this._marginfiAccount.isFlashLoanEnabled();
+  }
   public getBalance(bankPk: PublicKey): Balance {
     return this._marginfiAccount.getBalance(bankPk);
   }

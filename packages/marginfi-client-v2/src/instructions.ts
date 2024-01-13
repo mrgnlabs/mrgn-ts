@@ -186,6 +186,47 @@ function makelendingAccountWithdrawEmissionIx(
     .instruction();
 }
 
+function makeSetAccountFlagIx(
+  mfiProgram: MarginfiProgram,
+  accounts: {
+    marginfiGroup: PublicKey;
+    marginfiAccount: PublicKey;
+    admin: PublicKey;
+  },
+  args: {
+    flag: BN;
+  }
+) {
+  return mfiProgram.methods
+    .setAccountFlag(args.flag)
+    .accounts({
+      marginfiGroup: accounts.marginfiGroup,
+      marginfiAccount: accounts.marginfiAccount,
+      admin: accounts.admin,
+    })
+    .instruction();
+}
+
+function makeUnsetAccountFlagIx(
+  mfiProgram: MarginfiProgram,
+  accounts: {
+    marginfiGroup: PublicKey;
+    marginfiAccount: PublicKey;
+    admin: PublicKey;
+  },
+  args: {
+    flag: BN;
+  }
+) {
+  return mfiProgram.methods
+    .unsetAccountFlag(args.flag)
+    .accounts({
+      marginfiGroup: accounts.marginfiGroup,
+      marginfiAccount: accounts.marginfiAccount,
+      admin: accounts.admin,
+    })
+    .instruction();
+}
 const instructions = {
   makeDepositIx,
   makeRepayIx,
@@ -194,6 +235,8 @@ const instructions = {
   makeInitMarginfiAccountIx,
   makeLendingAccountLiquidateIx,
   makelendingAccountWithdrawEmissionIx,
+  makeSetAccountFlagIx,
+  makeUnsetAccountFlagIx,
 };
 
 export default instructions;

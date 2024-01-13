@@ -2,7 +2,10 @@ import { BorshCoder } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { MARGINFI_IDL } from "../idl";
-import { AccountType } from "../types";
+import { AccountType, MarginfiProgram } from "../types";
+import { InstructionsWrapper } from "@mrgnlabs/mrgn-common";
+import instructions from "../instructions";
+import { FLASHLOAN_ENABLED_FLAG } from "../constants";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -21,20 +24,28 @@ export type { MarginfiGroupRaw };
 // ----------------------------------------------------------------------------
 
 class MarginfiGroup {
+  public address: PublicKey;
   public admin: PublicKey;
 
-  constructor(admin: PublicKey) {
+  constructor(admin: PublicKey, address: PublicKey) {
     this.admin = admin;
+    this.address = address;
   }
 
-  static fromAccountParsed(accountData: MarginfiGroupRaw): MarginfiGroup {
-    const marginfiGroup = parseMarginfiGroup(accountData);
-    return new MarginfiGroup(marginfiGroup.admin);
+  // ----------------------------------------------------------------------------
+  // Factories
+  // ----------------------------------------------------------------------------
+
+  static fromAccountParsed(address: PublicKey, accountData: MarginfiGroupRaw): MarginfiGroup {
+    const marginfiGroup = {
+      admin: accountData.admin,
+    };
+    return new MarginfiGroup(marginfiGroup.admin, address);
   }
 
-  static fromBuffer(rawData: Buffer) {
+  static fromBuffer(address: PublicKey, rawData: Buffer) {
     const data = MarginfiGroup.decode(rawData);
-    return MarginfiGroup.fromAccountParsed(data);
+    return MarginfiGroup.fromAccountParsed(address, data);
   }
 
   static decode(encoded: Buffer): MarginfiGroupRaw {
@@ -46,18 +57,50 @@ class MarginfiGroup {
     const coder = new BorshCoder(MARGINFI_IDL);
     return await coder.accounts.encode(AccountType.MarginfiGroup, decoded);
   }
+
+  // ----------------------------------------------------------------------------
+  // Admin actions
+  // ----------------------------------------------------------------------------
+
+  public async makeEnableFlashLoanForAccountIx(
+    program: MarginfiProgram,
+    marginfiAccountAddress: PublicKey
+  ): Promise<InstructionsWrapper> {
+    const ix = await instructions.makeSetAccountFlagIx(
+      program,
+      {
+        marginfiGroup: this.address,
+        marginfiAccount: marginfiAccountAddress,
+        admin: this.admin,
+      },
+      { flag: new BN(FLASHLOAN_ENABLED_FLAG) }
+    );
+
+    return {
+      instructions: [ix],
+      keys: [],
+    };
+  }
+
+  public async makeDisableFlashLoanForAccountIx(
+    program: MarginfiProgram,
+    marginfiAccountAddress: PublicKey
+  ): Promise<InstructionsWrapper> {
+    const ix = await instructions.makeUnsetAccountFlagIx(
+      program,
+      {
+        marginfiGroup: this.address,
+        marginfiAccount: marginfiAccountAddress,
+        admin: this.admin,
+      },
+      { flag: new BN(FLASHLOAN_ENABLED_FLAG) }
+    );
+
+    return {
+      instructions: [ix],
+      keys: [],
+    };
+  }
 }
 
 export { MarginfiGroup };
-
-// ----------------------------------------------------------------------------
-// Factories
-// ----------------------------------------------------------------------------
-
-function parseMarginfiGroup(marginfiGroupRaw: MarginfiGroupRaw): MarginfiGroup {
-  return {
-    admin: marginfiGroupRaw.admin,
-  };
-}
-
-export { parseMarginfiGroup };
