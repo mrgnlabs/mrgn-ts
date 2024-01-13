@@ -1074,6 +1074,48 @@ export type Marginfi = {
       ];
     },
     {
+      name: "lendingAccountStartFlashloan";
+      accounts: [
+        {
+          name: "marginfiAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "ixsSysvar";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "endIndex";
+          type: "u64";
+        }
+      ];
+    },
+    {
+      name: "lendingAccountEndFlashloan";
+      accounts: [
+        {
+          name: "marginfiAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "signer";
+          isMut: false;
+          isSigner: true;
+        }
+      ];
+      args: [];
+    },
+    {
       name: "lendingPoolAccrueBankInterest";
       accounts: [
         {
@@ -1185,6 +1227,60 @@ export type Marginfi = {
         }
       ];
       args: [];
+    },
+    {
+      name: "setAccountFlag";
+      accounts: [
+        {
+          name: "marginfiGroup";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "marginfiAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "admin";
+          isMut: false;
+          isSigner: true;
+          docs: ["Admin only"];
+        }
+      ];
+      args: [
+        {
+          name: "flag";
+          type: "u64";
+        }
+      ];
+    },
+    {
+      name: "unsetAccountFlag";
+      accounts: [
+        {
+          name: "marginfiGroup";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "marginfiAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "admin";
+          isMut: false;
+          isSigner: true;
+          docs: ["Admin only"];
+        }
+      ];
+      args: [
+        {
+          name: "flag";
+          type: "u64";
+        }
+      ];
     }
   ];
   accounts: [
@@ -2836,10 +2932,25 @@ export type Marginfi = {
     {
       code: 6038;
       name: "AccountTempActiveBalanceLimitExceeded";
-      msg: "Account can't temporarily open new balances, please close a balance first";
+      msg: "Account can't temporarily open 3 balances, please close a balance first";
     },
     {
       code: 6039;
+      name: "AccountInFlashloan";
+      msg: "Illegal action during flashloan";
+    },
+    {
+      code: 6040;
+      name: "IllegalFlashloan";
+      msg: "Illegal flashloan";
+    },
+    {
+      code: 6041;
+      name: "IllegalFlag";
+      msg: "Illegal flag";
+    },
+    {
+      code: 6042;
       name: "IllegalBalanceState";
       msg: "Illegal balance state";
     }
@@ -3921,6 +4032,48 @@ export const IDL: Marginfi = {
       ],
     },
     {
+      name: "lendingAccountStartFlashloan",
+      accounts: [
+        {
+          name: "marginfiAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "ixsSysvar",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "endIndex",
+          type: "u64",
+        },
+      ],
+    },
+    {
+      name: "lendingAccountEndFlashloan",
+      accounts: [
+        {
+          name: "marginfiAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "signer",
+          isMut: false,
+          isSigner: true,
+        },
+      ],
+      args: [],
+    },
+    {
       name: "lendingPoolAccrueBankInterest",
       accounts: [
         {
@@ -4032,6 +4185,60 @@ export const IDL: Marginfi = {
         },
       ],
       args: [],
+    },
+    {
+      name: "setAccountFlag",
+      accounts: [
+        {
+          name: "marginfiGroup",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "marginfiAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "admin",
+          isMut: false,
+          isSigner: true,
+          docs: ["Admin only"],
+        },
+      ],
+      args: [
+        {
+          name: "flag",
+          type: "u64",
+        },
+      ],
+    },
+    {
+      name: "unsetAccountFlag",
+      accounts: [
+        {
+          name: "marginfiGroup",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "marginfiAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "admin",
+          isMut: false,
+          isSigner: true,
+          docs: ["Admin only"],
+        },
+      ],
+      args: [
+        {
+          name: "flag",
+          type: "u64",
+        },
+      ],
     },
   ],
   accounts: [
@@ -5683,10 +5890,25 @@ export const IDL: Marginfi = {
     {
       code: 6038,
       name: "AccountTempActiveBalanceLimitExceeded",
-      msg: "Account can't temporarily open new balances, please close a balance first",
+      msg: "Account can't temporarily open 3 balances, please close a balance first",
     },
     {
       code: 6039,
+      name: "AccountInFlashloan",
+      msg: "Illegal action during flashloan",
+    },
+    {
+      code: 6040,
+      name: "IllegalFlashloan",
+      msg: "Illegal flashloan",
+    },
+    {
+      code: 6041,
+      name: "IllegalFlag",
+      msg: "Illegal flag",
+    },
+    {
+      code: 6042,
       name: "IllegalBalanceState",
       msg: "Illegal balance state",
     },

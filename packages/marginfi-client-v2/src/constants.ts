@@ -16,3 +16,6 @@ export const USDC_DECIMALS = 6;
 export const ADDRESS_LOOKUP_TABLE_FOR_GROUP: { [key: string]: [PublicKey] } = {
   "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8": [new PublicKey("2FyGQ8UZ6PegCSN2Lu7QD1U2UY28GpJdDfdwEfbwxN7p")],
 };
+
+export const DISABLED_FLAG: number = 1 << 0;
+export const FLASHLOAN_ENABLED_FLAG: number = 1 << 2;

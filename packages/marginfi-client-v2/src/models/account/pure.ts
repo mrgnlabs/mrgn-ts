@@ -16,7 +16,8 @@ import instructions from "../../instructions";
 import { MarginfiProgram } from "../../types";
 import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
 import { Balance, BalanceRaw } from "../balance";
-import { BankMap, OraclePriceMap, RiskTier } from "../..";
+import { BankMap, DISABLED_FLAG, FLASHLOAN_ENABLED_FLAG, MarginfiClient, OraclePriceMap, RiskTier } from "../..";
+import BN from "bn.js";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -26,6 +27,7 @@ interface MarginfiAccountRaw {
   group: PublicKey;
   authority: PublicKey;
   lendingAccount: { balances: BalanceRaw[] };
+  accountFlags: BN;
 }
 
 type MarginRequirementTypeRaw = { initial: {} } | { maintenance: {} } | { equity: {} };
@@ -41,6 +43,7 @@ class MarginfiAccount {
   public group: PublicKey;
   public authority: PublicKey;
   public balances: Balance[];
+  private accountFlags: BN;
 
   // ----------------------------------------------------------------------------
   // Factories
@@ -51,6 +54,13 @@ class MarginfiAccount {
     this.group = marginfiAccountRaw.group;
     this.authority = marginfiAccountRaw.authority;
     this.balances = marginfiAccountRaw.lendingAccount.balances.map(Balance.from);
+    this.accountFlags = marginfiAccountRaw.accountFlags;
+  }
+
+  static async fetch(address: PublicKey, client: MarginfiClient): Promise<MarginfiAccount> {
+    const data: MarginfiAccountRaw = (await client.program.account.marginfiAccount.fetch(address)) as any;
+    console.log(data);
+    return new MarginfiAccount(address, data);
   }
 
   // ----------------------------------------------------------------------------
@@ -63,6 +73,14 @@ class MarginfiAccount {
 
   getBalance(bankPk: PublicKey): Balance {
     return this.activeBalances.find((b) => b.bankPk.equals(bankPk)) ?? Balance.createEmpty(bankPk);
+  }
+
+  isDisabled(): boolean {
+    return (this.accountFlags.toNumber() & DISABLED_FLAG) !== 0;
+  }
+
+  isFlashLoanEnabled(): boolean {
+    return (this.accountFlags.toNumber() & FLASHLOAN_ENABLED_FLAG) !== 0;
   }
 
   computeFreeCollateral(
