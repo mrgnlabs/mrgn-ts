@@ -59,7 +59,6 @@ class MarginfiAccount {
 
   static async fetch(address: PublicKey, client: MarginfiClient): Promise<MarginfiAccount> {
     const data: MarginfiAccountRaw = (await client.program.account.marginfiAccount.fetch(address)) as any;
-    console.log(data);
     return new MarginfiAccount(address, data);
   }
 
