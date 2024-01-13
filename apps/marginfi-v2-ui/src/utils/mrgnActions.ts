@@ -170,7 +170,7 @@ async function createAccountAndDeposit({
     const squadsOptions = await getMaybeSquadsOptions(walletContextState);
     marginfiAccount = await mfiClient.createMarginfiAccount(undefined, squadsOptions);
 
-    // clearAccountCache(mfiClient.provider.publicKey);
+    clearAccountCache(mfiClient.provider.publicKey);
 
     multiStepToast.setSuccessAndNext();
   } catch (error: any) {

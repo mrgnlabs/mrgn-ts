@@ -106,8 +106,16 @@ async function getCachedMarginfiAccountsForAuthority(
 }
 
 export function clearAccountCache(authority: PublicKey) {
-  const cacheKey = createLocalStorageKey(authority);
-  window.localStorage.removeItem(cacheKey);
+  try {
+    const cacheKey = createLocalStorageKey(authority);
+    window.localStorage.removeItem(cacheKey);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Error clearing account cache.`);
+    } else {
+      throw new Error('An unknown error occurred while clearing account cache.');
+    }
+  }
 }
 
 const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
