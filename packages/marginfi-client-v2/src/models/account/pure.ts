@@ -13,11 +13,12 @@ import BigNumber from "bignumber.js";
 import { Bank } from "../bank";
 import { PriceBias, OraclePrice } from "../price";
 import instructions from "../../instructions";
-import { MarginfiProgram } from "../../types";
+import { AccountType, MarginfiProgram } from "../../types";
 import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
 import { Balance, BalanceRaw } from "../balance";
-import { BankMap, DISABLED_FLAG, FLASHLOAN_ENABLED_FLAG, MarginfiClient, OraclePriceMap, RiskTier } from "../..";
+import { BankMap, DISABLED_FLAG, FLASHLOAN_ENABLED_FLAG, MARGINFI_IDL, MarginfiClient, OraclePriceMap, RiskTier } from "../..";
 import BN from "bn.js";
+import { Address, BorshCoder, translateAddress } from "@coral-xyz/anchor";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -62,6 +63,19 @@ class MarginfiAccount {
     return new MarginfiAccount(address, data);
   }
 
+  static decode(encoded: Buffer): MarginfiAccountRaw {
+    const coder = new BorshCoder(MARGINFI_IDL);
+    return coder.accounts.decode(AccountType.MarginfiAccount, encoded);
+  }
+
+  static fromAccountParsed(marginfiAccountPk: Address, accountData: MarginfiAccountRaw) {
+    const _marginfiAccountPk = translateAddress(marginfiAccountPk);
+    return new MarginfiAccount(_marginfiAccountPk, accountData);
+  }
+  static fromAccountDataRaw(marginfiAccountPk: PublicKey, marginfiAccountRawData: Buffer) {
+    const marginfiAccountData = MarginfiAccount.decode(marginfiAccountRawData);
+    return MarginfiAccount.fromAccountParsed(marginfiAccountPk, marginfiAccountData);
+  }
   // ----------------------------------------------------------------------------
   // Attributes
   // ----------------------------------------------------------------------------
@@ -74,11 +88,11 @@ class MarginfiAccount {
     return this.activeBalances.find((b) => b.bankPk.equals(bankPk)) ?? Balance.createEmpty(bankPk);
   }
 
-  isDisabled(): boolean {
+  get isDisabled(): boolean {
     return (this.accountFlags.toNumber() & DISABLED_FLAG) !== 0;
   }
 
-  isFlashLoanEnabled(): boolean {
+  get isFlashLoanEnabled(): boolean {
     return (this.accountFlags.toNumber() & FLASHLOAN_ENABLED_FLAG) !== 0;
   }
 
@@ -156,6 +170,14 @@ class MarginfiAccount {
 
     return { assets, liabilities };
   }
+
+ computeAccountValue(
+    banks: Map<string, Bank>,
+    oraclePrices: Map<string, OraclePrice>,
+  ): BigNumber {
+    const { assets, liabilities } = this.computeHealthComponentsWithoutBias(banks, oraclePrices, MarginRequirementType.Equity);
+    return assets.minus(liabilities);
+  } 
 
   computeNetApy(banks: Map<string, Bank>, oraclePrices: Map<string, OraclePrice>): number {
     const { assets, liabilities } = this.computeHealthComponentsWithoutBias(

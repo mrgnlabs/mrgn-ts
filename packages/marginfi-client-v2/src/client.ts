@@ -53,7 +53,7 @@ class MarginfiClient {
   public group: MarginfiGroup;
   public banks: BankMap;
   public oraclePrices: OraclePriceMap;
-  private addressLookupTables: AddressLookupTableAccount[];
+  public addressLookupTables: AddressLookupTableAccount[];
   private preloadedBankAddresses?: PublicKey[];
 
   // --------------------------------------------------------------------------

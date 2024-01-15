@@ -73,7 +73,7 @@ class MarginfiAccountWrapper {
   }
 
   static fromAccountDataRaw(marginfiAccountPk: PublicKey, client: MarginfiClient, marginfiAccountRawData: Buffer) {
-    const marginfiAccountData = MarginfiAccountWrapper.decode(marginfiAccountRawData);
+    const marginfiAccountData = MarginfiAccount.decode(marginfiAccountRawData);
     return MarginfiAccountWrapper.fromAccountParsed(marginfiAccountPk, client, marginfiAccountData);
   }
 
@@ -111,12 +111,12 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.balances.filter((la) => la.active);
   }
 
-  public isDisabled(): boolean {
-    return this._marginfiAccount.isDisabled();
+  get isDisabled(): boolean {
+    return this._marginfiAccount.isDisabled;
   }
 
-  public isFlashLoanEnabled(): boolean {
-    return this._marginfiAccount.isFlashLoanEnabled();
+  get isFlashLoanEnabled(): boolean {
+    return this._marginfiAccount.isFlashLoanEnabled;
   }
   public getBalance(bankPk: PublicKey): Balance {
     return this._marginfiAccount.getBalance(bankPk);
@@ -160,6 +160,10 @@ class MarginfiAccountWrapper {
       this.client.oraclePrices,
       marginRequirement
     );
+  }
+
+  public computeAccountValue(): BigNumber {
+    return this._marginfiAccount.computeAccountValue(this.client.banks, this.client.oraclePrices);
   }
 
   public computeMaxBorrowForBank(bankAddress: PublicKey, opts?: { volatilityFactor?: number }): BigNumber {
@@ -507,11 +511,6 @@ class MarginfiAccountWrapper {
     return data;
   }
 
-  static decode(encoded: Buffer): MarginfiAccountRaw {
-    const coder = new BorshCoder(MARGINFI_IDL);
-    return coder.accounts.decode(AccountType.MarginfiAccount, encoded);
-  }
-
   static async encode(decoded: MarginfiAccountRaw): Promise<Buffer> {
     const coder = new BorshCoder(MARGINFI_IDL);
     return await coder.accounts.encode(AccountType.MarginfiAccount, decoded);
@@ -521,7 +520,7 @@ class MarginfiAccountWrapper {
     require("debug")(`mfi:margin-account:${this.address.toBase58().toString()}:loader`)("Reloading account data");
     const marginfiAccountAi = await this._program.account.marginfiAccount.getAccountInfo(this.address);
     if (!marginfiAccountAi) throw new Error(`Failed to fetch data for marginfi account ${this.address.toBase58()}`);
-    const marginfiAccountParsed = MarginfiAccountWrapper.decode(marginfiAccountAi.data);
+    const marginfiAccountParsed = MarginfiAccount.decode(marginfiAccountAi.data);
     if (!marginfiAccountParsed.group.equals(this._config.groupPk))
       throw Error(
         `Marginfi account tied to group ${marginfiAccountParsed.group.toBase58()}. Expected: ${this._config.groupPk.toBase58()}`
