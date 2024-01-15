@@ -20,8 +20,8 @@ export const Stats = () => {
         value: `$${numeralFormatter(protocolStats?.borrows)}`,
       },
       {
-        label: "Total points",
-        value: numeralFormatter(protocolStats?.pointsTotal),
+        label: "TVL",
+        value: numeralFormatter(protocolStats?.tvl),
       },
     ];
   }, [protocolStats]);
