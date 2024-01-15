@@ -1,12 +1,12 @@
 import React, { FC } from "react";
 import { getPriceWithConfidence, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { percentFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import Image from "next/image";
 
 import { useMrgnlendStore } from "~/store";
 import { clampedNumeralFormatter, cn, getLiquidationPriceColor, getMaintHealthColor } from "~/utils";
-import { IconArrowRight } from "~/components/ui/icons";
+import { IconArrowRight, IconAlertTriangle, IconAlertTriangleFilled } from "~/components/ui/icons";
 import { Badge, Typography } from "@mui/material";
 import { MrgnTooltip } from "../MrgnTooltip";
 import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetsList/AssetRow";
@@ -55,7 +55,7 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
   const price = getPriceWithConfidence(selectedBank.info.oraclePrice, false).price.toNumber();
 
   const liquidationColor = React.useMemo(
-    () => (preview && preview.liquidationPrice ? getMaintHealthColor(preview.liquidationPrice / price) : "white"),
+    () => (preview && preview.liquidationPrice ? getMaintHealthColor(preview.liquidationPrice / price) : ""),
     [preview, selectedBank]
   );
   const healthColor = React.useMemo(
@@ -64,13 +64,15 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
   );
 
   return (
-    <dl className="grid grid-cols-2 h-40 gap-y-2 pt-6 text-muted-foreground text-sm">
-      <Stat classNames="text-[white]" label={`Your ${showLending ? "deposited" : "borrowed"} amount`}>
-        {clampedNumeralFormatter(currentPositionAmount)}
+    <dl className="grid grid-cols-2 h-40 gap-y-2 pt-6 text-sm text-white">
+      <Stat label={`Your ${showLending ? "deposited" : "borrowed"} amount`}>
+        {clampedNumeralFormatter(currentPositionAmount)} {selectedBank.meta.tokenSymbol}
         {preview && <IconArrowRight width={12} height={12} />}
-        {preview && clampedNumeralFormatter(preview.positionAmount)}
+        {preview &&
+          preview.positionAmount &&
+          clampedNumeralFormatter(preview.positionAmount) + " " + selectedBank.meta.tokenSymbol}
       </Stat>
-      <Stat classNames="text-[white]" label={"Pool"}>
+      <Stat label={"Pool"}>
         {selectedBank.info.state.isIsolated ? (
           <>
             Isolated pool{" "}
@@ -95,15 +97,15 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
         )}
       </Stat>
 
-      <Stat classNames={`text-[${healthColor}]`} label="Health">
-        {accountSummary.healthFactor ? percentFormatter.format(accountSummary.healthFactor) : ""}
-        {accountSummary.healthFactor ? <IconArrowRight width={12} height={12} /> : ""}
+      <Stat style={{ color: healthColor }} label="Health">
+        {accountSummary.healthFactor && percentFormatter.format(accountSummary.healthFactor)}
+        {accountSummary.healthFactor && preview?.health ? <IconArrowRight width={12} height={12} /> : ""}
         {isLoading ? (
           <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
         ) : preview?.health ? (
           percentFormatter.format(preview.health)
         ) : (
-          "-"
+          ""
         )}
       </Stat>
       {(actionMode === ActionType.Borrow || isBorrowing) && (
@@ -111,18 +113,20 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
           {selectedBank.isActive &&
             selectedBank.position.liquidationPrice &&
             selectedBank.position.liquidationPrice > 0.01 &&
-            numeralFormatter(selectedBank.position.liquidationPrice)}
-          {selectedBank.isActive && selectedBank.position.liquidationPrice && <IconArrowRight width={12} height={12} />}
+            usdFormatter.format(selectedBank.position.liquidationPrice)}
+          {selectedBank.isActive && selectedBank.position.liquidationPrice && preview?.liquidationPrice && (
+            <IconArrowRight width={12} height={12} />
+          )}
           {isLoading ? (
             <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
           ) : preview?.liquidationPrice ? (
-            numeralFormatter(preview.liquidationPrice)
+            usdFormatter.format(preview.liquidationPrice)
           ) : (
-            "-"
+            ""
           )}
         </Stat>
       )}
-      <Stat classNames="text-[white]" label={showLending ? "Global deposits" : "Available"}>
+      <Stat label={showLending ? "Global deposits" : "Available"}>
         <MrgnTooltip
           title={
             <React.Fragment>
@@ -132,11 +136,12 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
 
               {isReduceOnly
                 ? "stSOL is being discontinued."
-                : `${selectedBank.meta.tokenSymbol} ${showLending ? "deposits" : "borrows"
-                } are at ${percentFormatter.format(
-                  (showLending ? selectedBank.info.state.totalDeposits : selectedBank.info.state.totalBorrows) /
-                  bankCap
-                )} capacity.`}
+                : `${selectedBank.meta.tokenSymbol} ${
+                    showLending ? "deposits" : "borrows"
+                  } are at ${percentFormatter.format(
+                    (showLending ? selectedBank.info.state.totalDeposits : selectedBank.info.state.totalBorrows) /
+                      bankCap
+                  )} capacity.`}
               <br />
               <a href="https://docs.marginfi.com">
                 <u>Learn more.</u>
@@ -146,28 +151,31 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
           placement="right"
           className={``}
         >
-          <Badge
-            badgeContent={isReduceOnly ? "‼️" : isBankHigh && isBankFilled ? "💯" : "❗"}
-            className="bg-transparent"
-            sx={{
-              "& .MuiBadge-badge": {
-                fontSize: 20,
-              },
-            }}
-            invisible={!isBankHigh && !isReduceOnly}
+          <span
+            className={cn(
+              "flex items-center justify-end gap-1.5 text-white",
+              (isReduceOnly || isBankHigh) && "text-warning",
+              isBankFilled && "text-destructive-foreground"
+            )}
           >
             {numeralFormatter(
               showLending
                 ? selectedBank.info.state.totalDeposits
                 : Math.max(
-                  0,
-                  Math.min(
-                    selectedBank.info.state.totalDeposits,
-                    selectedBank.info.rawBank.config.borrowLimit.toNumber()
-                  ) - selectedBank.info.state.totalBorrows
-                )
+                    0,
+                    Math.min(
+                      selectedBank.info.state.totalDeposits,
+                      selectedBank.info.rawBank.config.borrowLimit.toNumber()
+                    ) - selectedBank.info.state.totalBorrows
+                  )
             )}
-          </Badge>
+
+            {isReduceOnly || (isBankHigh && !isBankFilled) ? (
+              <IconAlertTriangle size={16} />
+            ) : isBankFilled ? (
+              <IconAlertTriangleFilled size={16} />
+            ) : null}
+          </span>
         </MrgnTooltip>
       </Stat>
     </dl>
@@ -183,8 +191,8 @@ interface StatProps {
 const Stat = ({ label, classNames, children, style }: StatProps) => {
   return (
     <>
-      <dt>{label}</dt>
-      <dd className={cn(`${classNames} flex justify-end font-medium text-right items-center gap-2`)} style={style}>
+      <dt className="text-muted-foreground font-normal">{label}</dt>
+      <dd className={cn("flex justify-end text-right items-center gap-2", classNames)} style={style}>
         {children}
       </dd>
     </>
