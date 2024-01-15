@@ -85,6 +85,11 @@ export const Portfolio = () => {
       return "#fff";
     }
   }, [accountSummary.healthFactor]);
+
+  if (!borrowingBanks.length && !lendingBanks.length) {
+    return null;
+  }
+
   return (
     <div className="bg-background-gray-dark p-4 md:p-6 rounded-xl space-y-3 w-full mb-10">
       <h2 className="font-medium text-2xl md:text-3xl">Portfolio</h2>
