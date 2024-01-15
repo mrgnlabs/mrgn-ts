@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, UserMode } from "~/types";
+import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, UserMode, PreviousTxn } from "~/types";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {
@@ -47,6 +47,8 @@ interface UiState {
   sortOption: SortAssetOption;
   userMode: UserMode;
   priorityFee: number;
+  isActionComplete: boolean;
+  previousTxn: PreviousTxn | null;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -60,6 +62,8 @@ interface UiState {
   setSortOption: (sortOption: SortAssetOption) => void;
   setUserMode: (userMode: UserMode) => void;
   setPriorityFee: (priorityFee: number) => void;
+  setIsActionComplete: (isActionSuccess: boolean) => void;
+  setPreviousTxn: (previousTxn: PreviousTxn) => void;
 }
 
 function createUiStore() {
@@ -81,6 +85,8 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   userMode: UserMode.LITE,
   selectedTokenBank: null,
   priorityFee: 0,
+  isActionComplete: false,
+  previousTxn: null,
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -98,6 +104,8 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setUserMode: (userMode: UserMode) => set({ userMode: userMode }),
   setPriorityFee: (priorityFee: number) => set({ priorityFee: priorityFee }),
+  setIsActionComplete: (isActionComplete: boolean) => set({ isActionComplete: isActionComplete }),
+  setPreviousTxn: (previousTxn: PreviousTxn) => set({ previousTxn: previousTxn }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };

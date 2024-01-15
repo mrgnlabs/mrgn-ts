@@ -232,7 +232,7 @@ class MarginfiClient {
 
     // Unpack raw data for group and oracles, and build the `Bank`s map
     if (!groupAi) throw new Error("Failed to fetch the on-chain group data");
-    const marginfiGroup = MarginfiGroup.fromBuffer(groupAi.data);
+    const marginfiGroup = MarginfiGroup.fromBuffer(groupAddress, groupAi.data);
 
     debug("Decoding bank data");
     const banks = new Map(

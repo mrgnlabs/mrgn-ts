@@ -31,6 +31,7 @@ const priorityFeeOptions = [
 
 export const ActionBoxPriorityFees = ({ mode, setIsPriorityFeesMode }: ActionBoxPriorityFeesProps) => {
   const [priorityFee, setPriorityFee] = useUiStore((state) => [state.priorityFee, state.setPriorityFee]);
+  const [selectedPriorityFee, setSelectedPriorityFee] = React.useState<number | null>(priorityFee);
 
   const priorityFeeRef = React.useRef<HTMLInputElement>(null);
   const [isCustomPriorityFeeMode, setIsCustomPriorityFeeMode] = React.useState<boolean>(false);
@@ -68,13 +69,13 @@ export const ActionBoxPriorityFees = ({ mode, setIsPriorityFeesMode }: ActionBox
             <Button
               className={cn(
                 "flex flex-col gap-0.5 h-auto w-full font-light border border-transparent bg-background/50 transition-colors hover:bg-background-gray-hover",
-                priorityFee === option.value &&
+                selectedPriorityFee === option.value &&
                   customPriorityFee === null &&
                   "bg-background-gray-hover border-chartreuse"
               )}
               variant="secondary"
               onClick={() => {
-                setPriorityFee(option.value);
+                setSelectedPriorityFee(option.value);
                 setCustomPriorityFee(null);
                 setIsCustomPriorityFeeMode(false);
               }}
@@ -91,12 +92,17 @@ export const ActionBoxPriorityFees = ({ mode, setIsPriorityFeesMode }: ActionBox
           type="number"
           className={cn(
             "h-auto bg-background/50 py-3 px-4 border border-transparent text-white transition-colors focus-visible:ring-0",
-            priorityFee !== 0.005 && priorityFee !== 0.00005 && priorityFee !== 0 && "border-chartreuse"
+            selectedPriorityFee !== 0.005 &&
+              selectedPriorityFee !== 0.00005 &&
+              selectedPriorityFee !== 0 &&
+              "border-chartreuse"
           )}
           value={customPriorityFee && !isCustomPriorityFeeMode ? customPriorityFee?.toString() : undefined}
           min={0}
           placeholder={
-            priorityFee !== 0.005 && priorityFee !== 0.00005 && priorityFee !== 0 ? priorityFee.toString() : "0"
+            selectedPriorityFee !== 0.005 && selectedPriorityFee !== 0.00005 && selectedPriorityFee !== 0
+              ? priorityFee.toString()
+              : "0"
           }
           onFocus={() => setIsCustomPriorityFeeMode(true)}
           onChange={() => setCustomPriorityFee(parseFloat(priorityFeeRef.current?.value || "0"))}
@@ -107,6 +113,8 @@ export const ActionBoxPriorityFees = ({ mode, setIsPriorityFeesMode }: ActionBox
         onClick={() => {
           if (customPriorityFee) {
             setPriorityFee(customPriorityFee);
+          } else if (selectedPriorityFee !== null) {
+            setPriorityFee(selectedPriorityFee);
           }
           setIsPriorityFeesMode(false);
         }}

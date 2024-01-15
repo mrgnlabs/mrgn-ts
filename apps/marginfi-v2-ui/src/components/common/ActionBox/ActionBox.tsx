@@ -1,8 +1,9 @@
 import React, { FC, useEffect, useMemo, useState } from "react";
 
 import { usdFormatterDyn, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PublicKey } from "@solana/web3.js";
+
 import { useMrgnlendStore, useUiStore } from "~/store";
 import {
   MarginfiActionParams,
@@ -78,12 +79,15 @@ export const ActionBox = ({
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingModeFromStore, setLendingMode, priorityFee, setPriorityFee] = useUiStore((state) => [
-    state.lendingMode,
-    state.setLendingMode,
-    state.priorityFee,
-    state.setPriorityFee,
-  ]);
+  const [lendingModeFromStore, setLendingMode, priorityFee, setIsActionComplete, setPreviousTxn] = useUiStore(
+    (state) => [
+      state.lendingMode,
+      state.setLendingMode,
+      state.priorityFee,
+      state.setIsActionComplete,
+      state.setPreviousTxn,
+    ]
+  );
   const { walletContextState, connected } = useWalletContext();
 
   const lendingMode = useMemo(
@@ -340,7 +344,7 @@ export const ActionBox = ({
       walletContextState,
     }: MarginfiActionParams) => {
       setIsLoading(true);
-      await executeLendingAction({
+      const txnSig = await executeLendingAction({
         mfiClient,
         actionType: currentAction,
         bank,
@@ -354,6 +358,16 @@ export const ActionBox = ({
       setIsLoading(false);
       handleCloseDialog && handleCloseDialog();
       setAmountRaw("");
+
+      if (txnSig) {
+        setIsActionComplete(true);
+        setPreviousTxn({
+          type: currentAction,
+          bank: bank as ActiveBankInfo,
+          amount: borrowOrLendAmount,
+          txn: txnSig!,
+        });
+      }
 
       // -------- Refresh state
       try {
@@ -555,8 +569,8 @@ export const ActionBox = ({
 
               {actionMethod.description && (
                 <div className="pb-6">
-                  <div className="flex items-center space-x-2 py-3 px-4 rounded-xl text-alert-foreground bg-alert">
-                    <IconAlertTriangle className="shrink-0" size={18} />
+                  <div className="flex space-x-2 py-3 px-4 rounded-xl text-alert-foreground bg-alert">
+                    <IconAlertTriangle className="shrink-0 translate-y-1" size={18} />
                     <p className="text-alert-foreground">{actionMethod.description}</p>
                   </div>
                 </div>

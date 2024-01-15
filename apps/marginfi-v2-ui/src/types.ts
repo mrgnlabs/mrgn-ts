@@ -1,4 +1,5 @@
 import { Transaction } from "@solana/web3.js";
+import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 // ----------------------------------------------------------------------------
 // Mayan types
@@ -115,3 +116,10 @@ export enum UserMode {
   LITE = "lite",
   PRO = "pro",
 }
+
+export type PreviousTxn = {
+  type: ActionType;
+  bank: ActiveBankInfo;
+  amount: number;
+  txn: string;
+};

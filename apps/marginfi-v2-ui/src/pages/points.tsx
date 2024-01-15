@@ -10,7 +10,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useUiStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { PageHeader } from "~/components/common/PageHeader";
-import { PointsOverview, PointsCheckingUser, PointsConnectWallet } from "~/components/desktop/Points";
+import { PointsOverview, PointsCheckingUser, PointsConnectWallet, PointsTable } from "~/components/desktop/Points";
 
 const Points = () => {
   const { connected } = useWalletContext();
@@ -94,7 +94,7 @@ const Points = () => {
             </Link>
           </div>
         </div>
-        <p className="mt-12 text-white/80 text-lg text-center">New leaderboard coming soon...</p>
+        <PointsTable userPointsData={userPointsData} />
       </div>
     </>
   );

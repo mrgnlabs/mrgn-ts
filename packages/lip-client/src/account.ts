@@ -141,7 +141,6 @@ class LipAccount {
     owner: PublicKey,
     lipClient: LipClient
   ): Promise<{ deposits: Deposit[]; campaigns: Campaign[] }> {
-    console.log("fetching deposits");
     const deposits = await lipClient.getDepositsForOwner(owner);
     await lipClient.reload();
 

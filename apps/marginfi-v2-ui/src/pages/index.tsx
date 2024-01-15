@@ -7,7 +7,6 @@ import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { Desktop, Mobile } from "~/mediaQueries";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Banner } from "~/components/desktop/Banner";
@@ -15,6 +14,7 @@ import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
 import { PageHeader } from "~/components/common/PageHeader";
 import { ActionBox } from "~/components/common/ActionBox";
 import { Stats } from "~/components/common/Stats";
+import { ActionComplete } from "~/components/common/ActionComplete";
 
 import { IconAlertTriangle } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
@@ -28,7 +28,7 @@ const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/
 
 const Home = () => {
   const { walletAddress, isOverride } = useWalletContext();
-  const [userMode] = useUiStore((state) => [state.userMode]);
+  const [userMode, previousTxn] = useUiStore((state) => [state.userMode, state.previousTxn]);
   const [
     fetchMrgnlendState,
     isStoreInitialized,
@@ -93,6 +93,7 @@ const Home = () => {
           <MobileAssetsList />
         </div>
       </Mobile>
+      {isStoreInitialized && previousTxn && <ActionComplete />}
     </>
   );
 };

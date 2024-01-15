@@ -11,6 +11,8 @@ import {
   getDoc,
   getCountFromServer,
   where,
+  startAt,
+  endAt,
   QueryDocumentSnapshot,
 } from "firebase/firestore";
 import {
@@ -26,19 +28,132 @@ import { firebaseApi } from ".";
 
 type LeaderboardRow = {
   id: string;
-  shortAddress?: string;
-  domain?: string;
-  doc: QueryDocumentSnapshot<DocumentData>;
+  owner: string;
+  domain: string;
+  rank: number;
   total_activity_deposit_points: number;
   total_activity_borrow_points: number;
   total_referral_deposit_points: number;
   total_referral_borrow_points: number;
   total_deposit_points: number;
   total_borrow_points: number;
+  total_referral_points: number;
   socialPoints: number;
+  total_points: number;
 };
 
-async function fetchLeaderboardData({
+type LeaderboardSettings = {
+  pageSize: number;
+  currentPage: number;
+  orderCol: string;
+  orderDir: "desc" | "asc";
+  pageDirection?: "next" | "prev";
+  search?: string;
+};
+
+let lastVisible: QueryDocumentSnapshot<DocumentData> | undefined;
+let lastOrderCol: string | undefined;
+let lastOrderDir: "desc" | "asc" | undefined;
+let prevPages: LeaderboardRow[][] = [];
+let lastSearch: string | undefined;
+
+async function fetchLeaderboardData(connection: Connection, settings: LeaderboardSettings): Promise<LeaderboardRow[]> {
+  if (settings.pageDirection === "prev" && settings.currentPage > 1) {
+    if (prevPages.length > 1) {
+      prevPages.pop();
+      return prevPages[prevPages.length - 1];
+    }
+  }
+
+  if (settings.pageDirection === "prev" && settings.currentPage === 1) {
+    const rtn = prevPages[0];
+    prevPages = [];
+
+    return rtn;
+  }
+
+  console.log(settings);
+
+  if (
+    lastOrderCol !== settings.orderCol ||
+    (lastOrderDir !== settings.orderDir && settings.pageDirection !== "prev") ||
+    (settings.search && settings.search.length && lastSearch !== settings.search)
+  ) {
+    lastVisible = undefined;
+    lastOrderCol = settings.orderCol;
+    lastOrderDir = settings.orderDir;
+    prevPages = [];
+  }
+
+  const searchNum = Number(settings.search || "");
+  let searchQ = [where("owner", "==", settings.search)];
+
+  if (settings.search && !isNaN(searchNum)) {
+    searchQ = [where("rank", "==", searchNum + 1)];
+  }
+
+  const pointsQuery = query(
+    collection(firebaseApi.db, "points"),
+    ...(settings.search
+      ? searchQ
+      : [
+          where(settings.orderCol, ">=", 1),
+          orderBy(settings.orderCol, settings.orderDir),
+          ...(lastVisible ? [startAfter(lastVisible)] : []),
+          limit(settings.pageSize),
+        ])
+  );
+  const querySnapshot = await getDocs(pointsQuery);
+
+  if (!settings.search) {
+    lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+  }
+
+  const leaderboardSlice = querySnapshot.docs
+    .map((doc) => ({
+      ...(doc.data() as LeaderboardRow),
+      rank: doc.data().rank - 1,
+    }))
+    .filter((item) => item.owner !== null && item.owner !== undefined && item.owner != "None");
+
+  const leaderboardFinalSlice: LeaderboardRow[] = [...leaderboardSlice];
+
+  prevPages.push(leaderboardSlice);
+
+  // batch fetch all favorite domains and update array
+  const publicKeys = leaderboardFinalSlice
+    .map((value) => {
+      if (!value.owner) return null;
+      const [favoriteDomains] = FavouriteDomain.getKeySync(NAME_OFFERS_ID, new PublicKey(value.owner));
+      return favoriteDomains;
+    })
+    .filter((value) => value !== null) as PublicKey[];
+
+  const favoriteDomainsInfo = (await connection.getMultipleAccountsInfo(publicKeys)).map((accountInfo, idx) =>
+    accountInfo ? FavouriteDomain.deserialize(accountInfo.data).nameAccount : publicKeys[idx]
+  );
+  const reverseLookup = await reverseLookupBatch(connection, favoriteDomainsInfo);
+
+  leaderboardFinalSlice.map((value, idx) => {
+    const domain = reverseLookup[idx];
+    if (domain) {
+      value.domain = `${domain}.sol`;
+    }
+
+    return value;
+  });
+  return leaderboardSlice;
+}
+
+async function fetchTotalLeaderboardCount() {
+  const q = query(collection(firebaseApi.db, "points"), where("total_points", ">=", 1));
+  const qCount = await getCountFromServer(q);
+  const count = qCount.data().count;
+  return count;
+}
+
+/*
+async function fetchLeaderboardDataOld({
   connection,
   queryCursor,
   pageSize = 50,
@@ -94,29 +209,20 @@ async function fetchLeaderboardData({
   });
 
   return leaderboardFinalSlice;
-}
+}*/
 
 // Firebase query is very constrained, so we calculate the number of users with more points
 // as the the count of users with more points inclusive of corrupted rows - the count of corrupted rows
-async function fetchUserRank(userPoints: number): Promise<number> {
-  const q1 = query(
-    collection(firebaseApi.db, "points"),
-    where("owner", "==", null),
-    where("total_points", ">", userPoints),
-    orderBy("total_points", "desc")
-  );
-  const q2 = query(
-    collection(firebaseApi.db, "points"),
-    where("total_points", ">", userPoints),
-    orderBy("total_points", "desc")
-  );
+async function fetchUserRank(address: string): Promise<number> {
+  const q = query(collection(firebaseApi.db, "points"), where("owner", "==", address));
 
-  const [querySnapshot1, querySnapshot2] = await Promise.all([getCountFromServer(q1), getCountFromServer(q2)]);
+  const data = await getDocs(q);
 
-  const nullGreaterDocsCount = querySnapshot1.data().count;
-  const allGreaterDocsCount = querySnapshot2.data().count;
+  if (!data.docs.length) {
+    return 0;
+  }
 
-  return allGreaterDocsCount - nullGreaterDocsCount + 1;
+  return data.docs[0].data().rank - 1;
 }
 
 async function fetchTotalUserCount() {
@@ -194,20 +300,16 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
     };
   }
 
-  console.log("pointsData", pointsData);
-
-  const depositPoints = pointsData.total_deposit_points.toFixed(4);
-  const borrowPoints = pointsData.total_borrow_points.toFixed(4);
+  const depositPoints = pointsData.total_activity_deposit_points.toFixed(4);
+  const borrowPoints = pointsData.total_activity_borrow_points.toFixed(4);
   const referralPoints = (pointsData.total_referral_deposit_points + pointsData.total_referral_borrow_points).toFixed(
     4
   );
   const totalPoints =
-    pointsData.total_deposit_points +
-    pointsData.total_borrow_points +
+    pointsData.total_activity_deposit_points +
+    pointsData.total_activity_borrow_points +
     (pointsData.total_referral_deposit_points + pointsData.total_referral_borrow_points) +
     (pointsData.socialPoints ? pointsData.socialPoints : 0);
-
-  const userRank = await fetchUserRank(totalPoints);
 
   return {
     owner: pointsData.owner,
@@ -216,7 +318,7 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
     referralPoints,
     referralLink: userReferralCode,
     isCustomReferralLink,
-    userRank,
+    userRank: pointsData.rank - 1,
     totalPoints,
   };
 };
@@ -230,6 +332,7 @@ async function getPointsSummary() {
 
 export {
   fetchLeaderboardData,
+  fetchTotalLeaderboardCount,
   fetchUserRank,
   fetchTotalUserCount,
   getPointsSummary,
@@ -237,4 +340,4 @@ export {
   DEFAULT_USER_POINTS_DATA,
 };
 
-export type { LeaderboardRow, UserPointsData };
+export type { LeaderboardRow, LeaderboardSettings, UserPointsData };

@@ -29,7 +29,8 @@ export async function executeLendingAction({
   walletContextState,
   priorityFee,
 }: MarginfiActionParams) {
-  console.log("priorityFee", priorityFee);
+  let txnSig: string | undefined;
+
   if (nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
     return;
@@ -37,11 +38,11 @@ export async function executeLendingAction({
 
   if (actionType === ActionType.Deposit) {
     if (marginfiAccount) {
-      await deposit({ marginfiAccount, bank, amount, priorityFee });
+      txnSig = await deposit({ marginfiAccount, bank, amount, priorityFee });
     } else {
-      await createAccountAndDeposit({ mfiClient, bank, amount, walletContextState, priorityFee });
+      txnSig = await createAccountAndDeposit({ mfiClient, bank, amount, walletContextState, priorityFee });
     }
-    return;
+    return txnSig;
   }
 
   if (!marginfiAccount) {
@@ -50,16 +51,18 @@ export async function executeLendingAction({
   }
 
   if (actionType === ActionType.Borrow) {
-    await borrow({ marginfiAccount, bank, amount, priorityFee });
+    txnSig = await borrow({ marginfiAccount, bank, amount, priorityFee });
   }
 
   if (actionType === ActionType.Withdraw) {
-    await withdraw({ marginfiAccount, bank, amount, priorityFee });
+    txnSig = await withdraw({ marginfiAccount, bank, amount, priorityFee });
   }
 
   if (actionType === ActionType.Repay) {
-    await repay({ marginfiAccount, bank, amount, priorityFee });
+    txnSig = await repay({ marginfiAccount, bank, amount, priorityFee });
   }
+
+  return txnSig;
 }
 
 // ------------------------------------------------------------------//
@@ -107,8 +110,9 @@ async function createAccountAndDeposit({
   }
 
   try {
-    await marginfiAccount.deposit(amount, bank.address, priorityFee);
+    const txnSig = await marginfiAccount.deposit(amount, bank.address, priorityFee);
     multiStepToast.setSuccessAndNext();
+    return txnSig;
     capture("user_deposit", {
       amount,
       bankAddress: bank.address.toBase58(),
@@ -140,13 +144,14 @@ export async function deposit({
   multiStepToast.start();
 
   try {
-    await marginfiAccount.deposit(amount, bank.address, priorityFee);
+    const txnSig = await marginfiAccount.deposit(amount, bank.address, priorityFee);
     multiStepToast.setSuccessAndNext();
     capture("user_deposit", {
       amount,
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
     });
+    return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
@@ -173,8 +178,9 @@ export async function borrow({
 
   multiStepToast.start();
   try {
-    await marginfiAccount.borrow(amount, bank.address, priorityFee);
+    const txnSig = await marginfiAccount.borrow(amount, bank.address, priorityFee);
     multiStepToast.setSuccessAndNext();
+    return txnSig;
     capture("user_borrow", {
       amount,
       bankAddress: bank.address.toBase58(),
@@ -206,8 +212,14 @@ export async function withdraw({
   multiStepToast.start();
 
   try {
-    await marginfiAccount.withdraw(amount, bank.address, bank.isActive && isWholePosition(bank, amount), priorityFee);
+    const txnSig = await marginfiAccount.withdraw(
+      amount,
+      bank.address,
+      bank.isActive && isWholePosition(bank, amount),
+      priorityFee
+    );
     multiStepToast.setSuccessAndNext();
+    return txnSig;
     capture("user_withdraw", {
       amount,
       bankAddress: bank.address.toBase58(),
@@ -239,8 +251,14 @@ export async function repay({
   multiStepToast.start();
 
   try {
-    await marginfiAccount.repay(amount, bank.address, bank.isActive && isWholePosition(bank, amount), priorityFee);
+    const txnSig = await marginfiAccount.repay(
+      amount,
+      bank.address,
+      bank.isActive && isWholePosition(bank, amount),
+      priorityFee
+    );
     multiStepToast.setSuccessAndNext();
+    return txnSig;
     capture("user_repay", {
       amount,
       bankAddress: bank.address.toBase58(),
@@ -313,10 +331,11 @@ export const closeBalance = async ({
   multiStepToast.start();
 
   try {
+    let txnSig = "";
     if (bank.position.isLending) {
-      await marginfiAccount.withdraw(0, bank.address, true, priorityFee);
+      txnSig = await marginfiAccount.withdraw(0, bank.address, true, priorityFee);
     } else {
-      await marginfiAccount.repay(0, bank.address, true, priorityFee);
+      txnSig = await marginfiAccount.repay(0, bank.address, true, priorityFee);
     }
     multiStepToast.setSuccessAndNext();
     capture("user_close_balance", {
@@ -324,6 +343,7 @@ export const closeBalance = async ({
       bankAddress: bank.address.toBase58(),
       tokenSymbol: bank.meta.tokenSymbol,
     });
+    return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
