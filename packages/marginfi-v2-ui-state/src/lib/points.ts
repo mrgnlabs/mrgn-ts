@@ -300,14 +300,14 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
     };
   }
 
-  const depositPoints = pointsData.total_deposit_points.toFixed(4);
-  const borrowPoints = pointsData.total_borrow_points.toFixed(4);
+  const depositPoints = pointsData.total_activity_deposit_points.toFixed(4);
+  const borrowPoints = pointsData.total_activity_borrow_points.toFixed(4);
   const referralPoints = (pointsData.total_referral_deposit_points + pointsData.total_referral_borrow_points).toFixed(
     4
   );
   const totalPoints =
-    pointsData.total_deposit_points +
-    pointsData.total_borrow_points +
+    pointsData.total_activity_deposit_points +
+    pointsData.total_activity_borrow_points +
     (pointsData.total_referral_deposit_points + pointsData.total_referral_borrow_points) +
     (pointsData.socialPoints ? pointsData.socialPoints : 0);
 
