@@ -137,7 +137,7 @@ const AssetRow: React.FC<{
 
   const assetPrice = React.useMemo(
     () => getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber(),
-    [getPriceWithConfidence(bank.info.oraclePrice, false).price, bank.info.state.price]
+    [bank.info.oraclePrice]
   );
 
   const assetPriceOffset = React.useMemo(

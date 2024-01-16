@@ -139,7 +139,7 @@ export const StakingCard: FC = () => {
         return currentDepositOption;
       }
     });
-  }, [availableLamports, tokenDataMap]);
+  }, [availableLamports, tokenDataMap, router.query.deposit]);
 
   const depositAmountUi = useMemo(() => {
     return depositOption.type === "native"
@@ -386,6 +386,7 @@ export const StakingCard: FC = () => {
     jupiterApiClient,
     refresh,
     fetchLstState,
+    depositAmountUi,
   ]);
 
   return (

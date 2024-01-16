@@ -28,7 +28,7 @@ export const PointsSignIn: FC<PointsSignInProps> = ({}) => {
     } catch (loginError: any) {
       toast.error(loginError.message);
     }
-  }, [connection, useAuthTx, wallet]);
+  }, [wallet]);
 
   return (
     <Card className="max-w-[800px] mx-auto w-full bg-[#1A1F22] h-full h-24 rounded-xl" elevation={0}>

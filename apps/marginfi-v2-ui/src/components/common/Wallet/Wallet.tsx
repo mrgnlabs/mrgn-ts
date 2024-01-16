@@ -137,7 +137,7 @@ export const Wallet = () => {
         value: token?.value,
       })),
     });
-  }, [connection, wallet?.publicKey, address]);
+  }, [connection, wallet?.publicKey, address, extendedBankInfos, nativeSolBalance]);
 
   // fetch wallet data on mount and every 20 seconds
   React.useEffect(() => {

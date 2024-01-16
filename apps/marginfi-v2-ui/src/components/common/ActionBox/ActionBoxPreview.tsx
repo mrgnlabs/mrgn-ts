@@ -56,7 +56,7 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
 
   const liquidationColor = React.useMemo(
     () => (preview && preview.liquidationPrice ? getMaintHealthColor(preview.liquidationPrice / price) : ""),
-    [preview, selectedBank]
+    [preview, price]
   );
   const healthColor = React.useMemo(
     () => getMaintHealthColor(preview?.health ?? accountSummary.healthFactor),
