@@ -3,6 +3,7 @@ import {
   ConfirmOptions,
   Connection,
   Keypair,
+  PublicKey,
   Signer,
   Transaction,
   TransactionMessage,
@@ -159,8 +160,8 @@ export async function chunkedGetRawMultipleAccountInfos(
   pks: string[],
   batchChunkSize: number = 1000,
   maxAccountsChunkSize: number = 100
-): Promise<[number, Map<string, AccountInfo<string[]>>]> {
-  const accountInfoMap = new Map<string, AccountInfo<string[]>>();
+): Promise<[number, Map<string, AccountInfo<Buffer>>]> {
+  const accountInfoMap = new Map<string, AccountInfo<Buffer>>();
   let contextSlot = 0;
 
   const batches = chunkArray(pks, batchChunkSize);
@@ -204,7 +205,11 @@ export async function chunkedGetRawMultipleAccountInfos(
     accountInfos.forEach((item, index) => {
       const publicKey = batch[index];
       if (item) {
-        accountInfoMap.set(publicKey, item);
+        accountInfoMap.set(publicKey, {
+          ...item,
+          owner: new PublicKey(item.owner),
+          data: Buffer.from(item.data[0], "base64"),
+        });
       }
     });
   }
