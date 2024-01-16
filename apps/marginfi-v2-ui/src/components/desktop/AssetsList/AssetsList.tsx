@@ -27,10 +27,6 @@ import { LendingModes, UserMode } from "~/types";
 import { AssetRowHeader } from "~/components/common/AssetList/AssetRowHeader";
 import { MrgnTooltip } from "~/components/common";
 
-const UserPositions = dynamic(async () => (await import("~/components/desktop/UserPositions")).UserPositions, {
-  ssr: false,
-});
-
 const AssetsList = () => {
   const { connected, walletAddress } = useWalletContext();
   const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
