@@ -8,7 +8,7 @@ import { useMrgnlendStore } from "~/store";
 import { clampedNumeralFormatter, cn, getLiquidationPriceColor, getMaintHealthColor } from "~/utils";
 import { IconArrowRight, IconAlertTriangle, IconAlertTriangleFilled } from "~/components/ui/icons";
 import { Badge, Typography } from "@mui/material";
-import { MrgnTooltip } from "../MrgnTooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetsList/AssetRow";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { ActionPreview } from "./ActionBox";
@@ -64,7 +64,7 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
   );
 
   return (
-    <dl className="grid grid-cols-2 h-40 gap-y-2 pt-6 text-sm text-white">
+    <dl className="grid grid-cols-2 gap-y-2 pt-6 text-sm text-white">
       <Stat label={`Your ${showLending ? "deposited" : "borrowed"} amount`}>
         {clampedNumeralFormatter(currentPositionAmount)} {selectedBank.meta.tokenSymbol}
         {preview && <IconArrowRight width={12} height={12} />}
@@ -76,21 +76,21 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
         {selectedBank.info.state.isIsolated ? (
           <>
             Isolated pool{" "}
-            <MrgnTooltip
-              title={
-                <React.Fragment>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                </TooltipTrigger>
+                <TooltipContent>
                   <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                     Isolated pools are risky ⚠️
                   </Typography>
                   Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot
                   borrow other assets. Isolated pools should be considered particularly risky. As always, remember that
                   marginfi is a decentralized protocol and all deposited funds are at risk.
-                </React.Fragment>
-              }
-              placement="top"
-            >
-              <Image src="/info_icon.png" alt="info" height={12} width={12} />
-            </MrgnTooltip>{" "}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </>
         ) : (
           <>Global pool</>
@@ -108,7 +108,7 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
           ""
         )}
       </Stat>
-      {(actionMode === ActionType.Borrow || isBorrowing) && (
+      {(actionMode === ActionType.Borrow || isBorrowing) && preview?.liquidationPrice && (
         <Stat style={{ color: liquidationColor }} label="Liquidation price">
           {selectedBank.isActive &&
             selectedBank.position.liquidationPrice &&
@@ -127,56 +127,73 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
         </Stat>
       )}
       <Stat label={showLending ? "Global deposits" : "Available"}>
-        <MrgnTooltip
-          title={
-            <React.Fragment>
-              <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                {isReduceOnly ? "Reduce Only" : isBankHigh && (isBankFilled ? "Limit Reached" : "Approaching Limit")}
-              </Typography>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                className={cn(
+                  "flex items-center justify-end gap-1.5 text-white",
+                  (isReduceOnly || isBankHigh) && "text-warning",
+                  isBankFilled && "text-destructive-foreground"
+                )}
+              >
+                {numeralFormatter(
+                  showLending
+                    ? selectedBank.info.state.totalDeposits
+                    : Math.max(
+                        0,
+                        Math.min(
+                          selectedBank.info.state.totalDeposits,
+                          selectedBank.info.rawBank.config.borrowLimit.toNumber()
+                        ) - selectedBank.info.state.totalBorrows
+                      )
+                )}
 
-              {isReduceOnly
-                ? "stSOL is being discontinued."
-                : `${selectedBank.meta.tokenSymbol} ${
-                    showLending ? "deposits" : "borrows"
-                  } are at ${percentFormatter.format(
-                    (showLending ? selectedBank.info.state.totalDeposits : selectedBank.info.state.totalBorrows) /
-                      bankCap
-                  )} capacity.`}
-              <br />
-              <a href="https://docs.marginfi.com">
-                <u>Learn more.</u>
-              </a>
-            </React.Fragment>
-          }
-          placement="right"
-          className={``}
-        >
-          <span
-            className={cn(
-              "flex items-center justify-end gap-1.5 text-white",
-              (isReduceOnly || isBankHigh) && "text-warning",
-              isBankFilled && "text-destructive-foreground"
-            )}
-          >
-            {numeralFormatter(
-              showLending
-                ? selectedBank.info.state.totalDeposits
-                : Math.max(
-                    0,
-                    Math.min(
-                      selectedBank.info.state.totalDeposits,
-                      selectedBank.info.rawBank.config.borrowLimit.toNumber()
-                    ) - selectedBank.info.state.totalBorrows
-                  )
-            )}
+                {isReduceOnly || (isBankHigh && !isBankFilled) ? (
+                  <IconAlertTriangle size={16} />
+                ) : isBankFilled ? (
+                  <IconAlertTriangleFilled size={16} />
+                ) : null}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="flex flex-col items-start gap-1">
+                <h4 className="text-base flex items-center gap-1.5">
+                  {isReduceOnly ? (
+                    <>
+                      <IconAlertTriangle size={16} /> Reduce Only
+                    </>
+                  ) : (
+                    isBankHigh &&
+                    (isBankFilled ? (
+                      <>
+                        <IconAlertTriangleFilled size={16} /> Limit Reached
+                      </>
+                    ) : (
+                      <>
+                        <IconAlertTriangle size={16} /> Approaching Limit
+                      </>
+                    ))
+                  )}
+                </h4>
 
-            {isReduceOnly || (isBankHigh && !isBankFilled) ? (
-              <IconAlertTriangle size={16} />
-            ) : isBankFilled ? (
-              <IconAlertTriangleFilled size={16} />
-            ) : null}
-          </span>
-        </MrgnTooltip>
+                <p>
+                  {isReduceOnly
+                    ? "stSOL is being discontinued."
+                    : `${selectedBank.meta.tokenSymbol} ${
+                        showLending ? "deposits" : "borrows"
+                      } are at ${percentFormatter.format(
+                        (showLending ? selectedBank.info.state.totalDeposits : selectedBank.info.state.totalBorrows) /
+                          bankCap
+                      )} capacity.`}
+                </p>
+                <a href="https://docs.marginfi.com">
+                  <u>Learn more.</u>
+                </a>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </Stat>
     </dl>
   );

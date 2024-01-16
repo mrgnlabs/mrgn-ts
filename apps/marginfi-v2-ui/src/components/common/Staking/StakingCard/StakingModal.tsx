@@ -10,7 +10,7 @@ import BN from "bn.js";
 import { PublicKey } from "@solana/web3.js";
 import InfoIcon from "@mui/icons-material/Info";
 import { StakeData } from "~/utils";
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 interface StakingModalProps {
   isOpen: boolean;
@@ -57,22 +57,24 @@ export const StakingModal: FC<StakingModalProps> = ({
             {isStakeAccountMode ? "Select stake account" : "Select token"}
           </Typography>
           <div className="h-full flex justify-center items-center">
-            <MrgnTooltip
-              title={
-                isStakeAccountMode ? (
-                  <Typography className="font-aeonik text-sm">
-                    Convert your native SOL stake into $LST instantly
-                  </Typography>
-                ) : (
-                  <Typography className="font-aeonik text-sm">
-                    Convert your tokens to $LST effortlessly. Powered by Jupiter.
-                  </Typography>
-                )
-              }
-              placement="top"
-            >
-              <InfoIcon className="hover:text-[#DCE85D]" fontSize="small" />
-            </MrgnTooltip>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="hover:text-[#DCE85D]" fontSize="small" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isStakeAccountMode ? (
+                    <Typography className="font-aeonik text-sm">
+                      Convert your native SOL stake into $LST instantly
+                    </Typography>
+                  ) : (
+                    <Typography className="font-aeonik text-sm">
+                      Convert your tokens to $LST effortlessly. Powered by Jupiter.
+                    </Typography>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
         <div className="flex flex-col overflow-y-auto pr-1">

@@ -1,8 +1,10 @@
 import React, { FC, useEffect, useMemo, useState } from "react";
 
+import { PublicKey } from "@solana/web3.js";
+
 import { usdFormatterDyn, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PublicKey } from "@solana/web3.js";
+import { MarginfiAccountWrapper, MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import {
@@ -21,8 +23,6 @@ import { useDebounce } from "~/hooks/useDebounce";
 
 import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-import { Input } from "~/components/ui/input";
-import { IconAlertTriangle, IconInfoCircle, IconWallet, IconSettings } from "~/components/ui/icons";
 import {
   checkActionAvailable,
   ActionBoxActions,
@@ -30,9 +30,9 @@ import {
   ActionBoxTokens,
   ActionBoxPriorityFees,
 } from "~/components/common/ActionBox";
-
-import { MrgnTooltip } from "../MrgnTooltip";
-import { MarginfiAccountWrapper, MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { Input } from "~/components/ui/input";
+import { IconAlertTriangle, IconInfoCircle, IconWallet, IconSettings } from "~/components/ui/icons";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Skeleton } from "~/components/ui/skeleton";
 
 export interface ActionPreview {
@@ -657,19 +657,19 @@ const ActionBoxAvailableCollateral: FC<{
       <dl className="flex justify-between items-center text-muted-foreground  gap-2">
         <dt className="flex items-center gap-1.5 text-sm pb-2">
           Available collateral
-          <MrgnTooltip
-            title={
-              <React.Fragment>
-                <div className="flex flex-col gap-2 pb-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <IconInfoCircle size={16} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="space-y-2">
                   <p>Available collateral is the USD value of your collateral not actively backing a loan.</p>
                   <p>It can be used to open additional borrows or withdraw part of your collateral.</p>
                 </div>
-              </React.Fragment>
-            }
-            placement="top"
-          >
-            <IconInfoCircle size={16} />
-          </MrgnTooltip>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </dt>
         <dd className="text-xl md:text-sm font-bold text-white">
           {isLoading ? (

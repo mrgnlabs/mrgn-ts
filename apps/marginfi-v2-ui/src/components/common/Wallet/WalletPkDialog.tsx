@@ -2,7 +2,7 @@ import React from "react";
 
 import CopyToClipboard from "react-copy-to-clipboard";
 
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
@@ -36,20 +36,25 @@ export const WalletPkDialog = ({ pk }: WalletPkDialogProps) => {
               }, 2000);
             }}
           >
-            <MrgnTooltip title="Click to copy" placement="top">
-              <button className="font-medium flex items-center justify-center gap-1 cursor-pointer">
-                {isPrivateKeyCopied && (
-                  <>
-                    <IconCheck size={14} /> copied!
-                  </>
-                )}
-                {!isPrivateKeyCopied && (
-                  <>
-                    <IconCopy size={14} /> Copy to clipboard
-                  </>
-                )}
-              </button>
-            </MrgnTooltip>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="font-medium flex items-center justify-center gap-1 cursor-pointer">
+                    {isPrivateKeyCopied && (
+                      <>
+                        <IconCheck size={14} /> copied!
+                      </>
+                    )}
+                    {!isPrivateKeyCopied && (
+                      <>
+                        <IconCopy size={14} /> Copy to clipboard
+                      </>
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Click to copy</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CopyToClipboard>
           <CopyToClipboard
             text={pk!}
