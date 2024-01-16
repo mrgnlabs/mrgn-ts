@@ -1,4 +1,13 @@
-import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
+import {
+  AddressLookupTableAccount,
+  Blockhash,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import {
   PDA_BANK_FEE_VAULT_AUTH_SEED,
   PDA_BANK_FEE_VAULT_SEED,
@@ -73,4 +82,23 @@ export function makeWrapSolIxs(walletAddress: PublicKey, amount: BigNumber): Tra
 export function makeUnwrapSolIx(walletAddress: PublicKey): TransactionInstruction {
   const address = getAssociatedTokenAddressSync(NATIVE_MINT, walletAddress, true); // We allow off curve addresses here to support Fuse.
   return createCloseAccountInstruction(address, walletAddress, walletAddress);
+}
+
+export async function makeVersionedTransaction(
+  blockhash: Blockhash,
+  transaction: Transaction,
+  payer: PublicKey,
+  addressLookupTables?: AddressLookupTableAccount[]
+): Promise<VersionedTransaction> {
+  const message = new TransactionMessage({
+    instructions: transaction.instructions,
+    payerKey: payer,
+    recentBlockhash: blockhash,
+  });
+
+  const versionedMessage = addressLookupTables
+    ? message.compileToV0Message(addressLookupTables)
+    : message.compileToLegacyMessage();
+
+  return new VersionedTransaction(versionedMessage);
 }
