@@ -49,6 +49,13 @@ export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tok
       tokenLogoUri: "/blze.png",
     },
   ],
+  [
+    "LFG",
+    {
+      tokenSymbol: "LFG",
+      tokenLogoUri: "/lfg.webp",
+    },
+  ],
 ]);
 
 export const REDUCE_ONLY_BANKS = ["stSOL"];
@@ -290,6 +297,7 @@ const AssetRow: React.FC<{
                             alt="info"
                             height={18}
                             width={18}
+                            className="rounded-full"
                           />{" "}
                           Liquidity rewards
                         </h4>
@@ -317,6 +325,7 @@ const AssetRow: React.FC<{
                       alt="info"
                       height={18}
                       width={18}
+                      className="rounded-full"
                     />
                   </MrgnTooltip>
                 </div>
@@ -357,6 +366,7 @@ const AssetRow: React.FC<{
                 </MrgnTooltip>
               </div>
             )}
+
             <div
               className="w-[40%] flex justify-end"
               style={{
