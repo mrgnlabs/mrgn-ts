@@ -30,7 +30,7 @@ export const WalletButton = () => {
   const { connected, connecting, isLoading, loginWeb3Auth } = useWalletContext();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
-  const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, [connected]);
+  const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, []);
 
   const isMoongate = useMemo(() => walletInfo?.name === "Ethereum Wallet", [walletInfo]);
 
@@ -66,7 +66,7 @@ export const WalletButton = () => {
     } catch (error) {
       setIsWalletAuthDialogOpen(true);
     }
-  }, [walletInfo, setIsWalletAuthDialogOpen]);
+  }, [walletInfo, setIsWalletAuthDialogOpen, select, loginWeb3Auth]);
 
   return (
     <>

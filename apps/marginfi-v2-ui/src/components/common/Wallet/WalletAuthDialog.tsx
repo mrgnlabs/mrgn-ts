@@ -89,7 +89,7 @@ export const WalletAuthDialog = () => {
       if (wallet.adapter.name === "Mobile Wallet Adapter" && isIOS) return false;
       return wallet.readyState === "Installed" || wallet.readyState === "Loadable";
     });
-  }, [wallets]);
+  }, [wallets, isIOS]);
 
   // check if phantom is loadable, we will overwrite with a deep link on iOS
   // this improves the PWA UX on iOS by allowing users to open the app directly
@@ -115,7 +115,7 @@ export const WalletAuthDialog = () => {
       setIsLoading(false);
       setIsActiveLoading("");
     }
-  }, [connected]);
+  }, [connected, setIsWalletAuthDialogOpen]);
 
   return (
     <div>

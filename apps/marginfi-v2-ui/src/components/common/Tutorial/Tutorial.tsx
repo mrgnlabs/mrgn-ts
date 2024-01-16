@@ -120,7 +120,7 @@ export const Tutorial = () => {
       setProModeOnly(true);
       setOpen(true);
     }
-  }, []);
+  }, [isMobile]);
 
   return (
     <>

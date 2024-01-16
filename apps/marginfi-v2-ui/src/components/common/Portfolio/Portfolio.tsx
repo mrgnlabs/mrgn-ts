@@ -47,7 +47,7 @@ export const Portfolio = () => {
           ? usdFormatterDyn.format(Math.round(accountSummary.lendingAmountUnbiased))
           : usdFormatter.format(accountSummary.lendingAmountUnbiased)
         : "-",
-    [accountSummary.lendingAmountUnbiased]
+    [accountSummary]
   );
   const accountBorrowed = React.useMemo(
     () =>
@@ -56,7 +56,7 @@ export const Portfolio = () => {
           ? usdFormatterDyn.format(Math.round(accountSummary.borrowingAmountUnbiased))
           : usdFormatter.format(accountSummary.borrowingAmountUnbiased)
         : "-",
-    [accountSummary.borrowingAmountUnbiased]
+    [accountSummary]
   );
   const accountNetValue = React.useMemo(
     () =>
@@ -65,7 +65,7 @@ export const Portfolio = () => {
           ? usdFormatterDyn.format(Math.round(accountSummary.balanceUnbiased))
           : usdFormatter.format(accountSummary.balanceUnbiased)
         : "-",
-    [accountSummary.balanceUnbiased]
+    [accountSummary]
   );
 
   const healthColor = React.useMemo(() => {

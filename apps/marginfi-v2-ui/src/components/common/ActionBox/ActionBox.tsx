@@ -113,7 +113,7 @@ export const ActionBox = ({
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
 
-  const numberFormater = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
+  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -211,7 +211,7 @@ export const ActionBox = ({
         setActionMode(ActionType.Borrow);
       }
     }
-  }, [lendingMode, setActionMode]);
+  }, [lendingMode, setActionMode, requestedAction]);
 
   React.useEffect(() => {
     if (requestedAction) {
@@ -233,7 +233,7 @@ export const ActionBox = ({
     if (amount && amount > maxAmount) {
       setAmountRaw(numberFormater.format(maxAmount));
     }
-  }, [maxAmount, amount]);
+  }, [maxAmount, amount, numberFormater]);
 
   React.useEffect(() => {
     if (
@@ -378,7 +378,7 @@ export const ActionBox = ({
         console.log(error);
       }
     },
-    [fetchMrgnlendState, setIsRefreshingStore, priorityFee]
+    [fetchMrgnlendState, setIsRefreshingStore, priorityFee, setPreviousTxn, setIsActionComplete, handleCloseDialog]
   );
 
   const handleCloseBalance = React.useCallback(async () => {
@@ -401,7 +401,7 @@ export const ActionBox = ({
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [selectedBank, selectedAccount, fetchMrgnlendState, setIsRefreshingStore, priorityFee]);
+  }, [selectedBank, selectedAccount, fetchMrgnlendState, setIsRefreshingStore, priorityFee, handleCloseDialog]);
 
   const handleLendingAction = React.useCallback(async () => {
     if (!actionMode || !selectedBank || !amount) {
@@ -486,7 +486,7 @@ export const ActionBox = ({
         setAmountRaw(formattedAmount);
       }
     },
-    [maxAmount, setAmountRaw, amount, selectedBank]
+    [maxAmount, setAmountRaw, selectedBank, numberFormater]
   );
 
   return (
@@ -640,7 +640,7 @@ const ActionBoxAvailableCollateral: FC<{
 
   const healthColor = React.useMemo(
     () => getMaintHealthColor(preview?.availableCollateral.ratio ?? availableRatio),
-    [preview?.health, availableRatio]
+    [availableRatio, preview?.availableCollateral.ratio]
   );
 
   useEffect(() => {

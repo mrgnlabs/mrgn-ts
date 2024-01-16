@@ -63,18 +63,21 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
     );
 
     return hasBankTokens;
-  }, [extendedBankInfos, nativeSolBalance]);
+  }, [extendedBankInfos]);
 
   /////// FILTERS
 
   // filter on balance
-  const balanceFilter = (bankInfo: ExtendedBankInfo) => {
-    const isWSOL = bankInfo.info.state.mint?.equals ? bankInfo.info.state.mint.equals(WSOL_MINT) : false;
-    const balance = isWSOL
-      ? bankInfo.userInfo.tokenAccount.balance + nativeSolBalance
-      : bankInfo.userInfo.tokenAccount.balance;
-    return balance > 0;
-  };
+  const balanceFilter = React.useCallback(
+    (bankInfo: ExtendedBankInfo) => {
+      const isWSOL = bankInfo.info.state.mint?.equals ? bankInfo.info.state.mint.equals(WSOL_MINT) : false;
+      const balance = isWSOL
+        ? bankInfo.userInfo.tokenAccount.balance + nativeSolBalance
+        : bankInfo.userInfo.tokenAccount.balance;
+      return balance > 0;
+    },
+    [nativeSolBalance]
+  );
 
   // filter on search
   const searchFilter = React.useCallback(
@@ -113,7 +116,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
           return secondBalance - firstBalance;
         })
     );
-  }, [extendedBankInfos, searchFilter]);
+  }, [extendedBankInfos, searchFilter, nativeSolBalance, balanceFilter]);
 
   // const ownedBanksPk = React.useMemo(() => filteredBanksUserOwns.map((bank) => bank.address), [filteredBanksUserOwns]);
 
@@ -128,7 +131,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
   // other banks without positions
   const filteredBanks = React.useMemo(() => {
     return extendedBankInfos.filter(searchFilter);
-  }, [extendedBankInfos, lendingMode, searchFilter]);
+  }, [extendedBankInfos, searchFilter]);
 
   const globalBanks = React.useMemo(() => filteredBanks.filter((bank) => !bank.info.state.isIsolated), [filteredBanks]);
   const isolatedBanks = React.useMemo(

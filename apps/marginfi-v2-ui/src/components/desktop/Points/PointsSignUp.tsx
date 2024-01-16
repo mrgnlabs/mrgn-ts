@@ -45,7 +45,7 @@ export const PointsSignUp: FC<PointsSignUpProps> = ({ referralCode }) => {
     } catch (signupError: any) {
       toast.error(signupError.message);
     }
-  }, [connection, finalReferralCode, useAuthTx, wallet]);
+  }, [finalReferralCode, wallet]);
 
   return (
     <Card className="max-w-[800px] mx-auto w-full bg-[#1A1F22] h-full h-24 rounded-xl" elevation={0}>

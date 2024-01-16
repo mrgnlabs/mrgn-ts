@@ -66,18 +66,18 @@ export const WalletOnramp = () => {
     } catch (e) {
       console.log("initMoonpay error", e);
     }
-  }, []);
+  }, [isOnrampActive, wallet?.publicKey]);
 
   const triggerMoonpay = React.useCallback(() => {
     if (!moonPay) return;
     moonPay.show();
     setIsOnrampActive(true);
-  }, [moonPay]);
+  }, [moonPay, setIsOnrampActive]);
 
   React.useEffect(() => {
     if (!window) return;
     initMoonpay();
-  }, [window]);
+  }, [initMoonpay]);
 
   return (
     <>
