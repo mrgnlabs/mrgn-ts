@@ -151,6 +151,10 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       }
       return walletContextStateDefault;
     }
+
+    // intentionally do not include walletContextStateDefault
+    // TODO: find a better way to handle integrating web3auth and wallet adapter
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [web3Auth?.connected, web3AuthWalletData, walletContextStateDefault.connected]);
 
   // update wallet object, 3 potential sources: web3auth, anchor, override
@@ -202,6 +206,80 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       };
     }
   }, [anchorWallet, web3AuthWalletData, query, web3Auth?.connected, walletContextState]);
+
+  // login to web3auth with specified social provider
+  const loginWeb3Auth = React.useCallback(
+    async (provider: string, extraLoginOptions: any = {}, cb?: () => void) => {
+      try {
+        if (!web3Auth) {
+          showErrorToast("marginfi account not ready.");
+          throw new Error("marginfi account not ready.");
+        }
+        await web3Auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
+          loginProvider: provider,
+          extraLoginOptions,
+          mfaLevel: "none",
+        });
+
+        const walletInfo: WalletInfo = {
+          name: provider!,
+          web3Auth: true,
+          email: extraLoginOptions.login_hint,
+        };
+        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+      } catch (error) {
+        setIsWalletAuthDialogOpen(true);
+        console.error(error);
+      }
+    },
+    [web3Auth, setIsWalletAuthDialogOpen]
+  );
+
+  // logout of web3auth or solana wallet adapter
+  const logout = React.useCallback(async () => {
+    if (web3Auth?.connected && web3Auth) {
+      await web3Auth.logout();
+      setWeb3AuthWalletData(undefined);
+    } else {
+      await walletContextState?.disconnect();
+    }
+
+    if (asPath.includes("#")) {
+      // Remove the hash and update the URL
+      const newUrl = asPath.split("#")[0];
+      replace(newUrl);
+    }
+    setIsLoading(false);
+    setPfp("");
+  }, [walletContextState, web3Auth, asPath, replace]);
+
+  // called when user requests private key
+  // stores short lived cookie and forces login
+  const requestPrivateKey = React.useCallback(async () => {
+    if (!web3AuthLoginType || !web3Auth) return;
+    setWeb3AuthPkCookie("mrgnPrivateKeyRequested", true, { expires: new Date(Date.now() + 5 * 60 * 1000) });
+    await web3Auth.logout();
+    await loginWeb3Auth(web3AuthLoginType, {
+      login_hint: web3AuthLoginType === "email_passwordless" ? web3AuthEmail : undefined,
+    });
+  }, [web3Auth, web3AuthLoginType, web3AuthEmail, loginWeb3Auth, setWeb3AuthPkCookie]);
+
+  // if private key requested cookie is found then fetch pk, store in state, and clear cookie
+  const checkPrivateKeyRequested = React.useCallback(
+    async (provider: IProvider) => {
+      if (!web3AuthPkCookie.mrgnPrivateKeyRequested) return;
+
+      const privateKeyHexString = (await provider.request({
+        method: "solanaPrivateKey",
+      })) as string;
+      const privateKeyBytes = new Uint8Array(privateKeyHexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+      const privateKeyBase58 = base58.encode(privateKeyBytes);
+
+      setWeb3AuthPkCookie("mrgnPrivateKeyRequested", false);
+      setWeb3AuthPk(privateKeyBase58);
+    },
+    [web3AuthPkCookie, setWeb3AuthPkCookie]
+  );
 
   // if web3auth is connected, update wallet object
   // and override signTransaction methods with web3auth sdk
@@ -260,82 +338,8 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         },
       });
     },
-    [web3Auth]
+    [web3Auth, checkPrivateKeyRequested, setWeb3AuthLoginType, setWeb3AuthEmail]
   );
-
-  // called when user requests private key
-  // stores short lived cookie and forces login
-  const requestPrivateKey = React.useCallback(async () => {
-    if (!web3AuthLoginType || !web3Auth) return;
-    setWeb3AuthPkCookie("mrgnPrivateKeyRequested", true, { expires: new Date(Date.now() + 5 * 60 * 1000) });
-    await web3Auth.logout();
-    await loginWeb3Auth(web3AuthLoginType, {
-      login_hint: web3AuthLoginType === "email_passwordless" ? web3AuthEmail : undefined,
-    });
-  }, [web3Auth, web3AuthLoginType]);
-
-  // if private key requested cookie is found then fetch pk, store in state, and clear cookie
-  const checkPrivateKeyRequested = React.useCallback(
-    async (provider: IProvider) => {
-      if (!web3AuthPkCookie.mrgnPrivateKeyRequested) return;
-
-      const privateKeyHexString = (await provider.request({
-        method: "solanaPrivateKey",
-      })) as string;
-      const privateKeyBytes = new Uint8Array(privateKeyHexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
-      const privateKeyBase58 = base58.encode(privateKeyBytes);
-
-      setWeb3AuthPkCookie("mrgnPrivateKeyRequested", false);
-      setWeb3AuthPk(privateKeyBase58);
-    },
-    [web3AuthPkCookie]
-  );
-
-  // login to web3auth with specified social provider
-  const loginWeb3Auth = React.useCallback(
-    async (provider: string, extraLoginOptions: any = {}, cb?: () => void) => {
-      try {
-        if (!web3Auth) {
-          showErrorToast("marginfi account not ready.");
-          throw new Error("marginfi account not ready.")
-        }
-        await web3Auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
-          loginProvider: provider,
-          extraLoginOptions,
-          mfaLevel: "none",
-        });
-
-        const walletInfo: WalletInfo = {
-          name: provider!,
-          web3Auth: true,
-          email: extraLoginOptions.login_hint,
-        };
-        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
-      } catch (error) {
-        setIsWalletAuthDialogOpen(true)
-        console.error(error);
-      }
-    },
-    [web3Auth]
-  );
-
-  // logout of web3auth or solana wallet adapter
-  const logout = React.useCallback(async () => {
-    if (web3Auth?.connected && web3Auth) {
-      await web3Auth.logout();
-      setWeb3AuthWalletData(undefined);
-    } else {
-      await walletContextState?.disconnect();
-    }
-
-    if (asPath.includes("#")) {
-      // Remove the hash and update the URL
-      const newUrl = asPath.split("#")[0];
-      replace(newUrl);
-    }
-    setIsLoading(false);
-    setPfp("");
-  }, [walletContextState, web3Auth?.connected, walletContextStateDefault]);
 
   // if web3auth is connected, fetch wallet data
   React.useEffect(() => {
@@ -343,43 +347,45 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(true);
     makeweb3AuthWalletData(web3Auth.provider);
     setIsLoading(false);
-  }, [web3Auth?.connected, web3Auth?.provider, web3AuthWalletData]);
+  }, [web3Auth?.connected, web3Auth?.provider, web3AuthWalletData, makeweb3AuthWalletData]);
+
+  const init = React.useCallback(async () => {
+    try {
+      const web3AuthInstance = new Web3AuthNoModal({
+        clientId: process.env.NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID!,
+        chainConfig: web3AuthChainConfig,
+        web3AuthNetwork: "sapphire_mainnet",
+      });
+
+      const privateKeyProvider = new SolanaPrivateKeyProvider({ config: { chainConfig: web3AuthChainConfig } });
+
+      const openloginAdapter = new OpenloginAdapter({
+        privateKeyProvider,
+        adapterSettings: web3AuthOpenLoginAdapterSettings,
+      });
+
+      web3AuthInstance.configureAdapter(openloginAdapter);
+
+      web3AuthInstance.on(ADAPTER_EVENTS.CONNECTED, async (provider) => {
+        await makeweb3AuthWalletData(provider);
+      });
+
+      await web3AuthInstance.init();
+
+      setweb3Auth(web3AuthInstance);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [makeweb3AuthWalletData]);
 
   // initialize web3auth sdk on page load
   React.useEffect(() => {
-    const init = async () => {
-      try {
-        const web3AuthInstance = new Web3AuthNoModal({
-          clientId: process.env.NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID!,
-          chainConfig: web3AuthChainConfig,
-          web3AuthNetwork: "sapphire_mainnet",
-        });
-
-        const privateKeyProvider = new SolanaPrivateKeyProvider({ config: { chainConfig: web3AuthChainConfig } });
-
-        const openloginAdapter = new OpenloginAdapter({
-          privateKeyProvider,
-          adapterSettings: web3AuthOpenLoginAdapterSettings,
-        });
-
-        web3AuthInstance.configureAdapter(openloginAdapter);
-
-        web3AuthInstance.on(ADAPTER_EVENTS.CONNECTED, async (provider) => {
-          await makeweb3AuthWalletData(provider);
-        });
-
-        await web3AuthInstance.init();
-
-        setweb3Auth(web3AuthInstance);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (web3Auth) return;
     setIsLoading(true);
     init();
-  }, []);
+  }, [init, web3Auth]);
 
   return (
     <WalletContext.Provider
