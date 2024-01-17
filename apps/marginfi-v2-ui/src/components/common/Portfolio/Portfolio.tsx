@@ -1,15 +1,14 @@
 import React from "react";
 
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
 
-import { IconInfoCircle, IconAlertTriangle } from "~/components/ui/icons";
-import { UserStats } from "./UserStats";
-import { AssetCard, AssetCardSkeleton } from "./AssetCard";
+import { PortfolioUserStats, PortfolioAssetCard, PortfolioAssetCardSkeleton } from "~/components/common/Portfolio";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { IconInfoCircle } from "~/components/ui/icons";
 
 export const Portfolio = () => {
   const [isStoreInitialized, sortedBanks, accountSummary] = useMrgnlendStore((state) => [
@@ -102,12 +101,12 @@ export const Portfolio = () => {
                 <TooltipTrigger asChild>
                   <IconInfoCircle size={16} />
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="right">
                   <div className="flex flex-col gap-2 pb-2">
                     <p>
-                      Health factor is based off of <b>price biased</b> and <b>weighted</b> asset and liability values.
+                      Health factor is based off <b>price biased</b> and <b>weighted</b> asset and liability values.
                     </p>
-                    <div className="font-bold">
+                    <div className="font-medium">
                       When your account health reaches 0% or below, you are exposed to liquidation.
                     </div>
                     <p>The formula is:</p>
@@ -123,7 +122,7 @@ export const Portfolio = () => {
               </Tooltip>
             </TooltipProvider>
           </dt>
-          <dd className="text-xl md:text-2xl font-bold" style={{ color: healthColor }}>
+          <dd className="text-xl md:text-2xl font-medium" style={{ color: healthColor }}>
             {numeralFormatter(accountSummary.healthFactor * 100)}%
           </dd>
         </dl>
@@ -136,7 +135,7 @@ export const Portfolio = () => {
             }}
           />
         </div>
-        <UserStats
+        <PortfolioUserStats
           supplied={accountSupplied}
           borrowed={accountBorrowed}
           netValue={accountNetValue}
@@ -153,7 +152,7 @@ export const Portfolio = () => {
             lendingBanks.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {lendingBanks.map((bank) => (
-                  <AssetCard key={bank.meta.tokenSymbol} bank={bank} isInLendingMode={true} />
+                  <PortfolioAssetCard key={bank.meta.tokenSymbol} bank={bank} isInLendingMode={true} />
                 ))}
               </div>
             ) : (
@@ -162,7 +161,7 @@ export const Portfolio = () => {
               </div>
             )
           ) : (
-            <AssetCardSkeleton />
+            <PortfolioAssetCardSkeleton />
           )}
         </div>
         <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
@@ -174,7 +173,7 @@ export const Portfolio = () => {
             borrowingBanks.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {borrowingBanks.map((bank) => (
-                  <AssetCard key={bank.meta.tokenSymbol} bank={bank} isInLendingMode={false} />
+                  <PortfolioAssetCard key={bank.meta.tokenSymbol} bank={bank} isInLendingMode={false} />
                 ))}
               </div>
             ) : (
@@ -183,7 +182,7 @@ export const Portfolio = () => {
               </div>
             )
           ) : (
-            <AssetCardSkeleton />
+            <PortfolioAssetCardSkeleton />
           )}
         </div>
       </div>
