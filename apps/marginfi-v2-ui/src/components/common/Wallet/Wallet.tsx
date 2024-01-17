@@ -37,6 +37,7 @@ export const Wallet = () => {
   const isMobile = useIsMobile();
 
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
+  const [isFundingWalletAddressCopied, setIsFundingWalletAddressCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
@@ -176,19 +177,22 @@ export const Wallet = () => {
                     }, 2000);
                   }}
                 >
-                  <div>
+                  <div className="flex items-center gap-1.5">
+                    <button className="flex items-center gap-1 cursor-pointe outline-none">
+                      {isWalletAddressCopied && <>copied!</>}
+                      {!isWalletAddressCopied && <>{walletData.shortAddress}</>}
+                    </button>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button className="flex items-center gap-1 cursor-pointe outline-none">
                             {isWalletAddressCopied && (
                               <>
-                                copied! <IconCheck size={14} />
+                                <IconCheck size={14} />
                               </>
                             )}
                             {!isWalletAddressCopied && (
                               <>
-                                {walletData.shortAddress}
                                 <IconCopy size={14} />
                               </>
                             )}
@@ -211,14 +215,33 @@ export const Wallet = () => {
                 <div className="pt-8">
                   <div className="text-sm text-white/50 text-center mb-4 wallet-sheet-item">
                     Transfer funds to your marginfi wallet
-                    <CopyToClipboard text={walletData.address}>
-                      <div className="inline-block">
+                    <CopyToClipboard
+                      text={walletData.address}
+                      onCopy={() => {
+                        setIsFundingWalletAddressCopied(true);
+                        setTimeout(() => {
+                          setIsFundingWalletAddressCopied(false);
+                        }, 2000);
+                      }}
+                    >
+                      <div className="inline-flex items-center gap-1 mr-1">
+                        <button className="flex items-center gap-1 cursor-pointe outline-none">
+                          {walletData.shortAddress}
+                        </button>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <button className="font-medium inline-flex mx-1 items-center gap-1 cursor-pointer">
-                                {shortenAddress(walletData.address)}
-                                <IconCopy size={12} />
+                              <button className="flex items-center gap-1 cursor-pointe outline-none">
+                                {isFundingWalletAddressCopied && (
+                                  <>
+                                    <IconCheck size={14} />
+                                  </>
+                                )}
+                                {!isFundingWalletAddressCopied && (
+                                  <>
+                                    <IconCopy size={14} />
+                                  </>
+                                )}
                               </button>
                             </TooltipTrigger>
                             <TooltipContent>Click to copy</TooltipContent>
