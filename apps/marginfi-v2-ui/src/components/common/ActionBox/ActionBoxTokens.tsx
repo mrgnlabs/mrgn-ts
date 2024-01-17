@@ -158,7 +158,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
           <PopoverTrigger asChild>
             <Button
               className={cn(
-                "bg-background-gray-light text-white w-full text-left text-base items-center justify-start py-6 px-3 gap-2.5 transition-colors hover:bg-background-gray",
+                "bg-background-gray-light text-white w-full font-normal text-left text-base items-center justify-start py-6 px-3 gap-2.5 transition-colors hover:bg-background-gray",
                 "xs:pr-5 xs:pl-6 xs:justify-center",
                 isTokenPopoverOpen && "bg-background-gray"
               )}
@@ -167,7 +167,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
                 <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={calculateRate(selectedBank)} />
               )}
               {!selectedBank && <>Select token</>}
-              <IconChevronDown className="shrink-0 ml-2" />
+              <IconChevronDown className="shrink-0 ml-2" size={20} />
             </Button>
           </PopoverTrigger>
           <PopoverContent
@@ -394,11 +394,11 @@ const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemProps) =>
   return (
     <>
       <Image src={bank.meta.tokenLogoUri!} alt={bank.meta.tokenName} width={28} height={28} className="rounded-full" />
-      <div className="flex flex-col gap-1 xs:gap-0 mr-auto xs:mr-0 xs:pt-1">
-        <p className="leading-none xs:leading-none text-sm xs:text-base">{bank.meta.tokenSymbol}</p>
+      <div className="flex flex-col gap-1 mr-auto xs:mr-0">
+        <p className="leading-none text-sm">{bank.meta.tokenSymbol}</p>
         <p
           className={cn(
-            "text-xs xs:text-sm font-normal leading-none",
+            "text-xs font-normal leading-none",
             lendingMode === LendingModes.LEND && "text-success",
             lendingMode === LendingModes.BORROW && "text-error"
           )}
