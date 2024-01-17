@@ -22,10 +22,6 @@ import { UserMode } from "~/types";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
 
-const MobileAssetsList = dynamic(async () => (await import("~/components/mobile/MobileAssetsList")).MobileAssetsList, {
-  ssr: false,
-});
-
 const Home = () => {
   const { walletAddress, isOverride } = useWalletContext();
   const [userMode, previousTxn] = useUiStore((state) => [state.userMode, state.previousTxn]);
@@ -89,9 +85,6 @@ const Home = () => {
         )}
         <Stats />
         <ActionBox />
-        <div className="flex flex-col w-full h-full justify-start content-start pt-4 px-4 gap-4 mt-8 mb-20">
-          <MobileAssetsList />
-        </div>
       </Mobile>
       {isStoreInitialized && previousTxn && <ActionComplete />}
     </>
