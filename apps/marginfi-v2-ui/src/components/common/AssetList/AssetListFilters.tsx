@@ -7,6 +7,7 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
 
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -56,6 +57,14 @@ export const AssetListFilters = () => {
                 setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND)
               }
             />
+            <ToggleGroup type="multiple">
+              <ToggleGroupItem value="lend" aria-label="Lend">
+                Lend
+              </ToggleGroupItem>
+              <ToggleGroupItem value="borrow" aria-label="Borrow">
+                Borrow
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
         </div>
         {(userMode === UserMode.PRO || isMobile) && (
