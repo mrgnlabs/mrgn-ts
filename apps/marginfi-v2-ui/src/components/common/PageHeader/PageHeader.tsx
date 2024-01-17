@@ -1,7 +1,7 @@
 import { FC, ReactNode } from "react";
 import Head from "next/head";
 import { useUiStore } from "~/store";
-import { WalletButton } from "./Wallet";
+import { WalletButton } from "../Wallet";
 import { Mobile } from "~/mediaQueries";
 import { IconMrgn } from "~/components/ui/icons";
 
@@ -9,7 +9,7 @@ interface PageHeaderProps {
   children: ReactNode;
 }
 
-const PageHeader: FC<PageHeaderProps> = ({ children }) => {
+export const PageHeader: FC<PageHeaderProps> = ({ children }) => {
   const [isFetchingData] = useUiStore((state) => [state.isFetchingData]);
 
   return (
@@ -37,5 +37,3 @@ const PageHeader: FC<PageHeaderProps> = ({ children }) => {
     </>
   );
 };
-
-export { PageHeader };
