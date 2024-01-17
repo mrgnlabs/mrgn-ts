@@ -28,7 +28,7 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
 
   return (
     <div className="w-full mt-8 space-y-1">
-      <h3 className="font-medium text-sm">Tokens</h3>
+      <h3 className="font-normal text-sm">Tokens</h3>
       {tokens.length === 1 && (
         <Button
           variant="outline"
@@ -68,7 +68,10 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
 
               <CommandGroup>
                 {tokens.slice(1).map((token, index) => (
-                  <CommandItem key={index} className="flex items-center justify-start font-medium pl-3">
+                  <CommandItem
+                    key={index}
+                    className="flex items-center justify-start font-normal pl-3 aria-selected:bg-transparent aria-selected:text-white"
+                  >
                     {token.image && (
                       <Image src={token.image} alt={token.symbol} className="w-4 h-4 mr-3" width={16} height={16} />
                     )}
