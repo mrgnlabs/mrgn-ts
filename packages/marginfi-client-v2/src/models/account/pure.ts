@@ -919,6 +919,29 @@ class MarginfiAccount {
     return { instructions: ixs, keys: [] };
   }
 
+  async makeBeginFlashLoanIx(program: MarginfiProgram, endIndex: number): Promise<InstructionsWrapper> {
+    const ix = await instructions.makeBeginFlashLoanIx(
+      program,
+      {
+        marginfiAccount: this.address,
+        signer: this.authority,
+      },
+      { endIndex: new BN(endIndex) }
+    );
+    return { instructions: [ix], keys: [] };
+  }
+
+  async makeEndFlashLoanIx(program: MarginfiProgram, banks: Map<string, Bank>
+    ): Promise<InstructionsWrapper> {
+    const remainingAccounts = this.getHealthCheckAccounts(banks);
+    const ix = await instructions.makeEndFlashLoanIx(program, {
+      marginfiAccount: this.address,
+      signer: this.authority,
+    }, remainingAccounts);
+
+    return { instructions: [ix], keys: [] };
+  }
+
   wrapInstructionForWSol(ix: TransactionInstruction, amount: Amount = new BigNumber(0)): TransactionInstruction[] {
     return [...makeWrapSolIxs(this.authority, new BigNumber(amount)), ix, makeUnwrapSolIx(this.authority)];
   }
@@ -927,6 +950,7 @@ class MarginfiAccount {
     const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Equity);
     let description = `
 - Marginfi account: ${this.address}
+- Authority: ${this.authority}
 - Total deposits: $${assets.toFixed(6)}
 - Total liabilities: $${liabilities.toFixed(6)}
 - Equity: $${assets.minus(liabilities).toFixed(6)}

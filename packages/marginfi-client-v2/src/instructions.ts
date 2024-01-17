@@ -1,4 +1,4 @@
-import { AccountMeta, PublicKey, SystemProgram } from "@solana/web3.js";
+import { AccountMeta, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram } from "@solana/web3.js";
 import BN from "bn.js";
 import { MarginfiProgram } from "./types";
 import { BankConfigOptRaw } from "./models/bank";
@@ -249,6 +249,45 @@ function makePoolConfigureBankIx(
     })
     .instruction();
 }
+ 
+function makeBeginFlashLoanIx(
+  mfiProgram: MarginfiProgram,
+  accounts: {
+    marginfiAccount: PublicKey;
+    signer: PublicKey;
+  },
+  args: {
+    endIndex: BN;
+  }
+) {
+  console.log(args.endIndex.toString());
+  return mfiProgram.methods
+    .lendingAccountStartFlashloan(args.endIndex)
+    .accountsStrict({
+      marginfiAccount: accounts.marginfiAccount,
+      signer: accounts.signer,
+      ixsSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
+    })
+    .instruction();
+}
+
+function makeEndFlashLoanIx(
+  mfiProgram: MarginfiProgram,
+  accounts: {
+    marginfiAccount: PublicKey;
+    signer: PublicKey;
+  },
+  remainingAccounts: AccountMeta[] = []
+) {
+  return mfiProgram.methods
+    .lendingAccountEndFlashloan()
+    .accountsStrict({
+      marginfiAccount: accounts.marginfiAccount,
+      signer: accounts.signer,
+    })
+    .remainingAccounts(remainingAccounts)
+    .instruction();
+}
 
 const instructions = {
   makeDepositIx,
@@ -261,6 +300,8 @@ const instructions = {
   makeSetAccountFlagIx,
   makeUnsetAccountFlagIx,
   makePoolConfigureBankIx,
+  makeBeginFlashLoanIx,
+  makeEndFlashLoanIx,
 };
 
 export default instructions;

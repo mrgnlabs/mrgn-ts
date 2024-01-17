@@ -3,8 +3,9 @@ import dotenv from "dotenv";
 import { Environment } from "../src";
 import { Keypair } from "@solana/web3.js";
 import * as fs from "fs";
+import path from "path";
+import { homedir } from "os";
 import { loadKeypair } from "@mrgnlabs/mrgn-common";
-import { resolveHome } from "./utils";
 
 dotenv.config();
 
@@ -26,3 +27,10 @@ let envSchema = z.object({
 type EnvSchema = z.infer<typeof envSchema>;
 
 export const env_config: EnvSchema = envSchema.parse(process.env);
+
+function resolveHome(filepath: string) {
+  if (filepath[0] === "~") {
+    return path.join(homedir(), filepath.slice(1));
+  }
+  return filepath;
+}

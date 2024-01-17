@@ -8,6 +8,7 @@ import {
   TransactionInstruction,
   ComputeBudgetProgram,
   LAMPORTS_PER_SOL,
+  Signer,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { MarginfiClient, MarginfiGroup } from "../..";
@@ -20,6 +21,11 @@ import { Balance } from "../balance";
 export interface SimulationResult {
   banks: Map<string, Bank>;
   marginfiAccount: MarginfiAccountWrapper;
+}
+
+export interface FlashLoanArgs {
+  ixs: TransactionInstruction[];
+  signers: Signer[];
 }
 
 class MarginfiAccountWrapper {
@@ -481,6 +487,34 @@ class MarginfiAccountWrapper {
     const tx = new Transaction().add(...ixw.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Liquidation successful %s", sig);
+    return sig;
+  }
+
+  public async makeBeginFlashLoanIx(endIndex: number): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeBeginFlashLoanIx(this._program, endIndex);
+  }
+
+  public async makeEndFlashLoanIx(): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeEndFlashLoanIx(this._program, this.client.banks);
+  }
+
+  public async flashLoan(args: FlashLoanArgs): Promise<string> {
+    const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:flash-loan`);
+    debug("Performing flash loan");
+    const endIndex = args.ixs.length + 1;
+
+    const beginFlashLoanIx = await this.makeBeginFlashLoanIx(endIndex);
+    const endFlashLoanIx = await this.makeEndFlashLoanIx();
+
+    const ixs = [
+      ...beginFlashLoanIx.instructions,
+      ...args.ixs,
+      ...endFlashLoanIx.instructions,
+    ]
+
+    const tx = new Transaction().add(...ixs);
+    const sig = await this.client.processTransaction(tx, args.signers);
+    debug("Flash loan successful %s", sig);
     return sig;
   }
 
