@@ -2,22 +2,20 @@ import React from "react";
 
 import Image from "next/image";
 
+import { PublicKey } from "@solana/web3.js";
+
 import { numeralFormatter, usdFormatter, percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, Emissions, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 
+import { LendingModes } from "~/types";
 import { useMrgnlendStore, useUiStore } from "~/store";
-
 import { cn } from "~/utils";
-
 import { useWalletContext } from "~/hooks/useWalletContext";
+
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
-
 import { IconChevronDown, IconMoonPay, IconX } from "~/components/ui/icons";
-
-import { LendingModes } from "~/types";
-import { PublicKey } from "@solana/web3.js";
 
 type ActionBoxTokensProps = {
   currentTokenBank: PublicKey | null;
@@ -118,8 +116,6 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
     );
   }, [extendedBankInfos, searchFilter, nativeSolBalance, balanceFilter]);
 
-  // const ownedBanksPk = React.useMemo(() => filteredBanksUserOwns.map((bank) => bank.address), [filteredBanksUserOwns]);
-
   // active position banks
   const filteredBanksActive = React.useMemo(() => {
     return extendedBankInfos
@@ -159,7 +155,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
             <Button
               className={cn(
                 "bg-background-gray-light text-white w-full font-normal text-left text-base items-center justify-start py-6 px-3 gap-2.5 transition-colors hover:bg-background-gray",
-                "xs:pr-5 xs:pl-6 xs:justify-center",
+                "xs:pr-2.5 xs:pl-3.5 xs:py-7 xs:justify-center",
                 isTokenPopoverOpen && "bg-background-gray"
               )}
             >
@@ -214,7 +210,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
               <CommandEmpty>No tokens found.</CommandEmpty>
 
               {/* LENDING */}
-              <div className="max-h-[420px] overflow-auto">
+              <div className="max-h-[calc(100vh-580px)] overflow-auto">
                 {lendingMode === LendingModes.LEND && connected && filteredBanksUserOwns.length > 0 && (
                   <CommandGroup heading="Available in your wallet">
                     {filteredBanksUserOwns
@@ -232,7 +228,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
                               );
                               setIsTokenPopoverOpen(false);
                             }}
-                            className="cursor-pointer h-[60px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                            className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
                           >
                             <ActionBoxItem
                               rate={calculateRate(bank)}
@@ -393,7 +389,7 @@ type SelectedBankItemProps = {
 const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemProps) => {
   return (
     <>
-      <Image src={bank.meta.tokenLogoUri!} alt={bank.meta.tokenName} width={28} height={28} className="rounded-full" />
+      <Image src={bank.meta.tokenLogoUri!} alt={bank.meta.tokenName} width={30} height={30} className="rounded-full" />
       <div className="flex flex-col gap-1 mr-auto xs:mr-0">
         <p className="leading-none text-sm">{bank.meta.tokenSymbol}</p>
         <p
@@ -440,8 +436,8 @@ const ActionBoxItem = ({ rate, lendingMode, bank, nativeSolBalance, showBalanceO
           <Image
             src={bank.meta.tokenLogoUri}
             alt={bank.meta.tokenName}
-            width={24}
-            height={24}
+            width={28}
+            height={28}
             className="rounded-full"
           />
         )}
@@ -449,7 +445,7 @@ const ActionBoxItem = ({ rate, lendingMode, bank, nativeSolBalance, showBalanceO
           <p>{bank.meta.tokenSymbol}</p>
           <p
             className={cn(
-              "text-sm",
+              "text-xs font-normal",
               lendingMode === LendingModes.LEND && "text-success",
               lendingMode === LendingModes.BORROW && "text-error"
             )}
@@ -460,9 +456,9 @@ const ActionBoxItem = ({ rate, lendingMode, bank, nativeSolBalance, showBalanceO
       </div>
 
       {((lendingMode === LendingModes.BORROW && balance > 0) || showBalanceOverride) && (
-        <div className="space-y-0.5 text-right">
-          <p className="font-medium">{balance > 0.01 ? numeralFormatter(balance) : "< 0.01"}</p>
-          <p className="text-sm text-muted-foreground">{balancePrice}</p>
+        <div className="space-y-0.5 text-right font-normal text-sm">
+          <p>{balance > 0.01 ? numeralFormatter(balance) : "< 0.01"}</p>
+          <p className="text-xs text-muted-foreground">{balancePrice}</p>
         </div>
       )}
     </>
