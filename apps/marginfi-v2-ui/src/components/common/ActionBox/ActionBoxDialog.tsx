@@ -1,11 +1,12 @@
 import React from "react";
+
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PublicKey } from "@solana/web3.js";
 
-import { ActionBox } from "~/components/common/ActionBox";
-
-import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
 import { LendingModes } from "~/types";
+
+import { ActionBox } from "~/components/common/ActionBox";
+import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
 
 type ActionBoxDialogProps = {
   requestedAction?: ActionType;

@@ -1,17 +1,19 @@
-import React, { FC } from "react";
+import React from "react";
+
+import Image from "next/image";
+
 import { getPriceWithConfidence, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatter, numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import Image from "next/image";
 
 import { useMrgnlendStore } from "~/store";
-import { clampedNumeralFormatter, cn, getLiquidationPriceColor, getMaintHealthColor } from "~/utils";
-import { IconArrowRight, IconAlertTriangle, IconAlertTriangleFilled } from "~/components/ui/icons";
-import { Badge, Typography } from "@mui/material";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetsList/AssetRow";
+import { clampedNumeralFormatter, cn, getMaintHealthColor } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { ActionPreview } from "./ActionBox";
+
+import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetsList/AssetRow";
+import { ActionPreview } from "~/components/common/ActionBox";
+import { IconArrowRight, IconAlertTriangle, IconAlertTriangleFilled } from "~/components/ui/icons";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Skeleton } from "~/components/ui/skeleton";
 
 interface ActionBoxPreviewProps {
@@ -22,13 +24,13 @@ interface ActionBoxPreviewProps {
   preview: ActionPreview | null;
 }
 
-export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
+export const ActionBoxPreview = ({
   marginfiAccount,
   selectedBank,
   actionMode,
   isLoading,
   preview,
-}) => {
+}: ActionBoxPreviewProps) => {
   const showLending = React.useMemo(
     () => actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw,
     [actionMode]
@@ -47,8 +49,6 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
   );
 
   const isBorrowing = marginfiAccount?.activeBalances.find((b) => b.active && b.liabilityShares.gt(0)) !== undefined;
-
-  const isLending = marginfiAccount?.activeBalances.find((b) => b.active) !== undefined;
 
   const currentPositionAmount = selectedBank.isActive ? selectedBank.position.amount : 0;
 
@@ -82,9 +82,7 @@ export const ActionBoxPreview: FC<ActionBoxPreviewProps> = ({
                   <Image src="/info_icon.png" alt="info" height={12} width={12} />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                    Isolated pools are risky ⚠️
-                  </Typography>
+                  <h4 className="text-base">Isolated pools are risky ⚠️</h4>
                   Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you cannot
                   borrow other assets. Isolated pools should be considered particularly risky. As always, remember that
                   marginfi is a decentralized protocol and all deposited funds are at risk.
@@ -208,7 +206,7 @@ interface StatProps {
 const Stat = ({ label, classNames, children, style }: StatProps) => {
   return (
     <>
-      <dt className="text-muted-foreground font-normal">{label}</dt>
+      <dt className="text-muted-foreground">{label}</dt>
       <dd className={cn("flex justify-end text-right items-center gap-2", classNames)} style={style}>
         {children}
       </dd>

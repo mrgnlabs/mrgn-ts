@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo, useState } from "react";
+import React from "react";
 
 import { PublicKey } from "@solana/web3.js";
 
@@ -90,7 +90,7 @@ export const ActionBox = ({
   );
   const { walletContextState, connected } = useWalletContext();
 
-  const lendingMode = useMemo(
+  const lendingMode = React.useMemo(
     () => requestedLendingMode ?? lendingModeFromStore,
     [lendingModeFromStore, requestedLendingMode]
   );
@@ -117,7 +117,6 @@ export const ActionBox = ({
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
-  const hasActivePositions = React.useMemo(() => extendedBankInfos.find((bank) => bank.isActive), [extendedBankInfos]);
   const selectedBank = React.useMemo(
     () =>
       selectedTokenBank
@@ -180,7 +179,7 @@ export const ActionBox = ({
 
   const actionModePrev = usePrevious(actionMode);
 
-  const priorityFeeLabel = useMemo(() => {
+  const priorityFeeLabel = React.useMemo(() => {
     if (priorityFee === 0) return "Normal";
     if (priorityFee === 0.00005) return "High";
     if (priorityFee === 0.005) return "Mamas";
@@ -578,8 +577,8 @@ export const ActionBox = ({
 
               {actionMethod.description && (
                 <div className="pb-6">
-                  <div className="flex space-x-2 py-3 px-4 rounded-xl text-alert-foreground bg-alert">
-                    <IconAlertTriangle className="shrink-0 translate-y-1" size={18} />
+                  <div className="flex space-x-2 py-2.5 px-3.5 rounded-xl gap-1 text-alert-foreground bg-alert text-sm">
+                    <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
                     <p className="text-alert-foreground">{actionMethod.description}</p>
                   </div>
                 </div>
@@ -639,11 +638,13 @@ export const ActionBox = ({
   );
 };
 
-const ActionBoxAvailableCollateral: FC<{
+type ActionBoxAvailableCollateralProps = {
   isLoading: boolean;
   marginfiAccount: MarginfiAccountWrapper;
   preview: ActionPreview | null;
-}> = ({ isLoading, marginfiAccount, preview }) => {
+};
+
+const ActionBoxAvailableCollateral = ({ isLoading, marginfiAccount, preview }: ActionBoxAvailableCollateralProps) => {
   const [availableRatio, setAvailableRatio] = React.useState<number>(0);
   const [availableAmount, setAvailableAmount] = React.useState<number>(0);
 
@@ -652,7 +653,7 @@ const ActionBoxAvailableCollateral: FC<{
     [availableRatio, preview?.availableCollateral.ratio]
   );
 
-  useEffect(() => {
+  React.useEffect(() => {
     const currentAvailableCollateralAmount = marginfiAccount.computeFreeCollateral().toNumber();
     const currentAvailableCollateralRatio =
       currentAvailableCollateralAmount /
@@ -680,7 +681,7 @@ const ActionBoxAvailableCollateral: FC<{
             </Tooltip>
           </TooltipProvider>
         </dt>
-        <dd className="text-xl md:text-sm font-bold text-white">
+        <dd className="text-xl md:text-sm font-medium text-white">
           {isLoading ? (
             <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
           ) : (
