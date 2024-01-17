@@ -12,7 +12,7 @@ import { createLstStore } from "~/store/lstStore";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { StakingCard, StakingStats } from "~/components/common/Staking";
-import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
+import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { PageHeader } from "~/components/common/PageHeader";
 
 export const useLstStore = createLstStore();

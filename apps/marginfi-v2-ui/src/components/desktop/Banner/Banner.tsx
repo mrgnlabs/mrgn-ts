@@ -1,6 +1,10 @@
 import { FC } from "react";
 
-const Banner: FC<{ text: string; backgroundColor?: string; color?: string }> = ({ text, backgroundColor, color }) => {
+export const Banner: FC<{ text: string; backgroundColor?: string; color?: string }> = ({
+  text,
+  backgroundColor,
+  color,
+}) => {
   return (
     <div
       className={`col-span-full rounded-xl h-full flex flex-row justify-evenly items-start px-[4%] py-1 text-xl`}
@@ -10,5 +14,3 @@ const Banner: FC<{ text: string; backgroundColor?: string; color?: string }> = (
     </div>
   );
 };
-
-export { Banner };

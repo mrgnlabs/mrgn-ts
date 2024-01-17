@@ -19,7 +19,7 @@ import Image from "next/image";
 import { NumberFormatValues, NumericFormat } from "react-number-format";
 import { useMrgnlendStore } from "~/store";
 import { computeGuaranteedApy } from "@mrgnlabs/lip-client";
-import { EarnAction } from "./Earn";
+import { EarnAction } from "~/components/desktop/Earn";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 interface CampaignWizardInputBox {
