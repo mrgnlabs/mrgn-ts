@@ -4,7 +4,7 @@ import Image from "next/image";
 import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 import styles from "./style.module.css";
 
@@ -28,21 +28,19 @@ export const MobilePointsOverview: FC<MobilePointsOverviewProps> = ({ userPoints
                 >
                   Total Points
                   <div className="self-center">
-                    <MrgnTooltip
-                      title={
-                        <>
-                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                            Points
-                          </Typography>
-                          Points refresh every 24 hours.{" "}
-                        </>
-                      }
-                      placement="top"
-                    >
-                      <div className="w-[12px] h-[12px]">
-                        <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                      </div>
-                    </MrgnTooltip>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="flex flex-col gap-1.5">
+                            <h4 className="text-base">Points</h4>
+                            Points refresh every 24 hours.
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </Typography>
                 <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">
@@ -85,21 +83,22 @@ export const MobilePointsOverview: FC<MobilePointsOverviewProps> = ({ userPoints
                 >
                   Referral Points
                   <div className="self-center">
-                    <MrgnTooltip
-                      title={
-                        <>
-                          <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                            Earn more with friends
-                          </Typography>
-                          Earn 10% of the points any user you refer earns.
-                        </>
-                      }
-                      placement="top"
-                    >
-                      <div className="w-[12px] h-[12px]">
-                        <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                      </div>
-                    </MrgnTooltip>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="flex flex-col gap-1.5">
+                            <h4 className="text-base">CerEarn more with friends.</h4>
+                            <p>
+                              Use this option if you are unable to proceed with memo signing. It is free as well and
+                              will not involve the network.
+                            </p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </Typography>
                 <Typography color="#fff" className="font-aeonik font-[500] text-lg md:text-xl" component="div">

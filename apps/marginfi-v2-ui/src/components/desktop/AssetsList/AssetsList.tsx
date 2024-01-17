@@ -25,7 +25,8 @@ import {
 import { Portfolio } from "~/components/common/Portfolio";
 import { LendingModes, UserMode } from "~/types";
 import { AssetRowHeader } from "~/components/common/AssetList/AssetRowHeader";
-import { MrgnTooltip } from "~/components/common";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { IconAlertTriangle } from "~/components/ui/icons";
 
 const AssetsList = () => {
   const { connected, walletAddress } = useWalletContext();
@@ -253,22 +254,29 @@ const AssetsList = () => {
                       <span className="gap-1 flex">
                         Isolated <span className="hidden lg:block">pools</span>
                       </span>
-                      <MrgnTooltip
-                        title={
-                          <React.Fragment>
-                            <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                              Isolated pools are risky ⚠️
-                            </Typography>
-                            Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset,
-                            you cannot borrow other assets. Isolated pools should be considered particularly risky. As
-                            always, remember that marginfi is a decentralized protocol and all deposited funds are at
-                            risk.
-                          </React.Fragment>
-                        }
-                        placement="top"
-                      >
-                        <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                      </MrgnTooltip>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="flex flex-col gap-2">
+                              <h4 className="flex items-center gap-1 text-base">
+                                <IconAlertTriangle /> Isolated pools are risky
+                              </h4>
+                              <p>
+                                Assets in isolated pools cannot be used as collateral. When you borrow an isolated
+                                asset, you cannot borrow other assets. Isolated pools should be considered particularly
+                                risky.
+                              </p>
+                              <p>
+                                As always, remember that marginfi is a decentralized protocol and all deposited funds
+                                are at risk.
+                              </p>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                     <Table className="table-fixed" style={{ borderCollapse: "separate", borderSpacing: "0px 0px" }}>
                       <TableHead>
