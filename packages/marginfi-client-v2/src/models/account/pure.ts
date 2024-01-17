@@ -16,7 +16,15 @@ import instructions from "../../instructions";
 import { AccountType, MarginfiProgram } from "../../types";
 import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
 import { Balance, BalanceRaw } from "../balance";
-import { BankMap, DISABLED_FLAG, FLASHLOAN_ENABLED_FLAG, MARGINFI_IDL, MarginfiClient, OraclePriceMap, RiskTier } from "../..";
+import {
+  BankMap,
+  DISABLED_FLAG,
+  FLASHLOAN_ENABLED_FLAG,
+  MARGINFI_IDL,
+  MarginfiClient,
+  OraclePriceMap,
+  RiskTier,
+} from "../..";
 import BN from "bn.js";
 import { Address, BorshCoder, translateAddress } from "@coral-xyz/anchor";
 
@@ -171,13 +179,14 @@ class MarginfiAccount {
     return { assets, liabilities };
   }
 
- computeAccountValue(
-    banks: Map<string, Bank>,
-    oraclePrices: Map<string, OraclePrice>,
-  ): BigNumber {
-    const { assets, liabilities } = this.computeHealthComponentsWithoutBias(banks, oraclePrices, MarginRequirementType.Equity);
+  computeAccountValue(banks: Map<string, Bank>, oraclePrices: Map<string, OraclePrice>): BigNumber {
+    const { assets, liabilities } = this.computeHealthComponentsWithoutBias(
+      banks,
+      oraclePrices,
+      MarginRequirementType.Equity
+    );
     return assets.minus(liabilities);
-  } 
+  }
 
   computeNetApy(banks: Map<string, Bank>, oraclePrices: Map<string, OraclePrice>): number {
     const { assets, liabilities } = this.computeHealthComponentsWithoutBias(
@@ -916,17 +925,20 @@ class MarginfiAccount {
 
   public describe(banks: BankMap, oraclePrices: OraclePriceMap): string {
     const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Equity);
-    return `
+    let description = `
 - Marginfi account: ${this.address}
 - Total deposits: $${assets.toFixed(6)}
 - Total liabilities: $${liabilities.toFixed(6)}
 - Equity: $${assets.minus(liabilities).toFixed(6)}
 - Health: ${assets.minus(liabilities).div(assets).times(100).toFixed(2)}%
-- Balances:  ${this.activeBalances.map((balance) => {
+- Balances:\n`;
+
+    for (const balance of this.activeBalances) {
       const bank = banks.get(balance.bankPk.toBase58())!;
       const priceInfo = oraclePrices.get(balance.bankPk.toBase58())!;
-      return balance.describe(bank, priceInfo);
-    })}`;
+      description += balance.describe(bank, priceInfo);
+    }
+    return description;
   }
 }
 
