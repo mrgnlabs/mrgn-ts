@@ -6,7 +6,9 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
-import { MrgnContainedSwitch } from "~/components/common/MrgnContainedSwitch";
+
+import { Switch } from "~/components/ui/switch";
+import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { IconFilter, IconSortAscending, IconSortDescending } from "~/components/ui/icons";
 
@@ -58,23 +60,30 @@ export const AssetListFilters = () => {
         </div>
         {(userMode === UserMode.PRO || isMobile) && (
           <div
-            className={cn("flex items-center gap-1 text-sm", !connected && "opacity-50")}
+            className={cn("flex items-center gap-2 text-sm", !connected && "opacity-50")}
             onClick={(e) => {
               e.stopPropagation();
               if (connected) return;
               setIsWalletAuthDialogOpen(true);
             }}
           >
-            <MrgnContainedSwitch
+            <Switch
+              id="filter-positions"
               checked={isFilteredUserPositions}
-              onChange={() => {
+              onCheckedChange={() => {
                 setIsFilteredUserPositions(!isFilteredUserPositions);
                 setPoolFilter(PoolTypes.ALL);
               }}
-              inputProps={{ "aria-label": "controlled" }}
-              className={cn(!connected && "pointer-events-none")}
             />
-            <div>Filter my positions</div>
+            <Label
+              htmlFor="filter-positions"
+              className={cn(
+                "transition-colors text-muted-foreground cursor-pointer hover:text-white",
+                isFilteredUserPositions && "text-white"
+              )}
+            >
+              Filter my positions
+            </Label>
           </div>
         )}
         {(userMode === UserMode.PRO || isMobile) && (
