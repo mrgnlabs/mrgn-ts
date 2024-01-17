@@ -10,7 +10,7 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Banner } from "~/components/desktop/Banner";
-import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
+import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { PageHeader } from "~/components/common/PageHeader";
 import { ActionBox } from "~/components/common/ActionBox";
 import { Stats } from "~/components/common/Stats";
