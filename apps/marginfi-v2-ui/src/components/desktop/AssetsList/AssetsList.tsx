@@ -26,7 +26,7 @@ import { Portfolio } from "~/components/common/Portfolio";
 import { LendingModes, UserMode } from "~/types";
 import { AssetRowHeader } from "~/components/common/AssetList/AssetRowHeader";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconAlertTriangle } from "~/components/ui/icons";
+import { IconAlertTriangle, IconMrgn } from "~/components/ui/icons";
 
 const AssetsList = () => {
   const { connected, walletAddress } = useWalletContext();
@@ -160,13 +160,13 @@ const AssetsList = () => {
     { enableOnFormTags: true }
   );
 
-  // Hack required to circumvent rehydration error
-  const [hasMounted, setHasMounted] = React.useState(false);
-  React.useEffect(() => {
-    setHasMounted(true);
-  }, []);
-  if (!hasMounted) {
-    return null;
+  if (!isStoreInitialized) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground mt-8">
+        <IconMrgn className="animate-pulsate" />
+        <p>Loading mrgnlend...</p>
+      </div>
+    );
   }
 
   return (

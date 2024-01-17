@@ -489,6 +489,10 @@ export const ActionBox = ({
     [maxAmount, setAmountRaw, selectedBank, numberFormater]
   );
 
+  if (!isInitialized) {
+    return null;
+  }
+
   return (
     <>
       <div className="bg-background p-4 flex flex-col items-center gap-4">
