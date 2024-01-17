@@ -5,8 +5,6 @@ import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
-import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
-
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";
 import { Label } from "~/components/ui/label";
@@ -47,25 +45,21 @@ export const AssetListFilters = () => {
   return (
     <div className="col-span-full w-full space-y-5">
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-8">
-        <div className=" flex space-between">
-          <div className="flex w-[150px] h-[42px] mr-auto">
-            <MrgnLabeledSwitch
-              labelLeft="Lend"
-              labelRight="Borrow"
-              checked={lendingMode === LendingModes.BORROW}
-              onClick={() =>
-                setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND)
-              }
-            />
-            <ToggleGroup type="multiple">
-              <ToggleGroupItem value="lend" aria-label="Lend">
-                Lend
-              </ToggleGroupItem>
-              <ToggleGroupItem value="borrow" aria-label="Borrow">
-                Borrow
-              </ToggleGroupItem>
-            </ToggleGroup>
-          </div>
+        <div className=" mr-auto">
+          <ToggleGroup
+            type="single"
+            value={lendingMode}
+            onValueChange={() =>
+              setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND)
+            }
+          >
+            <ToggleGroupItem value="lend" aria-label="Lend">
+              Lend
+            </ToggleGroupItem>
+            <ToggleGroupItem value="borrow" aria-label="Borrow">
+              Borrow
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
         {(userMode === UserMode.PRO || isMobile) && (
           <div
