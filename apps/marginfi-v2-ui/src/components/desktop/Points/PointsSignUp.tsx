@@ -8,8 +8,8 @@ import { toast } from "react-toastify";
 import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
 import { WalletButton } from "~/components/common/Wallet";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 interface PointsSignUpProps {
   referralCode?: string;
@@ -88,22 +88,22 @@ export const PointsSignUp: FC<PointsSignUpProps> = ({ referralCode }) => {
                     }}
                   />
                   <span className="mr-[8px]">Use tx signing</span>
-                  <MrgnTooltip
-                    title={
-                      <>
-                        <div className="flex flex-col gap-2 pb-2">
-                          Certain hardware wallet versions do not support memo signing.
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="flex flex-col gap-1.5">
+                          <p>Certain hardware wallet versions do not support memo signing.</p>
+                          <p>
+                            Use this option if you are unable to proceed with memo signing. It is free as well and will
+                            not involve the network.
+                          </p>
                         </div>
-                        <div className="flex flex-col gap-2 pb-2">
-                          Use this option if you are unable to proceed with memo signing. It is free as well and will
-                          not involve the network.
-                        </div>
-                      </>
-                    }
-                    placement="top"
-                  >
-                    <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                  </MrgnTooltip>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
                 <Button
                   size="large"
