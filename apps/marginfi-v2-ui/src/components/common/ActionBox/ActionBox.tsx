@@ -21,7 +21,6 @@ import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useDebounce } from "~/hooks/useDebounce";
 
-import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import {
   checkActionAvailable,
@@ -30,6 +29,7 @@ import {
   ActionBoxTokens,
   ActionBoxPriorityFees,
 } from "~/components/common/ActionBox";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Input } from "~/components/ui/input";
 import { IconAlertTriangle, IconInfoCircle, IconWallet, IconSettings } from "~/components/ui/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -495,17 +495,22 @@ export const ActionBox = ({
         <div className="space-y-6 text-center w-full flex flex-col items-center">
           {!isDialog && (
             <>
-              <div className="flex w-[150px] h-[42px]">
-                <MrgnLabeledSwitch
-                  labelLeft="Lend"
-                  labelRight="Borrow"
-                  checked={lendingMode === LendingModes.BORROW}
-                  onClick={() => {
-                    setSelectedTokenBank(null);
-                    setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND);
-                  }}
-                />
-              </div>
+              <ToggleGroup
+                type="single"
+                size="lg"
+                value={lendingMode}
+                onValueChange={() => {
+                  setSelectedTokenBank(null);
+                  setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND);
+                }}
+              >
+                <ToggleGroupItem value="lend" aria-label="Lend">
+                  Lend
+                </ToggleGroupItem>
+                <ToggleGroupItem value="borrow" aria-label="Borrow">
+                  Borrow
+                </ToggleGroupItem>
+              </ToggleGroup>
 
               <p className="text-muted-foreground">Supply. Earn interest. Borrow. Repeat.</p>
             </>
