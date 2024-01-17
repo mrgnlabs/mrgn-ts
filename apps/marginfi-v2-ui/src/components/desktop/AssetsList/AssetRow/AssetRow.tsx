@@ -300,16 +300,18 @@ const AssetRow: React.FC<{
                           alt="info"
                           height={18}
                           width={18}
+                          className="rounded-full"
                         />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <div className="my-1 space-y-1.5">
-                          <h4 className="text-lg font-medium flex items-center gap-1.5">
+                        <div className="flex flex-col items-start gap-1.5">
+                          <h4 className="text-base flex items-center gap-1.5">
                             <Image
                               src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
                               alt="info"
                               height={18}
                               width={18}
+                              className="rounded-full"
                             />{" "}
                             Liquidity rewards
                           </h4>
@@ -319,6 +321,8 @@ const AssetRow: React.FC<{
                             )} Supply APY + ${percentFormatter.format(bank.info.state.emissionsRate)} ${
                               EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenSymbol
                             } rewards. `}
+                          </p>
+                          <p className="text-xs">
                             <Link
                               target="_blank"
                               rel="noreferrer"
@@ -347,8 +351,8 @@ const AssetRow: React.FC<{
                       />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <div className="my-1 space-y-1.5">
-                        <h4 className="text-lg font-medium flex items-center gap-1.5">
+                      <div className="flex flex-col items-start gap-1.5">
+                        <h4 className="text-base flex items-center gap-1.5">
                           <Image
                             src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey/logo.png"
                             alt="info"
