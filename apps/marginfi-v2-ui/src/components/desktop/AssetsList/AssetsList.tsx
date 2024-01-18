@@ -162,7 +162,7 @@ const AssetsList = () => {
   );
 
   if (!isStoreInitialized) {
-    return <Loader className="mt-16" />;
+    return <Loader label="Loading mrgnlend..." className="mt-8" />;
   }
 
   return (
