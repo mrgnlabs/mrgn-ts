@@ -68,7 +68,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
               </div>
               <dl>
                 <dt className="font-medium text-lg">{bank.meta.tokenSymbol}</dt>
-                <dd className={cn("text-sm", isInLendingMode ? "text-[#75BA80]" : "text-[#FBA43A]")}>
+                <dd className={cn("text-sm font-normal", isInLendingMode ? "text-[#75BA80]" : "text-[#FBA43A]")}>
                   {rateAP.concat(...[" ", isInLendingMode ? "APY" : "APR"])}
                 </dd>
               </dl>
