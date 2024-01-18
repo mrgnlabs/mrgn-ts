@@ -71,7 +71,8 @@ const configs: MayanWidgetConfigType[] = [
     destinationChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "aptos"],
   },
 ];
-const BridgePage = () => {
+
+export default function BridgePage() {
   const { walletAddress, walletContextState } = useWalletContext();
   const setShowBadges = useUserProfileStore((state) => state.setShowBadges);
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
@@ -212,6 +213,4 @@ const BridgePage = () => {
       </div>
     </>
   );
-};
-
-export default BridgePage;
+}

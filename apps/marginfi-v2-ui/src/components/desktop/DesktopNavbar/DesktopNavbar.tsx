@@ -148,7 +148,7 @@ const DesktopNavbar: FC = () => {
         <div className="w-full top-0 flex justify-between items-center h-16 text-sm font-[500] text-[#868E95] z-10 border-b-[0.5px] border-[#1C2125] px-4">
           <div className="h-full w-1/2 flex justify-start items-center z-10 gap-4 lg:gap-8">
             <Link
-              href={"https://app.marginfi.com"}
+              href="/"
               className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center text-white"
             >
               <IconMrgn size={35} />

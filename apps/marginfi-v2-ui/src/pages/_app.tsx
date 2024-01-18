@@ -13,14 +13,13 @@ import { Analytics } from "@vercel/analytics/react";
 
 import config from "~/config";
 import SEO from "~/config/seo";
-import { MrgnlendProvider } from "~/context";
+import { MrgnlendProvider, LipClientProvider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "./stake";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";
-import { LipClientProvider } from "~/context";
 import { init as initAnalytics } from "~/utils/analytics";
 
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
@@ -45,7 +44,7 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 
 const MATOMO_URL = "https://mrgn.matomo.cloud";
 
-const MyApp = ({ Component, pageProps }: AppProps) => {
+export default function App({ Component, pageProps }: AppProps) {
   const [setIsFetchingData] = useUiStore((state) => [state.setIsFetchingData]);
   const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
@@ -126,6 +125,4 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       )}
     </>
   );
-};
-
-export default MyApp;
+}

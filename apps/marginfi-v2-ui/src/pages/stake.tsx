@@ -12,15 +12,16 @@ import { usePrevious, Features, isActive } from "~/utils";
 import { createLstStore } from "~/store/lstStore";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
+
 import { StakingCard, StakingStats } from "~/components/common/Staking";
-import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { PageHeader } from "~/components/common/PageHeader";
+import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
 
 export const useLstStore = createLstStore();
 export const useJupiterStore = createJupiterStore();
 
-const StakePage = () => {
+export default function StakePage() {
   const { wallet, walletAddress } = useWalletContext();
   const { connection } = useConnection();
   const [mounted, setMounted] = React.useState(false);
@@ -121,7 +122,7 @@ const StakePage = () => {
       </JupiterProvider>
     </>
   );
-};
+}
 
 const StakingContent = ({ isInitialized }: { isInitialized: boolean }) => (
   <div className="flex flex-col max-w-[640px] h-full w-full justify-center items-center pt-10 pb-32 lg:pb-16 px-4">
@@ -166,5 +167,3 @@ const StakingContent = ({ isInitialized }: { isInitialized: boolean }) => (
     )}
   </div>
 );
-
-export default StakePage;
