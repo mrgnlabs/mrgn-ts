@@ -22,9 +22,9 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
   return (
     <>
       <div className="max-w-[800px] w-full mx-auto mt-4">
-        <div className="grid grid-cols-2 gap-5 mb-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-5 mb-3 md:mb-5">
           <div className="bg-background-gray-dark h-24 rounded-lg py-3.5 px-4">
-            <h2 className="text-base flex gap-1.5 text-muted-foreground/80">
+            <h2 className="text-sm md:text-base flex gap-1.5 text-muted-foreground/80">
               Total Points
               <div className="self-center">
                 <TooltipProvider>
@@ -39,7 +39,7 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
                 </TooltipProvider>
               </div>
             </h2>
-            <h3 className="text-white font-[500] text-3xl mt-1.5">
+            <h3 className="text-white font-[500] text-2xl md:text-3xl mt-1.5">
               {userPointsData && numeralFormatter(userPointsData.totalPoints)}
             </h3>
           </div>
@@ -47,15 +47,15 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
             <h2 className="text-base flex gap-1.5 text-muted-foreground/80">
               Global Rank {/* TODO: fix that with dedicated query */}
             </h2>
-            <h3 className="text-white font-[500] text-3xl mt-1.5">
+            <h3 className="text-white font-[500] text-2xl md:text-3xl mt-1.5">
               {userPointsData &&
                 (userPointsData.userRank ? `#${groupedNumberFormatterDyn.format(userPointsData.userRank)}` : "-")}
             </h3>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-5">
           <div className="bg-background-gray-dark h-24 rounded-lg py-3.5 px-4">
-            <h2 className="text-base flex gap-1.5 text-muted-foreground/80">
+            <h2 className="text-sm md:text-base flex gap-1.5 text-muted-foreground/80">
               Lending Points
               <div className="self-center">
                 <TooltipProvider>
@@ -75,7 +75,7 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
             </h3>
           </div>
           <div className="bg-background-gray-dark h-24 rounded-lg py-3.5 px-4">
-            <h2 className="text-base flex gap-1.5 text-muted-foreground/80">
+            <h2 className="text-sm md:text-base flex gap-1.5 text-muted-foreground/80">
               Borrowing Points
               <div className="self-center">
                 <TooltipProvider>
@@ -95,7 +95,7 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
             </h3>
           </div>
           <div className="bg-background-gray-dark h-24 rounded-lg py-3.5 px-4 col-span-2 md:col-span-1">
-            <h2 className="text-base flex gap-1.5 text-muted-foreground/80">
+            <h2 className="text-sm md:text-base flex gap-1.5 text-muted-foreground/80">
               Referral Points
               <div className="self-center">
                 <TooltipProvider>
@@ -116,7 +116,7 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
           </div>
         </div>
       </div>
-      <div className="flex flex-wrap justify-center items-center gap-5">
+      <div className="flex flex-wrap justify-center items-center gap-3 md:gap-5">
         <Link
           href="https://medium.com/marginfi/introducing-mrgn-points-949e18f31a8c"
           target="_blank"
