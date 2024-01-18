@@ -26,7 +26,7 @@ export const ActionBoxDialog = ({
   return (
     <Dialog open={isDialogOpen} onOpenChange={(open) => setIsDialogOpen(open)}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="md:flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl">
+      <DialogContent className="md:flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl bg-transparent">
         <ActionBox
           isDialog={true}
           handleCloseDialog={() => setIsDialogOpen(false)}
