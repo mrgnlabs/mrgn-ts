@@ -15,12 +15,13 @@ import {
 import { groupedNumberFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { useConnection } from "~/hooks/useConnection";
+import { cn } from "~/utils";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Loader } from "~/components/ui/loader";
 import { IconSearch, IconSortAscending, IconSortDescending, IconLoader, IconX } from "~/components/ui/icons";
-import { cn } from "~/utils";
 
 type PointsTableProps = {
   userPointsData: UserPointsData;
@@ -166,6 +167,10 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
 
     getLeaderboardCount();
   }, [leaderboardCount]);
+
+  if (!leaderboardData) {
+    return <Loader label="Loading points leaderboard..." className="mt-8" />;
+  }
 
   return (
     <div className="w-full mt-10 space-y-3 pb-16">

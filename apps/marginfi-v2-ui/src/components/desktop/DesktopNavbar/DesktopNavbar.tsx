@@ -27,15 +27,15 @@ const DesktopNavbar: FC = () => {
   const { connected, wallet, walletAddress } = useWalletContext();
   const router = useRouter();
   const { lipClient } = useLipClient();
-  const [mfiClient, selectedAccount, extendedBankInfos, lendUserDataFetched, resetLendUserData] = useMrgnlendStore(
-    (state) => [
+  const [initialized, mfiClient, selectedAccount, extendedBankInfos, lendUserDataFetched, resetLendUserData] =
+    useMrgnlendStore((state) => [
+      state.initialized,
       state.marginfiClient,
       state.selectedAccount,
       state.extendedBankInfos,
       state.userDataFetched,
       state.resetUserData,
-    ]
-  );
+    ]);
   const [lstUserDataFetched, resetLstUserData] = useLstStore((state) => [state.userDataFetched, state.resetUserData]);
   const [showBadges, currentFirebaseUser, userPointsData, setShowBadges, fetchPoints] = useUserProfileStore((state) => [
     state.showBadges,
@@ -278,9 +278,11 @@ const DesktopNavbar: FC = () => {
                 router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"
               } whitespace-nowrap`}
             >
-              {connected && currentFirebaseUser
-                ? `${groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))} points`
-                : "points"}
+              {connected &&
+                currentFirebaseUser &&
+                userPointsData.totalPoints > 0 &&
+                groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}{" "}
+              points
             </Link>
 
             <Badge
@@ -303,27 +305,29 @@ const DesktopNavbar: FC = () => {
               </Link>
             </Badge>
           </div>
-          <div className="h-full w-1/2 flex justify-end items-center z-10 gap-4 lg:gap-8 text-[#868E95]">
-            <div
-              className={`whitespace-nowrap hidden md:inline-flex ${
-                bankAddressesWithEmissions.length > 0 ? "cursor-pointer hover:text-[#AAA]" : "cursor-not-allowed"
-              }`}
-              onClick={async () => {
-                if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
-                await collectRewardsBatch(connection, wallet, selectedAccount, bankAddressesWithEmissions);
-              }}
-            >
-              collect rewards
-              {bankAddressesWithEmissions.length > 0 && (
-                <span className="relative flex h-1 w-1">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#DCE85D] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1 w-1 bg-[#DCE85DAA]"></span>
-                </span>
-              )}
-            </div>
+          {initialized && (
+            <div className="h-full w-1/2 flex justify-end items-center z-10 gap-4 lg:gap-8 text-[#868E95]">
+              <div
+                className={`whitespace-nowrap hidden md:inline-flex ${
+                  bankAddressesWithEmissions.length > 0 ? "cursor-pointer hover:text-[#AAA]" : "cursor-not-allowed"
+                }`}
+                onClick={async () => {
+                  if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
+                  await collectRewardsBatch(connection, wallet, selectedAccount, bankAddressesWithEmissions);
+                }}
+              >
+                collect rewards
+                {bankAddressesWithEmissions.length > 0 && (
+                  <span className="relative flex h-1 w-1">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#DCE85D] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1 w-1 bg-[#DCE85DAA]"></span>
+                  </span>
+                )}
+              </div>
 
-            <WalletButton />
-          </div>
+              <WalletButton />
+            </div>
+          )}
         </div>
       </nav>
     </header>

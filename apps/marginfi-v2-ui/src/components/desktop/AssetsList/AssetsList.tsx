@@ -27,7 +27,6 @@ import { LendingModes, UserMode } from "~/types";
 import { AssetRowHeader } from "~/components/common/AssetList/AssetRowHeader";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconAlertTriangle } from "~/components/ui/icons";
-import { Loader } from "~/components/ui/loader";
 
 const AssetsList = () => {
   const { connected, walletAddress } = useWalletContext();
@@ -160,10 +159,6 @@ const AssetsList = () => {
     },
     { enableOnFormTags: true }
   );
-
-  if (!isStoreInitialized) {
-    return <Loader label="Loading mrgnlend..." className="mt-8" />;
-  }
 
   return (
     <>

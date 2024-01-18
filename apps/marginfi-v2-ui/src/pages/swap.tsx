@@ -7,12 +7,20 @@ import Script from "next/script";
 import { NextSeo } from "next-seo";
 
 import config from "~/config";
+import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { PageHeader } from "~/components/common/PageHeader";
+import { Loader } from "~/components/ui/loader";
 
 const SwapPage = () => {
   const { walletContextState } = useWalletContext();
+  const [isLoaded, setIsLoaded] = React.useState(false);
+  const [loadTimestamp, setLoadTimestamp] = React.useState(0);
+
+  if (loadTimestamp === 0) {
+    setLoadTimestamp(Date.now());
+  }
 
   return (
     <>
@@ -26,6 +34,12 @@ const SwapPage = () => {
             endpoint: config.rpcEndpoint,
             passThroughWallet: walletContextState.wallet,
           });
+          const currentTime = Date.now();
+          const timeElapsed = currentTime - loadTimestamp;
+          const delay = Math.max(0, 1000 - timeElapsed);
+          setTimeout(() => {
+            setIsLoaded(true);
+          }, delay);
         }}
       />
       <PageHeader>
@@ -41,7 +55,11 @@ const SwapPage = () => {
         </div>
       </PageHeader>
       <div className="h-full flex flex-col justify-start items-center content-start py-[32px] gap-8 w-4/5">
-        <div className="max-w-[420px] px-3" id="integrated-terminal"></div>
+        {!isLoaded && <Loader label="Loading Jupiter swap..." className="mt-8" />}
+        <div
+          className={cn("max-w-[420px] px-3 transition-opacity", !isLoaded && "opacity-0")}
+          id="integrated-terminal"
+        ></div>
       </div>
     </>
   );
