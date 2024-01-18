@@ -13,19 +13,19 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { UserMode } from "~/types";
 
 import { Banner } from "~/components/desktop/Banner";
-import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { PageHeader } from "~/components/common/PageHeader";
 import { ActionBox } from "~/components/common/ActionBox";
 import { Stats } from "~/components/common/Stats";
 import { ActionComplete } from "~/components/common/ActionComplete";
 
-import { IconAlertTriangle } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
+import { OverlaySpinner } from "~/components/ui/overlay-spinner";
+import { IconAlertTriangle } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
 
-const HomePage = () => {
+export default function HomePage() {
   const { walletAddress, isOverride } = useWalletContext();
   const [userMode, previousTxn] = useUiStore((state) => [state.userMode, state.previousTxn]);
   const [
@@ -106,9 +106,7 @@ const HomePage = () => {
       {isStoreInitialized && previousTxn && <ActionComplete />}
     </>
   );
-};
-
-export default HomePage;
+}
 
 const MultipleAccountsBanner = ({
   selectedAccount,

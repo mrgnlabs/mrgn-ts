@@ -9,6 +9,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 
 import { useUiStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
+
 import { PageHeader } from "~/components/common/PageHeader";
 import { PointsConnectWallet } from "~/components/desktop/Points";
 import { EmissionsBanner } from "~/components/mobile/EmissionsBanner";
@@ -16,7 +17,7 @@ import { Portfolio } from "~/components/common/Portfolio";
 import { Button } from "~/components/ui/button";
 import { MobilePointsOverview } from "~/components/mobile/Points/MobilePointsOverview";
 
-const PortfolioPage = () => {
+export default function PortfolioPage() {
   const { connected } = useWalletContext();
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
@@ -76,6 +77,4 @@ const PortfolioPage = () => {
       </div>
     </>
   );
-};
-
-export default PortfolioPage;
+}

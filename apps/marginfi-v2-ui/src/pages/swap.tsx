@@ -13,7 +13,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { PageHeader } from "~/components/common/PageHeader";
 import { Loader } from "~/components/ui/loader";
 
-const SwapPage = () => {
+export default function SwapPage() {
   const { walletContextState } = useWalletContext();
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [loadTimestamp, setLoadTimestamp] = React.useState(0);
@@ -63,6 +63,4 @@ const SwapPage = () => {
       </div>
     </>
   );
-};
-
-export default SwapPage;
+}

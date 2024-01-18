@@ -14,7 +14,7 @@ import { Button } from "~/components/ui/button";
 import { IconCopy, IconCheck } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
-const Points = () => {
+export default function PointsPage() {
   const { connected } = useWalletContext();
 
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
@@ -86,6 +86,4 @@ const Points = () => {
       )}
     </>
   );
-};
-
-export default Points;
+}
