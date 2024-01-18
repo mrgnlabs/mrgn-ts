@@ -487,8 +487,6 @@ class MarginfiClient {
 
     dbg("Created Marginfi account %s", sig);
 
-    console.log("CREATEOPTS", createOpts);
-
     return (opts?.dryRun  || createOpts?.newAccountKey)
       ? Promise.resolve(undefined as unknown as MarginfiAccountWrapper)
       : MarginfiAccountWrapper.fetch(newAccountKey, this, opts?.commitment);
