@@ -126,15 +126,11 @@ export default function StakePage() {
 
 const StakingContent = ({ isInitialized }: { isInitialized: boolean }) => (
   <div className="flex flex-col max-w-[640px] h-full w-full justify-center items-center pt-10 pb-32 lg:pb-16 px-4">
-    <div className="space-y-6 text-center mb-4">
-      <h1 className="font-bold text-3xl">LST — mrgn&apos;s Liquid Staking Token.</h1>
-      <p>The highest natural yield available from any LST on Solana. By a lot.</p>
-      {!isInitialized && (
-        <div>
-          <Loader label="Loading Liquid Staking..." className="mt-16" />
-        </div>
-      )}
-      {isInitialized && (
+    {!isInitialized && <Loader label="Loading mrgnstake..." className="mt-8" />}
+    {isInitialized && (
+      <div className="space-y-6 text-center mb-4">
+        <h1 className="font-bold text-3xl">LST — mrgn&apos;s Liquid Staking Token.</h1>
+        <p>The highest natural yield available from any LST on Solana. By a lot.</p>
         <div className="text-chartreuse space-y-2 font-bold">
           <p>LST is the highest natural yielding LST</p>
           <p>LST is powered by Jito&apos;s MEV-boosted client</p>
@@ -150,8 +146,8 @@ const StakingContent = ({ isInitialized }: { isInitialized: boolean }) => (
             </a>
           </p>
         </div>
-      )}
-    </div>
+      </div>
+    )}
     {isInitialized && (
       <>
         <div className="max-w-[480px] w-full space-y-4">
