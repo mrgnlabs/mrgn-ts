@@ -26,7 +26,8 @@ import { Portfolio } from "~/components/common/Portfolio";
 import { LendingModes, UserMode } from "~/types";
 import { AssetRowHeader } from "~/components/common/AssetList/AssetRowHeader";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconAlertTriangle, IconMrgn } from "~/components/ui/icons";
+import { IconAlertTriangle } from "~/components/ui/icons";
+import { Loader } from "~/components/ui/loader";
 
 const AssetsList = () => {
   const { connected, walletAddress } = useWalletContext();
@@ -161,12 +162,7 @@ const AssetsList = () => {
   );
 
   if (!isStoreInitialized) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground mt-8">
-        <IconMrgn className="animate-pulsate" />
-        <p>Loading mrgnlend...</p>
-      </div>
-    );
+    return <Loader className="mt-16" />;
   }
 
   return (

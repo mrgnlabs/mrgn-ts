@@ -74,6 +74,7 @@ export const AssetListFilters = () => {
               id="filter-positions"
               checked={isFilteredUserPositions}
               onCheckedChange={() => {
+                if (!connected) return;
                 setIsFilteredUserPositions(!isFilteredUserPositions);
                 setPoolFilter(PoolTypes.ALL);
               }}
