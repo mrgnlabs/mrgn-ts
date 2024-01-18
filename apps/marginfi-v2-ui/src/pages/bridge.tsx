@@ -6,12 +6,15 @@ import { NextSeo } from "next-seo";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import config from "~/config";
+import { cn } from "~/utils";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
 import { useUserProfileStore, useUiStore } from "~/store";
 import { Desktop } from "~/mediaQueries";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { PageHeader } from "~/components/common/PageHeader";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
+import { useWalletContext } from "~/hooks/useWalletContext";
+
+import { PageHeader } from "~/components/common/PageHeader";
+import { Loader } from "~/components/ui/loader";
 
 const tokens = [
   "0x0000000000000000000000000000000000000000", // SOL
@@ -72,8 +75,13 @@ const BridgePage = () => {
   const { walletAddress, walletContextState } = useWalletContext();
   const setShowBadges = useUserProfileStore((state) => state.setShowBadges);
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
-
   const [isBridgeIn, setIsBridgeIn] = React.useState<boolean>(true);
+  const [isLoaded, setIsLoaded] = React.useState(false);
+  const [loadTimestamp, setLoadTimestamp] = React.useState(0);
+
+  if (loadTimestamp === 0) {
+    setLoadTimestamp(Date.now());
+  }
 
   // Enter hotkey mode
   useHotkeys(
@@ -133,7 +141,21 @@ const BridgePage = () => {
     window.MayanSwap.setSwapRefundListener((data) => {
       multiStepToast.setFailed("Cross-chain swap/bridge refunded");
     });
-  }, [handleConnect, isBridgeIn, walletAddress, walletContextState.disconnect, walletContextState.signTransaction]);
+
+    const currentTime = Date.now();
+    const timeElapsed = currentTime - loadTimestamp;
+    const delay = Math.max(0, 1000 - timeElapsed);
+    setTimeout(() => {
+      setIsLoaded(true);
+    }, delay);
+  }, [
+    handleConnect,
+    isBridgeIn,
+    walletAddress,
+    walletContextState.disconnect,
+    walletContextState.signTransaction,
+    loadTimestamp,
+  ]);
 
   const handleUpdateConfig = React.useCallback(() => {
     const newConfigIndex = isBridgeIn ? 1 : 0;
@@ -182,7 +204,11 @@ const BridgePage = () => {
           crossOrigin="anonymous"
           onReady={handleLoadMayanWidget}
         />
-        <div className="max-w-[420px] max-h-[500px]" id="swap_widget" />
+        {!isLoaded && <Loader label="Loading Mayan bridge..." className="mt-8" />}
+        <div
+          className={cn("max-w-[420px] max-h-[500px] transition-opacity", !isLoaded && "opacity-0")}
+          id="swap_widget"
+        />
       </div>
     </>
   );

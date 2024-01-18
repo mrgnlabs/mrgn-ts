@@ -1,6 +1,6 @@
 import { FC, ReactNode } from "react";
 import Head from "next/head";
-import { useUiStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 import { WalletButton } from "../Wallet";
 import { Mobile } from "~/mediaQueries";
 import { IconMrgn } from "~/components/ui/icons";
@@ -10,6 +10,7 @@ interface PageHeaderProps {
 }
 
 export const PageHeader: FC<PageHeaderProps> = ({ children }) => {
+  const [initialized] = useMrgnlendStore((state) => [state.initialized]);
   const [isFetchingData] = useUiStore((state) => [state.isFetchingData]);
 
   return (
@@ -28,9 +29,11 @@ export const PageHeader: FC<PageHeaderProps> = ({ children }) => {
             <div>{children}</div>
           </div>
           <Mobile>
-            <div className="flex justify-center items-center gap-3">
-              <WalletButton />
-            </div>
+            {initialized && (
+              <div className="flex justify-center items-center gap-3">
+                <WalletButton />
+              </div>
+            )}
           </Mobile>
         </div>
       </div>

@@ -8,7 +8,7 @@ const config: DefaultSeoProps = {
     siteName: "marginfi",
     images: [
       {
-        url: "https://app.marginfi.com/marginfi-cover.jpg",
+        url: "https://marginfi-v2-ui-git-staging-mrgn.vercel.app/marginfi-cover.jpg",
         width: 1400,
         height: 630,
         alt: "marginfi",
