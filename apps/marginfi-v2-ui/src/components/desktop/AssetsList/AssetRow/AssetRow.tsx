@@ -210,10 +210,10 @@ const AssetRow: React.FC<{
           setIsHovering(false);
           setShowDogWifHatImage(false);
         }}
-        className={cn("h-[54px] w-full transition-colors z-10", isHovering && "bg-background-gray")}
+        className="h-[60px] w-full transition-colors z-10"
       >
         <TableCell
-          className="text-white p-0 font-aeonik border-none"
+          className={cn("text-white p-0 font-aeonik border-none rounded-l-md", isHovering && "bg-background-gray")}
           style={{
             fontWeight: 300,
           }}
@@ -233,7 +233,7 @@ const AssetRow: React.FC<{
         </TableCell>
 
         <TableCell
-          className={`text-white border-none px-2 font-aeonik table-cell`}
+          className={cn("text-white border-none px-2 font-aeonik table-cell", isHovering && "bg-background-gray")}
           align="right"
           style={{ fontWeight: 300 }}
         >
@@ -283,7 +283,8 @@ const AssetRow: React.FC<{
         <TableCell
           className={cn(
             "border-none font-aeonik px-2",
-            isInLendingMode ? "text-success" : "text-destructive-foreground"
+            isInLendingMode ? "text-success" : "text-destructive-foreground",
+            isHovering && "bg-background-gray"
           )}
           align="right"
         >
@@ -388,12 +389,16 @@ const AssetRow: React.FC<{
           </div>
         </TableCell>
 
-        <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+        <TableCell
+          className={cn("text-white border-none font-aeonik px-2", isHovering && "bg-background-gray")}
+          align="right"
+          style={{ fontWeight: 300 }}
+        >
           {assetWeight}
         </TableCell>
 
         <TableCell
-          className={clsx("text-white border-none font-aeonik px-2")}
+          className={clsx("text-white border-none font-aeonik px-2", isHovering && "bg-background-gray")}
           align="right"
           style={{ fontWeight: 300 }}
         >
@@ -470,7 +475,11 @@ const AssetRow: React.FC<{
           </TooltipProvider>
         </TableCell>
 
-        <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+        <TableCell
+          className={cn("text-white border-none font-aeonik px-2", isHovering && "bg-background-gray")}
+          align="right"
+          style={{ fontWeight: 300 }}
+        >
           {isInLendingMode ? (
             <>{denominationUSD ? usdFormatter.format(bankCap * bank.info.state.price) : numeralFormatter(bankCap)}</>
           ) : (
@@ -482,12 +491,16 @@ const AssetRow: React.FC<{
           )}
         </TableCell>
 
-        <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+        <TableCell
+          className={cn("text-white border-none font-aeonik px-2", isHovering && "bg-background-gray")}
+          align="right"
+          style={{ fontWeight: 300 }}
+        >
           {percentFormatter.format(bank.info.state.utilizationRate / 100)}
         </TableCell>
 
         <TableCell
-          className="text-white border-none font-aeonik px-2 table-cell"
+          className={cn("text-white border-none font-aeonik px-2 table-cell", isHovering && "bg-background-gray")}
           align="right"
           style={{ fontWeight: 300 }}
         >
@@ -504,7 +517,12 @@ const AssetRow: React.FC<{
               )}
         </TableCell>
 
-        <TableCell className="text-white border-none font-aeonik py-1.5 px-0">
+        <TableCell
+          className={cn(
+            "text-white border-none font-aeonik py-1.5 px-0 rounded-r-md",
+            isHovering && "bg-background-gray"
+          )}
+        >
           {marginfiAccount === null && (
             <TooltipProvider>
               <Tooltip>
@@ -555,7 +573,7 @@ const AssetRow: React.FC<{
             data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
-            className={cn("h-[54px] w-full transition-colors", isHovering && "bg-background-gray")}
+            className={cn("h-[54px] w-full", isHovering && "bg-background-gray")}
           >
             <TableCell
               colSpan={9}
@@ -564,7 +582,12 @@ const AssetRow: React.FC<{
                 fontWeight: 300,
               }}
             >
-              <div className={cn("bg-accent m-2.5 mt-1 p-4 rounded-lg", isUserPositionPoorHealth && "bg-destructive")}>
+              <div
+                className={cn(
+                  "bg-background-gray m-2.5 mt-1 p-4 rounded-md",
+                  isUserPositionPoorHealth && "bg-destructive"
+                )}
+              >
                 <h3>
                   Your {isFilteredUserPositions ? (activeBank.position.isLending ? "lending " : "borrowing ") : ""}{" "}
                   position details
