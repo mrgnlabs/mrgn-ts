@@ -519,7 +519,12 @@ export const ActionBox = ({
             </>
           )}
         </div>
-        <div className="p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative">
+        <div
+          className={cn(
+            "p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative",
+            isDialog && "border border-background-gray-light/50"
+          )}
+        >
           {isPriorityFeesMode && (
             <ActionBoxPriorityFees mode={actionMode} setIsPriorityFeesMode={setIsPriorityFeesMode} />
           )}
