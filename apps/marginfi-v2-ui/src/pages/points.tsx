@@ -2,6 +2,7 @@ import React from "react";
 
 import Link from "next/link";
 
+import { NextSeo } from "next-seo";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
 import { useUiStore, useUserProfileStore } from "~/store";
@@ -25,6 +26,7 @@ const Points = () => {
 
   return (
     <>
+      <NextSeo title="marginfi — points" />
       <PageHeader>points</PageHeader>
       <div className="flex flex-col items-center w-full max-w-8xl px-10 gap-5 py-[64px] sm:py-[32px]">
         {!connected ? (

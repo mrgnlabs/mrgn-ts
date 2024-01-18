@@ -2,6 +2,7 @@ import React from "react";
 
 import Script from "next/script";
 
+import { NextSeo } from "next-seo";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import config from "~/config";
@@ -159,6 +160,7 @@ const BridgePage = () => {
 
   return (
     <>
+      <NextSeo title="marginfi — bridge" />
       <PageHeader>
         <div className="flex flex-row gap-1">
           <span>bridge</span>

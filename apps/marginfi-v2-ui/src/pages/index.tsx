@@ -2,6 +2,8 @@ import React from "react";
 
 import dynamic from "next/dynamic";
 
+import { NextSeo } from "next-seo";
+
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
@@ -22,7 +24,7 @@ import { UserMode } from "~/types";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
 
-const Home = () => {
+const HomePage = () => {
   const { walletAddress, isOverride } = useWalletContext();
   const [userMode, previousTxn] = useUiStore((state) => [state.userMode, state.previousTxn]);
   const [
@@ -43,6 +45,10 @@ const Home = () => {
 
   return (
     <>
+      <NextSeo
+        title="Supply. Earn interest. Borrow. Repeat."
+        description="marginfi is a decentralized lending and borrowing protocol on Solana."
+      />
       <Desktop>
         <PageHeader>lend</PageHeader>
         <div className="flex flex-col h-full justify-start content-start pt-[16px] w-full xl:w-4/5 xl:max-w-7xl gap-4">
@@ -91,7 +97,7 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default HomePage;
 
 const MultipleAccountsBanner = ({
   selectedAccount,
