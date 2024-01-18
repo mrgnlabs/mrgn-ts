@@ -2,15 +2,15 @@ import React from "react";
 
 import Link from "next/link";
 
-import { Button } from "@mui/material";
-import FileCopyIcon from "@mui/icons-material/FileCopy";
-import CheckIcon from "@mui/icons-material/Check";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
 import { useUiStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
+
 import { PageHeader } from "~/components/common/PageHeader";
-import { PointsOverview, PointsCheckingUser, PointsConnectWallet, PointsTable } from "~/components/desktop/Points";
+import { PointsOverview, PointsConnectWallet, PointsTable } from "~/components/desktop/Points";
+import { Button } from "~/components/ui/button";
+import { IconCopy, IconCheck } from "~/components/ui/icons";
 
 const Points = () => {
   const { connected } = useWalletContext();
@@ -31,25 +31,17 @@ const Points = () => {
           <PointsConnectWallet />
         ) : currentFirebaseUser ? (
           <PointsOverview userPointsData={userPointsData} />
-        ) : (
-          <PointsCheckingUser />
-        )}
-        <div className="w-2/3 flex justify-center items-center gap-5">
-          <Button
-            className="normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] whitespace-nowrap min-w-[260px] max-w-[260px]"
-            style={{
-              backgroundColor: "rgb(227, 227, 227)",
-              border: "none",
-              color: "black",
-              zIndex: 10,
-            }}
-            component="a"
+        ) : null}
+        <div className="w-2/3 flex flex-wrap justify-center items-center gap-5">
+          <Link
             href="https://medium.com/marginfi/introducing-mrgn-points-949e18f31a8c"
             target="_blank"
             rel="noopener noreferrer"
           >
-            How do points work?
-          </Button>
+            <Button size="lg" className="rounded-full text-lg h-auto py-3 min-w-[232px]">
+              How do points work?
+            </Button>
+          </Link>
 
           <CopyToClipboard
             text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
@@ -62,19 +54,7 @@ const Points = () => {
               }
             }}
           >
-            <Button
-              className={`normal-case text-lg font-aeonik w-[92%] min-h-[60px] rounded-[45px] gap-2 whitespace-nowrap min-w-[260px] max-w-[260px]`}
-              style={{
-                backgroundImage: userPointsData.isCustomReferralLink
-                  ? "radial-gradient(ellipse at center, #fff 0%, #fff 10%, #DCE85D 60%, #DCE85D 100%)"
-                  : "none",
-                backgroundColor: userPointsData.isCustomReferralLink ? "transparent" : "rgb(227, 227, 227)",
-
-                border: "none",
-                color: "black",
-                zIndex: 10,
-              }}
-            >
+            <Button size="lg" className="rounded-full text-lg h-auto py-3 min-w-[232px]">
               {isReferralCopied
                 ? "Link copied"
                 : `${
@@ -82,17 +62,20 @@ const Points = () => {
                       ? userPointsData.referralLink?.replace("https://", "")
                       : "Copy referral link"
                   }`}
-              {isReferralCopied ? <CheckIcon /> : <FileCopyIcon />}
+              {isReferralCopied ? <IconCheck size={22} /> : <IconCopy size={22} />}
             </Button>
           </CopyToClipboard>
         </div>
-        <div className="w-4/5 text-center text-[#868E95] text-xs flex justify-center gap-1">
-          <div>We reserve the right to update point calculations at any time.</div>
-          <div>
-            <Link href="/terms/points" style={{ textDecoration: "underline" }}>
+        <div className="text-muted-foreground text-xs">
+          <p>
+            We reserve the right to update point calculations at any time.{" "}
+            <Link
+              href="/terms/points"
+              className="border-b border-muted-foreground/40 transition-colors hover:border-transparent"
+            >
               Terms.
             </Link>
-          </div>
+          </p>
         </div>
         <PointsTable userPointsData={userPointsData} />
       </div>

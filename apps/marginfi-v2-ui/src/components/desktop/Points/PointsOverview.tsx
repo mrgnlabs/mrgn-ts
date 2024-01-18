@@ -1,174 +1,110 @@
-import React, { FC } from "react";
-import Image from "next/image";
-import { Card, CardContent, Skeleton, Typography } from "@mui/material";
+import React from "react";
+
 import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { IconInfoCircleFilled } from "~/components/ui/icons";
 
 interface PointsOverviewProps {
   userPointsData: UserPointsData;
 }
 
-export const PointsOverview: FC<PointsOverviewProps> = ({ userPointsData }) => {
+export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
   return (
-    <div className="max-w-[800px] w-full mx-auto   mt-4 ">
+    <div className="max-w-[800px] w-full mx-auto mt-4">
       <div className="grid grid-cols-2 gap-5 mb-4">
-        <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
-          <CardContent>
-            <Typography
-              color="#868E95"
-              className="font-aeonik font-[300] text-base flex gap-1"
-              gutterBottom
-              component="div"
-            >
-              Total Points
-              <div className="self-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="flex flex-col gap-1">
-                        <h4 className="text-base">Points</h4>
-                        Points refresh every 24 hours.
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </Typography>
-            <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-              {userPointsData ? (
-                numeralFormatter(userPointsData.totalPoints)
-              ) : (
-                <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
-              )}
-            </Typography>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
-          <CardContent>
-            <Typography color="#868E95" className="font-aeonik font-[300] text-base" gutterBottom>
-              Global Rank {/* TODO: fix that with dedicated query */}
-            </Typography>
-            <Typography color="#fff" className="font-aeonik font-[500] text-3xl" component="div">
-              {userPointsData ? (
-                userPointsData.userRank ? (
-                  `#${groupedNumberFormatterDyn.format(userPointsData.userRank)}`
-                ) : (
-                  "-"
-                )
-              ) : (
-                <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
-              )}
-            </Typography>
-          </CardContent>
-        </Card>
+        <div className="bg-background-gray-dark h-24 rounded-lg py-3.5 px-4">
+          <h2 className="text-base flex gap-1.5 text-muted-foreground/80">
+            Total Points
+            <div className="self-center">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <IconInfoCircleFilled size={16} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Points refresh every 24 hours.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </h2>
+          <h3 className="text-white font-[500] text-3xl mt-1.5">
+            {userPointsData && numeralFormatter(userPointsData.totalPoints)}
+          </h3>
+        </div>
+        <div className="bg-background-gray-dark h-24 rounded-lg py-3.5 px-4">
+          <h2 className="text-base flex gap-1.5 text-muted-foreground/80">
+            Global Rank {/* TODO: fix that with dedicated query */}
+          </h2>
+          <h3 className="text-white font-[500] text-3xl mt-1.5">
+            {userPointsData &&
+              (userPointsData.userRank ? `#${groupedNumberFormatterDyn.format(userPointsData.userRank)}` : "-")}
+          </h3>
+        </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-5 ">
-        <Card className="bg-[#131619]  h-24 rounded-xl" elevation={0}>
-          <CardContent>
-            <Typography
-              color="#868E95"
-              className="font-aeonik font-[300] text-base flex gap-1"
-              gutterBottom
-              component="div"
-            >
-              Lending Points
-              <div className="self-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="flex flex-col gap-1">
-                        <h4 className="text-base">Lending</h4>
-                        Lending earns 1 point per dollar lent per day.
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </Typography>
-            <Typography color="#fff" component="div" className="font-aeonik font-[500] text-2xl">
-              {userPointsData ? (
-                numeralFormatter(userPointsData.depositPoints)
-              ) : (
-                <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
-              )}
-            </Typography>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
-          <CardContent>
-            <Typography
-              color="#868E95"
-              className="font-aeonik font-[300] text-base flex gap-1"
-              gutterBottom
-              component="div"
-            >
-              Borrowing Points
-              <div className="self-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="flex flex-col gap-1">
-                        <h4 className="text-base">Borrowing</h4>
-                        Borrowing earns 4 points per dollar borrowed per day.
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </Typography>
-            <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-              {userPointsData ? (
-                numeralFormatter(userPointsData.borrowPoints)
-              ) : (
-                <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
-              )}
-            </Typography>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#131619] h-24 rounded-xl" elevation={0}>
-          <CardContent>
-            <Typography
-              color="#868E95"
-              className="font-aeonik font-[300] text-base flex gap-1"
-              gutterBottom
-              component="div"
-            >
-              Referral Points
-              <div className="self-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="flex flex-col gap-1">
-                        <h4 className="text-base">Earn more with friends</h4>
-                        Earn 10% of the points any user you refer earns.
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </Typography>
-            <Typography color="#fff" className="font-aeonik font-[500] text-2xl" component="div">
-              {userPointsData ? (
-                numeralFormatter(userPointsData.referralPoints)
-              ) : (
-                <Skeleton variant="rectangular" animation="wave" className="w-1/3 rounded-md top-[4px]" />
-              )}
-            </Typography>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+        <div className="bg-background-gray-dark h-24 rounded-lg py-3.5 px-4">
+          <h2 className="text-base flex gap-1.5 text-muted-foreground/80">
+            Lending Points
+            <div className="self-center">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <IconInfoCircleFilled size={16} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Lending earns 1 point per dollar lent per day.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </h2>
+          <h3 className="text-white font-[500] text-2xl mt-1.5">
+            {userPointsData && numeralFormatter(userPointsData.depositPoints)}
+          </h3>
+        </div>
+        <div className="bg-background-gray-dark h-24 rounded-lg py-3.5 px-4">
+          <h2 className="text-base flex gap-1.5 text-muted-foreground/80">
+            Borrowing Points
+            <div className="self-center">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <IconInfoCircleFilled size={16} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Borrowing earns 4 points per dollar borrowed per day.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </h2>
+          <h3 className="text-white font-[500] text-2xl mt-1.5">
+            {userPointsData && numeralFormatter(userPointsData.borrowPoints)}
+          </h3>
+        </div>
+        <div className="bg-background-gray-dark h-24 rounded-lg py-3.5 px-4">
+          <h2 className="text-base flex gap-1.5 text-muted-foreground/80">
+            Referral Points
+            <div className="self-center">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <IconInfoCircleFilled size={16} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Earn 10% of the points any user you refer earns.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </h2>
+          <h3 className="text-white font-[500] text-2xl mt-1.5">
+            {userPointsData && numeralFormatter(userPointsData.referralPoints)}
+          </h3>
+        </div>
       </div>
     </div>
   );
