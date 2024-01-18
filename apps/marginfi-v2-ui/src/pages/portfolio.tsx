@@ -1,44 +1,30 @@
 import React from "react";
 
-import { useRouter } from "next/router";
 import Link from "next/link";
 
+import { NextSeo } from "next-seo";
 import FileCopyIcon from "@mui/icons-material/FileCopy";
 import CheckIcon from "@mui/icons-material/Check";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
-import config from "~/config/marginfi";
-import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
-import { useConnection } from "~/hooks/useConnection";
+import { useUiStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { PageHeader } from "~/components/common/PageHeader";
-import { PointsCheckingUser, PointsConnectWallet } from "~/components/desktop/Points";
+import { PointsConnectWallet } from "~/components/desktop/Points";
 import { EmissionsBanner } from "~/components/mobile/EmissionsBanner";
 import { Portfolio } from "~/components/common/Portfolio";
 import { Button } from "~/components/ui/button";
 import { MobilePointsOverview } from "~/components/mobile/Points/MobilePointsOverview";
 
 const PortfolioPage = () => {
-  const { connected, wallet, isOverride } = useWalletContext();
-  const { query: routerQuery } = useRouter();
-  const { connection } = useConnection();
-  const [fetchMrgnlendState, setIsRefreshingStore] = useMrgnlendStore((state) => [
-    state.fetchMrgnlendState,
-    state.setIsRefreshingStore,
-  ]);
-  const [currentFirebaseUser, hasUser, userPointsData] = useUserProfileStore((state) => [
-    state.currentFirebaseUser,
-    state.hasUser,
-    state.userPointsData,
-  ]);
+  const { connected } = useWalletContext();
+  const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
-
-  const referralCode = React.useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
-
 
   return (
     <>
+      <NextSeo title="marginfi — portfolio" />
       <PageHeader>portfolio</PageHeader>
       <div className="flex flex-col w-full h-full justify-start items-center px-4 gap-6 mb-20">
         <EmissionsBanner />
@@ -46,9 +32,7 @@ const PortfolioPage = () => {
           <PointsConnectWallet />
         ) : userPointsData ? (
           <MobilePointsOverview userPointsData={userPointsData} />
-        ) : (
-          <PointsCheckingUser />
-        )}
+        ) : null}
         <div className="flex flex-wrap justify-center items-center gap-5">
           <a
             href="https://medium.com/marginfi/introducing-mrgn-points-949e18f31a8c"
@@ -71,10 +55,11 @@ const PortfolioPage = () => {
             <Button>
               {isReferralCopied
                 ? "Link copied"
-                : `${userPointsData.isCustomReferralLink
-                  ? userPointsData.referralLink?.replace("https://", "")
-                  : "Copy referral link"
-                }`}
+                : `${
+                    userPointsData.isCustomReferralLink
+                      ? userPointsData.referralLink?.replace("https://", "")
+                      : "Copy referral link"
+                  }`}
               {isReferralCopied ? <CheckIcon /> : <FileCopyIcon />}
             </Button>
           </CopyToClipboard>
