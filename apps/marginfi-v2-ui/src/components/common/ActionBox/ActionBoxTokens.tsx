@@ -155,7 +155,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
             <Button
               className={cn(
                 "bg-background-gray-light text-white w-full font-normal text-left text-base items-center justify-start py-6 px-3 gap-2.5 transition-colors hover:bg-background-gray",
-                "xs:pr-2.5 xs:pl-3.5 xs:py-7 xs:justify-center",
+                "xs:pr-2.5 xs:pl-3.5 xs:py-6 xs:justify-center",
                 isTokenPopoverOpen && "bg-background-gray"
               )}
             >
