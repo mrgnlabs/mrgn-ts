@@ -82,7 +82,7 @@ export const WalletOnramp = () => {
   return (
     <>
       <Button
-        variant="outline"
+        variant="secondary"
         className="w-full"
         id="moonpay-btn"
         onClick={() => {

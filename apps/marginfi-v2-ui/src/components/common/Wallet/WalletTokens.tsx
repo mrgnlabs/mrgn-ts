@@ -49,7 +49,7 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
       {tokens.length > 1 && (
         <Popover open={isTokensOpen} onOpenChange={setIsTokensOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" role="combobox" aria-expanded={isTokensOpen} className="w-full justify-start">
+            <Button variant="secondary" role="combobox" aria-expanded={isTokensOpen} className="w-full justify-start">
               {tokens[0].image && (
                 <Image src={tokens[0].image} alt={tokens[0].symbol} className="w-4 h-4 mr-1" width={16} height={16} />
               )}
@@ -62,7 +62,7 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="p-0 w-[304px] m-0 z-[1000002]">
-            <Command>
+            <Command className="bg-accent border-none">
               <CommandInput placeholder="Search tokens..." className="h-9" />
               <CommandEmpty>No token found.</CommandEmpty>
 
@@ -70,7 +70,7 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
                 {tokens.slice(1).map((token, index) => (
                   <CommandItem
                     key={index}
-                    className="flex items-center justify-start font-normal pl-3 aria-selected:bg-transparent aria-selected:text-white"
+                    className="flex items-center justify-start font-normal pl-3 aria-selected:bg-background-gray-dark aria-selected:text-white"
                   >
                     {token.image && (
                       <Image src={token.image} alt={token.symbol} className="w-4 h-4 mr-3" width={16} height={16} />
