@@ -494,7 +494,7 @@ export const ActionBox = ({
 
   return (
     <>
-      <div className="bg-background p-4 flex flex-col items-center gap-4">
+      <div className="p-4 flex flex-col items-center gap-4">
         <div className="space-y-6 text-center w-full flex flex-col items-center">
           {!isDialog && (
             <>
