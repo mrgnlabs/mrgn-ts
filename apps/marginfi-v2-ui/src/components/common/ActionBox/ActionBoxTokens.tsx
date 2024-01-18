@@ -210,7 +210,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
               <CommandEmpty>No tokens found.</CommandEmpty>
 
               {/* LENDING */}
-              <div className="max-h-[calc(100vh-580px)] overflow-auto">
+              <div className="max-h-[calc(100vh-580px)] min-h-[200px] overflow-auto">
                 {lendingMode === LendingModes.LEND && connected && filteredBanksUserOwns.length > 0 && (
                   <CommandGroup heading="Available in your wallet">
                     {filteredBanksUserOwns
