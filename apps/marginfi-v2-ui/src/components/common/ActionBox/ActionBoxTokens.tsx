@@ -396,7 +396,7 @@ const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemProps) =>
           className={cn(
             "text-xs font-normal leading-none",
             lendingMode === LendingModes.LEND && "text-success",
-            lendingMode === LendingModes.BORROW && "text-error"
+            lendingMode === LendingModes.BORROW && "text-warning"
           )}
         >
           {rate + ` ${lendingMode === LendingModes.LEND ? "APY" : "APR"}`}
@@ -447,7 +447,7 @@ const ActionBoxItem = ({ rate, lendingMode, bank, nativeSolBalance, showBalanceO
             className={cn(
               "text-xs font-normal",
               lendingMode === LendingModes.LEND && "text-success",
-              lendingMode === LendingModes.BORROW && "text-error"
+              lendingMode === LendingModes.BORROW && "text-warning"
             )}
           >
             {rate}
