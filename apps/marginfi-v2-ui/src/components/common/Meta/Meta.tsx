@@ -22,7 +22,7 @@ export const Meta = ({ path }: MrgnProps) => {
       <meta property="og:title" content={title} />
       <meta property="og:url" content="https://app.marginfi.com" />
       <meta property="og:type" content="website" />
-      <meta property="og:image" content="https://marginfi-v2-ui-git-staging-mrgn.vercel.app/marginfi-cover.jpg" />
+      <meta property="og:image" content="https://app.marginfi.com/marginfi-cover.jpg" />
       <meta property="og:image:alt" content="marginfi" />
       <meta property="og:image:type" content="image/jpeg" />
       <meta property="og:image:width" content="1400" />
