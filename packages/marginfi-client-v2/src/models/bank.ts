@@ -678,24 +678,24 @@ enum OracleSetup {
 
 // BankConfigOpt Args
 interface BankConfigOpt {
-  assetWeightInit: WrappedI80F48;
-  assetWeightMaint: WrappedI80F48;
+  assetWeightInit: WrappedI80F48 | null;
+  assetWeightMaint: WrappedI80F48 | null;
 
-  liabilityWeightInit: WrappedI80F48;
-  liabilityWeightMaint: WrappedI80F48;
+  liabilityWeightInit: WrappedI80F48 | null;
+  liabilityWeightMaint: WrappedI80F48 | null;
 
-  depositLimit: BN;
-  borrowLimit: BN;
-  riskTier: { collateral: {} } | { isolated: {} };
-  totalAssetValueInitLimit: BN;
+  depositLimit: BN | null;
+  borrowLimit: BN | null;
+  riskTier: { collateral: {} } | { isolated: {} } | null;
+  totalAssetValueInitLimit: BN | null;
 
-  interestRateConfig: InterestRateConfigRaw;
-  operationalState: { paused: {} } | { operational: {} } | { reduceOnly: {} };
+  interestRateConfig: InterestRateConfigRaw | null;
+  operationalState: { paused: {} } | { operational: {} } | { reduceOnly: {} } | null;
 
   oracle: {
-    setup: { none: {} } | { pythEma: {} } | { switchboardV2: {} };
-    keys: PublicKey[];
-  }
+    setup: { none: {} } | { pythEma: {} } | { switchboardV2: {} } ;
+    keys: PublicKey[] ;
+  } | null
 }
 
 
