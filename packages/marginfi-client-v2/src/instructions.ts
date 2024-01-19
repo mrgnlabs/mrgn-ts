@@ -1,6 +1,7 @@
 import { AccountMeta, PublicKey, SystemProgram } from "@solana/web3.js";
 import BN from "bn.js";
 import { MarginfiProgram } from "./types";
+import { BankConfigOpt } from "./models/bank";
 
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
@@ -227,6 +228,28 @@ function makeUnsetAccountFlagIx(
     })
     .instruction();
 }
+
+function makePoolConfigureBankIx(
+  mfiProgram: MarginfiProgram,
+  accounts: {
+    marginfiGroup: PublicKey;
+    admin: PublicKey;
+    bank: PublicKey;
+  },
+  args: {
+    bankConfigOpt: BankConfigOpt;
+  }
+) {
+  return mfiProgram.methods
+    .lendingPoolConfigureBank(args.bankConfigOpt)
+    .accounts({
+      marginfiGroup: accounts.marginfiGroup,
+      admin: accounts.admin,
+      bank: accounts.bank,
+    })
+    .instruction();
+}
+
 const instructions = {
   makeDepositIx,
   makeRepayIx,
@@ -237,6 +260,7 @@ const instructions = {
   makelendingAccountWithdrawEmissionIx,
   makeSetAccountFlagIx,
   makeUnsetAccountFlagIx,
+  makePoolConfigureBankIx,
 };
 
 export default instructions;
