@@ -2,8 +2,6 @@ import React from "react";
 
 import dynamic from "next/dynamic";
 
-import { NextSeo } from "next-seo";
-
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 
@@ -46,10 +44,6 @@ export default function HomePage() {
 
   return (
     <>
-      <NextSeo
-        title="Supply. Earn interest. Borrow. Repeat."
-        description="marginfi is a decentralized lending and borrowing protocol on Solana."
-      />
       <Desktop>
         <PageHeader>lend</PageHeader>
         {!isStoreInitialized && <Loader label="Loading mrgnlend..." className="mt-16" />}

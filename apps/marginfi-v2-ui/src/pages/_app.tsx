@@ -1,10 +1,9 @@
 import React from "react";
 
-import type { AppProps } from "next/app";
+import App, { AppContext, AppInitialProps, AppProps } from "next/app";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 
-import { DefaultSeo } from "next-seo";
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { init, push } from "@socialgouv/matomo-next";
@@ -12,7 +11,6 @@ import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 
 import config from "~/config";
-import SEO from "~/config/seo";
 import { MrgnlendProvider, LipClientProvider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -22,6 +20,7 @@ import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";
 import { init as initAnalytics } from "~/utils/analytics";
 
+import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
 import { WalletAuthDialog } from "~/components/common/Wallet";
@@ -44,7 +43,9 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 
 const MATOMO_URL = "https://mrgn.matomo.cloud";
 
-export default function App({ Component, pageProps }: AppProps) {
+type MrgnAppProps = { path: string };
+
+export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
   const [setIsFetchingData] = useUiStore((state) => [state.setIsFetchingData]);
   const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
@@ -85,12 +86,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <>
-      <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="manifest" href="/manifest.json" />
-      </Head>
-      <DefaultSeo {...SEO}></DefaultSeo>
+      <Meta path={path} />
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
           <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
@@ -126,3 +122,9 @@ export default function App({ Component, pageProps }: AppProps) {
     </>
   );
 }
+
+MrgnApp.getInitialProps = async (appContext: AppContext): Promise<AppInitialProps & MrgnAppProps> => {
+  const appProps = await App.getInitialProps(appContext);
+  const path = appContext.ctx.pathname;
+  return { ...appProps, path };
+};

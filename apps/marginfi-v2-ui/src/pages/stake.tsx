@@ -2,7 +2,6 @@ import React from "react";
 
 import { useRouter } from "next/router";
 
-import { NextSeo } from "next-seo";
 import { JupiterProvider } from "@jup-ag/react-hook";
 
 import { createJupiterStore } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -109,10 +108,6 @@ export default function StakePage() {
 
   return (
     <>
-      <NextSeo
-        title="marginfi — stake"
-        description="LST — mrgn's Liquid Staking Token. The highest natural yield available from any LST on Solana. By a lot."
-      />
       <JupiterProvider connection={connection} wrapUnwrapSOL={false} platformFeeAndAccounts={undefined}>
         <PageHeader>stake</PageHeader>
         <StakingContent isInitialized={initialized} />
