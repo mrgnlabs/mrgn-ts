@@ -676,6 +676,29 @@ enum OracleSetup {
   SwitchboardV2 = 2,
 }
 
+// BankConfigOpt Args
+interface BankConfigOpt {
+  assetWeightInit: WrappedI80F48;
+  assetWeightMaint: WrappedI80F48;
+
+  liabilityWeightInit: WrappedI80F48;
+  liabilityWeightMaint: WrappedI80F48;
+
+  depositLimit: BN;
+  borrowLimit: BN;
+  riskTier: { collateral: {} } | { isolated: {} };
+  totalAssetValueInitLimit: BN;
+
+  interestRateConfig: InterestRateConfigRaw;
+  operationalState: { paused: {} } | { operational: {} } | { reduceOnly: {} };
+
+  oracle: {
+    setup: { none: {} } | { pythEma: {} } | { switchboardV2: {} };
+    keys: PublicKey[];
+  }
+}
+
+
 function parseRiskTier(riskTierRaw: RiskTierRaw): RiskTier {
   switch (Object.keys(riskTierRaw)[0].toLowerCase()) {
     case "collateral":
@@ -713,7 +736,7 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
   }
 }
 
-export type { InterestRateConfig };
+export type { InterestRateConfig, BankConfigOpt };
 export { Bank, BankConfig, RiskTier, OperationalState, OracleSetup, parseRiskTier, parseOracleSetup };
 
 // ----------------------------------------------------------------------------
