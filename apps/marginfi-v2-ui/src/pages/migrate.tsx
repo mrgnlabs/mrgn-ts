@@ -1,6 +1,9 @@
+import React from "react";
+
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 import { useMrgnlendStore } from "~/store";
 
@@ -12,15 +15,27 @@ import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";
 import { Alert, AlertTitle } from "~/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconAlertTriangle, IconTransfer } from "~/components/ui/icons";
+import { IconAlertTriangle, IconTransfer, IconX } from "~/components/ui/icons";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 
 export default function MigratePage() {
   const { connected, wallet } = useWalletContext();
-  const [initialized, marginfiAccounts, selectedAccount] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.marginfiAccounts,
-    state.selectedAccount,
-  ]);
+  const [fetchMrgnlendState, isRefreshingStore, setIsRefreshingStore, initialized, marginfiAccounts, selectedAccount] =
+    useMrgnlendStore((state) => [
+      state.fetchMrgnlendState,
+      state.isRefreshingStore,
+      state.setIsRefreshingStore,
+      state.initialized,
+      state.marginfiAccounts,
+      state.selectedAccount,
+    ]);
+  const [chosenAccount, setChosenAccount] = React.useState<MarginfiAccountWrapper | null>(null);
+
+  React.useEffect(() => {
+    if (marginfiAccounts.length === 1 && !chosenAccount) {
+      setChosenAccount(marginfiAccounts[0]);
+    }
+  }, [marginfiAccounts]);
 
   return (
     <>
@@ -35,7 +50,58 @@ export default function MigratePage() {
             </div>
           )}
 
-          {connected && selectedAccount && (
+          {connected && !chosenAccount && (
+            <div className="flex flex-col items-center max-w-md mx-auto">
+              <header className="space-y-4 text-center">
+                <h1 className="text-3xl font-medium">Migrate your marginfi account</h1>
+                <p>
+                  There are multiple accounts associated with your wallet address. Please ensure the correct account is
+                  selected before migrating.
+                </p>
+              </header>
+
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <p className="text-sm font-normal">Select account:</p>
+                <Select
+                  value={selectedAccount ? selectedAccount.address.toBase58() : ""}
+                  disabled={isRefreshingStore}
+                  onValueChange={(value) => {
+                    setIsRefreshingStore(true);
+                    localStorage.setItem("mfiAccount", value);
+                    fetchMrgnlendState();
+                  }}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    {isRefreshingStore
+                      ? "Loading..."
+                      : selectedAccount
+                      ? shortenAddress(selectedAccount.address.toBase58())
+                      : ""}
+                  </SelectTrigger>
+                  <SelectContent className="w-full">
+                    <SelectGroup>
+                      <SelectLabel>Accounts</SelectLabel>
+                      {marginfiAccounts.map((account, index) => (
+                        <SelectItem key={index} value={account.address.toBase58()} className="!text-xs">
+                          {account.address.toBase58()}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setChosenAccount(selectedAccount);
+                  }}
+                >
+                  Continue
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {connected && chosenAccount && selectedAccount && (
             <div className="flex flex-col items-center max-w-md mx-auto">
               <header className="space-y-4 text-center">
                 <h1 className="text-3xl font-medium">Migrate your marginfi account</h1>
@@ -84,9 +150,24 @@ export default function MigratePage() {
                     <Input type="text" placeholder="Wallet address" />
                   </li>
                 </ul>
-                <Button>
-                  <IconTransfer size={20} /> Migrate Account
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button>
+                    <IconTransfer size={20} /> Migrate Account
+                  </Button>
+
+                  {marginfiAccounts.length > 1 && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="text-destructive-foreground gap-1"
+                      onClick={() => {
+                        setChosenAccount(null);
+                      }}
+                    >
+                      <IconX size={16} /> Cancel Migration
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           )}
