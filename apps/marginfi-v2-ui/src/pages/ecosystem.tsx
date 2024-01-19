@@ -1,8 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 
-import { NextSeo } from "next-seo";
-
 import { PageHeader } from "~/components/common/PageHeader";
 import {
   IconExternalLink,
@@ -125,10 +123,6 @@ const projects = [
 export default function Ecosystem() {
   return (
     <>
-      <NextSeo
-        title="marginfi — ecosystem"
-        description="Official and community projects powered by the marginfi SDK."
-      />
       <PageHeader>ecosystem</PageHeader>
       <div className="w-full xl:w-4/5 xl:max-w-7xl mx-auto px-4">
         <div className="text-muted-foreground text-lg text-center my-12">

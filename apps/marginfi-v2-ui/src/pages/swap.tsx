@@ -4,8 +4,6 @@ import React from "react";
 
 import Script from "next/script";
 
-import { NextSeo } from "next-seo";
-
 import config from "~/config";
 import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -24,7 +22,6 @@ export default function SwapPage() {
 
   return (
     <>
-      <NextSeo title="marginfi — swap" />
       <Script
         src="https://terminal.jup.ag/main-v2.js"
         onReady={() => {

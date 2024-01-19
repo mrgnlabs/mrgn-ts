@@ -2,8 +2,6 @@ import React from "react";
 
 import Link from "next/link";
 
-import { NextSeo } from "next-seo";
-
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -21,7 +19,6 @@ export default function PointsPage() {
 
   return (
     <>
-      <NextSeo title="marginfi — points" />
       <PageHeader>points</PageHeader>
       {!initialized && <Loader label="Loading marginfi points..." className="mt-16" />}
 
