@@ -6,7 +6,7 @@ import { AccountType, MarginfiProgram } from "../types";
 import { InstructionsWrapper } from "@mrgnlabs/mrgn-common";
 import instructions from "../instructions";
 import { FLASHLOAN_ENABLED_FLAG } from "../constants";
-import { BankConfigOpt } from "./bank";
+import { BankConfigOptRaw } from "./bank";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -106,13 +106,13 @@ class MarginfiGroup {
   public async makePoolConfigureBankIxb(
     program: MarginfiProgram,
     bank: PublicKey,
-    args: BankConfigOpt
+    args: BankConfigOptRaw
   ): Promise<InstructionsWrapper> {
     const ix = await instructions.makePoolConfigureBankIx(
       program,
       {
         marginfiGroup: this.address,
-        
+
         admin: this.admin,
         bank: bank,
       },
