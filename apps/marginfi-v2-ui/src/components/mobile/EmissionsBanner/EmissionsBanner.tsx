@@ -5,6 +5,8 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useMrgnlendStore } from "~/store";
 import { collectRewardsBatch } from "~/utils";
 import { EMISSION_MINT_INFO_MAP } from "../../desktop/AssetsList/AssetRow";
+import { Button } from "~/components/ui/button";
+import { IconConfetti } from "~/components/ui/icons";
 
 const EmissionsBanner: FC = () => {
   const { connection } = useConnection();
@@ -27,15 +29,16 @@ const EmissionsBanner: FC = () => {
   if (bankAddressesWithEmissions.length === 0) return null;
 
   return (
-    <button
-      className="btn-gleam w-1/2 h-12 flex items-center justify-center px-2 bg-gradient-to-tr from-[#DCE85DBB] to-[#22282C] rounded-md outline outline-2 outline-offset-2 outline-[#DCE85DBB] max-w-[260px]"
+    <Button
+      size="lg"
       onClick={async () => {
         if (!wallet || !selectedAccount || bankAddressesWithEmissions.length === 0) return;
         await collectRewardsBatch(connection, wallet, selectedAccount, bankAddressesWithEmissions);
       }}
+      className="mt-8 rounded-full"
     >
-      <div className="text-white text-normal font-[500]">Collect LM rewards</div>
-    </button>
+      <IconConfetti /> Collect LM rewards
+    </Button>
   );
 };
 
