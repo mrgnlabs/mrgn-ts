@@ -1,6 +1,6 @@
 {
   "name": "@mrgnlabs/marginfi-client-v2",
-  "version": "2.3.0",
+  "version": "2.6.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
@@ -18,7 +18,7 @@
     "@coral-xyz/anchor": "^0.28.1-beta.2",
     "@mrgnlabs/mrgn-common": "*",
     "@solana/wallet-adapter-base": "^0.9.20",
-    "@solana/web3.js": "^1.71.0",
+    "@solana/web3.js": "^1.87.6",
     "bignumber.js": "^9.1.1",
     "bs58": "^5.0.0",
     "decimal.js": "^10.4.3",

@@ -3,7 +3,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import Link from "next/link";
 import Badge from "@mui/material/Badge";
-import { TableCell, TableRow, Tooltip, Typography } from "@mui/material";
+import { TableCell, TableRow, Typography } from "@mui/material";
 
 import { WSOL_MINT, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import {
@@ -31,7 +31,7 @@ import {
 import { useUserProfileStore, useUiStore } from "~/store";
 import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
 
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
 
 export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tokenLogoUri: string }>([
@@ -47,6 +47,13 @@ export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tok
     {
       tokenSymbol: "BLZE",
       tokenLogoUri: "/blze.png",
+    },
+  ],
+  [
+    "LFG",
+    {
+      tokenSymbol: "LFG",
+      tokenLogoUri: "/lfg.webp",
     },
   ],
 ]);
@@ -130,7 +137,7 @@ const AssetRow: React.FC<{
 
   const assetPrice = React.useMemo(
     () => getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber(),
-    [getPriceWithConfidence(bank.info.oraclePrice, false).price, bank.info.state.price]
+    [bank.info.oraclePrice]
   );
 
   const assetPriceOffset = React.useMemo(
@@ -203,10 +210,10 @@ const AssetRow: React.FC<{
           setIsHovering(false);
           setShowDogWifHatImage(false);
         }}
-        className={cn("h-[54px] w-full transition-colors z-10", isHovering && "bg-background-gray")}
+        className="h-[60px] w-full transition-colors z-10"
       >
         <TableCell
-          className="text-white p-0 font-aeonik border-none"
+          className={cn("text-white p-0 font-aeonik border-none rounded-l-md", isHovering && "bg-background-gray")}
           style={{
             fontWeight: 300,
           }}
@@ -226,53 +233,58 @@ const AssetRow: React.FC<{
         </TableCell>
 
         <TableCell
-          className={`text-white border-none px-2 font-aeonik table-cell`}
+          className={cn("text-white border-none px-2 font-aeonik table-cell", isHovering && "bg-background-gray")}
           align="right"
           style={{ fontWeight: 300 }}
         >
           <div className="flex items-center justify-end gap-1.5">
-            <MrgnTooltip
-              title={
-                <React.Fragment>
-                  <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
-                    Wide oracle price bands
-                  </Typography>
-                  {`${bank.meta.tokenSymbol} price estimates is
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    badgeContent={assetPriceOffset > assetPrice * 0.1 ? "⚠️" : ""}
+                    className="bg-transparent flex items-center justify-end gap-1.5"
+                    sx={{
+                      "& .MuiBadge-badge": {
+                        fontSize: 20,
+                      },
+                    }}
+                    invisible={assetPriceOffset > assetPrice * 0.1 ? false : true}
+                  >
+                    {assetPrice >= 0.01 ? usdFormatter.format(assetPrice) : `$${assetPrice.toExponential(2)}`}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="flex flex-col gap-2">
+                    <h4 className="text-base">Wide oracle price bands</h4>
+                    {`${bank.meta.tokenSymbol} price estimates is
                 ${usdFormatter.format(bank.info.state.price)} ± ${assetPriceOffset.toFixed(
-                    2
-                  )}, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`}
-                  <br />
-                  <a href="https://docs.marginfi.com">
-                    <u>Learn more.</u>
-                  </a>
-                </React.Fragment>
-              }
-              placement="right"
-              className={`${assetPriceOffset > assetPrice * 0.1 ? "cursor-pointer" : "hidden"}`}
-            >
-              <Badge
-                badgeContent={assetPriceOffset > assetPrice * 0.1 ? "⚠️" : ""}
-                className="bg-transparent flex items-center justify-end gap-1.5"
-                sx={{
-                  "& .MuiBadge-badge": {
-                    fontSize: 20,
-                  },
-                }}
-                invisible={assetPriceOffset > assetPrice * 0.1 ? false : true}
-              >
-                {assetPrice >= 0.01 ? usdFormatter.format(assetPrice) : `$${assetPrice.toExponential(2)}`}
-              </Badge>
-            </MrgnTooltip>
-            <MrgnTooltip title={`Powered by ${oracle}`} placement="right">
-              <div>{oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}</div>
-            </MrgnTooltip>
+                      2
+                    )}, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`}
+                    <br />
+                    <a href="https://docs.marginfi.com">
+                      <u>Learn more.</u>
+                    </a>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>{oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}</div>
+                </TooltipTrigger>
+                <TooltipContent>Powered by {oracle}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </TableCell>
 
         <TableCell
           className={cn(
             "border-none font-aeonik px-2",
-            isInLendingMode ? "text-success" : "text-destructive-foreground"
+            isInLendingMode ? "text-success" : "text-destructive-foreground",
+            isHovering && "bg-background-gray"
           )}
           align="right"
         >
@@ -281,82 +293,91 @@ const AssetRow: React.FC<{
               EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol) !== undefined &&
               isInLendingMode && (
                 <div className="w-1/2 flex justify-center sm:justify-end">
-                  <MrgnTooltip
-                    title={
-                      <div className="my-1 space-y-1.5">
-                        <h4 className="text-lg font-medium flex items-center gap-1.5">
-                          <Image
-                            src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
-                            alt="info"
-                            height={18}
-                            width={18}
-                          />{" "}
-                          Liquidity rewards
-                        </h4>
-                        <p className="text-xs">
-                          {`${percentFormatter.format(
-                            bank.info.state.lendingRate
-                          )} Supply APY + ${percentFormatter.format(bank.info.state.emissionsRate)} ${
-                            EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenSymbol
-                          } rewards. `}
-                          <Link
-                            target="_blank"
-                            rel="noreferrer"
-                            href="https://docs.marginfi.com"
-                            className="inline-block border-b transition-colors hover:border-transparent text-xs"
-                          >
-                            Learn more.
-                          </Link>
-                        </p>
-                      </div>
-                    }
-                    placement="left"
-                  >
-                    <Image
-                      src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
-                      alt="info"
-                      height={18}
-                      width={18}
-                    />
-                  </MrgnTooltip>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Image
+                          src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
+                          alt="info"
+                          height={18}
+                          width={18}
+                          className="rounded-full"
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="flex flex-col items-start gap-1.5">
+                          <h4 className="text-base flex items-center gap-1.5">
+                            <Image
+                              src={EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenLogoUri}
+                              alt="info"
+                              height={18}
+                              width={18}
+                              className="rounded-full"
+                            />{" "}
+                            Liquidity rewards
+                          </h4>
+                          <p className="text-xs">
+                            {`${percentFormatter.format(
+                              bank.info.state.lendingRate
+                            )} Supply APY + ${percentFormatter.format(bank.info.state.emissionsRate)} ${
+                              EMISSION_MINT_INFO_MAP.get(bank.meta.tokenSymbol)!.tokenSymbol
+                            } rewards. `}
+                          </p>
+                          <p className="text-xs">
+                            <Link
+                              target="_blank"
+                              rel="noreferrer"
+                              href="https://docs.marginfi.com"
+                              className="inline-block border-b transition-colors hover:border-transparent text-xs"
+                            >
+                              Learn more.
+                            </Link>
+                          </p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               )}
             {bank.meta.tokenSymbol === "mSOL" && (
               <div className="w-1/2 flex justify-center sm:justify-end">
-                <MrgnTooltip
-                  title={
-                    <div className="my-1 space-y-1.5">
-                      <h4 className="text-lg font-medium flex items-center gap-1.5">
-                        <Image
-                          src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey/logo.png"
-                          alt="info"
-                          height={18}
-                          width={18}
-                        />
-                        MNDE rewards
-                      </h4>
-                      <p className="text-xs">Eligible for Marinade Earn rewards.</p>
-                      <Link
-                        target="_blank"
-                        rel="noreferrer"
-                        href="https://marinade.finance/app/earn/"
-                        className="inline-block border-b transition-colors hover:border-transparent text-xs"
-                      >
-                        Learn more
-                      </Link>
-                    </div>
-                  }
-                  placement="left"
-                >
-                  <Image
-                    src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey/logo.png"
-                    alt="info"
-                    height={18}
-                    width={18}
-                  />
-                </MrgnTooltip>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Image
+                        src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey/logo.png"
+                        alt="info"
+                        height={18}
+                        width={18}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="flex flex-col items-start gap-1.5">
+                        <h4 className="text-base flex items-center gap-1.5">
+                          <Image
+                            src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey/logo.png"
+                            alt="info"
+                            height={18}
+                            width={18}
+                          />
+                          MNDE rewards
+                        </h4>
+                        <p className="text-xs">Eligible for Marinade Earn rewards.</p>
+                        <Link
+                          target="_blank"
+                          rel="noreferrer"
+                          href="https://marinade.finance/app/earn/"
+                          className="inline-block border-b transition-colors hover:border-transparent text-xs"
+                        >
+                          Learn more
+                        </Link>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             )}
+
             <div
               className="w-[40%] flex justify-end"
               style={{
@@ -368,18 +389,53 @@ const AssetRow: React.FC<{
           </div>
         </TableCell>
 
-        <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+        <TableCell
+          className={cn("text-white border-none font-aeonik px-2", isHovering && "bg-background-gray")}
+          align="right"
+          style={{ fontWeight: 300 }}
+        >
           {assetWeight}
         </TableCell>
 
         <TableCell
-          className={clsx("text-white border-none font-aeonik px-2")}
+          className={clsx("text-white border-none font-aeonik px-2", isHovering && "bg-background-gray")}
           align="right"
           style={{ fontWeight: 300 }}
         >
-          <MrgnTooltip
-            title={
-              <React.Fragment>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={cn(
+                    "flex items-center justify-end gap-1.5 text-white",
+                    (isReduceOnly || isBankHigh) && "text-warning",
+                    isBankFilled && "text-destructive-foreground"
+                  )}
+                >
+                  {denominationUSD
+                    ? usdFormatter.format(
+                        (isInLendingMode
+                          ? bank.info.state.totalDeposits
+                          : Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
+                            bank.info.state.totalBorrows) * bank.info.state.price
+                      )
+                    : numeralFormatter(
+                        isInLendingMode
+                          ? bank.info.state.totalDeposits
+                          : Math.min(
+                              bank.info.state.availableLiquidity,
+                              bank.info.state.borrowCap - bank.info.state.totalBorrows
+                            )
+                      )}
+
+                  {isReduceOnly || (isBankHigh && !isBankFilled) ? (
+                    <IconAlertTriangle size={16} />
+                  ) : isBankFilled ? (
+                    <IconAlertTriangleFilled size={16} />
+                  ) : null}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
                 <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                   {isReduceOnly ? "Reduce Only" : isBankHigh && (isBankFilled ? "Limit Reached" : "Approaching Limit")}
                 </Typography>
@@ -414,44 +470,16 @@ const AssetRow: React.FC<{
                 <a href="https://docs.marginfi.com">
                   <u>Learn more.</u>
                 </a>
-              </React.Fragment>
-            }
-            placement="right"
-            className={``}
-          >
-            <span
-              className={cn(
-                "flex items-center justify-end gap-1.5 text-white",
-                (isReduceOnly || isBankHigh) && "text-warning",
-                isBankFilled && "text-destructive-foreground"
-              )}
-            >
-              {denominationUSD
-                ? usdFormatter.format(
-                    (isInLendingMode
-                      ? bank.info.state.totalDeposits
-                      : Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-                        bank.info.state.totalBorrows) * bank.info.state.price
-                  )
-                : numeralFormatter(
-                    isInLendingMode
-                      ? bank.info.state.totalDeposits
-                      : Math.min(
-                          bank.info.state.availableLiquidity,
-                          bank.info.state.borrowCap - bank.info.state.totalBorrows
-                        )
-                  )}
-
-              {isReduceOnly || (isBankHigh && !isBankFilled) ? (
-                <IconAlertTriangle size={16} />
-              ) : isBankFilled ? (
-                <IconAlertTriangleFilled size={16} />
-              ) : null}
-            </span>
-          </MrgnTooltip>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </TableCell>
 
-        <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+        <TableCell
+          className={cn("text-white border-none font-aeonik px-2", isHovering && "bg-background-gray")}
+          align="right"
+          style={{ fontWeight: 300 }}
+        >
           {isInLendingMode ? (
             <>{denominationUSD ? usdFormatter.format(bankCap * bank.info.state.price) : numeralFormatter(bankCap)}</>
           ) : (
@@ -463,12 +491,16 @@ const AssetRow: React.FC<{
           )}
         </TableCell>
 
-        <TableCell className="text-white border-none font-aeonik px-2" align="right" style={{ fontWeight: 300 }}>
+        <TableCell
+          className={cn("text-white border-none font-aeonik px-2", isHovering && "bg-background-gray")}
+          align="right"
+          style={{ fontWeight: 300 }}
+        >
           {percentFormatter.format(bank.info.state.utilizationRate / 100)}
         </TableCell>
 
         <TableCell
-          className="text-white border-none font-aeonik px-2 table-cell"
+          className={cn("text-white border-none font-aeonik px-2 table-cell", isHovering && "bg-background-gray")}
           align="right"
           style={{ fontWeight: 300 }}
         >
@@ -485,11 +517,38 @@ const AssetRow: React.FC<{
               )}
         </TableCell>
 
-        <TableCell className="text-white border-none font-aeonik py-1.5 px-0">
-          <Tooltip
-            title={marginfiAccount === null ? "User account will be automatically created on first deposit" : ""}
-            placement="top"
-          >
+        <TableCell
+          className={cn(
+            "text-white border-none font-aeonik py-1.5 px-0 rounded-r-md",
+            isHovering && "bg-background-gray"
+          )}
+        >
+          {marginfiAccount === null && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
+                    <ActionBoxDialog
+                      requestedToken={bank.address}
+                      requestedAction={currentAction}
+                      requestedLendingMode={
+                        currentAction === ActionType.Repay
+                          ? LendingModes.BORROW
+                          : currentAction === ActionType.Withdraw
+                          ? LendingModes.LEND
+                          : undefined
+                      }
+                    >
+                      <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
+                    </ActionBoxDialog>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>User account will be automatically created on first deposit</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
+          {marginfiAccount !== null && (
             <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
               <ActionBoxDialog
                 requestedToken={bank.address}
@@ -505,7 +564,7 @@ const AssetRow: React.FC<{
                 <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
               </ActionBoxDialog>
             </div>
-          </Tooltip>
+          )}
         </TableCell>
       </TableRow>
       {activeBank?.position &&
@@ -514,7 +573,7 @@ const AssetRow: React.FC<{
             data-asset-row={bank.meta.tokenSymbol.toLowerCase()}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
-            className={cn("h-[54px] w-full transition-colors", isHovering && "bg-background-gray")}
+            className={cn("h-[54px] w-full", isHovering && "bg-background-gray")}
           >
             <TableCell
               colSpan={9}
@@ -523,7 +582,12 @@ const AssetRow: React.FC<{
                 fontWeight: 300,
               }}
             >
-              <div className={cn("bg-accent m-2.5 mt-1 p-4 rounded-lg", isUserPositionPoorHealth && "bg-destructive")}>
+              <div
+                className={cn(
+                  "bg-background-gray m-2.5 mt-1 p-4 rounded-md",
+                  isUserPositionPoorHealth && "bg-destructive"
+                )}
+              >
                 <h3>
                   Your {isFilteredUserPositions ? (activeBank.position.isLending ? "lending " : "borrowing ") : ""}{" "}
                   position details
@@ -535,9 +599,14 @@ const AssetRow: React.FC<{
                     {activeBank.position.amount >= 0.01 &&
                       numeralFormatter(activeBank.position.amount) + " " + bank.meta.tokenSymbol}
                     {activeBank.position.amount < 0.01 && (
-                      <MrgnTooltip title={<>{activeBank.position.amount}</>} placement="top">
-                        <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                      </MrgnTooltip>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                          </TooltipTrigger>
+                          <TooltipContent>{activeBank.position.amount}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </dd>
                   <dt className="mr-1.5">USD Value</dt>
@@ -552,9 +621,14 @@ const AssetRow: React.FC<{
                     {activeBank.position.usdValue < 0.01 && "< $0.01"}
                     {activeBank.position.usdValue >= 0.01 && usdFormatter.format(activeBank.position.usdValue)}
                     {activeBank.position.usdValue < 0.01 && (
-                      <MrgnTooltip title={<>${activeBank.position.usdValue}</>} placement="top">
-                        <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                      </MrgnTooltip>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                          </TooltipTrigger>
+                          <TooltipContent>{activeBank.position.usdValue}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </dd>
                   {activeBank.position.liquidationPrice && activeBank.position.liquidationPrice > 0 && (
@@ -566,9 +640,16 @@ const AssetRow: React.FC<{
                         )}
                       >
                         {isUserPositionPoorHealth && (
-                          <MrgnTooltip title="Your account is at risk of liquidation" placement="left">
-                            <IconAlertTriangle size={16} />
-                          </MrgnTooltip>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <IconAlertTriangle size={16} />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Your account is at risk of liquidation</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                         Liquidation price
                       </dt>

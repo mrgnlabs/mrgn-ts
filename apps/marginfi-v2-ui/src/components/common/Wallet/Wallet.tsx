@@ -10,7 +10,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { setPersonProperties } from "~/utils/analytics";
 
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
   WalletAvatar,
   WalletTokens,
@@ -37,7 +37,7 @@ export const Wallet = () => {
   const isMobile = useIsMobile();
 
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
-  const [isFundingAddressCopied, setIsFundingAddressCopied] = React.useState(false);
+  const [isFundingWalletAddressCopied, setIsFundingWalletAddressCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
@@ -137,7 +137,7 @@ export const Wallet = () => {
         value: token?.value,
       })),
     });
-  }, [connection, wallet?.publicKey, address]);
+  }, [connection, wallet?.publicKey, address, extendedBankInfos, nativeSolBalance]);
 
   // fetch wallet data on mount and every 20 seconds
   React.useEffect(() => {
@@ -177,21 +177,31 @@ export const Wallet = () => {
                     }, 2000);
                   }}
                 >
-                  <MrgnTooltip title="Click to copy" className="hidden md:block" placement="top">
-                    <button className="font-medium flex items-center gap-1 cursor-pointer">
-                      {isWalletAddressCopied && (
-                        <>
-                          copied! <IconCheck size={14} />
-                        </>
-                      )}
-                      {!isWalletAddressCopied && (
-                        <>
-                          {walletData.shortAddress}
-                          <IconCopy size={14} />
-                        </>
-                      )}
+                  <div className="flex items-center gap-1.5">
+                    <button className="flex items-center gap-1 cursor-pointe outline-none">
+                      {isWalletAddressCopied && <>copied!</>}
+                      {!isWalletAddressCopied && <>{walletData.shortAddress}</>}
                     </button>
-                  </MrgnTooltip>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button className="flex items-center gap-1 cursor-pointe outline-none">
+                            {isWalletAddressCopied && (
+                              <>
+                                <IconCheck size={14} />
+                              </>
+                            )}
+                            {!isWalletAddressCopied && (
+                              <>
+                                <IconCopy size={14} />
+                              </>
+                            )}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Click to copy</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </CopyToClipboard>
               </header>
               <div className="flex flex-col items-center h-full">
@@ -208,27 +218,36 @@ export const Wallet = () => {
                     <CopyToClipboard
                       text={walletData.address}
                       onCopy={() => {
-                        setIsFundingAddressCopied(true);
+                        setIsFundingWalletAddressCopied(true);
                         setTimeout(() => {
-                          setIsFundingAddressCopied(false);
+                          setIsFundingWalletAddressCopied(false);
                         }, 2000);
                       }}
                     >
-                      <MrgnTooltip title="Click to copy" className="hidden md:block" placement="top">
-                        <button className="font-medium inline-flex mx-1 items-center gap-1 cursor-pointer">
-                          {isFundingAddressCopied && (
-                            <>
-                              copied! <IconCheck size={12} />
-                            </>
-                          )}
-                          {!isFundingAddressCopied && (
-                            <>
-                              {shortenAddress(walletData.address)}
-                              <IconCopy size={12} />
-                            </>
-                          )}
+                      <div className="inline-flex items-center gap-1 mr-1">
+                        <button className="flex items-center gap-1 cursor-pointe outline-none">
+                          {walletData.shortAddress}
                         </button>
-                      </MrgnTooltip>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button className="flex items-center gap-1 cursor-pointe outline-none">
+                                {isFundingWalletAddressCopied && (
+                                  <>
+                                    <IconCheck size={14} />
+                                  </>
+                                )}
+                                {!isFundingWalletAddressCopied && (
+                                  <>
+                                    <IconCopy size={14} />
+                                  </>
+                                )}
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>Click to copy</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                     </CopyToClipboard>
                     or buy directly with MoonPay.
                   </div>

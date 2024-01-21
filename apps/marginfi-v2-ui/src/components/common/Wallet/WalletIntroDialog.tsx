@@ -5,7 +5,7 @@ import CopyToClipboard from "react-copy-to-clipboard";
 import { useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
@@ -61,22 +61,29 @@ export const WalletIntroDialog = () => {
                   }, 2000);
                 }}
               >
-                <MrgnTooltip title="Click to copy" placement="top" className="hidden md:block">
-                  <button className="font-mono font-light border py-1 px-2 text-xs sm:text-sm flex items-center justify-between hover:bg-muted transition-colors rounded-md w-full overflow-auto">
-                    {isCopied && (
-                      <>
-                        Copied!
-                        <IconCheck size={16} />
-                      </>
-                    )}
-                    {!isCopied && (
-                      <>
-                        {wallet.publicKey.toString()}
-                        <IconCopy size={16} className="hidden xs:block" />
-                      </>
-                    )}
-                  </button>
-                </MrgnTooltip>
+                <div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="font-mono font-light border py-1 px-2 text-xs sm:text-sm flex items-center justify-between hover:bg-muted transition-colors rounded-md w-full overflow-auto">
+                          {isCopied && (
+                            <>
+                              Copied!
+                              <IconCheck size={16} />
+                            </>
+                          )}
+                          {!isCopied && (
+                            <>
+                              {wallet.publicKey.toString()}
+                              <IconCopy size={16} className="hidden xs:block" />
+                            </>
+                          )}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Click to copy</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </CopyToClipboard>
               <CopyToClipboard
                 text={wallet.publicKey.toString()}

@@ -18,6 +18,7 @@ import {
   ceil,
   WSOL_MINT,
   TokenMetadata,
+  TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
@@ -462,9 +463,8 @@ async function fetchTokenAccounts(
   const nativeSolBalance = walletAi?.lamports ? walletAi.lamports / 1e9 : 0;
 
   const ataList: TokenAccount[] = ataAiList
-    .filter((ai) => !ai?.owner?.equals(SystemProgram.programId))
     .map((ai, index) => {
-      if (!ai) {
+      if (!ai || (!ai?.owner?.equals(TOKEN_PROGRAM_ID) && !ai?.owner?.equals(new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")))) {
         return {
           created: false,
           mint: mintList[index].address,

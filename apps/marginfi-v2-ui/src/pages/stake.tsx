@@ -11,14 +11,16 @@ import { usePrevious, Features, isActive } from "~/utils";
 import { createLstStore } from "~/store/lstStore";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
+
 import { StakingCard, StakingStats } from "~/components/common/Staking";
-import { OverlaySpinner } from "~/components/desktop/OverlaySpinner";
 import { PageHeader } from "~/components/common/PageHeader";
+import { OverlaySpinner } from "~/components/ui/overlay-spinner";
+import { Loader } from "~/components/ui/loader";
 
 export const useLstStore = createLstStore();
 export const useJupiterStore = createJupiterStore();
 
-const StakePage = () => {
+export default function StakePage() {
   const { wallet, walletAddress } = useWalletContext();
   const { connection } = useConnection();
   const [mounted, setMounted] = React.useState(false);
@@ -105,47 +107,54 @@ const StakePage = () => {
   if (!mounted) return null;
 
   return (
-    <JupiterProvider connection={connection} wrapUnwrapSOL={false} platformFeeAndAccounts={undefined}>
-      <PageHeader>stake</PageHeader>
-      <StakingContent />
-      <Desktop>
-        <OverlaySpinner fetching={!initialized || isRefreshingStore} />
-      </Desktop>
-    </JupiterProvider>
+    <>
+      <JupiterProvider connection={connection} wrapUnwrapSOL={false} platformFeeAndAccounts={undefined}>
+        <PageHeader>stake</PageHeader>
+        <StakingContent isInitialized={initialized} />
+        <Desktop>
+          <OverlaySpinner fetching={!initialized || isRefreshingStore} />
+        </Desktop>
+      </JupiterProvider>
+    </>
   );
-};
+}
 
-const StakingContent = () => (
+const StakingContent = ({ isInitialized }: { isInitialized: boolean }) => (
   <div className="flex flex-col max-w-[640px] h-full w-full justify-center items-center pt-10 pb-32 lg:pb-16 px-4">
-    <div className="space-y-6 text-center mb-4">
-      <h1 className="font-bold text-3xl">LST — mrgn&apos;s Liquid Staking Token.</h1>
-      <p>The highest natural yield available from any LST on Solana. By a lot.</p>
-      <div className="text-chartreuse space-y-2 font-bold">
-        <p>LST is the highest natural yielding LST</p>
-        <p>LST is powered by Jito&apos;s MEV-boosted client</p>
-        <p>
-          LST only stakes to 0% commission{" "}
-          <a
-            href="https://stakewiz.com/validator/mrgn2vsZ5EJ8YEfAMNPXmRux7th9cNfBasQ1JJvVwPn"
-            target="_blank"
-            rel="noreferrer"
-            className="border-b border-chartreuse/50 transition-colors hover:border-transparent"
-          >
-            mrgn validators
-          </a>
-        </p>
+    {!isInitialized && <Loader label="Loading mrgnstake..." className="mt-8" />}
+    {isInitialized && (
+      <div className="space-y-6 text-center mb-4">
+        <h1 className="font-bold text-3xl">LST — mrgn&apos;s Liquid Staking Token.</h1>
+        <p>The highest natural yield available from any LST on Solana. By a lot.</p>
+        <div className="text-chartreuse space-y-2 font-bold">
+          <p>LST is the highest natural yielding LST</p>
+          <p>LST is powered by Jito&apos;s MEV-boosted client</p>
+          <p>
+            LST only stakes to 0% commission{" "}
+            <a
+              href="https://stakewiz.com/validator/mrgn2vsZ5EJ8YEfAMNPXmRux7th9cNfBasQ1JJvVwPn"
+              target="_blank"
+              rel="noreferrer"
+              className="border-b border-chartreuse/50 transition-colors hover:border-transparent"
+            >
+              mrgn validators
+            </a>
+          </p>
+        </div>
       </div>
-    </div>
-    <div className="max-w-[480px] w-full space-y-4">
-      <StakingStats />
-      <StakingCard />
-    </div>
-    <p className="text-white/75 mt-8 text-center">
-      Using mrgn&apos;s sophisticated validator set, you pay no fees, earn more yield, and get more utility out of your
-      staked SOL than anywhere else. Maximum liquidity with Sanctum, maximum MEV rewards with Jito, maximum utility with
-      marginfi, maximum flexibility with Solana DeFi.
-    </p>
+    )}
+    {isInitialized && (
+      <>
+        <div className="max-w-[480px] w-full space-y-4">
+          <StakingStats />
+          <StakingCard />
+        </div>
+        <p className="text-white/75 mt-8 text-center">
+          Using mrgn&apos;s sophisticated validator set, you pay no fees, earn more yield, and get more utility out of
+          your staked SOL than anywhere else. Maximum liquidity with Sanctum, maximum MEV rewards with Jito, maximum
+          utility with marginfi, maximum flexibility with Solana DeFi.
+        </p>
+      </>
+    )}
   </div>
 );
-
-export default StakePage;

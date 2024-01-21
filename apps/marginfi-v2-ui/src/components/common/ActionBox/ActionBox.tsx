@@ -1,8 +1,10 @@
-import React, { FC, useEffect, useMemo, useState } from "react";
+import React from "react";
+
+import { PublicKey } from "@solana/web3.js";
 
 import { usdFormatterDyn, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PublicKey } from "@solana/web3.js";
+import { MarginfiAccountWrapper, MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import {
@@ -19,10 +21,7 @@ import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useDebounce } from "~/hooks/useDebounce";
 
-import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-import { Input } from "~/components/ui/input";
-import { IconAlertTriangle, IconInfoCircle, IconWallet, IconSettings } from "~/components/ui/icons";
 import {
   checkActionAvailable,
   ActionBoxActions,
@@ -30,9 +29,10 @@ import {
   ActionBoxTokens,
   ActionBoxPriorityFees,
 } from "~/components/common/ActionBox";
-
-import { MrgnTooltip } from "../MrgnTooltip";
-import { MarginfiAccountWrapper, MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
+import { Input } from "~/components/ui/input";
+import { IconAlertTriangle, IconInfoCircle, IconWallet, IconSettings } from "~/components/ui/icons";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Skeleton } from "~/components/ui/skeleton";
 
 export interface ActionPreview {
@@ -90,7 +90,7 @@ export const ActionBox = ({
   );
   const { walletContextState, connected } = useWalletContext();
 
-  const lendingMode = useMemo(
+  const lendingMode = React.useMemo(
     () => requestedLendingMode ?? lendingModeFromStore,
     [lendingModeFromStore, requestedLendingMode]
   );
@@ -113,11 +113,10 @@ export const ActionBox = ({
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
 
-  const numberFormater = new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 });
+  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
-  const hasActivePositions = React.useMemo(() => extendedBankInfos.find((bank) => bank.isActive), [extendedBankInfos]);
   const selectedBank = React.useMemo(
     () =>
       selectedTokenBank
@@ -180,7 +179,7 @@ export const ActionBox = ({
 
   const actionModePrev = usePrevious(actionMode);
 
-  const priorityFeeLabel = useMemo(() => {
+  const priorityFeeLabel = React.useMemo(() => {
     if (priorityFee === 0) return "Normal";
     if (priorityFee === 0.00005) return "High";
     if (priorityFee === 0.005) return "Mamas";
@@ -211,7 +210,7 @@ export const ActionBox = ({
         setActionMode(ActionType.Borrow);
       }
     }
-  }, [lendingMode, setActionMode]);
+  }, [lendingMode, setActionMode, requestedAction]);
 
   React.useEffect(() => {
     if (requestedAction) {
@@ -233,7 +232,7 @@ export const ActionBox = ({
     if (amount && amount > maxAmount) {
       setAmountRaw(numberFormater.format(maxAmount));
     }
-  }, [maxAmount, amount]);
+  }, [maxAmount, amount, numberFormater]);
 
   React.useEffect(() => {
     if (
@@ -378,7 +377,7 @@ export const ActionBox = ({
         console.log(error);
       }
     },
-    [fetchMrgnlendState, setIsRefreshingStore, priorityFee]
+    [fetchMrgnlendState, setIsRefreshingStore, priorityFee, setPreviousTxn, setIsActionComplete, handleCloseDialog]
   );
 
   const handleCloseBalance = React.useCallback(async () => {
@@ -401,7 +400,7 @@ export const ActionBox = ({
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [selectedBank, selectedAccount, fetchMrgnlendState, setIsRefreshingStore, priorityFee]);
+  }, [selectedBank, selectedAccount, fetchMrgnlendState, setIsRefreshingStore, priorityFee, handleCloseDialog]);
 
   const handleLendingAction = React.useCallback(async () => {
     if (!actionMode || !selectedBank || !amount) {
@@ -486,32 +485,46 @@ export const ActionBox = ({
         setAmountRaw(formattedAmount);
       }
     },
-    [maxAmount, setAmountRaw, amount, selectedBank]
+    [maxAmount, setAmountRaw, selectedBank, numberFormater]
   );
+
+  if (!isInitialized) {
+    return null;
+  }
 
   return (
     <>
-      <div className="bg-background p-4 flex flex-col items-center gap-4">
+      <div className="p-4 flex flex-col items-center gap-4">
         <div className="space-y-6 text-center w-full flex flex-col items-center">
           {!isDialog && (
             <>
-              <div className="flex w-[150px] h-[42px]">
-                <MrgnLabeledSwitch
-                  labelLeft="Lend"
-                  labelRight="Borrow"
-                  checked={lendingMode === LendingModes.BORROW}
-                  onClick={() => {
-                    setSelectedTokenBank(null);
-                    setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND);
-                  }}
-                />
-              </div>
+              <ToggleGroup
+                type="single"
+                size="lg"
+                value={lendingMode}
+                onValueChange={() => {
+                  setSelectedTokenBank(null);
+                  setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND);
+                }}
+              >
+                <ToggleGroupItem value="lend" aria-label="Lend">
+                  Lend
+                </ToggleGroupItem>
+                <ToggleGroupItem value="borrow" aria-label="Borrow">
+                  Borrow
+                </ToggleGroupItem>
+              </ToggleGroup>
 
               <p className="text-muted-foreground">Supply. Earn interest. Borrow. Repeat.</p>
             </>
           )}
         </div>
-        <div className="p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative">
+        <div
+          className={cn(
+            "p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative",
+            isDialog && "border border-background-gray-light/50"
+          )}
+        >
           {isPriorityFeesMode && (
             <ActionBoxPriorityFees mode={actionMode} setIsPriorityFeesMode={setIsPriorityFeesMode} />
           )}
@@ -569,8 +582,8 @@ export const ActionBox = ({
 
               {actionMethod.description && (
                 <div className="pb-6">
-                  <div className="flex space-x-2 py-3 px-4 rounded-xl text-alert-foreground bg-alert">
-                    <IconAlertTriangle className="shrink-0 translate-y-1" size={18} />
+                  <div className="flex space-x-2 py-2.5 px-3.5 rounded-xl gap-1 text-alert-foreground bg-alert text-sm">
+                    <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
                     <p className="text-alert-foreground">{actionMethod.description}</p>
                   </div>
                 </div>
@@ -630,20 +643,22 @@ export const ActionBox = ({
   );
 };
 
-const ActionBoxAvailableCollateral: FC<{
+type ActionBoxAvailableCollateralProps = {
   isLoading: boolean;
   marginfiAccount: MarginfiAccountWrapper;
   preview: ActionPreview | null;
-}> = ({ isLoading, marginfiAccount, preview }) => {
+};
+
+const ActionBoxAvailableCollateral = ({ isLoading, marginfiAccount, preview }: ActionBoxAvailableCollateralProps) => {
   const [availableRatio, setAvailableRatio] = React.useState<number>(0);
   const [availableAmount, setAvailableAmount] = React.useState<number>(0);
 
   const healthColor = React.useMemo(
     () => getMaintHealthColor(preview?.availableCollateral.ratio ?? availableRatio),
-    [preview?.health, availableRatio]
+    [availableRatio, preview?.availableCollateral.ratio]
   );
 
-  useEffect(() => {
+  React.useEffect(() => {
     const currentAvailableCollateralAmount = marginfiAccount.computeFreeCollateral().toNumber();
     const currentAvailableCollateralRatio =
       currentAvailableCollateralAmount /
@@ -657,21 +672,21 @@ const ActionBoxAvailableCollateral: FC<{
       <dl className="flex justify-between items-center text-muted-foreground  gap-2">
         <dt className="flex items-center gap-1.5 text-sm pb-2">
           Available collateral
-          <MrgnTooltip
-            title={
-              <React.Fragment>
-                <div className="flex flex-col gap-2 pb-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <IconInfoCircle size={16} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="space-y-2">
                   <p>Available collateral is the USD value of your collateral not actively backing a loan.</p>
                   <p>It can be used to open additional borrows or withdraw part of your collateral.</p>
                 </div>
-              </React.Fragment>
-            }
-            placement="top"
-          >
-            <IconInfoCircle size={16} />
-          </MrgnTooltip>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </dt>
-        <dd className="text-xl md:text-sm font-bold text-white">
+        <dd className="text-xl md:text-sm font-medium text-white">
           {isLoading ? (
             <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
           ) : (

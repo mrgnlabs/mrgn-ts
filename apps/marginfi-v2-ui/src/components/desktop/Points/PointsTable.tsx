@@ -15,12 +15,13 @@ import {
 import { groupedNumberFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 
 import { useConnection } from "~/hooks/useConnection";
+import { cn } from "~/utils";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Loader } from "~/components/ui/loader";
 import { IconSearch, IconSortAscending, IconSortDescending, IconLoader, IconX } from "~/components/ui/icons";
-import { cn } from "~/utils";
 
 type PointsTableProps = {
   userPointsData: UserPointsData;
@@ -126,9 +127,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
   // used to fetch new data for sorting, searching, and pagination
   React.useEffect(() => {
     const getLeaderboardData = async () => {
-      if (pointsTableState !== PointsTableState.Loading) {
-        setPointsTableState(PointsTableState.Working);
-      }
+      setPointsTableState(PointsTableState.Working);
 
       const newLeaderboardSettings = { ...debouncedLeaderboardSettings };
 
@@ -152,6 +151,9 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
     };
 
     getLeaderboardData();
+
+    // intentionally ignore connection as it causes firebase network request loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedLeaderboardSettings]);
 
   // separate call for leaderboard count as this request can be slow
@@ -164,7 +166,11 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
     };
 
     getLeaderboardCount();
-  }, []);
+  }, [leaderboardCount]);
+
+  if (!leaderboardData) {
+    return <Loader label="Loading points leaderboard..." className="mt-8" />;
+  }
 
   return (
     <div className="w-full mt-10 space-y-3 pb-16">

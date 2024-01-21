@@ -1,15 +1,14 @@
 import React from "react";
 
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { useMrgnlendStore, useUserProfileStore } from "~/store";
 
-import { IconInfoCircle, IconAlertTriangle } from "~/components/ui/icons";
-import { UserStats } from "./UserStats";
-import { AssetCard, AssetCardSkeleton } from "./AssetCard";
+import { PortfolioUserStats, PortfolioAssetCard, PortfolioAssetCardSkeleton } from "~/components/common/Portfolio";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { IconInfoCircle } from "~/components/ui/icons";
 
 export const Portfolio = () => {
   const [isStoreInitialized, sortedBanks, accountSummary] = useMrgnlendStore((state) => [
@@ -47,7 +46,7 @@ export const Portfolio = () => {
           ? usdFormatterDyn.format(Math.round(accountSummary.lendingAmountUnbiased))
           : usdFormatter.format(accountSummary.lendingAmountUnbiased)
         : "-",
-    [accountSummary.lendingAmountUnbiased]
+    [accountSummary]
   );
   const accountBorrowed = React.useMemo(
     () =>
@@ -56,7 +55,7 @@ export const Portfolio = () => {
           ? usdFormatterDyn.format(Math.round(accountSummary.borrowingAmountUnbiased))
           : usdFormatter.format(accountSummary.borrowingAmountUnbiased)
         : "-",
-    [accountSummary.borrowingAmountUnbiased]
+    [accountSummary]
   );
   const accountNetValue = React.useMemo(
     () =>
@@ -65,7 +64,7 @@ export const Portfolio = () => {
           ? usdFormatterDyn.format(Math.round(accountSummary.balanceUnbiased))
           : usdFormatter.format(accountSummary.balanceUnbiased)
         : "-",
-    [accountSummary.balanceUnbiased]
+    [accountSummary]
   );
 
   const healthColor = React.useMemo(() => {
@@ -97,34 +96,33 @@ export const Portfolio = () => {
         <dl className="flex justify-between items-center gap-2">
           <dt className="flex items-center gap-1.5 text-sm">
             Health factor
-            <MrgnTooltip
-              title={
-                <React.Fragment>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <IconInfoCircle size={16} />
+                </TooltipTrigger>
+                <TooltipContent side="right">
                   <div className="flex flex-col gap-2 pb-2">
                     <p>
-                      Health factor is based off of <b>price biased</b> and <b>weighted</b> asset and liability values.
+                      Health factor is based off <b>price biased</b> and <b>weighted</b> asset and liability values.
                     </p>
-                    <div className="font-bold pb-2">
-                      <IconAlertTriangle height={16} className="inline -translate-y-[1px]" /> When your account health
-                      reaches 0% or below, you are exposed to liquidation.
+                    <div className="font-medium">
+                      When your account health reaches 0% or below, you are exposed to liquidation.
                     </div>
                     <p>The formula is:</p>
-                    <p className="text-sm text-center">{"(assets - liabilities) / (assets)"}</p>
+                    <p className="text-sm italic text-center">{"(assets - liabilities) / (assets)"}</p>
                     <p>Your math is:</p>
-                    <p className="text-sm text-center">{`(${usdFormatter.format(
+                    <p className="text-sm italic text-center">{`(${usdFormatter.format(
                       accountSummary.lendingAmountWithBiasAndWeighted
                     )} - ${usdFormatter.format(
                       accountSummary.borrowingAmountWithBiasAndWeighted
                     )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</p>
                   </div>
-                </React.Fragment>
-              }
-              placement="top"
-            >
-              <IconInfoCircle size={16} />
-            </MrgnTooltip>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </dt>
-          <dd className="text-xl md:text-2xl font-bold" style={{ color: healthColor }}>
+          <dd className="text-xl md:text-2xl font-medium" style={{ color: healthColor }}>
             {numeralFormatter(accountSummary.healthFactor * 100)}%
           </dd>
         </dl>
@@ -137,7 +135,7 @@ export const Portfolio = () => {
             }}
           />
         </div>
-        <UserStats
+        <PortfolioUserStats
           supplied={accountSupplied}
           borrowed={accountBorrowed}
           netValue={accountNetValue}
@@ -154,7 +152,7 @@ export const Portfolio = () => {
             lendingBanks.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {lendingBanks.map((bank) => (
-                  <AssetCard key={bank.meta.tokenSymbol} bank={bank} isInLendingMode={true} />
+                  <PortfolioAssetCard key={bank.meta.tokenSymbol} bank={bank} isInLendingMode={true} />
                 ))}
               </div>
             ) : (
@@ -163,7 +161,7 @@ export const Portfolio = () => {
               </div>
             )
           ) : (
-            <AssetCardSkeleton />
+            <PortfolioAssetCardSkeleton />
           )}
         </div>
         <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
@@ -175,7 +173,7 @@ export const Portfolio = () => {
             borrowingBanks.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {borrowingBanks.map((bank) => (
-                  <AssetCard key={bank.meta.tokenSymbol} bank={bank} isInLendingMode={false} />
+                  <PortfolioAssetCard key={bank.meta.tokenSymbol} bank={bank} isInLendingMode={false} />
                 ))}
               </div>
             ) : (
@@ -184,7 +182,7 @@ export const Portfolio = () => {
               </div>
             )
           ) : (
-            <AssetCardSkeleton />
+            <PortfolioAssetCardSkeleton />
           )}
         </div>
       </div>

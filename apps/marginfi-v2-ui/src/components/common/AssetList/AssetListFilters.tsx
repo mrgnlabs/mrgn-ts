@@ -5,8 +5,9 @@ import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 
-import { MrgnLabeledSwitch } from "~/components/common/MrgnLabeledSwitch";
-import { MrgnContainedSwitch } from "~/components/common/MrgnContainedSwitch";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
+import { Switch } from "~/components/ui/switch";
+import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { IconFilter, IconSortAscending, IconSortDescending } from "~/components/ui/icons";
 
@@ -44,37 +45,49 @@ export const AssetListFilters = () => {
   return (
     <div className="col-span-full w-full space-y-5">
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-8">
-        <div className=" flex space-between">
-          <div className="flex w-[150px] h-[42px] mr-auto">
-            <MrgnLabeledSwitch
-              labelLeft="Lend"
-              labelRight="Borrow"
-              checked={lendingMode === LendingModes.BORROW}
-              onClick={() =>
-                setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND)
-              }
-            />
-          </div>
+        <div className=" mr-auto">
+          <ToggleGroup
+            type="single"
+            value={lendingMode}
+            onValueChange={() =>
+              setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND)
+            }
+          >
+            <ToggleGroupItem value="lend" aria-label="Lend">
+              Lend
+            </ToggleGroupItem>
+            <ToggleGroupItem value="borrow" aria-label="Borrow">
+              Borrow
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
         {(userMode === UserMode.PRO || isMobile) && (
           <div
-            className={cn("flex items-center gap-1 text-sm", !connected && "opacity-50")}
+            className={cn("flex items-center gap-2 text-sm", !connected && "opacity-50")}
             onClick={(e) => {
               e.stopPropagation();
               if (connected) return;
               setIsWalletAuthDialogOpen(true);
             }}
           >
-            <MrgnContainedSwitch
+            <Switch
+              id="filter-positions"
               checked={isFilteredUserPositions}
-              onChange={() => {
+              onCheckedChange={() => {
+                if (!connected) return;
                 setIsFilteredUserPositions(!isFilteredUserPositions);
                 setPoolFilter(PoolTypes.ALL);
               }}
-              inputProps={{ "aria-label": "controlled" }}
-              className={cn(!connected && "pointer-events-none")}
             />
-            <div>Filter my positions</div>
+            <Label
+              htmlFor="filter-positions"
+              className={cn(
+                "transition-colors text-muted-foreground cursor-pointer hover:text-white",
+                isFilteredUserPositions && "text-white"
+              )}
+            >
+              Filter my positions
+            </Label>
           </div>
         )}
         {(userMode === UserMode.PRO || isMobile) && (

@@ -1,6 +1,6 @@
 import React from "react";
 
-import type { AppProps } from "next/app";
+import App, { AppContext, AppInitialProps, AppProps } from "next/app";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 
@@ -11,15 +11,16 @@ import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 
 import config from "~/config";
+import { MrgnlendProvider, LipClientProvider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useLstStore } from "./stake";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";
-import { LipClientProvider } from "~/context";
 import { init as initAnalytics } from "~/utils/analytics";
 
+import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
 import { WalletAuthDialog } from "~/components/common/Wallet";
@@ -27,7 +28,6 @@ import { WalletAuthDialog } from "~/components/common/Wallet";
 import "swiper/css";
 import "swiper/css/pagination";
 import "react-toastify/dist/ReactToastify.min.css";
-import { MrgnlendProvider } from "~/context";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -43,7 +43,9 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 
 const MATOMO_URL = "https://mrgn.matomo.cloud";
 
-const MyApp = ({ Component, pageProps }: AppProps) => {
+type MrgnAppProps = { path: string };
+
+export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
   const [setIsFetchingData] = useUiStore((state) => [state.setIsFetchingData]);
   const [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
@@ -84,13 +86,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   return (
     <>
-      <Head>
-        <title>marginfi</title>
-        <meta name="description" content="marginfi v2 UI" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="manifest" href="/manifest.json" />
-      </Head>
+      <Meta path={path} />
       {ready && (
         <ConnectionProvider endpoint={config.rpcEndpoint}>
           <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
@@ -125,6 +121,10 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
       )}
     </>
   );
-};
+}
 
-export default MyApp;
+MrgnApp.getInitialProps = async (appContext: AppContext): Promise<AppInitialProps & MrgnAppProps> => {
+  const appProps = await App.getInitialProps(appContext);
+  const path = appContext.ctx.pathname;
+  return { ...appProps, path };
+};

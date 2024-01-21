@@ -1,10 +1,11 @@
 import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+
 import { useUiStore } from "~/store";
 import { cn } from "~/utils";
 
-import { MrgnTooltip } from "~/components/common/MrgnTooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { IconInfoCircle, IconArrowLeft } from "~/components/ui/icons";
@@ -56,12 +57,19 @@ export const ActionBoxPriorityFees = ({ mode, setIsPriorityFeesMode }: ActionBox
       </button>
       <h2 className="text-lg font-normal mb-2 flex items-center gap-2">
         Set transaction priority{" "}
-        <MrgnTooltip
-          title="Priority fees are paid to the Solana network. This additional fee helps boost how a transaction is prioritized."
-          placement="right"
-        >
-          <IconInfoCircle size={16} />
-        </MrgnTooltip>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconInfoCircle size={16} />
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="space-y-2">
+                <p>Priority fees are paid to the Solana network.</p>
+                <p>This additional fee helps boost how a transaction is prioritized.</p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </h2>
       <ul className="grid grid-cols-3 gap-3 mb-6">
         {priorityFeeOptions.map((option) => (
