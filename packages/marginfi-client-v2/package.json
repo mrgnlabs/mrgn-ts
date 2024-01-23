@@ -1,6 +1,6 @@
 {
   "name": "@mrgnlabs/marginfi-client-v2",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
