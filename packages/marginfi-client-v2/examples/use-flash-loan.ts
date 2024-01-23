@@ -18,9 +18,10 @@ async function main() {
   const amount = 10; // SOL
 
   const borrowIx = await marginfiAccount.makeBorrowIx(amount, solBank.address);
+  const repayIx = await marginfiAccount.makeRepayIx(amount, solBank.address, true);
 
   await marginfiAccount.flashLoan({
-    ixs: [...borrowIx.instructions],
+    ixs: [...borrowIx.instructions, ...repayIx.instructions],
     signers: [],
   });
 }

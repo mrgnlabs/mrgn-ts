@@ -342,9 +342,10 @@ class MarginfiAccountWrapper {
   async makeWithdrawIx(
     amount: Amount,
     bankAddress: PublicKey,
-    withdrawAll: boolean = false
-  ): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeWithdrawIx(this._program, this.client.banks, amount, bankAddress, withdrawAll);
+    withdrawAll: boolean = false,
+    opt?: { observationBanksOverride?: PublicKey[] } | undefined
+    ): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeWithdrawIx(this._program, this.client.banks, amount, bankAddress, withdrawAll, opt);
   }
 
   async withdraw(
@@ -397,7 +398,7 @@ class MarginfiAccountWrapper {
   async makeBorrowIx(
     amount: Amount,
     bankAddress: PublicKey,
-    opt?: { remainingAccountsBankOverride?: Bank[] } | undefined
+    opt?: { observationBanksOverride?: PublicKey[] } | undefined
   ): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeBorrowIx(this._program, this.client.banks, amount, bankAddress, opt);
   }
@@ -494,8 +495,8 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.makeBeginFlashLoanIx(this._program, endIndex);
   }
 
-  public async makeEndFlashLoanIx(): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeEndFlashLoanIx(this._program, this.client.banks);
+  public async makeEndFlashLoanIx(projectedActiveBalances: PublicKey[]): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeEndFlashLoanIx(this._program, this.client.banks, projectedActiveBalances);
   }
 
   public async flashLoan(args: FlashLoanArgs): Promise<string> {
@@ -503,8 +504,10 @@ class MarginfiAccountWrapper {
     debug("Performing flash loan");
     const endIndex = args.ixs.length + 1;
 
+    const projectedActiveBalances: PublicKey[] = this._marginfiAccount.projectActiveBalancesNoCpi(this._program, args.ixs);
+
     const beginFlashLoanIx = await this.makeBeginFlashLoanIx(endIndex);
-    const endFlashLoanIx = await this.makeEndFlashLoanIx();
+    const endFlashLoanIx = await this.makeEndFlashLoanIx(projectedActiveBalances);
 
     const ixs = [
       ...beginFlashLoanIx.instructions,
