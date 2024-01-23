@@ -1,7 +1,7 @@
 import { AccountMeta, PublicKey, SystemProgram } from "@solana/web3.js";
 import BN from "bn.js";
 import { MarginfiProgram } from "./types";
-import { BankConfigOpt } from "./models/bank";
+import { BankConfigOptRaw } from "./models/bank";
 
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
@@ -237,7 +237,7 @@ function makePoolConfigureBankIx(
     bank: PublicKey;
   },
   args: {
-    bankConfigOpt: BankConfigOpt;
+    bankConfigOpt: BankConfigOptRaw;
   }
 ) {
   return mfiProgram.methods

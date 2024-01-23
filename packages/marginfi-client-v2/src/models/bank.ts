@@ -678,6 +678,27 @@ enum OracleSetup {
 
 // BankConfigOpt Args
 interface BankConfigOpt {
+  assetWeightInit: BigNumber | null;
+  assetWeightMaint: BigNumber | null;
+
+  liabilityWeightInit: BigNumber | null;
+  liabilityWeightMaint: BigNumber | null;
+
+  depositLimit: BigNumber | null;
+  borrowLimit: BigNumber | null;
+  riskTier: RiskTier | null;
+  totalAssetValueInitLimit: BigNumber | null;
+
+  interestRateConfig: InterestRateConfig | null;
+  operationalState: OperationalState | null;
+
+  oracle: {
+    setup: OracleSetup;
+    keys: PublicKey[];
+  } | null
+}
+
+interface BankConfigOptRaw {
   assetWeightInit: WrappedI80F48 | null;
   assetWeightMaint: WrappedI80F48 | null;
 
@@ -693,9 +714,48 @@ interface BankConfigOpt {
   operationalState: { paused: {} } | { operational: {} } | { reduceOnly: {} } | null;
 
   oracle: {
-    setup: { none: {} } | { pythEma: {} } | { switchboardV2: {} } ;
-    keys: PublicKey[] ;
+    setup: { none: {} } | { pythEma: {} } | { switchboardV2: {} };
+    keys: PublicKey[];
   } | null
+}
+
+function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw {
+  const assetWeightInit = bankConfigOpt.assetWeightInit && { value: new BN(bankConfigOpt.assetWeightInit.toString()) };
+  const assetWeightMaint = bankConfigOpt.assetWeightMaint && { value: new BN(bankConfigOpt.assetWeightMaint.toString()) };
+  const liabilityWeightInit = bankConfigOpt.liabilityWeightInit && { value: new BN(bankConfigOpt.liabilityWeightInit.toString()) };
+  const liabilityWeightMaint = bankConfigOpt.liabilityWeightMaint && { value: new BN(bankConfigOpt.liabilityWeightMaint.toString()) };
+  const depositLimit = bankConfigOpt.depositLimit && new BN(bankConfigOpt.depositLimit.toString());
+  const borrowLimit = bankConfigOpt.borrowLimit && new BN(bankConfigOpt.borrowLimit.toString());
+  const riskTier = bankConfigOpt.riskTier && serializeRiskTier(bankConfigOpt.riskTier) // parseRiskTier(bankConfigRaw.riskTier);
+  const operationalState = bankConfigOpt.operationalState && serializeOperationalState(bankConfigOpt.operationalState);
+  const totalAssetValueInitLimit = bankConfigOpt.totalAssetValueInitLimit && new BN(bankConfigOpt.totalAssetValueInitLimit.toString());
+  const oracle = bankConfigOpt.oracle && {
+    setup: serializeOracleSetup(bankConfigOpt.oracle.setup),
+    keys: bankConfigOpt.oracle.keys
+  };
+  const interestRateConfig = bankConfigOpt.interestRateConfig && {
+    insuranceFeeFixedApr: { value: new BN(bankConfigOpt.interestRateConfig.insuranceFeeFixedApr.toString()) },
+    maxInterestRate: { value: new BN(bankConfigOpt.interestRateConfig.maxInterestRate.toString()) },
+    insuranceIrFee: { value: new BN(bankConfigOpt.interestRateConfig.insuranceIrFee.toString()) },
+    optimalUtilizationRate: { value: new BN(bankConfigOpt.interestRateConfig.optimalUtilizationRate.toString()) },
+    plateauInterestRate: { value: new BN(bankConfigOpt.interestRateConfig.plateauInterestRate.toString()) },
+    protocolFixedFeeApr: { value: new BN(bankConfigOpt.interestRateConfig.protocolFixedFeeApr.toString()) },
+    protocolIrFee: { value: new BN(bankConfigOpt.interestRateConfig.protocolIrFee.toString()) },
+  };
+
+  return {
+    assetWeightInit,
+    assetWeightMaint,
+    liabilityWeightInit,
+    liabilityWeightMaint,
+    depositLimit,
+    borrowLimit,
+    riskTier,
+    operationalState,
+    totalAssetValueInitLimit,
+    oracle,
+    interestRateConfig,
+  };
 }
 
 
@@ -707,6 +767,17 @@ function parseRiskTier(riskTierRaw: RiskTierRaw): RiskTier {
       return RiskTier.Isolated;
     default:
       throw new Error(`Invalid risk tier "${riskTierRaw}"`);
+  }
+}
+
+function serializeRiskTier(riskTier: RiskTier): RiskTierRaw {
+  switch (riskTier) {
+    case RiskTier.Collateral:
+      return { collateral: {} };
+    case RiskTier.Isolated:
+      return { isolated: {} };
+    default:
+      throw new Error(`Invalid risk tier "${riskTier}"`);
   }
 }
 
@@ -723,6 +794,19 @@ function parseOperationalState(operationalStateRaw: OperationalStateRaw): Operat
   }
 }
 
+function serializeOperationalState(operationalState: OperationalState): { paused: {} } | { operational: {} } | { reduceOnly: {} } {
+  switch (operationalState) {
+    case OperationalState.Paused:
+      return { paused: {} };
+    case OperationalState.Operational:
+      return { operational: {} };
+    case OperationalState.ReduceOnly:
+      return { reduceOnly: {} };
+    default:
+      throw new Error(`Invalid operational state "${operationalState}"`);
+  }
+}
+
 function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
   switch (Object.keys(oracleSetupRaw)[0].toLowerCase()) {
     case "none":
@@ -736,8 +820,21 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
   }
 }
 
-export type { InterestRateConfig, BankConfigOpt };
-export { Bank, BankConfig, RiskTier, OperationalState, OracleSetup, parseRiskTier, parseOracleSetup };
+function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythEma: {} } | { switchboardV2: {} } {
+  switch (oracleSetup) {
+    case OracleSetup.None:
+      return { none: {} };
+    case OracleSetup.PythEma:
+      return { pythEma: {} };
+    case OracleSetup.SwitchboardV2:
+      return { switchboardV2: {} };
+    default:
+      throw new Error(`Invalid oracle setup "${oracleSetup}"`);
+  }
+}
+
+export type { InterestRateConfig, BankConfigOpt, BankConfigOptRaw };
+export { Bank, BankConfig, RiskTier, OperationalState, OracleSetup, parseRiskTier, parseOracleSetup, serializeBankConfigOpt };
 
 // ----------------------------------------------------------------------------
 // Attributes
