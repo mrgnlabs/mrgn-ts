@@ -19,11 +19,18 @@ const cardVariants = cva("rounded-xl shadow", {
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {
   asChild?: boolean;
+  gradient?: boolean;
 }
 
-const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className, variant, asChild = false, ...props }, ref) => (
-  <div ref={ref} className={cn(cardVariants({ variant, className }))} {...props} />
-));
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant = "default", asChild = false, style, gradient = false, ...props }, ref) => {
+    const s = { ...style };
+    if (gradient) {
+      s.background = "radial-gradient(50% 50% at 50% 50%, #3540423D 10%, #0f1111 80%)";
+    }
+    return <div ref={ref} className={cn(cardVariants({ variant, className }))} style={s} {...props} />;
+  }
+);
 Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
@@ -35,7 +42,7 @@ CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn("font-semibold leading-none tracking-tight", className)} {...props} />
+    <h3 ref={ref} className={cn("font-medium leading-none tracking-tight", className)} {...props} />
   )
 );
 CardTitle.displayName = "CardTitle";
@@ -46,7 +53,7 @@ const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttribu
 CardDescription.displayName = "CardDescription";
 
 const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+  ({ className, ...props }, ref) => <div ref={ref} className={cn("p-6 pt-0 font-normal", className)} {...props} />
 );
 CardContent.displayName = "CardContent";
 
