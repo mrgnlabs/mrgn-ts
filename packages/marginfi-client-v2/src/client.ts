@@ -557,7 +557,6 @@ class MarginfiClient {
         const messageEncoded = encodeURIComponent(
           Buffer.from(versionedTransaction.message.serialize()).toString("base64")
         );
-        console.log(Buffer.from(versionedTransaction.message.serialize()).toString("base64"));
 
         const urlEscaped = `https://explorer.solana.com/tx/inspector?cluster=${this.config.cluster}&signatures=${signaturesEncoded}&message=${messageEncoded}`;
         console.log("------ Inspect 👇 ------");

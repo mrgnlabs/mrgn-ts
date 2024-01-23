@@ -256,7 +256,6 @@ function makeBeginFlashLoanIx(
     endIndex: BN;
   }
 ) {
-  console.log(args.endIndex.toString());
   return mfiProgram.methods
     .lendingAccountStartFlashloan(args.endIndex)
     .accountsStrict({

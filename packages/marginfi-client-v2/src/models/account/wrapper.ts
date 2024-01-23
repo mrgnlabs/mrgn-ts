@@ -9,6 +9,9 @@ import {
   ComputeBudgetProgram,
   LAMPORTS_PER_SOL,
   Signer,
+  AddressLookupTableAccount,
+  TransactionMessage,
+  VersionedTransaction,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { MarginfiClient, MarginfiGroup } from "../..";
@@ -25,7 +28,8 @@ export interface SimulationResult {
 
 export interface FlashLoanArgs {
   ixs: TransactionInstruction[];
-  signers: Signer[];
+  signers?: Signer[];
+  addressLookupTableAccounts?: AddressLookupTableAccount[];
 }
 
 class MarginfiAccountWrapper {
@@ -344,8 +348,15 @@ class MarginfiAccountWrapper {
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
     opt?: { observationBanksOverride?: PublicKey[] } | undefined
-    ): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeWithdrawIx(this._program, this.client.banks, amount, bankAddress, withdrawAll, opt);
+  ): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeWithdrawIx(
+      this._program,
+      this.client.banks,
+      amount,
+      bankAddress,
+      withdrawAll,
+      opt
+    );
   }
 
   async withdraw(
@@ -499,26 +510,33 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.makeEndFlashLoanIx(this._program, this.client.banks, projectedActiveBalances);
   }
 
-  public async flashLoan(args: FlashLoanArgs): Promise<string> {
-    const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:flash-loan`);
-    debug("Performing flash loan");
+  public async buildFlashLoanTx(args: FlashLoanArgs): Promise<VersionedTransaction> {
     const endIndex = args.ixs.length + 1;
 
-    const projectedActiveBalances: PublicKey[] = this._marginfiAccount.projectActiveBalancesNoCpi(this._program, args.ixs);
+    const projectedActiveBalances: PublicKey[] = this._marginfiAccount.projectActiveBalancesNoCpi(
+      this._program,
+      args.ixs
+    );
 
     const beginFlashLoanIx = await this.makeBeginFlashLoanIx(endIndex);
     const endFlashLoanIx = await this.makeEndFlashLoanIx(projectedActiveBalances);
 
-    const ixs = [
-      ...beginFlashLoanIx.instructions,
-      ...args.ixs,
-      ...endFlashLoanIx.instructions,
-    ]
+    const ixs = [...beginFlashLoanIx.instructions, ...args.ixs, ...endFlashLoanIx.instructions];
 
-    const tx = new Transaction().add(...ixs);
-    const sig = await this.client.processTransaction(tx, args.signers);
-    debug("Flash loan successful %s", sig);
-    return sig;
+    const { blockhash } = await this._program.provider.connection.getLatestBlockhash();
+    const message = new TransactionMessage({
+      payerKey: this.client.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions: ixs,
+    }).compileToV0Message(args.addressLookupTableAccounts);
+
+    const tx = new VersionedTransaction(message);
+
+    if (args.signers) {
+      tx.sign(args.signers);
+    }
+
+    return tx;
   }
 
   // --------------------------------------------------------------------------

@@ -25,6 +25,7 @@
     "superstruct": "^1.0.3"
   },
   "devDependencies": {
+    "@jup-ag/api": "^6.0.10",
     "@mrgnlabs/eslint-config-custom": "*",
     "@mrgnlabs/tsconfig": "*",
     "@types/bn.js": "^5.1.1",
