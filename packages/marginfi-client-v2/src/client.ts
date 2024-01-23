@@ -549,7 +549,11 @@ class MarginfiClient {
           response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
         );
         console.log("------ Logs 👇 ------");
-        console.log(response.value.logs);
+        if (response.value.logs) {
+          for (const log of response.value.logs) {
+            console.log(log);
+          }
+        }
 
         const signaturesEncoded = encodeURIComponent(
           JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s)))

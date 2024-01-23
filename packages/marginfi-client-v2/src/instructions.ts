@@ -35,7 +35,7 @@ async function makeDepositIx(
   },
   args: {
     amount: BN;
-  },
+  }
 ) {
   return mfProgram.methods
     .lendingAccountDeposit(args.amount)
@@ -61,7 +61,7 @@ async function makeRepayIx(
   args: {
     amount: BN;
     repayAll?: boolean;
-  },
+  }
 ) {
   return mfProgram.methods
     .lendingAccountRepay(args.amount, args.repayAll ?? null)
@@ -245,7 +245,7 @@ function makePoolConfigureBankIx(
     })
     .instruction();
 }
- 
+
 function makeBeginFlashLoanIx(
   mfiProgram: MarginfiProgram,
   accounts: {

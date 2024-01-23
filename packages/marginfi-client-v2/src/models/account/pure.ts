@@ -977,7 +977,11 @@ class MarginfiAccount {
           const targetBank = new PublicKey(ix.keys[3].pubkey);
           const targetBalance = projectedBalances.find((b) => b.bankPk.equals(targetBank));
           if (!targetBalance) {
-            throw Error(`Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${decoded.name}))`);
+            throw Error(
+              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${
+                decoded.name
+              }))`
+            );
           }
 
           if (ixArgs.repayAll || ixArgs.withdrawAll) {

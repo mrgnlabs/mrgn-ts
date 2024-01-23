@@ -4279,6 +4279,15 @@
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-4.0.1-alpha.0.tgz#6c9fd02e607830206802b5e372fd0c2ec5a6a0c1"
   integrity sha512-H9hyf9K7sXMPd0++/hQ5Fs2eVgi2w9wtJP0YmGFLJMjF8zHYDYqQ0ZCdgmLLSp/vrEjmOHbbiLJT2psuV5W+bw==
 
+"@jup-ag/api@^6.0.10":
+  version "6.0.10"
+  resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.10.tgz#522b469d8f8846b39549023dae31a02875d4ef06"
+  integrity sha512-0gDSvrtvjd5Rg/MI0I/Ct/6pWCGjM1mgt9kbtugNzsd8MYLJtneoCma3EcrA8eIClseknPR39Yjwl5AdDWItlw==
+  dependencies:
+    "@project-serum/anchor" "^0.26.0"
+    "@solana/web3.js" "^1.87.6"
+    bs58 "^5.0.0"
+
 "@jup-ag/api@^6.0.6", "@jup-ag/api@~6.0.6":
   version "6.0.6"
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.6.tgz#f0f838aaf8ca5964d7cb9ff24535599bf4d03813"

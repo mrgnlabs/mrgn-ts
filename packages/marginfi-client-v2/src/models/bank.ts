@@ -695,7 +695,7 @@ interface BankConfigOpt {
   oracle: {
     setup: OracleSetup;
     keys: PublicKey[];
-  } | null
+  } | null;
 }
 
 interface BankConfigOptRaw {
@@ -716,22 +716,29 @@ interface BankConfigOptRaw {
   oracle: {
     setup: { none: {} } | { pythEma: {} } | { switchboardV2: {} };
     keys: PublicKey[];
-  } | null
+  } | null;
 }
 
 function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw {
   const assetWeightInit = bankConfigOpt.assetWeightInit && { value: new BN(bankConfigOpt.assetWeightInit.toString()) };
-  const assetWeightMaint = bankConfigOpt.assetWeightMaint && { value: new BN(bankConfigOpt.assetWeightMaint.toString()) };
-  const liabilityWeightInit = bankConfigOpt.liabilityWeightInit && { value: new BN(bankConfigOpt.liabilityWeightInit.toString()) };
-  const liabilityWeightMaint = bankConfigOpt.liabilityWeightMaint && { value: new BN(bankConfigOpt.liabilityWeightMaint.toString()) };
+  const assetWeightMaint = bankConfigOpt.assetWeightMaint && {
+    value: new BN(bankConfigOpt.assetWeightMaint.toString()),
+  };
+  const liabilityWeightInit = bankConfigOpt.liabilityWeightInit && {
+    value: new BN(bankConfigOpt.liabilityWeightInit.toString()),
+  };
+  const liabilityWeightMaint = bankConfigOpt.liabilityWeightMaint && {
+    value: new BN(bankConfigOpt.liabilityWeightMaint.toString()),
+  };
   const depositLimit = bankConfigOpt.depositLimit && new BN(bankConfigOpt.depositLimit.toString());
   const borrowLimit = bankConfigOpt.borrowLimit && new BN(bankConfigOpt.borrowLimit.toString());
-  const riskTier = bankConfigOpt.riskTier && serializeRiskTier(bankConfigOpt.riskTier) // parseRiskTier(bankConfigRaw.riskTier);
+  const riskTier = bankConfigOpt.riskTier && serializeRiskTier(bankConfigOpt.riskTier); // parseRiskTier(bankConfigRaw.riskTier);
   const operationalState = bankConfigOpt.operationalState && serializeOperationalState(bankConfigOpt.operationalState);
-  const totalAssetValueInitLimit = bankConfigOpt.totalAssetValueInitLimit && new BN(bankConfigOpt.totalAssetValueInitLimit.toString());
+  const totalAssetValueInitLimit =
+    bankConfigOpt.totalAssetValueInitLimit && new BN(bankConfigOpt.totalAssetValueInitLimit.toString());
   const oracle = bankConfigOpt.oracle && {
     setup: serializeOracleSetup(bankConfigOpt.oracle.setup),
-    keys: bankConfigOpt.oracle.keys
+    keys: bankConfigOpt.oracle.keys,
   };
   const interestRateConfig = bankConfigOpt.interestRateConfig && {
     insuranceFeeFixedApr: { value: new BN(bankConfigOpt.interestRateConfig.insuranceFeeFixedApr.toString()) },
@@ -757,7 +764,6 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
     interestRateConfig,
   };
 }
-
 
 function parseRiskTier(riskTierRaw: RiskTierRaw): RiskTier {
   switch (Object.keys(riskTierRaw)[0].toLowerCase()) {
@@ -794,7 +800,9 @@ function parseOperationalState(operationalStateRaw: OperationalStateRaw): Operat
   }
 }
 
-function serializeOperationalState(operationalState: OperationalState): { paused: {} } | { operational: {} } | { reduceOnly: {} } {
+function serializeOperationalState(
+  operationalState: OperationalState
+): { paused: {} } | { operational: {} } | { reduceOnly: {} } {
   switch (operationalState) {
     case OperationalState.Paused:
       return { paused: {} };
@@ -834,7 +842,16 @@ function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythEm
 }
 
 export type { InterestRateConfig, BankConfigOpt, BankConfigOptRaw };
-export { Bank, BankConfig, RiskTier, OperationalState, OracleSetup, parseRiskTier, parseOracleSetup, serializeBankConfigOpt };
+export {
+  Bank,
+  BankConfig,
+  RiskTier,
+  OperationalState,
+  OracleSetup,
+  parseRiskTier,
+  parseOracleSetup,
+  serializeBankConfigOpt,
+};
 
 // ----------------------------------------------------------------------------
 // Attributes

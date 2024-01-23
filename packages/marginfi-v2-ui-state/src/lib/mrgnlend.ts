@@ -462,23 +462,26 @@ async function fetchTokenAccounts(
   const [walletAi, ...ataAiList] = accountsAiList;
   const nativeSolBalance = walletAi?.lamports ? walletAi.lamports / 1e9 : 0;
 
-  const ataList: TokenAccount[] = ataAiList
-    .map((ai, index) => {
-      if (!ai || (!ai?.owner?.equals(TOKEN_PROGRAM_ID) && !ai?.owner?.equals(new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")))) {
-        return {
-          created: false,
-          mint: mintList[index].address,
-          balance: 0,
-        };
-      }
-
-      const decoded = unpackAccount(ataAddresses[index], ai);
+  const ataList: TokenAccount[] = ataAiList.map((ai, index) => {
+    if (
+      !ai ||
+      (!ai?.owner?.equals(TOKEN_PROGRAM_ID) &&
+        !ai?.owner?.equals(new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb")))
+    ) {
       return {
-        created: true,
-        mint: decoded.mint,
-        balance: nativeToUi(new BN(decoded.amount.toString()), mintList[index].decimals),
+        created: false,
+        mint: mintList[index].address,
+        balance: 0,
       };
-    });
+    }
+
+    const decoded = unpackAccount(ataAddresses[index], ai);
+    return {
+      created: true,
+      mint: decoded.mint,
+      balance: nativeToUi(new BN(decoded.amount.toString()), mintList[index].decimals),
+    };
+  });
 
   return { nativeSolBalance, tokenAccountMap: new Map(ataList.map((ata) => [ata.mint.toString(), ata])) };
 }

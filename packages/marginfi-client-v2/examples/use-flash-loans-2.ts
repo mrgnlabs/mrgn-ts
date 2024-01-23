@@ -58,7 +58,7 @@ async function main() {
     addressLookupTableAccounts,
   });
 
-  client.processTransaction(flashLoanTx);
+  await client.processTransaction(flashLoanTx);
 }
 
 main().catch((e) => console.log(e));
