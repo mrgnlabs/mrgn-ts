@@ -5,7 +5,7 @@ import React from "react";
 import Script from "next/script";
 
 import config from "~/config";
-import { cn } from "~/utils";
+import { cn, capture } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { PageHeader } from "~/components/common/PageHeader";
@@ -30,6 +30,11 @@ export default function SwapPage() {
             integratedTargetId: "integrated-terminal",
             endpoint: config.rpcEndpoint,
             passThroughWallet: walletContextState.wallet,
+            onSuccess: ({ txid }: { txid: string }) => {
+              capture("user_swap", {
+                txn: txid,
+              });
+            },
           });
           const currentTime = Date.now();
           const timeElapsed = currentTime - loadTimestamp;
