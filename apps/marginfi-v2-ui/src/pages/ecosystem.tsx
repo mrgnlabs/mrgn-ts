@@ -119,7 +119,7 @@ const projects = [
     },
   },
   {
-    title: "JuicerFi",
+    title: "Juicer",
     description: "Discover yield opportunities on Solana",
     url: "https://beta.juicer.fi/borrow-lend",
     author: {
