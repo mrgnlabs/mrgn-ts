@@ -31,7 +31,7 @@ export async function getMarginfiClient({
   const config = getConfig(env_config.MRGN_ENV);
 
   if (authority && !readonly) {
-    console.log("Cannot only specify authority when readonly");
+    throw Error("Can only specify authority when readonly");
   }
 
   const client = await MarginfiClient.fetch(
