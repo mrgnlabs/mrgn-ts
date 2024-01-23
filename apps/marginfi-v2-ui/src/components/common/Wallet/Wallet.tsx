@@ -8,7 +8,6 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { setPersonProperties } from "~/utils/analytics";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
@@ -127,15 +126,6 @@ export const Wallet = () => {
       balanceUSD: usdFormatter.format(totalBalance),
       balanceSOL: solBank ? numeralFormatter(totalBalance / solBank?.info.state.price) : "0.00",
       tokens: (userTokens || []) as Token[],
-    });
-
-    setPersonProperties({
-      walletAddress: wallet?.publicKey.toString(),
-      tokens: userTokens.map((token) => ({
-        name: token?.name,
-        symbol: token?.symbol,
-        value: token?.value,
-      })),
     });
   }, [connection, wallet?.publicKey, address, extendedBankInfos, nativeSolBalance]);
 
