@@ -226,7 +226,7 @@ export default function Ecosystem() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-4 lg:gap-8 w-full pb-20">
           {projects.map((project, index) => (
-            <Card variant="secondary" key={index}>
+            <Card variant="default" className="w-full" key={index}>
               <CardHeader>
                 <CardTitle className="font-medium text-lg">{project.title}</CardTitle>
                 {project.description && <CardDescription>{project.description}</CardDescription>}
