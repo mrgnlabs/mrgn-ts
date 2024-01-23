@@ -5,7 +5,6 @@ import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Wallet, processTransaction } from "@mrgnlabs/mrgn-common";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
-import { capture } from "~/utils/analytics";
 import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
 
 export type MarginfiActionParams = {
@@ -113,11 +112,6 @@ async function createAccountAndDeposit({
     const txnSig = await marginfiAccount.deposit(amount, bank.address, priorityFee);
     multiStepToast.setSuccessAndNext();
     return txnSig;
-    capture("user_deposit", {
-      amount,
-      bankAddress: bank.address.toBase58(),
-      tokenSymbol: bank.meta.tokenSymbol,
-    });
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
@@ -146,11 +140,6 @@ export async function deposit({
   try {
     const txnSig = await marginfiAccount.deposit(amount, bank.address, priorityFee);
     multiStepToast.setSuccessAndNext();
-    capture("user_deposit", {
-      amount,
-      bankAddress: bank.address.toBase58(),
-      tokenSymbol: bank.meta.tokenSymbol,
-    });
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -181,11 +170,6 @@ export async function borrow({
     const txnSig = await marginfiAccount.borrow(amount, bank.address, priorityFee);
     multiStepToast.setSuccessAndNext();
     return txnSig;
-    capture("user_borrow", {
-      amount,
-      bankAddress: bank.address.toBase58(),
-      tokenSymbol: bank.meta.tokenSymbol,
-    });
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
@@ -220,11 +204,6 @@ export async function withdraw({
     );
     multiStepToast.setSuccessAndNext();
     return txnSig;
-    capture("user_withdraw", {
-      amount,
-      bankAddress: bank.address.toBase58(),
-      tokenSymbol: bank.meta.tokenSymbol,
-    });
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
@@ -259,11 +238,6 @@ export async function repay({
     );
     multiStepToast.setSuccessAndNext();
     return txnSig;
-    capture("user_repay", {
-      amount,
-      bankAddress: bank.address.toBase58(),
-      tokenSymbol: bank.meta.tokenSymbol,
-    });
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
@@ -295,9 +269,6 @@ export async function collectRewardsBatch(
     tx.add(...ixs);
     await processTransaction(connection, wallet, tx);
     multiStepToast.setSuccessAndNext();
-    capture("user_collect_rewards", {
-      bankAddresses,
-    });
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);
@@ -338,11 +309,6 @@ export const closeBalance = async ({
       txnSig = await marginfiAccount.repay(0, bank.address, true, priorityFee);
     }
     multiStepToast.setSuccessAndNext();
-    capture("user_close_balance", {
-      positionType: bank.position.isLending ? "lending" : "borrow",
-      bankAddress: bank.address.toBase58(),
-      tokenSymbol: bank.meta.tokenSymbol,
-    });
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
