@@ -4,7 +4,12 @@ const _checkEnv = () => !process.env.NEXT_PUBLIC_POSTHOG_API_KEY || process.env.
 
 export const init = () => {
   if (_checkEnv()) return;
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_API_KEY!, { api_host: "https://app.posthog.com", autocapture: false });
+  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_API_KEY!, {
+    api_host: "https://app.posthog.com",
+    autocapture: false,
+    capture_pageview: false,
+    capture_pageleave: false,
+  });
 };
 
 export const capture = (event: string, properties?: Record<string, any>) => {
