@@ -8,6 +8,10 @@ import {
   TransactionInstruction,
   ComputeBudgetProgram,
   LAMPORTS_PER_SOL,
+  Signer,
+  AddressLookupTableAccount,
+  TransactionMessage,
+  VersionedTransaction,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { MarginfiClient, MarginfiGroup } from "../..";
@@ -20,6 +24,12 @@ import { Balance } from "../balance";
 export interface SimulationResult {
   banks: Map<string, Bank>;
   marginfiAccount: MarginfiAccountWrapper;
+}
+
+export interface FlashLoanArgs {
+  ixs: TransactionInstruction[];
+  signers?: Signer[];
+  addressLookupTableAccounts?: AddressLookupTableAccount[];
 }
 
 class MarginfiAccountWrapper {
@@ -336,9 +346,17 @@ class MarginfiAccountWrapper {
   async makeWithdrawIx(
     amount: Amount,
     bankAddress: PublicKey,
-    withdrawAll: boolean = false
+    withdrawAll: boolean = false,
+    opt?: { observationBanksOverride?: PublicKey[] } | undefined
   ): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeWithdrawIx(this._program, this.client.banks, amount, bankAddress, withdrawAll);
+    return this._marginfiAccount.makeWithdrawIx(
+      this._program,
+      this.client.banks,
+      amount,
+      bankAddress,
+      withdrawAll,
+      opt
+    );
   }
 
   async withdraw(
@@ -391,7 +409,7 @@ class MarginfiAccountWrapper {
   async makeBorrowIx(
     amount: Amount,
     bankAddress: PublicKey,
-    opt?: { remainingAccountsBankOverride?: Bank[] } | undefined
+    opt?: { observationBanksOverride?: PublicKey[] } | undefined
   ): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeBorrowIx(this._program, this.client.banks, amount, bankAddress, opt);
   }
@@ -482,6 +500,43 @@ class MarginfiAccountWrapper {
     const sig = await this.client.processTransaction(tx, []);
     debug("Liquidation successful %s", sig);
     return sig;
+  }
+
+  public async makeBeginFlashLoanIx(endIndex: number): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeBeginFlashLoanIx(this._program, endIndex);
+  }
+
+  public async makeEndFlashLoanIx(projectedActiveBalances: PublicKey[]): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeEndFlashLoanIx(this._program, this.client.banks, projectedActiveBalances);
+  }
+
+  public async buildFlashLoanTx(args: FlashLoanArgs): Promise<VersionedTransaction> {
+    const endIndex = args.ixs.length + 1;
+
+    const projectedActiveBalances: PublicKey[] = this._marginfiAccount.projectActiveBalancesNoCpi(
+      this._program,
+      args.ixs
+    );
+
+    const beginFlashLoanIx = await this.makeBeginFlashLoanIx(endIndex);
+    const endFlashLoanIx = await this.makeEndFlashLoanIx(projectedActiveBalances);
+
+    const ixs = [...beginFlashLoanIx.instructions, ...args.ixs, ...endFlashLoanIx.instructions];
+
+    const { blockhash } = await this._program.provider.connection.getLatestBlockhash();
+    const message = new TransactionMessage({
+      payerKey: this.client.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions: ixs,
+    }).compileToV0Message(args.addressLookupTableAccounts);
+
+    const tx = new VersionedTransaction(message);
+
+    if (args.signers) {
+      tx.sign(args.signers);
+    }
+
+    return tx;
   }
 
   // --------------------------------------------------------------------------

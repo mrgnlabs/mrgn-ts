@@ -16,9 +16,17 @@ import instructions from "../../instructions";
 import { AccountType, MarginfiProgram } from "../../types";
 import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
 import { Balance, BalanceRaw } from "../balance";
-import { BankMap, DISABLED_FLAG, FLASHLOAN_ENABLED_FLAG, MARGINFI_IDL, MarginfiClient, OraclePriceMap, RiskTier } from "../..";
+import {
+  BankMap,
+  DISABLED_FLAG,
+  FLASHLOAN_ENABLED_FLAG,
+  MARGINFI_IDL,
+  MarginfiClient,
+  OraclePriceMap,
+  RiskTier,
+} from "../..";
 import BN from "bn.js";
-import { Address, BorshCoder, translateAddress } from "@coral-xyz/anchor";
+import { Address, BorshCoder, BorshInstructionCoder, translateAddress } from "@coral-xyz/anchor";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -171,13 +179,14 @@ class MarginfiAccount {
     return { assets, liabilities };
   }
 
- computeAccountValue(
-    banks: Map<string, Bank>,
-    oraclePrices: Map<string, OraclePrice>,
-  ): BigNumber {
-    const { assets, liabilities } = this.computeHealthComponentsWithoutBias(banks, oraclePrices, MarginRequirementType.Equity);
+  computeAccountValue(banks: Map<string, Bank>, oraclePrices: Map<string, OraclePrice>): BigNumber {
+    const { assets, liabilities } = this.computeHealthComponentsWithoutBias(
+      banks,
+      oraclePrices,
+      MarginRequirementType.Equity
+    );
     return assets.minus(liabilities);
-  } 
+  }
 
   computeNetApy(banks: Map<string, Bank>, oraclePrices: Map<string, OraclePrice>): number {
     const { assets, liabilities } = this.computeHealthComponentsWithoutBias(
@@ -582,7 +591,7 @@ class MarginfiAccount {
     const banksToAdd = new Set([...mandatoryBanksSet].filter((x) => !activeBanks.has(x)));
 
     let slotsToKeep = banksToAdd.size;
-    return this.balances
+    const projectedActiveBanks = this.balances
       .filter((balance) => {
         if (balance.active) {
           return !excludedBanksSet.has(balance.bankPk.toBase58());
@@ -595,28 +604,14 @@ class MarginfiAccount {
       })
       .map((balance) => {
         if (balance.active) {
-          return balance.bankPk.toBase58();
+          return balance.bankPk;
         }
         const newBank = [...banksToAdd.values()][0];
         banksToAdd.delete(newBank);
-        return newBank;
-      })
-      .flatMap((bankPk) => {
-        const bank = banks.get(bankPk);
-        if (!bank) throw Error(`Could not find bank ${bankPk}`);
-        return [
-          {
-            pubkey: new PublicKey(bankPk),
-            isSigner: false,
-            isWritable: false,
-          },
-          {
-            pubkey: bank.config.oracleKeys[0],
-            isSigner: false,
-            isWritable: false,
-          },
-        ];
+        return new PublicKey(newBank);
       });
+
+    return makeHealthAccountMetas(banks, projectedActiveBanks);
   }
 
   // ----------------------------------------------------------------------------
@@ -633,7 +628,6 @@ class MarginfiAccount {
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
 
     const userTokenAtaPk = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
-    const remainingAccounts = this.getHealthCheckAccounts(banks, [bank]);
     const ix = await instructions.makeDepositIx(
       program,
       {
@@ -643,8 +637,7 @@ class MarginfiAccount {
         signerTokenAccountPk: userTokenAtaPk,
         bankPk: bank.address,
       },
-      { amount: uiToNative(amount, bank.mintDecimals) },
-      remainingAccounts
+      { amount: uiToNative(amount, bank.mintDecimals) }
     );
     const depositIxs = bank.mint.equals(NATIVE_MINT) ? this.wrapInstructionForWSol(ix, amount) : [ix];
 
@@ -688,9 +681,7 @@ class MarginfiAccount {
 
     // Add repay-related instructions
     const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
-    const remainingAccounts = repayAll
-      ? this.getHealthCheckAccounts(banks, [], [bank])
-      : this.getHealthCheckAccounts(banks, [bank], []);
+
     const ix = await instructions.makeRepayIx(
       program,
       {
@@ -700,9 +691,9 @@ class MarginfiAccount {
         signerTokenAccountPk: userAta,
         bankPk: bankAddress,
       },
-      { amount: uiToNative(amount, bank.mintDecimals), repayAll },
-      remainingAccounts
+      { amount: uiToNative(amount, bank.mintDecimals), repayAll }
     );
+
     const repayIxs = bank.mint.equals(NATIVE_MINT) ? this.wrapInstructionForWSol(ix, amount) : [ix];
     ixs.push(...repayIxs);
 
@@ -717,7 +708,8 @@ class MarginfiAccount {
     banks: Map<string, Bank>,
     amount: Amount,
     bankAddress: PublicKey,
-    withdrawAll: boolean = false
+    withdrawAll: boolean = false,
+    opt?: { observationBanksOverride?: PublicKey[] } | undefined
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
@@ -754,9 +746,15 @@ class MarginfiAccount {
     ixs.push(createAtaIdempotentIx);
 
     // Add withdraw-related instructions
-    const remainingAccounts = withdrawAll
-      ? this.getHealthCheckAccounts(banks, [], [bank])
-      : this.getHealthCheckAccounts(banks, [bank], []);
+    let remainingAccounts;
+    if (opt?.observationBanksOverride !== undefined) {
+      remainingAccounts = makeHealthAccountMetas(banks, opt.observationBanksOverride);
+    } else {
+      remainingAccounts = withdrawAll
+        ? this.getHealthCheckAccounts(banks, [], [bank])
+        : this.getHealthCheckAccounts(banks, [bank], []);
+    }
+
     const ix = await instructions.makeWithdrawIx(
       program,
       {
@@ -783,7 +781,7 @@ class MarginfiAccount {
     banks: Map<string, Bank>,
     amount: Amount,
     bankAddress: PublicKey,
-    opt?: { remainingAccountsBankOverride?: Bank[] } | undefined
+    opt?: { observationBanksOverride?: PublicKey[] } | undefined
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
@@ -806,10 +804,14 @@ class MarginfiAccount {
       bank.mint
     );
     ixs.push(createAtaIdempotentIx);
-    const remainingAccounts = this.getHealthCheckAccounts(
-      banks,
-      (opt?.remainingAccountsBankOverride?.length ?? 0) > 0 ? opt?.remainingAccountsBankOverride : [bank]
-    );
+
+    let remainingAccounts;
+    if (opt?.observationBanksOverride !== undefined) {
+      remainingAccounts = makeHealthAccountMetas(banks, opt.observationBanksOverride);
+    } else {
+      remainingAccounts = this.getHealthCheckAccounts(banks, [bank]);
+    }
+
     const ix = await instructions.makeBorrowIx(
       program,
       {
@@ -910,23 +912,113 @@ class MarginfiAccount {
     return { instructions: ixs, keys: [] };
   }
 
+  async makeBeginFlashLoanIx(program: MarginfiProgram, endIndex: number): Promise<InstructionsWrapper> {
+    const ix = await instructions.makeBeginFlashLoanIx(
+      program,
+      {
+        marginfiAccount: this.address,
+        signer: this.authority,
+      },
+      { endIndex: new BN(endIndex) }
+    );
+    return { instructions: [ix], keys: [] };
+  }
+
+  async makeEndFlashLoanIx(
+    program: MarginfiProgram,
+    banks: Map<string, Bank>,
+    projectedActiveBalances: PublicKey[]
+  ): Promise<InstructionsWrapper> {
+    const remainingAccounts = makeHealthAccountMetas(banks, projectedActiveBalances);
+    const ix = await instructions.makeEndFlashLoanIx(
+      program,
+      {
+        marginfiAccount: this.address,
+        signer: this.authority,
+      },
+      remainingAccounts
+    );
+
+    return { instructions: [ix], keys: [] };
+  }
+
+  projectActiveBalancesNoCpi(program: MarginfiProgram, instructions: TransactionInstruction[]): PublicKey[] {
+    let projectedBalances = [...this.balances];
+
+    for (let index = 0; index < instructions.length; index++) {
+      const ix = instructions[index];
+
+      if (!ix.programId.equals(program.programId)) continue;
+
+      const borshCoder = new BorshInstructionCoder(program.idl);
+      const decoded = borshCoder.decode(ix.data, "base58");
+      if (!decoded) continue;
+
+      const ixArgs = decoded.data as any;
+
+      switch (decoded.name) {
+        case "lendingAccountBorrow":
+        case "lendingAccountDeposit": {
+          const targetBank = new PublicKey(ix.keys[3].pubkey);
+          const targetBalance = projectedBalances.find((b) => b.bankPk.equals(targetBank));
+          if (!targetBalance) {
+            const firstInactiveBalanceIndex = projectedBalances.findIndex((b) => !b.active);
+            if (firstInactiveBalanceIndex === -1) {
+              throw Error("No inactive balance found");
+            }
+
+            projectedBalances[firstInactiveBalanceIndex].active = true;
+            projectedBalances[firstInactiveBalanceIndex].bankPk = targetBank;
+          }
+          break;
+        }
+        case "lendingAccountRepay":
+        case "lendingAccountWithdraw": {
+          const targetBank = new PublicKey(ix.keys[3].pubkey);
+          const targetBalance = projectedBalances.find((b) => b.bankPk.equals(targetBank));
+          if (!targetBalance) {
+            throw Error(
+              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${
+                decoded.name
+              }))`
+            );
+          }
+
+          if (ixArgs.repayAll || ixArgs.withdrawAll) {
+            targetBalance.active = false;
+            targetBalance.bankPk = PublicKey.default;
+          }
+        }
+        default: {
+          continue;
+        }
+      }
+    }
+
+    return projectedBalances.filter((b) => b.active).map((b) => b.bankPk);
+  }
+
   wrapInstructionForWSol(ix: TransactionInstruction, amount: Amount = new BigNumber(0)): TransactionInstruction[] {
     return [...makeWrapSolIxs(this.authority, new BigNumber(amount)), ix, makeUnwrapSolIx(this.authority)];
   }
 
   public describe(banks: BankMap, oraclePrices: OraclePriceMap): string {
     const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Equity);
-    return `
+    let description = `
 - Marginfi account: ${this.address}
+- Authority: ${this.authority}
 - Total deposits: $${assets.toFixed(6)}
 - Total liabilities: $${liabilities.toFixed(6)}
 - Equity: $${assets.minus(liabilities).toFixed(6)}
 - Health: ${assets.minus(liabilities).div(assets).times(100).toFixed(2)}%
-- Balances:  ${this.activeBalances.map((balance) => {
+- Balances:\n`;
+
+    for (const balance of this.activeBalances) {
       const bank = banks.get(balance.bankPk.toBase58())!;
       const priceInfo = oraclePrices.get(balance.bankPk.toBase58())!;
-      return balance.describe(bank, priceInfo);
-    })}`;
+      description += balance.describe(bank, priceInfo);
+    }
+    return description;
   }
 }
 
@@ -938,6 +1030,25 @@ enum MarginRequirementType {
 
 export function isWeightedPrice(reqType: MarginRequirementType): boolean {
   return reqType === MarginRequirementType.Initial;
+}
+
+export function makeHealthAccountMetas(banks: Map<string, Bank>, banksToInclude: PublicKey[]): AccountMeta[] {
+  return banksToInclude.flatMap((bankAddress) => {
+    const bank = banks.get(bankAddress.toBase58());
+    if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+    return [
+      {
+        pubkey: bankAddress,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: bank.config.oracleKeys[0],
+        isSigner: false,
+        isWritable: false,
+      },
+    ];
+  });
 }
 
 export { MarginfiAccount, MarginRequirementType };
