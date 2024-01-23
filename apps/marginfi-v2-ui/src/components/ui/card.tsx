@@ -5,8 +5,9 @@ import { cn } from "~/utils/themeUtils";
 const cardVariants = cva("rounded-xl border shadow", {
   variants: {
     variant: {
-      default: "bg-card text-card-foreground",
+      default: "bg-muted border border-muted-foreground/10",
       secondary: "bg-primary text-primary-foreground",
+      gradient: "bg-card text-card-foreground",
     },
   },
   defaultVariants: {
@@ -16,13 +17,12 @@ const cardVariants = cva("rounded-xl border shadow", {
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {
   asChild?: boolean;
-  gradient?: boolean;
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant = "default", asChild = false, style, gradient = false, ...props }, ref) => {
+  ({ className, variant = "default", asChild = false, style, ...props }, ref) => {
     const s = { ...style };
-    if (gradient) {
+    if (variant === "gradient") {
       s.background = "radial-gradient(50% 50% at 50% 50%, #3540423D 10%, #0f1111 80%)";
     }
     return <div ref={ref} className={cn(cardVariants({ variant, className }))} style={s} {...props} />;
