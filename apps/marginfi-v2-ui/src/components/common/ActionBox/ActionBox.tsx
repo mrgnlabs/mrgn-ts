@@ -368,7 +368,8 @@ export const ActionBox = ({
           txn: txnSig!,
         });
         capture(`user_${currentAction.toLowerCase()}`, {
-          bank: bank as ActiveBankInfo,
+          tokenSymbol: bank.meta.tokenSymbol,
+          tokenName: bank.meta.tokenName,
           amount: borrowOrLendAmount,
           txn: txnSig!,
           priorityFee,
