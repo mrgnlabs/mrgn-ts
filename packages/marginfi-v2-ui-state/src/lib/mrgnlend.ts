@@ -622,6 +622,7 @@ enum ActionType {
   Borrow = "Borrow",
   Repay = "Repay",
   Withdraw = "Withdraw",
+  Mint = "Mint"
 }
 
 export { Emissions, ActionType };
