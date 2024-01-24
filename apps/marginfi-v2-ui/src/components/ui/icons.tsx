@@ -34,6 +34,8 @@ import {
   IconConfetti,
   IconTrophyFilled,
   IconStar,
+  IconBell,
+  IconLink,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -667,6 +669,8 @@ export {
   IconConfetti,
   IconTrophyFilled,
   IconStar,
+  IconBell,
+  IconLink,
 
   // customed icons
   IconBrandGoogle,
