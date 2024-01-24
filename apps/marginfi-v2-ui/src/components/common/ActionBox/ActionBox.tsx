@@ -2,9 +2,9 @@ import React from "react";
 
 import { PublicKey } from "@solana/web3.js";
 
-import { usdFormatterDyn, WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import {
@@ -12,7 +12,6 @@ import {
   clampedNumeralFormatter,
   closeBalance,
   executeLendingAction,
-  getMaintHealthColor,
   isWholePosition,
   usePrevious,
   cn,
@@ -32,9 +31,9 @@ import {
 } from "~/components/common/ActionBox";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Input } from "~/components/ui/input";
-import { IconAlertTriangle, IconInfoCircle, IconWallet, IconSettings } from "~/components/ui/icons";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { Skeleton } from "~/components/ui/skeleton";
+import { IconAlertTriangle, IconWallet, IconSettings } from "~/components/ui/icons";
+
+import { ActionBoxAvailableCollateral } from "./ActionBoxLend";
 
 export interface ActionPreview {
   health: number;
@@ -141,6 +140,8 @@ export const ActionBox = ({
         return selectedBank.userInfo.maxBorrow;
       case ActionType.Repay:
         return selectedBank.userInfo.maxRepay;
+      case ActionType.Mint:
+        return selectedBank.userInfo.tokenAccount.balance;
       default:
         return 0;
     }
@@ -555,9 +556,8 @@ export const ActionBox = ({
                         : "-"}
                     </span>
                     <button
-                      className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
-                        maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
-                      } transition-colors`}
+                      className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
+                        } transition-colors`}
                       onClick={() => setAmountRaw(numberFormater.format(maxAmount))}
                       disabled={maxAmount === 0}
                     >
@@ -651,66 +651,3 @@ export const ActionBox = ({
   );
 };
 
-type ActionBoxAvailableCollateralProps = {
-  isLoading: boolean;
-  marginfiAccount: MarginfiAccountWrapper;
-  preview: ActionPreview | null;
-};
-
-const ActionBoxAvailableCollateral = ({ isLoading, marginfiAccount, preview }: ActionBoxAvailableCollateralProps) => {
-  const [availableRatio, setAvailableRatio] = React.useState<number>(0);
-  const [availableAmount, setAvailableAmount] = React.useState<number>(0);
-
-  const healthColor = React.useMemo(
-    () => getMaintHealthColor(preview?.availableCollateral.ratio ?? availableRatio),
-    [availableRatio, preview?.availableCollateral.ratio]
-  );
-
-  React.useEffect(() => {
-    const currentAvailableCollateralAmount = marginfiAccount.computeFreeCollateral().toNumber();
-    const currentAvailableCollateralRatio =
-      currentAvailableCollateralAmount /
-      marginfiAccount.computeHealthComponents(MarginRequirementType.Initial).assets.toNumber();
-    setAvailableAmount(currentAvailableCollateralAmount);
-    setAvailableRatio(currentAvailableCollateralRatio);
-  }, [marginfiAccount]);
-
-  return (
-    <div className="pb-6">
-      <dl className="flex justify-between items-center text-muted-foreground  gap-2">
-        <dt className="flex items-center gap-1.5 text-sm pb-2">
-          Available collateral
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <IconInfoCircle size={16} />
-              </TooltipTrigger>
-              <TooltipContent>
-                <div className="space-y-2">
-                  <p>Available collateral is the USD value of your collateral not actively backing a loan.</p>
-                  <p>It can be used to open additional borrows or withdraw part of your collateral.</p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </dt>
-        <dd className="text-xl md:text-sm font-medium text-white">
-          {isLoading ? (
-            <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-          ) : (
-            usdFormatterDyn.format(preview?.availableCollateral.amount ?? availableAmount)
-          )}
-        </dd>
-      </dl>
-      <div className="h-2 mb-2 bg-background-gray-light">
-        <div
-          className="h-2"
-          style={{
-            backgroundColor: `${healthColor}`,
-            width: `${(preview?.availableCollateral.ratio ?? availableRatio) * 100}%`,
-          }}
-        />
-      </div>
-    </div>
-  );
-};
