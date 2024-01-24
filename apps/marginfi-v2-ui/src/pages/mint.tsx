@@ -146,8 +146,8 @@ export default function MintPage() {
               </h1>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-11">
-                {cards.map((item) => (
-                  <Card variant="secondary">
+                {cards.map((item, i) => (
+                  <Card key={i} variant="secondary">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-3xl">
                         <item.icon />
@@ -160,8 +160,8 @@ export default function MintPage() {
                       <p className="text-lg font-semibold my-6">{item.price}</p>
 
                       <ul className="space-y-2.5 mb-4">
-                        {item.features.map((feature) => (
-                          <li className="flex items-center gap-1">
+                        {item.features.map((feature, j) => (
+                          <li key={j} className="flex items-center gap-1">
                             <IconCheck className="text-success" />
                             {feature}
                           </li>
