@@ -35,8 +35,6 @@ import {
   IconConfetti,
   IconTrophyFilled,
   IconStar,
-  IconBell,
-  IconLink,
   IconStarFilled,
   IconTransfer,
   IconBolt,
@@ -60,6 +58,8 @@ import {
   IconUsersPlus,
   IconPencil,
   IconBox,
+  IconBell,
+  IconLink,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -876,8 +876,6 @@ export {
   IconConfetti,
   IconTrophyFilled,
   IconStar,
-  IconBell,
-  IconLink,
   IconStarFilled,
   IconTransfer,
   IconBolt,
@@ -900,6 +898,8 @@ export {
   IconUsersPlus,
   IconPencil,
   IconBox,
+  IconBell,
+  IconLink,
 
   // customed icons
   IconBrandGoogle,
