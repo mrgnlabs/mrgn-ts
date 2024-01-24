@@ -21,6 +21,7 @@ import {
 
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Button } from "~/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { IconCheck, IconChevronDown, IconCopy } from "~/components/ui/icons";
 
 export const Wallet = () => {
@@ -50,26 +51,6 @@ export const Wallet = () => {
     balanceUSD: "",
     tokens: [],
   });
-
-  useEffect(() => {
-    if (walletData && walletData.address && walletData.tokens.length === 0 && initialized) highlightMoonPay();
-  }, [walletData, initialized]);
-
-  const highlightMoonPay = () => {
-    if (!document) return;
-    const moonpayButton = document.querySelector(`#moonpay-btn`);
-    const walletSheetItems = document.querySelectorAll(".wallet-sheet-item");
-    if (!moonpayButton) return;
-
-    walletSheetItems.forEach((item) => item.classList.add("opacity-30"));
-    moonpayButton.classList.remove("opacity-30");
-    moonpayButton.classList.add("animate-pulse");
-
-    setTimeout(() => {
-      walletSheetItems.forEach((item) => item.classList.remove("opacity-30"));
-      moonpayButton.classList.remove("opacity-30", "animate-pulse");
-    }, 2500);
-  };
 
   const address = React.useMemo(() => {
     if (!wallet?.publicKey) return "";
@@ -153,96 +134,115 @@ export const Wallet = () => {
             </button>
           )}
         </SheetTrigger>
-        <SheetContent className="outline-none z-[1000001]">
+        <SheetContent className="outline-none z-[1000001] px-4">
           {walletData ? (
-            <div className="pt-4 px-4 h-full flex flex-col">
-              <header className="space-y-2 flex flex-col items-center mb-8 wallet-sheet-item">
-                <WalletAvatar pfp={pfp} address={walletData.address} size="lg" />
-                <CopyToClipboard
-                  text={walletData.address}
-                  onCopy={() => {
-                    setIsWalletAddressCopied(true);
-                    setTimeout(() => {
-                      setIsWalletAddressCopied(false);
-                    }, 2000);
-                  }}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <button className="flex items-center gap-1 cursor-pointe outline-none">
-                      {isWalletAddressCopied && <>copied!</>}
-                      {!isWalletAddressCopied && <>{walletData.shortAddress}</>}
-                    </button>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button className="flex items-center gap-1 cursor-pointe outline-none">
-                            {isWalletAddressCopied && (
-                              <>
-                                <IconCheck size={14} />
-                              </>
-                            )}
-                            {!isWalletAddressCopied && (
-                              <>
-                                <IconCopy size={14} />
-                              </>
-                            )}
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>Click to copy</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </CopyToClipboard>
+            <div className="pt-4 h-full flex flex-col">
+              <header className="flex flex-col items-center mb-8">
+                <div className="flex flex-col items-center space-y-2 ">
+                  <WalletAvatar pfp={pfp} address={walletData.address} size="lg" />
+                  <CopyToClipboard
+                    text={walletData.address}
+                    onCopy={() => {
+                      setIsWalletAddressCopied(true);
+                      setTimeout(() => {
+                        setIsWalletAddressCopied(false);
+                      }, 2000);
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <button className="flex items-center gap-1 cursor-pointe outline-none">
+                        {isWalletAddressCopied && <>copied!</>}
+                        {!isWalletAddressCopied && <>{walletData.shortAddress}</>}
+                      </button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button className="flex items-center gap-1 cursor-pointe outline-none">
+                              {isWalletAddressCopied && (
+                                <>
+                                  <IconCheck size={14} />
+                                </>
+                              )}
+                              {!isWalletAddressCopied && (
+                                <>
+                                  <IconCopy size={14} />
+                                </>
+                              )}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Click to copy</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </CopyToClipboard>
+                </div>
               </header>
               <div className="flex flex-col items-center h-full">
-                <div className="text-center wallet-sheet-item">
-                  <h2 className="text-3xl font-medium">{walletData.balanceUSD}</h2>
-                  <p className="text-muted-foreground text-sm">~{walletData.balanceSOL} SOL</p>
+                <div className="text-center space-y-1">
+                  <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
+                  <p className="text-muted-foreground">~{walletData.balanceSOL} SOL</p>
                 </div>
-                <div className="wallet-sheet-item">
-                  <WalletTokens tokens={walletData.tokens} />
-                </div>
-                <div className="pt-8">
-                  <div className="text-sm text-white/50 text-center mb-4 wallet-sheet-item">
-                    Transfer funds to your marginfi wallet
-                    <CopyToClipboard
-                      text={walletData.address}
-                      onCopy={() => {
-                        setIsFundingWalletAddressCopied(true);
-                        setTimeout(() => {
-                          setIsFundingWalletAddressCopied(false);
-                        }, 2000);
-                      }}
-                    >
-                      <div className="inline-flex items-center gap-1 mr-1">
-                        <button className="flex items-center gap-1 cursor-pointe outline-none">
-                          {walletData.shortAddress}
-                        </button>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button className="flex items-center gap-1 cursor-pointe outline-none">
-                                {isFundingWalletAddressCopied && (
-                                  <>
-                                    <IconCheck size={14} />
-                                  </>
-                                )}
-                                {!isFundingWalletAddressCopied && (
-                                  <>
-                                    <IconCopy size={14} />
-                                  </>
-                                )}
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent>Click to copy</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </CopyToClipboard>
-                    or buy directly with MoonPay.
+                <Accordion type="single" collapsible className="w-full mt-8 space-y-4">
+                  <AccordionItem value="assets">
+                    <AccordionTrigger className="bg-background-gray px-4 rounded-lg transition-colors hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
+                      Assets
+                    </AccordionTrigger>
+                    <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
+                      <WalletTokens tokens={walletData.tokens} />
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="notifications">
+                    <AccordionTrigger className="bg-background-gray px-4 rounded-lg transition-colors hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
+                      Notifications
+                    </AccordionTrigger>
+                    <AccordionContent className="bg-background-gray p-4 rounded-b-lg">Notis UI</AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+
+                {web3AuthConncected && (
+                  <div className="pt-8">
+                    <div className="text-sm text-white/50 text-center mb-4">
+                      Transfer funds to your marginfi wallet
+                      <CopyToClipboard
+                        text={walletData.address}
+                        onCopy={() => {
+                          setIsFundingWalletAddressCopied(true);
+                          setTimeout(() => {
+                            setIsFundingWalletAddressCopied(false);
+                          }, 2000);
+                        }}
+                      >
+                        <div className="inline-flex items-center gap-1 mr-1">
+                          <button className="flex items-center gap-1 cursor-pointe outline-none">
+                            {walletData.shortAddress}
+                          </button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button className="flex items-center gap-1 cursor-pointe outline-none">
+                                  {isFundingWalletAddressCopied && (
+                                    <>
+                                      <IconCheck size={14} />
+                                    </>
+                                  )}
+                                  {!isFundingWalletAddressCopied && (
+                                    <>
+                                      <IconCopy size={14} />
+                                    </>
+                                  )}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>Click to copy</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </CopyToClipboard>
+                      or buy directly with MoonPay.
+                    </div>
+
+                    <WalletOnramp />
                   </div>
-                  <WalletOnramp />
-                </div>
+                )}
                 <SheetFooter className="text-red-400 mt-auto w-full">
                   <ul className="space-y-3 mb-4 md:space-y-0 md:mb-0">
                     <li>
