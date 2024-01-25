@@ -671,9 +671,9 @@ interface InterestRateConfig {
 }
 
 enum OracleSetup {
-  None = 0,
-  PythEma = 1,
-  SwitchboardV2 = 2,
+  None = "None",
+  PythEma = "PythEma",
+  SwitchboardV2 = "SwitchboardV2",
 }
 
 // BankConfigOpt Args
