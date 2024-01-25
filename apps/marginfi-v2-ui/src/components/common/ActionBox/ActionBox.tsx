@@ -16,6 +16,7 @@ import {
   isWholePosition,
   usePrevious,
   cn,
+  capture,
 } from "~/utils";
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -365,6 +366,13 @@ export const ActionBox = ({
           bank: bank as ActiveBankInfo,
           amount: borrowOrLendAmount,
           txn: txnSig!,
+        });
+        capture(`user_${currentAction.toLowerCase()}`, {
+          tokenSymbol: bank.meta.tokenSymbol,
+          tokenName: bank.meta.tokenName,
+          amount: borrowOrLendAmount,
+          txn: txnSig!,
+          priorityFee,
         });
       }
 

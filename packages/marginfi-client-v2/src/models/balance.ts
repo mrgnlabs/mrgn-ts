@@ -162,10 +162,9 @@ class Balance {
       MarginRequirementType.Equity
     );
 
-    return `
-${bank.address} Balance:
-- Deposits: ${assetsQt.toFixed(5)} (${assetsUsd.toFixed(5)} USD)
-- Borrows: ${liabsQt.toFixed(5)} (${liabsUsd.toFixed(5)} USD)
+    return `> ${bank.tokenSymbol ?? bank.address} balance:
+\t- Deposits: ${assetsQt.toFixed(5)} (${assetsUsd.toFixed(5)} USD)
+\t- Borrows: ${liabsQt.toFixed(5)} (${liabsUsd.toFixed(5)} USD)
 `;
   }
 }

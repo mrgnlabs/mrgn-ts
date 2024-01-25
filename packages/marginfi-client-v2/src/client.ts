@@ -549,7 +549,11 @@ class MarginfiClient {
           response.value.err ? `❌ Error: ${response.value.err}` : `✅ Success - ${response.value.unitsConsumed} CU`
         );
         console.log("------ Logs 👇 ------");
-        console.log(response.value.logs);
+        if (response.value.logs) {
+          for (const log of response.value.logs) {
+            console.log(log);
+          }
+        }
 
         const signaturesEncoded = encodeURIComponent(
           JSON.stringify(versionedTransaction.signatures.map((s) => bs58.encode(s)))
@@ -557,7 +561,6 @@ class MarginfiClient {
         const messageEncoded = encodeURIComponent(
           Buffer.from(versionedTransaction.message.serialize()).toString("base64")
         );
-        console.log(Buffer.from(versionedTransaction.message.serialize()).toString("base64"));
 
         const urlEscaped = `https://explorer.solana.com/tx/inspector?cluster=${this.config.cluster}&signatures=${signaturesEncoded}&message=${messageEncoded}`;
         console.log("------ Inspect 👇 ------");

@@ -1,7 +1,7 @@
-import { AccountMeta, PublicKey, SystemProgram } from "@solana/web3.js";
+import { AccountMeta, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram } from "@solana/web3.js";
 import BN from "bn.js";
 import { MarginfiProgram } from "./types";
-import { BankConfigOpt } from "./models/bank";
+import { BankConfigOptRaw } from "./models/bank";
 
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
@@ -35,8 +35,7 @@ async function makeDepositIx(
   },
   args: {
     amount: BN;
-  },
-  remainingAccounts: AccountMeta[] = []
+  }
 ) {
   return mfProgram.methods
     .lendingAccountDeposit(args.amount)
@@ -47,7 +46,6 @@ async function makeDepositIx(
       signerTokenAccount: accounts.signerTokenAccountPk,
       bank: accounts.bankPk,
     })
-    .remainingAccounts(remainingAccounts)
     .instruction();
 }
 
@@ -63,8 +61,7 @@ async function makeRepayIx(
   args: {
     amount: BN;
     repayAll?: boolean;
-  },
-  remainingAccounts: AccountMeta[] = []
+  }
 ) {
   return mfProgram.methods
     .lendingAccountRepay(args.amount, args.repayAll ?? null)
@@ -75,7 +72,6 @@ async function makeRepayIx(
       signerTokenAccount: accounts.signerTokenAccountPk,
       bank: accounts.bankPk,
     })
-    .remainingAccounts(remainingAccounts)
     .instruction();
 }
 
@@ -237,7 +233,7 @@ function makePoolConfigureBankIx(
     bank: PublicKey;
   },
   args: {
-    bankConfigOpt: BankConfigOpt;
+    bankConfigOpt: BankConfigOptRaw;
   }
 ) {
   return mfiProgram.methods
@@ -247,6 +243,44 @@ function makePoolConfigureBankIx(
       admin: accounts.admin,
       bank: accounts.bank,
     })
+    .instruction();
+}
+
+function makeBeginFlashLoanIx(
+  mfiProgram: MarginfiProgram,
+  accounts: {
+    marginfiAccount: PublicKey;
+    signer: PublicKey;
+  },
+  args: {
+    endIndex: BN;
+  }
+) {
+  return mfiProgram.methods
+    .lendingAccountStartFlashloan(args.endIndex)
+    .accountsStrict({
+      marginfiAccount: accounts.marginfiAccount,
+      signer: accounts.signer,
+      ixsSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
+    })
+    .instruction();
+}
+
+function makeEndFlashLoanIx(
+  mfiProgram: MarginfiProgram,
+  accounts: {
+    marginfiAccount: PublicKey;
+    signer: PublicKey;
+  },
+  remainingAccounts: AccountMeta[] = []
+) {
+  return mfiProgram.methods
+    .lendingAccountEndFlashloan()
+    .accountsStrict({
+      marginfiAccount: accounts.marginfiAccount,
+      signer: accounts.signer,
+    })
+    .remainingAccounts(remainingAccounts)
     .instruction();
 }
 
@@ -261,6 +295,8 @@ const instructions = {
   makeSetAccountFlagIx,
   makeUnsetAccountFlagIx,
   makePoolConfigureBankIx,
+  makeBeginFlashLoanIx,
+  makeEndFlashLoanIx,
 };
 
 export default instructions;

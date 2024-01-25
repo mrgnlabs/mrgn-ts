@@ -5,7 +5,7 @@ import Script from "next/script";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import config from "~/config";
-import { cn } from "~/utils";
+import { cn, capture } from "~/utils";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
 import { useUserProfileStore, useUiStore } from "~/store";
 import { Desktop } from "~/mediaQueries";
@@ -137,6 +137,14 @@ export default function BridgePage() {
     });
     window.MayanSwap.setSwapCompleteListener((data) => {
       multiStepToast.setSuccessAndNext();
+      capture("user_swap", {
+        txn: data.hash,
+        fromChain: data.fromChain,
+        toChain: data.toChain,
+        fromToken: data.fromToken,
+        toToken: data.toToken,
+        fromAmount: data.fromAmount,
+      });
     });
     window.MayanSwap.setSwapRefundListener((data) => {
       multiStepToast.setFailed("Cross-chain swap/bridge refunded");

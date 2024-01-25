@@ -118,6 +118,36 @@ const projects = [
       url: "https://twitter.com/0xCosmic_",
     },
   },
+  {
+    title: "Juicer",
+    description: "Discover yield opportunities on Solana",
+    url: "https://beta.juicer.fi/borrow-lend",
+    author: {
+      name: "juicerfi",
+      avatar: "https://pbs.twimg.com/profile_images/1744141051583926272/yULkMCFf_400x400.png",
+      url: "https://twitter.com/juicerfi",
+    },
+  },
+  {
+    title: "DreamOS",
+    description: "The operating system for web3",
+    url: "https://www.dreamos.app/",
+    author: {
+      name: "DreamOS",
+      avatar: "https://pbs.twimg.com/profile_images/1728866739381837824/zLICMwN9_400x400.jpg",
+      url: "https://twitter.com/theDreamOS",
+    },
+  },
+  {
+    title: "Fluxbot",
+    description: "Solana's #1 Telegram Trading Bot",
+    url: "https://fluxbot.xyz/",
+    author: {
+      name: "FluxBeam",
+      avatar: "https://pbs.twimg.com/profile_images/1659266532898218005/dAQyCgCC_400x400.jpg",
+      url: "https://twitter.com/FluxBeamDEX",
+    },
+  },
 ];
 
 export default function Ecosystem() {
