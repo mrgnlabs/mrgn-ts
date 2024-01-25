@@ -184,13 +184,6 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
               className="bg-background-gray relative"
               shouldFilter={false}
               value={selectedBank?.address?.toString().toLowerCase() ?? ""}
-              onValueChange={(value) =>
-                setCurrentTokenBank(
-                  extendedBankInfos.find((bank) => bank.address.toString() === value)?.address ||
-                    selectedBank?.address ||
-                    null
-                )
-              }
             >
               <CommandInput
                 placeholder="Search token..."
