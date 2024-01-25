@@ -36,7 +36,7 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
         <Input
           type="text"
           placeholder="Search tokens"
-          className="w-full pl-8"
+          className="w-full pl-8 border-input/75"
           value={search}
           onChange={(e) => setSearch(e.currentTarget.value)}
         />

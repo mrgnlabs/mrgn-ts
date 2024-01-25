@@ -12,7 +12,7 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
   WalletAvatar,
-  WalletTokens,
+  WalletSettings,
   Token,
   WalletOnramp,
   WalletPkDialog,
@@ -21,7 +21,6 @@ import {
 
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Button } from "~/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { IconCheck, IconChevronDown, IconCopy } from "~/components/ui/icons";
 
 export const Wallet = () => {
@@ -182,23 +181,7 @@ export const Wallet = () => {
                   <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
                   <p className="text-muted-foreground">~{walletData.balanceSOL} SOL</p>
                 </div>
-                <Accordion type="single" collapsible className="w-full mt-8 space-y-4">
-                  <AccordionItem value="assets">
-                    <AccordionTrigger className="bg-background-gray px-4 rounded-lg transition-colors hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
-                      Assets
-                    </AccordionTrigger>
-                    <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
-                      <WalletTokens tokens={walletData.tokens} />
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="notifications">
-                    <AccordionTrigger className="bg-background-gray px-4 rounded-lg transition-colors hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
-                      Notifications
-                    </AccordionTrigger>
-                    <AccordionContent className="bg-background-gray p-4 rounded-b-lg">Notis UI</AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-
+                <WalletSettings tokens={walletData.tokens} />
                 {web3AuthConncected && (
                   <div className="pt-8">
                     <div className="text-sm text-white/50 text-center mb-4">
