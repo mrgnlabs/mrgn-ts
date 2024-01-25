@@ -27,13 +27,15 @@ export const ActionBoxDialog = ({
     <Dialog open={isDialogOpen} onOpenChange={(open) => setIsDialogOpen(open)}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="md:flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl bg-transparent border-none">
-        <ActionBox
-          isDialog={true}
-          handleCloseDialog={() => setIsDialogOpen(false)}
-          requestedAction={requestedAction}
-          requestedToken={requestedToken}
-          requestedLendingMode={requestedLendingMode}
-        />
+        <div className="p-4">
+          <ActionBox
+            isDialog={true}
+            handleCloseDialog={() => setIsDialogOpen(false)}
+            requestedAction={requestedAction}
+            requestedToken={requestedToken}
+            requestedLendingMode={requestedLendingMode}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

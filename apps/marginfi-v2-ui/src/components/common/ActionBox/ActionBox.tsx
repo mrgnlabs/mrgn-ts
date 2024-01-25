@@ -4,7 +4,6 @@ import { PublicKey } from "@solana/web3.js";
 
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import {
@@ -12,40 +11,23 @@ import {
   clampedNumeralFormatter,
   closeBalance,
   executeLendingAction,
-  isWholePosition,
   usePrevious,
   cn,
   capture,
 } from "~/utils";
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useDebounce } from "~/hooks/useDebounce";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import {
   checkActionAvailable,
   ActionBoxActions,
-  ActionBoxPreview,
   ActionBoxTokens,
   ActionBoxPriorityFees,
 } from "~/components/common/ActionBox";
-import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Input } from "~/components/ui/input";
 import { IconAlertTriangle, IconWallet, IconSettings } from "~/components/ui/icons";
-
-import { ActionBoxAvailableCollateral } from "./ActionBoxLend";
-
-export interface ActionPreview {
-  health: number;
-  liquidationPrice: number | null;
-  depositRate: number;
-  borrowRate: number;
-  positionAmount: number;
-  availableCollateral: {
-    ratio: number;
-    amount: number;
-  };
-}
+import { ActionBoxPreview } from "./ActionBoxPreview";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -79,15 +61,12 @@ export const ActionBox = ({
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingModeFromStore, setLendingMode, priorityFee, setIsActionComplete, setPreviousTxn] = useUiStore(
-    (state) => [
-      state.lendingMode,
-      state.setLendingMode,
-      state.priorityFee,
-      state.setIsActionComplete,
-      state.setPreviousTxn,
-    ]
-  );
+  const [lendingModeFromStore, priorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
+    state.lendingMode,
+    state.priorityFee,
+    state.setIsActionComplete,
+    state.setPreviousTxn,
+  ]);
   const { walletContextState, connected } = useWalletContext();
 
   const lendingMode = React.useMemo(
@@ -100,12 +79,9 @@ export const ActionBox = ({
     const strippedAmount = amountRaw.replace(/,/g, "");
     return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
   }, [amountRaw]);
-  const debouncedAmount = useDebounce<number | null>(amount, 500);
-  const [isAmountLoading, setIsAmountLoading] = React.useState<boolean>(false);
 
   const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
-  const [preview, setPreview] = React.useState<ActionPreview | null>(null);
   const [isPriorityFeesMode, setIsPriorityFeesMode] = React.useState<boolean>(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
@@ -205,6 +181,12 @@ export const ActionBox = ({
   }, [requestedToken, setSelectedTokenBank]);
 
   React.useEffect(() => {
+    if (lendingModeFromStore && !isDialog) {
+      setSelectedTokenBank(null);
+    }
+  }, [lendingModeFromStore]);
+
+  React.useEffect(() => {
     if (!requestedAction) {
       if (lendingMode === LendingModes.LEND) {
         setActionMode(ActionType.Deposit);
@@ -221,118 +203,25 @@ export const ActionBox = ({
   }, [requestedAction, setActionMode]);
 
   React.useEffect(() => {
-    if (amount) {
-      setIsAmountLoading(true);
-      setIsLoading(true);
-    } else {
-      setIsAmountLoading(false);
-      setIsLoading(false);
-    }
-  }, [setIsAmountLoading, setIsLoading, amount]);
-
-  React.useEffect(() => {
     if (amount && amount > maxAmount) {
       setAmountRaw(numberFormater.format(maxAmount));
     }
   }, [maxAmount, amount, numberFormater]);
 
-  React.useEffect(() => {
-    if (
-      actionMode === ActionType.Withdraw &&
-      !(selectedBank?.isActive && selectedBank?.position?.isLending && lendingMode === LendingModes.LEND)
-    ) {
-      setSelectedTokenBank(null);
-    } else if (
-      actionMode === ActionType.Repay &&
-      !(selectedBank?.isActive && !selectedBank?.position?.isLending && lendingMode === LendingModes.BORROW)
-    ) {
-      setSelectedTokenBank(null);
-    }
-  }, [selectedBank, actionMode, setActionMode, lendingMode]);
-
-  const computePreview = React.useCallback(async () => {
-    if (!selectedAccount || !selectedBank || debouncedAmount === null) {
-      setIsAmountLoading(false);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      let simulationResult: SimulationResult;
-
-      if (debouncedAmount === 0) {
-        setPreview(null);
-        return;
-      }
-
-      if (actionMode === ActionType.Deposit) {
-        simulationResult = await selectedAccount.simulateDeposit(debouncedAmount, selectedBank.address);
-      } else if (actionMode === ActionType.Withdraw) {
-        simulationResult = await selectedAccount.simulateWithdraw(
-          debouncedAmount,
-          selectedBank.address,
-          selectedBank.isActive && isWholePosition(selectedBank, debouncedAmount)
-        );
-      } else if (actionMode === ActionType.Borrow) {
-        simulationResult = await selectedAccount.simulateBorrow(debouncedAmount, selectedBank.address);
-      } else if (actionMode === ActionType.Repay) {
-        simulationResult = await selectedAccount.simulateRepay(
-          debouncedAmount,
-          selectedBank.address,
-          selectedBank.isActive && isWholePosition(selectedBank, debouncedAmount)
-        );
-      } else {
-        throw new Error("Unknown action mode");
-      }
-
-      const { assets, liabilities } = simulationResult.marginfiAccount.computeHealthComponents(
-        MarginRequirementType.Maintenance
-      );
-      const { assets: assetsInit } = simulationResult.marginfiAccount.computeHealthComponents(
-        MarginRequirementType.Initial
-      );
-      const health = assets.minus(liabilities).dividedBy(assets).toNumber();
-
-      const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBank(selectedBank.address);
-
-      const { lendingRate, borrowingRate } = simulationResult.banks
-        .get(selectedBank.address.toBase58())!
-        .computeInterestRates();
-
-      const position = simulationResult.marginfiAccount.activeBalances.find(
-        (b) => b.active && b.bankPk.equals(selectedBank.address)
-      );
-      let positionAmount = 0;
-      if (position && position.liabilityShares.gt(0)) {
-        positionAmount = position.computeQuantityUi(selectedBank.info.rawBank).liabilities.toNumber();
-      } else if (position && position.assetShares.gt(0)) {
-        positionAmount = position.computeQuantityUi(selectedBank.info.rawBank).assets.toNumber();
-      }
-      const availableCollateral = simulationResult.marginfiAccount.computeFreeCollateral().toNumber();
-
-      setPreview({
-        health,
-        liquidationPrice,
-        depositRate: lendingRate.toNumber(),
-        borrowRate: borrowingRate.toNumber(),
-        positionAmount,
-        availableCollateral: {
-          amount: availableCollateral,
-          ratio: availableCollateral / assetsInit.toNumber(),
-        },
-      });
-    } catch (error) {
-      setPreview(null);
-      console.log("Error computing action preview", error);
-    } finally {
-      setIsAmountLoading(false);
-      setIsLoading(false);
-    }
-  }, [actionMode, debouncedAmount, selectedAccount, selectedBank]);
-
-  React.useEffect(() => {
-    computePreview();
-  }, [computePreview, debouncedAmount]);
+  // Does this do anything? I don't think so
+  // React.useEffect(() => {
+  //   if (
+  //     actionMode === ActionType.Withdraw &&
+  //     !(selectedBank?.isActive && selectedBank?.position?.isLending && lendingMode === LendingModes.LEND)
+  //   ) {
+  //     setSelectedTokenBank(null);
+  //   } else if (
+  //     actionMode === ActionType.Repay &&
+  //     !(selectedBank?.isActive && !selectedBank?.position?.isLending && lendingMode === LendingModes.BORROW)
+  //   ) {
+  //     setSelectedTokenBank(null);
+  //   }
+  // }, [selectedBank, actionMode, setActionMode, lendingMode]);
 
   const executeLendingActionCb = React.useCallback(
     async ({
@@ -503,31 +392,7 @@ export const ActionBox = ({
 
   return (
     <>
-      <div className="p-4 flex flex-col items-center gap-4">
-        <div className="space-y-6 text-center w-full flex flex-col items-center">
-          {!isDialog && (
-            <>
-              <ToggleGroup
-                type="single"
-                size="lg"
-                value={lendingMode}
-                onValueChange={() => {
-                  setSelectedTokenBank(null);
-                  setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND);
-                }}
-              >
-                <ToggleGroupItem value="lend" aria-label="Lend">
-                  Lend
-                </ToggleGroupItem>
-                <ToggleGroupItem value="borrow" aria-label="Borrow">
-                  Borrow
-                </ToggleGroupItem>
-              </ToggleGroup>
-
-              <p className="text-muted-foreground">Supply. Earn interest. Borrow. Repeat.</p>
-            </>
-          )}
-        </div>
+      <div className="flex flex-col items-center">
         <div
           className={cn(
             "p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative",
@@ -556,8 +421,9 @@ export const ActionBox = ({
                         : "-"}
                     </span>
                     <button
-                      className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
-                        } transition-colors`}
+                      className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
+                        maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
+                      } transition-colors`}
                       onClick={() => setAmountRaw(numberFormater.format(maxAmount))}
                       disabled={maxAmount === 0}
                     >
@@ -571,7 +437,11 @@ export const ActionBox = ({
                   <ActionBoxTokens
                     isDialog={isDialog}
                     currentTokenBank={selectedTokenBank}
-                    setCurrentTokenBank={setSelectedTokenBank}
+                    setCurrentTokenBank={(tokenBank) => {
+                      setSelectedTokenBank(tokenBank);
+                      console.log({ selectedBank });
+                      setAmountRaw("");
+                    }}
                   />
                 </div>
                 <div className="flex-1">
@@ -597,39 +467,30 @@ export const ActionBox = ({
                 </div>
               )}
 
-              {selectedAccount && (
-                <ActionBoxAvailableCollateral
-                  isLoading={isAmountLoading}
-                  marginfiAccount={selectedAccount}
-                  preview={preview}
-                />
-              )}
-
-              <ActionBoxActions
-                handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
-                isLoading={isLoading}
-                isEnabled={actionMethod.isEnabled}
-                actionMode={actionMode}
-                disabled={amount === 0}
-              />
-
-              <div className="flex justify-end mt-3">
-                <button
-                  onClick={() => setIsPriorityFeesMode(true)}
-                  className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
-                >
-                  Txn priority: {priorityFeeLabel} <IconSettings size={16} />
-                </button>
-              </div>
-
-              {selectedBank && actionMethod.isEnabled && (
+              {selectedBank && (
                 <ActionBoxPreview
-                  isLoading={isAmountLoading}
-                  marginfiAccount={selectedAccount}
                   selectedBank={selectedBank}
                   actionMode={actionMode}
-                  preview={preview}
-                />
+                  amount={amount}
+                  isEnabled={actionMethod.isEnabled}
+                >
+                  <ActionBoxActions
+                    handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
+                    isLoading={isLoading}
+                    isEnabled={actionMethod.isEnabled}
+                    actionMode={actionMode}
+                    disabled={amount === 0}
+                  />
+
+                  <div className="flex justify-end mt-3">
+                    <button
+                      onClick={() => setIsPriorityFeesMode(true)}
+                      className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
+                    >
+                      Txn priority: {priorityFeeLabel} <IconSettings size={16} />
+                    </button>
+                  </div>
+                </ActionBoxPreview>
               )}
             </>
           )}
@@ -650,4 +511,3 @@ export const ActionBox = ({
     </>
   );
 };
-
