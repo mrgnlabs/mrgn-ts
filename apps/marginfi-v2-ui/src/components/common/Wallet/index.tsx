@@ -8,3 +8,4 @@ export * from "./WalletTokens";
 export * from "./WalletOnramp";
 export * from "./WalletPkDialog";
 export * from "./WalletIntroDialog";
+export * from "./WalletSettings";
