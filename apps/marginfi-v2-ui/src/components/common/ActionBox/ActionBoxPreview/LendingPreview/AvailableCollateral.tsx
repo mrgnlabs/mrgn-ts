@@ -7,8 +7,7 @@ import { getMaintHealthColor } from "~/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconInfoCircle } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
-import { ActionPreview } from "~/components/common/ActionBox";
-
+import { ActionPreview } from "./LendingPreview";
 
 type ActionBoxAvailableCollateralProps = {
   isLoading: boolean;
@@ -16,7 +15,7 @@ type ActionBoxAvailableCollateralProps = {
   preview: ActionPreview | null;
 };
 
-export const ActionBoxAvailableCollateral = ({ isLoading, marginfiAccount, preview }: ActionBoxAvailableCollateralProps) => {
+export const AvailableCollateral = ({ isLoading, marginfiAccount, preview }: ActionBoxAvailableCollateralProps) => {
   const [availableRatio, setAvailableRatio] = React.useState<number>(0);
   const [availableAmount, setAvailableAmount] = React.useState<number>(0);
 
