@@ -93,7 +93,7 @@ export default function HomePage() {
               />
             )}
             <Stats />
-            <ActionBox />
+            <ActionBoxLendWrapper />
           </>
         )}
       </Mobile>
