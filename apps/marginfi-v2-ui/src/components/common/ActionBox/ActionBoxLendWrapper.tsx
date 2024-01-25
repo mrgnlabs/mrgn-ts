@@ -1,38 +1,16 @@
 import React from "react";
 
-import { PublicKey } from "@solana/web3.js";
-
-import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-
-import { useMrgnlendStore, useUiStore } from "~/store";
-import {
-  MarginfiActionParams,
-  clampedNumeralFormatter,
-  closeBalance,
-  executeLendingAction,
-  isWholePosition,
-  usePrevious,
-  cn,
-  capture,
-} from "~/utils";
+import { useUiStore } from "~/store";
 import { LendingModes } from "~/types";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { useDebounce } from "~/hooks/useDebounce";
 
-import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { ActionBox } from "~/components/common/ActionBox";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 export const ActionBoxLendWrapper = () => {
-  const [lendingModeFromStore, setLendingMode, priorityFee, setIsActionComplete, setPreviousTxn] = useUiStore(
+  const [lendingModeFromStore, setLendingMode] = useUiStore(
     (state) => [
       state.lendingMode,
       state.setLendingMode,
-      state.priorityFee,
-      state.setIsActionComplete,
-      state.setPreviousTxn,
     ]
   );
 
@@ -55,7 +33,6 @@ export const ActionBoxLendWrapper = () => {
             Borrow
           </ToggleGroupItem>
         </ToggleGroup>
-
         <p className="text-muted-foreground">Supply. Earn interest. Borrow. Repeat.</p>
       </div>
       <ActionBox />
