@@ -12,7 +12,7 @@ import { UserMode } from "~/types";
 
 import { Banner } from "~/components/desktop/Banner";
 import { PageHeader } from "~/components/common/PageHeader";
-import { ActionBox } from "~/components/common/ActionBox";
+import { ActionBox, ActionBoxLendWrapper } from "~/components/common/ActionBox";
 import { Stats } from "~/components/common/Stats";
 import { ActionComplete } from "~/components/common/ActionComplete";
 
@@ -68,7 +68,7 @@ export default function HomePage() {
                 />
               )}
               <Stats />
-              {userMode === UserMode.LITE && <ActionBox />}
+              {userMode === UserMode.LITE && <ActionBoxLendWrapper />}
             </div>
             <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl mt-8 gap-4">
               <AssetsList />
