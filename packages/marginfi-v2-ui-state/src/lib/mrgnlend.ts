@@ -66,9 +66,9 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
   const healthFactor = maintenanceComponentsWithBiasAndWeighted.assets.isZero()
     ? 1
     : maintenanceComponentsWithBiasAndWeighted.assets
-      .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
-      .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
-      .toNumber();
+        .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
+        .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
+        .toNumber();
 
   return {
     healthFactor,
@@ -622,7 +622,7 @@ enum ActionType {
   Borrow = "Borrow",
   Repay = "Repay",
   Withdraw = "Withdraw",
-  Mint = "Mint"
+  Mint = "Mint",
 }
 
 export { Emissions, ActionType };
