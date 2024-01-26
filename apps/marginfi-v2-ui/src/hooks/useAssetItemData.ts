@@ -9,7 +9,7 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
     const { protocolFixedFeeApr } = bank.info.rawBank.config.interestRateConfig;
 
     const baseRate = isInLendingMode ? lendingRate : borrowingRate;
-    const protocolFee = !protocolFixedFeeApr.isZero() ? protocolFixedFeeApr.toNumber() : 0;
+    const protocolFee = protocolFixedFeeApr && !protocolFixedFeeApr.isZero() ? protocolFixedFeeApr.toNumber() : 0;
     const lendingEmissions = isInLendingMode && emissions == Emissions.Lending ? emissionsRate : 0;
     const borrowingEmissions = !isInLendingMode && emissions == Emissions.Borrowing ? emissionsRate : 0;
 
