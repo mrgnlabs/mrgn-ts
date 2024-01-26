@@ -4,16 +4,20 @@ import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
-export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBankInfo | null; isInLendingMode: boolean }) {
-  const rateAP = useMemo(
-    () =>
-      bank ? percentFormatter.format(
-        (isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate) +
-        (isInLendingMode && bank.info.state.emissions == Emissions.Lending ? bank.info.state.emissionsRate : 0) +
-        (!isInLendingMode && bank.info.state.emissions == Emissions.Borrowing ? bank.info.state.emissionsRate : 0)
-      ) : "",
-    [isInLendingMode, bank?.info.state]
-  );
+export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBankInfo; isInLendingMode: boolean }) {
+  const rateAP = useMemo(() => {
+    const { lendingRate, borrowingRate, emissions, emissionsRate } = bank.info.state;
+    const { protocolFixedFeeApr } = bank.info.rawBank.config.interestRateConfig;
+
+    const baseRate = isInLendingMode ? lendingRate : borrowingRate;
+    const protocolFee = !protocolFixedFeeApr.isZero() ? protocolFixedFeeApr.toNumber() : 0;
+    const lendingEmissions = isInLendingMode && emissions == Emissions.Lending ? emissionsRate : 0;
+    const borrowingEmissions = !isInLendingMode && emissions == Emissions.Borrowing ? emissionsRate : 0;
+
+    const totalRate = baseRate + protocolFee + lendingEmissions + borrowingEmissions;
+
+    return percentFormatter.format(totalRate);
+  }, [isInLendingMode, bank.info.state]);
 
   const assetWeight = useMemo(() => {
     if (!bank?.info.rawBank.getAssetWeight) {
@@ -44,7 +48,8 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
     ]
   );
   const isBankFilled = useMemo(
-    () => (isInLendingMode ? bank?.info.state.totalDeposits ?? 0 : bank?.info.state.totalBorrows ?? 0) >= bankCap * 0.99999,
+    () =>
+      (isInLendingMode ? bank?.info.state.totalDeposits ?? 0 : bank?.info.state.totalBorrows ?? 0) >= bankCap * 0.99999,
     [bankCap, isInLendingMode, bank?.info.state]
   );
   const isBankHigh = useMemo(
