@@ -157,10 +157,19 @@ const AssetRow: React.FC<{
   const isDust = React.useMemo(() => bank.isActive && bank.position.isDust, [bank]);
   const showCloseBalance = currentAction === ActionType.Withdraw && isDust; // Only case we should show close balance is when we are withdrawing a dust balance, since user receives 0 tokens back (vs repaying a dust balance where the input box will show the smallest unit of the token)
 
-  const oracle = React.useMemo(
-    () => (bank.info.rawBank.config.oracleSetup === 1 ? "Pyth" : "Switchboard"),
-    [bank.info.rawBank.config.oracleSetup]
-  );
+  const oracle = React.useMemo(() => {
+    let oracleStr = "";
+    switch (bank.info.rawBank.config.oracleSetup) {
+      case "PythEma":
+        oracleStr = "Pyth";
+        break;
+      case "SwitchboardV2":
+        oracleStr = "Switchboard";
+        break;
+    }
+
+    return oracleStr;
+  }, [bank.info.rawBank.config.oracleSetup]);
 
   const dogWifHatRef = React.useRef<HTMLTableRowElement>(null);
   const [showDogWifHatImage, setShowDogWifHatImage] = React.useState(false);
@@ -176,8 +185,6 @@ const AssetRow: React.FC<{
       document.body.removeEventListener("scroll", handleScroll);
     };
   }, []);
-
-  console.log(bank.info.state);
 
   return (
     <>
@@ -269,14 +276,16 @@ const AssetRow: React.FC<{
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>{oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}</div>
-                </TooltipTrigger>
-                <TooltipContent>Powered by {oracle}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {oracle && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>{oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}</div>
+                  </TooltipTrigger>
+                  <TooltipContent>Powered by {oracle}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </TableCell>
 
