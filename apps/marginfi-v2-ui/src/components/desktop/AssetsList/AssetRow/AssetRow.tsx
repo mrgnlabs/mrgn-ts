@@ -186,8 +186,6 @@ const AssetRow: React.FC<{
     };
   }, []);
 
-  console.log(bank.info.state);
-
   return (
     <>
       {bank.meta.tokenSymbol === "$WIF" && dogWifHatRef.current && (
@@ -278,14 +276,16 @@ const AssetRow: React.FC<{
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>{oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}</div>
-                </TooltipTrigger>
-                <TooltipContent>Powered by {oracle}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {oracle && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>{oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}</div>
+                  </TooltipTrigger>
+                  <TooltipContent>Powered by {oracle}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </TableCell>
 
