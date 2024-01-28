@@ -1,6 +1,7 @@
 import React from "react";
 
 import { cn } from "~/utils";
+import { useConvertkit } from "~/hooks/useConvertkit";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { WalletTokens } from "~/components/common/Wallet/WalletTokens";
@@ -18,37 +19,67 @@ enum WalletSettingsState {
 }
 
 export const WalletSettings = ({ tokens }: { tokens: any[] }) => {
+  const { addSubscriber } = useConvertkit();
   const [walletSettingsState, setWalletSettingsState] = React.useState<WalletSettingsState>(
     WalletSettingsState.DEFAULT
   );
+  const [email, setEmail] = React.useState<string | null>(null);
   const [notificationSettings, setNotificationSettings] = React.useState({
     health: false,
     ybx: false,
     updates: false,
   });
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
-  const emailInputRef = React.useRef<HTMLInputElement>(null);
+
+  const notificationFormDisabled = React.useMemo(() => {
+    return (
+      walletSettingsState === WalletSettingsState.UPDATING ||
+      !email ||
+      (!notificationSettings.health && !notificationSettings.updates && !notificationSettings.ybx)
+    );
+  }, [walletSettingsState, email, notificationSettings]);
 
   const updateNotificationSettings = React.useCallback(async () => {
-    if (
-      !emailInputRef.current ||
-      !emailInputRef.current.value ||
-      (!notificationSettings.health && !notificationSettings.updates && !notificationSettings.ybx)
-    ) {
+    if (!email || (!notificationSettings.health && !notificationSettings.updates && !notificationSettings.ybx)) {
       return;
     }
 
     setWalletSettingsState(WalletSettingsState.UPDATING);
 
-    setTimeout(() => {
-      setWalletSettingsState(WalletSettingsState.SUCCESS);
+    if (notificationSettings.ybx) {
+      const res = await addSubscriber(process.env.NEXT_PUBLIC_CONVERT_KIT_YBX_FORM_UID!, email);
+      console.log(res);
 
-      setTimeout(() => {
+      if (res.error) {
+        setErrorMsg(res.error);
         setWalletSettingsState(WalletSettingsState.DEFAULT);
-      }, 2000);
-    }, 2000);
-  }, [emailInputRef, notificationSettings]);
+        return;
+      }
+    }
 
+    if (notificationSettings.updates) {
+      const res = await addSubscriber(process.env.NEXT_PUBLIC_CONVERT_KIT_UPDATES_FORM_UID!, email);
+      console.log(res);
+
+      if (res.error) {
+        setErrorMsg(res.error);
+        setWalletSettingsState(WalletSettingsState.DEFAULT);
+        return;
+      }
+    }
+
+    if (notificationSettings.health) {
+      console.log("Add to Firebase");
+    }
+
+    setErrorMsg(null);
+    setWalletSettingsState(WalletSettingsState.SUCCESS);
+
+    setTimeout(() => {
+      setWalletSettingsState(WalletSettingsState.DEFAULT);
+    }, 2000);
+  }, [email, notificationSettings]);
+  email;
   return (
     <Accordion type="single" collapsible className="w-full mt-8 space-y-4">
       <AccordionItem value="assets">
@@ -82,7 +113,15 @@ export const WalletSettings = ({ tokens }: { tokens: any[] }) => {
                   </Tooltip>
                 </TooltipProvider>
               </Label>
-              <Input ref={emailInputRef} id="email" type="email" placeholder="example@example.com" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="example@example.com"
+                value={email || ""}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
+              />
             </div>
 
             <ul className="space-y-3">
@@ -159,15 +198,7 @@ export const WalletSettings = ({ tokens }: { tokens: any[] }) => {
               </div>
             )}
 
-            <Button
-              disabled={
-                walletSettingsState === WalletSettingsState.UPDATING ||
-                !emailInputRef.current ||
-                !emailInputRef.current.value ||
-                (!notificationSettings.health && !notificationSettings.updates && !notificationSettings.ybx)
-              }
-              type="submit"
-            >
+            <Button disabled={notificationFormDisabled} type="submit">
               {walletSettingsState === WalletSettingsState.DEFAULT && "Update notifications"}
               {walletSettingsState === WalletSettingsState.UPDATING && (
                 <>
