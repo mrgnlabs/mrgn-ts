@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { IconYBX, IconLST, IconCheck, IconExternalLink } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
+import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 const integrations = [
   {
@@ -169,19 +171,22 @@ export default function MintPage() {
                       </ul>
 
                       <p className="text-right text-sm">{item.footer}</p>
-
-                      <Button
-                        variant="secondary"
-                        size="lg"
-                        className="mt-4"
-                        onClick={() => {
-                          if (item.action) {
-                            item.action();
-                          }
-                        }}
-                      >
-                        Mint {item.title}
-                      </Button>
+                      <ActionBoxDialog requestedAction={ActionType.MintLST} requestedToken={undefined}>
+                        <div className="flex w-full gap-3">
+                          <Button
+                            variant="secondary"
+                            size="lg"
+                            className="mt-4"
+                            onClick={() => {
+                              if (item.action) {
+                                item.action();
+                              }
+                            }}
+                          >
+                            Mint {item.title}
+                          </Button>
+                        </div>
+                      </ActionBoxDialog>
                     </CardContent>
                   </Card>
                 ))}
