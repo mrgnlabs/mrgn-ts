@@ -40,7 +40,7 @@ import { StakeData, usePrevious, getTokenImageURL } from "~/utils";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { SettingsModal } from "./SettingsModal";
 import { SettingsIcon } from "./SettingsIcon";
-import { LST_MINT, TokenData, TokenDataMap } from "~/store/lstStore";
+import { LST_MINT } from "~/store/lstStore";
 import { RefreshIcon } from "./RefreshIcon";
 import { IconLoader } from "~/components/ui/icons";
 import BN from "bn.js";
@@ -61,7 +61,7 @@ export type DepositOption =
     }
   | {
       type: "token";
-      tokenData: TokenData;
+      // tokenData: TokenData;
       amount: BN;
     }
   | {
@@ -83,18 +83,18 @@ export const StakingCard: FC = () => {
     fetchLstState,
     slippagePct,
     setSlippagePct,
-    availableLamports,
-    solUsdValue,
+    // availableLamports,
+    // solUsdValue,
   ] = useLstStore((state) => [
     state.lstData,
-    state.userDataFetched,
-    state.tokenDataMap,
+    // state.userDataFetched,
+    // state.tokenDataMap,
     state.stakeAccounts,
     state.fetchLstState,
     state.slippagePct,
     state.setSlippagePct,
-    state.availableLamports,
-    state.solUsdValue,
+    // state.availableLamports,
+    // state.solUsdValue,
   ]);
 
   const jupiterApiClient = createJupiterApiClient();
