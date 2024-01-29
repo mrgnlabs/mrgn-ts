@@ -5,7 +5,7 @@ import { PublicKey } from "@solana/web3.js";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import {
   MarginfiActionParams,
   clampedNumeralFormatter,
@@ -14,20 +14,18 @@ import {
   usePrevious,
   cn,
   capture,
+  mintLst,
 } from "~/utils";
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-import {
-  checkActionAvailable,
-  ActionBoxActions,
-  ActionBoxTokens,
-  ActionBoxPriorityFees,
-} from "~/components/common/ActionBox";
+import { checkActionAvailable, ActionBoxActions, ActionBoxPriorityFees } from "~/components/common/ActionBox";
 import { Input } from "~/components/ui/input";
 import { IconAlertTriangle, IconWallet, IconSettings } from "~/components/ui/icons";
 import { ActionBoxPreview } from "./ActionBoxPreview";
+import { ActionBoxTokens } from "./ActionBoxTokens";
+import { useConnection } from "~/hooks/useConnection";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -67,7 +65,9 @@ export const ActionBox = ({
     state.setIsActionComplete,
     state.setPreviousTxn,
   ]);
-  const { walletContextState, connected } = useWalletContext();
+  const [lstData, quoteResponseMeta] = useLstStore((state) => [state.lstData, state.quoteResponseMeta]);
+  const { walletContextState, connected, wallet } = useWalletContext();
+  const { connection } = useConnection();
 
   const lendingMode = React.useMemo(
     () => requestedLendingMode ?? lendingModeFromStore,
@@ -100,6 +100,7 @@ export const ActionBox = ({
         : null,
     [extendedBankInfos, selectedTokenBank]
   );
+
   const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
   const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
   const maxAmount = React.useMemo(() => {
@@ -154,6 +155,20 @@ export const ActionBox = ({
       actionMode,
     ]
   );
+
+  const titleText = React.useMemo(() => {
+    if (actionMode === ActionType.Borrow) {
+      return "You borrow";
+    } else if (actionMode === ActionType.Deposit) {
+      return "You supply";
+    } else if (actionMode === ActionType.Withdraw) {
+      return "You withdraw";
+    } else if (actionMode === ActionType.Repay) {
+      return "You repay";
+    } else if (actionMode === ActionType.MintLST) {
+      return "You mint";
+    }
+  }, [actionMode]);
 
   const actionModePrev = usePrevious(actionMode);
 
@@ -300,6 +315,57 @@ export const ActionBox = ({
     }
   }, [selectedBank, selectedAccount, fetchMrgnlendState, setIsRefreshingStore, priorityFee, handleCloseDialog]);
 
+  const handleAction = async () => {
+    if (actionMode === ActionType.MintLST) {
+      await handleLstAction();
+    } else {
+      await handleLendingAction();
+    }
+  };
+
+  const handleLstAction = React.useCallback(async () => {
+    if (!selectedBank || !mfiClient || !lstData) {
+      return;
+    }
+    setIsLoading(true);
+
+    await mintLst({
+      marginfiClient: mfiClient,
+      bank: selectedBank,
+      amount,
+      priorityFee,
+      connection,
+      wallet,
+      lstData,
+      quoteResponseMeta,
+    });
+
+    setIsLoading(false);
+    handleCloseDialog && handleCloseDialog();
+    setAmountRaw("");
+
+    // -------- Refresh state
+    try {
+      setIsRefreshingStore(true);
+      await fetchMrgnlendState();
+    } catch (error: any) {
+      console.log("Error while reloading state");
+      console.log(error);
+    }
+  }, [
+    mfiClient,
+    selectedBank,
+    amount,
+    priorityFee,
+    connection,
+    wallet,
+    lstData,
+    quoteResponseMeta,
+    fetchMrgnlendState,
+    setIsRefreshingStore,
+    handleCloseDialog,
+  ]);
+
   const handleLendingAction = React.useCallback(async () => {
     if (!actionMode || !selectedBank || !amount) {
       return;
@@ -405,10 +471,8 @@ export const ActionBox = ({
           {!isPriorityFeesMode && (
             <>
               <div className="flex flex-row items-center justify-between mb-3">
-                {!isDialog ? (
-                  <div className="text-lg font-normal flex items-center">
-                    {lendingMode === LendingModes.LEND ? "You supply" : "You borrow"}
-                  </div>
+                {!isDialog || actionMode === ActionType.MintLST ? (
+                  <div className="text-lg font-normal flex items-center">{titleText}</div>
                 ) : (
                   <div />
                 )}
@@ -439,9 +503,9 @@ export const ActionBox = ({
                     currentTokenBank={selectedTokenBank}
                     setCurrentTokenBank={(tokenBank) => {
                       setSelectedTokenBank(tokenBank);
-                      console.log({ selectedBank });
                       setAmountRaw("");
                     }}
+                    actionMode={actionMode}
                   />
                 </div>
                 <div className="flex-1">
@@ -475,7 +539,9 @@ export const ActionBox = ({
                   isEnabled={actionMethod.isEnabled}
                 >
                   <ActionBoxActions
-                    handleAction={() => (showCloseBalance ? handleCloseBalance() : handleLendingAction())}
+                    handleAction={() => {
+                      showCloseBalance ? handleCloseBalance() : handleAction();
+                    }}
                     isLoading={isLoading}
                     isEnabled={actionMethod.isEnabled}
                     actionMode={actionMode}
