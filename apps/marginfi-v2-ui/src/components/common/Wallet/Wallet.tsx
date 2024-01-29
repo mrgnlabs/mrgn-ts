@@ -181,7 +181,7 @@ export const Wallet = () => {
                   <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
                   <p className="text-muted-foreground">~{walletData.balanceSOL} SOL</p>
                 </div>
-                <WalletSettings tokens={walletData.tokens} />
+                <WalletSettings walletAddress={wallet.publicKey} tokens={walletData.tokens} />
                 {web3AuthConncected && (
                   <div className="pt-8">
                     <div className="text-sm text-white/50 text-center mb-4">
