@@ -1,11 +1,16 @@
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 import { isWholePosition } from "./mrgnUtils";
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { Wallet, processTransaction } from "@mrgnlabs/mrgn-common";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
 import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
+import { QuoteResponseMeta } from "@jup-ag/react-hook";
+import { LstData, SOL_MINT } from "~/store/lstStore";
+import { makeDepositSolToStakePoolIx } from "./lstUtils";
+import BN from "bn.js";
+import { createJupiterApiClient } from "@jup-ag/api";
 
 export type MarginfiActionParams = {
   mfiClient: MarginfiClient | null;
@@ -317,6 +322,103 @@ export const closeBalance = async ({
     console.log(error);
   }
 };
+
+export async function mintLst({
+  marginfiClient,
+  bank,
+  amount,
+  priorityFee,
+  connection,
+  wallet,
+  lstData,
+  quoteResponseMeta,
+}: {
+  marginfiClient: MarginfiClient;
+  bank: ExtendedBankInfo;
+  amount: number;
+  priorityFee?: number;
+  connection: Connection;
+  wallet: Wallet;
+  lstData: LstData;
+  quoteResponseMeta: QuoteResponseMeta | null;
+}) {
+  if (!wallet.publicKey) {
+    showErrorToast("Wallet not connected");
+    return;
+  }
+
+  const jupiterApiClient = createJupiterApiClient();
+
+  const multiStepToast = new MultiStepToastHandle("Repayment", [
+    { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
+  ]);
+  multiStepToast.start();
+
+  try {
+    const {
+      value: { blockhash },
+    } = await connection.getLatestBlockhashAndContext();
+
+    const bnAmount = new BN(Math.pow(10, bank.info.state.mintDecimals) * amount);
+
+
+    if (bank.info.state.mint.equals(SOL_MINT)) {
+      const { instructions, signers } = await makeDepositSolToStakePoolIx(
+        lstData.accountData,
+        lstData.poolAddress,
+        wallet.publicKey,
+        bnAmount,
+        undefined
+      );
+
+      const depositMessage = new TransactionMessage({
+        instructions: instructions,
+        payerKey: wallet.publicKey,
+        recentBlockhash: blockhash,
+      });
+
+      const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
+      depositTransaction.sign(signers);
+
+      const txnSig = await marginfiClient.processTransaction(depositTransaction);
+    } else {
+      const quote = quoteResponseMeta?.original;
+      if (!quote) {
+        multiStepToast.setFailed("Route not calculated yet");
+        // console.error("Route not calculated yet");
+        return;
+      }
+
+      const { swapTransaction: swapTransactionEncoded, lastValidBlockHeight } = await jupiterApiClient.swapPost({
+        swapRequest: {
+          quoteResponse: quote,
+          userPublicKey: wallet.publicKey.toBase58(),
+          wrapAndUnwrapSol: false,
+        },
+      });
+      const swapTransactionBuffer = Buffer.from(swapTransactionEncoded, "base64");
+      const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuffer);
+
+      const signedSwapTransaction = await wallet.signTransaction(swapTransaction);
+      const swapSig = await connection.sendTransaction(signedSwapTransaction);
+      await connection.confirmTransaction(
+        {
+          blockhash,
+          lastValidBlockHeight,
+          signature: swapSig,
+        },
+        "confirmed"
+      );
+    }
+    multiStepToast.setSuccessAndNext();
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    multiStepToast.setFailed(msg);
+    console.log(`Error while minting lst: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
 
 function extractErrorString(error: any, fallback?: string): string {
   if (error instanceof ProcessTransactionError) {
