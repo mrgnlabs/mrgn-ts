@@ -1,10 +1,12 @@
 import React from "react";
 
+import { PublicKey } from "@solana/web3.js";
+
 import { cn } from "~/utils";
 import { useConvertkit } from "~/hooks/useConvertkit";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
-import { WalletTokens } from "~/components/common/Wallet/WalletTokens";
+import { WalletTokens, Token } from "~/components/common/Wallet/WalletTokens";
 import { Label } from "~/components/ui/label";
 import { IconCheck, IconInfoCircle, IconLoader, IconAlertTriangle } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
@@ -12,13 +14,18 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
+type WalletSettingsProps = {
+  walletAddress: PublicKey;
+  tokens: Token[];
+};
+
 enum WalletSettingsState {
   DEFAULT = "default",
   UPDATING = "updating",
   SUCCESS = "success",
 }
 
-export const WalletSettings = ({ tokens }: { tokens: any[] }) => {
+export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) => {
   const { addSubscriber } = useConvertkit();
   const [walletSettingsState, setWalletSettingsState] = React.useState<WalletSettingsState>(
     WalletSettingsState.DEFAULT
@@ -27,20 +34,15 @@ export const WalletSettings = ({ tokens }: { tokens: any[] }) => {
   const [notificationSettings, setNotificationSettings] = React.useState({
     health: false,
     ybx: false,
-    updates: false,
   });
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
   const notificationFormDisabled = React.useMemo(() => {
-    return (
-      walletSettingsState === WalletSettingsState.UPDATING ||
-      !email ||
-      (!notificationSettings.health && !notificationSettings.updates && !notificationSettings.ybx)
-    );
+    return walletSettingsState === WalletSettingsState.UPDATING || !email;
   }, [walletSettingsState, email, notificationSettings]);
 
   const updateNotificationSettings = React.useCallback(async () => {
-    if (!email || (!notificationSettings.health && !notificationSettings.updates && !notificationSettings.ybx)) {
+    if (!email) {
       return;
     }
 
@@ -48,7 +50,6 @@ export const WalletSettings = ({ tokens }: { tokens: any[] }) => {
 
     if (notificationSettings.ybx) {
       const res = await addSubscriber(process.env.NEXT_PUBLIC_CONVERT_KIT_YBX_FORM_UID!, email);
-      console.log(res);
 
       if (res.error) {
         setErrorMsg(res.error);
@@ -57,19 +58,32 @@ export const WalletSettings = ({ tokens }: { tokens: any[] }) => {
       }
     }
 
-    if (notificationSettings.updates) {
-      const res = await addSubscriber(process.env.NEXT_PUBLIC_CONVERT_KIT_UPDATES_FORM_UID!, email);
-      console.log(res);
+    const apiUrl = window.location.origin + "/api/user/notifications";
 
-      if (res.error) {
-        setErrorMsg(res.error);
-        setWalletSettingsState(WalletSettingsState.DEFAULT);
-        return;
-      }
-    }
+    // create url with query params for notification settings
+    const url = new URL(apiUrl);
+    url.searchParams.append("walletAddress", walletAddress.toBase58());
+    url.searchParams.append("email", email);
+    url.searchParams.append("accountHealth", notificationSettings.health ? "true" : "false");
+    url.searchParams.append("productUpdates", notificationSettings.ybx ? "true" : "false");
 
-    if (notificationSettings.health) {
-      console.log("Add to Firebase");
+    const res = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        walletAddress: walletAddress.toBase58(),
+        email,
+        accountHealth: notificationSettings.health,
+        productUpdates: notificationSettings.ybx,
+      }),
+    });
+
+    if (!res.ok) {
+      setErrorMsg("There was an error updating notifications. Please try again.");
+      setWalletSettingsState(WalletSettingsState.DEFAULT);
+      return;
     }
 
     setErrorMsg(null);
@@ -79,7 +93,39 @@ export const WalletSettings = ({ tokens }: { tokens: any[] }) => {
       setWalletSettingsState(WalletSettingsState.DEFAULT);
     }, 2000);
   }, [email, notificationSettings]);
-  email;
+
+  const fetchUsersNotificationSettings = React.useCallback(async () => {
+    const apiUrl = window.location.origin + "/api/user/notifications";
+    const url = new URL(apiUrl);
+    url.searchParams.append("walletAddress", walletAddress.toBase58());
+
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      setErrorMsg("There was an error fetching your notification settings. Please try again.");
+      return;
+    }
+
+    const { data } = await res.json();
+
+    console.log(data);
+
+    setEmail(data.email);
+    setNotificationSettings({
+      health: data.account_health,
+      ybx: data.product_updates,
+    });
+  }, [walletAddress]);
+
+  React.useEffect(() => {
+    fetchUsersNotificationSettings();
+  }, [walletAddress]);
+
   return (
     <Accordion type="single" collapsible className="w-full mt-8 space-y-4">
       <AccordionItem value="assets">
@@ -165,28 +211,6 @@ export const WalletSettings = ({ tokens }: { tokens: any[] }) => {
                   )}
                 >
                   YBX launch notifications
-                </Label>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <Checkbox
-                  checked={notificationSettings.updates}
-                  id="updates"
-                  className={cn(
-                    "border-primary",
-                    !notificationSettings.updates && "border-muted-foreground transition-colors hover:border-primary"
-                  )}
-                  onCheckedChange={(checked) =>
-                    setNotificationSettings({ ...notificationSettings, updates: checked as boolean })
-                  }
-                />{" "}
-                <Label
-                  htmlFor="updates"
-                  className={cn(
-                    "text-primary",
-                    !notificationSettings.updates && "text-muted-foreground transition-colors hover:text-primary"
-                  )}
-                >
-                  Future updates &amp; announcements
                 </Label>
               </li>
             </ul>
