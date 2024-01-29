@@ -45,7 +45,6 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
   const debouncedAmount = useDebounce<number | null>(amount, 500);
 
   React.useEffect(() => {
-    console.log({ amount });
     setIsLoading(true);
   }, [amount]);
 
@@ -253,12 +252,12 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
                       showLending
                         ? selectedBank.info.state.totalDeposits
                         : Math.max(
-                            0,
-                            Math.min(
-                              selectedBank.info.state.totalDeposits,
-                              selectedBank.info.rawBank.config.borrowLimit.toNumber()
-                            ) - selectedBank.info.state.totalBorrows
-                          )
+                          0,
+                          Math.min(
+                            selectedBank.info.state.totalDeposits,
+                            selectedBank.info.rawBank.config.borrowLimit.toNumber()
+                          ) - selectedBank.info.state.totalBorrows
+                        )
                     )}
 
                     {isReduceOnly || (isBankHigh && !isBankFilled) ? (
@@ -292,13 +291,12 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
                     <p>
                       {isReduceOnly
                         ? "stSOL is being discontinued."
-                        : `${selectedBank.meta.tokenSymbol} ${
-                            showLending ? "deposits" : "borrows"
-                          } are at ${percentFormatter.format(
-                            (showLending
-                              ? selectedBank.info.state.totalDeposits
-                              : selectedBank.info.state.totalBorrows) / bankCap
-                          )} capacity.`}
+                        : `${selectedBank.meta.tokenSymbol} ${showLending ? "deposits" : "borrows"
+                        } are at ${percentFormatter.format(
+                          (showLending
+                            ? selectedBank.info.state.totalDeposits
+                            : selectedBank.info.state.totalBorrows) / bankCap
+                        )} capacity.`}
                     </p>
                     <a href="https://docs.marginfi.com">
                       <u>Learn more.</u>
