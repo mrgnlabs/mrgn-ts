@@ -116,7 +116,7 @@ export const ActionBox = ({
         return selectedBank.userInfo.maxBorrow;
       case ActionType.Repay:
         return selectedBank.userInfo.maxRepay;
-      case ActionType.Mint:
+      case ActionType.MintLST:
         return selectedBank.userInfo.tokenAccount.balance;
       default:
         return 0;
