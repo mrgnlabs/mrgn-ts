@@ -13,6 +13,7 @@ type ActionBoxDialogProps = {
   requestedToken?: PublicKey;
   requestedLendingMode?: LendingModes;
   children: React.ReactNode;
+  isActionBoxTriggered?: boolean;
 };
 
 export const ActionBoxDialog = ({
@@ -20,8 +21,13 @@ export const ActionBoxDialog = ({
   requestedToken,
   requestedLendingMode,
   children,
+  isActionBoxTriggered = false,
 }: ActionBoxDialogProps) => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsDialogOpen(isActionBoxTriggered);
+  }, [setIsDialogOpen, isActionBoxTriggered]);
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={(open) => setIsDialogOpen(open)}>
