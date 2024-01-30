@@ -113,8 +113,6 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
 
     const { data } = await res.json();
 
-    console.log(data);
-
     setEmail(data.email);
     setNotificationSettings({
       health: data.account_health,
@@ -127,7 +125,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
   }, [walletAddress]);
 
   return (
-    <Accordion type="single" collapsible className="w-full mt-8 space-y-4">
+    <Accordion type="single" collapsible className="w-full space-y-4">
       <AccordionItem value="assets">
         <AccordionTrigger className="bg-background-gray px-4 rounded-lg transition-colors hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
           Assets
