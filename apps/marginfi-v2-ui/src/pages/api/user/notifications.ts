@@ -11,7 +11,7 @@ initFirebaseIfNeeded();
 export type LoginRequest = {
   walletAddress: string;
   email: string;
-  productUpdates: boolean;
+  ybxUpdates: boolean;
   accountHealth: boolean;
 };
 
@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: Ne
   const notisCollection = db.collection("notification_settings");
 
   if (req.method === "POST") {
-    const { email, walletAddress, productUpdates, accountHealth } = req.body;
+    const { email, walletAddress, accountHealth, ybxUpdates } = req.body;
 
     try {
       const docRef = notisCollection.doc(walletAddress);
@@ -28,9 +28,9 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: Ne
         {
           email,
           wallet_address: walletAddress,
-          product_updates: productUpdates,
           account_health: accountHealth,
-          last_updated: admin.firestore.FieldValue.serverTimestamp(),
+          ybx_updates: ybxUpdates,
+          updated_at: admin.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: Ne
       const doc = await docRef.get();
 
       if (!doc.exists) {
-        return res.status(STATUS_BAD_REQUEST).json({ success: false, message: "Document not found" });
+        return res.status(STATUS_BAD_REQUEST).json({ success: true, message: "Document not found" });
       }
 
       return res.status(STATUS_OK).json({ success: true, data: doc.data() });
