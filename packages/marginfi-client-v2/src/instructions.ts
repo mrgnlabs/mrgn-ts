@@ -284,6 +284,30 @@ function makeEndFlashLoanIx(
     .instruction();
 }
 
+async function makeAccountAuthorityTransferIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    marginfiAccountPk: PublicKey;
+    marginfiGroupPk: PublicKey;
+    signerPk: PublicKey;
+    newAccountAuthorityPk: PublicKey;
+    feePayerPk: PublicKey;
+  },
+  remainingAccounts: AccountMeta[] = []
+) {
+  return mfProgram.methods
+    .transferAccountAuthority()
+    .accounts({
+      marginfiAccount: accounts.marginfiAccountPk,
+      marginfiGroup: accounts.marginfiGroupPk,
+      signer: accounts.signerPk,
+      newAccountAuthority: accounts.newAccountAuthorityPk,
+      feePayer: accounts.feePayerPk,
+    })
+    .remainingAccounts(remainingAccounts)
+    .instruction();
+}
+
 const instructions = {
   makeDepositIx,
   makeRepayIx,
@@ -297,6 +321,7 @@ const instructions = {
   makePoolConfigureBankIx,
   makeBeginFlashLoanIx,
   makeEndFlashLoanIx,
+  makeAccountAuthorityTransferIx,
 };
 
 export default instructions;

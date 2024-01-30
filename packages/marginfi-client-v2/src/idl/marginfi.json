@@ -427,7 +427,9 @@
     },
     {
       "name": "lendingPoolHandleBankruptcy",
-      "docs": ["Handle bad debt of a bankrupt marginfi account for a given bank."],
+      "docs": [
+        "Handle bad debt of a bankrupt marginfi account for a given bank."
+      ],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -516,7 +518,9 @@
     },
     {
       "name": "marginfiAccountInitialize",
-      "docs": ["Initialize a marginfi account for a given group"],
+      "docs": [
+        "Initialize a marginfi account for a given group"
+      ],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -971,7 +975,9 @@
     },
     {
       "name": "lendingAccountLiquidate",
-      "docs": ["Liquidate a lending account balance of an unhealthy marginfi account"],
+      "docs": [
+        "Liquidate a lending account balance of an unhealthy marginfi account"
+      ],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -1245,7 +1251,9 @@
           "name": "admin",
           "isMut": false,
           "isSigner": true,
-          "docs": ["Admin only"]
+          "docs": [
+            "Admin only"
+          ]
         }
       ],
       "args": [
@@ -1272,7 +1280,9 @@
           "name": "admin",
           "isMut": false,
           "isSigner": true,
-          "docs": ["Admin only"]
+          "docs": [
+            "Admin only"
+          ]
         }
       ],
       "args": [
@@ -1318,7 +1328,10 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u64", 63]
+              "array": [
+                "u64",
+                63
+              ]
             }
           }
         ]
@@ -1336,13 +1349,19 @@
           {
             "name": "padding0",
             "type": {
-              "array": ["u128", 32]
+              "array": [
+                "u128",
+                32
+              ]
             }
           },
           {
             "name": "padding1",
             "type": {
-              "array": ["u128", 32]
+              "array": [
+                "u128",
+                32
+              ]
             }
           }
         ]
@@ -1368,7 +1387,10 @@
           {
             "name": "auto_padding_0",
             "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
@@ -1410,7 +1432,10 @@
           {
             "name": "auto_padding_1",
             "type": {
-              "array": ["u8", 4]
+              "array": [
+                "u8",
+                4
+              ]
             }
           },
           {
@@ -1434,7 +1459,10 @@
           {
             "name": "auto_padding_2",
             "type": {
-              "array": ["u8", 6]
+              "array": [
+                "u8",
+                6
+              ]
             }
           },
           {
@@ -1497,13 +1525,19 @@
           {
             "name": "padding0",
             "type": {
-              "array": ["u128", 28]
+              "array": [
+                "u128",
+                28
+              ]
             }
           },
           {
             "name": "padding1",
             "type": {
-              "array": ["u128", 32]
+              "array": [
+                "u128",
+                32
+              ]
             }
           }
         ]
@@ -1598,7 +1632,10 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u64", 8]
+              "array": [
+                "u64",
+                8
+              ]
             }
           }
         ]
@@ -1620,7 +1657,10 @@
           {
             "name": "auto_padding_0",
             "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
@@ -1648,7 +1688,10 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u64", 1]
+              "array": [
+                "u64",
+                1
+              ]
             }
           }
         ]
@@ -1768,7 +1811,10 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u128", 8]
+              "array": [
+                "u128",
+                8
+              ]
             }
           }
         ]
@@ -1840,7 +1886,9 @@
     },
     {
       "name": "BankConfigCompact",
-      "docs": ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
+      "docs": [
+        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -1893,13 +1941,19 @@
           {
             "name": "oracleKeys",
             "type": {
-              "array": ["publicKey", 5]
+              "array": [
+                "publicKey",
+                5
+              ]
             }
           },
           {
             "name": "auto_padding_0",
             "type": {
-              "array": ["u8", 6]
+              "array": [
+                "u8",
+                6
+              ]
             }
           },
           {
@@ -1915,7 +1969,10 @@
           {
             "name": "auto_padding_1",
             "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
@@ -1937,7 +1994,9 @@
     },
     {
       "name": "BankConfig",
-      "docs": ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
+      "docs": [
+        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -1990,13 +2049,19 @@
           {
             "name": "oracleKeys",
             "type": {
-              "array": ["publicKey", 5]
+              "array": [
+                "publicKey",
+                5
+              ]
             }
           },
           {
             "name": "auto_padding_0",
             "type": {
-              "array": ["u8", 6]
+              "array": [
+                "u8",
+                6
+              ]
             }
           },
           {
@@ -2012,7 +2077,10 @@
           {
             "name": "auto_padding_1",
             "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
@@ -2032,7 +2100,10 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u64", 5]
+              "array": [
+                "u64",
+                5
+              ]
             }
           }
         ]
@@ -2154,7 +2225,10 @@
           {
             "name": "keys",
             "type": {
-              "array": ["publicKey", 5]
+              "array": [
+                "publicKey",
+                5
+              ]
             }
           }
         ]
