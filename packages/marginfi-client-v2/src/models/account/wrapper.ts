@@ -539,6 +539,10 @@ class MarginfiAccountWrapper {
     return tx;
   }
 
+  public async makeTransferAccountAuthorityIx(newAccountAuthority: PublicKey): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeAccountAuthorityTransferIx(this._program, newAccountAuthority);
+  }
+
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------

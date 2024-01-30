@@ -5693,6 +5693,37 @@ export const IDL: Marginfi = {
           },
           index: false,
         },
+        {
+          name: "transferAccountAuthority",
+          accounts: [
+            {
+              name: "marginfiAccount",
+              isMut: true,
+              isSigner: false,
+            },
+            {
+              name: "marginfiGroup",
+              isMut: false,
+              isSigner: false,
+            },
+            {
+              name: "signer",
+              isMut: false,
+              isSigner: true,
+            },
+            {
+              name: "newAccountAuthority",
+              isMut: false,
+              isSigner: false,
+            },
+            {
+              name: "feePayer",
+              isMut: true,
+              isSigner: false,
+            },
+          ],
+          args: [],
+        },
       ],
     },
   ],
