@@ -26,13 +26,13 @@ export async function GET(request: Request): Promise<Response> {
   const healthParam = searchParams.get("health");
 
   if (!wallet || !healthParam) {
-    return new Response(JSON.stringify({ error: "Wallet address and account health required" }), { status: 404 });
+    return new Response(JSON.stringify({ error: "Wallet address and account health required" }), { status: 400 });
   }
 
   const health = parseInt(healthParam);
 
   if (isNaN(health) || health > 25) {
-    return new Response(JSON.stringify({ error: "Notification not required" }), { status: 404 });
+    return new Response(JSON.stringify({ error: "Notification not required" }), { status: 400 });
   }
 
   const db = admin.firestore();
@@ -50,7 +50,7 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   if (!userData.account_health) {
-    return new Response(JSON.stringify({ error: "User has account health notifications turned off" }), { status: 404 });
+    return new Response(JSON.stringify({ error: "User has account health notifications turned off" }), { status: 200 });
   }
 
   const notificationInterval = 60 * 1000; // For testing, set to 1 minute. For production, set to 24 hours.
