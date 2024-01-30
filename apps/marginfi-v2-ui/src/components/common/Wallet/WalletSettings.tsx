@@ -62,10 +62,6 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
 
     // create url with query params for notification settings
     const url = new URL(apiUrl);
-    url.searchParams.append("walletAddress", walletAddress.toBase58());
-    url.searchParams.append("email", email);
-    url.searchParams.append("accountHealth", notificationSettings.health ? "true" : "false");
-    url.searchParams.append("productUpdates", notificationSettings.ybx ? "true" : "false");
 
     const res = await fetch(url.toString(), {
       method: "POST",
@@ -76,7 +72,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
         walletAddress: walletAddress.toBase58(),
         email,
         accountHealth: notificationSettings.health,
-        productUpdates: notificationSettings.ybx,
+        ybxUpdates: notificationSettings.ybx,
       }),
     });
 
@@ -107,6 +103,12 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
     });
 
     if (!res.ok) {
+      // document not found which means notifications have not been set
+      const { success } = await res.json();
+      if (success) {
+        return;
+      }
+
       setErrorMsg("There was an error fetching your notification settings. Please try again.");
       return;
     }
