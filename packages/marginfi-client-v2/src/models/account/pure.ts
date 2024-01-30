@@ -24,6 +24,7 @@ import {
   MarginfiClient,
   OraclePriceMap,
   RiskTier,
+  TRANSFER_ACCOUNT_AUTHORITY_FLAG,
 } from "../..";
 import BN from "bn.js";
 import { Address, BorshCoder, BorshInstructionCoder, translateAddress } from "@coral-xyz/anchor";
@@ -102,6 +103,10 @@ class MarginfiAccount {
 
   get isFlashLoanEnabled(): boolean {
     return (this.accountFlags.toNumber() & FLASHLOAN_ENABLED_FLAG) !== 0;
+  }
+
+  get isTransferAccountAuthorityEnabled(): boolean {
+    return (this.accountFlags.toNumber() & TRANSFER_ACCOUNT_AUTHORITY_FLAG) !== 0;
   }
 
   computeFreeCollateral(
@@ -940,6 +945,20 @@ class MarginfiAccount {
     );
 
     return { instructions: [ix], keys: [] };
+  }
+
+  async makeAccountAuthorityTransferIx(program: MarginfiProgram, newAccountAuthority: PublicKey) : Promise<InstructionsWrapper> {
+    const accountAuthorityTransferIx = await instructions.makeAccountAuthorityTransferIx(
+      program,
+      {
+        marginfiAccountPk: this.address,
+        marginfiGroupPk: this.group,
+        signerPk: this.authority,
+        newAccountAuthorityPk: newAccountAuthority,
+        feePayerPk: this.address, // ?
+      }
+    )
+    return { instructions: [accountAuthorityTransferIx], keys: [] };
   }
 
   projectActiveBalancesNoCpi(program: MarginfiProgram, instructions: TransactionInstruction[]): PublicKey[] {

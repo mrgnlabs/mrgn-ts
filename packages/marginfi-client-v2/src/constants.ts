@@ -19,3 +19,4 @@ export const ADDRESS_LOOKUP_TABLE_FOR_GROUP: { [key: string]: [PublicKey] } = {
 
 export const DISABLED_FLAG: number = 1 << 0;
 export const FLASHLOAN_ENABLED_FLAG: number = 1 << 2;
+export const TRANSFER_ACCOUNT_AUTHORITY_FLAG: number = 1 << 3;
