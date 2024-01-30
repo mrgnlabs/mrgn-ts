@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
+
+import { useRouter } from "next/router";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 
-import { shortenAddress, usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
-
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
@@ -21,15 +22,17 @@ import {
 
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Button } from "~/components/ui/button";
-import { IconCheck, IconChevronDown, IconCopy } from "~/components/ui/icons";
+import { IconCheck, IconChevronDown, IconCopy, IconStarFilled } from "~/components/ui/icons";
 
 export const Wallet = () => {
+  const router = useRouter();
   const [extendedBankInfos, nativeSolBalance, initialized] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
     state.initialized,
   ]);
   const [isWalletOpen, setIsWalletOpen] = useUiStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
+  const [userPointsData] = useUserProfileStore((state) => [state.userPointsData, state.fetchPoints]);
 
   const { connection } = useConnection();
   const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected } = useWalletContext();
@@ -177,10 +180,26 @@ export const Wallet = () => {
                 </div>
               </header>
               <div className="flex flex-col items-center h-full">
-                <div className="text-center space-y-1">
+                <div className="text-center space-y-1 mb-8">
                   <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
                   <p className="text-muted-foreground">~{walletData.balanceSOL} SOL</p>
                 </div>
+                <button
+                  className="flex items-center gap-2 my-4 bg-muted w-full group cursor-pointer border-chartreuse rounded-lg px-4 py-3.5 transition-colors hover:bg-background-gray-hover"
+                  onClick={() => {
+                    setIsWalletOpen(false);
+                    router.push("/points");
+                  }}
+                >
+                  <IconStarFilled size={18} />
+                  <strong className=" text-xl">
+                    {userPointsData && groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
+                  </strong>
+                  <span className="text-sm text-muted-foreground translate-y-0.5">points</span>
+                  <span className="ml-auto font-medium text-sm text-chartreuse border-b border-transparent group-hover:border-chartreuse">
+                    Learn more
+                  </span>
+                </button>
                 <WalletSettings walletAddress={wallet.publicKey} tokens={walletData.tokens} />
                 {web3AuthConncected && (
                   <div className="pt-8">
