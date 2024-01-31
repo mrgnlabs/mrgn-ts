@@ -222,7 +222,14 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
               <div className="max-h-[calc(100vh-580px)] min-h-[200px] overflow-auto">
                 {/* NEW BANKS */}
                 {newBanks.length > 0 && (
-                  <CommandGroup heading="New assets">
+                  <CommandGroup
+                    heading={
+                      <div className="flex items-center gap-1">
+                        <IconStar size={12} />
+                        New assets
+                      </div>
+                    }
+                  >
                     {newBanks
                       .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
                       .map((bank, index) => {
@@ -485,9 +492,7 @@ const ActionBoxItem = ({ rate, lendingMode, bank, nativeSolBalance, showBalanceO
           />
         )}
         <div>
-          <p className="inline-flex gap-1 justify">
-            {bank.meta.tokenSymbol} {!showBalanceOverride && <IconStar size={12} />}
-          </p>
+          <p className="inline-flex gap-1 justify">{bank.meta.tokenSymbol}</p>
           <p
             className={cn(
               "text-xs font-normal",
