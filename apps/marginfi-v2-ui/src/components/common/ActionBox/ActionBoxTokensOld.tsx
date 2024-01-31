@@ -134,7 +134,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
   // new banks
   const newBanks = React.useMemo(() => {
     return extendedBankInfos.filter((bankInfo) => NEW_BANKS.find((value) => value.equals(bankInfo.info.state.mint)));
-  }, [extendedBankInfos]);
+  }, [extendedBankInfos, searchFilter]);
 
   const globalBanks = React.useMemo(() => filteredBanks.filter((bank) => !bank.info.state.isIsolated), [filteredBanks]);
   const isolatedBanks = React.useMemo(
@@ -215,14 +215,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
               <div className="max-h-[calc(100vh-580px)] min-h-[200px] overflow-auto">
                 {/* NEW BANKS */}
                 {newBanks.length > 0 && (
-                  <CommandGroup
-                    heading={
-                      <div className="flex items-center gap-1">
-                        <IconStar size={12} />
-                        New assets
-                      </div>
-                    }
-                  >
+                  <CommandGroup heading="New assets">
                     {newBanks
                       .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
                       .map((bank, index) => {
@@ -489,7 +482,9 @@ const ActionBoxItem = ({ rate, lendingMode, bank, nativeSolBalance, showBalanceO
           className="rounded-full"
         />
         <div>
-          <p className="inline-flex gap-1 justify">{bank.meta.tokenSymbol}</p>
+          <p className="inline-flex gap-1 justify">
+            {bank.meta.tokenSymbol} {!showBalanceOverride && <IconStar size={12} />}
+          </p>
           <p
             className={cn(
               "text-xs font-normal",
