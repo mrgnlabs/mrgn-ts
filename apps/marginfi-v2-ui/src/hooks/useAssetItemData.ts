@@ -1,21 +1,22 @@
-import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useMemo } from "react";
+
+import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
-export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBankInfo; isInLendingMode: boolean }) {
+export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBankInfo | null; isInLendingMode: boolean }) {
   const rateAP = useMemo(
     () =>
-      percentFormatter.format(
+      bank ? percentFormatter.format(
         (isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate) +
-          (isInLendingMode && bank.info.state.emissions == Emissions.Lending ? bank.info.state.emissionsRate : 0) +
-          (!isInLendingMode && bank.info.state.emissions == Emissions.Borrowing ? bank.info.state.emissionsRate : 0)
-      ),
-    [isInLendingMode, bank.info.state]
+        (isInLendingMode && bank.info.state.emissions == Emissions.Lending ? bank.info.state.emissionsRate : 0) +
+        (!isInLendingMode && bank.info.state.emissions == Emissions.Borrowing ? bank.info.state.emissionsRate : 0)
+      ) : "",
+    [isInLendingMode, bank?.info.state]
   );
 
   const assetWeight = useMemo(() => {
-    if (!bank.info.rawBank.getAssetWeight) {
+    if (!bank?.info.rawBank.getAssetWeight) {
       return "-";
     }
     const assetWeightInit = bank.info.rawBank
@@ -27,28 +28,28 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
     return isInLendingMode
       ? (assetWeightInit * 100).toFixed(0) + "%"
       : ((1 / bank.info.rawBank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%";
-  }, [bank.info.rawBank, bank.info.oraclePrice, isInLendingMode]);
+  }, [bank?.info.rawBank, bank?.info.oraclePrice, isInLendingMode]);
 
   const bankCap = useMemo(
     () =>
       nativeToUi(
-        isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
-        bank.info.state.mintDecimals
+        isInLendingMode ? bank?.info.rawBank.config.depositLimit ?? 0 : bank?.info.rawBank.config.borrowLimit ?? 0,
+        bank?.info.state.mintDecimals ?? 0
       ),
     [
       isInLendingMode,
-      bank.info.rawBank.config.depositLimit,
-      bank.info.rawBank.config.borrowLimit,
-      bank.info.state.mintDecimals,
+      bank?.info.rawBank.config.depositLimit,
+      bank?.info.rawBank.config.borrowLimit,
+      bank?.info.state.mintDecimals,
     ]
   );
   const isBankFilled = useMemo(
-    () => (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.99999,
-    [bankCap, isInLendingMode, bank.info.state]
+    () => (isInLendingMode ? bank?.info.state.totalDeposits ?? 0 : bank?.info.state.totalBorrows ?? 0) >= bankCap * 0.99999,
+    [bankCap, isInLendingMode, bank?.info.state]
   );
   const isBankHigh = useMemo(
-    () => (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.9,
-    [bankCap, isInLendingMode, bank.info.state]
+    () => (isInLendingMode ? bank?.info.state.totalDeposits ?? 0 : bank?.info.state.totalBorrows ?? 0) >= bankCap * 0.9,
+    [bankCap, isInLendingMode, bank?.info.state]
   );
 
   return { rateAP, assetWeight, bankCap, isBankFilled, isBankHigh };

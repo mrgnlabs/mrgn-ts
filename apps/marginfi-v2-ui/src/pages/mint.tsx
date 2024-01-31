@@ -1,11 +1,15 @@
 import React from "react";
 
+import { JupiterProvider } from "@jup-ag/react-hook";
 import Link from "next/link";
 
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { useConnection } from "~/hooks/useConnection";
+import { useWalletContext } from "~/hooks/useWalletContext";
 import { useLstStore, useMrgnlendStore } from "~/store";
 
 import { PageHeader } from "~/components/common/PageHeader";
-
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
@@ -13,10 +17,6 @@ import { IconYBX, IconLST, IconCheck, IconExternalLink } from "~/components/ui/i
 import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { JupiterProvider } from "@jup-ag/react-hook";
-import { useConnection } from "~/hooks/useConnection";
-import { useWalletContext } from "~/hooks/useWalletContext";
 
 const integrations = [
   {
@@ -91,7 +91,7 @@ interface CardProps {
 
 export default function MintPage() {
   const { connection } = useConnection();
-  const { wallet, walletAddress } = useWalletContext();
+  const { wallet } = useWalletContext();
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
   const [mintPageState, setMintPageState] = React.useState<MintPageState>(MintPageState.DEFAULT);
   const [ybxDialogOpen, setYBXDialogOpen] = React.useState(false);
@@ -99,9 +99,7 @@ export default function MintPage() {
   const emailInputRef = React.useRef<HTMLInputElement>(null);
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
 
-  const [isRefreshingStore, fetchLstState, setIsRefreshingStore] = useLstStore((state) => [
-    // state.initialized,
-    state.isRefreshingStore,
+  const [fetchLstState, setIsRefreshingStore] = useLstStore((state) => [
     state.fetchLstState,
     state.setIsRefreshingStore,
   ]);
