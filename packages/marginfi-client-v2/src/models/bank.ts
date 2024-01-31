@@ -370,8 +370,12 @@ class Bank {
   getAssetWeight(
     marginRequirementType: MarginRequirementType,
     oraclePrice: OraclePrice,
-    ignoreSoftLimits: boolean = false
+    ignoreSoftLimits: boolean = false,
+    log: boolean = false
   ): BigNumber {
+    if (log) {
+      console.log("getAssetWeight", marginRequirementType, oraclePrice, ignoreSoftLimits, this.config.assetWeightInit);
+    }
     switch (marginRequirementType) {
       case MarginRequirementType.Initial:
         if (ignoreSoftLimits) return this.config.assetWeightInit;
