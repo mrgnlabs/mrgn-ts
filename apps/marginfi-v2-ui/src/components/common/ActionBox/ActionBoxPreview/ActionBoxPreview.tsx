@@ -2,18 +2,28 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
+import { StakeData } from "~/utils";
+
 import { LendingPreview } from "./LendingPreview";
 import { LstPreview } from "./LstPreview";
 
 interface ActionBoxPreviewProps {
-  selectedBank: ExtendedBankInfo;
+  selectedBank: ExtendedBankInfo | null;
+  selectedStakingAccount: StakeData | null;
   actionMode: ActionType;
   amount: number;
   isEnabled: boolean;
   children: React.ReactNode;
 }
 
-export const ActionBoxPreview = ({ selectedBank, actionMode, amount, isEnabled, children }: ActionBoxPreviewProps) => {
+export const ActionBoxPreview = ({
+  selectedBank,
+  selectedStakingAccount,
+  actionMode,
+  amount,
+  isEnabled,
+  children,
+}: ActionBoxPreviewProps) => {
   const isInLendingMode = React.useMemo(
     () =>
       actionMode === ActionType.Borrow ||
@@ -32,7 +42,12 @@ export const ActionBoxPreview = ({ selectedBank, actionMode, amount, isEnabled, 
       )}
 
       {actionMode === ActionType.MintLST && (
-        <LstPreview selectedBank={selectedBank} actionMode={actionMode} isEnabled={isEnabled} amount={amount}>
+        <LstPreview
+          selectedBank={selectedBank}
+          selectedStakingAccount={selectedStakingAccount}
+          isEnabled={isEnabled}
+          amount={amount}
+        >
           {children}
         </LstPreview>
       )}
