@@ -11,6 +11,6 @@ import { LstState, createLstStore } from "./lstStore";
 const useUiStore: UseBoundStore<StoreApi<UiState>> = createUiStore();
 const useMrgnlendStore: UseBoundStore<StoreApi<MrgnlendState>> = createPersistentMrgnlendStore();
 const useUserProfileStore: UseBoundStore<StoreApi<UserProfileState>> = createUserProfileStore();
-export const useLstStore: UseBoundStore<StoreApi<LstState>> = createLstStore();
+const useLstStore: UseBoundStore<StoreApi<LstState>> = createLstStore();
 
-export { useUiStore, useMrgnlendStore, useUserProfileStore, SORT_OPTIONS_MAP };
+export { useUiStore, useMrgnlendStore, useLstStore, useUserProfileStore, SORT_OPTIONS_MAP };

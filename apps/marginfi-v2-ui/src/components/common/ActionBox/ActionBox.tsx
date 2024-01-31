@@ -2,7 +2,7 @@ import React from "react";
 
 import { PublicKey } from "@solana/web3.js";
 
-import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
@@ -14,18 +14,20 @@ import {
   usePrevious,
   cn,
   capture,
-  mintLst,
+  executeLstAction,
 } from "~/utils";
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useConnection } from "~/hooks/useConnection";
+import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { checkActionAvailable, ActionBoxActions, ActionBoxPriorityFees } from "~/components/common/ActionBox";
 import { Input } from "~/components/ui/input";
 import { IconAlertTriangle, IconWallet, IconSettings } from "~/components/ui/icons";
+
 import { ActionBoxPreview } from "./ActionBoxPreview";
 import { ActionBoxTokens } from "./ActionBoxTokens";
-import { useConnection } from "~/hooks/useConnection";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -68,7 +70,13 @@ export const ActionBox = ({
       state.setIsActionComplete,
       state.setPreviousTxn,
     ]);
-  const [lstData, quoteResponseMeta] = useLstStore((state) => [state.lstData, state.quoteResponseMeta]);
+  const [lstData, stakeAccounts, quoteResponseMeta, feesAndRent] = useLstStore((state) => [
+    state.lstData,
+    state.stakeAccounts,
+    state.quoteResponseMeta,
+    state.feesAndRent,
+  ]);
+
   const { walletContextState, connected, wallet } = useWalletContext();
   const { connection } = useConnection();
 
@@ -78,10 +86,6 @@ export const ActionBox = ({
   );
 
   const [amountRaw, setAmountRaw] = React.useState<string>("");
-  const amount = React.useMemo(() => {
-    const strippedAmount = amountRaw.replace(/,/g, "");
-    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-  }, [amountRaw]);
 
   const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
@@ -92,10 +96,11 @@ export const ActionBox = ({
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
 
-  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
-
-  const amountInputRef = React.useRef<HTMLInputElement>(null);
-
+  // Either a staking account is selected or a bank
+  const selectedStakingAccount = React.useMemo(
+    () => (selectedTokenBank ? stakeAccounts.find((acc) => acc.address.equals(selectedTokenBank)) ?? null : null),
+    [selectedTokenBank, stakeAccounts]
+  );
   const selectedBank = React.useMemo(
     () =>
       selectedTokenBank
@@ -104,35 +109,50 @@ export const ActionBox = ({
     [extendedBankInfos, selectedTokenBank]
   );
 
-  const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
-  const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
-  const maxAmount = React.useMemo(() => {
-    if (!selectedBank || !isInitialized) {
-      return 0;
-    }
-
-    switch (actionMode) {
-      case ActionType.Deposit:
-        return selectedBank.userInfo.maxDeposit;
-      case ActionType.Withdraw:
-        return selectedBank.userInfo.maxWithdraw;
-      case ActionType.Borrow:
-        return selectedBank.userInfo.maxBorrow;
-      case ActionType.Repay:
-        return selectedBank.userInfo.maxRepay;
-      case ActionType.MintLST:
-        return selectedBank.userInfo.tokenAccount.balance;
-      default:
-        return 0;
-    }
-  }, [selectedBank, actionMode, isInitialized]);
-  const isInputDisabled = React.useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
+  // Amount related useMemo's
+  const amount = React.useMemo(() => {
+    const strippedAmount = amountRaw.replace(/,/g, "");
+    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+  }, [amountRaw]);
   const walletAmount = React.useMemo(
     () =>
       selectedBank?.info.state.mint?.equals && selectedBank?.info.state.mint?.equals(WSOL_MINT)
         ? selectedBank?.userInfo.tokenAccount.balance + nativeSolBalance
         : selectedBank?.userInfo.tokenAccount.balance,
     [nativeSolBalance, selectedBank]
+  );
+  const maxAmount = React.useMemo(() => {
+    if ((!selectedBank && !selectedStakingAccount) || !isInitialized) {
+      return 0;
+    }
+
+    switch (actionMode) {
+      case ActionType.Deposit:
+        return selectedBank?.userInfo.maxDeposit ?? 0;
+      case ActionType.Withdraw:
+        return selectedBank?.userInfo.maxWithdraw ?? 0;
+      case ActionType.Borrow:
+        return selectedBank?.userInfo.maxBorrow ?? 0;
+      case ActionType.Repay:
+        return selectedBank?.userInfo.maxRepay ?? 0;
+      case ActionType.MintLST:
+        if (selectedStakingAccount) return nativeToUi(selectedStakingAccount.lamports, 9);
+        if (selectedBank?.info.state.mint.equals(SOL_MINT))
+          return walletAmount ? Math.max(0, walletAmount - nativeToUi(feesAndRent, 9)) : 0;
+        else return walletAmount ?? 0;
+      default:
+        return 0;
+    }
+  }, [selectedBank, selectedStakingAccount, actionMode, isInitialized, walletAmount, feesAndRent]);
+  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
+  const amountInputRef = React.useRef<HTMLInputElement>(null);
+
+  const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
+  const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
+
+  const isInputDisabled = React.useMemo(
+    () => (maxAmount === 0 && !showCloseBalance) || !!selectedStakingAccount,
+    [maxAmount, showCloseBalance, selectedStakingAccount]
   );
 
   const actionMethod = React.useMemo(
@@ -142,6 +162,7 @@ export const ActionBox = ({
         connected,
         showCloseBalance,
         selectedBank,
+        selectedStakingAccount,
         extendedBankInfos,
         marginfiAccount: selectedAccount,
         nativeSolBalance,
@@ -169,7 +190,9 @@ export const ActionBox = ({
     } else if (actionMode === ActionType.Repay) {
       return "You repay";
     } else if (actionMode === ActionType.MintLST) {
-      return "You mint";
+      return "You stake";
+    } else {
+      return "";
     }
   }, [actionMode]);
 
@@ -181,6 +204,12 @@ export const ActionBox = ({
     if (priorityFee === 0.005) return "Mamas";
     return "Custom";
   }, [priorityFee]);
+
+  React.useEffect(() => {
+    if (amount > 0 && selectedBank && !selectedBank.info.state.mint.equals(SOL_MINT)) {
+      //loading
+    }
+  }, [selectedBank]);
 
   React.useEffect(() => {
     if (actionModePrev !== null && actionModePrev !== actionMode) {
@@ -225,6 +254,12 @@ export const ActionBox = ({
       setAmountRaw(numberFormater.format(maxAmount));
     }
   }, [maxAmount, amount, numberFormater]);
+
+  React.useEffect(() => {
+    if (selectedStakingAccount) {
+      setAmountRaw(numberFormater.format(maxAmount));
+    }
+  }, [selectedStakingAccount, numberFormater, maxAmount]);
 
   // Does this do anything? I don't think so
   // React.useEffect(() => {
@@ -327,20 +362,22 @@ export const ActionBox = ({
   };
 
   const handleLstAction = React.useCallback(async () => {
-    if (!selectedBank || !mfiClient || !lstData) {
+    if ((!selectedBank && !selectedStakingAccount) || !mfiClient || !lstData) {
       return;
     }
     setIsLoading(true);
 
-    await mintLst({
+    const txnSig = await executeLstAction({
       marginfiClient: mfiClient,
-      bank: selectedBank,
       amount,
-      priorityFee,
       connection,
       wallet,
       lstData,
+      bank: selectedBank,
+      nativeSolBalance,
+      selectedStakingAccount,
       quoteResponseMeta,
+      priorityFee,
     });
 
     setIsLoading(false);
@@ -358,6 +395,7 @@ export const ActionBox = ({
   }, [
     mfiClient,
     selectedBank,
+    selectedStakingAccount,
     amount,
     priorityFee,
     connection,
@@ -479,13 +517,16 @@ export const ActionBox = ({
                 ) : (
                   <div />
                 )}
-                {selectedBank && (
+                {(selectedBank || selectedStakingAccount) && (
                   <div className="inline-flex gap-1.5 items-center">
                     <IconWallet size={16} />
                     <span className="text-sm font-normal">
-                      {walletAmount !== undefined
-                        ? clampedNumeralFormatter(walletAmount).concat(" ", selectedBank.meta.tokenSymbol)
-                        : "-"}
+                      {selectedBank &&
+                        (walletAmount !== undefined
+                          ? clampedNumeralFormatter(walletAmount).concat(" ", selectedBank.meta.tokenSymbol)
+                          : "-")}
+                      {selectedStakingAccount &&
+                        clampedNumeralFormatter(nativeToUi(selectedStakingAccount.lamports, 9)).concat(" SOL")}
                     </span>
                     <button
                       className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
@@ -534,33 +575,31 @@ export const ActionBox = ({
                 </div>
               )}
 
-              {selectedBank && (
-                <ActionBoxPreview
-                  selectedBank={selectedBank}
+              <ActionBoxPreview
+                selectedBank={selectedBank}
+                selectedStakingAccount={selectedStakingAccount}
+                actionMode={actionMode}
+                amount={amount}
+                isEnabled={actionMethod.isEnabled}
+              >
+                <ActionBoxActions
+                  handleAction={() => {
+                    showCloseBalance ? handleCloseBalance() : handleAction();
+                  }}
+                  isLoading={isLoading}
+                  isEnabled={actionMethod.isEnabled && amount > 0}
                   actionMode={actionMode}
-                  amount={amount}
-                  isEnabled={actionMethod.isEnabled}
-                >
-                  <ActionBoxActions
-                    handleAction={() => {
-                      showCloseBalance ? handleCloseBalance() : handleAction();
-                    }}
-                    isLoading={isLoading}
-                    isEnabled={actionMethod.isEnabled}
-                    actionMode={actionMode}
-                    disabled={amount === 0}
-                  />
+                />
 
-                  <div className="flex justify-end mt-3">
-                    <button
-                      onClick={() => setIsPriorityFeesMode(true)}
-                      className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
-                    >
-                      Txn priority: {priorityFeeLabel} <IconSettings size={16} />
-                    </button>
-                  </div>
-                </ActionBoxPreview>
-              )}
+                <div className="flex justify-end mt-3">
+                  <button
+                    onClick={() => setIsPriorityFeesMode(true)}
+                    className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
+                  >
+                    Txn priority: {priorityFeeLabel} <IconSettings size={16} />
+                  </button>
+                </div>
+              </ActionBoxPreview>
             </>
           )}
         </div>
