@@ -1,7 +1,23 @@
-import { PublicKey, Connection, StakeProgram, AccountInfo, ParsedAccountData, TransactionInstruction, Signer, StakeAuthorizationLayout, SystemProgram, Keypair } from "@solana/web3.js";
+import {
+  PublicKey,
+  Connection,
+  StakeProgram,
+  AccountInfo,
+  ParsedAccountData,
+  TransactionInstruction,
+  Signer,
+  StakeAuthorizationLayout,
+  SystemProgram,
+  Keypair,
+  LAMPORTS_PER_SOL,
+  ComputeBudgetProgram,
+} from "@solana/web3.js";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import BN from "bn.js";
-import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
+import {
+  createAssociatedTokenAccountIdempotentInstruction,
+  getAssociatedTokenAddressSync,
+} from "@mrgnlabs/mrgn-common";
 
 const DEFAULT_TICKS_PER_SECOND = 160;
 const DEFAULT_TICKS_PER_SLOT = 64;
@@ -68,12 +84,16 @@ export async function makeDepositSolToStakePoolIx(
   lamports: BN,
   destinationTokenAccount?: PublicKey,
   referrerTokenAccount?: PublicKey,
-  depositAuthority?: PublicKey
+  depositAuthority?: PublicKey,
+  priorityFee?: number
 ) {
   // Ephemeral SOL account just to do the transfer
   const userSolTransfer = new Keypair();
   const signers: Signer[] = [userSolTransfer];
   const instructions: TransactionInstruction[] = [];
+
+  // Priority fees
+  instructions.push(...makePriorityFeeIx(priorityFee));
 
   // Create the ephemeral SOL account
   instructions.push(
@@ -127,7 +147,8 @@ export async function makeDepositStakeToStakePoolIx(
   stakePoolAddress: PublicKey,
   walletAddress: PublicKey,
   validatorVote: PublicKey,
-  depositStake: PublicKey
+  depositStake: PublicKey,
+  priorityFee?: number
 ) {
   const withdrawAuthority = findWithdrawAuthorityProgramAddress(
     solanaStakePool.STAKE_POOL_PROGRAM_ID,
@@ -149,6 +170,9 @@ export async function makeDepositStakeToStakePoolIx(
   instructions.push(
     createAssociatedTokenAccountIdempotentInstruction(walletAddress, poolTokenReceiverAccount, walletAddress, poolMint)
   );
+
+  // Priority fees
+  instructions.push(...makePriorityFeeIx(priorityFee));
 
   instructions.push(
     ...StakeProgram.authorize({
@@ -210,4 +234,27 @@ function findStakeProgramAddress(programId: PublicKey, voteAccountAddress: Publi
     programId
   );
   return publicKey;
+}
+
+/**
+ * Generates the stake program address for a validator's vote account
+ */
+function makePriorityFeeIx(priorityFeeUi?: number): TransactionInstruction[] {
+  const priorityFeeIx: TransactionInstruction[] = [];
+  const limitCU = 1_400_000;
+
+  let microLamports: number = 1;
+
+  if (priorityFeeUi) {
+    const priorityFeeMicroLamports = priorityFeeUi * LAMPORTS_PER_SOL * 1_000_000;
+    microLamports = Math.round(priorityFeeMicroLamports / limitCU);
+  }
+
+  priorityFeeIx.push(
+    ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports,
+    })
+  );
+
+  return priorityFeeIx;
 }

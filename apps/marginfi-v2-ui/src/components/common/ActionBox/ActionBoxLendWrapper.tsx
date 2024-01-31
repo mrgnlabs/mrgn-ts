@@ -7,12 +7,7 @@ import { ActionBox } from "~/components/common/ActionBox";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 export const ActionBoxLendWrapper = () => {
-  const [lendingModeFromStore, setLendingMode] = useUiStore(
-    (state) => [
-      state.lendingMode,
-      state.setLendingMode,
-    ]
-  );
+  const [lendingModeFromStore, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
 
   return (
     <div className="p-4 space-y-4">
