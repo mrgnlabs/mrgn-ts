@@ -13,16 +13,9 @@ type ActionBoxActionsProps = {
   isEnabled: boolean;
   actionMode: ActionType;
   handleAction: () => void;
-  disabled?: boolean;
 };
 
-export const ActionBoxActions = ({
-  isLoading,
-  isEnabled,
-  actionMode,
-  handleAction,
-  disabled,
-}: ActionBoxActionsProps) => {
+export const ActionBoxActions = ({ isLoading, isEnabled, actionMode, handleAction }: ActionBoxActionsProps) => {
   const { connected } = useWalletContext();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
 
@@ -35,7 +28,7 @@ export const ActionBoxActions = ({
   }
 
   return (
-    <Button disabled={disabled || isLoading || !isEnabled} className="w-full py-6" onClick={handleAction}>
+    <Button disabled={isLoading || !isEnabled} className="w-full py-6" onClick={handleAction}>
       {isLoading ? <IconLoader /> : actionMode}
     </Button>
   );
