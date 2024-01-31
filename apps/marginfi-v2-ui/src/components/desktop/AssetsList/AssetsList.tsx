@@ -1,11 +1,10 @@
 import React from "react";
 
-import dynamic from "next/dynamic";
 import Image from "next/image";
 
+import { PublicKey } from "@solana/web3.js";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Card, Table, TableHead, TableBody, TableContainer, TableCell, TableRow } from "@mui/material";
-import Typography from "@mui/material/Typography";
 
 import { ExtendedBankInfo, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -14,6 +13,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { LoadingAsset, AssetRow } from "~/components/desktop/AssetsList/AssetRow";
 import {
+  NewAssetBannerList,
   LSTDialog,
   LSTDialogVariants,
   AssetListFilters,
@@ -160,12 +160,19 @@ const AssetsList = () => {
     { enableOnFormTags: true }
   );
 
+  const newAssetPublicKeys = ["Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8"].map((address) => new PublicKey(address));
+
+  const newAssets = globalBanks.filter(
+    (bank) => bank.address && newAssetPublicKeys.some((newAssetPublicKey) => newAssetPublicKey.equals(bank.address))
+  );
+
   return (
     <>
       {walletAddress && <Portfolio />}
 
       {userMode === UserMode.PRO && (
         <>
+          <NewAssetBannerList banks={newAssets} />
           <AssetListFilters />
           <div className="col-span-full">
             <Card elevation={0} className="bg-[rgba(0,0,0,0)] w-full">
