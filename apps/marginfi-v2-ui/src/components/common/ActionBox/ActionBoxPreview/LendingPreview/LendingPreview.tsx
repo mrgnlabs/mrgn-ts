@@ -9,12 +9,13 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useMrgnlendStore } from "~/store";
 import { clampedNumeralFormatter, cn, getMaintHealthColor, isWholePosition } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
+import { useDebounce } from "~/hooks/useDebounce";
 
 import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetsList/AssetRow";
 import { IconArrowRight, IconAlertTriangle, IconAlertTriangleFilled } from "~/components/ui/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Skeleton } from "~/components/ui/skeleton";
-import { useDebounce } from "~/hooks/useDebounce";
+
 import { AvailableCollateral } from "./AvailableCollateral";
 
 export interface ActionPreview {
@@ -30,7 +31,7 @@ export interface ActionPreview {
 }
 
 interface ActionBoxPreviewProps {
-  selectedBank: ExtendedBankInfo;
+  selectedBank: ExtendedBankInfo | null;
   actionMode: ActionType;
   isEnabled: boolean;
   amount: number;
@@ -67,9 +68,9 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
 
   const isBorrowing = selectedAccount?.activeBalances.find((b) => b.active && b.liabilityShares.gt(0)) !== undefined;
 
-  const currentPositionAmount = selectedBank.isActive ? selectedBank.position.amount : 0;
+  const currentPositionAmount = selectedBank?.isActive ? selectedBank.position.amount : 0;
 
-  const price = getPriceWithConfidence(selectedBank.info.oraclePrice, false).price.toNumber();
+  const price = selectedBank ? getPriceWithConfidence(selectedBank.info.oraclePrice, false).price.toNumber() : 0;
 
   const liquidationColor = React.useMemo(
     () => (preview && preview.liquidationPrice ? getMaintHealthColor(preview.liquidationPrice / price) : ""),
@@ -82,7 +83,6 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
 
   const computePreview = React.useCallback(async () => {
     if (!selectedAccount || !selectedBank || debouncedAmount === null) {
-      // setIsAmountLoading(false);
       setIsLoading(false);
       return;
     }
@@ -155,7 +155,6 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
       setPreview(null);
       console.log("Error computing action preview", error);
     } finally {
-      // setIsAmountLoading(false);
       setIsLoading(false);
     }
   }, [actionMode, debouncedAmount, selectedAccount, selectedBank]);
@@ -167,16 +166,12 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
   return (
     <>
       {selectedAccount && (
-        <AvailableCollateral
-          isLoading={isLoading} //isAmountLoading
-          marginfiAccount={selectedAccount}
-          preview={preview}
-        />
+        <AvailableCollateral isLoading={isLoading} marginfiAccount={selectedAccount} preview={preview} />
       )}
 
       {children}
 
-      {isEnabled && (
+      {isEnabled && selectedBank && (
         <dl className="grid grid-cols-2 gap-y-2 pt-6 text-sm text-white">
           <Stat label={`Your ${showLending ? "deposited" : "borrowed"} amount`}>
             {clampedNumeralFormatter(currentPositionAmount)} {selectedBank.meta.tokenSymbol}
@@ -252,12 +247,12 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
                       showLending
                         ? selectedBank.info.state.totalDeposits
                         : Math.max(
-                          0,
-                          Math.min(
-                            selectedBank.info.state.totalDeposits,
-                            selectedBank.info.rawBank.config.borrowLimit.toNumber()
-                          ) - selectedBank.info.state.totalBorrows
-                        )
+                            0,
+                            Math.min(
+                              selectedBank.info.state.totalDeposits,
+                              selectedBank.info.rawBank.config.borrowLimit.toNumber()
+                            ) - selectedBank.info.state.totalBorrows
+                          )
                     )}
 
                     {isReduceOnly || (isBankHigh && !isBankFilled) ? (
@@ -291,12 +286,13 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
                     <p>
                       {isReduceOnly
                         ? "stSOL is being discontinued."
-                        : `${selectedBank.meta.tokenSymbol} ${showLending ? "deposits" : "borrows"
-                        } are at ${percentFormatter.format(
-                          (showLending
-                            ? selectedBank.info.state.totalDeposits
-                            : selectedBank.info.state.totalBorrows) / bankCap
-                        )} capacity.`}
+                        : `${selectedBank.meta.tokenSymbol} ${
+                            showLending ? "deposits" : "borrows"
+                          } are at ${percentFormatter.format(
+                            (showLending
+                              ? selectedBank.info.state.totalDeposits
+                              : selectedBank.info.state.totalBorrows) / bankCap
+                          )} capacity.`}
                     </p>
                     <a href="https://docs.marginfi.com">
                       <u>Learn more.</u>

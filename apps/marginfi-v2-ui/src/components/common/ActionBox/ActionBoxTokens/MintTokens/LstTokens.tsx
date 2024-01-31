@@ -2,11 +2,12 @@ import React from "react";
 
 import { PublicKey } from "@solana/web3.js";
 
-import { percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendingModes } from "~/types";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
+import { SOL_MINT } from "~/store/lstStore";
 import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -16,22 +17,35 @@ import { Button } from "~/components/ui/button";
 import { IconChevronDown, IconMoonPay, IconX } from "~/components/ui/icons";
 
 import { ActionBoxItem, SelectedBankItem } from "../SharedComponents";
+import { ActionBoxNativeItem } from "./ActionBoxNativeItem";
+import { SelectedNativeItem } from "./SelectedNativeItem";
 
-type MintTokensProps = {
+type LstTokensProps = {
   currentTokenBank: PublicKey | null;
   setCurrentTokenBank: (selectedTokenBank: PublicKey | null) => void;
   hasDropdown?: boolean;
 };
 
-export const LstTokens = ({ currentTokenBank, hasDropdown, setCurrentTokenBank }: MintTokensProps) => {
+export const LstTokens = ({ currentTokenBank, hasDropdown, setCurrentTokenBank }: LstTokensProps) => {
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
   ]);
+  const [stakeAccounts] = useLstStore((state) => [state.stakeAccounts]);
   const [setIsWalletOpen] = useUiStore((state) => [state.setIsWalletOpen]);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isTokenPopoverOpen, setIsTokenPopoverOpen] = React.useState(false);
   const { connected } = useWalletContext();
+
+  const selectedStakeAccount = React.useMemo(
+    () => (currentTokenBank && stakeAccounts.find((value) => value.address.equals(currentTokenBank))) ?? null,
+    [currentTokenBank, stakeAccounts]
+  );
+
+  const solUsdValue = React.useMemo(() => {
+    const bank = extendedBankInfos.find((bank) => bank.info.state.mint.equals(SOL_MINT));
+    return bank ? getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber() : 0;
+  }, [extendedBankInfos]);
 
   const selectedBank = React.useMemo(
     () =>
@@ -115,8 +129,11 @@ export const LstTokens = ({ currentTokenBank, hasDropdown, setCurrentTokenBank }
                 isTokenPopoverOpen && "bg-background-gray"
               )}
             >
-              {selectedBank && <SelectedBankItem bank={selectedBank} />}
-              {!selectedBank && <>Select token</>}
+              {selectedStakeAccount ? (
+                <SelectedNativeItem stakeData={selectedStakeAccount} />
+              ) : (
+                <>{selectedBank ? <SelectedBankItem bank={selectedBank} /> : <>Select token</>}</>
+              )}
               <IconChevronDown className="shrink-0 ml-2" size={20} />
             </Button>
           </PopoverTrigger>
@@ -156,7 +173,34 @@ export const LstTokens = ({ currentTokenBank, hasDropdown, setCurrentTokenBank }
               </button>
               <CommandEmpty>No tokens found.</CommandEmpty>
 
-              {/* LENDING */}
+              {/* Active staking positions*/}
+              <div className="max-h-[calc(100vh-580px)] overflow-auto">
+                {connected && stakeAccounts.length > 0 && (
+                  <CommandGroup heading="Natively staked">
+                    {stakeAccounts.map((stakeAcc, index) => {
+                      return (
+                        <CommandItem
+                          key={index}
+                          value={stakeAcc?.address?.toBase58().toLowerCase()}
+                          onSelect={(currentValue) => {
+                            setCurrentTokenBank(
+                              stakeAcc.address
+                              // extendedBankInfos.find(
+                              //   (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                              // )?.address ?? null
+                            );
+                            setIsTokenPopoverOpen(false);
+                          }}
+                          className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                        >
+                          <ActionBoxNativeItem stakeData={stakeAcc} nativeSolPrice={solUsdValue} />
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                )}
+              </div>
+              {/* LST token staking */}
               <div className="max-h-[calc(100vh-580px)] min-h-[200px] overflow-auto">
                 {connected && filteredBanksUserOwns.length > 0 && (
                   <CommandGroup heading="Available in your wallet">
