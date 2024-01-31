@@ -15,13 +15,15 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
-import { IconChevronDown, IconMoonPay, IconX } from "~/components/ui/icons";
+import { IconChevronDown, IconMoonPay, IconStar, IconX } from "~/components/ui/icons";
 
 type ActionBoxTokensProps = {
   currentTokenBank: PublicKey | null;
   setCurrentTokenBank: (selectedTokenBank: PublicKey | null) => void;
   isDialog?: boolean;
 };
+
+const NEW_BANKS: PublicKey[] = [new PublicKey("JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN")];
 
 export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBank }: ActionBoxTokensProps) => {
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
@@ -129,6 +131,11 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
     return extendedBankInfos.filter(searchFilter);
   }, [extendedBankInfos, searchFilter]);
 
+  // new banks
+  const newBanks = React.useMemo(() => {
+    return extendedBankInfos.filter((bankInfo) => NEW_BANKS.find((value) => value.equals(bankInfo.info.state.mint)));
+  }, [extendedBankInfos, searchFilter]);
+
   const globalBanks = React.useMemo(() => filteredBanks.filter((bank) => !bank.info.state.isIsolated), [filteredBanks]);
   const isolatedBanks = React.useMemo(
     () => filteredBanks.filter((bank) => bank.info.state.isIsolated),
@@ -202,8 +209,43 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
               </button>
               <CommandEmpty>No tokens found.</CommandEmpty>
 
+              {/* NEW BANKS */}
+
               {/* LENDING */}
               <div className="max-h-[calc(100vh-580px)] min-h-[200px] overflow-auto">
+                {/* NEW BANKS */}
+                {newBanks.length > 0 && (
+                  <CommandGroup heading="New assets">
+                    {newBanks
+                      .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
+                      .map((bank, index) => {
+                        return (
+                          <CommandItem
+                            key={index}
+                            value={bank?.address?.toString().toLowerCase()}
+                            onSelect={(currentValue) => {
+                              setCurrentTokenBank(
+                                extendedBankInfos.find(
+                                  (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                                )?.address ?? null
+                              );
+                              setIsTokenPopoverOpen(false);
+                            }}
+                            className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                          >
+                            <ActionBoxItem
+                              rate={calculateRate(bank)}
+                              lendingMode={lendingMode}
+                              bank={bank}
+                              showBalanceOverride={false}
+                              nativeSolBalance={nativeSolBalance}
+                              isNew={true}
+                            />
+                          </CommandItem>
+                        );
+                      })}
+                  </CommandGroup>
+                )}
                 {lendingMode === LendingModes.LEND && connected && filteredBanksUserOwns.length > 0 && (
                   <CommandGroup heading="Available in your wallet">
                     {filteredBanksUserOwns
@@ -405,6 +447,7 @@ type ActionBoxItemProps = {
   bank: ExtendedBankInfo;
   nativeSolBalance: number;
   showBalanceOverride: boolean;
+  isNew?: boolean;
 };
 
 const ActionBoxItem = ({ rate, lendingMode, bank, nativeSolBalance, showBalanceOverride }: ActionBoxItemProps) => {
@@ -435,7 +478,9 @@ const ActionBoxItem = ({ rate, lendingMode, bank, nativeSolBalance, showBalanceO
           />
         )}
         <div>
-          <p>{bank.meta.tokenSymbol}</p>
+          <p className="inline-flex gap-1 justify">
+            {bank.meta.tokenSymbol} {!showBalanceOverride && <IconStar size={12} />}
+          </p>
           <p
             className={cn(
               "text-xs font-normal",
