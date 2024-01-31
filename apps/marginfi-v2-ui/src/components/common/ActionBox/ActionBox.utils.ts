@@ -7,12 +7,15 @@ import {
   RiskTier,
 } from "@mrgnlabs/marginfi-client-v2";
 
+import { StakeData } from "~/utils";
+
 interface props {
   amount: number | null;
   connected: boolean;
   nativeSolBalance: number;
   showCloseBalance?: boolean;
   selectedBank: ExtendedBankInfo | null;
+  selectedStakingAccount: StakeData | null;
   extendedBankInfos: ExtendedBankInfo[];
   marginfiAccount: MarginfiAccountWrapper | null;
   actionMode: ActionType;
@@ -29,38 +32,43 @@ export function checkActionAvailable({
   connected,
   showCloseBalance,
   selectedBank,
+  selectedStakingAccount,
   extendedBankInfos,
   marginfiAccount,
   actionMode,
 }: props): ActionMethod {
   let check: ActionMethod | null = null;
 
-  check = generalChecks(connected, selectedBank, showCloseBalance);
+  check = generalChecks(connected, selectedBank, selectedStakingAccount, showCloseBalance);
   if (check) return check;
 
-  if (!selectedBank) {
-    // this shouldn't happen
-    return { description: "Something went wrong", isEnabled: false };
+  if (selectedBank) {
+
+    switch (actionMode) {
+      case ActionType.Deposit:
+        check = canBeLent(selectedBank, nativeSolBalance);
+        if (check) return check;
+        break;
+      case ActionType.Withdraw:
+        check = canBeWithdrawn(selectedBank, marginfiAccount);
+        if (check) return check;
+        break;
+      case ActionType.Borrow:
+        check = canBeBorrowed(selectedBank, extendedBankInfos, marginfiAccount);
+        if (check) return check;
+        break;
+      case ActionType.Repay:
+        check = canBeRepaid(selectedBank);
+        if (check) return check;
+        break;
+    }
   }
 
-  switch (actionMode) {
-    case ActionType.Deposit:
-      check = canBeLent(selectedBank, nativeSolBalance);
-      if (check) return check;
-      break;
-    case ActionType.Withdraw:
-      check = canBeWithdrawn(selectedBank, marginfiAccount);
-      if (check) return check;
-      break;
-    case ActionType.Borrow:
-      check = canBeBorrowed(selectedBank, extendedBankInfos, marginfiAccount);
-      if (check) return check;
-      break;
-    case ActionType.Repay:
-      check = canBeRepaid(selectedBank);
-      if (check) return check;
-      break;
+  if (selectedStakingAccount) {
+
   }
+
+
 
   if (amount && amount <= 0) {
     return {
@@ -77,15 +85,15 @@ export function checkActionAvailable({
 function generalChecks(
   connected: boolean,
   selectedBank: ExtendedBankInfo | null,
+  selectedStakingAccount: StakeData | null,
   showCloseBalance?: boolean
 ): ActionMethod | null {
   if (!connected) {
     return { isEnabled: false };
   }
-  if (!selectedBank) {
+  if (!selectedBank && !selectedStakingAccount) {
     return { isEnabled: false };
   }
-
   if (showCloseBalance) {
     return { description: "Close account.", isEnabled: true };
   }

@@ -12,7 +12,6 @@ import { createLstStore } from "~/store/lstStore";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
-import { StakingCard, StakingStats } from "~/components/common/Staking";
 import { PageHeader } from "~/components/common/PageHeader";
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
