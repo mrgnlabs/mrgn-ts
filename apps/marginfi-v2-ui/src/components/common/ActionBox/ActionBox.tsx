@@ -61,12 +61,6 @@ export const ActionBox = ({
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingModeFromStore, priorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
-    state.lendingMode,
-    state.priorityFee,
-    state.setIsActionComplete,
-    state.setPreviousTxn,
-  ]);
   const [lstData, stakeAccounts, quoteResponseMeta, feesAndRent] = useLstStore((state) => [
     state.lstData,
     state.stakeAccounts,
@@ -76,6 +70,15 @@ export const ActionBox = ({
 
   const { walletContextState, connected, wallet } = useWalletContext();
   const { connection } = useConnection();
+  const [lendingModeFromStore, setLendingMode, priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] =
+    useUiStore((state) => [
+      state.lendingMode,
+      state.setLendingMode,
+      state.priorityFee,
+      state.setPriorityFee,
+      state.setIsActionComplete,
+      state.setPreviousTxn,
+    ]);
 
   const lendingMode = React.useMemo(
     () => requestedLendingMode ?? lendingModeFromStore,
@@ -495,6 +498,10 @@ export const ActionBox = ({
     },
     [maxAmount, setAmountRaw, selectedBank, numberFormater]
   );
+
+  React.useEffect(() => {
+    setPriorityFee(0.005);
+  }, [setPriorityFee]);
 
   if (!isInitialized) {
     return null;
