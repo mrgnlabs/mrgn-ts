@@ -1,15 +1,12 @@
-import { vendor } from "@mrgnlabs/marginfi-client-v2";
-import { ACCOUNT_SIZE, TOKEN_PROGRAM_ID, Wallet, aprToApy, uiToNative } from "@mrgnlabs/mrgn-common";
+import { ACCOUNT_SIZE, Wallet, aprToApy } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
-import { create, StateCreator } from "zustand";
-import * as solanaStakePool from "@solana/spl-stake-pool";
-import { EPOCHS_PER_YEAR, StakeData, fetchStakeAccounts } from "~/utils";
-import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
-import { persist } from "zustand/middleware";
-import BN from "bn.js";
-
-import type { TokenInfo, TokenInfoMap } from "@solana/spl-token-registry";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
+import { create, StateCreator } from "zustand";
+import { persist } from "zustand/middleware";
+import * as solanaStakePool from "@solana/spl-stake-pool";
+
+import { EPOCHS_PER_YEAR, StakeData, fetchStakeAccounts } from "~/utils";
+
 
 const STAKEVIEW_APP_URL = "https://stakeview.app/apy/prev3.json";
 const BASELINE_VALIDATOR_ID = "mrgn28BhocwdAUEenen3Sw2MR9cPKDpLkDvzDdR7DBD";
@@ -40,6 +37,7 @@ interface LstState {
   connection: Connection | null;
   wallet: Wallet | null;
   lstData: LstData | null;
+  feesAndRent: number;
   stakeAccounts: StakeData[];
   slippagePct: SupportedSlippagePercent;
   quoteResponseMeta: QuoteResponseMeta | null
@@ -77,15 +75,12 @@ export interface LstData {
 const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
   // State
   initialized: false,
-  userDataFetched: false,
   isRefreshingStore: false,
   connection: null,
   wallet: null,
   lstData: null,
-  availableLamports: null,
-  tokenDataMap: null,
+  feesAndRent: 0,
   stakeAccounts: [],
-  solUsdValue: null,
   slippagePct: 1,
   stakePoolProxyProgram: null,
   quoteResponseMeta: null,
@@ -100,6 +95,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
 
       let stakeAccounts: StakeData[] = [];
       const lstData = await fetchLstData(connection);
+      const minimumRentExemption = await connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE)
 
       if (wallet?.publicKey) {
         const [_stakeAccounts] = await Promise.all([
@@ -113,7 +109,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
 
       set({
         initialized: true,
-
+        feesAndRent: minimumRentExemption + NETWORK_FEE_LAMPORTS,
         isRefreshingStore: false,
         connection,
         wallet,
@@ -175,28 +171,6 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
     validatorList: stakePoolInfo.validatorList.map((v) => new PublicKey(v.voteAccountAddress)),
   };
 }
-
-// async function fetchJupiterTokenInfo(): Promise<TokenInfoMap> {
-//   const preferredTokenListMode: any = "strict";
-//   const tokens = await (preferredTokenListMode === "strict"
-//     ? await fetch("https://token.jup.ag/strict")
-//     : await fetch("https://token.jup.ag/all")
-//   ).json();
-
-//   // Dynamically import TokenListContainer when needed
-//   const { TokenListContainer } = await import("@solana/spl-token-registry");
-
-//   const res = new TokenListContainer(tokens);
-//   const list = res.filterByChainId(101).getList();
-//   const tokenMap = list
-//     .filter((tokenInfo) => SUPPORTED_TOKENS.includes(tokenInfo.address))
-//     .reduce((acc, item) => {
-//       acc.set(item.address, item);
-//       return acc;
-//     }, new Map());
-
-//   return tokenMap;
-// }
 
 export { createLstStore };
 export type { LstState };
