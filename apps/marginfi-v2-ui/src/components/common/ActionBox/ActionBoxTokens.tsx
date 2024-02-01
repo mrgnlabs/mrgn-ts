@@ -134,7 +134,7 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
   // new banks
   const newBanks = React.useMemo(() => {
     return extendedBankInfos.filter((bankInfo) => NEW_BANKS.find((value) => value.equals(bankInfo.info.state.mint)));
-  }, [extendedBankInfos, searchFilter]);
+  }, [extendedBankInfos]);
 
   const globalBanks = React.useMemo(() => filteredBanks.filter((bank) => !bank.info.state.isIsolated), [filteredBanks]);
   const isolatedBanks = React.useMemo(
