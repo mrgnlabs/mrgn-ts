@@ -27,7 +27,7 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
       return "-";
     }
     const assetWeightInit = bank.info.rawBank
-      .getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice, bank.meta.tokenSymbol === "JUP")
+      .getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice)
       .toNumber();
 
     if (assetWeightInit <= 0) {
