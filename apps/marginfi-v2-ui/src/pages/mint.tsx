@@ -31,7 +31,10 @@ const integrations = [
     },
     link: "https://raydium.io/",
     action: "Deposit",
-    platform: "Raydium",
+    platform: {
+      title: "Raydium",
+      icon: "/raydium.svg",
+    },
   },
   {
     title: "SOL-YBX",
@@ -44,7 +47,10 @@ const integrations = [
     },
     link: "https://raydium.io/",
     action: "Deposit",
-    platform: "Raydium",
+    platform: {
+      title: "Raydium",
+      icon: "/raydium.svg",
+    },
   },
   {
     title: "SOL-LST",
@@ -57,7 +63,10 @@ const integrations = [
     },
     link: "https://raydium.io/",
     action: "Deposit",
-    platform: "Raydium",
+    platform: {
+      title: "Raydium",
+      icon: "/raydium.svg",
+    },
   },
   {
     title: "SOL-LST",
@@ -70,7 +79,10 @@ const integrations = [
     },
     link: "https://raydium.io/",
     action: "Deposit",
-    platform: "Raydium",
+    platform: {
+      title: "Raydium",
+      icon: "/raydium.svg",
+    },
   },
 ];
 
@@ -193,7 +205,7 @@ export default function MintPage() {
     <>
       <JupiterProvider connection={connection} wrapUnwrapSOL={false} platformFeeAndAccounts={undefined}>
         <PageHeader showDesktopTitle={false}>Mint</PageHeader>
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-8 space-y-20 pt-16 lg:pt-20 pb-28">
+        <div className="w-full max-w-8xl mx-auto px-4 md:px-8 space-y-20 pt-16 lg:pt-20 pb-28">
           {!initialized && <Loader label="Loading YBX / LST..." className="mt-8" />}
           {initialized && (
             <>
@@ -285,12 +297,12 @@ export default function MintPage() {
                 </div>
               </div>
 
-              <div className="w-full bg-background/75 py-12 px-10 xl:px-16 text-center rounded-xl border border-border">
-                <h2 className="text-3xl font-medium mb-6">Integrations</h2>
-                <p>40+ dAPPs where you can use YBX and LST</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-10">
+              <div className="w-full py-8 px-10 xl:px-16 text-center">
+                <h2 className="text-3xl font-medium mb-3">Integrations</h2>
+                <p className="text-muted-foreground">40+ dAPPs where you can use YBX and LST</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-10">
                   {integrations.map((item, i) => (
-                    <Card key={i} variant="gradient">
+                    <Card key={i} variant="default">
                       <CardHeader>
                         <CardTitle className="flex items-center justify-center text-xl">
                           <div className="flex items-center">
@@ -318,7 +330,16 @@ export default function MintPage() {
                           </Button>
                         </Link>
 
-                        <p className="text-muted-foreground text-sm mt-4">{item.platform}</p>
+                        <div className="flex items-center gap-2 mt-4 justify-center">
+                          <Image
+                            src={item.platform.icon}
+                            alt={item.platform.title}
+                            className="rounded-full"
+                            width={20}
+                            height={20}
+                          />
+                          <p className="text-muted-foreground text-sm">{item.platform.title}</p>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
