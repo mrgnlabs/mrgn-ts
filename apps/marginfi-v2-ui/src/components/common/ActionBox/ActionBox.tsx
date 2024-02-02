@@ -93,6 +93,8 @@ export const ActionBox = ({
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
 
+  console.log({ selectedTokenBank: selectedTokenBank?.toBase58() });
+
   // Either a staking account is selected or a bank
   const selectedStakingAccount = React.useMemo(
     () => (selectedTokenBank ? stakeAccounts.find((acc) => acc.address.equals(selectedTokenBank)) ?? null : null),
@@ -360,6 +362,10 @@ export const ActionBox = ({
 
   const handleLstAction = React.useCallback(async () => {
     if ((!selectedBank && !selectedStakingAccount) || !mfiClient || !lstData) {
+      return;
+    }
+
+    if (selectedBank && !quoteResponseMeta) {
       return;
     }
     setIsLoading(true);
