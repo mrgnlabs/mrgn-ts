@@ -134,6 +134,12 @@ let config = withBundleAnalyzer({
       },
       {
         protocol: "https",
+        hostname: "static.jup.ag/jup/icon.png.ipfs.nftstorage.link",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "static.jup.ag",
         port: "",
         pathname: "/**",

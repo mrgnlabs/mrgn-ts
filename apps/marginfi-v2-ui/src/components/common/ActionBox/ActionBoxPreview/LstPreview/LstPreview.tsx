@@ -14,18 +14,6 @@ import { useDebounce } from "~/hooks/useDebounce";
 
 import { Skeleton } from "~/components/ui/skeleton";
 
-export interface ActionPreview {
-  health: number;
-  liquidationPrice: number | null;
-  depositRate: number;
-  borrowRate: number;
-  positionAmount: number;
-  availableCollateral: {
-    ratio: number;
-    amount: number;
-  };
-}
-
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
   selectedStakingAccount: StakeData | null;
@@ -86,6 +74,7 @@ export const LstPreview = ({
 
   React.useEffect(() => {
     setIsLoading(true);
+    console.log("hit");
   }, [amount]);
 
   const lstOutAmount = React.useMemo(() => {
@@ -103,6 +92,8 @@ export const LstPreview = ({
       return JSBI.toNumber(outAmount) / 1e9;
     }
 
+    console.log("hit2");
+    setIsLoading(false);
     return 0;
   }, [
     debouncedAmount,
