@@ -1,3 +1,9 @@
+import { FC } from "react";
+
+export const StakingModal: FC = () => {
+  return <></>;
+};
+
 // import { Typography, Modal } from "@mui/material";
 // import { Dispatch, FC, SetStateAction, useState } from "react";
 // import { Close, Launch } from "@mui/icons-material";

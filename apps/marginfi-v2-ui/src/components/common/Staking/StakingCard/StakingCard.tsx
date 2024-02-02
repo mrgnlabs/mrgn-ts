@@ -1,3 +1,8 @@
+import { FC } from "react";
+
+export const StakingCard: FC = () => {
+  return <></>;
+};
 // import { Dispatch, FC, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
 // import { useRouter } from "next/router";
 // import { TextField, Typography } from "@mui/material";
