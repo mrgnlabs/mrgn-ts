@@ -132,18 +132,12 @@ const BIRDEYE_API = "https://public-api.birdeye.so";
 export async function fetchBirdeyePrices(mints: PublicKey[], apiKey?: string): Promise<BigNumber[]> {
   const mintList = mints.map((mint) => mint.toBase58()).join(",");
 
-  console.log("BIRDEYE CALL")
-
   const response = await fetch(`/api/birdeye?mintList=${mintList}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
   });
-
-
-  console.log("RESPONSE FROM STATE PACKAGE")
-  console.log({ response })
 
   const responseBody = await response.json();
   if (responseBody.success) {
@@ -171,7 +165,6 @@ export async function makeExtendedBankEmission(
   let birdeyePrices: null | BigNumber[] = emissionsMints.map(() => new BigNumber(0));
 
   try {
-    console.log('calling function')
     birdeyePrices = await fetchBirdeyePrices(emissionsMints, apiKey);
   } catch (err) {
     console.log("Failed to fetch emissions prices from Birdeye", err);
