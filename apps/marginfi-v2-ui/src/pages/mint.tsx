@@ -1,6 +1,7 @@
 import React from "react";
 
 import { JupiterProvider } from "@jup-ag/react-hook";
+import { PublicKey } from "@solana/web3.js";
 import Link from "next/link";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -145,7 +146,7 @@ export default function MintPage() {
         features: ["Earn compounded staking yield 8%", "Earn MEV rewards 1.1%", "Earn lending yield 5%"],
         footer: "...just by minting YBX",
         action: () => {
-          setYBXDialogOpen(true);
+          // setYBXDialogOpen(true);
         },
       } as CardProps,
       {
@@ -247,18 +248,24 @@ export default function MintPage() {
                             </Button>
                           </ActionBoxDialog>
                         ) : (
-                          <Button
-                            variant="secondary"
-                            size="lg"
-                            className="mt-4"
-                            onClick={() => {
-                              if (item.action) {
-                                item.action();
-                              }
-                            }}
+                          <ActionBoxDialog
+                            requestedAction={ActionType.MintYBX}
+                            requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
+                            isActionBoxTriggered={ybxDialogOpen}
                           >
-                            Mint {item.title}
-                          </Button>
+                            <Button
+                              variant="secondary"
+                              size="lg"
+                              className="mt-4"
+                              onClick={() => {
+                                if (item.action) {
+                                  item.action();
+                                }
+                              }}
+                            >
+                              Mint {item.title}
+                            </Button>
+                          </ActionBoxDialog>
                         )}
                       </CardContent>
                     </Card>
@@ -308,7 +315,7 @@ export default function MintPage() {
             </>
           )}
         </div>
-        <Dialog open={ybxDialogOpen} onOpenChange={(open) => setYBXDialogOpen(open)}>
+        {/* <Dialog open={ybxDialogOpen} onOpenChange={(open) => setYBXDialogOpen(open)}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Get Notified</DialogTitle>
@@ -347,7 +354,7 @@ export default function MintPage() {
               </>
             )}
           </DialogContent>
-        </Dialog>
+        </Dialog> */}
       </JupiterProvider>
     </>
   );

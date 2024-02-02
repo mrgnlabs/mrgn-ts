@@ -140,15 +140,15 @@ let config = withBundleAnalyzer({
       },
       {
         protocol: "https",
-        hostname: "static.jup.ag",
+        hostname: "static.jup.ag/jup/icon.png.ipfs.nftstorage.link",
         port: "",
         pathname: "/**",
       },
       {
         protocol: "https",
-        hostname: "hivemapper-marketing-public.s3.us-west-2.amazonaws.com",
+        hostname: "static.jup.ag",
         port: "",
-        pathname: "/Hivemapper_HONEY_token.png",
+        pathname: "/**",
       },
     ],
   },

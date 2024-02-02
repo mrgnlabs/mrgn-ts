@@ -43,7 +43,6 @@ export function checkActionAvailable({
   if (check) return check;
 
   if (selectedBank) {
-
     switch (actionMode) {
       case ActionType.Deposit:
         check = canBeLent(selectedBank, nativeSolBalance);
@@ -61,11 +60,15 @@ export function checkActionAvailable({
         check = canBeRepaid(selectedBank);
         if (check) return check;
         break;
+      case ActionType.MintYBX:
+        // canBeYBXed
+        if (check) return check;
+        break;
     }
   }
 
   if (selectedStakingAccount) {
-
+    // TODO add posible cases of faulty staking account specific issues
   }
 
 
