@@ -9,7 +9,6 @@ import { cn } from "~/utils/themeUtils";
 import { MenuModal } from "./MenuModal";
 import { ORDERED_MOBILE_NAVBAR_LINKS } from "~/config/navigationLinks";
 import { useSwipeGesture } from "~/hooks/useSwipeGesture";
-import { useLstStore } from "~/pages/stake";
 import { PWABanner } from "~/components/mobile/PWABanner";
 
 const MobileNavbar: FC = () => {
@@ -26,7 +25,6 @@ const MobileNavbar: FC = () => {
     state.userDataFetched,
     state.resetUserData,
   ]);
-  const [lstUserDataFetched, resetLstUserData] = useLstStore((state) => [state.userDataFetched, state.resetUserData]);
 
   const { isIOS } = useOs();
 
@@ -41,10 +39,7 @@ const MobileNavbar: FC = () => {
     if (!walletAddress && lendUserDataFetched) {
       resetLendUserData();
     }
-    if (!walletAddress && lstUserDataFetched) {
-      resetLstUserData();
-    }
-  }, [walletAddress, lendUserDataFetched, resetLendUserData, lstUserDataFetched, resetLstUserData]);
+  }, [walletAddress, lendUserDataFetched, resetLendUserData]);
 
   const activeLink = useMemo(() => {
     const activeLinkIndex = ORDERED_MOBILE_NAVBAR_LINKS.findIndex((link) => link.href === router.pathname);
