@@ -1,9 +1,9 @@
 import React from "react";
 
-import { JupiterProvider } from "@jup-ag/react-hook";
-import { PublicKey } from "@solana/web3.js";
+import Image from "next/image";
 import Link from "next/link";
 
+import { JupiterProvider } from "@jup-ag/react-hook";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useConnection } from "~/hooks/useConnection";
@@ -146,7 +146,7 @@ export default function MintPage() {
         features: ["Earn compounded staking yield 8%", "Earn MEV rewards 1.1%", "Earn lending yield 5%"],
         footer: "...just by minting YBX",
         action: () => {
-          // setYBXDialogOpen(true);
+          setYBXDialogOpen(true);
         },
       } as CardProps,
       {
@@ -248,24 +248,36 @@ export default function MintPage() {
                             </Button>
                           </ActionBoxDialog>
                         ) : (
-                          <ActionBoxDialog
-                            requestedAction={ActionType.MintYBX}
-                            requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
-                            isActionBoxTriggered={ybxDialogOpen}
+                          // <ActionBoxDialog
+                          //   requestedAction={ActionType.MintYBX}
+                          //   requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
+                          //   isActionBoxTriggered={ybxDialogOpen}
+                          // >
+                          //   <Button
+                          //     variant="secondary"
+                          //     size="lg"
+                          //     className="mt-4"
+                          //     onClick={() => {
+                          //       if (item.action) {
+                          //         item.action();
+                          //       }
+                          //     }}
+                          //   >
+                          //     Mint {item.title}
+                          //   </Button>
+                          // </ActionBoxDialog>
+                          <Button
+                            variant="secondary"
+                            size="lg"
+                            className="mt-4"
+                            onClick={() => {
+                              if (item.action) {
+                                item.action();
+                              }
+                            }}
                           >
-                            <Button
-                              variant="secondary"
-                              size="lg"
-                              className="mt-4"
-                              onClick={() => {
-                                if (item.action) {
-                                  item.action();
-                                }
-                              }}
-                            >
-                              Mint {item.title}
-                            </Button>
-                          </ActionBoxDialog>
+                            Mint {item.title}
+                          </Button>
                         )}
                       </CardContent>
                     </Card>
@@ -315,10 +327,11 @@ export default function MintPage() {
             </>
           )}
         </div>
-        {/* <Dialog open={ybxDialogOpen} onOpenChange={(open) => setYBXDialogOpen(open)}>
+        <Dialog open={ybxDialogOpen} onOpenChange={(open) => setYBXDialogOpen(open)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Get Notified</DialogTitle>
+              <IconYBX size={48} />
+              <DialogTitle className="text-2xl">Get Notified</DialogTitle>
               <DialogDescription>Sign up to stay up to date with YBX</DialogDescription>
             </DialogHeader>
 
@@ -336,14 +349,20 @@ export default function MintPage() {
             {(mintPageState === MintPageState.DEFAULT || mintPageState === MintPageState.ERROR) && (
               <>
                 <form
-                  className="w-full px-8"
+                  className="w-full px-8 mb-4"
                   onSubmit={(e) => {
                     e.preventDefault();
                     signUp();
                   }}
                 >
                   <div className="flex items-center w-full gap-2">
-                    <Input ref={emailInputRef} type="email" placeholder="Email" className="w-full" required />
+                    <Input
+                      ref={emailInputRef}
+                      type="email"
+                      placeholder="example@example.com"
+                      className="w-full"
+                      required
+                    />
                     <Button type="submit">Sign Up</Button>
                   </div>
                 </form>
@@ -354,7 +373,7 @@ export default function MintPage() {
               </>
             )}
           </DialogContent>
-        </Dialog> */}
+        </Dialog>
       </JupiterProvider>
     </>
   );
