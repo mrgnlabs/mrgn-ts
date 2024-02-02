@@ -6,6 +6,7 @@ import { StakeData } from "~/utils";
 
 import { LendingPreview } from "./LendingPreview";
 import { LstPreview } from "./LstPreview";
+import { YbxPreview } from "./YbxPreview";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
@@ -50,6 +51,12 @@ export const ActionBoxPreview = ({
         >
           {children}
         </LstPreview>
+      )}
+
+      {actionMode === ActionType.MintYBX && (
+        <YbxPreview selectedBank={selectedBank} isEnabled={isEnabled} amount={amount}>
+          {children}
+        </YbxPreview>
       )}
     </>
   );

@@ -61,6 +61,13 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
 
   const [accountSummary] = useMrgnlendStore((state) => [state.accountSummary]);
 
+  // const isEmptyAccount = React.useMemo(() => !accountSummary.balance || !accountSummary.healthFactor, [accountSummary]);
+
+  const healthFactor = React.useMemo(
+    () => (!accountSummary.balance || !accountSummary.healthFactor ? 1 : accountSummary.healthFactor),
+    [accountSummary]
+  );
+
   const isReduceOnly = React.useMemo(
     () => (selectedBank?.meta?.tokenSymbol ? REDUCE_ONLY_BANKS.includes(selectedBank?.meta.tokenSymbol) : false),
     [selectedBank]
@@ -77,8 +84,9 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
     [preview, price]
   );
   const healthColor = React.useMemo(
-    () => getMaintHealthColor(preview?.health ?? accountSummary.healthFactor),
-    [preview?.health, accountSummary.healthFactor]
+    () => getMaintHealthColor(preview?.health ?? healthFactor),
+    // () => getMaintHealthColor(preview?.health ?? (isEmptyAccount ? 100 : accountSummary.healthFactor)),
+    [preview?.health, healthFactor]
   );
 
   const computePreview = React.useCallback(async () => {
@@ -204,8 +212,8 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
           </Stat>
 
           <Stat style={{ color: healthColor }} label="Health">
-            {accountSummary.healthFactor && percentFormatter.format(accountSummary.healthFactor)}
-            {accountSummary.healthFactor && preview?.health ? <IconArrowRight width={12} height={12} /> : ""}
+            {healthFactor && percentFormatter.format(healthFactor)}
+            {healthFactor && preview?.health ? <IconArrowRight width={12} height={12} /> : ""}
             {isLoading ? (
               <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
             ) : preview?.health ? (

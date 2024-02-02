@@ -15,7 +15,6 @@ import { useConnection } from "~/hooks/useConnection";
 import { EMISSION_MINT_INFO_MAP } from "../AssetsList/AssetRow";
 import { collectRewardsBatch } from "~/utils";
 import { IconMrgn } from "~/components/ui/icons";
-import { useLstStore } from "~/pages/stake";
 import { WalletButton } from "~/components/common/Wallet";
 import LipAccount from "@mrgnlabs/lip-client/src/account";
 
@@ -36,7 +35,6 @@ const DesktopNavbar: FC = () => {
       state.userDataFetched,
       state.resetUserData,
     ]);
-  const [lstUserDataFetched, resetLstUserData] = useLstStore((state) => [state.userDataFetched, state.resetUserData]);
   const [showBadges, currentFirebaseUser, userPointsData, setShowBadges, fetchPoints] = useUserProfileStore((state) => [
     state.showBadges,
     state.currentFirebaseUser,
@@ -53,10 +51,7 @@ const DesktopNavbar: FC = () => {
     if (!walletAddress && lendUserDataFetched) {
       resetLendUserData();
     }
-    if (!walletAddress && lstUserDataFetched) {
-      resetLstUserData();
-    }
-  }, [walletAddress, lendUserDataFetched, resetLendUserData, lstUserDataFetched, resetLstUserData]);
+  }, [walletAddress, lendUserDataFetched, resetLendUserData]);
 
   const bankAddressesWithEmissions: PublicKey[] = useMemo(() => {
     if (!selectedAccount) return [];

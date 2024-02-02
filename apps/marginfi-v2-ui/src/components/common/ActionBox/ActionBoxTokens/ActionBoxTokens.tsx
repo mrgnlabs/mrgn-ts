@@ -5,6 +5,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingTokens } from "./LendingTokens";
 import { LstTokens } from "./MintTokens";
+import { YbxTokens } from "./YbxTokens";
 
 interface ActionBoxPreviewProps {
   currentTokenBank: PublicKey | null;
@@ -41,6 +42,8 @@ export const ActionBoxTokens = ({
       {actionMode === ActionType.MintLST && (
         <LstTokens currentTokenBank={currentTokenBank} setCurrentTokenBank={setCurrentTokenBank} hasDropdown={true} />
       )}
+
+      {actionMode === ActionType.MintYBX && <YbxTokens currentTokenBank={currentTokenBank} />}
     </>
   );
 };
