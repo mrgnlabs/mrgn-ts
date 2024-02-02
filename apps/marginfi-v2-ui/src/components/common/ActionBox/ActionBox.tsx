@@ -499,10 +499,6 @@ export const ActionBox = ({
     [maxAmount, setAmountRaw, selectedBank, numberFormater]
   );
 
-  React.useEffect(() => {
-    setPriorityFee(0.005);
-  }, [setPriorityFee]);
-
   if (!isInitialized) {
     return null;
   }
