@@ -547,7 +547,7 @@ export const ActionBox = ({
                 )}
               </div>
               <div className="bg-background text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center p-4 font-medium mb-5">
-                <div className="w-full xs:w-[162px]">
+                <div className={cn("w-full xs:w-[162px]", actionMode === ActionType.MintLST && "xs:w-[142px]")}>
                   <ActionBoxTokens
                     isDialog={isDialog}
                     currentTokenBank={selectedTokenBank}

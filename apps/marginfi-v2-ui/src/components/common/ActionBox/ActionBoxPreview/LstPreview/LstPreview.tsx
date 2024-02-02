@@ -129,7 +129,7 @@ export const LstPreview = ({
           </Stat>
           <Stat label={"Projected APY"}>
             {lstData ? (
-              percentFormatterDyn.format(lstData.projectedApy)
+              <span className="text-success">{percentFormatterDyn.format(lstData.projectedApy)}</span>
             ) : (
               <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
             )}
@@ -144,7 +144,11 @@ export const LstPreview = ({
             SOL
           </Stat>
           <Stat label={"Commission"}>
-            {lstData?.solDepositFee ?? <Skeleton className="h-4 w-[45px] bg-[#373F45]" />}%
+            {lstData?.solDepositFee !== undefined ? (
+              <span className="text-success">{lstData?.solDepositFee}%</span>
+            ) : (
+              <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+            )}
           </Stat>
           {priceImpactPct !== null && (
             <Stat label={"Price impact"}>
