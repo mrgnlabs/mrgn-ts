@@ -8,16 +8,17 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useLstStore, useMrgnlendStore } from "~/store";
+import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 
 import { PageHeader } from "~/components/common/PageHeader";
+import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { ActionComplete } from "~/components/common/ActionComplete";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { IconYBX, IconLST, IconCheck, IconExternalLink } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 
 const integrations = [
   {
@@ -111,6 +112,8 @@ export default function MintPage() {
   const [lstDialogOpen, setLSTDialogOpen] = React.useState(false);
   const emailInputRef = React.useRef<HTMLInputElement>(null);
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
+
+  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
   const [fetchLstState, setIsRefreshingStore] = useLstStore((state) => [
     state.fetchLstState,
@@ -396,6 +399,8 @@ export default function MintPage() {
           </DialogContent>
         </Dialog>
       </JupiterProvider>
+
+      {initialized && previousTxn && <ActionComplete />}
     </>
   );
 }

@@ -390,6 +390,24 @@ export const ActionBox = ({
     handleCloseDialog && handleCloseDialog();
     setAmountRaw("");
 
+    if (txnSig) {
+      setIsActionComplete(true);
+      setPreviousTxn({
+        type: ActionType.MintLST,
+        bank: selectedBank as ActiveBankInfo,
+        amount: amount,
+        lstQuote: quoteResponseMeta || undefined,
+        txn: txnSig!,
+      });
+      // capture(`user_${currentAction.toLowerCase()}`, {
+      //   tokenSymbol: bank.meta.tokenSymbol,
+      //   tokenName: bank.meta.tokenName,
+      //   amount: borrowOrLendAmount,
+      //   txn: txnSig!,
+      //   priorityFee,
+      // });
+    }
+
     // -------- Refresh state
     try {
       setIsRefreshingStore(true);
