@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import NodeCache from 'node-cache';
 
-const myCache = new NodeCache({ stdTTL: 120 }); // Cache for 1 hour
+const myCache = new NodeCache({ stdTTL: 240 }); // Cache for 1 hour
 const BIRDEYE_API = "https://public-api.birdeye.so";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
