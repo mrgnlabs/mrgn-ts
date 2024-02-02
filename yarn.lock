@@ -14733,7 +14733,7 @@ fetch-retry@~5.0.3:
   resolved "https://registry.yarnpkg.com/fetch-retry/-/fetch-retry-5.0.6.tgz#17d0bc90423405b7a88b74355bf364acd2a7fa56"
   integrity sha512-3yurQZ2hD9VISAhJJP9bpYFNQrHHBXE2JxxjY5aLEcDi46RmAzJE2OC9FAde0yis5ElW0jTTzs0zfg/Cca4XqQ==
 
-fflate@^0.4.1:
+fflate@^0.4.8:
   version "0.4.8"
   resolved "https://registry.yarnpkg.com/fflate/-/fflate-0.4.8.tgz#f90b82aefbd8ac174213abb338bd7ef848f0f5ae"
   integrity sha512-FJqqoDBR00Mdj9ppamLa/Y7vxm+PRmNWA67N846RvsoYVMKB4q3y/de5PA7gUmRMYK/8CMz2GDZQmCRN1wBcWA==
@@ -20591,17 +20591,23 @@ postcss@^8.3.5, postcss@^8.4.20, postcss@^8.4.21, postcss@^8.4.23, postcss@~8.4.
     picocolors "^1.0.0"
     source-map-js "^1.0.2"
 
-posthog-js@^1.93.3:
-  version "1.93.3"
-  resolved "https://registry.yarnpkg.com/posthog-js/-/posthog-js-1.93.3.tgz#6216b761d57885b1d0f31459d13c40d40d724b0d"
-  integrity sha512-jEOWwaQpTRbqLPrDLY6eZr7t95h+LyXqN7Yq1/K6u3V0Y1C9xHtYhpuGzYamirVnCDTbVq22RM++OBUaIpp9Wg==
+posthog-js@^1.104.4:
+  version "1.104.4"
+  resolved "https://registry.yarnpkg.com/posthog-js/-/posthog-js-1.104.4.tgz#425269cc92daabf4c7708fc383bc6b167155cbeb"
+  integrity sha512-eZyNh0mhyfC129udFh5ln1QnUy67cPnRITVFvcOK4hdniM1v+T+cPxAkQK+4CjdHvvLM8hjh6OhiMWfppYqUzA==
   dependencies:
-    fflate "^0.4.1"
+    fflate "^0.4.8"
+    preact "^10.19.3"
 
 preact@10.4.1:
   version "10.4.1"
   resolved "https://registry.yarnpkg.com/preact/-/preact-10.4.1.tgz#9b3ba020547673a231c6cf16f0fbaef0e8863431"
   integrity sha512-WKrRpCSwL2t3tpOOGhf2WfTpcmbpxaWtDbdJdKdjd0aEiTkvOmS4NBkG6kzlaAHI9AkQ3iVqbFWM3Ei7mZ4o1Q==
+
+preact@^10.19.3:
+  version "10.19.3"
+  resolved "https://registry.yarnpkg.com/preact/-/preact-10.19.3.tgz#7a7107ed2598a60676c943709ea3efb8aaafa899"
+  integrity sha512-nHHTeFVBTHRGxJXKkKu5hT8C/YWBkPso4/Gad6xuj5dbptt9iF9NZr9pHbPhBrnT2klheu7mHTxTZ/LjwJiEiQ==
 
 prebuild-install@^7.1.1:
   version "7.1.1"
