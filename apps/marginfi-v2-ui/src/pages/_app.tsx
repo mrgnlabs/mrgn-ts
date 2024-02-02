@@ -1,7 +1,7 @@
 import React from "react";
 
 import App, { AppContext, AppInitialProps, AppProps } from "next/app";
-import Head from "next/head";
+import Script from "next/script";
 import dynamic from "next/dynamic";
 
 import { WalletProvider } from "@solana/wallet-adapter-react";
@@ -119,6 +119,17 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
           </WalletProvider>
         </ConnectionProvider>
       )}
+
+      <Script
+        src={`https://widget.intercom.io/widget/${process.env.NEXT_PUBLIC_INTERCOM_ID}`}
+        strategy="afterInteractive"
+        onLoad={() => {
+          window.intercomSettings = {
+            api_base: "https://api-iam.intercom.io",
+            app_id: process.env.NEXT_PUBLIC_INTERCOM_ID,
+          };
+        }}
+      />
     </>
   );
 }

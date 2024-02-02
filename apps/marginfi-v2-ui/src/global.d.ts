@@ -12,4 +12,5 @@ interface Window {
   };
   Jupiter: any;
   MoonPayWebSdk: any;
+  intercomSettings: any;
 }
