@@ -1,6 +1,6 @@
-import Image from "next/image";
+import React from "react";
 
-import { PublicKey } from "@solana/web3.js";
+import Image from "next/image";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "~/types";
@@ -14,6 +14,21 @@ type NewAssetBannerProps = {
 };
 
 export const NewAssetBanner = ({ bankInfo }: NewAssetBannerProps) => {
+  const [isBannerVisible, setIsBannerVisible] = React.useState(false);
+
+  const handleBannerAcknowledgement = React.useCallback(() => {
+    window.sessionStorage.setItem("mrgnNewAssetBannerAcknowledged", "true");
+    setIsBannerVisible(false);
+  }, []);
+
+  React.useEffect(() => {
+    if (window.sessionStorage.getItem("mrgnNewAssetBannerAcknowledged") !== "true") {
+      setIsBannerVisible(true);
+    }
+  }, []);
+
+  if (!isBannerVisible) return null;
+
   return (
     <div className="bg-muted text-white/80 py-4 pl-5 pr-12 rounded-sm max-w-fit relative">
       <div className="flex gap-6 items-center">
@@ -48,7 +63,7 @@ export const NewAssetBanner = ({ bankInfo }: NewAssetBannerProps) => {
           </ul>
         </div>
       </div>
-      <button className="absolute top-3 right-3">
+      <button className="absolute top-3 right-3" onClick={handleBannerAcknowledgement}>
         <IconX className="text-white/80" size={16} />
       </button>
     </div>
