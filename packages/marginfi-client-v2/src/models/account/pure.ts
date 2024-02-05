@@ -955,7 +955,7 @@ class MarginfiAccount {
         marginfiGroupPk: this.group,
         signerPk: this.authority,
         newAccountAuthorityPk: newAccountAuthority,
-        feePayerPk: this.address, // ?
+        feePayerPk: this.authority,
       }
     )
     return { instructions: [accountAuthorityTransferIx], keys: [] };
