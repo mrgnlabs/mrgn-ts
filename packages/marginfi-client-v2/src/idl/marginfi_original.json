@@ -1448,27 +1448,9 @@
             }
           },
           {
-            "name": "auto_padding_0",
-            "type": {
-              "array": [
-                "u8",
-                7
-              ]
-            }
-          },
-          {
             "name": "assetShareValue",
             "type": {
               "defined": "WrappedI80F48"
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": [
-                "u8",
-                4
-              ]
             }
           },
           {
@@ -1496,15 +1478,6 @@
               "array": [
                 "u8",
                 4
-              ]
-            }
-          },
-          {
-            "name": "auto_padding_2",
-            "type": {
-              "array": [
-                "u8",
-                6
               ]
             }
           },
@@ -1842,15 +1815,6 @@
           {
             "name": "bankPk",
             "type": "publicKey"
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": [
-                "u8",
-                7
-              ]
-            }
           },
           {
             "name": "auto_padding_0",
@@ -2308,24 +2272,6 @@
             }
           },
           {
-            "name": "auto_padding_0",
-            "type": {
-              "array": [
-                "u8",
-                6
-              ]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": [
-                "u8",
-                7
-              ]
-            }
-          },
-          {
             "name": "borrowLimit",
             "type": "u64"
           },
@@ -2448,24 +2394,6 @@
               "array": [
                 "u8",
                 6
-              ]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": [
-                "u8",
-                6
-              ]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": [
-                "u8",
-                7
               ]
             }
           },
