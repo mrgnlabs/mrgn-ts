@@ -61,3 +61,35 @@ We welcome contributions to `mrgn-ts`! Please review our [contributing guideline
 ## License
 
 `mrgn-ts` is open source software licensed under the Apache 2.0 license.
+
+## Updating the IDL
+
+For historical reasons, the IDL file in this repository should be updated by using
+the marginfi-v2 CLI tool to ensure the IDL stays in its canonical format.
+This is largely due to changes in the byte packing code used by Anchor,
+and the fact that Rust removed the `#repr(packed)` option in later releases.
+
+To update the IDL:
+Use the [marginfi-v2-cli](https://github.com/mrgnlabs/marginfi-v2/tree/main/clients/rust/marginfi-cli)
+and run the `patch-idl` command against the existing marginfi.json IDL in this repository.
+
+Ensure you are on the feature branch in mrgn-ts, the branch with IDL changes.
+
+For example, run this command from the root of the marginfi-v2 repository,
+```
+cargo run \
+            --package marginfi-v2-cli \
+            --features dev \
+            -- patch-idl <path-to-marginfi.json>
+```
+
+This produces a new, modified marginfi.json file alongside the original file.
+The _original file can be removed.
+
+Lint the new file using the prettier linter (.prettierrc) -- in VSCode you
+can simply use Format Document and it applies the lint automatically.
+
+Review the IDL changes to make sure the new features/types in the branch
+are reflected in the new IDL.
+
+Commit the IDL changes and merge.
