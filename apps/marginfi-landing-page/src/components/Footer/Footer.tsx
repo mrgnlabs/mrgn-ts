@@ -1,5 +1,5 @@
-import { FC } from "react";
 import Link from "next/link";
+import { FC } from "react";
 import { NavbarCenterItem } from "./NavbarCenterItem";
 
 // @todo implement second pretty navbar row
@@ -17,7 +17,9 @@ const Footer: FC = () => {
             <Link href={"https://docs.marginfi.com"}>
               <NavbarCenterItem text="Docs" />
             </Link>
-            <Link href={"https://analytics.marginfi.com"}>
+            <Link
+              href={"https://mrgn.grafana.net/public-dashboards/a2700f1bbca64aeaa5582a90dbaeb276?orgId=1&refresh=1m"}
+            >
               <NavbarCenterItem text="Analytics" />
             </Link>
             <Link href={"https://github.com/mrgnlabs"}>
