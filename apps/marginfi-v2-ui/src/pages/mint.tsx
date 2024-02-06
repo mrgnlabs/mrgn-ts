@@ -309,7 +309,7 @@ export default function MintPage() {
                 </div>
               </div>
 
-              <div className="w-full py-8 px-4 md:px-10 xl:px-16 text-center">
+              {/* <div className="w-full py-8 px-4 md:px-10 xl:px-16 text-center">
                 <h2 className="text-3xl font-medium mb-3">Integrations</h2>
                 <p className="text-muted-foreground">40+ dAPPs where you can use YBX and LST</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-10">
@@ -356,7 +356,7 @@ export default function MintPage() {
                     </Card>
                   ))}
                 </div>
-              </div>
+              </div> */}
             </>
           )}
         </div>
