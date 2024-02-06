@@ -244,24 +244,31 @@ export default function MintPage() {
                         <p className="text-right text-sm">{item.footer}</p>
 
                         {item.title === "LST" ? (
-                          <ActionBoxDialog
-                            requestedAction={ActionType.MintLST}
-                            requestedToken={undefined}
-                            isActionBoxTriggered={lstDialogOpen}
-                          >
-                            <Button
-                              variant="secondary"
-                              size="lg"
-                              className="mt-4"
-                              onClick={() => {
-                                if (item.action) {
-                                  item.action();
-                                }
-                              }}
+                          <div className="flex items-center gap-2 mt-3">
+                            <ActionBoxDialog
+                              requestedAction={ActionType.MintLST}
+                              requestedToken={undefined}
+                              isActionBoxTriggered={lstDialogOpen}
                             >
-                              Mint {item.title}
+                              <Button
+                                variant="secondary"
+                                size="lg"
+                                className="mt-4"
+                                onClick={() => {
+                                  if (item.action) {
+                                    item.action();
+                                  }
+                                }}
+                              >
+                                Mint {item.title}
+                              </Button>
+                            </ActionBoxDialog>
+                            <Button variant="outline" size="lg" className="mt-4">
+                              <Link href="/swap?inputMint=LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp">
+                                Swap {item.title}
+                              </Link>
                             </Button>
-                          </ActionBoxDialog>
+                          </div>
                         ) : (
                           // <ActionBoxDialog
                           //   requestedAction={ActionType.MintYBX}
@@ -281,18 +288,20 @@ export default function MintPage() {
                           //     Mint {item.title}
                           //   </Button>
                           // </ActionBoxDialog>
-                          <Button
-                            variant="secondary"
-                            size="lg"
-                            className="mt-4"
-                            onClick={() => {
-                              if (item.action) {
-                                item.action();
-                              }
-                            }}
-                          >
-                            Mint {item.title}
-                          </Button>
+                          <div className="flex items-center gap-2 mt-3">
+                            <Button
+                              variant="secondary"
+                              size="lg"
+                              className="mt-4"
+                              onClick={() => {
+                                if (item.action) {
+                                  item.action();
+                                }
+                              }}
+                            >
+                              {item.title} Notifications
+                            </Button>
+                          </div>
                         )}
                       </CardContent>
                     </Card>
