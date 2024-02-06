@@ -5,10 +5,11 @@ import Link from "next/link";
 
 import { JupiterProvider } from "@jup-ag/react-hook";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { numeralFormatter, percentFormatterDyn } from "@mrgnlabs/mrgn-common";
 
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
+import { useLstStore, useUiStore } from "~/store";
 
 import { PageHeader } from "~/components/common/PageHeader";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -16,7 +17,7 @@ import { ActionComplete } from "~/components/common/ActionComplete";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { IconYBX, IconLST, IconCheck, IconExternalLink } from "~/components/ui/icons";
+import { IconYBX, IconLST, IconCheck, IconExternalLink, IconBell } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
 
@@ -106,7 +107,6 @@ interface CardProps {
 export default function MintPage() {
   const { connection } = useConnection();
   const { wallet } = useWalletContext();
-  const [initialized] = useMrgnlendStore((state) => [state.initialized]);
   const [mintPageState, setMintPageState] = React.useState<MintPageState>(MintPageState.DEFAULT);
   const [ybxDialogOpen, setYBXDialogOpen] = React.useState(false);
   const [lstDialogOpen, setLSTDialogOpen] = React.useState(false);
@@ -115,9 +115,11 @@ export default function MintPage() {
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
-  const [fetchLstState, setIsRefreshingStore] = useLstStore((state) => [
+  const [fetchLstState, initialized, setIsRefreshingStore, lstData] = useLstStore((state) => [
     state.fetchLstState,
+    state.initialized,
     state.setIsRefreshingStore,
+    state.lstData,
   ]);
 
   React.useEffect(() => {
@@ -158,7 +160,11 @@ export default function MintPage() {
         icon: IconYBX,
         description: "Solana's decentralised stablecoin, backed by LSTs",
         price: "1 YBX = 1 USD",
-        features: ["Earn compounded staking yield 8%", "Earn MEV rewards 1.1%", "Earn lending yield 5%"],
+        features: [
+          `Earn compounded staking yield ${percentFormatterDyn.format(lstData?.projectedApy!)}`,
+          "Earn MEV rewards 1.1%",
+          "Earn lending yield 5%",
+        ],
         footer: "...just by minting YBX",
         action: () => {
           setYBXDialogOpen(true);
@@ -168,13 +174,13 @@ export default function MintPage() {
         title: "LST",
         icon: IconLST,
         description: "Solana's highest yielding LST, secured by mrgn validators",
-        price: "1 LST = 1.268 SOL",
+        price: `1 LST = ${numeralFormatter(lstData?.lstSolValue!)} SOL`,
         features: ["Pay 0% commission", "Earn MEV from Jito", "Access $3 million in liquidity"],
         footer: "...just by minting LST",
         action: () => setLSTDialogOpen(true),
       } as CardProps,
     ],
-    []
+    [lstData]
   );
 
   const signUp = React.useCallback(async () => {
@@ -299,7 +305,7 @@ export default function MintPage() {
                                 }
                               }}
                             >
-                              {item.title} Notifications
+                              <IconBell size={16} /> Notifications
                             </Button>
                           </div>
                         )}
@@ -309,7 +315,7 @@ export default function MintPage() {
                 </div>
               </div>
 
-              {/* <div className="w-full py-8 px-4 md:px-10 xl:px-16 text-center">
+              <div className="w-full py-8 px-4 md:px-10 xl:px-16 text-center">
                 <h2 className="text-3xl font-medium mb-3">Integrations</h2>
                 <p className="text-muted-foreground">40+ dAPPs where you can use YBX and LST</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-10">
@@ -356,7 +362,7 @@ export default function MintPage() {
                     </Card>
                   ))}
                 </div>
-              </div> */}
+              </div>
             </>
           )}
         </div>
