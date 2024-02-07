@@ -296,7 +296,7 @@ async function makeAccountAuthorityTransferIx(
   remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
-    .transferAccountAuthority()
+    .setNewAccountAuthority()
     .accounts({
       marginfiAccount: accounts.marginfiAccountPk,
       marginfiGroup: accounts.marginfiGroupPk,
