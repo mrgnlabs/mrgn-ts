@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 
+import { cn } from "~/utils";
+
 import { PageHeader } from "~/components/common/PageHeader";
 import {
   IconExternalLink,
@@ -148,6 +150,15 @@ const projects = [
       url: "https://twitter.com/FluxBeamDEX",
     },
   },
+  {
+    title: "Hiemdall",
+    description: "Account monitoring bot for Telegram",
+    url: "https://t.me/HeimdallWatchBot",
+    author: {
+      name: "Hiemdall",
+      avatar: "/hiemdall.jpg",
+    },
+  },
 ];
 
 export default function Ecosystem() {
@@ -222,16 +233,19 @@ export default function Ecosystem() {
               </CardHeader>
               <CardContent>
                 <Link
-                  href={project.author.url}
+                  href={project.author.url || ""}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-white transition-colors hover:text-chartreuse font-medium text-sm"
+                  className={cn(
+                    "inline-flex items-center gap-2 text-white transition-colors hover:text-chartreuse font-medium text-sm",
+                    !project.author.url && "pointer-events-none"
+                  )}
                 >
                   <Image
                     src={project.author.avatar}
                     alt={project.author.name}
-                    width={24}
-                    height={24}
+                    width={32}
+                    height={32}
                     className="rounded-full"
                   />
                   {project.author.name}
