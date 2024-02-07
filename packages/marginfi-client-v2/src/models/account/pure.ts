@@ -954,7 +954,7 @@ class MarginfiAccount {
         marginfiAccountPk: this.address,
         marginfiGroupPk: this.group,
         signerPk: this.authority,
-        newAccountAuthorityPk: newAccountAuthority,
+        newAuthorityPk: newAccountAuthority,
         feePayerPk: this.authority,
       }
     )
