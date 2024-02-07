@@ -214,6 +214,202 @@
       ]
     },
     {
+      "name": "lendingPoolAddBankWithSeed",
+      "docs": [
+        "A copy of lending_pool_add_bank with an additional bank seed.",
+        "This seed is used to create a PDA for the bank's signature.",
+        "lending_pool_add_bank is preserved for backwards compatibility."
+      ],
+      "accounts": [
+        {
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "feePayer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "bankMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "bank",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "marginfi_group"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "Mint",
+                "path": "bank_mint"
+              },
+              {
+                "kind": "arg",
+                "type": "u64",
+                "path": "bank_seed"
+              }
+            ]
+          }
+        },
+        {
+          "name": "liquidityVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault_auth"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "liquidityVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "liquidity_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "insuranceVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault_auth"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "insuranceVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "insurance_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeVaultAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "fee_vault_auth"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeVault",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "fee_vault"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bankConfig",
+          "type": {
+            "defined": "BankConfigCompact"
+          }
+        },
+        {
+          "name": "bankSeed",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "lendingPoolConfigureBank",
       "accounts": [
         {
@@ -427,7 +623,9 @@
     },
     {
       "name": "lendingPoolHandleBankruptcy",
-      "docs": ["Handle bad debt of a bankrupt marginfi account for a given bank."],
+      "docs": [
+        "Handle bad debt of a bankrupt marginfi account for a given bank."
+      ],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -516,7 +714,9 @@
     },
     {
       "name": "marginfiAccountInitialize",
-      "docs": ["Initialize a marginfi account for a given group"],
+      "docs": [
+        "Initialize a marginfi account for a given group"
+      ],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -971,7 +1171,9 @@
     },
     {
       "name": "lendingAccountLiquidate",
-      "docs": ["Liquidate a lending account balance of an unhealthy marginfi account"],
+      "docs": [
+        "Liquidate a lending account balance of an unhealthy marginfi account"
+      ],
       "accounts": [
         {
           "name": "marginfiGroup",
@@ -1245,7 +1447,9 @@
           "name": "admin",
           "isMut": false,
           "isSigner": true,
-          "docs": ["Admin only"]
+          "docs": [
+            "Admin only"
+          ]
         }
       ],
       "args": [
@@ -1272,7 +1476,9 @@
           "name": "admin",
           "isMut": false,
           "isSigner": true,
-          "docs": ["Admin only"]
+          "docs": [
+            "Admin only"
+          ]
         }
       ],
       "args": [
@@ -1281,6 +1487,37 @@
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "setNewAccountAuthority",
+      "accounts": [
+        {
+          "name": "marginfiAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "marginfiGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "newAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "feePayer",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -1306,7 +1543,7 @@
           {
             "name": "accountFlags",
             "docs": [
-              "The flas that indicates the state of the account.",
+              "The flags that indicate the state of the account.",
               "This is u64 bitfield, where each bit represents a flag.",
               "",
               "Flags:",
@@ -1318,7 +1555,10 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u64", 63]
+              "array": [
+                "u64",
+                63
+              ]
             }
           }
         ]
@@ -1336,13 +1576,19 @@
           {
             "name": "padding0",
             "type": {
-              "array": ["u128", 32]
+              "array": [
+                "u128",
+                32
+              ]
             }
           },
           {
             "name": "padding1",
             "type": {
-              "array": ["u128", 32]
+              "array": [
+                "u128",
+                32
+              ]
             }
           }
         ]
@@ -1368,49 +1614,10 @@
           {
             "name": "auto_padding_0",
             "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
@@ -1420,21 +1627,9 @@
             }
           },
           {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 4]
-            }
-          },
-          {
             "name": "liabilityShareValue",
             "type": {
               "defined": "WrappedI80F48"
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 4]
             }
           },
           {
@@ -1442,80 +1637,20 @@
             "type": "publicKey"
           },
           {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 4]
-            }
-          },
-          {
-            "name": "auto_padding_2",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
             "name": "liquidityVaultBump",
             "type": "u8"
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 4]
-            }
-          },
-          {
-            "name": "auto_padding_2",
-            "type": {
-              "array": ["u8", 6]
-            }
           },
           {
             "name": "liquidityVaultAuthorityBump",
             "type": "u8"
           },
           {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 4]
-            }
-          },
-          {
-            "name": "auto_padding_2",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
             "name": "insuranceVault",
             "type": "publicKey"
           },
           {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 4]
-            }
-          },
-          {
-            "name": "auto_padding_2",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
             "name": "insuranceVaultBump",
             "type": "u8"
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 4]
-            }
-          },
-          {
-            "name": "auto_padding_2",
-            "type": {
-              "array": ["u8", 6]
-            }
           },
           {
             "name": "insuranceVaultAuthorityBump",
@@ -1524,13 +1659,10 @@
           {
             "name": "auto_padding_1",
             "type": {
-              "array": ["u8", 4]
-            }
-          },
-          {
-            "name": "auto_padding_2",
-            "type": {
-              "array": ["u8", 6]
+              "array": [
+                "u8",
+                4
+              ]
             }
           },
           {
@@ -1544,12 +1676,6 @@
             "type": "publicKey"
           },
           {
-            "name": "auto_padding_2",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
             "name": "feeVaultBump",
             "type": "u8"
           },
@@ -1560,7 +1686,10 @@
           {
             "name": "auto_padding_2",
             "type": {
-              "array": ["u8", 6]
+              "array": [
+                "u8",
+                6
+              ]
             }
           },
           {
@@ -1623,13 +1752,19 @@
           {
             "name": "padding0",
             "type": {
-              "array": ["u128", 28]
+              "array": [
+                "u128",
+                28
+              ]
             }
           },
           {
             "name": "padding1",
             "type": {
-              "array": ["u128", 32]
+              "array": [
+                "u128",
+                32
+              ]
             }
           }
         ]
@@ -1724,7 +1859,10 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u64", 8]
+              "array": [
+                "u64",
+                8
+              ]
             }
           }
         ]
@@ -1746,49 +1884,10 @@
           {
             "name": "auto_padding_0",
             "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
@@ -1816,7 +1915,10 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u64", 1]
+              "array": [
+                "u64",
+                1
+              ]
             }
           }
         ]
@@ -1936,7 +2038,10 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u128", 8]
+              "array": [
+                "u128",
+                8
+              ]
             }
           }
         ]
@@ -2008,7 +2113,9 @@
     },
     {
       "name": "BankConfigCompact",
-      "docs": ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
+      "docs": [
+        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -2059,104 +2166,21 @@
             }
           },
           {
-            "name": "oracleKeys",
-            "type": {
-              "array": ["publicKey", 5]
-            }
+            "name": "oracleKey",
+            "type": "publicKey"
           },
           {
             "name": "auto_padding_0",
             "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                6
+              ]
             }
           },
           {
             "name": "borrowLimit",
             "type": "u64"
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
-            }
           },
           {
             "name": "riskTier",
@@ -2167,7 +2191,10 @@
           {
             "name": "auto_padding_1",
             "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
@@ -2189,7 +2216,9 @@
     },
     {
       "name": "BankConfig",
-      "docs": ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
+      "docs": [
+        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -2242,102 +2271,24 @@
           {
             "name": "oracleKeys",
             "type": {
-              "array": ["publicKey", 5]
+              "array": [
+                "publicKey",
+                5
+              ]
             }
           },
           {
             "name": "auto_padding_0",
             "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
-            }
-          },
-          {
-            "name": "auto_padding_0",
-            "type": {
-              "array": ["u8", 6]
-            }
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                6
+              ]
             }
           },
           {
             "name": "borrowLimit",
             "type": "u64"
-          },
-          {
-            "name": "auto_padding_1",
-            "type": {
-              "array": ["u8", 7]
-            }
           },
           {
             "name": "riskTier",
@@ -2348,7 +2299,10 @@
           {
             "name": "auto_padding_1",
             "type": {
-              "array": ["u8", 7]
+              "array": [
+                "u8",
+                7
+              ]
             }
           },
           {
@@ -2368,7 +2322,10 @@
           {
             "name": "padding",
             "type": {
-              "array": ["u64", 5]
+              "array": [
+                "u64",
+                5
+              ]
             }
           }
         ]
@@ -2490,7 +2447,10 @@
           {
             "name": "keys",
             "type": {
-              "array": ["publicKey", 5]
+              "array": [
+                "publicKey",
+                5
+              ]
             }
           }
         ]
@@ -3072,6 +3032,28 @@
           "index": false
         }
       ]
+    },
+    {
+      "name": "MarginfiAccountTransferAccountAuthorityEvent",
+      "fields": [
+        {
+          "name": "header",
+          "type": {
+            "defined": "AccountEventHeader"
+          },
+          "index": false
+        },
+        {
+          "name": "oldAccountAuthority",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "newAccountAuthority",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -3289,6 +3271,11 @@
       "code": 6042,
       "name": "IllegalBalanceState",
       "msg": "Illegal balance state"
+    },
+    {
+      "code": 6043,
+      "name": "IllegalAccountAuthorityTransfer",
+      "msg": "Illegal account authority transfer"
     }
   ]
 }
