@@ -191,11 +191,13 @@ export const Wallet = () => {
                     router.push("/points");
                   }}
                 >
-                  <IconStarFilled size={18} />
-                  <strong className=" text-xl">
-                    {userPointsData && groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
-                  </strong>
-                  <span className="text-sm text-muted-foreground translate-y-0.5">points</span>
+                  <IconStarFilled size={16} />
+                  <div className="flex items-baseline gap-2">
+                    <strong className="text-lg">
+                      {userPointsData && groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
+                    </strong>
+                    <span className="text-sm text-muted-foreground">points</span>
+                  </div>
                   <span className="ml-auto font-medium text-sm text-chartreuse border-b border-transparent group-hover:border-chartreuse">
                     Learn more
                   </span>
