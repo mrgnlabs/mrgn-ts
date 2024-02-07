@@ -75,9 +75,10 @@ To update the IDL:
 
 1. Checkout the [marginfi-v2-cli](https://github.com/mrgnlabs/marginfi-v2/tree/main)
    repository and build it. Ensure you are on an x86-64 machine to get the build
-   to succeed.
+   to succeed. Ensure the [solana](https://docs.solanalabs.com/cli/install) CLI tool is installed,
+   alongside anchor and rust and yarn.
 
-2. Run marginfi-v2/scripts/build-workspace to generate the original IDL
+2. Run marginfi-v2/scripts/build-workspace to generate the original IDL (anchor build)
 
 3. Use the [marginfi-v2-cli](https://github.com/mrgnlabs/marginfi-v2/tree/main/clients/rust/marginfi-cli)
    and run the `patch-idl` command against the generated marginfi.json IDL in the marginfi-v2 repository.
