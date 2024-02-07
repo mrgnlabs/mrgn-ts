@@ -64,32 +64,48 @@ We welcome contributions to `mrgn-ts`! Please review our [contributing guideline
 
 ## Updating the IDL
 
-For historical reasons, the IDL file in this repository should be updated by using
+For historical reasons, the IDL file in this repository should be updated using
 the marginfi-v2 CLI tool to ensure the IDL stays in its canonical format.
 This is largely due to changes in the byte packing code used by Anchor,
 and the fact that Rust removed the `#repr(packed)` option in later releases.
+The process is to build the IDL file in the marginfi-v2 repository, patch it,
+then copy it into this repository and format it (via prettier).
 
 To update the IDL:
-Use the [marginfi-v2-cli](https://github.com/mrgnlabs/marginfi-v2/tree/main/clients/rust/marginfi-cli)
-and run the `patch-idl` command against the existing marginfi.json IDL in this repository.
 
-Ensure you are on the feature branch in mrgn-ts, the branch with IDL changes.
+1. Checkout the [marginfi-v2-cli](https://github.com/mrgnlabs/marginfi-v2/tree/main)
+   repository and build it. Ensure you are on an x86-64 machine to get the build
+   to succeed.
+
+2. Run marginfi-v2/scripts/build-workspace to generate the original IDL
+
+3. Use the [marginfi-v2-cli](https://github.com/mrgnlabs/marginfi-v2/tree/main/clients/rust/marginfi-cli)
+   and run the `patch-idl` command against the generated marginfi.json IDL in the marginfi-v2 repository.
+
+Ensure you are on main branch in marginfi-v2.
 
 For example, run this command from the root of the marginfi-v2 repository,
+
 ```
 cargo run \
             --package marginfi-v2-cli \
             --features dev \
-            -- patch-idl <path-to-marginfi.json>
+            -- patch-idl target
 ```
 
-This produces a new, modified marginfi.json file alongside the original file.
-The _original file can be removed.
+where `target` is the target directory for rust binaries. There should be an idl
+folder with the idl inside of `target`.
 
-Lint the new file using the prettier linter (.prettierrc) -- in VSCode you
-can simply use Format Document and it applies the lint automatically.
+This produces a modified marginfi.json file alongside the original file.
+The \_original file can be removed but is useful for checking diffs.
 
-Review the IDL changes to make sure the new features/types in the branch
-are reflected in the new IDL.
+4. Copy the marginfi.json file and the marginfi-types.ts into this repository.
+5. Lint the new IDL file using the prettier linter (.prettierrc) -- in VSCode you
+   can simply use Format Document and it applies the lint automatically.
 
-Commit the IDL changes and merge.
+Review the IDL changes to make sure the new features/types in marginfiv2
+are reflected in the new IDL. For example new instructions or types, should be
+reflected in the new IDL.
+
+Commit the IDL changes and merge in the same mrgn-ts PR that adds features that rely on
+the new IDL. These should be committed together to ensure the new feature works.
