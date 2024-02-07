@@ -129,7 +129,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
   return (
     <Accordion type="single" collapsible className="w-full space-y-4">
       <AccordionItem value="assets">
-        <AccordionTrigger className="bg-background-gray px-4 rounded-lg transition-colors hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
+        <AccordionTrigger className="bg-muted px-4 rounded-lg transition-colors hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
           Assets
         </AccordionTrigger>
         <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
@@ -137,8 +137,18 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="notifications">
-        <AccordionTrigger className="bg-background-gray px-4 rounded-lg transition-colors hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
-          Notifications
+        <AccordionTrigger
+          disabled
+          className={cn(
+            "bg-muted px-4 rounded-lg transition-colors",
+            "hover:bg-background-gray-hover data-[state=open]:rounded-b-none",
+            "data-[state=open]:bg-background-gray",
+            "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-background-gray"
+          )}
+        >
+          <div className="flex gap-2 items-baseline">
+            Notifications <span className="text-sm mr-auto font-light">coming soon...</span>
+          </div>
         </AccordionTrigger>
         <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
           <form
