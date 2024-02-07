@@ -290,10 +290,9 @@ async function makeAccountAuthorityTransferIx(
     marginfiAccountPk: PublicKey;
     marginfiGroupPk: PublicKey;
     signerPk: PublicKey;
-    newAccountAuthorityPk: PublicKey;
+    newAuthorityPk: PublicKey;
     feePayerPk: PublicKey;
   },
-  remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
     .setNewAccountAuthority()
@@ -301,10 +300,9 @@ async function makeAccountAuthorityTransferIx(
       marginfiAccount: accounts.marginfiAccountPk,
       marginfiGroup: accounts.marginfiGroupPk,
       signer: accounts.signerPk,
-      newAccountAuthority: accounts.newAccountAuthorityPk,
+      newAuthority: accounts.newAuthorityPk,
       feePayer: accounts.feePayerPk,
     })
-    .remainingAccounts(remainingAccounts)
     .instruction();
 }
 
