@@ -8,7 +8,7 @@ import { cn } from "~/utils";
 import { useConvertkit } from "~/hooks/useConvertkit";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
-import { WalletTokens, Token } from "~/components/common/Wallet/WalletTokens";
+import { WalletTokens, Token, WalletOnramp } from "~/components/common/Wallet";
 import { Label } from "~/components/ui/label";
 import { IconCheck, IconInfoCircle, IconLoader, IconAlertTriangle } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
@@ -127,9 +127,9 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
   }, [walletAddress]);
 
   return (
-    <Accordion type="single" collapsible className="w-full space-y-4">
+    <Accordion type="single" collapsible className="w-full space-y-4 mb-6">
       <AccordionItem value="assets">
-        <AccordionTrigger className="bg-muted px-4 rounded-lg transition-colors hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
+        <AccordionTrigger className="bg-muted font-normal px-4 rounded-lg transition-colors hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
           Assets
         </AccordionTrigger>
         <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
@@ -140,7 +140,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
         <AccordionTrigger
           disabled
           className={cn(
-            "bg-muted px-4 rounded-lg transition-colors",
+            "bg-muted font-normal px-4 rounded-lg transition-colors",
             "hover:bg-background-gray-hover data-[state=open]:rounded-b-none",
             "data-[state=open]:bg-background-gray",
             "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-background-gray"

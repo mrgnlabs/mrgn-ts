@@ -180,12 +180,12 @@ export const Wallet = () => {
                 </div>
               </header>
               <div className="flex flex-col items-center h-full">
-                <div className="text-center space-y-1 mb-8">
+                <div className="text-center space-y-1 mb-12">
                   <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
                   <p className="text-muted-foreground">~{walletData.balanceSOL} SOL</p>
                 </div>
                 <button
-                  className="flex items-center gap-2 my-4 bg-muted w-full group cursor-pointer border-chartreuse rounded-lg px-4 py-3.5 transition-colors hover:bg-background-gray-hover"
+                  className="flex items-center gap-2 mb-4 bg-muted w-full group cursor-pointer border-chartreuse rounded-lg px-4 py-3.5 transition-colors hover:bg-background-gray-hover"
                   onClick={() => {
                     setIsWalletOpen(false);
                     router.push("/points");
@@ -202,53 +202,10 @@ export const Wallet = () => {
                     Learn more
                   </span>
                 </button>
+                {web3AuthConncected && <WalletOnramp />}
                 <WalletSettings walletAddress={wallet.publicKey} tokens={walletData.tokens} />
-                {web3AuthConncected && (
-                  <div className="pt-8">
-                    <div className="text-sm text-white/50 text-center mb-4">
-                      Transfer funds to your marginfi wallet
-                      <CopyToClipboard
-                        text={walletData.address}
-                        onCopy={() => {
-                          setIsFundingWalletAddressCopied(true);
-                          setTimeout(() => {
-                            setIsFundingWalletAddressCopied(false);
-                          }, 2000);
-                        }}
-                      >
-                        <div className="inline-flex items-center gap-1 mr-1">
-                          <button className="flex items-center gap-1 cursor-pointe outline-none">
-                            {walletData.shortAddress}
-                          </button>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button className="flex items-center gap-1 cursor-pointe outline-none">
-                                  {isFundingWalletAddressCopied && (
-                                    <>
-                                      <IconCheck size={14} />
-                                    </>
-                                  )}
-                                  {!isFundingWalletAddressCopied && (
-                                    <>
-                                      <IconCopy size={14} />
-                                    </>
-                                  )}
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent>Click to copy</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </CopyToClipboard>
-                      or buy directly with MoonPay.
-                    </div>
-
-                    <WalletOnramp />
-                  </div>
-                )}
                 <SheetFooter className="text-red-400 mt-auto w-full">
-                  <ul className="space-y-3 mb-4 md:space-y-0 md:mb-0">
+                  <ul className="space-y-3 mb-8 md:space-y-0 md:mb-0">
                     <li>
                       <Button
                         onClick={() => logout()}
