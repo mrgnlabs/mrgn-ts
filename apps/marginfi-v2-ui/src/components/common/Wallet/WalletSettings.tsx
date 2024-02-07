@@ -1,5 +1,7 @@
 import React from "react";
 
+import Link from "next/link";
+
 import { PublicKey } from "@solana/web3.js";
 
 import { cn } from "~/utils";
@@ -146,6 +148,13 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
               updateNotificationSettings();
             }}
           >
+            <p className="text-muted-foreground mb-6 pb-4 border-b border-background-gray-hover">
+              Set up Telegram notifications with{" "}
+              <Link href="#" className="border-b border-muted-foreground">
+                HiemdallWatchBot
+              </Link>
+              .
+            </p>
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-1.5 text-muted-foreground">
                 <TooltipProvider>
