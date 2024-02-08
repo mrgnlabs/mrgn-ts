@@ -62,7 +62,7 @@ export const Footer = () => {
   return (
     <footer
       className={cn(
-        "w-full py-10 px-6 flex flex-col justify-between items-center gap-12 border-t border-border",
+        "w-full py-10 px-6 flex flex-col justify-between items-center gap-12 mt-16 border-t border-border",
         "md:gap-16 md:pt-12 md:pb-6",
         "lg:flex-row lg:items-start lg:gap-8 lg:pt-10 lg:pb-6"
       )}

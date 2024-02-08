@@ -1,4 +1,11 @@
-import { IconBrandXFilled, IconBrandGithubFilled, IconBrandDiscordFilled, IconMenu } from "@tabler/icons-react";
+import {
+  IconBrandXFilled,
+  IconBrandGithubFilled,
+  IconBrandDiscordFilled,
+  IconMenu,
+  IconSparkles,
+  IconNetwork,
+} from "@tabler/icons-react";
 
 type IconProps = {
   size?: number;
@@ -18,4 +25,47 @@ const IconMrgn = ({ size = 24, className }: IconProps) => (
   </svg>
 );
 
-export { IconBrandXFilled, IconBrandGithubFilled, IconBrandDiscordFilled, IconMenu, IconMrgn };
+const IconSolana = ({ size = 24, className }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    fill="currentColor"
+    viewBox="0 0 46 46"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <g clip-path="url(#clip0_1955_741)">
+      <path
+        d="M8.14713 31.9497C8.41266 31.6879 8.77776 31.5352 9.16498 31.5352H44.2809C44.9226 31.5352 45.2434 32.2987 44.7898 32.7459L37.8529 39.5852C37.5874 39.847 37.2223 39.9997 36.8351 39.9997H1.71917C1.07748 39.9997 0.756633 39.2362 1.21024 38.7889L8.14713 31.9497Z"
+        fill="currentColor"
+      />
+      <path
+        d="M8.14713 6.4145C8.42372 6.15271 8.78882 6 9.16498 6H44.2809C44.9226 6 45.2434 6.76355 44.7898 7.21078L37.8529 14.05C37.5874 14.3118 37.2223 14.4645 36.8351 14.4645H1.71917C1.07748 14.4645 0.756633 13.701 1.21024 13.2538L8.14713 6.4145Z"
+        fill="currentColor"
+      />
+      <path
+        d="M37.8529 19.1C37.5874 18.8383 37.2223 18.6855 36.8351 18.6855H1.71917C1.07748 18.6855 0.756633 19.4491 1.21024 19.8963L8.14713 26.7356C8.41266 26.9974 8.77776 27.1501 9.16498 27.1501H44.2809C44.9226 27.1501 45.2434 26.3865 44.7898 25.9393L37.8529 19.1Z"
+        fill="currentColor"
+      />
+    </g>
+    <defs>
+      <clipPath id="clip0_1955_741">
+        <rect width="46" height="46" fill="none" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+export {
+  // tabler
+  IconBrandXFilled,
+  IconBrandGithubFilled,
+  IconBrandDiscordFilled,
+  IconMenu,
+  IconSparkles,
+  IconNetwork,
+
+  // custom
+  IconMrgn,
+  IconSolana,
+};
