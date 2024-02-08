@@ -59,22 +59,34 @@ export const content = {
     ],
   },
   featuredBlocks: {
-    featured: {
-      heading: "Magna mollit culpa cupidatat velit cupidatat mollit consequat quis.",
-      body: "Deserunt Lorem amet est aliqua. Lorem nulla id reprehenderit aliquip eu officia ullamco ut fugiat est laboris irure labore eu. Veniam reprehenderit adipisicing nostrud amet eu.",
-      actions: [
-        {
-          href: "#",
-          text: "Learn more",
-          label: "Culpa cupidatat velit cupidatat",
-        },
-        {
-          href: "#",
-          text: "Learn more",
-          label: "aliquip eu officia ullamco ut fugiat",
-        },
-      ],
-    },
+    featured: [
+      {
+        heading: "Magna mollit culpa cupidatat velit cupidatat mollit consequat quis.",
+        body: "Deserunt Lorem amet est aliqua. Lorem nulla id reprehenderit aliquip eu officia ullamco ut fugiat est laboris irure labore eu. Veniam reprehenderit adipisicing nostrud amet eu.",
+        actions: [
+          {
+            href: "#",
+            text: "Learn more",
+            label: "Culpa cupidatat velit cupidatat",
+          },
+          {
+            href: "#",
+            text: "Learn more",
+            label: "aliquip eu officia ullamco ut fugiat",
+          },
+        ],
+      },
+      {
+        heading: "Magna mollit culpa cupidatat velit cupidatat mollit consequat quis.",
+        body: "Deserunt Lorem amet est aliqua. Lorem nulla id reprehenderit aliquip eu officia ullamco ut fugiat est laboris irure labore eu. Veniam reprehenderit adipisicing nostrud amet eu.",
+        actions: [
+          {
+            href: "#",
+            text: "Learn more",
+          },
+        ],
+      },
+    ],
     blocks: [
       {
         icon: "solana",

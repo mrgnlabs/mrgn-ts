@@ -12,11 +12,17 @@ export default function Home() {
       <GradientBorderBoxGrid boxes={content.gradientBorderBoxes} />
       <StatsBanner stats={content.statsBanner.stats} />
       <FeatureBlockCentered
-        heading={content.featuredBlocks.featured.heading}
-        body={content.featuredBlocks.featured.body}
-        actions={content.featuredBlocks.featured.actions}
+        heading={content.featuredBlocks.featured[0].heading}
+        body={content.featuredBlocks.featured[0].body}
+        actions={content.featuredBlocks.featured[0].actions}
       />
       <FeatureBlocksGrid blocks={content.featuredBlocks.blocks} />
+      <FeatureBlockCentered
+        variant="secondary"
+        heading={content.featuredBlocks.featured[1].heading}
+        body={content.featuredBlocks.featured[1].body}
+        actions={content.featuredBlocks.featured[1].actions}
+      />
     </main>
   );
 }
