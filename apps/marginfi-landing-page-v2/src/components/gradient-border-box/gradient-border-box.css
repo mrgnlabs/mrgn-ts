@@ -1,0 +1,44 @@
+.gradient-border-box {
+  --gbb-border-width: 1px;
+  --gbb-radius: 10px;
+
+  position: relative;
+  border-radius: var(--gbb-radius);
+  border: var(--gbb-border-width) solid transparent;
+}
+
+.gradient-border-box::before {
+  content: " ";
+  position: absolute;
+  inset: calc(var(--gbb-border-width) * -1);
+  z-index: -1;
+  border: inherit;
+  border-radius: inherit;
+  background-image: conic-gradient(from var(--angle), #381d6a 80%, #e0d1ff 88%, #e0d1ff 92%, #381d6a 100%);
+  background-origin: border-box;
+  -webkit-mask: linear-gradient(black, black) content-box, linear-gradient(black, black);
+  mask: linear-gradient(black, black), linear-gradient(black, black);
+  -webkit-mask-clip: content-box, border-box;
+  mask-clip: content-box, border-box;
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: spin 5s linear infinite;
+}
+
+@supports not (background: paint(something)) {
+  .gradient-border-box::before {
+    background-image: conic-gradient(#a2e6e7 80%, #f7f7b0 88%, #f7f7b0 92%, #a2e6e7 100%);
+  }
+}
+
+@property --angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0turn;
+}
+
+@keyframes spin {
+  to {
+    --angle: 1turn;
+  }
+}
