@@ -1,20 +1,34 @@
 import Link from "next/link";
 
+import { cva, type VariantProps } from "class-variance-authority";
+
 import { Button } from "~/components/ui/button";
 
 import { cn } from "~/lib/utils";
 
 import type { Action } from "~/types";
 
-type FeatureBlockCenteredProps = {
+const featuredBlockVariants = cva("w-full py-12 px-6", {
+  variants: {
+    variant: {
+      default: "bg-transparent",
+      secondary: "bg-background border-t border-b border-border my-16",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+});
+
+interface FeatureBlockCenteredProps extends VariantProps<typeof featuredBlockVariants> {
   heading: string;
   body: string;
   actions?: Action[];
-};
+}
 
-export const FeatureBlockCentered = ({ heading, body, actions }: FeatureBlockCenteredProps) => {
+export const FeatureBlockCentered = ({ variant = "default", heading, body, actions }: FeatureBlockCenteredProps) => {
   return (
-    <div className="w-full py-12 px-6">
+    <div className={cn(featuredBlockVariants({ variant }))}>
       <div className="flex flex-col items-center text-center w-full max-w-3xl mx-auto">
         <h3 className="mb-4 text-3xl font-medium text-center md:text-5xl">{heading}</h3>
         <p className="text-muted-foreground md:text-lg">{body}</p>
