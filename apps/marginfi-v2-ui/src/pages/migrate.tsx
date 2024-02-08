@@ -1,11 +1,12 @@
 import React from "react";
 
-import { useWalletContext } from "~/hooks/useWalletContext";
+import { PublicKey } from "@solana/web3.js";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 import { useMrgnlendStore } from "~/store";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { PageHeader } from "~/components/common/PageHeader";
 import { WalletButton } from "~/components/common/Wallet";
@@ -30,6 +31,20 @@ export default function MigratePage() {
       state.selectedAccount,
     ]);
   const [chosenAccount, setChosenAccount] = React.useState<MarginfiAccountWrapper | null>(null);
+  const walletAddressInputRef = React.useRef<HTMLInputElement>(null);
+
+  const migrateAccount = React.useCallback(async () => {
+    if (!selectedAccount || !walletAddressInputRef?.current?.value) return;
+
+    console.log("Migrating account...", selectedAccount.address.toBase58(), walletAddressInputRef.current.value);
+
+    try {
+      const data = await selectedAccount.transferAccountAuthority(new PublicKey(walletAddressInputRef.current.value));
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [selectedAccount, walletAddressInputRef]);
 
   React.useEffect(() => {
     if (marginfiAccounts.length === 1 && !chosenAccount) {
@@ -114,7 +129,13 @@ export default function MigratePage() {
                 <IconAlertTriangle size={18} />
                 <AlertTitle>Proceed with caution</AlertTitle>
               </Alert>
-              <div className="space-y-8 w-full flex flex-col items-center text-muted-foreground">
+              <form
+                className="space-y-8 w-full flex flex-col items-center text-muted-foreground"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  migrateAccount();
+                }}
+              >
                 <ul className="w-full space-y-2">
                   <li className="flex items-center justify-between gap-2">
                     Migrating Account:
@@ -147,7 +168,7 @@ export default function MigratePage() {
                   </li>
                   <li className="flex items-center justify-between gap-8">
                     To:
-                    <Input type="text" placeholder="Wallet address" />
+                    <Input ref={walletAddressInputRef} required type="text" placeholder="Wallet address" />
                   </li>
                 </ul>
                 <div className="flex flex-col gap-2">
@@ -157,6 +178,7 @@ export default function MigratePage() {
 
                   {marginfiAccounts.length > 1 && (
                     <Button
+                      type="submit"
                       variant="link"
                       size="sm"
                       className="text-destructive-foreground gap-1"
@@ -168,7 +190,7 @@ export default function MigratePage() {
                     </Button>
                   )}
                 </div>
-              </div>
+              </form>
             </div>
           )}
         </div>

@@ -548,6 +548,16 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.makeAccountAuthorityTransferIx(this._program, newAccountAuthority);
   }
 
+  async transferAccountAuthority(newAccountAuthority: PublicKey): Promise<string> {
+    const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:transfer-authority`);
+    debug("Transferring account %s to %s", this.address.toBase58(), newAccountAuthority.toBase58());
+    const ixs = await this.makeTransferAccountAuthorityIx(newAccountAuthority);
+    const tx = new Transaction().add(...ixs.instructions);
+    const sig = await this.client.processTransaction(tx, []);
+    debug("Transfer successful %s", sig);
+    return sig;
+  }
+
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
