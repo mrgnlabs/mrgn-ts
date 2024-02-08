@@ -1,4 +1,4 @@
-import { IconBrandXFilled, IconBrandGithubFilled, IconBrandDiscordFilled } from "@tabler/icons-react";
+import { IconBrandXFilled, IconBrandGithubFilled, IconBrandDiscordFilled, IconMenu } from "@tabler/icons-react";
 
 type IconProps = {
   size?: number;
@@ -18,4 +18,4 @@ const IconMrgn = ({ size = 24, className }: IconProps) => (
   </svg>
 );
 
-export { IconBrandXFilled, IconBrandGithubFilled, IconBrandDiscordFilled, IconMrgn };
+export { IconBrandXFilled, IconBrandGithubFilled, IconBrandDiscordFilled, IconMenu, IconMrgn };
