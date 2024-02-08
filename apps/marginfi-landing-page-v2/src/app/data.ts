@@ -7,7 +7,7 @@ export const content = {
   gradientBorderBoxes: [
     {
       icon: "solana",
-      title: "Eu fugiat pariatur incididunt veniam voluptate duis eiusmod.",
+      heading: "Eu fugiat pariatur incididunt veniam voluptate duis eiusmod.",
       body: "Dolore nulla in sunt voluptate duis eiusmod ullamco Lorem. Ut aliquip quis proident sit. Est proident incididunt.",
       action: {
         href: "#",
@@ -16,7 +16,7 @@ export const content = {
     },
     {
       icon: "sparkles",
-      title: "Culpa ad eu officia veniam pariatur eiusmod aute nisi eu.",
+      heading: "Culpa ad eu officia veniam pariatur eiusmod aute nisi eu.",
       body: "Laborum ut anim voluptate minim laboris. Sint voluptate pariatur aute nisi eu. Ut commodo amet id adipisicing non.",
       action: {
         href: "#",
@@ -57,5 +57,50 @@ export const content = {
         },
       ],
     },
+    blocks: [
+      {
+        icon: "solana",
+        heading: "Adipisicing minim",
+        body: "Duis ipsum adipisicing do irure tempor amet aliquip eu minim tempor aute. Et ut eiusmod laboris do aute cupidatat labore laboris ad velit nisi veniam. Officia incididunt incididunt.",
+        image: `https://picsum.photos/1920/1080?t=${Math.round(Math.random() * 1000000)}`,
+        action: {
+          href: "#",
+          text: "Learn more",
+        },
+      },
+      {
+        icon: "sparkles",
+        heading: "Adipisicing minim",
+        body: "Duis reprehenderit nisi aute officia voluptate laboris non anim ullamco duis nostrud. Labore anim occaecat ipsum ex labore veniam quis dolore Lorem reprehenderit amet. Laborum voluptate deserunt sunt nostrud.",
+        image: `https://picsum.photos/1920/1080?t=${Math.round(Math.random() * 1000000)}`,
+
+        action: {
+          href: "#",
+          text: "Learn more",
+        },
+      },
+      {
+        icon: "solana",
+        heading: "Adipisicing minim",
+        body: "Sint cillum Lorem eu ut aliquip ullamco eu amet non aliqua. Qui id Lorem dolor amet labore culpa culpa veniam. Nulla excepteur laborum exercitation non ullamco amet fugiat consequat quis duis deserunt.",
+        image: `https://picsum.photos/1920/1080?t=${Math.round(Math.random() * 1000000)}`,
+
+        action: {
+          href: "#",
+          text: "Learn more",
+        },
+      },
+      {
+        icon: "sparkles",
+        heading: "Adipisicing minim",
+        body: "Culpa irure id laboris incididunt sint eiusmod in enim esse voluptate veniam cupidatat. Eiusmod laborum aute mollit qui enim culpa ex. Est ipsum veniam irure commodo cupidatat incididunt dolor sint nostrud velit.",
+        image: `https://picsum.photos/1920/1080?t=${Math.round(Math.random() * 1000000)}`,
+
+        action: {
+          href: "#",
+          text: "Learn more",
+        },
+      },
+    ],
   },
 };
