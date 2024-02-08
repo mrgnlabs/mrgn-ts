@@ -24,6 +24,8 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.3rem;
+
+    --mrgn-chartreuse: 65 75% 64%;
   }
 
   .dark {

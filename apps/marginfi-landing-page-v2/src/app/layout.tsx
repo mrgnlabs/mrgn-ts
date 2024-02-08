@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="dark">
+      <body className="dark pt-24 h-screen flex flex-col justify-between overflow-auto">
         <Header />
         {children}
         <Footer />
