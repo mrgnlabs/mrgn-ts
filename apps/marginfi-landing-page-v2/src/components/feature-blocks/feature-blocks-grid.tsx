@@ -14,7 +14,7 @@ type FeatureBlockGridProps = {
   })[];
 };
 
-export const FeatureBlockGrid = ({ blocks }: FeatureBlockGridProps) => {
+export const FeatureBlocksGrid = ({ blocks }: FeatureBlockGridProps) => {
   return (
     <div className="w-full py-12 px-6">
       <div className="w-full max-w-6xl mx-auto space-y-20">
@@ -45,7 +45,13 @@ export const FeatureBlockGrid = ({ blocks }: FeatureBlockGridProps) => {
               )}
             </div>
             <div className="w-11/12 mx-auto relative min-h-[240px] md:min-h-[320px] md:w-1/2 md:mx-0 lg:w-2/5">
-              <Image src={block.image} fill={true} alt={block.heading} objectFit="cover" className="rounded-lg" />
+              <Image
+                src={block.image}
+                fill={true}
+                alt={block.heading}
+                objectFit="cover"
+                className="rounded-lg shadow-lg"
+              />
             </div>
           </div>
         ))}

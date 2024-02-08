@@ -3,7 +3,7 @@ import { content } from "./data";
 import { Hero } from "~/components/hero";
 import { GradientBorderBoxGrid } from "~/components/gradient-border-box";
 import { StatsBanner } from "~/components/stats-banner/stats-banner";
-import { FeatureBlockCentered, FeatureBlockGrid } from "~/components/feature-block";
+import { FeatureBlockCentered, FeatureBlocksGrid } from "~/components/feature-blocks";
 
 export default function Home() {
   return (
@@ -16,7 +16,7 @@ export default function Home() {
         body={content.featuredBlocks.featured.body}
         actions={content.featuredBlocks.featured.actions}
       />
-      <FeatureBlockGrid blocks={content.featuredBlocks.blocks} />
+      <FeatureBlocksGrid blocks={content.featuredBlocks.blocks} />
     </main>
   );
 }
