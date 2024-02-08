@@ -84,7 +84,7 @@ export const Header = () => {
       <div className="flex items-center gap-4 justify-between lg:hidden">
         <IconMrgn size={34} />
         <Button variant="ghost" size="icon">
-          <IconMenu />
+          <IconMenu size={28} />
         </Button>
       </div>
     </header>
