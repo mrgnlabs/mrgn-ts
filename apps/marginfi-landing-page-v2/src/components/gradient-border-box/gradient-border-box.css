@@ -5,6 +5,13 @@
   position: relative;
   border-radius: var(--gbb-radius);
   border: var(--gbb-border-width) solid transparent;
+  box-shadow: 0 0 50px rgba(36, 123, 160, 0.15);
+  transition: all 0.3s;
+}
+
+.gradient-border-box:hover {
+  box-shadow: 0 0 50px rgba(36, 123, 160, 0.25);
+  transform: scale(1.01);
 }
 
 .gradient-border-box::before {
@@ -16,8 +23,8 @@
   border-radius: inherit;
   background-image: conic-gradient(from var(--angle), #247ba0 80%, #ffffb5 88%, #ffffb5 92%, #247ba0 100%);
   background-origin: border-box;
-  -webkit-mask: linear-gradient(black, black) content-box, linear-gradient(black, black);
-  mask: linear-gradient(black, black), linear-gradient(black, black);
+  -webkit-mask: linear-gradient(#131719, #131719) content-box, linear-gradient(#131719, #131719);
+  mask: linear-gradient(#131719, #131719), linear-gradient(#131719, #131719);
   -webkit-mask-clip: content-box, border-box;
   mask-clip: content-box, border-box;
   -webkit-mask-composite: xor;
