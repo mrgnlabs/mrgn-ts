@@ -1,18 +1,13 @@
+import Link from "next/link";
+
 import { Button } from "~/components/ui/button";
 import { IconSolana, IconSparkles } from "~/components/ui/icons";
 
-import "./gradient-border-box.css";
-import Link from "next/link";
+import type { Block } from "~/types";
 
-type GradientBorderBoxProps = {
-  icon?: string;
-  heading: string;
-  body?: string;
-  action?: {
-    href: string;
-    text: string;
-  };
-};
+import "./gradient-border-box.css";
+
+type GradientBorderBoxProps = Block;
 
 export const GradientBorderBox = ({ icon, heading, body, action }: GradientBorderBoxProps) => {
   return (

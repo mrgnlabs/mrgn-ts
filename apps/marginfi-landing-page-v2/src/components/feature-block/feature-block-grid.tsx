@@ -1,9 +1,7 @@
+import type { Block } from "~/types";
+
 type FeatureBlockGridProps = {
-  blocks: {
-    icon?: JSX.Element;
-    heading: string;
-    body: string;
-  }[];
+  blocks: Block[];
 };
 
 export const FeatureBlockGrid = ({ blocks }: FeatureBlockGridProps) => {

@@ -4,14 +4,12 @@ import { Button } from "~/components/ui/button";
 
 import { cn } from "~/lib/utils";
 
+import type { Action } from "~/types";
+
 type FeatureBlockCenteredProps = {
   heading: string;
   body: string;
-  actions?: {
-    href: string;
-    text: string;
-    label?: string;
-  }[];
+  actions?: Action[];
 };
 
 export const FeatureBlockCentered = ({ heading, body, actions }: FeatureBlockCenteredProps) => {
