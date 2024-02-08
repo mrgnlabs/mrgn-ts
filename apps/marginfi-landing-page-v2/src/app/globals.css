@@ -63,3 +63,23 @@
 body {
   background: radial-gradient(50% 50% at 50% 50%, #131719 10%, #0f1111 80%);
 }
+
+* {
+  scrollbar-width: auto;
+  scrollbar-color: hsl(var(--muted-foreground)) #0f1111;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 16px;
+}
+
+body::-webkit-scrollbar-track {
+  background: #0f1111;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground));
+  border-radius: 10px;
+  border: 0;
+}
