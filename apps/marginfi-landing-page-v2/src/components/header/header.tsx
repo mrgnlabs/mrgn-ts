@@ -39,7 +39,7 @@ export const Header = () => {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 w-full py-3 px-6 transition-colors duration-500",
+        "fixed z-10 top-0 left-0 w-full py-3 px-6 transition-colors",
         isScrolling && "bg-background/90 shadow-xl"
       )}
     >
