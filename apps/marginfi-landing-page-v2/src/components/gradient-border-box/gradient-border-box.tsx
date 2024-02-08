@@ -7,19 +7,19 @@ import Link from "next/link";
 type GradientBorderBoxProps = {
   icon?: string;
   heading: string;
-  description?: string;
+  body?: string;
   action?: {
     href: string;
     text: string;
   };
 };
 
-export const GradientBorderBox = ({ icon, heading, description, action }: GradientBorderBoxProps) => {
+export const GradientBorderBox = ({ icon, heading, body, action }: GradientBorderBoxProps) => {
   return (
     <div className="gradient-border-box py-10 px-16 w-full h-full">
       {icon && <Icon name={icon} />}
       <h2 className="text-xl font-medium">{heading}</h2>
-      {description && <p className="text-sm text-muted-foreground mt-3">{description}</p>}
+      {body && <p className="text-sm text-muted-foreground mt-3">{body}</p>}
       {action && (
         <div className="mt-8">
           <Button>
