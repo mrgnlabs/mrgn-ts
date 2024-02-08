@@ -21,17 +21,14 @@ const navItema = content.navItems;
 export const Header = () => {
   const [isScrolling, setIsScrolling] = React.useState(false);
 
+  const handleScroll = React.useCallback(() => {
+    const scrollY = window.scrollY;
+    const scrollingStarted = scrollY > 0;
+
+    setIsScrolling(scrollingStarted);
+  }, [isScrolling, setIsScrolling]);
+
   React.useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const scrollingStarted = scrollY > 0;
-
-      if (scrollY && scrollingStarted) return;
-      if (!scrollY && !scrollingStarted) return;
-
-      setIsScrolling(scrollingStarted);
-    };
-
     document.addEventListener("scroll", handleScroll);
 
     return () => {
