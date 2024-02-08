@@ -17,7 +17,7 @@ export const GradientBorderBox = ({ icon, heading, body, action }: GradientBorde
       {body && <p className="text-sm text-muted-foreground mt-3">{body}</p>}
       {action && (
         <div className="mt-8">
-          <Button>
+          <Button className="w-72 md:w-auto">
             <Link href={action.href}></Link>
             {action.text}
           </Button>
