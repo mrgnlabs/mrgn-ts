@@ -8,8 +8,7 @@ export const content = {
     {
       icon: "solana",
       title: "Eu fugiat pariatur incididunt veniam voluptate duis eiusmod.",
-      description:
-        "Dolore nulla in sunt voluptate duis eiusmod ullamco Lorem. Ut aliquip quis proident sit. Est proident incididunt.",
+      body: "Dolore nulla in sunt voluptate duis eiusmod ullamco Lorem. Ut aliquip quis proident sit. Est proident incididunt.",
       action: {
         href: "#",
         text: "Learn more",
@@ -18,8 +17,7 @@ export const content = {
     {
       icon: "sparkles",
       title: "Culpa ad eu officia veniam pariatur eiusmod aute nisi eu.",
-      description:
-        "Laborum ut anim voluptate minim laboris. Sint voluptate pariatur aute nisi eu. Ut commodo amet id adipisicing non.",
+      body: "Laborum ut anim voluptate minim laboris. Sint voluptate pariatur aute nisi eu. Ut commodo amet id adipisicing non.",
       action: {
         href: "#",
         text: "Get Started",
@@ -41,5 +39,23 @@ export const content = {
         value: 45.41,
       },
     ],
+  },
+  featuredBlocks: {
+    featured: {
+      heading: "Magna mollit culpa cupidatat velit cupidatat mollit consequat quis.",
+      body: "Deserunt Lorem amet est aliqua. Lorem nulla id reprehenderit aliquip eu officia ullamco ut fugiat est laboris irure labore eu. Veniam reprehenderit adipisicing nostrud amet eu.",
+      actions: [
+        {
+          href: "#",
+          text: "Learn more",
+          label: "Culpa cupidatat velit cupidatat",
+        },
+        {
+          href: "#",
+          text: "Learn more",
+          label: "aliquip eu officia ullamco ut fugiat",
+        },
+      ],
+    },
   },
 };
