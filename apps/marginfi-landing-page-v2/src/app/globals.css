@@ -59,3 +59,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+body {
+  background: radial-gradient(50% 50% at 50% 50%, #131719 10%, #0f1111 80%);
+}

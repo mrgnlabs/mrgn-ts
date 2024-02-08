@@ -29,7 +29,7 @@ const navItema = [
 
 export const Header = () => {
   return (
-    <header className="fixed top-0 left-0 w-full py-4 px-6 bg-background">
+    <header className="fixed top-0 left-0 w-full py-3 px-6">
       <div className="hidden lg:flex items-center justify-between gap-4">
         <IconMrgn size={42} />
         <nav className="hidden lg:block ml-8 text-sm">
