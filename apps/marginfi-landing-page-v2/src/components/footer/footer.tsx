@@ -94,7 +94,7 @@ export const Footer = () => {
       <div className="hidden gap-32 text-sm mb-8 md:flex lg:ml-auto">
         {Object.keys(navItems).map((key, index) => (
           <div key={index} className="w-full space-y-4 min-w-fit">
-            <h4 className=" text-base">{key}</h4>
+            <h4 className="font-medium">{key}</h4>
             <ul className="space-y-2 w-full">
               {navItems[key].map((item, index) => (
                 <li key={index}>
