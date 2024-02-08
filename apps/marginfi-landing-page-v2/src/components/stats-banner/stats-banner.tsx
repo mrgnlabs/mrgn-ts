@@ -1,19 +1,11 @@
-const stats = [
-  {
-    label: "Total for stat 1",
-    value: 37.02,
-  },
-  {
-    label: "Total for stat 2",
-    value: 100.78,
-  },
-  {
-    label: "Total for stat 3",
-    value: 45.41,
-  },
-];
+type StatsBannerProps = {
+  stats: {
+    label: string;
+    value: number;
+  }[];
+};
 
-export const StatsBanner = () => {
+export const StatsBanner = ({ stats }: StatsBannerProps) => {
   return (
     <div className="py-12 px-6 border-t border-b border-border my-16">
       <div className="w-full max-w-7xl mx-auto">
