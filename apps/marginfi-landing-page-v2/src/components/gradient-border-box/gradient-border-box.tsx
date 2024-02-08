@@ -11,9 +11,9 @@ type GradientBorderBoxProps = Block;
 
 export const GradientBorderBox = ({ icon, heading, body, action }: GradientBorderBoxProps) => {
   return (
-    <div className="gradient-border-box py-10 px-16 w-full h-full">
+    <div className="gradient-border-box w-full h-full py-8 px-12">
       {icon && <Icon name={icon} />}
-      <h2 className="text-xl font-medium">{heading}</h2>
+      <h2 className="text-xl font-medium lg:w-11/12 lg:mx-auto">{heading}</h2>
       {body && <p className="text-sm text-muted-foreground mt-3">{body}</p>}
       {action && (
         <div className="mt-8">
