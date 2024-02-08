@@ -1,10 +1,10 @@
 import {
-  IconBrandXFilled,
-  IconBrandGithubFilled,
   IconBrandDiscordFilled,
+  IconBrandGithubFilled,
+  IconBrandXFilled,
   IconMenu,
-  IconSparkles,
   IconNetwork,
+  IconSparkles,
 } from "@tabler/icons-react";
 
 type IconProps = {
@@ -58,12 +58,12 @@ const IconSolana = ({ size = 24, className }: IconProps) => (
 
 export {
   // tabler
-  IconBrandXFilled,
-  IconBrandGithubFilled,
   IconBrandDiscordFilled,
+  IconBrandGithubFilled,
+  IconBrandXFilled,
   IconMenu,
-  IconSparkles,
   IconNetwork,
+  IconSparkles,
 
   // custom
   IconMrgn,
