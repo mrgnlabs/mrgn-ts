@@ -1,4 +1,12 @@
+"use client";
+
+import React from "react";
+
 import Link from "next/link";
+
+import { content } from "~/app/data";
+import { cn } from "~/lib/utils";
+
 import { Button } from "~/components/ui/button";
 import {
   IconMrgn,
@@ -8,28 +16,36 @@ import {
   IconMenu,
 } from "~/components/ui/icons";
 
-const navItema = [
-  {
-    label: "Product",
-    href: "#",
-  },
-  {
-    label: "Developers",
-    href: "#",
-  },
-  {
-    label: "Ecosystem",
-    href: "#",
-  },
-  {
-    label: "Community",
-    href: "#",
-  },
-];
+const navItema = content.navItems;
 
 export const Header = () => {
+  const [isScrolling, setIsScrolling] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const scrollingStarted = scrollY > 0;
+
+      if (scrollY && scrollingStarted) return;
+      if (!scrollY && !scrollingStarted) return;
+
+      setIsScrolling(scrollingStarted);
+    };
+
+    document.addEventListener("scroll", handleScroll);
+
+    return () => {
+      document.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
-    <header className="fixed top-0 left-0 w-full py-3 px-6">
+    <header
+      className={cn(
+        "fixed top-0 left-0 w-full py-3 px-6 transition-colors duration-500",
+        isScrolling && "bg-background/90 shadow-xl"
+      )}
+    >
       <div className="hidden lg:flex items-center justify-between gap-4">
         <IconMrgn size={42} />
         <nav className="hidden lg:block ml-8 text-sm">

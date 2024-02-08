@@ -1,4 +1,22 @@
 export const content = {
+  navItems: [
+    {
+      label: "Product",
+      href: "#",
+    },
+    {
+      label: "Developers",
+      href: "#",
+    },
+    {
+      label: "Ecosystem",
+      href: "#",
+    },
+    {
+      label: "Community",
+      href: "#",
+    },
+  ],
   hero: {
     heading: "Dolore aute <strong>cillum cupidatat velit</strong> aliquip tempor eu irure dolor culpa dolor.",
     subHeading:
