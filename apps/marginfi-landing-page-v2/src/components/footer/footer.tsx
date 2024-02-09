@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cn } from "~/lib/utils";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
-import { IconMrgn } from "~/components/ui/icons";
+import { IconBrandDiscordFilled, IconBrandGithubFilled, IconBrandXFilled, IconMrgn } from "~/components/ui/icons";
 
 type NavItems = {
   [key: string]: { label: string; href: string }[];
@@ -39,6 +39,20 @@ const navItems: NavItems = {
     },
     {
       label: "Analytics",
+      href: "#",
+    },
+  ],
+  "Proident Anim": [
+    {
+      label: "Excepteur Lorem ",
+      href: "#",
+    },
+    {
+      label: "Irure Dolore",
+      href: "#",
+    },
+    {
+      label: "Do Officia",
       href: "#",
     },
   ],
@@ -91,21 +105,40 @@ export const Footer = () => {
         </ul>
       </div>
 
-      <div className="hidden gap-32 text-sm mb-8 md:flex lg:ml-auto">
-        {Object.keys(navItems).map((key, index) => (
-          <div key={index} className="w-full space-y-4 min-w-fit">
-            <h4 className="font-medium">{key}</h4>
-            <ul className="space-y-2 w-full">
-              {navItems[key].map((item, index) => (
-                <li key={index}>
-                  <Link href={item.href} className="text-muted-foreground transition-colors hover:text-primary">
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+      <div className="hidden relative text-sm w-full min-h-[240px] justify-between lg:flex">
+        <div className="flex gap-32 ml-40">
+          {Object.keys(navItems).map((key, index) => (
+            <div key={index} className="w-full space-y-4 min-w-fit">
+              <h4 className="font-medium">{key}</h4>
+              <ul className="space-y-2 w-full">
+                {navItems[key].map((item, index) => (
+                  <li key={index}>
+                    <Link href={item.href} className="text-muted-foreground transition-colors hover:text-primary">
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <ul className="absolute bottom-0 right-0 items-center gap-6 text-xs hidden lg:flex self-end">
+          <li>
+            <Link href="">
+              <IconBrandXFilled size={20} />
+            </Link>
+          </li>
+          <li>
+            <Link href="">
+              <IconBrandDiscordFilled size={20} />
+            </Link>
+          </li>
+          <li>
+            <Link href="">
+              <IconBrandGithubFilled size={20} />
+            </Link>
+          </li>
+        </ul>
       </div>
 
       <div className="md:hidden w-full">
