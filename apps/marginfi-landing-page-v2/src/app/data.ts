@@ -133,4 +133,26 @@ export const content = {
       },
     ],
   },
+  logoWall: {
+    heading: "Aliquip enim pariatur minim proident laborum nisi officia.",
+    body: "Dolor aliqua exercitation nulla elit qui ullamco ex deserunt culpa deserunt. Veniam proident in enim nostrud ut veniam qui deserunt.",
+    logos: [
+      {
+        img: "/img/logos/multicoin-capital.svg",
+        href: "#",
+      },
+      {
+        img: "/img/logos/multicoin-capital.svg",
+        href: "#",
+      },
+      {
+        img: "/img/logos/multicoin-capital.svg",
+        href: "#",
+      },
+      {
+        img: "/img/logos/multicoin-capital.svg",
+        href: "#",
+      },
+    ],
+  },
 };
