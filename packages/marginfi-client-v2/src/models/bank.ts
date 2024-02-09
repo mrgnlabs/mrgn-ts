@@ -371,34 +371,11 @@ class Bank {
     marginRequirementType: MarginRequirementType,
     oraclePrice: OraclePrice,
     ignoreSoftLimits: boolean = false,
-    log: boolean = false
   ): BigNumber {
     switch (marginRequirementType) {
       case MarginRequirementType.Initial:
-        if (ignoreSoftLimits) return this.config.assetWeightInit;
-        const totalBankCollateralValue = this.computeAssetUsdValue(
-          oraclePrice,
-          this.totalAssetShares,
-          MarginRequirementType.Equity,
-          PriceBias.Lowest
-        );
-        if (totalBankCollateralValue.isGreaterThan(this.config.totalAssetValueInitLimit)) {
-          return this.config.totalAssetValueInitLimit.div(totalBankCollateralValue).times(this.config.assetWeightInit);
-        } else {
-          return this.config.assetWeightInit;
-        }
-      case MarginRequirementType.Maintenance:
-        return this.config.assetWeightMaint;
-      case MarginRequirementType.Equity:
-        return new BigNumber(1);
-      default:
-        throw new Error("Invalid margin requirement type");
-    }
-  }
-
-  getEffectiveAssetWeight(marginRequirementType: MarginRequirementType, oraclePrice: OraclePrice): BigNumber {
-    switch (marginRequirementType) {
-      case MarginRequirementType.Initial:
+        const isSoftLimitDisabled = this.config.totalAssetValueInitLimit.isZero();
+        if (ignoreSoftLimits || isSoftLimitDisabled) return this.config.assetWeightInit;
         const totalBankCollateralValue = this.computeAssetUsdValue(
           oraclePrice,
           this.totalAssetShares,
