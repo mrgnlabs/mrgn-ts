@@ -16,7 +16,7 @@ type FeatureBlockGridProps = {
 
 export const FeatureBlocksGrid = ({ blocks }: FeatureBlockGridProps) => {
   return (
-    <div className="w-full py-16 px-6">
+    <div className="w-full py-20 px-6">
       <div className="w-full max-w-6xl mx-auto space-y-20">
         {blocks.map((block, index) => (
           <div

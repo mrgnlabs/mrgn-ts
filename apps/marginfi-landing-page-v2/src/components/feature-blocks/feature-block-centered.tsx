@@ -12,7 +12,7 @@ const featuredBlockVariants = cva("w-full py-12 px-6", {
   variants: {
     variant: {
       default: "bg-transparent",
-      secondary: "bg-background border-t border-b border-border my-16",
+      secondary: "bg-background border-t border-b border-border py-16",
     },
   },
   defaultVariants: {

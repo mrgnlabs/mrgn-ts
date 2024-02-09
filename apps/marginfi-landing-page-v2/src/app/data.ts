@@ -155,4 +155,50 @@ export const content = {
       },
     ],
   },
+  faq: {
+    heading: "Ex consequat esse dolore ea fugiat irure minim.",
+    body: "Aliqua occaecat deserunt amet id ipsum tempor ut incididunt. Fugiat qui esse cillum quis voluptate dolore dolore sunt cillum.",
+    faq: [
+      {
+        question: "Tempor excepteur labore nulla excepteur deserunt amet ad labore nostrud ex.",
+        answer:
+          "Deserunt do exercitation tempor ex ad magna labore ipsum sit cupidatat laborum laborum anim. Pariatur et exercitation enim velit minim labore do.",
+      },
+      {
+        question: "Tempor excepteur labore nulla excepteur deserunt amet ad labore nostrud ex.",
+        answer:
+          "Deserunt do exercitation tempor ex ad magna labore ipsum sit cupidatat laborum laborum anim. Pariatur et exercitation enim velit minim labore do.",
+      },
+      {
+        question: "Tempor excepteur labore nulla excepteur deserunt amet ad labore nostrud ex.",
+        answer:
+          "Deserunt do exercitation tempor ex ad magna labore ipsum sit cupidatat laborum laborum anim. Pariatur et exercitation enim velit minim labore do.",
+      },
+      {
+        question: "Tempor excepteur labore nulla excepteur deserunt amet ad labore nostrud ex.",
+        answer:
+          "Deserunt do exercitation tempor ex ad magna labore ipsum sit cupidatat laborum laborum anim. Pariatur et exercitation enim velit minim labore do.",
+      },
+      {
+        question: "Tempor excepteur labore nulla excepteur deserunt amet ad labore nostrud ex.",
+        answer:
+          "Deserunt do exercitation tempor ex ad magna labore ipsum sit cupidatat laborum laborum anim. Pariatur et exercitation enim velit minim labore do.",
+      },
+      {
+        question: "Tempor excepteur labore nulla excepteur deserunt amet ad labore nostrud ex.",
+        answer:
+          "Deserunt do exercitation tempor ex ad magna labore ipsum sit cupidatat laborum laborum anim. Pariatur et exercitation enim velit minim labore do.",
+      },
+      {
+        question: "Tempor excepteur labore nulla excepteur deserunt amet ad labore nostrud ex.",
+        answer:
+          "Deserunt do exercitation tempor ex ad magna labore ipsum sit cupidatat laborum laborum anim. Pariatur et exercitation enim velit minim labore do.",
+      },
+      {
+        question: "Tempor excepteur labore nulla excepteur deserunt amet ad labore nostrud ex.",
+        answer:
+          "Deserunt do exercitation tempor ex ad magna labore ipsum sit cupidatat laborum laborum anim. Pariatur et exercitation enim velit minim labore do.",
+      },
+    ],
+  },
 };
