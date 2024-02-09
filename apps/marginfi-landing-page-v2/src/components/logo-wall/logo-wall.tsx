@@ -12,7 +12,7 @@ type LogoWallProps = {
 
 export const LogoWall = ({ heading, body, logos }: LogoWallProps) => {
   return (
-    <div className="space-y-8 py-8 px-6 w-full max-w-6xl mx-auto">
+    <div className="space-y-8 py-20 px-6 w-full max-w-6xl mx-auto">
       <header className="space-y-3 w-full flex flex-col items-center text-center">
         <h2 className="text-3xl font-medium">{heading}</h2>
         {body && <p className="text-muted-foreground w-full max-w-xl mx-auto">{body}</p>}
