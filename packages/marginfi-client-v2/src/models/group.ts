@@ -5,7 +5,7 @@ import { MARGINFI_IDL } from "../idl";
 import { AccountType, MarginfiProgram } from "../types";
 import { InstructionsWrapper } from "@mrgnlabs/mrgn-common";
 import instructions from "../instructions";
-import { FLASHLOAN_ENABLED_FLAG } from "../constants";
+import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "../constants";
 import { BankConfigOptRaw } from "./bank";
 
 // ----------------------------------------------------------------------------
@@ -95,6 +95,46 @@ class MarginfiGroup {
         admin: this.admin,
       },
       { flag: new BN(FLASHLOAN_ENABLED_FLAG) }
+    );
+
+    return {
+      instructions: [ix],
+      keys: [],
+    };
+  }
+
+  public async makeEnableAccountTransferForAccountIx(
+    program: MarginfiProgram,
+    marginfiAccountAddress: PublicKey
+  ): Promise<InstructionsWrapper> {
+    const ix = await instructions.makeSetAccountFlagIx(
+      program,
+      {
+        marginfiGroup: this.address,
+        marginfiAccount: marginfiAccountAddress,
+        admin: this.admin,
+      },
+      { flag: new BN(TRANSFER_ACCOUNT_AUTHORITY_FLAG) }
+    );
+
+    return {
+      instructions: [ix],
+      keys: [],
+    };
+  }
+
+  public async makeDisableAccountTransferForAccountIx(
+    program: MarginfiProgram,
+    marginfiAccountAddress: PublicKey
+  ): Promise<InstructionsWrapper> {
+    const ix = await instructions.makeUnsetAccountFlagIx(
+      program,
+      {
+        marginfiGroup: this.address,
+        marginfiAccount: marginfiAccountAddress,
+        admin: this.admin,
+      },
+      { flag: new BN(TRANSFER_ACCOUNT_AUTHORITY_FLAG) }
     );
 
     return {
