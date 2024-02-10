@@ -128,6 +128,11 @@ class MarginfiAccountWrapper {
   get isFlashLoanEnabled(): boolean {
     return this._marginfiAccount.isFlashLoanEnabled;
   }
+
+  get isTransferAccountAuthorityEnabled(): boolean {
+    return this._marginfiAccount.isTransferAccountAuthorityEnabled;
+  }
+
   public getBalance(bankPk: PublicKey): Balance {
     return this._marginfiAccount.getBalance(bankPk);
   }
