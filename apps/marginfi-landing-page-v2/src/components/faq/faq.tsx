@@ -1,5 +1,3 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
-
 type FAQProps = {
   heading: string;
   body?: string;
@@ -17,17 +15,6 @@ export const FAQ = ({ heading, body, faq }: FAQProps) => {
           <h1 className="text-3xl font-medium">{heading}</h1>
           {body && <p className="text-muted-foreground w-full max-w-xl mx-auto">{body}</p>}
         </header>
-
-        <Accordion type="single" collapsible className="w-full max-w-4xl mx-auto">
-          {faq.map((item, index) => (
-            <AccordionItem key={index} value={`item-${index}`}>
-              <AccordionTrigger className="hover:no-underline py-6 text-left gap-24 items-start sm:items-center">
-                {item.question}
-              </AccordionTrigger>
-              <AccordionContent>{item.answer}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
       </div>
     </div>
   );

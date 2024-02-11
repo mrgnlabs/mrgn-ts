@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { cn } from "~/lib/utils";
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
+// import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { IconBrandDiscordFilled, IconBrandGithubFilled, IconBrandXFilled, IconMrgn } from "~/components/ui/icons";
 
 type NavItems = {
@@ -142,7 +142,7 @@ export const Footer = () => {
       </div>
 
       <div className="md:hidden w-full">
-        {Object.keys(navItems).map((key, index) => (
+        {/* {Object.keys(navItems).map((key, index) => (
           <Accordion key={index} type="single" collapsible className="w-full">
             <AccordionItem value="item-1">
               <AccordionTrigger className="hover:no-underline">{key}</AccordionTrigger>
@@ -159,7 +159,7 @@ export const Footer = () => {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-        ))}
+        ))} */}
       </div>
 
       <ul className="flex items-center gap-6 text-xs lg:hidden">
