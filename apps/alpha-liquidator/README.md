@@ -24,7 +24,7 @@ The liquidator operates with SOL and token accounts in the provided wallet. This
 
 ## Getting Started
 1. Create a .env file in your running directory. Sample included (env-example) rename to .env in your running directory.
-2. Run the config to setup a wallet.  `ts-node src/config.ts` 
+2. Run the config to setup a wallet.  `ts-node src/setup.ts` 
 3. Take the LIQUIDATOR_PK generated from the config and insert it into your .env file.
 4. Run `./scripts/start.sh`
 
