@@ -49,13 +49,6 @@ export const EMISSION_MINT_INFO_MAP = new Map<string, { tokenSymbol: string; tok
       tokenLogoUri: "/blze.png",
     },
   ],
-  [
-    "LFG",
-    {
-      tokenSymbol: "LFG",
-      tokenLogoUri: "/lfg.webp",
-    },
-  ],
 ]);
 
 export const REDUCE_ONLY_BANKS = ["stSOL"];
