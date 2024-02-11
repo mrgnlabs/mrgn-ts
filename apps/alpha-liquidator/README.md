@@ -22,6 +22,12 @@ Make sure to configure the environment variables as described in the [Alpha Liqu
 
 The liquidator operates with SOL and token accounts in the provided wallet. This means it will convert non-USDC tokens (including excess SOL) to USDC and deposit the USDC into Marginfi to be used for liquidations.
 
+## Getting Started
+1. Create a .env file in your running directory. Sample included (env-example) rename to .env in your running directory.
+2. Run the config to setup a wallet.  `ts-node src/config.ts` 
+3. Take the LIQUIDATOR_PK generated from the config and insert it into your .env file.
+4. Run `./scripts/start.sh`
+
 ## How to run
 
 1. `./scripts/start.sh`
