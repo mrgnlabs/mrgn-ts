@@ -7,9 +7,11 @@ import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { extractErrorString } from "~/utils/mrgnUtils";
 
 import { PageHeader } from "~/components/common/PageHeader";
 import { WalletButton } from "~/components/common/Wallet";
+import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
@@ -35,14 +37,19 @@ export default function MigratePage() {
 
   const migrateAccount = React.useCallback(async () => {
     if (!selectedAccount || !walletAddressInputRef?.current?.value) return;
+    const multiStepToast = new MultiStepToastHandle("Migrate Account", [{ label: "Migrating account" }]);
+    multiStepToast.start();
 
     console.log("Migrating account...", selectedAccount.address.toBase58(), walletAddressInputRef.current.value);
 
     try {
       const data = await selectedAccount.transferAccountAuthority(new PublicKey(walletAddressInputRef.current.value));
       console.log(data);
+      multiStepToast.setSuccessAndNext();
     } catch (error) {
-      console.error(error);
+      const errMsg = extractErrorString(error);
+      console.error(errMsg);
+      multiStepToast.setFailed(errMsg);
     }
   }, [selectedAccount, walletAddressInputRef]);
 
