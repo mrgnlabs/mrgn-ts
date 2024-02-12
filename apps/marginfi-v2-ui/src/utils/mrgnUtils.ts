@@ -4,6 +4,7 @@ import { TOKEN_PROGRAM_ID, ceil, floor } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useEffect, useRef } from "react";
 import numeral from "numeral";
+import { ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
 
 // ================ development utils ================
 
@@ -94,3 +95,16 @@ export const clampedNumeralFormatter = (value: number) => {
     return numeral(value).format("0.00a");
   }
 };
+
+export function extractErrorString(error: any, fallback?: string): string {
+  if (error instanceof ProcessTransactionError) {
+    if (error.message === "Bank deposit capacity exceeded") return "We've reached maximum capacity for this asset";
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  return fallback ?? "Unrecognized error";
+}

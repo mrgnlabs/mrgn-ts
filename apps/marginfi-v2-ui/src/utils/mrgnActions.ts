@@ -1,6 +1,6 @@
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
-import { isWholePosition } from "./mrgnUtils";
+import { isWholePosition, extractErrorString } from "./mrgnUtils";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Wallet, processTransaction } from "@mrgnlabs/mrgn-common";
 import { WalletContextState } from "@solana/wallet-adapter-react";
@@ -317,19 +317,6 @@ export const closeBalance = async ({
     console.log(error);
   }
 };
-
-function extractErrorString(error: any, fallback?: string): string {
-  if (error instanceof ProcessTransactionError) {
-    if (error.message === "Bank deposit capacity exceeded") return "We've reached maximum capacity for this asset";
-    return error.message;
-  }
-
-  if (typeof error === "string") {
-    return error;
-  }
-
-  return fallback ?? "Unrecognized error";
-}
 
 async function getMaybeSquadsOptions(walletContextState?: WalletContextState | WalletContextStateOverride) {
   // If the connected wallet is SquadsX, use the ephemeral signer address provided by the wallet to create the marginfi account.
