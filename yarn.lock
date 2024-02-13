@@ -26319,9 +26319,9 @@ xmlhttprequest-ssl@~2.0.0:
   integrity sha512-QKxVRxiRACQcVuQEYFsI1hhkrMlrXHPegbbd1yn9UHOmRxY+si12nQYzri3vbzt8VdTTRviqcKxcyllFas5z2A==
 
 xnft@latest:
-  version "0.10.29-latest.1008"
-  resolved "https://registry.yarnpkg.com/xnft/-/xnft-0.10.29-latest.1008.tgz#d0bfb190d6f18126b6549401cdd794dfb39703e8"
-  integrity sha512-UswEHXFkMs6UqlcisGVTbdbh8QPS6NM6DVdRXMTl4ZRt1ny9TdRdIO8L2eHLyRI545Jqr3rub2y+XeXRXzk2hw==
+  version "0.10.29-latest.1009"
+  resolved "https://registry.yarnpkg.com/xnft/-/xnft-0.10.29-latest.1009.tgz#3dbb1eae05a76250f7642236d5bd4a0ed4eb9417"
+  integrity sha512-ZDKzZ0nFsCdmqNNk4c0MrxQYbLiZrti3NQOHO3DZ7F2llFYeod7HPKDn/YMA/jAX21duUam+vRcEfn8uGJQVgA==
   dependencies:
     "@coral-xyz/xnft" "^0.2.60"
     "@esbuild-plugins/node-globals-polyfill" "^0.2.3"
