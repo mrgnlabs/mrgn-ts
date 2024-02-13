@@ -1,6 +1,9 @@
 import React from "react";
 
+import Link from "next/link";
+
 import { PublicKey } from "@solana/web3.js";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
@@ -18,7 +21,7 @@ import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";
 import { Alert, AlertTitle } from "~/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconAlertTriangle, IconTransfer, IconX } from "~/components/ui/icons";
+import { IconAlertTriangle, IconTransfer, IconX, IconLink, IconExternalLink } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 
 export default function MigratePage() {
@@ -33,6 +36,9 @@ export default function MigratePage() {
       state.selectedAccount,
     ]);
   const [chosenAccount, setChosenAccount] = React.useState<MarginfiAccountWrapper | null>(null);
+  const [isComplete, setIsComplete] = React.useState(true);
+  const [txnSignature, setTxnSignature] = React.useState<string | null>("asdasdasd");
+  const [isCopied, setIsCopied] = React.useState(false);
   const walletAddressInputRef = React.useRef<HTMLInputElement>(null);
 
   const migrateAccount = React.useCallback(async () => {
@@ -44,8 +50,11 @@ export default function MigratePage() {
 
     try {
       const data = await selectedAccount.transferAccountAuthority(new PublicKey(walletAddressInputRef.current.value));
-      console.log(data);
       multiStepToast.setSuccessAndNext();
+      localStorage.removeItem(`marginfi_accounts-${wallet.toString()}`);
+      localStorage.removeItem(`marginfi_accounts-${walletAddressInputRef.current.value}`);
+      setTxnSignature(data);
+      setIsComplete(true);
     } catch (error) {
       const errMsg = extractErrorString(error);
       console.error(errMsg);
@@ -57,7 +66,7 @@ export default function MigratePage() {
     if (marginfiAccounts.length === 1 && !chosenAccount) {
       setChosenAccount(marginfiAccounts[0]);
     }
-  }, [marginfiAccounts]);
+  }, [marginfiAccounts, chosenAccount]);
 
   return (
     <>
@@ -72,7 +81,7 @@ export default function MigratePage() {
             </div>
           )}
 
-          {connected && !chosenAccount && (
+          {connected && !chosenAccount && !isComplete && (
             <div className="flex flex-col items-center max-w-md mx-auto">
               <header className="space-y-4 text-center">
                 <h1 className="text-3xl font-medium">Migrate your marginfi account</h1>
@@ -123,7 +132,7 @@ export default function MigratePage() {
             </div>
           )}
 
-          {connected && chosenAccount && selectedAccount && (
+          {connected && chosenAccount && selectedAccount && !isComplete && (
             <div className="flex flex-col items-center max-w-md mx-auto">
               <header className="space-y-4 text-center">
                 <h1 className="text-3xl font-medium">Migrate your marginfi account</h1>
@@ -198,6 +207,61 @@ export default function MigratePage() {
                   )}
                 </div>
               </form>
+            </div>
+          )}
+
+          {isComplete && (
+            <div className="flex flex-col items-center space-y-10 max-w-3xl mx-auto">
+              <div className="flex flex-col items-center space-y-4 text-center">
+                <h1 className="text-3xl font-medium">Account Migrated!</h1>
+                <p>Your marginfi account has been successfully migrated to the new wallet address.</p>
+
+                {txnSignature && (
+                  <p className="flex items-center gap-2 leading-tight">
+                    <strong className="font-medium">Txn signature:</strong>{" "}
+                    <Link
+                      href={`https://solscan.io/tx/${txnSignature}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-chartreuse border-b border-chartreuse transition-colors hover:border-transparent"
+                    >
+                      {shortenAddress(txnSignature)} <IconExternalLink size={16} />
+                    </Link>
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-4 text-center">
+                <Alert className="max-w-fit">
+                  <IconAlertTriangle size={18} />
+                  <AlertTitle>
+                    If connecting the new wallet on a different device you will need to visit the link below to clear
+                    the cache
+                  </AlertTitle>
+                </Alert>
+
+                <CopyToClipboard
+                  text={window.location.origin + "/migrate/flush-cache"}
+                  onCopy={() => {
+                    setIsCopied(true);
+                    setTimeout(() => {
+                      setIsCopied(false);
+                    }, 2000);
+                  }}
+                >
+                  <Button>
+                    {!isCopied ? (
+                      <>
+                        <IconLink /> Copy Link
+                      </>
+                    ) : (
+                      <>
+                        <IconLink /> Copied!
+                      </>
+                    )}
+                  </Button>
+                </CopyToClipboard>
+              </div>
             </div>
           )}
         </div>
