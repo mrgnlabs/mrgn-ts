@@ -121,7 +121,7 @@ export const ActionComplete = () => {
                 <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
                   <div className="flex items-center justify-center gap-2">
                     <h3 className="text-4xl font-medium">
-                      {Number(previousTxn.lstQuote.quoteResponse.outAmount) / 10 ** 9} LST
+                      {Number(previousTxn.lstQuote.quoteResponse.outAmount.toString()) / 10 ** 9} LST
                     </h3>
                     <Image
                       className="rounded-full w-9 h-9"
