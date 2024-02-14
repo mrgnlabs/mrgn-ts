@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
-
+import { useRouter } from "next/router";
 import Script from "next/script";
+
+import { PublicKey } from "@solana/web3.js";
 
 import config from "~/config";
 import { cn, capture } from "~/utils";
@@ -15,6 +17,19 @@ export default function SwapPage() {
   const { walletContextState } = useWalletContext();
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [loadTimestamp, setLoadTimestamp] = React.useState(0);
+  const router = useRouter();
+
+  const initialMint = React.useMemo(() => {
+    const inputMint = router.query.inputMint;
+    let pk: PublicKey | undefined;
+    try {
+      pk = new PublicKey(inputMint as string);
+    } catch (err) {
+      pk = undefined;
+    }
+
+    return pk;
+  }, [router.query]);
 
   if (loadTimestamp === 0) {
     setLoadTimestamp(Date.now());
@@ -34,6 +49,9 @@ export default function SwapPage() {
               capture("user_swap", {
                 txn: txid,
               });
+            },
+            formProps: {
+              initialInputMint: initialMint ? initialMint.toBase58() : undefined,
             },
           });
           const currentTime = Date.now();
