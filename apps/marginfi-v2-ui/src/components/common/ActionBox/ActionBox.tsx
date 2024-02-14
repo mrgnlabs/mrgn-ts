@@ -86,9 +86,11 @@ export const ActionBox = ({
   );
 
   const [amountRaw, setAmountRaw] = React.useState<string>("");
+  const [repayAmountRaw, setRepayAmountRaw] = React.useState<string>("");
 
   const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
+  const [selectedRepayTokenBank, setSelectedRepayTokenBank] = React.useState<PublicKey | null>(null);
   const [isPriorityFeesMode, setIsPriorityFeesMode] = React.useState<boolean>(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
@@ -109,11 +111,21 @@ export const ActionBox = ({
     [extendedBankInfos, selectedTokenBank]
   );
 
+  const selectedRepayBank = React.useMemo(
+    () =>
+      selectedRepayTokenBank
+        ? extendedBankInfos.find((bank) => bank?.address?.equals && bank?.address?.equals(selectedRepayTokenBank)) ??
+          null
+        : null,
+    [extendedBankInfos, selectedRepayTokenBank]
+  );
+
   // Amount related useMemo's
   const amount = React.useMemo(() => {
     const strippedAmount = amountRaw.replace(/,/g, "");
     return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
   }, [amountRaw]);
+
   const walletAmount = React.useMemo(
     () =>
       selectedBank?.info.state.mint?.equals && selectedBank?.info.state.mint?.equals(WSOL_MINT)
@@ -121,6 +133,7 @@ export const ActionBox = ({
         : selectedBank?.userInfo.tokenAccount.balance,
     [nativeSolBalance, selectedBank]
   );
+
   const maxAmount = React.useMemo(() => {
     if ((!selectedBank && !selectedStakingAccount) || !isInitialized) {
       return 0;
@@ -146,6 +159,7 @@ export const ActionBox = ({
   }, [selectedBank, selectedStakingAccount, actionMode, isInitialized, walletAmount, feesAndRent]);
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
   const amountInputRef = React.useRef<HTMLInputElement>(null);
+  const repayAmountInputRef = React.useRef<HTMLInputElement>(null);
 
   const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
   const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
@@ -162,6 +176,7 @@ export const ActionBox = ({
         connected,
         showCloseBalance,
         selectedBank,
+        selectedRepayBank,
         selectedStakingAccount,
         extendedBankInfos,
         marginfiAccount: selectedAccount,
@@ -173,6 +188,7 @@ export const ActionBox = ({
       connected,
       showCloseBalance,
       selectedBank,
+      selectedRepayBank,
       extendedBankInfos,
       selectedAccount,
       nativeSolBalance,
@@ -538,7 +554,7 @@ export const ActionBox = ({
           {!isPriorityFeesMode && (
             <>
               <div className="flex flex-row items-center justify-between mb-3">
-                {!isDialog || actionMode === ActionType.MintLST ? (
+                {!isDialog || actionMode === ActionType.MintLST || actionMode === ActionType.Repay ? (
                   <div className="text-lg font-normal flex items-center">{titleText}</div>
                 ) : (
                   <div />
@@ -591,6 +607,62 @@ export const ActionBox = ({
                   />
                 </div>
               </div>
+
+              {actionMode === ActionType.Repay && (
+                <>
+                  <div className="flex flex-row items-center justify-between mb-3">
+                    <div className="text-lg font-normal flex items-center">Use collateral</div>
+                    {selectedRepayBank && (
+                      <div className="inline-flex gap-1.5 items-center">
+                        <IconWallet size={16} />
+                        <span className="text-sm font-normal">
+                          {selectedRepayBank &&
+                            (selectedRepayBank.userInfo.maxWithdraw !== undefined
+                              ? clampedNumeralFormatter(selectedRepayBank.userInfo.maxWithdraw).concat(
+                                  " ",
+                                  selectedRepayBank.meta.tokenSymbol
+                                )
+                              : "-")}
+                        </span>
+                        <button
+                          className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
+                            maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
+                          } transition-colors`}
+                          onClick={() =>
+                            setRepayAmountRaw(numberFormater.format(selectedRepayBank.userInfo.maxWithdraw))
+                          }
+                          disabled={maxAmount === 0}
+                        >
+                          MAX
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="bg-background text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center p-4 font-medium mb-5">
+                    <div className="w-full xs:w-[162px]">
+                      <ActionBoxTokens
+                        isDialog={isDialog}
+                        repayTokenBank={selectedRepayTokenBank}
+                        setRepayTokenBank={setSelectedRepayTokenBank}
+                        actionMode={actionMode}
+                        repay={true}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        type="text"
+                        ref={repayAmountInputRef}
+                        inputMode="numeric"
+                        value={repayAmountRaw ?? undefined}
+                        disabled={isInputDisabled}
+                        onChange={(e) => handleInputChange(e.target.value)}
+                        placeholder="0"
+                        className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
 
               {actionMethod.description && (
                 <div className="pb-6">
