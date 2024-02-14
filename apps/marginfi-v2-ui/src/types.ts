@@ -1,5 +1,6 @@
 import { Transaction } from "@solana/web3.js";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { QuoteResponseMeta } from "@jup-ag/react-hook";
 
 // ----------------------------------------------------------------------------
 // Mayan types
@@ -122,4 +123,5 @@ export type PreviousTxn = {
   bank: ActiveBankInfo;
   amount: number;
   txn: string;
+  lstQuote?: QuoteResponseMeta;
 };
