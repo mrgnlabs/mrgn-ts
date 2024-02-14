@@ -50,7 +50,7 @@ export default function MigratePage() {
     try {
       const data = await selectedAccount.transferAccountAuthority(new PublicKey(walletAddressInputRef.current.value));
       multiStepToast.setSuccessAndNext();
-      localStorage.removeItem(`marginfi_accounts-${wallet.toString()}`);
+      localStorage.removeItem(`marginfi_accounts-${wallet.publicKey.toBase58()}`);
       localStorage.removeItem(`marginfi_accounts-${walletAddressInputRef.current.value}`);
       setTxnSignature(data);
       setIsComplete(true);
