@@ -8,17 +8,23 @@ import { LstTokens } from "./MintTokens";
 import { YbxTokens } from "./YbxTokens";
 
 interface ActionBoxPreviewProps {
-  currentTokenBank: PublicKey | null;
-  setCurrentTokenBank: (selectedTokenBank: PublicKey | null) => void;
+  currentTokenBank?: PublicKey | null;
+  setCurrentTokenBank?: (selectedTokenBank: PublicKey | null) => void;
+  repayTokenBank?: PublicKey | null;
+  setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   actionMode: ActionType;
   isDialog?: boolean;
+  repay?: boolean;
 }
 
 export const ActionBoxTokens = ({
   currentTokenBank,
   setCurrentTokenBank,
+  repayTokenBank,
+  setRepayTokenBank,
   actionMode,
   isDialog,
+  repay,
 }: ActionBoxPreviewProps) => {
   const isInLendingMode = React.useMemo(
     () =>
@@ -35,15 +41,18 @@ export const ActionBoxTokens = ({
         <LendingTokens
           currentTokenBank={currentTokenBank}
           setCurrentTokenBank={setCurrentTokenBank}
+          repayTokenBank={repayTokenBank}
+          setRepayTokenBank={setRepayTokenBank}
           isDialog={isDialog}
+          repay={repay}
         />
       )}
 
-      {actionMode === ActionType.MintLST && (
+      {actionMode === ActionType.MintLST && currentTokenBank && setCurrentTokenBank && (
         <LstTokens currentTokenBank={currentTokenBank} setCurrentTokenBank={setCurrentTokenBank} hasDropdown={true} />
       )}
 
-      {actionMode === ActionType.MintYBX && <YbxTokens currentTokenBank={currentTokenBank} />}
+      {actionMode === ActionType.MintYBX && currentTokenBank && <YbxTokens currentTokenBank={currentTokenBank} />}
     </>
   );
 };
