@@ -188,10 +188,10 @@ const DesktopNavbar: FC = () => {
                 invisible={!showBadges}
               >
                 <Link
-                  href={"/stake"}
-                  className={router.pathname === "/stake" ? "hover-underline-static" : "hover-underline-animation"}
+                  href={"/mint"}
+                  className={router.pathname === "/mint" ? "hover-underline-static" : "hover-underline-animation"}
                 >
-                  stake
+                  mint
                 </Link>
               </Badge>
             )}
