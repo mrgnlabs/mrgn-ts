@@ -15,6 +15,7 @@ interface props {
   nativeSolBalance: number;
   showCloseBalance?: boolean;
   selectedBank: ExtendedBankInfo | null;
+  selectedRepayBank: ExtendedBankInfo | null;
   selectedStakingAccount: StakeData | null;
   extendedBankInfos: ExtendedBankInfo[];
   marginfiAccount: MarginfiAccountWrapper | null;
@@ -32,6 +33,7 @@ export function checkActionAvailable({
   connected,
   showCloseBalance,
   selectedBank,
+  selectedRepayBank,
   selectedStakingAccount,
   extendedBankInfos,
   marginfiAccount,
@@ -41,6 +43,8 @@ export function checkActionAvailable({
 
   check = generalChecks(connected, selectedBank, selectedStakingAccount, showCloseBalance);
   if (check) return check;
+
+  console.log("selectedRepayBank", selectedRepayBank);
 
   if (selectedBank) {
     switch (actionMode) {
@@ -58,7 +62,7 @@ export function checkActionAvailable({
         break;
       case ActionType.Repay:
         check = canBeRepaid(selectedBank);
-        if (check) return check;
+        if (check && !selectedRepayBank) return check;
         break;
       case ActionType.MintYBX:
         // canBeYBXed
@@ -70,8 +74,6 @@ export function checkActionAvailable({
   if (selectedStakingAccount) {
     // TODO add posible cases of faulty staking account specific issues
   }
-
-
 
   if (amount && amount <= 0) {
     return {

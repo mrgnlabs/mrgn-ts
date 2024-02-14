@@ -18,12 +18,22 @@ import { IconChevronDown, IconMoonPay, IconX } from "~/components/ui/icons";
 import { ActionBoxItem, SelectedBankItem } from "../SharedComponents";
 
 type LendingTokensProps = {
-  currentTokenBank: PublicKey | null;
-  setCurrentTokenBank: (selectedTokenBank: PublicKey | null) => void;
+  currentTokenBank?: PublicKey | null;
+  setCurrentTokenBank?: (selectedTokenBank: PublicKey | null) => void;
+  repayTokenBank?: PublicKey | null;
+  setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   isDialog?: boolean;
+  repay?: boolean;
 };
 
-export const LendingTokens = ({ currentTokenBank, isDialog, setCurrentTokenBank }: LendingTokensProps) => {
+export const LendingTokens = ({
+  currentTokenBank,
+  isDialog,
+  setCurrentTokenBank,
+  repayTokenBank,
+  setRepayTokenBank,
+  repay = false,
+}: LendingTokensProps) => {
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
@@ -39,6 +49,14 @@ export const LendingTokens = ({ currentTokenBank, isDialog, setCurrentTokenBank 
         ? extendedBankInfos.find((bank) => bank?.address?.equals && bank?.address?.equals(currentTokenBank))
         : null,
     [extendedBankInfos, currentTokenBank]
+  );
+
+  const selectedRepayBank = React.useMemo(
+    () =>
+      repayTokenBank
+        ? extendedBankInfos.find((bank) => bank?.address?.equals && bank?.address?.equals(repayTokenBank))
+        : null,
+    [extendedBankInfos, repayTokenBank]
   );
 
   const calculateRate = React.useCallback(
@@ -88,9 +106,13 @@ export const LendingTokens = ({ currentTokenBank, isDialog, setCurrentTokenBank 
 
   // filter on positions
   const positionFilter = React.useCallback(
-    (bankInfo: ExtendedBankInfo, filterActive?: boolean) =>
-      bankInfo.isActive ? lendingMode === LendingModes.LEND && bankInfo.position.isLending : filterActive,
-    [lendingMode]
+    (bankInfo: ExtendedBankInfo, filterActive?: boolean) => {
+      if (repay) {
+        return bankInfo.isActive && bankInfo.position.isLending;
+      }
+      return bankInfo.isActive ? lendingMode === LendingModes.LEND && bankInfo.position.isLending : filterActive;
+    },
+    [lendingMode, repay]
   );
 
   /////// BANKS
@@ -122,7 +144,7 @@ export const LendingTokens = ({ currentTokenBank, isDialog, setCurrentTokenBank 
       .filter(searchFilter)
       .filter((bankInfo) => positionFilter(bankInfo, false))
       .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
-  }, [extendedBankInfos, searchFilter, positionFilter]);
+  }, [extendedBankInfos, searchFilter, positionFilter, repay]);
 
   // other banks without positions
   const filteredBanks = React.useMemo(() => {
@@ -143,13 +165,15 @@ export const LendingTokens = ({ currentTokenBank, isDialog, setCurrentTokenBank 
 
   return (
     <>
-      {isDialog ? (
+      {isDialog && !repay && (
         <div className="flex gap-3 w-full items-center">
           {selectedBank && (
             <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={calculateRate(selectedBank)} />
           )}
         </div>
-      ) : (
+      )}
+
+      {(!isDialog || repay) && (
         <Popover open={isTokenPopoverOpen} onOpenChange={(open) => setIsTokenPopoverOpen(open)}>
           <PopoverTrigger asChild>
             <Button
@@ -159,10 +183,17 @@ export const LendingTokens = ({ currentTokenBank, isDialog, setCurrentTokenBank 
                 isTokenPopoverOpen && "bg-background-gray"
               )}
             >
-              {selectedBank && (
+              {!repay && selectedBank && (
                 <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={calculateRate(selectedBank)} />
               )}
-              {!selectedBank && <>Select token</>}
+              {repay && selectedRepayBank && (
+                <SelectedBankItem
+                  bank={selectedRepayBank}
+                  lendingMode={lendingMode}
+                  rate={calculateRate(selectedRepayBank)}
+                />
+              )}
+              {((!repay && !selectedBank) || (repay && !selectedRepayBank)) && <>Select token</>}
               <IconChevronDown className="shrink-0 ml-2" size={20} />
             </Button>
           </PopoverTrigger>
@@ -204,38 +235,41 @@ export const LendingTokens = ({ currentTokenBank, isDialog, setCurrentTokenBank 
 
               {/* LENDING */}
               <div className="max-h-[calc(100vh-580px)] min-h-[200px] overflow-auto">
-                {lendingMode === LendingModes.LEND && connected && filteredBanksUserOwns.length > 0 && (
-                  <CommandGroup heading="Available in your wallet">
-                    {filteredBanksUserOwns
-                      .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
-                      .map((bank, index) => {
-                        return (
-                          <CommandItem
-                            key={index}
-                            value={bank?.address?.toString().toLowerCase()}
-                            onSelect={(currentValue) => {
-                              setCurrentTokenBank(
-                                extendedBankInfos.find(
-                                  (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                                )?.address ?? null
-                              );
-                              setIsTokenPopoverOpen(false);
-                            }}
-                            className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
-                          >
-                            <ActionBoxItem
-                              rate={calculateRate(bank)}
-                              lendingMode={lendingMode}
-                              bank={bank}
-                              showBalanceOverride={true}
-                              nativeSolBalance={nativeSolBalance}
-                            />
-                          </CommandItem>
-                        );
-                      })}
-                  </CommandGroup>
-                )}
-                {lendingMode === LendingModes.LEND && filteredBanksActive.length > 0 && (
+                {lendingMode === LendingModes.LEND &&
+                  connected &&
+                  filteredBanksUserOwns.length > 0 &&
+                  setCurrentTokenBank && (
+                    <CommandGroup heading="Available in your wallet">
+                      {filteredBanksUserOwns
+                        .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
+                        .map((bank, index) => {
+                          return (
+                            <CommandItem
+                              key={index}
+                              value={bank?.address?.toString().toLowerCase()}
+                              onSelect={(currentValue) => {
+                                setCurrentTokenBank(
+                                  extendedBankInfos.find(
+                                    (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                                  )?.address ?? null
+                                );
+                                setIsTokenPopoverOpen(false);
+                              }}
+                              className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                            >
+                              <ActionBoxItem
+                                rate={calculateRate(bank)}
+                                lendingMode={lendingMode}
+                                bank={bank}
+                                showBalanceOverride={true}
+                                nativeSolBalance={nativeSolBalance}
+                              />
+                            </CommandItem>
+                          );
+                        })}
+                    </CommandGroup>
+                  )}
+                {lendingMode === LendingModes.LEND && filteredBanksActive.length > 0 && setCurrentTokenBank && (
                   <CommandGroup heading="Currently supplying">
                     {filteredBanksActive.map((bank, index) => (
                       <CommandItem
@@ -267,38 +301,76 @@ export const LendingTokens = ({ currentTokenBank, isDialog, setCurrentTokenBank 
                 )}
 
                 {/* BORROWING */}
-                {lendingMode === LendingModes.BORROW && filteredBanksActive.length > 0 && (
-                  <CommandGroup heading="Currently borrowing">
-                    {filteredBanksActive.map((bank, index) => (
-                      <CommandItem
-                        key={index}
-                        value={bank.address?.toString().toLowerCase()}
-                        onSelect={(currentValue) => {
-                          setCurrentTokenBank(
-                            extendedBankInfos.find(
-                              (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                            )?.address ?? null
-                          );
-                          setIsTokenPopoverOpen(false);
-                        }}
-                        className={cn(
-                          "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
-                        )}
-                      >
-                        <ActionBoxItem
-                          rate={calculateRate(bank)}
-                          lendingMode={lendingMode}
-                          bank={bank}
-                          showBalanceOverride={false}
-                          nativeSolBalance={nativeSolBalance}
-                        />
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
+                {lendingMode === LendingModes.BORROW &&
+                  !repay &&
+                  filteredBanksActive.length > 0 &&
+                  setCurrentTokenBank && (
+                    <CommandGroup heading="Currently borrowing">
+                      {filteredBanksActive.map((bank, index) => (
+                        <CommandItem
+                          key={index}
+                          value={bank.address?.toString().toLowerCase()}
+                          onSelect={(currentValue) => {
+                            setCurrentTokenBank(
+                              extendedBankInfos.find(
+                                (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                              )?.address ?? null
+                            );
+                            setIsTokenPopoverOpen(false);
+                          }}
+                          className={cn(
+                            "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                          )}
+                        >
+                          <ActionBoxItem
+                            rate={calculateRate(bank)}
+                            lendingMode={lendingMode}
+                            bank={bank}
+                            showBalanceOverride={false}
+                            nativeSolBalance={nativeSolBalance}
+                          />
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+
+                {/* REPAYING */}
+                {(lendingMode === LendingModes.LEND || repay) &&
+                  filteredBanksActive.length > 0 &&
+                  setRepayTokenBank && (
+                    <CommandGroup heading="Currently supplying">
+                      {filteredBanksActive.map((bank, index) => (
+                        <CommandItem
+                          key={index}
+                          value={bank.address?.toString().toLowerCase()}
+                          // disabled={!ownedBanksPk.includes(bank.address)}
+                          onSelect={(currentValue) => {
+                            setRepayTokenBank(
+                              extendedBankInfos.find(
+                                (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                              )?.address ?? null
+                            );
+                            setIsTokenPopoverOpen(false);
+                          }}
+                          className={cn(
+                            "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2"
+                          )}
+                        >
+                          <ActionBoxItem
+                            rate={calculateRate(bank)}
+                            lendingMode={lendingMode}
+                            bank={bank}
+                            showBalanceOverride={false}
+                            nativeSolBalance={nativeSolBalance}
+                            repay={true}
+                          />
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
 
                 {/* GLOBAL & ISOLATED */}
-                {globalBanks.length > 0 && (
+                {globalBanks.length > 0 && !repay && setCurrentTokenBank && (
                   <CommandGroup heading="Global pools">
                     {globalBanks.map((bank, index) => {
                       return (
@@ -331,7 +403,7 @@ export const LendingTokens = ({ currentTokenBank, isDialog, setCurrentTokenBank 
                     })}
                   </CommandGroup>
                 )}
-                {isolatedBanks.length > 0 && (
+                {isolatedBanks.length > 0 && !repay && setCurrentTokenBank && (
                   <CommandGroup heading="Isolated pools">
                     {isolatedBanks.map((bank, index) => {
                       return (
