@@ -96,8 +96,6 @@ export const ActionBox = ({
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
 
-  console.log({ selectedTokenBank: selectedTokenBank?.toBase58() });
-
   // Either a staking account is selected or a bank
   const selectedStakingAccount = React.useMemo(
     () => (selectedTokenBank ? stakeAccounts.find((acc) => acc.address.equals(selectedTokenBank)) ?? null : null),
@@ -389,6 +387,24 @@ export const ActionBox = ({
     setIsLoading(false);
     handleCloseDialog && handleCloseDialog();
     setAmountRaw("");
+
+    if (txnSig) {
+      setIsActionComplete(true);
+      setPreviousTxn({
+        type: ActionType.MintLST,
+        bank: selectedBank as ActiveBankInfo,
+        amount: amount,
+        lstQuote: quoteResponseMeta || undefined,
+        txn: txnSig!,
+      });
+      // capture(`user_${currentAction.toLowerCase()}`, {
+      //   tokenSymbol: bank.meta.tokenSymbol,
+      //   tokenName: bank.meta.tokenName,
+      //   amount: borrowOrLendAmount,
+      //   txn: txnSig!,
+      //   priorityFee,
+      // });
+    }
 
     // -------- Refresh state
     try {

@@ -264,7 +264,6 @@ export default function MintPage() {
         const updatedIntegrations = integrationsData
           .map((item, i) => {
             if (!data[i] || !data[i].data) return item;
-            console.log(item.poolInfo, data[i]);
             return {
               ...item,
               info: {
@@ -569,9 +568,8 @@ export default function MintPage() {
             )}
           </DialogContent>
         </Dialog>
-
-        {initialized && previousTxn && <ActionComplete />}
       </JupiterProvider>
+      {initialized && previousTxn && <ActionComplete />}
     </>
   );
 }
