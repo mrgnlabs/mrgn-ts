@@ -6,6 +6,7 @@ import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
 export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBankInfo; isInLendingMode: boolean }) {
   const rateAP = useMemo(() => {
+    if (!bank?.info?.state) return;
     const { lendingRate, borrowingRate, emissions, emissionsRate } = bank.info.state;
     const { protocolFixedFeeApr } = bank.info.rawBank.config.interestRateConfig;
 
@@ -20,7 +21,7 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
     const totalRate = baseRate + protocolFee + lendingEmissions + borrowingEmissions;
 
     return percentFormatter.format(totalRate);
-  }, [isInLendingMode, bank.info.state, bank.info.rawBank.config.interestRateConfig]);
+  }, [isInLendingMode, bank]);
 
   const assetWeight = useMemo(() => {
     if (!bank?.info.rawBank.getAssetWeight) {
