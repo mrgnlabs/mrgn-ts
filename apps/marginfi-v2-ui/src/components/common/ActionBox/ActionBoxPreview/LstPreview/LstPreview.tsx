@@ -74,7 +74,6 @@ export const LstPreview = ({
 
   React.useEffect(() => {
     setIsLoading(true);
-    console.log("hit");
   }, [amount]);
 
   const lstOutAmount = React.useMemo(() => {
@@ -92,7 +91,6 @@ export const LstPreview = ({
       return JSBI.toNumber(outAmount) / 1e9;
     }
 
-    console.log("hit2");
     setIsLoading(false);
     return 0;
   }, [
