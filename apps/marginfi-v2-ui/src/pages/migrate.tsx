@@ -36,9 +36,8 @@ export default function MigratePage() {
       state.selectedAccount,
     ]);
   const [chosenAccount, setChosenAccount] = React.useState<MarginfiAccountWrapper | null>(null);
-  const [isComplete, setIsComplete] = React.useState(true);
-  const [txnSignature, setTxnSignature] = React.useState<string | null>("asdasdasd");
-  const [isCopied, setIsCopied] = React.useState(false);
+  const [isComplete, setIsComplete] = React.useState(false);
+  const [txnSignature, setTxnSignature] = React.useState<string | null>(null);
   const walletAddressInputRef = React.useRef<HTMLInputElement>(null);
 
   const migrateAccount = React.useCallback(async () => {
@@ -229,38 +228,6 @@ export default function MigratePage() {
                     </Link>
                   </p>
                 )}
-              </div>
-
-              <div className="space-y-4 text-center">
-                <Alert className="max-w-fit">
-                  <IconAlertTriangle size={18} />
-                  <AlertTitle>
-                    If connecting the new wallet on a different device you will need to visit the link below to clear
-                    the cache
-                  </AlertTitle>
-                </Alert>
-
-                <CopyToClipboard
-                  text={window.location.origin + "/migrate/flush-cache"}
-                  onCopy={() => {
-                    setIsCopied(true);
-                    setTimeout(() => {
-                      setIsCopied(false);
-                    }, 2000);
-                  }}
-                >
-                  <Button>
-                    {!isCopied ? (
-                      <>
-                        <IconLink /> Copy Link
-                      </>
-                    ) : (
-                      <>
-                        <IconLink /> Copied!
-                      </>
-                    )}
-                  </Button>
-                </CopyToClipboard>
               </div>
             </div>
           )}
