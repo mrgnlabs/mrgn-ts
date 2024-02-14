@@ -176,11 +176,11 @@ export default function MintPage() {
         title: "YBX",
         icon: IconYBX,
         description: "Solana's decentralised stablecoin, backed by LSTs",
-        price: "1 YBX = 1 USD",
+        price: "1 YBX ≠ 1 USD",
         features: [
           `Earn compounded staking yield ${percentFormatterDyn.format(lstData?.projectedApy!)}`,
-          "Earn MEV rewards 1.1%",
-          "Earn lending yield 5%",
+          "Earn MEV rewards",
+          "Earn lending yield",
         ],
         footer: "...just by minting YBX",
         action: () => {
@@ -330,7 +330,7 @@ export default function MintPage() {
                           </ActionBoxDialog>
                           <Button variant="outline" size="lg" className="mt-4">
                             <Link href="/swap?inputMint=LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp">
-                              Swap {item.title}
+                              Unstake {item.title}
                             </Link>
                           </Button>
                         </div>
@@ -364,7 +364,7 @@ export default function MintPage() {
                               }
                             }}
                           >
-                            <IconBell size={16} /> Notifications
+                            <IconBell size={16} /> Early Access
                           </Button>
                         </div>
                       )}
@@ -377,7 +377,15 @@ export default function MintPage() {
             {integrations.length > 0 && (
               <div className="w-full py-8 px-4 md:px-10 xl:px-16 text-center">
                 <h2 className="text-3xl font-medium mb-3">Integrations</h2>
-                <p className="text-muted-foreground">40+ dAPPs where you can use YBX and LST</p>
+                <p className="text-muted-foreground">
+                  Ready to integrate YBX?{" "}
+                  <Link
+                    href="#"
+                    className="border-b border-primary text-primary transition-colors hover:text-chartreuse hover:border-chartreuse"
+                  >
+                    Become a launch partner.
+                  </Link>
+                </p>
                 <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
                   {integrations.map((item, i) => (
                     <Card key={i} variant="default" className="min-w-[300px]">
@@ -426,11 +434,11 @@ export default function MintPage() {
         )}
       </div>
       <Dialog open={ybxDialogOpen} onOpenChange={(open) => setYBXDialogOpen(open)}>
-        <DialogContent>
+        <DialogContent className="md:flex">
           <DialogHeader>
             <IconYBX size={48} />
-            <DialogTitle className="text-2xl">Get Notified</DialogTitle>
-            <DialogDescription>Sign up to stay up to date with YBX</DialogDescription>
+            <DialogTitle className="text-2xl">YBX Early Access</DialogTitle>
+            <DialogDescription>Sign up to get notified for early access to YBX</DialogDescription>
           </DialogHeader>
 
           {mintPageState === MintPageState.SUCCESS && (
