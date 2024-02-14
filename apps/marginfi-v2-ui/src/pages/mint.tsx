@@ -187,7 +187,7 @@ export default function MintPage() {
         title: "YBX",
         icon: IconYBX,
         description: "Solana's decentralised stablecoin, backed by LSTs",
-        price: "1 YBX ≠ 1 USD",
+        price: "1 YBX ≈ 1 USD",
         features: [
           `Earn compounded staking yield ${percentFormatterDyn.format(lstData?.projectedApy!)}`,
           "Earn MEV rewards",
@@ -343,7 +343,7 @@ export default function MintPage() {
                                 Mint {item.title}
                               </Button>
                             </ActionBoxDialog>
-                            <Button variant="outline" size="lg" className="mt-4">
+                            <Button variant="outline" size="lg" className="mt-4 hover:text-primary">
                               <Link href="/swap?inputMint=LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp">
                                 Unstake {item.title}
                               </Link>
