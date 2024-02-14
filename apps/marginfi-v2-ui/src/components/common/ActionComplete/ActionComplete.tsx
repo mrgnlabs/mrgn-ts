@@ -3,7 +3,6 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-import JSBI from "jsbi";
 import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { PublicKey } from "@solana/web3.js";
@@ -117,12 +116,12 @@ export const ActionComplete = () => {
               </>
             )}
 
-            {previousTxn.lstQuote && lstData && lstBank && (
+            {previousTxn.lstQuote && previousTxn.lstQuote.quoteResponse.outAmount && lstData && lstBank && (
               <>
                 <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
                   <div className="flex items-center justify-center gap-2">
                     <h3 className="text-4xl font-medium">
-                      {JSBI.toNumber(previousTxn.lstQuote.quoteResponse.outAmount) / 1e9} {lstBank.meta.tokenSymbol}
+                      {Number(previousTxn.lstQuote.quoteResponse.outAmount) / 10 ** 9} LST
                     </h3>
                     <Image
                       className="rounded-full w-9 h-9"
