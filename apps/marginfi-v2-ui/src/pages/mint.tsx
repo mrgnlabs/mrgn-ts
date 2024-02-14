@@ -1,9 +1,7 @@
 import React from "react";
 
-import Image from "next/image";
 import Link from "next/link";
 
-import { JupiterProvider } from "@jup-ag/react-hook";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, percentFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -135,7 +133,8 @@ export default function MintPage() {
   const { connection } = useConnection();
   const { wallet } = useWalletContext();
   const [mintPageState, setMintPageState] = React.useState<MintPageState>(MintPageState.DEFAULT);
-  const [ybxDialogOpen, setYBXDialogOpen] = React.useState(false);
+  const [ybxNotificationsDialogOpen, setYbxNotificationsDialogOpen] = React.useState(false);
+  const [ybxPartnerDialogOpen, setYbxPartnerDialogOpen] = React.useState(false);
   const [lstDialogOpen, setLSTDialogOpen] = React.useState(false);
   const [integrations, setIntegrations] = React.useState<any[]>([]);
   const emailInputRef = React.useRef<HTMLInputElement>(null);
@@ -195,7 +194,7 @@ export default function MintPage() {
         ],
         footer: "...just by minting YBX",
         action: () => {
-          setYBXDialogOpen(true);
+          setYbxNotificationsDialogOpen(true);
         },
       } as CardProps,
       {
@@ -211,14 +210,18 @@ export default function MintPage() {
     [lstData]
   );
 
-  const signUp = React.useCallback(async () => {
-    if (!emailInputRef.current) {
-      return;
-    }
+  const signUp = React.useCallback(
+    async (type: "partner" | "notifications") => {
+      if (!emailInputRef.current) {
+        return;
+      }
 
-    const res = await fetch(
-      `https://api.convertkit.com/v3/forms/${process.env.NEXT_PUBLIC_CONVERT_KIT_YBX_FORM_UID}/subscribe`,
-      {
+      const formId =
+        type === "partner"
+          ? process.env.NEXT_PUBLIC_CONVERT_KIT_YBX_PARTNER_FORM_UID
+          : process.env.NEXT_PUBLIC_CONVERT_KIT_YBX_NOTIFICATIONS_FORM_UID;
+
+      const res = await fetch(`https://api.convertkit.com/v3/forms/${formId}/subscribe`, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -227,16 +230,17 @@ export default function MintPage() {
           api_key: process.env.NEXT_PUBLIC_CONVERT_KIT_API_KEY,
           email: emailInputRef.current.value,
         }),
+      });
+
+      if (!res.ok) {
+        setMintPageState(MintPageState.ERROR);
+        return;
       }
-    );
 
-    if (!res.ok) {
-      setMintPageState(MintPageState.ERROR);
-      return;
-    }
-
-    setMintPageState(MintPageState.SUCCESS);
-  }, [emailInputRef]);
+      setMintPageState(MintPageState.SUCCESS);
+    },
+    [emailInputRef]
+  );
 
   React.useEffect(() => {
     const fetchIntegrations = async () => {
@@ -282,89 +286,49 @@ export default function MintPage() {
 
   return (
     <>
-      <JupiterProvider connection={connection} wrapUnwrapSOL={false} platformFeeAndAccounts={undefined}>
-        <PageHeader showDesktopTitle={false}>Mint</PageHeader>
-        <div className="w-full max-w-8xl mx-auto px-4 md:px-8 space-y-20 pt-16 lg:pt-20 pb-28">
-          {!initialized && <Loader label="Loading YBX / LST..." className="mt-8" />}
-          {initialized && (
-            <>
-              <div className="w-full max-w-3xl mx-auto space-y-20 px-4 md:px-0">
-                <h1 className="text-2xl md:text-3xl font-medium text-center leading-normal">
-                  Crypto&apos;s highest yielding, decentralised stablecoin Backed by Solana&apos;s MEV-boosted, highest
-                  yielding LST
-                </h1>
+      <PageHeader showDesktopTitle={false}>Mint</PageHeader>
+      <div className="w-full max-w-8xl mx-auto px-4 md:px-8 space-y-20 pt-16 lg:pt-20 pb-28">
+        {!initialized && <Loader label="Loading YBX / LST..." className="mt-8" />}
+        {initialized && (
+          <>
+            <div className="w-full max-w-3xl mx-auto space-y-20 px-4 md:px-0">
+              <h1 className="text-2xl md:text-3xl font-medium text-center leading-normal">
+                Crypto&apos;s highest yielding, decentralised stablecoin Backed by Solana&apos;s MEV-boosted, highest
+                yielding LST
+              </h1>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-11">
-                  {cards.map((item, i) => (
-                    <Card key={i} variant="secondary">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-3xl">
-                          <item.icon />
-                          {item.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p>{item.description}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-11">
+                {cards.map((item, i) => (
+                  <Card key={i} variant="secondary">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-3xl">
+                        <item.icon />
+                        {item.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p>{item.description}</p>
 
-                        <p className="text-lg font-semibold my-6">{item.price}</p>
+                      <p className="text-lg font-semibold my-6">{item.price}</p>
 
-                        <ul className="space-y-2.5 mb-4">
-                          {item.features.map((feature, j) => (
-                            <li key={j} className="flex items-center gap-1">
-                              <IconCheck className="text-success" />
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
+                      <ul className="space-y-2.5 mb-4">
+                        {item.features.map((feature, j) => (
+                          <li key={j} className="flex items-center gap-1">
+                            <IconCheck className="text-success" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
 
-                        <p className="text-right text-sm">{item.footer}</p>
+                      <p className="text-right text-sm">{item.footer}</p>
 
-                        {item.title === "LST" ? (
-                          <div className="flex items-center gap-2 mt-3">
-                            <ActionBoxDialog
-                              requestedAction={ActionType.MintLST}
-                              requestedToken={undefined}
-                              isActionBoxTriggered={lstDialogOpen}
-                            >
-                              <Button
-                                variant="secondary"
-                                size="lg"
-                                className="mt-4"
-                                onClick={() => {
-                                  if (item.action) {
-                                    item.action();
-                                  }
-                                }}
-                              >
-                                Mint {item.title}
-                              </Button>
-                            </ActionBoxDialog>
-                            <Button variant="outline" size="lg" className="mt-4">
-                              <Link href="/swap?inputMint=LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp">
-                                Unstake {item.title}
-                              </Link>
-                            </Button>
-                          </div>
-                        ) : (
-                          // <ActionBoxDialog
-                          //   requestedAction={ActionType.MintYBX}
-                          //   requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
-                          //   isActionBoxTriggered={ybxDialogOpen}
-                          // >
-                          //   <Button
-                          //     variant="secondary"
-                          //     size="lg"
-                          //     className="mt-4"
-                          //     onClick={() => {
-                          //       if (item.action) {
-                          //         item.action();
-                          //       }
-                          //     }}
-                          //   >
-                          //     Mint {item.title}
-                          //   </Button>
-                          // </ActionBoxDialog>
-                          <div className="flex items-center gap-2 mt-3">
+                      {item.title === "LST" ? (
+                        <div className="flex items-center gap-2 mt-3">
+                          <ActionBoxDialog
+                            requestedAction={ActionType.MintLST}
+                            requestedToken={undefined}
+                            isActionBoxTriggered={lstDialogOpen}
+                          >
                             <Button
                               variant="secondary"
                               size="lg"
@@ -375,125 +339,234 @@ export default function MintPage() {
                                 }
                               }}
                             >
-                              <IconBell size={16} /> Early Access
+                              Mint {item.title}
                             </Button>
+                          </ActionBoxDialog>
+                          <Button variant="outline" size="lg" className="mt-4">
+                            <Link href="/swap?inputMint=LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp">
+                              Unstake {item.title}
+                            </Link>
+                          </Button>
+                        </div>
+                      ) : (
+                        // <ActionBoxDialog
+                        //   requestedAction={ActionType.MintYBX}
+                        //   requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
+                        //   isActionBoxTriggered={ybxDialogOpen}
+                        // >
+                        //   <Button
+                        //     variant="secondary"
+                        //     size="lg"
+                        //     className="mt-4"
+                        //     onClick={() => {
+                        //       if (item.action) {
+                        //         item.action();
+                        //       }
+                        //     }}
+                        //   >
+                        //     Mint {item.title}
+                        //   </Button>
+                        // </ActionBoxDialog>
+                        <div className="flex items-center gap-2 mt-3">
+                          <Button
+                            variant="secondary"
+                            size="lg"
+                            className="mt-4"
+                            onClick={() => {
+                              if (item.action) {
+                                item.action();
+                              }
+                            }}
+                          >
+                            <IconBell size={16} /> Early Access
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {integrations.length > 0 && (
+              <div className="w-full py-8 px-4 md:px-10 xl:px-16 text-center">
+                <h2 className="text-3xl font-medium mb-3">Integrations</h2>
+                <p className="text-muted-foreground">
+                  Ready to integrate YBX?{" "}
+                  <button
+                    className="border-b border-primary text-primary transition-colors hover:text-chartreuse hover:border-chartreuse"
+                    onClick={() => setYbxPartnerDialogOpen(true)}
+                  >
+                    Become a launch partner.
+                  </button>
+                </p>
+                <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
+                  {integrations.map((item, i) => (
+                    <Card key={i} variant="default" className="min-w-[300px]">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-center text-xl">
+                          <div className="flex items-center">
+                            {typeof item.baseIcon === "string" ? (
+                              <img src={item.baseIcon} className="w-10 h-10 rounded-full" />
+                            ) : (
+                              <item.baseIcon size={32} />
+                            )}
+                            {typeof item.quoteIcon === "string" ? (
+                              <img src={item.quoteIcon} className="z-10 w-10 h-10 rounded-full -translate-x-3" />
+                            ) : (
+                              <item.quoteIcon size={32} className="z-10 -translate-x-4" />
+                            )}
                           </div>
-                        )}
+                          {item.title}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          <li className="flex items-center justify-between gap-1">
+                            <span className="text-muted-foreground">TVL:</span> {item.info.tvl}
+                          </li>
+                          <li className="flex items-center justify-between gap-1">
+                            <span className="text-muted-foreground">24hr Vol:</span> {item.info.vol}
+                          </li>
+                        </ul>
+
+                        <Link href={item.link} target="_blank" rel="noreferrer" className="w-full">
+                          <Button variant="default" size="lg" className="mt-4 w-full">
+                            {item.action} <IconExternalLink size={20} />
+                          </Button>
+                        </Link>
+
+                        <div className="flex items-center gap-2 mt-4 justify-center">
+                          {item.platform.icon && <item.platform.icon size={24} />}
+                          <p className="text-muted-foreground text-sm">{item.platform.title}</p>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               </div>
+            )}
+          </>
+        )}
+      </div>
+      <Dialog
+        open={ybxNotificationsDialogOpen}
+        onOpenChange={(open) => {
+          setMintPageState(MintPageState.DEFAULT);
+          setYbxNotificationsDialogOpen(open);
+        }}
+      >
+        <DialogContent className="md:flex">
+          <DialogHeader>
+            <IconYBX size={48} />
+            <DialogTitle className="text-2xl">YBX Early Access</DialogTitle>
+            <DialogDescription>Sign up to get notified for early access to YBX</DialogDescription>
+          </DialogHeader>
 
-              {integrations.length > 0 && (
-                <div className="w-full py-8 px-4 md:px-10 xl:px-16 text-center">
-                  <h2 className="text-3xl font-medium mb-3">Integrations</h2>
-                  <p className="text-muted-foreground">
-                    Ready to integrate YBX?{" "}
-                    <Link
-                      href="#"
-                      className="border-b border-primary text-primary transition-colors hover:text-chartreuse hover:border-chartreuse"
-                    >
-                      Become a launch partner.
-                    </Link>
-                  </p>
-                  <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
-                    {integrations.map((item, i) => (
-                      <Card key={i} variant="default" className="min-w-[300px]">
-                        <CardHeader>
-                          <CardTitle className="flex items-center justify-center text-xl">
-                            <div className="flex items-center">
-                              {typeof item.baseIcon === "string" ? (
-                                <img src={item.baseIcon} className="w-10 h-10 rounded-full" />
-                              ) : (
-                                <item.baseIcon size={32} />
-                              )}
-                              {typeof item.quoteIcon === "string" ? (
-                                <img src={item.quoteIcon} className="z-10 w-10 h-10 rounded-full -translate-x-3" />
-                              ) : (
-                                <item.quoteIcon size={32} className="z-10 -translate-x-4" />
-                              )}
-                            </div>
-                            {item.title}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2">
-                            <li className="flex items-center justify-between gap-1">
-                              <span className="text-muted-foreground">TVL:</span> {item.info.tvl}
-                            </li>
-                            <li className="flex items-center justify-between gap-1">
-                              <span className="text-muted-foreground">24hr Vol:</span> {item.info.vol}
-                            </li>
-                          </ul>
+          {mintPageState === MintPageState.SUCCESS && (
+            <div className="flex flex-col items-center gap-4">
+              <p className="flex items-center justify-center gap-2">
+                <IconCheck size={18} className="text-success" /> You are signed up!
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setMintPageState(MintPageState.DEFAULT);
+                  setYbxNotificationsDialogOpen(false);
+                }}
+              >
+                Back to YBX
+              </Button>
+            </div>
+          )}
 
-                          <Link href={item.link} target="_blank" rel="noreferrer" className="w-full">
-                            <Button variant="default" size="lg" className="mt-4 w-full">
-                              {item.action} <IconExternalLink size={20} />
-                            </Button>
-                          </Link>
-
-                          <div className="flex items-center gap-2 mt-4 justify-center">
-                            {item.platform.icon && <item.platform.icon size={24} />}
-                            <p className="text-muted-foreground text-sm">{item.platform.title}</p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+          {(mintPageState === MintPageState.DEFAULT || mintPageState === MintPageState.ERROR) && (
+            <>
+              <form
+                className="w-full px-8 mb-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  signUp("notifications");
+                }}
+              >
+                <div className="flex items-center w-full gap-2">
+                  <Input
+                    ref={emailInputRef}
+                    type="email"
+                    placeholder="example@example.com"
+                    className="w-full"
+                    required
+                  />
+                  <Button type="submit">Sign Up</Button>
                 </div>
+              </form>
+
+              {mintPageState === MintPageState.ERROR && (
+                <p className="text-destructive-foreground text-sm text-center">Error signing up, please try again.</p>
               )}
             </>
           )}
-        </div>
-        <Dialog open={ybxDialogOpen} onOpenChange={(open) => setYBXDialogOpen(open)}>
-          <DialogContent className="md:flex">
-            <DialogHeader>
-              <IconYBX size={48} />
-              <DialogTitle className="text-2xl">YBX Early Access</DialogTitle>
-              <DialogDescription>Sign up to get notified for early access to YBX</DialogDescription>
-            </DialogHeader>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={ybxPartnerDialogOpen}
+        onOpenChange={(open) => {
+          setMintPageState(MintPageState.DEFAULT);
+          setYbxPartnerDialogOpen(open);
+        }}
+      >
+        <DialogContent className="md:flex">
+          <DialogHeader>
+            <IconYBX size={48} />
+            <DialogTitle className="text-2xl">YBX Launch Partner Form</DialogTitle>
+            <DialogDescription>Sign up to become a YBX launch partner.</DialogDescription>
+          </DialogHeader>
 
-            {mintPageState === MintPageState.SUCCESS && (
-              <div className="flex flex-col items-center gap-4">
-                <p className="flex items-center justify-center gap-2">
-                  <IconCheck size={18} className="text-success" /> You are signed up!
-                </p>
-                <Button variant="outline" onClick={() => setYBXDialogOpen(false)}>
-                  Back to Mint
-                </Button>
-              </div>
-            )}
+          {mintPageState === MintPageState.SUCCESS && (
+            <div className="flex flex-col items-center gap-4">
+              <p className="flex items-center justify-center gap-2">
+                <IconCheck size={18} className="text-success" /> You are signed up!
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setMintPageState(MintPageState.DEFAULT);
+                  setYbxPartnerDialogOpen(false);
+                }}
+              >
+                Back to YBX
+              </Button>
+            </div>
+          )}
 
-            {(mintPageState === MintPageState.DEFAULT || mintPageState === MintPageState.ERROR) && (
-              <>
-                <form
-                  className="w-full px-8 mb-4"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    signUp();
-                  }}
-                >
-                  <div className="flex items-center w-full gap-2">
-                    <Input
-                      ref={emailInputRef}
-                      type="email"
-                      placeholder="example@example.com"
-                      className="w-full"
-                      required
-                    />
-                    <Button type="submit">Sign Up</Button>
-                  </div>
-                </form>
+          {(mintPageState === MintPageState.DEFAULT || mintPageState === MintPageState.ERROR) && (
+            <>
+              <form
+                className="w-full px-8 mb-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  signUp("partner");
+                }}
+              >
+                <div className="flex items-center w-full gap-2">
+                  <Input
+                    ref={emailInputRef}
+                    type="email"
+                    placeholder="example@example.com"
+                    className="w-full"
+                    required
+                  />
+                  <Button type="submit">Sign Up</Button>
+                </div>
+              </form>
 
-                {mintPageState === MintPageState.ERROR && (
-                  <p className="text-destructive-foreground text-sm text-center">Error signing up, please try again.</p>
-                )}
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
-      </JupiterProvider>
+              {mintPageState === MintPageState.ERROR && (
+                <p className="text-destructive-foreground text-sm text-center">Error signing up, please try again.</p>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {initialized && previousTxn && <ActionComplete />}
     </>
