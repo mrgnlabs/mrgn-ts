@@ -14,6 +14,7 @@ type ActionBoxItemProps = {
   showBalanceOverride: boolean;
   rate?: string;
   lendingMode?: LendingModes;
+  repay?: boolean;
 };
 
 export const ActionBoxItem = ({
@@ -22,6 +23,7 @@ export const ActionBoxItem = ({
   showBalanceOverride,
   rate,
   lendingMode,
+  repay,
 }: ActionBoxItemProps) => {
   const balance = React.useMemo(() => {
     const isWSOL = bank.info.state.mint?.equals ? bank.info.state.mint.equals(WSOL_MINT) : false;
@@ -29,12 +31,24 @@ export const ActionBoxItem = ({
     return isWSOL ? bank.userInfo.tokenAccount.balance + nativeSolBalance : bank.userInfo.tokenAccount.balance;
   }, [bank, nativeSolBalance]);
 
+  const openPosition = React.useMemo(() => {
+    return bank.userInfo.maxWithdraw;
+  }, [bank]);
+
   const balancePrice = React.useMemo(
     () =>
       balance * bank.info.state.price > 0.01
         ? usdFormatter.format(balance * bank.info.state.price)
         : `$${(balance * bank.info.state.price).toExponential(2)}`,
     [bank, balance]
+  );
+
+  const openPositionPrice = React.useMemo(
+    () =>
+      openPosition * bank.info.state.price > 0.01
+        ? usdFormatter.format(openPosition * bank.info.state.price)
+        : `$${(openPosition * bank.info.state.price).toExponential(2)}`,
+    [bank, openPosition]
   );
 
   return (
@@ -55,8 +69,8 @@ export const ActionBoxItem = ({
             <p
               className={cn(
                 "text-xs font-normal",
-                lendingMode === LendingModes.LEND && "text-success",
-                lendingMode === LendingModes.BORROW && "text-warning"
+                (lendingMode === LendingModes.LEND || repay) && "text-success",
+                lendingMode === LendingModes.BORROW && !repay && "text-warning"
               )}
             >
               {rate}
@@ -65,10 +79,17 @@ export const ActionBoxItem = ({
         </div>
       </div>
 
-      {((lendingMode && lendingMode === LendingModes.BORROW && balance > 0) || showBalanceOverride) && (
+      {((!repay && lendingMode && lendingMode === LendingModes.BORROW && balance > 0) || showBalanceOverride) && (
         <div className="space-y-0.5 text-right font-normal text-sm">
           <p>{balance > 0.01 ? numeralFormatter(balance) : "< 0.01"}</p>
           <p className="text-xs text-muted-foreground">{balancePrice}</p>
+        </div>
+      )}
+
+      {repay && openPosition > 0 && (
+        <div className="space-y-0.5 text-right font-normal text-sm">
+          <p>{openPosition > 0.01 ? numeralFormatter(openPosition) : "< 0.01"}</p>
+          <p className="text-xs text-muted-foreground">{openPositionPrice}</p>
         </div>
       )}
     </>
