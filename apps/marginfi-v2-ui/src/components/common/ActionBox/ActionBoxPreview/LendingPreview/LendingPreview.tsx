@@ -55,7 +55,7 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
   );
 
   const { isBankFilled, isBankHigh, bankCap } = useAssetItemData({
-    bank: selectedBank,
+    bank: selectedBank!,
     isInLendingMode: showLending,
   });
 
