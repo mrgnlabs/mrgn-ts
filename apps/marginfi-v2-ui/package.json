@@ -67,7 +67,6 @@
     "cmdk": "^0.2.0",
     "firebase": "^10.6.0",
     "firebase-admin": "^11.9.0",
-    "jsbi": "^4.3.0",
     "lodash.debounce": "^4.0.8",
     "minidenticons": "^4.2.0",
     "next": "13.4.19",
