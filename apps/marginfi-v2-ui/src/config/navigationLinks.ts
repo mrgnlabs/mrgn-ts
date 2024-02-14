@@ -6,7 +6,7 @@ import {
   IconMore,
   IconBridge,
   IconMrgn,
-  IconSteak,
+  IconCoins,
 } from "~/components/ui/icons";
 export interface NavLinkInfo {
   href: string;
@@ -23,10 +23,10 @@ export const ORDERED_MOBILE_NAVBAR_LINKS: NavLinkInfo[] = [
     Icon: IconReceiveMoney,
   },
   {
-    href: "/stake",
-    alt: "steak icon",
-    label: "stake",
-    Icon: IconSteak,
+    href: "/mint",
+    alt: "mint icon",
+    label: "mint",
+    Icon: IconCoins,
   },
 
   {
@@ -51,10 +51,10 @@ export const ORDERED_MOBILE_LAUNCHER_LINKS: NavLinkInfo[] = [
     Icon: IconReceiveMoney,
   },
   {
-    href: "/stake",
-    alt: "steak icon",
-    label: "stake",
-    Icon: IconSteak,
+    href: "/mint",
+    alt: "mint icon",
+    label: "mint",
+    Icon: IconCoins,
   },
   {
     href: "/portfolio",
