@@ -69,7 +69,7 @@ async function fetchMeteoraPoolInfo(poolId: string) {
     const pool = data[0];
     const poolData = {
       tvl: parseFloat(pool.pool_tvl),
-      apy: parseFloat(pool.weekly_base_apy),
+      vol: parseFloat(pool.trading_volume),
     };
 
     myCache.set(cacheKey, poolData);
@@ -100,10 +100,9 @@ async function fetchRaydiumPoolInfo(poolId: string) {
     if (res.ok) {
       const data = await res.json();
       const pool = data.find((p: any) => p.id === poolId);
-      console.log(pool);
       const poolData = {
         tvl: pool.tvl,
-        apy: pool.month.apr,
+        vol: pool.day.volume,
       };
 
       myCache.set(cacheKey, poolData);
@@ -122,8 +121,6 @@ async function fetchRaydiumPoolInfo(poolId: string) {
 async function fetchOrcaPoolInfo(poolId: string) {
   const cacheKey = `markets_orca_${poolId}`;
 
-  console.log(poolId);
-
   const cachedData = myCache.get(cacheKey);
   if (cachedData) {
     console.log("_USING ORCA CACHE");
@@ -141,7 +138,7 @@ async function fetchOrcaPoolInfo(poolId: string) {
       const pool = data.whirlpools.find((p: any) => p.address === poolId);
       const poolData = {
         tvl: pool.tvl,
-        apy: pool.totalApr.month,
+        vol: pool.volume.day,
       };
 
       myCache.set(cacheKey, poolData);
