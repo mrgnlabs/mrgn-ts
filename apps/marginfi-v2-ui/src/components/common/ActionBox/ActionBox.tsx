@@ -1,6 +1,7 @@
 import React from "react";
 
-import { PublicKey } from "@solana/web3.js";
+import { AddressLookupTableAccount, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { createJupiterApiClient } from "@jup-ag/api";
 
 import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -28,6 +29,7 @@ import { IconAlertTriangle, IconWallet, IconSettings } from "~/components/ui/ico
 
 import { ActionBoxPreview } from "./ActionBoxPreview";
 import { ActionBoxTokens } from "./ActionBoxTokens";
+import { ActionBoxHeader } from "./ActionBoxHeader";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -37,6 +39,11 @@ type ActionBoxProps = {
   handleCloseDialog?: () => void;
 };
 
+export enum RepayType {
+  RepayRaw = "Repay with",
+  RepayCollat = "Repay with collateral",
+}
+
 export const ActionBox = ({
   requestedAction,
   requestedToken,
@@ -44,6 +51,7 @@ export const ActionBox = ({
   isDialog,
   handleCloseDialog,
 }: ActionBoxProps) => {
+  const jupiterQuoteApi = createJupiterApiClient();
   const [
     mfiClient,
     nativeSolBalance,
@@ -89,6 +97,7 @@ export const ActionBox = ({
   const [repayAmountRaw, setRepayAmountRaw] = React.useState<string>("");
 
   const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
+  const [repayMode, setRepayMode] = React.useState<RepayType>(RepayType.RepayRaw);
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
   const [selectedRepayTokenBank, setSelectedRepayTokenBank] = React.useState<PublicKey | null>(null);
   const [isPriorityFeesMode, setIsPriorityFeesMode] = React.useState<boolean>(false);
@@ -276,6 +285,80 @@ export const ActionBox = ({
       setAmountRaw(numberFormater.format(maxAmount));
     }
   }, [selectedStakingAccount, numberFormater, maxAmount]);
+
+  React.useEffect(() => {
+    if (repayMode === RepayType.RepayCollat) {
+    }
+  }, [repayMode]);
+
+  const calculateRepayCollateral = async () => {
+    if (!selectedBank || !selectedRepayBank || !selectedAccount) {
+      return;
+    }
+    const quoteParams = {
+      amount: amount,
+      inputMint: selectedRepayBank.info.state.mint.toBase58(),
+      outputMint: selectedBank.info.state.mint.toBase58(),
+      slippageBps: 100,
+      swapMode: "ExactOut" as any,
+      maxAccounts: 20,
+    };
+
+    const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
+
+    const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, selectedRepayBank.info.state.mintDecimals);
+    const withdrawIx = await selectedAccount.makeWithdrawIx(withdrawAmount, selectedRepayBank.address);
+    const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
+      swapRequest: {
+        quoteResponse: swapQuote,
+        userPublicKey: wallet.publicKey.toBase58(),
+      },
+    });
+    const swapIx = deserializeInstruction(swapInstruction);
+    const depositIx = await selectedAccount.makeRepayIx(amount, selectedBank.address, true);
+
+    const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
+    addressLookupTableAccounts.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
+
+    const flashLoanTx = await selectedAccount.buildFlashLoanTx({
+      ixs: [...withdrawIx.instructions, swapIx, ...depositIx.instructions],
+      addressLookupTableAccounts,
+    });
+  };
+
+  const deserializeInstruction = (instruction: any) => {
+    return new TransactionInstruction({
+      programId: new PublicKey(instruction.programId),
+      keys: instruction.accounts.map((key: any) => ({
+        pubkey: new PublicKey(key.pubkey),
+        isSigner: key.isSigner,
+        isWritable: key.isWritable,
+      })),
+      data: Buffer.from(instruction.data, "base64"),
+    });
+  };
+
+  const getAdressLookupTableAccounts = async (
+    connection: Connection,
+    keys: string[]
+  ): Promise<AddressLookupTableAccount[]> => {
+    const addressLookupTableAccountInfos = await connection.getMultipleAccountsInfo(
+      keys.map((key) => new PublicKey(key))
+    );
+
+    return addressLookupTableAccountInfos.reduce((acc, accountInfo, index) => {
+      const addressLookupTableAddress = keys[index];
+      if (accountInfo) {
+        const addressLookupTableAccount = new AddressLookupTableAccount({
+          key: new PublicKey(addressLookupTableAddress),
+          state: AddressLookupTableAccount.deserialize(accountInfo.data),
+        });
+        acc.push(addressLookupTableAccount);
+      }
+
+      return acc;
+    }, new Array<AddressLookupTableAccount>());
+  };
 
   // Does this do anything? I don't think so
   // React.useEffect(() => {
@@ -544,10 +627,14 @@ export const ActionBox = ({
             isDialog && "border border-background-gray-light/50"
           )}
         >
-          {isPriorityFeesMode && (
+          <ActionBoxHeader
+            actionType={actionMode}
+            repayType={repayMode}
+            changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
+          />
+          {isPriorityFeesMode ? (
             <ActionBoxPriorityFees mode={actionMode} setIsPriorityFeesMode={setIsPriorityFeesMode} />
-          )}
-          {!isPriorityFeesMode && (
+          ) : (
             <>
               <div className="flex flex-row items-center justify-between mb-3">
                 {!isDialog || actionMode === ActionType.MintLST || actionMode === ActionType.Repay ? (
@@ -604,14 +691,14 @@ export const ActionBox = ({
                 </div>
               </div>
 
-              {actionMode === ActionType.Repay && (
+              {actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat && (
                 <>
                   <div className="flex flex-row items-center justify-between mb-3">
                     <div className="text-lg font-normal flex items-center">Use collateral</div>
                     {selectedRepayBank && (
                       <div className="inline-flex gap-1.5 items-center">
-                        <IconWallet size={16} />
                         <span className="text-sm font-normal">
+                          Supplied:&nbsp;
                           {selectedRepayBank &&
                             (selectedRepayBank.userInfo.maxWithdraw !== undefined
                               ? clampedNumeralFormatter(selectedRepayBank.userInfo.maxWithdraw).concat(
@@ -620,17 +707,6 @@ export const ActionBox = ({
                                 )
                               : "-")}
                         </span>
-                        <button
-                          className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
-                            maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
-                          } transition-colors`}
-                          onClick={() =>
-                            setRepayAmountRaw(numberFormater.format(selectedRepayBank.userInfo.maxWithdraw))
-                          }
-                          disabled={maxAmount === 0}
-                        >
-                          MAX
-                        </button>
                       </div>
                     )}
                   </div>
@@ -650,8 +726,7 @@ export const ActionBox = ({
                         ref={repayAmountInputRef}
                         inputMode="numeric"
                         value={repayAmountRaw ?? undefined}
-                        disabled={isInputDisabled}
-                        onChange={(e) => handleInputChange(e.target.value)}
+                        disabled={true}
                         placeholder="0"
                         className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
                       />
