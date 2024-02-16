@@ -10,11 +10,8 @@ export default function MigrateAccountPage() {
       <PageHeader>Migrate Account</PageHeader>
       <div className="flex flex-col items-center w-full max-w-3xl mx-auto py-8 space-y-12">
         <header className="text-center space-y-4 max-w-md mx-auto">
-          <h1 className="text-3xl font-medium">Migrate your marginfi account</h1>
-          <p>
-            Fugiat exercitation excepteur eiusmod in in velit laborum irure duis cillum aute ullamco reprehenderit
-            minim.
-          </p>
+          <h1 className="text-3xl font-medium">Marginfi Migration</h1>
+          <p>Marginfi migration tools. Please proceed with caution.</p>
         </header>
         <div className="w-full flex flex-col items-center justify-center gap-8 px-6 md:flex-row">
           <Card variant="secondary" className="w-full">
