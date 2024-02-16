@@ -83,7 +83,7 @@ export default function MigratePointsPage() {
               >
                 <ul className="w-full space-y-2">
                   <li className="flex items-center justify-between gap-2">
-                    Migrating points from:
+                    Migrating Points:
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger className="cursor-default text-white text-sm">

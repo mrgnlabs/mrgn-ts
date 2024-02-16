@@ -1,6 +1,7 @@
 import React from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
 import { CopyToClipboard } from "react-copy-to-clipboard";
@@ -25,6 +26,7 @@ import { IconAlertTriangle, IconTransfer, IconX, IconLink, IconExternalLink } fr
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 
 export default function MigrateAccountPage() {
+  const router = useRouter();
   const { connected, wallet } = useWalletContext();
   const [fetchMrgnlendState, isRefreshingStore, setIsRefreshingStore, initialized, marginfiAccounts, selectedAccount] =
     useMrgnlendStore((state) => [
@@ -191,19 +193,18 @@ export default function MigrateAccountPage() {
                     <IconTransfer size={20} /> Migrate Account
                   </Button>
 
-                  {marginfiAccounts.length > 1 && (
-                    <Button
-                      type="submit"
-                      variant="link"
-                      size="sm"
-                      className="text-destructive-foreground gap-1"
-                      onClick={() => {
-                        setChosenAccount(null);
-                      }}
-                    >
-                      <IconX size={16} /> Cancel Migration
-                    </Button>
-                  )}
+                  <Button
+                    type="submit"
+                    variant="link"
+                    size="sm"
+                    className="text-destructive-foreground gap-1"
+                    onClick={() => {
+                      setChosenAccount(null);
+                      router.push("/migrate");
+                    }}
+                  >
+                    <IconX size={16} /> Cancel Migration
+                  </Button>
                 </div>
               </form>
             </div>
