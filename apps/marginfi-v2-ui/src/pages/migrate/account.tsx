@@ -24,7 +24,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { IconAlertTriangle, IconTransfer, IconX, IconLink, IconExternalLink } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 
-export default function MigratePage() {
+export default function MigrateAccountPage() {
   const { connected, wallet } = useWalletContext();
   const [fetchMrgnlendState, isRefreshingStore, setIsRefreshingStore, initialized, marginfiAccounts, selectedAccount] =
     useMrgnlendStore((state) => [
