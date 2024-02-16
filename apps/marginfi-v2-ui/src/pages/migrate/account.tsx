@@ -22,7 +22,7 @@ import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";
 import { Alert, AlertTitle } from "~/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconAlertTriangle, IconTransfer, IconX, IconLink, IconExternalLink } from "~/components/ui/icons";
+import { IconAlertTriangle, IconTransfer, IconX, IconLink, IconExternalLink, IconMrgn } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 
 export default function MigrateAccountPage() {
@@ -189,12 +189,11 @@ export default function MigrateAccountPage() {
                   </li>
                 </ul>
                 <div className="flex flex-col gap-2">
-                  <Button>
+                  <Button type="submit">
                     <IconTransfer size={20} /> Migrate Account
                   </Button>
 
                   <Button
-                    type="submit"
                     variant="link"
                     size="sm"
                     className="text-destructive-foreground gap-1"
@@ -212,9 +211,11 @@ export default function MigrateAccountPage() {
 
           {isComplete && (
             <div className="flex flex-col items-center space-y-10 max-w-3xl mx-auto">
-              <div className="flex flex-col items-center space-y-4 text-center">
-                <h1 className="text-3xl font-medium">Account Migrated!</h1>
-                <p>Your marginfi account has been successfully migrated to the new wallet address.</p>
+              <div className="flex flex-col items-center space-y-8 text-center">
+                <header className="space-y-2 text-center">
+                  <h1 className="text-3xl font-medium">Account Migrated!</h1>
+                  <p>Your marginfi account has been successfully migrated to the new wallet address.</p>
+                </header>
 
                 {txnSignature && (
                   <p className="flex items-center gap-2 leading-tight">
@@ -229,6 +230,12 @@ export default function MigrateAccountPage() {
                     </Link>
                   </p>
                 )}
+
+                <Link href="/">
+                  <Button>
+                    <IconMrgn size={18} /> back to mrgnlend
+                  </Button>
+                </Link>
               </div>
             </div>
           )}
