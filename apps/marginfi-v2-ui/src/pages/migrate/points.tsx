@@ -3,9 +3,11 @@ import React from "react";
 import Link from "next/link";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useConnection } from "~/hooks/useConnection";
 
 import { PageHeader } from "~/components/common/PageHeader";
 import { WalletButton } from "~/components/common/Wallet";
@@ -13,15 +15,34 @@ import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Alert, AlertTitle } from "~/components/ui/alert";
+import { Checkbox } from "~/components/ui/checkbox";
+import { Label } from "~/components/ui/label";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
 import { IconAlertTriangle, IconTransfer, IconX } from "~/components/ui/icons";
 
 export default function MigratePointsPage() {
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
   const { connected, wallet } = useWalletContext();
+  const { connection } = useConnection();
+  const [useAuthTxn, setUseAuthTxn] = React.useState(false);
   const walletAddressInputRef = React.useRef<HTMLInputElement>(null);
 
-  const migratePoints = React.useCallback(() => {}, []);
+  const migratePoints = React.useCallback(async () => {
+    if (!walletAddressInputRef.current) return;
+
+    const blockhashInfo = await connection.getLatestBlockhash();
+
+    try {
+      await firebaseApi.migratePoints(
+        useAuthTxn ? "tx" : "memo",
+        blockhashInfo,
+        wallet,
+        walletAddressInputRef.current.value
+      );
+    } catch (loginError: any) {
+      console.log("Error migrating points", loginError);
+    }
+  }, [wallet, walletAddressInputRef, useAuthTxn]);
 
   return (
     <>
@@ -72,16 +93,22 @@ export default function MigratePointsPage() {
                     <Input ref={walletAddressInputRef} required type="text" placeholder="Wallet address" />
                   </li>
                 </ul>
-                <div className="flex flex-col gap-2">
-                  <Button>
-                    <IconTransfer size={20} /> Migrate Points
-                  </Button>
-
-                  <Link href="/migrate" className="text-center">
-                    <Button type="submit" variant="link" size="sm" className="text-destructive-foreground gap-1">
-                      <IconX size={16} /> Cancel Migration
+                <div className="flex flex-col items-center gap-4">
+                  <Label className="flex items-center gap-2 text-sm">
+                    <Checkbox checked={useAuthTxn} onCheckedChange={(checked) => setUseAuthTxn(checked as boolean)} />
+                    Using Ledger?
+                  </Label>
+                  <div className="flex flex-col gap-2">
+                    <Button>
+                      <IconTransfer size={20} /> Migrate Points
                     </Button>
-                  </Link>
+
+                    <Link href="/migrate" className="text-center">
+                      <Button type="submit" variant="link" size="sm" className="text-destructive-foreground gap-1">
+                        <IconX size={16} /> Cancel Migration
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </form>
             </div>
