@@ -33,12 +33,19 @@ export default function MigratePointsPage() {
     const blockhashInfo = await connection.getLatestBlockhash();
 
     try {
-      await firebaseApi.migratePoints(
+      const res = await firebaseApi.migratePoints(
         useAuthTxn ? "tx" : "memo",
         blockhashInfo,
         wallet,
         walletAddressInputRef.current.value
       );
+
+      if (res.error) {
+        alert(res.error);
+        return;
+      }
+
+      alert("Points migrated successfully!");
     } catch (loginError: any) {
       console.log("Error migrating points", loginError);
     }
