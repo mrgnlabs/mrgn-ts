@@ -81,7 +81,7 @@ const SignupPayloadStruct = object({
 type SignupPayload = Infer<typeof SignupPayloadStruct>;
 
 const MigratePayloadStruct = object({
-  walletAddress: string(),
+  fromWalletAddress: string(),
   toWalletAddress: string(),
 });
 type MigratePayload = Infer<typeof MigratePayloadStruct>;
@@ -107,7 +107,7 @@ async function migratePoints(
   toWalletAddress: string
 ) {
   const authData: MigratePayload = {
-    walletAddress: wallet.publicKey!.toBase58(),
+    fromWalletAddress: wallet.publicKey!.toBase58(),
     toWalletAddress,
   };
   const signedDataRaw =
@@ -121,6 +121,8 @@ async function migratePoints(
     body: JSON.stringify({ method: signingMethod, signedDataRaw }),
   });
   const data = await response.json();
+
+  console.log(response.status, data);
 
   return data;
 }

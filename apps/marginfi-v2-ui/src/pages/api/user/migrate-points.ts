@@ -55,20 +55,28 @@ export default async function handler(req: NextApiRequest<MigrationRequest>, res
     const fromWalletAddress = signer;
     const toWalletAddress = payload.toWalletAddress;
 
-    // Check for existing migration for the from_address
-    const existingMigrations = await admin
+    // Check for existing migration involving the fromAddress or toAddress
+    const existingMigrationQuery = await admin
       .firestore()
       .collection("points_migrations")
-      .where("from_address", "==", fromWalletAddress)
-      .limit(1)
+      .where("from_address", "in", [fromWalletAddress, toWalletAddress])
       .get();
 
-    if (!existingMigrations.empty) {
-      console.log(`Migration already exists for ${fromWalletAddress}.`);
-      return res.status(STATUS_BAD_REQUEST).json({ error: "A migration already exists for this wallet." });
+    const existingMigrationAsTargetQuery = await admin
+      .firestore()
+      .collection("points_migrations")
+      .where("to_address", "in", [fromWalletAddress, toWalletAddress])
+      .get();
+
+    if (!existingMigrationQuery.empty || !existingMigrationAsTargetQuery.empty) {
+      console.log(
+        `Either the fromAddress ${fromWalletAddress} or the toAddress ${toWalletAddress} has already been involved in a migration.`
+      );
+      return res
+        .status(STATUS_BAD_REQUEST)
+        .json({ error: "One of the wallets has already been involved in a migration." });
     }
 
-    // Proceed with adding the new migration
     const migrationDoc = {
       from_address: fromWalletAddress,
       to_address: toWalletAddress,
@@ -78,6 +86,7 @@ export default async function handler(req: NextApiRequest<MigrationRequest>, res
     await admin.firestore().collection("points_migrations").add(migrationDoc);
     console.log(`Migration from ${fromWalletAddress} to ${toWalletAddress} recorded.`);
 
+    // Return a success response
     return res.status(STATUS_OK).json({ status: "success", message: "Points migration recorded successfully." });
   } catch (error: any) {
     Sentry.captureException(error);

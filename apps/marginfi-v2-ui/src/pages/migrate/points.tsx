@@ -8,6 +8,7 @@ import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
+import { MultiStepToastHandle } from "~/utils/toastUtils";
 
 import { PageHeader } from "~/components/common/PageHeader";
 import { WalletButton } from "~/components/common/Wallet";
@@ -18,17 +19,21 @@ import { Alert, AlertTitle } from "~/components/ui/alert";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
-import { IconAlertTriangle, IconTransfer, IconX } from "~/components/ui/icons";
+import { IconAlertTriangle, IconMrgn, IconTransfer, IconX } from "~/components/ui/icons";
 
 export default function MigratePointsPage() {
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
   const { connected, wallet } = useWalletContext();
   const { connection } = useConnection();
   const [useAuthTxn, setUseAuthTxn] = React.useState(false);
+  const [isComplete, setIsComplete] = React.useState(false);
   const walletAddressInputRef = React.useRef<HTMLInputElement>(null);
 
   const migratePoints = React.useCallback(async () => {
     if (!walletAddressInputRef.current) return;
+
+    const multiStepToast = new MultiStepToastHandle("Migrate Points", [{ label: "Migrating points" }]);
+    multiStepToast.start();
 
     const blockhashInfo = await connection.getLatestBlockhash();
 
@@ -41,13 +46,14 @@ export default function MigratePointsPage() {
       );
 
       if (res.error) {
-        alert(res.error);
+        multiStepToast.setFailed(res.error);
         return;
       }
 
-      alert("Points migrated successfully!");
+      multiStepToast.setSuccessAndNext();
+      setIsComplete(true);
     } catch (loginError: any) {
-      console.log("Error migrating points", loginError);
+      multiStepToast.setFailed(loginError.message || "Error migrating points");
     }
   }, [wallet, walletAddressInputRef, useAuthTxn]);
 
@@ -64,7 +70,7 @@ export default function MigratePointsPage() {
             </div>
           )}
 
-          {connected && (
+          {connected && !isComplete && (
             <div className="flex flex-col items-center max-w-md mx-auto">
               <header className="space-y-4 text-center">
                 <h1 className="text-3xl font-medium">Migrate your marginfi points</h1>
@@ -106,18 +112,35 @@ export default function MigratePointsPage() {
                     Using Ledger?
                   </Label>
                   <div className="flex flex-col gap-2">
-                    <Button>
+                    <Button type="submit">
                       <IconTransfer size={20} /> Migrate Points
                     </Button>
 
                     <Link href="/migrate" className="text-center">
-                      <Button type="submit" variant="link" size="sm" className="text-destructive-foreground gap-1">
+                      <Button variant="link" size="sm" className="text-destructive-foreground gap-1">
                         <IconX size={16} /> Cancel Migration
                       </Button>
                     </Link>
                   </div>
                 </div>
               </form>
+            </div>
+          )}
+
+          {isComplete && (
+            <div className="flex flex-col items-center space-y-10 max-w-3xl mx-auto">
+              <div className="flex flex-col items-center space-y-8 text-center">
+                <header className="space-y-3 text-center">
+                  <h1 className="text-3xl font-medium">Points queued for migration!</h1>
+                  <p>Your marginfi points have been successfully queued for migration. Please check back in an hour.</p>
+                </header>
+
+                <Link href="/">
+                  <Button>
+                    <IconMrgn size={18} /> back to mrgnlend
+                  </Button>
+                </Link>
+              </div>
             </div>
           )}
         </div>
