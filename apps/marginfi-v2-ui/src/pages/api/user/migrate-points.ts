@@ -27,22 +27,19 @@ export interface MigrationRequest {
 export default async function handler(req: NextApiRequest<MigrationRequest>, res: any) {
   const { method, signedDataRaw } = req.body;
 
-  console.log(1);
-
   let signer;
+  let payload;
   try {
-    console.log(2);
-    console.log(signedDataRaw);
     const loginData = validateAndUnpackMigrateData(signedDataRaw, method);
     signer = loginData.signer.toBase58();
-    console.log(signer);
+    payload = loginData.payload;
   } catch (error: any) {
     console.log(error);
     Sentry.captureException(error);
     let status;
     switch (error.message) {
-      case "Invalid login tx":
-      case "Invalid login payload":
+      case "Invalid migration tx":
+      case "Invalid migration payload":
         status = STATUS_BAD_REQUEST;
         break;
       case "Invalid signature":
@@ -55,13 +52,23 @@ export default async function handler(req: NextApiRequest<MigrationRequest>, res
   }
 
   try {
-    console.log("we made it to here");
+    const fromWalletAddress = signer;
+    const toWalletAddress = payload.toWalletAddress;
+
+    const migrationDoc = {
+      from_address: fromWalletAddress,
+      to_address: toWalletAddress,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await admin.firestore().collection("points_migrations").add(migrationDoc);
+    console.log(`Migration from ${fromWalletAddress} to ${toWalletAddress} recorded.`);
+
+    return res.status(STATUS_OK).json({ status: "success", message: "Points migration recorded successfully." });
   } catch (error: any) {
     Sentry.captureException(error);
-    return res.status(STATUS_INTERNAL_ERROR).json({ error: error.message }); // An unexpected error occurred
+    return res.status(STATUS_INTERNAL_ERROR).json({ error: error.message });
   }
-
-  return res.status(STATUS_OK).json({ status: "success" });
 }
 
 // -------- Helpers
@@ -87,13 +94,13 @@ export function validateAndUnpackMigrateData(
       tx.signatures.length === 1 &&
       memoIx.keys[0].pubkey.equals(tx.feePayer);
 
-    if (!isValidSignupTx) throw new Error("Invalid signup tx");
+    if (!isValidSignupTx) throw new Error("Invalid migration tx");
 
     authData = JSON.parse(memoIx.data.toString("utf8"));
     signerWallet = tx.feePayer!;
 
-    if (!is(authData, firebaseApi.SignupPayloadStruct)) {
-      throw new Error("Invalid signup payload");
+    if (!is(authData, firebaseApi.MigratePayloadStruct)) {
+      throw new Error("Invalid migration payload");
     }
   } else {
     const { data, signature, signer } = JSON.parse(signedAuthDataRaw);

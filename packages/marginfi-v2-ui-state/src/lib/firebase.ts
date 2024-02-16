@@ -118,14 +118,23 @@ async function migratePoints(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ signedDataRaw }),
+    body: JSON.stringify({ method: signingMethod, signedDataRaw }),
   });
   const data = await response.json();
 
   console.log("API response", data);
 }
 
-export { getUser, loginOrSignup, signup, login, SignupPayloadStruct, LoginPayloadStruct, migratePoints };
+export {
+  getUser,
+  loginOrSignup,
+  signup,
+  login,
+  migratePoints,
+  SignupPayloadStruct,
+  LoginPayloadStruct,
+  MigratePayloadStruct,
+};
 export type { UserData, SignupPayload, MigratePayload };
 
 // ----------------------------------------------------------------------------
@@ -196,6 +205,7 @@ async function signMigrateTx(
 ): Promise<string> {
   const walletAddress = wallet.publicKey!;
   const authDummyTx = new Transaction().add(createMemoInstruction(JSON.stringify(migrateData), [walletAddress]));
+
   authDummyTx.feePayer = walletAddress;
   authDummyTx.recentBlockhash = blockhash.blockhash;
   authDummyTx.lastValidBlockHeight = blockhash.lastValidBlockHeight;
