@@ -122,7 +122,7 @@ async function migratePoints(
   });
   const data = await response.json();
 
-  console.log("API response", data);
+  return data;
 }
 
 export {

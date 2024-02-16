@@ -55,6 +55,20 @@ export default async function handler(req: NextApiRequest<MigrationRequest>, res
     const fromWalletAddress = signer;
     const toWalletAddress = payload.toWalletAddress;
 
+    // Check for existing migration for the from_address
+    const existingMigrations = await admin
+      .firestore()
+      .collection("points_migrations")
+      .where("from_address", "==", fromWalletAddress)
+      .limit(1)
+      .get();
+
+    if (!existingMigrations.empty) {
+      console.log(`Migration already exists for ${fromWalletAddress}.`);
+      return res.status(STATUS_BAD_REQUEST).json({ error: "A migration already exists for this wallet." });
+    }
+
+    // Proceed with adding the new migration
     const migrationDoc = {
       from_address: fromWalletAddress,
       to_address: toWalletAddress,
