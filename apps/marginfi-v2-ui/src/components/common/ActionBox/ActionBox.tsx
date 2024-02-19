@@ -108,6 +108,8 @@ export const ActionBox = ({
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
 
+  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
+
   // Either a staking account is selected or a bank
   const selectedStakingAccount = React.useMemo(
     () => (selectedTokenBank ? stakeAccounts.find((acc) => acc.address.equals(selectedTokenBank)) ?? null : null),
@@ -146,7 +148,7 @@ export const ActionBox = ({
     [nativeSolBalance, selectedBank]
   );
 
-  const [repayAmountRaw, setRepayAmountRaw] = React.useState<string>("");
+  const [repayAmount, setRepayAmount] = React.useState<number>();
   const [repayCollatQuote, setRepayCollatQuote] = React.useState<QuoteResponse>();
 
   const maxAmount = React.useMemo(() => {
@@ -186,9 +188,12 @@ export const ActionBox = ({
     repayMode,
   ]);
 
-  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
   const amountInputRef = React.useRef<HTMLInputElement>(null);
   const repayAmountInputRef = React.useRef<HTMLInputElement>(null);
+  const rawRepayAmount = React.useMemo(
+    () => (repayAmount ? numberFormater.format(repayAmount) : undefined),
+    [repayAmount, numberFormater]
+  );
 
   const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
   const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
@@ -309,14 +314,11 @@ export const ActionBox = ({
   React.useEffect(() => {
     if (repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
       calculateMaxCollat(selectedBank, selectedRepayBank);
+    } else {
+      setRepayCollatQuote(undefined);
+      setRepayAmount(undefined);
     }
-  }, [repayMode, selectedRepayBank, selectedBank]);
-
-  React.useEffect(() => {
-    if (repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
-      calculateMaxCollat(selectedBank, selectedRepayBank);
-    }
-  }, [repayMode, selectedRepayBank, selectedBank]);
+  }, [repayMode, selectedRepayBank, selectedBank, setRepayCollatQuote, setRepayAmount]);
 
   React.useEffect(() => {
     if (debouncedAmount && repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
@@ -352,62 +354,9 @@ export const ActionBox = ({
     const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
     const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
 
-    setRepayAmountRaw(numberFormater.format(withdrawAmount));
+    setRepayAmount(withdrawAmount);
     setRepayCollatQuote(swapQuote);
-
-    // const withdrawIx = await selectedAccount.makeWithdrawIx(withdrawAmount, selectedRepayBank.address);
-    // const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
-    //   swapRequest: {
-    //     quoteResponse: swapQuote,
-    //     userPublicKey: wallet.publicKey.toBase58(),
-    //   },
-    // });
-    // const swapIx = deserializeInstruction(swapInstruction);
-    // const depositIx = await selectedAccount.makeRepayIx(amount, selectedBank.address, true);
-
-    // const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
-    // addressLookupTableAccounts.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
-
-    // const flashLoanTx = await selectedAccount.buildFlashLoanTx({
-    //   ixs: [...withdrawIx.instructions, swapIx, ...depositIx.instructions],
-    //   addressLookupTableAccounts,
-    // });
   };
-
-  const deserializeInstruction = (instruction: any) => {
-    return new TransactionInstruction({
-      programId: new PublicKey(instruction.programId),
-      keys: instruction.accounts.map((key: any) => ({
-        pubkey: new PublicKey(key.pubkey),
-        isSigner: key.isSigner,
-        isWritable: key.isWritable,
-      })),
-      data: Buffer.from(instruction.data, "base64"),
-    });
-  };
-
-  const getAdressLookupTableAccounts = async (
-    connection: Connection,
-    keys: string[]
-  ): Promise<AddressLookupTableAccount[]> => {
-    const addressLookupTableAccountInfos = await connection.getMultipleAccountsInfo(
-      keys.map((key) => new PublicKey(key))
-    );
-
-    return addressLookupTableAccountInfos.reduce((acc, accountInfo, index) => {
-      const addressLookupTableAddress = keys[index];
-      if (accountInfo) {
-        const addressLookupTableAccount = new AddressLookupTableAccount({
-          key: new PublicKey(addressLookupTableAddress),
-          state: AddressLookupTableAccount.deserialize(accountInfo.data),
-        });
-        acc.push(addressLookupTableAccount);
-      }
-
-      return acc;
-    }, new Array<AddressLookupTableAccount>());
-  };
-
   // Does this do anything? I don't think so
   // React.useEffect(() => {
   //   if (
@@ -432,6 +381,7 @@ export const ActionBox = ({
       nativeSolBalance,
       marginfiAccount,
       walletContextState,
+      repayWithCollatOptions,
     }: MarginfiActionParams) => {
       setIsLoading(true);
       const txnSig = await executeLendingAction({
@@ -443,6 +393,7 @@ export const ActionBox = ({
         marginfiAccount,
         walletContextState,
         priorityFee,
+        repayWithCollatOptions,
       });
 
       setIsLoading(false);
@@ -582,15 +533,27 @@ export const ActionBox = ({
     }
 
     const action = async () => {
-      executeLendingActionCb({
+      const params = {
         mfiClient,
         actionType: actionMode,
         bank: selectedBank,
-        amount: amount,
+        amount,
         nativeSolBalance,
         marginfiAccount: selectedAccount,
         walletContextState,
-      });
+      } as MarginfiActionParams;
+
+      if (repayCollatQuote && repayAmount && selectedRepayBank && connection && wallet) {
+        params.repayWithCollatOptions = {
+          repayCollatQuote,
+          repayAmount,
+          repayBank: selectedRepayBank,
+          connection,
+          wallet,
+        };
+      }
+
+      executeLendingActionCb(params);
     };
 
     if (
@@ -627,6 +590,11 @@ export const ActionBox = ({
     mfiClient,
     nativeSolBalance,
     walletContextState,
+    repayCollatQuote,
+    repayAmount,
+    selectedRepayBank,
+    connection,
+    wallet,
   ]);
 
   const handleInputChange = React.useCallback(
@@ -773,7 +741,7 @@ export const ActionBox = ({
                         type="text"
                         ref={repayAmountInputRef}
                         inputMode="numeric"
-                        value={repayAmountRaw ?? undefined}
+                        value={rawRepayAmount ?? undefined}
                         disabled={true}
                         placeholder="0"
                         className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
