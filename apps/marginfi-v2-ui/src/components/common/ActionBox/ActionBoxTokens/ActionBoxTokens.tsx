@@ -48,8 +48,12 @@ export const ActionBoxTokens = ({
         />
       )}
 
-      {actionMode === ActionType.MintLST && currentTokenBank && setCurrentTokenBank && (
-        <LstTokens currentTokenBank={currentTokenBank} setCurrentTokenBank={setCurrentTokenBank} hasDropdown={true} />
+      {actionMode === ActionType.MintLST && setCurrentTokenBank && (
+        <LstTokens
+          currentTokenBank={currentTokenBank ?? null}
+          setCurrentTokenBank={setCurrentTokenBank}
+          hasDropdown={true}
+        />
       )}
 
       {actionMode === ActionType.MintYBX && currentTokenBank && <YbxTokens currentTokenBank={currentTokenBank} />}
