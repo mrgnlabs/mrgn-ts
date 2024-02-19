@@ -1,5 +1,13 @@
-import { createJupiterApiClient } from "@jup-ag/api";
-import { Connection, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { QuoteResponse, createJupiterApiClient } from "@jup-ag/api";
+import {
+  AddressLookupTableAccount,
+  Connection,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -13,6 +21,15 @@ import { Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
 import { LstData, SOL_MINT } from "~/store/lstStore";
 
 import { StakeData, makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx } from "./lstUtils";
+import { cp } from "fs";
+
+export type RepayWithCollatOptions = {
+  repayCollatQuote: QuoteResponse;
+  repayAmount: number;
+  repayBank: ExtendedBankInfo;
+  connection: Connection;
+  wallet: Wallet;
+};
 
 export type MarginfiActionParams = {
   mfiClient: MarginfiClient | null;
@@ -21,6 +38,7 @@ export type MarginfiActionParams = {
   amount: number;
   nativeSolBalance: number;
   marginfiAccount: MarginfiAccountWrapper | null;
+  repayWithCollatOptions?: RepayWithCollatOptions;
   walletContextState?: WalletContextState | WalletContextStateOverride;
   priorityFee?: number;
 };
@@ -47,6 +65,7 @@ export async function executeLendingAction({
   marginfiAccount,
   walletContextState,
   priorityFee,
+  repayWithCollatOptions,
 }: MarginfiActionParams) {
   let txnSig: string | undefined;
 
@@ -78,6 +97,9 @@ export async function executeLendingAction({
   }
 
   if (actionType === ActionType.Repay) {
+    if (repayWithCollatOptions)
+      txnSig = await repayWithCollat({ marginfiAccount, bank, amount, priorityFee, options: repayWithCollatOptions });
+  } else {
     txnSig = await repay({ marginfiAccount, bank, amount, priorityFee });
   }
 
@@ -309,6 +331,59 @@ export async function repay({
       bank.isActive && isWholePosition(bank, amount),
       priorityFee
     );
+    multiStepToast.setSuccessAndNext();
+    return txnSig;
+  } catch (error: any) {
+    const msg = extractErrorString(error);
+    multiStepToast.setFailed(msg);
+    console.log(`Error while repaying: ${msg}`);
+    console.log(error);
+    return;
+  }
+}
+
+export async function repayWithCollat({
+  marginfiAccount,
+  bank,
+  amount,
+  options,
+  priorityFee,
+}: {
+  marginfiAccount: MarginfiAccountWrapper;
+  bank: ExtendedBankInfo;
+  amount: number;
+  options: RepayWithCollatOptions;
+  priorityFee?: number;
+}) {
+  const jupiterQuoteApi = createJupiterApiClient();
+  const multiStepToast = new MultiStepToastHandle("Repayment", [
+    { label: `Generating instructions` },
+    { label: `Executing flashloan repayment` },
+  ]);
+  multiStepToast.start();
+
+  try {
+    const withdrawIx = await marginfiAccount.makeWithdrawIx(options.repayAmount, options.repayBank.address);
+    const priorityFeeIx = marginfiAccount.makePriorityFeeIx(priorityFee);
+    const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
+      swapRequest: {
+        quoteResponse: options.repayCollatQuote,
+        userPublicKey: options.wallet.publicKey.toBase58(),
+      },
+    });
+    const swapIx = deserializeInstruction(swapInstruction);
+    const depositIx = await marginfiAccount.makeRepayIx(amount, bank.address, true);
+    const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
+    addressLookupTableAccounts.push(
+      ...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses))
+    );
+    multiStepToast.setSuccessAndNext();
+
+    const txnSig = await marginfiAccount.flashLoan({
+      ixs: [...priorityFeeIx, ...withdrawIx.instructions, swapIx, ...depositIx.instructions],
+      addressLookupTableAccounts,
+    });
+
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -576,6 +651,10 @@ export async function mintLstToken({
   }
 }
 
+// ------------------------------------------------------------------//
+// Helpers //
+// ------------------------------------------------------------------//
+
 function extractErrorString(error: any, fallback?: string): string {
   if (error instanceof ProcessTransactionError) {
     if (error.message === "Bank deposit capacity exceeded") return "We've reached maximum capacity for this asset";
@@ -601,4 +680,38 @@ async function getMaybeSquadsOptions(walletContextState?: WalletContextState | W
   const ephemeralSignerPubkey = ephemeralSignerAddress ? new PublicKey(ephemeralSignerAddress) : undefined;
 
   return ephemeralSignerPubkey ? { newAccountKey: ephemeralSignerPubkey } : undefined;
+}
+
+function deserializeInstruction(instruction: any) {
+  return new TransactionInstruction({
+    programId: new PublicKey(instruction.programId),
+    keys: instruction.accounts.map((key: any) => ({
+      pubkey: new PublicKey(key.pubkey),
+      isSigner: key.isSigner,
+      isWritable: key.isWritable,
+    })),
+    data: Buffer.from(instruction.data, "base64"),
+  });
+}
+
+async function getAdressLookupTableAccounts(
+  connection: Connection,
+  keys: string[]
+): Promise<AddressLookupTableAccount[]> {
+  const addressLookupTableAccountInfos = await connection.getMultipleAccountsInfo(
+    keys.map((key) => new PublicKey(key))
+  );
+
+  return addressLookupTableAccountInfos.reduce((acc, accountInfo, index) => {
+    const addressLookupTableAddress = keys[index];
+    if (accountInfo) {
+      const addressLookupTableAccount = new AddressLookupTableAccount({
+        key: new PublicKey(addressLookupTableAddress),
+        state: AddressLookupTableAccount.deserialize(accountInfo.data),
+      });
+      acc.push(addressLookupTableAccount);
+    }
+
+    return acc;
+  }, new Array<AddressLookupTableAccount>());
 }
