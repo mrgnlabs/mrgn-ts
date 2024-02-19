@@ -120,7 +120,9 @@ export const WalletAuthDialog = () => {
   return (
     <div>
       <Dialog open={isWalletAuthDialogOpen} onOpenChange={(open) => setIsWalletAuthDialogOpen(open)}>
-        <DialogContent className="md:block overflow-hidden p-4">
+        <DialogContent
+          className={cn("md:block overflow-hidden p-4 md:max-w-xl", filteredWallets.length > 6 && "md:max-w-2xl")}
+        >
           <DialogHeader>
             <IconMrgn size={48} />
             <DialogTitle>Sign in to marginfi</DialogTitle>
@@ -231,7 +233,12 @@ export const WalletAuthDialog = () => {
               </header>
 
               {(filteredWallets.length > 0 || isAndroid || isIOS) && (
-                <ul className="flex items-center justify-center gap-4 mt-6 mb-2">
+                <ul
+                  className={cn(
+                    "flex flex-wrap items-center justify-center gap-4 mt-6 mb-2 overflow-auto",
+                    filteredWallets.length > 6 && "pb-1"
+                  )}
+                >
                   {filteredWallets.map((wallet, i) => {
                     const img = walletIcons[wallet.adapter.name] || (
                       <Image src={wallet.adapter.icon} width={28} height={28} alt={wallet.adapter.name} />
