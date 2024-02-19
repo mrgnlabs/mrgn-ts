@@ -44,8 +44,6 @@ export function checkActionAvailable({
   check = generalChecks(connected, selectedBank, selectedStakingAccount, showCloseBalance);
   if (check) return check;
 
-  console.log("selectedRepayBank", selectedRepayBank);
-
   if (selectedBank) {
     switch (actionMode) {
       case ActionType.Deposit:
