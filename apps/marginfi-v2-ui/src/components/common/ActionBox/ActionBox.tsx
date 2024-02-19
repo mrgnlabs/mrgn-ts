@@ -1,10 +1,10 @@
 import React from "react";
 
 import { AddressLookupTableAccount, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { createJupiterApiClient } from "@jup-ag/api";
+import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
 
-import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { WSOL_MINT, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
+import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import {
@@ -20,6 +20,7 @@ import {
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
+import { useDebounce } from "~/hooks/useDebounce";
 import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
@@ -94,7 +95,7 @@ export const ActionBox = ({
   );
 
   const [amountRaw, setAmountRaw] = React.useState<string>("");
-  const [repayAmountRaw, setRepayAmountRaw] = React.useState<string>("");
+  const [maxAmountCollat, setMaxAmountCollat] = React.useState<number>();
 
   const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
   const [repayMode, setRepayMode] = React.useState<RepayType>(RepayType.RepayRaw);
@@ -135,6 +136,8 @@ export const ActionBox = ({
     return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
   }, [amountRaw]);
 
+  const debouncedAmount = useDebounce<number | null>(amount, 500);
+
   const walletAmount = React.useMemo(
     () =>
       selectedBank?.info.state.mint?.equals && selectedBank?.info.state.mint?.equals(WSOL_MINT)
@@ -142,6 +145,9 @@ export const ActionBox = ({
         : selectedBank?.userInfo.tokenAccount.balance,
     [nativeSolBalance, selectedBank]
   );
+
+  const [repayAmountRaw, setRepayAmountRaw] = React.useState<string>("");
+  const [repayCollatQuote, setRepayCollatQuote] = React.useState<QuoteResponse>();
 
   const maxAmount = React.useMemo(() => {
     if ((!selectedBank && !selectedStakingAccount) || !isInitialized) {
@@ -156,6 +162,10 @@ export const ActionBox = ({
       case ActionType.Borrow:
         return selectedBank?.userInfo.maxBorrow ?? 0;
       case ActionType.Repay:
+        if (repayMode === RepayType.RepayCollat)
+          return (maxAmountCollat ?? 0) > (selectedBank?.userInfo.maxRepay ?? 0)
+            ? selectedBank?.userInfo.maxRepay ?? 0
+            : maxAmountCollat ?? 0;
         return selectedBank?.userInfo.maxRepay ?? 0;
       case ActionType.MintLST:
         if (selectedStakingAccount) return nativeToUi(selectedStakingAccount.lamports, 9);
@@ -165,7 +175,17 @@ export const ActionBox = ({
       default:
         return 0;
     }
-  }, [selectedBank, selectedStakingAccount, actionMode, isInitialized, walletAmount, feesAndRent]);
+  }, [
+    selectedBank,
+    selectedStakingAccount,
+    actionMode,
+    isInitialized,
+    walletAmount,
+    feesAndRent,
+    maxAmountCollat,
+    repayMode,
+  ]);
+
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
   const amountInputRef = React.useRef<HTMLInputElement>(null);
   const repayAmountInputRef = React.useRef<HTMLInputElement>(null);
@@ -287,43 +307,71 @@ export const ActionBox = ({
   }, [selectedStakingAccount, numberFormater, maxAmount]);
 
   React.useEffect(() => {
-    if (repayMode === RepayType.RepayCollat) {
+    if (repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
+      calculateMaxCollat(selectedBank, selectedRepayBank);
     }
-  }, [repayMode]);
+  }, [repayMode, selectedRepayBank, selectedBank]);
 
-  const calculateRepayCollateral = async () => {
-    if (!selectedBank || !selectedRepayBank || !selectedAccount) {
-      return;
+  React.useEffect(() => {
+    if (repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
+      calculateMaxCollat(selectedBank, selectedRepayBank);
     }
+  }, [repayMode, selectedRepayBank, selectedBank]);
+
+  React.useEffect(() => {
+    if (debouncedAmount && repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
+      calculateRepayCollateral(selectedBank, selectedRepayBank, debouncedAmount);
+    }
+  }, [debouncedAmount, repayMode, selectedRepayBank, selectedBank]);
+
+  const calculateMaxCollat = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo) => {
     const quoteParams = {
-      amount: amount,
-      inputMint: selectedRepayBank.info.state.mint.toBase58(),
-      outputMint: selectedBank.info.state.mint.toBase58(),
+      amount: uiToNative(repayBank.userInfo.maxWithdraw, repayBank.info.state.mintDecimals).toNumber(),
+      inputMint: repayBank.info.state.mint.toBase58(),
+      outputMint: bank.info.state.mint.toBase58(),
       slippageBps: 100,
-      swapMode: "ExactOut" as any,
-      maxAccounts: 20,
+      swapMode: "ExactIn" as any,
     };
 
     const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
 
-    const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, selectedRepayBank.info.state.mintDecimals);
-    const withdrawIx = await selectedAccount.makeWithdrawIx(withdrawAmount, selectedRepayBank.address);
-    const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
-      swapRequest: {
-        quoteResponse: swapQuote,
-        userPublicKey: wallet.publicKey.toBase58(),
-      },
-    });
-    const swapIx = deserializeInstruction(swapInstruction);
-    const depositIx = await selectedAccount.makeRepayIx(amount, selectedBank.address, true);
+    const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
+    setMaxAmountCollat(withdrawAmount);
+  };
 
-    const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
-    addressLookupTableAccounts.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
+  const calculateRepayCollateral = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, amount: number) => {
+    const quoteParams = {
+      amount: uiToNative(amount, bank.info.state.mintDecimals).toNumber(),
+      inputMint: repayBank.info.state.mint.toBase58(),
+      outputMint: bank.info.state.mint.toBase58(),
+      slippageBps: 100,
+      swapMode: "ExactOut" as any,
+      // maxAccounts: 20,
+    };
 
-    const flashLoanTx = await selectedAccount.buildFlashLoanTx({
-      ixs: [...withdrawIx.instructions, swapIx, ...depositIx.instructions],
-      addressLookupTableAccounts,
-    });
+    const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
+    const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
+
+    setRepayAmountRaw(numberFormater.format(withdrawAmount));
+    setRepayCollatQuote(swapQuote);
+
+    // const withdrawIx = await selectedAccount.makeWithdrawIx(withdrawAmount, selectedRepayBank.address);
+    // const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
+    //   swapRequest: {
+    //     quoteResponse: swapQuote,
+    //     userPublicKey: wallet.publicKey.toBase58(),
+    //   },
+    // });
+    // const swapIx = deserializeInstruction(swapInstruction);
+    // const depositIx = await selectedAccount.makeRepayIx(amount, selectedBank.address, true);
+
+    // const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
+    // addressLookupTableAccounts.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
+
+    // const flashLoanTx = await selectedAccount.buildFlashLoanTx({
+    //   ixs: [...withdrawIx.instructions, swapIx, ...depositIx.instructions],
+    //   addressLookupTableAccounts,
+    // });
   };
 
   const deserializeInstruction = (instruction: any) => {
