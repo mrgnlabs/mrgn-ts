@@ -515,6 +515,15 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.makeEndFlashLoanIx(this._program, this.client.banks, projectedActiveBalances);
   }
 
+  public async flashLoan(args: FlashLoanArgs): Promise<string> {
+    const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:flashLoan`);
+    debug("Executing flashloan from marginfi account");
+    const tx = await this.buildFlashLoanTx(args);
+    const sig = await this.client.processTransaction(tx, []);
+    debug("Flashloan successful %s", sig);
+    return sig;
+  }
+
   public async buildFlashLoanTx(args: FlashLoanArgs): Promise<VersionedTransaction> {
     const endIndex = args.ixs.length + 1;
 
