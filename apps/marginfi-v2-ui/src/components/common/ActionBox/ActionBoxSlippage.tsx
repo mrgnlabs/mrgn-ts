@@ -88,6 +88,7 @@ export const ActionBoxSlippage = ({ mode, slippageBps, setSlippageBps }: ActionB
                 >
                   {slippageOptions.map((option) => (
                     <div
+                      key={option.label}
                       className={cn(
                         "w-full font-light border border-transparent rounded p-3 bg-background/50 transition-colors hover:bg-background-gray-hover",
                         field.value === option.value && "bg-background-gray-hover border-chartreuse"
