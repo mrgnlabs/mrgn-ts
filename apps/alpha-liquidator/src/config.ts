@@ -104,6 +104,11 @@ let envSchema = z.object({
     }
   }),
   WS_ENDPOINT: z.string().url().optional(),
+  JUP_SWAP_BASE_URL: z
+    .string()
+    .url()
+    .default("https://public.jupiterapi.com")
+    .optional(),
   WS_RESET_INTERVAL_SECONDS: z
     .string()
     .optional()

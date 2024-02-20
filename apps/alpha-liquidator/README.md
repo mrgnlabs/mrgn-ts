@@ -62,6 +62,8 @@ Below are the environment variables used by the application, along with their ex
 
 - `MARGINFI_ACCOUNT_WHITELIST`: A comma-separated string of MarginFi account public keys to be whitelisted. It gets transformed into an array of `PublicKey` objects. This field is optional.
 
+- `JUP_SWAP_BASE_URL`: The Jupiter Swap v6 API endpoint URL as a string.
+
 ### Required Configuration Fields
 
 The following environment variables are mandatory for the application to run:
