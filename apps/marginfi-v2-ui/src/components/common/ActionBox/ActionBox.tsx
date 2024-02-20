@@ -1,9 +1,9 @@
 import React from "react";
 
 import { AddressLookupTableAccount, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
+import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 
-import { WSOL_MINT, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
+import { WSOL_MINT, nativeToUi, percentFormatter, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
@@ -31,6 +31,7 @@ import { IconAlertTriangle, IconWallet, IconSettings } from "~/components/ui/ico
 import { ActionBoxPreview } from "./ActionBoxPreview";
 import { ActionBoxTokens } from "./ActionBoxTokens";
 import { ActionBoxHeader } from "./ActionBoxHeader";
+import { ActionBoxSlippage } from "./ActionBoxSlippage";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -94,6 +95,8 @@ export const ActionBox = ({
     [lendingModeFromStore, requestedLendingMode]
   );
 
+  const [slippageBps, setSlippageBps] = React.useState<number>(100);
+
   const [amountRaw, setAmountRaw] = React.useState<string>("");
   const [maxAmountCollat, setMaxAmountCollat] = React.useState<number>();
 
@@ -102,6 +105,7 @@ export const ActionBox = ({
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
   const [selectedRepayTokenBank, setSelectedRepayTokenBank] = React.useState<PublicKey | null>(null);
   const [isPriorityFeesMode, setIsPriorityFeesMode] = React.useState<boolean>(false);
+  const [isSlippageMode, setIsSlippageMode] = React.useState<boolean>(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
@@ -331,7 +335,7 @@ export const ActionBox = ({
       amount: uiToNative(repayBank.userInfo.maxWithdraw, repayBank.info.state.mintDecimals).toNumber(),
       inputMint: repayBank.info.state.mint.toBase58(),
       outputMint: bank.info.state.mint.toBase58(),
-      slippageBps: 100,
+      slippageBps: slippageBps,
       swapMode: "ExactIn" as any,
     };
 
@@ -346,10 +350,9 @@ export const ActionBox = ({
       amount: uiToNative(amount, bank.info.state.mintDecimals).toNumber(),
       inputMint: repayBank.info.state.mint.toBase58(),
       outputMint: bank.info.state.mint.toBase58(),
-      slippageBps: 100,
+      slippageBps: slippageBps,
       swapMode: "ExactOut" as any,
-      // maxAccounts: 20,
-    };
+    } as QuoteGetRequest;
 
     const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
     const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
@@ -643,15 +646,29 @@ export const ActionBox = ({
             isDialog && "border border-background-gray-light/50"
           )}
         >
-          <ActionBoxHeader
-            actionType={actionMode}
-            repayType={repayMode}
-            changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
-          />
-          {isPriorityFeesMode ? (
-            <ActionBoxPriorityFees mode={actionMode} setIsPriorityFeesMode={setIsPriorityFeesMode} />
+          {isSlippageMode || isPriorityFeesMode ? (
+            <>
+              {isSlippageMode && (
+                <ActionBoxSlippage
+                  mode={actionMode}
+                  setSlippageBps={(value) => {
+                    setSlippageBps(value * 100);
+                    setIsSlippageMode(false);
+                  }}
+                  slippageBps={slippageBps / 100}
+                />
+              )}
+              {isPriorityFeesMode && (
+                <ActionBoxPriorityFees mode={actionMode} setIsPriorityFeesMode={setIsPriorityFeesMode} />
+              )}
+            </>
           ) : (
             <>
+              <ActionBoxHeader
+                actionType={actionMode}
+                repayType={repayMode}
+                changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
+              />
               <div className="flex flex-row items-center justify-between mb-3">
                 {!isDialog || actionMode === ActionType.MintLST || actionMode === ActionType.Repay ? (
                   <div className="text-lg font-normal flex items-center">{titleText}</div>
@@ -776,13 +793,21 @@ export const ActionBox = ({
                   actionMode={actionMode}
                 />
 
-                <div className="flex justify-end mt-3">
+                <div className="flex justify-end gap-2 mt-3">
                   <button
                     onClick={() => setIsPriorityFeesMode(true)}
                     className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
                   >
                     Txn priority: {priorityFeeLabel} <IconSettings size={16} />
                   </button>
+                  {(actionMode === ActionType.MintLST || repayMode === RepayType.RepayCollat) && (
+                    <button
+                      onClick={() => setIsSlippageMode(true)}
+                      className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
+                    >
+                      Txn slippage: {percentFormatter.format(slippageBps / 10_000)} <IconSettings size={16} />
+                    </button>
+                  )}
                 </div>
               </ActionBoxPreview>
             </>
