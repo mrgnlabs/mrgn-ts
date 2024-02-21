@@ -543,7 +543,7 @@ class MarginfiAccountWrapper {
       payerKey: this.client.wallet.publicKey,
       recentBlockhash: blockhash,
       instructions: ixs,
-    }).compileToV0Message([...lookupTables ?? [], ...args.addressLookupTableAccounts ?? [],]);
+    }).compileToV0Message([...(lookupTables ?? []), ...(args.addressLookupTableAccounts ?? [])]);
 
     const tx = new VersionedTransaction(message);
 
