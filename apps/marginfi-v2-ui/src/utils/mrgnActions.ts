@@ -380,7 +380,7 @@ export async function repayWithCollat({
     multiStepToast.setSuccessAndNext();
 
     const txnSig = await marginfiAccount.flashLoan({
-      ixs: [...priorityFeeIx, ...withdrawIx.instructions, swapIx, ...depositIx.instructions],
+      ixs: [...withdrawIx.instructions, swapIx, ...depositIx.instructions], //...priorityFeeIx,
       addressLookupTableAccounts,
     });
 
