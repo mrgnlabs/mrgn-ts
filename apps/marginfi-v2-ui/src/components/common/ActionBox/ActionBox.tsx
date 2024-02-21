@@ -337,7 +337,7 @@ export const ActionBox = ({
       outputMint: bank.info.state.mint.toBase58(),
       slippageBps: slippageBps,
       swapMode: "ExactIn" as any,
-    };
+    } as QuoteGetRequest;
 
     const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
 
