@@ -518,13 +518,14 @@ class MarginfiAccountWrapper {
   public async flashLoan(args: FlashLoanArgs): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:flashLoan`);
     debug("Executing flashloan from marginfi account");
-    const tx = await this.buildFlashLoanTx(args);
+    const lookupTables = this.client.addressLookupTables
+    const tx = await this.buildFlashLoanTx(args, lookupTables);
     const sig = await this.client.processTransaction(tx, []);
     debug("Flashloan successful %s", sig);
     return sig;
   }
 
-  public async buildFlashLoanTx(args: FlashLoanArgs): Promise<VersionedTransaction> {
+  public async buildFlashLoanTx(args: FlashLoanArgs, lookupTables?: AddressLookupTableAccount[]): Promise<VersionedTransaction> {
     const endIndex = args.ixs.length + 1;
 
     const projectedActiveBalances: PublicKey[] = this._marginfiAccount.projectActiveBalancesNoCpi(
@@ -542,7 +543,7 @@ class MarginfiAccountWrapper {
       payerKey: this.client.wallet.publicKey,
       recentBlockhash: blockhash,
       instructions: ixs,
-    }).compileToV0Message(args.addressLookupTableAccounts);
+    }).compileToV0Message([...lookupTables ?? [], ...args.addressLookupTableAccounts ?? [],]);
 
     const tx = new VersionedTransaction(message);
 
