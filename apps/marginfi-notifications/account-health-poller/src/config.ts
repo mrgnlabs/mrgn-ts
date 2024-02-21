@@ -1,7 +1,7 @@
 import { z } from "zod";
 import dotenv from "dotenv";
 import Sentry from "@sentry/node";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import { Environment } from "@mrgnlabs/marginfi-client-v2";
 import { loadKeypair } from "@mrgnlabs/mrgn-common";
 import * as fs from "fs";
@@ -34,6 +34,18 @@ let envSchema = z.object({
       return Keypair.fromSecretKey(new Uint8Array(JSON.parse(keypairStr)));
     }
   }),
+  MARGINFI_ACCOUNT_BLACKLIST: z
+    .string()
+    .transform((pkArrayStr) => {
+      return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
+    })
+    .optional(),
+  MARGINFI_ACCOUNT_WHITELIST: z
+    .string()
+    .transform((pkArrayStr) => {
+      return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
+    })
+    .optional(),
   SENTRY: z
     .string()
     .optional()
