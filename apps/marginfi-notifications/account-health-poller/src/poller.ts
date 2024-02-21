@@ -1,13 +1,12 @@
 import { PublicKey } from "@solana/web3.js";
 import { NodeWallet } from "@mrgnlabs/mrgn-common";
-import { getConfig, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { env_config } from "./config";
+import { getConfig, MarginfiAccountWrapper, MarginfiClient, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
+import { env_config, captureException } from "./config";
 import { connection } from "./utils/connection";
-import { BankMetadataMap, loadBankMetadatas } from "./utils/bankMetadata";
+import { loadBankMetadatas } from "./utils/bankMetadata";
 import { chunkedGetRawMultipleAccountInfos } from "./utils/chunks";
 
 let client: MarginfiClient;
-let accountKeys: PublicKey[] = [];
 let accountInfos: Map<PublicKey, MarginfiAccountWrapper> = new Map();
 
 async function start() {
@@ -34,6 +33,90 @@ async function start() {
 
   await loadAllMarginfiAccounts();
   await startWebsocketAccountUpdater();
+  await mainLoop();
+}
+
+async function mainLoop() {
+  const debug = getDebugLogger("main-loop");
+  drawSpinner("Scanning");
+  while (true) {
+    try {
+      reload();
+      while (true) {
+        debug("Started main loop iteration");
+
+        const allAccounts = Array.from(accountInfos.values());
+        const targetAccounts = allAccounts.filter((account) => {
+          if (env_config.MARGINFI_ACCOUNT_WHITELIST) {
+            return (
+              env_config.MARGINFI_ACCOUNT_WHITELIST.find((whitelistedAddress) =>
+                whitelistedAddress.equals(account.address)
+              ) !== undefined
+            );
+          }
+          return true;
+        });
+
+        debug("Found %s accounts in total", allAccounts.length);
+        debug("Monitoring %s accounts", targetAccounts.length);
+
+        await Promise.all(
+          targetAccounts.map(async (account) => {
+            debug("Scanning account: %s", account.address.toBase58());
+            debug("Account authority: %s", account.authority.toBase58());
+
+            const maintenanceComponentsWithBiasAndWeighted = account.computeHealthComponents(
+              MarginRequirementType.Maintenance
+            );
+
+            const healthFactor = maintenanceComponentsWithBiasAndWeighted.assets.isZero()
+              ? 1
+              : maintenanceComponentsWithBiasAndWeighted.assets
+                  .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
+                  .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
+                  .toNumber();
+            const healthFactorPercentage = Math.floor(healthFactor * 100);
+            const triggerNotification = healthFactor <= env_config.HEALTH_FACTOR_THRESHOLD;
+
+            debug("Health Factor: %d%", healthFactorPercentage);
+            debug("Trigger notification: %s", triggerNotification ? "Yes" : "No");
+
+            if (!triggerNotification) return;
+
+            process.stdout.cursorTo(0);
+            process.stdout.write("Triggering new notifications webhook\r\n");
+            console.log("  - Wallet: ", account.authority.toBase58());
+            console.log("  - Health: ", healthFactor);
+
+            const res = await fetch(env_config.NOTIFICATIONS_WEBHOOK_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                wallet: account.authority.toBase58(),
+                health: healthFactor,
+              }),
+            });
+
+            const data = await res.json();
+
+            process.stdout.cursorTo(0);
+            process.stdout.write("  - Response: ");
+            console.log(data.error || data);
+          })
+        );
+
+        debug("Ending main loop iteration");
+        await sleep(env_config.SLEEP_INTERVAL_SECONDS * 1000);
+        reload();
+      }
+    } catch (e) {
+      console.error(e);
+      captureException(e);
+      await sleep(env_config.SLEEP_INTERVAL_SECONDS * 1000);
+    }
+  }
 }
 
 async function loadAllMarginfiAccounts() {
@@ -57,7 +140,6 @@ async function loadAllMarginfiAccounts() {
     64
   );
   debug("Received account information for slot %d, got: %d accounts", slot, ais.size);
-  accountKeys = allKeys;
 
   const totalAccounts = ais.size;
   let processedAccounts = 0;
@@ -108,6 +190,28 @@ async function startWebsocketAccountUpdater() {
 
   setInterval(() => fn, env_config.WS_RESET_INTERVAL_SECONDS * 1000);
   fn();
+}
+
+async function reload() {
+  await client.reload();
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function drawSpinner(message: string) {
+  if (!!process.env.DEBUG) {
+    // Don't draw spinner when logging is enabled
+    return;
+  }
+  const spinnerFrames = ["-", "\\", "|", "/"];
+  let frameIndex = 0;
+
+  setInterval(() => {
+    process.stdout.write(`\r${message} ${spinnerFrames[frameIndex]}`);
+    frameIndex = (frameIndex + 1) % spinnerFrames.length;
+  }, 100);
 }
 
 function getDebugLogger(context: string) {

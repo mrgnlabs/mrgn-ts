@@ -62,6 +62,12 @@ let envSchema = z.object({
     .optional()
     .default("300")
     .transform((s) => parseInt(s, 10)),
+  HEALTH_FACTOR_THRESHOLD: z
+    .string()
+    .optional()
+    .default("0.95")
+    .transform((s) => parseFloat(s)),
+  NOTIFICATIONS_WEBHOOK_URL: z.string().optional().default("0.25"),
 });
 
 type EnvSchema = z.infer<typeof envSchema>;
@@ -77,7 +83,7 @@ if (env_config.SENTRY) {
 
   Sentry.init({ dsn: env_config.SENTRY_DSN });
 
-  Sentry.captureMessage("Starting Alpha Liquidator");
+  Sentry.captureMessage("Starting Account Health Poller");
 }
 
 process.on("unhandledRejection", (up) => {
