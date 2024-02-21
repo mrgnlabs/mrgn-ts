@@ -97,10 +97,11 @@ export async function executeLendingAction({
   }
 
   if (actionType === ActionType.Repay) {
-    if (repayWithCollatOptions)
+    if (repayWithCollatOptions) {
       txnSig = await repayWithCollat({ marginfiAccount, bank, amount, priorityFee, options: repayWithCollatOptions });
-  } else {
-    txnSig = await repay({ marginfiAccount, bank, amount, priorityFee });
+    } else {
+      txnSig = await repay({ marginfiAccount, bank, amount, priorityFee });
+    }
   }
 
   return txnSig;
