@@ -7,7 +7,6 @@
   "scripts": {
     "clean": "rimraf dist node_modules",
     "build": "tsc -p tsconfig.json",
-    "watch": "tsc-watch -p tsconfig.json --onCompilationComplete 'yarn build' --onSuccess 'yarn serve'",
     "start": "ts-node src/poller.ts"
   },
   "license": "MIT",
