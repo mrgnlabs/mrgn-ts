@@ -352,6 +352,7 @@ export const ActionBox = ({
       outputMint: bank.info.state.mint.toBase58(),
       slippageBps: slippageBps,
       swapMode: "ExactOut" as any,
+      onlyDirectRoutes: true,
     } as QuoteGetRequest;
 
     const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
@@ -805,7 +806,7 @@ export const ActionBox = ({
                       onClick={() => setIsSlippageMode(true)}
                       className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
                     >
-                      Txn slippage: {percentFormatter.format(slippageBps / 10_000)} <IconSettings size={16} />
+                      Txn slippage: {slippageBps / 100 + " %"} <IconSettings size={16} />
                     </button>
                   )}
                 </div>
