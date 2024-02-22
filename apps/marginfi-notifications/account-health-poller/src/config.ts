@@ -67,7 +67,10 @@ let envSchema = z.object({
     .optional()
     .default("0.95")
     .transform((s) => parseFloat(s)),
-  NOTIFICATIONS_WEBHOOK_URL: z.string().optional().default("0.25"),
+  FIREBASE_PROJECT_ID: z.string(),
+  FIREBASE_CLIENT_EMAIL: z.string(),
+  FIREBASE_PRIVATE_KEY: z.string(),
+  REDIS_URL: z.string().url(),
 });
 
 type EnvSchema = z.infer<typeof envSchema>;
