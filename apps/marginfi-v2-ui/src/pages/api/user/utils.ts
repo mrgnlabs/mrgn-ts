@@ -35,6 +35,7 @@ export const logLoginAttempt = async (
   try {
     const db = admin.firestore();
     const loginsCollection = db.collection("logins");
+    await loginsCollection.add({
       publicKey,
       uuid,
       signature,
