@@ -102,7 +102,7 @@ const TutorialSlide = ({
       {showSkip && (
         <Button
           variant="outline"
-          className="mt-4 w-full"
+          className="mt-4 w-full md:hidden"
           onClick={() => {
             if (closeDialog) closeDialog();
           }}
