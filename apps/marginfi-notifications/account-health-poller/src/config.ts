@@ -71,6 +71,7 @@ let envSchema = z.object({
   FIREBASE_CLIENT_EMAIL: z.string(),
   FIREBASE_PRIVATE_KEY: z.string(),
   REDIS_URL: z.string().url(),
+  RESEND_API_KEY: z.string(),
 });
 
 type EnvSchema = z.infer<typeof envSchema>;
