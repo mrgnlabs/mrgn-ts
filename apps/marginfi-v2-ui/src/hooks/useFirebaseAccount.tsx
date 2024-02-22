@@ -1,6 +1,7 @@
 import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
+import { WalletInfo } from "~/hooks/useWalletContext";
 import { onAuthStateChanged } from "firebase/auth";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 
 import { toast } from "react-toastify";
@@ -12,6 +13,7 @@ const useFirebaseAccount = () => {
   const { connected, walletAddress } = useWalletContext();
   const { query: routerQuery } = useRouter();
 
+  const [isLogged, setIsLogged] = React.useState(false);
   const referralCode = React.useMemo(() => routerQuery.referralCode as string | undefined, [routerQuery.referralCode]);
 
   const [checkForFirebaseUser, setFirebaseUser, signoutFirebaseUser, fetchPoints, resetPoints, hasUser] =
@@ -23,6 +25,9 @@ const useFirebaseAccount = () => {
       state.resetPoints,
       state.hasUser,
     ]);
+
+  const walletInfo = JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo;
+  const walletId = walletInfo.name || "";
 
   useEffect(() => {
     // NOTE: if more point-specific logic is added, move this to a separate hook
@@ -42,9 +47,9 @@ const useFirebaseAccount = () => {
   useEffect(() => {
     if (!walletAddress) return;
 
-    firebaseApi.loginOrSignup(walletAddress.toBase58(), referralCode).catch(console.error);
+    firebaseApi.loginOrSignup(walletAddress.toBase58(), walletId, referralCode).catch(console.error);
     checkForFirebaseUser(walletAddress.toBase58());
-  }, [walletAddress, checkForFirebaseUser, referralCode]);
+  }, [walletAddress, checkForFirebaseUser, referralCode, walletId]);
 
   // Wallet disconnection/change side effect (auto-logout)
   useEffect(() => {
