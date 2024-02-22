@@ -36,9 +36,18 @@ type TutorialSlideProps = {
   docs?: boolean;
   children: React.ReactNode;
   closeDialog?: () => void;
+  showSkip?: boolean;
 };
 
-const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialog }: TutorialSlideProps) => {
+const TutorialSlide = ({
+  children,
+  icon,
+  heading,
+  next,
+  docs = false,
+  closeDialog,
+  showSkip = false,
+}: TutorialSlideProps) => {
   const swiper = useSwiper();
 
   const closeBtn = (
@@ -89,6 +98,17 @@ const TutorialSlide = ({ children, icon, heading, next, docs = false, closeDialo
           )}
           {!next && closeBtn}
         </div>
+      )}
+      {showSkip && (
+        <Button
+          variant="outline"
+          className="mt-4 w-full"
+          onClick={() => {
+            if (closeDialog) closeDialog();
+          }}
+        >
+          Skip
+        </Button>
       )}
       {!docs && !next && closeBtn}
     </div>
@@ -191,7 +211,13 @@ export const Tutorial = () => {
             {!proModeOnly && (
               <Swiper modules={[Pagination]} slidesPerView={1} navigation pagination={{ clickable: true }}>
                 <SwiperSlide className="h-full">
-                  <TutorialSlide icon={<IconMrgn size={48} />} heading="Welcome to marginfi" next="Fees & yield">
+                  <TutorialSlide
+                    icon={<IconMrgn size={48} />}
+                    heading="Welcome to marginfi"
+                    next="Fees & yield"
+                    closeDialog={handleDialogClose}
+                    showSkip={true}
+                  >
                     <div className="space-y-6 md:space-y-8 pb-2 max-w-xl mx-auto flex flex-col justify-center">
                       <p>
                         marginfi is a decentralized lending protocol on Solana that prioritizes risk management to
