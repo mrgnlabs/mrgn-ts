@@ -51,7 +51,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
     setWalletSettingsState(WalletSettingsState.UPDATING);
 
     if (notificationSettings.ybx) {
-      const res = await addSubscriber(process.env.NEXT_PUBLIC_CONVERT_KIT_YBX_FORM_UID!, email);
+      const res = await addSubscriber(process.env.NEXT_PUBLIC_CONVERT_KIT_YBX_NOTIFICATIONS_FORM_UID!, email);
 
       if (res.error) {
         setErrorMsg(res.error);
