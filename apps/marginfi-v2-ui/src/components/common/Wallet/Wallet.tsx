@@ -142,41 +142,32 @@ export const Wallet = () => {
               <header className="flex flex-col items-center mb-8">
                 <div className="flex flex-col items-center space-y-2 ">
                   <WalletAvatar pfp={pfp} address={walletData.address} size="lg" />
-                  <CopyToClipboard
-                    text={walletData.address}
-                    onCopy={() => {
-                      setIsWalletAddressCopied(true);
-                      setTimeout(() => {
-                        setIsWalletAddressCopied(false);
-                      }, 2000);
-                    }}
-                  >
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <button className="flex items-center gap-1 cursor-pointe outline-none">
-                        {isWalletAddressCopied && <>copied!</>}
-                        {!isWalletAddressCopied && <>{walletData.shortAddress}</>}
-                      </button>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button className="flex items-center gap-1 cursor-pointe outline-none">
-                              {isWalletAddressCopied && (
-                                <>
-                                  <IconCheck size={14} />
-                                </>
-                              )}
-                              {!isWalletAddressCopied && (
-                                <>
-                                  <IconCopy size={14} />
-                                </>
-                              )}
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>Click to copy</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </CopyToClipboard>
+
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <button className="flex items-center gap-1 cursor-pointe outline-none">
+                      {isWalletAddressCopied && <>copied!</>}
+                      {!isWalletAddressCopied && <>{walletData.shortAddress}</>}
+                    </button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button className="flex items-center gap-1 cursor-pointe outline-none">
+                            {isWalletAddressCopied && (
+                              <>
+                                <IconCheck size={14} />
+                              </>
+                            )}
+                            {!isWalletAddressCopied && (
+                              <>
+                                <IconCopy size={14} />
+                              </>
+                            )}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Click to copy</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </div>
               </header>
               <div className="flex flex-col items-center h-full">

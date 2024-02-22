@@ -125,12 +125,29 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
   }, [walletAddress]);
 
   React.useEffect(() => {
-    // fetchUsersNotificationSettings();
+    fetchUsersNotificationSettings();
   }, [walletAddress]);
 
   return (
     <Accordion type="single" collapsible className="w-full space-y-4 mb-6">
       <AccordionItem value="assets">
+        <AccordionTrigger className="bg-muted font-normal px-4 rounded-lg transition-colors hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
+          Assets
+        </AccordionTrigger>
+        <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
+          <WalletTokens tokens={tokens} />
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="notifications">
+        <AccordionTrigger
+          className={cn(
+            "bg-muted font-normal px-4 rounded-lg transition-colors",
+            "hover:bg-background-gray-hover data-[state=open]:rounded-b-none",
+            "data-[state=open]:bg-background-gray"
+          )}
+        >
+          <div className="flex gap-2 items-baseline">Notifications</div>
+        </AccordionTrigger>
         <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
           <form
             className="space-y-4"
