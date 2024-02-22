@@ -2,7 +2,6 @@ import { AccountInfo } from "@solana/web3.js";
 import { decompress } from "@mongodb-js/zstd";
 
 async function deserializeAccountInfo(accountInfo: AccountInfo<string[]>): Promise<AccountInfo<Buffer>> {
-  // purposely mutate data, so it's faster
   const data = Buffer.from(await decompress(Buffer.from(accountInfo.data[0], "base64")));
   return { ...accountInfo, data };
 }
