@@ -19,12 +19,18 @@ let config = withBundleAnalyzer({
   transpilePackages: ["@mrgnlabs/marginfi-client-v2", "@mrgnlabs/mrgn-common", "@mrgnlabs/lip-client"],
   reactStrictMode: true,
   webpack: (config) => {
-    config.resolve.fallback = { fs: false, path: false, net: false, tls: false, child_process: false, request: false };
+    config.resolve.fallback = {
+      fs: false,
+      path: false,
+      net: false,
+      tls: false,
+      child_process: false,
+      request: false
+    };
     return config;
   },
   images: {
-    remotePatterns: [
-      {
+    remotePatterns: [{
         protocol: "https",
         hostname: "raw.githubusercontent.com",
         port: "",
@@ -138,15 +144,22 @@ let config = withBundleAnalyzer({
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "hivemapper-marketing-public.s3.us-west-2.amazonaws.com",
+        port: "",
+        pathname: "/Hivemapper_HONEY_token.png",
+      },
     ],
   },
 });
 
-const { withSentryConfig } = require("@sentry/nextjs");
+const {
+  withSentryConfig
+} = require("@sentry/nextjs");
 
 config = withSentryConfig(
-  config,
-  {
+  config, {
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options
 
@@ -155,8 +168,7 @@ config = withSentryConfig(
 
     org: "mrgn-labs",
     project: "marginfi-v2-ui",
-  },
-  {
+  }, {
     // For all available options, see:
     // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
