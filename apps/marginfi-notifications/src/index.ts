@@ -5,7 +5,7 @@ import { env_config, captureException } from "./config";
 import { connection } from "./utils/connection";
 import { loadBankMetadatas } from "./utils/bankMetadata";
 import { chunkedGetRawMultipleAccountInfos } from "./utils/chunks";
-import { sleep, drawSpinner, getDebugLogger, shortAddress } from "./utils";
+import { sleep, getDebugLogger, shortAddress } from "./utils";
 import redisClient from "./lib/redisClient";
 import { getUserSettings } from "./lib/firebase";
 import { sendEmailNotification } from "./lib/resend";
@@ -42,7 +42,6 @@ async function start() {
 
 async function mainLoop() {
   const debug = getDebugLogger("main-loop");
-  drawSpinner("Scanning");
   while (true) {
     try {
       await client.reload();
