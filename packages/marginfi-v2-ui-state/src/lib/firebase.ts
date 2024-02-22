@@ -32,13 +32,13 @@ interface UserData {
   id: string;
 }
 
-async function loginOrSignup(walletAddress: string, referralCode?: string) {
+async function loginOrSignup(walletAddress: string, walletId?: string, referralCode?: string) {
   const user = await getUser(walletAddress);
 
   if (user) {
-    await login(walletAddress);
+    await login(walletAddress, walletId);
   } else {
-    await signup(walletAddress, referralCode);
+    await signup(walletAddress, walletId, referralCode);
   }
 }
 
@@ -70,8 +70,8 @@ const LoginPayloadStruct = object({
 });
 type LoginPayload = Infer<typeof LoginPayloadStruct>;
 
-async function login(walletAddress: string) {
-  await loginWithAddress(walletAddress);
+async function login(walletAddress: string, walletId?: string) {
+  await loginWithAddress(walletAddress, walletId);
 }
 
 const SignupPayloadStruct = object({
@@ -80,7 +80,7 @@ const SignupPayloadStruct = object({
 });
 type SignupPayload = Infer<typeof SignupPayloadStruct>;
 
-async function signup(walletAddress: string, referralCode?: string) {
+async function signup(walletAddress: string, walletId?: string, referralCode?: string) {
   if (referralCode !== undefined && typeof referralCode !== "string") {
     throw new Error("Invalid referral code provided.");
   }
@@ -91,7 +91,7 @@ async function signup(walletAddress: string, referralCode?: string) {
     referralCode,
   };
 
-  await signupWithAddress(walletAddress, authData);
+  await signupWithAddress(walletAddress, authData, walletId);
 }
 
 export { getUser, loginOrSignup, signup, login, SignupPayloadStruct, LoginPayloadStruct };
@@ -101,13 +101,13 @@ export type { UserData, SignupPayload };
 // Helpers
 // ----------------------------------------------------------------------------
 
-async function signupWithAddress(walletAddress: string, payload: SignupPayload) {
+async function signupWithAddress(walletAddress: string, payload: SignupPayload, walletId?: string) {
   const response = await fetch("/api/user/signup", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ walletAddress, payload }),
+    body: JSON.stringify({ walletAddress, payload, walletId }),
   });
   const data = await response.json();
 
@@ -125,13 +125,13 @@ async function signupWithAddress(walletAddress: string, payload: SignupPayload) 
   await signinFirebaseAuth(data.token);
 }
 
-async function loginWithAddress(walletAddress: string) {
+async function loginWithAddress(walletAddress: string, walletId?: string) {
   const response = await fetch("/api/user/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ walletAddress }),
+    body: JSON.stringify({ walletAddress, walletId }),
   });
   const data = await response.json();
 

@@ -6,7 +6,8 @@ export const logSignupAttempt = async (
   publicKey: string,
   uuid: string | null,
   signature: string,
-  successful: boolean
+  successful: boolean,
+  walletId: string = ""
 ) => {
   try {
     const db = admin.firestore();
@@ -16,6 +17,7 @@ export const logSignupAttempt = async (
       uuid,
       signature,
       successful,
+      walletId,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     });
   } catch (error: any) {
@@ -27,16 +29,17 @@ export const logLoginAttempt = async (
   publicKey: string,
   uuid: string | null,
   signature: string,
-  successful: boolean
+  successful: boolean,
+  walletId: string = ""
 ) => {
   try {
     const db = admin.firestore();
     const loginsCollection = db.collection("logins");
-    await loginsCollection.add({
       publicKey,
       uuid,
       signature,
       successful,
+      walletId,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     });
   } catch (error: any) {
