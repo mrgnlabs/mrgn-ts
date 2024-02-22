@@ -5,7 +5,7 @@ import { env_config, captureException } from "./config";
 import { connection } from "./utils/connection";
 import { loadBankMetadatas } from "./utils/bankMetadata";
 import { chunkedGetRawMultipleAccountInfos } from "./utils/chunks";
-import { sleep, drawSpinner, getDebugLogger } from "./utils";
+import { sleep, drawSpinner, getDebugLogger, shortAddress } from "./utils";
 import redisClient from "./lib/redisClient";
 import { getUserSettings } from "./lib/firebase";
 import { sendEmailNotification } from "./lib/resend";
@@ -60,7 +60,7 @@ async function mainLoop() {
         return true;
       });
 
-      debug("Found %s accounts in total", allAccounts.length);
+      // debug("Found %s accounts in total", allAccounts.length);
       debug("Monitoring %s accounts", targetAccounts.length);
 
       await Promise.all(targetAccounts.map((account) => checkAndSendNotifications(account)));
@@ -76,7 +76,8 @@ async function mainLoop() {
 }
 
 async function checkAndSendNotifications(account: MarginfiAccountWrapper) {
-  const debug = getDebugLogger("notification-check");
+  const debug = getDebugLogger("account-health-check");
+  const notiDebug = getDebugLogger("send-notification");
   const notificationKey = `lastNotification:${account.address.toString()}`;
   const maintenanceComponentsWithBiasAndWeighted = account.computeHealthComponents(MarginRequirementType.Maintenance);
   const healthFactor = maintenanceComponentsWithBiasAndWeighted.assets.isZero()
@@ -95,27 +96,27 @@ async function checkAndSendNotifications(account: MarginfiAccountWrapper) {
 
   if (healthFactor > env_config.HEALTH_FACTOR_THRESHOLD) return;
 
-  const userData = await getUserSettings(account.address.toString());
+  const userData = await getUserSettings(account.authority.toString());
   if (!userData || !userData.account_health) {
-    debug("User not found or notifications are turned off.");
+    notiDebug("Wallet %s: User not found or notifications are turned off", shortAddress(account.authority.toBase58()));
     return;
   }
 
   const lastNotificationTime = await redisClient.get(notificationKey);
   const now = Date.now();
   if (lastNotificationTime && now - parseInt(lastNotificationTime) < 24 * 60 * 60 * 1000) {
-    debug("It’s too soon to send another notification.");
+    notiDebug("Wallet %s: It’s too soon to send another notification", shortAddress(account.authority.toBase58()));
     return;
   }
 
   const { error } = await sendEmailNotification(userData.email, healthFactorPercentage);
   if (error) {
-    debug("Error sending notification:", error);
+    notiDebug("Wallet %s: Error sending notification", shortAddress(account.authority.toBase58()));
     return;
   }
 
   await redisClient.set(notificationKey, now.toString());
-  debug("Notification sent successfully.");
+  notiDebug("Wallet %s: Notification sent successfully: %s", shortAddress(account.authority.toBase58()));
 }
 
 async function loadAllMarginfiAccounts() {
