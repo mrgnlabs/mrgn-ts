@@ -123,7 +123,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
   }, [walletAddress]);
 
   React.useEffect(() => {
-    fetchUsersNotificationSettings();
+    // fetchUsersNotificationSettings();
   }, [walletAddress]);
 
   return (
