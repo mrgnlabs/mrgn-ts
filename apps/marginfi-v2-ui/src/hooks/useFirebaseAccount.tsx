@@ -27,7 +27,7 @@ const useFirebaseAccount = () => {
     ]);
 
   const walletInfo = JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo;
-  const walletId = walletInfo.name || "";
+  const walletId = walletInfo && walletInfo?.name ? walletInfo.name : "";
 
   useEffect(() => {
     // NOTE: if more point-specific logic is added, move this to a separate hook
