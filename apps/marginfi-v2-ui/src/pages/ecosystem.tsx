@@ -194,7 +194,7 @@ export default function Ecosystem() {
             </li>
             <li>
               <Link
-                href="https://twitter.com/marginfi"
+                href="https://x.com/marginfi"
                 target="_blank"
                 rel="noreferrer"
                 className="transition-colors hover:text-chartreuse"
