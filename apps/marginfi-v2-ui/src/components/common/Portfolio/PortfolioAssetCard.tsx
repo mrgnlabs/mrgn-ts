@@ -8,7 +8,7 @@ import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
-import { cn } from "~/utils";
+import { cn, getTokenImageURL } from "~/utils";
 import { useUiStore } from "~/store";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 
@@ -56,15 +56,13 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
           <div className="flex justify-between items-center w-full gap-2">
             <div className="flex text-left gap-3">
               <div className="flex items-center">
-                {bank.meta.tokenLogoUri && (
-                  <Image
-                    src={bank.meta.tokenLogoUri}
-                    className="rounded-full"
-                    alt={bank.meta.tokenSymbol}
-                    height={40}
-                    width={40}
-                  />
-                )}
+                <Image
+                  src={getTokenImageURL(bank.meta.tokenSymbol)}
+                  className="rounded-full"
+                  alt={bank.meta.tokenSymbol}
+                  height={40}
+                  width={40}
+                />
               </div>
               <dl>
                 <dt className="font-medium text-lg">{bank.meta.tokenSymbol}</dt>

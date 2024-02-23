@@ -6,6 +6,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
+import { getTokenImageURL } from "~/utils";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
@@ -86,7 +87,7 @@ export const Wallet = () => {
 
         return {
           name: isSolBank ? "Solana" : bank.meta.tokenName,
-          image: bank.meta.tokenLogoUri,
+          image: getTokenImageURL(bank.meta.tokenSymbol),
           symbol: bank.meta.tokenSymbol,
           value: value,
           valueUSD: valueUSD,

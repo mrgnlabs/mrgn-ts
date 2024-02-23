@@ -14,10 +14,10 @@ import {
   ExtendedBankMetadata,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { getPriceWithConfidence, MarginfiAccountWrapper, PriceBias } from "@mrgnlabs/marginfi-client-v2";
-import { AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 
+import { useUserProfileStore, useUiStore } from "~/store";
 import { LendingModes } from "~/types";
+import { getTokenImageURL, closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import {
@@ -27,10 +27,8 @@ import {
   IconPyth,
   IconSwitchboard,
 } from "~/components/ui/icons";
-
-import { useUserProfileStore, useUiStore } from "~/store";
-import { closeBalance, executeLendingAction, MarginfiActionParams, cn } from "~/utils";
-
+import { AssetRowAction, LSTDialogVariants } from "~/components/common/AssetList";
+import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
 
@@ -219,15 +217,13 @@ const AssetRow: React.FC<{
           }}
         >
           <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
-            {bank.meta.tokenLogoUri && (
-              <Image
-                src={bank.meta.tokenLogoUri}
-                alt={bank.meta.tokenSymbol}
-                height={25}
-                width={25}
-                className="rounded-full"
-              />
-            )}
+            <Image
+              src={getTokenImageURL(bank.meta.tokenSymbol)}
+              alt={`${bank.meta.tokenSymbol} logo`}
+              height={25}
+              width={25}
+              className="rounded-full"
+            />
             <div className="font-aeonik block">{bank.meta.tokenSymbol}</div>
           </div>
         </TableCell>
@@ -346,22 +342,12 @@ const AssetRow: React.FC<{
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Image
-                        src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey/logo.png"
-                        alt="info"
-                        height={18}
-                        width={18}
-                      />
+                      <Image src={getTokenImageURL("MNDE")} alt="info" height={18} width={18} />
                     </TooltipTrigger>
                     <TooltipContent>
                       <div className="flex flex-col items-start gap-1.5">
                         <h4 className="text-base flex items-center gap-1.5">
-                          <Image
-                            src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey/logo.png"
-                            alt="info"
-                            height={18}
-                            width={18}
-                          />
+                          <Image src={getTokenImageURL("MNDE")} alt="info" height={18} width={18} />
                           MNDE rewards
                         </h4>
                         <p className="text-xs">Eligible for Marinade Earn rewards.</p>
@@ -690,9 +676,12 @@ const LoadingAsset: React.FC<{ isInLendingMode: boolean; bankMetadata: ExtendedB
         }}
       >
         <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
-          {bankMetadata.tokenLogoUri && (
-            <Image src={bankMetadata.tokenLogoUri} alt={bankMetadata.tokenSymbol} height={25} width={25} />
-          )}
+          <Image
+            src={getTokenImageURL(bankMetadata.tokenSymbol)}
+            alt={bankMetadata.tokenSymbol}
+            height={25}
+            width={25}
+          />
           <div className="font-aeonik hidden lg:block">{bankMetadata.tokenSymbol}</div>
         </div>
       </TableCell>
