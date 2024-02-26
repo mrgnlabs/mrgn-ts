@@ -100,7 +100,9 @@ async function getCachedMarginfiAccountsForAuthority(
   } else {
     const accounts = await client.getMarginfiAccountsForAuthority(authority);
     const accountAddresses = accounts.map((account) => account.address.toString());
-    window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses));
+    if (accountAddresses.length) {
+      window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses));
+    }
     return accounts;
   }
 }
@@ -113,7 +115,7 @@ export function clearAccountCache(authority: PublicKey) {
     if (error instanceof Error) {
       throw new Error(`Error clearing account cache.`);
     } else {
-      throw new Error('An unknown error occurred while clearing account cache.');
+      throw new Error("An unknown error occurred while clearing account cache.");
     }
   }
 }
