@@ -95,17 +95,19 @@ export const ActionBoxPreview = ({
         )}
       </Stat>
 
-      <Stat style={{ color: healthColor }} label="Health">
-        {accountSummary.healthFactor && percentFormatter.format(accountSummary.healthFactor)}
-        {accountSummary.healthFactor && preview?.health ? <IconArrowRight width={12} height={12} /> : ""}
-        {isLoading ? (
-          <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-        ) : preview?.health ? (
-          percentFormatter.format(preview.health)
-        ) : (
-          ""
-        )}
-      </Stat>
+      {accountSummary.borrowingAmount > 0 && (
+        <Stat style={{ color: healthColor }} label="Health">
+          {accountSummary.healthFactor && percentFormatter.format(accountSummary.healthFactor)}
+          {accountSummary.healthFactor && preview?.health ? <IconArrowRight width={12} height={12} /> : ""}
+          {isLoading ? (
+            <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+          ) : preview?.health ? (
+            percentFormatter.format(preview.health)
+          ) : (
+            ""
+          )}
+        </Stat>
+      )}
       {(actionMode === ActionType.Borrow || isBorrowing) && preview?.liquidationPrice && (
         <Stat style={{ color: liquidationColor }} label="Liquidation price">
           {selectedBank.isActive &&
