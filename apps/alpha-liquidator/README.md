@@ -62,7 +62,7 @@ Below are the environment variables used by the application, along with their ex
 
 - `MARGINFI_ACCOUNT_WHITELIST`: A comma-separated string of MarginFi account public keys to be whitelisted. It gets transformed into an array of `PublicKey` objects. This field is optional.
 
-- `JUP_SWAP_BASE_URL`: The Jupiter Swap v6 API endpoint URL as a string.
+- `JUP_SWAP_BASE_URL`: The Jupiter Swap v6 API endpoint URL as a string. Grab a free endpoint from [jupiterapi.com](https://www.jupiterapi.com) or a paid plan from [QuickNode](https://marketplace.quicknode.com/add-on/metis-jupiter-v6-swap-api).
 
 ### Required Configuration Fields
 
