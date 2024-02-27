@@ -39,6 +39,8 @@ import {
   IconLink,
   IconStarFilled,
   IconTransfer,
+  IconBolt,
+  IconSparkles,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -793,6 +795,8 @@ export {
   IconLink,
   IconStarFilled,
   IconTransfer,
+  IconBolt,
+  IconSparkles,
 
   // customed icons
   IconBrandGoogle,
