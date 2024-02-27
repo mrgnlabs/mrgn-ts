@@ -8,6 +8,7 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 
 import { StakeData } from "~/utils";
+import { PublicKey } from "@solana/web3.js";
 
 interface props {
   amount: number | null;
@@ -20,6 +21,7 @@ interface props {
   extendedBankInfos: ExtendedBankInfo[];
   marginfiAccount: MarginfiAccountWrapper | null;
   actionMode: ActionType;
+  directRoutes: PublicKey[] | null;
 }
 
 export interface ActionMethod {
@@ -38,6 +40,7 @@ export function checkActionAvailable({
   extendedBankInfos,
   marginfiAccount,
   actionMode,
+  directRoutes
 }: props): ActionMethod {
   let check: ActionMethod | null = null;
 
@@ -66,6 +69,15 @@ export function checkActionAvailable({
         // canBeYBXed
         if (check) return check;
         break;
+    }
+  }
+
+  if (selectedRepayBank && directRoutes) {
+    if (!directRoutes.find((key) => key.equals(selectedRepayBank.info.state.mint))) {
+      return {
+        description: "Repayment not possible with current collateral, choose another.",
+        isEnabled: false,
+      };
     }
   }
 
