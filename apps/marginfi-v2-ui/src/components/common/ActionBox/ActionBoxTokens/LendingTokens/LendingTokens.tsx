@@ -24,7 +24,7 @@ type LendingTokensProps = {
   setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   isDialog?: boolean;
   repay?: boolean;
-  disabledTokens?: PublicKey[];
+  highlightedTokens?: PublicKey[];
 };
 
 export const LendingTokens = ({
@@ -34,6 +34,7 @@ export const LendingTokens = ({
   repayTokenBank,
   setRepayTokenBank,
   repay = false,
+  highlightedTokens = [],
 }: LendingTokensProps) => {
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
@@ -354,7 +355,8 @@ export const LendingTokens = ({
                             setIsTokenPopoverOpen(false);
                           }}
                           className={cn(
-                            "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2"
+                            "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
+                            highlightedTokens.find((v) => v.equals(bank.info.state.mint)) ? "opacity-1" : "opacity-50"
                           )}
                         >
                           <ActionBoxItem

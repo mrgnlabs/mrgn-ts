@@ -15,7 +15,7 @@ interface ActionBoxPreviewProps {
   actionMode: ActionType;
   isDialog?: boolean;
   repay?: boolean;
-  disabledTokens?: PublicKey[];
+  highlightedTokens?: PublicKey[];
 }
 
 export const ActionBoxTokens = ({
@@ -26,7 +26,7 @@ export const ActionBoxTokens = ({
   actionMode,
   isDialog,
   repay,
-  disabledTokens,
+  highlightedTokens,
 }: ActionBoxPreviewProps) => {
   const isInLendingMode = React.useMemo(
     () =>
@@ -46,6 +46,7 @@ export const ActionBoxTokens = ({
           repayTokenBank={repayTokenBank}
           setRepayTokenBank={setRepayTokenBank}
           isDialog={isDialog}
+          highlightedTokens={highlightedTokens}
           repay={repay}
         />
       )}
