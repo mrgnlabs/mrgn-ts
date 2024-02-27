@@ -15,6 +15,7 @@ interface ActionBoxPreviewProps {
   actionMode: ActionType;
   isDialog?: boolean;
   repay?: boolean;
+  disabledTokens?: PublicKey[];
 }
 
 export const ActionBoxTokens = ({
@@ -25,6 +26,7 @@ export const ActionBoxTokens = ({
   actionMode,
   isDialog,
   repay,
+  disabledTokens,
 }: ActionBoxPreviewProps) => {
   const isInLendingMode = React.useMemo(
     () =>
