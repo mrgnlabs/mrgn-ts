@@ -48,8 +48,8 @@ type DirectRoutesMap = {
 };
 
 export enum RepayType {
-  RepayRaw = "Repay with",
-  RepayCollat = "Repay with collateral",
+  RepayRaw = "Repay",
+  RepayCollat = "Collateral Repay",
 }
 
 export const ActionBox = ({
@@ -721,7 +721,7 @@ export const ActionBox = ({
         <div
           className={cn(
             "p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative",
-            isDialog && "border border-background-gray-light/50"
+            isDialog && "py-5 border border-background-gray-light/50"
           )}
         >
           {isSlippageMode || isPriorityFeesMode ? (
