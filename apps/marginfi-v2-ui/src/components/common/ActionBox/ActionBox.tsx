@@ -1,6 +1,6 @@
 import React from "react";
 
-import { AddressLookupTableAccount, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 
 import { WSOL_MINT, nativeToUi, percentFormatter, uiToNative } from "@mrgnlabs/mrgn-common";
