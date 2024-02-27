@@ -41,6 +41,12 @@ type ActionBoxProps = {
   handleCloseDialog?: () => void;
 };
 
+type DirectRoutesMap = {
+  [tokenIdentifier: string]: {
+    directRoutes: string[];
+  };
+};
+
 export enum RepayType {
   RepayRaw = "Repay with",
   RepayCollat = "Repay with collateral",
@@ -111,6 +117,7 @@ export const ActionBox = ({
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
+  const [directRoutes, setDirectRoutes] = React.useState<DirectRoutesMap>();
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -330,6 +337,25 @@ export const ActionBox = ({
     }
   }, [debouncedAmount, repayMode, selectedRepayBank, selectedBank]);
 
+  React.useEffect(() => {
+    fetchDirectRoutes();
+  }, []);
+
+  const fetchDirectRoutes = async () => {
+    const response = await fetch(`/api/jupiter`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const responseBody = await response.json();
+
+    if (responseBody) {
+      setDirectRoutes(responseBody);
+    }
+  };
+
   const calculateMaxCollat = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo) => {
     const quoteParams = {
       amount: uiToNative(repayBank.userInfo.maxWithdraw, repayBank.info.state.mintDecimals).toNumber(),
@@ -345,21 +371,68 @@ export const ActionBox = ({
     setMaxAmountCollat(withdrawAmount);
   };
 
+  async function compareTokensAndGenerateJson(banks: any) {
+    let resultJson = {} as any;
+
+    for (let i = 0; i < banks.length; i++) {
+      const banka = banks[i];
+
+      for (let j = 0; j < banks.length; j++) {
+        if (i === j) continue; // Skip comparing the token with itself
+
+        const bankb = banks[j];
+        const quoteParams = {
+          amount: uiToNative(bankb.amount, bankb.decimals).toNumber(),
+          inputMint: banka.mint,
+          outputMint: bankb.mint,
+          slippageBps: 200,
+          swapMode: "ExactOut",
+          onlyDirectRoutes: true,
+        } as QuoteGetRequest;
+        const wait = (n: number | undefined) => new Promise((resolve) => setTimeout(resolve, n));
+
+        let swapQuote;
+        try {
+          swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
+        } catch (error) {}
+
+        await wait(300);
+
+        if (swapQuote) {
+          // Assuming swapQuote contains information about direct routes,
+          // and banka.token is used as a key in your result JSON.
+          if (!resultJson[banka.mint]) {
+            resultJson[banka.mint] = { directRoutes: [] };
+          }
+          // Here, you might want to add specific details from swapQuote to the JSON,
+          // for demonstration, I'm adding the bankb.token to indicate a successful route.
+          resultJson[banka.mint].directRoutes.push(bankb.mint);
+        } else {
+          // Handle the case where there is no swap quote
+          // This example does not add unsuccessful pairs, but you might log them or handle differently.
+        }
+      }
+    }
+
+    return resultJson;
+  }
+
   const calculateRepayCollateral = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, amount: number) => {
     const quoteParams = {
       amount: uiToNative(amount, bank.info.state.mintDecimals).toNumber(),
       inputMint: repayBank.info.state.mint.toBase58(),
       outputMint: bank.info.state.mint.toBase58(),
       slippageBps: slippageBps,
-      swapMode: "ExactOut" as any,
+      swapMode: "ExactOut",
       onlyDirectRoutes: true,
     } as QuoteGetRequest;
 
-    const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
-    const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
-
-    setRepayAmount(withdrawAmount);
-    setRepayCollatQuote(swapQuote);
+    try {
+      const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
+      const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
+      setRepayAmount(withdrawAmount);
+      setRepayCollatQuote(swapQuote);
+    } catch (error) {}
   };
   // Does this do anything? I don't think so
   // React.useEffect(() => {

@@ -24,6 +24,7 @@ type LendingTokensProps = {
   setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   isDialog?: boolean;
   repay?: boolean;
+  disabledTokens?: PublicKey[];
 };
 
 export const LendingTokens = ({
