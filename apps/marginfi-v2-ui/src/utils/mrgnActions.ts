@@ -13,7 +13,7 @@ import {
 
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
+import { Amount, Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { LstData, SOL_MINT } from "~/store/lstStore";
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
@@ -352,7 +352,7 @@ export async function repayWithCollat({
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
-  amount: number;
+  amount: Amount;
   options: RepayWithCollatOptions;
   priorityFee?: number;
 }) {
@@ -363,16 +363,20 @@ export async function repayWithCollat({
   ]);
   multiStepToast.start();
 
+
   try {
     const withdrawIx = await marginfiAccount.makeWithdrawIx(options.repayAmount, options.repayBank.address);
     const priorityFeeIx = marginfiAccount.makePriorityFeeIx(priorityFee);
-    const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
+    const { setupInstructions, swapInstruction, addressLookupTableAddresses, cleanupInstruction } = await jupiterQuoteApi.swapInstructionsPost({
       swapRequest: {
         quoteResponse: options.repayCollatQuote,
         userPublicKey: options.wallet.publicKey.toBase58(),
       },
     });
+
+    const setupIxs = setupInstructions.map(deserializeInstruction)
     const swapIx = deserializeInstruction(swapInstruction);
+    const swapcleanupIx = deserializeInstruction(cleanupInstruction);
     const depositIx = await marginfiAccount.makeRepayIx(amount, bank.address, true);
     const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
     addressLookupTableAccounts.push(
@@ -381,7 +385,7 @@ export async function repayWithCollat({
     multiStepToast.setSuccessAndNext();
 
     const txnSig = await marginfiAccount.flashLoan({
-      ixs: [...withdrawIx.instructions, swapIx, ...depositIx.instructions], //...priorityFeeIx,
+      ixs: [...withdrawIx.instructions, ...setupIxs, swapIx, swapcleanupIx, ...depositIx.instructions], //...priorityFeeIx,  
       addressLookupTableAccounts,
     });
 
