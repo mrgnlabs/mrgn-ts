@@ -117,7 +117,7 @@ export const ActionBox = ({
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
-  const [directRoutes, setDirectRoutes] = React.useState<DirectRoutesMap>();
+  const [directRoutesMap, setDirectRoutesMap] = React.useState<DirectRoutesMap>();
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -132,6 +132,14 @@ export const ActionBox = ({
         ? extendedBankInfos.find((bank) => bank?.address?.equals && bank?.address?.equals(selectedTokenBank)) ?? null
         : null,
     [extendedBankInfos, selectedTokenBank]
+  );
+
+  const directRoutes = React.useMemo(
+    () =>
+      selectedBank && directRoutesMap
+        ? directRoutesMap[selectedBank.info.state.mint.toBase58()].directRoutes.map((key) => new PublicKey(key))
+        : undefined,
+    [directRoutesMap, directRoutesMap]
   );
 
   const selectedRepayBank = React.useMemo(
@@ -227,6 +235,7 @@ export const ActionBox = ({
         marginfiAccount: selectedAccount,
         nativeSolBalance,
         actionMode,
+        directRoutes: directRoutes ?? null,
       }),
     [
       amount,
@@ -238,6 +247,7 @@ export const ActionBox = ({
       selectedAccount,
       nativeSolBalance,
       actionMode,
+      directRoutes,
     ]
   );
 
@@ -352,7 +362,7 @@ export const ActionBox = ({
     const responseBody = await response.json();
 
     if (responseBody) {
-      setDirectRoutes(responseBody);
+      setDirectRoutesMap(responseBody);
     }
   };
 
@@ -370,52 +380,6 @@ export const ActionBox = ({
     const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
     setMaxAmountCollat(withdrawAmount);
   };
-
-  async function compareTokensAndGenerateJson(banks: any) {
-    let resultJson = {} as any;
-
-    for (let i = 0; i < banks.length; i++) {
-      const banka = banks[i];
-
-      for (let j = 0; j < banks.length; j++) {
-        if (i === j) continue; // Skip comparing the token with itself
-
-        const bankb = banks[j];
-        const quoteParams = {
-          amount: uiToNative(bankb.amount, bankb.decimals).toNumber(),
-          inputMint: banka.mint,
-          outputMint: bankb.mint,
-          slippageBps: 200,
-          swapMode: "ExactOut",
-          onlyDirectRoutes: true,
-        } as QuoteGetRequest;
-        const wait = (n: number | undefined) => new Promise((resolve) => setTimeout(resolve, n));
-
-        let swapQuote;
-        try {
-          swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
-        } catch (error) {}
-
-        await wait(300);
-
-        if (swapQuote) {
-          // Assuming swapQuote contains information about direct routes,
-          // and banka.token is used as a key in your result JSON.
-          if (!resultJson[banka.mint]) {
-            resultJson[banka.mint] = { directRoutes: [] };
-          }
-          // Here, you might want to add specific details from swapQuote to the JSON,
-          // for demonstration, I'm adding the bankb.token to indicate a successful route.
-          resultJson[banka.mint].directRoutes.push(bankb.mint);
-        } else {
-          // Handle the case where there is no swap quote
-          // This example does not add unsuccessful pairs, but you might log them or handle differently.
-        }
-      }
-    }
-
-    return resultJson;
-  }
 
   const calculateRepayCollateral = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, amount: number) => {
     const quoteParams = {
@@ -828,6 +792,7 @@ export const ActionBox = ({
                         repayTokenBank={selectedRepayTokenBank}
                         setRepayTokenBank={setSelectedRepayTokenBank}
                         actionMode={actionMode}
+                        highlightedTokens={directRoutes}
                         repay={true}
                       />
                     </div>
