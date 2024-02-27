@@ -16,7 +16,7 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
 import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
-import { Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
+import { Amount, Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { LstData, SOL_MINT } from "~/store/lstStore";
 
@@ -352,7 +352,7 @@ export async function repayWithCollat({
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
-  amount: number;
+  amount: Amount;
   options: RepayWithCollatOptions;
   priorityFee?: number;
 }) {
@@ -366,13 +366,17 @@ export async function repayWithCollat({
   try {
     const withdrawIx = await marginfiAccount.makeWithdrawIx(options.repayAmount, options.repayBank.address);
     const priorityFeeIx = marginfiAccount.makePriorityFeeIx(priorityFee);
-    const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
-      swapRequest: {
-        quoteResponse: options.repayCollatQuote,
-        userPublicKey: options.wallet.publicKey.toBase58(),
-      },
-    });
+    const { setupInstructions, swapInstruction, addressLookupTableAddresses, cleanupInstruction } =
+      await jupiterQuoteApi.swapInstructionsPost({
+        swapRequest: {
+          quoteResponse: options.repayCollatQuote,
+          userPublicKey: options.wallet.publicKey.toBase58(),
+        },
+      });
+
+    const setupIxs = setupInstructions.map(deserializeInstruction);
     const swapIx = deserializeInstruction(swapInstruction);
+    const swapcleanupIx = deserializeInstruction(cleanupInstruction);
     const depositIx = await marginfiAccount.makeRepayIx(amount, bank.address, true);
     const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
     addressLookupTableAccounts.push(
@@ -381,7 +385,7 @@ export async function repayWithCollat({
     multiStepToast.setSuccessAndNext();
 
     const txnSig = await marginfiAccount.flashLoan({
-      ixs: [...withdrawIx.instructions, swapIx, ...depositIx.instructions], //...priorityFeeIx,
+      ixs: [...withdrawIx.instructions, ...setupIxs, swapIx, swapcleanupIx, ...depositIx.instructions], //...priorityFeeIx,
       addressLookupTableAccounts,
     });
 
