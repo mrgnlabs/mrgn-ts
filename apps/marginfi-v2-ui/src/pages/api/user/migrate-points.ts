@@ -55,6 +55,13 @@ export default async function handler(req: NextApiRequest<MigrationRequest>, res
     const fromWalletAddress = signer;
     const toWalletAddress = payload.toWalletAddress;
 
+    // check user wallet is on whitelist
+    const wl = process.env.POINTS_MIGRATION_WHITELIST ? process.env.POINTS_MIGRATION_WHITELIST.split(",") : [];
+    if (!wl.includes(fromWalletAddress)) {
+      console.log(`User ${fromWalletAddress} is not on the whitelist.`);
+      return res.status(STATUS_BAD_REQUEST).json({ error: "User not on whitelist" });
+    }
+
     // Check for existing migration involving the fromAddress or toAddress
     const existingMigrationQuery = await admin
       .firestore()
