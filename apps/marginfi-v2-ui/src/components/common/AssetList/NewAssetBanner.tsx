@@ -36,7 +36,7 @@ export const NewAssetBanner = ({ bankInfo }: NewAssetBannerProps) => {
           <Image src={bankInfo.meta.tokenLogoUri!} alt={bankInfo.meta.tokenSymbol} width={50} height={50} />
         </div>
         <div className="space-y-2.5">
-          <h2 className="font-medium">${bankInfo.meta.tokenSymbol} is now available on margnfi</h2>
+          <h2 className="font-medium">${bankInfo.meta.tokenSymbol} is now available on marginfi</h2>
           <ul className="flex items-center gap-2 justify-center">
             <li className="w-full">
               <ActionBoxDialog
