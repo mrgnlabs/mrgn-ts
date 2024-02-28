@@ -300,6 +300,70 @@ class MarginfiAccountWrapper {
     };
   }
 
+  async repayWithCollat(
+    amount: Amount,
+    repayAmount: Amount,
+    bankAddress: PublicKey,
+    repayBankAddress: PublicKey,
+    repayAll: boolean = false,
+    swapIxs: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[],
+    priorityFeeUi?: number
+  ): Promise<string> {
+    const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
+    debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
+    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress);
+    const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll);
+    const flashloanTx = await this.buildFlashLoanTx({
+      ixs: [...priorityFeeIx, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+      addressLookupTableAccounts,
+    });
+    const sig = await this.client.processTransaction(flashloanTx, []);
+    debug("Repay with collateral successful %s", sig);
+
+    return sig;
+  }
+
+  async simulateRepayWithCollat(
+    amount: Amount,
+    repayAmount: Amount,
+    bankAddress: PublicKey,
+    repayBankAddress: PublicKey,
+    repayAll: boolean = false,
+    swapIxs: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[],
+  ): Promise<SimulationResult> {
+    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress);
+    const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll);
+    const tx = await this.buildFlashLoanTx({
+      ixs: [...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+      addressLookupTableAccounts,
+    });
+    const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
+    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
+    const previewBanks = this.client.banks;
+    previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData));
+    const previewClient = new MarginfiClient(
+      this._config,
+      this.client.program,
+      {} as Wallet,
+      true,
+      this.client.group,
+      this.client.banks,
+      this.client.oraclePrices
+    );
+    const previewMarginfiAccount = MarginfiAccountWrapper.fromAccountDataRaw(
+      this.address,
+      previewClient,
+      mfiAccountData
+    );
+    return {
+      banks: previewBanks,
+      marginfiAccount: previewMarginfiAccount,
+    };
+  }
+
   async makeRepayIx(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeRepayIx(this._program, this.client.banks, amount, bankAddress, repayAll);
   }
@@ -518,14 +582,17 @@ class MarginfiAccountWrapper {
   public async flashLoan(args: FlashLoanArgs): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:flashLoan`);
     debug("Executing flashloan from marginfi account");
-    const lookupTables = this.client.addressLookupTables
+    const lookupTables = this.client.addressLookupTables;
     const tx = await this.buildFlashLoanTx(args, lookupTables);
     const sig = await this.client.processTransaction(tx, []);
     debug("Flashloan successful %s", sig);
     return sig;
   }
 
-  public async buildFlashLoanTx(args: FlashLoanArgs, lookupTables?: AddressLookupTableAccount[]): Promise<VersionedTransaction> {
+  public async buildFlashLoanTx(
+    args: FlashLoanArgs,
+    lookupTables?: AddressLookupTableAccount[]
+  ): Promise<VersionedTransaction> {
     const endIndex = args.ixs.length + 1;
 
     const projectedActiveBalances: PublicKey[] = this._marginfiAccount.projectActiveBalancesNoCpi(
