@@ -674,7 +674,7 @@ async function getMaybeSquadsOptions(walletContextState?: WalletContextState | W
   return ephemeralSignerPubkey ? { newAccountKey: ephemeralSignerPubkey } : undefined;
 }
 
-function deserializeInstruction(instruction: any) {
+export function deserializeInstruction(instruction: any) {
   return new TransactionInstruction({
     programId: new PublicKey(instruction.programId),
     keys: instruction.accounts.map((key: any) => ({
@@ -686,7 +686,7 @@ function deserializeInstruction(instruction: any) {
   });
 }
 
-async function getAdressLookupTableAccounts(
+export async function getAdressLookupTableAccounts(
   connection: Connection,
   keys: string[]
 ): Promise<AddressLookupTableAccount[]> {
