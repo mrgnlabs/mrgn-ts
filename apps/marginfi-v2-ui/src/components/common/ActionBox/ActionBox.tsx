@@ -276,21 +276,21 @@ export const ActionBox = ({
     return "Custom";
   }, [priorityFee]);
 
-  React.useEffect(() => {
-    if (amount > 0 && selectedBank && !selectedBank.info.state.mint.equals(SOL_MINT)) {
-      //loading
-    }
-  }, [selectedBank]);
+  // React.useEffect(() => {
+  //   if (amount > 0 && selectedBank && !selectedBank.info.state.mint.equals(SOL_MINT)) {
+  //     //loading
+  //   }
+  // }, [selectedBank]);
 
   React.useEffect(() => {
     if (actionModePrev !== null && actionModePrev !== actionMode) {
       setAmountRaw("");
     }
-  }, [actionModePrev, actionMode]);
+  }, [actionModePrev, actionMode, setAmountRaw]);
 
   React.useEffect(() => {
     setAmountRaw("");
-  }, [lendingMode, selectedTokenBank]);
+  }, [lendingMode, selectedTokenBank, setAmountRaw]);
 
   React.useEffect(() => {
     if (requestedToken) {
@@ -302,7 +302,7 @@ export const ActionBox = ({
     if (lendingModeFromStore && !isDialog) {
       setSelectedTokenBank(null);
     }
-  }, [lendingModeFromStore]);
+  }, [lendingModeFromStore, isDialog, setSelectedTokenBank]);
 
   React.useEffect(() => {
     if (!requestedAction) {
@@ -324,13 +324,13 @@ export const ActionBox = ({
     if (amount && amount > maxAmount) {
       setAmountRaw(numberFormater.format(maxAmount));
     }
-  }, [maxAmount, amount, numberFormater]);
+  }, [maxAmount, amount, numberFormater, setAmountRaw]);
 
   React.useEffect(() => {
     if (selectedStakingAccount) {
       setAmountRaw(numberFormater.format(maxAmount));
     }
-  }, [selectedStakingAccount, numberFormater, maxAmount]);
+  }, [selectedStakingAccount, numberFormater, maxAmount, setAmountRaw]);
 
   React.useEffect(() => {
     if (repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
@@ -352,18 +352,20 @@ export const ActionBox = ({
   }, []);
 
   const fetchDirectRoutes = async () => {
-    const response = await fetch(`/api/jupiter`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      const response = await fetch(`/api/jupiter`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    const responseBody = await response.json();
+      const responseBody = await response.json();
 
-    if (responseBody) {
-      setDirectRoutesMap(responseBody);
-    }
+      if (responseBody) {
+        setDirectRoutesMap(responseBody);
+      }
+    } catch (error) {}
   };
 
   const calculateMaxCollat = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo) => {
@@ -729,6 +731,7 @@ export const ActionBox = ({
                 actionType={actionMode}
                 repayType={repayMode}
                 changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
+                bank={selectedBank}
               />
               <div className="flex flex-row items-center justify-between mb-3">
                 {!isDialog || actionMode === ActionType.MintLST || actionMode === ActionType.Repay ? (
