@@ -4059,7 +4059,7 @@
     "@solana/web3.js" "^1.87.6"
     bs58 "^5.0.0"
 
-"@jup-ag/api@^6.0.10", "@jup-ag/api@^6.0.11", "@jup-ag/api@^6.0.6":
+"@jup-ag/api@^6.0.11":
   version "6.0.11"
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.11.tgz#c86a231adc761f7438d29954b17c86b70d73f2a4"
   integrity sha512-DUc2hchcwZv9gbERy65U41ZF3sTuLqoWfrlLH02NlD8ZtShOtuMwJR1ZI4yVHC8CtSrYURfWMYUE2JeBysYUtw==
