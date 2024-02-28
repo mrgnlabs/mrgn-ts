@@ -7,15 +7,17 @@ import { cn } from "~/utils";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { IconArrowLeft } from "~/components/ui/icons";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Label } from "~/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "~/components/ui/form";
+import { IconInfoCircle } from "~/components/ui/icons";
 
 type ActionBoxSlippageProps = {
   mode: ActionType;
   slippageBps: number;
   setSlippageBps: (value: number) => void;
+  toggleSettings: (mode: boolean) => void;
 };
 
 const DEFAULT_SLIPPAGE_BPS = 100;
@@ -39,7 +41,7 @@ interface SlippageForm {
   slippageBps: number;
 }
 
-export const ActionBoxSlippage = ({ mode, slippageBps, setSlippageBps }: ActionBoxSlippageProps) => {
+export const ActionBoxSlippage = ({ mode, slippageBps, setSlippageBps, toggleSettings }: ActionBoxSlippageProps) => {
   const form = useForm<SlippageForm>({
     defaultValues: {
       slippageBps: slippageBps,
@@ -52,29 +54,30 @@ export const ActionBoxSlippage = ({ mode, slippageBps, setSlippageBps }: ActionB
     [formWatch.slippageBps]
   );
 
-  const modeLabel = React.useMemo(() => {
-    let label = "";
-
-    if (mode === ActionType.Deposit) {
-      label = "to lending";
-    } else if (mode === ActionType.Borrow) {
-      label = "to borrowing";
-    }
-
-    return label;
-  }, [mode]);
-
   function onSubmit(data: SlippageForm) {
     setSlippageBps(data.slippageBps);
+    toggleSettings(false);
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <button className="flex items-center gap-1.5 text-sm" onClick={() => setSlippageBps(slippageBps)}>
-          <IconArrowLeft size={18} /> Back {modeLabel}
-        </button>
-        <h2 className="text-lg font-normal mb-2 flex items-center gap-2">Set transaction slippage </h2>
+        <h2 className="text-lg font-normal mb-2 flex items-center gap-2">
+          Set transaction slippage{" "}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <IconInfoCircle size={16} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="space-y-2">
+                  <p>Priority fees are paid to the Solana network.</p>
+                  <p>This additional fee helps boost how a transaction is prioritized.</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </h2>
         <FormField
           control={form.control}
           name="slippageBps"
@@ -110,7 +113,7 @@ export const ActionBoxSlippage = ({ mode, slippageBps, setSlippageBps }: ActionB
             </FormItem>
           )}
         />
-        <h2 className="font-normal mb-2">or set manually</h2>
+        <h2 className="font-normal">or set manually</h2>
 
         <FormField
           control={form.control}
@@ -118,7 +121,7 @@ export const ActionBoxSlippage = ({ mode, slippageBps, setSlippageBps }: ActionB
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <div className="relative mb-6">
+                <div className="relative">
                   <Input
                     type="number"
                     min={0}
