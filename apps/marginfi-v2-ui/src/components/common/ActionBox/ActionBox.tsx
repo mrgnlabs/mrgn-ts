@@ -24,14 +24,14 @@ import { useDebounce } from "~/hooks/useDebounce";
 import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-import { checkActionAvailable, ActionBoxActions, ActionBoxPriorityFees } from "~/components/common/ActionBox";
+import { checkActionAvailable, ActionBoxActions } from "~/components/common/ActionBox";
 import { Input } from "~/components/ui/input";
 import { IconAlertTriangle, IconWallet, IconSettings } from "~/components/ui/icons";
 
 import { ActionBoxPreview } from "./ActionBoxPreview";
 import { ActionBoxTokens } from "./ActionBoxTokens";
 import { ActionBoxHeader } from "./ActionBoxHeader";
-import { ActionBoxSlippage } from "./ActionBoxSlippage";
+import { ActionBoxSettings } from "./ActionBoxSettings";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -110,8 +110,7 @@ export const ActionBox = ({
   const [repayMode, setRepayMode] = React.useState<RepayType>(RepayType.RepayRaw);
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
   const [selectedRepayTokenBank, setSelectedRepayTokenBank] = React.useState<PublicKey | null>(null);
-  const [isPriorityFeesMode, setIsPriorityFeesMode] = React.useState<boolean>(false);
-  const [isSlippageMode, setIsSlippageMode] = React.useState<boolean>(false);
+  const [isSettingsMode, setIsSettingsMode] = React.useState<boolean>(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
@@ -688,22 +687,13 @@ export const ActionBox = ({
             isDialog && "py-5 border border-background-gray-light/50"
           )}
         >
-          {isSlippageMode || isPriorityFeesMode ? (
-            <>
-              {isSlippageMode && (
-                <ActionBoxSlippage
-                  mode={actionMode}
-                  setSlippageBps={(value) => {
-                    setSlippageBps(value * 100);
-                    setIsSlippageMode(false);
-                  }}
-                  slippageBps={slippageBps / 100}
-                />
-              )}
-              {isPriorityFeesMode && (
-                <ActionBoxPriorityFees mode={actionMode} setIsPriorityFeesMode={setIsPriorityFeesMode} />
-              )}
-            </>
+          {isSettingsMode ? (
+            <ActionBoxSettings
+              mode={actionMode}
+              toggleSettings={setIsSettingsMode}
+              setSlippageBps={(value) => setSlippageBps(value * 100)}
+              slippageBps={slippageBps / 100}
+            />
           ) : (
             <>
               <ActionBoxHeader
@@ -838,6 +828,15 @@ export const ActionBox = ({
 
                 <div className="flex justify-end gap-2 mt-3">
                   <button
+                    onClick={() => setIsSettingsMode(true)}
+                    className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
+                  >
+                    Settings <IconSettings size={16} />
+                  </button>
+                </div>
+
+                {/* <div className="flex justify-end gap-2 mt-3">
+                  <button
                     onClick={() => setIsPriorityFeesMode(true)}
                     className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
                   >
@@ -851,7 +850,7 @@ export const ActionBox = ({
                       Txn slippage: {slippageBps / 100 + " %"} <IconSettings size={16} />
                     </button>
                   )}
-                </div>
+                </div> */}
               </ActionBoxPreview>
             </>
           )}

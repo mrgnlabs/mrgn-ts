@@ -13,7 +13,7 @@ import { IconInfoCircle, IconArrowLeft } from "~/components/ui/icons";
 
 type ActionBoxPriorityFeesProps = {
   mode: ActionType;
-  setIsPriorityFeesMode: (value: boolean) => void;
+  toggleSettings: (mode: boolean) => void;
 };
 
 const priorityFeeOptions = [
@@ -31,7 +31,7 @@ const priorityFeeOptions = [
   },
 ];
 
-export const ActionBoxPriorityFees = ({ mode, setIsPriorityFeesMode }: ActionBoxPriorityFeesProps) => {
+export const ActionBoxPriorityFees = ({ mode, toggleSettings }: ActionBoxPriorityFeesProps) => {
   const [priorityFee, setPriorityFee] = useUiStore((state) => [state.priorityFee, state.setPriorityFee]);
   const [selectedPriorityFee, setSelectedPriorityFee] = React.useState<number | null>(priorityFee);
 
@@ -39,23 +39,8 @@ export const ActionBoxPriorityFees = ({ mode, setIsPriorityFeesMode }: ActionBox
   const [isCustomPriorityFeeMode, setIsCustomPriorityFeeMode] = React.useState<boolean>(false);
   const [customPriorityFee, setCustomPriorityFee] = React.useState<number | null>(null);
 
-  const modeLabel = React.useMemo(() => {
-    let label = "";
-
-    if (mode === ActionType.Deposit) {
-      label = "to lending";
-    } else if (mode === ActionType.Borrow) {
-      label = "to borrowing";
-    }
-
-    return label;
-  }, [mode]);
-
   return (
     <div className="space-y-6">
-      <button className="flex items-center gap-1.5 text-sm" onClick={() => setIsPriorityFeesMode(false)}>
-        <IconArrowLeft size={18} /> Back {modeLabel}
-      </button>
       <h2 className="text-lg font-normal mb-2 flex items-center gap-2">
         Set transaction priority{" "}
         <TooltipProvider>
@@ -125,7 +110,7 @@ export const ActionBoxPriorityFees = ({ mode, setIsPriorityFeesMode }: ActionBox
           } else if (selectedPriorityFee !== null) {
             setPriorityFee(selectedPriorityFee);
           }
-          setIsPriorityFeesMode(false);
+          toggleSettings(false);
         }}
         className="w-full py-6"
       >
