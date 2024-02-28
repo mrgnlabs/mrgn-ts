@@ -183,9 +183,9 @@ export const ActionBox = ({
       case ActionType.Borrow:
         return selectedBank?.userInfo.maxBorrow ?? 0;
       case ActionType.Repay:
-        if (repayMode === RepayType.RepayCollat)
-          return (maxAmountCollat ?? 0) > (selectedBank?.userInfo.maxRepay ?? 0)
-            ? selectedBank?.userInfo.maxRepay ?? 0
+        if (repayMode === RepayType.RepayCollat && selectedBank?.isActive)
+          return (maxAmountCollat ?? 0) > (selectedBank?.position.amount ?? 0)
+            ? selectedBank?.position.amount ?? 0
             : maxAmountCollat ?? 0;
         return selectedBank?.userInfo.maxRepay ?? 0;
       case ActionType.MintLST:
