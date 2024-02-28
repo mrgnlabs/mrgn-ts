@@ -369,9 +369,9 @@ export async function repayWithCollat({
         },
       });
 
-    const setupIxs = setupInstructions.map(deserializeInstruction);
+    const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : [];
     const swapIx = deserializeInstruction(swapInstruction);
-    const swapcleanupIx = deserializeInstruction(cleanupInstruction);
+    const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : [];
 
     const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
     addressLookupTableAccounts.push(
@@ -384,7 +384,7 @@ export async function repayWithCollat({
       bank.address,
       options.repayBank.address,
       bank.isActive && isWholePosition(bank, amount),
-      [...setupIxs, swapIx, swapcleanupIx],
+      [...setupIxs, swapIx, ...swapcleanupIx],
       addressLookupTableAccounts,
       priorityFee
     );
