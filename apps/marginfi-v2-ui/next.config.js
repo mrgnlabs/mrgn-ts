@@ -144,6 +144,12 @@ let config = withBundleAnalyzer({
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "hivemapper-marketing-public.s3.us-west-2.amazonaws.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 });
