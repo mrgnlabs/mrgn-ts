@@ -660,19 +660,6 @@ export async function mintLstToken({
 // Helpers //
 // ------------------------------------------------------------------//
 
-function extractErrorString(error: any, fallback?: string): string {
-  if (error instanceof ProcessTransactionError) {
-    if (error.message === "Bank deposit capacity exceeded") return "We've reached maximum capacity for this asset";
-    return error.message;
-  }
-
-  if (typeof error === "string") {
-    return error;
-  }
-
-  return fallback ?? "Unrecognized error";
-}
-
 async function getMaybeSquadsOptions(walletContextState?: WalletContextState | WalletContextStateOverride) {
   // If the connected wallet is SquadsX, use the ephemeral signer address provided by the wallet to create the marginfi account.
   const adapter = walletContextState?.wallet?.adapter;
