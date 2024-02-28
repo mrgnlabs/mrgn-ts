@@ -315,9 +315,10 @@ class MarginfiAccountWrapper {
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress);
     const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll);
+    const lookupTables = this.client.addressLookupTables;
     const flashloanTx = await this.buildFlashLoanTx({
       ixs: [...priorityFeeIx, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
-      addressLookupTableAccounts,
+      addressLookupTableAccounts: [...lookupTables, ...addressLookupTableAccounts],
     });
     const sig = await this.client.processTransaction(flashloanTx, []);
     debug("Repay with collateral successful %s", sig);
