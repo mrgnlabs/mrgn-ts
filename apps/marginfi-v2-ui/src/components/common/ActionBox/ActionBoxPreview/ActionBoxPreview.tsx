@@ -2,7 +2,7 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { StakeData } from "~/utils";
+import { RepayWithCollatOptions, StakeData } from "~/utils";
 
 import { LendingPreview } from "./LendingPreview";
 import { LstPreview } from "./LstPreview";
@@ -14,6 +14,7 @@ interface ActionBoxPreviewProps {
   actionMode: ActionType;
   amount: number;
   isEnabled: boolean;
+  repayWithCollatOptions?: RepayWithCollatOptions;
   children: React.ReactNode;
 }
 
