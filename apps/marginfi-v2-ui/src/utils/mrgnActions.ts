@@ -352,44 +352,44 @@ export async function repayWithCollat({
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
-  amount: Amount;
+  amount: number;
   options: RepayWithCollatOptions;
   priorityFee?: number;
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
-  const multiStepToast = new MultiStepToastHandle("Repayment", [
-    { label: `Generating instructions` },
-    { label: `Executing flashloan repayment` },
-  ]);
+  const multiStepToast = new MultiStepToastHandle("Repayment", [{ label: `Executing flashloan repayment` }]);
   multiStepToast.start();
 
-
   try {
-    const withdrawIx = await marginfiAccount.makeWithdrawIx(options.repayAmount, options.repayBank.address);
-    const priorityFeeIx = marginfiAccount.makePriorityFeeIx(priorityFee);
-    const { setupInstructions, swapInstruction, addressLookupTableAddresses, cleanupInstruction } = await jupiterQuoteApi.swapInstructionsPost({
-      swapRequest: {
-        quoteResponse: options.repayCollatQuote,
-        userPublicKey: options.wallet.publicKey.toBase58(),
-      },
-    });
+    const { setupInstructions, swapInstruction, addressLookupTableAddresses, cleanupInstruction } =
+      await jupiterQuoteApi.swapInstructionsPost({
+        swapRequest: {
+          quoteResponse: options.repayCollatQuote,
+          userPublicKey: options.wallet.publicKey.toBase58(),
+        },
+      });
 
-    const setupIxs = setupInstructions.map(deserializeInstruction)
+    const setupIxs = setupInstructions.map(deserializeInstruction);
     const swapIx = deserializeInstruction(swapInstruction);
     const swapcleanupIx = deserializeInstruction(cleanupInstruction);
-    const depositIx = await marginfiAccount.makeRepayIx(amount, bank.address, true);
+
     const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
     addressLookupTableAccounts.push(
       ...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses))
     );
-    multiStepToast.setSuccessAndNext();
 
-    const txnSig = await marginfiAccount.flashLoan({
-      ixs: [...withdrawIx.instructions, ...setupIxs, swapIx, swapcleanupIx, ...depositIx.instructions], //...priorityFeeIx,  
+    const txnSig = await marginfiAccount.repayWithCollat(
+      amount,
+      options.repayAmount,
+      bank.address,
+      options.repayBank.address,
+      bank.isActive && isWholePosition(bank, amount),
+      [...setupIxs, swapIx, swapcleanupIx],
       addressLookupTableAccounts,
-    });
-
+      priorityFee
+    );
     multiStepToast.setSuccessAndNext();
+
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
