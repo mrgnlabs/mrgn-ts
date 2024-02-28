@@ -27,6 +27,7 @@ import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { checkActionAvailable, ActionBoxActions } from "~/components/common/ActionBox";
 import { Input } from "~/components/ui/input";
 import { IconAlertTriangle, IconWallet, IconSettings } from "~/components/ui/icons";
+import { showErrorToast } from "~/utils/toastUtils";
 
 import { ActionBoxPreview } from "./ActionBoxPreview";
 import { ActionBoxTokens } from "./ActionBoxTokens";
@@ -374,10 +375,16 @@ export const ActionBox = ({
       swapMode: "ExactIn" as any,
     } as QuoteGetRequest;
 
-    const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
+    try {
+      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
-    const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
-    setMaxAmountCollat(withdrawAmount);
+      if (swapQuote) {
+        const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
+        setMaxAmountCollat(withdrawAmount);
+      }
+    } catch {
+      showErrorToast("Failed to fetch max amount, please refresh.");
+    }
   };
 
   const calculateRepayCollateral = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, amount: number) => {
@@ -391,12 +398,34 @@ export const ActionBox = ({
     } as QuoteGetRequest;
 
     try {
-      const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
-      const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
-      setRepayAmount(withdrawAmount);
-      setRepayCollatQuote(swapQuote);
-    } catch (error) {}
+      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+      if (swapQuote) {
+        const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
+        setRepayAmount(withdrawAmount);
+        setRepayCollatQuote(swapQuote);
+      }
+    } catch (error) {
+      showErrorToast("Unable to retrieve data. Please choose a different collateral option or refresh the page.");
+    }
   };
+
+  async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 3, timeout = 1000) {
+    let attempt = 0;
+    while (attempt < maxRetries) {
+      try {
+        const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
+        return swapQuote; // Success, return the result
+      } catch (error) {
+        console.error(`Attempt ${attempt + 1} failed:`, error);
+        attempt++;
+        if (attempt === maxRetries) {
+          throw new Error(`Failed to get to quote after ${maxRetries} attempts`);
+        }
+        await new Promise((resolve) => setTimeout(resolve, timeout));
+      }
+    }
+  }
+
   // Does this do anything? I don't think so
   // React.useEffect(() => {
   //   if (
@@ -747,7 +776,7 @@ export const ActionBox = ({
                     type="text"
                     ref={amountInputRef}
                     inputMode="numeric"
-                    value={amountRaw ?? undefined}
+                    value={amountRaw}
                     disabled={isInputDisabled}
                     onChange={(e) => handleInputChange(e.target.value)}
                     placeholder="0"
@@ -759,7 +788,7 @@ export const ActionBox = ({
               {actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat && (
                 <>
                   <div className="flex flex-row items-center justify-between mb-3">
-                    <div className="text-lg font-normal flex items-center">Use collateral</div>
+                    <div className="text-lg font-normal flex items-center">Using collateral</div>
                     {selectedRepayBank && (
                       <div className="inline-flex gap-1.5 items-center">
                         <span className="text-sm font-normal">
@@ -775,7 +804,7 @@ export const ActionBox = ({
                       </div>
                     )}
                   </div>
-                  <div className="bg-background text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center p-4 font-medium mb-5">
+                  <div className="bg-[#171C1C] text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center p-4 font-medium mb-5">
                     <div className="w-full xs:w-[162px]">
                       <ActionBoxTokens
                         isDialog={isDialog}
@@ -789,12 +818,10 @@ export const ActionBox = ({
                     <div className="flex-1">
                       <Input
                         type="text"
-                        ref={repayAmountInputRef}
-                        inputMode="numeric"
-                        value={rawRepayAmount ?? undefined}
+                        value={rawRepayAmount}
                         disabled={true}
                         placeholder="0"
-                        className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
+                        className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium cursor-default"
                       />
                     </div>
                   </div>
