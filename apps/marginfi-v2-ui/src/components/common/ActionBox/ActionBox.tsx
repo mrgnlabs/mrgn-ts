@@ -208,7 +208,6 @@ export const ActionBox = ({
   ]);
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
-  const repayAmountInputRef = React.useRef<HTMLInputElement>(null);
   const rawRepayAmount = React.useMemo(
     () => (repayAmount ? numberFormater.format(repayAmount) : undefined),
     [repayAmount, numberFormater]
@@ -236,6 +235,8 @@ export const ActionBox = ({
         nativeSolBalance,
         actionMode,
         directRoutes: directRoutes ?? null,
+        repayMode,
+        repayCollatQuote: repayCollatQuote ?? null,
       }),
     [
       amount,
@@ -248,6 +249,8 @@ export const ActionBox = ({
       nativeSolBalance,
       actionMode,
       directRoutes,
+      repayMode,
+      repayCollatQuote,
     ]
   );
 
@@ -411,7 +414,7 @@ export const ActionBox = ({
     }
   };
 
-  async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 3, timeout = 1000) {
+  async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 5, timeout = 1000) {
     let attempt = 0;
     while (attempt < maxRetries) {
       try {
