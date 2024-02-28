@@ -6,9 +6,13 @@ import {
   OperationalState,
   RiskTier,
 } from "@mrgnlabs/marginfi-client-v2";
+import { QuoteResponse } from "@jup-ag/api";
+import { PublicKey } from "@solana/web3.js";
 
 import { StakeData } from "~/utils";
-import { PublicKey } from "@solana/web3.js";
+
+import { RepayType } from "./ActionBox";
+
 
 interface props {
   amount: number | null;
@@ -22,6 +26,8 @@ interface props {
   marginfiAccount: MarginfiAccountWrapper | null;
   actionMode: ActionType;
   directRoutes: PublicKey[] | null;
+  repayMode: RepayType;
+  repayCollatQuote: QuoteResponse | null;
 }
 
 export interface ActionMethod {
@@ -40,7 +46,9 @@ export function checkActionAvailable({
   extendedBankInfos,
   marginfiAccount,
   actionMode,
-  directRoutes
+  directRoutes,
+  repayMode,
+  repayCollatQuote
 }: props): ActionMethod {
   let check: ActionMethod | null = null;
 
@@ -62,22 +70,17 @@ export function checkActionAvailable({
         if (check) return check;
         break;
       case ActionType.Repay:
-        check = canBeRepaid(selectedBank);
-        if (check && !selectedRepayBank) return check;
+        if (repayMode === RepayType.RepayRaw) {
+          check = canBeRepaid(selectedBank);
+        } else if (repayMode === RepayType.RepayCollat) {
+          check = canBeRepaidCollat(selectedBank, selectedRepayBank, directRoutes, repayCollatQuote);
+        }
+        if (check) return check;
         break;
       case ActionType.MintYBX:
         // canBeYBXed
         if (check) return check;
         break;
-    }
-  }
-
-  if (selectedRepayBank && directRoutes) {
-    if (!directRoutes.find((key) => key.equals(selectedRepayBank.info.state.mint))) {
-      return {
-        description: "Repayment not possible with current collateral, choose another.",
-        isEnabled: false,
-      };
     }
   }
 
@@ -185,6 +188,48 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
 
   return null;
 }
+
+function canBeRepaidCollat(targetBankInfo: ExtendedBankInfo, repayBankInfo: ExtendedBankInfo | null, directRoutes: PublicKey[] | null, swapQuote: QuoteResponse | null): ActionMethod | null {
+  const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
+  if (isPaused) {
+    return {
+      description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
+      isEnabled: false,
+    };
+  }
+
+  if (!targetBankInfo.isActive) {
+    return {
+      description: "No position found.",
+      isEnabled: false,
+    };
+  }
+
+  if (targetBankInfo.position.isLending) {
+    return {
+      description: `You are not borrowing ${targetBankInfo.meta.tokenSymbol}.`,
+      isEnabled: false,
+    };
+  }
+
+  if (repayBankInfo && directRoutes) {
+    if (!directRoutes.find((key) => key.equals(repayBankInfo.info.state.mint))) {
+      return {
+        description: "Repayment not possible with current collateral, choose another.",
+        isEnabled: false,
+      };
+    }
+  } else {
+    return { isEnabled: false };
+  }
+
+  if (!swapQuote) {
+    return { isEnabled: false };
+  }
+
+  return null;
+}
+
 
 function canBeBorrowed(
   targetBankInfo: ExtendedBankInfo,
