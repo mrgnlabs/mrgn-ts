@@ -44,7 +44,6 @@ export const ActionBoxSettings = ({ mode, toggleSettings, slippageBps, setSlippa
           onValueChange={(value) => setSettingsMode(value as SettingsState)}
           type="single"
           size="lg"
-          className="w-4/5"
         >
           <ToggleGroupItem value="slippage" className="w-1/2 text-xs">
             Slippage
