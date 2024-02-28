@@ -7,7 +7,15 @@ import { percentFormatter, numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore } from "~/store";
-import { clampedNumeralFormatter, cn, getMaintHealthColor, isWholePosition } from "~/utils";
+import {
+  clampedNumeralFormatter,
+  cn,
+  deserializeInstruction,
+  getAdressLookupTableAccounts,
+  getMaintHealthColor,
+  isWholePosition,
+  RepayWithCollatOptions,
+} from "~/utils";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useDebounce } from "~/hooks/useDebounce";
 
@@ -17,6 +25,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { Skeleton } from "~/components/ui/skeleton";
 
 import { AvailableCollateral } from "./AvailableCollateral";
+import { createJupiterApiClient } from "@jup-ag/api";
+import { AddressLookupTableAccount } from "@solana/web3.js";
 
 export interface ActionPreview {
   health: number;
@@ -35,10 +45,18 @@ interface ActionBoxPreviewProps {
   actionMode: ActionType;
   isEnabled: boolean;
   amount: number;
+  repayWithCollatOptions?: RepayWithCollatOptions;
   children: React.ReactNode;
 }
 
-export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, children }: ActionBoxPreviewProps) => {
+export const LendingPreview = ({
+  selectedBank,
+  actionMode,
+  isEnabled,
+  amount,
+  repayWithCollatOptions,
+  children,
+}: ActionBoxPreviewProps) => {
   const [preview, setPreview] = React.useState<ActionPreview | null>(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [selectedAccount] = useMrgnlendStore((state) => [state.selectedAccount]);
@@ -114,11 +132,42 @@ export const LendingPreview = ({ selectedBank, actionMode, isEnabled, amount, ch
       } else if (actionMode === ActionType.Borrow) {
         simulationResult = await selectedAccount.simulateBorrow(debouncedAmount, selectedBank.address);
       } else if (actionMode === ActionType.Repay) {
-        simulationResult = await selectedAccount.simulateRepay(
-          debouncedAmount,
-          selectedBank.address,
-          selectedBank.isActive && isWholePosition(selectedBank, debouncedAmount)
-        );
+        if (repayWithCollatOptions) {
+          const jupiterQuoteApi = createJupiterApiClient();
+
+          const { setupInstructions, swapInstruction, addressLookupTableAddresses, cleanupInstruction } =
+            await jupiterQuoteApi.swapInstructionsPost({
+              swapRequest: {
+                quoteResponse: repayWithCollatOptions.repayCollatQuote,
+                userPublicKey: repayWithCollatOptions.wallet.publicKey.toBase58(),
+              },
+            });
+
+          const setupIxs = setupInstructions.map(deserializeInstruction);
+          const swapIx = deserializeInstruction(swapInstruction);
+          const swapcleanupIx = deserializeInstruction(cleanupInstruction);
+
+          const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
+          addressLookupTableAccounts.push(
+            ...(await getAdressLookupTableAccounts(repayWithCollatOptions.connection, addressLookupTableAddresses))
+          );
+
+          simulationResult = await selectedAccount.simulateRepayWithCollat(
+            debouncedAmount,
+            repayWithCollatOptions.repayAmount,
+            selectedBank.address,
+            repayWithCollatOptions.repayBank.address,
+            selectedBank.isActive && isWholePosition(selectedBank, debouncedAmount),
+            [...setupIxs, swapIx, swapcleanupIx],
+            addressLookupTableAccounts
+          );
+        } else {
+          simulationResult = await selectedAccount.simulateRepay(
+            debouncedAmount,
+            selectedBank.address,
+            selectedBank.isActive && isWholePosition(selectedBank, debouncedAmount)
+          );
+        }
       } else {
         throw new Error("Unknown action mode");
       }
