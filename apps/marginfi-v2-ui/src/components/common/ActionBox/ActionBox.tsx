@@ -790,24 +790,22 @@ export const ActionBox = ({
 
               {actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat && (
                 <>
-                  <div className="flex flex-row items-center justify-between mb-3">
-                    <div className="text-lg font-normal flex items-center">Using collateral</div>
+                  <div className="flex flex-row font-normal items-center justify-between mb-3">
+                    <div className="text-lg flex items-center">Using collateral</div>
                     {selectedRepayBank && (
-                      <div className="inline-flex gap-1.5 items-center">
-                        <span className="text-sm font-normal">
-                          Supplied:&nbsp;
-                          {selectedRepayBank &&
-                            (selectedRepayBank.userInfo.maxWithdraw !== undefined
-                              ? clampedNumeralFormatter(selectedRepayBank.userInfo.maxWithdraw).concat(
-                                  " ",
-                                  selectedRepayBank.meta.tokenSymbol
-                                )
-                              : "-")}
-                        </span>
+                      <div className="inline-flex gap-1.5 items-center text-sm">
+                        <span className="text-muted-foreground">Supplied:</span>
+                        {selectedRepayBank &&
+                          (selectedRepayBank.userInfo.maxWithdraw !== undefined
+                            ? clampedNumeralFormatter(selectedRepayBank.userInfo.maxWithdraw).concat(
+                                " ",
+                                selectedRepayBank.meta.tokenSymbol
+                              )
+                            : "-")}
                       </div>
                     )}
                   </div>
-                  <div className="bg-[#171C1C] text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center p-4 font-medium mb-5">
+                  <div className="bg-[#171C1C] text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center px-3 py-2.5 mb-5">
                     <div className="w-full xs:w-[162px]">
                       <ActionBoxTokens
                         isDialog={isDialog}
@@ -824,7 +822,7 @@ export const ActionBox = ({
                         value={rawRepayAmount}
                         disabled={true}
                         placeholder="0"
-                        className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium cursor-default"
+                        className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base cursor-default"
                       />
                     </div>
                   </div>
