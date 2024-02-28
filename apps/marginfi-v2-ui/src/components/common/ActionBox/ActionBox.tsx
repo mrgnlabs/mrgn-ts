@@ -816,6 +816,17 @@ export const ActionBox = ({
                 actionMode={actionMode}
                 amount={amount}
                 isEnabled={actionMethod.isEnabled}
+                repayWithCollatOptions={
+                  repayCollatQuote && repayAmount && selectedRepayBank
+                    ? {
+                        repayCollatQuote,
+                        repayAmount,
+                        repayBank: selectedRepayBank,
+                        connection,
+                        wallet,
+                      }
+                    : undefined
+                }
               >
                 <ActionBoxActions
                   handleAction={() => {
