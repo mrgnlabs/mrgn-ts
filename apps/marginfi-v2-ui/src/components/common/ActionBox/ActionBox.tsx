@@ -821,7 +821,7 @@ export const ActionBox = ({
                         setRepayTokenBank={setSelectedRepayTokenBank}
                         actionMode={actionMode}
                         highlightedTokens={directRoutes}
-                        repay={true}
+                        isRepay={true}
                       />
                     </div>
                     <div className="flex-1">
