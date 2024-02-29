@@ -146,7 +146,7 @@ export const LendingTokens = ({
       .filter(searchFilter)
       .filter((bankInfo) => positionFilter(bankInfo, false))
       .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
-  }, [extendedBankInfos, searchFilter, positionFilter, repay]);
+  }, [extendedBankInfos, searchFilter, positionFilter]);
 
   // other banks without positions
   const filteredBanks = React.useMemo(() => {
