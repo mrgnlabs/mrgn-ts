@@ -98,7 +98,7 @@ export async function executeLendingAction({
 
   if (actionType === ActionType.Repay) {
     if (repayWithCollatOptions) {
-      txnSig = await repayWithCollat({ marginfiAccount, bank, amount, priorityFee, options: repayWithCollatOptions });
+      // txnSig = await repayWithCollat({ marginfiAccount, bank, amount, priorityFee, options: repayWithCollatOptions });
     } else {
       txnSig = await repay({ marginfiAccount, bank, amount, priorityFee });
     }
@@ -378,7 +378,7 @@ export async function repayWithCollat({
       ...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses))
     );
 
-    const txnSig = await marginfiAccount.repayWithCollat(
+    const tx = await marginfiAccount.repayWithCollatTest(
       amount,
       options.repayAmount,
       bank.address,
@@ -390,7 +390,7 @@ export async function repayWithCollat({
     );
     multiStepToast.setSuccessAndNext();
 
-    return txnSig;
+    return tx;
   } catch (error: any) {
     const msg = extractErrorString(error);
     multiStepToast.setFailed(msg);

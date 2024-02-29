@@ -311,6 +311,33 @@ class MarginfiAccountWrapper {
     };
   }
 
+  async repayWithCollatTest(
+    amount: Amount,
+    repayAmount: Amount,
+    bankAddress: PublicKey,
+    repayBankAddress: PublicKey,
+    repayAll: boolean = false,
+    swapIxs: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[],
+    priorityFeeUi?: number
+  ): Promise<VersionedTransaction> {
+    const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
+    debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
+    const cuRequestIxs = this.makeComputeBudgetIx();
+    const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress);
+    const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll);
+    const lookupTables = this.client.addressLookupTables;
+    const flashloanTx = await this.buildFlashLoanTx({
+      ixs: [...priorityFeeIx, ...cuRequestIxs, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+      addressLookupTableAccounts: [...lookupTables, ...addressLookupTableAccounts],
+    });
+    // const sig = await this.client.processTransaction(flashloanTx, []);
+    // debug("Repay with collateral successful %s", sig);
+
+    return flashloanTx;
+  }
+
   async repayWithCollat(
     amount: Amount,
     repayAmount: Amount,
@@ -633,9 +660,9 @@ class MarginfiAccountWrapper {
 
     const tx = new VersionedTransaction(message);
 
-    if (args.signers) {
-      tx.sign(args.signers);
-    }
+    // if (args.signers) {
+    //   tx.sign(args.signers);
+    // }
 
     return tx;
   }
