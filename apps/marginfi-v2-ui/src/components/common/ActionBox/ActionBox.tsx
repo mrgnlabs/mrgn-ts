@@ -746,7 +746,7 @@ export const ActionBox = ({
                 ) : (
                   <div />
                 )}
-                {(selectedBank || selectedStakingAccount) && (
+                {repayMode !== RepayType.RepayCollat && (selectedBank || selectedStakingAccount) && (
                   <div className="inline-flex gap-1.5 items-center">
                     <IconWallet size={16} />
                     <span className="text-sm font-normal">
@@ -765,6 +765,22 @@ export const ActionBox = ({
                       disabled={maxAmount === 0}
                     >
                       MAX
+                    </button>
+                  </div>
+                )}
+                {repayMode === RepayType.RepayCollat && selectedBank && (
+                  <div className="inline-flex gap-1.5 items-center">
+                    <span className="text-sm font-normal">
+                      {(selectedBank as ActiveBankInfo).position.amount} {selectedBank.meta.tokenSymbol}
+                    </span>
+                    <button
+                      className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
+                        maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
+                      } transition-colors`}
+                      onClick={() => setAmountRaw(numberFormater.format(maxAmount))}
+                      disabled={maxAmount === 0}
+                    >
+                      Repay Full
                     </button>
                   </div>
                 )}
