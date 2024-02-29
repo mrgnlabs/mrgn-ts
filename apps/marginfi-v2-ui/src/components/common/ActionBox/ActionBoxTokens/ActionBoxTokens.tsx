@@ -14,7 +14,7 @@ interface ActionBoxPreviewProps {
   setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   actionMode: ActionType;
   isDialog?: boolean;
-  repay?: boolean;
+  isRepay?: boolean;
   highlightedTokens?: PublicKey[];
 }
 
@@ -25,7 +25,7 @@ export const ActionBoxTokens = ({
   setRepayTokenBank,
   actionMode,
   isDialog,
-  repay,
+  isRepay,
   highlightedTokens,
 }: ActionBoxPreviewProps) => {
   const isInLendingMode = React.useMemo(
@@ -47,7 +47,7 @@ export const ActionBoxTokens = ({
           setRepayTokenBank={setRepayTokenBank}
           isDialog={isDialog}
           highlightedTokens={highlightedTokens}
-          repay={repay}
+          isRepay={isRepay}
         />
       )}
 
