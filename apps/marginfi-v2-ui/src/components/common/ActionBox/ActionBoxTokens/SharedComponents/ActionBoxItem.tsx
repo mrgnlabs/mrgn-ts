@@ -14,7 +14,7 @@ type ActionBoxItemProps = {
   showBalanceOverride: boolean;
   rate?: string;
   lendingMode?: LendingModes;
-  repay?: boolean;
+  isRepay?: boolean;
 };
 
 export const ActionBoxItem = ({
@@ -23,7 +23,7 @@ export const ActionBoxItem = ({
   showBalanceOverride,
   rate,
   lendingMode,
-  repay,
+  isRepay,
 }: ActionBoxItemProps) => {
   const balance = React.useMemo(() => {
     const isWSOL = bank.info.state.mint?.equals ? bank.info.state.mint.equals(WSOL_MINT) : false;
@@ -32,8 +32,8 @@ export const ActionBoxItem = ({
   }, [bank, nativeSolBalance]);
 
   const openPosition = React.useMemo(() => {
-    return bank.userInfo.maxWithdraw;
-  }, [bank]);
+    return isRepay ? (bank.isActive ? bank.position.amount : 0) : bank.userInfo.maxWithdraw;
+  }, [bank, isRepay]);
 
   const balancePrice = React.useMemo(
     () =>
@@ -69,8 +69,8 @@ export const ActionBoxItem = ({
             <p
               className={cn(
                 "text-xs font-normal",
-                (lendingMode === LendingModes.LEND || repay) && "text-success",
-                lendingMode === LendingModes.BORROW && !repay && "text-warning"
+                (lendingMode === LendingModes.LEND || isRepay) && "text-success",
+                lendingMode === LendingModes.BORROW && !isRepay && "text-warning"
               )}
             >
               {rate}
@@ -79,14 +79,14 @@ export const ActionBoxItem = ({
         </div>
       </div>
 
-      {((!repay && lendingMode && lendingMode === LendingModes.BORROW && balance > 0) || showBalanceOverride) && (
+      {((!isRepay && lendingMode && lendingMode === LendingModes.BORROW && balance > 0) || showBalanceOverride) && (
         <div className="space-y-0.5 text-right font-normal text-sm">
           <p>{balance > 0.01 ? numeralFormatter(balance) : "< 0.01"}</p>
           <p className="text-xs text-muted-foreground">{balancePrice}</p>
         </div>
       )}
 
-      {repay && openPosition > 0 && (
+      {isRepay && openPosition > 0 && (
         <div className="space-y-0.5 text-right font-normal text-sm">
           <p>{openPosition > 0.01 ? numeralFormatter(openPosition) : "< 0.01"}</p>
           <p className="text-xs text-muted-foreground">{openPositionPrice}</p>
