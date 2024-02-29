@@ -5062,7 +5062,7 @@
   dependencies:
     "@babel/runtime" "^7.23.9"
 
-"@mui/material@^5.11.2", "@mui/material@^5.8.4":
+"@mui/material@^5.11.2", "@mui/material@^5.15.11", "@mui/material@^5.8.4":
   version "5.15.11"
   resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.15.11.tgz#4f42ee30443699ffb5836029c6d8464154eca603"
   integrity sha512-FA3eEuEZaDaxgN3CgfXezMWbCZ4VCeU/sv0F0/PK5n42qIgsPVD6q+j71qS7/62sp6wRFMHtDMpXRlN+tT/7NA==
@@ -9549,6 +9549,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-dom@^18.2.19":
+  version "18.2.19"
+  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-18.2.19.tgz#b84b7c30c635a6c26c6a6dfbb599b2da9788be58"
+  integrity sha512-aZvQL6uUbIJpjZk4U8JZGbau9KDeAwMfmhyWorxgBkqDIEf6ROjRozcmPIicqsUwPUjbkDfHKgGee1Lq65APcA==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-katex@^3.0.0":
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/@types/react-katex/-/react-katex-3.0.4.tgz#2b60eebf76938bb385337fd850d99cc53ad6ef67"
@@ -9578,7 +9585,7 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@~18.2.21":
+"@types/react@*", "@types/react@^18.2.61", "@types/react@~18.2.21":
   version "18.2.61"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.61.tgz#5607308495037436779939ec0348a5816c08799d"
   integrity sha512-NURTN0qNnJa7O/k4XUkEW2yfygA+NxS0V5h1+kp9jPwhzZy95q3ADoGMP0+JypMhrZBTTgjKAUlTctde1zzeQA==
