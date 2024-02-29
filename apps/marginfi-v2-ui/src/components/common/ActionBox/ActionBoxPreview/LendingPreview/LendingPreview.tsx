@@ -214,7 +214,7 @@ export const LendingPreview = ({
     } finally {
       setIsLoading(false);
     }
-  }, [actionMode, debouncedAmount, selectedAccount, selectedBank]);
+  }, [actionMode, debouncedAmount, selectedAccount, selectedBank, repayWithCollatOptions]);
 
   React.useEffect(() => {
     computePreview();

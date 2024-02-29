@@ -372,23 +372,27 @@ export const ActionBox = ({
   };
 
   const calculateMaxCollat = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo) => {
-    const quoteParams = {
-      amount: uiToNative(repayBank.userInfo.maxWithdraw, repayBank.info.state.mintDecimals).toNumber(),
-      inputMint: repayBank.info.state.mint.toBase58(),
-      outputMint: bank.info.state.mint.toBase58(),
-      slippageBps: slippageBps,
-      swapMode: "ExactIn" as any,
-    } as QuoteGetRequest;
+    const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
 
-    try {
-      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+    if (amount !== 0) {
+      const quoteParams = {
+        amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+        inputMint: repayBank.info.state.mint.toBase58(),
+        outputMint: bank.info.state.mint.toBase58(),
+        slippageBps: slippageBps,
+        swapMode: "ExactIn" as any,
+      } as QuoteGetRequest;
 
-      if (swapQuote) {
-        const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
-        setMaxAmountCollat(withdrawAmount);
+      try {
+        const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+
+        if (swapQuote) {
+          const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
+          setMaxAmountCollat(withdrawAmount);
+        }
+      } catch {
+        showErrorToast("Failed to fetch max amount, please refresh.");
       }
-    } catch {
-      showErrorToast("Failed to fetch max amount, please refresh.");
     }
   };
 
@@ -798,9 +802,10 @@ export const ActionBox = ({
                     {selectedRepayBank && (
                       <div className="inline-flex gap-1.5 items-center text-sm">
                         <span className="text-muted-foreground">Supplied:</span>
-                        {selectedRepayBank &&
-                          (selectedRepayBank.userInfo.maxWithdraw !== undefined
-                            ? clampedNumeralFormatter(selectedRepayBank.userInfo.maxWithdraw).concat(
+                        {selectedRepayBank.isActive &&
+                          selectedRepayBank.position.isLending &&
+                          (selectedRepayBank.position.amount
+                            ? clampedNumeralFormatter(selectedRepayBank.position.amount).concat(
                                 " ",
                                 selectedRepayBank.meta.tokenSymbol
                               )
