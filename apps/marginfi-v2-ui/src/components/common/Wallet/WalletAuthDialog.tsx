@@ -28,6 +28,7 @@ import {
   IconTrustWallet,
   IconEthereum,
   IconChevronDown,
+  IconStarFilled,
 } from "~/components/ui/icons";
 
 enum WalletAuthDialogState {
@@ -85,10 +86,18 @@ export const WalletAuthDialog = () => {
 
   // installed and available wallets
   const filteredWallets = React.useMemo(() => {
-    return wallets.filter((wallet) => {
+    const filtered = wallets.filter((wallet) => {
       if (wallet.adapter.name === "Mobile Wallet Adapter" && isIOS) return false;
       return wallet.readyState === "Installed" || wallet.readyState === "Loadable";
     });
+
+    // reorder filtered so item with wallet.adapter.name === "Backpack" is first
+    const backpackWallet = filtered.find((wallet) => wallet.adapter.name === "Backpack");
+    if (backpackWallet) {
+      return [backpackWallet, ...filtered.filter((wallet) => wallet.adapter.name !== "Backpack")];
+    }
+
+    return filtered;
   }, [wallets, isIOS]);
 
   // check if phantom is loadable, we will overwrite with a deep link on iOS
@@ -202,7 +211,7 @@ export const WalletAuthDialog = () => {
             <div
               className={cn(
                 "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg h-[106px] overflow-hidden",
-                state === WalletAuthDialogState.WALLET && "h-[196px]",
+                state === WalletAuthDialogState.WALLET && "h-[216px]",
                 state !== WalletAuthDialogState.WALLET && "cursor-pointer hover:bg-muted-highlight"
               )}
               onClick={() => {
@@ -235,16 +244,25 @@ export const WalletAuthDialog = () => {
               {(filteredWallets.length > 0 || isAndroid || isIOS) && (
                 <ul
                   className={cn(
-                    "flex flex-wrap items-center justify-center gap-4 mt-6 mb-2 overflow-auto",
+                    "flex flex-wrap items-start justify-center gap-4 mt-6 mb-2 overflow-auto",
                     filteredWallets.length > 6 && "pb-1"
                   )}
                 >
+                  {/* check if filterewallets contains wallet.adapter.name == "Backpack" */}
+                  {!filteredWallets.some((wallet) => wallet.adapter.name === "Backpack") && (
+                    <li>
+                      <a href="https://backpack.app/" target="_blank" rel="noreferrer">
+                        <IconBackpackWallet />
+                      </a>
+                    </li>
+                  )}
+
                   {filteredWallets.map((wallet, i) => {
                     const img = walletIcons[wallet.adapter.name] || (
                       <Image src={wallet.adapter.icon} width={28} height={28} alt={wallet.adapter.name} />
                     );
                     return (
-                      <li key={i}>
+                      <li key={i} className="space-y-2">
                         <WalletAuthButton
                           name={wallet.adapter.name}
                           image={img}
@@ -257,6 +275,11 @@ export const WalletAuthDialog = () => {
                             setIsWalletAuthDialogOpen(false);
                           }}
                         />
+                        {wallet.adapter.name === "Backpack" && (
+                          <span className="text-xs flex items-center gap-1 font-medium font-mono">
+                            <IconStarFilled className="text-yellow-400" size={14} /> 1.2x
+                          </span>
+                        )}
                       </li>
                     );
                   })}
