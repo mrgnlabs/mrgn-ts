@@ -15,7 +15,7 @@ export const AvailableCollateral = ({ isLoading }: ActionBoxAvailableCollateralP
   const [availableRatio, setAvailableRatio] = React.useState<number>(0);
   const [availableAmount, setAvailableAmount] = React.useState<number>(0);
 
-  const healthColor = React.useMemo(() => 1, [availableRatio]);
+  const healthColor = React.useMemo(() => 1, []); //availableRatio
 
   return (
     <div className="pb-6">
