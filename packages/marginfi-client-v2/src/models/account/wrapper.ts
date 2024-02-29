@@ -261,7 +261,7 @@ class MarginfiAccountWrapper {
     if (activeBalances.length >= 4) {
       cuRequestIxs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 }));
     }
-    
+
     return cuRequestIxs;
   }
 
@@ -323,12 +323,13 @@ class MarginfiAccountWrapper {
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
+    const cuRequestIxs = this.makeComputeBudgetIx();
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress);
     const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll);
     const lookupTables = this.client.addressLookupTables;
     const flashloanTx = await this.buildFlashLoanTx({
-      ixs: [...priorityFeeIx, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+      ixs: [...priorityFeeIx, ...cuRequestIxs, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
       addressLookupTableAccounts: [...lookupTables, ...addressLookupTableAccounts],
     });
     const sig = await this.client.processTransaction(flashloanTx, []);
@@ -344,13 +345,15 @@ class MarginfiAccountWrapper {
     repayBankAddress: PublicKey,
     repayAll: boolean = false,
     swapIxs: TransactionInstruction[],
-    addressLookupTableAccounts: AddressLookupTableAccount[],
+    addressLookupTableAccounts: AddressLookupTableAccount[]
   ): Promise<SimulationResult> {
+    const cuRequestIxs = this.makeComputeBudgetIx();
     const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress);
     const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll);
+    const lookupTables = this.client.addressLookupTables;
     const tx = await this.buildFlashLoanTx({
-      ixs: [...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
-      addressLookupTableAccounts,
+      ixs: [...cuRequestIxs, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+      addressLookupTableAccounts: [...lookupTables, ...addressLookupTableAccounts],
     });
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
