@@ -13,7 +13,6 @@ import { StakeData } from "~/utils";
 
 import { RepayType } from "./ActionBox";
 
-
 interface props {
   amount: number | null;
   connected: boolean;
@@ -48,7 +47,7 @@ export function checkActionAvailable({
   actionMode,
   directRoutes,
   repayMode,
-  repayCollatQuote
+  repayCollatQuote,
 }: props): ActionMethod {
   let check: ActionMethod | null = null;
 
@@ -189,7 +188,12 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
   return null;
 }
 
-function canBeRepaidCollat(targetBankInfo: ExtendedBankInfo, repayBankInfo: ExtendedBankInfo | null, directRoutes: PublicKey[] | null, swapQuote: QuoteResponse | null): ActionMethod | null {
+function canBeRepaidCollat(
+  targetBankInfo: ExtendedBankInfo,
+  repayBankInfo: ExtendedBankInfo | null,
+  directRoutes: PublicKey[] | null,
+  swapQuote: QuoteResponse | null
+): ActionMethod | null {
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
     return {
@@ -212,6 +216,13 @@ function canBeRepaidCollat(targetBankInfo: ExtendedBankInfo, repayBankInfo: Exte
     };
   }
 
+  if (targetBankInfo.userInfo.tokenAccount.balance >= targetBankInfo.position.amount) {
+    return {
+      description: `You have enough ${targetBankInfo.meta.tokenSymbol} in your wallet to repay without using collateral.`,
+      isEnabled: true,
+    };
+  }
+
   if (repayBankInfo && directRoutes) {
     if (!directRoutes.find((key) => key.equals(repayBankInfo.info.state.mint))) {
       return {
@@ -229,7 +240,6 @@ function canBeRepaidCollat(targetBankInfo: ExtendedBankInfo, repayBankInfo: Exte
 
   return null;
 }
-
 
 function canBeBorrowed(
   targetBankInfo: ExtendedBankInfo,
