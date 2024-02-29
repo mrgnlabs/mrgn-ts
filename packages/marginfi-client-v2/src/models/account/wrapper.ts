@@ -254,6 +254,17 @@ class MarginfiAccountWrapper {
     return priorityFeeIx;
   }
 
+  makeComputeBudgetIx(): TransactionInstruction[] {
+    // Add additional CU request if necessary
+    let cuRequestIxs: TransactionInstruction[] = [];
+    const activeBalances = this.balances.filter((b) => b.active);
+    if (activeBalances.length >= 4) {
+      cuRequestIxs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 }));
+    }
+    
+    return cuRequestIxs;
+  }
+
   // --------------------------------------------------------------------------
   // User actions
   // --------------------------------------------------------------------------
@@ -438,8 +449,9 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:withdraw`);
     debug("Withdrawing %s from marginfi account", amount);
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll);
-    const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
+    const tx = new Transaction().add(...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Withdrawing successful %s", sig);
     return sig;
@@ -450,8 +462,9 @@ class MarginfiAccountWrapper {
     bankAddress: PublicKey,
     withdrawAll: boolean = false
   ): Promise<SimulationResult> {
+    const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeWithdrawIx(amount, bankAddress, withdrawAll);
-    const tx = new Transaction().add(...ixs.instructions);
+    const tx = new Transaction().add(...cuRequestIxs, ...ixs.instructions);
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate withdraw");
     const previewBanks = this.client.banks;
@@ -488,16 +501,18 @@ class MarginfiAccountWrapper {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:borrow`);
     debug("Borrowing %s from marginfi account", amount);
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeBorrowIx(amount, bankAddress);
-    const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
+    const tx = new Transaction().add(...priorityFeeIx, ...cuRequestIxs, ...ixs.instructions);
     const sig = await this.client.processTransaction(tx, []);
     debug("Borrowing successful %s", sig);
     return sig;
   }
 
   async simulateBorrow(amount: Amount, bankAddress: PublicKey): Promise<SimulationResult> {
+    const cuRequestIxs = this.makeComputeBudgetIx();
     const ixs = await this.makeBorrowIx(amount, bankAddress);
-    const tx = new Transaction().add(...ixs.instructions);
+    const tx = new Transaction().add(...cuRequestIxs, ...ixs.instructions);
     const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate borrow");
     const previewBanks = this.client.banks;
