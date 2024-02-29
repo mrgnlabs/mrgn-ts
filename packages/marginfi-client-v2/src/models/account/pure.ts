@@ -929,17 +929,17 @@ class MarginfiAccount {
     return { instructions: [ix], keys: [] };
   }
 
-  async makeAccountAuthorityTransferIx(program: MarginfiProgram, newAccountAuthority: PublicKey) : Promise<InstructionsWrapper> {
-    const accountAuthorityTransferIx = await instructions.makeAccountAuthorityTransferIx(
-      program,
-      {
-        marginfiAccountPk: this.address,
-        marginfiGroupPk: this.group,
-        signerPk: this.authority,
-        newAuthorityPk: newAccountAuthority,
-        feePayerPk: this.authority,
-      }
-    )
+  async makeAccountAuthorityTransferIx(
+    program: MarginfiProgram,
+    newAccountAuthority: PublicKey
+  ): Promise<InstructionsWrapper> {
+    const accountAuthorityTransferIx = await instructions.makeAccountAuthorityTransferIx(program, {
+      marginfiAccountPk: this.address,
+      marginfiGroupPk: this.group,
+      signerPk: this.authority,
+      newAuthorityPk: newAccountAuthority,
+      feePayerPk: this.authority,
+    });
     return { instructions: [accountAuthorityTransferIx], keys: [] };
   }
 
