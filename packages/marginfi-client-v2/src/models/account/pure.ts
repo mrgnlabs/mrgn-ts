@@ -664,12 +664,6 @@ class MarginfiAccount {
 
     let ixs = [];
 
-    // Add additional CU request if necessary
-    const activeBalances = this.balances.filter((b) => b.active);
-    if (activeBalances.length >= 4) {
-      ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }));
-    }
-
     // Add emissions-related instructions if necessary
     if (repayAll && !bank.emissionsMint.equals(PublicKey.default)) {
       const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true); // We allow off curve addresses here to support Fuse.
@@ -720,12 +714,6 @@ class MarginfiAccount {
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
 
     let ixs = [];
-
-    // Add additional CU request if necessary
-    const activeBalances = this.balances.filter((b) => b.active);
-    if (activeBalances.length >= 4) {
-      ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 }));
-    }
 
     // Add emissions-related instructions if necessary
     if (withdrawAll && !bank.emissionsMint.equals(PublicKey.default)) {
@@ -794,12 +782,6 @@ class MarginfiAccount {
     let ixs = [];
 
     const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true); // We allow off curve addresses here to support Fuse.
-
-    // Add additional CU request if necessary
-    const activeBalances = this.balances.filter((b) => b.active);
-    if (activeBalances.length >= 4) {
-      ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 }));
-    }
 
     // Add borrow-related instructions
     const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
