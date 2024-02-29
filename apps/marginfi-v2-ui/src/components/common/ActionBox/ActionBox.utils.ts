@@ -216,9 +216,9 @@ function canBeRepaidCollat(
     };
   }
 
-  if (targetBankInfo.userInfo.tokenAccount.balance >= targetBankInfo.position.amount) {
+  if (targetBankInfo.userInfo.tokenAccount.balance > 0) {
     return {
-      description: `You have enough ${targetBankInfo.meta.tokenSymbol} in your wallet to repay without using collateral.`,
+      description: `You have ${targetBankInfo.meta.tokenSymbol} in your wallet and can repay without using collateral.`,
       isEnabled: true,
     };
   }
