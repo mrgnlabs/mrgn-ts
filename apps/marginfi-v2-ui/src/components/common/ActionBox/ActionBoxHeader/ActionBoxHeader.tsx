@@ -28,7 +28,7 @@ export const ActionBoxHeader = ({
             size="lg"
             value={repayType}
             onValueChange={(value) => changeRepayType(value as RepayType)}
-            className="w-4/5"
+            className="w-full md:w-4/5"
           >
             <ToggleGroupItem value={RepayType.RepayRaw} aria-label="Repay raw" className="w-1/2 text-xs">
               {RepayType.RepayRaw.concat(" ", bank?.meta.tokenSymbol ?? "")}
