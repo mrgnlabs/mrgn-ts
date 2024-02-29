@@ -143,9 +143,9 @@ export const LendingPreview = ({
               },
             });
 
-          const setupIxs = setupInstructions.map(deserializeInstruction);
+          const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : [];
           const swapIx = deserializeInstruction(swapInstruction);
-          const swapcleanupIx = deserializeInstruction(cleanupInstruction);
+          const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : [];
 
           const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
           addressLookupTableAccounts.push(
@@ -158,7 +158,7 @@ export const LendingPreview = ({
             selectedBank.address,
             repayWithCollatOptions.repayBank.address,
             selectedBank.isActive && isWholePosition(selectedBank, debouncedAmount),
-            [...setupIxs, swapIx, swapcleanupIx],
+            [...setupIxs, swapIx, ...swapcleanupIx],
             addressLookupTableAccounts
           );
         } else {

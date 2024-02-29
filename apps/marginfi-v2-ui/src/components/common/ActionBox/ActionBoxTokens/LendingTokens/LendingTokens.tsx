@@ -23,7 +23,7 @@ type LendingTokensProps = {
   repayTokenBank?: PublicKey | null;
   setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   isDialog?: boolean;
-  repay?: boolean;
+  isRepay?: boolean;
   highlightedTokens?: PublicKey[];
 };
 
@@ -33,7 +33,7 @@ export const LendingTokens = ({
   setCurrentTokenBank,
   repayTokenBank,
   setRepayTokenBank,
-  repay = false,
+  isRepay = false,
   highlightedTokens = [],
 }: LendingTokensProps) => {
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
@@ -109,12 +109,12 @@ export const LendingTokens = ({
   // filter on positions
   const positionFilter = React.useCallback(
     (bankInfo: ExtendedBankInfo, filterActive?: boolean) => {
-      if (repay) {
+      if (isRepay) {
         return bankInfo.isActive && bankInfo.position.isLending;
       }
       return bankInfo.isActive ? lendingMode === LendingModes.LEND && bankInfo.position.isLending : filterActive;
     },
-    [lendingMode, repay]
+    [lendingMode, isRepay]
   );
 
   /////// BANKS
@@ -167,7 +167,7 @@ export const LendingTokens = ({
 
   return (
     <>
-      {isDialog && !repay && (
+      {isDialog && !isRepay && (
         <div className="flex gap-3 w-full items-center">
           {selectedBank && (
             <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={calculateRate(selectedBank)} />
@@ -175,7 +175,7 @@ export const LendingTokens = ({
         </div>
       )}
 
-      {(!isDialog || repay) && (
+      {(!isDialog || isRepay) && (
         <Popover open={isTokenPopoverOpen} onOpenChange={(open) => setIsTokenPopoverOpen(open)}>
           <PopoverTrigger asChild>
             <Button
@@ -185,17 +185,17 @@ export const LendingTokens = ({
                 isTokenPopoverOpen && "bg-background-gray"
               )}
             >
-              {!repay && selectedBank && (
+              {!isRepay && selectedBank && (
                 <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={calculateRate(selectedBank)} />
               )}
-              {repay && selectedRepayBank && (
+              {isRepay && selectedRepayBank && (
                 <SelectedBankItem
                   bank={selectedRepayBank}
                   lendingMode={lendingMode}
                   rate={calculateRate(selectedRepayBank)}
                 />
               )}
-              {((!repay && !selectedBank) || (repay && !selectedRepayBank)) && <>Select token</>}
+              {((!isRepay && !selectedBank) || (isRepay && !selectedRepayBank)) && <>Select token</>}
               <IconChevronDown className="shrink-0 ml-2" size={20} />
             </Button>
           </PopoverTrigger>
@@ -304,7 +304,7 @@ export const LendingTokens = ({
 
                 {/* BORROWING */}
                 {lendingMode === LendingModes.BORROW &&
-                  !repay &&
+                  !isRepay &&
                   filteredBanksActive.length > 0 &&
                   setCurrentTokenBank && (
                     <CommandGroup heading="Currently borrowing">
@@ -337,7 +337,7 @@ export const LendingTokens = ({
                   )}
 
                 {/* REPAYING */}
-                {(lendingMode === LendingModes.LEND || repay) &&
+                {(lendingMode === LendingModes.LEND || isRepay) &&
                   filteredBanksActive.length > 0 &&
                   setRepayTokenBank && (
                     <CommandGroup heading="Currently supplying">
@@ -373,7 +373,7 @@ export const LendingTokens = ({
                   )}
 
                 {/* GLOBAL & ISOLATED */}
-                {globalBanks.length > 0 && !repay && setCurrentTokenBank && (
+                {globalBanks.length > 0 && !isRepay && setCurrentTokenBank && (
                   <CommandGroup heading="Global pools">
                     {globalBanks.map((bank, index) => {
                       return (
@@ -406,7 +406,7 @@ export const LendingTokens = ({
                     })}
                   </CommandGroup>
                 )}
-                {isolatedBanks.length > 0 && !repay && setCurrentTokenBank && (
+                {isolatedBanks.length > 0 && !isRepay && setCurrentTokenBank && (
                   <CommandGroup heading="Isolated pools">
                     {isolatedBanks.map((bank, index) => {
                       return (

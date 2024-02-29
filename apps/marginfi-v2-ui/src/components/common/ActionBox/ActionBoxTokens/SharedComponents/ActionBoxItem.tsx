@@ -32,8 +32,8 @@ export const ActionBoxItem = ({
   }, [bank, nativeSolBalance]);
 
   const openPosition = React.useMemo(() => {
-    return bank.userInfo.maxWithdraw;
-  }, [bank]);
+    return repay ? (bank.isActive ? bank.position.amount : 0) : bank.userInfo.maxWithdraw;
+  }, [bank, repay]);
 
   const balancePrice = React.useMemo(
     () =>
