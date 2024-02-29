@@ -4,11 +4,9 @@ import Head from "next/head";
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {
-  BackpackWalletAdapter,
   LedgerWalletAdapter,
   PhantomWalletAdapter,
   SolflareWalletAdapter,
-  SolletWalletAdapter,
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { init, push } from "@socialgouv/matomo-next";
@@ -37,11 +35,9 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
-      new SolletWalletAdapter(),
       new LedgerWalletAdapter(),
       new SolflareWalletAdapter(),
       new TorusWalletAdapter(),
-      new BackpackWalletAdapter(),
     ],
     []
   );
