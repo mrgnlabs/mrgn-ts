@@ -2015,6 +2015,26 @@
     superstruct "^0.15.4"
     toml "^3.0.0"
 
+"@coral-xyz/anchor@0.29.0":
+  version "0.29.0"
+  resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.29.0.tgz#bd0be95bedfb30a381c3e676e5926124c310ff12"
+  integrity sha512-eny6QNG0WOwqV0zQ7cs/b1tIuzZGmP7U7EcH+ogt4Gdbl8HDmIYVMh/9aTmYZPaFWjtUaI8qSn73uYEXWfATdA==
+  dependencies:
+    "@coral-xyz/borsh" "^0.29.0"
+    "@noble/hashes" "^1.3.1"
+    "@solana/web3.js" "^1.68.0"
+    bn.js "^5.1.2"
+    bs58 "^4.0.1"
+    buffer-layout "^1.2.2"
+    camelcase "^6.3.0"
+    cross-fetch "^3.1.5"
+    crypto-hash "^1.3.0"
+    eventemitter3 "^4.0.7"
+    pako "^2.0.3"
+    snake-case "^3.0.4"
+    superstruct "^0.15.4"
+    toml "^3.0.0"
+
 "@coral-xyz/anchor@^0.26.0":
   version "0.26.0"
   resolved "https://registry.yarnpkg.com/@coral-xyz/anchor/-/anchor-0.26.0.tgz#c8e4f7177e93441afd030f22d777d54d0194d7d1"
@@ -2048,6 +2068,14 @@
   version "0.28.0"
   resolved "https://registry.yarnpkg.com/@coral-xyz/borsh/-/borsh-0.28.0.tgz#fa368a2f2475bbf6f828f4657f40a52102e02b6d"
   integrity sha512-/u1VTzw7XooK7rqeD7JLUSwOyRSesPUk0U37BV9zK0axJc1q0nRbKFGFLYCQ16OtdOJTTwGfGp11Lx9B45bRCQ==
+  dependencies:
+    bn.js "^5.1.2"
+    buffer-layout "^1.2.0"
+
+"@coral-xyz/borsh@^0.29.0":
+  version "0.29.0"
+  resolved "https://registry.yarnpkg.com/@coral-xyz/borsh/-/borsh-0.29.0.tgz#79f7045df2ef66da8006d47f5399c7190363e71f"
+  integrity sha512-s7VFVa3a0oqpkuRloWVPdCK7hMbAMY270geZOGfCnaqexrP5dTIpbEHL33req6IYPPJ0hYa71cdvJ1h6V55/oQ==
   dependencies:
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
@@ -4233,10 +4261,19 @@
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-4.0.1-alpha.0.tgz#6c9fd02e607830206802b5e372fd0c2ec5a6a0c1"
   integrity sha512-H9hyf9K7sXMPd0++/hQ5Fs2eVgi2w9wtJP0YmGFLJMjF8zHYDYqQ0ZCdgmLLSp/vrEjmOHbbiLJT2psuV5W+bw==
 
-"@jup-ag/api@^6.0.10":
+"@jup-ag/api@6.0.10", "@jup-ag/api@^6.0.10":
   version "6.0.10"
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.10.tgz#522b469d8f8846b39549023dae31a02875d4ef06"
   integrity sha512-0gDSvrtvjd5Rg/MI0I/Ct/6pWCGjM1mgt9kbtugNzsd8MYLJtneoCma3EcrA8eIClseknPR39Yjwl5AdDWItlw==
+  dependencies:
+    "@project-serum/anchor" "^0.26.0"
+    "@solana/web3.js" "^1.87.6"
+    bs58 "^5.0.0"
+
+"@jup-ag/api@^6.0.11":
+  version "6.0.11"
+  resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.11.tgz#c86a231adc761f7438d29954b17c86b70d73f2a4"
+  integrity sha512-DUc2hchcwZv9gbERy65U41ZF3sTuLqoWfrlLH02NlD8ZtShOtuMwJR1ZI4yVHC8CtSrYURfWMYUE2JeBysYUtw==
   dependencies:
     "@project-serum/anchor" "^0.26.0"
     "@solana/web3.js" "^1.87.6"
@@ -4269,6 +4306,17 @@
   dependencies:
     "@coral-xyz/anchor" "0.28.1-beta.2"
     "@mercurial-finance/optimist" "0.3.0"
+    "@solana/spl-token" "0.1.8"
+    bs58 "^4.0.1"
+    jsbi "4.3.0"
+
+"@jup-ag/common@6.0.0-beta.8":
+  version "6.0.0-beta.8"
+  resolved "https://registry.yarnpkg.com/@jup-ag/common/-/common-6.0.0-beta.8.tgz#6c17700528fbc52af03a92feec2626ff5d9574a5"
+  integrity sha512-otnPosMxBh6Vdi7stwq/UEcnLiVA+6jddbXMAVTz39SymAaRKJiER/3X9YMLJkxomKsvULKVr4oBOrrMZhgsGA==
+  dependencies:
+    "@coral-xyz/anchor" "0.29.0"
+    "@mercurial-finance/optimist" "0.3.2"
     "@solana/spl-token" "0.1.8"
     bs58 "^4.0.1"
     jsbi "4.3.0"
@@ -4443,6 +4491,18 @@
     "@jup-ag/common" "6.0.0-beta.2"
     "@mercurial-finance/optimist" "0.3.0"
     "@solana/spl-token" "0.1.8"
+    superstruct "~1.0.3"
+
+"@jup-ag/react-hook@^6.0.0-beta.8":
+  version "6.0.0-beta.8"
+  resolved "https://registry.yarnpkg.com/@jup-ag/react-hook/-/react-hook-6.0.0-beta.8.tgz#019614d44877c6d7b08f75f8762986e78e7485ac"
+  integrity sha512-M4vJkbD2BQPlTkoZMtM6y3hbbOlb8VbaOq+Lo7TDUj07eDz0R62Qnfeq2KHqYSLuyrBPNneTlP8c6YLy1sXa2Q==
+  dependencies:
+    "@jup-ag/api" "6.0.10"
+    "@jup-ag/common" "6.0.0-beta.8"
+    "@mercurial-finance/optimist" "0.3.2"
+    "@solana/spl-token" "0.1.8"
+    promise-retry "2.0.1"
     superstruct "~1.0.3"
 
 "@jup-ag/whirlpools-sdk@0.7.2":
@@ -4722,6 +4782,14 @@
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@mercurial-finance/optimist/-/optimist-0.3.0.tgz#a943b8a910062d3a3b78078262bd688a6159c709"
   integrity sha512-StFgenETULc8VM4V/8p11ESE0CA0e4H7suXppkFHhKfV0AdJ6T4m9Xc0puEqlkzWVQCZAGaOIesDPFCfwyMPiQ==
+  dependencies:
+    "@metaplex-foundation/mpl-token-metadata" "~2.13.0"
+    promise-retry "2.0.1"
+
+"@mercurial-finance/optimist@0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@mercurial-finance/optimist/-/optimist-0.3.2.tgz#84980ef475f23159277d09b3715c0b46dd716018"
+  integrity sha512-zdYrPOPKUVXcCuEpiPGKYO8amO1Tg8LdhHPZaJblnyxeUgQOGgyp+DmAqrBASIE77l5KteUgbvMx4LKq3dWkNQ==
   dependencies:
     "@metaplex-foundation/mpl-token-metadata" "~2.13.0"
     promise-retry "2.0.1"
