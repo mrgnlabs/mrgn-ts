@@ -4124,9 +4124,6 @@
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.20.tgz#5ea6ec0961719b14fd46fb5395d386cc7ffff6c3"
   integrity sha512-HaPWYpbcQiCkoq1fTKspFIismFI8Rw9ZzgC47PMNY+ZLN0IEDtSYcm3rVEyxO+E3StRxj9uKrNbok32SRCXWvQ==
 
-"@jup-ag/api@^6.0.6":
-  version "6.0.6"
-
 "@jup-ag/common@4.0.0-beta.21":
   version "4.0.0-beta.21"
   resolved "https://registry.yarnpkg.com/@jup-ag/common/-/common-4.0.0-beta.21.tgz#416b3fc75a3e0a3055dfb5fc404cb71edcd6a60b"
@@ -4142,35 +4139,13 @@
     bs58 "^4.0.1"
     jsbi "4.3.0"
 
-"@jup-ag/common@6.0.0-beta.0":
-  version "6.0.0-beta.0"
-  resolved "https://registry.yarnpkg.com/@jup-ag/common/-/common-6.0.0-beta.0.tgz#ad7f537d396479ef049692d99a557d2dc361824f"
-  integrity sha512-MAiHrvRCz18JIDJrn8PWlB9Y+AWqkTIbK9dKJY6ifRlTDXnUbbHCApBVwdKhL/by7DqZn6YLxdeqZu0d+R5gXg==
-  dependencies:
-    "@coral-xyz/anchor" "0.28.1-beta.2"
-    "@mercurial-finance/optimist" "0.3.0"
-    "@solana/spl-token" "0.1.8"
-    bs58 "^4.0.1"
-    jsbi "4.3.0"
-
-"@jup-ag/common@6.0.0-beta.8":
+"@jup-ag/common@6.0.0-beta.8", "@jup-ag/common@^6.0.0-beta.2":
   version "6.0.0-beta.8"
   resolved "https://registry.yarnpkg.com/@jup-ag/common/-/common-6.0.0-beta.8.tgz#6c17700528fbc52af03a92feec2626ff5d9574a5"
   integrity sha512-otnPosMxBh6Vdi7stwq/UEcnLiVA+6jddbXMAVTz39SymAaRKJiER/3X9YMLJkxomKsvULKVr4oBOrrMZhgsGA==
   dependencies:
     "@coral-xyz/anchor" "0.29.0"
     "@mercurial-finance/optimist" "0.3.2"
-    "@solana/spl-token" "0.1.8"
-    bs58 "^4.0.1"
-    jsbi "4.3.0"
-
-"@jup-ag/common@^6.0.0-beta.2":
-  version "6.0.0-beta.6"
-  resolved "https://registry.yarnpkg.com/@jup-ag/common/-/common-6.0.0-beta.6.tgz#dd4019c2ff0916f4b2b59ca256e15cec33163cd0"
-  integrity sha512-h/FtgjY6qHUGRZT2lciwRt/i1Gqs4IuU/dr1sjrMK7Ii6Dn1ennXLiGN7Sms8ARJFm2kSNdpaP/x5Wg2m1xX8w==
-  dependencies:
-    "@coral-xyz/anchor" "0.28.1-beta.2"
-    "@mercurial-finance/optimist" "0.3.1"
     "@solana/spl-token" "0.1.8"
     bs58 "^4.0.1"
     jsbi "4.3.0"
@@ -4645,22 +4620,6 @@
   resolved "https://registry.yarnpkg.com/@mercurial-finance/optimist/-/optimist-0.2.1.tgz#eb8f90fab1d96c79247f58704131ad68485e6d51"
   integrity sha512-CiMxriCu6EUr2IGVFVl/d5z+5VvuGaWA3rG4k5Bj2G6t9VvQ7I+Z/1OBQpmu0V3LACSbMLeY7IXjTDzLTyCxFw==
   dependencies:
-    promise-retry "2.0.1"
-
-"@mercurial-finance/optimist@0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@mercurial-finance/optimist/-/optimist-0.3.0.tgz#a943b8a910062d3a3b78078262bd688a6159c709"
-  integrity sha512-StFgenETULc8VM4V/8p11ESE0CA0e4H7suXppkFHhKfV0AdJ6T4m9Xc0puEqlkzWVQCZAGaOIesDPFCfwyMPiQ==
-  dependencies:
-    "@metaplex-foundation/mpl-token-metadata" "~2.13.0"
-    promise-retry "2.0.1"
-
-"@mercurial-finance/optimist@0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@mercurial-finance/optimist/-/optimist-0.3.1.tgz#cf030fb3f2880e7a66f9889ad108bf46a8ce37cd"
-  integrity sha512-F2g0O933JxQi2A/7CobEXxd6kgSUK2GOaKqa2NaEqzkUCF8LBA2QeusQIkeP5kfizqX9IxVcci2ANEyShIDHuA==
-  dependencies:
-    "@metaplex-foundation/mpl-token-metadata" "~2.13.0"
     promise-retry "2.0.1"
 
 "@mercurial-finance/optimist@0.3.2":
@@ -10187,15 +10146,6 @@
   integrity sha512-V0kuGBX3+prX+DQ/7r2qsv1NsdfnCLnTgnRJ1pYnxykBhGMz+qj+box5lq7XsO5mtZsBqpjwwTu/7wszPfMBcw==
   dependencies:
     "@types/prop-types" "*"
-    csstype "^3.0.2"
-
-"@types/react@18.0.26":
-  version "18.0.26"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.0.26.tgz#8ad59fc01fef8eaf5c74f4ea392621749f0b7917"
-  integrity sha512-hCR3PJQsAIXyxhTNSiDFY//LhnMZWpNNr5etoCqx/iUfGc5gXWtQR2Phl908jVR6uPXacojQWTg4qRpkxTuGug==
-  dependencies:
-    "@types/prop-types" "*"
-    "@types/scheduler" "*"
     csstype "^3.0.2"
 
 "@types/react@~18.0.28":
