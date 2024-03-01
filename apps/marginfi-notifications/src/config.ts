@@ -22,18 +22,14 @@ if (!process.env.RPC_ENDPOINT) {
 
 /*eslint sort-keys: "error"*/
 let envSchema = z.object({
-  MRGN_ENV: z
-    .enum(["production", "alpha", "staging", "dev", "mainnet-test-1", "dev.1"])
-    .default("production")
-    .transform((s) => s as Environment),
-  RPC_ENDPOINT: z.string().url(),
-  WALLET_KEYPAIR: z.string().transform((keypairStr) => {
-    if (fs.existsSync(resolveHome(keypairStr))) {
-      return loadKeypair(keypairStr);
-    } else {
-      return Keypair.fromSecretKey(new Uint8Array(JSON.parse(keypairStr)));
-    }
-  }),
+  FIREBASE_CLIENT_EMAIL: z.string(),
+  FIREBASE_PRIVATE_KEY: z.string(),
+  FIREBASE_PROJECT_ID: z.string(),
+  HEALTH_FACTOR_THRESHOLD: z
+    .string()
+    .optional()
+    .default("0.95")
+    .transform((s) => parseFloat(s)),
   MARGINFI_ACCOUNT_BLACKLIST: z
     .string()
     .transform((pkArrayStr) => {
@@ -46,6 +42,18 @@ let envSchema = z.object({
       return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
     })
     .optional(),
+  MRGN_ENV: z
+    .enum(["production", "alpha", "staging", "dev", "mainnet-test-1", "dev.1"])
+    .default("production")
+    .transform((s) => s as Environment),
+  // add postgres credentials
+  PG_DATABASE: z.string(),
+  PG_HOST: z.string(),
+  PG_PASSWORD: z.string(),
+  PG_PORT: z.number(),
+  PG_USER: z.string(),
+  REDIS_URL: z.string().url(),
+  RPC_ENDPOINT: z.string().url(),
   SENTRY: z
     .string()
     .optional()
@@ -56,22 +64,19 @@ let envSchema = z.object({
     .string()
     .default("5")
     .transform((s) => parseInt(s, 10)),
+  WALLET_KEYPAIR: z.string().transform((keypairStr) => {
+    if (fs.existsSync(resolveHome(keypairStr))) {
+      return loadKeypair(keypairStr);
+    } else {
+      return Keypair.fromSecretKey(new Uint8Array(JSON.parse(keypairStr)));
+    }
+  }),
   WS_ENDPOINT: z.string().url().optional(),
   WS_RESET_INTERVAL_SECONDS: z
     .string()
     .optional()
     .default("300")
     .transform((s) => parseInt(s, 10)),
-  HEALTH_FACTOR_THRESHOLD: z
-    .string()
-    .optional()
-    .default("0.95")
-    .transform((s) => parseFloat(s)),
-  FIREBASE_PROJECT_ID: z.string(),
-  FIREBASE_CLIENT_EMAIL: z.string(),
-  FIREBASE_PRIVATE_KEY: z.string(),
-  REDIS_URL: z.string().url(),
-  RESEND_API_KEY: z.string(),
 });
 
 type EnvSchema = z.infer<typeof envSchema>;
