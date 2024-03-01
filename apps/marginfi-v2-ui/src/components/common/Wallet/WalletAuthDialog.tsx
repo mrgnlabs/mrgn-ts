@@ -248,6 +248,23 @@ export const WalletAuthDialog = () => {
                     filteredWallets.length > 6 && "pb-1"
                   )}
                 >
+                  {/* check if filterewallets contains wallet.adapter.name == "Backpack" */}
+                  {!filteredWallets.some((wallet) => wallet.adapter.name === "Backpack") && (
+                    <li className="space-y-2">
+                      <a
+                        href="https://backpack.app/"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="h-14 w-14 bg-accent rounded-full flex flex-col items-center justify-center transition-colors hover:bg-accent-highlight"
+                      >
+                        <IconBackpackWallet />
+                      </a>
+                      <span className="text-xs flex items-center gap-1 font-medium font-mono">
+                        <IconStarFilled className="text-yellow-400" size={14} /> 1.2x
+                      </span>
+                    </li>
+                  )}
+
                   {filteredWallets.map((wallet, i) => {
                     const img = walletIcons[wallet.adapter.name] || (
                       <Image src={wallet.adapter.icon} width={28} height={28} alt={wallet.adapter.name} />

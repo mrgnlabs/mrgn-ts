@@ -21,7 +21,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
-import { IconSearch, IconSortAscending, IconSortDescending, IconLoader, IconX } from "~/components/ui/icons";
+import {
+  IconSearch,
+  IconSortAscending,
+  IconSortDescending,
+  IconLoader,
+  IconX,
+  IconBackpackWallet,
+} from "~/components/ui/icons";
 
 type PointsTableProps = {
   userPointsData: UserPointsData;
