@@ -6,8 +6,7 @@ import { connection } from "./utils/connection";
 import { loadBankMetadatas } from "./utils/bankMetadata";
 import { chunkedGetRawMultipleAccountInfos } from "./utils/chunks";
 import { sleep, getDebugLogger, shortAddress } from "./utils";
-import redisClient from "./lib/redisClient";
-import { getUserSettings } from "./lib/firebase";
+import { getUserSettings, updateLastNotification } from "./lib/postgres";
 import { sendEmailNotification } from "./lib/resend";
 
 let client: MarginfiClient;
@@ -77,7 +76,6 @@ async function mainLoop() {
 async function checkAndSendNotifications(account: MarginfiAccountWrapper) {
   const debug = getDebugLogger("account-health-check");
   const notiDebug = getDebugLogger("send-notification");
-  const notificationKey = `lastNotification:${account.address.toString()}`;
   const maintenanceComponentsWithBiasAndWeighted = account.computeHealthComponents(MarginRequirementType.Maintenance);
   const healthFactor = maintenanceComponentsWithBiasAndWeighted.assets.isZero()
     ? 1
@@ -88,8 +86,6 @@ async function checkAndSendNotifications(account: MarginfiAccountWrapper) {
   const healthFactorPercentage = Math.floor(healthFactor * 100);
 
   debug("Scanning account: %s", account.address.toBase58());
-  debug("Account authority: %s", account.authority.toBase58());
-  debug("Health factor threshold: %d", env_config.HEALTH_FACTOR_THRESHOLD);
   debug("Health factor: %d", healthFactor);
   debug("Trigger notification: %s", healthFactor < env_config.HEALTH_FACTOR_THRESHOLD ? "Yes" : "No");
 
@@ -101,11 +97,15 @@ async function checkAndSendNotifications(account: MarginfiAccountWrapper) {
     return;
   }
 
-  const lastNotificationTime = await redisClient.get(notificationKey);
-  const now = Date.now();
-  if (lastNotificationTime && now - parseInt(lastNotificationTime) < 24 * 60 * 60 * 1000) {
-    notiDebug("Wallet %s: It’s too soon to send another notification", shortAddress(account.authority.toBase58()));
-    return;
+  const now = new Date();
+  if (userData.last_notification) {
+    const lastNotificationTime = userData.last_notification; // Assuming it's already a Date object
+    const diffTime = now.getTime() - lastNotificationTime.getTime();
+    if (diffTime < 24 * 60 * 60 * 1000) {
+      // 24 hours in milliseconds
+      notiDebug("Wallet %s: It’s too soon to send another notification", shortAddress(account.authority.toBase58()));
+      return;
+    }
   }
 
   const { error } = await sendEmailNotification(userData.email, healthFactorPercentage);
@@ -114,8 +114,8 @@ async function checkAndSendNotifications(account: MarginfiAccountWrapper) {
     return;
   }
 
-  await redisClient.set(notificationKey, now.toString());
-  notiDebug("Wallet %s: Notification sent successfully: %s", shortAddress(account.authority.toBase58()));
+  await updateLastNotification(account.authority.toString(), now);
+  notiDebug("Wallet %s: Notification sent successfully", shortAddress(account.authority.toBase58()));
 }
 
 async function loadAllMarginfiAccounts() {
