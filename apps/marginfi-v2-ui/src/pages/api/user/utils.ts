@@ -113,3 +113,21 @@ export async function createFirebaseUser(walletAddress: string, referralCode?: s
     referralCode: uuidv4(),
   });
 }
+
+export async function getMostUsedWallet(walletAddress: string) {
+  const db = admin.firestore();
+  const wallets = await db
+    .collection("logins")
+    .where("publicKey", "==", walletAddress)
+    .where("walletId", "!=", "")
+    .get();
+
+  const walletsArr = wallets.docs.map((doc) => doc.data());
+
+  const walletIds = walletsArr.map((wallet) => wallet.walletId);
+  const mostUsedWallet = walletIds
+    .sort((a, b) => walletIds.filter((v) => v === a).length - walletIds.filter((v) => v === b).length)
+    .pop();
+
+  return mostUsedWallet;
+}
