@@ -5,11 +5,17 @@
   "workspaces": {
     "packages": [
       "apps/*",
-      "apps/marginfi-notifications/account-health-poller",
-      "apps/marginfi-notifications/notifications-webhooks",
       "packages/*"
     ],
-    "nohoist": ["**/expo", "**/expo/**", "**/expo-*/**", "**/@expo", "**/@expo-*/**", "**/@expo/**", "**/ts-loader/**"]
+    "nohoist": [
+      "**/expo",
+      "**/expo/**",
+      "**/expo-*/**",
+      "**/@expo",
+      "**/@expo-*/**",
+      "**/@expo/**",
+      "**/ts-loader/**"
+    ]
   },
   "scripts": {
     "clean": "turbo run clean --parallel && rimraf node_modules",
