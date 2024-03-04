@@ -10,21 +10,8 @@ import { homedir } from "os";
 
 dotenv.config();
 
-if (!process.env.WALLET_KEYPAIR) {
-  console.error("WALLET_KEYPAIR is required");
-  process.exit(1);
-}
-
-if (!process.env.RPC_ENDPOINT) {
-  console.error("RPC_ENDPOINT is required");
-  process.exit(1);
-}
-
 /*eslint sort-keys: "error"*/
 let envSchema = z.object({
-  FIREBASE_CLIENT_EMAIL: z.string(),
-  FIREBASE_PRIVATE_KEY: z.string(),
-  FIREBASE_PROJECT_ID: z.string(),
   HEALTH_FACTOR_THRESHOLD: z
     .string()
     .optional()
@@ -42,17 +29,18 @@ let envSchema = z.object({
       return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
     })
     .optional(),
+  MARGINFI_API_KEY: z.string(),
+  MARGINFI_API_URL: z.string().url(),
   MRGN_ENV: z
     .enum(["production", "alpha", "staging", "dev", "mainnet-test-1", "dev.1"])
     .default("production")
     .transform((s) => s as Environment),
-  // add postgres credentials
   PG_DATABASE: z.string(),
   PG_HOST: z.string(),
   PG_PASSWORD: z.string(),
-  PG_PORT: z.number(),
+  PG_PORT: z.string().regex(/^\d*$/),
   PG_USER: z.string(),
-  REDIS_URL: z.string().url(),
+  RESEND_API_KEY: z.string(),
   RPC_ENDPOINT: z.string().url(),
   SENTRY: z
     .string()
