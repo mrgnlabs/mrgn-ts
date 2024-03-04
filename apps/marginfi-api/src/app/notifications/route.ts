@@ -3,6 +3,14 @@ import db from "~/lib/pg";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const wallet = searchParams.get("wallet_address");
+  const apiKey = request.headers.get("X-API-KEY");
+
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    return new Response(JSON.stringify({ error: "Invalid or missing API key" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   if (!wallet) {
     return Response.json(
@@ -42,6 +50,14 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const data = await request.json();
+  const apiKey = request.headers.get("X-API-KEY");
+
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    return new Response(JSON.stringify({ error: "Invalid or missing API key" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   if (!data.wallet_address || !data.email) {
     return Response.json({ error: "Missing required fields" }, { status: 400 });
