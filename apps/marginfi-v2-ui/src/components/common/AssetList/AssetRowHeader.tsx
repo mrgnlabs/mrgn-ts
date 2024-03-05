@@ -49,7 +49,7 @@ export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, is
         align="right"
       >
         <div className="h-full w-full flex justify-end items-center gap-2">
-          {isInLendingMode ? "APY" : "APR"}
+          APY
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -57,7 +57,7 @@ export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, is
               </TooltipTrigger>
               <TooltipContent>
                 <div className="flex flex-col items-start gap-1 text-left">
-                  <h4 className="text-base">{isInLendingMode ? "APY" : "APR"}</h4>
+                  <h4 className="text-base">APY</h4>
                   <span style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
                     {isInLendingMode
                       ? "What you'll earn on deposits over a year. This includes compounding. All marginfi deposits are compounded hourly."
