@@ -6,17 +6,13 @@ import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBankInfo; isInLendingMode: boolean }) {
   const rateAP = useMemo(() => {
     const { lendingRate, borrowingRate, emissions, emissionsRate } = bank.info.state;
-    const { protocolFixedFeeApr } = bank.info.rawBank.config.interestRateConfig;
 
     const baseRate = isInLendingMode ? lendingRate : borrowingRate;
-    const protocolFee =
-      !isInLendingMode && protocolFixedFeeApr && protocolFixedFeeApr?.isZero && !protocolFixedFeeApr.isZero()
-        ? protocolFixedFeeApr.toNumber()
-        : 0;
+
     const lendingEmissions = isInLendingMode && emissions == Emissions.Lending ? emissionsRate : 0;
     const borrowingEmissions = !isInLendingMode && emissions == Emissions.Borrowing ? emissionsRate : 0;
 
-    const totalRate = baseRate + protocolFee + lendingEmissions + borrowingEmissions;
+    const totalRate = baseRate + lendingEmissions + borrowingEmissions;
 
     return percentFormatter.format(totalRate);
   }, [isInLendingMode, bank.info.state, bank.info.rawBank.config.interestRateConfig]);
