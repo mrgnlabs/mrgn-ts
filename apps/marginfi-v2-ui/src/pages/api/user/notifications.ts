@@ -1,66 +1,77 @@
-import * as admin from "firebase-admin";
-import { NextApiResponse } from "next";
+// Next.js API route for user notifications
+import { NextApiRequest, NextApiResponse } from "next";
 
-import { STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const apiUrl = process.env.MARGINFI_API_URL;
+  const apiKey = process.env.MARGINFI_API_KEY;
 
-import { initFirebaseIfNeeded } from "./utils";
-import { NextApiRequest } from "../utils";
-
-initFirebaseIfNeeded();
-
-export type LoginRequest = {
-  walletAddress: string;
-  email: string;
-  ybxUpdates: boolean;
-  accountHealth: boolean;
-};
-
-export default async function handler(req: NextApiRequest<LoginRequest>, res: NextApiResponse) {
-  const db = admin.firestore();
-  const notisCollection = db.collection("notification_settings");
+  if (!apiUrl || !apiKey) {
+    return res.status(500).json({ success: false, message: "Invalid API configuration" });
+  }
 
   if (req.method === "POST") {
     const { email, walletAddress, accountHealth, ybxUpdates } = req.body;
 
     try {
-      const docRef = notisCollection.doc(walletAddress);
-      await docRef.set(
-        {
-          email,
+      const response = await fetch(`${apiUrl}/notifications`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-KEY": apiKey,
+        },
+        body: JSON.stringify({
           wallet_address: walletAddress,
+          email,
           account_health: accountHealth,
           ybx_updates: ybxUpdates,
-          updated_at: admin.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
+        }),
+      });
 
-      return res.status(STATUS_OK).json({ success: true });
-    } catch (error: any) {
+      if (response.ok) {
+        const data = await response.json();
+        return res.status(200).json({ success: true, data });
+      } else {
+        const errorData = await response.json();
+        console.error("Error updating notifications settings via API:", errorData);
+        return res
+          .status(response.status)
+          .json({ success: false, message: errorData.message || "Failed to update notification settings" });
+      }
+    } catch (error) {
       console.error("Error updating notifications settings:", error);
-      return res.status(STATUS_BAD_REQUEST).json({ success: false });
+      return res.status(500).json({ success: false, message: "Internal server error" });
     }
   } else if (req.method === "GET") {
     const walletAddress = req.query.walletAddress as string;
 
     if (!walletAddress) {
-      return res.status(STATUS_BAD_REQUEST).json({ success: false, message: "Missing wallet address" });
+      return res.status(400).json({ success: false, message: "Missing wallet address" });
     }
 
     try {
-      const docRef = notisCollection.doc(walletAddress);
-      const doc = await docRef.get();
+      const response = await fetch(`${apiUrl}/notifications?wallet_address=${walletAddress}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-KEY": apiKey,
+        },
+      });
 
-      if (!doc.exists) {
-        return res.status(STATUS_BAD_REQUEST).json({ success: true, message: "Document not found" });
+      if (response.ok) {
+        const data = await response.json();
+        return res.status(200).json({ success: true, data });
+      } else {
+        const errorData = await response.json();
+        console.error("Error fetching notifications settings via API:", errorData);
+        return res
+          .status(response.status)
+          .json({ success: false, message: errorData.message || "Failed to fetch notification settings" });
       }
-
-      return res.status(STATUS_OK).json({ success: true, data: doc.data() });
-    } catch (error: any) {
-      console.error("Error fetching document:", error);
-      return res.status(STATUS_BAD_REQUEST).json({ success: false });
+    } catch (error) {
+      console.error("Error fetching notifications settings:", error);
+      return res.status(500).json({ success: false, message: "Internal server error" });
     }
   } else {
-    return res.status(STATUS_BAD_REQUEST).json({ success: false, message: "Invalid request method" });
+    return res.status(405).json({ success: false, message: "Method not allowed" });
   }
 }
