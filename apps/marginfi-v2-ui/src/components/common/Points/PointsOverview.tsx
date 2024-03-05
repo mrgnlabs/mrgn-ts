@@ -56,9 +56,9 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
             <h3 className="text-white font-[500] text-2xl md:text-3xl mt-1.5">
               {userPointsData && numeralFormatter(userPointsData.totalPoints)}
             </h3>
-            {mostUsedWallet === "Bacpack" && (
+            {mostUsedWallet === "Backpack" && (
               <p className="flex items-center gap-1.5 rounded-lg w-full max-w-fit text-xs font-mono mt-3 text-muted-foreground">
-                <IconBackpackWallet size={16} /> 1.2x points boost active2
+                <IconBackpackWallet size={16} /> 1.05x points boost active
               </p>
             )}
           </div>
