@@ -8,14 +8,14 @@ import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, User
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {
     label: "APY highest to lowest",
-    borrowLabel: "APR highest to lowest",
+    borrowLabel: "APY highest to lowest",
     value: SortType.APY_DESC,
     field: "APY",
     direction: sortDirection.DESC,
   },
   APY_ASC: {
     label: "APY lowest to highest",
-    borrowLabel: "APR lowest to highest",
+    borrowLabel: "APY lowest to highest",
     value: SortType.APY_ASC,
     field: "APY",
     direction: sortDirection.ASC,

@@ -285,7 +285,7 @@ const AssetRow: React.FC<{
         <TableCell
           className={cn(
             "border-none font-aeonik px-2",
-            isInLendingMode ? "text-success" : "text-destructive-foreground",
+            isInLendingMode ? "text-success" : "text-warning",
             isHovering && "bg-background-gray"
           )}
           align="right"
