@@ -39,17 +39,14 @@ export const Wallet = () => {
   const isMobile = useIsMobile();
 
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
-  const [isFundingWalletAddressCopied, setIsFundingWalletAddressCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
-    balanceSOL: string;
     balanceUSD: string;
     tokens: Token[];
   }>({
     address: "",
     shortAddress: "",
-    balanceSOL: "",
     balanceUSD: "",
     tokens: [],
   });
@@ -59,8 +56,6 @@ export const Wallet = () => {
     return shortenAddress(wallet?.publicKey?.toString());
   }, [wallet?.publicKey]);
 
-  // fetch wallet data and store in state
-  // address, sol balance, token balances
   const getWalletData = React.useCallback(async () => {
     if (!connection || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
 
@@ -68,11 +63,7 @@ export const Wallet = () => {
       (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
     );
 
-    const prioritizedSymbols = ["SOL"];
-
-    const solBank = userBanks.find(
-      (bank) => bank.address.toString() === "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"
-    );
+    const prioritizedSymbols = ["SOL", "LST"];
 
     const userTokens = userBanks
       .map((bank) => {
@@ -101,13 +92,37 @@ export const Wallet = () => {
         );
       });
 
-    const totalBalance = userTokens.reduce((acc, token) => acc + (token?.valueUSD || 0), 0);
+    // attempt to fetch cached totalBalanceData
+    const cacheKey = `marginfi_totalBalanceData-${wallet?.publicKey.toString()}`;
+    const cachedData = localStorage.getItem(cacheKey);
+    let totalBalance = 0;
+    let totalBalanceStr = "";
+
+    if (cachedData) {
+      const parsedData = JSON.parse(cachedData);
+      const now = new Date();
+      // 5 minute expiration time on cache
+      if (now.getTime() - parsedData.timestamp < 5 * 60 * 1000) {
+        totalBalance = parsedData.totalValue;
+        totalBalanceStr = usdFormatter.format(totalBalance);
+      }
+    }
+
+    if (!totalBalanceStr) {
+      const totalBalanceRes = await fetch(`/api/user/wallet?wallet=${wallet?.publicKey}`);
+      if (totalBalanceRes.ok) {
+        const totalBalanceData = await totalBalanceRes.json();
+        totalBalance = totalBalanceData.totalValue;
+        totalBalanceStr = usdFormatter.format(totalBalance);
+        // update cache
+        localStorage.setItem(cacheKey, JSON.stringify({ totalValue: totalBalance, timestamp: new Date().getTime() }));
+      }
+    }
 
     setWalletData({
       address: wallet?.publicKey.toString(),
       shortAddress: address,
       balanceUSD: usdFormatter.format(totalBalance),
-      balanceSOL: solBank ? numeralFormatter(totalBalance / solBank?.info.state.price) : "0.00",
       tokens: (userTokens || []) as Token[],
     });
   }, [connection, wallet?.publicKey, address, extendedBankInfos, nativeSolBalance]);
@@ -128,7 +143,7 @@ export const Wallet = () => {
     <>
       <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
         <SheetTrigger asChild>
-          {walletData && initialized && (
+          {walletData.address && initialized && (
             <button className="flex items-center gap-2 hover:bg-muted transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground">
               <WalletAvatar pfp={pfp} address={walletData.address} size="sm" />
               {walletData.shortAddress}
@@ -137,7 +152,7 @@ export const Wallet = () => {
           )}
         </SheetTrigger>
         <SheetContent className="outline-none z-[1000001] px-4">
-          {walletData ? (
+          {walletData.address ? (
             <div className="pt-4 h-full flex flex-col">
               <header className="flex flex-col items-center mb-8">
                 <div className="flex flex-col items-center space-y-2 ">
@@ -182,7 +197,6 @@ export const Wallet = () => {
               <div className="flex flex-col items-center h-full">
                 <div className="text-center space-y-1 mb-12">
                   <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
-                  <p className="text-muted-foreground">~{walletData.balanceSOL} SOL</p>
                 </div>
                 <button
                   className="flex items-center gap-2 mb-4 bg-muted w-full group cursor-pointer border-chartreuse rounded-lg px-4 py-3.5 transition-colors hover:bg-background-gray-hover"
