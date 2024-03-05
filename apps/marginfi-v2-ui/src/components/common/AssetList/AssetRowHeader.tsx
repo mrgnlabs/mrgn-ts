@@ -49,7 +49,7 @@ export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, is
         align="right"
       >
         <div className="h-full w-full flex justify-end items-center gap-2">
-          {isInLendingMode ? "APY" : "APR"}
+          APY
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

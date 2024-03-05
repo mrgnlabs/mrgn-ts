@@ -25,7 +25,7 @@ interface PortfolioAssetCardProps {
 
 export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCardProps) => {
   const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
-  const { rateAP } = useAssetItemData({ bank, isInLendingMode });
+  const { rateAPY } = useAssetItemData({ bank, isInLendingMode });
 
   const [requestedAction, setRequestedAction] = React.useState<ActionType>();
   const [requestedToken, setRequestedToken] = React.useState<PublicKey>();
@@ -68,8 +68,8 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
               </div>
               <dl>
                 <dt className="font-medium text-lg">{bank.meta.tokenSymbol}</dt>
-                <dd className={cn("text-sm font-normal", isInLendingMode ? "text-[#75BA80]" : "text-[#FBA43A]")}>
-                  {rateAP.concat(...[" ", isInLendingMode ? "APY" : "APR"])}
+                <dd className={cn("text-sm font-normal", isInLendingMode ? "text-success" : "text-warning")}>
+                  {rateAPY.concat(...[" ", isInLendingMode ? "APY" : "APR"])}
                 </dd>
               </dl>
             </div>

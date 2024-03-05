@@ -23,7 +23,7 @@ export const ActionComplete = () => {
     state.setIsActionComplete,
     state.previousTxn,
   ]);
-  const { rateAP } = useAssetItemData({
+  const { rateAPY } = useAssetItemData({
     bank: previousTxn?.bank!,
     isInLendingMode: previousTxn?.type === ActionType.Deposit,
   });
@@ -80,7 +80,7 @@ export const ActionComplete = () => {
                 </>
               )}
               <dt>APY</dt>
-              <dd className={cn("text-right", actionTextColor)}>{rateAP}</dd>
+              <dd className={cn("text-right", actionTextColor)}>{rateAPY}</dd>
               <dt>Transaction</dt>
               <dd className="text-right">
                 <Link

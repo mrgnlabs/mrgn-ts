@@ -46,13 +46,8 @@ export const ActionBoxTokens = ({ currentTokenBank, isDialog, setCurrentTokenBan
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) =>
       percentFormatter.format(
-        (lendingMode === LendingModes.LEND ? bank.info.state.lendingRate : bank.info.state.borrowingRate) +
-          (lendingMode === LendingModes.LEND && bank.info.state.emissions == Emissions.Lending
-            ? bank.info.state.emissionsRate
-            : 0) +
-          (lendingMode !== LendingModes.LEND && bank.info.state.emissions == Emissions.Borrowing
-            ? bank.info.state.emissionsRate
-            : 0)
+        bank.info.state.lendingRate +
+          (bank.info.state.emissions == Emissions.Lending ? bank.info.state.emissionsRate : 0)
       ),
     [lendingMode]
   );
@@ -448,7 +443,7 @@ const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemProps) =>
             lendingMode === LendingModes.BORROW && "text-warning"
           )}
         >
-          {rate + ` ${lendingMode === LendingModes.LEND ? "APY" : "APR"}`}
+          {rate + ` APY`}
         </p>
       </div>
     </>

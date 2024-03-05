@@ -21,6 +21,32 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
     return percentFormatter.format(totalRate);
   }, [isInLendingMode, bank.info.state, bank.info.rawBank.config.interestRateConfig]);
 
+  const rateAPY = useMemo(() => {
+    const { lendingRate, emissions, emissionsRate } = bank.info.state;
+
+    const lendingEmissions = emissions == Emissions.Lending ? emissionsRate : 0;
+
+    const totalRate = lendingRate + lendingEmissions + lendingEmissions;
+
+    return percentFormatter.format(totalRate);
+  }, [bank.info.state]);
+
+  const rateAPR = useMemo(() => {
+    const { borrowingRate, emissions, emissionsRate } = bank.info.state;
+    const { protocolFixedFeeApr } = bank.info.rawBank.config.interestRateConfig;
+
+    const protocolFee =
+      protocolFixedFeeApr && protocolFixedFeeApr?.isZero && !protocolFixedFeeApr.isZero()
+        ? protocolFixedFeeApr.toNumber()
+        : 0;
+
+    const borrowingEmissions = emissions == Emissions.Borrowing ? emissionsRate : 0;
+
+    const totalRate = borrowingRate + protocolFee + borrowingEmissions;
+
+    return percentFormatter.format(totalRate);
+  }, [bank.info.state, bank.info.rawBank.config.interestRateConfig]);
+
   const assetWeight = useMemo(() => {
     if (!bank.info.rawBank.getAssetWeight) {
       return "-";
@@ -59,5 +85,5 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
     [bankCap, isInLendingMode, bank.info.state]
   );
 
-  return { rateAP, assetWeight, bankCap, isBankFilled, isBankHigh };
+  return { rateAP, rateAPY, rateAPR, assetWeight, bankCap, isBankFilled, isBankHigh };
 }

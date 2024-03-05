@@ -84,7 +84,10 @@ const AssetRow: React.FC<{
     state.isFilteredUserPositions,
   ]);
 
-  const { rateAP, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({ bank, isInLendingMode });
+  const { rateAPY, assetWeight, isBankFilled, isBankHigh, bankCap } = useAssetItemData({
+    bank,
+    isInLendingMode,
+  });
 
   const isMobile = useIsMobile();
 
@@ -285,7 +288,7 @@ const AssetRow: React.FC<{
         <TableCell
           className={cn(
             "border-none font-aeonik px-2",
-            isInLendingMode ? "text-success" : "text-destructive-foreground",
+            isInLendingMode ? "text-success" : "text-warning",
             isHovering && "bg-background-gray"
           )}
           align="right"
@@ -386,7 +389,7 @@ const AssetRow: React.FC<{
                 fontWeight: 400,
               }}
             >
-              {rateAP}
+              {rateAPY}
             </div>
           </div>
         </TableCell>
