@@ -129,8 +129,8 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
   return (
     <Accordion type="single" collapsible className="w-full space-y-4 mb-6">
       <AccordionItem value="assets">
-        <AccordionTrigger className="bg-muted font-normal px-4 rounded-lg transition-colors hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
-          Assets
+        <AccordionTrigger className="bg-muted font-normal px-4 rounded-lg transition-colors justify-start gap-2 hover:bg-background-gray-hover data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
+          Assets <span className="text-xs text-muted-foreground">(available on marginfi)</span>
         </AccordionTrigger>
         <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
           <WalletTokens tokens={tokens} />
