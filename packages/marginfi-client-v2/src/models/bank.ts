@@ -438,7 +438,7 @@ class Bank {
     const utilizationRate = this.computeUtilizationRate();
 
     const lendingRate = baseInterestRate.times(utilizationRate);
-    const borrowingRate = baseInterestRate.times(new BigNumber(1).plus(rateFee)).plus(fixedFee);
+    const borrowingRate = baseInterestRate.times(utilizationRate).times(new BigNumber(1).plus(rateFee)).plus(fixedFee)
 
     return { lendingRate, borrowingRate };
   }
