@@ -9,6 +9,7 @@ import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
+import { showErrorToast } from "~/utils/toastUtils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
@@ -34,10 +35,11 @@ export const Wallet = () => {
   const [isWalletOpen, setIsWalletOpen] = useUiStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData, state.fetchPoints]);
 
-  const { connection } = useConnection();
-  const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected } = useWalletContext();
+  const { wallet, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected } = useWalletContext();
   const isMobile = useIsMobile();
 
+  const [isFetchingWalletData, setIsFetchingWalletData] = React.useState(false);
+  const [isMounted, setIsMounted] = React.useState(false);
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
@@ -57,7 +59,9 @@ export const Wallet = () => {
   }, [wallet?.publicKey]);
 
   const getWalletData = React.useCallback(async () => {
-    if (!connection || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
+    if (isFetchingWalletData || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
+
+    setIsFetchingWalletData(true);
 
     const userBanks = extendedBankInfos.filter(
       (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
@@ -119,16 +123,26 @@ export const Wallet = () => {
       }
     }
 
+    // show error toast
+    if (!totalBalanceStr) {
+      showErrorToast("Error fetching wallet balance");
+    }
+
     setWalletData({
       address: wallet?.publicKey.toString(),
       shortAddress: address,
       balanceUSD: usdFormatter.format(totalBalance),
       tokens: (userTokens || []) as Token[],
     });
-  }, [connection, wallet?.publicKey, address, extendedBankInfos, nativeSolBalance]);
+
+    setIsFetchingWalletData(false);
+  }, [wallet?.publicKey, address, extendedBankInfos, nativeSolBalance, isFetchingWalletData]);
 
   // fetch wallet data on mount and every 20 seconds
   React.useEffect(() => {
+    if (isMounted) return;
+    setIsMounted(true);
+
     getWalletData();
     const intervalId = setInterval(() => {
       getWalletData();
@@ -137,7 +151,7 @@ export const Wallet = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [connected, wallet?.publicKey, extendedBankInfos, getWalletData]);
+  }, [getWalletData, isMounted]);
 
   return (
     <>
