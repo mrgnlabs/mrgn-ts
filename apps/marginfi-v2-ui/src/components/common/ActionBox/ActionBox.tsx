@@ -3,13 +3,12 @@ import React from "react";
 import { PublicKey } from "@solana/web3.js";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 
-import { WSOL_MINT, nativeToUi, percentFormatter, uiToNative } from "@mrgnlabs/mrgn-common";
+import { WSOL_MINT, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import {
   MarginfiActionParams,
-  clampedNumeralFormatter,
   closeBalance,
   executeLendingAction,
   usePrevious,
@@ -24,15 +23,18 @@ import { useDebounce } from "~/hooks/useDebounce";
 import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-import { checkActionAvailable, ActionBoxActions } from "~/components/common/ActionBox";
-import { Input } from "~/components/ui/input";
-import { IconAlertTriangle, IconWallet, IconSettings } from "~/components/ui/icons";
+import { checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
+import { IconAlertTriangle, IconSettings } from "~/components/ui/icons";
 import { showErrorToast } from "~/utils/toastUtils";
 
-import { ActionBoxPreview } from "./ActionBoxPreview";
-import { ActionBoxTokens } from "./ActionBoxTokens";
-import { ActionBoxHeader } from "./ActionBoxHeader";
-import { ActionBoxSettings } from "./ActionBoxSettings";
+import {
+  ActionBoxPreview,
+  ActionBoxHeader,
+  ActionBoxSettings,
+  ActionBoxActions,
+  ActionBoxInput,
+  ActionBoxRepayInput,
+} from "~/components/common/ActionBox/components";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -47,11 +49,6 @@ type DirectRoutesMap = {
     directRoutes: string[];
   };
 };
-
-export enum RepayType {
-  RepayRaw = "Repay",
-  RepayCollat = "Collateral Repay",
-}
 
 export const ActionBox = ({
   requestedAction,
@@ -207,7 +204,6 @@ export const ActionBox = ({
     repayMode,
   ]);
 
-  const amountInputRef = React.useRef<HTMLInputElement>(null);
   const rawRepayAmount = React.useMemo(
     () => (repayAmount ? numberFormater.format(repayAmount) : undefined),
     [repayAmount, numberFormater]
@@ -215,11 +211,6 @@ export const ActionBox = ({
 
   const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
   const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
-
-  const isInputDisabled = React.useMemo(
-    () => (maxAmount === 0 && !showCloseBalance) || !!selectedStakingAccount,
-    [maxAmount, showCloseBalance, selectedStakingAccount]
-  );
 
   const actionMethod = React.useMemo(
     () =>
@@ -271,19 +262,6 @@ export const ActionBox = ({
   }, [actionMode]);
 
   const actionModePrev = usePrevious(actionMode);
-
-  const priorityFeeLabel = React.useMemo(() => {
-    if (priorityFee === 0) return "Normal";
-    if (priorityFee === 0.00005) return "High";
-    if (priorityFee === 0.005) return "Mamas";
-    return "Custom";
-  }, [priorityFee]);
-
-  // React.useEffect(() => {
-  //   if (amount > 0 && selectedBank && !selectedBank.info.state.mint.equals(SOL_MINT)) {
-  //     //loading
-  //   }
-  // }, [selectedBank]);
 
   React.useEffect(() => {
     if (actionModePrev !== null && actionModePrev !== actionMode) {
@@ -434,21 +412,6 @@ export const ActionBox = ({
       }
     }
   }
-
-  // Does this do anything? I don't think so
-  // React.useEffect(() => {
-  //   if (
-  //     actionMode === ActionType.Withdraw &&
-  //     !(selectedBank?.isActive && selectedBank?.position?.isLending && lendingMode === LendingModes.LEND)
-  //   ) {
-  //     setSelectedTokenBank(null);
-  //   } else if (
-  //     actionMode === ActionType.Repay &&
-  //     !(selectedBank?.isActive && !selectedBank?.position?.isLending && lendingMode === LendingModes.BORROW)
-  //   ) {
-  //     setSelectedTokenBank(null);
-  //   }
-  // }, [selectedBank, actionMode, setActionMode, lendingMode]);
 
   const executeLendingActionCb = React.useCallback(
     async ({
@@ -675,39 +638,6 @@ export const ActionBox = ({
     wallet,
   ]);
 
-  const handleInputChange = React.useCallback(
-    (newAmount: string) => {
-      let formattedAmount: string, amount: number;
-      // Remove commas from the formatted string
-      const newAmountWithoutCommas = newAmount.replace(/,/g, "");
-      let decimalPart = newAmountWithoutCommas.split(".")[1];
-      const mintDecimals = selectedBank?.info.state.mintDecimals ?? 9;
-
-      if (
-        (newAmount.endsWith(",") || newAmount.endsWith(".")) &&
-        !newAmount.substring(0, newAmount.length - 1).includes(".")
-      ) {
-        amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas);
-        formattedAmount = numberFormater.format(amount).concat(".");
-      } else {
-        const isDecimalPartInvalid = isNaN(Number.parseFloat(decimalPart));
-        if (!isDecimalPartInvalid) decimalPart = decimalPart.substring(0, mintDecimals);
-        decimalPart = isDecimalPartInvalid
-          ? ""
-          : ".".concat(Number.parseFloat("1".concat(decimalPart)).toString().substring(1));
-        amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas);
-        formattedAmount = numberFormater.format(amount).split(".")[0].concat(decimalPart);
-      }
-
-      if (amount > maxAmount) {
-        setAmountRaw(numberFormater.format(maxAmount));
-      } else {
-        setAmountRaw(formattedAmount);
-      }
-    },
-    [maxAmount, setAmountRaw, selectedBank, numberFormater]
-  );
-
   React.useEffect(() => {
     setPriorityFee(0.005);
   }, [setPriorityFee]);
@@ -740,124 +670,43 @@ export const ActionBox = ({
                 changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
                 bank={selectedBank}
               />
-              <div className="flex flex-row items-center justify-between mb-3">
-                {!isDialog || actionMode === ActionType.MintLST || actionMode === ActionType.Repay ? (
-                  <div className="text-lg font-normal flex items-center">{titleText}</div>
-                ) : (
-                  <div />
-                )}
-                {repayMode !== RepayType.RepayCollat && (selectedBank || selectedStakingAccount) && (
-                  <div className="inline-flex gap-1.5 items-center">
-                    <IconWallet size={16} />
-                    <span className="text-sm font-normal">
-                      {selectedBank &&
-                        (walletAmount !== undefined
-                          ? clampedNumeralFormatter(walletAmount).concat(" ", selectedBank.meta.tokenSymbol)
-                          : "-")}
-                      {selectedStakingAccount &&
-                        clampedNumeralFormatter(nativeToUi(selectedStakingAccount.lamports, 9)).concat(" SOL")}
-                    </span>
-                    <button
-                      className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
-                        maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
-                      } transition-colors`}
-                      onClick={() => setAmountRaw(numberFormater.format(maxAmount))}
-                      disabled={maxAmount === 0}
-                    >
-                      MAX
-                    </button>
-                  </div>
-                )}
-                {repayMode === RepayType.RepayCollat && selectedBank && (
-                  <div className="inline-flex gap-1.5 items-center">
-                    <span className="text-sm font-normal">
-                      {(selectedBank as ActiveBankInfo).position.amount} {selectedBank.meta.tokenSymbol}
-                    </span>
-                    <button
-                      className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
-                        maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
-                      } transition-colors`}
-                      onClick={() => setAmountRaw(numberFormater.format(maxAmount))}
-                      disabled={maxAmount === 0}
-                    >
-                      Repay Full
-                    </button>
-                  </div>
-                )}
-              </div>
-              <div className="bg-background text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center p-4 font-medium mb-5">
-                <div className="w-full xs:w-[162px]">
-                  <ActionBoxTokens
-                    isDialog={isDialog}
-                    currentTokenBank={selectedTokenBank}
-                    setCurrentTokenBank={(tokenBank) => {
-                      setSelectedTokenBank(tokenBank);
-                      setAmountRaw("");
-                    }}
-                    actionMode={actionMode}
-                  />
-                </div>
-                <div className="flex-1">
-                  <Input
-                    type="text"
-                    ref={amountInputRef}
-                    inputMode="numeric"
-                    value={amountRaw}
-                    disabled={isInputDisabled}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    placeholder="0"
-                    className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
-                  />
-                </div>
-              </div>
-
+              <ActionBoxInput
+                actionMode={actionMode}
+                repayMode={repayMode}
+                selectedBank={selectedBank}
+                selectedTokenBank={selectedTokenBank}
+                selectedStakingAccount={selectedStakingAccount}
+                walletAmount={walletAmount}
+                amountRaw={amountRaw}
+                maxAmount={maxAmount}
+                showCloseBalance={showCloseBalance}
+                isDialog={isDialog}
+                onSetTokenBank={(bank) => setSelectedTokenBank(bank)}
+                onSetAmountRaw={(amount) => setAmountRaw(amount)}
+              />
               {actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat && (
-                <>
-                  <div className="flex flex-row font-normal items-center justify-between mb-3">
-                    <div className="text-lg flex items-center">Using collateral</div>
-                    {selectedRepayBank && (
-                      <div className="inline-flex gap-1.5 items-center text-sm">
-                        <span className="text-muted-foreground">Supplied:</span>
-                        {selectedRepayBank.isActive &&
-                          selectedRepayBank.position.isLending &&
-                          (selectedRepayBank.position.amount
-                            ? clampedNumeralFormatter(selectedRepayBank.position.amount).concat(
-                                " ",
-                                selectedRepayBank.meta.tokenSymbol
-                              )
-                            : "-")}
-                      </div>
-                    )}
-                  </div>
-                  <div className="bg-[#171C1C] text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center px-3 py-2.5 mb-5">
-                    <div className="w-full xs:w-[162px]">
-                      <ActionBoxTokens
-                        isDialog={isDialog}
-                        repayTokenBank={selectedRepayTokenBank}
-                        setRepayTokenBank={setSelectedRepayTokenBank}
-                        actionMode={actionMode}
-                        highlightedTokens={directRoutes}
-                        isRepay={true}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <Input
-                        type="text"
-                        value={rawRepayAmount}
-                        disabled={true}
-                        placeholder="0"
-                        className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base cursor-default"
-                      />
-                    </div>
-                  </div>
-                </>
+                <ActionBoxRepayInput
+                  actionMode={actionMode}
+                  selectedRepayBank={selectedRepayBank}
+                  selectedRepayTokenBank={selectedRepayTokenBank}
+                  directRoutes={directRoutes}
+                  rawRepayAmount={rawRepayAmount}
+                  isDialog={isDialog}
+                  onSetSelectedBank={(bank) => setSelectedRepayTokenBank(bank)}
+                />
               )}
 
               {actionMethod.description && (
                 <div className="pb-6">
-                  <div className="flex space-x-2 py-2.5 px-3.5 rounded-xl gap-1 text-alert-foreground bg-alert text-sm">
+                  <div
+                    className={cn(
+                      "flex space-x-2 py-2.5 px-3.5 rounded-xl gap-1 text-sm",
+                      actionMethod.primaryColor ?? "text-alert-foreground",
+                      actionMethod.backgroundColor ?? "bg-alert"
+                    )}
+                  >
                     <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-                    <p className="text-alert-foreground">{actionMethod.description}</p>
+                    <p className="">{actionMethod.description}</p>
                   </div>
                 </div>
               )}
@@ -897,23 +746,6 @@ export const ActionBox = ({
                     Settings <IconSettings size={16} />
                   </button>
                 </div>
-
-                {/* <div className="flex justify-end gap-2 mt-3">
-                  <button
-                    onClick={() => setIsPriorityFeesMode(true)}
-                    className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
-                  >
-                    Txn priority: {priorityFeeLabel} <IconSettings size={16} />
-                  </button>
-                  {(actionMode === ActionType.MintLST || repayMode === RepayType.RepayCollat) && (
-                    <button
-                      onClick={() => setIsSlippageMode(true)}
-                      className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
-                    >
-                      Txn slippage: {slippageBps / 100 + " %"} <IconSettings size={16} />
-                    </button>
-                  )}
-                </div> */}
               </ActionBoxPreview>
             </>
           )}
