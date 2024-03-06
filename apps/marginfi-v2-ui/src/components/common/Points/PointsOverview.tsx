@@ -25,7 +25,7 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
   React.useEffect(() => {
     if (!wallet) return;
     const getMostUsedWallet = async (wallet: string) => {
-      const response = await fetch(`/api/user/wallet?wallet=${wallet}`);
+      const response = await fetch(`/api/user/wallet-pref?wallet=${wallet}`);
       const data = await response.json();
       if (data.wallet) setMostUsedWallet(data.wallet);
     };
