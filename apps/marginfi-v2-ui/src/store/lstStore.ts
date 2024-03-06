@@ -3,7 +3,7 @@ import { ACCOUNT_SIZE, TOKEN_PROGRAM_ID, Wallet, aprToApy, uiToNative } from "@m
 import { Connection, PublicKey } from "@solana/web3.js";
 import { create, StateCreator } from "zustand";
 import * as solanaStakePool from "@solana/spl-stake-pool";
-import { EPOCHS_PER_YEAR, StakeData, fetchStakeAccounts } from "~/utils";
+import { PERIOD, StakeData, calcYield, fetchAndParsePricesCsv, fetchStakeAccounts, getPriceRangeFromPeriod } from "~/utils";
 import { TokenAccount, TokenAccountMap, fetchBirdeyePrices } from "@mrgnlabs/marginfi-v2-ui-state";
 import { persist } from "zustand/middleware";
 import BN from "bn.js";
@@ -12,6 +12,7 @@ import type { TokenInfo, TokenInfoMap } from "@solana/spl-token-registry";
 
 const STAKEVIEW_APP_URL = "https://stakeview.app/apy/prev3.json";
 const BASELINE_VALIDATOR_ID = "mrgn28BhocwdAUEenen3Sw2MR9cPKDpLkDvzDdR7DBD";
+const SOLANA_COMPASS_PRICES_URL = "https://raw.githubusercontent.com/glitchful-dev/sol-stake-pool-apy/master/db/lst.csv";
 
 export const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 export const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
@@ -203,10 +204,11 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
 });
 
 async function fetchLstData(connection: Connection): Promise<LstData> {
-  const [stakePoolInfo, stakePoolAccount, apyData] = await Promise.all([
+  const [stakePoolInfo, stakePoolAccount, apyData, solanaCompassPrices] = await Promise.all([
     solanaStakePool.stakePoolInfo(connection, STAKE_POOL_ID),
     solanaStakePool.getStakePoolAccount(connection, STAKE_POOL_ID),
     fetch(STAKEVIEW_APP_URL).then((res) => res.json()),
+    fetchAndParsePricesCsv(SOLANA_COMPASS_PRICES_URL),
   ]);
   const stakePool = stakePoolAccount.account.data;
 
@@ -225,10 +227,11 @@ async function fetchLstData(connection: Connection): Promise<LstData> {
   if (lastTotalLamports === 0 || lastPoolTokenSupply === 0) {
     projectedApy = 0.08;
   } else {
-    const lastLstSolValue = lastPoolTokenSupply > 0 ? lastTotalLamports / lastPoolTokenSupply : 1;
-    const epochRate = lstSolValue / lastLstSolValue - 1;
-    const apr = epochRate * EPOCHS_PER_YEAR;
-    projectedApy = aprToApy(apr, EPOCHS_PER_YEAR);
+    const priceRange = getPriceRangeFromPeriod(solanaCompassPrices, PERIOD.DAYS_7)
+    if (!priceRange) {
+      throw new Error('No price data found for the specified period!')
+    }
+    projectedApy = calcYield(priceRange).apy
   }
 
   if (projectedApy < 0.08) {
