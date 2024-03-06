@@ -101,6 +101,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        "X-API-KEY": process.env.MARGINFI_API_KEY!,
       },
     });
 
@@ -126,7 +127,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
 
   React.useEffect(() => {
     fetchUsersNotificationSettings();
-  }, [walletAddress]);
+  }, []);
 
   return (
     <Accordion type="single" collapsible className="w-full space-y-4 mb-6">
