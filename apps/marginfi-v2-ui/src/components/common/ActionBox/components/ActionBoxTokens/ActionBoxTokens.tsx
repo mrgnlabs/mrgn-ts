@@ -4,7 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingTokens } from "./LendingTokens";
-import { LstTokens } from "./MintTokens";
+import { LstTokens } from "./LstTokens";
 import { YbxTokens } from "./YbxTokens";
 
 interface ActionBoxPreviewProps {

@@ -2,10 +2,11 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { ActionBoxPriorityFees, ActionBoxSlippage } from "~/components/common/ActionBox/ActionBoxSettings";
-
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { IconArrowLeft } from "~/components/ui/icons";
+
+import { ActionBoxSlippage } from "./ActionBoxSlippage";
+import { ActionBoxPriorityFees } from "./ActionBoxPriorityFees";
 
 type ActionBoxSettingsProps = {
   mode: ActionType;
