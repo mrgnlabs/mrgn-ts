@@ -1,21 +1,29 @@
 import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useMemo } from "react";
-import { nativeToUi, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { aprToApy, nativeToUi, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
 export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBankInfo; isInLendingMode: boolean }) {
-  const rateAP = useMemo(() => {
+  const rateAPR = useMemo(() => {
     const { lendingRate, borrowingRate, emissions, emissionsRate } = bank.info.state;
 
-    const baseRate = isInLendingMode ? lendingRate : borrowingRate;
+    const interestRate = isInLendingMode ? lendingRate : borrowingRate;
+    const emissionRate = isInLendingMode
+      ? emissions == Emissions.Lending
+        ? emissionsRate
+        : 0
+      : emissions == Emissions.Borrowing
+        ? emissionsRate
+        : 0;
 
-    const lendingEmissions = isInLendingMode && emissions == Emissions.Lending ? emissionsRate : 0;
-    const borrowingEmissions = !isInLendingMode && emissions == Emissions.Borrowing ? emissionsRate : 0;
-
-    const totalRate = baseRate + lendingEmissions + borrowingEmissions;
-
-    return percentFormatter.format(totalRate);
+    return interestRate + emissionRate;
   }, [isInLendingMode, bank.info.state, bank.info.rawBank.config.interestRateConfig]);
+
+  const rateAPY = useMemo(() => {
+    return aprToApy(rateAPR);
+  }, [rateAPR]);
+
+  const rateAP = useMemo(() => percentFormatter.format(rateAPY), [rateAPY]);
 
   const assetWeight = useMemo(() => {
     if (!bank.info.rawBank.getAssetWeight) {
