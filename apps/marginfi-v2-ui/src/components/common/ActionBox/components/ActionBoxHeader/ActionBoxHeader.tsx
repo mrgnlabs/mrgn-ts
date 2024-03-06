@@ -4,7 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { IconSparkles } from "~/components/ui/icons";
 
-import { RepayType } from "../ActionBox";
+import { RepayType } from "~/utils";
 
 interface ActionBoxHeaderProps {
   actionType: ActionType;
