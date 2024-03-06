@@ -11,9 +11,30 @@ import { PublicKey } from "@solana/web3.js";
 
 import { StakeData } from "~/utils";
 
-import { RepayType } from "./ActionBox";
+export enum RepayType {
+  RepayRaw = "Repay",
+  RepayCollat = "Collateral Repay",
+}
 
-interface props {
+export type ActionMethodType = "WARNING" | "ERROR" | "INFO";
+export interface ActionMethod {
+  isEnabled: boolean;
+  primaryColor?: string;
+  backgroundColor?: string;
+  description?: string;
+}
+
+export function getColorForActionMethodType(type?: ActionMethodType) {
+  if (type === "INFO") {
+    return "info";
+  } else if (type === "WARNING") {
+    return "alert";
+  } else {
+    return "alert";
+  }
+}
+
+interface CheckActionAvailableProps {
   amount: number | null;
   connected: boolean;
   nativeSolBalance: number;
@@ -27,11 +48,6 @@ interface props {
   directRoutes: PublicKey[] | null;
   repayMode: RepayType;
   repayCollatQuote: QuoteResponse | null;
-}
-
-export interface ActionMethod {
-  isEnabled: boolean;
-  description?: string;
 }
 
 export function checkActionAvailable({
@@ -48,7 +64,7 @@ export function checkActionAvailable({
   directRoutes,
   repayMode,
   repayCollatQuote,
-}: props): ActionMethod {
+}: CheckActionAvailableProps): ActionMethod {
   let check: ActionMethod | null = null;
 
   check = generalChecks(connected, selectedBank, selectedStakingAccount, showCloseBalance);
@@ -220,6 +236,8 @@ function canBeRepaidCollat(
     return {
       description: `You have ${targetBankInfo.meta.tokenSymbol} in your wallet and can repay without using collateral.`,
       isEnabled: true,
+      primaryColor: "text-info-foreground",
+      backgroundColor: "bg-info",
     };
   }
 
