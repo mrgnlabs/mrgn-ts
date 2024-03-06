@@ -69,6 +69,11 @@
     "HELIUS_API_KEY",
     "NEXT_PUBLIC_INIT_PRIO_FEE",
     "MARGINFI_API_URL",
-    "MARGINFI_API_KEY"
+    "MARGINFI_API_KEY",
+    "PG_DATABASE",
+    "PG_HOST",
+    "PG_PASSWORD",
+    "PG_PORT",
+    "PG_USER"
   ]
 }

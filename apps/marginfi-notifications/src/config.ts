@@ -35,11 +35,6 @@ let envSchema = z.object({
     .enum(["production", "alpha", "staging", "dev", "mainnet-test-1", "dev.1"])
     .default("production")
     .transform((s) => s as Environment),
-  PG_DATABASE: z.string(),
-  PG_HOST: z.string(),
-  PG_PASSWORD: z.string(),
-  PG_PORT: z.string().regex(/^\d*$/),
-  PG_USER: z.string(),
   RESEND_API_KEY: z.string(),
   RPC_ENDPOINT: z.string().url(),
   SENTRY: z
