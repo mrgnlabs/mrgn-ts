@@ -1,5 +1,5 @@
 {
-  "name": "@mrgnlabs/account-health-poller",
+  "name": "@mrgnlabs/marginfi-notifications",
   "version": "0.1.0",
   "description": "",
   "private": true,
@@ -36,7 +36,6 @@
     "got": "~11.8.6",
     "ioredis": "5.2.4",
     "jsbi": "4.3.0",
-    "pg": "^8.11.3",
     "redis": "^4.6.13",
     "resend": "^3.2.0",
     "superstruct": "^1.0.3",
