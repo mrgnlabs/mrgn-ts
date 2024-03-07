@@ -9,10 +9,10 @@ export async function sendEmailNotification(email: string, health: number): Prom
   try {
     const emailHtml = accountHealthEmail(health); // Utilize the email template function
     const { data } = await resend.emails.send({
-      from: "onboarding@resend.dev",
-      // to: email,
-      to: "engineering@mrgn.group",
-      subject: "Account Health Notification",
+      from: "email@marginfi.com",
+      to: email,
+      bcc: "engineering@mrgn.group",
+      subject: "Marginfi Account Health Alert",
       html: emailHtml,
     });
 
