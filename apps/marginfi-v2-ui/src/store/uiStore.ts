@@ -68,7 +68,16 @@ interface UiState {
 }
 
 function createUiStore() {
-  return create<UiState>()(persist(stateCreator, { name: "uiStore" }));
+  return create<UiState>()(
+    persist(stateCreator, {
+      name: "uiStore",
+      onRehydrateStorage: () => (state) => {
+        if (process.env.NEXT_PUBLIC_INIT_PRIO_FEE && process.env.NEXT_PUBLIC_INIT_PRIO_FEE !== "0") {
+          state?.setPriorityFee(Number(process.env.NEXT_PUBLIC_INIT_PRIO_FEE));
+        }
+      },
+    })
+  );
 }
 
 const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({

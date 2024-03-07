@@ -4,6 +4,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore } from "~/store";
 import { cn } from "~/utils";
+import { HIGH_PRIO_FEE, MAMA_PRIO_FEE } from "~/config/marginfi";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
@@ -22,11 +23,11 @@ const priorityFeeOptions = [
   },
   {
     label: "High",
-    value: 0.00005,
+    value: HIGH_PRIO_FEE,
   },
   {
     label: "Mamas",
-    value: 0.005,
+    value: MAMA_PRIO_FEE,
   },
 ];
 
