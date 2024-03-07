@@ -229,7 +229,7 @@ export const LendingPreview = ({
       {children}
 
       {isEnabled && selectedBank && (
-        <dl className="grid grid-cols-2 gap-y-2 pt-6 text-sm text-white">
+        <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-sm text-white")}>
           <Stat label={`Your ${showLending ? "deposited" : "borrowed"} amount`}>
             {clampedNumeralFormatter(currentPositionAmount)} {selectedBank.meta.tokenSymbol}
             {preview && <IconArrowRight width={12} height={12} />}
