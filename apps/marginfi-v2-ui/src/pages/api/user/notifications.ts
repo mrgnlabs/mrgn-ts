@@ -61,6 +61,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const data = await response.json();
         return res.status(200).json({ success: true, data });
       } else {
+        if (response.status === 404) {
+          return res.status(200).json({ success: true, data: {} });
+        }
+
         const errorData = await response.json();
         console.error("Error fetching notifications settings via API:", errorData);
         return res
