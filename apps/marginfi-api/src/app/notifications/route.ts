@@ -102,3 +102,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const wallet = searchParams.get("wallet_address");
+  const apiKey = request.headers.get("X-API-KEY");
+
+  if (!apiKey || apiKey !== process.env.MARGINFI_API_KEY) {
+    return NextResponse.json({ error: "Invalid or missing API key" }, { status: 401 });
+  }
+
+  if (!wallet) {
+    return NextResponse.json({ error: "Missing wallet address parameter" }, { status: 400 });
+  }
+
+  const queryText = `DELETE FROM notification_settings WHERE wallet_address = '${wallet}'`;
+
+  try {
+    const res = await db.query(queryText);
+    console.log(res);
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error("Database error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
