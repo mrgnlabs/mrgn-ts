@@ -10,9 +10,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    const { email, walletAddress, accountHealth, ybxUpdates } = req.body;
+    const { email, walletAddress, accountHealth, ybxUpdates, deleteRecord } = req.body;
 
     try {
+      if (deleteRecord) {
+        const response = await fetch(`${apiUrl}/notifications?wallet_address=${walletAddress}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-KEY": apiKey,
+          },
+        });
+
+        if (response.ok) {
+          return res.status(200).json({ success: true, message: "Notification settings deleted" });
+        } else {
+          const errorData = await response.json();
+          console.error("Error deleting notifications settings via API:", errorData);
+          return res
+            .status(response.status)
+            .json({ success: false, message: errorData.message || "Failed to delete notification settings" });
+        }
+      }
+
       const response = await fetch(`${apiUrl}/notifications`, {
         method: "POST",
         headers: {

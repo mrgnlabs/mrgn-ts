@@ -10,7 +10,7 @@ import { useConvertkit } from "~/hooks/useConvertkit";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { WalletTokens, Token, WalletOnramp } from "~/components/common/Wallet";
 import { Label } from "~/components/ui/label";
-import { IconCheck, IconInfoCircle, IconLoader, IconAlertTriangle } from "~/components/ui/icons";
+import { IconCheck, IconInfoCircle, IconLoader, IconAlertTriangle, IconX } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Button } from "~/components/ui/button";
@@ -38,6 +38,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
     ybx: false,
   });
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
+  const [showClearNotifications, setShowClearNotifications] = React.useState(false);
 
   const notificationFormDisabled = React.useMemo(() => {
     return walletSettingsState === WalletSettingsState.UPDATING || !email;
@@ -86,6 +87,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
 
     setErrorMsg(null);
     setWalletSettingsState(WalletSettingsState.SUCCESS);
+    setShowClearNotifications(true);
 
     setTimeout(() => {
       setWalletSettingsState(WalletSettingsState.DEFAULT);
@@ -107,7 +109,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
 
     if (!res.ok) {
       // document not found which means notifications have not been set
-      const { success, message } = await res.json();
+      const { success } = await res.json();
       if (success) {
         return;
       }
@@ -123,6 +125,32 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
       health: data.account_health,
       ybx: data.ybx_updates,
     });
+    setShowClearNotifications(Boolean(data.email));
+  }, [walletAddress]);
+
+  const clearNotifications = React.useCallback(async () => {
+    const deleteRes = await fetch(window.location.origin + "/api/user/notifications", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        walletAddress: walletAddress.toBase58(),
+        deleteRecord: true,
+      }),
+    });
+
+    if (!deleteRes.ok) {
+      setErrorMsg("There was an error clearing your notification settings. Please try again.");
+      return;
+    }
+
+    setEmail(null);
+    setNotificationSettings({
+      health: false,
+      ybx: false,
+    });
+    setShowClearNotifications(false);
   }, [walletAddress]);
 
   React.useEffect(() => {
@@ -251,6 +279,18 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
                 </>
               )}
             </Button>
+
+            {showClearNotifications && (
+              <button
+                className="flex items-center gap-1 text-xs text-error"
+                onClick={(e) => {
+                  e.preventDefault();
+                  clearNotifications();
+                }}
+              >
+                <IconX size={14} /> Clear notifications
+              </button>
+            )}
           </form>
         </AccordionContent>
       </AccordionItem>
