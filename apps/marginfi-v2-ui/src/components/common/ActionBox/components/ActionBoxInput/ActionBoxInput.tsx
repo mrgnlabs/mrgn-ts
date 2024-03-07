@@ -85,9 +85,9 @@ export const ActionBoxInput = ({
     [maxAmount, onSetAmountRaw, selectedBank, numberFormater]
   );
 
-  // section above the input
   return (
     <>
+      {/* Contains 'max' button and input title */}
       <ActionBoxInputHeader
         actionMode={actionMode}
         isDialog={isDialog}
