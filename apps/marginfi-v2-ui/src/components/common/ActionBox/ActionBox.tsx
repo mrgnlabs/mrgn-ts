@@ -24,7 +24,7 @@ import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
-import { IconAlertTriangle, IconSettings } from "~/components/ui/icons";
+import { IconAlertTriangle, IconChevronDown, IconSettings } from "~/components/ui/icons";
 import { showErrorToast } from "~/utils/toastUtils";
 
 import {
@@ -41,6 +41,7 @@ type ActionBoxProps = {
   requestedToken?: PublicKey;
   requestedLendingMode?: LendingModes;
   isDialog?: boolean;
+  showLendingHeader?: boolean;
   handleCloseDialog?: () => void;
 };
 
@@ -55,6 +56,7 @@ export const ActionBox = ({
   requestedToken,
   requestedLendingMode,
   isDialog,
+  showLendingHeader,
   handleCloseDialog,
 }: ActionBoxProps) => {
   const jupiterQuoteApi = createJupiterApiClient();
@@ -75,15 +77,15 @@ export const ActionBox = ({
     state.extendedBankInfos,
     state.initialized,
   ]);
-  const [lendingModeFromStore, setLendingMode, priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] =
-    useUiStore((state) => [
+  const [lendingModeFromStore, priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore(
+    (state) => [
       state.lendingMode,
-      state.setLendingMode,
       state.priorityFee,
       state.setPriorityFee,
       state.setIsActionComplete,
       state.setPreviousTxn,
-    ]);
+    ]
+  );
   const [lstData, stakeAccounts, quoteResponseMeta, feesAndRent] = useLstStore((state) => [
     state.lstData,
     state.stakeAccounts,
@@ -115,6 +117,7 @@ export const ActionBox = ({
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [directRoutesMap, setDirectRoutesMap] = React.useState<DirectRoutesMap>();
+  const [hasPreviewShown, setHasPreviewShown] = React.useState<boolean>(false);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -245,22 +248,6 @@ export const ActionBox = ({
     ]
   );
 
-  const titleText = React.useMemo(() => {
-    if (actionMode === ActionType.Borrow) {
-      return "You borrow";
-    } else if (actionMode === ActionType.Deposit) {
-      return "You supply";
-    } else if (actionMode === ActionType.Withdraw) {
-      return "You withdraw";
-    } else if (actionMode === ActionType.Repay) {
-      return "You repay";
-    } else if (actionMode === ActionType.MintLST) {
-      return "You stake";
-    } else {
-      return "";
-    }
-  }, [actionMode]);
-
   const actionModePrev = usePrevious(actionMode);
 
   React.useEffect(() => {
@@ -358,7 +345,9 @@ export const ActionBox = ({
         inputMint: repayBank.info.state.mint.toBase58(),
         outputMint: bank.info.state.mint.toBase58(),
         slippageBps: slippageBps,
+        onlyDirectRoutes: true,
         swapMode: "ExactIn" as any,
+        maxAccounts: 20,
       } as QuoteGetRequest;
 
       try {
@@ -667,6 +656,7 @@ export const ActionBox = ({
               <ActionBoxHeader
                 actionType={actionMode}
                 repayType={repayMode}
+                showLendingHeader={showLendingHeader}
                 changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
                 bank={selectedBank}
               />
@@ -716,7 +706,7 @@ export const ActionBox = ({
                 selectedStakingAccount={selectedStakingAccount}
                 actionMode={actionMode}
                 amount={amount}
-                isEnabled={actionMethod.isEnabled}
+                isEnabled={actionMethod.isEnabled && hasPreviewShown}
                 repayWithCollatOptions={
                   repayCollatQuote && repayAmount && selectedRepayBank
                     ? {
@@ -737,14 +727,31 @@ export const ActionBox = ({
                   isEnabled={actionMethod.isEnabled && amount > 0}
                   actionMode={actionMode}
                 />
-
-                <div className="flex justify-end gap-2 mt-3">
-                  <button
-                    onClick={() => setIsSettingsMode(true)}
-                    className="text-xs gap-1 ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
-                  >
-                    Settings <IconSettings size={16} />
-                  </button>
+                <div className="flex justify-between mt-3">
+                  {actionMethod.isEnabled ? (
+                    <div
+                      className={cn(
+                        "flex text-chartreuse items-center cursor-pointer",
+                        actionMethod.isEnabled ? "cursor-pointer" : "cursor-not-allowed"
+                      )}
+                      onClick={() => actionMethod.isEnabled && setHasPreviewShown(!hasPreviewShown)}
+                    >
+                      <div className="text-sm font-normal w-[70px]">
+                        {hasPreviewShown ? "Hide stats" : "Show stats"}
+                      </div>
+                      <IconChevronDown className={cn(hasPreviewShown && "rotate-180")} />
+                    </div>
+                  ) : (
+                    <div />
+                  )}
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => setIsSettingsMode(true)}
+                      className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
+                    >
+                      Settings <IconSettings size={16} />
+                    </button>
+                  </div>
                 </div>
               </ActionBoxPreview>
             </>
