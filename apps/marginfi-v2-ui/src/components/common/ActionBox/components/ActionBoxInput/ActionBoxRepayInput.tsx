@@ -28,48 +28,45 @@ export const ActionBoxRepayInput = ({
 
   onSetSelectedBank,
 }: ActionBoxRepayInputProps) => {
-  // section above the input
   return (
     <>
-      <>
-        <div className="flex flex-row font-normal items-center justify-between mb-3">
-          <div className="text-lg flex items-center">Using collateral</div>
-          {selectedRepayBank && (
-            <div className="inline-flex gap-1.5 items-center text-sm">
-              <span className="text-muted-foreground">Supplied:</span>
-              {selectedRepayBank.isActive &&
-                selectedRepayBank.position.isLending &&
-                (selectedRepayBank.position.amount
-                  ? clampedNumeralFormatter(selectedRepayBank.position.amount).concat(
-                      " ",
-                      selectedRepayBank.meta.tokenSymbol
-                    )
-                  : "-")}
-            </div>
-          )}
-        </div>
-        <div className="bg-[#171C1C] text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center px-3 py-2.5 mb-5">
-          <div className="w-full xs:w-[162px]">
-            <ActionBoxTokens
-              isDialog={isDialog}
-              repayTokenBank={selectedRepayTokenBank}
-              setRepayTokenBank={onSetSelectedBank}
-              actionMode={actionMode}
-              highlightedTokens={directRoutes}
-              isRepay={true}
-            />
+      <div className="flex flex-row font-normal items-center justify-between mb-3">
+        <div className="text-lg flex items-center">Using collateral</div>
+        {selectedRepayBank && (
+          <div className="inline-flex gap-1.5 items-center text-sm">
+            <span className="text-muted-foreground">Supplied:</span>
+            {selectedRepayBank.isActive &&
+              selectedRepayBank.position.isLending &&
+              (selectedRepayBank.position.amount
+                ? clampedNumeralFormatter(selectedRepayBank.position.amount).concat(
+                    " ",
+                    selectedRepayBank.meta.tokenSymbol
+                  )
+                : "-")}
           </div>
-          <div className="flex-1">
-            <Input
-              type="text"
-              value={rawRepayAmount}
-              disabled={true}
-              placeholder="0"
-              className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base cursor-default"
-            />
-          </div>
+        )}
+      </div>
+      <div className="bg-[#171C1C] text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center px-3 py-2.5 mb-5">
+        <div className="w-full xs:w-[162px]">
+          <ActionBoxTokens
+            isDialog={isDialog}
+            repayTokenBank={selectedRepayTokenBank}
+            setRepayTokenBank={onSetSelectedBank}
+            actionMode={actionMode}
+            highlightedTokens={directRoutes}
+            isRepay={true}
+          />
         </div>
-      </>
+        <div className="flex-1">
+          <Input
+            type="text"
+            value={rawRepayAmount}
+            disabled={true}
+            placeholder="0"
+            className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base cursor-default"
+          />
+        </div>
+      </div>
     </>
   );
 };
