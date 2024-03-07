@@ -1,13 +1,4 @@
-// lib/emailTemplates.ts
-
-/**
- * Generates HTML for the account health notification email.
- * @param health The health percentage of the account.
- * @returns The HTML string for the email.
- */
-export function accountHealthEmail(health: number): string {
-  return `
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -332,14 +323,15 @@ export function accountHealthEmail(health: number): string {
         <td class="container">
           <div class="content">
             <!-- START CENTERED WHITE CONTAINER -->
+            <span class="preheader">This is preheader text. Some clients will show this text as a preview.</span>
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="main">
               <!-- START MAIN CONTENT AREA -->
               <tr>
                 <td class="wrapper">
-                  <img class="header-image" src="https://marginfi-v2-ui-git-staging-mrgn.vercel.app/mrgn-white.png" />
+                  <img class="header-image" src="https://app.marginfi.com/mrgn-white.svg" />
                   <h1 class="title"><span style="padding-right: 5px;">⚠</span>️ Account Health Alert</h1>
                   <p>
-                    Your account health is currently at <strong style="color: #eeeeee;">${health}%</strong>.<br /> If it reaches 0, you are at risk of
+                    Your account health is currently at <strong style="color: #eeeeee;">3.56%</strong>.<br /> If it reaches 0, you are at risk of
                     liquidation.
                   </p>
                   <p>
@@ -375,6 +367,3 @@ export function accountHealthEmail(health: number): string {
     </table>
   </body>
 </html>
-
-  `;
-}
