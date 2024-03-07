@@ -107,7 +107,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
 
     if (!res.ok) {
       // document not found which means notifications have not been set
-      const { success } = await res.json();
+      const { success, message } = await res.json();
       if (success) {
         return;
       }
@@ -121,13 +121,13 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
     setEmail(data.email);
     setNotificationSettings({
       health: data.account_health,
-      ybx: data.product_updates,
+      ybx: data.ybx_updates,
     });
   }, [walletAddress]);
 
   React.useEffect(() => {
     fetchUsersNotificationSettings();
-  }, []);
+  }, [fetchUsersNotificationSettings]);
 
   return (
     <Accordion type="single" collapsible className="w-full space-y-4 mb-6">
