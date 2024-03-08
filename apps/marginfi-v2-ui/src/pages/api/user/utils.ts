@@ -131,3 +131,17 @@ export async function getMostUsedWallet(walletAddress: string) {
 
   return mostUsedWallet;
 }
+
+export async function getLastUsedWallet(walletAddress: string) {
+  const db = admin.firestore();
+  const wallets = await db
+    .collection("logins")
+    .where("publicKey", "==", walletAddress)
+    .orderBy("timestamp", "desc")
+    .limit(1)
+    .get();
+
+  const walletsArr = wallets.docs.map((doc) => doc.data());
+
+  return walletsArr[0]?.walletId;
+}

@@ -1,5 +1,5 @@
 import { NextApiResponse } from "next";
-import { getMostUsedWallet, initFirebaseIfNeeded } from "./utils";
+import { getLastUsedWallet, initFirebaseIfNeeded } from "./utils";
 import { NextApiRequest } from "../utils";
 import { STATUS_INTERNAL_ERROR, STATUS_NOT_FOUND, STATUS_OK, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -28,7 +28,7 @@ export default async function handler(
   }
 
   try {
-    const userWallet = await getMostUsedWallet(wallet);
+    const userWallet = await getLastUsedWallet(wallet);
     if (!userWallet) {
       return res.status(STATUS_NOT_FOUND).json({ error: "User not found" });
     }

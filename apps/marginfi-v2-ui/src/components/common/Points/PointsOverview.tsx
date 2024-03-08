@@ -10,7 +10,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
-import { IconInfoCircleFilled, IconCopy, IconCheck, IconBackpackWallet } from "~/components/ui/icons";
+import { IconInfoCircleFilled, IconCopy, IconCheck, IconBackpackWallet, IconStarFilled } from "~/components/ui/icons";
 
 interface PointsOverviewProps {
   userPointsData: UserPointsData;
@@ -20,17 +20,17 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
   const { wallet } = useWalletContext();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
-  const [mostUsedWallet, setMostUsedWallet] = React.useState<string>("");
+  const [lastUsedWallet, setLastUsedWallet] = React.useState<string>("");
 
   React.useEffect(() => {
     if (!wallet) return;
-    const getMostUsedWallet = async (wallet: string) => {
+    const getLastUsedWallet = async (wallet: string) => {
       const response = await fetch(`/api/user/wallet-pref?wallet=${wallet}`);
       const data = await response.json();
-      if (data.wallet) setMostUsedWallet(data.wallet);
+      if (data.wallet) setLastUsedWallet(data.wallet);
     };
 
-    getMostUsedWallet(wallet.publicKey.toBase58());
+    getLastUsedWallet(wallet.publicKey.toBase58());
   }, [wallet]);
 
   return (
@@ -56,9 +56,10 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
             <h3 className="text-white font-[500] text-2xl md:text-3xl mt-1.5">
               {userPointsData && numeralFormatter(userPointsData.totalPoints)}
             </h3>
-            {mostUsedWallet === "Backpack" && (
-              <p className="flex items-center gap-1.5 rounded-lg w-full max-w-fit text-xs font-mono mt-3 text-muted-foreground">
-                <IconBackpackWallet size={16} /> 1.05x points boost active
+            {lastUsedWallet === "Backpack" && (
+              <p className="flex items-center gap-1 rounded-lg w-full max-w-fit text-xs mt-3 text-white">
+                <IconBackpackWallet size={16} />
+                <strong className="font-medium text-white">Backpack</strong> 5% points boost active
               </p>
             )}
           </div>
