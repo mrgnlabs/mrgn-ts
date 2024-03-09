@@ -398,7 +398,7 @@ export const StakingCard: FC = () => {
             {depositOption.type === "token" && (
               <div className="flex flex-row gap-2 items-center">
                 <div
-                  className="p-2 h-7 w-7 flex flex-row items-center justify-center border rounded-full border-white/10 bg-black/10 text-secondary fill-current cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out"
+                  className="p-2 h-7 w-7 flex flex-row items-center justify-center border rounded-full border-white/10 bg-black/10 text-primary fill-current cursor-pointer hover:bg-black/20 hover:border-[#DCE85D]/70 hover:shadow-[#DCE85D]/70 transition-all duration-200 ease-in-out"
                   onClick={() => refreshQuoteIfNeeded(true)}
                 >
                   <RefreshIcon />
@@ -408,7 +408,7 @@ export const StakingCard: FC = () => {
                   onClick={() => setIsSettingsModalOpen(true)}
                 >
                   <SettingsIcon />
-                  <Typography className={`text-xs text-secondary mt-2px`}>
+                  <Typography className={`text-xs text-primary mt-2px`}>
                     {isNaN(slippagePct) ? "0" : slippagePct}%
                   </Typography>
                 </div>
