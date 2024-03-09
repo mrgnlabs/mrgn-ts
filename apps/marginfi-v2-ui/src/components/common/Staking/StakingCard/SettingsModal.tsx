@@ -49,8 +49,8 @@ export const SettingsModal: FC<SettingsModalProps> = ({
             return (
               <a
                 key={idx}
-                className={`relative cursor-pointer flex-1 text-primary py-3 hover:bg-gray-700 ${
-                  isHighlighted ? "bg-chartreuse hover:bg-chartreuse" : "bg-[#1B1B1E]"
+                className={`relative cursor-pointer flex-1 text-primary py-3 ${
+                  isHighlighted ? "bg-chartreuse hover:bg-chartreuse" : "bg-[#1B1B1E] hover:bg-gray-700"
                 }`}
                 onClick={() => {
                   setLocalSlippage(slippage);
