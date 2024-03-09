@@ -16,6 +16,7 @@ import { persist } from "zustand/middleware";
 import BN from "bn.js";
 
 import type { TokenInfo, TokenInfoMap } from "@solana/spl-token-registry";
+import { QuoteResponseMeta } from "@jup-ag/react-hook";
 
 const STAKEVIEW_APP_URL = "https://stakeview.app/apy/prev3.json";
 const BASELINE_VALIDATOR_ID = "mrgn28BhocwdAUEenen3Sw2MR9cPKDpLkDvzDdR7DBD";
@@ -52,17 +53,20 @@ interface LstState {
   connection: Connection | null;
   wallet: Wallet | null;
   lstData: LstData | null;
+  feesAndRent: number;
   availableLamports: BN | null;
   tokenDataMap: TokenDataMap | null;
   stakeAccounts: StakeData[];
   solUsdValue: number | null;
   slippagePct: SupportedSlippagePercent;
+  quoteResponseMeta: QuoteResponseMeta | null
 
   // Actions
   fetchLstState: (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
   resetUserData: () => void;
   setSlippagePct: (slippagePct: SupportedSlippagePercent) => void;
+  setQuoteResponseMeta: (quoteResponseMeta: QuoteResponseMeta | null) => void;
 }
 
 function createLstStore() {
@@ -96,12 +100,14 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
   connection: null,
   wallet: null,
   lstData: null,
+  feesAndRent: 0,
   availableLamports: null,
   tokenDataMap: null,
   stakeAccounts: [],
   solUsdValue: null,
   slippagePct: 1,
   stakePoolProxyProgram: null,
+  quoteResponseMeta: null,
 
   // Actions
   fetchLstState: async (args?: { connection?: Connection; wallet?: Wallet }) => {
@@ -118,6 +124,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
       let solUsdValue: number | null = null;
       let stakeAccounts: StakeData[] = [];
       const lstData = await fetchLstData(connection);
+      const minimumRentExemption = await connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE)
       const jupiterTokenInfo = await fetchJupiterTokenInfo();
 
       if (wallet?.publicKey) {
@@ -168,6 +175,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
 
       set({
         initialized: true,
+        feesAndRent: minimumRentExemption + NETWORK_FEE_LAMPORTS,
         userDataFetched,
         isRefreshingStore: false,
         connection,
@@ -209,6 +217,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
     set({ userDataFetched: false, tokenDataMap });
   },
   setSlippagePct: (slippagePct: SupportedSlippagePercent) => set({ slippagePct }),
+  setQuoteResponseMeta: (quoteResponseMeta: QuoteResponseMeta | null) => set({ quoteResponseMeta })
 });
 
 async function fetchLstData(connection: Connection): Promise<LstData> {
