@@ -27,7 +27,7 @@ export const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemPr
               lendingMode === LendingModes.BORROW && "text-warning"
             )}
           >
-            {rate + ` ${lendingMode === LendingModes.LEND ? "APY" : "APR"}`}
+            {`${rate} APY`}
           </p>
         )}
       </div>
