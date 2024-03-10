@@ -56,7 +56,7 @@ export const ActionBoxPriorityFees = ({ mode, toggleSettings }: ActionBoxPriorit
           </Tooltip>
         </TooltipProvider>
       </h2>
-      <ul className="grid grid-cols-3 gap-3 mb-6">
+      <ul className="grid grid-cols-3 gap-2 mb-6">
         {priorityFeeOptions.map((option) => (
           <li key={option.value}>
             <Button
