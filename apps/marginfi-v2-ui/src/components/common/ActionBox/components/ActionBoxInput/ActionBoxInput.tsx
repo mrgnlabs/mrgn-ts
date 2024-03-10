@@ -98,8 +98,8 @@ export const ActionBoxInput = ({
         maxAmount={maxAmount}
         onSetAmountRaw={(amount) => onSetAmountRaw(amount)}
       />
-      <div className="bg-background text-3xl rounded-lg flex flex-wrap xs:flex-nowrap gap-3 xs:gap-0 justify-center items-center p-4 font-medium mb-5">
-        <div className="w-full xs:w-[162px]">
+      <div className="bg-background text-3xl rounded-lg flex justify-center gap-1 items-center p-4 font-medium mb-5">
+        <div className="w-full flex-auto max-w-[162px]">
           <ActionBoxTokens
             isDialog={isDialog}
             currentTokenBank={selectedTokenBank}
@@ -110,7 +110,7 @@ export const ActionBoxInput = ({
             actionMode={actionMode}
           />
         </div>
-        <div className="flex-1">
+        <div className="flex-auto">
           <Input
             type="text"
             ref={amountInputRef}

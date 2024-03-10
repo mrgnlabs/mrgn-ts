@@ -4,12 +4,11 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useUiStore } from "~/store";
 import { cn } from "~/utils";
-import { HIGH_PRIO_FEE, MAMA_PRIO_FEE } from "~/config/marginfi";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { IconInfoCircle, IconArrowLeft } from "~/components/ui/icons";
+import { IconInfoCircle } from "~/components/ui/icons";
 
 type ActionBoxPriorityFeesProps = {
   mode: ActionType;
@@ -23,11 +22,11 @@ const priorityFeeOptions = [
   },
   {
     label: "High",
-    value: HIGH_PRIO_FEE,
+    value: 0.00005,
   },
   {
     label: "Mamas",
-    value: MAMA_PRIO_FEE,
+    value: 0.005,
   },
 ];
 
