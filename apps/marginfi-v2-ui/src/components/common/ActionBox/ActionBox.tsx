@@ -24,7 +24,7 @@ import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import { checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
-import { IconAlertTriangle, IconChevronDown, IconSettings } from "~/components/ui/icons";
+import { IconAlertTriangle, IconChevronDown, IconSettings, IconEye, IconEyeClosed } from "~/components/ui/icons";
 import { showErrorToast } from "~/utils/toastUtils";
 
 import {
@@ -729,18 +729,24 @@ export const ActionBox = ({
                 />
                 <div className="flex justify-between mt-3">
                   {actionMethod.isEnabled ? (
-                    <div
+                    <button
                       className={cn(
-                        "flex text-chartreuse items-center cursor-pointer",
+                        "flex text-muted-foreground text-xs items-center cursor-pointer transition hover:text-primary",
                         actionMethod.isEnabled ? "cursor-pointer" : "cursor-not-allowed"
                       )}
                       onClick={() => actionMethod.isEnabled && setHasPreviewShown(!hasPreviewShown)}
                     >
-                      <div className="text-sm font-normal w-[70px]">
-                        {hasPreviewShown ? "Hide stats" : "Show stats"}
-                      </div>
-                      <IconChevronDown className={cn(hasPreviewShown && "rotate-180")} />
-                    </div>
+                      {hasPreviewShown ? (
+                        <>
+                          <IconEyeClosed size={14} /> <span className="mx-1">Hide details</span>
+                        </>
+                      ) : (
+                        <>
+                          <IconEye size={14} /> <span className="mx-1">View details</span>
+                        </>
+                      )}
+                      <IconChevronDown className={cn(hasPreviewShown && "rotate-180")} size={16} />
+                    </button>
                   ) : (
                     <div />
                   )}
