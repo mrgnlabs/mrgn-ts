@@ -4,7 +4,10 @@
   "private": true,
   "workspaces": {
     "packages": [
-      "apps/*",
+      "apps/alpha-liquidator/*",
+      "apps/marginfi-landing-page/*",
+      "apps/marginfi-v2-ui/*",
+      "apps/omni/*",
       "packages/*"
     ],
     "nohoist": [
