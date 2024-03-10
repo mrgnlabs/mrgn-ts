@@ -41,6 +41,8 @@ import {
   IconTransfer,
   IconBolt,
   IconSparkles,
+  IconEye,
+  IconEyeClosed,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -786,6 +788,8 @@ export {
   IconTransfer,
   IconBolt,
   IconSparkles,
+  IconEye,
+  IconEyeClosed,
 
   // customed icons
   IconBrandGoogle,
