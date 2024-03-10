@@ -258,7 +258,8 @@ export default function MintPage() {
       try {
         const res = await fetch(`/api/markets?${searchParams.toString()}`);
         if (!res.ok) {
-          throw new Error("Failed to fetch integrations");
+          // throw new Error("Failed to fetch integrations");
+          return;
         }
         const data = await res.json();
 
