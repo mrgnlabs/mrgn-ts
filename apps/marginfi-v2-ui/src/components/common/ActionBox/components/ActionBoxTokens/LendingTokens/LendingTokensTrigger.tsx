@@ -1,6 +1,6 @@
 import React from "react";
 
-import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, aprToApy } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
@@ -24,16 +24,23 @@ export const LendingTokensTrigger = React.forwardRef<HTMLButtonElement, LendingT
     const [lendingMode] = useUiStore((state) => [state.lendingMode]);
 
     const calculateRate = React.useCallback(
-      (bank: ExtendedBankInfo) =>
-        percentFormatter.format(
-          (lendingMode === LendingModes.LEND ? bank.info.state.lendingRate : bank.info.state.borrowingRate) +
-            (lendingMode === LendingModes.LEND && bank.info.state.emissions == Emissions.Lending
-              ? bank.info.state.emissionsRate
-              : 0) +
-            (lendingMode !== LendingModes.LEND && bank.info.state.emissions == Emissions.Borrowing
-              ? bank.info.state.emissionsRate
-              : 0)
-        ),
+      (bank: ExtendedBankInfo) => {
+        const isInLendingMode = lendingMode === LendingModes.LEND;
+
+        const interestRate = isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate;
+        const emissionRate = isInLendingMode
+          ? bank.info.state.emissions == Emissions.Lending
+            ? bank.info.state.emissionsRate
+            : 0
+          : bank.info.state.emissions == Emissions.Borrowing
+          ? bank.info.state.emissionsRate
+          : 0;
+
+        const aprRate = interestRate + emissionRate;
+        const apyRate = aprToApy(aprRate);
+
+        return percentFormatter.format(apyRate);
+      },
       [lendingMode]
     );
 
