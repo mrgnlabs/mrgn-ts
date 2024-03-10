@@ -6,7 +6,7 @@ import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
+import { useLstStore, useMrgnlendStore } from "~/store";
 import { SOL_MINT } from "~/store/lstStore";
 import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -14,9 +14,9 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
-import { IconChevronDown, IconMoonPay, IconX } from "~/components/ui/icons";
+import { IconChevronDown, IconX } from "~/components/ui/icons";
 
-import { ActionBoxItem, SelectedBankItem } from "../SharedComponents";
+import { ActionBoxItem, BuyWithMoonpay, SelectedBankItem } from "../SharedComponents";
 import { ActionBoxNativeItem } from "./ActionBoxNativeItem";
 import { SelectedNativeItem } from "./SelectedNativeItem";
 
@@ -32,7 +32,7 @@ export const LstTokens = ({ currentTokenBank, hasDropdown, setCurrentTokenBank }
     state.nativeSolBalance,
   ]);
   const [stakeAccounts] = useLstStore((state) => [state.stakeAccounts]);
-  const [setIsWalletOpen] = useUiStore((state) => [state.setIsWalletOpen]);
+
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isTokenPopoverOpen, setIsTokenPopoverOpen] = React.useState(false);
   const { connected } = useWalletContext();
@@ -157,15 +157,7 @@ export const LstTokens = ({ currentTokenBank, hasDropdown, setCurrentTokenBank }
               />
               {!hasTokens && (
                 <>
-                  <div className="text-sm text-[#C0BFBF] font-normal p-3">
-                    You don&apos;t own any supported tokens in marginfi. Check out what marginfi supports.
-                  </div>
-                  <Button variant="outline" className="w-fit mx-auto mb-3" onClick={() => setIsWalletOpen(true)}>
-                    <>
-                      Buy with
-                      <IconMoonPay />
-                    </>
-                  </Button>
+                  <BuyWithMoonpay />
                 </>
               )}
               <button onClick={() => setIsTokenPopoverOpen(false)} className="absolute top-2.5 right-2">
