@@ -70,6 +70,13 @@ export const ActionBoxInputHeader = ({
     amount: string;
     showWalletIcon?: boolean;
   } => {
+    if (!selectedBank) {
+      return {
+        amount: "-",
+        showWalletIcon: false,
+      };
+    }
+
     const formatAmount = (amount?: number, symbol?: string, label?: string) => {
       const formattedAmount = amount !== undefined ? `${clampedNumeralFormatter(amount)} ${symbol}` : "-";
       return label ? `${label}: ${formattedAmount}` : formattedAmount;
@@ -125,19 +132,21 @@ export const ActionBoxInputHeader = ({
       <div className="text-lg font-normal flex items-center">{showTitleText && titleText}</div>
 
       {/* Amount action */}
-      <div className="inline-flex gap-1.5 items-center">
-        {maxLabel.showWalletIcon && <IconWallet size={16} />}
-        <span className="text-sm font-normal">{maxLabel.amount}</span>
-        <button
-          className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
-            maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
-          } transition-colors`}
-          onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
-          disabled={maxAmount === 0}
-        >
-          {maxTitle}
-        </button>
-      </div>
+      {selectedBank && (
+        <div className="inline-flex gap-1.5 items-center">
+          {maxLabel.showWalletIcon && <IconWallet size={16} />}
+          <span className="text-sm font-normal">{maxLabel.amount}</span>
+          <button
+            className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
+              maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
+            } transition-colors`}
+            onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
+            disabled={maxAmount === 0}
+          >
+            {"MAX"}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
