@@ -85,6 +85,75 @@ export const LendingTokens = ({
           )}
         </div>
       )}
+
+      {(!isDialog || isRepay) && (
+        <>
+          <Desktop>
+            <Popover open={isOpen} onOpenChange={(open) => setIsOpen(open)} modal={true}>
+              <PopoverTrigger asChild>
+                <div>
+                  <LendingTokensTrigger
+                    selectedBank={selectedBank}
+                    selectedRepayBank={selectedRepayBank}
+                    isOpen={isOpen}
+                    isRepay={isRepay}
+                  />
+                </div>
+              </PopoverTrigger>
+              <PopoverContent
+                className="p-1 md:w-[320px] bg-background-gray"
+                align="start"
+                side="bottom"
+                sideOffset={-50}
+                avoidCollisions={false}
+              >
+                <div className="max-h-[calc(100vh-580px)] min-h-[200px] relative overflow-auto">
+                  <LendingTokensList
+                    isOpen={isOpen}
+                    onClose={() => setIsOpen(false)}
+                    selectedBank={selectedBank}
+                    onSetCurrentTokenBank={setCurrentTokenBank}
+                    onSetRepayTokenBank={setRepayTokenBank}
+                    isDialog={isDialog}
+                    highlightedTokens={highlightedTokens}
+                    isRepay={isRepay}
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
+          </Desktop>
+          <Mobile>
+            <Drawer open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
+              <DrawerTrigger asChild>
+                <div>
+                  <LendingTokensTrigger
+                    selectedBank={selectedBank}
+                    selectedRepayBank={selectedRepayBank}
+                    isOpen={isOpen}
+                    isRepay={isRepay}
+                  />
+                </div>
+              </DrawerTrigger>
+              <DrawerContent className="h-full pb-5">
+                <div className="py-8 bg-background-gray h-full">
+                  <h3 className="px-3 text-2xl font-semibold">Select Token</h3>
+
+                  <LendingTokensList
+                    isOpen={isOpen}
+                    onClose={() => setIsOpen(false)}
+                    selectedBank={selectedBank}
+                    onSetCurrentTokenBank={setCurrentTokenBank}
+                    onSetRepayTokenBank={setRepayTokenBank}
+                    isDialog={isDialog}
+                    highlightedTokens={highlightedTokens}
+                    isRepay={isRepay}
+                  />
+                </div>
+              </DrawerContent>
+            </Drawer>
+          </Mobile>
+        </>
+      )}
     </>
   );
 };
