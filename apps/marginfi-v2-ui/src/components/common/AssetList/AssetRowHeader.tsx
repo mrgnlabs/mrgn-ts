@@ -60,8 +60,8 @@ export const AssetRowHeader: React.FC<AssetRowHeaderProps> = ({ isGlobalPool, is
                   <h4 className="text-base">APY</h4>
                   <span style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
                     {isInLendingMode
-                      ? "What you'll earn on deposits over a year. This includes compounding. All marginfi deposits are compounded hourly."
-                      : "What you'll pay for your borrows, or the price of a loan. This does not include compounding. All marginfi borrows are compounded hourly."}
+                      ? "What you'll earn on deposits over a year. This includes compounding."
+                      : "What you'll pay for your borrows over a year. This includes compounding."}
                   </span>
                 </div>
               </TooltipContent>
