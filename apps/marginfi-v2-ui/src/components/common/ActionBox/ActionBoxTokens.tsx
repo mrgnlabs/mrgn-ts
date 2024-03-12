@@ -9,7 +9,7 @@ import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { cn } from "~/utils";
+import { cn, getTokenImageURL } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
@@ -438,7 +438,13 @@ type SelectedBankItemProps = {
 const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemProps) => {
   return (
     <>
-      <Image src={bank.meta.tokenLogoUri!} alt={bank.meta.tokenName} width={30} height={30} className="rounded-full" />
+      <Image
+        src={getTokenImageURL(bank.meta.tokenSymbol)}
+        alt={bank.meta.tokenName}
+        width={30}
+        height={30}
+        className="rounded-full"
+      />
       <div className="flex flex-col gap-1 mr-auto xs:mr-0">
         <p className="leading-none text-sm">{bank.meta.tokenSymbol}</p>
         <p
@@ -482,15 +488,13 @@ const ActionBoxItem = ({ rate, lendingMode, bank, nativeSolBalance, showBalanceO
   return (
     <>
       <div className="flex items-center gap-3">
-        {bank.meta.tokenLogoUri && (
-          <Image
-            src={bank.meta.tokenLogoUri}
-            alt={bank.meta.tokenName}
-            width={28}
-            height={28}
-            className="rounded-full"
-          />
-        )}
+        <Image
+          src={getTokenImageURL(bank.meta.tokenSymbol)}
+          alt={bank.meta.tokenName}
+          width={28}
+          height={28}
+          className="rounded-full"
+        />
         <div>
           <p className="inline-flex gap-1 justify">{bank.meta.tokenSymbol}</p>
           <p

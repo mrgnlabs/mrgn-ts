@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "~/types";
+import { getTokenImageURL } from "~/utils";
 
 import { ActionBoxDialog } from "../ActionBox";
 import { Button } from "~/components/ui/button";
@@ -33,7 +34,12 @@ export const NewAssetBanner = ({ bankInfo }: NewAssetBannerProps) => {
     <div className="bg-muted text-white/80 py-4 pl-5 pr-12 rounded-sm max-w-fit relative">
       <div className="flex gap-6 items-center">
         <div className="mr-auto flex items-start">
-          <Image src={bankInfo.meta.tokenLogoUri!} alt={bankInfo.meta.tokenSymbol} width={50} height={50} />
+          <Image
+            src={getTokenImageURL(bankInfo.meta.tokenSymbol)}
+            alt={bankInfo.meta.tokenSymbol}
+            width={50}
+            height={50}
+          />
         </div>
         <div className="space-y-2.5">
           <h2 className="font-medium">${bankInfo.meta.tokenSymbol} is now available on marginfi</h2>
