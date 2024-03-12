@@ -82,7 +82,7 @@ export const ActionComplete = () => {
                     </h3>
                     <Image
                       className="rounded-full w-9 h-9"
-                      src={previousTxn?.bank.meta.tokenLogoUri || ""}
+                      src={getTokenImageURL(previousTxn?.bank.meta.tokenSymbol)}
                       alt={(previousTxn?.bank.meta.tokenSymbol || "Token") + "  logo"}
                       width={36}
                       height={36}
@@ -125,7 +125,7 @@ export const ActionComplete = () => {
                     </h3>
                     <Image
                       className="rounded-full w-9 h-9"
-                      src={lstBank.meta.tokenLogoUri || ""}
+                      src={getTokenImageURL(lstBank.meta.tokenSymbol)}
                       alt={(lstBank.meta.tokenSymbol || "Token") + "  logo"}
                       width={36}
                       height={36}

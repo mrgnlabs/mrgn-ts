@@ -6,7 +6,7 @@ import { numeralFormatter, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
-import { cn } from "~/utils";
+import { cn, getTokenImageURL } from "~/utils";
 
 type ActionBoxItemProps = {
   bank: ExtendedBankInfo;
@@ -54,15 +54,13 @@ export const ActionBoxItem = ({
   return (
     <>
       <div className="flex items-center gap-3">
-        {bank.meta.tokenLogoUri && (
-          <Image
-            src={bank.meta.tokenLogoUri}
-            alt={bank.meta.tokenName}
-            width={28}
-            height={28}
-            className="rounded-full"
-          />
-        )}
+        <Image
+          src={getTokenImageURL(bank.meta.tokenSymbol)}
+          alt={bank.meta.tokenName}
+          width={28}
+          height={28}
+          className="rounded-full"
+        />
         <div>
           <p>{bank.meta.tokenSymbol}</p>
           {lendingMode && (
