@@ -25,141 +25,26 @@ let config = withBundleAnalyzer({
       net: false,
       tls: false,
       child_process: false,
-      request: false
+      request: false,
     };
     return config;
   },
   images: {
-    remotePatterns: [{
-        protocol: "https",
-        hostname: "raw.githubusercontent.com",
-        port: "",
-        pathname: "/solana-labs/token-list/main/assets/mainnet/**",
-      },
-      {
-        protocol: "https",
-        hostname: "raw.githubusercontent.com",
-        port: "",
-        pathname: "/certusone/wormhole-token-list/main/assets/**",
-      },
-      {
-        protocol: "https",
-        hostname: "cryptologos.cc",
-        port: "",
-        pathname: "/logos/**",
-      },
-      {
-        protocol: "https",
-        hostname: "s2.coinmarketcap.com",
-        port: "",
-        pathname: "/static/img/coins/64x64/**",
-      },
+    remotePatterns: [
       {
         protocol: "https",
         hostname: "storage.googleapis.com",
-        port: "",
-        pathname: "/token-metadata/**",
-      },
-      {
-        protocol: "https",
-        hostname: "storage.googleapis.com",
-        port: "",
-        pathname: "/static-marginfi/**",
-      },
-      {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "pbs.twimg.com",
-        port: "",
-        pathname: "/profile_images/**",
-      },
-      {
-        protocol: "https",
-        hostname: "arweave.net",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "shdw-drive.genesysgo.net",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "solblaze.org",
-        port: "",
-        pathname: "/assets/**",
-      },
-      {
-        protocol: "https",
-        hostname: "s.gravatar.com",
-        port: "",
-        pathname: "/avatar/**",
-      },
-      {
-        protocol: "https",
-        hostname: "pyth.network",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "metadata.jito.network",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "static.jup.ag",
-        port: "",
-        pathname: "/jlp/**",
-      },
-      {
-        protocol: "https",
-        hostname: "metadata.jito.network",
-        port: "",
-        pathname: "/token/**",
-      },
-      {
-        protocol: "https",
-        hostname: "static.jup.ag",
-        port: "",
-        pathname: "/jup/**",
-      },
-      {
-        protocol: "https",
-        hostname: "bafkreibk3covs5ltyqxa272uodhculbr6kea6betidfwy3ajsav2vjzyum.ipfs.nftstorage.link",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "static.jup.ag",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "hivemapper-marketing-public.s3.us-west-2.amazonaws.com",
-        port: "",
-        pathname: "/Hivemapper_HONEY_token.png",
+        pathname: "/mrgn-public/mrgn-token-icons/**",
       },
     ],
   },
 });
 
-const {
-  withSentryConfig
-} = require("@sentry/nextjs");
+const { withSentryConfig } = require("@sentry/nextjs");
 
 config = withSentryConfig(
-  config, {
+  config,
+  {
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options
 
@@ -168,7 +53,8 @@ config = withSentryConfig(
 
     org: "mrgn-labs",
     project: "marginfi-v2-ui",
-  }, {
+  },
+  {
     // For all available options, see:
     // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 

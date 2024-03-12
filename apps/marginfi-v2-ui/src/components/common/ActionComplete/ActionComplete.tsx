@@ -7,7 +7,7 @@ import Confetti from "react-confetti";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { numeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 
-import { cn } from "~/utils";
+import { cn, getTokenImageURL } from "~/utils";
 import { useUiStore } from "~/store";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useIsMobile } from "~/hooks/useIsMobile";
@@ -63,7 +63,7 @@ export const ActionComplete = () => {
                 </h3>
                 <Image
                   className="rounded-full w-9 h-9"
-                  src={previousTxn?.bank.meta.tokenLogoUri || ""}
+                  src={getTokenImageURL(previousTxn?.bank.meta.tokenSymbol)}
                   alt={(previousTxn?.bank.meta.tokenSymbol || "Token") + "  logo"}
                   width={36}
                   height={36}
