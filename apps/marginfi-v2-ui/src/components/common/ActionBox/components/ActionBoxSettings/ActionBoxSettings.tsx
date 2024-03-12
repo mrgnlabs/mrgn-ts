@@ -5,8 +5,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { IconArrowLeft } from "~/components/ui/icons";
 
-import { ActionBoxSlippage } from "./ActionBoxSlippage";
-import { ActionBoxPriorityFees } from "./ActionBoxPriorityFees";
+import { ActionBoxSlippage, ActionBoxPriorityFees } from "./Components/";
 
 type ActionBoxSettingsProps = {
   mode: ActionType;

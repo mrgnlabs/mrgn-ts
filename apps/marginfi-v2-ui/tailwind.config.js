@@ -47,6 +47,9 @@ module.exports = {
         "background-gray-hover": "#292F34",
         "background-gray-light": "#303030",
         "background-gray-dark": "#131618",
+        // colors that will replace above
+        "background-gray-dark-1": "#111416",
+        "background-gray-light-1": "#1B2022",
         foreground: "hsl(var(--foreground))",
         chartreuse: "#DCE85D",
         primary: {

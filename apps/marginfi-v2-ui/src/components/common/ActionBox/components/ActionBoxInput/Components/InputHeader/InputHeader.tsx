@@ -6,6 +6,7 @@ import { nativeToUi } from "@mrgnlabs/mrgn-common";
 import { StakeData, clampedNumeralFormatter, RepayType } from "~/utils";
 
 import { IconWallet } from "~/components/ui/icons";
+import { InputHeaderAction } from "./InputHeaderAction";
 
 type props = {
   actionMode: ActionType;
@@ -17,11 +18,13 @@ type props = {
   maxAmount: number;
 
   isDialog?: boolean;
+  showLendingHeader?: boolean;
 
+  changeRepayType: (repayType: RepayType) => void;
   onSetAmountRaw: (amount: string) => void;
 };
 
-export const ActionBoxInputHeader = ({
+export const InputHeader = ({
   actionMode,
   isDialog,
   maxAmount,
@@ -29,6 +32,8 @@ export const ActionBoxInputHeader = ({
   selectedStakingAccount,
   walletAmount,
   repayMode,
+  showLendingHeader,
+  changeRepayType,
   onSetAmountRaw,
 }: props) => {
   const titleText = React.useMemo(() => {
@@ -124,20 +129,28 @@ export const ActionBoxInputHeader = ({
     }
   }, [selectedBank, selectedStakingAccount, actionMode, walletAmount, repayMode]);
 
-  // section above the input
+  // Section above the input
   return (
     <div className="flex flex-row items-center justify-between mb-3">
       {/* Title text */}
 
-      <div className="text-lg font-normal flex items-center">{showTitleText && titleText}</div>
+      <div className="text-lg font-normal flex items-center">
+        <InputHeaderAction
+          actionType={actionMode}
+          bank={selectedBank}
+          repayType={repayMode}
+          isDialog={isDialog}
+          changeRepayType={(value) => changeRepayType(value)}
+        />
+      </div>
 
       {/* Amount action */}
       {selectedBank && (
         <div className="inline-flex gap-1.5 items-center">
           {maxLabel.showWalletIcon && <IconWallet size={16} />}
-          <span className="text-sm font-normal">{maxLabel.amount}</span>
+          <span className="text-sm font-normal ">{maxLabel.amount}</span>
           <button
-            className={`text-xs ml-1 h-6 py-1 px-2 flex flex-row items-center justify-center rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
+            className={`text-xs ml-1 h-6 py-1 px-2 rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
               maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
             } transition-colors`}
             onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}

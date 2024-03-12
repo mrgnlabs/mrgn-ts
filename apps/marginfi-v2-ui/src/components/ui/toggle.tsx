@@ -9,6 +9,7 @@ const toggleVariants = cva(
   {
     variants: {
       variant: {
+        actionBox: "data-[state=on]:bg-background-gray-light-1 data-[state=on]:text-white",
         default: "bg-transparent",
         outline: "border border-input bg-transparent shadow-sm hover:bg-accent hover:text-white",
       },

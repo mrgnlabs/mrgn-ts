@@ -135,9 +135,8 @@ export const LendingTokens = ({
                 </div>
               </DrawerTrigger>
               <DrawerContent className="h-full pb-5">
-                <div className="py-8 bg-background-gray h-full">
+                <div className="py-8 background-gray-light-1 h-full">
                   <h3 className="px-3 text-2xl font-semibold">Select Token</h3>
-
                   <LendingTokensList
                     isOpen={isOpen}
                     onClose={() => setIsOpen(false)}

@@ -8,7 +8,7 @@ import { RepayType, StakeData } from "~/utils";
 import { Input } from "~/components/ui/input";
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 
-import { ActionBoxInputHeader } from "./ActionBoxInputHeader";
+import { InputHeader } from "./Components";
 
 type ActionBoxInputProps = {
   actionMode: ActionType;
@@ -24,9 +24,11 @@ type ActionBoxInputProps = {
 
   showCloseBalance?: boolean;
   isDialog?: boolean;
+  showLendingHeader?: boolean;
 
   onSetTokenBank: (bank: PublicKey | null) => void;
   onSetAmountRaw: (amount: string) => void;
+  changeRepayType: (repayType: RepayType) => void;
 };
 
 export const ActionBoxInput = ({
@@ -42,6 +44,7 @@ export const ActionBoxInput = ({
   isDialog,
   onSetTokenBank,
   onSetAmountRaw,
+  changeRepayType,
 }: ActionBoxInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -88,7 +91,7 @@ export const ActionBoxInput = ({
   return (
     <>
       {/* Contains 'max' button and input title */}
-      <ActionBoxInputHeader
+      <InputHeader
         actionMode={actionMode}
         isDialog={isDialog}
         selectedBank={selectedBank}
@@ -97,6 +100,7 @@ export const ActionBoxInput = ({
         walletAmount={walletAmount}
         maxAmount={maxAmount}
         onSetAmountRaw={(amount) => onSetAmountRaw(amount)}
+        changeRepayType={(type) => changeRepayType(type)}
       />
       <div className="bg-background text-3xl rounded-lg flex justify-center gap-1 items-center p-4 font-medium mb-5">
         <div className="w-full flex-auto max-w-[162px]">
