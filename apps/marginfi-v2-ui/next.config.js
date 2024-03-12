@@ -33,6 +33,42 @@ let config = withBundleAnalyzer({
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "raw.githubusercontent.com",
+        port: "",
+        pathname: "/solana-labs/token-list/main/assets/mainnet/**",
+      },
+      {
+        protocol: "https",
+        hostname: "raw.githubusercontent.com",
+        port: "",
+        pathname: "/certusone/wormhole-token-list/main/assets/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cryptologos.cc",
+        port: "",
+        pathname: "/logos/**",
+      },
+      {
+        protocol: "https",
+        hostname: "s2.coinmarketcap.com",
+        port: "",
+        pathname: "/static/img/coins/64x64/**",
+      },
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        port: "",
+        pathname: "/token-metadata/**",
+      },
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        port: "",
+        pathname: "/static-marginfi/**",
+      },
+      {
+        protocol: "https",
         hostname: "storage.googleapis.com",
         pathname: "/mrgn-public/mrgn-token-icons/**",
       },
