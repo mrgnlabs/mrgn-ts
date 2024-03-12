@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
-import { cn } from "~/utils";
+import { cn, getTokenImageURL } from "~/utils";
 
 type SelectedBankItemProps = {
   bank: ExtendedBankInfo;
@@ -16,7 +16,13 @@ type SelectedBankItemProps = {
 export const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemProps) => {
   return (
     <>
-      <Image src={bank.meta.tokenLogoUri!} alt={bank.meta.tokenName} width={30} height={30} className="rounded-full" />
+      <Image
+        src={getTokenImageURL(bank.meta.tokenSymbol)}
+        alt={bank.meta.tokenName}
+        width={30}
+        height={30}
+        className="rounded-full"
+      />
       <div className="flex flex-col gap-1 mr-auto xs:mr-0">
         <p className="leading-none text-sm">{bank.meta.tokenSymbol}</p>
         {lendingMode && rate && (
