@@ -615,9 +615,9 @@ const DropDownButton: FC<DropDownButtonProps> = ({
 
   const [iconUrl, optionName] = useMemo(() => {
     if (depositOption.type === "native") {
-      return [getTokenImageURL("sol"), "SOL"];
+      return [getTokenImageURL("SOL"), "SOL"];
     } else if (depositOption.type === "stake") {
-      return [getTokenImageURL("sol"), "Stake"];
+      return [getTokenImageURL("SOL"), "Stake"];
     } else {
       return [getTokenImageURL(depositOption.tokenData.symbol), depositOption.tokenData.symbol];
     }

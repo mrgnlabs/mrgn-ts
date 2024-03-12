@@ -678,14 +678,12 @@ const LoadingAsset: React.FC<{ isInLendingMode: boolean; bankMetadata: ExtendedB
         }}
       >
         <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
-          {bankMetadata.tokenLogoUri && (
-            <Image
-              src={getTokenImageURL(bankMetadata.tokenSymbol)}
-              alt={bankMetadata.tokenSymbol}
-              height={25}
-              width={25}
-            />
-          )}
+          <Image
+            src={getTokenImageURL(bankMetadata.tokenSymbol)}
+            alt={bankMetadata.tokenSymbol}
+            height={25}
+            width={25}
+          />
           <div className="font-aeonik hidden lg:block">{bankMetadata.tokenSymbol}</div>
         </div>
       </TableCell>
