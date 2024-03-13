@@ -16,6 +16,12 @@ interface InputHeaderActionProps {
   changeRepayType: (repayType: RepayType) => void;
 }
 
+interface ToggleObject {
+  toggles: { value: string; text: string }[];
+  action: (value: any) => void;
+  value: string;
+}
+
 export const InputHeaderAction = ({
   actionType,
   bank,
@@ -25,69 +31,71 @@ export const InputHeaderAction = ({
 }: InputHeaderActionProps) => {
   const [lendingModeFromStore, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
 
-  const isInLendingMode = React.useMemo(
-    () =>
-      actionType === ActionType.Borrow ||
-      actionType === ActionType.Deposit ||
-      actionType === ActionType.Repay ||
-      actionType === ActionType.Withdraw,
-    [actionType]
-  );
+  const titleText = React.useMemo(() => {
+    const actionTitles: { [key in ActionType]?: string } = {
+      [ActionType.Borrow]: "You borrow",
+      [ActionType.Deposit]: "You supply",
+      [ActionType.Withdraw]: "You withdraw",
+      [ActionType.Repay]: "You repay",
+      [ActionType.MintLST]: "You stake",
+    };
 
-  const isToggleEnabled = React.useMemo(() => isDialog, [isDialog]);
+    return actionTitles[actionType] || "";
+  }, [actionType]);
 
   const toggleObject = React.useMemo(() => {
-    if (isToggleEnabled) {
-      if (actionType === ActionType.Borrow || actionType === ActionType.Deposit) {
-        return {};
-      }
+    if (!isDialog && (actionType === ActionType.Borrow || actionType === ActionType.Deposit)) {
+      return {
+        toggles: [
+          { value: LendingModes.LEND, text: LendingModes.LEND },
+          { value: LendingModes.BORROW, text: LendingModes.BORROW },
+        ],
+        action: (value: any) => setLendingMode(value),
+        value: lendingModeFromStore,
+      } as ToggleObject;
     }
-  }, [isToggleEnabled]);
+
+    if (actionType === ActionType.Repay) {
+      return {
+        toggles: [
+          { value: RepayType.RepayRaw, text: "wallet" },
+          { value: RepayType.RepayCollat, text: "collateral" },
+        ],
+        action: (value: any) => changeRepayType(value),
+        value: repayType,
+      } as ToggleObject;
+    }
+
+    return titleText;
+  }, [titleText, isDialog, lendingModeFromStore, setLendingMode]);
 
   return (
     <>
       {/* Lending page header */}
-      {true && (
+      {typeof toggleObject !== "string" ? (
         <div>
           <ToggleGroup
             variant="actionBox"
             type="single"
             size="sm"
             className="bg-background"
-            value={lendingModeFromStore}
-            onValueChange={() => {
-              setLendingMode(lendingModeFromStore === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND);
-            }}
+            value={toggleObject.value}
+            onValueChange={toggleObject.action}
           >
-            <ToggleGroupItem value={LendingModes.LEND} aria-label="lend" className="w-1/2 text-xs capitalize">
-              {LendingModes.LEND}
-            </ToggleGroupItem>
-            <ToggleGroupItem value={LendingModes.BORROW} aria-label="borrow" className="w-1/2 text-xs capitalize">
-              {LendingModes.BORROW}
-            </ToggleGroupItem>
+            {toggleObject.toggles.map((toggle, idx) => (
+              <ToggleGroupItem
+                key={idx}
+                value={toggle.value}
+                aria-label={toggle.value}
+                className="w-1/2 text-xs capitalize"
+              >
+                {toggle.text}
+              </ToggleGroupItem>
+            ))}
           </ToggleGroup>
         </div>
-      )}
-
-      {/* Repay header */}
-      {actionType === ActionType.Repay && (
-        <div className="w-full flex flex-col items-center mb-6">
-          <ToggleGroup
-            type="single"
-            size="lg"
-            value={repayType}
-            onValueChange={(value) => changeRepayType(value as RepayType)}
-            className="w-full md:w-4/5"
-          >
-            <ToggleGroupItem value={RepayType.RepayRaw} aria-label="Repay raw" className="w-1/2 text-xs">
-              {RepayType.RepayRaw.concat(" ", bank?.meta.tokenSymbol ?? "")}
-            </ToggleGroupItem>
-            <ToggleGroupItem value={RepayType.RepayCollat} aria-label="Repay collat" className="w-1/2 text-xs gap-1.5">
-              <IconSparkles size={16} />
-              {RepayType.RepayCollat}
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
+      ) : (
+        <span className="text-xs font-normal text-muted-foreground">{toggleObject}</span>
       )}
     </>
   );

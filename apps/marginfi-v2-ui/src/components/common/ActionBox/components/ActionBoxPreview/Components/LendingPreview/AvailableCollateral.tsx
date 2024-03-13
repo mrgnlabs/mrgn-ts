@@ -36,7 +36,7 @@ export const AvailableCollateral = ({ isLoading, marginfiAccount, preview }: Act
 
   return (
     <div className="pb-6">
-      <dl className="flex justify-between items-center text-muted-foreground  gap-2">
+      <dl className="flex justify-between items-center text-muted-foreground gap-2">
         <dt className="flex items-center gap-1.5 text-sm pb-2">
           Available collateral
           <TooltipProvider>

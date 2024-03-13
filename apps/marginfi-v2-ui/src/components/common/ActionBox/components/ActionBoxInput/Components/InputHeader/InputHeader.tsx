@@ -74,6 +74,7 @@ export const InputHeader = ({
   const maxLabel = React.useMemo((): {
     amount: string;
     showWalletIcon?: boolean;
+    label?: string;
   } => {
     if (!selectedBank) {
       return {
@@ -82,10 +83,8 @@ export const InputHeader = ({
       };
     }
 
-    const formatAmount = (amount?: number, symbol?: string, label?: string) => {
-      const formattedAmount = amount !== undefined ? `${clampedNumeralFormatter(amount)} ${symbol}` : "-";
-      return label ? `${label}: ${formattedAmount}` : formattedAmount;
-    };
+    const formatAmount = (amount?: number, symbol?: string) =>
+      amount !== undefined ? `${clampedNumeralFormatter(amount)} ${symbol}` : "-";
 
     switch (actionMode) {
       case ActionType.Deposit:
@@ -99,18 +98,18 @@ export const InputHeader = ({
         return {
           amount: formatAmount(
             selectedBank?.isActive ? selectedBank.position.amount : undefined,
-            selectedBank?.meta.tokenSymbol,
-            "Supplied"
+            selectedBank?.meta.tokenSymbol
           ),
+          label: "Supplied: ",
         };
 
       case ActionType.Repay:
         return {
           amount: formatAmount(
             selectedBank?.isActive ? selectedBank.position.amount : undefined,
-            selectedBank?.meta.tokenSymbol,
-            "Borrowed"
+            selectedBank?.meta.tokenSymbol
           ),
+          label: "Borrowed: ",
         };
 
       case ActionType.MintLST:
@@ -148,7 +147,8 @@ export const InputHeader = ({
       {selectedBank && (
         <div className="inline-flex gap-1.5 items-center">
           {maxLabel.showWalletIcon && <IconWallet size={16} />}
-          <span className="text-sm font-normal ">{maxLabel.amount}</span>
+          {maxLabel.label && <span className="text-xs font-normal text-muted-foreground">{maxLabel.label}</span>}
+          <span className="text-sm font-normal">{maxLabel.amount}</span>
           <button
             className={`text-xs ml-1 h-6 py-1 px-2 rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
               maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
