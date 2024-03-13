@@ -25,12 +25,13 @@ let config = withBundleAnalyzer({
       net: false,
       tls: false,
       child_process: false,
-      request: false
+      request: false,
     };
     return config;
   },
   images: {
-    remotePatterns: [{
+    remotePatterns: [
+      {
         protocol: "https",
         hostname: "raw.githubusercontent.com",
         port: "",
@@ -65,6 +66,16 @@ let config = withBundleAnalyzer({
         hostname: "storage.googleapis.com",
         port: "",
         pathname: "/static-marginfi/**",
+      },
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        pathname: "/mrgn-public/mrgn-token-icons/**",
+      },
+      {
+        protocol: "https",
+        hostname: "pbs.twimg.com",
+        pathname: "/profile_images/**",
       },
       {
         protocol: "https",
@@ -160,12 +171,11 @@ let config = withBundleAnalyzer({
   },
 });
 
-const {
-  withSentryConfig
-} = require("@sentry/nextjs");
+const { withSentryConfig } = require("@sentry/nextjs");
 
 config = withSentryConfig(
-  config, {
+  config,
+  {
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options
 
@@ -174,7 +184,8 @@ config = withSentryConfig(
 
     org: "mrgn-labs",
     project: "marginfi-v2-ui",
-  }, {
+  },
+  {
     // For all available options, see:
     // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 

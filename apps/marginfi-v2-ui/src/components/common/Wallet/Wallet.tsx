@@ -10,6 +10,7 @@ import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { showErrorToast } from "~/utils/toastUtils";
+import { getTokenImageURL } from "~/utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
@@ -81,7 +82,7 @@ export const Wallet = () => {
 
         return {
           name: isSolBank ? "Solana" : bank.meta.tokenName,
-          image: bank.meta.tokenLogoUri,
+          image: getTokenImageURL(bank.meta.tokenSymbol),
           symbol: bank.meta.tokenSymbol,
           value: value,
           valueUSD: valueUSD,

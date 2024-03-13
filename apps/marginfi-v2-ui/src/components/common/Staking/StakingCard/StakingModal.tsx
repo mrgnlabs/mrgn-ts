@@ -9,7 +9,7 @@ import { DepositOption } from "./StakingCard";
 import BN from "bn.js";
 import { PublicKey } from "@solana/web3.js";
 import InfoIcon from "@mui/icons-material/Info";
-import { StakeData } from "~/utils";
+import { StakeData, getTokenImageURL } from "~/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 interface StakingModalProps {
@@ -132,15 +132,7 @@ const TokenList: FC<{
         } hover:text-white hover:bg-gray-700 cursor-pointer`}
       >
         <div className="flex flex-row items-center gap-2">
-          <Image
-            src={
-              "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png"
-            }
-            alt="token logo"
-            height={35}
-            width={35}
-            className="rounded-full"
-          />
+          <Image src={getTokenImageURL("SOL")} alt="token logo" height={35} width={35} className="rounded-full" />
 
           <div className="flex flex-col justify-start">
             <Typography className="text-[15px]">{"SOL (native)"}</Typography>
@@ -184,7 +176,13 @@ const TokenList: FC<{
               }`}
             >
               <div className="flex flex-row items-center gap-2">
-                <Image src={token.iconUrl} alt="token logo" height={35} width={35} className="rounded-full" />
+                <Image
+                  src={getTokenImageURL(token.symbol)}
+                  alt="token logo"
+                  height={35}
+                  width={35}
+                  className="rounded-full"
+                />
                 <div className="flex flex-col justify-start">
                   <Typography className="text-[15px]">
                     {token.address === SOL_MINT.toBase58() ? "SOL (wrapped)" : token.symbol}

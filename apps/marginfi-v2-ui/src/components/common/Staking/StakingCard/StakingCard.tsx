@@ -36,7 +36,7 @@ import { useConnection } from "~/hooks/useConnection";
 import { capture } from "~/utils/analytics";
 import { SwapMode, useJupiter } from "@jup-ag/react-hook";
 import JSBI from "jsbi";
-import { StakeData, usePrevious } from "~/utils";
+import { StakeData, usePrevious, getTokenImageURL } from "~/utils";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { SettingsModal } from "./SettingsModal";
 import { SettingsIcon } from "./SettingsIcon";
@@ -615,17 +615,11 @@ const DropDownButton: FC<DropDownButtonProps> = ({
 
   const [iconUrl, optionName] = useMemo(() => {
     if (depositOption.type === "native") {
-      return [
-        "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
-        "SOL",
-      ];
+      return [getTokenImageURL("SOL"), "SOL"];
     } else if (depositOption.type === "stake") {
-      return [
-        "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
-        "Stake",
-      ];
+      return [getTokenImageURL("SOL"), "Stake"];
     } else {
-      return [depositOption.tokenData.iconUrl, depositOption.tokenData.symbol];
+      return [getTokenImageURL(depositOption.tokenData.symbol), depositOption.tokenData.symbol];
     }
   }, [depositOption]);
 
