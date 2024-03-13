@@ -214,7 +214,7 @@ export const Wallet = () => {
                   <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
                 </div>
                 <button
-                  className="flex items-center gap-2 mb-4 bg-muted w-full group cursor-pointer border-chartreuse rounded-lg px-4 py-3.5 transition-colors hover:bg-background-gray-hover"
+                  className="flex items-center gap-2 mb-4 bg-background-gray w-full group cursor-pointer border-chartreuse rounded-lg px-4 py-3.5 transition-colors hover:bg-background-gray-light"
                   onClick={() => {
                     setIsWalletOpen(false);
                     router.push("/points");

@@ -48,7 +48,7 @@ export const LendingTokensTrigger = React.forwardRef<HTMLButtonElement, LendingT
       <Button
         ref={ref}
         className={cn(
-          "bg-background-gray-light text-white w-full font-normal text-left text-base items-center gap-2.5 transition-colors hover:bg-background-gray",
+          "bg-background-gray-light text-white w-full font-normal text-left text-base items-center gap-2.5 transition-colors hover:bg-background-gray-light",
           "justify-start py-6 px-3 xs:pr-2.5 xs:pl-3.5 xs:py-6 xs:justify-center",
           isOpen && "bg-background-gray"
         )}
