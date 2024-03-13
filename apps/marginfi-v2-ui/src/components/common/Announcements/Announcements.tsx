@@ -2,12 +2,16 @@ import React from "react";
 
 import Image from "next/image";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
+import { PublicKey } from "@solana/web3.js";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 
-import { cn, getTokenImageURL } from "~/utils";
+import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
+import { LendingModes } from "~/types";
+import { cn, getTokenImageURL } from "~/utils";
+import { useUiStore } from "~/store";
+
+import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { IconArrowRight } from "~/components/ui/icons";
 
 import "swiper/css";
@@ -20,6 +24,8 @@ export type AnnouncementCustomItem = {
 
 export type AnnouncementBankItem = {
   bank: ExtendedBankInfo;
+  lendingMode?: LendingModes;
+  actionType?: ActionType;
   text?: string;
 };
 
@@ -66,6 +72,10 @@ const Pagination = ({ itemsLength }: PaginationProps) => {
 };
 
 export const Announcements = ({ items }: AnnouncementsProps) => {
+  const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
+  const [requestedAction, setRequestedAction] = React.useState<ActionType>();
+  const [requestedToken, setRequestedToken] = React.useState<PublicKey>();
+
   return (
     <div className="px-4 w-full">
       <div className="max-w-[480px] mx-auto w-full">
@@ -75,28 +85,35 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
               <div
                 className="bg-background-gray-dark border border-background-gray rounded-lg w-full p-4 cursor-pointer transition hover:border-background-gray-hover"
                 onClick={() => {
-                  if (isBankItem(item)) {
-                    console.log("Trigger Action box");
-                  } else if (item.onClick) {
+                  if (!isBankItem(item) && item.onClick) {
                     item.onClick();
                   }
                 }}
               >
                 {isBankItem(item) ? (
-                  <div className="flex items-center gap-2 w-full">
-                    <Image
-                      src={getTokenImageURL(item.bank.meta.tokenSymbol)}
-                      alt={`${item.bank.meta.tokenSymbol} logo`}
-                      width={24}
-                      height={24}
-                      className="rounded-full"
-                    />
-                    <p>
-                      <strong className="font-medium mr-1.5">{item.bank.meta.tokenSymbol}</strong>
-                      {item.text || "now available on marginfi"}
-                    </p>
-                    <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
-                  </div>
+                  <ActionBoxDialog requestedAction={requestedAction} requestedToken={requestedToken}>
+                    <div
+                      className="flex items-center gap-2 w-full"
+                      onClick={() => {
+                        setLendingMode(item.lendingMode || LendingModes.LEND);
+                        setRequestedAction(item.actionType || ActionType.Deposit);
+                        setRequestedToken(item.bank.address);
+                      }}
+                    >
+                      <Image
+                        src={getTokenImageURL(item.bank.meta.tokenSymbol)}
+                        alt={`${item.bank.meta.tokenSymbol} logo`}
+                        width={24}
+                        height={24}
+                        className="rounded-full"
+                      />
+                      <p>
+                        <strong className="font-medium mr-1.5">{item.bank.meta.tokenSymbol}</strong>
+                        {item.text || "now available on marginfi"}
+                      </p>
+                      <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
+                    </div>
+                  </ActionBoxDialog>
                 ) : (
                   <div className="flex items-center gap-4 w-full font-normal">
                     {typeof item.image === "string" ? (

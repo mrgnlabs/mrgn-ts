@@ -5,11 +5,12 @@ import { useRouter } from "next/router";
 
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Desktop, Mobile } from "~/mediaQueries";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { UserMode } from "~/types";
+import { UserMode, LendingModes } from "~/types";
 
 import { Banner } from "~/components/desktop/Banner";
 import { PageHeader } from "~/components/common/PageHeader";
@@ -50,6 +51,8 @@ export default function HomePage() {
   const annoucements = React.useMemo(() => {
     const pyth = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "PYTH");
     const lst = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "LST");
+    const bonk = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "Bonk");
+    const wif = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "$WIF");
 
     return [
       {
@@ -57,8 +60,10 @@ export default function HomePage() {
         text: "5% points boost for Backpack users!",
         onClick: () => router.push("/points"),
       },
-      { bank: lst, text: "caps have been raised!" },
-      { bank: pyth, text: "caps have been raised!" },
+      { bank: lst, text: "deposit caps raised!" },
+      { bank: pyth, text: "deposit caps raised!" },
+      { bank: bonk, text: "borrow caps raised!", lendingMode: LendingModes.BORROW, actionType: ActionType.Borrow },
+      { bank: wif, text: "borrow caps raised!", lendingMode: LendingModes.BORROW, actionType: ActionType.Borrow },
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
   }, [extendedBankInfos, router]);
 
