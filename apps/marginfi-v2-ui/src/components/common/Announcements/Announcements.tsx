@@ -12,27 +12,27 @@ import { IconArrowRight } from "~/components/ui/icons";
 
 import "swiper/css";
 
-type AnnouncementItem = {
+export type AnnouncementCustomItem = {
   text: string;
-  image: string;
+  image: React.ReactNode | string;
   onClick?: () => void;
 };
 
-type BankItem = {
+export type AnnouncementBankItem = {
   bank: ExtendedBankInfo;
   text?: string;
 };
 
 type AnnouncementsProps = {
-  items: (BankItem | AnnouncementItem)[];
+  items: (AnnouncementBankItem | AnnouncementCustomItem)[];
 };
 
 type PaginationProps = {
   itemsLength: number;
 };
 
-const isBankItem = (item: BankItem | AnnouncementItem): item is BankItem => {
-  return (item as BankItem).bank?.meta !== undefined;
+const isBankItem = (item: AnnouncementBankItem | AnnouncementCustomItem): item is AnnouncementBankItem => {
+  return (item as AnnouncementBankItem).bank?.meta !== undefined;
 };
 
 const Pagination = ({ itemsLength }: PaginationProps) => {
@@ -99,7 +99,11 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                   </div>
                 ) : (
                   <div className="flex items-center gap-4 w-full font-normal">
-                    <Image src={item.image} alt={item.text} width={24} height={24} className="rounded-full" />
+                    {typeof item.image === "string" ? (
+                      <Image src={item.image} alt={item.text} width={24} height={24} className="rounded-full" />
+                    ) : (
+                      item.image
+                    )}
                     <h2>{item.text}</h2>
                     <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
                   </div>

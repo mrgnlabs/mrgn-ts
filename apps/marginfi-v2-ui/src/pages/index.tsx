@@ -1,6 +1,7 @@
 import React from "react";
 
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
 
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
@@ -15,16 +16,17 @@ import { PageHeader } from "~/components/common/PageHeader";
 import { ActionBoxLendWrapper } from "~/components/common/ActionBox";
 import { Stats } from "~/components/common/Stats";
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { Announcements } from "~/components/common/Announcements";
+import { Announcements, AnnouncementCustomItem, AnnouncementBankItem } from "~/components/common/Announcements";
 
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
-import { IconAlertTriangle } from "~/components/ui/icons";
+import { IconAlertTriangle, IconBackpackWallet } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
 
 export default function HomePage() {
+  const router = useRouter();
   const { walletAddress, isOverride } = useWalletContext();
   const [userMode, previousTxn] = useUiStore((state) => [state.userMode, state.previousTxn]);
   const [
@@ -44,6 +46,21 @@ export default function HomePage() {
     state.selectedAccount,
     state.extendedBankInfos,
   ]);
+
+  const annoucements = React.useMemo(() => {
+    const pyth = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "PYTH");
+    const lst = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "LST");
+
+    return [
+      {
+        image: <IconBackpackWallet className="w-6 h-6" />,
+        text: "5% points boost for Backpack users!",
+        onClick: () => router.push("/points"),
+      },
+      { bank: lst, text: "caps have been raised!" },
+      { bank: pyth, text: "caps have been raised!" },
+    ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
+  }, [extendedBankInfos, router]);
 
   return (
     <>
@@ -71,21 +88,7 @@ export default function HomePage() {
                 />
               )}
               <Stats />
-              <Announcements
-                items={[
-                  { bank: extendedBankInfos[0] },
-                  { bank: extendedBankInfos[1], text: "caps raised" },
-                  {
-                    text: "Announcement 1",
-                    image: "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/%24WIF.png",
-                    onClick: () => console.log("test"),
-                  },
-                  {
-                    text: "Announcement 2",
-                    image: "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/%24WIF.png",
-                  },
-                ]}
-              />
+              <Announcements items={annoucements} />
               {userMode === UserMode.LITE && <ActionBoxLendWrapper />}
             </div>
             <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl mt-8 gap-4">
@@ -111,21 +114,7 @@ export default function HomePage() {
               />
             )}
             <Stats />
-            <Announcements
-              items={[
-                { bank: extendedBankInfos[0] },
-                { bank: extendedBankInfos[1] },
-                {
-                  text: "Announcement 1",
-                  image: "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/%24WIF.png",
-                  onClick: () => console.log("test"),
-                },
-                {
-                  text: "Announcement 2",
-                  image: "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/%24WIF.png",
-                },
-              ]}
-            />
+            <Announcements items={annoucements} />
             <ActionBoxLendWrapper />
           </>
         )}
