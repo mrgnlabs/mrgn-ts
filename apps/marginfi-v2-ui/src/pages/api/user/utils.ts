@@ -12,6 +12,7 @@ export const logSignupAttempt = async (
   try {
     const db = admin.firestore();
     const loginsCollection = db.collection("logins");
+    const usersCollection = db.collection("users");
     await loginsCollection.add({
       publicKey,
       uuid,
@@ -19,6 +20,9 @@ export const logSignupAttempt = async (
       successful,
       walletId,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    await usersCollection.doc(publicKey).update({
+      lastUsedWalletId: walletId,
     });
   } catch (error: any) {
     console.error("Error logging sign-up attempt:", error);
@@ -35,6 +39,7 @@ export const logLoginAttempt = async (
   try {
     const db = admin.firestore();
     const loginsCollection = db.collection("logins");
+    const usersCollection = db.collection("users");
     await loginsCollection.add({
       publicKey,
       uuid,
@@ -42,6 +47,9 @@ export const logLoginAttempt = async (
       successful,
       walletId,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    await usersCollection.doc(publicKey).update({
+      lastUsedWalletId: walletId,
     });
   } catch (error: any) {
     console.error("Error logging log-in attempt:", error);
@@ -114,34 +122,14 @@ export async function createFirebaseUser(walletAddress: string, referralCode?: s
   });
 }
 
-export async function getMostUsedWallet(walletAddress: string) {
+export async function getLastUsedWallet(wallet: string) {
   const db = admin.firestore();
-  const wallets = await db
-    .collection("logins")
-    .where("publicKey", "==", walletAddress)
-    .where("walletId", "!=", "")
-    .get();
+  const user = await db.collection("users").doc(wallet).get();
 
-  const walletsArr = wallets.docs.map((doc) => doc.data());
+  if (!user.exists) {
+    return "";
+  }
 
-  const walletIds = walletsArr.map((wallet) => wallet.walletId);
-  const mostUsedWallet = walletIds
-    .sort((a, b) => walletIds.filter((v) => v === a).length - walletIds.filter((v) => v === b).length)
-    .pop();
-
-  return mostUsedWallet;
-}
-
-export async function getLastUsedWallet(walletAddress: string) {
-  const db = admin.firestore();
-  const wallets = await db
-    .collection("logins")
-    .where("publicKey", "==", walletAddress)
-    .orderBy("timestamp", "desc")
-    .limit(1)
-    .get();
-
-  const walletsArr = wallets.docs.map((doc) => doc.data());
-
-  return walletsArr[0]?.walletId;
+  const userData = user.data();
+  return userData?.lastUsedWalletId;
 }
