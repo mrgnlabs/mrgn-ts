@@ -7,34 +7,23 @@ import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { cn } from "~/utils";
+import { RepayType, cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { IconX } from "~/components/ui/icons";
 
-import { ActionBoxItem, BuyWithMoonpay } from "../SharedComponents";
+import { ActionBoxItem, BuyWithMoonpay } from "../../SharedComponents";
 
 type LendingTokensListProps = {
   selectedBank?: ExtendedBankInfo;
   onSetCurrentTokenBank?: (selectedTokenBank: PublicKey | null) => void;
-  onSetRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   isDialog?: boolean;
-  isRepay?: boolean;
-  highlightedTokens?: PublicKey[];
   isOpen: boolean;
   onClose: () => void;
 };
 
-export const LendingTokensList = ({
-  selectedBank,
-  onSetCurrentTokenBank,
-  onSetRepayTokenBank,
-  isRepay = false,
-  highlightedTokens = [],
-  isOpen,
-  onClose,
-}: LendingTokensListProps) => {
+export const LendingTokensList = ({ selectedBank, onSetCurrentTokenBank, isOpen, onClose }: LendingTokensListProps) => {
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
@@ -97,13 +86,9 @@ export const LendingTokensList = ({
 
   // filter on positions
   const positionFilter = React.useCallback(
-    (bankInfo: ExtendedBankInfo, filterActive?: boolean) => {
-      if (isRepay) {
-        return bankInfo.isActive && bankInfo.position.isLending;
-      }
-      return bankInfo.isActive ? lendingMode === LendingModes.LEND && bankInfo.position.isLending : filterActive;
-    },
-    [lendingMode, isRepay]
+    (bankInfo: ExtendedBankInfo, filterActive?: boolean) =>
+      bankInfo.isActive ? lendingMode === LendingModes.LEND && bankInfo.position.isLending : filterActive,
+    [lendingMode]
   );
 
   /////// BANKS
@@ -244,56 +229,21 @@ export const LendingTokensList = ({
           )}
 
           {/* BORROWING */}
-          {lendingMode === LendingModes.BORROW &&
-            !isRepay &&
-            filteredBanksActive.length > 0 &&
-            onSetCurrentTokenBank && (
-              <CommandGroup heading="Currently borrowing">
-                {filteredBanksActive.map((bank, index) => (
-                  <CommandItem
-                    key={index}
-                    value={bank.address?.toString().toLowerCase()}
-                    onSelect={(currentValue) => {
-                      onSetCurrentTokenBank(
-                        extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
-                          ?.address ?? null
-                      );
-                      onClose();
-                    }}
-                    className={cn(
-                      "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
-                    )}
-                  >
-                    <ActionBoxItem
-                      rate={calculateRate(bank)}
-                      lendingMode={lendingMode}
-                      bank={bank}
-                      showBalanceOverride={false}
-                      nativeSolBalance={nativeSolBalance}
-                    />
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-
-          {/* REPAYING */}
-          {(lendingMode === LendingModes.LEND || isRepay) && filteredBanksActive.length > 0 && onSetRepayTokenBank && (
-            <CommandGroup heading="Currently supplying">
+          {lendingMode === LendingModes.BORROW && filteredBanksActive.length > 0 && onSetCurrentTokenBank && (
+            <CommandGroup heading="Currently borrowing">
               {filteredBanksActive.map((bank, index) => (
                 <CommandItem
                   key={index}
                   value={bank.address?.toString().toLowerCase()}
-                  // disabled={!ownedBanksPk.includes(bank.address)}
                   onSelect={(currentValue) => {
-                    onSetRepayTokenBank(
+                    onSetCurrentTokenBank(
                       extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
                         ?.address ?? null
                     );
                     onClose();
                   }}
                   className={cn(
-                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
-                    highlightedTokens.find((v) => v.equals(bank.info.state.mint)) ? "opacity-1" : "opacity-50"
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
                   )}
                 >
                   <ActionBoxItem
@@ -302,7 +252,6 @@ export const LendingTokensList = ({
                     bank={bank}
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}
-                    isRepay={true}
                   />
                 </CommandItem>
               ))}
@@ -310,7 +259,7 @@ export const LendingTokensList = ({
           )}
 
           {/* GLOBAL & ISOLATED */}
-          {globalBanks.length > 0 && !isRepay && onSetCurrentTokenBank && (
+          {globalBanks.length > 0 && onSetCurrentTokenBank && (
             <CommandGroup heading="Global pools">
               {globalBanks.map((bank, index) => {
                 return (
@@ -342,7 +291,7 @@ export const LendingTokensList = ({
               })}
             </CommandGroup>
           )}
-          {isolatedBanks.length > 0 && !isRepay && onSetCurrentTokenBank && (
+          {isolatedBanks.length > 0 && onSetCurrentTokenBank && (
             <CommandGroup heading="Isolated pools">
               {isolatedBanks.map((bank, index) => {
                 return (
