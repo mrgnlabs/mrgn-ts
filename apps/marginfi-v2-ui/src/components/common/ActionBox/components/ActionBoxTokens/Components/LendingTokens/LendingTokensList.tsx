@@ -13,7 +13,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { IconX } from "~/components/ui/icons";
 
-import { ActionBoxItem, BuyWithMoonpay, SelectedBankItem } from "../SharedComponents";
+import { ActionBoxItem, BuyWithMoonpay } from "../SharedComponents";
 
 type LendingTokensListProps = {
   selectedBank?: ExtendedBankInfo;

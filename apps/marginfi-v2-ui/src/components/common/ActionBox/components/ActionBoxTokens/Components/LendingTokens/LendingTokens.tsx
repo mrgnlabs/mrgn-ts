@@ -10,11 +10,11 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { Desktop, Mobile } from "~/mediaQueries";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
 import { SelectedBankItem } from "../SharedComponents";
 import { LendingTokensList } from "./LendingTokensList";
 import { LendingTokensTrigger } from "./LendingTokensTrigger";
-import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
 type LendingTokensProps = {
   currentTokenBank?: PublicKey | null;
@@ -137,7 +137,6 @@ export const LendingTokens = ({
               <DrawerContent className="h-full pb-5">
                 <div className="py-8 bg-background-gray h-full">
                   <h3 className="px-3 text-2xl font-semibold">Select Token</h3>
-
                   <LendingTokensList
                     isOpen={isOpen}
                     onClose={() => setIsOpen(false)}
