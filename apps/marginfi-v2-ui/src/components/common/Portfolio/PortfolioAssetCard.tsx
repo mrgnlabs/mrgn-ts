@@ -50,7 +50,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
     <Accordion type="single" collapsible>
       <AccordionItem
         value="key-1"
-        className="bg-background-gray transition rounded-xl px-3 data-[state=closed]:hover:bg-background-gray-hover"
+        className="bg-background-gray transition rounded-xl px-3 data-[state=closed]:hover:bg-background-gray-light"
       >
         <AccordionTrigger className="hover:no-underline outline-none">
           <div className="flex justify-between items-center w-full gap-2">
