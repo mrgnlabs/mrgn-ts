@@ -41,7 +41,7 @@ const Footer: FC = () => {
 
   return (
     <footer>
-      <div className="hidden sm:flex justify-between gap-4 fixed w-full bottom-0 h-[34px] z-20 bg-[#0F1111]  border-t border-[#4E5257]">
+      <div className="hidden sm:flex justify-between gap-4 fixed w-full bottom-0 h-[34px] z-20 bg-[#0F1111]  border-t border-border">
         <div className=" flex gap-4">
           {footerConfig.userMode && <UserModeControl />}
           {footerConfig.hotkeys && userMode === UserMode.PRO && <HotkeysInfo />}
@@ -61,7 +61,7 @@ const HotkeysInfo: FC = () => {
   }, []);
 
   return (
-    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] pr-4 font-[500]">
+    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-border pr-4 font-[500]">
       {isMac ? "⌘" : "^"}+K to see hotkeys
     </div>
   );
@@ -74,7 +74,7 @@ const LendZoomControl: FC = () => {
   ]);
 
   return (
-    <div className="flex gap-4 items-center justify-center border-r border-[#4E5257] pr-4">
+    <div className="flex gap-4 items-center justify-center border-r border-border pr-4">
       <div className="flex items-center h-full">
         <SvgIcon onClick={() => setLendZoomLevel(1)} viewBox="0 0 17 17">
           <svg
@@ -122,7 +122,7 @@ const UserModeControl: FC = () => {
   const [userMode, setUserMode] = useUiStore((state) => [state.userMode, state.setUserMode]);
 
   return (
-    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] px-6">
+    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-border px-6">
       <div className="h-full flex justify-center items-center font-medium">Lite</div>
       <Switch
         onChange={(_, checked) => setUserMode(checked ? UserMode.PRO : UserMode.LITE)}
@@ -157,7 +157,7 @@ const LendUnitControl: FC = () => {
   ]);
 
   return (
-    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-[#4E5257] pr-6">
+    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-border pr-6">
       <Switch
         onChange={(_, checked) => setDenominationUSD(checked)}
         sx={{
@@ -182,7 +182,7 @@ const LendUnitControl: FC = () => {
 };
 
 const QuickLinks: FC = () => (
-  <div className="flex gap-4 items-center justify-center pt-1 border-l border-[#4E5257] px-4">
+  <div className="flex gap-4 items-center justify-center pt-1 border-l border-border px-4">
     <Link
       href="https://discord.gg/mrgn"
       target="_blank"
