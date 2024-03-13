@@ -4,9 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { RepayWithCollatOptions, StakeData } from "~/utils";
 
-import { LendingPreview } from "./LendingPreview";
-import { LstPreview } from "./LstPreview";
-import { YbxPreview } from "./YbxPreview";
+import { LendingPreview, LstPreview, YbxPreview } from "./Components";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
