@@ -78,7 +78,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
 
   return (
     <div className="px-4 w-full">
-      <div className="max-w-[480px] mx-auto w-full">
+      <div className="max-w-[480px] mx-auto w-full text-sm md:text-base">
         <Swiper spaceBetween={50} slidesPerView={1}>
           {items.map((item, index) => (
             <SwiperSlide key={index}>
