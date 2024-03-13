@@ -676,6 +676,7 @@ export const ActionBox = ({
                 onSetAmountRaw={(amount) => setAmountRaw(amount)}
                 changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
               />
+
               {actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat && (
                 <ActionBoxRepayInput
                   actionMode={actionMode}
