@@ -50,7 +50,6 @@ export default function HomePage() {
 
   const annoucements = React.useMemo(() => {
     const jup = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "JUP");
-
     return [
       {
         image: <IconBackpackWallet size={22} />,
