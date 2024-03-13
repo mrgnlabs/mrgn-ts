@@ -139,7 +139,7 @@ const DesktopNavbar: FC = () => {
 
   return (
     <header>
-      <nav className="fixed w-full top-0 h-[64px] z-30 bg-[#0F1111]">
+      <nav className="fixed w-full top-0 h-[64px] z-30 bg-background">
         <div className="w-full top-0 flex justify-between items-center h-16 text-sm font-[500] text-[#868E95] z-10 border-b-[0.5px] border-[#1C2125] px-4">
           <div className="h-full w-1/2 flex justify-start items-center z-10 gap-4 lg:gap-8">
             <Link
