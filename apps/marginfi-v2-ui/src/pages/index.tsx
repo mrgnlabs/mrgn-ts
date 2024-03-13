@@ -21,7 +21,7 @@ import { Announcements, AnnouncementCustomItem, AnnouncementBankItem } from "~/c
 
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
-import { IconAlertTriangle, IconBackpackWallet } from "~/components/ui/icons";
+import { IconAlertTriangle, IconBackpackWallet, IconYBX } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
@@ -49,21 +49,20 @@ export default function HomePage() {
   ]);
 
   const annoucements = React.useMemo(() => {
-    const pyth = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "PYTH");
-    const lst = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "LST");
-    const bonk = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "Bonk");
-    const wif = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "$WIF");
+    const jup = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "JUP");
 
     return [
       {
-        image: <IconBackpackWallet className="w-6 h-6" />,
+        image: <IconBackpackWallet size={22} />,
         text: "5% points boost for Backpack users!",
         onClick: () => router.push("/points"),
       },
-      { bank: lst, text: "deposit caps raised!" },
-      { bank: pyth, text: "deposit caps raised!" },
-      { bank: bonk, text: "borrow caps raised!", lendingMode: LendingModes.BORROW, actionType: ActionType.Borrow },
-      { bank: wif, text: "borrow caps raised!", lendingMode: LendingModes.BORROW, actionType: ActionType.Borrow },
+      {
+        image: <IconYBX size={22} />,
+        text: "Read the YBX announcement!",
+        onClick: () => window.open("https://twitter.com/marginfi/status/1762865889035317679"),
+      },
+      { bank: jup },
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
   }, [extendedBankInfos, router]);
 

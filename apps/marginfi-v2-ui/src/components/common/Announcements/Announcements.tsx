@@ -115,7 +115,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                     </div>
                   </ActionBoxDialog>
                 ) : (
-                  <div className="flex items-center gap-4 w-full font-normal">
+                  <div className="flex items-center gap-3 w-full font-normal">
                     {typeof item.image === "string" ? (
                       <Image src={item.image} alt={item.text} width={24} height={24} className="rounded-full" />
                     ) : (
