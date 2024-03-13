@@ -71,7 +71,21 @@ export default function HomePage() {
                 />
               )}
               <Stats />
-              <Announcements items={[extendedBankInfos[0]]} />
+              <Announcements
+                items={[
+                  { bank: extendedBankInfos[0] },
+                  { bank: extendedBankInfos[1], text: "caps raised" },
+                  {
+                    text: "Announcement 1",
+                    image: "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/%24WIF.png",
+                    onClick: () => console.log("test"),
+                  },
+                  {
+                    text: "Announcement 2",
+                    image: "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/%24WIF.png",
+                  },
+                ]}
+              />
               {userMode === UserMode.LITE && <ActionBoxLendWrapper />}
             </div>
             <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl mt-8 gap-4">
@@ -99,8 +113,8 @@ export default function HomePage() {
             <Stats />
             <Announcements
               items={[
-                extendedBankInfos[0],
-                extendedBankInfos[1],
+                { bank: extendedBankInfos[0] },
+                { bank: extendedBankInfos[1] },
                 {
                   text: "Announcement 1",
                   image: "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/%24WIF.png",
