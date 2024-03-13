@@ -18,16 +18,21 @@ type AnnouncementItem = {
   onClick?: () => void;
 };
 
+type BankItem = {
+  bank: ExtendedBankInfo;
+  text?: string;
+};
+
 type AnnouncementsProps = {
-  items: (ExtendedBankInfo | AnnouncementItem)[];
+  items: (BankItem | AnnouncementItem)[];
 };
 
 type PaginationProps = {
   itemsLength: number;
 };
 
-const isBankItem = (item: ExtendedBankInfo | AnnouncementItem): item is ExtendedBankInfo => {
-  return (item as ExtendedBankInfo).meta !== undefined;
+const isBankItem = (item: BankItem | AnnouncementItem): item is BankItem => {
+  return (item as BankItem).bank?.meta !== undefined;
 };
 
 const Pagination = ({ itemsLength }: PaginationProps) => {
@@ -80,14 +85,15 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                 {isBankItem(item) ? (
                   <div className="flex items-center gap-2 w-full">
                     <Image
-                      src={getTokenImageURL(item.meta.tokenSymbol)}
-                      alt={`${item.meta.tokenSymbol} logo`}
+                      src={getTokenImageURL(item.bank.meta.tokenSymbol)}
+                      alt={`${item.bank.meta.tokenSymbol} logo`}
                       width={24}
                       height={24}
                       className="rounded-full"
                     />
                     <p>
-                      <strong className="font-medium mr-0.5">{item.meta.tokenSymbol}</strong> now available on marginfi
+                      <strong className="font-medium mr-1.5">{item.bank.meta.tokenSymbol}</strong>
+                      {item.text || "now available on marginfi"}
                     </p>
                     <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
                   </div>
