@@ -43,10 +43,10 @@ module.exports = {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
-        "background-gray": "#1C2125",
+        "background-gray": "#111416",
         "background-gray-hover": "#292F34",
-        "background-gray-light": "#303030",
-        "background-gray-dark": "#131618",
+        "background-gray-light": "#1B2022",
+        "background-gray-dark": "#0C0F11",
         foreground: "hsl(var(--foreground))",
         chartreuse: "#DCE85D",
         primary: {
