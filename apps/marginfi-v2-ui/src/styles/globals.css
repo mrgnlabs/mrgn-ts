@@ -8,10 +8,10 @@
 
 @layer base {
   :root {
-    --background: #0a0c0e;
+    --background: 180 5% 4%;
     --foreground: 0 0% 98%;
 
-    --card: #0a0c0e;
+    --card: 180 5% 4%;
     --card-foreground: 0 0% 98%;
 
     --popover: 180 4% 7%;
@@ -72,7 +72,7 @@ body {
 
 body {
   color: rgb(255, 255, 255);
-  background: radial-gradient(50% 50% at 50% 50%, #111416 10%, #0a0c0e 80%);
+  background: radial-gradient(50% 50% at 50% 50%, #101212 10%, #090a0a 80%);
   font-family: "Aeonik Pro";
   font-weight: 300;
 }
