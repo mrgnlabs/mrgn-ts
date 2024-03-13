@@ -74,7 +74,7 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-5">
-          <div className="bg-background-gray-dark h-24 rounded-lg py-3.5 px-4">
+          <div className="bg-background-gray h-24 rounded-lg py-3.5 px-4">
             <h2 className="text-sm md:text-base flex gap-1.5 text-muted-foreground/80">
               Lending Points
               <div className="self-center">
@@ -94,7 +94,7 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
               {userPointsData && numeralFormatter(userPointsData.depositPoints)}
             </h3>
           </div>
-          <div className="bg-background-gray-dark h-24 rounded-lg py-3.5 px-4">
+          <div className="bg-background-gray h-24 rounded-lg py-3.5 px-4">
             <h2 className="text-sm md:text-base flex gap-1.5 text-muted-foreground/80">
               Borrowing Points
               <div className="self-center">
@@ -114,7 +114,7 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
               {userPointsData && numeralFormatter(userPointsData.borrowPoints)}
             </h3>
           </div>
-          <div className="bg-background-gray-dark h-24 rounded-lg py-3.5 px-4 col-span-2 md:col-span-1">
+          <div className="bg-background-gray h-24 rounded-lg py-3.5 px-4 col-span-2 md:col-span-1">
             <h2 className="text-sm md:text-base flex gap-1.5 text-muted-foreground/80">
               Referral Points
               <div className="self-center">

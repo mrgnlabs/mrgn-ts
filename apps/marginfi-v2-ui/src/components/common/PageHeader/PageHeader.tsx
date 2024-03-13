@@ -22,7 +22,7 @@ export const PageHeader: FC<PageHeaderProps> = ({ children, showDesktopTitle = t
       </Head>
       <div
         className={cn(
-          "flex lg:hidden w-full h-[74px] sm:h-[60px] justify-center items-center border-y bg-[url('/WaveBG3.png')]",
+          "flex lg:hidden w-full h-[74px] sm:h-[60px] justify-center items-center border-b bg-[url('/WaveBG3.png')]",
           showDesktopTitle && "lg:flex"
         )}
       >
