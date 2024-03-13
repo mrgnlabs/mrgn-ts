@@ -5,23 +5,25 @@ import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
 import { useUiStore } from "~/store";
-import { cn } from "~/utils";
+import { RepayType, cn } from "~/utils";
 
 import { Button } from "~/components/ui/button";
 import { IconChevronDown } from "~/components/ui/icons";
 
-import { SelectedBankItem } from "../SharedComponents";
+import { SelectedBankItem } from "../../SharedComponents";
 
 type LendingTokensTriggerProps = {
   selectedBank?: ExtendedBankInfo;
   selectedRepayBank?: ExtendedBankInfo;
   isOpen?: boolean;
-  isRepay?: boolean;
+  repayType?: RepayType;
 };
 
 export const LendingTokensTrigger = React.forwardRef<HTMLButtonElement, LendingTokensTriggerProps>(
-  ({ selectedBank, selectedRepayBank, isOpen, isRepay = false }, ref) => {
+  ({ selectedBank, selectedRepayBank, isOpen, repayType }, ref) => {
     const [lendingMode] = useUiStore((state) => [state.lendingMode]);
+
+    const isRepayWithCollat = React.useMemo(() => repayType === RepayType.RepayCollat, [repayType]);
 
     const calculateRate = React.useCallback(
       (bank: ExtendedBankInfo) => {
@@ -53,17 +55,17 @@ export const LendingTokensTrigger = React.forwardRef<HTMLButtonElement, LendingT
           isOpen && "bg-background-gray"
         )}
       >
-        {!isRepay && selectedBank && (
+        {!isRepayWithCollat && selectedBank && (
           <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={calculateRate(selectedBank)} />
         )}
-        {isRepay && selectedRepayBank && (
+        {isRepayWithCollat && selectedRepayBank && (
           <SelectedBankItem
             bank={selectedRepayBank}
             lendingMode={lendingMode}
             rate={calculateRate(selectedRepayBank)}
           />
         )}
-        {((!isRepay && !selectedBank) || (isRepay && !selectedRepayBank)) && <>Select token</>}
+        {((!isRepayWithCollat && !selectedBank) || (isRepayWithCollat && !selectedRepayBank)) && <>Select token</>}
         <IconChevronDown className="shrink-0" size={20} />
       </Button>
     );

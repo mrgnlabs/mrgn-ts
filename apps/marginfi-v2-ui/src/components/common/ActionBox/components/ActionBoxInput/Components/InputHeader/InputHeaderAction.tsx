@@ -67,7 +67,7 @@ export const InputHeaderAction = ({
     }
 
     return titleText;
-  }, [titleText, isDialog, lendingModeFromStore, setLendingMode]);
+  }, [titleText, isDialog, lendingModeFromStore, setLendingMode, changeRepayType]);
 
   return (
     <>

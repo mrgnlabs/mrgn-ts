@@ -15,11 +15,16 @@ type ActionBoxInputProps = {
   repayMode: RepayType;
 
   selectedBank: ExtendedBankInfo | null;
+  selectedRepayBank: ExtendedBankInfo | null;
+
   selectedTokenBank: PublicKey | null;
+  selectedRepayTokenBank: PublicKey | null;
   selectedStakingAccount: StakeData | null;
 
+  highlightedRepayTokens: PublicKey[] | undefined;
   walletAmount: number | undefined;
   amountRaw: string;
+  repayAmountRaw: string;
   maxAmount: number;
 
   showCloseBalance?: boolean;
@@ -27,23 +32,32 @@ type ActionBoxInputProps = {
   showLendingHeader?: boolean;
 
   onSetTokenBank: (bank: PublicKey | null) => void;
+  onSetTokenRepayBank: (bank: PublicKey | null) => void;
   onSetAmountRaw: (amount: string) => void;
+  onSetRepayAmountRaw: (amount: string) => void;
   changeRepayType: (repayType: RepayType) => void;
 };
 
 export const ActionBoxInput = ({
   actionMode,
   repayMode,
+
   selectedBank,
+  selectedRepayBank,
   selectedTokenBank,
+  selectedRepayTokenBank,
   selectedStakingAccount,
   walletAmount,
   amountRaw,
   maxAmount,
+  repayAmountRaw,
   showCloseBalance,
   isDialog,
+  highlightedRepayTokens,
   onSetTokenBank,
+  onSetTokenRepayBank,
   onSetAmountRaw,
+  onSetRepayAmountRaw,
   changeRepayType,
 }: ActionBoxInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
@@ -55,13 +69,37 @@ export const ActionBoxInput = ({
     [maxAmount, showCloseBalance, selectedStakingAccount]
   );
 
+  const isRepayWithCollat = React.useMemo(
+    () => actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat,
+    [actionMode, repayMode]
+  );
+
+  const inputAmount = React.useMemo(() => {
+    if (isRepayWithCollat) {
+      return repayAmountRaw;
+    } else {
+      return amountRaw;
+    }
+  }, [repayAmountRaw, amountRaw, isRepayWithCollat]);
+
   const handleInputChange = React.useCallback(
     (newAmount: string) => {
+      if (isRepayWithCollat) {
+        onSetRepayAmountRaw(formatAmount(newAmount, selectedRepayBank));
+      } else {
+        onSetAmountRaw(formatAmount(newAmount, selectedBank));
+      }
+    },
+    [onSetAmountRaw, onSetRepayAmountRaw, selectedBank, selectedRepayBank, isRepayWithCollat]
+  );
+
+  const formatAmount = React.useCallback(
+    (newAmount: string, bank: ExtendedBankInfo | null) => {
       let formattedAmount: string, amount: number;
       // Remove commas from the formatted string
       const newAmountWithoutCommas = newAmount.replace(/,/g, "");
       let decimalPart = newAmountWithoutCommas.split(".")[1];
-      const mintDecimals = selectedBank?.info.state.mintDecimals ?? 9;
+      const mintDecimals = bank?.info.state.mintDecimals ?? 9;
 
       if (
         (newAmount.endsWith(",") || newAmount.endsWith(".")) &&
@@ -80,12 +118,12 @@ export const ActionBoxInput = ({
       }
 
       if (amount > maxAmount) {
-        onSetAmountRaw(numberFormater.format(maxAmount));
+        return numberFormater.format(maxAmount);
       } else {
-        onSetAmountRaw(formattedAmount);
+        return formattedAmount;
       }
     },
-    [maxAmount, onSetAmountRaw, selectedBank, numberFormater]
+    [maxAmount, numberFormater]
   );
 
   return (
@@ -99,18 +137,24 @@ export const ActionBoxInput = ({
         selectedStakingAccount={selectedStakingAccount}
         walletAmount={walletAmount}
         maxAmount={maxAmount}
-        onSetAmountRaw={(amount) => onSetAmountRaw(amount)}
+        onSetAmountRaw={(amount) => handleInputChange(amount)}
         changeRepayType={(type) => changeRepayType(type)}
       />
       <div className="bg-background text-3xl rounded-lg flex justify-center gap-1 items-center p-4 font-medium mb-5">
         <div className="w-full flex-auto max-w-[162px]">
           <ActionBoxTokens
             isDialog={isDialog}
+            repayTokenBank={selectedRepayTokenBank}
             currentTokenBank={selectedTokenBank}
+            setRepayTokenBank={(tokenBank) => {
+              onSetTokenRepayBank(tokenBank);
+              onSetRepayAmountRaw("");
+            }}
             setCurrentTokenBank={(tokenBank) => {
               onSetTokenBank(tokenBank);
               onSetAmountRaw("");
             }}
+            highlightedRepayTokens={highlightedRepayTokens}
             actionMode={actionMode}
           />
         </div>
@@ -119,7 +163,7 @@ export const ActionBoxInput = ({
             type="text"
             ref={amountInputRef}
             inputMode="numeric"
-            value={amountRaw}
+            value={inputAmount}
             disabled={isInputDisabled}
             onChange={(e) => handleInputChange(e.target.value)}
             placeholder="0"
