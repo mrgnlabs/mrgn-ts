@@ -3,7 +3,7 @@ import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
-import { clampedNumeralFormatter } from "~/utils";
+import { RepayType, clampedNumeralFormatter } from "~/utils";
 import { PublicKey } from "@solana/web3.js";
 import { Input } from "~/components/ui/input";
 
@@ -13,6 +13,7 @@ type ActionBoxRepayInputProps = {
   selectedRepayTokenBank: PublicKey | null;
   directRoutes: PublicKey[] | undefined;
   rawRepayAmount: string | undefined;
+  repayMode: RepayType;
   isDialog?: boolean;
 
   onSetSelectedBank: (bank: PublicKey | null) => void;
@@ -24,6 +25,7 @@ export const ActionBoxRepayInput = ({
   selectedRepayTokenBank,
   directRoutes,
   rawRepayAmount,
+  repayMode,
   isDialog,
 
   onSetSelectedBank,
@@ -53,8 +55,8 @@ export const ActionBoxRepayInput = ({
             repayTokenBank={selectedRepayTokenBank}
             setRepayTokenBank={onSetSelectedBank}
             actionMode={actionMode}
-            highlightedTokens={directRoutes}
-            isRepay={true}
+            highlightedRepayTokens={directRoutes}
+            repayType={repayMode}
           />
         </div>
         <div className="flex-1">

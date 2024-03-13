@@ -8,22 +8,23 @@ import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "~/types";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { Desktop, Mobile } from "~/mediaQueries";
+import { RepayType } from "~/utils";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
 import { SelectedBankItem } from "../SharedComponents";
-import { LendingTokensList } from "./LendingTokensList";
-import { LendingTokensTrigger } from "./LendingTokensTrigger";
+import { LendingTokensList, RepayCollatTokensList, LendingTokensTrigger } from "./Components";
 
 type LendingTokensProps = {
   currentTokenBank?: PublicKey | null;
-  setCurrentTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   repayTokenBank?: PublicKey | null;
-  setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   isDialog?: boolean;
-  isRepay?: boolean;
-  highlightedTokens?: PublicKey[];
+  repayType?: RepayType;
+  highlightedRepayTokens?: PublicKey[];
+
+  setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
+  setCurrentTokenBank?: (selectedTokenBank: PublicKey | null) => void;
 };
 
 export const LendingTokens = ({
@@ -32,8 +33,8 @@ export const LendingTokens = ({
   setCurrentTokenBank,
   repayTokenBank,
   setRepayTokenBank,
-  isRepay = false,
-  highlightedTokens = [],
+  repayType,
+  highlightedRepayTokens = [],
 }: LendingTokensProps) => {
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
@@ -54,6 +55,8 @@ export const LendingTokens = ({
         : undefined,
     [extendedBankInfos, repayTokenBank]
   );
+
+  const isSelectable = React.useMemo(() => !isDialog || repayType === RepayType.RepayCollat, [isDialog, repayType]);
 
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) => {
@@ -78,7 +81,7 @@ export const LendingTokens = ({
 
   return (
     <>
-      {isDialog && !isRepay && (
+      {!isSelectable && (
         <div className="flex gap-3 w-full items-center">
           {selectedBank && (
             <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={calculateRate(selectedBank)} />
@@ -86,7 +89,7 @@ export const LendingTokens = ({
         </div>
       )}
 
-      {(!isDialog || isRepay) && (
+      {isSelectable && (
         <>
           <Desktop>
             <Popover open={isOpen} onOpenChange={(open) => setIsOpen(open)} modal={true}>
@@ -96,7 +99,7 @@ export const LendingTokens = ({
                     selectedBank={selectedBank}
                     selectedRepayBank={selectedRepayBank}
                     isOpen={isOpen}
-                    isRepay={isRepay}
+                    repayType={repayType}
                   />
                 </div>
               </PopoverTrigger>
@@ -108,16 +111,22 @@ export const LendingTokens = ({
                 avoidCollisions={false}
               >
                 <div className="max-h-[calc(100vh-580px)] min-h-[200px] relative overflow-auto">
-                  <LendingTokensList
-                    isOpen={isOpen}
-                    onClose={() => setIsOpen(false)}
-                    selectedBank={selectedBank}
-                    onSetCurrentTokenBank={setCurrentTokenBank}
-                    onSetRepayTokenBank={setRepayTokenBank}
-                    isDialog={isDialog}
-                    highlightedTokens={highlightedTokens}
-                    isRepay={isRepay}
-                  />
+                  {repayType === RepayType.RepayCollat ? (
+                    <LendingTokensList
+                      isOpen={isOpen}
+                      onClose={() => setIsOpen(false)}
+                      selectedBank={selectedBank}
+                      onSetCurrentTokenBank={setCurrentTokenBank}
+                      isDialog={isDialog}
+                    />
+                  ) : (
+                    <RepayCollatTokensList
+                      isOpen={isOpen}
+                      onClose={() => setIsOpen(false)}
+                      onSetRepayTokenBank={setRepayTokenBank}
+                      highlightedRepayTokens={highlightedRepayTokens}
+                    />
+                  )}
                 </div>
               </PopoverContent>
             </Popover>
@@ -130,23 +139,29 @@ export const LendingTokens = ({
                     selectedBank={selectedBank}
                     selectedRepayBank={selectedRepayBank}
                     isOpen={isOpen}
-                    isRepay={isRepay}
+                    repayType={repayType}
                   />
                 </div>
               </DrawerTrigger>
               <DrawerContent className="h-full pb-5">
                 <div className="py-8 bg-background-gray h-full">
                   <h3 className="px-3 text-2xl font-semibold">Select Token</h3>
-                  <LendingTokensList
-                    isOpen={isOpen}
-                    onClose={() => setIsOpen(false)}
-                    selectedBank={selectedBank}
-                    onSetCurrentTokenBank={setCurrentTokenBank}
-                    onSetRepayTokenBank={setRepayTokenBank}
-                    isDialog={isDialog}
-                    highlightedTokens={highlightedTokens}
-                    isRepay={isRepay}
-                  />
+                  {repayType === RepayType.RepayCollat ? (
+                    <LendingTokensList
+                      isOpen={isOpen}
+                      onClose={() => setIsOpen(false)}
+                      selectedBank={selectedBank}
+                      onSetCurrentTokenBank={setCurrentTokenBank}
+                      isDialog={isDialog}
+                    />
+                  ) : (
+                    <RepayCollatTokensList
+                      isOpen={isOpen}
+                      onClose={() => setIsOpen(false)}
+                      onSetRepayTokenBank={setRepayTokenBank}
+                      highlightedRepayTokens={highlightedRepayTokens}
+                    />
+                  )}
                 </div>
               </DrawerContent>
             </Drawer>

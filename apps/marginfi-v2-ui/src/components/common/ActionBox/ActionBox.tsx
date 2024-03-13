@@ -104,6 +104,7 @@ export const ActionBox = ({
   const [slippageBps, setSlippageBps] = React.useState<number>(100);
 
   const [amountRaw, setAmountRaw] = React.useState<string>("");
+  const [repayAmountRaw, setRepayAmountRaw] = React.useState<string>("");
   const [maxAmountCollat, setMaxAmountCollat] = React.useState<number>();
 
   const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
@@ -287,6 +288,12 @@ export const ActionBox = ({
       setActionMode(requestedAction);
     }
   }, [requestedAction, setActionMode]);
+
+  React.useEffect(() => {
+    if (actionMode !== ActionType.Repay) {
+      setRepayMode(RepayType.RepayRaw);
+    }
+  }, [actionMode, setRepayMode]);
 
   React.useEffect(() => {
     if (amount && amount > maxAmount) {
@@ -659,16 +666,22 @@ export const ActionBox = ({
                 actionMode={actionMode}
                 repayMode={repayMode}
                 selectedBank={selectedBank}
+                selectedRepayBank={selectedRepayBank}
                 selectedTokenBank={selectedTokenBank}
+                selectedRepayTokenBank={selectedRepayTokenBank}
                 selectedStakingAccount={selectedStakingAccount}
+                highlightedRepayTokens={directRoutes}
                 walletAmount={walletAmount}
                 amountRaw={amountRaw}
+                repayAmountRaw={repayAmountRaw}
                 maxAmount={maxAmount}
                 showCloseBalance={showCloseBalance}
                 isDialog={isDialog}
                 showLendingHeader={showLendingHeader}
                 onSetTokenBank={(bank) => setSelectedTokenBank(bank)}
+                onSetTokenRepayBank={(bank) => setSelectedRepayTokenBank(bank)}
                 onSetAmountRaw={(amount) => setAmountRaw(amount)}
+                onSetRepayAmountRaw={(amount) => setRepayAmountRaw(amount)}
                 changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
               />
               {/* {actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat && (
@@ -678,6 +691,7 @@ export const ActionBox = ({
                   selectedRepayTokenBank={selectedRepayTokenBank}
                   directRoutes={directRoutes}
                   rawRepayAmount={rawRepayAmount}
+                  repayMode={repayMode}
                   isDialog={isDialog}
                   onSetSelectedBank={(bank) => setSelectedRepayTokenBank(bank)}
                 />

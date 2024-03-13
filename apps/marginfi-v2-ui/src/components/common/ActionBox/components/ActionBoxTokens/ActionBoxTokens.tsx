@@ -3,6 +3,8 @@ import { PublicKey } from "@solana/web3.js";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
+import { RepayType } from "~/utils";
+
 import { LendingTokens, YbxTokens, LstTokens } from "./Components";
 
 interface ActionBoxPreviewProps {
@@ -11,9 +13,9 @@ interface ActionBoxPreviewProps {
   repayTokenBank?: PublicKey | null;
   setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   actionMode: ActionType;
+  repayType?: RepayType;
   isDialog?: boolean;
-  isRepay?: boolean;
-  highlightedTokens?: PublicKey[];
+  highlightedRepayTokens?: PublicKey[];
 }
 
 export const ActionBoxTokens = ({
@@ -22,9 +24,9 @@ export const ActionBoxTokens = ({
   repayTokenBank,
   setRepayTokenBank,
   actionMode,
+  repayType,
   isDialog,
-  isRepay,
-  highlightedTokens,
+  highlightedRepayTokens,
 }: ActionBoxPreviewProps) => {
   const isInLendingMode = React.useMemo(
     () =>
@@ -41,11 +43,11 @@ export const ActionBoxTokens = ({
         <LendingTokens
           currentTokenBank={currentTokenBank}
           setCurrentTokenBank={setCurrentTokenBank}
+          isDialog={isDialog}
           repayTokenBank={repayTokenBank}
           setRepayTokenBank={setRepayTokenBank}
-          isDialog={isDialog}
-          highlightedTokens={highlightedTokens}
-          isRepay={isRepay}
+          highlightedRepayTokens={highlightedRepayTokens}
+          repayType={repayType}
         />
       )}
 
