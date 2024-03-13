@@ -56,6 +56,8 @@ export const LendingTokens = ({
     [extendedBankInfos, repayTokenBank]
   );
 
+  console.log({ repayType });
+
   const isSelectable = React.useMemo(() => !isDialog || repayType === RepayType.RepayCollat, [isDialog, repayType]);
 
   const calculateRate = React.useCallback(

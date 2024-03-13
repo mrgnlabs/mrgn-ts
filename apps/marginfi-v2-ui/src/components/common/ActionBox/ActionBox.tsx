@@ -168,7 +168,13 @@ export const ActionBox = ({
     [nativeSolBalance, selectedBank]
   );
 
-  const [repayAmount, setRepayAmount] = React.useState<number>();
+  const repayAmount = React.useMemo(() => {
+    const strippedAmount = repayAmountRaw.replace(/,/g, "");
+    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+  }, [repayAmountRaw]);
+
+  const debouncedRepayAmount = useDebounce<number | null>(amount, 500);
+
   const [repayCollatQuote, setRepayCollatQuote] = React.useState<QuoteResponse>();
 
   const maxAmount = React.useMemo(() => {
@@ -184,10 +190,7 @@ export const ActionBox = ({
       case ActionType.Borrow:
         return selectedBank?.userInfo.maxBorrow ?? 0;
       case ActionType.Repay:
-        if (repayMode === RepayType.RepayCollat && selectedBank?.isActive)
-          return (maxAmountCollat ?? 0) > (selectedBank?.position.amount ?? 0)
-            ? selectedBank?.position.amount ?? 0
-            : maxAmountCollat ?? 0;
+        if (repayMode === RepayType.RepayCollat && selectedBank?.isActive) return maxAmountCollat ?? 0;
         return selectedBank?.userInfo.maxRepay ?? 0;
       case ActionType.MintLST:
         if (selectedStakingAccount) return nativeToUi(selectedStakingAccount.lamports, 9);
@@ -207,11 +210,6 @@ export const ActionBox = ({
     maxAmountCollat,
     repayMode,
   ]);
-
-  const rawRepayAmount = React.useMemo(
-    () => (repayAmount ? numberFormater.format(repayAmount) : undefined),
-    [repayAmount, numberFormater]
-  );
 
   const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
   const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
@@ -309,18 +307,19 @@ export const ActionBox = ({
 
   React.useEffect(() => {
     if (repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
-      calculateMaxCollat(selectedBank, selectedRepayBank);
+      calculateMaxCollatNew(selectedBank, selectedRepayBank);
     } else {
       setRepayCollatQuote(undefined);
-      setRepayAmount(undefined);
+      setRepayAmountRaw("");
+      setMaxAmountCollat(0);
     }
-  }, [repayMode, selectedRepayBank, selectedBank, setRepayCollatQuote, setRepayAmount]);
+  }, [repayMode, selectedRepayBank, selectedBank, setRepayCollatQuote, setRepayAmountRaw]);
 
   React.useEffect(() => {
-    if (debouncedAmount && repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
-      calculateRepayCollateral(selectedBank, selectedRepayBank, debouncedAmount);
+    if (debouncedRepayAmount && repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
+      calculateRepayCollateral(selectedBank, selectedRepayBank, debouncedRepayAmount);
     }
-  }, [debouncedAmount, repayMode, selectedRepayBank, selectedBank]);
+  }, [debouncedRepayAmount, repayMode, selectedRepayBank, selectedBank]);
 
   React.useEffect(() => {
     fetchDirectRoutes();
@@ -343,65 +342,131 @@ export const ActionBox = ({
     } catch (error) {}
   };
 
-  const calculateMaxCollat = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo) => {
-    // const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
-    // if (amount !== 0) {
-    //   const quoteParams = {
-    //     amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-    //     inputMint: repayBank.info.state.mint.toBase58(),
-    //     outputMint: bank.info.state.mint.toBase58(),
-    //     slippageBps: slippageBps,
-    //     onlyDirectRoutes: true,
-    //     swapMode: "ExactIn" as any,
-    //     maxAccounts: 20,
-    //   } as QuoteGetRequest;
-    //   try {
-    //     const swapQuote = await getSwapQuoteWithRetry(quoteParams);
-    //     if (swapQuote) {
-    //       const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
-    //       setMaxAmountCollat(withdrawAmount);
-    //     }
-    //   } catch {
-    //     showErrorToast("Failed to fetch max amount, please refresh.");
-    //   }
-    // }
-  };
+  const calculateMaxCollatNew = React.useCallback(
+    async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo) => {
+      const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
+      const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
 
-  const calculateRepayCollateral = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, amount: number) => {
+      if (amount !== 0) {
+        const quoteParams = {
+          amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+          inputMint: repayBank.info.state.mint.toBase58(),
+          outputMint: bank.info.state.mint.toBase58(),
+          slippageBps: slippageBps,
+          onlyDirectRoutes: true,
+          swapMode: "ExactIn" as any,
+          maxAccounts: 20,
+        } as QuoteGetRequest;
+
+        try {
+          const swapQuoteInput = await getSwapQuoteWithRetry(quoteParams);
+
+          if (!swapQuoteInput) throw new Error();
+
+          const inputInOtherAmount = nativeToUi(swapQuoteInput.otherAmountThreshold, bank.info.state.mintDecimals);
+
+          if (inputInOtherAmount > maxRepayAmount) {
+            const quoteParams = {
+              amount: uiToNative(maxRepayAmount, bank.info.state.mintDecimals).toNumber(),
+              inputMint: repayBank.info.state.mint.toBase58(),
+              outputMint: bank.info.state.mint.toBase58(),
+              slippageBps: slippageBps,
+              swapMode: "ExactOut",
+              onlyDirectRoutes: true,
+            } as QuoteGetRequest;
+
+            const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams);
+            if (!swapQuoteOutput) throw new Error();
+
+            const inputOutOtherAmount = nativeToUi(swapQuoteOutput.otherAmountThreshold, bank.info.state.mintDecimals);
+            setMaxAmountCollat(inputOutOtherAmount);
+          } else {
+            setMaxAmountCollat(inputInOtherAmount);
+          }
+        } catch {
+          showErrorToast("Failed to fetch max amount, please refresh.");
+        }
+      }
+    },
+    [setMaxAmountCollat]
+  );
+
+  const calculateMaxCollat = React.useCallback(
+    async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo) => {
+      const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
+
+      if (amount !== 0) {
+        const quoteParams = {
+          amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+          inputMint: repayBank.info.state.mint.toBase58(),
+          outputMint: bank.info.state.mint.toBase58(),
+          slippageBps: slippageBps,
+          onlyDirectRoutes: true,
+          swapMode: "ExactIn" as any,
+          maxAccounts: 20,
+        } as QuoteGetRequest;
+
+        try {
+          const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+
+          if (swapQuote) {
+            const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
+            setMaxAmountCollat(withdrawAmount);
+          }
+        } catch {
+          showErrorToast("Failed to fetch max amount, please refresh.");
+        }
+      }
+    },
+    [setMaxAmountCollat]
+  );
+
+  const calculateRepayCollateral = async (
+    bank: ExtendedBankInfo,
+    repayBank: ExtendedBankInfo,
+    amount: number,
+    isTotalRepay?: boolean
+  ) => {
+    // if (isTotalRepay) {
+    //   const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
     //   const quoteParams = {
-    //     amount: uiToNative(amount, bank.info.state.mintDecimals).toNumber(),
+    //     amount: uiToNative(maxRepayAmount, bank.info.state.mintDecimals).toNumber(),
     //     inputMint: repayBank.info.state.mint.toBase58(),
     //     outputMint: bank.info.state.mint.toBase58(),
     //     slippageBps: slippageBps,
     //     swapMode: "ExactOut",
     //     onlyDirectRoutes: true,
     //   } as QuoteGetRequest;
-    //   try {
-    //     const swapQuote = await getSwapQuoteWithRetry(quoteParams);
-    //     if (swapQuote) {
-    //       const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
-    //       setRepayAmount(withdrawAmount);
-    //       setRepayCollatQuote(swapQuote);
-    //     }
-    //   } catch (error) {
-    //     showErrorToast("Unable to retrieve data. Please choose a different collateral option or refresh the page.");
-    //   }
-    // };
-    // async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 5, timeout = 1000) {
-    //   let attempt = 0;
-    //   while (attempt < maxRetries) {
-    //     try {
-    //       const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
-    //       return swapQuote; // Success, return the result
-    //     } catch (error) {
-    //       console.error(`Attempt ${attempt + 1} failed:`, error);
-    //       attempt++;
-    //       if (attempt === maxRetries) {
-    //         throw new Error(`Failed to get to quote after ${maxRetries} attempts`);
-    //       }
-    //       await new Promise((resolve) => setTimeout(resolve, timeout));
-    //     }
-    //   }
+    // } else {
+    //   const quoteParams = {
+    //     amount: uiToNative(amount, bank.info.state.mintDecimals).toNumber(),
+    //     inputMint: repayBank.info.state.mint.toBase58(),
+    //     outputMint: bank.info.state.mint.toBase58(),
+    //     slippageBps: slippageBps,
+    //     swapMode: "ExactIn",
+    //     onlyDirectRoutes: true,
+    //   } as QuoteGetRequest;
+    // }
+
+    const quoteParams = {
+      amount: uiToNative(amount, bank.info.state.mintDecimals).toNumber(),
+      inputMint: repayBank.info.state.mint.toBase58(),
+      outputMint: bank.info.state.mint.toBase58(),
+      slippageBps: slippageBps,
+      swapMode: "ExactIn",
+      onlyDirectRoutes: true,
+    } as QuoteGetRequest;
+
+    try {
+      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+      if (swapQuote) {
+        const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
+        // setMaxAmountCollat(withdrawAmount);
+        setRepayCollatQuote(swapQuote);
+      }
+    } catch (error) {
+      showErrorToast("Unable to retrieve data. Please choose a different collateral option or refresh the page.");
+    }
   };
 
   const executeLendingActionCb = React.useCallback(
