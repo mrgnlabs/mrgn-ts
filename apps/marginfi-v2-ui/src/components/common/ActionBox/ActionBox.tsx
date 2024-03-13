@@ -640,7 +640,7 @@ export const ActionBox = ({
       <div className="flex flex-col items-center">
         <div
           className={cn(
-            "p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative",
+            "p-6 bg-background-gray-dark text-white w-full max-w-[480px] rounded-xl relative",
             isDialog && "py-5 border border-background-gray-light/50"
           )}
         >
@@ -653,13 +653,13 @@ export const ActionBox = ({
             />
           ) : (
             <>
-              <ActionBoxHeader
+              {/* <ActionBoxHeader
                 actionType={actionMode}
                 repayType={repayMode}
                 showLendingHeader={showLendingHeader}
                 changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
                 bank={selectedBank}
-              />
+              /> */}
               <ActionBoxInput
                 actionMode={actionMode}
                 repayMode={repayMode}
@@ -671,8 +671,10 @@ export const ActionBox = ({
                 maxAmount={maxAmount}
                 showCloseBalance={showCloseBalance}
                 isDialog={isDialog}
+                showLendingHeader={showLendingHeader}
                 onSetTokenBank={(bank) => setSelectedTokenBank(bank)}
                 onSetAmountRaw={(amount) => setAmountRaw(amount)}
+                changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
               />
               {actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat && (
                 <ActionBoxRepayInput
