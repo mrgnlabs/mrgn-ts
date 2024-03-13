@@ -101,7 +101,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
               </div>
             </SwiperSlide>
           ))}
-          <Pagination itemsLength={items.length} />
+          {items.length > 1 && <Pagination itemsLength={items.length} />}
         </Swiper>
       </div>
     </div>
