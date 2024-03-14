@@ -6,9 +6,11 @@ import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { IconArrowLeft } from "~/components/ui/icons";
 
 import { ActionBoxSlippage, ActionBoxPriorityFees } from "./Components";
+import { RepayType } from "~/utils";
 
 type ActionBoxSettingsProps = {
-  mode: ActionType;
+  repayMode: RepayType;
+  actionMode: ActionType;
   toggleSettings: (mode: boolean) => void;
   slippageBps: number;
   setSlippageBps: (value: number) => void;
@@ -19,19 +21,30 @@ enum SettingsState {
   PriorityFee = "priority-fee",
 }
 
-export const ActionBoxSettings = ({ mode, toggleSettings, slippageBps, setSlippageBps }: ActionBoxSettingsProps) => {
-  const [settingsMode, setSettingsMode] = React.useState<SettingsState>(SettingsState.Slippage);
+export const ActionBoxSettings = ({
+  actionMode,
+  repayMode,
+  toggleSettings,
+  slippageBps,
+  setSlippageBps,
+}: ActionBoxSettingsProps) => {
+  const [settingsMode, setSettingsMode] = React.useState<SettingsState>(SettingsState.PriorityFee);
   const modeLabel = React.useMemo(() => {
     let label = "";
 
-    if (mode === ActionType.Deposit) {
+    if (actionMode === ActionType.Deposit) {
       label = "to lending";
-    } else if (mode === ActionType.Borrow) {
+    } else if (actionMode === ActionType.Borrow) {
       label = "to borrowing";
     }
 
     return label;
-  }, [mode]);
+  }, [actionMode]);
+
+  const isSlippageEnabled = React.useMemo(
+    () => actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat,
+    [actionMode, repayMode]
+  );
 
   return (
     <div className="space-y-6">
@@ -39,32 +52,36 @@ export const ActionBoxSettings = ({ mode, toggleSettings, slippageBps, setSlippa
         <button className="flex items-center gap-1.5 text-sm" onClick={() => toggleSettings(false)}>
           <IconArrowLeft size={18} /> Back {modeLabel}
         </button>
-        {/* <ToggleGroup
-          value={settingsMode}
-          onValueChange={(value) => setSettingsMode(value as SettingsState)}
-          type="single"
-          size="lg"
-        >
-          <ToggleGroupItem value="slippage" className="w-1/2 text-xs">
-            Slippage
-          </ToggleGroupItem>
-          <ToggleGroupItem value="priority-fee" className="w-1/2 text-xs gap-1.5">
-            Priority Fee
-          </ToggleGroupItem>
-        </ToggleGroup> */}
+        {isSlippageEnabled && (
+          <ToggleGroup
+            value={settingsMode}
+            onValueChange={(value) => setSettingsMode(value as SettingsState)}
+            type="single"
+            variant="actionBox"
+            size="lg"
+          >
+            <ToggleGroupItem value="slippage" className="w-1/2 text-xs">
+              Slippage
+            </ToggleGroupItem>
+
+            <ToggleGroupItem value="priority-fee" className="w-1/2 text-xs gap-1.5">
+              Priority Fee
+            </ToggleGroupItem>
+          </ToggleGroup>
+        )}
       </div>
       <div>
-        {/* {settingsMode === SettingsState.Slippage && (
+        {settingsMode === SettingsState.Slippage && (
           <ActionBoxSlippage
-            mode={mode}
+            mode={actionMode}
             toggleSettings={toggleSettings}
             slippageBps={slippageBps}
             setSlippageBps={setSlippageBps}
           />
         )}
-        {settingsMode === SettingsState.PriorityFee && ( */}
-        <ActionBoxPriorityFees mode={mode} toggleSettings={toggleSettings} />
-        {/* )} */}
+        {settingsMode === SettingsState.PriorityFee && (
+          <ActionBoxPriorityFees mode={actionMode} toggleSettings={toggleSettings} />
+        )}
       </div>
     </div>
   );

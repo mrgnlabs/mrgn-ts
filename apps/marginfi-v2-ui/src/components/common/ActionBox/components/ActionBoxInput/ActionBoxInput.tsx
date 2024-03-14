@@ -144,6 +144,7 @@ export const ActionBoxInput = ({
         <div className="w-full flex-auto max-w-[162px]">
           <ActionBoxTokens
             isDialog={isDialog}
+            repayType={repayMode}
             repayTokenBank={selectedRepayTokenBank}
             currentTokenBank={selectedTokenBank}
             setRepayTokenBank={(tokenBank) => {
