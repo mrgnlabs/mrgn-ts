@@ -146,7 +146,7 @@ export const LendingTokensList = ({ selectedBank, onSetCurrentTokenBank, isOpen,
         shouldFilter={false}
         value={selectedBank?.address?.toString().toLowerCase() ?? ""}
       >
-        <div className="fixed bg-background-gray w-[90%] z-40 flex justify-between">
+        <div className="fixed bg-background-gray w-[94%] z-40 flex justify-between">
           <CommandInput
             placeholder="Search token..."
             className="h-12 "
