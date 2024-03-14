@@ -92,7 +92,7 @@ export const LendingTokens = ({
       {isSelectable && (
         <>
           <Desktop>
-            <Popover open={isOpen} onOpenChange={(open) => setIsOpen(open)} modal={true}>
+            <Popover open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
               <PopoverTrigger asChild>
                 <div>
                   <LendingTokensTrigger
@@ -104,13 +104,13 @@ export const LendingTokens = ({
                 </div>
               </PopoverTrigger>
               <PopoverContent
-                className="p-1 md:w-[320px] bg-background-gray"
+                className="p-1 w-[320px] bg-background-gray"
                 align="start"
                 side="bottom"
                 sideOffset={-50}
                 avoidCollisions={false}
               >
-                <div className="max-h-[calc(100vh-580px)] min-h-[200px] relative overflow-auto">
+                <div className="max-h-[480px] min-h-[200px] relative overflow-auto">
                   {repayType === RepayType.RepayCollat ? (
                     <RepayCollatTokensList
                       isOpen={isOpen}
@@ -147,19 +147,19 @@ export const LendingTokens = ({
                 <div className="py-8 bg-background-gray h-full">
                   <h3 className="px-3 text-2xl font-semibold">Select Token</h3>
                   {repayType === RepayType.RepayCollat ? (
+                    <RepayCollatTokensList
+                      isOpen={isOpen}
+                      onClose={() => setIsOpen(false)}
+                      onSetRepayTokenBank={setRepayTokenBank}
+                      highlightedRepayTokens={highlightedRepayTokens}
+                    />
+                  ) : (
                     <LendingTokensList
                       isOpen={isOpen}
                       onClose={() => setIsOpen(false)}
                       selectedBank={selectedBank}
                       onSetCurrentTokenBank={setCurrentTokenBank}
                       isDialog={isDialog}
-                    />
-                  ) : (
-                    <RepayCollatTokensList
-                      isOpen={isOpen}
-                      onClose={() => setIsOpen(false)}
-                      onSetRepayTokenBank={setRepayTokenBank}
-                      highlightedRepayTokens={highlightedRepayTokens}
                     />
                   )}
                 </div>
