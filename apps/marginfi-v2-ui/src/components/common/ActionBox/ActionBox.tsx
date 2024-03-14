@@ -305,6 +305,8 @@ export const ActionBox = ({
 
   React.useEffect(() => {
     if (repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
+      setRepayAmountRaw("");
+      setMaxAmountCollat(0);
       calculateMaxCollat(selectedBank, selectedRepayBank);
     } else {
       setRepayCollatQuote(undefined);
@@ -314,7 +316,12 @@ export const ActionBox = ({
   }, [repayMode, selectedRepayBank, selectedBank, setRepayCollatQuote, setRepayAmountRaw]);
 
   React.useEffect(() => {
-    console.log({ repayMode, selectedRepayBank, selectedBank, debouncedRepayAmount });
+    if (debouncedRepayAmount && repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
+      calculateRepayCollateral(selectedBank, selectedRepayBank, debouncedRepayAmount);
+    }
+  }, [debouncedRepayAmount, repayMode, selectedRepayBank, selectedBank]);
+
+  React.useEffect(() => {
     if (debouncedRepayAmount && repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
       calculateRepayCollateral(selectedBank, selectedRepayBank, debouncedRepayAmount);
     }
@@ -347,6 +354,7 @@ export const ActionBox = ({
       const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
 
       if (amount !== 0) {
+        setIsLoading(true);
         const quoteParams = {
           amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
           inputMint: repayBank.info.state.mint.toBase58(),
@@ -387,39 +395,15 @@ export const ActionBox = ({
           }
         } catch {
           showErrorToast("Failed to fetch max amount, please refresh.");
+        } finally {
+          setIsLoading(false);
         }
       }
     },
-    [setMaxAmountCollat]
+    [setMaxAmountCollat, setIsLoading]
   );
 
-  const calculateRepayCollateral = async (
-    bank: ExtendedBankInfo,
-    repayBank: ExtendedBankInfo,
-    amount: number,
-    isTotalRepay?: boolean
-  ) => {
-    // if (isTotalRepay) {
-    //   const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
-    //   const quoteParams = {
-    //     amount: uiToNative(maxRepayAmount, bank.info.state.mintDecimals).toNumber(),
-    //     inputMint: repayBank.info.state.mint.toBase58(),
-    //     outputMint: bank.info.state.mint.toBase58(),
-    //     slippageBps: slippageBps,
-    //     swapMode: "ExactOut",
-    //     onlyDirectRoutes: true,
-    //   } as QuoteGetRequest;
-    // } else {
-    //   const quoteParams = {
-    //     amount: uiToNative(amount, bank.info.state.mintDecimals).toNumber(),
-    //     inputMint: repayBank.info.state.mint.toBase58(),
-    //     outputMint: bank.info.state.mint.toBase58(),
-    //     slippageBps: slippageBps,
-    //     swapMode: "ExactIn",
-    //     onlyDirectRoutes: true,
-    //   } as QuoteGetRequest;
-    // }
-
+  const calculateRepayCollateral = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, amount: number) => {
     const quoteParams = {
       amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
       inputMint: repayBank.info.state.mint.toBase58(),
@@ -430,16 +414,18 @@ export const ActionBox = ({
     } as QuoteGetRequest;
 
     try {
+      setIsLoading(true);
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
       if (swapQuote) {
         const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
-        // setMaxAmountCollat(withdrawAmount);
 
         setRepayCollatQuote(swapQuote);
       }
     } catch (error) {
       showErrorToast("Unable to retrieve data. Please choose a different collateral option or refresh the page.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
