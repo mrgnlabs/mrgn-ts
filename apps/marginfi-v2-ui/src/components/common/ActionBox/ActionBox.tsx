@@ -337,70 +337,65 @@ export const ActionBox = ({
   };
 
   const calculateMaxCollat = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo) => {
-    const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
-
-    if (amount !== 0) {
-      const quoteParams = {
-        amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-        inputMint: repayBank.info.state.mint.toBase58(),
-        outputMint: bank.info.state.mint.toBase58(),
-        slippageBps: slippageBps,
-        onlyDirectRoutes: true,
-        swapMode: "ExactIn" as any,
-        maxAccounts: 20,
-      } as QuoteGetRequest;
-
-      try {
-        const swapQuote = await getSwapQuoteWithRetry(quoteParams);
-
-        if (swapQuote) {
-          const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
-          setMaxAmountCollat(withdrawAmount);
-        }
-      } catch {
-        showErrorToast("Failed to fetch max amount, please refresh.");
-      }
-    }
+    // const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
+    // if (amount !== 0) {
+    //   const quoteParams = {
+    //     amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+    //     inputMint: repayBank.info.state.mint.toBase58(),
+    //     outputMint: bank.info.state.mint.toBase58(),
+    //     slippageBps: slippageBps,
+    //     onlyDirectRoutes: true,
+    //     swapMode: "ExactIn" as any,
+    //     maxAccounts: 20,
+    //   } as QuoteGetRequest;
+    //   try {
+    //     const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+    //     if (swapQuote) {
+    //       const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
+    //       setMaxAmountCollat(withdrawAmount);
+    //     }
+    //   } catch {
+    //     showErrorToast("Failed to fetch max amount, please refresh.");
+    //   }
+    // }
   };
 
   const calculateRepayCollateral = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, amount: number) => {
-    const quoteParams = {
-      amount: uiToNative(amount, bank.info.state.mintDecimals).toNumber(),
-      inputMint: repayBank.info.state.mint.toBase58(),
-      outputMint: bank.info.state.mint.toBase58(),
-      slippageBps: slippageBps,
-      swapMode: "ExactOut",
-      onlyDirectRoutes: true,
-    } as QuoteGetRequest;
-
-    try {
-      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
-      if (swapQuote) {
-        const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
-        setRepayAmount(withdrawAmount);
-        setRepayCollatQuote(swapQuote);
-      }
-    } catch (error) {
-      showErrorToast("Unable to retrieve data. Please choose a different collateral option or refresh the page.");
-    }
+    //   const quoteParams = {
+    //     amount: uiToNative(amount, bank.info.state.mintDecimals).toNumber(),
+    //     inputMint: repayBank.info.state.mint.toBase58(),
+    //     outputMint: bank.info.state.mint.toBase58(),
+    //     slippageBps: slippageBps,
+    //     swapMode: "ExactOut",
+    //     onlyDirectRoutes: true,
+    //   } as QuoteGetRequest;
+    //   try {
+    //     const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+    //     if (swapQuote) {
+    //       const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
+    //       setRepayAmount(withdrawAmount);
+    //       setRepayCollatQuote(swapQuote);
+    //     }
+    //   } catch (error) {
+    //     showErrorToast("Unable to retrieve data. Please choose a different collateral option or refresh the page.");
+    //   }
+    // };
+    // async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 5, timeout = 1000) {
+    //   let attempt = 0;
+    //   while (attempt < maxRetries) {
+    //     try {
+    //       const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
+    //       return swapQuote; // Success, return the result
+    //     } catch (error) {
+    //       console.error(`Attempt ${attempt + 1} failed:`, error);
+    //       attempt++;
+    //       if (attempt === maxRetries) {
+    //         throw new Error(`Failed to get to quote after ${maxRetries} attempts`);
+    //       }
+    //       await new Promise((resolve) => setTimeout(resolve, timeout));
+    //     }
+    //   }
   };
-
-  async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 5, timeout = 1000) {
-    let attempt = 0;
-    while (attempt < maxRetries) {
-      try {
-        const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
-        return swapQuote; // Success, return the result
-      } catch (error) {
-        console.error(`Attempt ${attempt + 1} failed:`, error);
-        attempt++;
-        if (attempt === maxRetries) {
-          throw new Error(`Failed to get to quote after ${maxRetries} attempts`);
-        }
-        await new Promise((resolve) => setTimeout(resolve, timeout));
-      }
-    }
-  }
 
   const executeLendingActionCb = React.useCallback(
     async ({
@@ -674,7 +669,7 @@ export const ActionBox = ({
                 onSetTokenBank={(bank) => setSelectedTokenBank(bank)}
                 onSetAmountRaw={(amount) => setAmountRaw(amount)}
               />
-              {actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat && (
+              {/* {actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat && (
                 <ActionBoxRepayInput
                   actionMode={actionMode}
                   selectedRepayBank={selectedRepayBank}
@@ -684,7 +679,7 @@ export const ActionBox = ({
                   isDialog={isDialog}
                   onSetSelectedBank={(bank) => setSelectedRepayTokenBank(bank)}
                 />
-              )}
+              )} */}
 
               {actionMethod.description && (
                 <div className="pb-6">
