@@ -4,7 +4,7 @@ import { numeralFormatter, percentFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { useLstStore } from "~/pages/stake";
 
 export const StakingStats: FC = () => {
-  const [lstData] = useLstStore((state) => [state.lstData]); // state.solUsdValue
+  const [lstData, solUsdValue] = useLstStore((state) => [state.lstData, state.solUsdValue]);
 
   return (
     <div className="h-full rounded-xl font-[500]">
@@ -19,7 +19,7 @@ export const StakingStats: FC = () => {
             TVL
           </Typography>
           <Typography color="#fff" className="font-aeonik font-[500] text-xl" component="div">
-            {/* {lstData && solUsdValue ? `$${numeralFormatter(lstData.tvl * solUsdValue)}` : "-"} */}
+            {lstData && solUsdValue ? `$${numeralFormatter(lstData.tvl * solUsdValue)}` : "-"}
           </Typography>
         </div>
 
@@ -35,7 +35,7 @@ export const StakingStats: FC = () => {
             Projected APY
           </Typography>
           <Typography color="#fff" className="font-aeonik font-[500] text-xl" component="div">
-            {/* {lstData ? percentFormatterDyn.format(lstData.projectedApy) : "-"} */}
+            {lstData ? percentFormatterDyn.format(lstData.projectedApy) : "-"}
           </Typography>
         </div>
       </div>

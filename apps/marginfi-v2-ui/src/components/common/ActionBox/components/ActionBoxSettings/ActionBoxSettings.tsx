@@ -40,7 +40,7 @@ export const ActionBoxSettings = ({ mode, toggleSettings, slippageBps, setSlippa
         <button className="flex items-center gap-1.5 text-sm" onClick={() => toggleSettings(false)}>
           <IconArrowLeft size={18} /> Back {modeLabel}
         </button>
-        <ToggleGroup
+        {/* <ToggleGroup
           value={settingsMode}
           onValueChange={(value) => setSettingsMode(value as SettingsState)}
           type="single"
@@ -52,10 +52,10 @@ export const ActionBoxSettings = ({ mode, toggleSettings, slippageBps, setSlippa
           <ToggleGroupItem value="priority-fee" className="w-1/2 text-xs gap-1.5">
             Priority Fee
           </ToggleGroupItem>
-        </ToggleGroup>
+        </ToggleGroup> */}
       </div>
       <div>
-        {settingsMode === SettingsState.Slippage && (
+        {/* {settingsMode === SettingsState.Slippage && (
           <ActionBoxSlippage
             mode={mode}
             toggleSettings={toggleSettings}
@@ -63,9 +63,9 @@ export const ActionBoxSettings = ({ mode, toggleSettings, slippageBps, setSlippa
             setSlippageBps={setSlippageBps}
           />
         )}
-        {settingsMode === SettingsState.PriorityFee && (
-          <ActionBoxPriorityFees mode={mode} toggleSettings={toggleSettings} />
-        )}
+        {settingsMode === SettingsState.PriorityFee && ( */}
+        <ActionBoxPriorityFees mode={mode} toggleSettings={toggleSettings} />
+        {/* )} */}
       </div>
     </div>
   );

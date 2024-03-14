@@ -55,7 +55,7 @@ export const ActionBoxHeader = ({
       )}
 
       {/* Repay header */}
-      {actionType === ActionType.Repay && (
+      {/* {actionType === ActionType.Repay && (
         <div className="w-full flex flex-col items-center mb-6">
           <ToggleGroup
             type="single"
@@ -73,7 +73,7 @@ export const ActionBoxHeader = ({
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
-      )}
+      )} */}
     </>
   );
 };

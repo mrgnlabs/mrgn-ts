@@ -12,6 +12,7 @@ import { createLstStore } from "~/store/lstStore";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
+import { StakingCard, StakingStats } from "~/components/common/Staking";
 import { PageHeader } from "~/components/common/PageHeader";
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
@@ -35,14 +36,14 @@ export default function StakePage() {
     }
   }, [router]);
 
-  const [initialized, isRefreshingStore, fetchLstState, setIsRefreshingStore] = //userDataFetched, resetUserData
+  const [initialized, isRefreshingStore, fetchLstState, setIsRefreshingStore, userDataFetched, resetUserData] =
     useLstStore((state) => [
       state.initialized,
       state.isRefreshingStore,
       state.fetchLstState,
       state.setIsRefreshingStore,
-      // state.userDataFetched,
-      // state.resetUserData,
+      state.userDataFetched,
+      state.resetUserData,
     ]);
 
   React.useEffect(() => {
@@ -91,17 +92,17 @@ export default function StakePage() {
   // TODO: fix...
 
   const prevWalletAddress = usePrevious(walletAddress);
-  // React.useEffect(() => {
-  //   if (!prevWalletAddress && walletAddress) {
-  //     resetUserData();
-  //   }
-  // }, [walletAddress, prevWalletAddress, resetUserData]);
+  React.useEffect(() => {
+    if (!prevWalletAddress && walletAddress) {
+      resetUserData();
+    }
+  }, [walletAddress, prevWalletAddress, resetUserData]);
 
-  // React.useEffect(() => {
-  //   if (!walletAddress && userDataFetched) {
-  //     resetUserData();
-  //   }
-  // }, [walletAddress, userDataFetched, resetUserData]);
+  React.useEffect(() => {
+    if (!walletAddress && userDataFetched) {
+      resetUserData();
+    }
+  }, [walletAddress, userDataFetched, resetUserData]);
 
   if (!mounted) return null;
 
@@ -145,8 +146,8 @@ const StakingContent = ({ isInitialized }: { isInitialized: boolean }) => (
     {isInitialized && (
       <>
         <div className="max-w-[480px] w-full space-y-4">
-          {/* <StakingStats /> */}
-          {/* <StakingCard /> */}
+          <StakingStats />
+          <StakingCard />
         </div>
         <p className="text-white/75 mt-8 text-center">
           Using mrgn&apos;s sophisticated validator set, you pay no fees, earn more yield, and get more utility out of
