@@ -98,18 +98,6 @@ export function checkActionAvailable({
         break;
     }
   }
-
-  if (selectedStakingAccount) {
-    // TODO add posible cases of faulty staking account specific issues
-  }
-
-  if (amount && amount <= 0) {
-    return {
-      description: "Add an amount",
-      isEnabled: false,
-    };
-  }
-
   return {
     isEnabled: true,
   };
@@ -232,15 +220,6 @@ function canBeRepaidCollat(
     };
   }
 
-  if (targetBankInfo.userInfo.tokenAccount.balance > 0) {
-    return {
-      description: `You have ${targetBankInfo.meta.tokenSymbol} in your wallet and can repay without using collateral.`,
-      isEnabled: true,
-      primaryColor: "text-info-foreground",
-      backgroundColor: "bg-info",
-    };
-  }
-
   if (repayBankInfo && directRoutes) {
     if (!directRoutes.find((key) => key.equals(repayBankInfo.info.state.mint))) {
       return {
@@ -254,6 +233,16 @@ function canBeRepaidCollat(
 
   if (!swapQuote) {
     return { isEnabled: false };
+  }
+
+  // always as last check since if isEnabled: true
+  if (targetBankInfo.userInfo.tokenAccount.balance > 0) {
+    return {
+      description: `You have ${targetBankInfo.meta.tokenSymbol} in your wallet and can repay without using collateral.`,
+      isEnabled: true,
+      primaryColor: "text-info-foreground",
+      backgroundColor: "bg-info",
+    };
   }
 
   return null;

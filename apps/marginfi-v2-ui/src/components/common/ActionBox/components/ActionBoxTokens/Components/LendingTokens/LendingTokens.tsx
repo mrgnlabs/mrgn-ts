@@ -56,8 +56,6 @@ export const LendingTokens = ({
     [extendedBankInfos, repayTokenBank]
   );
 
-  console.log({ repayType });
-
   const isSelectable = React.useMemo(() => !isDialog || repayType === RepayType.RepayCollat, [isDialog, repayType]);
 
   const calculateRate = React.useCallback(
@@ -114,19 +112,19 @@ export const LendingTokens = ({
               >
                 <div className="max-h-[calc(100vh-580px)] min-h-[200px] relative overflow-auto">
                   {repayType === RepayType.RepayCollat ? (
+                    <RepayCollatTokensList
+                      isOpen={isOpen}
+                      onClose={() => setIsOpen(false)}
+                      onSetRepayTokenBank={setRepayTokenBank}
+                      highlightedRepayTokens={highlightedRepayTokens}
+                    />
+                  ) : (
                     <LendingTokensList
                       isOpen={isOpen}
                       onClose={() => setIsOpen(false)}
                       selectedBank={selectedBank}
                       onSetCurrentTokenBank={setCurrentTokenBank}
                       isDialog={isDialog}
-                    />
-                  ) : (
-                    <RepayCollatTokensList
-                      isOpen={isOpen}
-                      onClose={() => setIsOpen(false)}
-                      onSetRepayTokenBank={setRepayTokenBank}
-                      highlightedRepayTokens={highlightedRepayTokens}
                     />
                   )}
                 </div>
