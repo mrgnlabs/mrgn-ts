@@ -119,7 +119,7 @@ export default function HomePage() {
             <Stats />
             <Announcements items={annoucements} />
             <ActionBoxLendWrapper />
-            <div className="mb-18" />
+            <div className="mb-24" />
           </>
         )}
       </Mobile>
