@@ -29,11 +29,9 @@ import { showErrorToast } from "~/utils/toastUtils";
 
 import {
   ActionBoxPreview,
-  ActionBoxHeader,
   ActionBoxSettings,
   ActionBoxActions,
   ActionBoxInput,
-  ActionBoxRepayInput,
 } from "~/components/common/ActionBox/components";
 
 type ActionBoxProps = {
@@ -173,7 +171,7 @@ export const ActionBox = ({
     return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
   }, [repayAmountRaw]);
 
-  const debouncedRepayAmount = useDebounce<number | null>(amount, 500);
+  const debouncedRepayAmount = useDebounce<number | null>(repayAmount, 500);
 
   const [repayCollatQuote, setRepayCollatQuote] = React.useState<QuoteResponse>();
 
@@ -307,7 +305,7 @@ export const ActionBox = ({
 
   React.useEffect(() => {
     if (repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
-      calculateMaxCollatNew(selectedBank, selectedRepayBank);
+      calculateMaxCollat(selectedBank, selectedRepayBank);
     } else {
       setRepayCollatQuote(undefined);
       setRepayAmountRaw("");
@@ -316,6 +314,7 @@ export const ActionBox = ({
   }, [repayMode, selectedRepayBank, selectedBank, setRepayCollatQuote, setRepayAmountRaw]);
 
   React.useEffect(() => {
+    console.log({ repayMode, selectedRepayBank, selectedBank, debouncedRepayAmount });
     if (debouncedRepayAmount && repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
       calculateRepayCollateral(selectedBank, selectedRepayBank, debouncedRepayAmount);
     }
@@ -342,7 +341,7 @@ export const ActionBox = ({
     } catch (error) {}
   };
 
-  const calculateMaxCollatNew = React.useCallback(
+  const calculateMaxCollat = React.useCallback(
     async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo) => {
       const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
       const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
@@ -368,8 +367,8 @@ export const ActionBox = ({
           if (inputInOtherAmount > maxRepayAmount) {
             const quoteParams = {
               amount: uiToNative(maxRepayAmount, bank.info.state.mintDecimals).toNumber(),
-              inputMint: repayBank.info.state.mint.toBase58(),
-              outputMint: bank.info.state.mint.toBase58(),
+              inputMint: repayBank.info.state.mint.toBase58(), // USDC
+              outputMint: bank.info.state.mint.toBase58(), // JITO
               slippageBps: slippageBps,
               swapMode: "ExactOut",
               onlyDirectRoutes: true,
@@ -378,40 +377,13 @@ export const ActionBox = ({
             const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams);
             if (!swapQuoteOutput) throw new Error();
 
-            const inputOutOtherAmount = nativeToUi(swapQuoteOutput.otherAmountThreshold, bank.info.state.mintDecimals);
+            const inputOutOtherAmount = nativeToUi(
+              swapQuoteOutput.otherAmountThreshold,
+              repayBank.info.state.mintDecimals
+            );
             setMaxAmountCollat(inputOutOtherAmount);
           } else {
             setMaxAmountCollat(inputInOtherAmount);
-          }
-        } catch {
-          showErrorToast("Failed to fetch max amount, please refresh.");
-        }
-      }
-    },
-    [setMaxAmountCollat]
-  );
-
-  const calculateMaxCollat = React.useCallback(
-    async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo) => {
-      const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
-
-      if (amount !== 0) {
-        const quoteParams = {
-          amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-          inputMint: repayBank.info.state.mint.toBase58(),
-          outputMint: bank.info.state.mint.toBase58(),
-          slippageBps: slippageBps,
-          onlyDirectRoutes: true,
-          swapMode: "ExactIn" as any,
-          maxAccounts: 20,
-        } as QuoteGetRequest;
-
-        try {
-          const swapQuote = await getSwapQuoteWithRetry(quoteParams);
-
-          if (swapQuote) {
-            const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
-            setMaxAmountCollat(withdrawAmount);
           }
         } catch {
           showErrorToast("Failed to fetch max amount, please refresh.");
@@ -449,7 +421,7 @@ export const ActionBox = ({
     // }
 
     const quoteParams = {
-      amount: uiToNative(amount, bank.info.state.mintDecimals).toNumber(),
+      amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
       inputMint: repayBank.info.state.mint.toBase58(),
       outputMint: bank.info.state.mint.toBase58(),
       slippageBps: slippageBps,
@@ -459,15 +431,34 @@ export const ActionBox = ({
 
     try {
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+
       if (swapQuote) {
         const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
         // setMaxAmountCollat(withdrawAmount);
+
         setRepayCollatQuote(swapQuote);
       }
     } catch (error) {
       showErrorToast("Unable to retrieve data. Please choose a different collateral option or refresh the page.");
     }
   };
+
+  async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 5, timeout = 1000) {
+    let attempt = 0;
+    while (attempt < maxRetries) {
+      try {
+        const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
+        return swapQuote; // Success, return the result
+      } catch (error) {
+        console.error(`Attempt ${attempt + 1} failed:`, error);
+        attempt++;
+        if (attempt === maxRetries) {
+          throw new Error(`Failed to get to quote after ${maxRetries} attempts`);
+        }
+        await new Promise((resolve) => setTimeout(resolve, timeout));
+      }
+    }
+  }
 
   const executeLendingActionCb = React.useCallback(
     async ({
@@ -625,7 +616,7 @@ export const ActionBox = ({
   ]);
 
   const handleLendingAction = React.useCallback(async () => {
-    if (!actionMode || !selectedBank || !amount) {
+    if (!actionMode || !selectedBank || (!amount && !repayAmount)) {
       return;
     }
 
@@ -641,9 +632,14 @@ export const ActionBox = ({
       } as MarginfiActionParams;
 
       if (repayCollatQuote && repayAmount && selectedRepayBank && connection && wallet) {
+        const maxRepayAmount = selectedBank.isActive ? selectedBank?.position.amount : 0;
+        const amountFromQuote = nativeToUi(repayCollatQuote.otherAmountThreshold, selectedBank.info.state.mintDecimals);
+        const amountToRepay = maxRepayAmount > amountFromQuote ? amountFromQuote : maxRepayAmount;
+        params.amount = amountToRepay;
+
         params.repayWithCollatOptions = {
           repayCollatQuote,
-          repayAmount,
+          repayAmount: repayAmount,
           repayBank: selectedRepayBank,
           connection,
           wallet,
@@ -713,20 +709,14 @@ export const ActionBox = ({
         >
           {isSettingsMode ? (
             <ActionBoxSettings
-              mode={actionMode}
+              repayMode={repayMode}
+              actionMode={actionMode}
               toggleSettings={setIsSettingsMode}
               setSlippageBps={(value) => setSlippageBps(value * 100)}
               slippageBps={slippageBps / 100}
             />
           ) : (
             <>
-              {/* <ActionBoxHeader
-                actionType={actionMode}
-                repayType={repayMode}
-                showLendingHeader={showLendingHeader}
-                changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
-                bank={selectedBank}
-              /> */}
               <ActionBoxInput
                 actionMode={actionMode}
                 repayMode={repayMode}
@@ -749,18 +739,6 @@ export const ActionBox = ({
                 onSetRepayAmountRaw={(amount) => setRepayAmountRaw(amount)}
                 changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
               />
-              {/* {actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat && (
-                <ActionBoxRepayInput
-                  actionMode={actionMode}
-                  selectedRepayBank={selectedRepayBank}
-                  selectedRepayTokenBank={selectedRepayTokenBank}
-                  directRoutes={directRoutes}
-                  rawRepayAmount={rawRepayAmount}
-                  repayMode={repayMode}
-                  isDialog={isDialog}
-                  onSetSelectedBank={(bank) => setSelectedRepayTokenBank(bank)}
-                />
-              )} */}
 
               {actionMethod.description && (
                 <div className="pb-6">
@@ -800,7 +778,7 @@ export const ActionBox = ({
                     showCloseBalance ? handleCloseBalance() : handleAction();
                   }}
                   isLoading={isLoading}
-                  isEnabled={actionMethod.isEnabled && amount > 0}
+                  isEnabled={actionMethod.isEnabled && (amount > 0 || repayAmount > 0)}
                   actionMode={actionMode}
                 />
                 <div className="flex justify-between mt-3">
