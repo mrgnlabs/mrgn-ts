@@ -56,11 +56,11 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
   ]);
   const isBankFilled = useMemo(() => {
     if (!bank?.info?.state) return false;
-    return isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows >= bankCap * 0.99999;
+    return (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.99999;
   }, [bankCap, isInLendingMode, bank?.info?.state]);
   const isBankHigh = useMemo(() => {
     if (!bank?.info?.state) return false;
-    return isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows >= bankCap * 0.9;
+    return (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.9;
   }, [bankCap, isInLendingMode, bank?.info?.state]);
 
   return { rateAP, assetWeight, bankCap, isBankFilled, isBankHigh };
