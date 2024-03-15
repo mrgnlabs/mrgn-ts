@@ -140,6 +140,7 @@ export const ActionBoxInput = ({
         selectedStakingAccount={selectedStakingAccount}
         walletAmount={walletAmount}
         maxAmount={maxAmount}
+        amountRaw={amountRaw}
         onSetAmountRaw={(amount) => handleInputChange(amount)}
         changeRepayType={(type) => changeRepayType(type)}
         changeLstType={(type) => changeLstType(type)}
