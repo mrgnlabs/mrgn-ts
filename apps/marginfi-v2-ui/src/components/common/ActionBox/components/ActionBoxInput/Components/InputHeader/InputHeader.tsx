@@ -3,7 +3,7 @@ import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 
-import { StakeData, clampedNumeralFormatter, RepayType } from "~/utils";
+import { StakeData, clampedNumeralFormatter, RepayType, LstType } from "~/utils";
 
 import { IconWallet } from "~/components/ui/icons";
 import { InputHeaderAction } from "./InputHeaderAction";
@@ -12,6 +12,7 @@ type props = {
   actionMode: ActionType;
   selectedBank: ExtendedBankInfo | null;
   repayMode: RepayType;
+  lstType: LstType;
   selectedStakingAccount: StakeData | null;
 
   walletAmount: number | undefined;
@@ -20,6 +21,7 @@ type props = {
   isDialog?: boolean;
   showLendingHeader?: boolean;
 
+  changeLstType: (lstType: LstType) => void;
   changeRepayType: (repayType: RepayType) => void;
   onSetAmountRaw: (amount: string) => void;
 };
@@ -32,44 +34,12 @@ export const InputHeader = ({
   selectedStakingAccount,
   walletAmount,
   repayMode,
-  showLendingHeader,
+  lstType,
   changeRepayType,
+  changeLstType,
   onSetAmountRaw,
 }: props) => {
-  const titleText = React.useMemo(() => {
-    const actionTitles: { [key in ActionType]?: string } = {
-      [ActionType.Borrow]: "You borrow",
-      [ActionType.Deposit]: "You supply",
-      [ActionType.Withdraw]: "You withdraw",
-      [ActionType.Repay]: "You repay",
-      [ActionType.MintLST]: "You stake",
-    };
-
-    return actionTitles[actionMode] || "";
-  }, [actionMode]);
-
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
-
-  const showTitleText = React.useMemo(() => {
-    return !isDialog || actionMode === ActionType.MintLST || actionMode === ActionType.Repay;
-  }, [isDialog, actionMode]);
-
-  const maxTitle = React.useMemo(() => {
-    switch (actionMode) {
-      case ActionType.Deposit:
-      case ActionType.Borrow:
-      case ActionType.Withdraw:
-      case ActionType.Repay:
-        return `${actionMode} Full`;
-
-      case ActionType.MintLST:
-      case ActionType.MintYBX:
-        return "Mint Full";
-
-      default:
-        return "Max";
-    }
-  }, [actionMode]);
 
   const maxLabel = React.useMemo((): {
     amount: string;
@@ -138,8 +108,10 @@ export const InputHeader = ({
           actionType={actionMode}
           bank={selectedBank}
           repayType={repayMode}
+          lstType={lstType}
           isDialog={isDialog}
           changeRepayType={(value) => changeRepayType(value)}
+          changeLstType={(value) => changeLstType(value)}
         />
       </div>
 

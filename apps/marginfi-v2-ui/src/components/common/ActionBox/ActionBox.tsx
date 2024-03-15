@@ -23,7 +23,7 @@ import { useDebounce } from "~/hooks/useDebounce";
 import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-import { checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
+import { checkActionAvailable, LstType, RepayType } from "~/utils/actionBoxUtils";
 import { IconAlertTriangle, IconChevronDown, IconSettings, IconEye, IconEyeClosed } from "~/components/ui/icons";
 import { showErrorToast } from "~/utils/toastUtils";
 
@@ -37,9 +37,7 @@ import {
 type ActionBoxProps = {
   requestedAction?: ActionType;
   requestedToken?: PublicKey;
-  requestedLendingMode?: LendingModes;
   isDialog?: boolean;
-  showLendingHeader?: boolean;
   handleCloseDialog?: () => void;
 };
 
@@ -49,14 +47,7 @@ type DirectRoutesMap = {
   };
 };
 
-export const ActionBox = ({
-  requestedAction,
-  requestedToken,
-  requestedLendingMode,
-  isDialog,
-  showLendingHeader,
-  handleCloseDialog,
-}: ActionBoxProps) => {
+export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleCloseDialog }: ActionBoxProps) => {
   const jupiterQuoteApi = createJupiterApiClient();
   const [
     mfiClient,
@@ -95,8 +86,13 @@ export const ActionBox = ({
   const { connection } = useConnection();
 
   const lendingMode = React.useMemo(
-    () => requestedLendingMode ?? lendingModeFromStore,
-    [lendingModeFromStore, requestedLendingMode]
+    () =>
+      (requestedAction === ActionType.Repay
+        ? LendingModes.BORROW
+        : requestedAction === ActionType.Withdraw
+        ? LendingModes.LEND
+        : undefined) ?? lendingModeFromStore,
+    [lendingModeFromStore, requestedAction]
   );
 
   const [slippageBps, setSlippageBps] = React.useState<number>(100);
@@ -107,6 +103,8 @@ export const ActionBox = ({
 
   const [actionMode, setActionMode] = React.useState<ActionType>(ActionType.Deposit);
   const [repayMode, setRepayMode] = React.useState<RepayType>(RepayType.RepayRaw);
+  const [lstMode, setLstMode] = React.useState<LstType>(LstType.Token);
+
   const [selectedTokenBank, setSelectedTokenBank] = React.useState<PublicKey | null>(null);
   const [selectedRepayTokenBank, setSelectedRepayTokenBank] = React.useState<PublicKey | null>(null);
   const [isSettingsMode, setIsSettingsMode] = React.useState<boolean>(false);
@@ -289,7 +287,11 @@ export const ActionBox = ({
     if (actionMode !== ActionType.Repay) {
       setRepayMode(RepayType.RepayRaw);
     }
-  }, [actionMode, setRepayMode]);
+
+    if (actionMode === ActionType.MintLST) {
+      setHasPreviewShown(true);
+    }
+  }, [actionMode, setRepayMode, setHasPreviewShown]);
 
   React.useEffect(() => {
     if (amount && amount > maxAmount) {
@@ -706,6 +708,7 @@ export const ActionBox = ({
               <ActionBoxInput
                 actionMode={actionMode}
                 repayMode={repayMode}
+                lstType={lstMode}
                 selectedBank={selectedBank}
                 selectedRepayBank={selectedRepayBank}
                 selectedTokenBank={selectedTokenBank}
@@ -718,12 +721,15 @@ export const ActionBox = ({
                 maxAmount={maxAmount}
                 showCloseBalance={showCloseBalance}
                 isDialog={isDialog}
-                showLendingHeader={showLendingHeader}
                 onSetTokenBank={(bank) => setSelectedTokenBank(bank)}
                 onSetTokenRepayBank={(bank) => setSelectedRepayTokenBank(bank)}
                 onSetAmountRaw={(amount) => setAmountRaw(amount)}
                 onSetRepayAmountRaw={(amount) => setRepayAmountRaw(amount)}
-                changeRepayType={(repayType: RepayType) => setRepayMode(repayType)}
+                changeRepayType={(repayType) => setRepayMode(repayType)}
+                changeLstType={(lstType) => {
+                  setSelectedTokenBank(null);
+                  setLstMode(lstType);
+                }}
               />
 
               {actionMethod.description && (
@@ -746,7 +752,8 @@ export const ActionBox = ({
                 selectedStakingAccount={selectedStakingAccount}
                 actionMode={actionMode}
                 amount={amount}
-                isEnabled={actionMethod.isEnabled && hasPreviewShown}
+                slippageBps={slippageBps}
+                isEnabled={hasPreviewShown}
                 repayWithCollatOptions={
                   repayCollatQuote && repayAmount && selectedRepayBank
                     ? {
@@ -768,28 +775,24 @@ export const ActionBox = ({
                   actionMode={actionMode}
                 />
                 <div className="flex justify-between mt-3">
-                  {actionMethod.isEnabled ? (
-                    <button
-                      className={cn(
-                        "flex text-muted-foreground text-xs items-center cursor-pointer transition hover:text-primary",
-                        actionMethod.isEnabled ? "cursor-pointer" : "cursor-not-allowed"
-                      )}
-                      onClick={() => actionMethod.isEnabled && setHasPreviewShown(!hasPreviewShown)}
-                    >
-                      {hasPreviewShown ? (
-                        <>
-                          <IconEyeClosed size={14} /> <span className="mx-1">Hide details</span>
-                        </>
-                      ) : (
-                        <>
-                          <IconEye size={14} /> <span className="mx-1">View details</span>
-                        </>
-                      )}
-                      <IconChevronDown className={cn(hasPreviewShown && "rotate-180")} size={16} />
-                    </button>
-                  ) : (
-                    <div />
-                  )}
+                  <button
+                    className={cn(
+                      "flex text-muted-foreground text-xs items-center cursor-pointer transition hover:text-primary cursor-pointer"
+                    )}
+                    onClick={() => setHasPreviewShown(!hasPreviewShown)}
+                  >
+                    {hasPreviewShown ? (
+                      <>
+                        <IconEyeClosed size={14} /> <span className="mx-1">Hide details</span>
+                      </>
+                    ) : (
+                      <>
+                        <IconEye size={14} /> <span className="mx-1">View details</span>
+                      </>
+                    )}
+                    <IconChevronDown className={cn(hasPreviewShown && "rotate-180")} size={16} />
+                  </button>
+
                   <div className="flex justify-end gap-2">
                     <button
                       onClick={() => setIsSettingsMode(true)}

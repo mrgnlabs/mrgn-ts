@@ -3,7 +3,7 @@ import { PublicKey } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { RepayType, StakeData } from "~/utils";
+import { LstType, RepayType, StakeData } from "~/utils";
 
 import { Input } from "~/components/ui/input";
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
@@ -13,6 +13,7 @@ import { InputHeader } from "./Components";
 type ActionBoxInputProps = {
   actionMode: ActionType;
   repayMode: RepayType;
+  lstType: LstType;
 
   selectedBank: ExtendedBankInfo | null;
   selectedRepayBank: ExtendedBankInfo | null;
@@ -29,19 +30,19 @@ type ActionBoxInputProps = {
 
   showCloseBalance?: boolean;
   isDialog?: boolean;
-  showLendingHeader?: boolean;
 
   onSetTokenBank: (bank: PublicKey | null) => void;
   onSetTokenRepayBank: (bank: PublicKey | null) => void;
   onSetAmountRaw: (amount: string) => void;
   onSetRepayAmountRaw: (amount: string) => void;
   changeRepayType: (repayType: RepayType) => void;
+  changeLstType: (lstType: LstType) => void;
 };
 
 export const ActionBoxInput = ({
   actionMode,
   repayMode,
-
+  lstType,
   selectedBank,
   selectedRepayBank,
   selectedTokenBank,
@@ -59,6 +60,7 @@ export const ActionBoxInput = ({
   onSetAmountRaw,
   onSetRepayAmountRaw,
   changeRepayType,
+  changeLstType,
 }: ActionBoxInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -134,17 +136,20 @@ export const ActionBoxInput = ({
         isDialog={isDialog}
         selectedBank={selectedBank}
         repayMode={repayMode}
+        lstType={lstType}
         selectedStakingAccount={selectedStakingAccount}
         walletAmount={walletAmount}
         maxAmount={maxAmount}
         onSetAmountRaw={(amount) => handleInputChange(amount)}
         changeRepayType={(type) => changeRepayType(type)}
+        changeLstType={(type) => changeLstType(type)}
       />
       <div className="bg-background text-3xl rounded-lg flex justify-center gap-1 items-center p-4 font-medium mb-5">
         <div className="w-full flex-auto max-w-[162px]">
           <ActionBoxTokens
             isDialog={isDialog}
             repayType={repayMode}
+            lstType={lstType}
             repayTokenBank={selectedRepayTokenBank}
             currentTokenBank={selectedTokenBank}
             setRepayTokenBank={(tokenBank) => {
