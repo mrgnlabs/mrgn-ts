@@ -35,7 +35,7 @@ require("~/styles/globals.css");
 require("~/styles/fonts.css");
 require("~/styles/asset-borders.css");
 
-const DesktopNavbar = dynamic(async () => (await import("~/components/desktop/DesktopNavbar")).DesktopNavbar, {
+const Navbar = dynamic(async () => (await import("~/components/common/Navbar")).Navbar, {
   ssr: false,
 });
 
@@ -93,10 +93,11 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
             <MrgnWalletProvider>
               <MrgnlendProvider>
                 <LipClientProvider>
+                  <Navbar />
+
                   <Desktop>
                     <WalletModalProvider>
-                      <DesktopNavbar />
-                      <div className="w-full flex flex-col justify-center items-center pt-[64px]">
+                      <div className="w-full flex flex-col justify-center items-center">
                         <Component {...pageProps} />
                       </div>
                       <Footer />
@@ -105,7 +106,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
                   <Mobile>
                     <MobileNavbar />
-                    <div className="w-full flex flex-col justify-center items-center lg:pt-[24px]">
+                    <div className="w-full flex flex-col justify-center items-center">
                       <Component {...pageProps} />
                     </div>
                   </Mobile>
