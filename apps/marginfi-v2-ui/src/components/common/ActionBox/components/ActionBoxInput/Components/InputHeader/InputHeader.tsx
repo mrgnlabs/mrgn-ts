@@ -15,6 +15,7 @@ type props = {
   lstType: LstType;
   selectedStakingAccount: StakeData | null;
 
+  amountRaw: string;
   walletAmount: number | undefined;
   maxAmount: number;
 
@@ -30,6 +31,7 @@ export const InputHeader = ({
   actionMode,
   isDialog,
   maxAmount,
+  amountRaw,
   selectedBank,
   selectedStakingAccount,
   walletAmount,
@@ -74,13 +76,20 @@ export const InputHeader = ({
         };
 
       case ActionType.Repay:
-        return {
-          amount: formatAmount(
-            selectedBank?.isActive ? selectedBank.position.amount : undefined,
-            selectedBank?.meta.tokenSymbol
-          ),
-          label: "Borrowed: ",
-        };
+        if (repayMode === RepayType.RepayRaw) {
+          return {
+            amount: formatAmount(
+              selectedBank?.isActive ? selectedBank.position.amount : undefined,
+              selectedBank?.meta.tokenSymbol
+            ),
+            label: "Borrowed: ",
+          };
+        } else {
+          return {
+            amount: `${amountRaw === "" ? 0 : amountRaw} ${selectedBank?.meta.tokenSymbol}`,
+            label: "Borrowed: ",
+          };
+        }
 
       case ActionType.MintLST:
         if (selectedStakingAccount) {
@@ -96,7 +105,7 @@ export const InputHeader = ({
       default:
         return { amount: "-" };
     }
-  }, [selectedBank, selectedStakingAccount, actionMode, walletAmount, repayMode]);
+  }, [selectedBank, selectedStakingAccount, actionMode, walletAmount, amountRaw, repayMode]);
 
   // Section above the input
   return (
