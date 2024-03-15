@@ -16,6 +16,11 @@ export enum RepayType {
   RepayCollat = "Collateral Repay",
 }
 
+export enum LstType {
+  Token = "Token",
+  Native = "Native Stake",
+}
+
 export type ActionMethodType = "WARNING" | "ERROR" | "INFO";
 export interface ActionMethod {
   isEnabled: boolean;

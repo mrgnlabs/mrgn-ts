@@ -11,6 +11,7 @@ interface ActionBoxPreviewProps {
   selectedStakingAccount: StakeData | null;
   actionMode: ActionType;
   amount: number;
+  slippageBps: number;
   isEnabled: boolean;
   repayWithCollatOptions?: RepayWithCollatOptions;
   children: React.ReactNode;
@@ -21,6 +22,7 @@ export const ActionBoxPreview = ({
   selectedStakingAccount,
   actionMode,
   amount,
+  slippageBps,
   isEnabled,
   children,
 }: ActionBoxPreviewProps) => {
@@ -47,6 +49,7 @@ export const ActionBoxPreview = ({
           selectedStakingAccount={selectedStakingAccount}
           isEnabled={isEnabled}
           amount={amount}
+          slippageBps={slippageBps}
         >
           {children}
         </LstPreview>
