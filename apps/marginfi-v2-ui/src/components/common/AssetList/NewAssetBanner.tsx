@@ -45,22 +45,14 @@ export const NewAssetBanner = ({ bankInfo }: NewAssetBannerProps) => {
           <h2 className="font-medium">${bankInfo.meta.tokenSymbol} is now available on marginfi</h2>
           <ul className="flex items-center gap-2 justify-center">
             <li className="w-full">
-              <ActionBoxDialog
-                requestedToken={bankInfo.address}
-                requestedAction={ActionType.Deposit}
-                requestedLendingMode={LendingModes.LEND}
-              >
+              <ActionBoxDialog requestedToken={bankInfo.address} requestedAction={ActionType.Deposit}>
                 <Button variant="outline" size="sm" className="w-full">
                   Deposit ${bankInfo.meta.tokenSymbol}
                 </Button>
               </ActionBoxDialog>
             </li>
             <li className="w-full">
-              <ActionBoxDialog
-                requestedToken={bankInfo.address}
-                requestedAction={ActionType.Borrow}
-                requestedLendingMode={LendingModes.LEND}
-              >
+              <ActionBoxDialog requestedToken={bankInfo.address} requestedAction={ActionType.Borrow}>
                 <Button variant="outline" size="sm" className="w-full">
                   Borrow ${bankInfo.meta.tokenSymbol}
                 </Button>

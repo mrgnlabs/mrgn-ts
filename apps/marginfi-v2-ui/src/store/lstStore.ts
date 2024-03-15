@@ -59,7 +59,7 @@ interface LstState {
   stakeAccounts: StakeData[];
   solUsdValue: number | null;
   slippagePct: SupportedSlippagePercent;
-  quoteResponseMeta: QuoteResponseMeta | null
+  quoteResponseMeta: QuoteResponseMeta | null;
 
   // Actions
   fetchLstState: (args?: { connection?: Connection; wallet?: Wallet; isOverride?: boolean }) => Promise<void>;
@@ -124,58 +124,57 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
       let solUsdValue: number | null = null;
       let stakeAccounts: StakeData[] = [];
       const lstData = await fetchLstData(connection);
-      const minimumRentExemption = await connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE)
-      const jupiterTokenInfo = await fetchJupiterTokenInfo();
+      // const minimumRentExemption = await connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE);
+      // const jupiterTokenInfo = await fetchJupiterTokenInfo();
 
       if (wallet?.publicKey) {
-        const [accountsAiList, minimumRentExemption, userTokenAccounts, _stakeAccounts] = await Promise.all([
-          connection.getMultipleAccountsInfo([wallet.publicKey, SOL_USD_PYTH_ORACLE]),
-          connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE),
-          fetchUserTokenAccounts(connection, wallet.publicKey),
-          fetchStakeAccounts(connection, wallet.publicKey),
-        ]);
+        // const [accountsAiList, minimumRentExemption, userTokenAccounts, _stakeAccounts] = await Promise.all([
+        //   connection.getMultipleAccountsInfo([wallet.publicKey, SOL_USD_PYTH_ORACLE]),
+        //   connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE),
+        //   fetchUserTokenAccounts(connection, wallet.publicKey),
+        //   fetchStakeAccounts(connection, wallet.publicKey),
+        // ]);
 
-        const [walletAi, solUsdPythFeedAi] = accountsAiList;
-        const nativeSolBalance = walletAi?.lamports ? walletAi.lamports : 0;
-        availableLamports = new BN(nativeSolBalance - minimumRentExemption - NETWORK_FEE_LAMPORTS);
-        solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
-        stakeAccounts = _stakeAccounts.filter(
-          (stakeAccount) =>
-            stakeAccount.isActive && lstData.validatorList.find((v) => v.equals(stakeAccount.validatorVoteAddress))
-        );
+        // const [walletAi, solUsdPythFeedAi] = accountsAiList;
+        // const nativeSolBalance = walletAi?.lamports ? walletAi.lamports : 0;
+        // availableLamports = new BN(nativeSolBalance - minimumRentExemption - NETWORK_FEE_LAMPORTS);
+        // solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
+        // stakeAccounts = _stakeAccounts.filter(
+        //   (stakeAccount) =>
+        //     stakeAccount.isActive && lstData.validatorList.find((v) => v.equals(stakeAccount.validatorVoteAddress))
+        // );
 
-        tokenDataMap = new Map(
-          [...jupiterTokenInfo.entries()].map(([tokenMint, tokenInfo]) => {
-            const { logoURI, ..._tokenInfo } = tokenInfo;
+        // tokenDataMap = new Map(
+        //   [...jupiterTokenInfo.entries()].map(([tokenMint, tokenInfo]) => {
+        //     const { logoURI, ..._tokenInfo } = tokenInfo;
 
-            let walletBalance: BN = new BN(0);
-            const tokenAccount = userTokenAccounts?.get(tokenMint);
-            walletBalance = uiToNative(tokenAccount?.balance ?? 0, tokenInfo.decimals);
+        //     let walletBalance: BN = new BN(0);
+        //     const tokenAccount = userTokenAccounts?.get(tokenMint);
+        //     walletBalance = uiToNative(tokenAccount?.balance ?? 0, tokenInfo.decimals);
 
-            return [
-              tokenMint,
-              { ..._tokenInfo, iconUrl: logoURI ?? "/info_icon.png", price: 0, balance: walletBalance },
-            ];
-          })
-        );
+        //     return [
+        //       tokenMint,
+        //       { ..._tokenInfo, iconUrl: logoURI ?? "/info_icon.png", price: 0, balance: walletBalance },
+        //     ];
+        //   })
+        // );
 
         userDataFetched = true;
       } else {
-        tokenDataMap = new Map(
-          [...jupiterTokenInfo.entries()].map(([tokenMint, tokenInfo]) => {
-            const { logoURI, ..._tokenInfo } = tokenInfo;
-            return [tokenMint, { ..._tokenInfo, iconUrl: logoURI ?? "/info_icon.png", price: 0, balance: new BN(0) }];
-          })
-        );
-
-        const accountsAiList = await connection.getMultipleAccountsInfo([SOL_USD_PYTH_ORACLE]);
-        const [solUsdPythFeedAi] = accountsAiList;
-        solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
+        // tokenDataMap = new Map(
+        //   [...jupiterTokenInfo.entries()].map(([tokenMint, tokenInfo]) => {
+        //     const { logoURI, ..._tokenInfo } = tokenInfo;
+        //     return [tokenMint, { ..._tokenInfo, iconUrl: logoURI ?? "/info_icon.png", price: 0, balance: new BN(0) }];
+        //   })
+        // );
+        // const accountsAiList = await connection.getMultipleAccountsInfo([SOL_USD_PYTH_ORACLE]);
+        // const [solUsdPythFeedAi] = accountsAiList;
+        // solUsdValue = vendor.parsePriceData(solUsdPythFeedAi!.data).emaPrice.value;
       }
 
       set({
         initialized: true,
-        feesAndRent: minimumRentExemption + NETWORK_FEE_LAMPORTS,
+        feesAndRent: 0 + NETWORK_FEE_LAMPORTS,
         userDataFetched,
         isRefreshingStore: false,
         connection,
@@ -187,14 +186,14 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
         solUsdValue,
       });
 
-      const tokenPrices = await fetchTokenPrices(
-        [...jupiterTokenInfo.values()].map((tokenInfo) => new PublicKey(tokenInfo.address))
-      );
+      // const tokenPrices = await fetchTokenPrices(
+      //   [...jupiterTokenInfo.values()].map((tokenInfo) => new PublicKey(tokenInfo.address))
+      // );
 
-      tokenDataMap.forEach((value, key, map) => {
-        const price = tokenPrices.get(value.address);
-        value.price = price ?? 0;
-      });
+      // tokenDataMap.forEach((value, key, map) => {
+      //   const price = tokenPrices.get(value.address);
+      //   value.price = price ?? 0;
+      // });
 
       set({
         tokenDataMap,
@@ -217,7 +216,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
     set({ userDataFetched: false, tokenDataMap });
   },
   setSlippagePct: (slippagePct: SupportedSlippagePercent) => set({ slippagePct }),
-  setQuoteResponseMeta: (quoteResponseMeta: QuoteResponseMeta | null) => set({ quoteResponseMeta })
+  setQuoteResponseMeta: (quoteResponseMeta: QuoteResponseMeta | null) => set({ quoteResponseMeta }),
 });
 
 async function fetchLstData(connection: Connection): Promise<LstData> {

@@ -3,15 +3,12 @@ import React from "react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PublicKey } from "@solana/web3.js";
 
-import { LendingModes } from "~/types";
-
 import { ActionBox } from "~/components/common/ActionBox";
 import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
 
 type ActionBoxDialogProps = {
   requestedAction?: ActionType;
   requestedToken?: PublicKey;
-  requestedLendingMode?: LendingModes;
   children: React.ReactNode;
   isActionBoxTriggered?: boolean;
 };
@@ -19,7 +16,6 @@ type ActionBoxDialogProps = {
 export const ActionBoxDialog = ({
   requestedAction,
   requestedToken,
-  requestedLendingMode,
   children,
   isActionBoxTriggered = false,
 }: ActionBoxDialogProps) => {
@@ -39,7 +35,6 @@ export const ActionBoxDialog = ({
             handleCloseDialog={() => setIsDialogOpen(false)}
             requestedAction={requestedAction}
             requestedToken={requestedToken}
-            requestedLendingMode={requestedLendingMode}
           />
         </div>
       </DialogContent>

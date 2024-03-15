@@ -4,11 +4,11 @@ import { useRouter } from "next/router";
 
 import { JupiterProvider } from "@jup-ag/react-hook";
 
-import { createJupiterStore } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, createJupiterStore } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Desktop } from "~/mediaQueries";
 import { usePrevious, Features, isActive } from "~/utils";
-import { createLstStore } from "~/store/lstStore";
+import { useLstStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -16,8 +16,8 @@ import { StakingCard, StakingStats } from "~/components/common/Staking";
 import { PageHeader } from "~/components/common/PageHeader";
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
+import { ActionBox } from "~/components/common/ActionBox";
 
-export const useLstStore = createLstStore();
 export const useJupiterStore = createJupiterStore();
 
 export default function StakePage() {
@@ -146,8 +146,7 @@ const StakingContent = ({ isInitialized }: { isInitialized: boolean }) => (
     {isInitialized && (
       <>
         <div className="max-w-[480px] w-full space-y-4">
-          <StakingStats />
-          <StakingCard />
+          <ActionBox requestedAction={ActionType.MintLST} />
         </div>
         <p className="text-white/75 mt-8 text-center">
           Using mrgn&apos;s sophisticated validator set, you pay no fees, earn more yield, and get more utility out of
