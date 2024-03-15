@@ -3,7 +3,6 @@ import Image from "next/image";
 
 import { cn } from "~/utils";
 
-import { PageHeader } from "~/components/common/PageHeader";
 import {
   IconExternalLink,
   IconBrandGithubFilled,
@@ -164,9 +163,8 @@ const projects = [
 export default function Ecosystem() {
   return (
     <>
-      <PageHeader>ecosystem</PageHeader>
       <div className="w-full xl:w-4/5 xl:max-w-7xl mx-auto px-4">
-        <div className="text-muted-foreground text-lg text-center my-12">
+        <div className="text-muted-foreground text-xl text-center mb-12">
           <p>
             Official and community projects powered by the marginfi SDK. <br className="hidden lg:block" />
             <Link
@@ -189,7 +187,7 @@ export default function Ecosystem() {
                 rel="noreferrer"
                 className="transition-colors hover:text-chartreuse"
               >
-                <IconBrandDiscordFilled />
+                <IconBrandDiscordFilled size={20} />
               </Link>
             </li>
             <li>
@@ -199,7 +197,7 @@ export default function Ecosystem() {
                 rel="noreferrer"
                 className="transition-colors hover:text-chartreuse"
               >
-                <IconBrandX />
+                <IconBrandX size={20} />
               </Link>
             </li>
             <li>
@@ -209,7 +207,7 @@ export default function Ecosystem() {
                 rel="noreferrer"
                 className="transition-colors hover:text-chartreuse"
               >
-                <IconBrandGithubFilled />
+                <IconBrandGithubFilled size={20} />
               </Link>
             </li>
             <li>
@@ -219,12 +217,12 @@ export default function Ecosystem() {
                 rel="noreferrer"
                 className="transition-colors hover:text-chartreuse"
               >
-                <IconChartHistogram />
+                <IconChartHistogram size={20} />
               </Link>
             </li>
           </ul>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-4 lg:gap-8 w-full pb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-4 lg:gap-8 w-full pb-24">
           {projects.map((project, index) => (
             <Card variant="default" className="w-full" key={index}>
               <CardHeader>

@@ -10,7 +10,6 @@ import config from "~/config";
 import { cn, capture } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
-import { PageHeader } from "~/components/common/PageHeader";
 import { Loader } from "~/components/ui/loader";
 
 export default function SwapPage() {
@@ -62,19 +61,7 @@ export default function SwapPage() {
           }, delay);
         }}
       />
-      <PageHeader>
-        <div className="h-full flex flex-row gap-1 items-center">
-          <span>swap</span>
-          <div className="hidden sm:block flex-row items-center gap-1">
-            <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
-            <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
-            <span className="text-sm h-[48px] pt-[28px] bg-jup-gradient-colors bg-clip-text text-transparent ml-1">
-              Jupiter
-            </span>
-          </div>
-        </div>
-      </PageHeader>
-      <div className="h-full flex flex-col justify-start items-center content-start py-[32px] gap-8 w-4/5">
+      <div className="h-full flex flex-col justify-start items-center content-start gap-8 w-4/5">
         {!isLoaded && <Loader label="Loading Jupiter swap..." className="mt-8" />}
         <div
           className={cn("max-w-[420px] px-3 transition-opacity", !isLoaded && "opacity-0")}
