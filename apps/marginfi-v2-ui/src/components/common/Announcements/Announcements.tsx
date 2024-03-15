@@ -83,7 +83,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
           {items.map((item, index) => (
             <SwiperSlide key={index}>
               <div
-                className="bg-background-gray-dark border border-background-gray rounded-lg w-full p-4 cursor-pointer transition hover:border-background-gray-hover"
+                className="bg-background-gray border border-background-gray rounded-lg w-full p-4 cursor-pointer transition hover:border-background-gray-hover"
                 onClick={() => {
                   if (!isBankItem(item) && item.onClick) {
                     item.onClick();
