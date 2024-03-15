@@ -54,7 +54,9 @@ export const InputHeaderAction = ({
           { value: LendingModes.LEND, text: LendingModes.LEND },
           { value: LendingModes.BORROW, text: LendingModes.BORROW },
         ],
-        action: (value: any) => setLendingMode(value),
+        action: (value: any) => {
+          if (value) setLendingMode(value);
+        },
         value: lendingModeFromStore,
       } as ToggleObject;
     }
@@ -65,7 +67,9 @@ export const InputHeaderAction = ({
           { value: RepayType.RepayRaw, text: "wallet" },
           { value: RepayType.RepayCollat, text: "collateral" },
         ],
-        action: (value: any) => changeRepayType(value),
+        action: (value: any) => {
+          if (value) changeRepayType(value);
+        },
         value: repayType,
       } as ToggleObject;
     }
@@ -76,13 +80,24 @@ export const InputHeaderAction = ({
           { value: LstType.Token, text: "Token" },
           { value: LstType.Native, text: "Native" },
         ],
-        action: (value: any) => changeLstType(value),
+        action: (value: any) => {
+          if (value) changeLstType(value);
+        },
         value: lstType,
       } as ToggleObject;
     }
 
     return titleText;
-  }, [titleText, isDialog, lendingModeFromStore, setLendingMode, changeRepayType]);
+  }, [
+    actionType,
+    repayType,
+    titleText,
+    isDialog,
+    lendingModeFromStore,
+    setLendingMode,
+    changeRepayType,
+    changeLstType,
+  ]);
 
   return (
     <>
