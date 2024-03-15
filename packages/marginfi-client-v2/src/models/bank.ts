@@ -431,8 +431,8 @@ class Bank {
   } {
     const { insuranceFeeFixedApr, insuranceIrFee, protocolFixedFeeApr, protocolIrFee } = this.config.interestRateConfig;
 
-    const rateFee = insuranceFeeFixedApr.plus(protocolFixedFeeApr);
-    const fixedFee = insuranceIrFee.plus(protocolIrFee);
+    const fixedFee = insuranceFeeFixedApr.plus(protocolFixedFeeApr);
+    const rateFee = insuranceIrFee.plus(protocolIrFee);
 
     const baseInterestRate = this.computeBaseInterestRate();
     const utilizationRate = this.computeUtilizationRate();
