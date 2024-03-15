@@ -7,7 +7,7 @@ import { cn } from "~/utils/themeUtils";
 const cardVariants = cva("rounded-xl shadow", {
   variants: {
     variant: {
-      default: "bg-muted border border-muted-foreground/10",
+      default: "bg-background-gray border border-muted-foreground/10",
       secondary: "bg-primary text-primary-foreground",
       gradient: "bg-card text-card-foreground",
     },

@@ -8,11 +8,9 @@ import config from "~/config";
 import { cn, capture } from "~/utils";
 import { MayanWidgetColors, MayanWidgetConfigType } from "~/types";
 import { useUserProfileStore, useUiStore } from "~/store";
-import { Desktop } from "~/mediaQueries";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
-import { PageHeader } from "~/components/common/PageHeader";
 import { Loader } from "~/components/ui/loader";
 
 const tokens = [
@@ -41,8 +39,8 @@ const appIdentity = {
 };
 
 const colors: MayanWidgetColors = {
-  mainBox: "#0F1111",
-  background: "#0F1111",
+  mainBox: "transaparent",
+  background: "transparent",
 };
 
 const rpcs = {
@@ -190,21 +188,7 @@ export default function BridgePage() {
 
   return (
     <>
-      <PageHeader>
-        <div className="flex flex-row gap-1">
-          <span>bridge</span>
-          <Desktop>
-            <div className="hidden sm:block flex-row items-center gap-1">
-              <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">Powered</span>
-              <span className="text-sm h-[48px] pt-[28px] bg-white bg-clip-text text-transparent">by</span>
-              <span className="text-sm h-[48px] pt-[28px] bg-mayan-gradient-colors bg-clip-text text-transparent ml-1">
-                Mayan
-              </span>
-            </div>
-          </Desktop>
-        </div>
-      </PageHeader>
-      <div className="w-full h-full flex flex-col justify-start items-center content-start py-[32px] gap-8">
+      <div className="w-full h-full flex flex-col justify-start items-center content-start gap-8">
         <Script
           src="https://cdn.mayan.finance/widget_solana-0-4-5.js"
           integrity="sha256-mTVQLKvE422WDwtZQUcz/9u5ZK3T1vMfSO0omQvla0E="

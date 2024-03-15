@@ -312,3 +312,7 @@ input::-webkit-inner-spin-button {
     max-height: none !important;
   }
 }
+
+#MAYAN_SWAP_PV_ROOT {
+  height: auto;
+}
