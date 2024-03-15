@@ -15,6 +15,7 @@ import {
   cn,
   capture,
   executeLstAction,
+  clampedNumeralFormatter,
 } from "~/utils";
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -295,9 +296,11 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
 
   React.useEffect(() => {
     if (amount && amount > maxAmount) {
-      setAmountRaw(numberFormater.format(maxAmount));
+      if (repayMode !== RepayType.RepayCollat) {
+        setAmountRaw(numberFormater.format(maxAmount));
+      }
     }
-  }, [maxAmount, amount, numberFormater, setAmountRaw]);
+  }, [maxAmount, repayMode, amount, numberFormater, setAmountRaw]);
 
   React.useEffect(() => {
     if (selectedStakingAccount) {
@@ -420,7 +423,9 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
       if (swapQuote) {
-        const withdrawAmount = nativeToUi(swapQuote.otherAmountThreshold, repayBank.info.state.mintDecimals);
+        const amountToRepay = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
+
+        setAmountRaw(clampedNumeralFormatter(amountToRepay).toString());
 
         setRepayCollatQuote(swapQuote);
       }
