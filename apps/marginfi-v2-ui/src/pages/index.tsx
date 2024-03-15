@@ -68,11 +68,10 @@ export default function HomePage() {
   return (
     <>
       <Desktop>
-        <PageHeader>lend</PageHeader>
         {!isStoreInitialized && <Loader label="Loading mrgnlend..." className="mt-16" />}
         {isStoreInitialized && (
           <>
-            <div className="flex flex-col h-full justify-start content-start pt-8 w-full xl:w-4/5 xl:max-w-7xl gap-4">
+            <div className="flex flex-col h-full justify-start content-start w-full xl:w-4/5 xl:max-w-7xl gap-4">
               {walletAddress && selectedAccount && isOverride && (
                 <Banner
                   text={`Read-only view of ${selectedAccount.address.toBase58()} (owner: ${shortenAddress(
@@ -102,10 +101,9 @@ export default function HomePage() {
       </Desktop>
 
       <Mobile>
-        <PageHeader>lend</PageHeader>
         {!isStoreInitialized && <Loader label="Loading mrgnlend..." className="mt-16" />}
         {isStoreInitialized && (
-          <div className="pt-4">
+          <>
             {walletAddress && selectedAccount && marginfiAccounts.length > 1 && (
               <MultipleAccountsBanner
                 selectedAccount={selectedAccount}
@@ -118,7 +116,7 @@ export default function HomePage() {
             <Announcements items={annoucements} />
             <ActionBoxLendWrapper />
             <div className="mb-24" />
-          </div>
+          </>
         )}
       </Mobile>
       {isStoreInitialized && previousTxn && <ActionComplete />}
