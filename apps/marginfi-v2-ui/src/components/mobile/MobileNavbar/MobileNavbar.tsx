@@ -49,7 +49,7 @@ const MobileNavbar: FC = () => {
   return (
     <header>
       <PWABanner />
-      <nav className="fixed w-full bottom-0 z-50 bg-[#0F1111]">
+      <nav className="fixed w-full bottom-0 z-[55] bg-[#0F1111]">
         <div className="h-full w-full text-sm font-[500] text-[#868E95] z-50 flex justify-around relative lg:gap-8">
           {ORDERED_MOBILE_NAVBAR_LINKS.map((linkInfo, index) => {
             const isActive = activeLink === `link${index}`;
