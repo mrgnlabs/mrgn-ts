@@ -12,14 +12,14 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { Features, isActive } from "~/utils/featureGates";
 import { PublicKey } from "@solana/web3.js";
 import { useConnection } from "~/hooks/useConnection";
-import { EMISSION_MINT_INFO_MAP } from "../AssetsList/AssetRow";
+import { EMISSION_MINT_INFO_MAP } from "../../desktop/AssetsList/AssetRow";
 import { collectRewardsBatch } from "~/utils";
 import { IconMrgn } from "~/components/ui/icons";
 import { WalletButton } from "~/components/common/Wallet";
 import LipAccount from "@mrgnlabs/lip-client/src/account";
 
 // @todo implement second pretty navbar row
-const DesktopNavbar: FC = () => {
+export const Navbar: FC = () => {
   useFirebaseAccount();
 
   const { connection } = useConnection();
@@ -138,41 +138,18 @@ const DesktopNavbar: FC = () => {
   );
 
   return (
-    <header>
+    <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">
       <nav className="fixed w-full top-0 h-[64px] z-30 bg-background">
         <div className="w-full top-0 flex justify-between items-center h-16 text-sm font-[500] text-[#868E95] z-10 border-b-[0.5px] border-[#1C2125] px-4">
-          <div className="h-full w-1/2 flex justify-start items-center z-10 gap-4 lg:gap-8">
+          <div className="h-full w-1/2 z-10 flex items-center gap-8">
             <Link
               href="/"
               className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center text-white"
             >
               <IconMrgn size={35} />
             </Link>
-            <Badge
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              sx={{
-                "& .MuiBadge-badge": {
-                  backgroundColor: "rgb(220, 232, 93)",
-                  color: "#1C2125",
-                },
-              }}
-              badgeContent={"l"}
-              invisible={!showBadges}
-            >
-              <Link
-                href={"/"}
-                className={`${
-                  router.pathname === "/" ? "hover-underline-static" : "hover-underline-animation"
-                } hidden md:block`}
-              >
-                lend
-              </Link>
-            </Badge>
 
-            {isActive(Features.STAKE) && (
+            <div className="hidden lg:flex justify-start items-center gap-8">
               <Badge
                 anchorOrigin={{
                   vertical: "bottom",
@@ -184,19 +161,65 @@ const DesktopNavbar: FC = () => {
                     color: "#1C2125",
                   },
                 }}
-                badgeContent={"s1"}
+                badgeContent={"l"}
                 invisible={!showBadges}
               >
                 <Link
-                  href={"/stake"}
-                  className={router.pathname === "/stake" ? "hover-underline-static" : "hover-underline-animation"}
+                  href={"/"}
+                  className={`${router.pathname === "/" ? "hover-underline-static" : "hover-underline-animation"}`}
                 >
-                  stake
+                  lend
                 </Link>
               </Badge>
-            )}
 
-            {lipAccount && lipAccount.deposits.length > 0 && (
+              {isActive(Features.STAKE) && (
+                <Badge
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                  }}
+                  sx={{
+                    "& .MuiBadge-badge": {
+                      backgroundColor: "rgb(220, 232, 93)",
+                      color: "#1C2125",
+                    },
+                  }}
+                  badgeContent={"s1"}
+                  invisible={!showBadges}
+                >
+                  <Link
+                    href={"/stake"}
+                    className={router.pathname === "/stake" ? "hover-underline-static" : "hover-underline-animation"}
+                  >
+                    stake
+                  </Link>
+                </Badge>
+              )}
+
+              {lipAccount && lipAccount.deposits.length > 0 && (
+                <Badge
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                  }}
+                  sx={{
+                    "& .MuiBadge-badge": {
+                      backgroundColor: "rgb(220, 232, 93)",
+                      color: "#1C2125",
+                    },
+                  }}
+                  badgeContent={"e"}
+                  invisible={!showBadges}
+                >
+                  <Link
+                    href={"/earn"}
+                    className={router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"}
+                  >
+                    earn
+                  </Link>
+                </Badge>
+              )}
+
               <Badge
                 anchorOrigin={{
                   vertical: "bottom",
@@ -208,102 +231,80 @@ const DesktopNavbar: FC = () => {
                     color: "#1C2125",
                   },
                 }}
-                badgeContent={"e"}
+                badgeContent={"s2"}
                 invisible={!showBadges}
               >
                 <Link
-                  href={"/earn"}
-                  className={router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"}
+                  href={"/swap"}
+                  className={`${
+                    router.pathname === "/swap" ? "hover-underline-static" : "hover-underline-animation"
+                  } hidden md:block`}
                 >
-                  earn
+                  swap
                 </Link>
               </Badge>
-            )}
-
-            <Badge
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              sx={{
-                "& .MuiBadge-badge": {
-                  backgroundColor: "rgb(220, 232, 93)",
-                  color: "#1C2125",
-                },
-              }}
-              badgeContent={"s2"}
-              invisible={!showBadges}
-            >
-              <Link
-                href={"/swap"}
-                className={`${
-                  router.pathname === "/swap" ? "hover-underline-static" : "hover-underline-animation"
-                } hidden md:block`}
+              <Badge
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right",
+                }}
+                sx={{
+                  "& .MuiBadge-badge": {
+                    backgroundColor: "rgb(220, 232, 93)",
+                    color: "#1C2125",
+                  },
+                }}
+                badgeContent={"b"}
+                invisible={!showBadges}
               >
-                swap
-              </Link>
-            </Badge>
-            <Badge
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              sx={{
-                "& .MuiBadge-badge": {
-                  backgroundColor: "rgb(220, 232, 93)",
-                  color: "#1C2125",
-                },
-              }}
-              badgeContent={"b"}
-              invisible={!showBadges}
-            >
+                <Link
+                  href={"/bridge"}
+                  className={`${
+                    router.pathname === "/bridge" ? "hover-underline-static" : "hover-underline-animation"
+                  } hidden md:block`}
+                >
+                  bridge
+                </Link>
+              </Badge>
+
               <Link
-                href={"/bridge"}
+                href={"/points"}
                 className={`${
-                  router.pathname === "/bridge" ? "hover-underline-static" : "hover-underline-animation"
-                } hidden md:block`}
+                  router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"
+                } whitespace-nowrap`}
               >
-                bridge
+                {connected &&
+                  currentFirebaseUser &&
+                  userPointsData.totalPoints > 0 &&
+                  groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}{" "}
+                points
               </Link>
-            </Badge>
 
-            <Link
-              href={"/points"}
-              className={`${
-                router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"
-              } whitespace-nowrap`}
-            >
-              {connected &&
-                currentFirebaseUser &&
-                userPointsData.totalPoints > 0 &&
-                groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}{" "}
-              points
-            </Link>
-
-            <Badge
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              sx={{
-                "& .MuiBadge-badge": {
-                  backgroundColor: "rgb(220, 232, 93)",
-                  color: "#1C2125",
-                },
-              }}
-              badgeContent={"o"}
-              invisible={!showBadges}
-              className="hidden md:block"
-            >
-              <Link href="/ecosystem" className="hover-underline-animation hidden md:block">
-                ecosystem
-              </Link>
-            </Badge>
+              <Badge
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right",
+                }}
+                sx={{
+                  "& .MuiBadge-badge": {
+                    backgroundColor: "rgb(220, 232, 93)",
+                    color: "#1C2125",
+                  },
+                }}
+                badgeContent={"o"}
+                invisible={!showBadges}
+                className="hidden md:block"
+              >
+                <Link href="/ecosystem" className="hover-underline-animation hidden md:block">
+                  ecosystem
+                </Link>
+              </Badge>
+            </div>
           </div>
           {initialized && (
             <div className="h-full w-1/2 flex justify-end items-center z-10 gap-4 lg:gap-8 text-[#868E95]">
               <div
-                className={`whitespace-nowrap hidden md:inline-flex ${
+                className={`whitespace-nowrap hidden lg:inline-flex ${
                   bankAddressesWithEmissions.length > 0 ? "cursor-pointer hover:text-[#AAA]" : "cursor-not-allowed"
                 }`}
                 onClick={async () => {
@@ -328,5 +329,3 @@ const DesktopNavbar: FC = () => {
     </header>
   );
 };
-
-export { DesktopNavbar };
