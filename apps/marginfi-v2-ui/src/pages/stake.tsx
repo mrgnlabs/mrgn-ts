@@ -13,7 +13,6 @@ import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { StakingCard, StakingStats } from "~/components/common/Staking";
-import { PageHeader } from "~/components/common/PageHeader";
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
 import { ActionBox } from "~/components/common/ActionBox";
@@ -109,7 +108,6 @@ export default function StakePage() {
   return (
     <>
       <JupiterProvider connection={connection} wrapUnwrapSOL={false} platformFeeAndAccounts={undefined}>
-        <PageHeader>stake</PageHeader>
         <StakingContent isInitialized={initialized} />
         <Desktop>
           <OverlaySpinner fetching={!initialized || isRefreshingStore} />
@@ -120,7 +118,7 @@ export default function StakePage() {
 }
 
 const StakingContent = ({ isInitialized }: { isInitialized: boolean }) => (
-  <div className="flex flex-col max-w-[640px] h-full w-full justify-center items-center pt-10 pb-32 lg:pb-16 px-4">
+  <div className="flex flex-col max-w-[640px] h-full w-full justify-center items-center pb-32 lg:pb-16 px-4">
     {!isInitialized && <Loader label="Loading mrgnstake..." className="mt-8" />}
     {isInitialized && (
       <div className="space-y-6 text-center mb-4">
