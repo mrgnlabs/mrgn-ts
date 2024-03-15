@@ -3,30 +3,34 @@ import { PublicKey } from "@solana/web3.js";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { RepayType } from "~/utils";
+import { LstType, RepayType } from "~/utils";
 
 import { LendingTokens, YbxTokens, LstTokens } from "./Components";
 
 interface ActionBoxPreviewProps {
-  currentTokenBank?: PublicKey | null;
-  setCurrentTokenBank?: (selectedTokenBank: PublicKey | null) => void;
-  repayTokenBank?: PublicKey | null;
-  setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   actionMode: ActionType;
+  lstType: LstType;
   repayType?: RepayType;
   isDialog?: boolean;
+
+  currentTokenBank?: PublicKey | null;
+  repayTokenBank?: PublicKey | null;
   highlightedRepayTokens?: PublicKey[];
+
+  setCurrentTokenBank?: (selectedTokenBank: PublicKey | null) => void;
+  setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
 }
 
 export const ActionBoxTokens = ({
   currentTokenBank,
-  setCurrentTokenBank,
   repayTokenBank,
-  setRepayTokenBank,
   actionMode,
+  lstType,
   repayType,
   isDialog,
   highlightedRepayTokens,
+  setRepayTokenBank,
+  setCurrentTokenBank,
 }: ActionBoxPreviewProps) => {
   const isInLendingMode = React.useMemo(
     () =>
@@ -53,9 +57,9 @@ export const ActionBoxTokens = ({
 
       {actionMode === ActionType.MintLST && setCurrentTokenBank && (
         <LstTokens
+          lstType={lstType}
           currentTokenBank={currentTokenBank ?? null}
           setCurrentTokenBank={setCurrentTokenBank}
-          hasDropdown={true}
         />
       )}
 

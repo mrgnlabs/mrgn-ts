@@ -4,7 +4,7 @@ import { TextField, Typography } from "@mui/material";
 import * as solanaStakePool from "@solana/spl-stake-pool";
 import { WalletIcon } from "./WalletIcon";
 import { PrimaryButton } from "./PrimaryButton";
-import { useLstStore } from "~/pages/stake";
+import { useLstStore } from "~/store";
 import { useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import {

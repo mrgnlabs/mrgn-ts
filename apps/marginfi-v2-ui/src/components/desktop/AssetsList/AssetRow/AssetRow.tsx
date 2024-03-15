@@ -518,17 +518,7 @@ const AssetRow: React.FC<{
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
-                    <ActionBoxDialog
-                      requestedToken={bank.address}
-                      requestedAction={currentAction}
-                      requestedLendingMode={
-                        currentAction === ActionType.Repay
-                          ? LendingModes.BORROW
-                          : currentAction === ActionType.Withdraw
-                          ? LendingModes.LEND
-                          : undefined
-                      }
-                    >
+                    <ActionBoxDialog requestedToken={bank.address} requestedAction={currentAction}>
                       <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
                     </ActionBoxDialog>
                   </div>
@@ -540,17 +530,7 @@ const AssetRow: React.FC<{
 
           {marginfiAccount !== null && (
             <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
-              <ActionBoxDialog
-                requestedToken={bank.address}
-                requestedAction={currentAction}
-                requestedLendingMode={
-                  currentAction === ActionType.Repay
-                    ? LendingModes.BORROW
-                    : currentAction === ActionType.Withdraw
-                    ? LendingModes.LEND
-                    : undefined
-                }
-              >
+              <ActionBoxDialog requestedToken={bank.address} requestedAction={currentAction}>
                 <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
               </ActionBoxDialog>
             </div>
