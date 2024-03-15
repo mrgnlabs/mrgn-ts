@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
-import { PageHeader } from "~/components/common/PageHeader";
 import { PointsOverview, PointsConnectWallet } from "~/components/common/Points";
 import { PointsTable } from "~/components/desktop/Points";
 import { Loader } from "~/components/ui/loader";
@@ -19,11 +18,10 @@ export default function PointsPage() {
 
   return (
     <>
-      <PageHeader>points</PageHeader>
       {!initialized && <Loader label="Loading marginfi points..." className="mt-16" />}
 
       {initialized && (
-        <div className="flex flex-col items-center w-full max-w-8xl px-10 gap-5 py-[64px] sm:py-[32px]">
+        <div className="flex flex-col items-center w-full max-w-8xl px-10 gap-5 pb-[64px] sm:pb-[32px]">
           {!connected ? <PointsConnectWallet /> : <PointsOverview userPointsData={userPointsData} />}
           <div className="text-muted-foreground text-xs">
             <p>

@@ -13,9 +13,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { UserMode, LendingModes } from "~/types";
 
 import { Banner } from "~/components/desktop/Banner";
-import { PageHeader } from "~/components/common/PageHeader";
 import { ActionBoxLendWrapper } from "~/components/common/ActionBox";
-import { Stats } from "~/components/common/Stats";
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { Announcements, AnnouncementCustomItem, AnnouncementBankItem } from "~/components/common/Announcements";
 
