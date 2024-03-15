@@ -14,7 +14,7 @@ import config from "~/config";
 import { MrgnlendProvider, LipClientProvider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { useLstStore } from "./stake";
+import { useLstStore } from "~/store";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { WalletProvider as MrgnWalletProvider } from "~/hooks/useWalletContext";
 import { ConnectionProvider } from "~/hooks/useConnection";

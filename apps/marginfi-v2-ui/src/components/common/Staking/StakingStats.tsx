@@ -1,10 +1,12 @@
 import { FC } from "react";
 import { Typography } from "@mui/material";
 import { numeralFormatter, percentFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { useLstStore } from "~/pages/stake";
+import { useLstStore } from "~/store";
 
 export const StakingStats: FC = () => {
   const [lstData, solUsdValue] = useLstStore((state) => [state.lstData, state.solUsdValue]);
+
+  console.log({ lstData });
 
   return (
     <div className="h-full rounded-xl font-[500]">
