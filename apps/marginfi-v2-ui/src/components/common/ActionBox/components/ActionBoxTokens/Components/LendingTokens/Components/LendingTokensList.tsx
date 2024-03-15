@@ -10,7 +10,7 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { RepayType, cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command";
 import { IconX } from "~/components/ui/icons";
 
 import { ActionBoxItem, BuyWithMoonpay } from "../../SharedComponents";
@@ -146,24 +146,22 @@ export const LendingTokensList = ({ selectedBank, onSetCurrentTokenBank, isOpen,
         shouldFilter={false}
         value={selectedBank?.address?.toString().toLowerCase() ?? ""}
       >
-        <div className="fixed bg-background-gray w-[94%] z-40 flex justify-between">
-          <CommandInput
-            placeholder="Search token..."
-            className="h-12 "
-            autoFocus={false}
-            onValueChange={(value) => setSearchQuery(value)}
-          />
-        </div>
+        <CommandInput
+          placeholder="Search token..."
+          wrapperClassName="fixed bg-background-gray w-[94%] z-40 flex justify-between"
+          className="h-12"
+          autoFocus={false}
+          onValueChange={(value) => setSearchQuery(value)}
+        />
         <button onClick={() => onClose()} className="fixed z-50 top-5 right-4">
           <IconX size={18} className="text-white/50" />
         </button>
         {/* NO TOKENS IN WALLET */}
-        {!hasTokens && <BuyWithMoonpay />}
+        <CommandList className="overflow-auto mt-[50px]">
+          {!hasTokens && <BuyWithMoonpay />}
+          <CommandEmpty>No tokens found.</CommandEmpty>
 
-        <CommandEmpty>No tokens found.</CommandEmpty>
-
-        {/* LENDING */}
-        <div className="overflow-auto mt-[50px]">
+          {/* LENDING */}
           {lendingMode === LendingModes.LEND &&
             connected &&
             filteredBanksUserOwns.length > 0 &&
@@ -323,7 +321,7 @@ export const LendingTokensList = ({ selectedBank, onSetCurrentTokenBank, isOpen,
               })}
             </CommandGroup>
           )}
-        </div>
+        </CommandList>
       </Command>
     </>
   );

@@ -1,7 +1,7 @@
 import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { RepayType } from "~/utils";
+import { LstType, RepayType } from "~/utils";
 import { useUiStore } from "~/store";
 import { LendingModes } from "~/types";
 
@@ -13,7 +13,9 @@ interface InputHeaderActionProps {
   bank: ExtendedBankInfo | null;
   isDialog?: boolean;
   repayType?: RepayType;
+  lstType?: LstType;
   changeRepayType: (repayType: RepayType) => void;
+  changeLstType: (lstType: LstType) => void;
 }
 
 interface ToggleObject {
@@ -25,9 +27,11 @@ interface ToggleObject {
 export const InputHeaderAction = ({
   actionType,
   bank,
+  lstType = LstType.Token,
   isDialog,
   repayType = RepayType.RepayRaw,
   changeRepayType,
+  changeLstType,
 }: InputHeaderActionProps) => {
   const [lendingModeFromStore, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
 
@@ -63,6 +67,17 @@ export const InputHeaderAction = ({
         ],
         action: (value: any) => changeRepayType(value),
         value: repayType,
+      } as ToggleObject;
+    }
+
+    if (actionType === ActionType.MintLST) {
+      return {
+        toggles: [
+          { value: LstType.Token, text: "Token" },
+          { value: LstType.Native, text: "Native" },
+        ],
+        action: (value: any) => changeLstType(value),
+        value: lstType,
       } as ToggleObject;
     }
 

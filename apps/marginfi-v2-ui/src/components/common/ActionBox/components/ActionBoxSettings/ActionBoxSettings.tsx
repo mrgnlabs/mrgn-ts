@@ -42,7 +42,7 @@ export const ActionBoxSettings = ({
   }, [actionMode]);
 
   const isSlippageEnabled = React.useMemo(
-    () => actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat,
+    () => (actionMode === ActionType.Repay && repayMode === RepayType.RepayCollat) || actionMode === ActionType.MintLST,
     [actionMode, repayMode]
   );
 

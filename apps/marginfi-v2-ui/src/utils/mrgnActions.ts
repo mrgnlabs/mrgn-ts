@@ -1,27 +1,27 @@
-import { QuoteResponse, createJupiterApiClient } from "@jup-ag/api";
+import { QuoteResponse, SwapRequest, createJupiterApiClient } from "@jup-ag/api";
 import {
   AddressLookupTableAccount,
   Connection,
+  LAMPORTS_PER_SOL,
   PublicKey,
   Transaction,
   TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-
-import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
-import { isWholePosition, extractErrorString } from "./mrgnUtils";
-import { WalletContextState } from "@solana/wallet-adapter-react";
-import { WalletContextStateOverride } from "~/hooks/useWalletContext";
-import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
-import { Amount, Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
+import { WalletContextState } from "@solana/wallet-adapter-react";
 
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
+import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { WalletContextStateOverride } from "~/hooks/useWalletContext";
 import { LstData, SOL_MINT } from "~/store/lstStore";
 
+import { MultiStepToastHandle, showErrorToast } from "./toastUtils";
+import { isWholePosition, extractErrorString } from "./mrgnUtils";
 import { StakeData, makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx } from "./lstUtils";
-import { cp } from "fs";
 
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;
@@ -499,14 +499,13 @@ export async function mintLstStakeToStake({
       return;
     }
 
-    // const tx = new Transaction().add(...priorityFeeIx, ...ixs.instructions);
-
     const { instructions, signers } = await makeDepositStakeToStakePoolIx(
       lstData.accountData,
       lstData.poolAddress,
       wallet.publicKey,
       selectedStakingAccount.validatorVoteAddress,
-      selectedStakingAccount.address
+      selectedStakingAccount.address,
+      priorityFee
     );
 
     const depositMessage = new TransactionMessage({
@@ -624,12 +623,18 @@ export async function mintLstToken({
       return;
     }
 
+    const swapRequest = {
+      quoteResponse: quote,
+      userPublicKey: wallet.publicKey.toBase58(),
+      wrapAndUnwrapSol: false,
+    } as SwapRequest;
+
+    if (priorityFee) {
+      swapRequest.prioritizationFeeLamports = priorityFee * LAMPORTS_PER_SOL;
+    }
+
     const { swapTransaction: swapTransactionEncoded, lastValidBlockHeight } = await jupiterApiClient.swapPost({
-      swapRequest: {
-        quoteResponse: quote,
-        userPublicKey: wallet.publicKey.toBase58(),
-        wrapAndUnwrapSol: false,
-      },
+      swapRequest: swapRequest,
     });
     const swapTransactionBuffer = Buffer.from(swapTransactionEncoded, "base64");
     const swapTransaction = VersionedTransaction.deserialize(swapTransactionBuffer);

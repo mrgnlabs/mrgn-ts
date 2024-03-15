@@ -19,6 +19,7 @@ interface ActionBoxPreviewProps {
   selectedStakingAccount: StakeData | null;
   isEnabled: boolean;
   amount: number;
+  slippageBps: number;
   children: React.ReactNode;
 }
 
@@ -27,6 +28,7 @@ export const LstPreview = ({
   selectedStakingAccount,
   isEnabled,
   amount,
+  slippageBps,
   children,
 }: ActionBoxPreviewProps) => {
   const [lstData, slippagePct, setQuoteResponseMeta] = useLstStore((state) => [
@@ -43,7 +45,6 @@ export const LstPreview = ({
   }, [extendedBankInfos]);
 
   const debouncedAmount = useDebounce<number | null>(amount, 500);
-  const slippageBps = React.useMemo(() => slippagePct * 100, [slippagePct]);
 
   // TODO figure out refresh
   const {
@@ -116,7 +117,7 @@ export const LstPreview = ({
 
       {children}
 
-      {isEnabled && (selectedBank || selectedStakingAccount) && (
+      {isEnabled && (
         <dl className="grid grid-cols-2 gap-y-2 pt-6 text-sm text-white">
           <Stat label={"TVL"}>
             {lstData && solUsdValue ? (

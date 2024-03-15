@@ -7,13 +7,9 @@ import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { Desktop, Mobile } from "~/mediaQueries";
 import { RepayType } from "~/utils";
 
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
-import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
-
-import { SelectedBankItem } from "../SharedComponents";
+import { SelectedBankItem, TokenListWrapper } from "../SharedComponents";
 import { LendingTokensList, RepayCollatTokensList, LendingTokensTrigger } from "./Components";
 
 type LendingTokensProps = {
@@ -90,83 +86,36 @@ export const LendingTokens = ({
       )}
 
       {isSelectable && (
-        <>
-          <Desktop>
-            <Popover open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
-              <PopoverTrigger asChild>
-                <div>
-                  <LendingTokensTrigger
-                    selectedBank={selectedBank}
-                    selectedRepayBank={selectedRepayBank}
-                    isOpen={isOpen}
-                    repayType={repayType}
-                  />
-                </div>
-              </PopoverTrigger>
-              <PopoverContent
-                className="p-1 w-[320px] bg-background-gray"
-                align="start"
-                side="bottom"
-                sideOffset={-50}
-                avoidCollisions={false}
-              >
-                <div className="max-h-[480px] min-h-[200px] relative overflow-auto">
-                  {repayType === RepayType.RepayCollat ? (
-                    <RepayCollatTokensList
-                      isOpen={isOpen}
-                      onClose={() => setIsOpen(false)}
-                      onSetRepayTokenBank={setRepayTokenBank}
-                      highlightedRepayTokens={highlightedRepayTokens}
-                    />
-                  ) : (
-                    <LendingTokensList
-                      isOpen={isOpen}
-                      onClose={() => setIsOpen(false)}
-                      selectedBank={selectedBank}
-                      onSetCurrentTokenBank={setCurrentTokenBank}
-                      isDialog={isDialog}
-                    />
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
-          </Desktop>
-          <Mobile>
-            <Drawer open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
-              <DrawerTrigger asChild>
-                <div>
-                  <LendingTokensTrigger
-                    selectedBank={selectedBank}
-                    selectedRepayBank={selectedRepayBank}
-                    isOpen={isOpen}
-                    repayType={repayType}
-                  />
-                </div>
-              </DrawerTrigger>
-              <DrawerContent className="h-full pb-5">
-                <div className="py-8 bg-background-gray h-full">
-                  <h3 className="px-3 text-2xl font-semibold">Select Token</h3>
-                  {repayType === RepayType.RepayCollat ? (
-                    <RepayCollatTokensList
-                      isOpen={isOpen}
-                      onClose={() => setIsOpen(false)}
-                      onSetRepayTokenBank={setRepayTokenBank}
-                      highlightedRepayTokens={highlightedRepayTokens}
-                    />
-                  ) : (
-                    <LendingTokensList
-                      isOpen={isOpen}
-                      onClose={() => setIsOpen(false)}
-                      selectedBank={selectedBank}
-                      onSetCurrentTokenBank={setCurrentTokenBank}
-                      isDialog={isDialog}
-                    />
-                  )}
-                </div>
-              </DrawerContent>
-            </Drawer>
-          </Mobile>
-        </>
+        <TokenListWrapper
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          Trigger={
+            <LendingTokensTrigger
+              selectedBank={selectedBank}
+              selectedRepayBank={selectedRepayBank}
+              isOpen={isOpen}
+              repayType={repayType}
+            />
+          }
+          Content={
+            repayType === RepayType.RepayCollat ? (
+              <RepayCollatTokensList
+                isOpen={isOpen}
+                onClose={() => setIsOpen(false)}
+                onSetRepayTokenBank={setRepayTokenBank}
+                highlightedRepayTokens={highlightedRepayTokens}
+              />
+            ) : (
+              <LendingTokensList
+                isOpen={isOpen}
+                onClose={() => setIsOpen(false)}
+                selectedBank={selectedBank}
+                onSetCurrentTokenBank={setCurrentTokenBank}
+                isDialog={isDialog}
+              />
+            )
+          }
+        />
       )}
     </>
   );
