@@ -11,7 +11,6 @@ import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useLstStore, useUiStore } from "~/store";
 
-import { PageHeader } from "~/components/common/PageHeader";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -291,8 +290,7 @@ export default function MintPage() {
   return (
     <>
       <JupiterProvider connection={connection} wrapUnwrapSOL={false} platformFeeAndAccounts={undefined}>
-        <PageHeader showDesktopTitle={false}>Mint</PageHeader>
-        <div className="w-full max-w-8xl mx-auto px-4 md:px-8 space-y-20 pt-16 lg:pt-20 pb-28">
+        <div className="w-full max-w-8xl mx-auto px-4 md:px-8 space-y-20 pb-28">
           {!initialized && <Loader label="Loading YBX / LST..." className="mt-8" />}
           {initialized && (
             <>

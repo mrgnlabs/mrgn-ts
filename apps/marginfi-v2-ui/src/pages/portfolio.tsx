@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
-import { PageHeader } from "~/components/common/PageHeader";
 import { PointsConnectWallet, PointsOverview } from "~/components/common/Points";
 import { EmissionsBanner } from "~/components/mobile/EmissionsBanner";
 import { Portfolio } from "~/components/common/Portfolio";
@@ -20,7 +19,6 @@ export default function PortfolioPage() {
 
   return (
     <>
-      <PageHeader>portfolio</PageHeader>
       <div className="flex flex-col w-full h-full justify-start items-center px-4 gap-6 mb-20">
         {!initialized && <Loader label="Loading marginfi points..." className="mt-16" />}
 

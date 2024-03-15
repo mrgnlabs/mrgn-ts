@@ -37,7 +37,7 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
     <>
       <div className="max-w-[800px] w-full mx-auto mt-4">
         <div className="grid grid-cols-2 gap-3 md:gap-5 mb-3 md:mb-5">
-          <div className="bg-background-gray-dark rounded-lg py-3.5 px-4">
+          <div className="bg-background-gray rounded-lg py-3.5 px-4">
             <h2 className="text-sm md:text-base flex gap-1.5 text-muted-foreground/80">
               Total Points
               <div className="self-center">
@@ -63,7 +63,7 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
               </p>
             )}
           </div>
-          <div className="bg-background-gray-dark rounded-lg py-3.5 px-4">
+          <div className="bg-background-gray rounded-lg py-3.5 px-4">
             <h2 className="text-base flex gap-1.5 text-muted-foreground/80">
               Global Rank {/* TODO: fix that with dedicated query */}
             </h2>

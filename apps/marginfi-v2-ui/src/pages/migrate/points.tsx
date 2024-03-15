@@ -10,7 +10,6 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
 
-import { PageHeader } from "~/components/common/PageHeader";
 import { WalletButton } from "~/components/common/Wallet";
 import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";
@@ -59,10 +58,9 @@ export default function MigratePointsPage() {
 
   return (
     <>
-      <PageHeader>Migrate Points</PageHeader>
       {!initialized && <Loader label="Loading account migration..." className="mt-16" />}
       {initialized && (
-        <div className="max-w-7xl mx-auto w-full h-full px-4 pt-16">
+        <div className="max-w-7xl mx-auto w-full h-full px-4">
           {!connected && (
             <div className="flex flex-col items-center gap-6">
               <p className="text-lg">Please connect your wallet to migrate your account</p>

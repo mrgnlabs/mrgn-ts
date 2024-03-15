@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
-import { CopyToClipboard } from "react-copy-to-clipboard";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
@@ -13,7 +12,6 @@ import { useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { extractErrorString } from "~/utils/mrgnUtils";
 
-import { PageHeader } from "~/components/common/PageHeader";
 import { WalletButton } from "~/components/common/Wallet";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { Badge } from "~/components/ui/badge";
@@ -71,10 +69,9 @@ export default function MigrateAccountPage() {
 
   return (
     <>
-      <PageHeader>Migrate Account</PageHeader>
       {!initialized && <Loader label="Loading account migration..." className="mt-16" />}
       {initialized && (
-        <div className="w-full h-full px-4 pt-16">
+        <div className="w-full h-full px-4">
           {!connected && (
             <div className="flex flex-col items-center gap-6">
               <p className="text-lg">Please connect your wallet to migrate your account</p>
