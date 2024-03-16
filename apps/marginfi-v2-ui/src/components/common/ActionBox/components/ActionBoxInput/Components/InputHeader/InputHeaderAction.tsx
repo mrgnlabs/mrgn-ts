@@ -64,8 +64,15 @@ export const InputHeaderAction = ({
     if (actionType === ActionType.Repay) {
       return {
         toggles: [
-          { value: RepayType.RepayRaw, text: "wallet" },
-          { value: RepayType.RepayCollat, text: "collateral" },
+          { value: RepayType.RepayRaw, text: "Repay" },
+          {
+            value: RepayType.RepayCollat,
+            text: (
+              <div className="flex items-center gap-2">
+                <IconSparkles size={16} /> Collateral Repay
+              </div>
+            ),
+          },
         ],
         action: (value: any) => {
           if (value) changeRepayType(value);
@@ -107,7 +114,6 @@ export const InputHeaderAction = ({
           <ToggleGroup
             variant="actionBox"
             type="single"
-            size="sm"
             className="bg-background"
             value={toggleObject.value}
             onValueChange={toggleObject.action}
@@ -117,7 +123,7 @@ export const InputHeaderAction = ({
                 key={idx}
                 value={toggle.value}
                 aria-label={toggle.value}
-                className="w-1/2 text-xs capitalize data-[state=on]:bg-background-gray-light"
+                className="data-[state=on]:bg-background-gray-light hover:bg-background-gray-light/25"
               >
                 {toggle.text}
               </ToggleGroupItem>

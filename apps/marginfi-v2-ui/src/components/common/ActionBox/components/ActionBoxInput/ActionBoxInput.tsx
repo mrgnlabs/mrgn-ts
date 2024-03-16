@@ -145,38 +145,55 @@ export const ActionBoxInput = ({
         changeRepayType={(type) => changeRepayType(type)}
         changeLstType={(type) => changeLstType(type)}
       />
-      <div className="bg-background text-3xl rounded-lg flex justify-center gap-1 items-center p-4 font-medium mb-5">
-        <div className="w-full flex-auto max-w-[162px]">
-          <ActionBoxTokens
-            isDialog={isDialog}
-            repayType={repayMode}
-            lstType={lstType}
-            repayTokenBank={selectedRepayTokenBank}
-            currentTokenBank={selectedTokenBank}
-            setRepayTokenBank={(tokenBank) => {
-              onSetTokenRepayBank(tokenBank);
-              onSetRepayAmountRaw("");
-            }}
-            setCurrentTokenBank={(tokenBank) => {
-              onSetTokenBank(tokenBank);
-              onSetAmountRaw("");
-            }}
-            highlightedRepayTokens={highlightedRepayTokens}
-            actionMode={actionMode}
-          />
+      <div className="bg-background rounded-lg p-4 mb-5">
+        <div className="flex justify-center gap-1 items-center font-medium text-3xl">
+          <div className="w-full flex-auto max-w-[162px]">
+            <ActionBoxTokens
+              isDialog={isDialog}
+              repayType={repayMode}
+              lstType={lstType}
+              repayTokenBank={selectedRepayTokenBank}
+              currentTokenBank={selectedTokenBank}
+              setRepayTokenBank={(tokenBank) => {
+                onSetTokenRepayBank(tokenBank);
+                onSetRepayAmountRaw("");
+              }}
+              setCurrentTokenBank={(tokenBank) => {
+                onSetTokenBank(tokenBank);
+                onSetAmountRaw("");
+              }}
+              highlightedRepayTokens={highlightedRepayTokens}
+              actionMode={actionMode}
+            />
+          </div>
+          <div className="flex-auto">
+            <Input
+              type="text"
+              ref={amountInputRef}
+              inputMode="numeric"
+              value={inputAmount}
+              disabled={isInputDisabled}
+              onChange={(e) => handleInputChange(e.target.value)}
+              placeholder="0"
+              className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
+            />
+          </div>
         </div>
-        <div className="flex-auto">
-          <Input
-            type="text"
-            ref={amountInputRef}
-            inputMode="numeric"
-            value={inputAmount}
-            disabled={isInputDisabled}
-            onChange={(e) => handleInputChange(e.target.value)}
-            placeholder="0"
-            className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
-          />
-        </div>
+        {actionMode === ActionType.Repay && (
+          <ul className="flex flex-col gap-0.5 mt-4 text-xs w-full text-muted-foreground">
+            <li className="flex justify-between items-center gap-1.5">
+              <strong className="mr-auto">Borrwed:</strong> 123 JitoSOL
+              <button className="text-chartreuse border-b border-transparent transition hover:border-chartreuse">
+                MAX
+              </button>
+            </li>
+            {repayMode === RepayType.RepayCollat && (
+              <li className="flex justify-between items-center gap-1.5">
+                <strong>Deposited:</strong> 100 USDC
+              </li>
+            )}
+          </ul>
+        )}
       </div>
     </>
   );
