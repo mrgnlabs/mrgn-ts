@@ -311,7 +311,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   React.useEffect(() => {
     if (repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
       setRepayAmountRaw("");
-      setMaxAmountCollat(0);
       calculateMaxCollat(selectedBank, selectedRepayBank);
     } else {
       setRepayCollatQuote(undefined);
@@ -396,9 +395,10 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
             );
             setMaxAmountCollat(inputOutOtherAmount);
           } else {
-            setMaxAmountCollat(inputInOtherAmount);
+            setMaxAmountCollat(amount);
           }
         } catch {
+          setMaxAmountCollat(0);
           showErrorToast("Failed to fetch max amount, please refresh.");
         } finally {
           setIsLoading(false);
