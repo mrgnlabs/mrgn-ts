@@ -1,7 +1,7 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { nativeToUi, numeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { StakeData, clampedNumeralFormatter, RepayType, LstType } from "~/utils";
 
@@ -85,9 +85,14 @@ export const InputHeader = ({
             label: "Borrowed: ",
           };
         } else {
+          const strippedAmount = amountRaw.replace(/,/g, "");
+          const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+          console.log({ test: selectedBank?.isActive ? selectedBank.position.amount : 0, amount });
+
+          const amountLeft = numeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - amount : 0);
           return {
-            amount: `${amountRaw === "" ? 0 : amountRaw} ${selectedBank?.meta.tokenSymbol}`,
-            label: "Repaying: ",
+            amount: `${amountLeft} ${selectedBank?.meta.tokenSymbol}`,
+            label: "Borrowed: ",
           };
         }
 
