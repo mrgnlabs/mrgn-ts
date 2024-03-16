@@ -9,6 +9,7 @@ import { Input } from "~/components/ui/input";
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 
 import { InputHeader } from "./Components";
+import { InputAction } from "./Components/InputAction";
 
 type ActionBoxInputProps = {
   actionMode: ActionType;
@@ -179,21 +180,17 @@ export const ActionBoxInput = ({
             />
           </div>
         </div>
-        {actionMode === ActionType.Repay && (
-          <ul className="flex flex-col gap-0.5 mt-4 text-xs w-full text-muted-foreground">
-            <li className="flex justify-between items-center gap-1.5">
-              <strong className="mr-auto">Borrwed:</strong> 123 JitoSOL
-              <button className="text-chartreuse border-b border-transparent transition hover:border-chartreuse">
-                MAX
-              </button>
-            </li>
-            {repayMode === RepayType.RepayCollat && (
-              <li className="flex justify-between items-center gap-1.5">
-                <strong>Deposited:</strong> 100 USDC
-              </li>
-            )}
-          </ul>
-        )}
+        <InputAction
+          actionMode={actionMode}
+          selectedBank={selectedBank}
+          selectedRepayBank={selectedRepayBank}
+          repayMode={repayMode}
+          selectedStakingAccount={selectedStakingAccount}
+          amountRaw={amountRaw}
+          walletAmount={walletAmount}
+          maxAmount={maxAmount}
+          onSetAmountRaw={(amount) => handleInputChange(amount)}
+        />
       </div>
     </>
   );
