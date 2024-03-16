@@ -87,7 +87,7 @@ export const InputHeader = ({
         } else {
           return {
             amount: `${amountRaw === "" ? 0 : amountRaw} ${selectedBank?.meta.tokenSymbol}`,
-            label: "Borrowed: ",
+            label: "Repaying: ",
           };
         }
 
