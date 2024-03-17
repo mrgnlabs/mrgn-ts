@@ -224,16 +224,16 @@ function canBeRepaidCollat(
     };
   }
 
-  if (repayBankInfo && directRoutes) {
-    if (!directRoutes.find((key) => key.equals(repayBankInfo.info.state.mint))) {
-      return {
-        description: "Repayment not possible with current collateral, choose another.",
-        isEnabled: false,
-      };
-    }
-  } else {
-    return { isEnabled: false };
-  }
+  // if (repayBankInfo && directRoutes) {
+  //   if (!directRoutes.find((key) => key.equals(repayBankInfo.info.state.mint))) {
+  //     return {
+  //       description: "Repayment not possible with current collateral, choose another.",
+  //       isEnabled: false,
+  //     };
+  //   }
+  // } else {
+  //   return { isEnabled: false };
+  // }
 
   if (!swapQuote) {
     return { isEnabled: false };
