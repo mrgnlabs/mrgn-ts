@@ -11,10 +11,9 @@ import { LstType } from "~/utils";
 import { useLstStore, useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
-import { IconX } from "~/components/ui/icons";
+import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 
-import { ActionBoxItem, BuyWithMoonpay } from "../../SharedComponents";
+import { ActionBoxItem, BuyWithMoonpay, TokenListCommand } from "../../SharedComponents";
 import { ActionBoxNativeItem } from "./ActionBoxNativeItem";
 import { CommandList } from "cmdk";
 
@@ -103,75 +102,55 @@ export const LstTokenList = ({ selectedBank, onSetCurrentTokenBank, isOpen, lstT
   }, [isOpen]);
 
   return (
-    <>
-      <Command
-        className="bg-background-gray relative"
-        shouldFilter={false}
-        value={selectedBank?.address?.toString().toLowerCase() ?? ""}
-      >
-        <CommandInput
-          placeholder="Search token..."
-          wrapperClassName="fixed bg-background-gray w-[94%] z-40 flex justify-between"
-          className="h-12"
-          autoFocus={false}
-          onValueChange={(value) => setSearchQuery(value)}
-        />
-        <button onClick={() => onClose()} className="fixed z-50 top-5 right-4">
-          <IconX size={18} className="text-white/50" />
-        </button>
-        {/* NO TOKENS IN WALLET */}
-        <CommandList className="overflow-auto mt-[50px]">
-          {!hasTokens && <BuyWithMoonpay />}
-          <CommandEmpty>No tokens found.</CommandEmpty>
-          {/* Active staking positions*/}
-          {lstType === LstType.Native && connected && stakeAccounts.length > 0 && (
-            <CommandGroup heading="Natively staked">
-              {stakeAccounts.map((stakeAcc, index) => {
-                return (
-                  <CommandItem
-                    key={index}
-                    value={stakeAcc?.address?.toBase58().toLowerCase()}
-                    onSelect={(currentValue) => {
-                      onSetCurrentTokenBank(stakeAcc.address);
-                      onClose();
-                    }}
-                    className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
-                  >
-                    <ActionBoxNativeItem stakeData={stakeAcc} nativeSolPrice={solUsdValue} />
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          )}
+    <TokenListCommand selectedBank={selectedBank ?? undefined} onClose={onClose} onSetSearchQuery={setSearchQuery}>
+      {!hasTokens && <BuyWithMoonpay />}
+      <CommandEmpty>{lstType === LstType.Token ? "No tokens found." : "No native stakes."}</CommandEmpty>
+      {/* Active staking positions*/}
+      {lstType === LstType.Native && connected && stakeAccounts.length > 0 && (
+        <CommandGroup heading="Natively staked">
+          {stakeAccounts.map((stakeAcc, index) => {
+            return (
+              <CommandItem
+                key={index}
+                value={stakeAcc?.address?.toBase58().toLowerCase()}
+                onSelect={(currentValue) => {
+                  onSetCurrentTokenBank(stakeAcc.address);
+                  onClose();
+                }}
+                className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+              >
+                <ActionBoxNativeItem stakeData={stakeAcc} nativeSolPrice={solUsdValue} />
+              </CommandItem>
+            );
+          })}
+        </CommandGroup>
+      )}
 
-          {/* LST token staking */}
-          {lstType === LstType.Token && connected && filteredBanksUserOwns.length > 0 && (
-            <CommandGroup heading="Available in your wallet">
-              {filteredBanksUserOwns
-                .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
-                .map((bank, index) => {
-                  return (
-                    <CommandItem
-                      key={index}
-                      value={bank?.address?.toString().toLowerCase()}
-                      onSelect={(currentValue) => {
-                        onSetCurrentTokenBank(
-                          extendedBankInfos.find(
-                            (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                          )?.address ?? null
-                        );
-                        onClose();
-                      }}
-                      className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
-                    >
-                      <ActionBoxItem bank={bank} showBalanceOverride={true} nativeSolBalance={nativeSolBalance} />
-                    </CommandItem>
-                  );
-                })}
-            </CommandGroup>
-          )}
-        </CommandList>
-      </Command>
-    </>
+      {/* LST token staking */}
+      {lstType === LstType.Token && connected && filteredBanksUserOwns.length > 0 && (
+        <CommandGroup heading="Available in your wallet">
+          {filteredBanksUserOwns
+            .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
+            .map((bank, index) => {
+              return (
+                <CommandItem
+                  key={index}
+                  value={bank?.address?.toString().toLowerCase()}
+                  onSelect={(currentValue) => {
+                    onSetCurrentTokenBank(
+                      extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
+                        ?.address ?? null
+                    );
+                    onClose();
+                  }}
+                  className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                >
+                  <ActionBoxItem bank={bank} showBalanceOverride={true} nativeSolBalance={nativeSolBalance} />
+                </CommandItem>
+              );
+            })}
+        </CommandGroup>
+      )}
+    </TokenListCommand>
   );
 };
