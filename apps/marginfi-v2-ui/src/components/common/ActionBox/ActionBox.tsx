@@ -3,7 +3,7 @@ import React from "react";
 import { PublicKey } from "@solana/web3.js";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 
-import { WSOL_MINT, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
+import { WSOL_MINT, nativeToUi, numeralFormatter, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
@@ -210,6 +210,10 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
 
   const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
   const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
+  const isPreviewVisible = React.useMemo(
+    () => actionMode === ActionType.MintLST || !!selectedBank,
+    [actionMode, selectedBank]
+  );
 
   const actionMethod = React.useMemo(
     () =>
@@ -245,16 +249,20 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   );
 
   const actionModePrev = usePrevious(actionMode);
+  const selectedRepayBankPrev = usePrevious(selectedRepayBank);
+  const selectedBankPrev = usePrevious(selectedBank);
+  const debouncedRepayAmountPrev = usePrevious(debouncedRepayAmount);
 
   React.useEffect(() => {
     if (actionModePrev !== null && actionModePrev !== actionMode) {
       setAmountRaw("");
+      setRepayAmountRaw("");
     }
-  }, [actionModePrev, actionMode, setAmountRaw]);
+  }, [actionModePrev, actionMode, selectedTokenBank, setAmountRaw, setRepayAmountRaw]);
 
-  React.useEffect(() => {
-    setAmountRaw("");
-  }, [lendingMode, selectedTokenBank, setAmountRaw]);
+  // React.useEffect(() => {
+  //   setAmountRaw("");
+  // }, [lendingMode, selectedTokenBank, setAmountRaw]);
 
   React.useEffect(() => {
     if (requestedToken) {
@@ -275,20 +283,15 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       } else {
         setActionMode(ActionType.Borrow);
       }
-    }
-  }, [lendingMode, setActionMode, requestedAction]);
-
-  React.useEffect(() => {
-    if (requestedAction) {
+    } else {
       setActionMode(requestedAction);
     }
-  }, [requestedAction, setActionMode]);
+  }, [lendingMode, setActionMode, requestedAction]);
 
   React.useEffect(() => {
     if (actionMode !== ActionType.Repay) {
       setRepayMode(RepayType.RepayRaw);
     }
-
     if (actionMode === ActionType.MintLST) {
       setHasPreviewShown(true);
     }
@@ -308,28 +311,54 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     }
   }, [selectedStakingAccount, numberFormater, maxAmount, setAmountRaw]);
 
+  // Calculate repay w/ collat max value
   React.useEffect(() => {
-    if (repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
-      setRepayAmountRaw("");
-      calculateMaxCollat(selectedBank, selectedRepayBank);
+    if (selectedRepayBank && selectedBank) {
+      const isRepayBankChanged = !selectedRepayBankPrev?.address.equals(selectedRepayBank.address);
+      const isBankChanged = !selectedBankPrev?.address.equals(selectedBank.address);
+      if ((isBankChanged || isRepayBankChanged) && repayMode === RepayType.RepayCollat) {
+        setRepayAmountRaw("");
+        calculateMaxCollat(selectedBank, selectedRepayBank);
+      }
     } else {
       setRepayCollatQuote(undefined);
       setRepayAmountRaw("");
       setMaxAmountCollat(0);
     }
-  }, [repayMode, selectedRepayBank, selectedBank, setRepayCollatQuote, setRepayAmountRaw]);
+  }, [
+    repayMode,
+    selectedRepayBankPrev,
+    selectedBankPrev,
+    selectedRepayBank,
+    selectedBank,
+    setRepayCollatQuote,
+    setRepayAmountRaw,
+  ]);
 
+  // Calculate repay w/ collat repaying value
   React.useEffect(() => {
-    if (debouncedRepayAmount && repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
-      calculateRepayCollateral(selectedBank, selectedRepayBank, debouncedRepayAmount);
-    }
-  }, [debouncedRepayAmount, repayMode, selectedRepayBank, selectedBank]);
+    if (selectedRepayBank && selectedBank) {
+      const isRepayBankChanged = !selectedRepayBankPrev?.address.equals(selectedRepayBank.address);
+      const isBankChanged = !selectedBankPrev?.address.equals(selectedBank.address);
+      const isAmountChanged = debouncedRepayAmountPrev !== debouncedRepayAmount;
 
-  React.useEffect(() => {
-    if (debouncedRepayAmount && repayMode === RepayType.RepayCollat && selectedRepayBank && selectedBank) {
-      calculateRepayCollateral(selectedBank, selectedRepayBank, debouncedRepayAmount);
+      if (
+        debouncedRepayAmount &&
+        repayMode === RepayType.RepayCollat &&
+        (isAmountChanged || isBankChanged || isRepayBankChanged)
+      ) {
+        calculateRepayCollateral(selectedBank, selectedRepayBank, debouncedRepayAmount);
+      }
     }
-  }, [debouncedRepayAmount, repayMode, selectedRepayBank, selectedBank]);
+  }, [
+    debouncedRepayAmount,
+    debouncedRepayAmountPrev,
+    repayMode,
+    selectedRepayBank,
+    selectedBank,
+    selectedRepayBankPrev,
+    selectedBankPrev,
+  ]);
 
   React.useEffect(() => {
     fetchDirectRoutes();
@@ -425,7 +454,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       if (swapQuote) {
         const amountToRepay = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
 
-        setAmountRaw(clampedNumeralFormatter(amountToRepay).toString());
+        setAmountRaw(numeralFormatter(amountToRepay).toString());
 
         setRepayCollatQuote(swapQuote);
       }
@@ -780,23 +809,27 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                   actionMode={actionMode}
                 />
                 <div className="flex justify-between mt-3">
-                  <button
-                    className={cn(
-                      "flex text-muted-foreground text-xs items-center cursor-pointer transition hover:text-primary cursor-pointer"
-                    )}
-                    onClick={() => setHasPreviewShown(!hasPreviewShown)}
-                  >
-                    {hasPreviewShown ? (
-                      <>
-                        <IconEyeClosed size={14} /> <span className="mx-1">Hide details</span>
-                      </>
-                    ) : (
-                      <>
-                        <IconEye size={14} /> <span className="mx-1">View details</span>
-                      </>
-                    )}
-                    <IconChevronDown className={cn(hasPreviewShown && "rotate-180")} size={16} />
-                  </button>
+                  {isPreviewVisible ? (
+                    <button
+                      className={cn(
+                        "flex text-muted-foreground text-xs items-center cursor-pointer transition hover:text-primary cursor-pointer"
+                      )}
+                      onClick={() => setHasPreviewShown(!hasPreviewShown)}
+                    >
+                      {hasPreviewShown ? (
+                        <>
+                          <IconEyeClosed size={14} /> <span className="mx-1">Hide details</span>
+                        </>
+                      ) : (
+                        <>
+                          <IconEye size={14} /> <span className="mx-1">View details</span>
+                        </>
+                      )}
+                      <IconChevronDown className={cn(hasPreviewShown && "rotate-180")} size={16} />
+                    </button>
+                  ) : (
+                    <div />
+                  )}
 
                   <div className="flex justify-end gap-2">
                     <button

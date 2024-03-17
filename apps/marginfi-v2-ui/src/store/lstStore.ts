@@ -123,6 +123,7 @@ const stateCreator: StateCreator<LstState, [], []> = (set, get) => ({
       let tokenDataMap: TokenDataMap | null = null;
       let solUsdValue: number | null = null;
       let stakeAccounts: StakeData[] = [];
+      console.log("Fetching LST data");
       const lstData = await fetchLstData(connection);
       // const minimumRentExemption = await connection.getMinimumBalanceForRentExemption(ACCOUNT_SIZE);
       // const jupiterTokenInfo = await fetchJupiterTokenInfo();
