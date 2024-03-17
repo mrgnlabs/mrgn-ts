@@ -62,7 +62,7 @@ module.exports = {
           foreground: "hsl(33 96% 61%)",
         },
         info: {
-          DEFAULT: "hsl(215 20% 19%)",
+          DEFAULT: "hsl(218 27% 12%)",
           foreground: "hsl(220 95% 75%)",
         },
         destructive: {
