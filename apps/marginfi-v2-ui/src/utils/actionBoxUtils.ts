@@ -24,8 +24,7 @@ export enum LstType {
 export type ActionMethodType = "WARNING" | "ERROR" | "INFO";
 export interface ActionMethod {
   isEnabled: boolean;
-  primaryColor?: string;
-  backgroundColor?: string;
+  isInfo?: boolean;
   description?: string;
 }
 
@@ -245,8 +244,7 @@ function canBeRepaidCollat(
     return {
       description: `You have ${targetBankInfo.meta.tokenSymbol} in your wallet and can repay without using collateral.`,
       isEnabled: true,
-      primaryColor: "text-alert-foreground", // please help :(
-      backgroundColor: "bg-info", //bg-info
+      isInfo: true,
     };
   }
 

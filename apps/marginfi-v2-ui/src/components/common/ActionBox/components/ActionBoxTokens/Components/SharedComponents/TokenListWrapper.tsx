@@ -43,7 +43,7 @@ export const TokenListWrapper = ({
           <DrawerTrigger asChild>
             <div>{Trigger}</div>
           </DrawerTrigger>
-          <DrawerContent className="h-full pb-5 z-[55]">
+          <DrawerContent className="h-full pb-5 z-[55] mt-0" hideTopTrigger={true}>
             <div className="py-8 bg-background-gray h-full">
               <h3 className="px-3 text-2xl font-semibold">{label}</h3>
               {Content}

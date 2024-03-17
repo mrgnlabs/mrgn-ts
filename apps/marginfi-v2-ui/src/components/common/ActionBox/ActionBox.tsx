@@ -771,8 +771,8 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                   <div
                     className={cn(
                       "flex space-x-2 py-2.5 px-3.5 rounded-xl gap-1 text-sm",
-                      actionMethod.primaryColor ?? "text-alert-foreground",
-                      actionMethod.backgroundColor ?? "bg-alert"
+                      actionMethod.isInfo ? "text-info-foreground" : "text-alert-foreground",
+                      actionMethod.isInfo ? "bg-info" : "bg-alert"
                     )}
                   >
                     <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
