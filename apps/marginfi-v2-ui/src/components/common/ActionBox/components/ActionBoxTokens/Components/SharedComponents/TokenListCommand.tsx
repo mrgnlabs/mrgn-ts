@@ -30,7 +30,7 @@ export const TokenListCommand = ({ selectedBank, onSetSearchQuery, onClose, chil
           autoFocus={false}
           onValueChange={(value) => onSetSearchQuery(value)}
         />
-        <button onClick={() => onClose()} className={cn("fixed z-50", isMobile ? "top-14 right-4" : "top-5 right-4")}>
+        <button onClick={() => onClose()} className={cn("fixed z-50", isMobile ? "top-9 right-4" : "top-5 right-4")}>
           <IconX size={18} className="text-white/50" />
         </button>
         <CommandList className="overflow-auto mt-[50px]">{children}</CommandList>
