@@ -245,8 +245,8 @@ function canBeRepaidCollat(
     return {
       description: `You have ${targetBankInfo.meta.tokenSymbol} in your wallet and can repay without using collateral.`,
       isEnabled: true,
-      primaryColor: "text-info-foreground",
-      backgroundColor: "bg-info",
+      primaryColor: "text-alert-foreground", // please help :(
+      backgroundColor: "bg-info", //bg-info
     };
   }
 

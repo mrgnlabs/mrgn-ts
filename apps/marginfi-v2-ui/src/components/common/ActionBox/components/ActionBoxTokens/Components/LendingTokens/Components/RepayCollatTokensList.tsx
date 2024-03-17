@@ -9,10 +9,9 @@ import { LendingModes } from "~/types";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { cn } from "~/utils";
 
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
-import { IconX } from "~/components/ui/icons";
+import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 
-import { ActionBoxItem, BuyWithMoonpay } from "../../SharedComponents";
+import { ActionBoxItem, BuyWithMoonpay, TokenListCommand } from "../../SharedComponents";
 
 type RepayCollatTokensListProps = {
   selectedRepayBank?: ExtendedBankInfo;
@@ -100,62 +99,42 @@ export const RepayCollatTokensList = ({
 
   return (
     <>
-      <Command
-        className="bg-background-gray relative"
-        shouldFilter={false}
-        value={selectedRepayBank?.address?.toString().toLowerCase() ?? ""}
-      >
-        <div className="fixed bg-background-gray w-[90%] z-40 flex justify-between">
-          <CommandInput
-            placeholder="Search token..."
-            className="h-12 "
-            autoFocus={false}
-            onValueChange={(value) => setSearchQuery(value)}
-          />
-        </div>
-        <button onClick={() => onClose()} className="fixed z-50 top-5 right-4">
-          <IconX size={18} className="text-white/50" />
-        </button>
-        {/* NO TOKENS IN WALLET */}
+      <TokenListCommand selectedBank={selectedRepayBank} onClose={onClose} onSetSearchQuery={setSearchQuery}>
         {!hasTokens && <BuyWithMoonpay />}
-
         <CommandEmpty>No tokens found.</CommandEmpty>
-
-        <div className="overflow-auto mt-[50px]">
-          {/* REPAYING */}
-          {filteredBanksActive.length > 0 && onSetRepayTokenBank && (
-            <CommandGroup heading="Currently supplying">
-              {filteredBanksActive.map((bank, index) => (
-                <CommandItem
-                  key={index}
-                  value={bank.address?.toString().toLowerCase()}
-                  // disabled={!ownedBanksPk.includes(bank.address)}
-                  onSelect={(currentValue) => {
-                    onSetRepayTokenBank(
-                      extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
-                        ?.address ?? null
-                    );
-                    onClose();
-                  }}
-                  className={cn(
-                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
-                    highlightedRepayTokens.find((v) => v.equals(bank.info.state.mint)) ? "opacity-1" : "opacity-50"
-                  )}
-                >
-                  <ActionBoxItem
-                    rate={calculateRate(bank)}
-                    lendingMode={lendingMode}
-                    bank={bank}
-                    showBalanceOverride={false}
-                    nativeSolBalance={nativeSolBalance}
-                    isRepay={true}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-        </div>
-      </Command>
+        {/* REPAYING */}
+        {filteredBanksActive.length > 0 && onSetRepayTokenBank && (
+          <CommandGroup heading="Currently supplying">
+            {filteredBanksActive.map((bank, index) => (
+              <CommandItem
+                key={index}
+                value={bank.address?.toString().toLowerCase()}
+                // disabled={!ownedBanksPk.includes(bank.address)}
+                onSelect={(currentValue) => {
+                  onSetRepayTokenBank(
+                    extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
+                      ?.address ?? null
+                  );
+                  onClose();
+                }}
+                className={cn(
+                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
+                  highlightedRepayTokens.find((v) => v.equals(bank.info.state.mint)) ? "opacity-1" : "opacity-50"
+                )}
+              >
+                <ActionBoxItem
+                  rate={calculateRate(bank)}
+                  lendingMode={lendingMode}
+                  bank={bank}
+                  showBalanceOverride={false}
+                  nativeSolBalance={nativeSolBalance}
+                  isRepay={true}
+                />
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
+      </TokenListCommand>
     </>
   );
 };
