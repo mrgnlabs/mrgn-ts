@@ -39,8 +39,8 @@ export const InputHeaderAction = ({
     const actionTitles: { [key in ActionType]?: string } = {
       [ActionType.Borrow]: "You borrow",
       [ActionType.Deposit]: "You supply",
-      [ActionType.Withdraw]: "You withdraw",
-      [ActionType.Repay]: "You repay",
+      [ActionType.Withdraw]: "",
+      [ActionType.Repay]: "",
       [ActionType.MintLST]: "You stake",
     };
 
@@ -123,7 +123,7 @@ export const InputHeaderAction = ({
                 key={idx}
                 value={toggle.value}
                 aria-label={toggle.value}
-                className="data-[state=on]:bg-background-gray-light hover:bg-background-gray-light/25"
+                className="data-[state=on]:bg-background-gray-light hover:bg-background-gray-light/25 capitalize"
               >
                 {toggle.text}
               </ToggleGroupItem>
