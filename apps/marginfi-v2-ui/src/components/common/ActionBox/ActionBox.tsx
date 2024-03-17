@@ -393,9 +393,8 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
           inputMint: repayBank.info.state.mint.toBase58(),
           outputMint: bank.info.state.mint.toBase58(),
           slippageBps: slippageBps,
-          onlyDirectRoutes: true,
           swapMode: "ExactIn" as any,
-          maxAccounts: 20,
+          maxAccounts: 30,
         } as QuoteGetRequest;
 
         try {
@@ -412,7 +411,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
               outputMint: bank.info.state.mint.toBase58(), // JITO
               slippageBps: slippageBps,
               swapMode: "ExactOut",
-              onlyDirectRoutes: true,
             } as QuoteGetRequest;
 
             const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams);
@@ -444,7 +442,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       outputMint: bank.info.state.mint.toBase58(),
       slippageBps: slippageBps,
       swapMode: "ExactIn",
-      onlyDirectRoutes: true,
+      maxAccounts: 30,
     } as QuoteGetRequest;
 
     try {
@@ -748,7 +746,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                 selectedTokenBank={selectedTokenBank}
                 selectedRepayTokenBank={selectedRepayTokenBank}
                 selectedStakingAccount={selectedStakingAccount}
-                highlightedRepayTokens={directRoutes}
+                highlightedRepayTokens={undefined} //directRoutes
                 walletAmount={walletAmount}
                 amountRaw={amountRaw}
                 repayAmountRaw={repayAmountRaw}
