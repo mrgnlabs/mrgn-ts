@@ -135,8 +135,7 @@ function generalChecks(
     return {
       description: "The oracle data for this bank is stale",
       isEnabled: true,
-      // TODO: add link to more info re stale oracles
-      link: "#",
+      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
     };
   }
   if (showCloseBalance) {
