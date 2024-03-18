@@ -326,7 +326,7 @@ class MarginfiAccountWrapper {
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
-    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress);
+    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress, withdrawAll);
     const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll);
     const lookupTables = this.client.addressLookupTables;
     const flashloanTx = await this.buildFlashLoanTx({
