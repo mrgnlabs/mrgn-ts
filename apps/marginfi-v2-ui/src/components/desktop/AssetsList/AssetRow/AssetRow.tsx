@@ -290,7 +290,12 @@ const AssetRow: React.FC<{
                   </TooltipTrigger>
                   <TooltipContent>
                     Oracle data is stale for this bank.{" "}
-                    <Link href="#" className="underline hover:no-underline">
+                    <Link
+                      href="https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline hover:no-underline"
+                    >
                       read more
                     </Link>
                   </TooltipContent>
