@@ -6,7 +6,7 @@ import {
   OperationalState,
   RiskTier,
 } from "@mrgnlabs/marginfi-client-v2";
-import { QuoteResponse } from "@jup-ag/api";
+import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 import { PublicKey } from "@solana/web3.js";
 
 import { StakeData, isBankOracleStale } from "~/utils";
@@ -422,4 +422,22 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   }
 
   return null;
+}
+
+export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 5, timeout = 1000) {
+  const jupiterQuoteApi = createJupiterApiClient();
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
+      return swapQuote; // Success, return the result
+    } catch (error) {
+      console.error(`Attempt ${attempt + 1} failed:`, error);
+      attempt++;
+      if (attempt === maxRetries) {
+        throw new Error(`Failed to get to quote after ${maxRetries} attempts`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, timeout));
+    }
+  }
 }
