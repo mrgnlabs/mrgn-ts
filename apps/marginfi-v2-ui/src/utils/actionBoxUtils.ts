@@ -112,6 +112,15 @@ export function checkActionAvailable({
         break;
     }
   }
+
+  if (selectedBank && isBankOracleStale(selectedBank)) {
+    return {
+      description: "The oracle data for this bank is stale",
+      isEnabled: true,
+      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+    };
+  }
+
   return {
     isEnabled: true,
   };
@@ -130,13 +139,6 @@ function generalChecks(
   }
   if (!selectedBank && !selectedStakingAccount) {
     return { isEnabled: false };
-  }
-  if (selectedBank && isBankOracleStale(selectedBank)) {
-    return {
-      description: "The oracle data for this bank is stale",
-      isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
-    };
   }
   if (showCloseBalance) {
     return { isInfo: true, description: "Close lending balance.", isEnabled: true };
