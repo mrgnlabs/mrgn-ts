@@ -26,7 +26,7 @@ import { useDebounce } from "~/hooks/useDebounce";
 import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-import { checkActionAvailable, LstType, RepayType } from "~/utils/actionBoxUtils";
+import { checkActionAvailable, getSwapQuoteWithRetry, LstType, RepayType } from "~/utils/actionBoxUtils";
 import { IconAlertTriangle, IconChevronDown, IconSettings, IconEye, IconEyeClosed } from "~/components/ui/icons";
 import { showErrorToast } from "~/utils/toastUtils";
 
@@ -51,7 +51,6 @@ type DirectRoutesMap = {
 };
 
 export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleCloseDialog }: ActionBoxProps) => {
-  const jupiterQuoteApi = createJupiterApiClient();
   const [
     mfiClient,
     nativeSolBalance,
@@ -139,7 +138,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       selectedBank && directRoutesMap
         ? directRoutesMap[selectedBank.info.state.mint.toBase58()].directRoutes.map((key) => new PublicKey(key))
         : undefined,
-    [directRoutesMap, directRoutesMap]
+    [directRoutesMap, selectedBank]
   );
 
   const selectedRepayBank = React.useMemo(
@@ -242,6 +241,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       showCloseBalance,
       selectedBank,
       selectedRepayBank,
+      selectedStakingAccount,
       extendedBankInfos,
       selectedAccount,
       nativeSolBalance,
@@ -315,58 +315,9 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     }
   }, [selectedStakingAccount, numberFormater, maxAmount, setAmountRaw]);
 
-  // Calculate repay w/ collat max value
-  React.useEffect(() => {
-    if (selectedRepayBank && selectedBank) {
-      const isRepayBankChanged = !selectedRepayBankPrev?.address.equals(selectedRepayBank.address);
-      const isBankChanged = !selectedBankPrev?.address.equals(selectedBank.address);
-      if ((isBankChanged || isRepayBankChanged) && repayMode === RepayType.RepayCollat) {
-        setRepayAmountRaw("");
-        calculateMaxCollat(selectedBank, selectedRepayBank);
-      }
-    } else {
-      setRepayCollatQuote(undefined);
-      setRepayAmountRaw("");
-      setMaxAmountCollat(0);
-    }
-  }, [
-    repayMode,
-    selectedRepayBankPrev,
-    selectedBankPrev,
-    selectedRepayBank,
-    selectedBank,
-    setRepayCollatQuote,
-    setRepayAmountRaw,
-  ]);
-
-  // Calculate repay w/ collat repaying value
-  React.useEffect(() => {
-    if (selectedRepayBank && selectedBank) {
-      const isRepayBankChanged = !selectedRepayBankPrev?.address.equals(selectedRepayBank.address);
-      const isBankChanged = !selectedBankPrev?.address.equals(selectedBank.address);
-      const isAmountChanged = debouncedRepayAmountPrev !== debouncedRepayAmount;
-
-      if (
-        debouncedRepayAmount &&
-        repayMode === RepayType.RepayCollat &&
-        (isAmountChanged || isBankChanged || isRepayBankChanged)
-      ) {
-        calculateRepayCollateral(selectedBank, selectedRepayBank, debouncedRepayAmount);
-      }
-    }
-  }, [
-    debouncedRepayAmount,
-    debouncedRepayAmountPrev,
-    repayMode,
-    selectedRepayBank,
-    selectedBank,
-    selectedRepayBankPrev,
-    selectedBankPrev,
-  ]);
-
-  React.useEffect(() => {
-    fetchDirectRoutes();
-  }, []);
+  // React.useEffect(() => {
+  //   fetchDirectRoutes();
+  // }, []);
 
   const fetchDirectRoutes = async () => {
     try {
@@ -436,53 +387,90 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
         }
       }
     },
-    [setMaxAmountCollat, setIsLoading]
+    [slippageBps, setMaxAmountCollat, setIsLoading]
   );
 
-  const calculateRepayCollateral = async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, amount: number) => {
-    const quoteParams = {
-      amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-      inputMint: repayBank.info.state.mint.toBase58(),
-      outputMint: bank.info.state.mint.toBase58(),
-      slippageBps: slippageBps,
-      swapMode: "ExactIn",
-      maxAccounts: 30,
-    } as QuoteGetRequest;
+  const calculateRepayCollateral = React.useCallback(
+    async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, amount: number) => {
+      const quoteParams = {
+        amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+        inputMint: repayBank.info.state.mint.toBase58(),
+        outputMint: bank.info.state.mint.toBase58(),
+        slippageBps: slippageBps,
+        swapMode: "ExactIn",
+        maxAccounts: 30,
+      } as QuoteGetRequest;
 
-    try {
-      setIsLoading(true);
-      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
-
-      if (swapQuote) {
-        const amountToRepay = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
-
-        setAmountRaw(numeralFormatter(amountToRepay).toString());
-
-        setRepayCollatQuote(swapQuote);
-      }
-    } catch (error) {
-      showErrorToast("Unable to retrieve data. Please choose a different collateral option or refresh the page.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 5, timeout = 1000) {
-    let attempt = 0;
-    while (attempt < maxRetries) {
       try {
-        const swapQuote = await jupiterQuoteApi.quoteGet(quoteParams);
-        return swapQuote; // Success, return the result
-      } catch (error) {
-        console.error(`Attempt ${attempt + 1} failed:`, error);
-        attempt++;
-        if (attempt === maxRetries) {
-          throw new Error(`Failed to get to quote after ${maxRetries} attempts`);
+        setIsLoading(true);
+        const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+
+        if (swapQuote) {
+          const amountToRepay = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
+
+          setAmountRaw(numeralFormatter(amountToRepay).toString());
+
+          setRepayCollatQuote(swapQuote);
         }
-        await new Promise((resolve) => setTimeout(resolve, timeout));
+      } catch (error) {
+        showErrorToast("Unable to retrieve data. Please choose a different collateral option or refresh the page.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [slippageBps, setAmountRaw, setRepayCollatQuote]
+  );
+
+  // Calculate repay w/ collat max value
+  React.useEffect(() => {
+    if (selectedRepayBank && selectedBank) {
+      const isRepayBankChanged = !selectedRepayBankPrev?.address.equals(selectedRepayBank.address);
+      const isBankChanged = !selectedBankPrev?.address.equals(selectedBank.address);
+      if ((isBankChanged || isRepayBankChanged) && repayMode === RepayType.RepayCollat) {
+        setRepayAmountRaw("");
+        calculateMaxCollat(selectedBank, selectedRepayBank);
+      }
+    } else {
+      setRepayCollatQuote(undefined);
+      setRepayAmountRaw("");
+      setMaxAmountCollat(0);
+    }
+  }, [
+    repayMode,
+    selectedRepayBankPrev,
+    selectedBankPrev,
+    selectedRepayBank,
+    selectedBank,
+    calculateMaxCollat,
+    setRepayCollatQuote,
+    setRepayAmountRaw,
+  ]);
+
+  // Calculate repay w/ collat repaying value
+  React.useEffect(() => {
+    if (selectedRepayBank && selectedBank) {
+      const isRepayBankChanged = !selectedRepayBankPrev?.address.equals(selectedRepayBank.address);
+      const isBankChanged = !selectedBankPrev?.address.equals(selectedBank.address);
+      const isAmountChanged = debouncedRepayAmountPrev !== debouncedRepayAmount;
+
+      if (
+        debouncedRepayAmount &&
+        repayMode === RepayType.RepayCollat &&
+        (isAmountChanged || isBankChanged || isRepayBankChanged)
+      ) {
+        calculateRepayCollateral(selectedBank, selectedRepayBank, debouncedRepayAmount);
       }
     }
-  }
+  }, [
+    debouncedRepayAmount,
+    debouncedRepayAmountPrev,
+    repayMode,
+    selectedRepayBank,
+    selectedBank,
+    selectedRepayBankPrev,
+    selectedBankPrev,
+    calculateRepayCollateral,
+  ]);
 
   const executeLendingActionCb = React.useCallback(
     async ({
@@ -625,18 +613,21 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       console.log(error);
     }
   }, [
-    mfiClient,
     selectedBank,
     selectedStakingAccount,
-    amount,
-    priorityFee,
-    connection,
-    wallet,
+    mfiClient,
     lstData,
     quoteResponseMeta,
-    fetchMrgnlendState,
-    setIsRefreshingStore,
+    amount,
+    connection,
+    wallet,
+    nativeSolBalance,
+    priorityFee,
     handleCloseDialog,
+    setIsActionComplete,
+    setPreviousTxn,
+    setIsRefreshingStore,
+    fetchMrgnlendState,
   ]);
 
   const handleLendingAction = React.useCallback(async () => {
