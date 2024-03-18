@@ -171,7 +171,7 @@ export const ActionBoxInput = ({
             <Input
               type="text"
               ref={amountInputRef}
-              inputMode="numeric"
+              inputMode="decimal"
               value={inputAmount}
               disabled={isInputDisabled}
               onChange={(e) => handleInputChange(e.target.value)}
