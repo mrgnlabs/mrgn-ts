@@ -224,11 +224,19 @@ const AssetRow: React.FC<{
           }}
         >
           <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
+            <Image
+              src={getTokenImageURL(bank.meta.tokenSymbol)}
+              alt={`${bank.meta.tokenSymbol} logo`}
+              height={25}
+              width={25}
+              className="rounded-full"
+            />
+            <div className="font-aeonik block">{bank.meta.tokenSymbol}</div>
             {isBankOracleStale(bank) && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <IconAlertTriangleFilled size={14} className="text-destructive-foreground shrink-0 ml-[5px]" />
+                    <IconAlertTriangleFilled size={14} className="text-destructive-foreground shrink-0" />
                   </TooltipTrigger>
                   <TooltipContent className="bg-destructive text-destructive-foreground">
                     Oracle data is stale for this bank.{" "}
@@ -239,14 +247,6 @@ const AssetRow: React.FC<{
                 </Tooltip>
               </TooltipProvider>
             )}
-            <Image
-              src={getTokenImageURL(bank.meta.tokenSymbol)}
-              alt={`${bank.meta.tokenSymbol} logo`}
-              height={25}
-              width={25}
-              className="rounded-full"
-            />
-            <div className="font-aeonik block">{bank.meta.tokenSymbol}</div>
           </div>
         </TableCell>
 
