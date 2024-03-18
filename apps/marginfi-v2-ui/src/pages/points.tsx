@@ -21,7 +21,7 @@ export default function PointsPage() {
       {!initialized && <Loader label="Loading marginfi points..." className="mt-16" />}
 
       {initialized && (
-        <div className="flex flex-col items-center w-full max-w-8xl px-10 gap-5 pb-[64px] sm:pb-[32px]">
+        <div className="flex flex-col items-center w-full max-w-8xl px-4 md:px-10 gap-5 pb-[64px] sm:pb-[32px]">
           {!connected ? <PointsConnectWallet /> : <PointsOverview userPointsData={userPointsData} />}
           <div className="text-muted-foreground text-xs">
             <p>

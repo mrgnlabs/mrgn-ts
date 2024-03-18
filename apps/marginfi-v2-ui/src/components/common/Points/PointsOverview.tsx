@@ -57,9 +57,12 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
               {userPointsData && numeralFormatter(userPointsData.totalPoints)}
             </h3>
             {lastUsedWallet === "Backpack" && (
-              <p className="flex items-center gap-1 rounded-lg w-full max-w-fit text-xs mt-3 text-white">
-                <IconBackpackWallet size={16} />
-                <strong className="font-medium text-white">Backpack</strong> 5% points boost active
+              <p className="flex flex-col md:flex-row items-start md:items-center gap-1 rounded-lg w-full max-w-fit text-xs mt-3 text-white">
+                <div className="flex items-center gap-1">
+                  <IconBackpackWallet size={16} />
+                  <strong className="font-medium text-white">Backpack</strong>
+                </div>{" "}
+                5% points boost active
               </p>
             )}
           </div>
