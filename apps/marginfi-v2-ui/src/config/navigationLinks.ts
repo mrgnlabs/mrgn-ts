@@ -1,13 +1,12 @@
 import { FC, SVGProps } from "react";
 import {
-  IconPieChart,
-  IconReceiveMoney,
-  IconTokenSwap,
   IconMore,
-  IconBridge,
-  IconMrgn,
-  IconCoins,
-  IconSteak,
+  IconBuildingBank,
+  IconMoneybag,
+  IconCoinOff,
+  IconReplace,
+  IconGps,
+  IconBuildingBridge2,
 } from "~/components/ui/icons";
 export interface NavLinkInfo {
   href: string;
@@ -19,22 +18,22 @@ export interface NavLinkInfo {
 export const ORDERED_MOBILE_NAVBAR_LINKS: NavLinkInfo[] = [
   {
     href: "/",
-    alt: "hand with money icon",
+    alt: "bank icon",
     label: "lend",
-    Icon: IconReceiveMoney,
+    Icon: IconBuildingBank,
   },
   {
     href: "/stake",
-    alt: "steak icon",
-    label: "stake",
-    Icon: IconSteak,
+    alt: "mint icon",
+    label: "mint",
+    Icon: IconCoinOff,
   },
 
   {
     href: "/portfolio",
-    alt: "pie chart icon",
+    alt: "portfolio icon",
     label: "portfolio",
-    Icon: IconPieChart,
+    Icon: IconMoneybag,
   },
   {
     href: "",
@@ -49,36 +48,36 @@ export const ORDERED_MOBILE_LAUNCHER_LINKS: NavLinkInfo[] = [
     href: "/",
     alt: "hand with money icon",
     label: "lend",
-    Icon: IconReceiveMoney,
+    Icon: IconBuildingBank,
   },
   {
     href: "/stake",
-    alt: "steak icon",
-    label: "stake",
-    Icon: IconSteak,
+    alt: "mint icon",
+    label: "mint",
+    Icon: IconCoinOff,
   },
   {
     href: "/portfolio",
     alt: "pie chart icon",
     label: "portfolio",
-    Icon: IconPieChart,
+    Icon: IconMoneybag,
   },
   {
     href: "/swap",
     alt: "coin swap icon",
     label: "swap",
-    Icon: IconTokenSwap,
+    Icon: IconReplace,
   },
   {
     href: "/bridge",
-    alt: "pie chart icon",
+    alt: "bridge icon",
     label: "bridge",
-    Icon: IconBridge,
+    Icon: IconBuildingBridge2,
   },
   {
     href: "/ecosystem",
-    alt: "mrgn logo",
+    alt: "ecosystem icon",
     label: "ecosystem",
-    Icon: IconMrgn,
+    Icon: IconGps,
   },
 ];

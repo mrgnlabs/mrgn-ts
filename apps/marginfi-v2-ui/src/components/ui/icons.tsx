@@ -43,6 +43,12 @@ import {
   IconSparkles,
   IconEye,
   IconEyeClosed,
+  IconBuildingBank,
+  IconMoneybag,
+  IconCoinOff,
+  IconReplace,
+  IconGps,
+  IconBuildingBridge2,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -790,6 +796,12 @@ export {
   IconSparkles,
   IconEye,
   IconEyeClosed,
+  IconBuildingBank,
+  IconMoneybag,
+  IconCoinOff,
+  IconReplace,
+  IconGps,
+  IconBuildingBridge2,
 
   // customed icons
   IconBrandGoogle,
