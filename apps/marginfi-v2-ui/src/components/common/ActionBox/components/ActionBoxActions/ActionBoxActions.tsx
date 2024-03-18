@@ -12,12 +12,21 @@ type ActionBoxActionsProps = {
   isLoading: boolean;
   isEnabled: boolean;
   actionMode: ActionType;
+  showCloseBalance: boolean;
   handleAction: () => void;
 };
 
-export const ActionBoxActions = ({ isLoading, isEnabled, actionMode, handleAction }: ActionBoxActionsProps) => {
+export const ActionBoxActions = ({
+  isLoading,
+  isEnabled,
+  showCloseBalance,
+  actionMode,
+  handleAction,
+}: ActionBoxActionsProps) => {
   const { connected } = useWalletContext();
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
+
+  const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : actionMode), [showCloseBalance, actionMode]);
 
   if (!connected) {
     return (
@@ -29,7 +38,7 @@ export const ActionBoxActions = ({ isLoading, isEnabled, actionMode, handleActio
 
   return (
     <Button disabled={isLoading || !isEnabled} className="w-full py-6" onClick={handleAction}>
-      {isLoading ? <IconLoader /> : actionMode}
+      {isLoading ? <IconLoader /> : buttonLabel}
     </Button>
   );
 };
