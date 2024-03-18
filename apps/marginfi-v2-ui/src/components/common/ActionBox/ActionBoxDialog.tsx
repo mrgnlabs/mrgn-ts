@@ -55,7 +55,7 @@ export const ActionBoxDialog = ({
             >
               <IconArrowLeft /> {`${requestedAction} ${selectedBank?.meta.tokenSymbol}`}
             </div>
-            <div className="p-4">
+            <div className="p-4 h-screen mb-24">
               <ActionBox
                 isDialog={true}
                 handleCloseDialog={() => setIsDialogOpen(false)}
