@@ -9,7 +9,7 @@ import {
 import { QuoteResponse } from "@jup-ag/api";
 import { PublicKey } from "@solana/web3.js";
 
-import { StakeData } from "~/utils";
+import { StakeData, isBankOracleStale } from "~/utils";
 
 export enum RepayType {
   RepayRaw = "Repay",
@@ -26,6 +26,7 @@ export interface ActionMethod {
   isEnabled: boolean;
   isInfo?: boolean;
   description?: string;
+  link?: string;
 }
 
 export function getColorForActionMethodType(type?: ActionMethodType) {
@@ -129,6 +130,14 @@ function generalChecks(
   }
   if (!selectedBank && !selectedStakingAccount) {
     return { isEnabled: false };
+  }
+  if (selectedBank && isBankOracleStale(selectedBank)) {
+    return {
+      description: "The oracle data for this bank is stale",
+      isEnabled: true,
+      // TODO: add link to more info re stale oracles
+      link: "#",
+    };
   }
   if (showCloseBalance) {
     return { isInfo: true, description: "Close lending balance.", isEnabled: true };
