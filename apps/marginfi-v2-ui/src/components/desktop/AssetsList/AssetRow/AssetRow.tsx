@@ -29,7 +29,7 @@ import {
 } from "~/components/ui/icons";
 
 import { useUserProfileStore, useUiStore } from "~/store";
-import { getTokenImageURL, cn } from "~/utils";
+import { getTokenImageURL, cn, isBankOracleStale } from "~/utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
@@ -224,7 +224,7 @@ const AssetRow: React.FC<{
           }}
         >
           <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
-            {bank.info.rawBank.lastUpdate + 60 > Math.round(Date.now() / 1000) && (
+            {isBankOracleStale(bank) && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
