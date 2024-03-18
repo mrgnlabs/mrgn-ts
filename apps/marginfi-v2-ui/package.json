@@ -17,7 +17,7 @@
     "@emotion/styled": "^11.10.5",
     "@jup-ag/api": "^6.0.11",
     "@jup-ag/react-hook": "^6.0.0-beta.8",
-    "@moongate/moongate-adapter": "^0.0.99",
+    "@moongate/moongate-adapter": "^0.1.0",
     "@moonpay/moonpay-js": "^0.1.0",
     "@mrgnlabs/lip-client": "*",
     "@mrgnlabs/marginfi-client-v2": "*",
