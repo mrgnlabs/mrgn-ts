@@ -111,13 +111,15 @@ export const InputAction = ({
         <ul className="flex flex-col gap-0.5 mt-4 text-xs w-full text-muted-foreground">
           <li className="flex justify-between items-center gap-1.5">
             <strong className="mr-auto">{maxLabel.label}</strong> {maxLabel.amount}
-            <button
-              className="text-chartreuse border-b border-transparent transition hover:border-chartreuse"
-              disabled={maxAmount === 0}
-              onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
-            >
-              MAX
-            </button>
+            {(repayMode === RepayType.RepayRaw || (repayMode === RepayType.RepayCollat && selectedRepayBank)) && (
+              <button
+                className="text-chartreuse border-b border-transparent transition hover:border-chartreuse"
+                disabled={maxAmount === 0}
+                onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
+              >
+                MAX
+              </button>
+            )}
           </li>
           {repayMode === RepayType.RepayCollat && (
             <li className="flex justify-between items-center gap-1.5">
