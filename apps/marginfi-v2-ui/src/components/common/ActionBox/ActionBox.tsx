@@ -718,7 +718,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       <div className="flex flex-col items-center">
         <div
           className={cn(
-            "p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative",
+            "p-4 md:p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative",
             isDialog && "py-5 border border-background-gray-light/50"
           )}
         >
