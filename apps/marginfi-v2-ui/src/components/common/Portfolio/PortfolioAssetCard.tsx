@@ -32,6 +32,8 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
 
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
+  const isDust = React.useMemo(() => bank?.isActive && bank?.position.isDust, [bank]);
+
   const isUserPositionPoorHealth = React.useMemo(() => {
     if (!bank || !bank?.position?.liquidationPrice) {
       return false;
@@ -128,7 +130,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
                 className="flex-1 h-12"
                 variant="outline"
               >
-                {isInLendingMode ? "Withdraw" : "Repay"}
+                {isInLendingMode ? (isDust ? "Close" : "Withdraw") : "Repay"}
               </Button>
               <Button
                 onClick={() => {
