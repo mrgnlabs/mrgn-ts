@@ -20,7 +20,7 @@ export default function PortfolioPage() {
   return (
     <>
       <div className="flex flex-col w-full h-full justify-start items-center px-4 gap-6 mb-20">
-        {!initialized && <Loader label="Loading marginfi points..." className="mt-16" />}
+        {!initialized && <Loader label="Loading marginfi portfolio..." className="mt-16" />}
 
         {initialized && (
           <>
