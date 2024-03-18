@@ -153,6 +153,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   // Amount related useMemo's
   const amount = React.useMemo(() => {
     const strippedAmount = amountRaw.replace(/,/g, "");
+
     return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
   }, [amountRaw]);
 
@@ -349,7 +350,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
           outputMint: bank.info.state.mint.toBase58(),
           slippageBps: slippageBps,
           swapMode: "ExactIn" as any,
-          maxAccounts: 30,
+          maxAccounts: 20,
         } as QuoteGetRequest;
 
         try {
@@ -371,10 +372,8 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
             const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams);
             if (!swapQuoteOutput) throw new Error();
 
-            const inputOutOtherAmount = nativeToUi(
-              swapQuoteOutput.otherAmountThreshold,
-              repayBank.info.state.mintDecimals
-            );
+            const inputOutOtherAmount =
+              nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.01; // add this if dust appears: "* 1.01"
             setMaxAmountCollat(inputOutOtherAmount);
           } else {
             setMaxAmountCollat(amount);
@@ -392,13 +391,15 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
 
   const calculateRepayCollateral = React.useCallback(
     async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, amount: number) => {
+      const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
+
       const quoteParams = {
         amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
         inputMint: repayBank.info.state.mint.toBase58(),
         outputMint: bank.info.state.mint.toBase58(),
         slippageBps: slippageBps,
         swapMode: "ExactIn",
-        maxAccounts: 30,
+        maxAccounts: 20,
       } as QuoteGetRequest;
 
       try {
@@ -406,9 +407,12 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
         const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
         if (swapQuote) {
-          const amountToRepay = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
+          const outAmount = nativeToUi(swapQuote.outAmount, bank.info.state.mintDecimals);
+          const outAmountThreshold = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
 
-          setAmountRaw(numeralFormatter(amountToRepay).toString());
+          const amountToRepay = outAmount > maxRepayAmount ? maxRepayAmount : outAmountThreshold;
+
+          setAmountRaw(amountToRepay.toString());
 
           setRepayCollatQuote(swapQuote);
         }
@@ -647,11 +651,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       } as MarginfiActionParams;
 
       if (repayCollatQuote && repayAmount && selectedRepayBank && connection && wallet) {
-        const maxRepayAmount = selectedBank.isActive ? selectedBank?.position.amount : 0;
-        const amountFromQuote = nativeToUi(repayCollatQuote.otherAmountThreshold, selectedBank.info.state.mintDecimals);
-        const amountToRepay = maxRepayAmount > amountFromQuote ? amountFromQuote : maxRepayAmount;
-        params.amount = amountToRepay;
-
         params.repayWithCollatOptions = {
           repayCollatQuote,
           repayAmount: repayAmount,
@@ -769,11 +768,11 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                     )}
                   >
                     <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-                    <div className="flex flex-col md:flex-row md:items-center gap-1">
+                    <div className="flex items-center gap-1">
                       <p>{actionMethod.description}</p>
                       {actionMethod.link && (
                         <p>
-                          <span className="hidden md:inline-flex mr-1">- </span>
+                          -{" "}
                           <Link
                             href={actionMethod.link}
                             target="_blank"

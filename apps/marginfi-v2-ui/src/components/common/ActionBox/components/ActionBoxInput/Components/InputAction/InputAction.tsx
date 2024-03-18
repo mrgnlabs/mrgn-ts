@@ -79,8 +79,6 @@ export const InputAction = ({
           const strippedAmount = amountRaw.replace(/,/g, "");
           const amount = isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
 
-          console.log({ strippedAmount });
-
           const amountLeft = numeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - amount : 0);
           return {
             amount: `${amountLeft} ${selectedBank?.meta.tokenSymbol}`,
