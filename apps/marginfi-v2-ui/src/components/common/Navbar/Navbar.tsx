@@ -191,7 +191,7 @@ export const Navbar: FC = () => {
                     href={"/stake"}
                     className={router.pathname === "/stake" ? "hover-underline-static" : "hover-underline-animation"}
                   >
-                    stake
+                    mint
                   </Link>
                 </Badge>
               )}
