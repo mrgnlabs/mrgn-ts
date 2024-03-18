@@ -213,12 +213,32 @@ const AssetRow: React.FC<{
         className="h-[60px] w-full transition-colors z-10"
       >
         <TableCell
-          className={cn("text-white p-0 font-aeonik border-none rounded-l-md", isHovering && "bg-background-gray")}
+          className={cn(
+            "text-white p-0 font-aeonik border-none",
+            isHovering && "bg-background-gray",
+            activeBank?.position && "rounded-tl-md",
+            !activeBank?.position && "rounded-l-md"
+          )}
           style={{
             fontWeight: 300,
           }}
         >
           <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-start items-center">
+            {bank.info.rawBank.lastUpdate + 60 > Math.round(Date.now() / 1000) && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <IconAlertTriangleFilled size={14} className="text-destructive-foreground shrink-0 ml-[5px]" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-destructive text-destructive-foreground">
+                    Oracle data is stale for this bank.{" "}
+                    <Link href="#" className="underline hover:no-underline">
+                      read more
+                    </Link>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             <Image
               src={getTokenImageURL(bank.meta.tokenSymbol)}
               alt={`${bank.meta.tokenSymbol} logo`}
@@ -509,8 +529,10 @@ const AssetRow: React.FC<{
 
         <TableCell
           className={cn(
-            "text-white border-none font-aeonik py-1.5 px-0 rounded-r-md",
-            isHovering && "bg-background-gray"
+            "text-white border-none font-aeonik py-1.5 px-0",
+            isHovering && "bg-background-gray",
+            activeBank?.position && "rounded-tr-md",
+            !activeBank?.position && "rounded-r-md"
           )}
         >
           {marginfiAccount === null && (
