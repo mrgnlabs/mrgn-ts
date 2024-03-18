@@ -383,6 +383,7 @@ export async function repayWithCollat({
       options.repayAmount,
       bank.address,
       options.repayBank.address,
+      options.repayBank.isActive && isWholePosition(options.repayBank, options.repayAmount),
       bank.isActive && isWholePosition(bank, amount),
       [...setupIxs, swapIx, ...swapcleanupIx],
       addressLookupTableAccounts,

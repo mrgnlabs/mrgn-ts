@@ -316,6 +316,7 @@ class MarginfiAccountWrapper {
     repayAmount: Amount,
     bankAddress: PublicKey,
     repayBankAddress: PublicKey,
+    withdrawAll: boolean = false,
     repayAll: boolean = false,
     swapIxs: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[],
