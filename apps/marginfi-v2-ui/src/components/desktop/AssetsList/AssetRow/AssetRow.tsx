@@ -232,21 +232,6 @@ const AssetRow: React.FC<{
               className="rounded-full"
             />
             <div className="font-aeonik block">{bank.meta.tokenSymbol}</div>
-            {isBankOracleStale(bank) && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <IconAlertTriangleFilled size={14} className="text-destructive-foreground shrink-0" />
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-destructive text-destructive-foreground">
-                    Oracle data is stale for this bank.{" "}
-                    <Link href="#" className="underline hover:no-underline">
-                      read more
-                    </Link>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
           </div>
         </TableCell>
 
@@ -294,6 +279,21 @@ const AssetRow: React.FC<{
                     <div>{oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}</div>
                   </TooltipTrigger>
                   <TooltipContent>Powered by {oracle}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            {isBankOracleStale(bank) && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <IconAlertTriangleFilled size={14} className="text-warning shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Oracle data is stale for this bank.{" "}
+                    <Link href="#" className="underline hover:no-underline">
+                      read more
+                    </Link>
+                  </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             )}
@@ -439,13 +439,13 @@ const AssetRow: React.FC<{
                       )}
 
                   {isReduceOnly || (isBankHigh && !isBankFilled) ? (
-                    <IconAlertTriangle size={16} />
+                    <IconAlertTriangle size={14} />
                   ) : isBankFilled ? (
-                    <IconAlertTriangleFilled size={16} />
+                    <IconAlertTriangleFilled size={14} />
                   ) : null}
                 </span>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="text-left">
                 <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
                   {isReduceOnly ? "Reduce Only" : isBankHigh && (isBankFilled ? "Limit Reached" : "Approaching Limit")}
                 </Typography>
