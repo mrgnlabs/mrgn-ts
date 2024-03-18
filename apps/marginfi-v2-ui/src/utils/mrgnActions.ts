@@ -377,6 +377,7 @@ export async function repayWithCollat({
     addressLookupTableAccounts.push(
       ...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses))
     );
+    console.log({ bank, amount, isWhole: bank.isActive && isWholePosition(bank, amount) });
 
     const txnSig = await marginfiAccount.repayWithCollat(
       amount,
