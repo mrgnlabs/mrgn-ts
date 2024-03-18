@@ -219,6 +219,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     () =>
       checkActionAvailable({
         amount,
+        repayAmount,
         connected,
         showCloseBalance,
         selectedBank,
@@ -234,6 +235,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       }),
     [
       amount,
+      repayAmount,
       connected,
       showCloseBalance,
       selectedBank,
@@ -803,7 +805,8 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                     showCloseBalance ? handleCloseBalance() : handleAction();
                   }}
                   isLoading={isLoading}
-                  isEnabled={actionMethod.isEnabled && (amount > 0 || repayAmount > 0)}
+                  showCloseBalance={showCloseBalance ?? false}
+                  isEnabled={actionMethod.isEnabled}
                   actionMode={actionMode}
                 />
                 <div className="flex justify-between mt-3">

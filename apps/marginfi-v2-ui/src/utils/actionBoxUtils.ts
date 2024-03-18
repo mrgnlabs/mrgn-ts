@@ -40,6 +40,7 @@ export function getColorForActionMethodType(type?: ActionMethodType) {
 
 interface CheckActionAvailableProps {
   amount: number | null;
+  repayAmount: number | null;
   connected: boolean;
   nativeSolBalance: number;
   showCloseBalance?: boolean;
@@ -56,6 +57,7 @@ interface CheckActionAvailableProps {
 
 export function checkActionAvailable({
   amount,
+  repayAmount,
   nativeSolBalance,
   connected,
   showCloseBalance,
@@ -71,7 +73,14 @@ export function checkActionAvailable({
 }: CheckActionAvailableProps): ActionMethod {
   let check: ActionMethod | null = null;
 
-  check = generalChecks(connected, selectedBank, selectedStakingAccount, showCloseBalance);
+  check = generalChecks(
+    connected,
+    selectedBank,
+    selectedStakingAccount,
+    amount ?? 0,
+    repayAmount ?? 0,
+    showCloseBalance
+  );
   if (check) return check;
 
   if (selectedBank) {
@@ -111,6 +120,8 @@ function generalChecks(
   connected: boolean,
   selectedBank: ExtendedBankInfo | null,
   selectedStakingAccount: StakeData | null,
+  amount: number = 0,
+  repayAmount: number = 0,
   showCloseBalance?: boolean
 ): ActionMethod | null {
   if (!connected) {
@@ -120,7 +131,11 @@ function generalChecks(
     return { isEnabled: false };
   }
   if (showCloseBalance) {
-    return { description: "Close account.", isEnabled: true };
+    return { isInfo: true, description: "Close lending balance.", isEnabled: true };
+  }
+
+  if (amount === 0 && repayAmount === 0) {
+    return { isEnabled: false };
   }
 
   return null;
