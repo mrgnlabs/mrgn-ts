@@ -1,5 +1,7 @@
 import React from "react";
 
+import Link from "next/link";
+
 import { PublicKey } from "@solana/web3.js";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 
@@ -774,7 +776,22 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                     )}
                   >
                     <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-                    <p className="">{actionMethod.description}</p>
+                    <div className="flex items-center gap-1">
+                      <p>{actionMethod.description}</p>
+                      {actionMethod.link && (
+                        <p>
+                          -{" "}
+                          <Link
+                            href={actionMethod.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline hover:no-underline"
+                          >
+                            Read more
+                          </Link>
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}

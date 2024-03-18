@@ -1,7 +1,7 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 import { TOKEN_PROGRAM_ID, ceil, floor } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useEffect, useRef } from "react";
 import numeral from "numeral";
 import { ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
@@ -111,4 +111,8 @@ export function extractErrorString(error: any, fallback?: string): string {
 
 export function getTokenImageURL(tokenSymbol: string): string {
   return `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenSymbol}.png`;
+}
+
+export function isBankOracleStale(bank: ExtendedBankInfo) {
+  return bank.info.rawBank.lastUpdate + 60 > Math.round(Date.now() / 1000);
 }
