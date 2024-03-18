@@ -16,9 +16,10 @@ const MobileNavbar: FC = () => {
 
   const { walletAddress } = useWalletContext();
   const router = useRouter();
-  const [isMenuModalOpen, setIsMenuModalOpen] = useUiStore((state) => [
+  const [isMenuModalOpen, setIsMenuModalOpen, isActionBoxInputFocussed] = useUiStore((state) => [
     state.isMenuDrawerOpen,
     state.setIsMenuDrawerOpen,
+    state.isActionBoxInputFocussed,
   ]);
   const [fetchPoints] = useUserProfileStore((state) => [state.fetchPoints]);
   const [lendUserDataFetched, resetLendUserData] = useMrgnlendStore((state) => [
@@ -46,8 +47,10 @@ const MobileNavbar: FC = () => {
     return activeLinkIndex >= 0 ? `link${activeLinkIndex}` : "linknone";
   }, [router.pathname]);
 
+  if (isActionBoxInputFocussed) return null;
+
   return (
-    <header>
+    <footer>
       <PWABanner />
       <nav className="fixed w-full bottom-0 z-50 bg-[#0F1111]">
         <div className="h-full w-full text-sm font-[500] text-[#868E95] z-50 flex justify-around relative lg:gap-8">
@@ -77,7 +80,7 @@ const MobileNavbar: FC = () => {
         </div>
       </nav>
       <MenuModal isOpen={isMenuModalOpen} handleClose={() => setIsMenuModalOpen(false)} />
-    </header>
+    </footer>
   );
 };
 
