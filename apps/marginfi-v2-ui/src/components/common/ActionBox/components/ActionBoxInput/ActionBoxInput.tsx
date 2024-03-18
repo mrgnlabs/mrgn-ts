@@ -4,6 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LstType, RepayType, StakeData } from "~/utils";
+import { useUiStore } from "~/store";
 
 import { Input } from "~/components/ui/input";
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
@@ -63,6 +64,10 @@ export const ActionBoxInput = ({
   changeRepayType,
   changeLstType,
 }: ActionBoxInputProps) => {
+  const [isActionBoxInputFocussed, setIsActionBoxInputFocussed] = useUiStore((state) => [
+    state.isActionBoxInputFocussed,
+    state.setIsActionBoxInputFocussed,
+  ]);
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
@@ -175,6 +180,8 @@ export const ActionBoxInput = ({
               value={inputAmount}
               disabled={isInputDisabled}
               onChange={(e) => handleInputChange(e.target.value)}
+              onFocus={() => setIsActionBoxInputFocussed(true)}
+              onBlur={() => setIsActionBoxInputFocussed(false)}
               placeholder="0"
               className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
             />
