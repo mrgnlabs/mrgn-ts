@@ -25,15 +25,15 @@ const DEFAULT_SLIPPAGE_BPS = 100;
 const slippageOptions = [
   {
     label: "Low",
-    value: 0.5,
+    value: 0.1,
   },
   {
     label: "Normal",
-    value: 1,
+    value: 0.5,
   },
   {
     label: "High",
-    value: 5,
+    value: 2,
   },
 ];
 
