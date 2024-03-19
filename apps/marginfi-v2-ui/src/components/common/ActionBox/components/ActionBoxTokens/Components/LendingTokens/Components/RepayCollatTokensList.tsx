@@ -28,7 +28,6 @@ export const RepayCollatTokensList = ({
   isOpen,
   onClose,
 }: RepayCollatTokensListProps) => {
-  console.log({ highlightedRepayTokens });
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,

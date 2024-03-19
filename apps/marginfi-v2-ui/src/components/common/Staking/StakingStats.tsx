@@ -6,8 +6,6 @@ import { useLstStore } from "~/store";
 export const StakingStats: FC = () => {
   const [lstData, solUsdValue] = useLstStore((state) => [state.lstData, state.solUsdValue]);
 
-  console.log({ lstData });
-
   return (
     <div className="h-full rounded-xl font-[500]">
       <div className="flex flex-col sm:flex-row justify-center gap-0 sm:gap-8 w-full min-w-1/2 mt-[20px] bg-[#171C1F] sm:bg-transparent rounded-xl">
