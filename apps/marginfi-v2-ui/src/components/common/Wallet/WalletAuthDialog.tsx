@@ -1,11 +1,13 @@
 import React from "react";
 
 import Image from "next/image";
+import Link from "next/link";
 
 import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useUiStore } from "~/store";
 import { useOs } from "~/hooks/useOs";
+import { useIsMobile } from "~/hooks/useIsMobile";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Web3AuthSocialProvider } from "~/hooks/useWalletContext";
 import { cn } from "~/utils";
@@ -70,6 +72,7 @@ const walletIcons: { [key: string]: React.ReactNode } = {
 };
 
 export const WalletAuthDialog = () => {
+  const isMobile = useIsMobile();
   const { select, wallets } = useWallet();
   const { connected, loginWeb3Auth } = useWalletContext();
 
@@ -83,6 +86,7 @@ export const WalletAuthDialog = () => {
   const [state, setState] = React.useState<WalletAuthDialogState>(WalletAuthDialogState.DEFAULT);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
+  const [isMounted, setIsMounted] = React.useState<boolean>(false);
 
   // installed and available wallets
   const filteredWallets = React.useMemo(() => {
@@ -110,7 +114,12 @@ export const WalletAuthDialog = () => {
     });
   }, [wallets]);
 
-  // alert(`${isAndroid}, ${isIOS}, ${isPhantomInstalled}`);
+  React.useEffect(() => {
+    if (isMobile && state !== WalletAuthDialogState.SOCIAL && !isMounted) {
+      setState(WalletAuthDialogState.SOCIAL);
+    }
+  }, [isMobile, state, isMounted, setIsMounted]);
+
   React.useEffect(() => {
     if (!isWalletAuthDialogOpen) {
       setIsLoading(false);
@@ -126,16 +135,23 @@ export const WalletAuthDialog = () => {
     }
   }, [connected, setIsWalletAuthDialogOpen]);
 
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   return (
     <div>
       <Dialog open={isWalletAuthDialogOpen} onOpenChange={(open) => setIsWalletAuthDialogOpen(open)}>
         <DialogContent
-          className={cn("md:block overflow-hidden p-4 md:max-w-xl", filteredWallets.length > 6 && "md:max-w-2xl")}
+          className={cn(
+            "md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl",
+            filteredWallets.length > 6 && "md:max-w-2xl"
+          )}
         >
           <DialogHeader>
             <IconMrgn size={48} />
             <DialogTitle>Sign in to marginfi</DialogTitle>
-            <DialogDescription>Sign in to lend & earn interest in marginfi.</DialogDescription>
+            <DialogDescription>Earn yield, permissionlessly.</DialogDescription>
           </DialogHeader>
 
           <div className="w-full space-y-6 mt-8">
@@ -169,7 +185,7 @@ export const WalletAuthDialog = () => {
                 />
 
                 <h2 className="font-semibold text-2xl text-white">Connect with socials</h2>
-                <p className="mt-2">Sign in with your email or socials</p>
+                <p className="mt-2">Sign in with your email or socials.</p>
               </header>
 
               <div className="mt-4">
@@ -210,8 +226,9 @@ export const WalletAuthDialog = () => {
             </div>
             <div
               className={cn(
-                "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg h-[246px] overflow-hidden ",
-                state !== WalletAuthDialogState.WALLET && "h-[106px] cursor-pointer hover:bg-muted-highlight"
+                "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg h-[266px] md:h-[246px] overflow-hidden ",
+                state !== WalletAuthDialogState.WALLET &&
+                  "h-[136px] md:h-[106px] cursor-pointer hover:bg-muted-highlight"
               )}
               onClick={() => {
                 if (state === WalletAuthDialogState.WALLET) return;
@@ -237,7 +254,21 @@ export const WalletAuthDialog = () => {
                 />
 
                 <h2 className="font-semibold text-2xl text-white">Use a wallet</h2>
-                <p className="mt-2">If you&apos;re a pro, connect your wallet</p>
+                <p className="mt-2">
+                  If you&apos;re a pro, connect your wallet.
+                  {isMobile && (
+                    <>
+                      For the best experience we recommend opening marginfi in{" "}
+                      <Link
+                        href="https://phantom.app/ul/browse/https://app.marginfi.com?ref=https://app.marginfi.com"
+                        className="border-b border-muted-foreground"
+                      >
+                        Phantom
+                      </Link>{" "}
+                      or Backpack.
+                    </>
+                  )}
+                </p>
               </header>
 
               {(filteredWallets.length > 0 || isAndroid || isIOS) && (
@@ -247,20 +278,6 @@ export const WalletAuthDialog = () => {
                     filteredWallets.length > 6 && "pb-1"
                   )}
                 >
-                  {/* check if filterewallets contains wallet.adapter.name == "Backpack" */}
-                  {!filteredWallets.some((wallet) => wallet.adapter.name === "Backpack") && (
-                    <li className="space-y-2">
-                      <a
-                        href="https://backpack.app/"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="h-14 w-14 bg-accent rounded-full flex flex-col items-center justify-center transition-colors hover:bg-accent-highlight"
-                      >
-                        <IconBackpackWallet />
-                      </a>
-                    </li>
-                  )}
-
                   {filteredWallets.map((wallet, i) => {
                     const img = walletIcons[wallet.adapter.name] || (
                       <Image src={wallet.adapter.icon} width={28} height={28} alt={wallet.adapter.name} />

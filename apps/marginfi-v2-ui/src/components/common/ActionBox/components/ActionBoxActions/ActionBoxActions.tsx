@@ -31,7 +31,7 @@ export const ActionBoxActions = ({
   if (!connected) {
     return (
       <Button className="w-full py-6" onClick={() => setIsWalletAuthDialogOpen(true)}>
-        Connect Wallet
+        Sign in
       </Button>
     );
   }
