@@ -84,6 +84,7 @@ export function checkActionAvailable({
   );
   if (check) return check;
 
+  // allert checks
   if (selectedBank) {
     switch (actionMode) {
       case ActionType.Deposit:
@@ -119,6 +120,19 @@ export function checkActionAvailable({
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
     };
+  }
+
+
+  // info checks
+  if (selectedBank) {
+    switch (actionMode) {
+      case ActionType.Repay:
+        if (repayMode === RepayType.RepayCollat) {
+          check = infoRepaidCollat(selectedBank);
+        }
+        if (check) return check;
+        break;
+    }
   }
 
   return {
@@ -249,22 +263,36 @@ function canBeRepaidCollat(
     };
   }
 
-  // if (repayBankInfo && directRoutes) {
-  //   if (!directRoutes.find((key) => key.equals(repayBankInfo.info.state.mint))) {
-  //     return {
-  //       description: "Repayment not possible with current collateral, choose another.",
-  //       isEnabled: false,
-  //     };
-  //   }
-  // } else {
-  //   return { isEnabled: false };
-  // }
+  if (repayBankInfo && directRoutes) {
+    if (!directRoutes.find((key) => key.equals(repayBankInfo.info.state.mint))) {
+      return {
+        description: "Repayment not possible with current collateral, choose another.",
+        isEnabled: false,
+      };
+    }
+  } else {
+    return { isEnabled: false };
+  }
 
   if (!swapQuote) {
     return { isEnabled: false };
   }
 
   // always as last check since if isEnabled: true
+  if (targetBankInfo.userInfo.tokenAccount.balance > 0) {
+    return {
+      description: `You have ${targetBankInfo.meta.tokenSymbol} in your wallet and can repay without using collateral.`,
+      isEnabled: true,
+      isInfo: true,
+    };
+  }
+
+  return null;
+}
+
+function infoRepaidCollat(
+  targetBankInfo: ExtendedBankInfo,
+): ActionMethod | null {
   if (targetBankInfo.userInfo.tokenAccount.balance > 0) {
     return {
       description: `You have ${targetBankInfo.meta.tokenSymbol} in your wallet and can repay without using collateral.`,

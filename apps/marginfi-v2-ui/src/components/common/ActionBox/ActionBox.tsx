@@ -316,9 +316,9 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     }
   }, [selectedStakingAccount, numberFormater, maxAmount, setAmountRaw]);
 
-  // React.useEffect(() => {
-  //   fetchDirectRoutes();
-  // }, []);
+  React.useEffect(() => {
+    fetchDirectRoutes();
+  }, []);
 
   const fetchDirectRoutes = async () => {
     try {
@@ -351,6 +351,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
           slippageBps: slippageBps,
           swapMode: "ExactIn" as any,
           maxAccounts: 20,
+          onlyDirectRoutes: true,
         } as QuoteGetRequest;
 
         try {
@@ -367,6 +368,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
               outputMint: bank.info.state.mint.toBase58(), // JITO
               slippageBps: slippageBps,
               swapMode: "ExactOut",
+              onlyDirectRoutes: true,
             } as QuoteGetRequest;
 
             const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams);
@@ -400,6 +402,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
         slippageBps: slippageBps,
         swapMode: "ExactIn",
         maxAccounts: 20,
+        onlyDirectRoutes: true,
       } as QuoteGetRequest;
 
       try {
@@ -740,7 +743,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                 selectedTokenBank={selectedTokenBank}
                 selectedRepayTokenBank={selectedRepayTokenBank}
                 selectedStakingAccount={selectedStakingAccount}
-                highlightedRepayTokens={undefined} //directRoutes
+                highlightedRepayTokens={directRoutes}
                 walletAmount={walletAmount}
                 amountRaw={amountRaw}
                 repayAmountRaw={repayAmountRaw}
