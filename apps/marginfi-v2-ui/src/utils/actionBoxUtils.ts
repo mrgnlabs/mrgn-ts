@@ -84,14 +84,6 @@ export function checkActionAvailable({
   );
   if (check) return check;
 
-  if (selectedBank && isBankOracleStale(selectedBank) && actionMode !== ActionType.MintLST) {
-    return {
-      description: "The oracle data for this bank is stale",
-      isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
-    };
-  }
-
   // allert checks
   if (selectedBank) {
     switch (actionMode) {
@@ -198,6 +190,14 @@ function canBeWithdrawn(
     };
   }
 
+  if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
+    return {
+      description: "The oracle data for this bank is stale",
+      isEnabled: true,
+      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+    };
+  }
+
   return null;
 }
 
@@ -228,6 +228,14 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
     return {
       description: `Insufficient ${targetBankInfo.meta.tokenSymbol} in wallet for loan repayment.`,
       isEnabled: false,
+    };
+  }
+
+  if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
+    return {
+      description: "The oracle data for this bank is stale",
+      isEnabled: true,
+      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
     };
   }
 
@@ -277,7 +285,7 @@ function canBeRepaidCollat(
     return { isEnabled: false };
   }
 
-  if (repayBankInfo && isBankOracleStale(repayBankInfo)) {
+  if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
     return {
       description: "The oracle data for this bank is stale",
       isEnabled: true,
@@ -384,6 +392,14 @@ function canBeBorrowed(
     };
   }
 
+  if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
+    return {
+      description: "The oracle data for this bank is stale",
+      isEnabled: true,
+      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+    };
+  }
+
   return null;
 }
 
@@ -444,6 +460,14 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
 
   if (walletBalance === 0) {
     return { description: `Insufficient ${targetBankInfo.meta.tokenSymbol} in wallet.`, isEnabled: false };
+  }
+
+  if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
+    return {
+      description: "The oracle data for this bank is stale",
+      isEnabled: true,
+      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+    };
   }
 
   return null;
