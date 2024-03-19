@@ -112,7 +112,7 @@ export const RepayCollatTokensList = ({
                 <CommandItem
                   key={index}
                   value={bank.address?.toString().toLowerCase()}
-                  // disabled={!ownedBanksPk.includes(bank.address)}
+                  disabled={!isRouteEnabled}
                   onSelect={(currentValue) => {
                     onSetRepayTokenBank(
                       extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
@@ -122,7 +122,7 @@ export const RepayCollatTokensList = ({
                   }}
                   className={cn(
                     "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
-                    isRouteEnabled ? "opacity-100" : "opacity-50"
+                    isRouteEnabled ? "opacity-100" : "opacity-50 pointer-events-none"
                   )}
                 >
                   <ActionBoxItem
