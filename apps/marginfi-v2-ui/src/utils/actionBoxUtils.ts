@@ -84,7 +84,7 @@ export function checkActionAvailable({
   );
   if (check) return check;
 
-  if (selectedBank && isBankOracleStale(selectedBank)) {
+  if (selectedBank && isBankOracleStale(selectedBank) && actionMode !== ActionType.MintLST) {
     return {
       description: "The oracle data for this bank is stale",
       isEnabled: true,
