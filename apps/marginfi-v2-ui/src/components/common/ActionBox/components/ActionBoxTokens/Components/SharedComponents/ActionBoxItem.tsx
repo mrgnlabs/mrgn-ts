@@ -15,6 +15,7 @@ type ActionBoxItemProps = {
   rate?: string;
   lendingMode?: LendingModes;
   isRepay?: boolean;
+  available?: boolean;
 };
 
 export const ActionBoxItem = ({
@@ -24,6 +25,7 @@ export const ActionBoxItem = ({
   rate,
   lendingMode,
   isRepay,
+  available = true,
 }: ActionBoxItemProps) => {
   const balance = React.useMemo(() => {
     const isWSOL = bank.info.state.mint?.equals ? bank.info.state.mint.equals(WSOL_MINT) : false;
@@ -62,7 +64,10 @@ export const ActionBoxItem = ({
           className="rounded-full"
         />
         <div>
-          <p>{bank.meta.tokenSymbol}</p>
+          <p className="flex items-center">
+            {bank.meta.tokenSymbol}
+            {!available && <span className="text-[11px] ml-1 font-light">(currently unavailable)</span>}
+          </p>
           {lendingMode && (
             <p
               className={cn(

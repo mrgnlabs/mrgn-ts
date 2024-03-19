@@ -106,33 +106,37 @@ export const RepayCollatTokensList = ({
         {/* REPAYING */}
         {filteredBanksActive.length > 0 && onSetRepayTokenBank && (
           <CommandGroup heading="Currently supplying">
-            {filteredBanksActive.map((bank, index) => (
-              <CommandItem
-                key={index}
-                value={bank.address?.toString().toLowerCase()}
-                // disabled={!ownedBanksPk.includes(bank.address)}
-                onSelect={(currentValue) => {
-                  onSetRepayTokenBank(
-                    extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
-                      ?.address ?? null
-                  );
-                  onClose();
-                }}
-                className={cn(
-                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
-                  highlightedRepayTokens.find((v) => v.equals(bank.info.state.mint)) ? "opacity-100" : "opacity-50"
-                )}
-              >
-                <ActionBoxItem
-                  rate={calculateRate(bank)}
-                  lendingMode={lendingMode}
-                  bank={bank}
-                  showBalanceOverride={false}
-                  nativeSolBalance={nativeSolBalance}
-                  isRepay={true}
-                />
-              </CommandItem>
-            ))}
+            {filteredBanksActive.map((bank, index) => {
+              const isRouteEnabled = highlightedRepayTokens.find((v) => v.equals(bank.info.state.mint)) ? true : false;
+              return (
+                <CommandItem
+                  key={index}
+                  value={bank.address?.toString().toLowerCase()}
+                  // disabled={!ownedBanksPk.includes(bank.address)}
+                  onSelect={(currentValue) => {
+                    onSetRepayTokenBank(
+                      extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
+                        ?.address ?? null
+                    );
+                    onClose();
+                  }}
+                  className={cn(
+                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
+                    isRouteEnabled ? "opacity-100" : "opacity-50"
+                  )}
+                >
+                  <ActionBoxItem
+                    rate={calculateRate(bank)}
+                    lendingMode={lendingMode}
+                    bank={bank}
+                    showBalanceOverride={false}
+                    nativeSolBalance={nativeSolBalance}
+                    isRepay={true}
+                    available={isRouteEnabled}
+                  />
+                </CommandItem>
+              );
+            })}
           </CommandGroup>
         )}
       </TokenListCommand>
