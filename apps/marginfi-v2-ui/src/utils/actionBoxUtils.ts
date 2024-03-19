@@ -84,6 +84,14 @@ export function checkActionAvailable({
   );
   if (check) return check;
 
+  if (selectedBank && isBankOracleStale(selectedBank)) {
+    return {
+      description: "The oracle data for this bank is stale",
+      isEnabled: true,
+      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
+    };
+  }
+
   // allert checks
   if (selectedBank) {
     switch (actionMode) {
@@ -113,15 +121,6 @@ export function checkActionAvailable({
         break;
     }
   }
-
-  if (selectedBank && isBankOracleStale(selectedBank)) {
-    return {
-      description: "The oracle data for this bank is stale",
-      isEnabled: true,
-      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
-    };
-  }
-
 
   // info checks
   if (selectedBank) {
@@ -278,21 +277,18 @@ function canBeRepaidCollat(
     return { isEnabled: false };
   }
 
-  // always as last check since if isEnabled: true
-  if (targetBankInfo.userInfo.tokenAccount.balance > 0) {
+  if (repayBankInfo && isBankOracleStale(repayBankInfo)) {
     return {
-      description: `You have ${targetBankInfo.meta.tokenSymbol} in your wallet and can repay without using collateral.`,
+      description: "The oracle data for this bank is stale",
       isEnabled: true,
-      isInfo: true,
+      link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
     };
   }
 
   return null;
 }
 
-function infoRepaidCollat(
-  targetBankInfo: ExtendedBankInfo,
-): ActionMethod | null {
+function infoRepaidCollat(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
   if (targetBankInfo.userInfo.tokenAccount.balance > 0) {
     return {
       description: `You have ${targetBankInfo.meta.tokenSymbol} in your wallet and can repay without using collateral.`,
