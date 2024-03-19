@@ -83,7 +83,9 @@ export const WalletAuthDialog = () => {
     state.setIsWalletAuthDialogOpen,
   ]);
 
-  const [state, setState] = React.useState<WalletAuthDialogState>(WalletAuthDialogState.DEFAULT);
+  const [state, setState] = React.useState<WalletAuthDialogState>(
+    isMobile ? WalletAuthDialogState.SOCIAL : WalletAuthDialogState.DEFAULT
+  );
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
   const [isMounted, setIsMounted] = React.useState<boolean>(false);
@@ -228,7 +230,7 @@ export const WalletAuthDialog = () => {
               className={cn(
                 "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg h-[266px] md:h-[246px] overflow-hidden ",
                 state !== WalletAuthDialogState.WALLET &&
-                  "h-[136px] md:h-[106px] cursor-pointer hover:bg-muted-highlight"
+                  "h-[150px] md:h-[106px] cursor-pointer hover:bg-muted-highlight"
               )}
               onClick={() => {
                 if (state === WalletAuthDialogState.WALLET) return;
@@ -256,7 +258,7 @@ export const WalletAuthDialog = () => {
                 <h2 className="font-semibold text-2xl text-white">Use a wallet</h2>
                 <p className="mt-2">
                   If you&apos;re a pro, connect your wallet.
-                  {isMobile && "For the best experience we recommend opening marginfi in Phantom or Backpack wallet."}
+                  {isMobile && " For the best experience we recommend opening marginfi in Phantom or Backpack wallet."}
                 </p>
               </header>
 
