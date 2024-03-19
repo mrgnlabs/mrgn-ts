@@ -164,8 +164,11 @@ export const Tutorial = () => {
               </SwiperSlide>
               <SwiperSlide className="h-full">
                 <TutorialSlide icon={<IconMoneybag size={48} />} heading="Earn Yield" next="Safety and Use">
-                  <div className="space-y-4 pb-2 max-w-[35rem] mx-auto flex flex-col justify-center">
-                    <p>marginfi enables you to permissionlessly earn yield, paid to you by borrowers.</p>
+                  <div className="space-y-4 pb-2 max-w-[32rem] mx-auto flex flex-col justify-center">
+                    <p>
+                      marginfi enables you to permissionlessly earn variable yield,
+                      <br className="hidden md:block" /> paid to you by borrowers.
+                    </p>
                     <p>
                       There are no middlemen. marginfi users come from all over the world,
                       <br className="hidden md:block" /> unblocked from traditional finance rails.
@@ -181,7 +184,7 @@ export const Tutorial = () => {
                 <TutorialSlide icon={<IconBuildingBank size={48} />} heading="Safety and Use" next="Follow marginfi">
                   <div className="space-y-6 md:space-y-8 pb-2 max-w-[40rem] mx-auto flex-col justify-center">
                     <p>
-                      marginfi is{" "}
+                      marginfi is an{" "}
                       <Link
                         href="https://github.com/mrgnlabs/"
                         target="_blank"
@@ -213,16 +216,13 @@ export const Tutorial = () => {
                         className="inline-flex items-center gap-1 group leading-5"
                       >
                         <span className="border-b border-muted-foreground transition group-hover:border-transparent">
-                          code-verified protocol
+                          code-verified
                         </span>{" "}
                         <IconExternalLink size={14} />
-                      </Link>
-                      .<br className="hidden md:block" /> Anyone can build new applications that benefit from
+                      </Link>{" "}
+                      protocol.
+                      <br className="hidden md:block" /> Anyone can build new applications that benefit from
                       marginfi&apos;s resources.
-                    </p>
-                    <p>
-                      If you are borrowing on marginfi, you will be exposed to liquidation when your account health
-                      reaches 0%. Liquidations are automatic and permissionless.
                     </p>
                   </div>
                 </TutorialSlide>
