@@ -406,6 +406,11 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       } as QuoteGetRequest;
 
       try {
+        if (amount == 0) {
+          setAmountRaw("0");
+          setRepayCollatQuote(undefined);
+          return;
+        }
         setIsLoading(true);
         const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
@@ -461,7 +466,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       const isAmountChanged = debouncedRepayAmountPrev !== debouncedRepayAmount;
 
       if (
-        debouncedRepayAmount &&
+        debouncedRepayAmount !== null &&
         repayMode === RepayType.RepayCollat &&
         (isAmountChanged || isBankChanged || isRepayBankChanged)
       ) {
