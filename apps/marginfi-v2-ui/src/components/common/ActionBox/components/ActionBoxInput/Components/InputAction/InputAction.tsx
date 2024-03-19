@@ -111,6 +111,8 @@ export const InputAction = ({
     }
   }, [selectedBank, selectedStakingAccount, actionMode, walletAmount, amountRaw, repayMode]);
 
+  const isUnchanged = React.useMemo(() => repayAmount === 0, [repayAmount]);
+
   // Section above the input
   return (
     <>
@@ -118,9 +120,9 @@ export const InputAction = ({
         <ul className="flex flex-col gap-0.5 mt-4 text-xs w-full text-muted-foreground">
           <li className="flex justify-between items-center gap-1.5">
             <strong className="mr-auto">{maxLabel.label}</strong>
-            <div className="flex gap-1.5">
-              {selectedBank?.isActive && clampedNumeralFormatter(selectedBank.position.amount)}
-              {selectedBank?.isActive && <IconArrowRight width={12} height={12} />}
+            <div className="flex gap-1.5 items-center">
+              {selectedBank?.isActive && !isUnchanged && clampedNumeralFormatter(selectedBank.position.amount)}
+              {selectedBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
               {maxLabel.amount}
               {(repayMode === RepayType.RepayRaw || (repayMode === RepayType.RepayCollat && selectedRepayBank)) && (
                 <button
@@ -137,10 +139,10 @@ export const InputAction = ({
             <li className="flex justify-between items-center gap-1.5">
               <strong>Deposited:</strong>
 
-              <div className="flex gap-1.5">
+              <div className="flex gap-1.5 items-center">
                 {selectedRepayBank?.isActive ? selectedRepayBank.position.amount : 0}
-                {selectedRepayBank?.isActive && <IconArrowRight width={12} height={12} />}
-                {selectedRepayBank?.isActive && selectedRepayBank.position.amount - repayAmount}{" "}
+                {selectedRepayBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
+                {selectedRepayBank?.isActive && !isUnchanged && selectedRepayBank.position.amount - repayAmount}{" "}
                 {selectedRepayBank?.meta.tokenSymbol}
               </div>
             </li>
