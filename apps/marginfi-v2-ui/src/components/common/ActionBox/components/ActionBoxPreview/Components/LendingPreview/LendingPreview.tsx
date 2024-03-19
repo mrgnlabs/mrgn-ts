@@ -20,7 +20,7 @@ import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useDebounce } from "~/hooks/useDebounce";
 
 import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetsList/AssetRow";
-import { IconArrowRight, IconAlertTriangle, IconAlertTriangleFilled } from "~/components/ui/icons";
+import { IconArrowRight, IconAlertTriangle } from "~/components/ui/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Skeleton } from "~/components/ui/skeleton";
 
@@ -312,11 +312,7 @@ export const LendingPreview = ({
                           )
                     )}
 
-                    {isReduceOnly || (isBankHigh && !isBankFilled) ? (
-                      <IconAlertTriangle size={16} />
-                    ) : isBankFilled ? (
-                      <IconAlertTriangleFilled size={16} />
-                    ) : null}
+                    {(isReduceOnly || isBankHigh || isBankFilled) && <IconAlertTriangle size={14} />}
                   </span>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -330,7 +326,7 @@ export const LendingPreview = ({
                         isBankHigh &&
                         (isBankFilled ? (
                           <>
-                            <IconAlertTriangleFilled size={16} /> Limit Reached
+                            <IconAlertTriangle size={16} /> Limit Reached
                           </>
                         ) : (
                           <>

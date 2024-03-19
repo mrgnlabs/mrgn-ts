@@ -20,13 +20,7 @@ import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { LendingModes } from "~/types";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import {
-  IconAlertTriangle,
-  IconAlertTriangleFilled,
-  IconInfoCircle,
-  IconPyth,
-  IconSwitchboard,
-} from "~/components/ui/icons";
+import { IconAlertTriangle, IconInfoCircle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 
 import { useUserProfileStore, useUiStore } from "~/store";
 import { getTokenImageURL, cn, isBankOracleStale } from "~/utils";
@@ -286,7 +280,7 @@ const AssetRow: React.FC<{
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <IconAlertTriangleFilled size={14} className="text-warning shrink-0" />
+                    <IconAlertTriangle size={14} className="text-warning shrink-0" />
                   </TooltipTrigger>
                   <TooltipContent>
                     Oracle data is stale for this bank.{" "}
@@ -443,11 +437,7 @@ const AssetRow: React.FC<{
                             )
                       )}
 
-                  {isReduceOnly || (isBankHigh && !isBankFilled) ? (
-                    <IconAlertTriangle size={14} />
-                  ) : isBankFilled ? (
-                    <IconAlertTriangleFilled size={14} />
-                  ) : null}
+                  {(isReduceOnly || isBankHigh || isBankFilled) && <IconAlertTriangle size={14} />}
                 </span>
               </TooltipTrigger>
               <TooltipContent className="text-left">
