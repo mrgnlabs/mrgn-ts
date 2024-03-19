@@ -20,7 +20,7 @@ import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useDebounce } from "~/hooks/useDebounce";
 
 import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetsList/AssetRow";
-import { IconArrowRight, IconAlertTriangle } from "~/components/ui/icons";
+import { IconArrowRight, IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Skeleton } from "~/components/ui/skeleton";
 
@@ -71,6 +71,20 @@ export const LendingPreview = ({
     () => actionMode === ActionType.Deposit || actionMode === ActionType.Withdraw,
     [actionMode]
   );
+
+  const oracle = React.useMemo(() => {
+    let oracleStr = "";
+    switch (selectedBank?.info.rawBank.config.oracleSetup) {
+      case "PythEma":
+        oracleStr = "Pyth";
+        break;
+      case "SwitchboardV2":
+        oracleStr = "Switchboard";
+        break;
+    }
+
+    return oracleStr;
+  }, [selectedBank?.info.rawBank.config.oracleSetup]);
 
   const { isBankFilled, isBankHigh, bankCap } = useAssetItemData({
     bank: selectedBank!,
@@ -230,36 +244,13 @@ export const LendingPreview = ({
 
       {isEnabled && selectedBank && (
         <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-sm text-white")}>
-          <Stat label={`Your ${showLending ? "deposited" : "borrowed"} amount`}>
+          <Stat label={`Your amount`}>
             {clampedNumeralFormatter(currentPositionAmount)} {selectedBank.meta.tokenSymbol}
             {preview && <IconArrowRight width={12} height={12} />}
             {preview &&
               preview.positionAmount &&
               clampedNumeralFormatter(preview.positionAmount) + " " + selectedBank.meta.tokenSymbol}
           </Stat>
-          <Stat label={"Pool"}>
-            {selectedBank.info.state.isIsolated ? (
-              <>
-                Isolated pool{" "}
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <h4 className="text-base">Isolated pools are risky ⚠️</h4>
-                      Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you
-                      cannot borrow other assets. Isolated pools should be considered particularly risky. As always,
-                      remember that marginfi is a decentralized protocol and all deposited funds are at risk.
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </>
-            ) : (
-              <>Global pool</>
-            )}
-          </Stat>
-
           <Stat style={{ color: healthColor }} label="Health">
             {healthFactor && percentFormatter.format(healthFactor)}
             {healthFactor && preview?.health ? <IconArrowRight width={12} height={12} /> : ""}
@@ -289,7 +280,7 @@ export const LendingPreview = ({
               )}
             </Stat>
           )}
-          <Stat label={showLending ? "Global deposits" : "Available"}>
+          <Stat label={"Pool size"}>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -354,6 +345,32 @@ export const LendingPreview = ({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+          </Stat>
+          <Stat label={"Type"}>
+            {selectedBank.info.state.isIsolated ? (
+              <>
+                Isolated pool{" "}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <h4 className="text-base">Isolated pools are risky ⚠️</h4>
+                      Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you
+                      cannot borrow other assets. Isolated pools should be considered particularly risky. As always,
+                      remember that marginfi is a decentralized protocol and all deposited funds are at risk.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </>
+            ) : (
+              <>Global pool</>
+            )}
+          </Stat>
+          <Stat label={"Oracle"}>
+            {oracle}
+            {oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
           </Stat>
         </dl>
       )}
