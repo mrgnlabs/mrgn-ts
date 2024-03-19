@@ -256,18 +256,7 @@ export const WalletAuthDialog = () => {
                 <h2 className="font-semibold text-2xl text-white">Use a wallet</h2>
                 <p className="mt-2">
                   If you&apos;re a pro, connect your wallet.
-                  {isMobile && (
-                    <>
-                      For the best experience we recommend opening marginfi in{" "}
-                      <Link
-                        href="https://phantom.app/ul/browse/https://app.marginfi.com?ref=https://app.marginfi.com"
-                        className="border-b border-muted-foreground"
-                      >
-                        Phantom
-                      </Link>{" "}
-                      or Backpack.
-                    </>
-                  )}
+                  {isMobile && "For the best experience we recommend opening marginfi in Phantom or Backpack wallet."}
                 </p>
               </header>
 
