@@ -184,8 +184,8 @@ export const WalletAuthDialog = () => {
                   }}
                 />
 
-                <h2 className="font-semibold text-2xl text-white">Connect with socials</h2>
-                <p className="mt-2">Sign in with your email or socials.</p>
+                <h2 className="font-semibold text-2xl text-white">Email or socials</h2>
+                <p className="mt-2">Sign in with email & download marginfi&apos;s PWA.</p>
               </header>
 
               <div className="mt-4">
