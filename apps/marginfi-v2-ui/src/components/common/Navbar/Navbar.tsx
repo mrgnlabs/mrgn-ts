@@ -166,7 +166,9 @@ export const Navbar: FC = () => {
               >
                 <Link
                   href={"/"}
-                  className={`${router.pathname === "/" ? "hover-underline-static" : "hover-underline-animation"}`}
+                  className={`${
+                    router.pathname === "/" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                  }`}
                 >
                   lend
                 </Link>
@@ -189,7 +191,9 @@ export const Navbar: FC = () => {
                 >
                   <Link
                     href={"/stake"}
-                    className={router.pathname === "/stake" ? "hover-underline-static" : "hover-underline-animation"}
+                    className={
+                      router.pathname === "/stake" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                    }
                   >
                     mint
                   </Link>
@@ -213,7 +217,9 @@ export const Navbar: FC = () => {
                 >
                   <Link
                     href={"/earn"}
-                    className={router.pathname === "/earn" ? "hover-underline-static" : "hover-underline-animation"}
+                    className={
+                      router.pathname === "/earn" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                    }
                   >
                     earn
                   </Link>
@@ -237,7 +243,7 @@ export const Navbar: FC = () => {
                 <Link
                   href={"/swap"}
                   className={`${
-                    router.pathname === "/swap" ? "hover-underline-static" : "hover-underline-animation"
+                    router.pathname === "/swap" ? "text-primary hover-underline-static" : "hover-underline-animation"
                   } hidden md:block`}
                 >
                   swap
@@ -260,7 +266,7 @@ export const Navbar: FC = () => {
                 <Link
                   href={"/bridge"}
                   className={`${
-                    router.pathname === "/bridge" ? "hover-underline-static" : "hover-underline-animation"
+                    router.pathname === "/bridge" ? "text-primary hover-underline-static" : "hover-underline-animation"
                   } hidden md:block`}
                 >
                   bridge
@@ -270,7 +276,7 @@ export const Navbar: FC = () => {
               <Link
                 href={"/points"}
                 className={`${
-                  router.pathname === "/points" ? "hover-underline-static" : "hover-underline-animation"
+                  router.pathname === "/points" ? "text-primary hover-underline-static" : "hover-underline-animation"
                 } whitespace-nowrap`}
               >
                 {connected &&
@@ -295,7 +301,14 @@ export const Navbar: FC = () => {
                 invisible={!showBadges}
                 className="hidden md:block"
               >
-                <Link href="/ecosystem" className="hover-underline-animation hidden md:block">
+                <Link
+                  href="/ecosystem"
+                  className={`${
+                    router.pathname === "/ecosystem"
+                      ? "text-primary hover-underline-static"
+                      : "hover-underline-animation"
+                  } whitespace-nowrap`}
+                >
                   ecosystem
                 </Link>
               </Badge>
