@@ -751,7 +751,7 @@ export const ActionBox = ({
         const mintB = routes[j];
 
         const bankbObject = extendedBankInfos.find((v) => v.info.state.mint.equals(new PublicKey(mintB)));
-        const amoo = bababank.find((v) => v.mint === mintB)?.amount;
+        const amoo = bababank.find((v) => v.mint === mintA)?.amount;
 
         if (!bankbObject || !amoo) {
           console.log(`No bankbObject found for mint: ${mintB}`);
@@ -760,11 +760,12 @@ export const ActionBox = ({
 
         // Define quote parameters based on the current pair of tokens
         const quoteParams = {
-          amount: uiToNative(amoo, bankbObject.info.state.mintDecimals).toNumber(),
+          amount: uiToNative(amoo, bankaObject.info.state.mintDecimals).toNumber(),
           inputMint: mintA,
           outputMint: mintB,
           slippageBps: 200,
-          swapMode: "ExactOut",
+          swapMode: "ExactIn",
+          maxAccounts: 20,
           onlyDirectRoutes: true,
         } as QuoteGetRequest;
 
@@ -778,7 +779,7 @@ export const ActionBox = ({
 
         if (swapQuote) {
           let tx;
-          console.log({ test: Number(swapQuote.inAmount) / Math.pow(10, bankaObject.info.state.mintDecimals) });
+          // console.log({ test: Number(swapQuote.inAmount) / Math.pow(10, bankaObject.info.state.mintDecimals) });
           try {
             tx = await repayWithCollat({
               marginfiAccount: selectedAccount,
@@ -797,19 +798,28 @@ export const ActionBox = ({
           }
 
           if (tx) {
-            let signedTx;
             try {
-              signedTx = await processTransaction(connection, wallet, tx);
-            } catch (error) {
-              console.log(`Error signing transaction: ${error}`);
-            }
-            if (signedTx) {
-              const serialized = signedTx.serialize().length + 64;
+              let signedTx;
+              try {
+                signedTx = await processTransaction(connection, wallet, tx);
+              } catch (error) {
+                console.log(`Error signing transaction: ${error}`);
+              }
+              if (signedTx) {
+                const serialized = signedTx.serialize().length + 64;
+                results.push({
+                  minta: mintA,
+                  mintb: mintB,
+                  serialized: serialized,
+                  success: serialized < 1232,
+                  swapQuote: true,
+                });
+              }
+            } catch {
               results.push({
                 minta: mintA,
                 mintb: mintB,
-                serialized: serialized,
-                success: serialized < 1232,
+                success: false,
                 swapQuote: true,
               });
             }
