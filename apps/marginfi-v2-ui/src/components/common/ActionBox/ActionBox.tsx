@@ -771,11 +771,11 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                     )}
                   >
                     <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-                    <div className="flex items-center gap-1">
+                    <div className="flex flex-col md:items-center md:flex-row gap-1">
                       <p>{actionMethod.description}</p>
                       {actionMethod.link && (
                         <p>
-                          -{" "}
+                          <span className="hidden md:inline">-</span>{" "}
                           <Link
                             href={actionMethod.link}
                             target="_blank"
