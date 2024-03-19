@@ -28,6 +28,7 @@ export const RepayCollatTokensList = ({
   isOpen,
   onClose,
 }: RepayCollatTokensListProps) => {
+  console.log({ highlightedRepayTokens });
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
@@ -79,6 +80,7 @@ export const RepayCollatTokensList = ({
     (bankInfo: ExtendedBankInfo, filterActive?: boolean) => {
       return bankInfo.isActive && bankInfo.position.isLending;
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [lendingMode]
   );
 
@@ -119,7 +121,7 @@ export const RepayCollatTokensList = ({
                 }}
                 className={cn(
                   "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white py-2",
-                  highlightedRepayTokens.find((v) => v.equals(bank.info.state.mint)) ? "opacity-1" : "opacity-1"
+                  highlightedRepayTokens.find((v) => v.equals(bank.info.state.mint)) ? "opacity-100" : "opacity-50"
                 )}
               >
                 <ActionBoxItem
