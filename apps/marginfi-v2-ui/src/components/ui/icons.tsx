@@ -750,6 +750,21 @@ const IconOrca = ({ size = 48, className }: IconProps) => (
   </svg>
 );
 
+const IconBrandSubstack = ({ size = 24, className }: IconProps) => (
+  <svg height={size} viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <g clip-path="url(#clip0_31_8)">
+      <path d="M22.9991 6.181H2V8.89931H22.9991V6.181Z" fill="currentColor" />
+      <path d="M2 11.362V24.0004L12.4991 18.3561L23 24.0004V11.362H2Z" fill="currentColor" />
+      <path d="M22.9991 1H2V3.71786H22.9991V1Z" fill="currentColor" />
+    </g>
+    <defs>
+      <clipPath id="clip0_31_8">
+        <rect width="21" height="23" fill="white" transform="translate(2 1)" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
 export {
   // tabler icons
   IconCaretUpDownFilled,
@@ -761,6 +776,7 @@ export {
   IconBrandX,
   IconBrandApple,
   IconBrandTelegram,
+  IconBrandSubstack,
   IconEthereum,
   IconWallet,
   IconSearch,
