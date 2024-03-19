@@ -173,10 +173,6 @@ export const Tutorial = () => {
                       There are no middlemen. marginfi users come from all over the world,
                       <br className="hidden md:block" /> unblocked from traditional finance rails.
                     </p>
-                    <p>
-                      Borrowers in marginfi pay interest specific to each asset. Both lending and borrowing interest on
-                      marginfi is variable.
-                    </p>
                   </div>
                 </TutorialSlide>
               </SwiperSlide>
