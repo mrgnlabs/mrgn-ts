@@ -4,6 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi, numeralFormatter, sleep } from "@mrgnlabs/mrgn-common";
 
 import { StakeData, clampedNumeralFormatter, RepayType, LstType } from "~/utils";
+import { IconArrowRight } from "~/components/ui/icons";
 
 type props = {
   actionMode: ActionType;
@@ -13,6 +14,7 @@ type props = {
   selectedStakingAccount: StakeData | null;
 
   amountRaw: string;
+  repayAmountRaw: string;
   walletAmount: number | undefined;
   maxAmount: number;
 
@@ -25,6 +27,7 @@ export const InputAction = ({
   actionMode,
   maxAmount,
   amountRaw,
+  repayAmountRaw,
   selectedBank,
   selectedRepayBank,
   selectedStakingAccount,
@@ -33,6 +36,11 @@ export const InputAction = ({
   onSetAmountRaw,
 }: props) => {
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
+
+  const repayAmount = React.useMemo(() => {
+    const strippedAmount = repayAmountRaw.replace(/,/g, "");
+    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
+  }, [repayAmountRaw]);
 
   const maxLabel = React.useMemo((): {
     amount: string;
@@ -109,21 +117,32 @@ export const InputAction = ({
       {actionMode === ActionType.Repay && (
         <ul className="flex flex-col gap-0.5 mt-4 text-xs w-full text-muted-foreground">
           <li className="flex justify-between items-center gap-1.5">
-            <strong className="mr-auto">{maxLabel.label}</strong> {maxLabel.amount}
-            {(repayMode === RepayType.RepayRaw || (repayMode === RepayType.RepayCollat && selectedRepayBank)) && (
-              <button
-                className="text-chartreuse border-b border-transparent transition hover:border-chartreuse"
-                disabled={maxAmount === 0}
-                onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
-              >
-                MAX
-              </button>
-            )}
+            <strong className="mr-auto">{maxLabel.label}</strong>
+            <div className="flex gap-1.5">
+              {selectedBank?.isActive && clampedNumeralFormatter(selectedBank.position.amount)}
+              {selectedBank?.isActive && <IconArrowRight width={12} height={12} />}
+              {maxLabel.amount}
+              {(repayMode === RepayType.RepayRaw || (repayMode === RepayType.RepayCollat && selectedRepayBank)) && (
+                <button
+                  className="text-chartreuse border-b border-transparent transition hover:border-chartreuse"
+                  disabled={maxAmount === 0}
+                  onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
+                >
+                  MAX
+                </button>
+              )}
+            </div>
           </li>
           {repayMode === RepayType.RepayCollat && (
             <li className="flex justify-between items-center gap-1.5">
-              <strong>Deposited:</strong> {selectedRepayBank?.isActive ? selectedRepayBank.position.amount : 0}{" "}
-              {selectedRepayBank?.meta.tokenSymbol}
+              <strong>Deposited:</strong>
+
+              <div className="flex gap-1.5">
+                {selectedRepayBank?.isActive ? selectedRepayBank.position.amount : 0}
+                {selectedRepayBank?.isActive && <IconArrowRight width={12} height={12} />}
+                {selectedRepayBank?.isActive && selectedRepayBank.position.amount - repayAmount}{" "}
+                {selectedRepayBank?.meta.tokenSymbol}
+              </div>
             </li>
           )}
         </ul>

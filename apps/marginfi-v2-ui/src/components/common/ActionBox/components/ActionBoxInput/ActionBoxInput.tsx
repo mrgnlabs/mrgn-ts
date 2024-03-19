@@ -194,6 +194,7 @@ export const ActionBoxInput = ({
           repayMode={repayMode}
           selectedStakingAccount={selectedStakingAccount}
           amountRaw={amountRaw}
+          repayAmountRaw={repayAmountRaw}
           walletAmount={walletAmount}
           maxAmount={maxAmount}
           onSetAmountRaw={(amount) => handleInputChange(amount)}
