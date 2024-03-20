@@ -136,7 +136,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   const directRoutes = React.useMemo(
     () =>
       selectedBank && directRoutesMap
-        ? directRoutesMap[selectedBank.info.state.mint.toBase58()].directRoutes.map((key) => new PublicKey(key))
+        ? directRoutesMap[selectedBank.info.state.mint.toBase58()]?.directRoutes?.map((key) => new PublicKey(key))
         : undefined,
     [directRoutesMap, selectedBank]
   );
