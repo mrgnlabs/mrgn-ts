@@ -59,11 +59,7 @@ export const LendingTokensTrigger = React.forwardRef<HTMLButtonElement, LendingT
           <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={calculateRate(selectedBank)} />
         )}
         {isRepayWithCollat && selectedRepayBank && (
-          <SelectedBankItem
-            bank={selectedRepayBank}
-            lendingMode={lendingMode}
-            rate={calculateRate(selectedRepayBank)}
-          />
+          <SelectedBankItem bank={selectedRepayBank} lendingMode={lendingMode} />
         )}
         {((!isRepayWithCollat && !selectedBank) || (isRepayWithCollat && !selectedRepayBank)) && <>Select token</>}
         <IconChevronDown className="shrink-0" size={20} />

@@ -23,7 +23,7 @@ export const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemPr
         height={30}
         className="rounded-full"
       />
-      <div className="flex flex-col gap-1 mr-auto xs:mr-0">
+      <div className="flex flex-col gap-1 mr-auto xs:mr-0 min-w-14">
         <p className="leading-none text-sm">{bank.meta.tokenSymbol}</p>
         {lendingMode && rate && (
           <p

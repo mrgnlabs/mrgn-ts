@@ -78,6 +78,7 @@ export const LstTokenList = ({ selectedBank, onSetCurrentTokenBank, isOpen, lstT
   const filteredBanksUserOwns = React.useMemo(() => {
     return (
       extendedBankInfos
+        .filter((bank) => bank.meta.tokenSymbol !== "LST")
         .filter(balanceFilter)
         .filter(searchFilter)
         // .filter((bank) => positionFilter(bank, true))

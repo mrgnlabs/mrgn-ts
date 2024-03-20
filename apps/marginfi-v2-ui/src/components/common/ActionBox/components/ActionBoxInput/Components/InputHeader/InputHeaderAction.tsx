@@ -2,7 +2,7 @@ import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LstType, RepayType } from "~/utils";
-import { useUiStore } from "~/store";
+import { useLstStore, useUiStore } from "~/store";
 import { LendingModes } from "~/types";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
@@ -34,6 +34,9 @@ export const InputHeaderAction = ({
   changeLstType,
 }: InputHeaderActionProps) => {
   const [lendingModeFromStore, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
+  const [stakeAccounts] = useLstStore((state) => [state.stakeAccounts]);
+
+  const isSolBank = React.useMemo(() => bank?.meta.tokenSymbol === "SOL", [bank]);
 
   const titleText = React.useMemo(() => {
     const actionTitles: { [key in ActionType]?: string } = {
@@ -41,11 +44,11 @@ export const InputHeaderAction = ({
       [ActionType.Deposit]: "You supply",
       [ActionType.Withdraw]: "",
       [ActionType.Repay]: "",
-      [ActionType.MintLST]: "You stake",
+      [ActionType.MintLST]: isSolBank ? "You stake" : "You swap",
     };
 
     return actionTitles[actionType] || "";
-  }, [actionType]);
+  }, [actionType, isSolBank]);
 
   const toggleObject = React.useMemo(() => {
     if (!isDialog && (actionType === ActionType.Borrow || actionType === ActionType.Deposit)) {
@@ -81,7 +84,8 @@ export const InputHeaderAction = ({
       } as ToggleObject;
     }
 
-    if (actionType === ActionType.MintLST) {
+    if (actionType === ActionType.MintLST && stakeAccounts.length > 0) {
+      console.log({ stakeAccounts });
       return {
         toggles: [
           { value: LstType.Token, text: "Token" },
@@ -96,6 +100,7 @@ export const InputHeaderAction = ({
 
     return titleText;
   }, [
+    stakeAccounts,
     actionType,
     repayType,
     titleText,
@@ -131,7 +136,7 @@ export const InputHeaderAction = ({
           </ToggleGroup>
         </div>
       ) : (
-        <span className="text-xs font-normal text-muted-foreground">{toggleObject}</span>
+        <span className="text-sm font-normal text-muted-foreground">{toggleObject}</span>
       )}
     </>
   );
