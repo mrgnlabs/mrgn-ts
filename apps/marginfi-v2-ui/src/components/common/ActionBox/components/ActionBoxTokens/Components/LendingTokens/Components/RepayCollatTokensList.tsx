@@ -126,7 +126,6 @@ export const RepayCollatTokensList = ({
                   )}
                 >
                   <ActionBoxItem
-                    rate={calculateRate(bank)}
                     lendingMode={lendingMode}
                     bank={bank}
                     showBalanceOverride={false}
