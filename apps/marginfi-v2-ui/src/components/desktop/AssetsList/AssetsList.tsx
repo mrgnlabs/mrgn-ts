@@ -160,8 +160,6 @@ const AssetsList = () => {
 
   return (
     <>
-      {walletAddress && <Portfolio />}
-
       {userMode === UserMode.PRO && (
         <>
           <AssetListFilters />

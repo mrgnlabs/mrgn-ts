@@ -213,24 +213,6 @@ export const Wallet = () => {
                 <div className="text-center space-y-1 mb-12">
                   <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
                 </div>
-                <button
-                  className="flex items-center gap-2 mb-4 bg-background-gray w-full group cursor-pointer border-chartreuse rounded-lg px-4 py-3.5 transition-colors hover:bg-background-gray-light"
-                  onClick={() => {
-                    setIsWalletOpen(false);
-                    router.push("/points");
-                  }}
-                >
-                  <IconStarFilled size={16} />
-                  <div className="flex items-baseline gap-2">
-                    <strong className="text-lg">
-                      {userPointsData && groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
-                    </strong>
-                    <span className="text-sm text-muted-foreground">points</span>
-                  </div>
-                  <span className="ml-auto font-medium text-sm text-chartreuse border-b border-transparent group-hover:border-chartreuse">
-                    Learn more
-                  </span>
-                </button>
                 {web3AuthConncected && <WalletOnramp />}
                 <WalletSettings walletAddress={wallet.publicKey} tokens={walletData.tokens} />
                 <SheetFooter className="text-red-400 mt-auto w-full">

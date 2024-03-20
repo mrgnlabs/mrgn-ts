@@ -274,16 +274,12 @@ export const Navbar: FC = () => {
               </Badge>
 
               <Link
-                href={"/points"}
+                href={"/portfolio"}
                 className={`${
-                  router.pathname === "/points" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                  router.pathname === "/portfolio" ? "text-primary hover-underline-static" : "hover-underline-animation"
                 } whitespace-nowrap`}
               >
-                {connected &&
-                  currentFirebaseUser &&
-                  userPointsData.totalPoints > 0 &&
-                  groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}{" "}
-                points
+                portfolio
               </Link>
 
               <Badge
