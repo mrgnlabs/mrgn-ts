@@ -47,7 +47,17 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
                       <IconInfoCircleFilled size={16} />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Points refresh every 24 hours.</p>
+                      <p>
+                        Points refresh every 24 hours.{" "}
+                        <Link
+                          href="https://medium.com/marginfi/introducing-mrgn-points-949e18f31a8c"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:no-underline"
+                        >
+                          More info
+                        </Link>
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -87,7 +97,18 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
                       <IconInfoCircleFilled size={16} />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Lending earns 1 point per dollar lent per day.</p>
+                      <p>
+                        Lending earns 1 point per dollar lent per day.{" "}
+                        <Link
+                          href="https://medium.com/marginfi/introducing-mrgn-points-949e18f31a8c"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:no-underline"
+                        >
+                          More info
+                        </Link>
+                        .
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -107,7 +128,18 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
                       <IconInfoCircleFilled size={16} />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Borrowing earns 4 points per dollar borrowed per day.</p>
+                      <p>
+                        Borrowing earns 4 points per dollar borrowed per day.{" "}
+                        <Link
+                          href="https://medium.com/marginfi/introducing-mrgn-points-949e18f31a8c"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:no-underline"
+                        >
+                          More info
+                        </Link>
+                        .
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -127,7 +159,18 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
                       <IconInfoCircleFilled size={16} />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Earn 10% of the points any user you refer earns.</p>
+                      <p>
+                        Earn 10% of the points any user you refer earns.{" "}
+                        <Link
+                          href="https://medium.com/marginfi/introducing-mrgn-points-949e18f31a8c"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:no-underline"
+                        >
+                          More info
+                        </Link>
+                        .
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -139,7 +182,7 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
           </div>
         </div>
       </div>
-      <div className="flex flex-wrap justify-center items-center gap-3 md:gap-5">
+      {/* <div className="flex flex-wrap justify-center items-center gap-3 md:gap-5">
         <Link
           href="https://medium.com/marginfi/introducing-mrgn-points-949e18f31a8c"
           target="_blank"
@@ -172,7 +215,7 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
             {isReferralCopied ? <IconCheck size={22} /> : <IconCopy size={22} />}
           </Button>
         </CopyToClipboard>
-      </div>
+      </div> */}
     </>
   );
 };
