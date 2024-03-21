@@ -1,6 +1,7 @@
 import React from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
 
@@ -8,7 +9,7 @@ import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 
 import { cn } from "~/utils";
 import { useConvertkit } from "~/hooks/useConvertkit";
-import { useUserProfileStore } from "~/store";
+import { useUserProfileStore, useUiStore } from "~/store";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { WalletTokens, Token, WalletOnramp } from "~/components/common/Wallet";
@@ -20,6 +21,7 @@ import {
   IconAlertTriangle,
   IconStarFilled,
   IconCopy,
+  IconTrophy,
 } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -38,7 +40,9 @@ enum WalletSettingsState {
 }
 
 export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) => {
+  const router = useRouter();
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData, state.fetchPoints]);
+  const [setIsWalletOpen] = useUiStore((state) => [state.setIsWalletOpen]);
   const { addSubscriber } = useConvertkit();
   const [walletSettingsState, setWalletSettingsState] = React.useState<WalletSettingsState>(
     WalletSettingsState.DEFAULT
@@ -146,13 +150,31 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
           <span className="text-sm text-muted-foreground mr-auto">points</span>
         </AccordionTrigger>
         <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
-          <ul>
-            <li>
-              <Button variant="outline" size="sm">
-                <IconCopy size={16} /> Copy referral code
-              </Button>
-            </li>
-          </ul>
+          <div className="flex items-center gap-8">
+            <div className="flex flex-col items-center justify-center text-2xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
+              <span className="text-sm font-normal text-muted-foreground">Your rank</span>112,567
+            </div>
+            <ul className="space-y-2">
+              <li>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    setIsWalletOpen(false);
+                    router.push("/points");
+                  }}
+                >
+                  <IconTrophy size={16} /> Points Leaderboard
+                </Button>
+              </li>
+              <li>
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <IconCopy size={16} /> Copy referral code
+                </Button>
+              </li>
+            </ul>
+          </div>
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="assets">
