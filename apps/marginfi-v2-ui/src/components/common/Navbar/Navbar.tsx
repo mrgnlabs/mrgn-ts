@@ -1,15 +1,10 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useHotkeys } from "react-hotkeys-hook";
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
+import { useMrgnlendStore } from "~/store";
 import { useLipClient } from "~/context";
 import { useRouter } from "next/router";
-import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
-import { Badge } from "@mui/material";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
-import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { Features, isActive } from "~/utils/featureGates";
 import { PublicKey } from "@solana/web3.js";
 import { useConnection } from "~/hooks/useConnection";
 import { EMISSION_MINT_INFO_MAP } from "../../desktop/AssetsList/AssetRow";
@@ -23,7 +18,7 @@ export const Navbar: FC = () => {
   useFirebaseAccount();
 
   const { connection } = useConnection();
-  const { connected, wallet, walletAddress } = useWalletContext();
+  const { wallet, walletAddress } = useWalletContext();
   const router = useRouter();
   const { lipClient } = useLipClient();
   const [initialized, mfiClient, selectedAccount, extendedBankInfos, lendUserDataFetched, resetLendUserData] =
@@ -35,16 +30,7 @@ export const Navbar: FC = () => {
       state.userDataFetched,
       state.resetUserData,
     ]);
-  const [showBadges, currentFirebaseUser, userPointsData, setShowBadges, fetchPoints] = useUserProfileStore((state) => [
-    state.showBadges,
-    state.currentFirebaseUser,
-    state.userPointsData,
-    state.setShowBadges,
-    state.fetchPoints,
-  ]);
 
-  const [isHotkeyMode, setIsHotkeyMode] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState(router.pathname);
   const [lipAccount, setLipAccount] = useState<LipAccount | null>(null);
 
   useEffect(() => {
@@ -64,78 +50,12 @@ export const Navbar: FC = () => {
   }, [selectedAccount, extendedBankInfos]);
 
   useEffect(() => {
-    if (!walletAddress) return;
-    fetchPoints(walletAddress.toBase58()).catch(console.error);
-  }, [fetchPoints, walletAddress]);
-
-  useEffect(() => {
-    setCurrentRoute(router.pathname);
-  }, [router.pathname]);
-
-  useEffect(() => {
     (async function () {
       if (!mfiClient || !lipClient || !walletAddress) return;
       const lipAccount = await LipAccount.fetch(walletAddress, lipClient, mfiClient);
       setLipAccount(lipAccount);
     })();
   }, [lipClient, mfiClient, walletAddress]);
-
-  // Enter hotkey mode
-  useHotkeys(
-    "meta+k",
-    () => {
-      setIsHotkeyMode(true);
-      setShowBadges(true);
-
-      setTimeout(() => {
-        setIsHotkeyMode(false);
-        setShowBadges(false);
-      }, 5000);
-    },
-    { preventDefault: true, enableOnFormTags: true }
-  );
-
-  // Navigation in hotkey mode
-  useHotkeys(
-    "l, s+1, s+2, b, e, o",
-    (_, handler: HotkeysEvent) => {
-      if (isHotkeyMode) {
-        switch (handler.keys?.join("")) {
-          case "l":
-            router.push("/");
-            break;
-          case "s1":
-            router.push("/stake");
-            break;
-          case "s2":
-            router.push("/swap");
-            break;
-          case "b":
-            router.push("/bridge");
-            break;
-          case "o":
-            router.push("https://omni.marginfi.com");
-            break;
-        }
-        setIsHotkeyMode(false);
-        setShowBadges(false);
-      }
-    },
-    { enableOnFormTags: true }
-  );
-
-  useHotkeys(
-    "meta+k",
-    () => {
-      setShowBadges(true);
-      setIsHotkeyMode(true);
-      setTimeout(() => {
-        setShowBadges(false);
-        setIsHotkeyMode(false);
-      }, 5000);
-    },
-    { enableOnFormTags: true }
-  );
 
   return (
     <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">
@@ -150,128 +70,51 @@ export const Navbar: FC = () => {
             </Link>
 
             <div className="hidden lg:flex justify-start items-center gap-8">
-              <Badge
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                sx={{
-                  "& .MuiBadge-badge": {
-                    backgroundColor: "rgb(220, 232, 93)",
-                    color: "#1C2125",
-                  },
-                }}
-                badgeContent={"l"}
-                invisible={!showBadges}
+              <Link
+                href={"/"}
+                className={`${
+                  router.pathname === "/" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                }`}
               >
-                <Link
-                  href={"/"}
-                  className={`${
-                    router.pathname === "/" ? "text-primary hover-underline-static" : "hover-underline-animation"
-                  }`}
-                >
-                  lend
-                </Link>
-              </Badge>
+                lend
+              </Link>
 
-              {isActive(Features.STAKE) && (
-                <Badge
-                  anchorOrigin={{
-                    vertical: "bottom",
-                    horizontal: "right",
-                  }}
-                  sx={{
-                    "& .MuiBadge-badge": {
-                      backgroundColor: "rgb(220, 232, 93)",
-                      color: "#1C2125",
-                    },
-                  }}
-                  badgeContent={"s1"}
-                  invisible={!showBadges}
-                >
-                  <Link
-                    href={"/mint"}
-                    className={
-                      router.pathname === "/mint" ? "text-primary hover-underline-static" : "hover-underline-animation"
-                    }
-                  >
-                    mint
-                  </Link>
-                </Badge>
-              )}
+              <Link
+                href={"/mint"}
+                className={
+                  router.pathname === "/mint" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                }
+              >
+                mint
+              </Link>
 
               {lipAccount && lipAccount.deposits.length > 0 && (
-                <Badge
-                  anchorOrigin={{
-                    vertical: "bottom",
-                    horizontal: "right",
-                  }}
-                  sx={{
-                    "& .MuiBadge-badge": {
-                      backgroundColor: "rgb(220, 232, 93)",
-                      color: "#1C2125",
-                    },
-                  }}
-                  badgeContent={"e"}
-                  invisible={!showBadges}
+                <Link
+                  href={"/earn"}
+                  className={
+                    router.pathname === "/earn" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                  }
                 >
-                  <Link
-                    href={"/earn"}
-                    className={
-                      router.pathname === "/earn" ? "text-primary hover-underline-static" : "hover-underline-animation"
-                    }
-                  >
-                    earn
-                  </Link>
-                </Badge>
+                  earn
+                </Link>
               )}
 
-              <Badge
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                sx={{
-                  "& .MuiBadge-badge": {
-                    backgroundColor: "rgb(220, 232, 93)",
-                    color: "#1C2125",
-                  },
-                }}
-                badgeContent={"s2"}
-                invisible={!showBadges}
+              <Link
+                href={"/swap"}
+                className={`${
+                  router.pathname === "/swap" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                } hidden md:block`}
               >
-                <Link
-                  href={"/swap"}
-                  className={`${
-                    router.pathname === "/swap" ? "text-primary hover-underline-static" : "hover-underline-animation"
-                  } hidden md:block`}
-                >
-                  swap
-                </Link>
-              </Badge>
-              <Badge
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                sx={{
-                  "& .MuiBadge-badge": {
-                    backgroundColor: "rgb(220, 232, 93)",
-                    color: "#1C2125",
-                  },
-                }}
-                badgeContent={"b"}
-                invisible={!showBadges}
+                swap
+              </Link>
+              <Link
+                href={"/bridge"}
+                className={`${
+                  router.pathname === "/bridge" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                } hidden md:block`}
               >
-                <Link
-                  href={"/bridge"}
-                  className={`${
-                    router.pathname === "/bridge" ? "text-primary hover-underline-static" : "hover-underline-animation"
-                  } hidden md:block`}
-                >
-                  bridge
-                </Link>
-              </Badge>
+                bridge
+              </Link>
 
               <Link
                 href={"/portfolio"}
@@ -282,32 +125,14 @@ export const Navbar: FC = () => {
                 portfolio
               </Link>
 
-              <Badge
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                sx={{
-                  "& .MuiBadge-badge": {
-                    backgroundColor: "rgb(220, 232, 93)",
-                    color: "#1C2125",
-                  },
-                }}
-                badgeContent={"o"}
-                invisible={!showBadges}
-                className="hidden md:block"
+              <Link
+                href="/ecosystem"
+                className={`${
+                  router.pathname === "/ecosystem" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                } whitespace-nowrap`}
               >
-                <Link
-                  href="/ecosystem"
-                  className={`${
-                    router.pathname === "/ecosystem"
-                      ? "text-primary hover-underline-static"
-                      : "hover-underline-animation"
-                  } whitespace-nowrap`}
-                >
-                  ecosystem
-                </Link>
-              </Badge>
+                ecosystem
+              </Link>
             </div>
           </div>
           {initialized && (
