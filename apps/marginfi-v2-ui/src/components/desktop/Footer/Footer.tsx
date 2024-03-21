@@ -9,7 +9,6 @@ import AutoStoriesOutlinedIcon from "@mui/icons-material/AutoStoriesOutlined";
 import InsightsIcon from "@mui/icons-material/Insights";
 import Link from "next/link";
 import { GitHub, QuestionMark } from "@mui/icons-material";
-import { UserMode } from "~/types";
 
 type FooterConfig = { hotkeys: boolean; zoom: boolean; unit: boolean; links: boolean; userMode: boolean };
 
@@ -24,7 +23,6 @@ const ROOT_CONFIG: FooterConfig = { hotkeys: true, zoom: true, unit: true, links
 
 const Footer: FC = () => {
   const router = useRouter();
-  const [userMode] = useUiStore((state) => [state.userMode]);
 
   const footerConfig = useMemo(() => {
     if (router.pathname === "/") return ROOT_CONFIG;
@@ -42,11 +40,6 @@ const Footer: FC = () => {
   return (
     <footer>
       <div className="hidden sm:flex justify-between gap-4 fixed w-full bottom-0 h-[34px] z-[55] bg-[#0F1111]  border-t border-border">
-        <div className=" flex gap-4">
-          {footerConfig.userMode && <UserModeControl />}
-          {footerConfig.hotkeys && userMode === UserMode.PRO && <HotkeysInfo />}
-          {footerConfig.unit && userMode === UserMode.PRO && <LendUnitControl />}
-        </div>
         {footerConfig.links && <QuickLinks />}
       </div>
     </footer>
@@ -114,38 +107,6 @@ const LendZoomControl: FC = () => {
           </svg>
         </SvgIcon>
       </div>
-    </div>
-  );
-};
-
-const UserModeControl: FC = () => {
-  const [userMode, setUserMode] = useUiStore((state) => [state.userMode, state.setUserMode]);
-
-  return (
-    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-border px-6">
-      <div className="h-full flex justify-center items-center font-medium">Lite</div>
-      <Switch
-        onChange={(_, checked) => setUserMode(checked ? UserMode.PRO : UserMode.LITE)}
-        sx={{
-          color: "#868E95",
-          "& .MuiSwitch-switchBase": {
-            "&.Mui-checked": {
-              "& .MuiSwitch-thumb": {
-                backgroundColor: "#DCE85D",
-              },
-              "& + .MuiSwitch-track": {
-                backgroundColor: "#DCE85D",
-                color: "#DCE85D",
-              },
-            },
-            "& + .MuiSwitch-track": {
-              backgroundColor: "#868E95",
-            },
-          },
-        }}
-        checked={userMode === UserMode.PRO}
-      />
-      <div className="h-full flex justify-center items-center font-medium">Pro</div>
     </div>
   );
 };
