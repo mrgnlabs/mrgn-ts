@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, UserMode, PreviousTxn } from "~/types";
+import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, PreviousTxn } from "~/types";
 import { INITIAL_PRIO_FEE } from "~/config/marginfi";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
@@ -46,7 +46,6 @@ interface UiState {
   lendingMode: LendingModes;
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
-  userMode: UserMode;
   priorityFee: number;
   isActionComplete: boolean;
   previousTxn: PreviousTxn | null;
@@ -62,7 +61,6 @@ interface UiState {
   setLendingMode: (lendingMode: LendingModes) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
-  setUserMode: (userMode: UserMode) => void;
   setPriorityFee: (priorityFee: number) => void;
   setIsActionComplete: (isActionSuccess: boolean) => void;
   setPreviousTxn: (previousTxn: PreviousTxn) => void;
@@ -94,7 +92,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   actionMode: ActionType.Deposit,
   poolFilter: PoolTypes.ALL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
-  userMode: UserMode.LITE,
   selectedTokenBank: null,
   priorityFee: INITIAL_PRIO_FEE,
   isActionComplete: false,
@@ -115,7 +112,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
-  setUserMode: (userMode: UserMode) => set({ userMode: userMode }),
   setPriorityFee: (priorityFee: number) => set({ priorityFee: priorityFee }),
   setIsActionComplete: (isActionComplete: boolean) => set({ isActionComplete: isActionComplete }),
   setPreviousTxn: (previousTxn: PreviousTxn) => set({ previousTxn: previousTxn }),
