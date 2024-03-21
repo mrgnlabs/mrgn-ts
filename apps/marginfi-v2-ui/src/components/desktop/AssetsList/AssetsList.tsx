@@ -21,7 +21,7 @@ import {
   LSTS,
 } from "~/components/common/AssetList";
 import { Portfolio } from "~/components/common/Portfolio";
-import { LendingModes, UserMode } from "~/types";
+import { LendingModes } from "~/types";
 import { AssetRowHeader } from "~/components/common/AssetList/AssetRowHeader";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconAlertTriangle } from "~/components/ui/icons";
@@ -39,16 +39,13 @@ const AssetsList = () => {
     state.showBadges,
     state.setShowBadges,
   ]);
-  const [lendingMode, setLendingMode, poolFilter, isFilteredUserPositions, sortOption, userMode] = useUiStore(
-    (state) => [
-      state.lendingMode,
-      state.setLendingMode,
-      state.poolFilter,
-      state.isFilteredUserPositions,
-      state.sortOption,
-      state.userMode,
-    ]
-  );
+  const [lendingMode, setLendingMode, poolFilter, isFilteredUserPositions, sortOption] = useUiStore((state) => [
+    state.lendingMode,
+    state.setLendingMode,
+    state.poolFilter,
+    state.isFilteredUserPositions,
+    state.sortOption,
+  ]);
 
   const inputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
   const [isHotkeyMode, setIsHotkeyMode] = React.useState(false);
