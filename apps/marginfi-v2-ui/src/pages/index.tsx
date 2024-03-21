@@ -10,7 +10,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Desktop, Mobile } from "~/mediaQueries";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { UserMode, LendingModes } from "~/types";
+import { LendingModes } from "~/types";
 
 import { Banner } from "~/components/desktop/Banner";
 import { ActionBoxLendWrapper } from "~/components/common/ActionBox";
@@ -27,7 +27,7 @@ const AssetsList = dynamic(async () => (await import("~/components/desktop/Asset
 export default function HomePage() {
   const router = useRouter();
   const { walletAddress, isOverride } = useWalletContext();
-  const [userMode, previousTxn] = useUiStore((state) => [state.userMode, state.previousTxn]);
+  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
   const [
     fetchMrgnlendState,
     isStoreInitialized,
