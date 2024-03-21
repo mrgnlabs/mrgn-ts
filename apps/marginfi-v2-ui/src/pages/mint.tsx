@@ -1,6 +1,5 @@
 import React from "react";
 
-import Error from "next/error";
 import Link from "next/link";
 import { JupiterProvider } from "@jup-ag/react-hook";
 
@@ -284,8 +283,6 @@ export default function MintPage() {
 
     fetchIntegrations();
   }, [integrationsData]);
-
-  return <Error statusCode={404} />;
 
   return (
     <>

@@ -190,9 +190,9 @@ export const Navbar: FC = () => {
                   invisible={!showBadges}
                 >
                   <Link
-                    href={"/stake"}
+                    href={"/mint"}
                     className={
-                      router.pathname === "/stake" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                      router.pathname === "/mint" ? "text-primary hover-underline-static" : "hover-underline-animation"
                     }
                   >
                     mint
