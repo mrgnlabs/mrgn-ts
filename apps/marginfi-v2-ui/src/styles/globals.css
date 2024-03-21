@@ -224,7 +224,6 @@ a {
 /* Track */
 ::-webkit-scrollbar-track {
   background: #131719;
-  border-radius: 5px;
 }
 
 /* Handle */
