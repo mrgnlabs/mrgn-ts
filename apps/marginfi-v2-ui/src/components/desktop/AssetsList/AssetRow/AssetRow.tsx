@@ -425,8 +425,10 @@ const AssetRow: React.FC<{
                     ? usdFormatter.format(
                         (isInLendingMode
                           ? bank.info.state.totalDeposits
-                          : Math.min(bank.info.state.totalDeposits, bank.info.rawBank.config.borrowLimit.toNumber()) -
-                            bank.info.state.totalBorrows) * bank.info.state.price
+                          : Math.min(
+                              bank.info.state.availableLiquidity,
+                              bank.info.state.borrowCap - bank.info.state.totalBorrows
+                            )) * bank.info.state.price
                       )
                     : numeralFormatter(
                         isInLendingMode
