@@ -1,9 +1,8 @@
 import React from "react";
 
-import { useUiStore, SORT_OPTIONS_MAP } from "~/store";
+import { useUiStore, useUserProfileStore, SORT_OPTIONS_MAP } from "~/store";
 import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useIsMobile } from "~/hooks/useIsMobile";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";
@@ -15,7 +14,6 @@ import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption } fro
 
 export const AssetListFilters = () => {
   const { connected } = useWalletContext();
-  const isMobile = useIsMobile();
   const [
     lendingMode,
     setLendingMode,
@@ -38,6 +36,11 @@ export const AssetListFilters = () => {
     state.setSortOption,
   ]);
 
+  const [denominationUSD, setDenominationUSD] = useUserProfileStore((state) => [
+    state.denominationUSD,
+    state.setDenominationUSD,
+  ]);
+
   return (
     <div className="col-span-full w-full space-y-5">
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-8">
@@ -57,6 +60,32 @@ export const AssetListFilters = () => {
               Borrow
             </ToggleGroupItem>
           </ToggleGroup>
+        </div>
+        <div
+          className={cn("flex items-center gap-2 text-sm", !connected && "opacity-50")}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (connected) return;
+            setIsWalletAuthDialogOpen(true);
+          }}
+        >
+          <Switch
+            id="usd-denominated"
+            checked={denominationUSD}
+            onCheckedChange={() => {
+              if (!connected) return;
+              setDenominationUSD(!denominationUSD);
+            }}
+          />
+          <Label
+            htmlFor="usd-denominated"
+            className={cn(
+              "transition-colors text-muted-foreground cursor-pointer hover:text-white",
+              isFilteredUserPositions && "text-white"
+            )}
+          >
+            USD Denominated
+          </Label>
         </div>
         <div
           className={cn("flex items-center gap-2 text-sm", !connected && "opacity-50")}
