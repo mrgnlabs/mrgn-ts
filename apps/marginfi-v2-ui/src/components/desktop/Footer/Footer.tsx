@@ -19,8 +19,8 @@ const DISPLAY_TABLE: { [basePath: string]: FooterConfig } = {
   "/earn": { hotkeys: true, zoom: false, unit: false, links: true, userMode: true },
 };
 
-const DEFAULT_FOOTER_CONFIG: FooterConfig = { hotkeys: true, zoom: false, unit: false, links: true, userMode: true };
-const ROOT_CONFIG: FooterConfig = { hotkeys: true, zoom: true, unit: true, links: true, userMode: true };
+const DEFAULT_FOOTER_CONFIG: FooterConfig = { hotkeys: true, zoom: false, unit: false, links: true, userMode: false };
+const ROOT_CONFIG: FooterConfig = { hotkeys: true, zoom: true, unit: true, links: true, userMode: false };
 
 const Footer: FC = () => {
   const router = useRouter();
