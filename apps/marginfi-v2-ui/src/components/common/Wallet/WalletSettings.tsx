@@ -143,40 +143,45 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
 
   return (
     <Accordion type="single" collapsible className="w-full space-y-4 mb-6">
-      <AccordionItem value="points">
-        <AccordionTrigger className="bg-background-gray font-normal px-4 rounded-lg transition-colors justify-start gap-2 hover:bg-background-gray-light data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
-          <IconStarFilled className="text-chartreuse" size={16} />
-          {userPointsData && groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}{" "}
-          <span className="text-sm text-muted-foreground mr-auto">points</span>
-        </AccordionTrigger>
-        <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
-          <div className="flex items-center gap-8">
-            <div className="flex flex-col items-center justify-center text-2xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
-              <span className="text-sm font-normal text-muted-foreground">Your rank</span>112,567
+      {userPointsData && (
+        <AccordionItem value="points">
+          <AccordionTrigger className="bg-background-gray font-normal px-4 rounded-lg transition-colors justify-start gap-2 hover:bg-background-gray-light data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
+            <IconStarFilled className="text-chartreuse" size={16} />
+            {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}{" "}
+            <span className="text-sm text-muted-foreground mr-auto">points</span>
+          </AccordionTrigger>
+          <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
+            <div className="flex items-center gap-8">
+              {userPointsData.userRank && (
+                <div className="flex flex-col items-center justify-center text-2xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
+                  <span className="text-sm font-normal text-muted-foreground">Your rank</span> #
+                  {groupedNumberFormatterDyn.format(userPointsData.userRank)}
+                </div>
+              )}
+              <ul className="space-y-2">
+                <li>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      setIsWalletOpen(false);
+                      router.push("/points");
+                    }}
+                  >
+                    <IconTrophy size={16} /> Points Leaderboard
+                  </Button>
+                </li>
+                <li>
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <IconCopy size={16} /> Copy referral code
+                  </Button>
+                </li>
+              </ul>
             </div>
-            <ul className="space-y-2">
-              <li>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => {
-                    setIsWalletOpen(false);
-                    router.push("/points");
-                  }}
-                >
-                  <IconTrophy size={16} /> Points Leaderboard
-                </Button>
-              </li>
-              <li>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <IconCopy size={16} /> Copy referral code
-                </Button>
-              </li>
-            </ul>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
+          </AccordionContent>
+        </AccordionItem>
+      )}
       <AccordionItem value="assets">
         <AccordionTrigger className="bg-background-gray font-normal px-4 rounded-lg transition-colors justify-start gap-2 hover:bg-background-gray-light data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
           Assets <span className="text-xs text-muted-foreground mr-auto">(available on marginfi)</span>
