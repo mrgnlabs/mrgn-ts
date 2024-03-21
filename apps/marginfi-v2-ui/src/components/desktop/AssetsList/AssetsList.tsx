@@ -160,160 +160,155 @@ const AssetsList = () => {
 
   return (
     <>
-      {userMode === UserMode.PRO && (
-        <>
-          <AssetListFilters />
-          <div className="col-span-full">
-            <Card elevation={0} className="bg-[rgba(0,0,0,0)] w-full">
-              <TableContainer>
-                {poolFilter !== "isolated" && (
-                  <>
-                    <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 mt-4 pb-2 gap-1">
-                      Global <span className="block">pool</span>
-                    </div>
-                    <Table
-                      className="table-fixed"
-                      style={{
-                        borderCollapse: "separate",
-                        borderSpacing: "0px 0px",
-                      }}
-                    >
-                      <TableHead>
-                        <AssetRowHeader isInLendingMode={isInLendingMode} isGlobalPool={true} />
-                      </TableHead>
+      <AssetListFilters />
+      <div className="col-span-full">
+        <Card elevation={0} className="bg-[rgba(0,0,0,0)] w-full">
+          <TableContainer>
+            {poolFilter !== "isolated" && (
+              <>
+                <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 mt-4 pb-2 gap-1">
+                  Global <span className="block">pool</span>
+                </div>
+                <Table
+                  className="table-fixed"
+                  style={{
+                    borderCollapse: "separate",
+                    borderSpacing: "0px 0px",
+                  }}
+                >
+                  <TableHead>
+                    <AssetRowHeader isInLendingMode={isInLendingMode} isGlobalPool={true} />
+                  </TableHead>
 
-                      <TableBody>
-                        {globalBanks.length ? (
-                          globalBanks.map((bank, i) => {
-                            if (poolFilter === "stable" && !STABLECOINS.includes(bank.meta.tokenSymbol)) return null;
-                            if (poolFilter === "lst" && !LSTS.includes(bank.meta.tokenSymbol)) return null;
+                  <TableBody>
+                    {globalBanks.length ? (
+                      globalBanks.map((bank, i) => {
+                        if (poolFilter === "stable" && !STABLECOINS.includes(bank.meta.tokenSymbol)) return null;
+                        if (poolFilter === "lst" && !LSTS.includes(bank.meta.tokenSymbol)) return null;
 
-                            // check to see if bank is in open positions
-                            const userPosition = activeBankInfos.filter(
-                              (activeBankInfo) => activeBankInfo.meta.tokenSymbol === bank.meta.tokenSymbol
-                            );
+                        // check to see if bank is in open positions
+                        const userPosition = activeBankInfos.filter(
+                          (activeBankInfo) => activeBankInfo.meta.tokenSymbol === bank.meta.tokenSymbol
+                        );
 
-                            if (isFilteredUserPositions && !userPosition.length) return null;
+                        if (isFilteredUserPositions && !userPosition.length) return null;
 
-                            return isStoreInitialized ? (
-                              <AssetRow
-                                key={bank.meta.tokenSymbol}
-                                nativeSolBalance={nativeSolBalance}
-                                bank={bank}
-                                isInLendingMode={isInLendingMode}
-                                isConnected={connected}
-                                marginfiAccount={selectedAccount}
-                                inputRefs={inputRefs}
-                                hasHotkey={true}
-                                showHotkeyBadges={showBadges}
-                                badgeContent={`${i + 1}`}
-                                activeBank={userPosition[0]}
-                                showLSTDialog={(variant: LSTDialogVariants, onClose?: () => void) => {
-                                  setLSTDialogVariant(variant);
-                                  setIsLSTDialogOpen(true);
-                                  if (onClose) {
-                                    setLSTDialogCallback(() => onClose);
-                                  }
-                                }}
-                              />
-                            ) : (
-                              <LoadingAsset
-                                key={bank.meta.tokenSymbol}
-                                isInLendingMode={isInLendingMode}
-                                bankMetadata={bank.meta}
-                              />
-                            );
-                          })
+                        return isStoreInitialized ? (
+                          <AssetRow
+                            key={bank.meta.tokenSymbol}
+                            nativeSolBalance={nativeSolBalance}
+                            bank={bank}
+                            isInLendingMode={isInLendingMode}
+                            isConnected={connected}
+                            marginfiAccount={selectedAccount}
+                            inputRefs={inputRefs}
+                            hasHotkey={true}
+                            showHotkeyBadges={showBadges}
+                            badgeContent={`${i + 1}`}
+                            activeBank={userPosition[0]}
+                            showLSTDialog={(variant: LSTDialogVariants, onClose?: () => void) => {
+                              setLSTDialogVariant(variant);
+                              setIsLSTDialogOpen(true);
+                              if (onClose) {
+                                setLSTDialogCallback(() => onClose);
+                              }
+                            }}
+                          />
                         ) : (
-                          <TableRow>
-                            <TableCell colSpan={4} className="border-none">
-                              <div className="font-aeonik font-normal text-lg text-input">No global banks found.</div>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </>
-                )}
-                {poolFilter !== "stable" && poolFilter !== "lst" && (
-                  <>
-                    <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 pb-2 gap-2">
-                      <span className="gap-1 flex">
-                        Isolated <span className="hidden lg:block">pools</span>
-                      </span>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="flex flex-col gap-2">
-                              <h4 className="flex items-center gap-1 text-base">
-                                <IconAlertTriangle /> Isolated pools are risky
-                              </h4>
-                              <p>
-                                Assets in isolated pools cannot be used as collateral. When you borrow an isolated
-                                asset, you cannot borrow other assets. Isolated pools should be considered particularly
-                                risky.
-                              </p>
-                              <p>
-                                As always, remember that marginfi is a decentralized protocol and all deposited funds
-                                are at risk.
-                              </p>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <Table className="table-fixed" style={{ borderCollapse: "separate", borderSpacing: "0px 0px" }}>
-                      <TableHead>
-                        <AssetRowHeader isInLendingMode={isInLendingMode} isGlobalPool={false} />
-                      </TableHead>
-                      <TableBody>
-                        {isolatedBanks.length ? (
-                          isolatedBanks.map((bank) => {
-                            const activeBank = activeBankInfos.filter(
-                              (activeBankInfo) => activeBankInfo.meta.tokenSymbol === bank.meta.tokenSymbol
-                            );
+                          <LoadingAsset
+                            key={bank.meta.tokenSymbol}
+                            isInLendingMode={isInLendingMode}
+                            bankMetadata={bank.meta}
+                          />
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="border-none">
+                          <div className="font-aeonik font-normal text-lg text-input">No global banks found.</div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </>
+            )}
+            {poolFilter !== "stable" && poolFilter !== "lst" && (
+              <>
+                <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 pb-2 gap-2">
+                  <span className="gap-1 flex">
+                    Isolated <span className="hidden lg:block">pools</span>
+                  </span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="flex flex-col gap-2">
+                          <h4 className="flex items-center gap-1 text-base">
+                            <IconAlertTriangle /> Isolated pools are risky
+                          </h4>
+                          <p>
+                            Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset,
+                            you cannot borrow other assets. Isolated pools should be considered particularly risky.
+                          </p>
+                          <p>
+                            As always, remember that marginfi is a decentralized protocol and all deposited funds are at
+                            risk.
+                          </p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Table className="table-fixed" style={{ borderCollapse: "separate", borderSpacing: "0px 0px" }}>
+                  <TableHead>
+                    <AssetRowHeader isInLendingMode={isInLendingMode} isGlobalPool={false} />
+                  </TableHead>
+                  <TableBody>
+                    {isolatedBanks.length ? (
+                      isolatedBanks.map((bank) => {
+                        const activeBank = activeBankInfos.filter(
+                          (activeBankInfo) => activeBankInfo.meta.tokenSymbol === bank.meta.tokenSymbol
+                        );
 
-                            if (isFilteredUserPositions && !activeBank.length) return null;
+                        if (isFilteredUserPositions && !activeBank.length) return null;
 
-                            return isStoreInitialized ? (
-                              <AssetRow
-                                key={bank.meta.tokenSymbol}
-                                nativeSolBalance={nativeSolBalance}
-                                bank={bank}
-                                isInLendingMode={isInLendingMode}
-                                isConnected={connected}
-                                marginfiAccount={selectedAccount}
-                                activeBank={activeBank[0]}
-                                inputRefs={inputRefs}
-                                hasHotkey={false}
-                              />
-                            ) : (
-                              <LoadingAsset
-                                key={bank.meta.tokenSymbol}
-                                isInLendingMode={isInLendingMode}
-                                bankMetadata={bank.meta}
-                              />
-                            );
-                          })
+                        return isStoreInitialized ? (
+                          <AssetRow
+                            key={bank.meta.tokenSymbol}
+                            nativeSolBalance={nativeSolBalance}
+                            bank={bank}
+                            isInLendingMode={isInLendingMode}
+                            isConnected={connected}
+                            marginfiAccount={selectedAccount}
+                            activeBank={activeBank[0]}
+                            inputRefs={inputRefs}
+                            hasHotkey={false}
+                          />
                         ) : (
-                          <TableRow>
-                            <TableCell colSpan={4} className="border-none">
-                              <div className="font-aeonik font-normal text-lg text-input">No isolated banks found.</div>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </>
-                )}
-              </TableContainer>
-            </Card>
-          </div>
-        </>
-      )}
+                          <LoadingAsset
+                            key={bank.meta.tokenSymbol}
+                            isInLendingMode={isInLendingMode}
+                            bankMetadata={bank.meta}
+                          />
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="border-none">
+                          <div className="font-aeonik font-normal text-lg text-input">No isolated banks found.</div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </>
+            )}
+          </TableContainer>
+        </Card>
+      </div>
       <LSTDialog
         variant={lstDialogVariant}
         open={isLSTDialogOpen}
