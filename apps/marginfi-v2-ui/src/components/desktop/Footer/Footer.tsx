@@ -46,20 +46,6 @@ const Footer: FC = () => {
   );
 };
 
-const HotkeysInfo: FC = () => {
-  const [isMac, setIsMac] = useState(false);
-
-  useEffect(() => {
-    setIsMac(window.navigator.userAgent.includes("Mac"));
-  }, []);
-
-  return (
-    <div className="text-[#868E95] text-sm whitespace-nowrap flex justify-center items-center border-r border-border pr-4 font-[500]">
-      {isMac ? "⌘" : "^"}+K to see hotkeys
-    </div>
-  );
-};
-
 const LendZoomControl: FC = () => {
   const [lendZoomLevel, setLendZoomLevel] = useUserProfileStore((state) => [
     state.lendZoomLevel,
