@@ -97,7 +97,7 @@ export default function HomePage() {
                 />
               )}
               <Announcements items={annoucements} />
-              {userMode === UserMode.LITE && <ActionBoxLendWrapper />}
+              <ActionBoxLendWrapper />
             </div>
             <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl mt-8 gap-4">
               <AssetsList />
