@@ -26,20 +26,6 @@ export default function PortfolioPage() {
         {initialized && (
           <>
             <EmissionsBanner />
-            {!connected ? <PointsConnectWallet /> : <PointsOverview userPointsData={userPointsData} />}
-            <Link href="/points">
-              <Button>
-                <IconTrophy size={16} /> View points leaderboard
-              </Button>
-            </Link>
-            <div className="text-center text-[#868E95] text-xs flex justify-center gap-1">
-              <p>We reserve the right to update point calculations at any time.</p>
-              <p>
-                <Link href="/terms/points" style={{ textDecoration: "underline" }}>
-                  Terms.
-                </Link>
-              </p>
-            </div>
             <Portfolio />
           </>
         )}
