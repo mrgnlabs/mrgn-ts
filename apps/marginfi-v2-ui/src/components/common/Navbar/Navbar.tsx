@@ -88,6 +88,15 @@ export const Navbar: FC = () => {
                 mint
               </Link>
 
+              <Link
+                href={"/portfolio"}
+                className={`${
+                  router.pathname === "/portfolio" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                } whitespace-nowrap`}
+              >
+                portfolio
+              </Link>
+
               {lipAccount && lipAccount.deposits.length > 0 && (
                 <Link
                   href={"/earn"}
@@ -98,32 +107,6 @@ export const Navbar: FC = () => {
                   earn
                 </Link>
               )}
-
-              <Link
-                href={"/swap"}
-                className={`${
-                  router.pathname === "/swap" ? "text-primary hover-underline-static" : "hover-underline-animation"
-                } hidden md:block`}
-              >
-                swap
-              </Link>
-              <Link
-                href={"/bridge"}
-                className={`${
-                  router.pathname === "/bridge" ? "text-primary hover-underline-static" : "hover-underline-animation"
-                } hidden md:block`}
-              >
-                bridge
-              </Link>
-
-              <Link
-                href={"/portfolio"}
-                className={`${
-                  router.pathname === "/portfolio" ? "text-primary hover-underline-static" : "hover-underline-animation"
-                } whitespace-nowrap`}
-              >
-                portfolio
-              </Link>
 
               <Link
                 href="/ecosystem"
