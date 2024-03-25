@@ -12,6 +12,7 @@ import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Loader } from "~/components/ui/loader";
+import { WalletContextState } from '@solana/wallet-adapter-react';
 
 const tokens = [
   "0x0000000000000000000000000000000000000000", // SOL
@@ -106,28 +107,13 @@ export default function BridgePage() {
     }
   }, [walletContextState, setIsWalletAuthDialogOpen]);
 
-  React.useEffect(() => {
-    if (typeof window !== "undefined" && typeof window.MayanSwap !== "undefined") {
-      window.MayanSwap.updateSolanaWallet({
-        signTransaction: walletContextState.signTransaction,
-        publicKey: walletAddress ? walletAddress.toString() : null,
-        onClickOnConnect: handleConnect,
-        onClickOnDisconnect: walletContextState.disconnect,
-      });
-    }
-  }, [walletContextState, handleConnect, walletAddress]);
-
   const handleLoadMayanWidget = React.useCallback(() => {
     const multiStepToast = new MultiStepToastHandle("Bridge", [{ label: `Cross-chain swap/bridge in progress` }]);
     const configIndex = isBridgeIn ? 0 : 1;
-    const config = {
+    const config: MayanWidgetConfigType = {
       ...configs[configIndex],
-      solanaWallet: {
-        publicKey: walletAddress ? walletAddress.toString() : null,
-        signTransaction: walletContextState.signTransaction,
-        onClickOnConnect: handleConnect,
-        onClickOnDisconnect: walletContextState.disconnect,
-      },
+      // With current useWalletContext it's impossible to make pass through work
+      enableSolanaPassThrough: false,
     };
     window.MayanSwap.init("swap_widget", config);
     window.MayanSwap.setSwapInitiateListener((data) => {
@@ -155,11 +141,7 @@ export default function BridgePage() {
       setIsLoaded(true);
     }, delay);
   }, [
-    handleConnect,
     isBridgeIn,
-    walletAddress,
-    walletContextState.disconnect,
-    walletContextState.signTransaction,
     loadTimestamp,
   ]);
 
@@ -190,8 +172,8 @@ export default function BridgePage() {
     <>
       <div className="w-full h-full flex flex-col justify-start items-center content-start gap-8">
         <Script
-          src="https://cdn.mayan.finance/widget_solana-0-4-5.js"
-          integrity="sha256-mTVQLKvE422WDwtZQUcz/9u5ZK3T1vMfSO0omQvla0E="
+          src="https://cdn.mayan.finance/mayan_widget_001_dontuse.js"
+          integrity="sha256-hj0hpTQKsaxPLXvfgbWxbmmq6YkHXO729gv4ArZPFs4="
           crossOrigin="anonymous"
           onReady={handleLoadMayanWidget}
         />
