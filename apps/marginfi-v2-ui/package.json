@@ -54,7 +54,7 @@
     "@solana/web3.js": "^1.87.6",
     "@tabler/icons-react": "^2.40.0",
     "@tiplink/wallet-adapter": "^2.1.2",
-    "@tiplink/wallet-adapter-react-ui": "^0.1.1",
+    "@tiplink/wallet-adapter-react-ui": "^0.1.9",
     "@uidotdev/usehooks": "^2.4.1",
     "@vercel/analytics": "^1.0.0",
     "@walletconnect/modal": "^2.6.2",

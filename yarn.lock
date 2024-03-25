@@ -8673,10 +8673,10 @@
     lodash.merge "^4.6.2"
     postcss-selector-parser "6.0.10"
 
-"@tiplink/wallet-adapter-react-ui@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@tiplink/wallet-adapter-react-ui/-/wallet-adapter-react-ui-0.1.1.tgz#d1b01a7fbe3239d304e9f4b5dcce1f026e3bc179"
-  integrity sha512-ppjxfaygkK0o7lKj7Ly18lyz+D11O59tpgjuDWG1s1w9etdA3EAfeh/i9Gt5rdGTZ1q/MAhcZzYmoXsRgYesDg==
+"@tiplink/wallet-adapter-react-ui@^0.1.9":
+  version "0.1.9"
+  resolved "https://registry.yarnpkg.com/@tiplink/wallet-adapter-react-ui/-/wallet-adapter-react-ui-0.1.9.tgz#cfbebff67ed35999ec5a195d20610a83459ed4d6"
+  integrity sha512-uKt+lnnh0708u+DoKm3piH7ytpEdgVY3lEo4ACpN6uK0Ywf6R6Opz7JKzaNyeS6e5RLtpiFnXJ9RGVBWFG7W6A==
   dependencies:
     "@solana/wallet-adapter-base" "^0.9.23"
     "@solana/wallet-adapter-base-ui" "^0.1.2"
