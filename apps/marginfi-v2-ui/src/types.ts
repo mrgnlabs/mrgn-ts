@@ -1,6 +1,7 @@
 import { Transaction } from "@solana/web3.js";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
+import { WalletContextState } from '@solana/wallet-adapter-react';
 
 // ----------------------------------------------------------------------------
 // Mayan types
@@ -42,12 +43,20 @@ export type MayanWidgetColors = {
   toastBgGreen?: string;
 };
 export type MayanWidgetConfigType = {
+  // Constants
+  enableSolanaPassThrough?: boolean;
   appIdentity: {
     uri: string;
     icon: string; //should be relative
     name: string;
   }; //use for  Wallet Adapter
+  setDefaultToken?: boolean;
+
+  // Init override
   rpcs?: { [index in MayanWidgetChainName]?: string };
+  defaultGasDrop?: { [index in MayanWidgetChainName]?: number };
+
+  // Deeplink
   sourceChains?: MayanWidgetChainName[];
   destinationChains?: MayanWidgetChainName[];
   tokens?: {
@@ -55,22 +64,36 @@ export type MayanWidgetConfigType = {
     to?: { [index in MayanWidgetChainName]?: string[] };
     featured?: { [index in MayanWidgetChainName]?: string[] };
   };
-  defaultGasDrop?: { [index in MayanWidgetChainName]?: number };
   referrerAddress?: string;
+  referrerBps?: number;
+
+  // legitTokens?: { [index in MayanWidgetChainName]?: Token[] };
+
+  // Theme
+  isNarrow?: boolean;
   colors?: MayanWidgetColors;
 };
 
-export type TransactionSigner = (transaction: Transaction) => Promise<Transaction> | null | undefined;
-export type SolanaWalletData = {
-  publicKey?: string | null;
-  signTransaction?: TransactionSigner | null;
-  onClickOnConnect: () => void;
-  onClickOnDisconnect: () => void;
+type Wallet = NonNullable<WalletContextState['wallet']>;
+type Adapter = Pick<Wallet['adapter'], 'name' | 'icon' | 'url' | 'publicKey'>;
+type MinInfoWallet = { adapter: Adapter; readyState: Wallet['readyState'] };
+export type MayanWalletContextState = Pick<
+	WalletContextState,
+	| 'connecting'
+	| 'connected'
+	| 'disconnecting'
+	| 'select'
+	| 'connect'
+	| 'disconnect'
+	| 'signTransaction'
+	| 'signAllTransactions'
+> & {
+	wallet: MinInfoWallet | null;
+	wallets: MinInfoWallet[];
+	publicKey: WalletContextState['publicKey'] | undefined;
 };
 
-export type MayanWidgetSolanaConfigType = MayanWidgetConfigType & {
-  solanaWallet: SolanaWalletData;
-};
+export type TransactionSigner = (transaction: Transaction) => Promise<Transaction> | null | undefined;
 
 export type MayanSwapInfo = {
   hash: string;
