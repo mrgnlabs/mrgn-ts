@@ -712,10 +712,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     wallet,
   ]);
 
-  React.useEffect(() => {
-    setPriorityFee(0.005);
-  }, [setPriorityFee]);
-
   if (!isInitialized) {
     return null;
   }
