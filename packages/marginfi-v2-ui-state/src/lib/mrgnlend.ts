@@ -624,6 +624,7 @@ enum ActionType {
   Repay = "Repay",
   Withdraw = "Withdraw",
   MintLST = "Mint LST",
+  UnstakeLST = "Unstake LST",
   MintYBX = "Mint YBX",
 }
 

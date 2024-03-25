@@ -58,6 +58,7 @@ export const ActionBoxTokens = ({
       {actionMode === ActionType.MintLST && setCurrentTokenBank && (
         <LstTokens
           lstType={lstType}
+          isDialog={isDialog}
           currentTokenBank={currentTokenBank ?? null}
           setCurrentTokenBank={setCurrentTokenBank}
         />

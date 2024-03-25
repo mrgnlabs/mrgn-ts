@@ -8,7 +8,7 @@ import { numeralFormatter, percentFormatterDyn, usdFormatter } from "@mrgnlabs/m
 
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { useLstStore, useUiStore } from "~/store";
+import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { ActionComplete } from "~/components/common/ActionComplete";
@@ -27,6 +27,8 @@ import {
 } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
+import { LST_MINT } from "~/store/lstStore";
+import { PublicKey } from "@solana/web3.js";
 
 const integrationsData: {
   title: string;
@@ -148,6 +150,8 @@ export default function MintPage() {
     state.setIsRefreshingStore,
     state.lstData,
   ]);
+
+  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
   React.useEffect(() => {
     const fetchData = () => {
@@ -284,6 +288,15 @@ export default function MintPage() {
     fetchIntegrations();
   }, [integrationsData]);
 
+  const [requestedAction, setRequestedAction] = React.useState<ActionType>(ActionType.MintLST);
+
+  const requestedToken = React.useMemo(
+    () =>
+      extendedBankInfos.find((bank) => bank?.info?.state?.mint.equals && bank?.info?.state?.mint.equals(LST_MINT))
+        ?.address,
+    [extendedBankInfos]
+  );
+
   return (
     <>
       <JupiterProvider connection={connection} wrapUnwrapSOL={false} platformFeeAndAccounts={undefined}>
@@ -323,31 +336,37 @@ export default function MintPage() {
                         <p className="text-right text-sm">{item.footer}</p>
 
                         {item.title === "LST" ? (
-                          <div className="flex items-center gap-2 mt-3">
-                            <ActionBoxDialog
-                              requestedAction={ActionType.MintLST}
-                              requestedToken={undefined}
-                              isActionBoxTriggered={lstDialogOpen}
-                            >
+                          <ActionBoxDialog
+                            requestedAction={requestedAction}
+                            requestedToken={requestedAction === ActionType.UnstakeLST ? requestedToken : undefined}
+                            isActionBoxTriggered={lstDialogOpen}
+                          >
+                            <div className="flex items-center gap-2 mt-3">
                               <Button
                                 variant="secondary"
                                 size="lg"
                                 className="mt-4"
                                 onClick={() => {
-                                  if (item.action) {
-                                    item.action();
-                                  }
+                                  setRequestedAction(ActionType.MintLST);
+                                  // if (item.action) {
+                                  //   item.action();
+                                  // }
                                 }}
                               >
                                 Mint {item.title}
                               </Button>
-                            </ActionBoxDialog>
-                            <Button variant="outline" size="lg" className="mt-4 hover:text-primary">
-                              <Link href="/swap?inputMint=LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp">
+                              <Button
+                                variant="outline"
+                                size="lg"
+                                className="mt-4 hover:text-primary"
+                                onClick={() => {
+                                  setRequestedAction(ActionType.UnstakeLST);
+                                }}
+                              >
                                 Unstake {item.title}
-                              </Link>
-                            </Button>
-                          </div>
+                              </Button>
+                            </div>
+                          </ActionBoxDialog>
                         ) : (
                           // <ActionBoxDialog
                           //   requestedAction={ActionType.MintYBX}

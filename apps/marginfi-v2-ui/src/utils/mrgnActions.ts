@@ -44,6 +44,7 @@ export type MarginfiActionParams = {
 };
 
 export type LstActionParams = {
+  actionMode: ActionType;
   marginfiClient: MarginfiClient;
   amount: number;
   nativeSolBalance: number;
@@ -108,6 +109,7 @@ export async function executeLendingAction({
 }
 
 export async function executeLstAction({
+  actionMode,
   marginfiClient,
   amount,
   connection,
@@ -136,28 +138,37 @@ export async function executeLstAction({
     return;
   }
 
-  // Stake account selected
-  if (selectedStakingAccount) {
-    txnSig = await mintLstStakeToStake({
-      marginfiClient,
-      priorityFee,
-      connection,
-      selectedStakingAccount,
-      wallet,
-      lstData,
-    });
-  }
-
-  if (bank) {
-    if (bank.info.state.mint.equals(SOL_MINT)) {
-      // SOL selected
-      txnSig = await mintLstNative({ marginfiClient, bank, amount, priorityFee, connection, wallet, lstData });
-    } else {
-      // token selected
-      txnSig = await mintLstToken({ bank, amount, priorityFee, connection, wallet, quoteResponseMeta });
+  if (actionMode === ActionType.MintLST) {
+    // Stake account selected
+    if (selectedStakingAccount) {
+      txnSig = await mintLstStakeToStake({
+        marginfiClient,
+        priorityFee,
+        connection,
+        selectedStakingAccount,
+        wallet,
+        lstData,
+      });
     }
+
+    if (bank) {
+      if (bank.info.state.mint.equals(SOL_MINT)) {
+        // SOL selected
+        txnSig = await mintLstNative({ marginfiClient, bank, amount, priorityFee, connection, wallet, lstData });
+      } else {
+        // token selected
+        txnSig = await mintLstToken({ bank, amount, priorityFee, connection, wallet, quoteResponseMeta });
+      }
+    }
+    return txnSig;
+  } else if (actionMode === ActionType.UnstakeLST) {
+    if (bank) {
+      txnSig = await mintLstToken({ bank, amount, priorityFee, connection, wallet, quoteResponseMeta });
+      return txnSig;
+    }
+  } else {
+    throw new Error("Action not implemented");
   }
-  return txnSig;
 }
 
 // ------------------------------------------------------------------//
