@@ -32,7 +32,7 @@ export const WALLET_ADAPTERS = [
   new TrustWalletAdapter(),
   new CoinbaseWalletAdapter(),
   new MoongateWalletAdapter(),
-  new TipLinkWalletAdapter(),
+  new TipLinkWalletAdapter({ title: "marginfi", clientId: "ccd793db-0b13-4e18-89e1-0edf9b9dd95e", theme: "dark" }),
   new WalletConnectWalletAdapter({
     network: WalletAdapterNetwork.Mainnet,
     options: {
