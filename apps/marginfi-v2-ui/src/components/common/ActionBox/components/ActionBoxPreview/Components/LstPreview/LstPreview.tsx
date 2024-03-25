@@ -5,7 +5,7 @@ import { SwapMode, useJupiter } from "@jup-ag/react-hook";
 
 import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatter, numeralFormatter, percentFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useLstStore, useMrgnlendStore } from "~/store";
 import { LST_MINT, SOL_MINT } from "~/store/lstStore";
@@ -17,6 +17,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;
   selectedStakingAccount: StakeData | null;
+  actionMode: ActionType;
   isEnabled: boolean;
   amount: number;
   slippageBps: number;
@@ -26,16 +27,13 @@ interface ActionBoxPreviewProps {
 export const LstPreview = ({
   selectedBank,
   selectedStakingAccount,
+  actionMode,
   isEnabled,
   amount,
   slippageBps,
   children,
 }: ActionBoxPreviewProps) => {
-  const [lstData, slippagePct, setQuoteResponseMeta] = useLstStore((state) => [
-    state.lstData,
-    state.slippagePct,
-    state.setQuoteResponseMeta,
-  ]);
+  const [lstData, setQuoteResponseMeta] = useLstStore((state) => [state.lstData, state.setQuoteResponseMeta]);
 
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
@@ -56,7 +54,7 @@ export const LstPreview = ({
   } = useJupiter({
     amount: JSBI.BigInt(Math.trunc(Math.pow(10, selectedBank?.info.state.mintDecimals ?? 0) * (debouncedAmount ?? 0))), // amountIn trick to avoid Jupiter calls when depositing stake or native SOL Math.pow(10, selectedBank.) *
     inputMint: selectedBank?.info.state.mint,
-    outputMint: LST_MINT,
+    outputMint: actionMode === ActionType.MintLST ? LST_MINT : SOL_MINT,
     swapMode: SwapMode.ExactIn,
     slippageBps,
     debounceTime: 250,
@@ -111,7 +109,7 @@ export const LstPreview = ({
               ? "< 0.01"
               : numeralFormatter(lstOutAmount)
             : "-"}{" "}
-          $LST
+          {actionMode === ActionType.MintLST ? "$LST" : "SOL"}
         </Stat>
       </dl>
 
