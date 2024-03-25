@@ -228,7 +228,7 @@ export const WalletAuthDialog = () => {
             </div>
             <div
               className={cn(
-                "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg h-[266px] md:h-[246px] overflow-hidden ",
+                "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg h-[306px] md:h-[246px] overflow-hidden ",
                 state !== WalletAuthDialogState.WALLET &&
                   "h-[150px] md:h-[106px] cursor-pointer hover:bg-muted-highlight"
               )}
