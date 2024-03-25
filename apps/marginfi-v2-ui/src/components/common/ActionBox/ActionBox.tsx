@@ -199,6 +199,8 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
         if (selectedBank?.info.state.mint.equals(SOL_MINT))
           return walletAmount ? Math.max(0, walletAmount - nativeToUi(feesAndRent, 9)) : 0;
         else return walletAmount ?? 0;
+      case ActionType.UnstakeLST:
+        return walletAmount ?? 0;
       default:
         return 0;
     }
@@ -576,7 +578,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   }, [selectedBank, selectedAccount, fetchMrgnlendState, setIsRefreshingStore, priorityFee, handleCloseDialog]);
 
   const handleAction = async () => {
-    if (actionMode === ActionType.MintLST) {
+    if (actionMode === ActionType.MintLST || actionMode === ActionType.UnstakeLST) {
       await handleLstAction();
     } else {
       await handleLendingAction();
@@ -594,6 +596,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     setIsLoading(true);
 
     const txnSig = await executeLstAction({
+      actionMode,
       marginfiClient: mfiClient,
       amount,
       connection,
@@ -630,6 +633,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       console.log(error);
     }
   }, [
+    actionMode,
     selectedBank,
     selectedStakingAccount,
     mfiClient,
