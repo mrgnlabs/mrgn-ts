@@ -17,7 +17,7 @@ type LendingTokensProps = {
   repayTokenBank?: PublicKey | null;
   isDialog?: boolean;
   repayType?: RepayType;
-  highlightedRepayTokens?: PublicKey[];
+  blacklistRepayTokens?: PublicKey[];
 
   setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   setCurrentTokenBank?: (selectedTokenBank: PublicKey | null) => void;
@@ -30,7 +30,7 @@ export const LendingTokens = ({
   repayTokenBank,
   setRepayTokenBank,
   repayType,
-  highlightedRepayTokens = [],
+  blacklistRepayTokens = [],
 }: LendingTokensProps) => {
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
@@ -103,7 +103,7 @@ export const LendingTokens = ({
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
                 onSetRepayTokenBank={setRepayTokenBank}
-                highlightedRepayTokens={highlightedRepayTokens}
+                blacklistRepayTokens={blacklistRepayTokens}
               />
             ) : (
               <LendingTokensList

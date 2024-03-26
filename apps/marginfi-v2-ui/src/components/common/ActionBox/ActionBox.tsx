@@ -44,9 +44,9 @@ type ActionBoxProps = {
   handleCloseDialog?: () => void;
 };
 
-type DirectRoutesMap = {
+type BlackListRoutesMap = {
   [tokenIdentifier: string]: {
-    directRoutes: string[];
+    blacklistRoutes: string[];
   };
 };
 
@@ -115,7 +115,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
-  const [directRoutesMap, setDirectRoutesMap] = React.useState<DirectRoutesMap>();
+  const [blacklistRoutesMap, setBlacklistRoutesMap] = React.useState<BlackListRoutesMap>();
   const [hasPreviewShown, setHasPreviewShown] = React.useState<boolean>(false);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
@@ -133,12 +133,12 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     [extendedBankInfos, selectedTokenBank]
   );
 
-  const directRoutes = React.useMemo(
+  const blacklistRoutes = React.useMemo(
     () =>
-      selectedBank && directRoutesMap
-        ? directRoutesMap[selectedBank.info.state.mint.toBase58()]?.directRoutes?.map((key) => new PublicKey(key))
+      selectedBank && blacklistRoutesMap
+        ? blacklistRoutesMap[selectedBank.info.state.mint.toBase58()]?.blacklistRoutes?.map((key) => new PublicKey(key))
         : undefined,
-    [directRoutesMap, selectedBank]
+    [blacklistRoutesMap, selectedBank]
   );
 
   const selectedRepayBank = React.useMemo(
@@ -231,7 +231,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
         marginfiAccount: selectedAccount,
         nativeSolBalance,
         actionMode,
-        directRoutes: directRoutes ?? null,
+        blacklistRoutes: blacklistRoutes ?? null,
         repayMode,
         repayCollatQuote: repayCollatQuote ?? null,
       }),
@@ -247,7 +247,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       selectedAccount,
       nativeSolBalance,
       actionMode,
-      directRoutes,
+      blacklistRoutes,
       repayMode,
       repayCollatQuote,
     ]
@@ -332,7 +332,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       const responseBody = await response.json();
 
       if (responseBody) {
-        setDirectRoutesMap(responseBody);
+        setBlacklistRoutesMap(responseBody);
       }
     } catch (error) {}
   };
@@ -744,7 +744,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                 selectedTokenBank={selectedTokenBank}
                 selectedRepayTokenBank={selectedRepayTokenBank}
                 selectedStakingAccount={selectedStakingAccount}
-                highlightedRepayTokens={directRoutes}
+                blacklistRepayTokens={blacklistRoutes}
                 walletAmount={walletAmount}
                 amountRaw={amountRaw}
                 repayAmountRaw={repayAmountRaw}
