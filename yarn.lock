@@ -7570,6 +7570,11 @@
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.32.1.tgz#24728cf098694d31ceb4f556164674477c6433d6"
   integrity sha512-yWS5no9Xxftgb6IGjj7iK6TvOk6rfy2H5gKcj4DrPqSWKmh0jfszUoX4B+olkt7H75sTSQqv3yiuMsySsMh+6Q==
 
+"@sentry/types@^7.46.0":
+  version "7.108.0"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.108.0.tgz#5ceb959c4dabe511fc441fec8c2465f2d624900f"
+  integrity sha512-bKtHITmBN3kqtqE5eVvL8mY8znM05vEodENwRpcm6TSrrBjC2RnwNWVwGstYDdHpNfFuKwC8mLY9bgMJcENo8g==
+
 "@sentry/utils@7.106.0":
   version "7.106.0"
   resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-7.106.0.tgz#a4c05f79672f734c1a1475428144ab97d2f7bea9"
@@ -8667,6 +8672,33 @@
     lodash.isplainobject "^4.0.6"
     lodash.merge "^4.6.2"
     postcss-selector-parser "6.0.10"
+
+"@tiplink/wallet-adapter-react-ui@^0.1.9":
+  version "0.1.9"
+  resolved "https://registry.yarnpkg.com/@tiplink/wallet-adapter-react-ui/-/wallet-adapter-react-ui-0.1.9.tgz#cfbebff67ed35999ec5a195d20610a83459ed4d6"
+  integrity sha512-uKt+lnnh0708u+DoKm3piH7ytpEdgVY3lEo4ACpN6uK0Ywf6R6Opz7JKzaNyeS6e5RLtpiFnXJ9RGVBWFG7W6A==
+  dependencies:
+    "@solana/wallet-adapter-base" "^0.9.23"
+    "@solana/wallet-adapter-base-ui" "^0.1.2"
+    "@solana/wallet-adapter-react" "^0.15.35"
+
+"@tiplink/wallet-adapter@^2.1.2":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@tiplink/wallet-adapter/-/wallet-adapter-2.1.2.tgz#b40abb2b03e019dffa0ef6f2f6ea968f9ad832ca"
+  integrity sha512-RRetaApcxoXHUawhQcGpiAyDZNKIs2c0M86/1s2bI+A3dr/pGYb9FFQviqNBRJQmSt2zBsVj2kX8XDbh5XVgGw==
+  dependencies:
+    "@sentry/types" "^7.46.0"
+    "@solana/wallet-adapter-base" "^0.9.23"
+    "@solana/wallet-standard-util" "^1.1.0"
+    "@solana/wallet-standard-wallet-adapter-base" "^1.1.2"
+    assert "^2.0.0"
+    bs58 "^4.0.1"
+    crypto-browserify "^3.12.0"
+    fast-deep-equal "^3.1.3"
+    process "^0.11.10"
+    pump "^3.0.0"
+    stream-browserify "^3.0.0"
+    uuid "^9.0.1"
 
 "@tootallnate/once@2":
   version "2.0.0"
@@ -18305,9 +18337,9 @@ jwt-decode@^4.0.0:
   integrity sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==
 
 katex@^0.16.0:
-  version "0.16.9"
-  resolved "https://registry.yarnpkg.com/katex/-/katex-0.16.9.tgz#bc62d8f7abfea6e181250f85a56e4ef292dcb1fa"
-  integrity sha512-fsSYjWS0EEOwvy81j3vRA8TEAhQhKiqO+FQaKWp0m39qwOzHVBgAUBIXWj1pB+O2W3fIpNa6Y9KSKCVbfPhyAQ==
+  version "0.16.10"
+  resolved "https://registry.yarnpkg.com/katex/-/katex-0.16.10.tgz#6f81b71ac37ff4ec7556861160f53bc5f058b185"
+  integrity sha512-ZiqaC04tp2O5utMsl2TEZTXxa6WSC4yo0fv5ML++D3QZv/vx2Mct0mTlRx3O+uUkjfuAgOkzsCmq5MiUEsDDdA==
   dependencies:
     commander "^8.3.0"
 
@@ -25408,7 +25440,7 @@ uuid@^7.0.3:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-7.0.3.tgz#c5c9f2c8cf25dc0a372c4df1441c41f5bd0c680b"
   integrity sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==
 
-uuid@^9.0.0:
+uuid@^9.0.0, uuid@^9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
   integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
