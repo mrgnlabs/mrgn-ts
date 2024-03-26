@@ -12,7 +12,6 @@ import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Loader } from "~/components/ui/loader";
-import { WalletContextState } from '@solana/wallet-adapter-react';
 
 const tokens = [
   "0x0000000000000000000000000000000000000000", // SOL
@@ -51,6 +50,8 @@ const rpcs = {
   polygon: process.env.NEXT_PUBLIC_POLYGON_ENDPOINT,
   avalanche: process.env.NEXT_PUBLIC_AVALANCE_ENDPOINT,
   arbitrum: process.env.NEXT_PUBLIC_ARBITRUM_ENDPOINT,
+  // Todo: add this please
+  //optimism: process.env.NEXT_PUBLIC_OPTIMISM_ENDPOINT,
 };
 const referrerAddress = "GhQ3NxahWcddaMa71rkDp1FdTfs2jBpjzCq3kzkv1mNZ";
 
@@ -65,8 +66,12 @@ const configs: MayanWidgetConfigType[] = [
         solana: tokens,
       },
     },
-    sourceChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "aptos"],
-    destinationChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "aptos"],
+    sourceChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "optimism"],
+    destinationChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "optimism"],
+
+    // TODO: add this please
+    //solanaExtraRPCs: [process.env.NEXT_PUBLIC_SECOND_RPC_ENDPOINT]
+
   },
 ];
 
@@ -172,8 +177,8 @@ export default function BridgePage() {
     <>
       <div className="w-full h-full flex flex-col justify-start items-center content-start gap-8">
         <Script
-          src="https://cdn.mayan.finance/mayan_widget_001_dontuse.js"
-          integrity="sha256-hj0hpTQKsaxPLXvfgbWxbmmq6YkHXO729gv4ArZPFs4="
+          src="https://cdn.mayan.finance/mayan_widget_v_1_0_4.js"
+          integrity="sha256-KMbL2Wueq2Qco+SmBP80wsVpIA6rtuy5Ng+QFZjnfTw="
           crossOrigin="anonymous"
           onReady={handleLoadMayanWidget}
         />
