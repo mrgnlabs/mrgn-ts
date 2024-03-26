@@ -29,6 +29,9 @@ import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
 import { LST_MINT } from "~/store/lstStore";
 import { PublicKey } from "@solana/web3.js";
+import { YbxDialogNotifications } from "~/components/common/Mint/YbxDialogNotifications";
+import { YbxDialogPartner } from "~/components/common/Mint";
+import { MintPageState } from "~/utils";
 
 const integrationsData: {
   title: string;
@@ -115,19 +118,14 @@ const integrationsData: {
   },
 ];
 
-enum MintPageState {
-  DEFAULT = "default",
-  ERROR = "error",
-  SUCCESS = "success",
-}
-
 interface CardProps {
   title: "YBX" | "LST";
   icon: () => JSX.Element;
   description: string;
   price: string;
   features: string[];
-  footer: string;
+  volume: string;
+  volumeUsd: string;
   action: () => void;
 }
 
@@ -139,7 +137,7 @@ export default function MintPage() {
   const [ybxPartnerDialogOpen, setYbxPartnerDialogOpen] = React.useState(false);
   const [lstDialogOpen, setLSTDialogOpen] = React.useState(false);
   const [integrations, setIntegrations] = React.useState<any[]>([]);
-  const emailInputRef = React.useRef<HTMLInputElement>(null);
+
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
@@ -187,63 +185,29 @@ export default function MintPage() {
   const cards = React.useMemo(
     () => [
       {
+        title: "LST",
+        icon: IconLST,
+        description: "Accrues value against SOL",
+        price: `1 LST = ${numeralFormatter(lstData?.lstSolValue!)} SOL`,
+        features: ["Earn 7% APY", "Pay 0% fees", "Access $3 million in liquidity"],
+        volume: `234,345 LST`,
+        volumeUsd: `$234,345.45`,
+        action: () => setLSTDialogOpen(true),
+      } as CardProps,
+      {
         title: "YBX",
         icon: IconYBX,
-        description: "Solana's decentralised stablecoin, backed by LSTs",
+        description: "Accrues value against USD",
         price: "1 YBX ≈ 1 USD",
-        features: [
-          `Earn compounded staking yield ${percentFormatterDyn.format(lstData?.projectedApy!)}`,
-          "Earn MEV rewards",
-          "Earn lending yield",
-        ],
-        footer: "...just by minting YBX",
+        features: [`Earn compounded staking yield`, "Capture MEV rewards", "Earn lending yield (soon)"],
+        volume: `- YBX`,
+        volumeUsd: ``,
         action: () => {
           setYbxNotificationsDialogOpen(true);
         },
       } as CardProps,
-      {
-        title: "LST",
-        icon: IconLST,
-        description: "Solana's highest yielding LST, secured by mrgn validators",
-        price: `1 LST = ${numeralFormatter(lstData?.lstSolValue!)} SOL`,
-        features: ["Pay 0% commission", "Earn MEV from Jito", "Access $3 million in liquidity"],
-        footer: "...just by minting LST",
-        action: () => setLSTDialogOpen(true),
-      } as CardProps,
     ],
     [lstData]
-  );
-
-  const signUp = React.useCallback(
-    async (type: "partner" | "notifications") => {
-      if (!emailInputRef.current) {
-        return;
-      }
-
-      const formId =
-        type === "partner"
-          ? process.env.NEXT_PUBLIC_CONVERT_KIT_YBX_PARTNER_FORM_UID
-          : process.env.NEXT_PUBLIC_CONVERT_KIT_YBX_NOTIFICATIONS_FORM_UID;
-
-      const res = await fetch(`https://api.convertkit.com/v3/forms/${formId}/subscribe`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-        body: JSON.stringify({
-          api_key: process.env.NEXT_PUBLIC_CONVERT_KIT_API_KEY,
-          email: emailInputRef.current.value,
-        }),
-      });
-
-      if (!res.ok) {
-        setMintPageState(MintPageState.ERROR);
-        return;
-      }
-
-      setMintPageState(MintPageState.SUCCESS);
-    },
-    [emailInputRef]
   );
 
   React.useEffect(() => {
@@ -312,28 +276,31 @@ export default function MintPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-11">
                   {cards.map((item, i) => (
-                    <Card key={i} variant="secondary">
+                    <Card key={i} variant="default">
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-3xl">
+                        <CardTitle className="flex items-center gap-2 text-lg">
                           <item.icon />
-                          {item.title}
+                          <div className="flex flex-col">
+                            <h3>{item.title}</h3>
+                            <p className="text-sm text-muted-foreground">{item.description}</p>
+                          </div>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p>{item.description}</p>
-
-                        <p className="text-lg font-semibold my-6">{item.price}</p>
-
                         <ul className="space-y-2.5 mb-4">
                           {item.features.map((feature, j) => (
-                            <li key={j} className="flex items-center gap-1">
+                            <li key={j} className="flex items-center gap-1 text-muted-foreground">
                               <IconCheck className="text-success" />
                               {feature}
                             </li>
                           ))}
                         </ul>
 
-                        <p className="text-right text-sm">{item.footer}</p>
+                        <ul className="flex gap-2 text-xs">
+                          <li className="text-muted-foreground">Volume</li>
+                          <li>{item.volume}</li>
+                          <li className="text-muted-foreground">{item.volumeUsd}</li>
+                        </ul>
 
                         {item.title === "LST" ? (
                           <ActionBoxDialog
@@ -468,124 +435,26 @@ export default function MintPage() {
             </>
           )}
         </div>
-        <Dialog
+        <YbxDialogNotifications
+          onClose={() => setYbxNotificationsDialogOpen(false)}
+          mintPageState={mintPageState}
+          onHandleChangeMintPage={(state) => setMintPageState(state)}
           open={ybxNotificationsDialogOpen}
           onOpenChange={(open) => {
             setMintPageState(MintPageState.DEFAULT);
             setYbxNotificationsDialogOpen(open);
           }}
-        >
-          <DialogContent className="md:flex">
-            <DialogHeader>
-              <IconYBX size={48} />
-              <DialogTitle className="text-2xl">YBX Early Access</DialogTitle>
-              <DialogDescription>Sign up to get notified for early access to YBX</DialogDescription>
-            </DialogHeader>
-
-            {mintPageState === MintPageState.SUCCESS && (
-              <div className="flex flex-col items-center gap-4">
-                <p className="flex items-center justify-center gap-2">
-                  <IconCheck size={18} className="text-success" /> You are signed up!
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setMintPageState(MintPageState.DEFAULT);
-                    setYbxNotificationsDialogOpen(false);
-                  }}
-                >
-                  Back to YBX
-                </Button>
-              </div>
-            )}
-
-            {(mintPageState === MintPageState.DEFAULT || mintPageState === MintPageState.ERROR) && (
-              <>
-                <form
-                  className="w-full px-8 mb-4"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    signUp("notifications");
-                  }}
-                >
-                  <div className="flex items-center w-full gap-2">
-                    <Input
-                      ref={emailInputRef}
-                      type="email"
-                      placeholder="example@example.com"
-                      className="w-full"
-                      required
-                    />
-                    <Button type="submit">Sign Up</Button>
-                  </div>
-                </form>
-
-                {mintPageState === MintPageState.ERROR && (
-                  <p className="text-destructive-foreground text-sm text-center">Error signing up, please try again.</p>
-                )}
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
-        <Dialog
+        />
+        <YbxDialogPartner
+          onClose={() => setYbxPartnerDialogOpen(false)}
+          mintPageState={mintPageState}
+          onHandleChangeMintPage={(state) => setMintPageState(state)}
           open={ybxPartnerDialogOpen}
           onOpenChange={(open) => {
             setMintPageState(MintPageState.DEFAULT);
             setYbxPartnerDialogOpen(open);
           }}
-        >
-          <DialogContent className="md:flex">
-            <DialogHeader>
-              <IconYBX size={48} />
-              <DialogTitle className="text-2xl">YBX Launch Partner Form</DialogTitle>
-              <DialogDescription>Sign up to become a YBX launch partner.</DialogDescription>
-            </DialogHeader>
-
-            {mintPageState === MintPageState.SUCCESS && (
-              <div className="flex flex-col items-center gap-4">
-                <p className="flex items-center justify-center gap-2">
-                  <IconCheck size={18} className="text-success" /> You are signed up!
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setMintPageState(MintPageState.DEFAULT);
-                    setYbxPartnerDialogOpen(false);
-                  }}
-                >
-                  Back to YBX
-                </Button>
-              </div>
-            )}
-
-            {(mintPageState === MintPageState.DEFAULT || mintPageState === MintPageState.ERROR) && (
-              <>
-                <form
-                  className="w-full px-8 mb-4"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    signUp("partner");
-                  }}
-                >
-                  <div className="flex items-center w-full gap-2">
-                    <Input
-                      ref={emailInputRef}
-                      type="email"
-                      placeholder="example@example.com"
-                      className="w-full"
-                      required
-                    />
-                    <Button type="submit">Sign Up</Button>
-                  </div>
-                </form>
-
-                {mintPageState === MintPageState.ERROR && (
-                  <p className="text-destructive-foreground text-sm text-center">Error signing up, please try again.</p>
-                )}
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
+        />
       </JupiterProvider>
       {initialized && previousTxn && <ActionComplete />}
     </>
