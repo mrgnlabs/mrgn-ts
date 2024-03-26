@@ -31,7 +31,7 @@ import { LST_MINT } from "~/store/lstStore";
 import { PublicKey } from "@solana/web3.js";
 import { YbxDialogNotifications } from "~/components/common/Mint/YbxDialogNotifications";
 import { YbxDialogPartner } from "~/components/common/Mint";
-import { MintPageState } from "~/utils";
+import { MintCardProps, MintPageState } from "~/utils";
 
 const integrationsData: {
   title: string;
@@ -118,17 +118,6 @@ const integrationsData: {
   },
 ];
 
-interface CardProps {
-  title: "YBX" | "LST";
-  icon: () => JSX.Element;
-  description: string;
-  price: string;
-  features: string[];
-  volume: string;
-  volumeUsd: string;
-  action: () => void;
-}
-
 export default function MintPage() {
   const { connection } = useConnection();
   const { wallet } = useWalletContext();
@@ -193,7 +182,7 @@ export default function MintPage() {
         volume: `234,345 LST`,
         volumeUsd: `$234,345.45`,
         action: () => setLSTDialogOpen(true),
-      } as CardProps,
+      } as MintCardProps,
       {
         title: "YBX",
         icon: IconYBX,
@@ -205,7 +194,7 @@ export default function MintPage() {
         action: () => {
           setYbxNotificationsDialogOpen(true);
         },
-      } as CardProps,
+      } as MintCardProps,
     ],
     [lstData]
   );
