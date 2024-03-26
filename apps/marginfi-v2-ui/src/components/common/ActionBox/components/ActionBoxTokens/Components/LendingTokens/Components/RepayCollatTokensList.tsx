@@ -107,7 +107,7 @@ export const RepayCollatTokensList = ({
         {filteredBanksActive.length > 0 && onSetRepayTokenBank && (
           <CommandGroup heading="Currently supplying">
             {filteredBanksActive.map((bank, index) => {
-              const isRouteEnabled = highlightedRepayTokens.find((v) => v.equals(bank.info.state.mint)) ? true : false;
+              const isRouteEnabled = true; // highlightedRepayTokens.find((v) => v.equals(bank.info.state.mint)) ? true : false;
               return (
                 <CommandItem
                   key={index}

@@ -1,0 +1,101 @@
+[
+  {
+    "minta": "So11111111111111111111111111111111111111112",
+    "mintb": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
+    "serialized": 1261,
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "So11111111111111111111111111111111111111112",
+    "mintb": "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4",
+    "serialized": 1272,
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "So11111111111111111111111111111111111111112",
+    "mintb": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
+    "serialized": 1272,
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
+    "mintb": "7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT",
+    "serialized": 1250,
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    "mintb": "So11111111111111111111111111111111111111112",
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
+    "mintb": "So11111111111111111111111111111111111111112",
+    "serialized": 1234,
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "mintb": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
+    "serialized": 1280,
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT",
+    "mintb": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
+    "serialized": 1281,
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
+    "mintb": "So11111111111111111111111111111111111111112",
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk",
+    "mintb": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
+    "serialized": 1284,
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "AZsHEMXd36Bj1EMNXhowJajpUXzrKcK57wW4ZGXVa7yR",
+    "mintb": "So11111111111111111111111111111111111111112",
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "ZScHuTtqZukUrtZS43teTKGs2VqkKL8k4QCouR2n6Uo",
+    "mintb": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+    "success": false,
+    "swapQuote": false
+  },
+  {
+    "minta": "kinXdEcpDQeHPEuQnqmUgtYykqKGVFq6CeVX5iAHJq6",
+    "mintb": "So11111111111111111111111111111111111111112",
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj",
+    "mintb": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
+    "serialized": 1314,
+    "success": false,
+    "swapQuote": true
+  },
+  {
+    "minta": "LFG1ezantSY2LPX8jRz2qa31pPEhpwN9msFDzZw4T9Q",
+    "mintb": "So11111111111111111111111111111111111111112",
+    "success": false,
+    "swapQuote": true
+  }
+]

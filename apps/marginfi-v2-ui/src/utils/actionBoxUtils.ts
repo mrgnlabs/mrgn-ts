@@ -274,7 +274,7 @@ function canBeRepaidCollat(
     if (!directRoutes.find((key) => key.equals(repayBankInfo.info.state.mint))) {
       return {
         description: "Repayment not possible with current collateral, choose another.",
-        isEnabled: false,
+        isEnabled: true,
       };
     }
   } else {

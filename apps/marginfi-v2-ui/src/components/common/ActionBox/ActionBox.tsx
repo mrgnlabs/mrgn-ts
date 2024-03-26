@@ -351,7 +351,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
           slippageBps: slippageBps,
           swapMode: "ExactIn" as any,
           maxAccounts: 20,
-          onlyDirectRoutes: true,
+          // onlyDirectRoutes: true,
         } as QuoteGetRequest;
 
         try {
@@ -368,7 +368,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
               outputMint: bank.info.state.mint.toBase58(), // JITO
               slippageBps: slippageBps,
               swapMode: "ExactOut",
-              onlyDirectRoutes: true,
+              // onlyDirectRoutes: true,
             } as QuoteGetRequest;
 
             const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams);
@@ -402,7 +402,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
         slippageBps: slippageBps,
         swapMode: "ExactIn",
         maxAccounts: 20,
-        onlyDirectRoutes: true,
+        // onlyDirectRoutes: true,
       } as QuoteGetRequest;
 
       try {
