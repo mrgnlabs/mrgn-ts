@@ -1,7 +1,6 @@
 interface Window {
   MayanSwap: {
     init: (id: string, config: import('./types').MayanWidgetConfigType) => void;
-    syncProps: (newState: import('./types').MayanWalletContextState) => void;
     updateConfig: (newConfig: import('./types').MayanWidgetConfigType | import('./types').MayanWidgetSolanaConfigType) => void;
     setSwapInitiateListener(callback: (swap: import('./types').MayanSwapInfo) => void): void;
     removeSwapInitiateListener(): void;

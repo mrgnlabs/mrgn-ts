@@ -1,13 +1,12 @@
 import { Transaction } from "@solana/web3.js";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
-import { WalletContextState } from '@solana/wallet-adapter-react';
 
 // ----------------------------------------------------------------------------
 // Mayan types
 // ----------------------------------------------------------------------------
 
-export type MayanWidgetChainName = "solana" | "ethereum" | "bsc" | "polygon" | "avalanche" | "arbitrum" | "aptos";
+export type MayanWidgetChainName = "solana" | "ethereum" | "bsc" | "polygon" | "avalanche" | "arbitrum" | "optimism";
 
 // visit the Figma link below to see the color palette
 // https://www.figma.com/community/file/1236300242311853150/Mayan-Widget
@@ -54,6 +53,7 @@ export type MayanWidgetConfigType = {
 
   // Init override
   rpcs?: { [index in MayanWidgetChainName]?: string };
+  solanaExtraRpcs?: string[];
   defaultGasDrop?: { [index in MayanWidgetChainName]?: number };
 
   // Deeplink
@@ -67,33 +67,10 @@ export type MayanWidgetConfigType = {
   referrerAddress?: string;
   referrerBps?: number;
 
-  // legitTokens?: { [index in MayanWidgetChainName]?: Token[] };
-
   // Theme
   isNarrow?: boolean;
   colors?: MayanWidgetColors;
 };
-
-type Wallet = NonNullable<WalletContextState['wallet']>;
-type Adapter = Pick<Wallet['adapter'], 'name' | 'icon' | 'url' | 'publicKey'>;
-type MinInfoWallet = { adapter: Adapter; readyState: Wallet['readyState'] };
-export type MayanWalletContextState = Pick<
-	WalletContextState,
-	| 'connecting'
-	| 'connected'
-	| 'disconnecting'
-	| 'select'
-	| 'connect'
-	| 'disconnect'
-	| 'signTransaction'
-	| 'signAllTransactions'
-> & {
-	wallet: MinInfoWallet | null;
-	wallets: MinInfoWallet[];
-	publicKey: WalletContextState['publicKey'] | undefined;
-};
-
-export type TransactionSigner = (transaction: Transaction) => Promise<Transaction> | null | undefined;
 
 export type MayanSwapInfo = {
   hash: string;
