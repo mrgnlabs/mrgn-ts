@@ -24,7 +24,7 @@ type ActionBoxInputProps = {
   selectedRepayTokenBank: PublicKey | null;
   selectedStakingAccount: StakeData | null;
 
-  highlightedRepayTokens: PublicKey[] | undefined;
+  blacklistRepayTokens: PublicKey[] | undefined;
   walletAmount: number | undefined;
   amountRaw: string;
   repayAmountRaw: string;
@@ -56,7 +56,7 @@ export const ActionBoxInput = ({
   repayAmountRaw,
   showCloseBalance,
   isDialog,
-  highlightedRepayTokens,
+  blacklistRepayTokens,
   onSetTokenBank,
   onSetTokenRepayBank,
   onSetAmountRaw,
@@ -168,7 +168,7 @@ export const ActionBoxInput = ({
                 onSetTokenBank(tokenBank);
                 onSetAmountRaw("");
               }}
-              highlightedRepayTokens={highlightedRepayTokens}
+              blacklistRepayTokens={blacklistRepayTokens}
               actionMode={actionMode}
             />
           </div>

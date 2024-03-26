@@ -16,7 +16,7 @@ import { ActionBoxItem, BuyWithMoonpay, TokenListCommand } from "../../SharedCom
 type RepayCollatTokensListProps = {
   selectedRepayBank?: ExtendedBankInfo;
   onSetRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
-  highlightedRepayTokens?: PublicKey[];
+  blacklistRepayTokens?: PublicKey[];
   isOpen: boolean;
   onClose: () => void;
 };
@@ -24,7 +24,7 @@ type RepayCollatTokensListProps = {
 export const RepayCollatTokensList = ({
   selectedRepayBank,
   onSetRepayTokenBank,
-  highlightedRepayTokens = [],
+  blacklistRepayTokens = [],
   isOpen,
   onClose,
 }: RepayCollatTokensListProps) => {
@@ -107,7 +107,7 @@ export const RepayCollatTokensList = ({
         {filteredBanksActive.length > 0 && onSetRepayTokenBank && (
           <CommandGroup heading="Currently supplying">
             {filteredBanksActive.map((bank, index) => {
-              const isRouteEnabled = true; // highlightedRepayTokens.find((v) => v.equals(bank.info.state.mint)) ? true : false;
+              const isRouteEnabled = blacklistRepayTokens.find((v) => v.equals(bank.info.state.mint)) ? false : true;
               return (
                 <CommandItem
                   key={index}

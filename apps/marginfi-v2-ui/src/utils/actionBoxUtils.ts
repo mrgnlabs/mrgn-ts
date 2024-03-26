@@ -51,7 +51,7 @@ interface CheckActionAvailableProps {
   extendedBankInfos: ExtendedBankInfo[];
   marginfiAccount: MarginfiAccountWrapper | null;
   actionMode: ActionType;
-  directRoutes: PublicKey[] | null;
+  blacklistRoutes: PublicKey[] | null;
   repayMode: RepayType;
   repayCollatQuote: QuoteResponse | null;
 }
@@ -68,7 +68,7 @@ export function checkActionAvailable({
   extendedBankInfos,
   marginfiAccount,
   actionMode,
-  directRoutes,
+  blacklistRoutes,
   repayMode,
   repayCollatQuote,
 }: CheckActionAvailableProps): ActionMethod {
@@ -103,7 +103,7 @@ export function checkActionAvailable({
         if (repayMode === RepayType.RepayRaw) {
           check = canBeRepaid(selectedBank);
         } else if (repayMode === RepayType.RepayCollat) {
-          check = canBeRepaidCollat(selectedBank, selectedRepayBank, directRoutes, repayCollatQuote);
+          check = canBeRepaidCollat(selectedBank, selectedRepayBank, blacklistRoutes, repayCollatQuote);
         }
         if (check) return check;
         break;
@@ -245,7 +245,7 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
 function canBeRepaidCollat(
   targetBankInfo: ExtendedBankInfo,
   repayBankInfo: ExtendedBankInfo | null,
-  directRoutes: PublicKey[] | null,
+  blacklistRoutes: PublicKey[] | null,
   swapQuote: QuoteResponse | null
 ): ActionMethod | null {
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
@@ -270,8 +270,8 @@ function canBeRepaidCollat(
     };
   }
 
-  if (repayBankInfo && directRoutes) {
-    if (!directRoutes.find((key) => key.equals(repayBankInfo.info.state.mint))) {
+  if (repayBankInfo && blacklistRoutes) {
+    if (blacklistRoutes.find((key) => key.equals(repayBankInfo.info.state.mint))) {
       return {
         description: "Repayment not possible with current collateral, choose another.",
         isEnabled: true,

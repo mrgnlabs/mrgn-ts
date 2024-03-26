@@ -15,7 +15,7 @@ interface ActionBoxPreviewProps {
 
   currentTokenBank?: PublicKey | null;
   repayTokenBank?: PublicKey | null;
-  highlightedRepayTokens?: PublicKey[];
+  blacklistRepayTokens?: PublicKey[];
 
   setCurrentTokenBank?: (selectedTokenBank: PublicKey | null) => void;
   setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
@@ -28,7 +28,7 @@ export const ActionBoxTokens = ({
   lstType,
   repayType,
   isDialog,
-  highlightedRepayTokens,
+  blacklistRepayTokens,
   setRepayTokenBank,
   setCurrentTokenBank,
 }: ActionBoxPreviewProps) => {
@@ -50,7 +50,7 @@ export const ActionBoxTokens = ({
           isDialog={isDialog}
           repayTokenBank={repayTokenBank}
           setRepayTokenBank={setRepayTokenBank}
-          highlightedRepayTokens={highlightedRepayTokens}
+          blacklistRepayTokens={blacklistRepayTokens}
           repayType={repayType}
         />
       )}
