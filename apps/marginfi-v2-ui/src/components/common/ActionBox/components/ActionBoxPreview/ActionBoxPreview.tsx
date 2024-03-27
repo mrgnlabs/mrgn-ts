@@ -43,10 +43,11 @@ export const ActionBoxPreview = ({
         </LendingPreview>
       )}
 
-      {actionMode === ActionType.MintLST && (
+      {(actionMode === ActionType.MintLST || actionMode === ActionType.UnstakeLST) && (
         <LstPreview
           selectedBank={selectedBank}
           selectedStakingAccount={selectedStakingAccount}
+          actionMode={actionMode}
           isEnabled={isEnabled}
           amount={amount}
           slippageBps={slippageBps}

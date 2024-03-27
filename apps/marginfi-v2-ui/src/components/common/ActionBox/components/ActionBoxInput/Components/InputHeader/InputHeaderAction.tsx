@@ -45,6 +45,7 @@ export const InputHeaderAction = ({
       [ActionType.Withdraw]: "",
       [ActionType.Repay]: "",
       [ActionType.MintLST]: isSolBank ? "You stake" : "You swap",
+      [ActionType.UnstakeLST]: "You unstake",
     };
 
     return actionTitles[actionType] || "";
@@ -85,7 +86,6 @@ export const InputHeaderAction = ({
     }
 
     if (actionType === ActionType.MintLST && stakeAccounts.length > 0) {
-      console.log({ stakeAccounts });
       return {
         toggles: [
           { value: LstType.Token, text: "Token" },

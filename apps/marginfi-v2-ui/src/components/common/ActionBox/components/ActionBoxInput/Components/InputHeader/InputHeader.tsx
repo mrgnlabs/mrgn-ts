@@ -86,6 +86,12 @@ export const InputHeader = ({
           amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
         };
 
+      case ActionType.UnstakeLST:
+        return {
+          showWalletIcon: true,
+          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
+        };
+
       default:
         return { amount: "-" };
     }

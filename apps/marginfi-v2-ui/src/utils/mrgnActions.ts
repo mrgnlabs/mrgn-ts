@@ -44,6 +44,7 @@ export type MarginfiActionParams = {
 };
 
 export type LstActionParams = {
+  actionMode: ActionType;
   marginfiClient: MarginfiClient;
   amount: number;
   nativeSolBalance: number;
@@ -108,6 +109,7 @@ export async function executeLendingAction({
 }
 
 export async function executeLstAction({
+  actionMode,
   marginfiClient,
   amount,
   connection,
@@ -136,28 +138,45 @@ export async function executeLstAction({
     return;
   }
 
-  // Stake account selected
-  if (selectedStakingAccount) {
-    txnSig = await mintLstStakeToStake({
-      marginfiClient,
-      priorityFee,
-      connection,
-      selectedStakingAccount,
-      wallet,
-      lstData,
-    });
-  }
-
-  if (bank) {
-    if (bank.info.state.mint.equals(SOL_MINT)) {
-      // SOL selected
-      txnSig = await mintLstNative({ marginfiClient, bank, amount, priorityFee, connection, wallet, lstData });
-    } else {
-      // token selected
-      txnSig = await mintLstToken({ bank, amount, priorityFee, connection, wallet, quoteResponseMeta });
+  if (actionMode === ActionType.MintLST) {
+    // Stake account selected
+    if (selectedStakingAccount) {
+      txnSig = await mintLstStakeToStake({
+        marginfiClient,
+        priorityFee,
+        connection,
+        selectedStakingAccount,
+        wallet,
+        lstData,
+      });
     }
+
+    if (bank) {
+      if (bank.info.state.mint.equals(SOL_MINT)) {
+        // SOL selected
+        txnSig = await mintLstNative({ marginfiClient, bank, amount, priorityFee, connection, wallet, lstData });
+      } else {
+        // token selected
+        txnSig = await mintLstToken({ bank, amount, priorityFee, connection, wallet, quoteResponseMeta });
+      }
+    }
+    return txnSig;
+  } else if (actionMode === ActionType.UnstakeLST) {
+    if (bank) {
+      txnSig = await mintLstToken({
+        bank,
+        amount,
+        priorityFee,
+        connection,
+        wallet,
+        quoteResponseMeta,
+        isUnstake: true,
+      });
+      return txnSig;
+    }
+  } else {
+    throw new Error("Action not implemented");
   }
-  return txnSig;
 }
 
 // ------------------------------------------------------------------//
@@ -598,6 +617,7 @@ export async function mintLstToken({
   connection,
   wallet,
   quoteResponseMeta,
+  isUnstake = false,
 }: {
   bank: ExtendedBankInfo;
   amount: number;
@@ -605,12 +625,13 @@ export async function mintLstToken({
   connection: Connection;
   wallet: Wallet;
   quoteResponseMeta: QuoteResponseMeta | null;
+  isUnstake?: boolean;
 }) {
   const jupiterApiClient = createJupiterApiClient();
 
-  const multiStepToast = new MultiStepToastHandle("Mint LST", [
-    { label: `Swapping ${amount} ${bank.meta.tokenSymbol} for LST` },
-  ]);
+  const multiStepToast = isUnstake
+    ? new MultiStepToastHandle("Unstake LST", [{ label: `Swapping ${amount} ${bank.meta.tokenSymbol} for SOL` }])
+    : new MultiStepToastHandle("Mint LST", [{ label: `Swapping ${amount} ${bank.meta.tokenSymbol} for LST` }]);
   multiStepToast.start();
 
   try {
