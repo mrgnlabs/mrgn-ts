@@ -113,11 +113,6 @@ export enum SortType {
   TVL_DESC = "TVL_DESC",
 }
 
-export enum UserMode {
-  LITE = "lite",
-  PRO = "pro",
-}
-
 export type PreviousTxn = {
   type: ActionType;
   bank: ActiveBankInfo;

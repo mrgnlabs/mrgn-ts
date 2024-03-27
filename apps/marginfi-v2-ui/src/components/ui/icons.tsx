@@ -49,6 +49,9 @@ import {
   IconReplace,
   IconGps,
   IconBuildingBridge2,
+  IconTrophy,
+  IconHelp,
+  IconBook,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -818,6 +821,9 @@ export {
   IconReplace,
   IconGps,
   IconBuildingBridge2,
+  IconTrophy,
+  IconHelp,
+  IconBook,
 
   // customed icons
   IconBrandGoogle,

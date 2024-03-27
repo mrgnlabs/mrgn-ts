@@ -1,16 +1,28 @@
 import React from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
 
+import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
+
 import { cn } from "~/utils";
 import { useConvertkit } from "~/hooks/useConvertkit";
+import { useUserProfileStore, useUiStore } from "~/store";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { WalletTokens, Token, WalletOnramp } from "~/components/common/Wallet";
 import { Label } from "~/components/ui/label";
-import { IconCheck, IconInfoCircle, IconLoader, IconAlertTriangle } from "~/components/ui/icons";
+import {
+  IconCheck,
+  IconInfoCircle,
+  IconLoader,
+  IconAlertTriangle,
+  IconStarFilled,
+  IconCopy,
+  IconTrophy,
+} from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Button } from "~/components/ui/button";
@@ -28,6 +40,9 @@ enum WalletSettingsState {
 }
 
 export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) => {
+  const router = useRouter();
+  const [userPointsData] = useUserProfileStore((state) => [state.userPointsData, state.fetchPoints]);
+  const [setIsWalletOpen] = useUiStore((state) => [state.setIsWalletOpen]);
   const { addSubscriber } = useConvertkit();
   const [walletSettingsState, setWalletSettingsState] = React.useState<WalletSettingsState>(
     WalletSettingsState.DEFAULT
@@ -128,9 +143,48 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
 
   return (
     <Accordion type="single" collapsible className="w-full space-y-4 mb-6">
+      {userPointsData && (
+        <AccordionItem value="points">
+          <AccordionTrigger className="bg-background-gray font-normal px-4 rounded-lg transition-colors justify-start gap-2 hover:bg-background-gray-light data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
+            <IconStarFilled className="text-chartreuse" size={16} />
+            {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}{" "}
+            <span className="text-sm text-muted-foreground mr-auto">points</span>
+          </AccordionTrigger>
+          <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
+            <div className="flex items-center gap-8">
+              {userPointsData.userRank && (
+                <div className="flex flex-col items-center justify-center text-2xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
+                  <span className="text-sm font-normal text-muted-foreground">Your rank</span> #
+                  {groupedNumberFormatterDyn.format(userPointsData.userRank)}
+                </div>
+              )}
+              <ul className="space-y-2">
+                <li>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      setIsWalletOpen(false);
+                      router.push("/points");
+                    }}
+                  >
+                    <IconTrophy size={16} /> Points Leaderboard
+                  </Button>
+                </li>
+                <li>
+                  <Button variant="outline" size="sm" className="w-full justify-start">
+                    <IconCopy size={16} /> Copy referral code
+                  </Button>
+                </li>
+              </ul>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      )}
       <AccordionItem value="assets">
         <AccordionTrigger className="bg-background-gray font-normal px-4 rounded-lg transition-colors justify-start gap-2 hover:bg-background-gray-light data-[state=open]:rounded-b-none data-[state=open]:bg-background-gray">
-          Assets <span className="text-xs text-muted-foreground">(available on marginfi)</span>
+          Assets <span className="text-xs text-muted-foreground mr-auto">(available on marginfi)</span>
         </AccordionTrigger>
         <AccordionContent className="bg-background-gray p-4 pt-0 rounded-b-lg">
           <WalletTokens tokens={tokens} />
@@ -147,7 +201,7 @@ export const WalletSettings = ({ walletAddress, tokens }: WalletSettingsProps) =
           )}
         >
           <div className="flex gap-2 items-baseline">
-            Notifications <span className="text-sm mr-auto font-light">coming soon...</span>
+            Notifications <span className="text-sm text-muted-foreground mr-auto">coming soon...</span>
           </div>
         </AccordionTrigger>
         <AccordionContent className="bg-background-gray-light p-4 pt-0 rounded-b-lg">

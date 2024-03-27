@@ -90,7 +90,7 @@ export const Portfolio = () => {
   }
 
   return (
-    <div className="bg-background-gray-dark p-4 md:p-6 rounded-xl space-y-3 w-full mb-10">
+    <div className="p-4 md:p-6 rounded-xl space-y-3 w-full mb-10">
       <h2 className="font-medium text-2xl md:text-3xl">Portfolio</h2>
       <div className="text-muted-foreground">
         <dl className="flex justify-between items-center gap-2">
