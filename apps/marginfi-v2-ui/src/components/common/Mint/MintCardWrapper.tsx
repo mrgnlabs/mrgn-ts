@@ -1,92 +1,51 @@
 import React from "react";
 
-import Link from "next/link";
-import Image from "next/image";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import Confetti from "react-confetti";
-import { useWindowSize } from "@uidotdev/usehooks";
-import { PublicKey } from "@solana/web3.js";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { percentFormatterDyn, shortenAddress } from "@mrgnlabs/mrgn-common";
+import { MintCardProps } from "~/utils";
+import { useMrgnlendStore } from "~/store";
 
-import { MintPageState, cn, getTokenImageURL, signUpYbx } from "~/utils";
-import { useUiStore, useLstStore, useMrgnlendStore } from "~/store";
-import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { useIsMobile } from "~/hooks/useIsMobile";
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { IconConfetti, IconExternalLink, IconArrowDown, IconArrowUp, IconYBX, IconCheck } from "~/components/ui/icons";
+import { IconCheck, IconBell, IconSol } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
-import { DialogDescription, DialogProps } from "@radix-ui/react-dialog";
-import { Input } from "~/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { LST_MINT } from "~/store/lstStore";
 
 interface MintCardWrapperProps {
-  mintPageState: MintPageState;
-  onHandleChangeMintPage: (state: MintPageState) => void;
-  onClose: () => void;
+  mintCard: MintCardProps;
 }
 
-export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({
-  mintPageState,
-  onHandleChangeMintPage,
-  onClose,
-  ...props
-}) => {
-  const cards = React.useMemo(
-    () => [
-      {
-        title: "LST",
-        icon: IconLST,
-        description: "Accrues value against SOL",
-        price: `1 LST = ${numeralFormatter(lstData?.lstSolValue!)} SOL`,
-        features: ["Earn 7% APY", "Pay 0% fees", "Access $3 million in liquidity"],
-        volume: `234,345 LST`,
-        volumeUsd: `$234,345.45`,
-        action: () => setLSTDialogOpen(true),
-      } as MintCardProps,
-      {
-        title: "YBX",
-        icon: IconYBX,
-        description: "Accrues value against USD",
-        price: "1 YBX ≈ 1 USD",
-        features: [`Earn compounded staking yield`, "Capture MEV rewards", "Earn lending yield (soon)"],
-        volume: `- YBX`,
-        volumeUsd: ``,
-        action: () => {
-          setYbxNotificationsDialogOpen(true);
-        },
-      } as MintCardProps,
-    ],
-    [lstData]
+export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...props }) => {
+  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+
+  const [requestedAction, setRequestedAction] = React.useState<ActionType>(ActionType.MintLST);
+
+  const requestedToken = React.useMemo(
+    () =>
+      extendedBankInfos.find((bank) => bank?.info?.state?.mint.equals && bank?.info?.state?.mint.equals(LST_MINT))
+        ?.address,
+    [extendedBankInfos]
   );
-
-  const emailInputRef = React.useRef<HTMLInputElement>(null);
-
-  const signUpPartner = React.useCallback(async () => {
-    try {
-      await signUpYbx(emailInputRef, "partner");
-      onHandleChangeMintPage(MintPageState.SUCCESS);
-    } catch (error) {
-      onHandleChangeMintPage(MintPageState.ERROR);
-      return;
-    }
-  }, [onHandleChangeMintPage, emailInputRef]);
-
   return (
-    <Card key={i} variant="default">
+    <Card variant="default" className="relative">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
-          <item.icon />
+          <div className="absolute top-[-12px] h-[24px] flex gap-2 items-center text-sm font-normal bg-chartreuse text-black px-3 rounded-[100px]">
+            <div>
+              <mintCard.labelIcon size={22} />
+            </div>
+            {mintCard.label}
+          </div>
+          <mintCard.icon />
           <div className="flex flex-col">
-            <h3>{item.title}</h3>
-            <p className="text-sm text-muted-foreground">{item.description}</p>
+            <h3>{mintCard.title}</h3>
+            <p className="text-sm text-muted-foreground">{mintCard.description}</p>
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <ul className="space-y-2.5 mb-4">
-          {item.features.map((feature, j) => (
+          {mintCard.features.map((feature, j) => (
             <li key={j} className="flex items-center gap-1 text-muted-foreground">
               <IconCheck className="text-success" />
               {feature}
@@ -96,15 +55,14 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({
 
         <ul className="flex gap-2 text-xs">
           <li className="text-muted-foreground">Volume</li>
-          <li>{item.volume}</li>
-          <li className="text-muted-foreground">{item.volumeUsd}</li>
+          <li>{mintCard.volume}</li>
+          <li className="text-muted-foreground">{mintCard.volumeUsd}</li>
         </ul>
 
-        {item.title === "LST" ? (
+        {mintCard.title === "LST" ? (
           <ActionBoxDialog
             requestedAction={requestedAction}
             requestedToken={requestedAction === ActionType.UnstakeLST ? requestedToken : undefined}
-            isActionBoxTriggered={lstDialogOpen}
           >
             <div className="flex items-center gap-2 mt-3">
               <Button
@@ -113,12 +71,9 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({
                 className="mt-4"
                 onClick={() => {
                   setRequestedAction(ActionType.MintLST);
-                  // if (item.action) {
-                  //   item.action();
-                  // }
                 }}
               >
-                Mint {item.title}
+                Mint {mintCard.title}
               </Button>
               <Button
                 variant="outline"
@@ -128,7 +83,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({
                   setRequestedAction(ActionType.UnstakeLST);
                 }}
               >
-                Unstake {item.title}
+                Unstake {mintCard.title}
               </Button>
             </div>
           </ActionBoxDialog>
@@ -157,8 +112,8 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({
               size="lg"
               className="mt-4"
               onClick={() => {
-                if (item.action) {
-                  item.action();
+                if (mintCard.action) {
+                  mintCard.action();
                 }
               }}
             >
