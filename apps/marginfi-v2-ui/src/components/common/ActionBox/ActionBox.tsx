@@ -136,7 +136,9 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   const blacklistRoutes = React.useMemo(
     () =>
       selectedBank && blacklistRoutesMap
-        ? blacklistRoutesMap[selectedBank.info.state.mint.toBase58()]?.blacklistRoutes?.map((key) => new PublicKey(key))
+        ? blacklistRoutesMap[selectedBank.info.state.mint.toBase58()]?.blacklistRoutes?.map(
+            (key) => new PublicKey(key)
+          ) ?? []
         : undefined,
     [blacklistRoutesMap, selectedBank]
   );
