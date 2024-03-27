@@ -2,6 +2,8 @@ import React from "react";
 
 import Image from "next/image";
 
+import { cn } from "~/utils";
+
 import { IconSearch } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 
@@ -17,9 +19,10 @@ export type Token = {
 
 type WalletTokensProps = {
   tokens: Token[];
+  onTokenClick?: (token: Token) => void;
 };
 
-export const WalletTokens = ({ tokens }: WalletTokensProps) => {
+export const WalletTokens = ({ tokens, onTokenClick }: WalletTokensProps) => {
   const [search, setSearch] = React.useState("");
 
   const filteredTokens = React.useMemo(() => {
@@ -45,7 +48,11 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
         {filteredTokens.map((token, index) => (
           <div
             key={index}
-            className="flex items-center justify-between font-normal bg-background-gray-dark p-3 rounded-md gap-4"
+            className={cn(
+              "flex items-center justify-between font-normal bg-background-gray-dark p-3 rounded-md gap-4",
+              onTokenClick && "cursor-pointer"
+            )}
+            onClick={() => onTokenClick?.(token)}
           >
             <div className="flex items-center gap-3 w-3/5">
               {token.image && (
