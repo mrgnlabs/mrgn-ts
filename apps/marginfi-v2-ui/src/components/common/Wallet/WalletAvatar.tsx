@@ -27,7 +27,7 @@ export const WalletAvatar = ({ pfp, address, size = "md", className }: WalletAva
 
   return (
     <div
-      className={cn("flex items-center justify-center rounded-full p-0 bg-background-gray", className)}
+      className={cn("flex items-center justify-center rounded-full p-0 bg-background-gray-light", className)}
       style={{
         width: containerSizeInPx,
         height: containerSizeInPx,
