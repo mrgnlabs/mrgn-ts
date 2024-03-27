@@ -163,7 +163,15 @@ export async function executeLstAction({
     return txnSig;
   } else if (actionMode === ActionType.UnstakeLST) {
     if (bank) {
-      txnSig = await mintLstToken({ bank, amount, priorityFee, connection, wallet, quoteResponseMeta });
+      txnSig = await mintLstToken({
+        bank,
+        amount,
+        priorityFee,
+        connection,
+        wallet,
+        quoteResponseMeta,
+        isUnstake: true,
+      });
       return txnSig;
     }
   } else {
@@ -609,6 +617,7 @@ export async function mintLstToken({
   connection,
   wallet,
   quoteResponseMeta,
+  isUnstake = false,
 }: {
   bank: ExtendedBankInfo;
   amount: number;
@@ -616,12 +625,13 @@ export async function mintLstToken({
   connection: Connection;
   wallet: Wallet;
   quoteResponseMeta: QuoteResponseMeta | null;
+  isUnstake?: boolean;
 }) {
   const jupiterApiClient = createJupiterApiClient();
 
-  const multiStepToast = new MultiStepToastHandle("Mint LST", [
-    { label: `Swapping ${amount} ${bank.meta.tokenSymbol} for LST` },
-  ]);
+  const multiStepToast = isUnstake
+    ? new MultiStepToastHandle("Unstake LST", [{ label: `Swapping ${amount} ${bank.meta.tokenSymbol} for SOL` }])
+    : new MultiStepToastHandle("Mint LST", [{ label: `Swapping ${amount} ${bank.meta.tokenSymbol} for LST` }]);
   multiStepToast.start();
 
   try {

@@ -24,13 +24,15 @@ import {
   IconMeteora,
   IconRaydium,
   IconOrca,
+  IconSol,
+  IconUsd,
 } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
 import { LST_MINT } from "~/store/lstStore";
 import { PublicKey } from "@solana/web3.js";
 import { YbxDialogNotifications } from "~/components/common/Mint/YbxDialogNotifications";
-import { YbxDialogPartner } from "~/components/common/Mint";
+import { MintCardWrapper, YbxDialogPartner } from "~/components/common/Mint";
 import { MintCardProps, MintPageState } from "~/utils";
 
 const integrationsData: {
@@ -138,8 +140,6 @@ export default function MintPage() {
     state.lstData,
   ]);
 
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
-
   React.useEffect(() => {
     const fetchData = () => {
       setIsRefreshingStore(true);
@@ -175,9 +175,10 @@ export default function MintPage() {
     () => [
       {
         title: "LST",
+        label: "protected SOL",
+        labelIcon: IconSol,
         icon: IconLST,
         description: "Accrues value against SOL",
-        price: `1 LST = ${numeralFormatter(lstData?.lstSolValue!)} SOL`,
         features: ["Earn 7% APY", "Pay 0% fees", "Access $3 million in liquidity"],
         volume: `234,345 LST`,
         volumeUsd: `$234,345.45`,
@@ -185,9 +186,10 @@ export default function MintPage() {
       } as MintCardProps,
       {
         title: "YBX",
+        label: "protected USD",
+        labelIcon: IconUsd,
         icon: IconYBX,
         description: "Accrues value against USD",
-        price: "1 YBX ≈ 1 USD",
         features: [`Earn compounded staking yield`, "Capture MEV rewards", "Earn lending yield (soon)"],
         volume: `- YBX`,
         volumeUsd: ``,
@@ -241,15 +243,6 @@ export default function MintPage() {
     fetchIntegrations();
   }, [integrationsData]);
 
-  const [requestedAction, setRequestedAction] = React.useState<ActionType>(ActionType.MintLST);
-
-  const requestedToken = React.useMemo(
-    () =>
-      extendedBankInfos.find((bank) => bank?.info?.state?.mint.equals && bank?.info?.state?.mint.equals(LST_MINT))
-        ?.address,
-    [extendedBankInfos]
-  );
-
   return (
     <>
       <JupiterProvider connection={connection} wrapUnwrapSOL={false} platformFeeAndAccounts={undefined}>
@@ -257,108 +250,21 @@ export default function MintPage() {
           {!initialized && <Loader label="Loading YBX / LST..." className="mt-8" />}
           {initialized && (
             <>
-              <div className="w-full max-w-3xl mx-auto space-y-20 px-4 md:px-0">
-                <h1 className="text-2xl md:text-3xl font-medium text-center leading-normal">
-                  Crypto&apos;s highest yielding, decentralised stablecoin Backed by Solana&apos;s MEV-boosted, highest
-                  yielding LST
-                </h1>
+              <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
+                <div className="text-3xl font-medium text-center">
+                  <h1 className="leading-loose">Inflation protected</h1>
+                  <div>
+                    <IconSol size={32} className="inline" /> SOL and <IconUsd size={32} className="inline" /> USD
+                  </div>
+                  <p className="text-sm text-muted-foreground pb-9 pt-6">
+                    The two most important assets on Solana are SOL and USD. With YBX and LST, interest compounds
+                    automatically.
+                  </p>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-11">
-                  {cards.map((item, i) => (
-                    <Card key={i} variant="default">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <item.icon />
-                          <div className="flex flex-col">
-                            <h3>{item.title}</h3>
-                            <p className="text-sm text-muted-foreground">{item.description}</p>
-                          </div>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-2.5 mb-4">
-                          {item.features.map((feature, j) => (
-                            <li key={j} className="flex items-center gap-1 text-muted-foreground">
-                              <IconCheck className="text-success" />
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
-
-                        <ul className="flex gap-2 text-xs">
-                          <li className="text-muted-foreground">Volume</li>
-                          <li>{item.volume}</li>
-                          <li className="text-muted-foreground">{item.volumeUsd}</li>
-                        </ul>
-
-                        {item.title === "LST" ? (
-                          <ActionBoxDialog
-                            requestedAction={requestedAction}
-                            requestedToken={requestedAction === ActionType.UnstakeLST ? requestedToken : undefined}
-                            isActionBoxTriggered={lstDialogOpen}
-                          >
-                            <div className="flex items-center gap-2 mt-3">
-                              <Button
-                                variant="secondary"
-                                size="lg"
-                                className="mt-4"
-                                onClick={() => {
-                                  setRequestedAction(ActionType.MintLST);
-                                  // if (item.action) {
-                                  //   item.action();
-                                  // }
-                                }}
-                              >
-                                Mint {item.title}
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="lg"
-                                className="mt-4 hover:text-primary"
-                                onClick={() => {
-                                  setRequestedAction(ActionType.UnstakeLST);
-                                }}
-                              >
-                                Unstake {item.title}
-                              </Button>
-                            </div>
-                          </ActionBoxDialog>
-                        ) : (
-                          // <ActionBoxDialog
-                          //   requestedAction={ActionType.MintYBX}
-                          //   requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
-                          //   isActionBoxTriggered={ybxDialogOpen}
-                          // >
-                          //   <Button
-                          //     variant="secondary"
-                          //     size="lg"
-                          //     className="mt-4"
-                          //     onClick={() => {
-                          //       if (item.action) {
-                          //         item.action();
-                          //       }
-                          //     }}
-                          //   >
-                          //     Mint {item.title}
-                          //   </Button>
-                          // </ActionBoxDialog>
-                          <div className="flex items-center gap-2 mt-3">
-                            <Button
-                              variant="secondary"
-                              size="lg"
-                              className="mt-4"
-                              onClick={() => {
-                                if (item.action) {
-                                  item.action();
-                                }
-                              }}
-                            >
-                              <IconBell size={16} /> Early Access
-                            </Button>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                  {cards.map((item, idx) => (
+                    <MintCardWrapper mintCard={item} key={idx} />
                   ))}
                 </div>
               </div>

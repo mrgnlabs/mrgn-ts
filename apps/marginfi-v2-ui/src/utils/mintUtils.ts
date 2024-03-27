@@ -1,3 +1,5 @@
+import { IconProps } from "~/components/ui/icons";
+
 export enum MintPageState {
   DEFAULT = "default",
   ERROR = "error",
@@ -6,9 +8,10 @@ export enum MintPageState {
 
 export interface MintCardProps {
   title: "YBX" | "LST";
-  icon: () => JSX.Element;
+  label: string;
+  labelIcon: ({ size, className }: IconProps) => JSX.Element;
+  icon: ({ size, className }: IconProps) => JSX.Element;
   description: string;
-  price: string;
   features: string[];
   volume: string;
   volumeUsd: string;
