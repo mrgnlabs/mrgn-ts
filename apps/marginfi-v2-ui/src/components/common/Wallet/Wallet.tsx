@@ -1,5 +1,7 @@
 import React from "react";
 
+import Image from "next/image";
+
 import { useRouter } from "next/router";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
@@ -10,7 +12,7 @@ import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
 import { showErrorToast } from "~/utils/toastUtils";
-import { getTokenImageURL } from "~/utils";
+import { getTokenImageURL, cn } from "~/utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
@@ -34,8 +36,10 @@ import {
   IconLogout,
   IconArrowDown,
   IconArrowUp,
+  IconArrowRight,
   IconRefresh,
   IconBell,
+  IconArrowLeft,
 } from "~/components/ui/icons";
 
 export const Wallet = () => {
@@ -53,8 +57,7 @@ export const Wallet = () => {
 
   const [isFetchingWalletData, setIsFetchingWalletData] = React.useState(false);
   const [isMounted, setIsMounted] = React.useState(false);
-  const [isWalletAddressCopied1, setIsWalletAddressCopied1] = React.useState(false);
-  const [isWalletAddressCopied2, setIsWalletAddressCopied2] = React.useState(false);
+  const [isWalletAddressCopied, setisWalletAddressCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
@@ -66,6 +69,7 @@ export const Wallet = () => {
     balanceUSD: "",
     tokens: [],
   });
+  const [activeToken, setActiveToken] = React.useState<Token | null>(null);
 
   const address = React.useMemo(() => {
     if (!wallet?.publicKey) return "";
@@ -187,14 +191,14 @@ export const Wallet = () => {
                 <CopyToClipboard
                   text={walletData.address}
                   onCopy={() => {
-                    setIsWalletAddressCopied1(true);
+                    setisWalletAddressCopied(true);
                     setTimeout(() => {
-                      setIsWalletAddressCopied1(false);
+                      setisWalletAddressCopied(false);
                     }, 2000);
                   }}
                 >
                   <Button variant="secondary" size="sm" className="text-sm mx-auto">
-                    {!isWalletAddressCopied1 ? (
+                    {!isWalletAddressCopied ? (
                       <>
                         {walletData.shortAddress} <IconCopy size={16} />
                       </>
@@ -216,7 +220,11 @@ export const Wallet = () => {
               </header>
               <Tabs defaultValue="tokens" className="py-8">
                 <TabsList className="flex items-center gap-4 bg-transparent px-16 mx-auto">
-                  <TabsTrigger value="tokens" className="group w-1/3 bg-transparent data-[state=active]:bg-transparent">
+                  <TabsTrigger
+                    value="tokens"
+                    className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
+                    onClick={() => setActiveToken(null)}
+                  >
                     <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
                       Tokens
                     </span>
@@ -236,50 +244,49 @@ export const Wallet = () => {
                     </span>
                   </TabsTrigger>
                 </TabsList>
-                <TabsContent value="tokens" className="space-y-6 py-8">
-                  <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
-                  <div className="flex items-center justify-center gap-4">
-                    <CopyToClipboard
-                      text={walletData.address}
-                      onCopy={() => {
-                        setIsWalletAddressCopied2(true);
-                        setTimeout(() => {
-                          setIsWalletAddressCopied2(false);
-                        }, 2000);
-                      }}
-                    >
-                      <div className="flex flex-col gap-1 text-sm font-medium text-center">
-                        {!isWalletAddressCopied2 ? (
-                          <>
-                            <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
-                              <IconArrowDown size={20} />
-                            </button>
-                            Receive
-                          </>
-                        ) : (
-                          <>
-                            <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
-                              <IconCheck size={20} />
-                            </button>
-                            Copied!
-                          </>
-                        )}
-                      </div>
-                    </CopyToClipboard>
-                    <div className="flex flex-col gap-1 text-sm font-medium text-center">
-                      <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
-                        <IconArrowUp size={20} />
-                      </button>
-                      Send
-                    </div>
-                    <div className="flex flex-col gap-1 text-sm font-medium text-center">
-                      <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
-                        <IconRefresh size={20} />
-                      </button>
-                      Swap
-                    </div>
+                <TabsContent value="tokens">
+                  <div className={cn("space-y-6 py-8", activeToken && "hidden")}>
+                    <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
+                    <TokenOptions address={walletData.address} />
+                    <WalletTokens tokens={walletData.tokens} onTokenClick={(token) => setActiveToken(token)} />
                   </div>
-                  <WalletTokens tokens={walletData.tokens} />
+
+                  <div className={cn("py-4", !activeToken && "hidden")}>
+                    {activeToken && (
+                      <div className="relative flex flex-col pt-6 gap-2">
+                        <button
+                          className="absolute top-0 left-12 flex items-center gap-1 text-sm text-muted-foreground"
+                          onClick={() => setActiveToken(null)}
+                        >
+                          <IconArrowLeft size={16} /> back
+                        </button>
+                        <div className="gap-2 text-center flex flex-col items-center">
+                          <Image
+                            src={getTokenImageURL(activeToken.symbol)}
+                            alt={activeToken.symbol}
+                            width={60}
+                            height={60}
+                            className="rounded-full"
+                          />
+                          <div className="space-y-0">
+                            <h2 className="font-medium text-3xl">
+                              {activeToken.value < 0.01
+                                ? "< 0.01"
+                                : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
+                            </h2>
+                            <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-6 mt-6">
+                          <TokenOptions address={walletData.address} />
+                          <div className="space-y-2 mx-auto w-3/4">
+                            <Button className="w-full">Deposit</Button>
+                            <Button className="w-full">Borrow</Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
                 <TabsContent value="points">Points</TabsContent>
               </Tabs>
@@ -299,3 +306,50 @@ export const Wallet = () => {
     </>
   );
 };
+
+function TokenOptions({ address }: { address: string }) {
+  const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
+  return (
+    <div className="flex items-center justify-center gap-4">
+      <CopyToClipboard
+        text={address}
+        onCopy={() => {
+          setIsWalletAddressCopied(true);
+          setTimeout(() => {
+            setIsWalletAddressCopied(false);
+          }, 2000);
+        }}
+      >
+        <div className="flex flex-col gap-1 text-sm font-medium text-center">
+          {!isWalletAddressCopied ? (
+            <>
+              <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+                <IconArrowDown size={20} />
+              </button>
+              Receive
+            </>
+          ) : (
+            <>
+              <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+                <IconCheck size={20} />
+              </button>
+              Copied!
+            </>
+          )}
+        </div>
+      </CopyToClipboard>
+      <div className="flex flex-col gap-1 text-sm font-medium text-center">
+        <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+          <IconArrowUp size={20} />
+        </button>
+        Send
+      </div>
+      <div className="flex flex-col gap-1 text-sm font-medium text-center">
+        <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+          <IconRefresh size={20} />
+        </button>
+        Swap
+      </div>
+    </div>
+  );
+}
