@@ -41,6 +41,11 @@ export const ActionBoxTokens = ({
     [actionMode]
   );
 
+  const isLstMode = React.useMemo(
+    () => actionMode === ActionType.MintLST || actionMode === ActionType.UnstakeLST,
+    [actionMode]
+  );
+
   return (
     <>
       {isInLendingMode && (
@@ -55,10 +60,11 @@ export const ActionBoxTokens = ({
         />
       )}
 
-      {actionMode === ActionType.MintLST && setCurrentTokenBank && (
+      {isLstMode && setCurrentTokenBank && (
         <LstTokens
           lstType={lstType}
           isDialog={isDialog}
+          actionMode={actionMode}
           currentTokenBank={currentTokenBank ?? null}
           setCurrentTokenBank={setCurrentTokenBank}
         />
