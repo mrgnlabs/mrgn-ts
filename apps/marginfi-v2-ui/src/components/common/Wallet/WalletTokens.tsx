@@ -30,7 +30,7 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
   if (tokens.length === 0) return null;
 
   return (
-    <div className="space-y-4 pt-1">
+    <div className="space-y-4 pt-1 h-[calc(100vh-285px)]">
       <div className="relative">
         <IconSearch className="absolute left-3 top-3 text-muted-foreground" size={14} />
         <Input
@@ -41,7 +41,7 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
           onChange={(e) => setSearch(e.currentTarget.value)}
         />
       </div>
-      <div className="space-y-2 max-h-[308px] overflow-auto">
+      <div className="space-y-2 overflow-auto h-full">
         {filteredTokens.map((token, index) => (
           <div
             key={index}
