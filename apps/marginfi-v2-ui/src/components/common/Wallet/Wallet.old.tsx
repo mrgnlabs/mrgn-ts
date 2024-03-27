@@ -23,9 +23,8 @@ import {
 } from "~/components/common/Wallet";
 
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
-import { IconCheck, IconChevronDown, IconCopy, IconStarFilled, IconLogout } from "~/components/ui/icons";
+import { IconCheck, IconChevronDown, IconCopy, IconStarFilled } from "~/components/ui/icons";
 
 export const Wallet = () => {
   const router = useRouter();
@@ -169,59 +168,83 @@ export const Wallet = () => {
         </SheetTrigger>
         <SheetContent className="outline-none z-[1000001] px-4 bg-background border-0">
           {walletData.address ? (
-            <div>
-              <header className="flex items-center justify-between gap-2">
-                <WalletAvatar pfp={pfp} address={walletData.address} size="md" />
-                <CopyToClipboard
-                  text={walletData.address}
-                  onCopy={() => {
-                    setIsWalletAddressCopied(true);
-                    setTimeout(() => {
-                      setIsWalletAddressCopied(false);
-                    }, 2000);
-                  }}
-                >
-                  <Button variant="secondary" size="sm" className="text-sm">
-                    {!isWalletAddressCopied ? (
-                      <>
-                        {walletData.shortAddress} <IconCopy size={16} />
-                      </>
-                    ) : (
-                      <>
-                        Copied! <IconCheck size={16} />
-                      </>
-                    )}
-                  </Button>
-                </CopyToClipboard>
-                <Button variant="ghost" size="icon">
-                  <IconLogout size={18} />
-                </Button>
-              </header>
-              <Tabs defaultValue="tokens" className="py-8">
-                <TabsList className="flex items-center gap-4 bg-transparent px-16 mx-auto">
-                  <TabsTrigger value="tokens" className="group w-1/3 bg-transparent data-[state=active]:bg-transparent">
-                    <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                      Tokens
-                    </span>
-                  </TabsTrigger>
-                  <TabsTrigger value="points" className="group w-1/3 bg-transparent data-[state=active]:bg-transparent">
-                    <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                      Points
-                    </span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="notifications"
-                    className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
-                    disabled
+            <div className="pt-4 h-full flex flex-col">
+              <header className="flex flex-col items-center mb-8">
+                <div className="flex flex-col items-center space-y-2 ">
+                  <WalletAvatar pfp={pfp} address={walletData.address} size="lg" />
+                  <CopyToClipboard
+                    text={walletData.address}
+                    onCopy={() => {
+                      setIsWalletAddressCopied(true);
+                      setTimeout(() => {
+                        setIsWalletAddressCopied(false);
+                      }, 2000);
+                    }}
                   >
-                    <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                      Activity
-                    </span>
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="tokens">Tokens</TabsContent>
-                <TabsContent value="points">Points</TabsContent>
-              </Tabs>
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <button className="flex items-center gap-1 cursor-pointe outline-none">
+                        {isWalletAddressCopied && <>copied!</>}
+                        {!isWalletAddressCopied && <>{walletData.shortAddress}</>}
+                      </button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button className="flex items-center gap-1 cursor-pointe outline-none">
+                              {isWalletAddressCopied && (
+                                <>
+                                  <IconCheck size={14} />
+                                </>
+                              )}
+                              {!isWalletAddressCopied && (
+                                <>
+                                  <IconCopy size={14} />
+                                </>
+                              )}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Click to copy</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </CopyToClipboard>
+                </div>
+              </header>
+              <div className="flex flex-col items-center h-full">
+                <div className="text-center space-y-1 mb-12">
+                  <h2 className="text-4xl font-medium">{walletData.balanceUSD}</h2>
+                </div>
+                {web3AuthConncected && <WalletOnramp />}
+                <WalletSettings walletAddress={wallet.publicKey} tokens={walletData.tokens} />
+                <SheetFooter className="text-red-400 mt-auto w-full">
+                  <ul className="space-y-3 mb-8 md:space-y-0 md:mb-0">
+                    <li>
+                      <Button
+                        onClick={() => logout()}
+                        variant={isMobile ? "outline" : "link"}
+                        size="sm"
+                        className="p-0 w-full opacity-50"
+                      >
+                        Logout
+                      </Button>
+                    </li>
+                    {web3AuthConncected && (
+                      <li>
+                        <Button
+                          variant={isMobile ? "outline" : "link"}
+                          size="sm"
+                          className="p-0 w-full opacity-50 gap-1"
+                          onClick={() => {
+                            localStorage.setItem("mrgnPrivateKeyRequested", "true");
+                            requestPrivateKey();
+                          }}
+                        >
+                          Export private key
+                        </Button>
+                      </li>
+                    )}
+                  </ul>
+                </SheetFooter>
+              </div>
             </div>
           ) : (
             <p>Loading...</p>
