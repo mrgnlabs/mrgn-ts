@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import {
   WalletAvatar,
   WalletSettings,
+  WalletTokens,
   Token,
   WalletOnramp,
   WalletPkDialog,
@@ -25,7 +26,17 @@ import {
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
-import { IconCheck, IconChevronDown, IconCopy, IconStarFilled, IconLogout } from "~/components/ui/icons";
+import {
+  IconCheck,
+  IconChevronDown,
+  IconCopy,
+  IconStarFilled,
+  IconLogout,
+  IconArrowDown,
+  IconArrowUp,
+  IconRefresh,
+  IconBell,
+} from "~/components/ui/icons";
 
 export const Wallet = () => {
   const router = useRouter();
@@ -42,7 +53,8 @@ export const Wallet = () => {
 
   const [isFetchingWalletData, setIsFetchingWalletData] = React.useState(false);
   const [isMounted, setIsMounted] = React.useState(false);
-  const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
+  const [isWalletAddressCopied1, setIsWalletAddressCopied1] = React.useState(false);
+  const [isWalletAddressCopied2, setIsWalletAddressCopied2] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
@@ -169,20 +181,20 @@ export const Wallet = () => {
         </SheetTrigger>
         <SheetContent className="outline-none z-[1000001] px-4 bg-background border-0">
           {walletData.address ? (
-            <div>
-              <header className="flex items-center justify-between gap-2">
-                <WalletAvatar pfp={pfp} address={walletData.address} size="md" />
+            <div className="max-h-full">
+              <header className="flex items-center gap-2">
+                <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
                 <CopyToClipboard
                   text={walletData.address}
                   onCopy={() => {
-                    setIsWalletAddressCopied(true);
+                    setIsWalletAddressCopied1(true);
                     setTimeout(() => {
-                      setIsWalletAddressCopied(false);
+                      setIsWalletAddressCopied1(false);
                     }, 2000);
                   }}
                 >
-                  <Button variant="secondary" size="sm" className="text-sm">
-                    {!isWalletAddressCopied ? (
+                  <Button variant="secondary" size="sm" className="text-sm mx-auto">
+                    {!isWalletAddressCopied1 ? (
                       <>
                         {walletData.shortAddress} <IconCopy size={16} />
                       </>
@@ -193,9 +205,14 @@ export const Wallet = () => {
                     )}
                   </Button>
                 </CopyToClipboard>
-                <Button variant="ghost" size="icon">
-                  <IconLogout size={18} />
-                </Button>
+                <div className="absolute right-2 flex items-center gap-2">
+                  <Button variant="ghost" size="icon">
+                    <IconBell size={18} />
+                  </Button>
+                  <Button variant="ghost" size="icon">
+                    <IconLogout size={18} />
+                  </Button>
+                </div>
               </header>
               <Tabs defaultValue="tokens" className="py-8">
                 <TabsList className="flex items-center gap-4 bg-transparent px-16 mx-auto">
@@ -219,7 +236,51 @@ export const Wallet = () => {
                     </span>
                   </TabsTrigger>
                 </TabsList>
-                <TabsContent value="tokens">Tokens</TabsContent>
+                <TabsContent value="tokens" className="space-y-6 py-8">
+                  <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
+                  <div className="flex items-center justify-center gap-4">
+                    <CopyToClipboard
+                      text={walletData.address}
+                      onCopy={() => {
+                        setIsWalletAddressCopied2(true);
+                        setTimeout(() => {
+                          setIsWalletAddressCopied2(false);
+                        }, 2000);
+                      }}
+                    >
+                      <div className="flex flex-col gap-1 text-sm font-medium text-center">
+                        {!isWalletAddressCopied2 ? (
+                          <>
+                            <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+                              <IconArrowDown size={20} />
+                            </button>
+                            Receive
+                          </>
+                        ) : (
+                          <>
+                            <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+                              <IconCheck size={20} />
+                            </button>
+                            Copied!
+                          </>
+                        )}
+                      </div>
+                    </CopyToClipboard>
+                    <div className="flex flex-col gap-1 text-sm font-medium text-center">
+                      <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+                        <IconArrowUp size={20} />
+                      </button>
+                      Send
+                    </div>
+                    <div className="flex flex-col gap-1 text-sm font-medium text-center">
+                      <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+                        <IconRefresh size={20} />
+                      </button>
+                      Swap
+                    </div>
+                  </div>
+                  <WalletTokens tokens={walletData.tokens} />
+                </TabsContent>
                 <TabsContent value="points">Points</TabsContent>
               </Tabs>
             </div>
