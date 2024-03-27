@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
@@ -24,7 +25,7 @@ import {
   WalletPkDialog,
   WalletIntroDialog,
 } from "~/components/common/Wallet";
-
+import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
@@ -41,6 +42,15 @@ import {
   IconBell,
   IconArrowLeft,
 } from "~/components/ui/icons";
+
+enum WalletState {
+  DEFAULT = "default",
+  TOKEN = "token",
+  SEND = "send",
+  SWAP = "swap",
+  POINTS = "points",
+  NOTIS = "notis",
+}
 
 export const Wallet = () => {
   const router = useRouter();
@@ -69,7 +79,13 @@ export const Wallet = () => {
     balanceUSD: "",
     tokens: [],
   });
+  const [walletTokenState, setWalletTokenState] = React.useState<WalletState>(WalletState.DEFAULT);
   const [activeToken, setActiveToken] = React.useState<Token | null>(null);
+
+  const resetWalletState = React.useCallback(() => {
+    setWalletTokenState(WalletState.DEFAULT);
+    setActiveToken(null);
+  }, []);
 
   const address = React.useMemo(() => {
     if (!wallet?.publicKey) return "";
@@ -98,6 +114,7 @@ export const Wallet = () => {
           bank.info.state.price;
 
         return {
+          address: bank.address,
           name: isSolBank ? "Solana" : bank.meta.tokenName,
           image: getTokenImageURL(bank.meta.tokenSymbol),
           symbol: bank.meta.tokenSymbol,
@@ -223,7 +240,7 @@ export const Wallet = () => {
                   <TabsTrigger
                     value="tokens"
                     className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
-                    onClick={() => setActiveToken(null)}
+                    onClick={() => resetWalletState()}
                   >
                     <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
                       Tokens
@@ -245,48 +262,65 @@ export const Wallet = () => {
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="tokens">
-                  <div className={cn("space-y-6 py-8", activeToken && "hidden")}>
-                    <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
-                    <TokenOptions address={walletData.address} />
-                    <WalletTokens tokens={walletData.tokens} onTokenClick={(token) => setActiveToken(token)} />
-                  </div>
+                  {walletTokenState === WalletState.DEFAULT && (
+                    <div className="space-y-6 py-8">
+                      <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
+                      <TokenOptions address={walletData.address} />
+                      <WalletTokens
+                        tokens={walletData.tokens}
+                        onTokenClick={(token) => {
+                          setActiveToken(token);
+                          setWalletTokenState(WalletState.TOKEN);
+                        }}
+                      />
+                    </div>
+                  )}
 
-                  <div className={cn("py-4", !activeToken && "hidden")}>
-                    {activeToken && (
-                      <div className="relative flex flex-col pt-6 gap-2">
-                        <button
-                          className="absolute top-0 left-12 flex items-center gap-1 text-sm text-muted-foreground"
-                          onClick={() => setActiveToken(null)}
-                        >
-                          <IconArrowLeft size={16} /> back
-                        </button>
-                        <div className="gap-2 text-center flex flex-col items-center">
-                          <Image
-                            src={getTokenImageURL(activeToken.symbol)}
-                            alt={activeToken.symbol}
-                            width={60}
-                            height={60}
-                            className="rounded-full"
-                          />
-                          <div className="space-y-0">
-                            <h2 className="font-medium text-3xl">
-                              {activeToken.value < 0.01
-                                ? "< 0.01"
-                                : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
-                            </h2>
-                            <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
+                  {walletTokenState === WalletState.TOKEN && activeToken && (
+                    <div className="py-4">
+                      {activeToken && (
+                        <div className="relative flex flex-col pt-6 gap-2">
+                          <button
+                            className="absolute top-0 left-12 flex items-center gap-1 text-sm text-muted-foreground"
+                            onClick={() => resetWalletState()}
+                          >
+                            <IconArrowLeft size={16} /> back
+                          </button>
+                          <div className="gap-2 text-center flex flex-col items-center">
+                            <Image
+                              src={getTokenImageURL(activeToken.symbol)}
+                              alt={activeToken.symbol}
+                              width={60}
+                              height={60}
+                              className="rounded-full"
+                            />
+                            <div className="space-y-0">
+                              <h2 className="font-medium text-3xl">
+                                {activeToken.value < 0.01
+                                  ? "< 0.01"
+                                  : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
+                              </h2>
+                              <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
+                            </div>
+                          </div>
+                          <div className="space-y-6 mt-6">
+                            <TokenOptions address={walletData.address} />
+                            <div className="space-y-2 mx-auto w-3/4">
+                              <ActionBoxDialog
+                                requestedToken={activeToken.address}
+                                requestedAction={ActionType.Deposit}
+                              >
+                                <Button className="w-full">Deposit</Button>
+                              </ActionBoxDialog>
+                              <ActionBoxDialog requestedToken={activeToken.address} requestedAction={ActionType.Borrow}>
+                                <Button className="w-full">Borrow</Button>
+                              </ActionBoxDialog>
+                            </div>
                           </div>
                         </div>
-                        <div className="space-y-6 mt-6">
-                          <TokenOptions address={walletData.address} />
-                          <div className="space-y-2 mx-auto w-3/4">
-                            <Button className="w-full">Deposit</Button>
-                            <Button className="w-full">Borrow</Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </TabsContent>
                 <TabsContent value="points">Points</TabsContent>
               </Tabs>
