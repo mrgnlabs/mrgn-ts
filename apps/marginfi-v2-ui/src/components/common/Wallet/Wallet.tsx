@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import { PublicKey } from "@solana/web3.js";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -28,6 +29,8 @@ import {
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { Label } from "~/components/ui/label";
+import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import {
   IconCheck,
@@ -265,7 +268,7 @@ export const Wallet = () => {
                   {walletTokenState === WalletState.DEFAULT && (
                     <div className="space-y-6 py-8">
                       <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
-                      <TokenOptions address={walletData.address} />
+                      <TokenOptions walletAddress={walletData.address} setState={setWalletTokenState} />
                       <WalletTokens
                         tokens={walletData.tokens}
                         onTokenClick={(token) => {
@@ -278,47 +281,100 @@ export const Wallet = () => {
 
                   {walletTokenState === WalletState.TOKEN && activeToken && (
                     <div className="py-4">
-                      {activeToken && (
-                        <div className="relative flex flex-col pt-6 gap-2">
-                          <button
-                            className="absolute top-0 left-12 flex items-center gap-1 text-sm text-muted-foreground"
-                            onClick={() => resetWalletState()}
-                          >
-                            <IconArrowLeft size={16} /> back
-                          </button>
-                          <div className="gap-2 text-center flex flex-col items-center">
-                            <Image
-                              src={getTokenImageURL(activeToken.symbol)}
-                              alt={activeToken.symbol}
-                              width={60}
-                              height={60}
-                              className="rounded-full"
-                            />
-                            <div className="space-y-0">
-                              <h2 className="font-medium text-3xl">
-                                {activeToken.value < 0.01
-                                  ? "< 0.01"
-                                  : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
-                              </h2>
-                              <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
-                            </div>
-                          </div>
-                          <div className="space-y-6 mt-6">
-                            <TokenOptions address={walletData.address} />
-                            <div className="space-y-2 mx-auto w-3/4">
-                              <ActionBoxDialog
-                                requestedToken={activeToken.address}
-                                requestedAction={ActionType.Deposit}
-                              >
-                                <Button className="w-full">Deposit</Button>
-                              </ActionBoxDialog>
-                              <ActionBoxDialog requestedToken={activeToken.address} requestedAction={ActionType.Borrow}>
-                                <Button className="w-full">Borrow</Button>
-                              </ActionBoxDialog>
-                            </div>
+                      <div className="relative flex flex-col pt-6 gap-2">
+                        <button
+                          className="absolute top-0 left-12 flex items-center gap-1 text-sm text-muted-foreground"
+                          onClick={() => resetWalletState()}
+                        >
+                          <IconArrowLeft size={16} /> back
+                        </button>
+                        <div className="gap-2 text-center flex flex-col items-center">
+                          <Image
+                            src={getTokenImageURL(activeToken.symbol)}
+                            alt={activeToken.symbol}
+                            width={60}
+                            height={60}
+                            className="rounded-full"
+                          />
+                          <div className="space-y-0">
+                            <h2 className="font-medium text-3xl">
+                              {activeToken.value < 0.01
+                                ? "< 0.01"
+                                : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
+                            </h2>
+                            <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
                           </div>
                         </div>
-                      )}
+                        <div className="space-y-6 mt-6">
+                          <TokenOptions
+                            walletAddress={walletData.address}
+                            setState={setWalletTokenState}
+                            setToken={() => {
+                              setActiveToken(activeToken);
+                            }}
+                          />
+                          <div className="space-y-3 mx-auto w-3/4">
+                            <ActionBoxDialog requestedToken={activeToken.address} requestedAction={ActionType.Deposit}>
+                              <Button className="w-full" variant="outline">
+                                Deposit
+                              </Button>
+                            </ActionBoxDialog>
+                            <ActionBoxDialog requestedToken={activeToken.address} requestedAction={ActionType.Borrow}>
+                              <Button className="w-full" variant="outline">
+                                Borrow
+                              </Button>
+                            </ActionBoxDialog>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {walletTokenState === WalletState.SEND && (
+                    <div className="py-4">
+                      <div className="relative flex flex-col pt-6 gap-2">
+                        <button
+                          className="absolute top-0 left-12 flex items-center gap-1 text-sm text-muted-foreground"
+                          onClick={() => resetWalletState()}
+                        >
+                          <IconArrowLeft size={16} /> back
+                        </button>
+                        {activeToken && (
+                          <div className="gap-6 text-center flex flex-col items-center">
+                            <div className="gap-2 text-center flex flex-col items-center">
+                              <Image
+                                src={getTokenImageURL(activeToken.symbol)}
+                                alt={activeToken.symbol}
+                                width={60}
+                                height={60}
+                                className="rounded-full"
+                              />
+                              <div className="space-y-0">
+                                <h2 className="font-medium text-xl">Send {activeToken.symbol}</h2>
+                              </div>
+                            </div>
+                            <form className="w-4/5 flex flex-col gap-2">
+                              <div className="flex flex-col gap-2 w-full">
+                                <Label htmlFor="toAddress">
+                                  <Input type="text" id="sendToAddress" placeholder="Recipient's Solana address" />
+                                </Label>
+                                <Label htmlFor="sendAmount" className="relative">
+                                  <Input type="text" id="sendAmount" placeholder="Amount" />
+                                  <span className="absolute right-2 top-2.5">{activeToken.symbol}</span>
+                                </Label>
+                              </div>
+                              <div className="flex gap-2 w-full">
+                                <Button type="submit" className="w-full">
+                                  Send
+                                </Button>
+                                <Button type="submit" variant="destructive" className="w-full">
+                                  Cancel
+                                </Button>
+                              </div>
+                            </form>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </TabsContent>
@@ -341,12 +397,18 @@ export const Wallet = () => {
   );
 };
 
-function TokenOptions({ address }: { address: string }) {
+type TokenOptionsProps = {
+  walletAddress: string;
+  setState: (state: WalletState) => void;
+  setToken?: () => void;
+};
+
+function TokenOptions({ walletAddress, setState, setToken }: TokenOptionsProps) {
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   return (
     <div className="flex items-center justify-center gap-4">
       <CopyToClipboard
-        text={address}
+        text={walletAddress}
         onCopy={() => {
           setIsWalletAddressCopied(true);
           setTimeout(() => {
@@ -354,36 +416,42 @@ function TokenOptions({ address }: { address: string }) {
           }, 2000);
         }}
       >
-        <div className="flex flex-col gap-1 text-sm font-medium text-center">
+        <button className="flex flex-col gap-1 text-sm font-medium items-center">
           {!isWalletAddressCopied ? (
             <>
-              <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
                 <IconArrowDown size={20} />
-              </button>
+              </div>
               Receive
             </>
           ) : (
             <>
-              <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
                 <IconCheck size={20} />
-              </button>
+              </div>
               Copied!
             </>
           )}
-        </div>
+        </button>
       </CopyToClipboard>
-      <div className="flex flex-col gap-1 text-sm font-medium text-center">
-        <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+      <button
+        className="flex flex-col gap-1 text-sm font-medium items-center"
+        onClick={() => {
+          if (setToken) setToken();
+          setState(WalletState.SEND);
+        }}
+      >
+        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
           <IconArrowUp size={20} />
-        </button>
+        </div>
         Send
-      </div>
-      <div className="flex flex-col gap-1 text-sm font-medium text-center">
-        <button className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+      </button>
+      <button className="flex flex-col gap-1 text-sm font-medium items-center">
+        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
           <IconRefresh size={20} />
-        </button>
+        </div>
         Swap
-      </div>
+      </button>
     </div>
   );
 }
