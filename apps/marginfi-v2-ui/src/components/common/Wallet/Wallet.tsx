@@ -6,8 +6,14 @@ import { useRouter } from "next/router";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { PublicKey } from "@solana/web3.js";
-import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import {
+  shortenAddress,
+  usdFormatter,
+  numeralFormatter,
+  groupedNumberFormatterDyn,
+  WSOL_MINT,
+} from "@mrgnlabs/mrgn-common";
+import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
@@ -44,6 +50,7 @@ import {
   IconRefresh,
   IconBell,
   IconArrowLeft,
+  IconWallet,
 } from "~/components/ui/icons";
 
 enum WalletState {
@@ -84,16 +91,32 @@ export const Wallet = () => {
   });
   const [walletTokenState, setWalletTokenState] = React.useState<WalletState>(WalletState.DEFAULT);
   const [activeToken, setActiveToken] = React.useState<Token | null>(null);
-
-  const resetWalletState = React.useCallback(() => {
-    setWalletTokenState(WalletState.DEFAULT);
-    setActiveToken(null);
-  }, []);
+  const [amountRaw, setAmountRaw] = React.useState("");
 
   const address = React.useMemo(() => {
     if (!wallet?.publicKey) return "";
     return shortenAddress(wallet?.publicKey?.toString());
   }, [wallet?.publicKey]);
+
+  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
+
+  const activeBank = React.useMemo(() => {
+    if (!activeToken) return null;
+    return extendedBankInfos.find((bank) => bank.address === activeToken.address);
+  }, [activeToken, extendedBankInfos]);
+
+  const maxAmount = React.useMemo(() => {
+    if (!activeBank) return 0;
+    return activeBank.info.state.mint.equals(WSOL_MINT)
+      ? activeBank.userInfo.tokenAccount.balance + nativeSolBalance
+      : activeBank.userInfo.tokenAccount.balance;
+  }, [activeBank, nativeSolBalance]);
+
+  const resetWalletState = React.useCallback(() => {
+    setWalletTokenState(WalletState.DEFAULT);
+    setActiveToken(null);
+    setAmountRaw("");
+  }, []);
 
   const getWalletData = React.useCallback(async () => {
     if (isFetchingWalletData || !wallet?.publicKey || !extendedBankInfos || isNaN(nativeSolBalance)) return;
@@ -175,6 +198,47 @@ export const Wallet = () => {
 
     setIsFetchingWalletData(false);
   }, [wallet?.publicKey, address, extendedBankInfos, nativeSolBalance, isFetchingWalletData]);
+
+  const formatAmount = React.useCallback(
+    (newAmount: string, bank: ExtendedBankInfo) => {
+      let formattedAmount: string, amount: number;
+      // Remove commas from the formatted string
+      const newAmountWithoutCommas = newAmount.replace(/,/g, "");
+      let decimalPart = newAmountWithoutCommas.split(".")[1];
+      const mintDecimals = bank?.info.state.mintDecimals ?? 9;
+
+      if (
+        (newAmount.endsWith(",") || newAmount.endsWith(".")) &&
+        !newAmount.substring(0, newAmount.length - 1).includes(".")
+      ) {
+        amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas);
+        formattedAmount = numberFormater.format(amount).concat(".");
+      } else {
+        const isDecimalPartInvalid = isNaN(Number.parseFloat(decimalPart));
+        if (!isDecimalPartInvalid) decimalPart = decimalPart.substring(0, mintDecimals);
+        decimalPart = isDecimalPartInvalid
+          ? ""
+          : ".".concat(Number.parseFloat("1".concat(decimalPart)).toString().substring(1));
+        amount = isNaN(Number.parseFloat(newAmountWithoutCommas)) ? 0 : Number.parseFloat(newAmountWithoutCommas);
+        formattedAmount = numberFormater.format(amount).split(".")[0].concat(decimalPart);
+      }
+
+      if (amount > maxAmount) {
+        return numberFormater.format(maxAmount);
+      } else {
+        return formattedAmount;
+      }
+    },
+    [numberFormater, maxAmount]
+  );
+
+  const handleInputChange = React.useCallback(
+    (newAmount: string) => {
+      if (!activeBank) return;
+      setAmountRaw(formatAmount(newAmount, activeBank));
+    },
+    [setAmountRaw, activeBank, formatAmount]
+  );
 
   // fetch wallet data on mount and every 20 seconds
   React.useEffect(() => {
@@ -353,21 +417,60 @@ export const Wallet = () => {
                                 <h2 className="font-medium text-xl">Send {activeToken.symbol}</h2>
                               </div>
                             </div>
-                            <form className="w-4/5 flex flex-col gap-2">
-                              <div className="flex flex-col gap-2 w-full">
-                                <Label htmlFor="toAddress">
-                                  <Input type="text" id="sendToAddress" placeholder="Recipient's Solana address" />
-                                </Label>
-                                <Label htmlFor="sendAmount" className="relative">
-                                  <Input type="text" id="sendAmount" placeholder="Amount" />
-                                  <span className="absolute right-2 top-2.5">{activeToken.symbol}</span>
-                                </Label>
+                            <form className="w-4/5 flex flex-col gap-6">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2 justify-end text-sm">
+                                  <IconWallet size={16} />
+                                  {activeToken.value < 0.01
+                                    ? "< 0.01"
+                                    : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
+                                  <button
+                                    className={cn(
+                                      "text-chartreuse border-b border-transparent transition-colors",
+                                      maxAmount > 0 && "cursor-pointer hover:border-chartreuse"
+                                    )}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      setAmountRaw(numberFormater.format(maxAmount));
+                                    }}
+                                    disabled={maxAmount === 0}
+                                  >
+                                    MAX
+                                  </button>
+                                </div>
+                                <div className="flex flex-col gap-3">
+                                  <Label htmlFor="sendAmount" className="relative">
+                                    <Input
+                                      type="text"
+                                      id="sendAmount"
+                                      required
+                                      placeholder="Amount"
+                                      value={amountRaw}
+                                      onChange={(e) => handleInputChange(e.target.value)}
+                                    />
+                                  </Label>
+                                  <Label htmlFor="toAddress">
+                                    <Input
+                                      type="text"
+                                      id="sendToAddress"
+                                      required
+                                      placeholder="Recipient's Solana address"
+                                    />
+                                  </Label>
+                                </div>
                               </div>
                               <div className="flex gap-2 w-full">
                                 <Button type="submit" className="w-full">
                                   Send
                                 </Button>
-                                <Button type="submit" variant="destructive" className="w-full">
+                                <Button
+                                  variant="destructive"
+                                  className="w-full"
+                                  onClick={() => {
+                                    setWalletTokenState(WalletState.TOKEN);
+                                    setAmountRaw("");
+                                  }}
+                                >
                                   Cancel
                                 </Button>
                               </div>
