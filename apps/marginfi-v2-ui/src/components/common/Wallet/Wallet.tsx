@@ -538,6 +538,7 @@ export const Wallet = () => {
                           onLoad={() => {
                             setIsSwapLoaded(true);
                           }}
+                          initialInputMint={activeBank?.info.state.mint}
                         />
                         {isSwapLoaded && (
                           <div className="px-5">
