@@ -354,3 +354,15 @@ input::-webkit-inner-spin-button {
   font-family: "Aeonik Pro" !important;
   font-weight: 500 !important;
 }
+
+#jupiter-terminal li.cursor-pointer.list-none > div {
+  background: #1b2022;
+}
+
+#jupiter-terminal > div > div > div > div > div.flex.justify-center.mt-12 {
+  margin-top: 0 !important;
+}
+
+#jupiter-terminal > div > div > div > div > div.mt-auto.px-5.pb-4.flex.space-x-2 {
+  padding: 0 !important;
+}
