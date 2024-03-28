@@ -14,9 +14,10 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 
 type SwapProps = {
   onLoad?: () => void;
+  initialInputMint?: PublicKey;
 };
 
-export const Swap = ({ onLoad }: SwapProps) => {
+export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
   const { walletContextState } = useWalletContext();
   const [loadTimestamp, setLoadTimestamp] = React.useState(0);
   const router = useRouter();
@@ -33,6 +34,43 @@ export const Swap = ({ onLoad }: SwapProps) => {
     return pk;
   }, [router.query]);
 
+  const handleOnReady = React.useCallback(() => {
+    if (!window.Jupiter) return;
+
+    window.Jupiter.init({
+      displayMode: "integrated",
+      integratedTargetId: "integrated-terminal",
+      endpoint: config.rpcEndpoint,
+      passThroughWallet: walletContextState.wallet,
+      onSuccess: ({ txid }: { txid: string }) => {
+        capture("user_swap", {
+          txn: txid,
+        });
+      },
+      formProps: {
+        initialInputMint: initialInputMint
+          ? initialInputMint.toBase58()
+          : initialMint
+          ? initialMint.toBase58()
+          : undefined,
+      },
+    });
+    const currentTime = Date.now();
+    const timeElapsed = currentTime - loadTimestamp;
+    const delay = Math.max(0, 1000 - timeElapsed);
+    setTimeout(() => {
+      onLoad && onLoad();
+    }, delay);
+  }, [initialInputMint, loadTimestamp, onLoad, walletContextState.wallet, initialMint]);
+
+  React.useEffect(() => {
+    if (!initialInputMint) {
+      return;
+    }
+
+    handleOnReady();
+  }, [initialInputMint, handleOnReady]);
+
   if (loadTimestamp === 0) {
     setLoadTimestamp(Date.now());
   }
@@ -41,26 +79,7 @@ export const Swap = ({ onLoad }: SwapProps) => {
     <Script
       src="https://terminal.jup.ag/main-v2.js"
       onReady={() => {
-        window.Jupiter.init({
-          displayMode: "integrated",
-          integratedTargetId: "integrated-terminal",
-          endpoint: config.rpcEndpoint,
-          passThroughWallet: walletContextState.wallet,
-          onSuccess: ({ txid }: { txid: string }) => {
-            capture("user_swap", {
-              txn: txid,
-            });
-          },
-          formProps: {
-            initialInputMint: initialMint ? initialMint.toBase58() : undefined,
-          },
-        });
-        const currentTime = Date.now();
-        const timeElapsed = currentTime - loadTimestamp;
-        const delay = Math.max(0, 1000 - timeElapsed);
-        setTimeout(() => {
-          onLoad && onLoad();
-        }, delay);
+        handleOnReady();
       }}
     />
   );
