@@ -18,7 +18,7 @@ import {
   cn,
   capture,
   executeLstAction,
-  clampedNumeralFormatter,
+  getBlockedActions,
 } from "~/utils";
 import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -122,6 +122,14 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   // Either a staking account is selected or a bank
+  const isActionDisabled = React.useMemo(() => {
+    const blockedActions = getBlockedActions();
+
+    if (blockedActions?.find((value) => value === actionMode)) return true;
+
+    return false;
+  }, [actionMode]);
+
   const selectedStakingAccount = React.useMemo(
     () => (selectedTokenBank ? stakeAccounts.find((acc) => acc.address.equals(selectedTokenBank)) ?? null : null),
     [selectedTokenBank, stakeAccounts]
@@ -723,6 +731,21 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
 
   if (!isInitialized) {
     return null;
+  }
+
+  if (isActionDisabled) {
+    return (
+      <div className="flex flex-col items-center">
+        <div
+          className={cn(
+            "p-4 md:p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative",
+            isDialog && "py-5 border border-background-gray-light/50"
+          )}
+        >
+          Action is temporary disabled. <br /> Visit our socials for more information.
+        </div>
+      </div>
+    );
   }
 
   return (
