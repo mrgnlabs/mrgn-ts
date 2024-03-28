@@ -150,12 +150,12 @@ const projects = [
     },
   },
   {
-    title: "Hiemdall",
+    title: "Heimdall",
     description: "Account monitoring bot for Telegram",
     url: "https://t.me/HeimdallWatchBot",
     author: {
-      name: "Hiemdall",
-      avatar: "/hiemdall.jpg",
+      name: "Heimdall",
+      avatar: "/heimdall.jpg",
     },
   },
 ];
