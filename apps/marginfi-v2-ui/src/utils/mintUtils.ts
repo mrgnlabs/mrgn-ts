@@ -48,3 +48,24 @@ export const signUpYbx = async (
 
   return;
 };
+
+export async function fetchMintOverview(mint: string): Promise<any> {
+  const response = await fetch(`/api/birdeye/overview?mint=${mint}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const responseBody = await response.json();
+  if (responseBody.success) {
+    const volume = responseBody.data.v24h;
+    return mints.map((mint) => {
+      const price = prices.get(mint.toBase58());
+      if (!price) throw new Error(`Failed to fetch price for ${mint.toBase58()}`);
+      return price;
+    });
+  }
+
+  throw new Error("Failed to fetch price");
+}
