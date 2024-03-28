@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Fetch from API and update cache
   try {
-    const response = await fetch(`${BIRDEYE_API}/public/multi_price?list_address=${mintList}`, {
+    const response = await fetch(`${BIRDEYE_API}/defi/multi_price?list_address=${mintList}`, {
       headers: {
         Accept: "application/json",
         "X-Api-Key": process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || "",
