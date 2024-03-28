@@ -51,6 +51,7 @@ import {
   IconBell,
   IconArrowLeft,
   IconWallet,
+  IconTrophy,
 } from "~/components/ui/icons";
 
 enum WalletState {
@@ -519,7 +520,39 @@ export const Wallet = () => {
                     </div>
                   )}
                 </TabsContent>
-                <TabsContent value="points">Points</TabsContent>
+                <TabsContent value="points">
+                  <div className="flex flex-col items-center pt-8">
+                    <p className="font-medium text-4xl flex flex-col justify-center">
+                      <span className="text-sm font-normal text-muted-foreground text-center">Your points</span>
+                      {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
+                    </p>
+                    {userPointsData.userRank && (
+                      <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
+                        <span className="text-sm font-normal text-muted-foreground">Your rank</span> #
+                        {groupedNumberFormatterDyn.format(userPointsData.userRank)}
+                      </div>
+                    )}
+                    <ul className="space-y-2 mt-4">
+                      <li>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={() => {
+                            setIsWalletOpen(false);
+                            router.push("/points");
+                          }}
+                        >
+                          <IconTrophy size={16} /> Points Leaderboard
+                        </Button>
+                      </li>
+                      <li>
+                        <Button variant="outline" className="w-full justify-start">
+                          <IconCopy size={16} /> Copy referral code
+                        </Button>
+                      </li>
+                    </ul>
+                  </div>
+                </TabsContent>
               </Tabs>
             </div>
           ) : (
