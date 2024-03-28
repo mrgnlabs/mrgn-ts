@@ -3,37 +3,30 @@ import React from "react";
 import Link from "next/link";
 import { JupiterProvider } from "@jup-ag/react-hook";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { numeralFormatter, percentFormatterDyn, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { groupedNumberFormatterDyn, numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
+import { LST_MINT } from "~/store/lstStore";
 
-import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { ActionComplete } from "~/components/common/ActionComplete";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import {
   IconYBX,
   IconLST,
-  IconCheck,
   IconExternalLink,
-  IconBell,
   IconMeteora,
   IconRaydium,
   IconOrca,
   IconSol,
   IconUsd,
 } from "~/components/ui/icons";
-import { Input } from "~/components/ui/input";
 import { Loader } from "~/components/ui/loader";
-import { LST_MINT } from "~/store/lstStore";
-import { PublicKey } from "@solana/web3.js";
 import { YbxDialogNotifications } from "~/components/common/Mint/YbxDialogNotifications";
 import { MintCardWrapper, YbxDialogPartner } from "~/components/common/Mint";
-import { MintCardProps, MintPageState } from "~/utils";
+import { MintCardProps, MintOverview, MintPageState, fetchMintOverview } from "~/utils";
 
 const integrationsData: {
   title: string;
@@ -128,6 +121,7 @@ export default function MintPage() {
   const [ybxPartnerDialogOpen, setYbxPartnerDialogOpen] = React.useState(false);
   const [lstDialogOpen, setLSTDialogOpen] = React.useState(false);
   const [integrations, setIntegrations] = React.useState<any[]>([]);
+  const [lstOverview, setLstOverview] = React.useState<MintOverview>();
 
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -139,6 +133,19 @@ export default function MintPage() {
     state.setIsRefreshingStore,
     state.lstData,
   ]);
+
+  React.useEffect(() => {
+    fetchVolumeData();
+  }, []);
+
+  const fetchVolumeData = async () => {
+    try {
+      const overview = await fetchMintOverview(LST_MINT.toString());
+      setLstOverview(overview);
+    } catch (error) {
+      console.error("Something went wrong fetching LST volume");
+    }
+  };
 
   React.useEffect(() => {
     const fetchData = () => {
@@ -180,8 +187,8 @@ export default function MintPage() {
         icon: IconLST,
         description: "Accrues value against SOL",
         features: ["Earn 7% APY", "Pay 0% fees", "Access $3 million in liquidity"],
-        volume: `234,345 LST`,
-        volumeUsd: `$234,345.45`,
+        volume: lstOverview?.volumeUsd ? `${groupedNumberFormatterDyn.format(lstOverview?.volume)} LST` : "-",
+        volumeUsd: lstOverview?.volumeUsd ? usdFormatter.format(lstOverview?.volumeUsd) : "-",
         action: () => setLSTDialogOpen(true),
       } as MintCardProps,
       {
@@ -198,7 +205,7 @@ export default function MintPage() {
         },
       } as MintCardProps,
     ],
-    [lstData]
+    [lstOverview]
   );
 
   React.useEffect(() => {
@@ -241,7 +248,7 @@ export default function MintPage() {
     };
 
     fetchIntegrations();
-  }, [integrationsData]);
+  }, []);
 
   return (
     <>
@@ -253,8 +260,11 @@ export default function MintPage() {
               <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
                 <div className="text-3xl font-medium text-center">
                   <h1 className="leading-loose">Inflation protected</h1>
-                  <div>
-                    <IconSol size={32} className="inline" /> SOL and <IconUsd size={32} className="inline" /> USD
+                  <div className=" leading-none flex items-center gap-2 justify-center">
+                    <IconSol size={32} />
+                    <p>SOL and</p>
+                    <IconUsd size={32} />
+                    <p>USD</p>
                   </div>
                   <p className="text-sm text-muted-foreground pb-9 pt-6">
                     The two most important assets on Solana are SOL and USD. With YBX and LST, interest compounds

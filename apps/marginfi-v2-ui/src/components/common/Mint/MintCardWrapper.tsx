@@ -2,14 +2,15 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { MintCardProps } from "~/utils";
+import { MintCardProps, getBlockedActions } from "~/utils";
 import { useMrgnlendStore } from "~/store";
 
-import { IconCheck, IconBell, IconSol } from "~/components/ui/icons";
+import { IconCheck, IconBell } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { LST_MINT } from "~/store/lstStore";
+import { PublicKey } from "@solana/web3.js";
 
 interface MintCardWrapperProps {
   mintCard: MintCardProps;
@@ -19,6 +20,8 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
   const [requestedAction, setRequestedAction] = React.useState<ActionType>(ActionType.MintLST);
+
+  const transformedActionGate = React.useMemo(() => getBlockedActions(), []);
 
   const requestedToken = React.useMemo(
     () =>
@@ -30,7 +33,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
     <Card variant="default" className="relative">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
-          <div className="absolute top-[-12px] h-[24px] flex gap-2 items-center text-sm font-normal bg-chartreuse text-black px-3 rounded-[100px]">
+          <div className="absolute top-[-14px] h-[28px] flex gap-2 items-center text-sm font-normal bg-chartreuse text-black px-2 py-3 rounded-[100px]">
             <div>
               <mintCard.labelIcon size={22} />
             </div>
@@ -38,7 +41,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
           </div>
           <mintCard.icon />
           <div className="flex flex-col">
-            <h3>{mintCard.title}</h3>
+            <h3 className="leading-none">{mintCard.title}</h3>
             <p className="text-sm text-muted-foreground">{mintCard.description}</p>
           </div>
         </CardTitle>
@@ -87,25 +90,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
               </Button>
             </div>
           </ActionBoxDialog>
-        ) : (
-          // <ActionBoxDialog
-          //   requestedAction={ActionType.MintYBX}
-          //   requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
-          //   isActionBoxTriggered={ybxDialogOpen}
-          // >
-          //   <Button
-          //     variant="secondary"
-          //     size="lg"
-          //     className="mt-4"
-          //     onClick={() => {
-          //       if (item.action) {
-          //         item.action();
-          //       }
-          //     }}
-          //   >
-          //     Mint {item.title}
-          //   </Button>
-          // </ActionBoxDialog>
+        ) : transformedActionGate?.find((value) => value === ActionType.MintYBX) ? (
           <div className="flex items-center gap-2 mt-3">
             <Button
               variant="secondary"
@@ -120,6 +105,17 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
               <IconBell size={16} /> Early Access
             </Button>
           </div>
+        ) : (
+          <ActionBoxDialog
+            requestedAction={ActionType.MintYBX}
+            requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
+          >
+            <div className="flex items-center gap-2 mt-3">
+              <Button variant="secondary" size="lg" className="mt-4">
+                Mint
+              </Button>
+            </div>
+          </ActionBoxDialog>
         )}
       </CardContent>
     </Card>

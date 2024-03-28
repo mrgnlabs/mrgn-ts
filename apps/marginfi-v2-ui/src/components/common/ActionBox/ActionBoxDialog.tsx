@@ -39,6 +39,18 @@ export const ActionBoxDialog = ({
     [extendedBankInfos, requestedToken]
   );
 
+  const titleText = React.useMemo(() => {
+    if (
+      requestedAction === ActionType.MintLST ||
+      requestedAction === ActionType.MintYBX ||
+      requestedAction === ActionType.UnstakeLST
+    ) {
+      return `${requestedAction}`;
+    }
+
+    return `${requestedAction} ${selectedBank?.meta.tokenSymbol}`;
+  }, [requestedAction, selectedBank]);
+
   return (
     <Dialog open={isDialogOpen} modal={!isMobile} onOpenChange={(open) => setIsDialogOpen(open)}>
       <Mobile>
@@ -53,7 +65,7 @@ export const ActionBoxDialog = ({
               className="flex gap-2 items-center capitalize pl-2 cursor-pointer hover:underline"
               onClick={() => setIsDialogOpen(false)}
             >
-              <IconArrowLeft /> {`${requestedAction} ${selectedBank?.meta.tokenSymbol}`}
+              <IconArrowLeft /> {`${titleText}`}
             </div>
             <div className="p-4 h-screen mb-8">
               <ActionBox
