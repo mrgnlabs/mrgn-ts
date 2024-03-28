@@ -57,6 +57,7 @@ enum WalletState {
   DEFAULT = "default",
   TOKEN = "token",
   SEND = "send",
+  SELECT = "select",
   SWAP = "swap",
   POINTS = "points",
   NOTIS = "notis",
@@ -334,6 +335,7 @@ export const Wallet = () => {
                       <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
                       <TokenOptions walletAddress={walletData.address} setState={setWalletTokenState} />
                       <WalletTokens
+                        className="h-[calc(100vh-325px)] pb-16"
                         tokens={walletData.tokens}
                         onTokenClick={(token) => {
                           setActiveToken(token);
@@ -480,6 +482,24 @@ export const Wallet = () => {
                       </div>
                     </div>
                   )}
+                  {walletTokenState === WalletState.SELECT && (
+                    <div className="relative pt-12">
+                      <button
+                        className="absolute top-4 left-2 flex items-center gap-1 text-sm text-muted-foreground"
+                        onClick={() => resetWalletState()}
+                      >
+                        <IconArrowLeft size={16} /> back
+                      </button>
+                      <WalletTokens
+                        className="h-[calc(100vh-235px)]"
+                        tokens={walletData.tokens}
+                        onTokenClick={(token) => {
+                          setActiveToken(token);
+                          setWalletTokenState(WalletState.SEND);
+                        }}
+                      />
+                    </div>
+                  )}
                 </TabsContent>
                 <TabsContent value="points">Points</TabsContent>
               </Tabs>
@@ -540,6 +560,11 @@ function TokenOptions({ walletAddress, setState, setToken }: TokenOptionsProps) 
       <button
         className="flex flex-col gap-1 text-sm font-medium items-center"
         onClick={() => {
+          if (!setToken && !setToken) {
+            setState(WalletState.SELECT);
+            return;
+          }
+
           if (setToken) setToken();
           setState(WalletState.SEND);
         }}

@@ -23,9 +23,10 @@ export type Token = {
 type WalletTokensProps = {
   tokens: Token[];
   onTokenClick?: (token: Token) => void;
+  className?: string;
 };
 
-export const WalletTokens = ({ tokens, onTokenClick }: WalletTokensProps) => {
+export const WalletTokens = ({ tokens, onTokenClick, className }: WalletTokensProps) => {
   const [search, setSearch] = React.useState("");
 
   const filteredTokens = React.useMemo(() => {
@@ -36,7 +37,7 @@ export const WalletTokens = ({ tokens, onTokenClick }: WalletTokensProps) => {
   if (tokens.length === 0) return null;
 
   return (
-    <div className="space-y-4 pt-1 h-[calc(100vh-285px)]">
+    <div className={cn("space-y-4 pt-1", className)}>
       <div className="relative">
         <IconSearch className="absolute left-3 top-3 text-muted-foreground" size={14} />
         <Input
