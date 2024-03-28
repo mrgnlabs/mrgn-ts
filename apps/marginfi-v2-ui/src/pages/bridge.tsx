@@ -50,6 +50,8 @@ const rpcs = {
   polygon: process.env.NEXT_PUBLIC_POLYGON_ENDPOINT,
   avalanche: process.env.NEXT_PUBLIC_AVALANCE_ENDPOINT,
   arbitrum: process.env.NEXT_PUBLIC_ARBITRUM_ENDPOINT,
+  // Todo: add this please
+  //optimism: process.env.NEXT_PUBLIC_OPTIMISM_ENDPOINT,
 };
 const referrerAddress = "GhQ3NxahWcddaMa71rkDp1FdTfs2jBpjzCq3kzkv1mNZ";
 
@@ -64,8 +66,12 @@ const configs: MayanWidgetConfigType[] = [
         solana: tokens,
       },
     },
-    sourceChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "aptos"],
-    destinationChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "aptos"],
+    sourceChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "optimism"],
+    destinationChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "optimism"],
+
+    // TODO: add this please
+    //solanaExtraRPCs: [process.env.NEXT_PUBLIC_SECOND_RPC_ENDPOINT]
+
   },
 ];
 
@@ -106,28 +112,13 @@ export default function BridgePage() {
     }
   }, [walletContextState, setIsWalletAuthDialogOpen]);
 
-  React.useEffect(() => {
-    if (typeof window !== "undefined" && typeof window.MayanSwap !== "undefined") {
-      window.MayanSwap.updateSolanaWallet({
-        signTransaction: walletContextState.signTransaction,
-        publicKey: walletAddress ? walletAddress.toString() : null,
-        onClickOnConnect: handleConnect,
-        onClickOnDisconnect: walletContextState.disconnect,
-      });
-    }
-  }, [walletContextState, handleConnect, walletAddress]);
-
   const handleLoadMayanWidget = React.useCallback(() => {
     const multiStepToast = new MultiStepToastHandle("Bridge", [{ label: `Cross-chain swap/bridge in progress` }]);
     const configIndex = isBridgeIn ? 0 : 1;
-    const config = {
+    const config: MayanWidgetConfigType = {
       ...configs[configIndex],
-      solanaWallet: {
-        publicKey: walletAddress ? walletAddress.toString() : null,
-        signTransaction: walletContextState.signTransaction,
-        onClickOnConnect: handleConnect,
-        onClickOnDisconnect: walletContextState.disconnect,
-      },
+      // With current useWalletContext it's impossible to make pass through work
+      enableSolanaPassThrough: false,
     };
     window.MayanSwap.init("swap_widget", config);
     window.MayanSwap.setSwapInitiateListener((data) => {
@@ -155,11 +146,7 @@ export default function BridgePage() {
       setIsLoaded(true);
     }, delay);
   }, [
-    handleConnect,
     isBridgeIn,
-    walletAddress,
-    walletContextState.disconnect,
-    walletContextState.signTransaction,
     loadTimestamp,
   ]);
 
@@ -190,8 +177,8 @@ export default function BridgePage() {
     <>
       <div className="w-full h-full flex flex-col justify-start items-center content-start gap-8">
         <Script
-          src="https://cdn.mayan.finance/widget_solana-0-4-5.js"
-          integrity="sha256-mTVQLKvE422WDwtZQUcz/9u5ZK3T1vMfSO0omQvla0E="
+          src="https://cdn.mayan.finance/mayan_widget_v_1_0_4.js"
+          integrity="sha256-KMbL2Wueq2Qco+SmBP80wsVpIA6rtuy5Ng+QFZjnfTw="
           crossOrigin="anonymous"
           onReady={handleLoadMayanWidget}
         />

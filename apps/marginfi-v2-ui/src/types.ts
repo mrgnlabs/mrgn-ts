@@ -6,7 +6,7 @@ import { QuoteResponseMeta } from "@jup-ag/react-hook";
 // Mayan types
 // ----------------------------------------------------------------------------
 
-export type MayanWidgetChainName = "solana" | "ethereum" | "bsc" | "polygon" | "avalanche" | "arbitrum" | "aptos";
+export type MayanWidgetChainName = "solana" | "ethereum" | "bsc" | "polygon" | "avalanche" | "arbitrum" | "optimism";
 
 // visit the Figma link below to see the color palette
 // https://www.figma.com/community/file/1236300242311853150/Mayan-Widget
@@ -42,12 +42,21 @@ export type MayanWidgetColors = {
   toastBgGreen?: string;
 };
 export type MayanWidgetConfigType = {
+  // Constants
+  enableSolanaPassThrough?: boolean;
   appIdentity: {
     uri: string;
     icon: string; //should be relative
     name: string;
   }; //use for  Wallet Adapter
+  setDefaultToken?: boolean;
+
+  // Init override
   rpcs?: { [index in MayanWidgetChainName]?: string };
+  solanaExtraRpcs?: string[];
+  defaultGasDrop?: { [index in MayanWidgetChainName]?: number };
+
+  // Deeplink
   sourceChains?: MayanWidgetChainName[];
   destinationChains?: MayanWidgetChainName[];
   tokens?: {
@@ -55,21 +64,12 @@ export type MayanWidgetConfigType = {
     to?: { [index in MayanWidgetChainName]?: string[] };
     featured?: { [index in MayanWidgetChainName]?: string[] };
   };
-  defaultGasDrop?: { [index in MayanWidgetChainName]?: number };
   referrerAddress?: string;
+  referrerBps?: number;
+
+  // Theme
+  isNarrow?: boolean;
   colors?: MayanWidgetColors;
-};
-
-export type TransactionSigner = (transaction: Transaction) => Promise<Transaction> | null | undefined;
-export type SolanaWalletData = {
-  publicKey?: string | null;
-  signTransaction?: TransactionSigner | null;
-  onClickOnConnect: () => void;
-  onClickOnDisconnect: () => void;
-};
-
-export type MayanWidgetSolanaConfigType = MayanWidgetConfigType & {
-  solanaWallet: SolanaWalletData;
 };
 
 export type MayanSwapInfo = {
