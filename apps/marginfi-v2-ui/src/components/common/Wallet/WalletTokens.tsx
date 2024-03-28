@@ -2,10 +2,15 @@ import React from "react";
 
 import Image from "next/image";
 
+import { PublicKey } from "@solana/web3.js";
+
+import { cn } from "~/utils";
+
 import { IconSearch } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 
 export type Token = {
+  address: PublicKey;
   name: string;
   symbol: string;
   image: string;
@@ -17,9 +22,10 @@ export type Token = {
 
 type WalletTokensProps = {
   tokens: Token[];
+  onTokenClick?: (token: Token) => void;
 };
 
-export const WalletTokens = ({ tokens }: WalletTokensProps) => {
+export const WalletTokens = ({ tokens, onTokenClick }: WalletTokensProps) => {
   const [search, setSearch] = React.useState("");
 
   const filteredTokens = React.useMemo(() => {
@@ -30,7 +36,7 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
   if (tokens.length === 0) return null;
 
   return (
-    <div className="space-y-4 pt-1">
+    <div className="space-y-4 pt-1 h-[calc(100vh-285px)]">
       <div className="relative">
         <IconSearch className="absolute left-3 top-3 text-muted-foreground" size={14} />
         <Input
@@ -41,11 +47,15 @@ export const WalletTokens = ({ tokens }: WalletTokensProps) => {
           onChange={(e) => setSearch(e.currentTarget.value)}
         />
       </div>
-      <div className="space-y-2 max-h-[308px] overflow-auto">
+      <div className="space-y-2 overflow-auto h-full">
         {filteredTokens.map((token, index) => (
           <div
             key={index}
-            className="flex items-center justify-between font-normal bg-background-gray-dark p-3 rounded-md gap-4"
+            className={cn(
+              "flex items-center justify-between font-normal bg-background-gray-dark p-3 rounded-md gap-4",
+              onTokenClick && "cursor-pointer"
+            )}
+            onClick={() => onTokenClick?.(token)}
           >
             <div className="flex items-center gap-3 w-3/5">
               {token.image && (

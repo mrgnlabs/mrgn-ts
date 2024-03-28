@@ -52,6 +52,8 @@ import {
   IconTrophy,
   IconHelp,
   IconBook,
+  IconLogout,
+  IconRefresh,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -824,6 +826,8 @@ export {
   IconTrophy,
   IconHelp,
   IconBook,
+  IconLogout,
+  IconRefresh,
 
   // customed icons
   IconBrandGoogle,
