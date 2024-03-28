@@ -310,7 +310,7 @@ export const Wallet = () => {
                   >
                     <IconBell size={18} />
                   </Button>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" onClick={() => logout()}>
                     <IconLogout size={18} />
                   </Button>
                 </div>
