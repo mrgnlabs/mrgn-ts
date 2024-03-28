@@ -322,3 +322,35 @@ input::-webkit-inner-spin-button {
 #MAYAN_SWAP_PV_ROOT {
   height: auto;
 }
+
+/* Jupiter Terminal Overrides */
+#jupiter-terminal a[href^="https://jup.ag/"]
+{
+  opacity: 0;
+  pointer-events: none;
+}
+
+#jupiter-terminal .bg-\[\#212128\] {
+  background: #111416 !important;
+}
+
+#jupiter-terminal .bg-jupiter-bg {
+  background: hsl(var(--background)) !important;
+}
+
+#jupiter-terminal button.bg-\[\#191B1F\].dark\:bg-black\/50 {
+  border-radius: 4px !important;
+  background: #fff !important;
+}
+
+#jupiter-terminal button.bg-\[\#191B1F\].dark\:bg-black\/50 div {
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+#jupiter-terminal button.bg-\[\#191B1F\].dark\:bg-black\/50 div span {
+  background: none !important;
+  color: #111416 !important;
+  font-family: "Aeonik Pro" !important;
+  font-weight: 500 !important;
+}

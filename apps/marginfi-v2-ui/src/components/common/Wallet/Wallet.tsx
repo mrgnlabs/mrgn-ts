@@ -93,6 +93,7 @@ export const Wallet = () => {
   const [walletTokenState, setWalletTokenState] = React.useState<WalletState>(WalletState.DEFAULT);
   const [activeToken, setActiveToken] = React.useState<Token | null>(null);
   const [amountRaw, setAmountRaw] = React.useState("");
+  const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
 
   const address = React.useMemo(() => {
     if (!wallet?.publicKey) return "";
@@ -501,15 +502,20 @@ export const Wallet = () => {
                     </div>
                   )}
                   {walletTokenState === WalletState.SWAP && (
-                    <div className="relative py-16">
-                      <button
-                        className="absolute top-4 left-5 flex items-center gap-1 text-sm text-muted-foreground"
-                        onClick={() => resetWalletState()}
-                      >
-                        <IconArrowLeft size={16} /> back
-                      </button>
+                    <div className="relative py-4">
                       <div className="max-w-[420px] px-3 transition-opacity" id="integrated-terminal"></div>
-                      <Swap />
+                      <Swap
+                        onLoad={() => {
+                          setIsSwapLoaded(true);
+                        }}
+                      />
+                      {isSwapLoaded && (
+                        <div className="px-5">
+                          <Button variant="destructive" size="lg" className="w-full" onClick={() => resetWalletState()}>
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </TabsContent>
