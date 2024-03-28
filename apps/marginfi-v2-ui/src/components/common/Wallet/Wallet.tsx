@@ -22,7 +22,6 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 import { showErrorToast } from "~/utils/toastUtils";
 import { getTokenImageURL, cn } from "~/utils";
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
   WalletAvatar,
   WalletSettings,
@@ -33,6 +32,7 @@ import {
   WalletIntroDialog,
 } from "~/components/common/Wallet";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { Swap } from "~/components/common/Swap";
 import { Sheet, SheetContent, SheetTrigger, SheetFooter } from "~/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Label } from "~/components/ui/label";
@@ -500,6 +500,18 @@ export const Wallet = () => {
                       />
                     </div>
                   )}
+                  {walletTokenState === WalletState.SWAP && (
+                    <div className="relative py-16">
+                      <button
+                        className="absolute top-4 left-5 flex items-center gap-1 text-sm text-muted-foreground"
+                        onClick={() => resetWalletState()}
+                      >
+                        <IconArrowLeft size={16} /> back
+                      </button>
+                      <div className="max-w-[420px] px-3 transition-opacity" id="integrated-terminal"></div>
+                      <Swap />
+                    </div>
+                  )}
                 </TabsContent>
                 <TabsContent value="points">Points</TabsContent>
               </Tabs>
@@ -574,7 +586,12 @@ function TokenOptions({ walletAddress, setState, setToken }: TokenOptionsProps) 
         </div>
         Send
       </button>
-      <button className="flex flex-col gap-1 text-sm font-medium items-center">
+      <button
+        className="flex flex-col gap-1 text-sm font-medium items-center"
+        onClick={() => {
+          setState(WalletState.SWAP);
+        }}
+      >
         <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
           <IconRefresh size={20} />
         </div>
