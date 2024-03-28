@@ -30,6 +30,7 @@ import {
   WalletOnramp,
   WalletPkDialog,
   WalletIntroDialog,
+  WalletNotis,
 } from "~/components/common/Wallet";
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Swap } from "~/components/common/Swap";
@@ -297,7 +298,16 @@ export const Wallet = () => {
                   </Button>
                 </CopyToClipboard>
                 <div className="absolute right-2 flex items-center gap-2">
-                  <Button variant="ghost" size="icon">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(walletTokenState === WalletState.NOTIS && "text-chartreuse")}
+                    onClick={() => {
+                      setWalletTokenState(
+                        walletTokenState === WalletState.NOTIS ? WalletState.DEFAULT : WalletState.NOTIS
+                      );
+                    }}
+                  >
                     <IconBell size={18} />
                   </Button>
                   <Button variant="ghost" size="icon">
@@ -305,255 +315,280 @@ export const Wallet = () => {
                   </Button>
                 </div>
               </header>
-              <Tabs defaultValue="tokens" className="py-8">
-                <TabsList className="flex items-center gap-4 bg-transparent px-16 mx-auto">
-                  <TabsTrigger
-                    value="tokens"
-                    className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
+              {walletTokenState === WalletState.NOTIS && (
+                <div className="relative pt-8 space-y-4">
+                  <button
+                    className="flex items-center gap-1 text-sm text-muted-foreground"
                     onClick={() => resetWalletState()}
                   >
-                    <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                      Tokens
-                    </span>
-                  </TabsTrigger>
-                  <TabsTrigger value="points" className="group w-1/3 bg-transparent data-[state=active]:bg-transparent">
-                    <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                      Points
-                    </span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="notifications"
-                    className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
-                    disabled
-                  >
-                    <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                      Activity
-                    </span>
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="tokens">
-                  {walletTokenState === WalletState.DEFAULT && (
-                    <div className="space-y-6 py-8">
-                      <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
-                      <TokenOptions walletAddress={walletData.address} setState={setWalletTokenState} />
-                      <WalletTokens
-                        className="h-[calc(100vh-325px)] pb-16"
-                        tokens={walletData.tokens}
-                        onTokenClick={(token) => {
-                          setActiveToken(token);
-                          setWalletTokenState(WalletState.TOKEN);
-                        }}
-                      />
-                    </div>
-                  )}
+                    <IconArrowLeft size={16} /> back
+                  </button>
+                  <WalletNotis />
+                </div>
+              )}
 
-                  {walletTokenState === WalletState.TOKEN && activeToken && (
-                    <div className="py-4">
-                      <div className="relative flex flex-col pt-6 gap-2">
-                        <button
-                          className="absolute top-0 left-12 flex items-center gap-1 text-sm text-muted-foreground"
-                          onClick={() => resetWalletState()}
-                        >
-                          <IconArrowLeft size={16} /> back
-                        </button>
-                        <div className="gap-2 text-center flex flex-col items-center">
-                          <Image
-                            src={getTokenImageURL(activeToken.symbol)}
-                            alt={activeToken.symbol}
-                            width={60}
-                            height={60}
-                            className="rounded-full"
-                          />
-                          <div className="space-y-0">
-                            <h2 className="font-medium text-3xl">
-                              {activeToken.value < 0.01
-                                ? "< 0.01"
-                                : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
-                            </h2>
-                            <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
+              {walletTokenState !== WalletState.NOTIS && (
+                <Tabs defaultValue="tokens" className="py-8">
+                  <TabsList className="flex items-center gap-4 bg-transparent px-16 mx-auto">
+                    <TabsTrigger
+                      value="tokens"
+                      className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
+                      onClick={() => resetWalletState()}
+                    >
+                      <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
+                        Tokens
+                      </span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="points"
+                      className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
+                    >
+                      <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
+                        Points
+                      </span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="notifications"
+                      className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
+                      disabled
+                    >
+                      <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
+                        Activity
+                      </span>
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="tokens">
+                    {walletTokenState === WalletState.DEFAULT && (
+                      <div className="space-y-6 py-8">
+                        <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
+                        <TokenOptions walletAddress={walletData.address} setState={setWalletTokenState} />
+                        <WalletTokens
+                          className="h-[calc(100vh-325px)] pb-16"
+                          tokens={walletData.tokens}
+                          onTokenClick={(token) => {
+                            setActiveToken(token);
+                            setWalletTokenState(WalletState.TOKEN);
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    {walletTokenState === WalletState.TOKEN && activeToken && (
+                      <div className="py-4">
+                        <div className="relative flex flex-col pt-6 gap-2">
+                          <button
+                            className="absolute top-0 left-12 flex items-center gap-1 text-sm text-muted-foreground"
+                            onClick={() => resetWalletState()}
+                          >
+                            <IconArrowLeft size={16} /> back
+                          </button>
+                          <div className="gap-2 text-center flex flex-col items-center">
+                            <Image
+                              src={getTokenImageURL(activeToken.symbol)}
+                              alt={activeToken.symbol}
+                              width={60}
+                              height={60}
+                              className="rounded-full"
+                            />
+                            <div className="space-y-0">
+                              <h2 className="font-medium text-3xl">
+                                {activeToken.value < 0.01
+                                  ? "< 0.01"
+                                  : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
+                              </h2>
+                              <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="space-y-6 mt-6">
-                          <TokenOptions
-                            walletAddress={walletData.address}
-                            setState={setWalletTokenState}
-                            setToken={() => {
-                              setActiveToken(activeToken);
-                            }}
-                          />
-                          <div className="space-y-3 mx-auto w-3/4">
-                            <ActionBoxDialog requestedToken={activeToken.address} requestedAction={ActionType.Deposit}>
-                              <Button className="w-full" variant="outline">
-                                Deposit
-                              </Button>
-                            </ActionBoxDialog>
-                            <ActionBoxDialog requestedToken={activeToken.address} requestedAction={ActionType.Borrow}>
-                              <Button className="w-full" variant="outline">
-                                Borrow
-                              </Button>
-                            </ActionBoxDialog>
+                          <div className="space-y-6 mt-6">
+                            <TokenOptions
+                              walletAddress={walletData.address}
+                              setState={setWalletTokenState}
+                              setToken={() => {
+                                setActiveToken(activeToken);
+                              }}
+                            />
+                            <div className="space-y-3 mx-auto w-3/4">
+                              <ActionBoxDialog
+                                requestedToken={activeToken.address}
+                                requestedAction={ActionType.Deposit}
+                              >
+                                <Button className="w-full" variant="outline">
+                                  Deposit
+                                </Button>
+                              </ActionBoxDialog>
+                              <ActionBoxDialog requestedToken={activeToken.address} requestedAction={ActionType.Borrow}>
+                                <Button className="w-full" variant="outline">
+                                  Borrow
+                                </Button>
+                              </ActionBoxDialog>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {walletTokenState === WalletState.SEND && (
-                    <div className="py-4">
-                      <div className="relative flex flex-col pt-6 gap-2">
+                    {walletTokenState === WalletState.SEND && (
+                      <div className="py-4">
+                        <div className="relative flex flex-col pt-6 gap-2">
+                          <button
+                            className="absolute top-0 left-12 flex items-center gap-1 text-sm text-muted-foreground"
+                            onClick={() => resetWalletState()}
+                          >
+                            <IconArrowLeft size={16} /> back
+                          </button>
+                          {activeToken && (
+                            <div className="gap-6 text-center flex flex-col items-center">
+                              <div className="gap-2 text-center flex flex-col items-center">
+                                <Image
+                                  src={getTokenImageURL(activeToken.symbol)}
+                                  alt={activeToken.symbol}
+                                  width={60}
+                                  height={60}
+                                  className="rounded-full"
+                                />
+                                <div className="space-y-0">
+                                  <h2 className="font-medium text-xl">Send {activeToken.symbol}</h2>
+                                </div>
+                              </div>
+                              <form className="w-4/5 flex flex-col gap-6">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2 justify-end text-sm">
+                                    <IconWallet size={16} />
+                                    {activeToken.value < 0.01
+                                      ? "< 0.01"
+                                      : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
+                                    <button
+                                      className={cn(
+                                        "text-chartreuse border-b border-transparent transition-colors",
+                                        maxAmount > 0 && "cursor-pointer hover:border-chartreuse"
+                                      )}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        setAmountRaw(numberFormater.format(maxAmount));
+                                      }}
+                                      disabled={maxAmount === 0}
+                                    >
+                                      MAX
+                                    </button>
+                                  </div>
+                                  <div className="flex flex-col gap-3">
+                                    <Label htmlFor="sendAmount" className="relative">
+                                      <Input
+                                        type="text"
+                                        id="sendAmount"
+                                        required
+                                        placeholder="Amount"
+                                        value={amountRaw}
+                                        onChange={(e) => handleInputChange(e.target.value)}
+                                      />
+                                    </Label>
+                                    <Label htmlFor="toAddress">
+                                      <Input
+                                        type="text"
+                                        id="sendToAddress"
+                                        required
+                                        placeholder="Recipient's Solana address"
+                                      />
+                                    </Label>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 w-full">
+                                  <Button type="submit" className="w-full">
+                                    Send
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    className="w-full"
+                                    onClick={() => {
+                                      setWalletTokenState(WalletState.TOKEN);
+                                      setAmountRaw("");
+                                    }}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </form>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {walletTokenState === WalletState.SELECT && (
+                      <div className="relative pt-12">
                         <button
-                          className="absolute top-0 left-12 flex items-center gap-1 text-sm text-muted-foreground"
+                          className="absolute top-4 left-2 flex items-center gap-1 text-sm text-muted-foreground"
                           onClick={() => resetWalletState()}
                         >
                           <IconArrowLeft size={16} /> back
                         </button>
-                        {activeToken && (
-                          <div className="gap-6 text-center flex flex-col items-center">
-                            <div className="gap-2 text-center flex flex-col items-center">
-                              <Image
-                                src={getTokenImageURL(activeToken.symbol)}
-                                alt={activeToken.symbol}
-                                width={60}
-                                height={60}
-                                className="rounded-full"
-                              />
-                              <div className="space-y-0">
-                                <h2 className="font-medium text-xl">Send {activeToken.symbol}</h2>
-                              </div>
-                            </div>
-                            <form className="w-4/5 flex flex-col gap-6">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2 justify-end text-sm">
-                                  <IconWallet size={16} />
-                                  {activeToken.value < 0.01
-                                    ? "< 0.01"
-                                    : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
-                                  <button
-                                    className={cn(
-                                      "text-chartreuse border-b border-transparent transition-colors",
-                                      maxAmount > 0 && "cursor-pointer hover:border-chartreuse"
-                                    )}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      setAmountRaw(numberFormater.format(maxAmount));
-                                    }}
-                                    disabled={maxAmount === 0}
-                                  >
-                                    MAX
-                                  </button>
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                  <Label htmlFor="sendAmount" className="relative">
-                                    <Input
-                                      type="text"
-                                      id="sendAmount"
-                                      required
-                                      placeholder="Amount"
-                                      value={amountRaw}
-                                      onChange={(e) => handleInputChange(e.target.value)}
-                                    />
-                                  </Label>
-                                  <Label htmlFor="toAddress">
-                                    <Input
-                                      type="text"
-                                      id="sendToAddress"
-                                      required
-                                      placeholder="Recipient's Solana address"
-                                    />
-                                  </Label>
-                                </div>
-                              </div>
-                              <div className="flex gap-2 w-full">
-                                <Button type="submit" className="w-full">
-                                  Send
-                                </Button>
-                                <Button
-                                  variant="destructive"
-                                  className="w-full"
-                                  onClick={() => {
-                                    setWalletTokenState(WalletState.TOKEN);
-                                    setAmountRaw("");
-                                  }}
-                                >
-                                  Cancel
-                                </Button>
-                              </div>
-                            </form>
+                        <WalletTokens
+                          className="h-[calc(100vh-235px)]"
+                          tokens={walletData.tokens}
+                          onTokenClick={(token) => {
+                            setActiveToken(token);
+                            setWalletTokenState(WalletState.SEND);
+                          }}
+                        />
+                      </div>
+                    )}
+                    {walletTokenState === WalletState.SWAP && (
+                      <div className="relative py-4">
+                        <div className="max-w-[420px] px-3 transition-opacity" id="integrated-terminal"></div>
+                        <Swap
+                          onLoad={() => {
+                            setIsSwapLoaded(true);
+                          }}
+                        />
+                        {isSwapLoaded && (
+                          <div className="px-5">
+                            <Button
+                              variant="destructive"
+                              size="lg"
+                              className="w-full"
+                              onClick={() => resetWalletState()}
+                            >
+                              Cancel
+                            </Button>
                           </div>
                         )}
                       </div>
-                    </div>
-                  )}
-                  {walletTokenState === WalletState.SELECT && (
-                    <div className="relative pt-12">
-                      <button
-                        className="absolute top-4 left-2 flex items-center gap-1 text-sm text-muted-foreground"
-                        onClick={() => resetWalletState()}
-                      >
-                        <IconArrowLeft size={16} /> back
-                      </button>
-                      <WalletTokens
-                        className="h-[calc(100vh-235px)]"
-                        tokens={walletData.tokens}
-                        onTokenClick={(token) => {
-                          setActiveToken(token);
-                          setWalletTokenState(WalletState.SEND);
-                        }}
-                      />
-                    </div>
-                  )}
-                  {walletTokenState === WalletState.SWAP && (
-                    <div className="relative py-4">
-                      <div className="max-w-[420px] px-3 transition-opacity" id="integrated-terminal"></div>
-                      <Swap
-                        onLoad={() => {
-                          setIsSwapLoaded(true);
-                        }}
-                      />
-                      {isSwapLoaded && (
-                        <div className="px-5">
-                          <Button variant="destructive" size="lg" className="w-full" onClick={() => resetWalletState()}>
-                            Cancel
-                          </Button>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="points">
+                    <div className="flex flex-col items-center pt-8">
+                      <p className="font-medium text-4xl flex flex-col justify-center">
+                        <span className="text-sm font-normal text-muted-foreground text-center">Your points</span>
+                        {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
+                      </p>
+                      {userPointsData.userRank && (
+                        <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
+                          <span className="text-sm font-normal text-muted-foreground">Your rank</span> #
+                          {groupedNumberFormatterDyn.format(userPointsData.userRank)}
                         </div>
                       )}
+                      <ul className="space-y-2 mt-4">
+                        <li>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start"
+                            onClick={() => {
+                              setIsWalletOpen(false);
+                              router.push("/points");
+                            }}
+                          >
+                            <IconTrophy size={16} /> Points Leaderboard
+                          </Button>
+                        </li>
+                        <li>
+                          <Button variant="outline" className="w-full justify-start">
+                            <IconCopy size={16} /> Copy referral code
+                          </Button>
+                        </li>
+                      </ul>
                     </div>
-                  )}
-                </TabsContent>
-                <TabsContent value="points">
-                  <div className="flex flex-col items-center pt-8">
-                    <p className="font-medium text-4xl flex flex-col justify-center">
-                      <span className="text-sm font-normal text-muted-foreground text-center">Your points</span>
-                      {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
-                    </p>
-                    {userPointsData.userRank && (
-                      <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
-                        <span className="text-sm font-normal text-muted-foreground">Your rank</span> #
-                        {groupedNumberFormatterDyn.format(userPointsData.userRank)}
-                      </div>
-                    )}
-                    <ul className="space-y-2 mt-4">
-                      <li>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setIsWalletOpen(false);
-                            router.push("/points");
-                          }}
-                        >
-                          <IconTrophy size={16} /> Points Leaderboard
-                        </Button>
-                      </li>
-                      <li>
-                        <Button variant="outline" className="w-full justify-start">
-                          <IconCopy size={16} /> Copy referral code
-                        </Button>
-                      </li>
-                    </ul>
-                  </div>
-                </TabsContent>
-              </Tabs>
+                  </TabsContent>
+                </Tabs>
+              )}
             </div>
           ) : (
             <p>Loading...</p>
