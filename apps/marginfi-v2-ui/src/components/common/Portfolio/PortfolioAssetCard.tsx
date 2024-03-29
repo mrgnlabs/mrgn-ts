@@ -54,42 +54,64 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
         value="key-1"
         className="bg-background-gray transition rounded-xl px-3 data-[state=closed]:hover:bg-background-gray-light"
       >
-        <AccordionTrigger className="hover:no-underline outline-none">
-          <div className="flex justify-between items-center w-full gap-2">
-            <div className="flex text-left gap-3">
-              <div className="flex items-center">
-                <Image
-                  src={getTokenImageURL(bank.meta.tokenSymbol)}
-                  className="rounded-full"
-                  alt={bank.meta.tokenSymbol}
-                  height={40}
-                  width={40}
-                />
+        <AccordionTrigger className="hover:no-underline outline-none py-3 [&[data-state=open]>div>div>#health-label]:opacity-0 [&[data-state=open]>div>div>#health-label]:mb-[-24px]">
+          <div className="w-full space-y-1 ">
+            <div className="flex justify-between items-center w-full gap-2">
+              <div className="flex text-left gap-3">
+                <div className="flex items-center">
+                  <Image
+                    src={getTokenImageURL(bank.meta.tokenSymbol)}
+                    className="rounded-full"
+                    alt={bank.meta.tokenSymbol}
+                    height={40}
+                    width={40}
+                  />
+                </div>
+                <dl>
+                  <dt className="font-medium text-lg">{bank.meta.tokenSymbol}</dt>
+                  <dd className={cn("text-sm font-normal", isInLendingMode ? "text-success" : "text-warning")}>
+                    {rateAP.concat(...[" ", "APY"])}
+                  </dd>
+                </dl>
               </div>
-              <dl>
-                <dt className="font-medium text-lg">{bank.meta.tokenSymbol}</dt>
-                <dd className={cn("text-sm font-normal", isInLendingMode ? "text-success" : "text-warning")}>
-                  {rateAP.concat(...[" ", "APY"])}
-                </dd>
-              </dl>
+              <div className="font-medium text-lg mr-2">
+                {bank.position.amount < 0.01 ? "< $0.01" : numeralFormatter(bank.position.amount)}
+                {" " + bank.meta.tokenSymbol}
+              </div>
             </div>
-            <div className="font-medium text-lg mr-2">
-              {bank.position.amount < 0.01 ? "< $0.01" : numeralFormatter(bank.position.amount)}
-              {" " + bank.meta.tokenSymbol}
+            <div className="flex flex-row w-full gap-2">
+              {isIsolated && (
+                <div className="flex w-fit text-muted-foreground bg-muted items-center rounded-3xl px-3 py-1 text-xs">
+                  <span>Isolated pool</span>
+                </div>
+              )}
+              {isUserPositionPoorHealth && (
+                <div
+                  id="health-label"
+                  className="flex w-[125px] bg-destructive transition-all duration-500 ease-in-out text-destructive-foreground items-center gap-1.5 items-center rounded-3xl text-xs px-3 py-1"
+                >
+                  <IconAlertTriangle width={"12px"} height={"12px"} />
+                  <span>Liquidation risk</span>
+                </div>
+              )}
             </div>
           </div>
         </AccordionTrigger>
-        <AccordionContent className="flex flex-col gap-3">
-          {isUserPositionPoorHealth && (
-            <div className="flex w-fit gap-2 text-error items-center border border-error rounded-3xl px-4 py-0.5">
-              <IconAlertTriangle width={"16px"} height={"16px"} />
-              <span>Liquidation risk</span>
-            </div>
-          )}
 
-          {isIsolated && (
-            <div className="flex w-fit gap-2 text-[#686E75] items-center border border-[#474c51] rounded-3xl px-3 pt-0.5 pb-1 text-xs">
-              <span>Isolated pool</span>
+        <AccordionContent
+          className="flex flex-col gap-3"
+          contentClassName="[&[data-state=open]>div>#health-label]:opacity-100"
+        >
+          {isUserPositionPoorHealth && (
+            <div
+              id="health-label"
+              className="flex flex-row gap-2 opacity-0 w-full transition-opacity duration-2000 ease-in bg-destructive text-destructive-foreground text-sm p-2.5 rounded-xl"
+            >
+              <IconAlertTriangle width={"16px"} height={"16px"} />
+              <div className="flex flex-col ">
+                <span>Liquidation risk</span>
+                <p>You need to add more collateral in order to sustain this position</p>
+              </div>
             </div>
           )}
 
