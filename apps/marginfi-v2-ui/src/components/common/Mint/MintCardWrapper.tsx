@@ -31,7 +31,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
   );
   return (
     <Card variant="default" className="relative">
-      <CardHeader>
+      <CardHeader className="pt-8">
         <CardTitle className="flex items-center gap-2 text-lg">
           <div className="absolute top-[-14px] h-[28px] flex gap-2 items-center text-sm font-normal bg-chartreuse text-black px-2 py-3 rounded-[100px]">
             <div>
