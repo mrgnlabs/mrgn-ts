@@ -258,15 +258,16 @@ export default function MintPage() {
           {initialized && (
             <>
               <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
-                <div className="text-3xl font-medium text-center">
+                <div className="text-4xl font-medium text-center -mt-4 max-w-xl mx-auto pb-10">
                   <h1 className="leading-loose">Inflation protected</h1>
-                  <div className=" leading-none flex items-center gap-2 justify-center">
+                  <div className="text-3xl leading-none flex items-center gap-2 justify-center">
                     <IconSol size={32} />
-                    <p>SOL and</p>
+                    <p>SOL</p>
+                    <p className="mx-2">and</p>
                     <IconUsd size={32} />
                     <p>USD</p>
                   </div>
-                  <p className="text-sm text-muted-foreground pb-9 pt-6">
+                  <p className="text-xl text-muted-foreground pb-9 pt-6 font-light">
                     The two most important assets on Solana are SOL and USD. With YBX and LST, interest compounds
                     automatically.
                   </p>
@@ -279,64 +280,62 @@ export default function MintPage() {
                 </div>
               </div>
 
-              {integrations.length > 0 && (
-                <div className="w-full py-8 px-4 md:px-10 xl:px-16 text-center">
-                  <h2 className="text-3xl font-medium mb-3">Integrations</h2>
-                  <p className="text-muted-foreground">
-                    Ready to integrate YBX?{" "}
-                    <button
-                      className="border-b border-primary text-primary transition-colors hover:text-chartreuse hover:border-chartreuse"
-                      onClick={() => setYbxPartnerDialogOpen(true)}
-                    >
-                      Become a launch partner.
-                    </button>
-                  </p>
-                  <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
-                    {integrations.map((item, i) => (
-                      <Card key={i} variant="default" className="min-w-[300px]">
-                        <CardHeader>
-                          <CardTitle className="flex items-center justify-center text-xl">
-                            <div className="flex items-center">
-                              {typeof item.baseIcon === "string" ? (
-                                <img src={item.baseIcon} className="w-10 h-10 rounded-full" />
-                              ) : (
-                                <item.baseIcon size={32} />
-                              )}
-                              {typeof item.quoteIcon === "string" ? (
-                                <img src={item.quoteIcon} className="z-10 w-10 h-10 rounded-full -translate-x-3" />
-                              ) : (
-                                <item.quoteIcon size={32} className="z-10 -translate-x-4" />
-                              )}
-                            </div>
-                            {item.title}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2">
-                            <li className="flex items-center justify-between gap-1">
-                              <span className="text-muted-foreground">TVL:</span> {item.info.tvl}
-                            </li>
-                            <li className="flex items-center justify-between gap-1">
-                              <span className="text-muted-foreground">24hr Vol:</span> {item.info.vol}
-                            </li>
-                          </ul>
-
-                          <Link href={item.link} target="_blank" rel="noreferrer" className="w-full">
-                            <Button variant="default" size="lg" className="mt-4 w-full">
-                              {item.action} <IconExternalLink size={20} />
-                            </Button>
-                          </Link>
-
-                          <div className="flex items-center gap-2 mt-4 justify-center">
-                            {item.platform.icon && <item.platform.icon size={24} />}
-                            <p className="text-muted-foreground text-sm">{item.platform.title}</p>
+              <div className="w-full py-8 px-4 md:px-10 xl:px-16 text-center">
+                <h2 className="text-3xl font-medium mb-3">Integrations</h2>
+                <p className="text-muted-foreground">
+                  Ready to integrate YBX?{" "}
+                  <button
+                    className="border-b border-primary text-primary transition-colors hover:text-chartreuse hover:border-chartreuse"
+                    onClick={() => setYbxPartnerDialogOpen(true)}
+                  >
+                    Become a launch partner.
+                  </button>
+                </p>
+                <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
+                  {integrations.map((item, i) => (
+                    <Card key={i} variant="default" className="min-w-[300px]">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-center text-xl">
+                          <div className="flex items-center">
+                            {typeof item.baseIcon === "string" ? (
+                              <img src={item.baseIcon} className="w-10 h-10 rounded-full" />
+                            ) : (
+                              <item.baseIcon size={32} />
+                            )}
+                            {typeof item.quoteIcon === "string" ? (
+                              <img src={item.quoteIcon} className="z-10 w-10 h-10 rounded-full -translate-x-3" />
+                            ) : (
+                              <item.quoteIcon size={32} className="z-10 -translate-x-4" />
+                            )}
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                          {item.title}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          <li className="flex items-center justify-between gap-1">
+                            <span className="text-muted-foreground">TVL:</span> {item.info.tvl}
+                          </li>
+                          <li className="flex items-center justify-between gap-1">
+                            <span className="text-muted-foreground">24hr Vol:</span> {item.info.vol}
+                          </li>
+                        </ul>
+
+                        <Link href={item.link} target="_blank" rel="noreferrer" className="w-full">
+                          <Button variant="default" size="lg" className="mt-4 w-full">
+                            {item.action} <IconExternalLink size={20} />
+                          </Button>
+                        </Link>
+
+                        <div className="flex items-center gap-2 mt-4 justify-center">
+                          {item.platform.icon && <item.platform.icon size={24} />}
+                          <p className="text-muted-foreground text-sm">{item.platform.title}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              )}
+              </div>
             </>
           )}
         </div>

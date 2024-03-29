@@ -164,7 +164,8 @@ export default function Ecosystem() {
   return (
     <>
       <div className="w-full xl:w-4/5 xl:max-w-7xl mx-auto px-4">
-        <div className="text-muted-foreground text-xl text-center mb-12">
+        <div className="text-muted-foreground text-xl text-center mb-12 space-y-4">
+          <h1 className="text-4xl font-medium text-primary">Ecosystem</h1>
           <p>
             Official and community projects powered by the marginfi SDK. <br className="hidden lg:block" />
             <Link
@@ -179,7 +180,7 @@ export default function Ecosystem() {
             for SDKs, examples, and more.
           </p>
 
-          <ul className="flex items-center gap-4 justify-center mt-4">
+          <ul className="flex items-center gap-4 justify-center pt-2">
             <li>
               <Link
                 href="https://discord.gg/mrgn"
