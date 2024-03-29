@@ -118,7 +118,7 @@ export const LstPreview = ({
       {children}
 
       {isEnabled && (
-        <dl className="grid grid-cols-2 gap-y-2 pt-6 text-sm text-white">
+        <dl className="grid grid-cols-2 gap-y-2 pt-6 text-xs text-white">
           <Stat label={"TVL"}>
             {lstData && solUsdValue ? (
               `$${numeralFormatter(lstData.tvl * solUsdValue)}`
