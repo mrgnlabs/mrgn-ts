@@ -7,8 +7,6 @@ interface PortfolioHeaderProps {
 }
 
 export const PortfolioHeader = ({ netValue, points }: PortfolioHeaderProps) => {
-  const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
-
   return (
     <div>
       <div className="text-center">
