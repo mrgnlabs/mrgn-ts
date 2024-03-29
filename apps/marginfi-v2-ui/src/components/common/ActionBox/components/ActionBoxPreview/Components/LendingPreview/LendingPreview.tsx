@@ -243,7 +243,8 @@ export const LendingPreview = ({
       {children}
 
       {isEnabled && selectedBank && (
-        <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-sm text-white")}>
+        <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs text-white")}>
+          <Stat label={`Platform fee`}>0.25%</Stat>
           <Stat label={`Your amount`}>
             {clampedNumeralFormatter(currentPositionAmount)} {selectedBank.meta.tokenSymbol}
             {preview && <IconArrowRight width={12} height={12} />}

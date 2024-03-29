@@ -30,7 +30,7 @@ export const YbxPreview = ({ selectedBank, isEnabled, amount, children }: Action
       {children}
 
       {isEnabled && selectedBank && (
-        <dl className="grid grid-cols-2 gap-y-2 pt-6 text-sm text-white">
+        <dl className="grid grid-cols-2 gap-y-2 pt-6 text-xs text-white">
           <Stat label={"Your mint account"}>0</Stat>
           <Stat label={"Liquidation price"}>
             0 <IconArrowRight width={12} height={12} /> 2
