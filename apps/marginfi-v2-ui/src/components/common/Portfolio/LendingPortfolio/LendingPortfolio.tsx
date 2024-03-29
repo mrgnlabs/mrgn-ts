@@ -126,7 +126,7 @@ export const LendingPortfolio = () => {
             {numeralFormatter(accountSummary.healthFactor * 100)}%
           </dd>
         </dl>
-        <div className="h-2 bg-background-gray-light mb-12">
+        <div className="h-2 bg-background-gray-light">
           <div
             className="h-2"
             style={{
@@ -135,12 +135,12 @@ export const LendingPortfolio = () => {
             }}
           />
         </div>
-        {/* <PortfolioUserStats
+        <PortfolioUserStats
           supplied={accountSupplied}
           borrowed={accountBorrowed}
           netValue={accountNetValue}
           points={numeralFormatter(userPointsData.totalPoints)}
-        /> */}
+        />
       </div>
       <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-20">
         <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
