@@ -392,12 +392,19 @@ export const ActionBox = ({
     const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
 
     if (amount !== 0) {
+      let isSolMint = false;
+      if (repayBank.info.state.mint.equals(SOL_MINT) || bank.info.state.mint.equals(SOL_MINT)) {
+        isSolMint = true;
+      }
       const quoteParams = {
         amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
         inputMint: repayBank.info.state.mint.toBase58(),
         outputMint: bank.info.state.mint.toBase58(),
         slippageBps: slippageBps,
-        swapMode: "ExactIn" as any,
+        maxAccounts: isSolMint ? 15 : 20,
+        platformFeeBps: 25,
+        swapMode: "ExactIn",
+        restrictIntermediateTokens: isSolMint ? true : false,
       } as QuoteGetRequest;
 
       try {
@@ -419,8 +426,8 @@ export const ActionBox = ({
       inputMint: repayBank.info.state.mint.toBase58(),
       outputMint: bank.info.state.mint.toBase58(),
       slippageBps: slippageBps,
+      platformFeeBps: 25,
       swapMode: "ExactOut",
-      onlyDirectRoutes: true,
     } as QuoteGetRequest;
 
     try {
@@ -759,14 +766,19 @@ export const ActionBox = ({
         }
 
         // Define quote parameters based on the current pair of tokens
+        let isSolMint = false;
+        if (mintA === SOL_MINT.toBase58() || mintB === SOL_MINT.toBase58()) {
+          isSolMint = true;
+        }
         const quoteParams = {
           amount: uiToNative(amoo, bankaObject.info.state.mintDecimals).toNumber(),
           inputMint: mintA,
           outputMint: mintB,
           slippageBps: 200,
+          maxAccounts: isSolMint ? 15 : 20,
+          platformFeeBps: 25,
           swapMode: "ExactIn",
-          maxAccounts: 20,
-          onlyDirectRoutes: true,
+          restrictIntermediateTokens: isSolMint ? true : false,
         } as QuoteGetRequest;
 
         // Attempt to get a swap quote for the current pair of tokens
