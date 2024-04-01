@@ -22,7 +22,9 @@ import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { IconAlertTriangle, IconBackpackWallet, IconYBX } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
-const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
+const AssetsList = dynamic(async () => (await import("~/components/desktop/NewAssetList")).NewAssetsList, {
+  ssr: false,
+});
 
 export default function HomePage() {
   const router = useRouter();
