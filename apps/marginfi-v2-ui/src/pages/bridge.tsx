@@ -50,8 +50,8 @@ const rpcs = {
   polygon: process.env.NEXT_PUBLIC_POLYGON_ENDPOINT,
   avalanche: process.env.NEXT_PUBLIC_AVALANCE_ENDPOINT,
   arbitrum: process.env.NEXT_PUBLIC_ARBITRUM_ENDPOINT,
-  // Todo: add this please
-  //optimism: process.env.NEXT_PUBLIC_OPTIMISM_ENDPOINT,
+  optimism: process.env.NEXT_PUBLIC_OPTIMISM_ENDPOINT,
+  base: process.env.NEXT_PUBLIC_BASE_ENDPOINT,
 };
 const referrerAddress = "GhQ3NxahWcddaMa71rkDp1FdTfs2jBpjzCq3kzkv1mNZ";
 
@@ -68,10 +68,7 @@ const configs: MayanWidgetConfigType[] = [
     },
     sourceChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "optimism"],
     destinationChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "optimism"],
-
-    // TODO: add this please
-    //solanaExtraRPCs: [process.env.NEXT_PUBLIC_SECOND_RPC_ENDPOINT]
-
+    solanaExtraRpcs: [process.env.NEXT_PUBLIC_SOLANA2_RPC_ENDPOINT],
   },
 ];
 
@@ -145,10 +142,7 @@ export default function BridgePage() {
     setTimeout(() => {
       setIsLoaded(true);
     }, delay);
-  }, [
-    isBridgeIn,
-    loadTimestamp,
-  ]);
+  }, [isBridgeIn, loadTimestamp]);
 
   const handleUpdateConfig = React.useCallback(() => {
     const newConfigIndex = isBridgeIn ? 1 : 0;
