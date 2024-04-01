@@ -9022,6 +9022,25 @@
     lodash.merge "^4.6.2"
     postcss-selector-parser "6.0.10"
 
+"@tanstack/react-table@^8.15.3":
+  version "8.15.3"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-table/-/react-table-8.15.3.tgz#9933222642d5d5bdaea5a78cf6c5d42aa86a1c22"
+  integrity sha512-aocQ4WpWiAh7R+yxNp+DGQYXeVACh5lv2kk96DjYgFiHDCB0cOFoYMT/pM6eDOzeMXR9AvPoLeumTgq8/0qX+w==
+  dependencies:
+    "@tanstack/table-core" "8.15.3"
+
+"@tanstack/solid-table@^8.15.3":
+  version "8.15.3"
+  resolved "https://registry.yarnpkg.com/@tanstack/solid-table/-/solid-table-8.15.3.tgz#d32fbd445e1921283475f43674e3b9d7ffbeab98"
+  integrity sha512-TIYmgpSGcvN+vq+T+0T7i2orDoeRMUZRAEJ7bbWdGWmQj/ppejkcCmhec6Lspk2IL9FP8KCyM6yRCSVRSzWFSQ==
+  dependencies:
+    "@tanstack/table-core" "8.15.3"
+
+"@tanstack/table-core@8.15.3":
+  version "8.15.3"
+  resolved "https://registry.yarnpkg.com/@tanstack/table-core/-/table-core-8.15.3.tgz#1a11cef82a458e90694bedfb40dcff610e69460e"
+  integrity sha512-wOgV0HfEvuMOv8RlqdR9MdNNqq0uyvQtP39QOvGlggHvIObOE4exS+D5LGO8LZ3LUXxId2IlUKcHDHaGujWhUg==
+
 "@tiplink/wallet-adapter-react-ui@^0.1.9":
   version "0.1.9"
   resolved "https://registry.yarnpkg.com/@tiplink/wallet-adapter-react-ui/-/wallet-adapter-react-ui-0.1.9.tgz#cfbebff67ed35999ec5a195d20610a83459ed4d6"
