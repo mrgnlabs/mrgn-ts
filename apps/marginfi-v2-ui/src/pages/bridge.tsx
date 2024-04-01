@@ -171,8 +171,8 @@ export default function BridgePage() {
     <>
       <div className="w-full h-full flex flex-col justify-start items-center content-start gap-8">
         <Script
-          src="https://cdn.mayan.finance/mayan_widget_v_1_0_4.js"
-          integrity="sha256-KMbL2Wueq2Qco+SmBP80wsVpIA6rtuy5Ng+QFZjnfTw="
+          src="https://cdn.mayan.finance/mayan_widget_v_1_0_6.js"
+          integrity="sha256-buhc9wKIHrtd5pQJtJdeNCqZq8KPAsqz5VPdg8G58ig="
           crossOrigin="anonymous"
           onReady={handleLoadMayanWidget}
         />
