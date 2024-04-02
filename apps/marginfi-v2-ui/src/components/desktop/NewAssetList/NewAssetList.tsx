@@ -23,21 +23,27 @@ import {
 } from "~/components/common/AssetList";
 import { Portfolio } from "~/components/common/Portfolio";
 import { LendingModes } from "~/types";
-import { Table, TableBody, TableCaption, TableCell, TableHeader, TableRow } from "~/components/ui/table";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { NewAssetRowHeader } from "./NewAssetRowHeader";
 import { NewAssetRow } from "./NewAssetRow";
 import { HeaderWrapper } from "./components";
 import { PriceBias, getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
-import { aprToApy, nativeToUi } from "@mrgnlabs/mrgn-common";
+import { aprToApy, nativeToUi, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { getTokenImageURL, isBankOracleStale } from "~/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { Badge } from "@mui/material";
+import { IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import Link from "next/link";
+import { getAsset, getAssetPrice, getBankCap, getRate } from "./AssetListUtils";
 
 interface AssetListModel {
-  asset: ExtendedBankMetadata;
-  price: AssetPrice;
-  rate: number;
-  weight: string;
-  bankCap: BankCap;
-  utilization: string;
-  walletAmount: string;
+  asset: React.JSX.Element;
+  price: React.JSX.Element;
+  rate: React.JSX.Element;
+  weight: React.JSX.Element;
+  bankCap: React.JSX.Element;
+  utilization: React.JSX.Element;
+  walletAmount: React.JSX.Element;
 }
 
 interface BankCap {
@@ -51,57 +57,15 @@ interface AssetPrice {
   assetPriceOffset: number;
 }
 
-const getBankCap = (bank: ExtendedBankInfo, isInLendingMode: boolean): BankCap => {
-  const bankCap = nativeToUi(
-    isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
-    bank.info.state.mintDecimals
-  );
-
-  const isBankFilled =
-    (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.99999;
-
-  const isBankHigh = (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.9;
-
-  return {
-    bankCap,
-    isBankFilled,
-    isBankHigh,
-  };
-};
-
-const getRate = (bank: ExtendedBankInfo, isInLendingMode: boolean) => {
-  const { lendingRate, borrowingRate, emissions, emissionsRate } = bank.info.state;
-
-  const interestRate = isInLendingMode ? lendingRate : borrowingRate;
-  const emissionRate = isInLendingMode
-    ? emissions == Emissions.Lending
-      ? emissionsRate
-      : 0
-    : emissions == Emissions.Borrowing
-    ? emissionsRate
-    : 0;
-
-  const rateAPR = interestRate + emissionRate;
-  return aprToApy(rateAPR);
-};
-
-const getAssetPrice = (bank: ExtendedBankInfo): AssetPrice => {
-  const assetPrice = getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber();
-
-  const assetPriceOffset = Math.max(
-    bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
-    bank.info.state.price - bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
-  );
-
-  return {
-    assetPrice,
-    assetPriceOffset,
-  };
-};
-
 const makeData = (data: ExtendedBankInfo[], isInLendingMode: boolean) => {
   return data.map(
-    (bank) => ({ asset: bank.meta, price: getAssetPrice(bank), rate: getRate(bank, isInLendingMode) } as AssetListModel)
+    (bank) =>
+      ({
+        asset: getAsset(bank.meta),
+        price: getAssetPrice(bank),
+        rate: getRate(bank, isInLendingMode),
+        bankCap: getBankCap(bank, isInLendingMode, false),
+      } as AssetListModel)
   );
 };
 
@@ -358,7 +322,9 @@ export const NewAssetsList = () => {
   );
 
   const tableData = React.useMemo(() => {
-    return makeData(extendedBankInfos, isInLendingMode);
+    const data = makeData(extendedBankInfos, isInLendingMode);
+    console.log({ data });
+    return data;
   }, [extendedBankInfos, isInLendingMode]);
 
   const tableColumns = React.useMemo(() => {
@@ -384,9 +350,45 @@ export const NewAssetsList = () => {
             </div>
           </TableCaption>
           <TableHeader>
-            <NewAssetRowHeader isInLendingMode={isInLendingMode} isGlobalPool={true} />
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+            {/* <NewAssetRowHeader isInLendingMode={isInLendingMode} isGlobalPool={true} /> */}
           </TableHeader>
           <TableBody>
+            {table.getRowModel().rows.map((row) => {
+              return (
+                <React.Fragment key={row.id}>
+                  <tr>
+                    {/* first row is a normal row */}
+                    {row.getVisibleCells().map((cell) => {
+                      return <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>;
+                    })}
+                  </tr>
+                  {row.getIsExpanded() && (
+                    <tr>
+                      {/* 2nd row is a custom 1 cell row */}
+                      <td colSpan={row.getVisibleCells().length}>{/* {renderSubComponent({ row })} */}</td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+            {table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell, idx) => (
+                  <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+          {/* <TableBody>
             {globalBanks.length ? (
               globalBanks.map((bank, i) => {
                 if (poolFilter === "stable" && !STABLECOINS.includes(bank.meta.tokenSymbol)) return null;
@@ -435,7 +437,7 @@ export const NewAssetsList = () => {
                 </TableCell>
               </TableRow>
             )}
-          </TableBody>
+          </TableBody> */}
         </Table>
 
         {/* <TableContainer>
