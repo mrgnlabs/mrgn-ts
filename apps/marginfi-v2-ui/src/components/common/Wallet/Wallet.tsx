@@ -519,7 +519,7 @@ export const Wallet = () => {
                               <p className="text-muted-foreground">{usdFormatter.format(activeToken.valueUSD)}</p>
                             </div>
                           </div>
-                          <div className="space-y-6 mt-6">
+                          <div className="mt-6">
                             <TokenOptions
                               walletAddress={walletData.address}
                               setState={setWalletTokenState}
@@ -527,21 +527,6 @@ export const Wallet = () => {
                                 setActiveToken(activeToken);
                               }}
                             />
-                            <div className="space-y-3 mx-auto w-3/4">
-                              <ActionBoxDialog
-                                requestedToken={activeToken.address}
-                                requestedAction={ActionType.Deposit}
-                              >
-                                <Button className="w-full" variant="outline">
-                                  Deposit
-                                </Button>
-                              </ActionBoxDialog>
-                              <ActionBoxDialog requestedToken={activeToken.address} requestedAction={ActionType.Borrow}>
-                                <Button className="w-full" variant="outline">
-                                  Borrow
-                                </Button>
-                              </ActionBoxDialog>
-                            </div>
                           </div>
                         </div>
                       </div>
