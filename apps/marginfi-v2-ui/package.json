@@ -45,6 +45,7 @@
     "@sentry/nextjs": "^7.77.0",
     "@socialgouv/matomo-next": "^1.4.0",
     "@solana/spl-stake-pool": "^0.6.5",
+    "@solana/spl-token": "^0.4.3",
     "@solana/spl-token-registry": "^0.2.4574",
     "@solana/wallet-adapter-ant-design": "^0.11.31",
     "@solana/wallet-adapter-base": "^0.9.23",
