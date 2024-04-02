@@ -5,7 +5,15 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { PublicKey } from "@solana/web3.js";
+import {
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  LAMPORTS_PER_SOL,
+  VersionedTransaction,
+  TransactionMessage,
+} from "@solana/web3.js";
+import { Token, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
   shortenAddress,
   usdFormatter,
@@ -26,7 +34,7 @@ import {
   WalletAvatar,
   WalletSettings,
   WalletTokens,
-  Token,
+  Token as TokenType,
   WalletOnramp,
   WalletPkDialog,
   WalletIntroDialog,
@@ -75,7 +83,9 @@ export const Wallet = () => {
   const [isWalletOpen, setIsWalletOpen] = useUiStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData, state.fetchPoints]);
 
-  const { wallet, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected } = useWalletContext();
+  const { wallet, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected, walletContextState } =
+    useWalletContext();
+  const { connection } = useConnection();
   const isMobile = useIsMobile();
 
   const [isFetchingWalletData, setIsFetchingWalletData] = React.useState(false);
@@ -85,7 +95,7 @@ export const Wallet = () => {
     address: string;
     shortAddress: string;
     balanceUSD: string;
-    tokens: Token[];
+    tokens: TokenType[];
   }>({
     address: "",
     shortAddress: "",
@@ -93,9 +103,11 @@ export const Wallet = () => {
     tokens: [],
   });
   const [walletTokenState, setWalletTokenState] = React.useState<WalletState>(WalletState.DEFAULT);
-  const [activeToken, setActiveToken] = React.useState<Token | null>(null);
+  const [activeToken, setActiveToken] = React.useState<TokenType | null>(null);
+  const [amount, setAmount] = React.useState(0);
   const [amountRaw, setAmountRaw] = React.useState("");
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
+  const toAddress = React.useRef<HTMLInputElement>(null);
 
   const address = React.useMemo(() => {
     if (!wallet?.publicKey) return "";
@@ -197,7 +209,7 @@ export const Wallet = () => {
       address: wallet?.publicKey.toString(),
       shortAddress: address,
       balanceUSD: usdFormatter.format(totalBalance),
-      tokens: (userTokens || []) as Token[],
+      tokens: (userTokens || []) as TokenType[],
     });
 
     setIsFetchingWalletData(false);
@@ -240,8 +252,107 @@ export const Wallet = () => {
     (newAmount: string) => {
       if (!activeBank) return;
       setAmountRaw(formatAmount(newAmount, activeBank));
+      setAmount(Number.parseFloat(newAmount.replace(/,/g, "")) || 0);
     },
-    [setAmountRaw, activeBank, formatAmount]
+    [activeBank, formatAmount]
+  );
+
+  const handleTransfer = React.useCallback(
+    async (recipientAddress: string, token: ExtendedBankInfo, amount: number) => {
+      if (!wallet.publicKey) {
+        console.log("Wallet is not connected");
+        return;
+      }
+
+      console.log("Recipient Address:", recipientAddress);
+      console.log("Token:", token.meta.tokenSymbol);
+      console.log("Amount:", amount);
+
+      const tokenMint = token.info.state.mint;
+      const tokenDecimals = token.info.state.mintDecimals;
+
+      const senderWalletAddress = wallet.publicKey;
+      const recipientPublicKey = new PublicKey(recipientAddress);
+
+      try {
+        let transaction = new Transaction();
+        let instructions = [];
+
+        // Determine if this is a SOL transfer or SPL Token transfer
+        if (tokenMint.equals(WSOL_MINT)) {
+          console.log("sol transfer!");
+          // SOL Transfer
+          instructions.push(
+            SystemProgram.transfer({
+              fromPubkey: senderWalletAddress,
+              toPubkey: recipientPublicKey,
+              lamports: amount * LAMPORTS_PER_SOL,
+            })
+          );
+        } else {
+          // SPL Token Transfer
+          const senderTokenAccountAddress = await Token.getAssociatedTokenAddress(
+            ASSOCIATED_TOKEN_PROGRAM_ID,
+            TOKEN_PROGRAM_ID,
+            tokenMint,
+            senderWalletAddress
+          );
+          const recipientTokenAccountAddress = await Token.getAssociatedTokenAddress(
+            ASSOCIATED_TOKEN_PROGRAM_ID,
+            TOKEN_PROGRAM_ID,
+            tokenMint,
+            recipientPublicKey,
+            true
+          );
+          instructions.push(
+            Token.createTransferInstruction(
+              TOKEN_PROGRAM_ID,
+              senderTokenAccountAddress,
+              recipientTokenAccountAddress,
+              senderWalletAddress,
+              [],
+              amount * 10 ** tokenDecimals
+            )
+          );
+        }
+
+        const {
+          value: { blockhash, lastValidBlockHeight },
+        } = await connection.getLatestBlockhashAndContext();
+
+        // Construct the components of a VersionedTransaction directly
+        const message = new TransactionMessage({
+          payerKey: senderWalletAddress,
+          recentBlockhash: blockhash,
+          instructions: instructions.map((instruction) => ({
+            programId: instruction.programId,
+            keys: instruction.keys,
+            data: instruction.data,
+          })),
+        });
+
+        // Assuming you want to use version 0 of the transaction format
+        const versionedTx = new VersionedTransaction(message.compileToV0Message([]));
+
+        // Sign and send the transaction
+        const signedTx = await wallet.signTransaction(versionedTx);
+        const signature = await connection.sendTransaction(signedTx);
+        await connection.confirmTransaction(
+          {
+            blockhash,
+            lastValidBlockHeight,
+            signature: signature,
+          },
+          "confirmed"
+        );
+        console.log("Transaction successful with signature:", signature);
+      } catch (error) {
+        console.error("Transaction failed:", error);
+        // Update your UI to show the error
+        showErrorToast("Transaction failed. Please try again.");
+      }
+    },
+    [wallet, connection]
   );
 
   // fetch wallet data on mount and every 20 seconds
@@ -450,7 +561,14 @@ export const Wallet = () => {
                                   <h2 className="font-medium text-xl">Send {activeToken.symbol}</h2>
                                 </div>
                               </div>
-                              <form className="w-4/5 flex flex-col gap-6">
+                              <form
+                                className="w-4/5 flex flex-col gap-6"
+                                onSubmit={(e) => {
+                                  e.preventDefault();
+                                  if (!toAddress.current || !activeBank) return;
+                                  handleTransfer(toAddress.current.value, activeBank, Number(amountRaw));
+                                }}
+                              >
                                 <div className="space-y-1">
                                   <div className="flex items-center gap-2 justify-end text-sm">
                                     <IconWallet size={16} />
@@ -484,6 +602,7 @@ export const Wallet = () => {
                                     </Label>
                                     <Label htmlFor="toAddress">
                                       <Input
+                                        ref={toAddress}
                                         type="text"
                                         id="sendToAddress"
                                         required
