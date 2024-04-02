@@ -313,12 +313,16 @@ export default function MintPage() {
                       </CardHeader>
                       <CardContent>
                         <ul className="space-y-2">
-                          <li className="flex items-center justify-between gap-1">
-                            <span className="text-muted-foreground">TVL:</span> {item.info.tvl}
-                          </li>
-                          <li className="flex items-center justify-between gap-1">
-                            <span className="text-muted-foreground">24hr Vol:</span> {item.info.vol}
-                          </li>
+                          {item.info?.tvl && (
+                            <li className="flex items-center justify-between gap-1">
+                              <span className="text-muted-foreground">TVL:</span> {item.info.tvl}
+                            </li>
+                          )}
+                          {item.info?.vol && (
+                            <li className="flex items-center justify-between gap-1">
+                              <span className="text-muted-foreground">24hr Vol:</span> {item.info.vol}
+                            </li>
+                          )}
                         </ul>
 
                         <Link href={item.link} target="_blank" rel="noreferrer" className="w-full">
