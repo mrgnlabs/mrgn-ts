@@ -27,7 +27,7 @@ import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useIsMobile } from "~/hooks/useIsMobile";
-import { showErrorToast } from "~/utils/toastUtils";
+import { showErrorToast, MultiStepToastHandle } from "~/utils/toastUtils";
 import { getTokenImageURL, cn } from "~/utils";
 
 import {
@@ -61,7 +61,9 @@ import {
   IconArrowLeft,
   IconWallet,
   IconTrophy,
+  IconLoader,
 } from "~/components/ui/icons";
+import { Loader } from "~/components/ui/loader";
 
 enum WalletState {
   DEFAULT = "default",
@@ -107,6 +109,7 @@ export const Wallet = () => {
   const [amount, setAmount] = React.useState(0);
   const [amountRaw, setAmountRaw] = React.useState("");
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
+  const [isSendingToken, setIsSendingToken] = React.useState(false);
   const toAddress = React.useRef<HTMLInputElement>(null);
 
   const address = React.useMemo(() => {
@@ -250,6 +253,7 @@ export const Wallet = () => {
 
   const handleInputChange = React.useCallback(
     (newAmount: string) => {
+      console.log("New Amount:", newAmount);
       if (!activeBank) return;
       setAmountRaw(formatAmount(newAmount, activeBank));
       setAmount(Number.parseFloat(newAmount.replace(/,/g, "")) || 0);
@@ -268,6 +272,10 @@ export const Wallet = () => {
       console.log("Token:", token.meta.tokenSymbol);
       console.log("Amount:", amount);
 
+      const multiStepToast = new MultiStepToastHandle(`Transfer ${token.meta.tokenSymbol}`, [
+        { label: `Sending ${amount} ${token.meta.tokenSymbol} to ${shortenAddress(recipientAddress)}` },
+      ]);
+
       const tokenMint = token.info.state.mint;
       const tokenDecimals = token.info.state.mintDecimals;
 
@@ -278,10 +286,7 @@ export const Wallet = () => {
         let transaction = new Transaction();
         let instructions = [];
 
-        // Determine if this is a SOL transfer or SPL Token transfer
         if (tokenMint.equals(WSOL_MINT)) {
-          console.log("sol transfer!");
-          // SOL Transfer
           instructions.push(
             SystemProgram.transfer({
               fromPubkey: senderWalletAddress,
@@ -290,7 +295,6 @@ export const Wallet = () => {
             })
           );
         } else {
-          // SPL Token Transfer
           const senderTokenAccountAddress = await Token.getAssociatedTokenAddress(
             ASSOCIATED_TOKEN_PROGRAM_ID,
             TOKEN_PROGRAM_ID,
@@ -316,11 +320,16 @@ export const Wallet = () => {
           );
         }
 
+        multiStepToast.start();
+        setIsSendingToken(true);
+        setWalletTokenState(WalletState.TOKEN);
+        setAmountRaw("");
+        setAmount(0);
+
         const {
           value: { blockhash, lastValidBlockHeight },
         } = await connection.getLatestBlockhashAndContext();
 
-        // Construct the components of a VersionedTransaction directly
         const message = new TransactionMessage({
           payerKey: senderWalletAddress,
           recentBlockhash: blockhash,
@@ -331,10 +340,8 @@ export const Wallet = () => {
           })),
         });
 
-        // Assuming you want to use version 0 of the transaction format
         const versionedTx = new VersionedTransaction(message.compileToV0Message([]));
 
-        // Sign and send the transaction
         const signedTx = await wallet.signTransaction(versionedTx);
         const signature = await connection.sendTransaction(signedTx);
         await connection.confirmTransaction(
@@ -345,11 +352,13 @@ export const Wallet = () => {
           },
           "confirmed"
         );
+        multiStepToast.setSuccessAndNext();
+        setIsSendingToken(false);
         console.log("Transaction successful with signature:", signature);
-      } catch (error) {
+      } catch (error: any) {
+        multiStepToast.setFailed(error.message || "Transaction failed, please try again");
+        setIsSendingToken(false);
         console.error("Transaction failed:", error);
-        // Update your UI to show the error
-        showErrorToast("Transaction failed. Please try again.");
       }
     },
     [wallet, connection]
@@ -558,14 +567,19 @@ export const Wallet = () => {
                                   className="rounded-full"
                                 />
                                 <div className="space-y-0">
-                                  <h2 className="font-medium text-xl">Send {activeToken.symbol}</h2>
+                                  <h2 className="flex items-center gap-2 font-medium text-xl">
+                                    Send ${activeToken.symbol}
+                                  </h2>
                                 </div>
                               </div>
                               <form
-                                className="w-4/5 flex flex-col gap-6"
+                                className={cn(
+                                  "w-4/5 flex flex-col gap-6",
+                                  isSendingToken && "opacity-30 pointer-events-none"
+                                )}
                                 onSubmit={(e) => {
                                   e.preventDefault();
-                                  if (!toAddress.current || !activeBank) return;
+                                  if (!toAddress.current || !activeBank || isSendingToken) return;
                                   handleTransfer(toAddress.current.value, activeBank, Number(amountRaw));
                                 }}
                               >
@@ -612,12 +626,19 @@ export const Wallet = () => {
                                   </div>
                                 </div>
                                 <div className="flex gap-2 w-full">
-                                  <Button type="submit" className="w-full">
-                                    Send
+                                  <Button type="submit" className="w-full gap-1.5">
+                                    {isSendingToken ? (
+                                      <>
+                                        <IconLoader size={16} /> Sending...
+                                      </>
+                                    ) : (
+                                      "Send"
+                                    )}
                                   </Button>
                                   <Button
                                     variant="destructive"
                                     className="w-full"
+                                    disabled={isSendingToken}
                                     onClick={() => {
                                       setWalletTokenState(WalletState.TOKEN);
                                       setAmountRaw("");
