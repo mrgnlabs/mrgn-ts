@@ -1,5 +1,6 @@
 import React from "react";
 
+import Link from "next/link";
 import Image from "next/image";
 
 import { useRouter } from "next/router";
@@ -62,6 +63,7 @@ import {
   IconWallet,
   IconTrophy,
   IconLoader,
+  IconX,
 } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
@@ -73,6 +75,13 @@ enum WalletState {
   SWAP = "swap",
   POINTS = "points",
   NOTIS = "notis",
+}
+
+enum SendingState {
+  DEFAULT = "default",
+  SENDING = "sending",
+  SUCCESS = "success",
+  FAILED = "failed",
 }
 
 export const Wallet = () => {
@@ -109,7 +118,8 @@ export const Wallet = () => {
   const [amount, setAmount] = React.useState(0);
   const [amountRaw, setAmountRaw] = React.useState("");
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
-  const [isSendingToken, setIsSendingToken] = React.useState(false);
+  const [sendingState, setSendingState] = React.useState<SendingState>(SendingState.DEFAULT);
+  const [sendSig, setSendSig] = React.useState<string | null>(null);
   const toAddress = React.useRef<HTMLInputElement>(null);
 
   const address = React.useMemo(() => {
@@ -321,10 +331,7 @@ export const Wallet = () => {
         }
 
         multiStepToast.start();
-        setIsSendingToken(true);
-        setWalletTokenState(WalletState.TOKEN);
-        setAmountRaw("");
-        setAmount(0);
+        setSendingState(SendingState.SENDING);
 
         const {
           value: { blockhash, lastValidBlockHeight },
@@ -353,11 +360,12 @@ export const Wallet = () => {
           "confirmed"
         );
         multiStepToast.setSuccessAndNext();
-        setIsSendingToken(false);
+        setSendingState(SendingState.SUCCESS);
+        setSendSig(signature);
         console.log("Transaction successful with signature:", signature);
       } catch (error: any) {
         multiStepToast.setFailed(error.message || "Transaction failed, please try again");
-        setIsSendingToken(false);
+        setSendingState(SendingState.FAILED);
         console.error("Transaction failed:", error);
       }
     },
@@ -542,98 +550,177 @@ export const Wallet = () => {
                             <IconArrowLeft size={16} /> back
                           </button>
                           {activeToken && (
-                            <div className="gap-6 text-center flex flex-col items-center">
-                              <div className="gap-2 text-center flex flex-col items-center">
-                                <Image
-                                  src={getTokenImageURL(activeToken.symbol)}
-                                  alt={activeToken.symbol}
-                                  width={60}
-                                  height={60}
-                                  className="rounded-full"
-                                />
-                                <div className="space-y-0">
-                                  <h2 className="flex items-center gap-2 font-medium text-xl">
-                                    Send ${activeToken.symbol}
-                                  </h2>
+                            <>
+                              {sendingState === SendingState.SENDING && (
+                                <div className="mt-8 flex flex-col items-center gap-4">
+                                  <Loader
+                                    label="Sending..."
+                                    className="text-xl text-primary font-medium"
+                                    iconSize={48}
+                                  />
+                                  <p className="text-muted-foreground">
+                                    {amountRaw} {activeToken.symbol}{" "}
+                                    {toAddress.current &&
+                                      toAddress.current.value &&
+                                      `to ${shortenAddress(toAddress.current.value)}`}
+                                  </p>
                                 </div>
-                              </div>
-                              <form
-                                className={cn(
-                                  "w-4/5 flex flex-col gap-6",
-                                  isSendingToken && "opacity-30 pointer-events-none"
-                                )}
-                                onSubmit={(e) => {
-                                  e.preventDefault();
-                                  if (!toAddress.current || !activeBank || isSendingToken) return;
-                                  handleTransfer(toAddress.current.value, activeBank, Number(amountRaw));
-                                }}
-                              >
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2 justify-end text-sm">
-                                    <IconWallet size={16} />
-                                    {activeToken.value < 0.01
-                                      ? "< 0.01"
-                                      : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
-                                    <button
-                                      className={cn(
-                                        "text-chartreuse border-b border-transparent transition-colors",
-                                        maxAmount > 0 && "cursor-pointer hover:border-chartreuse"
-                                      )}
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        setAmountRaw(numberFormater.format(maxAmount));
+                              )}
+                              {sendingState === SendingState.SUCCESS && (
+                                <div className="mt-8 flex flex-col items-center gap-4 px-4">
+                                  <div className="flex flex-col items-center gap-2 text-center">
+                                    <div className="rounded-full w-12 h-12 border-2 border-chartreuse flex items-center justify-center">
+                                      <IconCheck size={32} className="text-chartreuse" />
+                                    </div>
+                                    <p className="text-muted-foreground">
+                                      {amountRaw} {activeToken.symbol} was succesfully sent
+                                      {toAddress.current &&
+                                        toAddress.current.value &&
+                                        `to ${shortenAddress(toAddress.current.value)}`}
+                                    </p>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Button
+                                      variant="outline"
+                                      className="w-full"
+                                      onClick={() => {
+                                        setSendingState(SendingState.DEFAULT);
+                                        setWalletTokenState(WalletState.SEND);
+                                        setAmountRaw("");
                                       }}
-                                      disabled={maxAmount === 0}
                                     >
-                                      MAX
-                                    </button>
+                                      Send more
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      className="w-full"
+                                      onClick={() => {
+                                        setSendingState(SendingState.DEFAULT);
+                                        setWalletTokenState(WalletState.DEFAULT);
+                                        setAmountRaw("");
+                                        setActiveToken(null);
+                                      }}
+                                    >
+                                      Back to tokens
+                                    </Button>
                                   </div>
-                                  <div className="flex flex-col gap-3">
-                                    <Label htmlFor="sendAmount" className="relative">
-                                      <Input
-                                        type="text"
-                                        id="sendAmount"
-                                        required
-                                        placeholder="Amount"
-                                        value={amountRaw}
-                                        onChange={(e) => handleInputChange(e.target.value)}
-                                      />
-                                    </Label>
-                                    <Label htmlFor="toAddress">
-                                      <Input
-                                        ref={toAddress}
-                                        type="text"
-                                        id="sendToAddress"
-                                        required
-                                        placeholder="Recipient's Solana address"
-                                      />
-                                    </Label>
-                                  </div>
+                                  <Link
+                                    href={`https://explorer.solana.com/tx/${sendSig}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm border-b border-muted-foreground transition-colors hover:border-transparent"
+                                  >
+                                    View transaction
+                                  </Link>
                                 </div>
-                                <div className="flex gap-2 w-full">
-                                  <Button type="submit" className="w-full gap-1.5">
-                                    {isSendingToken ? (
-                                      <>
-                                        <IconLoader size={16} /> Sending...
-                                      </>
-                                    ) : (
-                                      "Send"
-                                    )}
-                                  </Button>
+                              )}
+                              {sendingState === SendingState.FAILED && (
+                                <div className="mt-8 flex flex-col items-center gap-4 px-4">
+                                  <div className="flex flex-col items-center gap-2 text-center">
+                                    <div className="rounded-full w-12 h-12 border-2 border-destructive-foreground flex items-center justify-center">
+                                      <IconX size={32} className="text-destructive-foreground" />
+                                    </div>
+                                    <p className="text-muted-foreground">
+                                      There was an error sending the transaction. Please try again.
+                                    </p>
+                                  </div>
                                   <Button
-                                    variant="destructive"
+                                    variant="outline"
                                     className="w-full"
-                                    disabled={isSendingToken}
                                     onClick={() => {
-                                      setWalletTokenState(WalletState.TOKEN);
-                                      setAmountRaw("");
+                                      setSendingState(SendingState.DEFAULT);
+                                      setWalletTokenState(WalletState.SEND);
                                     }}
                                   >
-                                    Cancel
+                                    Retry
                                   </Button>
                                 </div>
-                              </form>
-                            </div>
+                              )}
+                              {sendingState === SendingState.DEFAULT && (
+                                <div className="gap-6 text-center flex flex-col items-center">
+                                  <div className="gap-2 text-center flex flex-col items-center">
+                                    <Image
+                                      src={getTokenImageURL(activeToken.symbol)}
+                                      alt={activeToken.symbol}
+                                      width={60}
+                                      height={60}
+                                      className="rounded-full"
+                                    />
+                                    <div className="space-y-0">
+                                      <h2 className="flex items-center gap-2 font-medium text-xl">
+                                        Send ${activeToken.symbol}
+                                      </h2>
+                                    </div>
+                                  </div>
+                                  <form
+                                    className="w-4/5 flex flex-col gap-6"
+                                    onSubmit={(e) => {
+                                      e.preventDefault();
+                                      if (!toAddress.current || !activeBank) return;
+                                      handleTransfer(toAddress.current.value, activeBank, Number(amountRaw));
+                                    }}
+                                  >
+                                    <div className="space-y-1">
+                                      <div className="flex items-center gap-2 justify-end text-sm">
+                                        <IconWallet size={16} />
+                                        {activeToken.value < 0.01
+                                          ? "< 0.01"
+                                          : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
+                                        <button
+                                          className={cn(
+                                            "text-chartreuse border-b border-transparent transition-colors",
+                                            maxAmount > 0 && "cursor-pointer hover:border-chartreuse"
+                                          )}
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            setAmountRaw(numberFormater.format(maxAmount));
+                                          }}
+                                          disabled={maxAmount === 0}
+                                        >
+                                          MAX
+                                        </button>
+                                      </div>
+                                      <div className="flex flex-col gap-3">
+                                        <Label htmlFor="sendAmount" className="relative">
+                                          <Input
+                                            type="text"
+                                            id="sendAmount"
+                                            required
+                                            placeholder="Amount"
+                                            value={amountRaw}
+                                            onChange={(e) => handleInputChange(e.target.value)}
+                                          />
+                                        </Label>
+                                        <Label htmlFor="toAddress">
+                                          <Input
+                                            ref={toAddress}
+                                            type="text"
+                                            id="sendToAddress"
+                                            required
+                                            placeholder="Recipient's Solana address"
+                                          />
+                                        </Label>
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-2 w-full">
+                                      <Button type="submit" className="w-full gap-1.5">
+                                        Send
+                                      </Button>
+                                      <Button
+                                        variant="destructive"
+                                        className="w-full"
+                                        onClick={() => {
+                                          setWalletTokenState(WalletState.TOKEN);
+                                          setAmountRaw("");
+                                        }}
+                                      >
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  </form>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
