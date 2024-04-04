@@ -27,23 +27,35 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { NewAssetRowHeader } from "./NewAssetRowHeader";
 import { NewAssetRow } from "./NewAssetRow";
 import { HeaderWrapper } from "./components";
-import { PriceBias, getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, PriceBias, getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { aprToApy, nativeToUi, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { getTokenImageURL, isBankOracleStale } from "~/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Badge } from "@mui/material";
 import { IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import Link from "next/link";
-import { getAsset, getAssetPrice, getBankCap, getRate } from "./AssetListUtils";
+import {
+  getAction,
+  getAsset,
+  getAssetPrice,
+  getAssetWeight,
+  getBankCap,
+  getDeposits,
+  getRate,
+  getUtilization,
+  getWalletAmount,
+} from "./AssetListUtils";
 
 interface AssetListModel {
   asset: React.JSX.Element;
   price: React.JSX.Element;
   rate: React.JSX.Element;
   weight: React.JSX.Element;
+  deposits: React.JSX.Element;
   bankCap: React.JSX.Element;
   utilization: React.JSX.Element;
   walletAmount: React.JSX.Element;
+  action: React.JSX.Element;
 }
 
 interface BankCap {
@@ -57,14 +69,25 @@ interface AssetPrice {
   assetPriceOffset: number;
 }
 
-const makeData = (data: ExtendedBankInfo[], isInLendingMode: boolean) => {
+const makeData = (
+  data: ExtendedBankInfo[],
+  isInLendingMode: boolean,
+  denominationUSD: boolean,
+  nativeSolBalance: number,
+  marginfiAccount: MarginfiAccountWrapper | null
+) => {
   return data.map(
     (bank) =>
       ({
         asset: getAsset(bank.meta),
         price: getAssetPrice(bank),
         rate: getRate(bank, isInLendingMode),
-        bankCap: getBankCap(bank, isInLendingMode, false),
+        weight: getAssetWeight(bank, isInLendingMode),
+        deposits: getDeposits(bank, isInLendingMode, denominationUSD),
+        bankCap: getBankCap(bank, isInLendingMode, denominationUSD),
+        walletAmount: getWalletAmount(bank, denominationUSD, nativeSolBalance),
+        utilization: getUtilization(bank),
+        action: getAction(bank, isInLendingMode, marginfiAccount),
       } as AssetListModel)
   );
 };
@@ -141,6 +164,28 @@ const generateColumns = (isInLendingMode: boolean) => {
       footer: (props) => props.column.id,
     },
     {
+      accessorFn: (row) => row.deposits,
+      id: "deposits",
+      cell: (info) => info.getValue(),
+      header: () => (
+        <HeaderWrapper
+          infoTooltip={
+            <div className="flex flex-col items-start gap-1 text-left">
+              <h4 className="text-base">{isInLendingMode ? "Total deposits" : "Total available"}</h4>
+              <span style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
+                {isInLendingMode
+                  ? "Total marginfi deposits for each asset. Everything is denominated in native tokens."
+                  : "The amount of tokens available to borrow for each asset. Calculated as the minimum of the asset's borrow limit and available liquidity that has not yet been borrowed."}
+              </span>
+            </div>
+          }
+        >
+          {isInLendingMode ? "Deposits" : "Available"}
+        </HeaderWrapper>
+      ),
+      footer: (props) => props.column.id,
+    },
+    {
       accessorFn: (row) => row.bankCap,
       id: "bankCap",
       cell: (info) => info.getValue(),
@@ -200,8 +245,9 @@ export const NewAssetsList = () => {
     state.nativeSolBalance,
     state.selectedAccount,
   ]);
-  const [lendZoomLevel, showBadges, setShowBadges] = useUserProfileStore((state) => [
+  const [lendZoomLevel, denominationUSD, showBadges, setShowBadges] = useUserProfileStore((state) => [
     state.lendZoomLevel,
+    state.denominationUSD,
     state.showBadges,
     state.setShowBadges,
   ]);
@@ -322,10 +368,10 @@ export const NewAssetsList = () => {
   );
 
   const tableData = React.useMemo(() => {
-    const data = makeData(extendedBankInfos, isInLendingMode);
+    const data = makeData(extendedBankInfos, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount);
     console.log({ data });
     return data;
-  }, [extendedBankInfos, isInLendingMode]);
+  }, [extendedBankInfos, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
 
   const tableColumns = React.useMemo(() => {
     return generateColumns(isInLendingMode);
@@ -362,24 +408,6 @@ export const NewAssetsList = () => {
             {/* <NewAssetRowHeader isInLendingMode={isInLendingMode} isGlobalPool={true} /> */}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows.map((row) => {
-              return (
-                <React.Fragment key={row.id}>
-                  <tr>
-                    {/* first row is a normal row */}
-                    {row.getVisibleCells().map((cell) => {
-                      return <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>;
-                    })}
-                  </tr>
-                  {row.getIsExpanded() && (
-                    <tr>
-                      {/* 2nd row is a custom 1 cell row */}
-                      <td colSpan={row.getVisibleCells().length}>{/* {renderSubComponent({ row })} */}</td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
             {table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell, idx) => (

@@ -6,7 +6,14 @@ import { getCoreRowModel, ColumnDef, flexRender, useReactTable } from "@tanstack
 
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { ExtendedBankInfo, ActiveBankInfo, ExtendedBankMetadata, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
+import {
+  ExtendedBankInfo,
+  ActiveBankInfo,
+  ExtendedBankMetadata,
+  Emissions,
+  getCurrentAction,
+  ActionType,
+} from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
@@ -27,13 +34,27 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { NewAssetRowHeader } from "./NewAssetRowHeader";
 import { NewAssetRow } from "./NewAssetRow";
 import { HeaderWrapper } from "./components";
-import { MarginRequirementType, PriceBias, getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
-import { aprToApy, nativeToUi, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  MarginRequirementType,
+  MarginfiAccountWrapper,
+  PriceBias,
+  getPriceWithConfidence,
+} from "@mrgnlabs/marginfi-client-v2";
+import {
+  WSOL_MINT,
+  aprToApy,
+  nativeToUi,
+  numeralFormatter,
+  percentFormatter,
+  usdFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { cn, getTokenImageURL, isBankOracleStale } from "~/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Badge, Typography } from "@mui/material";
 import { IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import Link from "next/link";
+import { ActionBoxDialog } from "~/components/common/ActionBox";
+import { Button } from "~/components/ui/button";
 
 interface BankCap {
   bankCap: number;
@@ -264,14 +285,9 @@ const getAssetPrice = (bank: ExtendedBankInfo) => {
       )}
     </div>
   );
-
-  // return {
-  //   assetPrice,
-  //   assetPriceOffset,
-  // };
 };
 
-const getBankCap = (bank: ExtendedBankInfo, isInLendingMode: boolean, denominationUSD: boolean) => {
+const getDeposits = (bank: ExtendedBankInfo, isInLendingMode: boolean, denominationUSD: boolean) => {
   const bankCap = nativeToUi(
     isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
     bank.info.state.mintDecimals
@@ -369,10 +385,96 @@ const getAssetWeight = (bank: ExtendedBankInfo, isInLendingMode: boolean) => {
     return <>-</>;
   }
   return isInLendingMode ? (
-    <>(assetWeightInit * 100).toFixed(0) + "%"</>
+    <>{(assetWeightInit * 100).toFixed(0) + "%"}</>
   ) : (
-    <>((1 / bank.info.rawBank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%"</>
+    <>{((1 / bank.info.rawBank.config.liabilityWeightInit.toNumber()) * 100).toFixed(0) + "%"}</>
   );
 };
 
-export { getAsset, getAssetPrice, getBankCap, getRate };
+const getUtilization = (bank: ExtendedBankInfo) => {
+  return <>{percentFormatter.format(bank.info.state.utilizationRate / 100)}</>;
+};
+
+const getBankCap = (bank: ExtendedBankInfo, isInLendingMode: boolean, denominationUSD: boolean) => {
+  const bankCap = nativeToUi(
+    isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
+    bank.info.state.mintDecimals
+  );
+
+  return isInLendingMode ? (
+    <>{denominationUSD ? usdFormatter.format(bankCap * bank.info.state.price) : numeralFormatter(bankCap)}</>
+  ) : (
+    <>
+      {denominationUSD
+        ? usdFormatter.format(bank.info.state.totalBorrows * bank.info.state.price)
+        : numeralFormatter(bank.info.state.totalBorrows)}
+    </>
+  );
+};
+
+const getWalletAmount = (bank: ExtendedBankInfo, denominationUSD: boolean, nativeSolBalance: number) => {
+  return (
+    <>
+      {denominationUSD
+        ? usdFormatter.format(
+            (bank.info.state.mint.equals(WSOL_MINT)
+              ? bank.userInfo.tokenAccount.balance + nativeSolBalance
+              : bank.userInfo.tokenAccount.balance) * bank.info.state.price
+          )
+        : numeralFormatter(
+            bank.info.state.mint.equals(WSOL_MINT)
+              ? bank.userInfo.tokenAccount.balance + nativeSolBalance
+              : bank.userInfo.tokenAccount.balance
+          )}
+    </>
+  );
+};
+
+const getAction = (
+  bank: ExtendedBankInfo,
+  isInLendingMode: boolean,
+  marginfiAccount: MarginfiAccountWrapper | null
+) => {
+  const currentAction = getCurrentAction(isInLendingMode, bank);
+  const isDust = bank.isActive && bank.position.isDust;
+  const showCloseBalance = currentAction === ActionType.Withdraw && isDust;
+
+  return (
+    <>
+      {marginfiAccount === null && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
+                <ActionBoxDialog requestedToken={bank.address} requestedAction={currentAction}>
+                  <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
+                </ActionBoxDialog>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>User account will be automatically created on first deposit</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+
+      {marginfiAccount !== null && (
+        <div className="flex px-0 sm:px-4 gap-4 justify-center lg:justify-end items-center">
+          <ActionBoxDialog requestedToken={bank.address} requestedAction={currentAction}>
+            <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
+          </ActionBoxDialog>
+        </div>
+      )}
+    </>
+  );
+};
+
+export {
+  getAsset,
+  getAssetPrice,
+  getAssetWeight,
+  getDeposits,
+  getAction,
+  getUtilization,
+  getBankCap,
+  getRate,
+  getWalletAmount,
+};
