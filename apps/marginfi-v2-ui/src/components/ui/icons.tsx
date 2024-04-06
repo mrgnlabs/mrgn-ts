@@ -54,6 +54,7 @@ import {
   IconBook,
   IconLogout,
   IconRefresh,
+  IconWorld,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -919,4 +920,5 @@ export {
   IconOrca,
   IconSol,
   IconUsd,
+  IconWorld,
 };
