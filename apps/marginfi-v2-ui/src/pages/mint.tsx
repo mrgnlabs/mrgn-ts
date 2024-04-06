@@ -259,7 +259,7 @@ export default function MintPage() {
             <>
               <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
                 <div className="text-4xl font-medium text-center -mt-4 max-w-xl mx-auto pb-10">
-                  <h1 className="leading-loose">Inflation protected</h1>
+                  <h1 className="leading-normal">Inflation protected</h1>
                   <div className="text-3xl leading-none flex items-center gap-2 justify-center">
                     <IconSol size={32} />
                     <p>SOL</p>
@@ -267,7 +267,7 @@ export default function MintPage() {
                     <IconUsd size={32} />
                     <p>USD</p>
                   </div>
-                  <p className="text-xl text-muted-foreground pb-9 pt-6 font-light">
+                  <p className="text-xl text-muted-foreground pb-9 pt-4 font-light">
                     The two most important assets on Solana are SOL and USD. With YBX and LST, interest compounds
                     automatically.
                   </p>
