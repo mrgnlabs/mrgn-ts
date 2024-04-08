@@ -26,7 +26,7 @@ import {
 import { Loader } from "~/components/ui/loader";
 import { YbxDialogNotifications } from "~/components/common/Mint/YbxDialogNotifications";
 import { MintCardWrapper, YbxDialogPartner } from "~/components/common/Mint";
-import { MintCardProps, MintOverview, MintPageState, fetchMintOverview } from "~/utils";
+import { MintCardProps, MintOverview, MintPageState, clampedNumeralFormatter, fetchMintOverview } from "~/utils";
 
 const integrationsData: {
   title: string;
@@ -186,9 +186,10 @@ export default function MintPage() {
         labelIcon: IconSol,
         icon: IconLST,
         description: "Accrues value against SOL",
-        features: ["Earn 7% APY", "Pay 0% fees", "Access $3 million in liquidity"],
+        features: ["Earn Solana's highest yield", "Pay 0% fees", "Stake to mrgn validators"],
         volume: lstOverview?.volumeUsd ? `${groupedNumberFormatterDyn.format(lstOverview?.volume)} LST` : "-",
         volumeUsd: lstOverview?.volumeUsd ? usdFormatter.format(lstOverview?.volumeUsd) : "-",
+        tvl: lstOverview?.tvl ? clampedNumeralFormatter(lstOverview?.tvl) : "-",
         action: () => setLSTDialogOpen(true),
       } as MintCardProps,
       {
@@ -197,9 +198,10 @@ export default function MintPage() {
         labelIcon: IconUsd,
         icon: IconYBX,
         description: "Accrues value against USD",
-        features: [`Earn compounded staking yield`, "Capture MEV rewards", "Earn lending yield (soon)"],
-        volume: `- YBX`,
+        features: [`Capture staking yield`, "Capture MEV rewards", "Earn lending yield (soon)"],
+        volume: `YBX`,
         volumeUsd: ``,
+        tvl: "",
         action: () => {
           setYbxNotificationsDialogOpen(true);
         },
@@ -258,18 +260,18 @@ export default function MintPage() {
           {initialized && (
             <>
               <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
-                <div className="text-4xl font-medium text-center -mt-4 max-w-xl mx-auto pb-10">
+                <div className="text-4xl font-medium text-center -mt-4 mx-auto pb-10">
                   <h1 className="leading-normal">Inflation protected</h1>
-                  <div className="text-3xl leading-none flex items-center gap-2 justify-center">
+                  <div className="text-3xl leading-normal flex items-center gap-2 pb-2 justify-center">
                     <IconSol size={32} />
                     <p>SOL</p>
                     <p className="mx-2">and</p>
                     <IconUsd size={32} />
                     <p>USD</p>
                   </div>
-                  <p className="text-xl text-muted-foreground pb-9 pt-4 font-light">
-                    The two most important assets on Solana are SOL and USD. With YBX and LST, interest compounds
-                    automatically.
+                  <p className="text-base text-muted-foreground py-4 font-light">
+                    The two most important assets on Solana are SOL and USD. Capture inflation automatically with LST
+                    and YBX.
                   </p>
                 </div>
 
