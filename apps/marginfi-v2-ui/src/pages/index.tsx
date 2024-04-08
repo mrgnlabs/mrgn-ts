@@ -22,7 +22,7 @@ import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { IconAlertTriangle, IconBackpackWallet, IconCheck, IconYBX } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
-const AssetsList = dynamic(async () => (await import("~/components/desktop/NewAssetList")).NewAssetsList, {
+const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
   ssr: false,
 });
 
