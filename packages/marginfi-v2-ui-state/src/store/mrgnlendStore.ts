@@ -56,6 +56,7 @@ interface MrgnlendState {
     isOverride?: boolean;
     birdEyeApiKey?: string;
     sendEndpoint?: string;
+    spamSendTx?: boolean;
   }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
   resetUserData: () => void;
@@ -151,6 +152,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     isOverride?: boolean;
     birdEyeApiKey?: string;
     sendEndpoint?: string;
+    spamSendTx?: boolean;
   }) => {
     try {
       const { MarginfiClient } = await import("@mrgnlabs/marginfi-client-v2");
@@ -173,6 +175,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         preloadedBankAddresses: bankAddresses,
         readOnly: isReadOnly,
         sendEndpoint: args?.sendEndpoint,
+        spamSendTx: args?.spamSendTx,
       });
       const banks = [...marginfiClient.banks.values()];
 

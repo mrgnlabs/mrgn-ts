@@ -51,7 +51,8 @@ export type MarginfiClientOptions = {
   confirmOpts?: ConfirmOptions;
   readOnly?: boolean;
   sendEndpoint?: string;
-  preloadedBankAddresses?: PublicKey[]
+  spamSendTx?: boolean;
+  preloadedBankAddresses?: PublicKey[];
 };
 
 /**
@@ -64,6 +65,7 @@ class MarginfiClient {
   public addressLookupTables: AddressLookupTableAccount[];
   private preloadedBankAddresses?: PublicKey[];
   private sendEndpoint?: string;
+  private spamSendTx: boolean;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -80,7 +82,8 @@ class MarginfiClient {
     addressLookupTables?: AddressLookupTableAccount[],
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
-    sendEndpoint?: string
+    sendEndpoint?: string,
+    spamSendTx: boolean = false
   ) {
     this.group = group;
     this.banks = banks;
@@ -88,6 +91,7 @@ class MarginfiClient {
     this.addressLookupTables = addressLookupTables ?? [];
     this.preloadedBankAddresses = preloadedBankAddresses;
     this.sendEndpoint = sendEndpoint;
+    this.spamSendTx = spamSendTx;
   }
 
   /**
@@ -104,7 +108,7 @@ class MarginfiClient {
     config: MarginfiConfig,
     wallet: Wallet,
     connection: Connection,
-    clientOptions?: MarginfiClientOptions,
+    clientOptions?: MarginfiClientOptions
   ) {
     const debug = require("debug")("mfi:client");
     debug(
@@ -119,6 +123,7 @@ class MarginfiClient {
     const readOnly = clientOptions?.readOnly ?? false;
     const sendEndpoint = clientOptions?.sendEndpoint;
     const preloadedBankAddresses = clientOptions?.preloadedBankAddresses;
+    const spamSendTx = clientOptions?.spamSendTx ?? false;
 
     const provider = new AnchorProvider(connection, wallet, {
       ...AnchorProvider.defaultOptions(),
@@ -161,7 +166,8 @@ class MarginfiClient {
       addressLookupTables,
       preloadedBankAddresses,
       bankMetadataMap,
-      sendEndpoint
+      sendEndpoint,
+      spamSendTx
     );
   }
 
@@ -502,7 +508,7 @@ class MarginfiClient {
 
     dbg("Created Marginfi account %s", sig);
 
-    return (opts?.dryRun || createOpts?.newAccountKey)
+    return opts?.dryRun || createOpts?.newAccountKey
       ? Promise.resolve(undefined as unknown as MarginfiAccountWrapper)
       : MarginfiAccountWrapper.fetch(newAccountKey, this, opts?.commitment);
   }
@@ -597,37 +603,55 @@ class MarginfiClient {
           ...opts,
         };
 
-        let status = "pending";
-        while (true) {
-          signature = await sendConnection.sendTransaction(versionedTransaction, {
+        if (this.spamSendTx) {
+          let status = "pending";
+          while (true) {
+            signature = await sendConnection.sendTransaction(versionedTransaction, {
+              // minContextSlot: mergedOpts.minContextSlot,
+              skipPreflight: mergedOpts.skipPreflight,
+              preflightCommitment: mergedOpts.preflightCommitment,
+              maxRetries: mergedOpts.maxRetries,
+            });
+            for (let i = 0; i < 5; i++) {
+              const signatureStatus = await connection.getSignatureStatus(signature, {
+                searchTransactionHistory: false,
+              });
+              if (signatureStatus.value?.confirmationStatus === "confirmed") {
+                status = "confirmed";
+                break;
+              }
+              await sleep(200);
+            }
+
+            let blockHeight = await connection.getBlockHeight();
+            if (blockHeight > lastValidBlockHeight) {
+              throw new ProcessTransactionError(
+                "Transaction was not confirmed within †he alloted time",
+                ProcessTransactionErrorType.TimeoutError
+              );
+            }
+
+            if (status === "confirmed") {
+              break;
+            }
+          }
+        } else {
+          signature = await connection.sendTransaction(versionedTransaction, {
             // minContextSlot: mergedOpts.minContextSlot,
             skipPreflight: mergedOpts.skipPreflight,
             preflightCommitment: mergedOpts.preflightCommitment,
             maxRetries: mergedOpts.maxRetries,
           });
-          for (let i = 0; i < 5; i++) {
-            const signatureStatus = await connection.getSignatureStatus(signature, {
-              searchTransactionHistory: false,
-            });
-            if (signatureStatus.value?.confirmationStatus === "confirmed") {
-              status = "confirmed";
-              break;
-            }
-            await sleep(200);
-          }
-
-          let blockHeight = await connection.getBlockHeight();
-          if (blockHeight > lastValidBlockHeight) {
-            throw new ProcessTransactionError(
-              "Transaction was not confirmed within †he alloted time",
-              ProcessTransactionErrorType.TimeoutError
-            );
-          }
-
-          if (status === "confirmed") {
-            break;
-          }
+          await connection.confirmTransaction(
+            {
+              blockhash,
+              lastValidBlockHeight,
+              signature,
+            },
+            mergedOpts.commitment
+          );
         }
+
         return signature;
       }
     } catch (error: any) {
