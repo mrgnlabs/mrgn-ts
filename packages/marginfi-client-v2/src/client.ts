@@ -27,6 +27,7 @@ import {
   loadBankMetadatas,
   loadKeypair,
   NodeWallet,
+  sleep,
   TransactionOptions,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
@@ -46,6 +47,13 @@ import { ProcessTransactionError, ProcessTransactionErrorType, parseErrorFromLog
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
 
+export type MarginfiClientOptions = {
+  confirmOpts?: ConfirmOptions;
+  readOnly?: boolean;
+  sendEndpoint?: string;
+  preloadedBankAddresses?: PublicKey[]
+};
+
 /**
  * Entrypoint to interact with the marginfi contract.
  */
@@ -55,6 +63,7 @@ class MarginfiClient {
   public oraclePrices: OraclePriceMap;
   public addressLookupTables: AddressLookupTableAccount[];
   private preloadedBankAddresses?: PublicKey[];
+  private sendEndpoint?: string;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -70,13 +79,15 @@ class MarginfiClient {
     priceInfos: OraclePriceMap,
     addressLookupTables?: AddressLookupTableAccount[],
     preloadedBankAddresses?: PublicKey[],
-    readonly bankMetadataMap?: BankMetadataMap
+    readonly bankMetadataMap?: BankMetadataMap,
+    sendEndpoint?: string
   ) {
     this.group = group;
     this.banks = banks;
     this.oraclePrices = priceInfos;
     this.addressLookupTables = addressLookupTables ?? [];
     this.preloadedBankAddresses = preloadedBankAddresses;
+    this.sendEndpoint = sendEndpoint;
   }
 
   /**
@@ -87,18 +98,13 @@ class MarginfiClient {
    * @param config marginfi config
    * @param wallet User wallet (used to pay fees and sign transactions)
    * @param connection Solana web.js Connection object
-   * @param opts Solana web.js ConfirmOptions object
-   * @param readOnly Whether the client should be read-only or not
-   * @param { preloadedBankAddresses } Optional list of bank addresses to skip the gpa call
    * @returns MarginfiClient instance
    */
   static async fetch(
     config: MarginfiConfig,
     wallet: Wallet,
     connection: Connection,
-    opts?: ConfirmOptions,
-    readOnly: boolean = false,
-    { preloadedBankAddresses }: { preloadedBankAddresses?: PublicKey[] } = {}
+    clientOptions?: MarginfiClientOptions,
   ) {
     const debug = require("debug")("mfi:client");
     debug(
@@ -108,10 +114,16 @@ class MarginfiClient {
       config.groupPk,
       connection.rpcEndpoint
     );
+
+    const confirmOpts = clientOptions?.confirmOpts ?? {};
+    const readOnly = clientOptions?.readOnly ?? false;
+    const sendEndpoint = clientOptions?.sendEndpoint;
+    const preloadedBankAddresses = clientOptions?.preloadedBankAddresses;
+
     const provider = new AnchorProvider(connection, wallet, {
       ...AnchorProvider.defaultOptions(),
       commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
-      ...opts,
+      ...confirmOpts,
     });
     const program = new Program(MARGINFI_IDL, config.programId, provider) as any as MarginfiProgram;
 
@@ -148,7 +160,8 @@ class MarginfiClient {
       priceInfos,
       addressLookupTables,
       preloadedBankAddresses,
-      bankMetadataMap
+      bankMetadataMap,
+      sendEndpoint
     );
   }
 
@@ -183,13 +196,15 @@ class MarginfiClient {
     debug("Loading the marginfi client from env vars");
     debug("Env: %s\nProgram: %s\nGroup: %s\nSigner: %s", env, programId, groupPk, wallet.publicKey);
 
-    const config = await getConfig(env, {
+    const config = getConfig(env, {
       groupPk: translateAddress(groupPk),
       programId: translateAddress(programId),
     });
 
     return MarginfiClient.fetch(config, wallet, connection, {
-      commitment: connection.commitment,
+      confirmOpts: {
+        commitment: connection.commitment,
+      },
     });
   }
 
@@ -487,7 +502,7 @@ class MarginfiClient {
 
     dbg("Created Marginfi account %s", sig);
 
-    return (opts?.dryRun  || createOpts?.newAccountKey)
+    return (opts?.dryRun || createOpts?.newAccountKey)
       ? Promise.resolve(undefined as unknown as MarginfiAccountWrapper)
       : MarginfiAccountWrapper.fetch(newAccountKey, this, opts?.commitment);
   }
@@ -510,6 +525,7 @@ class MarginfiClient {
 
     let versionedTransaction: VersionedTransaction;
     const connection = new Connection(this.provider.connection.rpcEndpoint, this.provider.opts);
+    const sendConnection = this.sendEndpoint ? new Connection(this.sendEndpoint, this.provider.opts) : connection;
     let minContextSlot: number;
     let blockhash: string;
     let lastValidBlockHeight: number;
@@ -581,20 +597,39 @@ class MarginfiClient {
           ...opts,
         };
 
-        signature = await connection.sendTransaction(versionedTransaction, {
-          // minContextSlot: mergedOpts.minContextSlot,
-          skipPreflight: mergedOpts.skipPreflight,
-          preflightCommitment: mergedOpts.preflightCommitment,
-          maxRetries: mergedOpts.maxRetries,
-        });
-        await connection.confirmTransaction(
-          {
-            blockhash,
-            lastValidBlockHeight,
-            signature,
-          },
-          mergedOpts.commitment
-        );
+        let status = "pending";
+        while (true) {
+          signature = await sendConnection.sendTransaction(versionedTransaction, {
+            // minContextSlot: mergedOpts.minContextSlot,
+            skipPreflight: mergedOpts.skipPreflight,
+            preflightCommitment: mergedOpts.preflightCommitment,
+            maxRetries: mergedOpts.maxRetries,
+          });
+          console.log("Sent tx", signature);
+          for (let i = 0; i < 5; i++) {
+            const signatureStatus = await connection.getSignatureStatus(signature, {
+              searchTransactionHistory: false,
+            });
+            console.log("Status", signatureStatus.value?.confirmationStatus);
+            if (signatureStatus.value?.confirmationStatus === "confirmed") {
+              status = "confirmed";
+              break;
+            }
+            await sleep(200);
+          }
+
+          let blockHeight = await connection.getBlockHeight();
+          if (blockHeight > lastValidBlockHeight) {
+            throw new ProcessTransactionError(
+              "Transaction was not confirmed within †he alloted time",
+              ProcessTransactionErrorType.TimeoutError
+            );
+          }
+
+          if (status === "confirmed") {
+            break;
+          }
+        }
         return signature;
       }
     } catch (error: any) {

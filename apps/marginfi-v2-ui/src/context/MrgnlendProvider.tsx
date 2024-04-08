@@ -14,7 +14,7 @@ export const MrgnlendProvider: React.FC<{
 }> = ({ children }) => {
   const router = useRouter();
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const { wallet, isOverride } = useWalletContext();
+  const { wallet, isOverride, sendEndpoint } = useWalletContext();
   const { connection } = useConnection();
   const [fetchMrgnlendState, setIsRefreshingStore] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,
@@ -37,7 +37,7 @@ export const MrgnlendProvider: React.FC<{
   React.useEffect(() => {
     const fetchData = () => {
       setIsRefreshingStore(true);
-      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride }).catch(console.error);
+      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride, sendEndpoint }).catch(console.error);
     };
 
     if (debounceId.current) {

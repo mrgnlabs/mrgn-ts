@@ -7,6 +7,7 @@ export enum ProcessTransactionErrorType {
   TransactionBuildingError,
   SimulationError,
   FallthroughError,
+  TimeoutError,
 }
 
 export class ProcessTransactionError extends Error {

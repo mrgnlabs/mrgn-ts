@@ -38,8 +38,7 @@ export async function getMarginfiClient({
     config,
     authority ? ({ publicKey: authority } as any) : wallet,
     connection,
-    undefined,
-    readonly
+    { readOnly: readonly }
   );
 
   return client;
