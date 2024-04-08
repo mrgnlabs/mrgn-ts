@@ -4,9 +4,9 @@ import { FC, useMemo } from "react";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useMrgnlendStore } from "~/store";
 import { collectRewardsBatch } from "~/utils";
-import { EMISSION_MINT_INFO_MAP } from "../../desktop/AssetsList/AssetRow";
 import { Button } from "~/components/ui/button";
 import { IconConfetti } from "~/components/ui/icons";
+import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
 
 const EmissionsBanner: FC = () => {
   const { connection } = useConnection();
