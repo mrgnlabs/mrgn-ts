@@ -1,17 +1,12 @@
 import React from "react";
-
 import Image from "next/image";
-
-import { getCoreRowModel, ColumnDef, flexRender, useReactTable } from "@tanstack/react-table";
-
+import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { ExtendedBankInfo, ActiveBankInfo, ExtendedBankMetadata, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
-import { useWalletContext } from "~/hooks/useWalletContext";
 
-import { LoadingAsset, AssetRow } from "~/components/desktop/AssetsList/AssetRow";
 import {
   LSTDialog,
   LSTDialogVariants,
@@ -21,236 +16,21 @@ import {
   STABLECOINS,
   LSTS,
 } from "~/components/common/AssetList";
-import { Portfolio } from "~/components/common/Portfolio";
 import { LendingModes } from "~/types";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { NewAssetRowHeader } from "./NewAssetRowHeader";
-import { NewAssetRow } from "./NewAssetRow";
-import { HeaderWrapper } from "./components";
-import { MarginfiAccountWrapper, PriceBias, getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
-import { aprToApy, nativeToUi, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { getTokenImageURL, isBankOracleStale } from "~/utils";
+import { AssetListModel, generateColumns, makeData } from "./utils";
+import { AssetRow } from "./components";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { Badge } from "@mui/material";
-import { IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
-import Link from "next/link";
-import {
-  getAction,
-  getAsset,
-  getAssetPrice,
-  getAssetWeight,
-  getBankCap,
-  getDeposits,
-  getRate,
-  getUtilization,
-  getWalletAmount,
-} from "./AssetListUtils";
+import { IconAlertTriangle } from "~/components/ui/icons";
 
-interface AssetListModel {
-  asset: React.JSX.Element;
-  price: React.JSX.Element;
-  rate: React.JSX.Element;
-  weight: React.JSX.Element;
-  deposits: React.JSX.Element;
-  bankCap: React.JSX.Element;
-  utilization: React.JSX.Element;
-  walletAmount: React.JSX.Element;
-  action: React.JSX.Element;
-}
-
-interface BankCap {
-  bankCap: number;
-  isBankFilled: boolean;
-  isBankHigh: boolean;
-}
-
-interface AssetPrice {
-  assetPrice: number;
-  assetPriceOffset: number;
-}
-
-const makeData = (
-  data: ExtendedBankInfo[],
-  isInLendingMode: boolean,
-  denominationUSD: boolean,
-  nativeSolBalance: number,
-  marginfiAccount: MarginfiAccountWrapper | null
-) => {
-  return data.map(
-    (bank) =>
-      ({
-        asset: getAsset(bank.meta),
-        price: getAssetPrice(bank),
-        rate: getRate(bank, isInLendingMode),
-        weight: getAssetWeight(bank, isInLendingMode),
-        deposits: getDeposits(bank, isInLendingMode, denominationUSD),
-        bankCap: getBankCap(bank, isInLendingMode, denominationUSD),
-        walletAmount: getWalletAmount(bank, denominationUSD, nativeSolBalance),
-        utilization: getUtilization(bank),
-        action: getAction(bank, isInLendingMode, marginfiAccount),
-      } as AssetListModel)
-  );
-};
-
-const generateColumns = (isInLendingMode: boolean) => {
-  const columns: ColumnDef<AssetListModel>[] = [
-    {
-      accessorFn: (row) => row.asset,
-      id: "asset",
-      cell: (info) => info.getValue(),
-      header: () => <HeaderWrapper>Asset</HeaderWrapper>,
-      footer: (props) => props.column.id,
-    },
-    {
-      accessorFn: (row) => row.price,
-      id: "price",
-      cell: (info) => info.getValue(),
-      header: () => (
-        <HeaderWrapper
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">Realtime prices</h4>
-              <span className="font-normal">Powered by Pyth and Switchboard.</span>
-            </div>
-          }
-        >
-          Price
-        </HeaderWrapper>
-      ),
-      footer: (props) => props.column.id,
-    },
-    {
-      accessorFn: (row) => row.rate,
-      id: "rate",
-      cell: (info) => info.getValue(),
-      header: () => (
-        <HeaderWrapper
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">APY</h4>
-              <span style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
-                {isInLendingMode
-                  ? "What you'll earn on deposits over a year. This includes compounding."
-                  : "What you'll pay for your borrows over a year. This includes compounding."}
-              </span>
-            </div>
-          }
-        >
-          APY
-        </HeaderWrapper>
-      ),
-      footer: (props) => props.column.id,
-    },
-    {
-      accessorFn: (row) => row.weight,
-      id: "weight",
-      cell: (info) => info.getValue(),
-      header: () => (
-        <HeaderWrapper
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">{isInLendingMode ? "Weight" : "LTV"}</h4>
-              <span style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
-                {isInLendingMode
-                  ? "How much your assets count for collateral, relative to their USD value. The higher the weight, the more collateral you can borrow against it."
-                  : "How much you can borrow against your free collateral. The higher the LTV, the more you can borrow against your free collateral."}
-              </span>
-            </div>
-          }
-        >
-          {isInLendingMode ? "Weight" : "LTV"}
-        </HeaderWrapper>
-      ),
-      footer: (props) => props.column.id,
-    },
-    {
-      accessorFn: (row) => row.deposits,
-      id: "deposits",
-      cell: (info) => info.getValue(),
-      header: () => (
-        <HeaderWrapper
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">{isInLendingMode ? "Total deposits" : "Total available"}</h4>
-              <span style={{ fontFamily: "Aeonik Pro", fontWeight: 400 }}>
-                {isInLendingMode
-                  ? "Total marginfi deposits for each asset. Everything is denominated in native tokens."
-                  : "The amount of tokens available to borrow for each asset. Calculated as the minimum of the asset's borrow limit and available liquidity that has not yet been borrowed."}
-              </span>
-            </div>
-          }
-        >
-          {isInLendingMode ? "Deposits" : "Available"}
-        </HeaderWrapper>
-      ),
-      footer: (props) => props.column.id,
-    },
-    {
-      accessorFn: (row) => row.bankCap,
-      id: "bankCap",
-      cell: (info) => info.getValue(),
-      header: () => (
-        <HeaderWrapper
-          infoTooltip={
-            isInLendingMode ? (
-              <div className="flex flex-col items-start gap-1 text-left">
-                <h4 className="text-base">Global deposit cap</h4>
-                Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount
-                that all users combined can deposit or borrow of a given token.
-              </div>
-            ) : undefined
-          }
-        >
-          {isInLendingMode ? "Global limit" : "Total Borrows"}
-        </HeaderWrapper>
-      ),
-      footer: (props) => props.column.id,
-    },
-    {
-      accessorFn: (row) => row.utilization,
-      id: "utilization",
-      cell: (info) => info.getValue(),
-      header: () => (
-        <HeaderWrapper
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">Pool utilization</h4>
-              What percentage of supplied tokens have been borrowed. This helps determine interest rates. This is not
-              based on the global pool limits, which can limit utilization.
-            </div>
-          }
-        >
-          Utilization
-        </HeaderWrapper>
-      ),
-      footer: (props) => props.column.id,
-    },
-    {
-      accessorFn: (row) => row.walletAmount,
-      id: "walletAmount",
-      cell: (info) => info.getValue(),
-      header: () => <HeaderWrapper>Wallet Amt.</HeaderWrapper>,
-      footer: (props) => props.column.id,
-    },
-  ];
-
-  return columns;
-};
-
-export const NewAssetsList = () => {
-  const { connected, walletAddress } = useWalletContext();
+export const AssetsList = () => {
   const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
     state.nativeSolBalance,
     state.selectedAccount,
   ]);
-  const [lendZoomLevel, denominationUSD, showBadges, setShowBadges] = useUserProfileStore((state) => [
-    state.lendZoomLevel,
-    state.denominationUSD,
-    state.showBadges,
-    state.setShowBadges,
-  ]);
+  const [denominationUSD, setShowBadges] = useUserProfileStore((state) => [state.denominationUSD, state.setShowBadges]);
   const [lendingMode, setLendingMode, poolFilter, isFilteredUserPositions, sortOption] = useUiStore((state) => [
     state.lendingMode,
     state.setLendingMode,
@@ -280,33 +60,37 @@ export const NewAssetsList = () => {
     [isInLendingMode, sortOption]
   );
 
-  const globalBanks = React.useMemo(() => {
-    const filteredBanks =
-      extendedBankInfos &&
-      extendedBankInfos
-        .filter((b) => !b.info.state.isIsolated)
-        .filter((b) => (isFilteredUserPositions ? b.isActive : true));
+  const sortedBanks = React.useMemo(() => {
+    let filteredBanks = extendedBankInfos;
 
-    if (isStoreInitialized && sortOption && filteredBanks) {
+    if (poolFilter === "isolated") {
+      filteredBanks = filteredBanks.filter((b) => b.info.state.isIsolated);
+    } else if (poolFilter === "stable") {
+      filteredBanks = filteredBanks.filter((b) => STABLECOINS.includes(b.meta.tokenSymbol));
+    } else if (poolFilter === "lst") {
+      filteredBanks = filteredBanks.filter((b) => LSTS.includes(b.meta.tokenSymbol));
+    }
+
+    if (isStoreInitialized && sortOption) {
       return sortBanks(filteredBanks);
     } else {
       return filteredBanks;
     }
-  }, [isStoreInitialized, extendedBankInfos, sortOption, isFilteredUserPositions, sortBanks]);
+  }, [isStoreInitialized, poolFilter, extendedBankInfos, sortOption, sortBanks]);
+
+  const globalBanks = React.useMemo(() => {
+    return (
+      sortedBanks &&
+      sortedBanks.filter((b) => !b.info.state.isIsolated).filter((b) => (isFilteredUserPositions ? b.isActive : true))
+    );
+  }, [isFilteredUserPositions, sortedBanks]);
 
   const isolatedBanks = React.useMemo(() => {
-    const filteredBanks =
-      extendedBankInfos &&
-      extendedBankInfos
-        .filter((b) => b.info.state.isIsolated)
-        .filter((b) => (isFilteredUserPositions ? b.isActive : true));
-
-    if (isStoreInitialized && sortOption && filteredBanks) {
-      return sortBanks(filteredBanks);
-    } else {
-      return filteredBanks;
-    }
-  }, [isStoreInitialized, extendedBankInfos, sortOption, isFilteredUserPositions, sortBanks]);
+    return (
+      sortedBanks &&
+      sortedBanks.filter((b) => b.info.state.isIsolated).filter((b) => (isFilteredUserPositions ? b.isActive : true))
+    );
+  }, [sortedBanks, isFilteredUserPositions]);
 
   const activeBankInfos = React.useMemo(
     () => extendedBankInfos.filter((balance) => balance.isActive),
@@ -367,56 +151,132 @@ export const NewAssetsList = () => {
     { enableOnFormTags: true }
   );
 
-  const tableData = React.useMemo(() => {
-    const data = makeData(extendedBankInfos, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount);
-    console.log({ data });
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  const globalPoolTableData = React.useMemo(() => {
+    return makeData(globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount);
+  }, [globalBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
+
+  const isolatedPoolTableData = React.useMemo(() => {
+    const data = makeData(isolatedBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount);
     return data;
-  }, [extendedBankInfos, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
+  }, [isolatedBanks, isInLendingMode, denominationUSD, nativeSolBalance, selectedAccount]);
 
   const tableColumns = React.useMemo(() => {
     return generateColumns(isInLendingMode);
   }, [isInLendingMode]);
 
-  const table = useReactTable<AssetListModel>({
-    data: tableData,
+  const globalTable = useReactTable<AssetListModel>({
+    data: globalPoolTableData,
     columns: tableColumns,
     getRowCanExpand: () => true,
     getCoreRowModel: getCoreRowModel(),
-    // getExpandedRowModel: getExpandedRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+  });
+
+  const isolatedTable = useReactTable<AssetListModel>({
+    data: isolatedPoolTableData,
+    columns: tableColumns,
+    getRowCanExpand: () => true,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
   });
 
   return (
     <>
       <AssetListFilters />
       <div className="col-span-full">
-        <Table>
-          <TableCaption>
-            <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 mt-4 pb-2 gap-1">
-              Global <span className="block">pool</span>
-            </div>
-          </TableCaption>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
+        {globalPoolTableData.length ? (
+          <>
+            <TableCaption>
+              <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4  pb-2 gap-1">
+                Global <span className="block">pool</span>
+              </div>
+            </TableCaption>
+            <Table>
+              <TableHeader>
+                {globalTable.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
-            {/* <NewAssetRowHeader isInLendingMode={isInLendingMode} isGlobalPool={true} /> */}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell, idx) => (
-                  <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+              </TableHeader>
+              <TableBody>
+                {globalTable.getRowModel().rows.map((row) => (
+                  <AssetRow key={row.id} {...row} />
                 ))}
-              </TableRow>
-            ))}
-          </TableBody>
-          {/* <TableBody>
+              </TableBody>
+            </Table>
+          </>
+        ) : (
+          <></>
+        )}
+        {isolatedPoolTableData.length ? (
+          <>
+            <TableCaption>
+              <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 pb-2 gap-2">
+                <span className="gap-1 flex">
+                  Isolated <span className="hidden lg:block">pools</span>
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="flex flex-col gap-2">
+                        <h4 className="flex items-center gap-1 text-base">
+                          <IconAlertTriangle /> Isolated pools are risky
+                        </h4>
+                        <p>
+                          Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you
+                          cannot borrow other assets. Isolated pools should be considered particularly risky.
+                        </p>
+                        <p>
+                          As always, remember that marginfi is a decentralized protocol and all deposited funds are at
+                          risk.
+                        </p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </TableCaption>
+            <Table>
+              <TableHeader>
+                {isolatedTable.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {isolatedTable.getRowModel().rows.map((row) => (
+                  <AssetRow key={row.id} {...row} />
+                ))}
+              </TableBody>
+            </Table>
+          </>
+        ) : (
+          <></>
+        )}
+        {/* <TableBody>
             {globalBanks.length ? (
               globalBanks.map((bank, i) => {
                 if (poolFilter === "stable" && !STABLECOINS.includes(bank.meta.tokenSymbol)) return null;
@@ -466,7 +326,6 @@ export const NewAssetsList = () => {
               </TableRow>
             )}
           </TableBody> */}
-        </Table>
 
         {/* <TableContainer>
           {poolFilter !== "isolated" && (
