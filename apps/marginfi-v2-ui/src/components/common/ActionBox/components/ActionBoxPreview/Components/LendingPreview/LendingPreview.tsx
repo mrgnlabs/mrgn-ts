@@ -5,6 +5,8 @@ import Image from "next/image";
 import { getPriceWithConfidence, MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatter, numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { createJupiterApiClient } from "@jup-ag/api";
+import { AddressLookupTableAccount } from "@solana/web3.js";
 
 import { useMrgnlendStore } from "~/store";
 import {
@@ -19,14 +21,12 @@ import {
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useDebounce } from "~/hooks/useDebounce";
 
-import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetsList/AssetRow";
 import { IconArrowRight, IconAlertTriangle, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Skeleton } from "~/components/ui/skeleton";
+import { REDUCE_ONLY_BANKS } from "~/components/desktop/AssetList/utils";
 
 import { AvailableCollateral } from "./AvailableCollateral";
-import { createJupiterApiClient } from "@jup-ag/api";
-import { AddressLookupTableAccount } from "@solana/web3.js";
 
 export interface ActionPreview {
   health: number;
