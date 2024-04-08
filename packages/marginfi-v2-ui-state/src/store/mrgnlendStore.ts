@@ -55,6 +55,8 @@ interface MrgnlendState {
     wallet?: Wallet;
     isOverride?: boolean;
     birdEyeApiKey?: string;
+    sendEndpoint?: string;
+    spamSendTx?: boolean;
   }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
   resetUserData: () => void;
@@ -113,7 +115,7 @@ export function clearAccountCache(authority: PublicKey) {
     if (error instanceof Error) {
       throw new Error(`Error clearing account cache.`);
     } else {
-      throw new Error('An unknown error occurred while clearing account cache.');
+      throw new Error("An unknown error occurred while clearing account cache.");
     }
   }
 }
@@ -149,6 +151,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     wallet?: Wallet;
     isOverride?: boolean;
     birdEyeApiKey?: string;
+    sendEndpoint?: string;
+    spamSendTx?: boolean;
   }) => {
     try {
       const { MarginfiClient } = await import("@mrgnlabs/marginfi-client-v2");
@@ -167,14 +171,12 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const isReadOnly = args?.isOverride !== undefined ? args.isOverride : get().marginfiClient?.isReadOnly ?? false;
       const [bankMetadataMap, tokenMetadataMap] = await Promise.all([loadBankMetadatas(), loadTokenMetadatas()]);
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
-      const marginfiClient = await MarginfiClient.fetch(
-        marginfiConfig,
-        wallet ?? ({} as any),
-        connection,
-        undefined,
-        isReadOnly,
-        { preloadedBankAddresses: bankAddresses }
-      );
+      const marginfiClient = await MarginfiClient.fetch(marginfiConfig, wallet ?? ({} as any), connection, {
+        preloadedBankAddresses: bankAddresses,
+        readOnly: isReadOnly,
+        sendEndpoint: args?.sendEndpoint,
+        spamSendTx: args?.spamSendTx,
+      });
       const banks = [...marginfiClient.banks.values()];
 
       const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
