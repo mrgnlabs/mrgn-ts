@@ -50,6 +50,15 @@ export default function HomePage() {
     const jup = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "JUP");
     return [
       {
+        image: (
+          <div className="text-alert-foreground">
+            <IconAlertTriangle size={22} />
+          </div>
+        ),
+        text: "Withdrawals are affected by stale oracle prices and chain congestion. We are pushing improvements to improve oracle efficiency.",
+        onClick: () => window.open("https://twitter.com/edgarpavlovsky/status/1777394700279796017"),
+      },
+      {
         image: <IconBackpackWallet size={22} />,
         text: "5% points boost for Backpack users!",
         onClick: () => router.push("/points"),
