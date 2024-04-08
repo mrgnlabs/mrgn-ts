@@ -137,7 +137,7 @@ export const AssetListFilters = () => {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2 w-full md:w-auto">
+          {/* <div className="space-y-2 w-full md:w-auto">
             <Select
               value={sortOption.value}
               disabled={isFilteredUserPositions}
@@ -166,7 +166,7 @@ export const AssetListFilters = () => {
                 })}
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

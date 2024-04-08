@@ -7,11 +7,11 @@ import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { PublicKey } from "@solana/web3.js";
 import { useConnection } from "~/hooks/useConnection";
-import { EMISSION_MINT_INFO_MAP } from "../../desktop/AssetsList/AssetRow";
 import { collectRewardsBatch } from "~/utils";
 import { IconMrgn } from "~/components/ui/icons";
 import { WalletButton } from "~/components/common/Wallet";
 import LipAccount from "@mrgnlabs/lip-client/src/account";
+import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
