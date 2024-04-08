@@ -605,12 +605,10 @@ class MarginfiClient {
             preflightCommitment: mergedOpts.preflightCommitment,
             maxRetries: mergedOpts.maxRetries,
           });
-          console.log("Sent tx", signature);
           for (let i = 0; i < 5; i++) {
             const signatureStatus = await connection.getSignatureStatus(signature, {
               searchTransactionHistory: false,
             });
-            console.log("Status", signatureStatus.value?.confirmationStatus);
             if (signatureStatus.value?.confirmationStatus === "confirmed") {
               status = "confirmed";
               break;
