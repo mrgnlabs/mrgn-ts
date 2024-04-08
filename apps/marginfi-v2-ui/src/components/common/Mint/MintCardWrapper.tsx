@@ -56,18 +56,29 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
           ))}
         </ul>
 
-        <ul className="flex gap-2 text-xs">
-          <li className="text-muted-foreground">Volume</li>
-          <li>{mintCard.volume}</li>
-          <li className="text-muted-foreground">{mintCard.volumeUsd}</li>
-        </ul>
+        {mintCard.title !== "YBX" ? (
+          <ul className="flex gap-2 text-xs">
+            <li className="text-muted-foreground">TVL</li>
+            <li>{mintCard.tvl}</li>
+            <li className="text-muted-foreground">|</li>
+            <li className="text-muted-foreground">Volume</li>
+            <li>{mintCard.volume}</li>
+          </ul>
+        ) : (
+          <ul className="flex gap-2 text-xs">
+            <li className="text-muted-foreground">Coming soon</li>
+          </ul>
+        )}
 
+        {/* <div className="mt-4">
+          <a className="text-muted-foreground my-4 cursor-pointer text-sm">How it works?</a>
+        </div> */}
         {mintCard.title === "LST" ? (
           <ActionBoxDialog
             requestedAction={requestedAction}
             requestedToken={requestedAction === ActionType.UnstakeLST ? requestedToken : undefined}
           >
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center gap-2">
               <Button
                 variant="secondary"
                 size="lg"
@@ -91,7 +102,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
             </div>
           </ActionBoxDialog>
         ) : transformedActionGate?.find((value) => value === ActionType.MintYBX) ? (
-          <div className="flex items-center gap-2 mt-3">
+          <div className="flex items-center gap-2">
             <Button
               variant="secondary"
               size="lg"
@@ -110,7 +121,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
             requestedAction={ActionType.MintYBX}
             requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
           >
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center gap-2">
               <Button variant="secondary" size="lg" className="mt-4">
                 Mint
               </Button>
