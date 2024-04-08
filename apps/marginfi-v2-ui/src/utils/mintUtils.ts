@@ -15,6 +15,7 @@ export interface MintCardProps {
   features: string[];
   volume: string;
   volumeUsd: string;
+  tvl: string;
   action: () => void;
 }
 
@@ -50,8 +51,9 @@ export const signUpYbx = async (
 };
 
 export interface MintOverview {
-  volume: number
-  volumeUsd: number
+  volume: number;
+  volumeUsd: number;
+  tvl: number;
 }
 
 export async function fetchMintOverview(mint: string): Promise<MintOverview> {
@@ -63,14 +65,15 @@ export async function fetchMintOverview(mint: string): Promise<MintOverview> {
   });
 
   const responseBody = await response.json();
-  console.log({ responseBody })
+  console.log({ responseBody });
   if (responseBody.success) {
-
     const volume = responseBody.data.v24h;
     const volumeUsd = responseBody.data.v24hUSD;
+    const tvl = responseBody.data.liquidity;
     return {
       volume,
-      volumeUsd
+      volumeUsd,
+      tvl,
     };
   }
 
