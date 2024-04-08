@@ -121,7 +121,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                     ) : (
                       item.image
                     )}
-                    <h2>{item.text}</h2>
+                    <h2 className="text-center">{item.text}</h2>
                     <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
                   </div>
                 )}

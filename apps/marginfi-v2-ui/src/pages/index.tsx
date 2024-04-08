@@ -50,7 +50,11 @@ export default function HomePage() {
     const jup = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "JUP");
     return [
       {
-        image: <></>,
+        image: (
+          <div className="text-alert-foreground">
+            <IconAlertTriangle size={22} />
+          </div>
+        ),
         text: "Withdrawals are affected by stale oracle prices and chain congestion. We are pushing improvements to improve oracle efficiency.",
         onClick: () => window.open("https://twitter.com/edgarpavlovsky/status/1777394700279796017"),
       },
