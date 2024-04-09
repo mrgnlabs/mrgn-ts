@@ -197,7 +197,7 @@ export const AssetsList = () => {
         {globalPoolTableData.length ? (
           <>
             <TableCaption>
-              <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4  pb-2 gap-1">
+              <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 pb-2 gap-1 pl-[1px]">
                 Global <span className="block">pool</span>
               </div>
             </TableCaption>
