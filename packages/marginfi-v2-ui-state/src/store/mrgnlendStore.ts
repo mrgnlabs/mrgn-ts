@@ -47,6 +47,8 @@ interface MrgnlendState {
   accountSummary: AccountSummary;
   emissionTokenMap: TokenPriceMap | null;
   birdEyeApiKey: string;
+  sendEndpoint: string | null;
+  spamSendTx: boolean;
 
   // Actions
   fetchMrgnlendState: (args?: {
@@ -143,6 +145,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   accountSummary: DEFAULT_ACCOUNT_SUMMARY,
   birdEyeApiKey: "",
   emissionTokenMap: {},
+  sendEndpoint: null,
+  spamSendTx: false,
 
   // Actions
   fetchMrgnlendState: async (args?: {
@@ -169,13 +173,15 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       if (!marginfiConfig) throw new Error("Marginfi config must be provided at least once");
 
       const isReadOnly = args?.isOverride !== undefined ? args.isOverride : get().marginfiClient?.isReadOnly ?? false;
+      const sendEndpoint = args?.sendEndpoint ?? get().sendEndpoint ?? undefined;
+      const spamSendTx = args?.spamSendTx ?? get().spamSendTx ?? false;
       const [bankMetadataMap, tokenMetadataMap] = await Promise.all([loadBankMetadatas(), loadTokenMetadatas()]);
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
       const marginfiClient = await MarginfiClient.fetch(marginfiConfig, wallet ?? ({} as any), connection, {
         preloadedBankAddresses: bankAddresses,
         readOnly: isReadOnly,
-        sendEndpoint: args?.sendEndpoint,
-        spamSendTx: args?.spamSendTx,
+        sendEndpoint: sendEndpoint,
+        spamSendTx: spamSendTx,
       });
       const banks = [...marginfiClient.banks.values()];
 
@@ -325,6 +331,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         nativeSolBalance,
         accountSummary,
         birdEyeApiKey,
+        sendEndpoint,
+        spamSendTx,
       });
 
       const pointSummary = await getPointsSummary();
