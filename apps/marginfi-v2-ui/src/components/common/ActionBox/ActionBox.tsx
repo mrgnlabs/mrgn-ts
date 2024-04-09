@@ -1,6 +1,7 @@
 import React from "react";
 
 import Link from "next/link";
+import { v4 as uuidv4 } from 'uuid';
 
 import { PublicKey } from "@solana/web3.js";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
@@ -498,6 +499,14 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       repayWithCollatOptions,
     }: MarginfiActionParams) => {
       setIsLoading(true);
+      const attemptUuid = uuidv4();
+      capture(`user_${currentAction.toLowerCase()}_initiate`, {
+        uuid: attemptUuid,
+        tokenSymbol: bank.meta.tokenSymbol,
+        tokenName: bank.meta.tokenName,
+        amount: borrowOrLendAmount,
+        priorityFee,
+      });
       const txnSig = await executeLendingAction({
         mfiClient,
         actionType: currentAction,
@@ -523,6 +532,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
           txn: txnSig!,
         });
         capture(`user_${currentAction.toLowerCase()}`, {
+          uuid: attemptUuid,
           tokenSymbol: bank.meta.tokenSymbol,
           tokenName: bank.meta.tokenName,
           amount: borrowOrLendAmount,
@@ -609,13 +619,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
         lstQuote: quoteResponseMeta || undefined,
         txn: txnSig!,
       });
-      // capture(`user_${currentAction.toLowerCase()}`, {
-      //   tokenSymbol: bank.meta.tokenSymbol,
-      //   tokenName: bank.meta.tokenName,
-      //   amount: borrowOrLendAmount,
-      //   txn: txnSig!,
-      //   priorityFee,
-      // });
     }
 
     // -------- Refresh state
