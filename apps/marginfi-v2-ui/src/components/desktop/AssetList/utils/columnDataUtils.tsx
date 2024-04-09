@@ -241,7 +241,7 @@ export const getPositionData = (
     ? bank.userInfo.tokenAccount.balance + nativeSolBalance
     : bank.userInfo.tokenAccount.balance;
 
-  if (bank.isActive) {
+  if (bank.isActive && bank.position.isLending === isInLendingMode) {
     positionAmount = bank.position.amount;
     positionUsd = bank.position.usdValue;
     liquidationPrice = bank.position.liquidationPrice;
@@ -287,7 +287,7 @@ export const getAction = (
             <TooltipTrigger asChild>
               <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
                 <ActionBoxDialog requestedToken={bank.address} requestedAction={currentAction}>
-                  <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
+                  <Button className="w-full max-w-[140px]">{showCloseBalance ? "Close" : currentAction}</Button>
                 </ActionBoxDialog>
               </div>
             </TooltipTrigger>
@@ -299,7 +299,7 @@ export const getAction = (
       {marginfiAccount !== null && (
         <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
           <ActionBoxDialog requestedToken={bank.address} requestedAction={currentAction}>
-            <Button className="w-full">{showCloseBalance ? "Close" : currentAction}</Button>
+            <Button className="w-full max-w-[140px]">{showCloseBalance ? "Close" : currentAction}</Button>
           </ActionBoxDialog>
         </div>
       )}

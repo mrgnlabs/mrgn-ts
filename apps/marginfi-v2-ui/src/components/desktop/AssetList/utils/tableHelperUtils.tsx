@@ -215,27 +215,7 @@ export const generateColumns = (isInLendingMode: boolean) => {
       cell: (props) => props.getValue(),
       footer: (props) => props.column.id,
     }),
-    // columnHelper.display({
-    //   id: "actions",
-    //   cell: (props) => {
-    //     console.log({ test: props.getValue() });
-    //     return props.getValue();
-    //   },
-    // }),
-    // columnHelper.accessor("walletAmount", {
-    //   cell: (props) => (
-    //     <>
-    //       {props.getValue().denominationUSD
-    //         ? usdFormatter.format(props.getValue().amount * props.getValue().price)
-    //         : numeralFormatter(props.getValue().amount)}
-    //     </>
-    //   ),
-    //   header: () => <HeaderWrapper>Wallet Amt.</HeaderWrapper>,
-    //   footer: (props) => props.column.id,
-    // }),
   ];
-
-  // const columnsa: ColumnDef<AssetListModel>[] =
 
   return columns;
 };
