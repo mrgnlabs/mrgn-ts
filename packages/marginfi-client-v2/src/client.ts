@@ -668,8 +668,8 @@ class MarginfiClient {
           );
         }
       }
-      console.log(error);
-      throw new ProcessTransactionError(error.message, ProcessTransactionErrorType.FallthroughError);
+      console.log("fallthrough error", error);
+      throw new ProcessTransactionError("Something went wrong", ProcessTransactionErrorType.FallthroughError);
     }
   }
 
