@@ -101,8 +101,8 @@ export const LstPreview = ({
   ]);
 
   return (
-    <>
-      <dl className="grid grid-cols-2 gap-y-2 mb-2 text-sm text-white">
+    <div className="flex flex-col gap-6">
+      <dl className="grid grid-cols-2 gap-y-2 text-sm text-white">
         <Stat label="You will receive">
           {lstOutAmount !== null
             ? lstOutAmount < 0.01 && lstOutAmount > 0
@@ -113,44 +113,46 @@ export const LstPreview = ({
         </Stat>
       </dl>
 
-      {children}
+      <div>
+        {children}
 
-      {isEnabled && (
-        <dl className="grid grid-cols-2 gap-y-2 pt-6 text-sm text-white">
-          <Stat label={"TVL"}>
-            {lstData && solUsdValue ? (
-              `$${numeralFormatter(lstData.tvl * solUsdValue)}`
-            ) : (
-              <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-            )}
-          </Stat>
-          <Stat label={"Projected APY"}>
-            {lstData ? (
-              percentFormatterDyn.format(lstData.projectedApy)
-            ) : (
-              <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-            )}
-          </Stat>
-          <Stat label={"Current price"}>
-            1 $LST ={" "}
-            {lstData ? (
-              clampedNumeralFormatter(lstData.lstSolValue)
-            ) : (
-              <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-            )}{" "}
-            SOL
-          </Stat>
-          <Stat label={"Commission"}>
-            {lstData?.solDepositFee ?? <Skeleton className="h-4 w-[45px] bg-[#373F45]" />}%
-          </Stat>
-          {priceImpactPct !== null && (
-            <Stat label={"Price impact"}>
-              {priceImpactPct < 0.01 ? "< 0.01%" : `~ ${percentFormatter.format(priceImpactPct)}`}
+        {isEnabled && (
+          <dl className="grid grid-cols-2 gap-y-2 text-sm text-white">
+            <Stat label={"TVL"}>
+              {lstData && solUsdValue ? (
+                `$${numeralFormatter(lstData.tvl * solUsdValue)}`
+              ) : (
+                <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+              )}
             </Stat>
-          )}
-        </dl>
-      )}
-    </>
+            <Stat label={"Projected APY"}>
+              {lstData ? (
+                percentFormatterDyn.format(lstData.projectedApy)
+              ) : (
+                <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+              )}
+            </Stat>
+            <Stat label={"Current price"}>
+              1 $LST ={" "}
+              {lstData ? (
+                clampedNumeralFormatter(lstData.lstSolValue)
+              ) : (
+                <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+              )}{" "}
+              SOL
+            </Stat>
+            <Stat label={"Commission"}>
+              {lstData?.solDepositFee ?? <Skeleton className="h-4 w-[45px] bg-[#373F45]" />}%
+            </Stat>
+            {priceImpactPct !== null && (
+              <Stat label={"Price impact"}>
+                {priceImpactPct < 0.01 ? "< 0.01%" : `~ ${percentFormatter.format(priceImpactPct)}`}
+              </Stat>
+            )}
+          </dl>
+        )}
+      </div>
+    </div>
   );
 };
 

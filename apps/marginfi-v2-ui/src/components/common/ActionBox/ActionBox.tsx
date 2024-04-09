@@ -753,7 +753,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       <div className="flex flex-col items-center">
         <div
           className={cn(
-            "p-4 md:p-6 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative",
+            "p-2 md:p-4 bg-background-gray text-white w-full max-w-[480px] rounded-xl relative",
             isDialog && "py-5 border border-background-gray-light/50"
           )}
         >
@@ -795,31 +795,29 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
               />
 
               {actionMethod.description && (
-                <div className="pb-6">
-                  <div
-                    className={cn(
-                      "flex space-x-2 py-2.5 px-3.5 rounded-xl gap-1 text-sm",
-                      actionMethod.isInfo ? "text-info-foreground" : "text-alert-foreground",
-                      actionMethod.isInfo ? "bg-info" : "bg-alert"
+                <div
+                  className={cn(
+                    "flex space-x-2 py-2.5 px-3.5 rounded-xl gap-1 text-sm mb-6",
+                    actionMethod.isInfo ? "text-info-foreground" : "text-alert-foreground",
+                    actionMethod.isInfo ? "bg-info" : "bg-alert"
+                  )}
+                >
+                  <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
+                  <div className="flex flex-col md:items-center md:flex-row gap-1">
+                    <p>{actionMethod.description}</p>
+                    {actionMethod.link && (
+                      <p>
+                        <span className="hidden md:inline">-</span>{" "}
+                        <Link
+                          href={actionMethod.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:no-underline"
+                        >
+                          Read more
+                        </Link>
+                      </p>
                     )}
-                  >
-                    <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-                    <div className="flex flex-col md:items-center md:flex-row gap-1">
-                      <p>{actionMethod.description}</p>
-                      {actionMethod.link && (
-                        <p>
-                          <span className="hidden md:inline">-</span>{" "}
-                          <Link
-                            href={actionMethod.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline hover:no-underline"
-                          >
-                            Read more
-                          </Link>
-                        </p>
-                      )}
-                    </div>
                   </div>
                 </div>
               )}
@@ -852,7 +850,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                   isEnabled={actionMethod.isEnabled}
                   actionMode={actionMode}
                 />
-                <div className="flex justify-between mt-3">
+                <div className={cn("flex justify-between mt-6", hasPreviewShown && "mb-4")}>
                   {isPreviewVisible ? (
                     <button
                       className={cn(
