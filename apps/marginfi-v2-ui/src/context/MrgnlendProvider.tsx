@@ -37,7 +37,7 @@ export const MrgnlendProvider: React.FC<{
   React.useEffect(() => {
     const fetchData = () => {
       setIsRefreshingStore(true);
-      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride, sendEndpoint, spamSendTx: true }).catch(console.error);
+      fetchMrgnlendState({ marginfiConfig: config.mfiConfig, connection, wallet, isOverride, sendEndpoint, spamSendTx: true, skipPreflightInSpam: true }).catch(console.error);
     };
 
     if (debounceId.current) {
