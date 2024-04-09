@@ -30,14 +30,14 @@ export const ActionBoxActions = ({
 
   if (!connected) {
     return (
-      <Button className="w-full py-6" onClick={() => setIsWalletAuthDialogOpen(true)}>
+      <Button className="w-full py-5" onClick={() => setIsWalletAuthDialogOpen(true)}>
         Sign in
       </Button>
     );
   }
 
   return (
-    <Button disabled={isLoading || !isEnabled} className="w-full py-6" onClick={handleAction}>
+    <Button disabled={isLoading || !isEnabled} className="w-full py-5" onClick={handleAction}>
       {isLoading ? <IconLoader /> : buttonLabel}
     </Button>
   );

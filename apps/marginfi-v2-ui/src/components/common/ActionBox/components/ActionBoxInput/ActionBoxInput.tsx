@@ -151,7 +151,7 @@ export const ActionBoxInput = ({
         changeRepayType={(type) => changeRepayType(type)}
         changeLstType={(type) => changeLstType(type)}
       />
-      <div className="bg-background rounded-lg p-4 mb-5">
+      <div className="bg-background rounded-lg p-3 mb-6">
         <div className="flex justify-center gap-1 items-center font-medium text-3xl">
           <div className="w-full flex-auto max-w-[162px]">
             <ActionBoxTokens
