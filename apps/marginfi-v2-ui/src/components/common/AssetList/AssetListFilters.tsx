@@ -43,8 +43,8 @@ export const AssetListFilters = () => {
 
   return (
     <div className="col-span-full w-full space-y-5">
-      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-8">
-        <div className=" mr-auto">
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-8 pr-1">
+        <div className="mr-auto">
           <ToggleGroup
             type="single"
             variant={"actionBox"}
@@ -52,6 +52,7 @@ export const AssetListFilters = () => {
             onValueChange={() =>
               setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND)
             }
+            className="bg-background-gray/70 rounded-lg"
           >
             <ToggleGroupItem value="lend" aria-label="Lend">
               Lend
