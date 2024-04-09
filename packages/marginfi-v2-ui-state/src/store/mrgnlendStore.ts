@@ -49,6 +49,7 @@ interface MrgnlendState {
   birdEyeApiKey: string;
   sendEndpoint: string | null;
   spamSendTx: boolean;
+  skipPreflightInSpam: boolean;
 
   // Actions
   fetchMrgnlendState: (args?: {
@@ -59,6 +60,7 @@ interface MrgnlendState {
     birdEyeApiKey?: string;
     sendEndpoint?: string;
     spamSendTx?: boolean;
+    skipPreflightInSpam?: boolean;
   }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
   resetUserData: () => void;
@@ -147,6 +149,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   emissionTokenMap: {},
   sendEndpoint: null,
   spamSendTx: false,
+  skipPreflightInSpam: false,
 
   // Actions
   fetchMrgnlendState: async (args?: {
@@ -157,6 +160,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     birdEyeApiKey?: string;
     sendEndpoint?: string;
     spamSendTx?: boolean;
+    skipPreflightInSpam?: boolean;
   }) => {
     try {
       const { MarginfiClient } = await import("@mrgnlabs/marginfi-client-v2");
@@ -175,6 +179,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const isReadOnly = args?.isOverride !== undefined ? args.isOverride : get().marginfiClient?.isReadOnly ?? false;
       const sendEndpoint = args?.sendEndpoint ?? get().sendEndpoint ?? undefined;
       const spamSendTx = args?.spamSendTx ?? get().spamSendTx ?? false;
+      const skipPreflightInSpam = args?.skipPreflightInSpam ?? get().skipPreflightInSpam ?? false;
+
       const [bankMetadataMap, tokenMetadataMap] = await Promise.all([loadBankMetadatas(), loadTokenMetadatas()]);
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
       const marginfiClient = await MarginfiClient.fetch(marginfiConfig, wallet ?? ({} as any), connection, {
@@ -182,6 +188,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         readOnly: isReadOnly,
         sendEndpoint: sendEndpoint,
         spamSendTx: spamSendTx,
+        skipPreflightInSpam,
       });
       const banks = [...marginfiClient.banks.values()];
 
@@ -333,6 +340,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         birdEyeApiKey,
         sendEndpoint,
         spamSendTx,
+        skipPreflightInSpam,
       });
 
       const pointSummary = await getPointsSummary();

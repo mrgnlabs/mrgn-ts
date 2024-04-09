@@ -52,6 +52,7 @@ export type MarginfiClientOptions = {
   readOnly?: boolean;
   sendEndpoint?: string;
   spamSendTx?: boolean;
+  skipPreflightInSpam?: boolean;
   preloadedBankAddresses?: PublicKey[];
 };
 
@@ -66,6 +67,7 @@ class MarginfiClient {
   private preloadedBankAddresses?: PublicKey[];
   private sendEndpoint?: string;
   private spamSendTx: boolean;
+  private skipPreflightInSpam: boolean;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -83,7 +85,8 @@ class MarginfiClient {
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
     sendEndpoint?: string,
-    spamSendTx: boolean = false
+    spamSendTx: boolean = false,
+    skipPreflightInSpam: boolean = false
   ) {
     this.group = group;
     this.banks = banks;
@@ -92,6 +95,7 @@ class MarginfiClient {
     this.preloadedBankAddresses = preloadedBankAddresses;
     this.sendEndpoint = sendEndpoint;
     this.spamSendTx = spamSendTx;
+    this.skipPreflightInSpam = skipPreflightInSpam;
   }
 
   /**
@@ -124,6 +128,7 @@ class MarginfiClient {
     const sendEndpoint = clientOptions?.sendEndpoint;
     const preloadedBankAddresses = clientOptions?.preloadedBankAddresses;
     const spamSendTx = clientOptions?.spamSendTx ?? false;
+    const skipPreflightInSpam = clientOptions?.skipPreflightInSpam ?? false;
 
     const provider = new AnchorProvider(connection, wallet, {
       ...AnchorProvider.defaultOptions(),
@@ -167,7 +172,8 @@ class MarginfiClient {
       preloadedBankAddresses,
       bankMetadataMap,
       sendEndpoint,
-      spamSendTx
+      spamSendTx,
+      skipPreflightInSpam
     );
   }
 
@@ -605,10 +611,19 @@ class MarginfiClient {
 
         if (this.spamSendTx) {
           let status = "pending";
+          if (this.skipPreflightInSpam) {
+            const response = await connection.simulateTransaction(
+              versionedTransaction,
+              opts ?? { minContextSlot, sigVerify: false }
+            );
+            if (response.value.err)
+              throw new SendTransactionError(JSON.stringify(response.value.err), response.value.logs ?? []);
+          }
+
           while (true) {
             signature = await sendConnection.sendTransaction(versionedTransaction, {
               // minContextSlot: mergedOpts.minContextSlot,
-              skipPreflight: mergedOpts.skipPreflight,
+              skipPreflight: this.skipPreflightInSpam || mergedOpts.skipPreflight,
               preflightCommitment: mergedOpts.preflightCommitment,
               maxRetries: mergedOpts.maxRetries,
             });
