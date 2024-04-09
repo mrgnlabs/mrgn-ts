@@ -235,167 +235,148 @@ export const LendingPreview = ({
   }, [computePreview, debouncedAmount]);
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       {selectedAccount && (
         <AvailableCollateral isLoading={isLoading} marginfiAccount={selectedAccount} preview={preview} />
       )}
 
-      {children}
+      <div>
+        {children}
 
-      {isEnabled && selectedBank && (
-        <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-sm text-white")}>
-          <Stat label={`Your amount`}>
-            {clampedNumeralFormatter(currentPositionAmount)} {selectedBank.meta.tokenSymbol}
-            {preview && <IconArrowRight width={12} height={12} />}
-            {preview &&
-              preview.positionAmount &&
-              clampedNumeralFormatter(preview.positionAmount) + " " + selectedBank.meta.tokenSymbol}
-          </Stat>
-          {repayWithCollatOptions && (
-            <Stat label="Price impact">
-              <div
-                className={cn(
-                  Number(repayWithCollatOptions.repayCollatQuote.priceImpactPct) > 0.01 &&
-                    (Number(repayWithCollatOptions.repayCollatQuote.priceImpactPct) > 0.05
-                      ? "text-destructive-foreground"
-                      : "text-alert-foreground")
-                )}
-              >
-                {percentFormatter.format(Number(repayWithCollatOptions.repayCollatQuote.priceImpactPct))}
-              </div>
+        {isEnabled && selectedBank && (
+          <dl className={cn("grid grid-cols-2 gap-y-2 text-sm text-white")}>
+            <Stat label={`Your amount`}>
+              {clampedNumeralFormatter(currentPositionAmount)} {selectedBank.meta.tokenSymbol}
+              {preview && <IconArrowRight width={12} height={12} />}
+              {preview &&
+                preview.positionAmount &&
+                clampedNumeralFormatter(preview.positionAmount) + " " + selectedBank.meta.tokenSymbol}
             </Stat>
-          )}
-          {repayWithCollatOptions && (
-            <Stat label="Slippage">
-              <div className={cn(repayWithCollatOptions.repayCollatQuote.slippageBps > 500 && "text-alert-foreground")}>
-                {percentFormatter.format(repayWithCollatOptions.repayCollatQuote.slippageBps / 10000)}
-              </div>
-            </Stat>
-          )}
-          <Stat style={{ color: healthColor }} label="Health">
-            {healthFactor && percentFormatter.format(healthFactor)}
-            {healthFactor && preview?.health ? <IconArrowRight width={12} height={12} /> : ""}
-            {isLoading ? (
-              <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-            ) : preview?.health ? (
-              percentFormatter.format(preview.health)
-            ) : (
-              ""
-            )}
-          </Stat>
-          {(actionMode === ActionType.Borrow || isBorrowing) && preview?.liquidationPrice && (
-            <Stat style={{ color: liquidationColor }} label="Liquidation price">
-              {selectedBank.isActive &&
-                selectedBank.position.liquidationPrice &&
-                selectedBank.position.liquidationPrice > 0.01 &&
-                usdFormatter.format(selectedBank.position.liquidationPrice)}
-              {selectedBank.isActive && selectedBank.position.liquidationPrice && preview?.liquidationPrice && (
-                <IconArrowRight width={12} height={12} />
-              )}
+            <Stat style={{ color: healthColor }} label="Health">
+              {healthFactor && percentFormatter.format(healthFactor)}
+              {healthFactor && preview?.health ? <IconArrowRight width={12} height={12} /> : ""}
               {isLoading ? (
                 <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-              ) : preview?.liquidationPrice ? (
-                usdFormatter.format(preview.liquidationPrice)
+              ) : preview?.health ? (
+                percentFormatter.format(preview.health)
               ) : (
                 ""
               )}
             </Stat>
-          )}
-          <Stat label={"Pool size"}>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span
-                    className={cn(
-                      "flex items-center justify-end gap-1.5 text-white",
-                      (isReduceOnly || isBankHigh) && "text-warning",
-                      isBankFilled && "text-destructive-foreground"
-                    )}
-                  >
-                    {numeralFormatter(
-                      showLending
-                        ? selectedBank.info.state.totalDeposits
-                        : Math.max(
-                            0,
-                            Math.min(
-                              selectedBank.info.state.totalDeposits,
-                              selectedBank.info.rawBank.config.borrowLimit.toNumber()
-                            ) - selectedBank.info.state.totalBorrows
-                          )
-                    )}
+            {(actionMode === ActionType.Borrow || isBorrowing) && preview?.liquidationPrice && (
+              <Stat style={{ color: liquidationColor }} label="Liquidation price">
+                {selectedBank.isActive &&
+                  selectedBank.position.liquidationPrice &&
+                  selectedBank.position.liquidationPrice > 0.01 &&
+                  usdFormatter.format(selectedBank.position.liquidationPrice)}
+                {selectedBank.isActive && selectedBank.position.liquidationPrice && preview?.liquidationPrice && (
+                  <IconArrowRight width={12} height={12} />
+                )}
+                {isLoading ? (
+                  <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+                ) : preview?.liquidationPrice ? (
+                  usdFormatter.format(preview.liquidationPrice)
+                ) : (
+                  ""
+                )}
+              </Stat>
+            )}
+            <Stat label={"Pool size"}>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className={cn(
+                        "flex items-center justify-end gap-1.5 text-white",
+                        (isReduceOnly || isBankHigh) && "text-warning",
+                        isBankFilled && "text-destructive-foreground"
+                      )}
+                    >
+                      {numeralFormatter(
+                        showLending
+                          ? selectedBank.info.state.totalDeposits
+                          : Math.max(
+                              0,
+                              Math.min(
+                                selectedBank.info.state.totalDeposits,
+                                selectedBank.info.rawBank.config.borrowLimit.toNumber()
+                              ) - selectedBank.info.state.totalBorrows
+                            )
+                      )}
 
-                    {(isReduceOnly || isBankHigh || isBankFilled) && <IconAlertTriangle size={14} />}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="flex flex-col items-start gap-1">
-                    <h4 className="text-base flex items-center gap-1.5">
-                      {isReduceOnly ? (
-                        <>
-                          <IconAlertTriangle size={16} /> Reduce Only
-                        </>
-                      ) : (
-                        isBankHigh &&
-                        (isBankFilled ? (
+                      {(isReduceOnly || isBankHigh || isBankFilled) && <IconAlertTriangle size={14} />}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="flex flex-col items-start gap-1">
+                      <h4 className="text-base flex items-center gap-1.5">
+                        {isReduceOnly ? (
                           <>
-                            <IconAlertTriangle size={16} /> Limit Reached
+                            <IconAlertTriangle size={16} /> Reduce Only
                           </>
                         ) : (
-                          <>
-                            <IconAlertTriangle size={16} /> Approaching Limit
-                          </>
-                        ))
-                      )}
-                    </h4>
+                          isBankHigh &&
+                          (isBankFilled ? (
+                            <>
+                              <IconAlertTriangle size={16} /> Limit Reached
+                            </>
+                          ) : (
+                            <>
+                              <IconAlertTriangle size={16} /> Approaching Limit
+                            </>
+                          ))
+                        )}
+                      </h4>
 
-                    <p>
-                      {isReduceOnly
-                        ? "stSOL is being discontinued."
-                        : `${selectedBank.meta.tokenSymbol} ${
-                            showLending ? "deposits" : "borrows"
-                          } are at ${percentFormatter.format(
-                            (showLending
-                              ? selectedBank.info.state.totalDeposits
-                              : selectedBank.info.state.totalBorrows) / bankCap
-                          )} capacity.`}
-                    </p>
-                    <a href="https://docs.marginfi.com">
-                      <u>Learn more.</u>
-                    </a>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </Stat>
-          <Stat label={"Type"}>
-            {selectedBank.info.state.isIsolated ? (
-              <>
-                Isolated pool{" "}
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <h4 className="text-base">Isolated pools are risky ⚠️</h4>
-                      Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you
-                      cannot borrow other assets. Isolated pools should be considered particularly risky. As always,
-                      remember that marginfi is a decentralized protocol and all deposited funds are at risk.
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </>
-            ) : (
-              <>Global pool</>
-            )}
-          </Stat>
-          <Stat label={"Oracle"}>
-            {oracle}
-            {oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
-          </Stat>
-        </dl>
-      )}
-    </>
+                      <p>
+                        {isReduceOnly
+                          ? "stSOL is being discontinued."
+                          : `${selectedBank.meta.tokenSymbol} ${
+                              showLending ? "deposits" : "borrows"
+                            } are at ${percentFormatter.format(
+                              (showLending
+                                ? selectedBank.info.state.totalDeposits
+                                : selectedBank.info.state.totalBorrows) / bankCap
+                            )} capacity.`}
+                      </p>
+                      <a href="https://docs.marginfi.com">
+                        <u>Learn more.</u>
+                      </a>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </Stat>
+            <Stat label={"Type"}>
+              {selectedBank.info.state.isIsolated ? (
+                <>
+                  Isolated pool{" "}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Image src="/info_icon.png" alt="info" height={12} width={12} />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <h4 className="text-base">Isolated pools are risky ⚠️</h4>
+                        Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you
+                        cannot borrow other assets. Isolated pools should be considered particularly risky. As always,
+                        remember that marginfi is a decentralized protocol and all deposited funds are at risk.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </>
+              ) : (
+                <>Global pool</>
+              )}
+            </Stat>
+            <Stat label={"Oracle"}>
+              {oracle}
+              {oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
+            </Stat>
+          </dl>
+        )}
+      </div>
+    </div>
   );
 };
 
