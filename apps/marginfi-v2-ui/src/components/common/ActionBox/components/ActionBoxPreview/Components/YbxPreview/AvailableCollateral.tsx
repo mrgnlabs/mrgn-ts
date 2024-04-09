@@ -36,7 +36,7 @@ export const AvailableCollateral = ({ isLoading }: ActionBoxAvailableCollateralP
             </Tooltip>
           </TooltipProvider>
         </dt>
-        <dd className="text-xl md:text-sm font-medium text-white">
+        <dd className="text-sm font-medium text-white">
           {isLoading ? <Skeleton className="h-4 w-[45px] bg-[#373F45]" /> : usdFormatterDyn.format(1)}
         </dd>
       </dl>
