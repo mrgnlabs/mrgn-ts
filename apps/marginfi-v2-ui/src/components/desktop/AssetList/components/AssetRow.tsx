@@ -19,7 +19,7 @@ export const AssetRow = (row: Row<AssetListModel>) => {
       <TableRow key={row.id} onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
         {row.getVisibleCells().map((cell, idx) => (
           <TableCell
-            className={cn(isHovering && "bg-background-gray", !isPosition ? "pb-2" : "rounded-t-md")}
+            className={cn(isHovering && "bg-background-gray", !isPosition ? "pb-2 rounded-md" : "rounded-t-md")}
             key={cell.id}
           >
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -30,6 +30,7 @@ export const AssetRow = (row: Row<AssetListModel>) => {
       {isPosition && (
         <TableRow onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
           <TableCell
+            showPadding={true}
             className={cn("rounded-b-md", "pb-2", isHovering && "bg-background-gray")}
             colSpan={row.getVisibleCells().length}
           >
