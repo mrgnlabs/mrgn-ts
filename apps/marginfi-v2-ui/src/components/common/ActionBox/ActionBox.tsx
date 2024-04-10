@@ -51,6 +51,8 @@ type BlackListRoutesMap = {
   };
 };
 
+const FEE_BPS = 25;
+
 export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleCloseDialog }: ActionBoxProps) => {
   const [
     mfiClient,
@@ -118,6 +120,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [blacklistRoutesMap, setBlacklistRoutesMap] = React.useState<BlackListRoutesMap>();
   const [hasPreviewShown, setHasPreviewShown] = React.useState<boolean>(false);
+  const [hasForceClosedPreview, setHasForceClosedPreview] = React.useState<boolean>(false);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -345,6 +348,11 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
       const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
 
+      let isSolMint = false;
+      if (repayBank.info.state.mint.equals(SOL_MINT) || bank.info.state.mint.equals(SOL_MINT)) {
+        isSolMint = true;
+      }
+
       if (amount !== 0) {
         setIsLoading(true);
         const quoteParams = {
@@ -352,9 +360,10 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
           inputMint: repayBank.info.state.mint.toBase58(),
           outputMint: bank.info.state.mint.toBase58(),
           slippageBps: slippageBps,
-          swapMode: "ExactIn" as any,
-          maxAccounts: 20,
-          // onlyDirectRoutes: true,
+          platformFeeBps: FEE_BPS,
+          swapMode: "ExactIn",
+          restrictIntermediateTokens: isSolMint ? true : false,
+          maxAccounts: isSolMint ? 15 : 20,
         } as QuoteGetRequest;
 
         try {
@@ -378,7 +387,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
             if (!swapQuoteOutput) throw new Error();
 
             const inputOutOtherAmount =
-              nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.01; // add this if dust appears: "* 1.01"
+              nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.005; // add this if dust appears: "* 1.005"
             setMaxAmountCollat(inputOutOtherAmount);
           } else {
             setMaxAmountCollat(amount);
@@ -398,14 +407,20 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, amount: number) => {
       const maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
 
+      let isSolMint = false;
+      if (repayBank.info.state.mint.equals(SOL_MINT) || bank.info.state.mint.equals(SOL_MINT)) {
+        isSolMint = true;
+      }
+
       const quoteParams = {
         amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
         inputMint: repayBank.info.state.mint.toBase58(),
         outputMint: bank.info.state.mint.toBase58(),
         slippageBps: slippageBps,
         swapMode: "ExactIn",
-        maxAccounts: 20,
-        // onlyDirectRoutes: true,
+        restrictIntermediateTokens: isSolMint ? true : false,
+        maxAccounts: isSolMint ? 15 : 20,
+        platformFeeBps: FEE_BPS,
       } as QuoteGetRequest;
 
       try {
@@ -717,6 +732,17 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     wallet,
   ]);
 
+  React.useEffect(() => {
+    if (
+      actionMode === ActionType.Repay &&
+      repayMode === RepayType.RepayCollat &&
+      !hasPreviewShown &&
+      !hasForceClosedPreview
+    ) {
+      setHasPreviewShown(true);
+    }
+  }, [actionMode, repayMode, hasPreviewShown, hasForceClosedPreview]);
+
   if (!isInitialized) {
     return null;
   }
@@ -831,7 +857,10 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                       className={cn(
                         "flex text-muted-foreground text-xs items-center cursor-pointer transition hover:text-primary cursor-pointer"
                       )}
-                      onClick={() => setHasPreviewShown(!hasPreviewShown)}
+                      onClick={() => {
+                        setHasPreviewShown(!hasPreviewShown);
+                        setHasForceClosedPreview(true);
+                      }}
                     >
                       {hasPreviewShown ? (
                         <>
