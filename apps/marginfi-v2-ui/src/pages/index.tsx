@@ -19,7 +19,7 @@ import { Announcements, AnnouncementCustomItem, AnnouncementBankItem } from "~/c
 
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
-import { IconAlertTriangle, IconBackpackWallet, IconYBX } from "~/components/ui/icons";
+import { IconAlertTriangle, IconBackpackWallet, IconCheck, IconYBX } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetsList")).AssetsList, { ssr: false });
@@ -51,12 +51,12 @@ export default function HomePage() {
     return [
       {
         image: (
-          <div className="text-alert-foreground">
-            <IconAlertTriangle size={22} />
+          <div className="text-success">
+            <IconCheck size={22} />
           </div>
         ),
-        text: "Withdrawals are affected by stale oracle prices and chain congestion. We are pushing improvements to improve oracle efficiency.",
-        onClick: () => window.open("https://twitter.com/edgarpavlovsky/status/1777394700279796017"),
+        text: "Oracle efficiency has been improved and marginfi is operating smoothly.",
+        onClick: () => {},
       },
       {
         image: <IconBackpackWallet size={22} />,
