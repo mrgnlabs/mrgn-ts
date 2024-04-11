@@ -773,7 +773,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                     <div className="pb-6" key={idx}>
                       <div
                         className={cn(
-                          "flex space-x-2 py-2.5 px-3.5 rounded-xl gap-1 text-sm",
+                          "flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm",
                           actionMethod.actionMethod === "INFO" && "bg-info text-info-foreground",
                           (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
                             "bg-alert text-alert-foreground",
