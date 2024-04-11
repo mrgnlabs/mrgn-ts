@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import { PublicKey } from "@solana/web3.js";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
+import { Autoplay } from "swiper/modules";
 
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -15,6 +16,7 @@ import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { IconArrowRight } from "~/components/ui/icons";
 
 import "swiper/css";
+import "swiper/css/autoplay";
 
 export type AnnouncementCustomItem = {
   text: string;
@@ -79,7 +81,15 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
   return (
     <div className="px-4 w-full">
       <div className="max-w-[480px] mx-auto w-full text-sm md:text-base">
-        <Swiper spaceBetween={50} slidesPerView={1}>
+        <Swiper
+          spaceBetween={50}
+          slidesPerView={1}
+          autoplay={{
+            delay: 5000,
+            pauseOnMouseEnter: true,
+          }}
+          modules={[Autoplay]}
+        >
           {items.map((item, index) => (
             <SwiperSlide key={index}>
               <div
@@ -93,7 +103,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                 {isBankItem(item) ? (
                   <ActionBoxDialog requestedAction={requestedAction} requestedToken={requestedToken}>
                     <div
-                      className="flex items-center gap-2 w-full"
+                      className="flex items-start gap-2 w-full"
                       onClick={() => {
                         setLendingMode(item.lendingMode || LendingModes.LEND);
                         setRequestedAction(item.actionType || ActionType.Deposit);
@@ -115,7 +125,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                     </div>
                   </ActionBoxDialog>
                 ) : (
-                  <div className="flex items-center gap-3 w-full font-normal">
+                  <div className="flex items-start gap-3 w-full font-normal">
                     {typeof item.image === "string" ? (
                       <Image src={item.image} alt={item.text} width={24} height={24} className="rounded-full" />
                     ) : (
