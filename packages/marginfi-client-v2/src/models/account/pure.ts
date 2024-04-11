@@ -944,7 +944,7 @@ class MarginfiAccount {
   }
 
   projectActiveBalancesNoCpi(program: MarginfiProgram, instructions: TransactionInstruction[]): PublicKey[] {
-    let projectedBalances = [...this.balances];
+    let projectedBalances = [...this.balances.map((b) => ({ active: b.active, bankPk: b.bankPk }))];
 
     for (let index = 0; index < instructions.length; index++) {
       const ix = instructions[index];
