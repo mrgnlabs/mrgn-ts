@@ -25,6 +25,7 @@ export const ActionBoxPreview = ({
   slippageBps,
   isEnabled,
   children,
+  repayWithCollatOptions,
 }: ActionBoxPreviewProps) => {
   const isInLendingMode = React.useMemo(
     () =>
@@ -38,7 +39,7 @@ export const ActionBoxPreview = ({
   return (
     <>
       {isInLendingMode && (
-        <LendingPreview selectedBank={selectedBank} actionMode={actionMode} isEnabled={isEnabled} amount={amount}>
+        <LendingPreview selectedBank={selectedBank} actionMode={actionMode} isEnabled={isEnabled} amount={amount} repayWithCollatOptions={repayWithCollatOptions}>
           {children}
         </LendingPreview>
       )}

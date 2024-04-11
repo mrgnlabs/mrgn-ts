@@ -38,6 +38,7 @@ export interface ActionPreview {
     ratio: number;
     amount: number;
   };
+  priceImpact: number | null;
 }
 
 interface ActionBoxPreviewProps {
@@ -221,6 +222,7 @@ export const LendingPreview = ({
           amount: availableCollateral,
           ratio: availableCollateral / assetsInit.toNumber(),
         },
+        priceImpact: repayWithCollatOptions?.repayCollatQuote.priceImpactPct ? Number(repayWithCollatOptions.repayCollatQuote.priceImpactPct) : null,
       });
     } catch (error) {
       setPreview(null);
@@ -275,6 +277,17 @@ export const LendingPreview = ({
                 <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
               ) : preview?.liquidationPrice ? (
                 usdFormatter.format(preview.liquidationPrice)
+              ) : (
+                ""
+              )}
+            </Stat>
+          )}
+          {preview?.priceImpact && (
+            <Stat style={{ color: liquidationColor }} label="Price impact">
+              {isLoading ? (
+                <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
+              ) : preview?.priceImpact ? (
+                percentFormatter.format(preview.priceImpact)
               ) : (
                 ""
               )}
