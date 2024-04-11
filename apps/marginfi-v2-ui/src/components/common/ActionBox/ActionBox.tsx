@@ -1,7 +1,7 @@
 import React from "react";
 
 import Link from "next/link";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 import { PublicKey } from "@solana/web3.js";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
@@ -215,10 +215,10 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
 
   const isDust = React.useMemo(() => selectedBank?.isActive && selectedBank?.position.isDust, [selectedBank]);
   const showCloseBalance = React.useMemo(() => actionMode === ActionType.Withdraw && isDust, [actionMode, isDust]);
-  const isPreviewVisible = React.useMemo(
-    () => actionMode === ActionType.MintLST || !!selectedBank,
-    [actionMode, selectedBank]
-  );
+  // const isPreviewVisible = React.useMemo(
+  //   () => actionMode === ActionType.MintLST || !!selectedBank,
+  //   [actionMode, selectedBank]
+  // );
 
   const actionMethod = React.useMemo(
     () =>
@@ -803,7 +803,8 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                 actionMode={actionMode}
                 amount={amount}
                 slippageBps={slippageBps}
-                isEnabled={hasPreviewShown}
+                // isEnabled={hasPreviewShown}
+                isEnabled={true}
                 repayWithCollatOptions={
                   repayCollatQuote && repayAmount && selectedRepayBank
                     ? {
@@ -826,7 +827,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                   actionMode={actionMode}
                 />
                 <div className="flex justify-between mt-3">
-                  {isPreviewVisible ? (
+                  {/* {isPreviewVisible ? (
                     <button
                       className={cn(
                         "flex text-muted-foreground text-xs items-center cursor-pointer transition hover:text-primary cursor-pointer"
@@ -846,9 +847,9 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                     </button>
                   ) : (
                     <div />
-                  )}
+                  )} */}
 
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-2 ml-auto">
                     <button
                       onClick={() => setIsSettingsMode(true)}
                       className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border border-background-gray-light bg-transparent hover:bg-background-gray-light text-muted-foreground"
