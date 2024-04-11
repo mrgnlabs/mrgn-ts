@@ -1,4 +1,4 @@
-import { floor, WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { floor, percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   MarginfiAccountWrapper,
@@ -24,7 +24,7 @@ export enum LstType {
 export type ActionMethodType = "WARNING" | "ERROR" | "INFO";
 export interface ActionMethod {
   isEnabled: boolean;
-  isInfo?: boolean;
+  actionMethod?: ActionMethodType;
   description?: string;
   link?: string;
 }
@@ -71,10 +71,10 @@ export function checkActionAvailable({
   blacklistRoutes,
   repayMode,
   repayCollatQuote,
-}: CheckActionAvailableProps): ActionMethod {
-  let check: ActionMethod | null = null;
+}: CheckActionAvailableProps): ActionMethod[] {
+  let checks: ActionMethod[] = [];
 
-  check = generalChecks(
+  const check = generalChecks(
     connected,
     selectedBank,
     selectedStakingAccount,
@@ -82,53 +82,44 @@ export function checkActionAvailable({
     repayAmount ?? 0,
     showCloseBalance
   );
-  if (check) return check;
+  if (check) return [check];
 
   // allert checks
   if (selectedBank) {
     switch (actionMode) {
       case ActionType.Deposit:
-        check = canBeLent(selectedBank, nativeSolBalance);
-        if (check) return check;
+        const lentChecks = canBeLent(selectedBank, nativeSolBalance);
+        if (lentChecks.length) checks.push(...lentChecks);
         break;
       case ActionType.Withdraw:
-        check = canBeWithdrawn(selectedBank, marginfiAccount);
-        if (check) return check;
+        const withdrawChecks = canBeWithdrawn(selectedBank, marginfiAccount);
+        if (withdrawChecks.length) checks.push(...withdrawChecks);
         break;
       case ActionType.Borrow:
-        check = canBeBorrowed(selectedBank, extendedBankInfos, marginfiAccount);
-        if (check) return check;
+        const borrowChecks = canBeBorrowed(selectedBank, extendedBankInfos, marginfiAccount);
+        if (borrowChecks.length) checks.push(...borrowChecks);
         break;
       case ActionType.Repay:
+        let repayChecks;
         if (repayMode === RepayType.RepayRaw) {
-          check = canBeRepaid(selectedBank);
+          repayChecks = canBeRepaid(selectedBank);
         } else if (repayMode === RepayType.RepayCollat) {
-          check = canBeRepaidCollat(selectedBank, selectedRepayBank, blacklistRoutes, repayCollatQuote);
+          repayChecks = canBeRepaidCollat(selectedBank, selectedRepayBank, blacklistRoutes, repayCollatQuote);
         }
-        if (check) return check;
+        if (repayChecks) checks.push(...repayChecks);
         break;
-      case ActionType.MintYBX:
-        // canBeYBXed
-        if (check) return check;
-        break;
+      // case ActionType.MintYBX:
+      //   if (check) checks.push(check);
+      //   break;
     }
   }
 
-  // info checks
-  if (selectedBank) {
-    switch (actionMode) {
-      case ActionType.Repay:
-        if (repayMode === RepayType.RepayCollat) {
-          check = infoRepaidCollat(selectedBank);
-        }
-        if (check) return check;
-        break;
-    }
-  }
+  if (checks.length === 0)
+    checks.push({
+      isEnabled: true,
+    });
 
-  return {
-    isEnabled: true,
-  };
+  return checks;
 }
 
 function generalChecks(
@@ -146,7 +137,7 @@ function generalChecks(
     return { isEnabled: false };
   }
   if (showCloseBalance) {
-    return { isInfo: true, description: "Close lending balance.", isEnabled: true };
+    return { actionMethod: "INFO", description: "Close lending balance.", isEnabled: true };
   }
 
   if (amount === 0 && repayAmount === 0) {
@@ -159,87 +150,89 @@ function generalChecks(
 function canBeWithdrawn(
   targetBankInfo: ExtendedBankInfo,
   marginfiAccount: MarginfiAccountWrapper | null
-): ActionMethod | null {
+): ActionMethod[] {
+  let checks: ActionMethod[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
-    return {
+    checks.push({
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
-    };
+    });
   }
 
   if (!targetBankInfo.isActive) {
-    return {
+    checks.push({
       description: "No position found.",
       isEnabled: false,
-    };
+    });
   }
 
-  if (!targetBankInfo.position.isLending) {
-    return {
+  if (targetBankInfo.isActive && !targetBankInfo.position.isLending) {
+    checks.push({
       description: `You&apos;re not lending ${targetBankInfo.meta.tokenSymbol}.`,
       isEnabled: false,
-    };
+    });
   }
 
   const noFreeCollateral = marginfiAccount && marginfiAccount.computeFreeCollateral().isZero();
   if (noFreeCollateral) {
-    return {
+    checks.push({
       description: "No available collateral.",
       isEnabled: true,
-    };
+    });
   }
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    return {
+    checks.push({
       description: "The oracle data for this bank is stale",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
-    };
+    });
   }
 
-  return null;
+  return checks;
 }
 
-function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
+function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMethod[] {
+  let checks: ActionMethod[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
-    return {
+    checks.push({
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
-    };
+    });
   }
 
   if (!targetBankInfo.isActive) {
-    return {
+    checks.push({
       description: "No position found.",
       isEnabled: false,
-    };
+    });
   }
 
-  if (targetBankInfo.position.isLending) {
-    return {
+  if (targetBankInfo.isActive && targetBankInfo.position.isLending) {
+    checks.push({
       description: `You are not borrowing ${targetBankInfo.meta.tokenSymbol}.`,
       isEnabled: false,
-    };
+    });
   }
 
   if (targetBankInfo.userInfo.maxRepay === 0) {
-    return {
+    checks.push({
       description: `Insufficient ${targetBankInfo.meta.tokenSymbol} in wallet for loan repayment.`,
       isEnabled: false,
-    };
+    });
   }
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    return {
+    checks.push({
       description: "The oracle data for this bank is stale",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
-    };
+    });
   }
 
-  return null;
+  return checks;
 }
 
 function canBeRepaidCollat(
@@ -247,86 +240,101 @@ function canBeRepaidCollat(
   repayBankInfo: ExtendedBankInfo | null,
   blacklistRoutes: PublicKey[] | null,
   swapQuote: QuoteResponse | null
-): ActionMethod | null {
+): ActionMethod[] {
+  let checks: ActionMethod[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
+
   if (isPaused) {
-    return {
+    checks.push({
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
-    };
+    });
   }
 
   if (!targetBankInfo.isActive) {
-    return {
+    checks.push({
       description: "No position found.",
       isEnabled: false,
-    };
+    });
   }
 
-  if (targetBankInfo.position.isLending) {
-    return {
+  if (targetBankInfo.isActive && targetBankInfo.position.isLending) {
+    checks.push({
       description: `You are not borrowing ${targetBankInfo.meta.tokenSymbol}.`,
       isEnabled: false,
-    };
+    });
+  }
+
+  if (swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.01) {
+    //invert
+    if (swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.05) {
+      checks.push({
+        description: `Price impact is ${percentFormatter.format(Number(swapQuote.priceImpactPct))}.`,
+        actionMethod: "ERROR",
+        isEnabled: true,
+      });
+    } else {
+      checks.push({
+        description: `Price impact is ${percentFormatter.format(Number(swapQuote.priceImpactPct))}.`,
+        isEnabled: true,
+      });
+    }
   }
 
   if (repayBankInfo && blacklistRoutes) {
     if (blacklistRoutes.find((key) => key.equals(repayBankInfo.info.state.mint))) {
-      return {
+      checks.push({
         description: "Repayment not possible with current collateral, choose another.",
         isEnabled: true,
-      };
+      });
     }
   } else {
-    return { isEnabled: false };
+    checks.push({ isEnabled: false });
   }
 
   if (!swapQuote) {
-    return { isEnabled: false };
+    checks.push({ isEnabled: false });
   }
 
   if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
-    return {
+    checks.push({
       description: "The oracle data for this bank is stale",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
-    };
+    });
   }
 
-  return null;
-}
-
-function infoRepaidCollat(targetBankInfo: ExtendedBankInfo): ActionMethod | null {
   if (targetBankInfo.userInfo.tokenAccount.balance > 0) {
-    return {
+    checks.push({
       description: `You have ${targetBankInfo.meta.tokenSymbol} in your wallet and can repay without using collateral.`,
       isEnabled: true,
-      isInfo: true,
-    };
+      actionMethod: "INFO",
+    });
   }
 
-  return null;
+  return checks;
 }
 
 function canBeBorrowed(
   targetBankInfo: ExtendedBankInfo,
   extendedBankInfos: ExtendedBankInfo[],
   marginfiAccount: MarginfiAccountWrapper | null
-): ActionMethod | null {
+): ActionMethod[] {
+  let checks: ActionMethod[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
-    return {
+    checks.push({
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
-    };
+    });
   }
 
   const isReduceOnly = targetBankInfo.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
   if (isReduceOnly) {
-    return {
+    checks.push({
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is in reduce-only mode. You may only withdraw a deposit or repay a loan.`,
       isEnabled: false,
-    };
+    });
   }
 
   const isBeingRetired =
@@ -337,34 +345,34 @@ function canBeBorrowed(
       .getAssetWeight(MarginRequirementType.Maintenance, targetBankInfo.info.oraclePrice)
       .gt(0);
   if (isBeingRetired) {
-    return {
+    checks.push({
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is being retired. You may only withdraw a deposit or repay a loan.`,
       isEnabled: false,
-    };
+    });
   }
 
   const isFull = targetBankInfo.info.rawBank.computeRemainingCapacity().borrowCapacity.lte(0);
   if (isFull) {
-    return {
+    checks.push({
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is at borrow capacity.`,
       isEnabled: false,
-    };
+    });
   }
 
   const alreadyLending = targetBankInfo.isActive && targetBankInfo.position.isLending;
   if (alreadyLending) {
-    return {
+    checks.push({
       description: "You are already lending this asset, you need to close that position first to start borrowing.",
       isEnabled: false,
-    };
+    });
   }
 
   const freeCollateral = marginfiAccount && marginfiAccount.computeFreeCollateral();
   if (!freeCollateral || (freeCollateral && freeCollateral.eq(0))) {
-    return {
+    checks.push({
       description: "You don't have any available collateral.",
       isEnabled: false,
-    };
+    });
   }
 
   const existingLiabilityBanks = extendedBankInfos.filter(
@@ -374,10 +382,10 @@ function canBeBorrowed(
     (b) => b.info.rawBank.config.riskTier === RiskTier.Isolated && !b.address.equals(targetBankInfo.address)
   );
   if (existingIsolatedBorrow) {
-    return {
+    checks.push({
       description: `You have an active isolated borrow (${existingIsolatedBorrow.meta.tokenSymbol}). You cannot borrow another asset while you do.`,
       isEnabled: false,
-    };
+    });
   }
 
   const attemptingToBorrowIsolatedAssetWithActiveDebt =
@@ -386,38 +394,40 @@ function canBeBorrowed(
       ?.computeHealthComponents(MarginRequirementType.Equity, [targetBankInfo.address])
       .liabilities.isZero();
   if (attemptingToBorrowIsolatedAssetWithActiveDebt) {
-    return {
+    checks.push({
       description: "You cannot borrow an isolated asset with existing borrows.",
       isEnabled: false,
-    };
+    });
   }
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    return {
+    checks.push({
       description: "The oracle data for this bank is stale",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
-    };
+    });
   }
 
-  return null;
+  return checks;
 }
 
-function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): ActionMethod | null {
+function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): ActionMethod[] {
+  let checks: ActionMethod[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
+
   if (isPaused) {
-    return {
+    checks.push({
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is paused at this time.`,
       isEnabled: false,
-    };
+    });
   }
 
   const isReduceOnly = targetBankInfo.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
   if (isReduceOnly) {
-    return {
+    checks.push({
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is in reduce-only mode. You may only withdraw a deposit or repay a loan.`,
       isEnabled: false,
-    };
+    });
   }
 
   const isBeingRetired =
@@ -428,26 +438,26 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
       .getAssetWeight(MarginRequirementType.Maintenance, targetBankInfo.info.oraclePrice)
       .gt(0);
   if (isBeingRetired) {
-    return {
+    checks.push({
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is being retired. You may only withdraw a deposit or repay a loan.`,
       isEnabled: false,
-    };
+    });
   }
 
   const alreadyBorrowing = targetBankInfo.isActive && !targetBankInfo.position.isLending;
   if (alreadyBorrowing) {
-    return {
+    checks.push({
       description: "You are already borrowing this asset, you need to repay that position first to start lending.",
       isEnabled: false,
-    };
+    });
   }
 
   const isFull = targetBankInfo.info.rawBank.computeRemainingCapacity().depositCapacity.lte(0);
   if (isFull) {
-    return {
+    checks.push({
       description: `The ${targetBankInfo.info.rawBank.tokenSymbol} bank is at deposit capacity.`,
       isEnabled: false,
-    };
+    });
   }
 
   const isWrappedSol = targetBankInfo.info.state.mint.equals(WSOL_MINT);
@@ -459,18 +469,18 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   );
 
   if (walletBalance === 0) {
-    return { description: `Insufficient ${targetBankInfo.meta.tokenSymbol} in wallet.`, isEnabled: false };
+    checks.push({ description: `Insufficient ${targetBankInfo.meta.tokenSymbol} in wallet.`, isEnabled: false });
   }
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    return {
+    checks.push({
       description: "The oracle data for this bank is stale",
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
-    };
+    });
   }
 
-  return null;
+  return checks;
 }
 
 export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 5, timeout = 1000) {
