@@ -233,7 +233,6 @@ export const LendingPreview = ({
   React.useEffect(() => {
     computePreview();
   }, [computePreview, debouncedAmount]);
-  const pricetest = "0.78";
 
   return (
     <>
@@ -268,9 +267,7 @@ export const LendingPreview = ({
           )}
           {repayWithCollatOptions && (
             <Stat label="Slippage">
-              <div
-                className={cn(repayWithCollatOptions.repayCollatQuote.slippageBps > 500 && "text-warning-foreground")}
-              >
+              <div className={cn(repayWithCollatOptions.repayCollatQuote.slippageBps > 500 && "text-alert-foreground")}>
                 {percentFormatter.format(repayWithCollatOptions.repayCollatQuote.slippageBps / 10000)}
               </div>
             </Stat>
