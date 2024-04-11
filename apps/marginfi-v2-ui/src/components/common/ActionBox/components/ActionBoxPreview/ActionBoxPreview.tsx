@@ -39,7 +39,13 @@ export const ActionBoxPreview = ({
   return (
     <>
       {isInLendingMode && (
-        <LendingPreview selectedBank={selectedBank} actionMode={actionMode} isEnabled={isEnabled} amount={amount} repayWithCollatOptions={repayWithCollatOptions}>
+        <LendingPreview
+          selectedBank={selectedBank}
+          actionMode={actionMode}
+          isEnabled={isEnabled}
+          amount={amount}
+          repayWithCollatOptions={repayWithCollatOptions}
+        >
           {children}
         </LendingPreview>
       )}

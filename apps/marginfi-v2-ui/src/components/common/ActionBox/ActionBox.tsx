@@ -220,7 +220,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   //   [actionMode, selectedBank]
   // );
 
-  const actionMethod = React.useMemo(
+  const actionMethods = React.useMemo(
     () =>
       checkActionAvailable({
         amount,
@@ -767,34 +767,39 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                 }}
               />
 
-              {actionMethod.description && (
-                <div className="pb-6">
-                  <div
-                    className={cn(
-                      "flex space-x-2 py-2.5 px-3.5 rounded-xl gap-1 text-sm",
-                      actionMethod.isInfo ? "text-info-foreground" : "text-alert-foreground",
-                      actionMethod.isInfo ? "bg-info" : "bg-alert"
-                    )}
-                  >
-                    <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
-                    <div className="flex flex-col md:items-center md:flex-row gap-1">
-                      <p>{actionMethod.description}</p>
-                      {actionMethod.link && (
-                        <p>
-                          <span className="hidden md:inline">-</span>{" "}
-                          <Link
-                            href={actionMethod.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline hover:no-underline"
-                          >
-                            Read more
-                          </Link>
-                        </p>
-                      )}
+              {actionMethods.map(
+                (actionMethod, idx) =>
+                  actionMethod.description && (
+                    <div className="pb-6" key={idx}>
+                      <div
+                        className={cn(
+                          "flex space-x-2 py-2.5 px-3.5 rounded-xl gap-1 text-sm",
+                          actionMethod.actionMethod === "INFO" && "bg-info text-info-foreground",
+                          (!actionMethod.actionMethod || actionMethod.actionMethod === "WARNING") &&
+                            "bg-alert text-alert-foreground",
+                          actionMethod.actionMethod === "ERROR" && "bg-[#990000] text-primary"
+                        )}
+                      >
+                        <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
+                        <div className="flex flex-col md:items-center md:flex-row gap-1">
+                          <p>{actionMethod.description}</p>
+                          {actionMethod.link && (
+                            <p>
+                              <span className="hidden md:inline">-</span>{" "}
+                              <Link
+                                href={actionMethod.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline hover:no-underline"
+                              >
+                                Read more
+                              </Link>
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  )
               )}
 
               <ActionBoxPreview
@@ -823,7 +828,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                   }}
                   isLoading={isLoading}
                   showCloseBalance={showCloseBalance ?? false}
-                  isEnabled={actionMethod.isEnabled}
+                  isEnabled={!actionMethods.filter((value) => value.isEnabled === false).length}
                   actionMode={actionMode}
                 />
                 <div className="flex justify-between mt-3">

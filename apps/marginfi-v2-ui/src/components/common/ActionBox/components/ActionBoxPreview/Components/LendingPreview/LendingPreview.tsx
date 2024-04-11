@@ -38,7 +38,6 @@ export interface ActionPreview {
     ratio: number;
     amount: number;
   };
-  priceImpact: number | null;
 }
 
 interface ActionBoxPreviewProps {
@@ -222,7 +221,6 @@ export const LendingPreview = ({
           amount: availableCollateral,
           ratio: availableCollateral / assetsInit.toNumber(),
         },
-        priceImpact: repayWithCollatOptions?.repayCollatQuote.priceImpactPct ? Number(repayWithCollatOptions.repayCollatQuote.priceImpactPct) : null,
       });
     } catch (error) {
       setPreview(null);
@@ -235,6 +233,7 @@ export const LendingPreview = ({
   React.useEffect(() => {
     computePreview();
   }, [computePreview, debouncedAmount]);
+  const pricetest = "0.78";
 
   return (
     <>
@@ -253,6 +252,29 @@ export const LendingPreview = ({
               preview.positionAmount &&
               clampedNumeralFormatter(preview.positionAmount) + " " + selectedBank.meta.tokenSymbol}
           </Stat>
+          {repayWithCollatOptions && (
+            <Stat label="Price impact">
+              <div
+                className={cn(
+                  Number(repayWithCollatOptions.repayCollatQuote.priceImpactPct) > 0.01 &&
+                    (Number(repayWithCollatOptions.repayCollatQuote.priceImpactPct) > 0.05
+                      ? "text-destructive-foreground"
+                      : "text-alert-foreground")
+                )}
+              >
+                {percentFormatter.format(Number(repayWithCollatOptions.repayCollatQuote.priceImpactPct))}
+              </div>
+            </Stat>
+          )}
+          {repayWithCollatOptions && (
+            <Stat label="Slippage">
+              <div
+                className={cn(repayWithCollatOptions.repayCollatQuote.slippageBps > 500 && "text-warning-foreground")}
+              >
+                {percentFormatter.format(repayWithCollatOptions.repayCollatQuote.slippageBps / 10000)}
+              </div>
+            </Stat>
+          )}
           <Stat style={{ color: healthColor }} label="Health">
             {healthFactor && percentFormatter.format(healthFactor)}
             {healthFactor && preview?.health ? <IconArrowRight width={12} height={12} /> : ""}
@@ -277,17 +299,6 @@ export const LendingPreview = ({
                 <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
               ) : preview?.liquidationPrice ? (
                 usdFormatter.format(preview.liquidationPrice)
-              ) : (
-                ""
-              )}
-            </Stat>
-          )}
-          {preview?.priceImpact && (
-            <Stat style={{ color: liquidationColor }} label="Price impact">
-              {isLoading ? (
-                <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-              ) : preview?.priceImpact ? (
-                percentFormatter.format(preview.priceImpact)
               ) : (
                 ""
               )}
