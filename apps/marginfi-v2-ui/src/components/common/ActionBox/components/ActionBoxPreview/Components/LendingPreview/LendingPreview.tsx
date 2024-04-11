@@ -233,6 +233,7 @@ export const LendingPreview = ({
   React.useEffect(() => {
     computePreview();
   }, [computePreview, debouncedAmount]);
+  const pricetest = "0.78";
 
   return (
     <div className="flex flex-col gap-6">
@@ -244,7 +245,7 @@ export const LendingPreview = ({
         {children}
 
         {isEnabled && selectedBank && (
-          <dl className={cn("grid grid-cols-2 gap-y-2 text-sm text-white")}>
+          <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-sm text-white")}>
             <Stat label={`Your amount`}>
               {clampedNumeralFormatter(currentPositionAmount)} {selectedBank.meta.tokenSymbol}
               {preview && <IconArrowRight width={12} height={12} />}
@@ -252,6 +253,29 @@ export const LendingPreview = ({
                 preview.positionAmount &&
                 clampedNumeralFormatter(preview.positionAmount) + " " + selectedBank.meta.tokenSymbol}
             </Stat>
+            {repayWithCollatOptions && (
+              <Stat label="Price impact">
+                <div
+                  className={cn(
+                    Number(repayWithCollatOptions.repayCollatQuote.priceImpactPct) > 0.01 &&
+                      (Number(repayWithCollatOptions.repayCollatQuote.priceImpactPct) > 0.05
+                        ? "text-destructive-foreground"
+                        : "text-alert-foreground")
+                  )}
+                >
+                  {percentFormatter.format(Number(repayWithCollatOptions.repayCollatQuote.priceImpactPct))}
+                </div>
+              </Stat>
+            )}
+            {repayWithCollatOptions && (
+              <Stat label="Slippage">
+                <div
+                  className={cn(repayWithCollatOptions.repayCollatQuote.slippageBps > 500 && "text-warning-foreground")}
+                >
+                  {percentFormatter.format(repayWithCollatOptions.repayCollatQuote.slippageBps / 10000)}
+                </div>
+              </Stat>
+            )}
             <Stat style={{ color: healthColor }} label="Health">
               {healthFactor && percentFormatter.format(healthFactor)}
               {healthFactor && preview?.health ? <IconArrowRight width={12} height={12} /> : ""}
