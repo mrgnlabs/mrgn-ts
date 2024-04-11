@@ -29,7 +29,7 @@ const slippageOptions = [
   },
   {
     label: "Normal",
-    value: 0.5,
+    value: 1,
   },
   {
     label: "High",

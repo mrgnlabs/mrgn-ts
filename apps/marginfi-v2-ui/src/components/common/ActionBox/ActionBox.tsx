@@ -260,6 +260,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   const selectedRepayBankPrev = usePrevious(selectedRepayBank);
   const selectedBankPrev = usePrevious(selectedBank);
   const debouncedRepayAmountPrev = usePrevious(debouncedRepayAmount);
+  const slippageBpsPrev = usePrevious(slippageBps);
 
   React.useEffect(() => {
     if (actionModePrev !== null && actionModePrev !== actionMode) {
@@ -441,7 +442,9 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     if (selectedRepayBank && selectedBank) {
       const isRepayBankChanged = !selectedRepayBankPrev?.address.equals(selectedRepayBank.address);
       const isBankChanged = !selectedBankPrev?.address.equals(selectedBank.address);
-      if ((isBankChanged || isRepayBankChanged) && repayMode === RepayType.RepayCollat) {
+      const isSlippageChanged = slippageBpsPrev !== slippageBps;
+
+      if ((isBankChanged || isRepayBankChanged || isSlippageChanged) && repayMode === RepayType.RepayCollat) {
         setRepayAmountRaw("");
         calculateMaxCollat(selectedBank, selectedRepayBank);
       }
@@ -456,6 +459,8 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     selectedBankPrev,
     selectedRepayBank,
     selectedBank,
+    slippageBps,
+    slippageBpsPrev,
     calculateMaxCollat,
     setRepayCollatQuote,
     setRepayAmountRaw,
@@ -467,11 +472,12 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       const isRepayBankChanged = !selectedRepayBankPrev?.address.equals(selectedRepayBank.address);
       const isBankChanged = !selectedBankPrev?.address.equals(selectedBank.address);
       const isAmountChanged = debouncedRepayAmountPrev !== debouncedRepayAmount;
+      const isSlippageChanged = slippageBpsPrev !== slippageBps;
 
       if (
         debouncedRepayAmount !== null &&
         repayMode === RepayType.RepayCollat &&
-        (isAmountChanged || isBankChanged || isRepayBankChanged)
+        (isAmountChanged || isBankChanged || isRepayBankChanged || isSlippageChanged)
       ) {
         calculateRepayCollateral(selectedBank, selectedRepayBank, debouncedRepayAmount);
       }
@@ -484,6 +490,8 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     selectedBank,
     selectedRepayBankPrev,
     selectedBankPrev,
+    slippageBps,
+    slippageBpsPrev,
     calculateRepayCollateral,
   ]);
 
