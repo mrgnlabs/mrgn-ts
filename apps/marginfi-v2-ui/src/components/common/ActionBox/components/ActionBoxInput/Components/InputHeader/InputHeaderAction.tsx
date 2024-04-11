@@ -65,23 +65,25 @@ export const InputHeaderAction = ({
     }
 
     if (actionType === ActionType.Repay) {
-      return {
-        toggles: [
-          { value: RepayType.RepayRaw, text: "Repay" },
-          {
-            value: RepayType.RepayCollat,
-            text: (
-              <div className="flex items-center gap-2">
-                <IconSparkles size={16} /> Collateral Repay
-              </div>
-            ),
-          },
-        ],
-        action: (value: any) => {
-          if (value) changeRepayType(value);
-        },
-        value: repayType,
-      } as ToggleObject;
+      return "Repay";
+      // {
+      //   toggles:
+      //   [
+      //     { value: RepayType.RepayRaw, text: "Repay" },
+      //     {
+      //       value: RepayType.RepayCollat,
+      //       text: (
+      //         <div className="flex items-center gap-2">
+      //           <IconSparkles size={16} /> Collateral Repay
+      //         </div>
+      //       ),
+      //     },
+      //   ],
+      //   action: (value: any) => {
+      //     if (value) changeRepayType(value);
+      //   },
+      //   value: repayType,
+      // } as ToggleObject;
     }
 
     if (actionType === ActionType.MintLST && stakeAccounts.length > 0) {
