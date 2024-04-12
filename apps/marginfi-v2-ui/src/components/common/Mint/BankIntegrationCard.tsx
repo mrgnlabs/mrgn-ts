@@ -37,7 +37,7 @@ export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardPr
           )}
           {depositData && (
             <li className="flex items-center justify-between gap-1">
-              <span className="text-muted-foreground">{isInLendingMode ? "Deposits" : "Available"}</span>{" "}
+              <span className="text-muted-foreground">{isInLendingMode ? "Deposits:" : "Available:"}</span>{" "}
               {depositData.denominationUSD
                 ? usdFormatter.format(depositData.bankDeposits)
                 : numeralFormatter(depositData.bankDeposits)}
