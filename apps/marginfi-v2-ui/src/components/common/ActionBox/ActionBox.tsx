@@ -336,6 +336,14 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     fetchDirectRoutes();
   }, []);
 
+  React.useEffect(() => {
+    if (actionMode === ActionType.Repay) {
+      setSlippageBps(100);
+    } else {
+      setSlippageBps(20);
+    }
+  }, [actionMode, setSlippageBps]);
+
   const fetchDirectRoutes = async () => {
     try {
       const response = await fetch(`/api/jupiter`, {
