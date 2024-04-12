@@ -57,7 +57,7 @@ export default function HomePage() {
             <IconCheck size={22} />
           </div>
         ),
-        text: "Oracle efficiency has been improved and marginfi is operating smoothly.",
+        text: "Oracle efficiency improved, all systems operational.",
         onClick: () => {},
       },
       {
