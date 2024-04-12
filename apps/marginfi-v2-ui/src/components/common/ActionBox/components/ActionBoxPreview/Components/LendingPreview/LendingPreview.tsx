@@ -235,7 +235,7 @@ export const LendingPreview = ({
   }, [computePreview, debouncedAmount]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {selectedAccount && (
         <AvailableCollateral isLoading={isLoading} marginfiAccount={selectedAccount} preview={preview} />
       )}
@@ -244,7 +244,7 @@ export const LendingPreview = ({
         {children}
 
         {isEnabled && selectedBank && (
-          <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-sm text-white")}>
+          <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs text-white")}>
             <Stat label={`Your amount`}>
               {clampedNumeralFormatter(currentPositionAmount)} {selectedBank.meta.tokenSymbol}
               {preview && <IconArrowRight width={12} height={12} />}
