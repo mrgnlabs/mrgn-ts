@@ -132,7 +132,7 @@ export const Wallet = () => {
 
   const activeBank = React.useMemo(() => {
     if (!activeToken) return null;
-    return extendedBankInfos.find((bank) => bank.address === activeToken.address);
+    return extendedBankInfos.find((bank) => bank.address.equals(activeToken.address));
   }, [activeToken, extendedBankInfos]);
 
   const maxAmount = React.useMemo(() => {
@@ -264,7 +264,6 @@ export const Wallet = () => {
 
   const handleInputChange = React.useCallback(
     (newAmount: string) => {
-      console.log("New Amount:", newAmount);
       if (!activeBank) return;
       setAmountRaw(formatAmount(newAmount, activeBank));
       setAmount(Number.parseFloat(newAmount.replace(/,/g, "")) || 0);
@@ -672,7 +671,7 @@ export const Wallet = () => {
                                           : numeralFormatter(activeToken.value) + " " + activeToken.symbol}
                                         <button
                                           className={cn(
-                                            "text-chartreuse border-b border-transparent transition-colors",
+                                            "text-chartreuse border-b leading-none border-transparent transition-colors",
                                             maxAmount > 0 && "cursor-pointer hover:border-chartreuse"
                                           )}
                                           onClick={(e) => {
