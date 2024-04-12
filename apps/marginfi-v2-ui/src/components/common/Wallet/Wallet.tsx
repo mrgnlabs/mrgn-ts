@@ -8,8 +8,8 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
-import { useConnection } from "~/hooks/useConnection";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useIsMobile } from "~/hooks/useIsMobile";
 import { showErrorToast } from "~/utils/toastUtils";
 import { getTokenImageURL, cn } from "~/utils";
 
@@ -83,6 +83,8 @@ export const Wallet = () => {
   const [walletTokenState, setWalletTokenState] = React.useState<WalletState>(WalletState.DEFAULT);
   const [activeToken, setActiveToken] = React.useState<TokenType | null>(null);
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
+
+  const isMobile = useIsMobile();
 
   const activeBank = React.useMemo(() => {
     if (!activeToken) return null;
@@ -289,7 +291,18 @@ export const Wallet = () => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => logout()} className="shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            if (isMobile) {
+                              setIsWalletOpen(false);
+                            } else {
+                              logout();
+                            }
+                          }}
+                          className="shrink-0"
+                        >
                           <IconLogout size={18} className="translate-x-0.5" />
                         </Button>
                       </TooltipTrigger>
