@@ -16,4 +16,6 @@ export const USDC_DECIMALS = 6;
 
 export const WSOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 
+export const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
+
 export const HOURS_PER_YEAR = 365.25 * 24;
