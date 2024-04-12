@@ -152,7 +152,12 @@ export const LendingPortfolio = () => {
             lendingBanks.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {lendingBanks.map((bank) => (
-                  <PortfolioAssetCard key={bank.meta.tokenSymbol} bank={bank} isInLendingMode={true} />
+                  <PortfolioAssetCard
+                    key={bank.meta.tokenSymbol}
+                    bank={bank}
+                    isInLendingMode={true}
+                    isBorrower={borrowingBanks.length > 0}
+                  />
                 ))}
               </div>
             ) : (
@@ -173,7 +178,12 @@ export const LendingPortfolio = () => {
             borrowingBanks.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {borrowingBanks.map((bank) => (
-                  <PortfolioAssetCard key={bank.meta.tokenSymbol} bank={bank} isInLendingMode={false} />
+                  <PortfolioAssetCard
+                    key={bank.meta.tokenSymbol}
+                    bank={bank}
+                    isInLendingMode={false}
+                    isBorrower={borrowingBanks.length > 0}
+                  />
                 ))}
               </div>
             ) : (

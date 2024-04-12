@@ -21,9 +21,10 @@ import { Skeleton } from "~/components/ui/skeleton";
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
   isInLendingMode: boolean;
+  isBorrower?: boolean;
 }
 
-export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCardProps) => {
+export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
   const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
 
@@ -88,7 +89,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
                   <span>Isolated pool</span>
                 </div>
               )}
-              {isUserPositionPoorHealth && (
+              {isUserPositionPoorHealth && isBorrower && (
                 <div
                   id="health-label"
                   className={cn(
@@ -108,7 +109,7 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
           className="flex flex-col gap-3"
           contentClassName="[&[data-state=open]>div>#health-label]:opacity-100"
         >
-          {isUserPositionPoorHealth && (
+          {isUserPositionPoorHealth && isBorrower && (
             <div
               id="health-label"
               className="flex flex-row gap-2 opacity-0 w-full transition-opacity duration-2000 ease-in bg-destructive text-destructive-foreground text-sm p-2.5 rounded-xl"
