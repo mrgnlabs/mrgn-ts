@@ -128,7 +128,7 @@ export const InputHeaderAction = ({
                 key={idx}
                 value={toggle.value}
                 aria-label={toggle.value}
-                className="data-[state=on]:bg-background-gray-light hover:bg-background-gray-light/25 capitalize"
+                className="data-[state=on]:bg-background-gray-light hover:bg-background-gray-light/25 capitalize h-[1.65rem]"
               >
                 {toggle.text}
               </ToggleGroupItem>

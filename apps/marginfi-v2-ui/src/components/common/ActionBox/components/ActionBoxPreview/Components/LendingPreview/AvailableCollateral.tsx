@@ -61,9 +61,9 @@ export const AvailableCollateral = ({ isLoading, marginfiAccount, preview }: Act
           )}
         </dd>
       </dl>
-      <div className="h-2 mb-2 bg-background-gray-light">
+      <div className="h-1.5 mb-2 bg-background-gray-dark rounded-full">
         <div
-          className="h-2"
+          className="h-1.5 rounded-full"
           style={{
             backgroundColor: `${healthColor}`,
             width: `${(preview?.availableCollateral.ratio ?? availableRatio) * 100}%`,
