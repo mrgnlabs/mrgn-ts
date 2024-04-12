@@ -770,12 +770,12 @@ export const Wallet = () => {
                   <TabsContent value="points">
                     <div className="flex flex-col items-center pt-8">
                       <p className="font-medium text-4xl flex flex-col justify-center">
-                        <span className="text-sm font-normal text-muted-foreground text-center">Your points</span>
+                        <span className="text-sm font-normal text-chartreuse text-center">Your points</span>
                         {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
                       </p>
                       {userPointsData.userRank && (
                         <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
-                          <span className="text-sm font-normal text-muted-foreground">Your rank</span> #
+                          <span className="text-sm font-normal text-chartreuse">Your rank</span> #
                           {groupedNumberFormatterDyn.format(userPointsData.userRank)}
                         </div>
                       )}
