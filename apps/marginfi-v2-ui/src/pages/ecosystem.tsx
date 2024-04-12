@@ -126,7 +126,7 @@ const projects = [
     url: "https://beta.juicer.fi/borrow-lend",
     author: {
       name: "juicerfi",
-      avatar: "https://pbs.twimg.com/profile_images/1744141051583926272/yULkMCFf_400x400.png",
+      avatar: "https://pbs.twimg.com/profile_images/1767957333668192256/LGEetjVV_400x400.jpg",
       url: "https://twitter.com/juicerfi",
     },
   },
@@ -136,7 +136,7 @@ const projects = [
     url: "https://www.dreamos.app/",
     author: {
       name: "DreamOS",
-      avatar: "https://pbs.twimg.com/profile_images/1728866739381837824/zLICMwN9_400x400.jpg",
+      avatar: "https://pbs.twimg.com/profile_images/1769861055541329920/3pVxclYQ_400x400.jpg",
       url: "https://twitter.com/theDreamOS",
     },
   },
