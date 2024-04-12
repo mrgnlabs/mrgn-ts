@@ -25,15 +25,15 @@ export const TokenListCommand = ({ selectedBank, onSetSearchQuery, onClose, chil
       >
         <CommandInput
           placeholder="Search token..."
-          wrapperClassName="fixed bg-background-gray w-[94%] z-40 flex justify-between"
+          wrapperClassName="fixed mx-2 lg:mx-0 bg-background-gray w-[calc(100%-30px)] px-4 lg:pl-3 border rounded-lg border-background-gray-light z-40 flex justify-between"
           className="h-12"
           autoFocus={false}
           onValueChange={(value) => onSetSearchQuery(value)}
         />
-        <button onClick={() => onClose()} className={cn("fixed z-50", isMobile ? "top-9 right-4" : "top-5 right-4")}>
+        <button onClick={() => onClose()} className={cn("fixed z-50", isMobile ? "top-9 right-4" : "top-8 right-6")}>
           <IconX size={18} className="text-white/50" />
         </button>
-        <CommandList className="overflow-auto mt-[50px]">{children}</CommandList>
+        <CommandList className="overflow-auto mt-[60px]">{children}</CommandList>
       </Command>
     </>
   );
