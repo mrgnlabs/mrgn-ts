@@ -14,12 +14,12 @@ export const PageHeading = ({ heading, body, links }: PageHeadingProps) => {
   return (
     <div className="text-muted-foreground text-xl text-center mb-12 space-y-4">
       <h1 className="text-4xl font-medium text-primary">{heading}</h1>
-      {body}
+      <div className="max-w-2xl w-full mx-auto">{body}</div>
 
       {links.length > 0 && (
         <ul className="flex items-center gap-4 justify-center pt-2">
           {links.map((link, idx) => (
-            <li>
+            <li key={idx}>
               <Link
                 href={link.href}
                 target="_blank"
@@ -27,7 +27,6 @@ export const PageHeading = ({ heading, body, links }: PageHeadingProps) => {
                 className="transition-colors hover:text-chartreuse"
               >
                 {link.icon}
-                {/* <IconBrandDiscordFilled size={20} /> */}
               </Link>
             </li>
           ))}
