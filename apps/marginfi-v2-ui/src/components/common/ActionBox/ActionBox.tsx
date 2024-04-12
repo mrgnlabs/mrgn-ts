@@ -78,7 +78,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       state.setPreviousTxn,
     ]
   );
-  const [lstData, stakeAccounts, quoteResponseMeta, feesAndRent] = useLstStore((state) => [
+  const [lstData, stakeAccounts, lstQuoteMeta, feesAndRent] = useLstStore((state) => [
     state.lstData,
     state.stakeAccounts,
     state.quoteResponseMeta,
@@ -247,6 +247,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
         blacklistRoutes: blacklistRoutes ?? null,
         repayMode,
         repayCollatQuote: repayCollatQuote ?? null,
+        lstQuoteMeta: lstQuoteMeta,
       }),
     [
       amount,
@@ -263,6 +264,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       blacklistRoutes,
       repayMode,
       repayCollatQuote,
+      lstQuoteMeta,
     ]
   );
 
@@ -606,7 +608,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       return;
     }
 
-    if (selectedBank && !quoteResponseMeta) {
+    if (selectedBank && !lstQuoteMeta) {
       return;
     }
     setIsLoading(true);
@@ -621,7 +623,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       bank: selectedBank,
       nativeSolBalance,
       selectedStakingAccount,
-      quoteResponseMeta,
+      quoteResponseMeta: lstQuoteMeta,
       priorityFee,
     });
 
@@ -635,7 +637,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
         type: ActionType.MintLST,
         bank: selectedBank as ActiveBankInfo,
         amount: amount,
-        lstQuote: quoteResponseMeta || undefined,
+        lstQuote: lstQuoteMeta || undefined,
         txn: txnSig!,
       });
     }
@@ -654,7 +656,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     selectedStakingAccount,
     mfiClient,
     lstData,
-    quoteResponseMeta,
+    lstQuoteMeta,
     amount,
     connection,
     wallet,

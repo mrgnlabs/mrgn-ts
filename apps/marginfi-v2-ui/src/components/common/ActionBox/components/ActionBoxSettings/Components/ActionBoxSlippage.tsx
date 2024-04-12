@@ -146,7 +146,7 @@ export const ActionBoxSlippage = ({ mode, slippageBps, setSlippageBps, toggleSet
             )}
           />
 
-          <Button type="submit" className="w-full py-6">
+          <Button type="submit" className="w-full py-5">
             Save Settings
           </Button>
         </form>

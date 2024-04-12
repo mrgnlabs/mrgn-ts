@@ -25,28 +25,19 @@ import {
 } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 import { YbxDialogNotifications } from "~/components/common/Mint/YbxDialogNotifications";
-import { MintCardWrapper, YbxDialogPartner } from "~/components/common/Mint";
-import { MintCardProps, MintOverview, MintPageState, clampedNumeralFormatter, fetchMintOverview } from "~/utils";
+import { IntegrationCard, IntegrationCardSkeleton, MintCardWrapper, YbxDialogPartner } from "~/components/common/Mint";
+import {
+  IntegrationsData,
+  MintCardProps,
+  MintOverview,
+  MintPageState,
+  clampedNumeralFormatter,
+  fetchMintOverview,
+} from "~/utils";
+import { Skeleton } from "~/components/ui/skeleton";
+import { PageHeading } from "~/components/common/PageHeading";
 
-const integrationsData: {
-  title: string;
-  quoteIcon: string | React.FC;
-  baseIcon: string | React.FC;
-  poolInfo: {
-    dex: string;
-    poolId: string;
-  };
-  info?: {
-    tvl: string;
-    vol: string;
-  };
-  link: string;
-  action: string;
-  platform: {
-    title: string;
-    icon: React.FC;
-  };
-}[] = [
+const integrationsData: IntegrationsData[] = [
   {
     title: "SOL-LST",
     quoteIcon: IconLST,
@@ -120,7 +111,7 @@ export default function MintPage() {
   const [ybxNotificationsDialogOpen, setYbxNotificationsDialogOpen] = React.useState(false);
   const [ybxPartnerDialogOpen, setYbxPartnerDialogOpen] = React.useState(false);
   const [lstDialogOpen, setLSTDialogOpen] = React.useState(false);
-  const [integrations, setIntegrations] = React.useState<any[]>([]);
+  const [integrations, setIntegrations] = React.useState<IntegrationsData[]>([]);
   const [lstOverview, setLstOverview] = React.useState<MintOverview>();
 
   const debounceId = React.useRef<NodeJS.Timeout | null>(null);
@@ -260,20 +251,27 @@ export default function MintPage() {
           {initialized && (
             <>
               <div className="w-full max-w-4xl mx-auto px-4 md:px-0">
-                <div className="text-4xl font-medium text-center -mt-4 mx-auto pb-10">
-                  <h1 className="leading-normal">Inflation protected</h1>
-                  <div className="text-3xl leading-normal flex items-center gap-2 pb-2 justify-center">
-                    <IconSol size={32} />
-                    <p>SOL</p>
-                    <p className="mx-2">and</p>
-                    <IconUsd size={32} />
-                    <p>USD</p>
-                  </div>
-                  <p className="text-base text-muted-foreground py-4 font-light">
-                    The two most important assets on Solana are SOL and USD. Capture inflation automatically with LST
-                    and YBX.
-                  </p>
-                </div>
+                <PageHeading
+                  heading={
+                    <>
+                      <h1 className="leading-normal">Inflation protected</h1>
+                      <div className="text-3xl leading-normal flex items-center gap-2 pb-2 justify-center">
+                        <IconSol size={32} />
+                        <p>SOL</p>
+                        <p className="mx-2">and</p>
+                        <IconUsd size={32} />
+                        <p>USD</p>
+                      </div>
+                    </>
+                  }
+                  body={
+                    <p>
+                      The two most important assets on Solana are SOL and USD. Capture inflation automatically with LST
+                      and YBX.
+                    </p>
+                  }
+                  links={[]}
+                />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-11">
                   {cards.map((item, idx) => (
@@ -294,52 +292,11 @@ export default function MintPage() {
                   </button>
                 </p>
                 <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
-                  {integrations.map((item, i) => (
-                    <Card key={i} variant="default" className="min-w-[300px]">
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-center text-xl">
-                          <div className="flex items-center">
-                            {typeof item.baseIcon === "string" ? (
-                              <img src={item.baseIcon} className="w-10 h-10 rounded-full" />
-                            ) : (
-                              <item.baseIcon size={32} />
-                            )}
-                            {typeof item.quoteIcon === "string" ? (
-                              <img src={item.quoteIcon} className="z-10 w-10 h-10 rounded-full -translate-x-3" />
-                            ) : (
-                              <item.quoteIcon size={32} className="z-10 -translate-x-4" />
-                            )}
-                          </div>
-                          {item.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-2">
-                          {item.info?.tvl && (
-                            <li className="flex items-center justify-between gap-1">
-                              <span className="text-muted-foreground">TVL:</span> {item.info.tvl}
-                            </li>
-                          )}
-                          {item.info?.vol && (
-                            <li className="flex items-center justify-between gap-1">
-                              <span className="text-muted-foreground">24hr Vol:</span> {item.info.vol}
-                            </li>
-                          )}
-                        </ul>
-
-                        <Link href={item.link} target="_blank" rel="noreferrer" className="w-full">
-                          <Button variant="default" size="lg" className="mt-4 w-full">
-                            {item.action} <IconExternalLink size={20} />
-                          </Button>
-                        </Link>
-
-                        <div className="flex items-center gap-2 mt-4 justify-center">
-                          {item.platform.icon && <item.platform.icon size={24} />}
-                          <p className="text-muted-foreground text-sm">{item.platform.title}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {integrations?.length > 0 ? (
+                    integrations.map((item, i) => <IntegrationCard integrationsData={item} key={i} />)
+                  ) : (
+                    <IntegrationCardSkeleton />
+                  )}
                 </div>
               </div>
             </>

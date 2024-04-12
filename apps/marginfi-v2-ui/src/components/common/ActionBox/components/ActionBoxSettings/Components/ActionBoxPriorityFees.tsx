@@ -111,7 +111,7 @@ export const ActionBoxPriorityFees = ({ mode, toggleSettings }: ActionBoxPriorit
           }
           toggleSettings(false);
         }}
-        className="w-full py-6"
+        className="w-full py-5"
       >
         Save Settings
       </Button>

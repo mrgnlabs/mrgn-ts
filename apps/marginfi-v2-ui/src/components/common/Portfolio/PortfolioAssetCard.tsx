@@ -34,19 +34,20 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
 
   const isDust = React.useMemo(() => bank?.isActive && bank?.position.isDust, [bank]);
 
-  const isUserPositionPoorHealth = React.useMemo(() => {
-    if (!bank || !bank?.position?.liquidationPrice) {
-      return false;
-    }
+  const isUserPositionPoorHealth = true;
+  //  React.useMemo(() => {
+  //   if (!bank || !bank?.position?.liquidationPrice) {
+  //     return false;
+  //   }
 
-    const alertRange = 0.05;
+  //   const alertRange = 0.05;
 
-    if (bank.position.isLending) {
-      return bank.info.state.price < bank.position.liquidationPrice + bank.position.liquidationPrice * alertRange;
-    } else {
-      return bank.info.state.price > bank.position.liquidationPrice - bank.position.liquidationPrice * alertRange;
-    }
-  }, [bank]);
+  //   if (bank.position.isLending) {
+  //     return bank.info.state.price < bank.position.liquidationPrice + bank.position.liquidationPrice * alertRange;
+  //   } else {
+  //     return bank.info.state.price > bank.position.liquidationPrice - bank.position.liquidationPrice * alertRange;
+  //   }
+  // }, [bank]);
 
   return (
     <Accordion type="single" collapsible>
@@ -54,7 +55,10 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
         value="key-1"
         className="bg-background-gray transition rounded-xl px-3 data-[state=closed]:hover:bg-background-gray-light"
       >
-        <AccordionTrigger className="hover:no-underline outline-none py-3 [&[data-state=open]>div>div>#health-label]:opacity-0 [&[data-state=open]>div>div>#health-label]:mb-[-24px]">
+        <AccordionTrigger
+          variant="portfolio"
+          className="hover:no-underline outline-none py-3 [&[data-state=open]>div>div>#health-label]:opacity-0 [&[data-state=open]>div>div>#health-label]:mb-[-24px]"
+        >
           <div className="w-full space-y-1 ">
             <div className="flex justify-between items-center w-full gap-2">
               <div className="flex text-left gap-3">
@@ -81,14 +85,17 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
             </div>
             <div className="flex flex-row w-full gap-2">
               {isIsolated && (
-                <div className="flex w-fit text-muted-foreground bg-muted items-center rounded-3xl px-3 py-1 text-xs">
+                <div className="flex w-fit text-muted-foreground bg-muted items-center rounded-3xl px-3 py-1 mt-4 text-xs">
                   <span>Isolated pool</span>
                 </div>
               )}
               {isUserPositionPoorHealth && (
                 <div
                   id="health-label"
-                  className="flex w-[125px] bg-destructive transition-all duration-500 ease-in-out text-destructive-foreground items-center gap-1.5 items-center rounded-3xl text-xs px-3 py-1"
+                  className={cn(
+                    "flex w-fit text-destructive-foreground bg-destructive items-center rounded-3xl px-3 py-1 mt-4 text-xs",
+                    "transition-all duration-500 ease-in-out gap-1.5"
+                  )}
                 >
                   <IconAlertTriangle width={"12px"} height={"12px"} />
                   <span>Liquidation risk</span>

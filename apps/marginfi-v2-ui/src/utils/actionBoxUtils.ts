@@ -10,6 +10,7 @@ import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/
 import { PublicKey } from "@solana/web3.js";
 
 import { StakeData, isBankOracleStale } from "~/utils";
+import { QuoteResponseMeta } from "@jup-ag/react-hook";
 
 export enum RepayType {
   RepayRaw = "Repay",
@@ -54,6 +55,7 @@ interface CheckActionAvailableProps {
   blacklistRoutes: PublicKey[] | null;
   repayMode: RepayType;
   repayCollatQuote: QuoteResponse | null;
+  lstQuoteMeta: QuoteResponseMeta | null;
 }
 
 export function checkActionAvailable({
@@ -71,6 +73,7 @@ export function checkActionAvailable({
   blacklistRoutes,
   repayMode,
   repayCollatQuote,
+  lstQuoteMeta,
 }: CheckActionAvailableProps): ActionMethod[] {
   let checks: ActionMethod[] = [];
 
@@ -108,6 +111,15 @@ export function checkActionAvailable({
         }
         if (repayChecks) checks.push(...repayChecks);
         break;
+      case ActionType.MintLST:
+        const lstStakeChecks = canBeLstStaked(lstQuoteMeta);
+        if (lstStakeChecks) checks.push(...lstStakeChecks);
+        break;
+      case ActionType.UnstakeLST:
+        const lstUnstakeChecks = canBeLstStaked(lstQuoteMeta);
+        if (lstUnstakeChecks) checks.push(...lstUnstakeChecks);
+        break;
+
       // case ActionType.MintYBX:
       //   if (check) checks.push(check);
       //   break;
@@ -478,6 +490,31 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
       isEnabled: true,
       link: "https://forum.marginfi.community/t/work-were-doing-to-improve-oracle-robustness-during-chain-congestion/283",
     });
+  }
+
+  return checks;
+}
+
+function canBeLstStaked(lstQuoteMeta: QuoteResponseMeta | null): ActionMethod[] {
+  let checks: ActionMethod[] = [];
+
+  if (lstQuoteMeta?.quoteResponse?.priceImpactPct && Number(lstQuoteMeta?.quoteResponse.priceImpactPct) > 0.01) {
+    if (lstQuoteMeta?.quoteResponse?.priceImpactPct && Number(lstQuoteMeta?.quoteResponse.priceImpactPct) > 0.05) {
+      checks.push({
+        description: `Price impact is ${percentFormatter.format(Number(lstQuoteMeta?.quoteResponse.priceImpactPct))}.`,
+        actionMethod: "ERROR",
+        isEnabled: true,
+      });
+    } else {
+      checks.push({
+        description: `Price impact is ${percentFormatter.format(Number(lstQuoteMeta?.quoteResponse.priceImpactPct))}.`,
+        isEnabled: true,
+      });
+    }
+  }
+
+  if (!lstQuoteMeta?.quoteResponse) {
+    checks.push({ isEnabled: false });
   }
 
   return checks;
