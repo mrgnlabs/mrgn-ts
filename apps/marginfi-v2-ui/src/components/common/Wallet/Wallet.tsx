@@ -404,43 +404,74 @@ export const Wallet = () => {
             <div className="max-h-full">
               <header className="flex items-center gap-2">
                 <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
-                <CopyToClipboard
-                  text={walletData.address}
-                  onCopy={() => {
-                    setisWalletAddressCopied(true);
-                    setTimeout(() => {
-                      setisWalletAddressCopied(false);
-                    }, 2000);
-                  }}
-                >
-                  <Button variant="secondary" size="sm" className="text-sm mx-auto">
-                    {!isWalletAddressCopied ? (
-                      <>
-                        {walletData.shortAddress} <IconCopy size={16} />
-                      </>
-                    ) : (
-                      <>
-                        Copied! <IconCheck size={16} />
-                      </>
-                    )}
-                  </Button>
-                </CopyToClipboard>
-                <div className="absolute right-2 flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(walletTokenState === WalletState.NOTIS && "text-chartreuse")}
-                    onClick={() => {
-                      setWalletTokenState(
-                        walletTokenState === WalletState.NOTIS ? WalletState.DEFAULT : WalletState.NOTIS
-                      );
-                    }}
-                  >
-                    <IconBell size={18} />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => logout()}>
-                    <IconLogout size={18} />
-                  </Button>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="mx-auto">
+                        <CopyToClipboard
+                          text={walletData.address}
+                          onCopy={() => {
+                            setisWalletAddressCopied(true);
+                            setTimeout(() => {
+                              setisWalletAddressCopied(false);
+                            }, 2000);
+                          }}
+                        >
+                          <Button variant="secondary" size="sm" className="text-sm">
+                            {!isWalletAddressCopied ? (
+                              <>
+                                {walletData.shortAddress} <IconCopy size={16} />
+                              </>
+                            ) : (
+                              <>
+                                Copied! <IconCheck size={16} />
+                              </>
+                            )}
+                          </Button>
+                        </CopyToClipboard>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy wallet address</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <div className="absolute right-2 flex items-center gap-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn(walletTokenState === WalletState.NOTIS && "text-chartreuse")}
+                          onClick={() => {
+                            setWalletTokenState(
+                              walletTokenState === WalletState.NOTIS ? WalletState.DEFAULT : WalletState.NOTIS
+                            );
+                          }}
+                        >
+                          <IconBell size={18} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Notification settings</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => logout()} className="shrink-0">
+                          <IconLogout size={18} className="translate-x-0.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Disconnect wallet</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </header>
               {walletTokenState === WalletState.NOTIS && (
