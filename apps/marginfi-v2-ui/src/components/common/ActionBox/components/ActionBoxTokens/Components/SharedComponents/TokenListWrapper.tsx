@@ -4,6 +4,7 @@ import { Desktop, Mobile } from "~/mediaQueries";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
+import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 
 type TokenListWrapperProps = {
   isOpen: boolean;
@@ -23,20 +24,24 @@ export const TokenListWrapper = ({
   return (
     <>
       <Desktop>
-        <Popover open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
-          <PopoverTrigger asChild>
+        <Dialog open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
+          <DialogTrigger asChild>
             <div>{Trigger}</div>
-          </PopoverTrigger>
-          <PopoverContent
-            className="p-1 w-[320px] bg-background-gray"
-            align="start"
-            side="bottom"
-            sideOffset={-50}
-            avoidCollisions={false}
+          </DialogTrigger>
+          <DialogContent
+            className="p-4 bg-background-gray m-0"
+            hideClose={true}
+            hidePadding={true}
+            size="sm"
+            position="top"
+            // align="start"
+            // side="bottom"
+            // sideOffset={-50}
+            // avoidCollisions={false}
           >
-            <div className="max-h-[480px] min-h-[200px] relative overflow-auto">{Content}</div>
-          </PopoverContent>
-        </Popover>
+            <div className="max-h-[500px] min-h-[200px] relative overflow-auto">{Content}</div>
+          </DialogContent>
+        </Dialog>
       </Desktop>
       <Mobile>
         <Drawer open={isOpen} onOpenChange={(open) => setIsOpen(open)}>

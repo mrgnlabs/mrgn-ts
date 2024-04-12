@@ -12,6 +12,7 @@ import {
 } from "~/components/ui/icons";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
+import { PageHeading } from "~/components/common/PageHeading";
 
 const projects = [
   {
@@ -160,69 +161,40 @@ const projects = [
   },
 ];
 
+const headerLinks = [
+  { href: "https://discord.gg/mrgn", icon: <IconBrandDiscordFilled size={20} /> },
+  { href: "https://twitter.com/marginfi", icon: <IconBrandX size={20} /> },
+  { href: "https://github.com/mrgnlabs", icon: <IconBrandGithubFilled size={20} /> },
+  {
+    href: "https://mrgn.grafana.net/public-dashboards/a2700f1bbca64aeaa5582a90dbaeb276?orgId=1&refresh=1m",
+    icon: <IconChartHistogram size={20} />,
+  },
+];
+
 export default function Ecosystem() {
   return (
     <>
       <div className="w-full xl:w-4/5 xl:max-w-7xl mx-auto px-4">
-        <div className="text-muted-foreground text-xl text-center mb-12 space-y-4">
-          <h1 className="text-4xl font-medium text-primary">Ecosystem</h1>
-          <p>
-            Official and community projects powered by the marginfi SDK. <br className="hidden lg:block" />
-            <Link
-              href="https://docs.marginfi.com/"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-chartreuse border-b border-transparent transition-colors hover:border-chartreuse"
-            >
-              View the docs
-              <IconExternalLink size={15} />
-            </Link>{" "}
-            for SDKs, examples, and more.
-          </p>
+        <PageHeading
+          heading={<h1 className="text-4xl font-medium text-primary">Ecosystem</h1>}
+          body={
+            <p>
+              Official and community projects powered by the marginfi SDK. <br className="hidden lg:block" />
+              <Link
+                href="https://docs.marginfi.com/"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-chartreuse border-b border-transparent transition-colors hover:border-chartreuse"
+              >
+                View the docs
+                <IconExternalLink size={15} />
+              </Link>{" "}
+              for SDKs, examples, and more.
+            </p>
+          }
+          links={headerLinks}
+        />
 
-          <ul className="flex items-center gap-4 justify-center pt-2">
-            <li>
-              <Link
-                href="https://discord.gg/mrgn"
-                target="_blank"
-                rel="noreferrer"
-                className="transition-colors hover:text-chartreuse"
-              >
-                <IconBrandDiscordFilled size={20} />
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="https://twitter.com/marginfi"
-                target="_blank"
-                rel="noreferrer"
-                className="transition-colors hover:text-chartreuse"
-              >
-                <IconBrandX size={20} />
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="https://github.com/mrgnlabs"
-                target="_blank"
-                rel="noreferrer"
-                className="transition-colors hover:text-chartreuse"
-              >
-                <IconBrandGithubFilled size={20} />
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="https://mrgn.grafana.net/public-dashboards/a2700f1bbca64aeaa5582a90dbaeb276?orgId=1&refresh=1m"
-                target="_blank"
-                rel="noreferrer"
-                className="transition-colors hover:text-chartreuse"
-              >
-                <IconChartHistogram size={20} />
-              </Link>
-            </li>
-          </ul>
-        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-4 lg:gap-8 w-full pb-24">
           {projects.map((project, index) => (
             <Card variant="default" className="w-full" key={index}>

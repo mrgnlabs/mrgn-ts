@@ -33,7 +33,11 @@ export const LstPreview = ({
   slippageBps,
   children,
 }: ActionBoxPreviewProps) => {
-  const [lstData, setQuoteResponseMeta] = useLstStore((state) => [state.lstData, state.setQuoteResponseMeta]);
+  const [lstData, quoteResponseMetaState, setQuoteResponseMeta] = useLstStore((state) => [
+    state.lstData,
+    state.quoteResponseMeta,
+    state.setQuoteResponseMeta,
+  ]);
 
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
@@ -117,7 +121,28 @@ export const LstPreview = ({
         {children}
 
         {isEnabled && (
-          <dl className="grid grid-cols-2 gap-y-2 text-xs text-white mt-3">
+          <dl className="grid grid-cols-2 gap-y-2  pt-6 text-sm text-white">
+            {quoteResponseMetaState && (
+              <Stat label="Price impact">
+                <div
+                  className={cn(
+                    Number(quoteResponseMetaState.quoteResponse.priceImpactPct) > 0.01 &&
+                      (Number(quoteResponseMetaState.quoteResponse.priceImpactPct) > 0.05
+                        ? "text-destructive-foreground"
+                        : "text-alert-foreground")
+                  )}
+                >
+                  {percentFormatter.format(Number(quoteResponseMetaState.quoteResponse.priceImpactPct))}
+                </div>
+              </Stat>
+            )}
+            {quoteResponseMetaState && (
+              <Stat label="Slippage">
+                <div className={cn(quoteResponseMetaState.quoteResponse.slippageBps > 500 && "text-alert-foreground")}>
+                  {percentFormatter.format(quoteResponseMetaState.quoteResponse.slippageBps / 10000)}
+                </div>
+              </Stat>
+            )}
             <Stat label={"TVL"}>
               {lstData && solUsdValue ? (
                 `$${numeralFormatter(lstData.tvl * solUsdValue)}`
@@ -144,11 +169,6 @@ export const LstPreview = ({
             <Stat label={"Commission"}>
               {lstData?.solDepositFee ?? <Skeleton className="h-4 w-[45px] bg-[#373F45]" />}%
             </Stat>
-            {priceImpactPct !== null && (
-              <Stat label={"Price impact"}>
-                {priceImpactPct < 0.01 ? "< 0.01%" : `~ ${percentFormatter.format(priceImpactPct)}`}
-              </Stat>
-            )}
           </dl>
         )}
       </div>

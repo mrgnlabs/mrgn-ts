@@ -19,6 +19,26 @@ export interface MintCardProps {
   action: () => void;
 }
 
+export interface IntegrationsData {
+  title: string;
+  quoteIcon: (({ size, className }: IconProps) => React.JSX.Element) | string;
+  baseIcon: (({ size, className }: IconProps) => React.JSX.Element) | string;
+  poolInfo: {
+    dex: string;
+    poolId: string;
+  };
+  info?: {
+    tvl: string;
+    vol: string;
+  };
+  link: string;
+  action: string;
+  platform: {
+    title: string;
+    icon: ({ size, className }: IconProps) => React.JSX.Element;
+  };
+}
+
 export const signUpYbx = async (
   emailInputRef: React.RefObject<HTMLInputElement>,
   type: "partner" | "notifications"
