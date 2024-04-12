@@ -25,7 +25,7 @@
     "@sentry/node": "^7.40.0",
     "@solana/buffer-layout": "4.0.0",
     "@solana/buffer-layout-utils": "~0.2.0",
-    "@solana/spl-token": "0.1.8",
+    "@solana/spl-token": "^0.4.3",
     "@solana/spl-token-registry": "~0.2.1105",
     "@solana/web3.js": "^1.87.6",
     "bignumber.js": "^9.1.1",
