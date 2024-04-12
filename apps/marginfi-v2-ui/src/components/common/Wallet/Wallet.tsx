@@ -566,14 +566,14 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
         <button className="flex flex-col gap-1 text-sm font-medium items-center">
           {!isWalletAddressCopied ? (
             <>
-              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
                 <IconArrowDown size={20} />
               </div>
               Receive
             </>
           ) : (
             <>
-              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+              <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
                 <IconCheck size={20} />
               </div>
               Copied!
@@ -593,7 +593,7 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
           setState(WalletState.SEND);
         }}
       >
-        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
           <IconArrowUp size={20} />
         </div>
         Send
@@ -604,7 +604,7 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
           setState(WalletState.SWAP);
         }}
       >
-        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
           <IconRefresh size={20} />
         </div>
         Swap
@@ -616,7 +616,7 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
             setIsOnrampActive(true);
           }}
         >
-          <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+          <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
             <IconMoonPay size={20} />
           </div>
           On ramp

@@ -50,10 +50,10 @@ export const WalletTokens = ({ tokens, onTokenClick, className }: WalletTokensPr
       </div>
       <div className="space-y-2 overflow-auto h-full">
         {filteredTokens.map((token, index) => (
-          <div
+          <button
             key={index}
             className={cn(
-              "flex items-center justify-between font-normal bg-background-gray-dark p-3 rounded-md gap-4",
+              "flex items-center justify-between font-normal bg-background-gray-dark p-3 rounded-md gap-4 w-full text-left transition-colors hover:bg-background-gray",
               onTokenClick && "cursor-pointer"
             )}
             onClick={() => onTokenClick?.(token)}
@@ -73,7 +73,7 @@ export const WalletTokens = ({ tokens, onTokenClick, className }: WalletTokensPr
               </span>
               <span className="text-muted-foreground text-sm">{token.formattedValueUSD}</span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
     </div>
