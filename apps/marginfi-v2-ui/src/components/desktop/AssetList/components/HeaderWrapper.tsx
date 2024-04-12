@@ -17,7 +17,7 @@ export const HeaderWrapper = ({ header, infoTooltip, align = "right", children }
   return (
     <div
       className={cn(
-        "text-[#A1A1A1] text-base font-light border-none flex items-center gap-2",
+        "text-[#A1A1A1] text-sm font-light border-none flex items-center gap-2",
         align === "left" && "justify-start",
         align === "right" && "justify-end",
         header.column.getCanSort() ? "cursor-pointer select-none" : ""
