@@ -14,7 +14,14 @@ import {
 import { Token, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { shortenAddress, numeralFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import {
+  shortenAddress,
+  numeralFormatter,
+  WSOL_MINT,
+  getAssociatedTokenAddressSync,
+  createTransferCheckedInstruction,
+  createAssociatedTokenAccountInstruction,
+} from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore } from "~/store";
 import { getTokenImageURL, cn } from "~/utils";
@@ -152,27 +159,29 @@ export const WalletSend = ({ activeToken, onSendMore, onBack, onRetry, onCancel 
             })
           );
         } else {
-          const senderTokenAccountAddress = await Token.getAssociatedTokenAddress(
-            ASSOCIATED_TOKEN_PROGRAM_ID,
-            TOKEN_PROGRAM_ID,
-            tokenMint,
-            senderWalletAddress
-          );
-          const recipientTokenAccountAddress = await Token.getAssociatedTokenAddress(
-            ASSOCIATED_TOKEN_PROGRAM_ID,
-            TOKEN_PROGRAM_ID,
-            tokenMint,
-            recipientPublicKey,
-            true
-          );
+          const senderTokenAccountAddress = getAssociatedTokenAddressSync(tokenMint, senderWalletAddress);
+          const recipientTokenAccountAddress = getAssociatedTokenAddressSync(tokenMint, senderWalletAddress);
+          const recipientAta = await connection.getAccountInfo(recipientTokenAccountAddress);
+
+          if (!recipientAta) {
+            instructions.push(
+              createAssociatedTokenAccountInstruction(
+                wallet.publicKey,
+                recipientTokenAccountAddress,
+                wallet.publicKey,
+                tokenMint
+              )
+            );
+          }
+
           instructions.push(
-            Token.createTransferInstruction(
-              TOKEN_PROGRAM_ID,
+            createTransferCheckedInstruction(
               senderTokenAccountAddress,
+              tokenMint,
               recipientTokenAccountAddress,
-              senderWalletAddress,
-              [],
-              amount * 10 ** tokenDecimals
+              new PublicKey(wallet.publicKey),
+              amount * 10,
+              tokenDecimals
             )
           );
         }
