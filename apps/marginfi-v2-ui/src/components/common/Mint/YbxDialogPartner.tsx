@@ -58,15 +58,6 @@ export const YbxDialogPartner: React.FC<YbxDialogProps> = ({
             <p className="flex items-center justify-center gap-2">
               <IconCheck size={18} className="text-success" /> You are signed up!
             </p>
-            <Button
-              variant="outline"
-              onClick={() => {
-                onHandleChangeMintPage(MintPageState.DEFAULT);
-                onClose();
-              }}
-            >
-              Back to YBX
-            </Button>
           </div>
         )}
 
