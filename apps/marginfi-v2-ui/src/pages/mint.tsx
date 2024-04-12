@@ -92,22 +92,22 @@ const integrationsData: IntegrationsData[] = [
       icon: IconRaydium,
     },
   },
-  {
-    title: "LST-bSOL",
-    baseIcon: IconLST,
-    quoteIcon:
-      "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1/logo.png",
-    poolInfo: {
-      dex: "orca",
-      poolId: "GAbU1sCPSnxQDE3ywBxq9nrBo66J9yAxwNGTyu9Kg1mr",
-    },
-    link: "https://v1.orca.so/liquidity/browse?tokenMint=LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp",
-    action: "Deposit",
-    platform: {
-      title: "Orca",
-      icon: IconOrca,
-    },
-  },
+  // {
+  //   title: "LST-bSOL",
+  //   baseIcon: IconLST,
+  //   quoteIcon:
+  //     "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1/logo.png",
+  //   poolInfo: {
+  //     dex: "orca",
+  //     poolId: "GAbU1sCPSnxQDE3ywBxq9nrBo66J9yAxwNGTyu9Kg1mr",
+  //   },
+  //   link: "https://v1.orca.so/liquidity/browse?tokenMint=LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp",
+  //   action: "Deposit",
+  //   platform: {
+  //     title: "Orca",
+  //     icon: IconOrca,
+  //   },
+  // },
 ];
 
 export default function MintPage() {
