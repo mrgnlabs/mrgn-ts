@@ -48,6 +48,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
   IconCheck,
   IconChevronDown,
@@ -475,15 +476,18 @@ export const Wallet = () => {
                         Points
                       </span>
                     </TabsTrigger>
-                    <TabsTrigger
-                      value="notifications"
-                      className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
-                      disabled
-                    >
-                      <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                        Activity
-                      </span>
-                    </TabsTrigger>
+                    <div className="cursor-help inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="py-1.5 px-3 rounded-md opacity-50">Activity</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Coming soon</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                   </TabsList>
                   <TabsContent value="tokens">
                     {walletTokenState === WalletState.DEFAULT && (
