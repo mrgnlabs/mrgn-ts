@@ -25,7 +25,13 @@ import {
 } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 import { YbxDialogNotifications } from "~/components/common/Mint/YbxDialogNotifications";
-import { IntegrationCard, IntegrationCardSkeleton, MintCardWrapper, YbxDialogPartner } from "~/components/common/Mint";
+import {
+  BankIntegrationCard,
+  IntegrationCard,
+  IntegrationCardSkeleton,
+  MintCardWrapper,
+  YbxDialogPartner,
+} from "~/components/common/Mint";
 import {
   IntegrationsData,
   MintCardProps,
@@ -124,6 +130,13 @@ export default function MintPage() {
     state.setIsRefreshingStore,
     state.lstData,
   ]);
+
+  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+
+  const lstBank = React.useMemo(
+    () => extendedBankInfos.filter((bank) => bank.info.state.mint.equals(LST_MINT)),
+    [extendedBankInfos]
+  );
 
   React.useEffect(() => {
     fetchVolumeData();
@@ -294,6 +307,15 @@ export default function MintPage() {
                 <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
                   {integrations?.length > 0 ? (
                     integrations.map((item, i) => <IntegrationCard integrationsData={item} key={i} />)
+                  ) : (
+                    <IntegrationCardSkeleton />
+                  )}
+
+                  {lstBank?.length > 0 ? (
+                    <>
+                      <BankIntegrationCard bank={lstBank[0]} isInLendingMode={true} />
+                      <BankIntegrationCard bank={lstBank[0]} isInLendingMode={false} />
+                    </>
                   ) : (
                     <IntegrationCardSkeleton />
                   )}
