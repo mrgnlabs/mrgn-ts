@@ -35,7 +35,7 @@ export const TokenListWrapper = ({
             size="sm"
             position="top"
           >
-            <div className="max-h-[500px] min-h-[200px] relative overflow-auto">{Content}</div>
+            <div className="h-[500px] relative overflow-auto">{Content}</div>
           </DialogContent>
         </Dialog>
       </Desktop>
