@@ -64,7 +64,9 @@ import {
   IconWallet,
   IconTrophy,
   IconLoader,
+  IconKey,
   IconX,
+  IconMoonPay,
 } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
@@ -437,7 +439,30 @@ export const Wallet = () => {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <div className="absolute right-2 flex items-center gap-1">
+                <div className={cn("absolute right-2 flex items-center gap-1", web3AuthConncected && "gap-0.5")}>
+                  {web3AuthConncected && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(walletTokenState === WalletState.NOTIS && "text-chartreuse")}
+                            onClick={() => {
+                              localStorage.setItem("mrgnPrivateKeyRequested", "true");
+                              requestPrivateKey();
+                            }}
+                          >
+                            <IconKey size={18} />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Export private key</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -523,7 +548,11 @@ export const Wallet = () => {
                     {walletTokenState === WalletState.DEFAULT && (
                       <div className="space-y-6 py-8">
                         <h2 className="text-4xl font-medium text-center">{walletData.balanceUSD}</h2>
-                        <TokenOptions walletAddress={walletData.address} setState={setWalletTokenState} />
+                        <TokenOptions
+                          walletAddress={walletData.address}
+                          setState={setWalletTokenState}
+                          web3AuthConnected={web3AuthConncected}
+                        />
                         <WalletTokens
                           className="h-[calc(100vh-325px)] pb-16"
                           tokens={walletData.tokens}
@@ -847,6 +876,7 @@ export const Wallet = () => {
         <>
           <WalletPkDialog pk={web3AuthPk} />
           <WalletIntroDialog />
+          <WalletOnramp />
         </>
       )}
     </>
@@ -857,9 +887,11 @@ type TokenOptionsProps = {
   walletAddress: string;
   setState: (state: WalletState) => void;
   setToken?: () => void;
+  web3AuthConnected?: boolean;
 };
 
-function TokenOptions({ walletAddress, setState, setToken }: TokenOptionsProps) {
+function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = false }: TokenOptionsProps) {
+  const [setIsOnrampActive] = useUiStore((state) => [state.setIsOnrampActive]);
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   return (
     <div className="flex items-center justify-center gap-4">
@@ -918,6 +950,19 @@ function TokenOptions({ walletAddress, setState, setToken }: TokenOptionsProps) 
         </div>
         Swap
       </button>
+      {web3AuthConnected && (
+        <button
+          className="flex flex-col gap-1 text-sm font-medium items-center"
+          onClick={() => {
+            setIsOnrampActive(true);
+          }}
+        >
+          <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray">
+            <IconMoonPay size={20} />
+          </div>
+          On ramp
+        </button>
+      )}
     </div>
   );
 }
