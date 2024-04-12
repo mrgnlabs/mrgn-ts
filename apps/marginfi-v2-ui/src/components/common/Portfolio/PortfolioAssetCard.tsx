@@ -34,20 +34,19 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode }: PortfolioAssetCard
 
   const isDust = React.useMemo(() => bank?.isActive && bank?.position.isDust, [bank]);
 
-  const isUserPositionPoorHealth = true;
-  //  React.useMemo(() => {
-  //   if (!bank || !bank?.position?.liquidationPrice) {
-  //     return false;
-  //   }
+  const isUserPositionPoorHealth = React.useMemo(() => {
+    if (!bank || !bank?.position?.liquidationPrice) {
+      return false;
+    }
 
-  //   const alertRange = 0.05;
+    const alertRange = 0.05;
 
-  //   if (bank.position.isLending) {
-  //     return bank.info.state.price < bank.position.liquidationPrice + bank.position.liquidationPrice * alertRange;
-  //   } else {
-  //     return bank.info.state.price > bank.position.liquidationPrice - bank.position.liquidationPrice * alertRange;
-  //   }
-  // }, [bank]);
+    if (bank.position.isLending) {
+      return bank.info.state.price < bank.position.liquidationPrice + bank.position.liquidationPrice * alertRange;
+    } else {
+      return bank.info.state.price > bank.position.liquidationPrice - bank.position.liquidationPrice * alertRange;
+    }
+  }, [bank]);
 
   return (
     <Accordion type="single" collapsible>

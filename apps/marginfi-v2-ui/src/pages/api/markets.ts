@@ -23,13 +23,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const poolId = poolIds[index!] || "";
 
     if (value === "meteora") {
-      const meteoraPoolData = await fetchMeteoraPoolInfo(poolId);
-      if (meteoraPoolData) {
-        poolInfos.push({
-          dex: "meteora",
-          data: meteoraPoolData,
-        });
-      }
+      // const meteoraPoolData = await fetchMeteoraPoolInfo(poolId);
+      // if (meteoraPoolData) {
+      //   poolInfos.push({
+      //     dex: "meteora",
+      //     data: meteoraPoolData,
+      //   });
+      // }
+
+      poolInfos.push({
+        dex: "meteora",
+        data: {
+          tvl: 1610181.07,
+          vol: 2260975.64,
+        },
+      });
     } else if (value === "raydium") {
       const raydiumPoolData = await fetchRaydiumPoolInfo(poolId);
       if (raydiumPoolData) {
