@@ -236,9 +236,9 @@ export const AssetsList = () => {
                       <Image src="/info_icon.png" alt="info" height={16} width={16} />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <div className="flex flex-col gap-2">
-                        <h4 className="flex items-center gap-1 text-base">
-                          <IconAlertTriangle /> Isolated pools are risky
+                      <div className="space-y-4 text-left leading-relaxed">
+                        <h4 className="flex items-center gap-1.5 text-base">
+                          <IconAlertTriangle size={18} /> Isolated pools are risky
                         </h4>
                         <p>
                           Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you
