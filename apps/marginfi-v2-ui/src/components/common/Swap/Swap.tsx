@@ -10,6 +10,8 @@ import { PublicKey } from "@solana/web3.js";
 import config from "~/config";
 import { capture } from "~/utils";
 
+import { WSOL_MINT, LST_MINT } from "@mrgnlabs/mrgn-common";
+
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 type SwapProps = {
@@ -53,6 +55,7 @@ export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
           : initialMint
           ? initialMint.toBase58()
           : undefined,
+        initialOutputMint: initialInputMint?.equals(WSOL_MINT) ? LST_MINT.toBase58() : WSOL_MINT.toBase58(),
       },
     });
     const currentTime = Date.now();
