@@ -377,6 +377,8 @@ export const WalletSend = ({ activeToken, onSendMore, onBack, onRetry, onCancel 
         </form>
       </div>
     );
+  } else {
+    return null;
   }
 };
 WalletSend.displayName = "WalletSend";
