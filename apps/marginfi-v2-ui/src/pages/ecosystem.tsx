@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 
+import shuffle from "lodash/shuffle";
+
 import { cn } from "~/utils";
 
 import {
@@ -14,7 +16,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { Button } from "~/components/ui/button";
 import { PageHeading } from "~/components/common/PageHeading";
 
-const projects = [
+const projects = shuffle([
   {
     title: "marginfi v2",
     description: "V2 of the marginfi protocol",
@@ -159,7 +161,88 @@ const projects = [
       avatar: "/heimdall.jpg",
     },
   },
-];
+  {
+    title: "Bags",
+    description: "Coming soon...",
+    url: "https://bags.fm",
+    author: {
+      name: "Bags",
+      avatar: "https://pbs.twimg.com/profile_images/1751442866453520384/SsDbz1cU_400x400.jpg",
+    },
+  },
+  {
+    title: "Hampter",
+    description: "Squeeze me, im fluff $HMTR on $SOL",
+    url: "https://www.hampterfi.com/",
+    author: {
+      name: "Hampter",
+      avatar: "https://pbs.twimg.com/profile_images/1737818252657451008/ClXs-B7y_400x400.jpg",
+    },
+  },
+  {
+    title: "Splitwave",
+    description: "Your all things money on Solana!",
+    url: "https://splitwave.app/",
+    author: {
+      name: "Splitwave",
+      avatar: "https://pbs.twimg.com/profile_images/1733236904118628352/Zxvz7b9A_400x400.jpg",
+    },
+  },
+  {
+    title: "Meteora",
+    description: "Building the most dynamic liquidity protocols in DeFi. Powered by Solana!",
+    url: "https://www.meteora.ag/",
+    author: {
+      name: "Meteora",
+      avatar: "https://pbs.twimg.com/profile_images/1623689233813864450/XDk-DpAP_400x400.jpg",
+    },
+  },
+  {
+    title: "Step Finance",
+    description: "Portfolio Dashboard & Analytics for Solana",
+    url: "https://www.step.finance/",
+    author: {
+      name: "Step Finance",
+      avatar: "https://pbs.twimg.com/profile_images/1475429797694218242/ThXbtC9p_400x400.jpg",
+    },
+  },
+  {
+    title: "SonarWatch",
+    description: "Empowering your journey on web3 with a powerful tracking tool, multichain and open-source",
+    url: "https://sonar.watch/",
+    author: {
+      name: "SonarWatch",
+      avatar: "https://pbs.twimg.com/profile_images/1709587389339811841/C9hOTnMV_400x400.jpg",
+    },
+  },
+  {
+    title: "AssetDash",
+    description: "The best portfolio tracker and rewards program in crypto",
+    url: "https://www.assetdash.com/",
+    author: {
+      name: "AssetDash",
+      avatar: "https://pbs.twimg.com/profile_images/1523849014881525761/eKB3fD5c_400x400.jpg",
+    },
+  },
+  {
+    title: "Pulsar Finance",
+    description: "The Most Complete Portfolio Manager In Crypto",
+    url: "https://app.pulsar.finance/",
+    author: {
+      name: "Pulsar Finance",
+      avatar: "https://pbs.twimg.com/profile_images/1610654730778296335/yaq9r3FW_400x400.jpg",
+    },
+  },
+  {
+    title: "Squads",
+    description: "Smart account standard for SVM. Multisig, account abstraction and beyond",
+    url: "https://squads.so/",
+    author: {
+      name: "Squads",
+      avatar: "https://pbs.twimg.com/profile_images/1707747492014473216/0ABIvUee_400x400.jpg",
+    },
+  },
+]);
 
 const headerLinks = [
   { href: "https://discord.gg/mrgn", icon: <IconBrandDiscordFilled size={20} /> },
