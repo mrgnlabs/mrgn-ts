@@ -287,7 +287,12 @@ export const getAction = (
             <TooltipTrigger asChild>
               <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
                 <ActionBoxDialog requestedToken={bank.address} requestedAction={currentAction}>
-                  <Button className="w-full max-w-[140px]">{showCloseBalance ? "Close" : currentAction}</Button>
+                  <Button
+                    variant="outline"
+                    className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground"
+                  >
+                    {showCloseBalance ? "Close" : currentAction}
+                  </Button>
                 </ActionBoxDialog>
               </div>
             </TooltipTrigger>
@@ -299,7 +304,9 @@ export const getAction = (
       {marginfiAccount !== null && (
         <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
           <ActionBoxDialog requestedToken={bank.address} requestedAction={currentAction}>
-            <Button className="w-full max-w-[140px]">{showCloseBalance ? "Close" : currentAction}</Button>
+            <Button variant="secondary" className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground">
+              {showCloseBalance ? "Close" : currentAction}
+            </Button>
           </ActionBoxDialog>
         </div>
       )}
