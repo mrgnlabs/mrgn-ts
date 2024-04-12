@@ -34,10 +34,6 @@ export const TokenListWrapper = ({
             hidePadding={true}
             size="sm"
             position="top"
-            // align="start"
-            // side="bottom"
-            // sideOffset={-50}
-            // avoidCollisions={false}
           >
             <div className="max-h-[500px] min-h-[200px] relative overflow-auto">{Content}</div>
           </DialogContent>

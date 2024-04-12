@@ -61,7 +61,7 @@ const DialogContent = React.forwardRef<
           position === "center" &&
             "top-0 md:top-[50%] data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-top-[48%]",
           position === "top" &&
-            "top-0 md:top-[30%] data-[state=closed]:slide-out-to-top-[28%] data-[state=open]:slide-in-from-top-[28%]",
+            "top-0 md:top-[380px] data-[state=closed]:slide-out-to-top-[380px] data-[state=open]:slide-in-from-top-[380px]",
           !hidePadding && "p-8 md:p-12",
           size === "sm" && `md:max-w-[400px]`,
           size === "md" && `md:max-w-md`,
