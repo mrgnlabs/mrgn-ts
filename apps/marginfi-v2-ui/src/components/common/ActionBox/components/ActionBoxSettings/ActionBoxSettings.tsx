@@ -58,7 +58,7 @@ export const ActionBoxSettings = ({
         {isSlippageEnabled && (
           <ToggleGroup
             value={settingsMode}
-            onValueChange={(value) => setSettingsMode(value as SettingsState)}
+            onValueChange={(value: SettingsState) => setSettingsMode(value as SettingsState)}
             type="single"
             variant="actionBox"
             size="lg"
