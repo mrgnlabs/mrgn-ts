@@ -279,21 +279,21 @@ export default function MintPage() {
                   }
                   body={
                     <p>
-                      The two most important assets on Solana are SOL and USD. Capture inflation automatically with LST
-                      and YBX.
+                      The two most important assets on Solana are SOL and USD.
+                      <br className="hidden lg:block" /> Capture inflation automatically with LST and YBX.
                     </p>
                   }
                   links={[]}
                 />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-11">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-11 mt-8">
                   {cards.map((item, idx) => (
                     <MintCardWrapper mintCard={item} key={idx} />
                   ))}
                 </div>
               </div>
 
-              <div className="w-full py-8 px-4 md:px-10 xl:px-16 text-center">
+              <div className="w-full py-4 px-4 md:px-10 xl:px-16 text-center">
                 <h2 className="text-3xl font-medium mb-3">Integrations</h2>
                 <p className="text-muted-foreground">
                   Ready to integrate YBX?{" "}
