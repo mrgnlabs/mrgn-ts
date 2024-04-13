@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "~/components/ui/button";
@@ -18,12 +19,20 @@ export const IntegrationCard = ({ integrationsData }: IntegrationCardProps) => {
         <CardTitle className="flex items-center justify-center text-xl">
           <div className="flex items-center">
             {typeof integrationsData.baseIcon === "string" ? (
-              <img src={integrationsData.baseIcon} className="w-10 h-10 rounded-full" />
+              <Image
+                alt={integrationsData.baseIcon}
+                src={integrationsData.baseIcon}
+                className="w-10 h-10 rounded-full"
+              />
             ) : (
               <integrationsData.baseIcon size={32} />
             )}
             {typeof integrationsData.quoteIcon === "string" ? (
-              <img src={integrationsData.quoteIcon} className="z-10 w-10 h-10 rounded-full -translate-x-3" />
+              <Image
+                alt={integrationsData.quoteIcon}
+                src={integrationsData.quoteIcon}
+                className="z-10 w-10 h-10 rounded-full -translate-x-3"
+              />
             ) : (
               <integrationsData.quoteIcon size={32} className="z-10 -translate-x-4" />
             )}

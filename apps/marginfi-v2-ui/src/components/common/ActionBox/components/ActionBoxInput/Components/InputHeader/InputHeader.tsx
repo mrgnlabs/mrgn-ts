@@ -95,7 +95,7 @@ export const InputHeader = ({
       default:
         return { amount: "-" };
     }
-  }, [selectedBank, selectedStakingAccount, actionMode, walletAmount, amountRaw, repayMode]);
+  }, [selectedBank, selectedStakingAccount, actionMode, walletAmount]);
 
   // Section above the input
   return (

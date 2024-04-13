@@ -1,6 +1,5 @@
 import React from "react";
 
-import { Badge, Typography } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
 import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
@@ -58,38 +57,34 @@ export const getAssetPriceCell = ({
   price,
   isOracleStale,
 }: AssetPriceData) => (
-  <div className="flex items-center justify-end gap-1.5">
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge
-            badgeContent={assetPriceOffset > assetPrice * 0.1 ? "⚠️" : ""}
-            className="bg-transparent flex items-center justify-end gap-1.5"
-            sx={{
-              "& .MuiBadge-badge": {
-                fontSize: 20,
-              },
-            }}
-            invisible={assetPriceOffset > assetPrice * 0.1 ? false : true}
-          >
-            {assetPrice >= 0.01 ? usdFormatter.format(assetPrice) : `$${assetPrice.toExponential(2)}`}
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent>
-          <div className="flex flex-col gap-2">
-            <h4 className="text-base">Wide oracle price bands</h4>
-            {`${symbol} price estimates is
+  <div className="relative flex items-center justify-end gap-1.5">
+    <div className="relative">
+      {assetPrice >= 0.01 ? usdFormatter.format(assetPrice) : `$${assetPrice.toExponential(2)}`}
+      {assetPriceOffset > assetPrice * 0.1 && (
+        <div className="absolute top-[-8px] right-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="absolute text-xs">⚠️</div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="flex flex-col gap-2">
+                  <h4 className="text-base">Wide oracle price bands</h4>
+                  {`${symbol} price estimates is
               ${usdFormatter.format(price)} ± ${assetPriceOffset.toFixed(
-              2
-            )}, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`}
-            <br />
-            <a href="https://docs.marginfi.com">
-              <u>Learn more.</u>
-            </a>
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+                    2
+                  )}, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`}
+                  <br />
+                  <a href="https://docs.marginfi.com">
+                    <u>Learn more.</u>
+                  </a>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
+    </div>
     {oracle && (
       <TooltipProvider>
         <Tooltip>
@@ -229,11 +224,11 @@ export const getDepositsCell = (depositsData: DepositsData) => (
         </span>
       </TooltipTrigger>
       <TooltipContent className="text-left">
-        <Typography color="inherit" style={{ fontFamily: "Aeonik Pro" }}>
+        <div>
           {depositsData.isReduceOnly
             ? "Reduce Only"
             : depositsData.isBankHigh && (depositsData.isBankFilled ? "Limit Reached" : "Approaching Limit")}
-        </Typography>
+        </div>
 
         {depositsData.isReduceOnly ? (
           <span>{depositsData.symbol} is being discontinued.</span>

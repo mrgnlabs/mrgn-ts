@@ -100,14 +100,15 @@ export const InputHeaderAction = ({
 
     return titleText;
   }, [
-    stakeAccounts,
-    actionType,
-    repayType,
-    titleText,
     isDialog,
+    actionType,
+    stakeAccounts.length,
+    titleText,
     lendingModeFromStore,
     setLendingMode,
+    repayType,
     changeRepayType,
+    lstType,
     changeLstType,
   ]);
 

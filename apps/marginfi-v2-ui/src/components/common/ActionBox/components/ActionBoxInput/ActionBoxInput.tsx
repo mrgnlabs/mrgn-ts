@@ -90,17 +90,6 @@ export const ActionBoxInput = ({
     }
   }, [repayAmountRaw, amountRaw, isRepayWithCollat]);
 
-  const handleInputChange = React.useCallback(
-    (newAmount: string) => {
-      if (isRepayWithCollat) {
-        onSetRepayAmountRaw(formatAmount(newAmount, selectedRepayBank));
-      } else {
-        onSetAmountRaw(formatAmount(newAmount, selectedBank));
-      }
-    },
-    [onSetAmountRaw, onSetRepayAmountRaw, selectedBank, selectedRepayBank, isRepayWithCollat]
-  );
-
   const formatAmount = React.useCallback(
     (newAmount: string, bank: ExtendedBankInfo | null) => {
       let formattedAmount: string, amount: number;
@@ -132,6 +121,17 @@ export const ActionBoxInput = ({
       }
     },
     [maxAmount, numberFormater]
+  );
+
+  const handleInputChange = React.useCallback(
+    (newAmount: string) => {
+      if (isRepayWithCollat) {
+        onSetRepayAmountRaw(formatAmount(newAmount, selectedRepayBank));
+      } else {
+        onSetAmountRaw(formatAmount(newAmount, selectedBank));
+      }
+    },
+    [formatAmount, onSetAmountRaw, onSetRepayAmountRaw, selectedBank, selectedRepayBank, isRepayWithCollat]
   );
 
   return (
