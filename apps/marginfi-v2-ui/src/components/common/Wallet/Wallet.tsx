@@ -86,6 +86,7 @@ export const Wallet = () => {
   const [walletTokenState, setWalletTokenState] = React.useState<WalletState>(WalletState.DEFAULT);
   const [activeToken, setActiveToken] = React.useState<TokenType | null>(null);
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
+  const [isReferralCopied, setIsReferralCopied] = React.useState(false);
 
   const isMobile = useIsMobile();
 
@@ -508,9 +509,25 @@ export const Wallet = () => {
                           </Button>
                         </li>
                         <li>
-                          <Button variant="outline" className="w-full justify-start">
-                            <IconCopy size={16} /> Copy referral code
-                          </Button>
+                          <CopyToClipboard
+                            text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
+                            onCopy={() => {
+                              if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
+                                setIsReferralCopied(true);
+                                setTimeout(() => setIsReferralCopied(false), 2000);
+                              }
+                            }}
+                          >
+                            <Button variant="outline" className="w-full justify-start">
+                              {isReferralCopied ? (
+                                <div className="text-center w-full">Link copied!</div>
+                              ) : (
+                                <>
+                                  <IconCopy size={16} /> Copy referral code
+                                </>
+                              )}
+                            </Button>
+                          </CopyToClipboard>
                         </li>
                       </ul>
                     </div>
