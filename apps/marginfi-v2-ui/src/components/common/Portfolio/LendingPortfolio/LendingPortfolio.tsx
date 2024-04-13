@@ -126,9 +126,9 @@ export const LendingPortfolio = () => {
             {numeralFormatter(accountSummary.healthFactor * 100)}%
           </dd>
         </dl>
-        <div className="h-2 bg-background-gray-light">
+        <div className="h-2 bg-background-gray-light rounded-full">
           <div
-            className="h-2"
+            className="h-2 rounded-full"
             style={{
               backgroundColor: healthColor,
               width: `${accountSummary.healthFactor * 100}%`,
