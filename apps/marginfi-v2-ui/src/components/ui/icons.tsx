@@ -610,9 +610,9 @@ const IconYBX = ({ size = 48, className }: IconProps) => (
     <path
       d="M20.5 27C19.5198 28.1545 19 29.1429 19 30.75C19 33.6493 21.2396 36 24 36C26.7604 36 29 33.6493 29 30.75C29 26.5714 24 24 24 24C24 24 19 21.4286 19 17.25C19 14.3507 21.2396 12 24 12C26.7604 12 29 14.3507 29 17.25C29 18.8234 28.4505 19.8568 27.5 21"
       stroke="black"
-      stroke-width="3.5"
-      stroke-miterlimit="10"
-      stroke-linecap="square"
+      strokeWidth="3.5"
+      strokeMiterlimit="10"
+      strokeLinecap="square"
     />
     <path d="M23 42.5V39H25.5V42.5H23Z" fill="#0B0000" stroke="black" />
     <path d="M23 9V5.5H25.5V9H23Z" fill="#0B0000" stroke="black" />
@@ -821,7 +821,7 @@ const IconOrca = ({ size = 48, className }: IconProps) => (
 
 const IconBrandSubstack = ({ size = 24, className }: IconProps) => (
   <svg height={size} viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <g clip-path="url(#clip0_31_8)">
+    <g clipPath="url(#clip0_31_8)">
       <path d="M22.9991 6.181H2V8.89931H22.9991V6.181Z" fill="currentColor" />
       <path d="M2 11.362V24.0004L12.4991 18.3561L23 24.0004V11.362H2Z" fill="currentColor" />
       <path d="M22.9991 1H2V3.71786H22.9991V1Z" fill="currentColor" />

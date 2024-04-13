@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { getDepositsData, getRateData } from "~/components/desktop/AssetList/utils";
@@ -8,6 +9,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { IconMrgn } from "~/components/ui/icons";
 import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { Skeleton } from "~/components/ui/skeleton";
 
 interface IntegrationCardProps {
   bank: ExtendedBankInfo;
@@ -23,7 +25,11 @@ export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardPr
       <CardHeader>
         <CardTitle className="flex items-center justify-center gap-3 text-xl">
           <div className="flex items-center">
-            <img src={bank.meta.tokenLogoUri} className="w-10 h-10 rounded-full" />
+            {bank.meta.tokenLogoUri ? (
+              <Image alt={bank.meta.tokenLogoUri} src={bank.meta.tokenLogoUri} className="w-10 h-10 rounded-full" />
+            ) : (
+              <Skeleton className="w-10 h-10 rounded-full" />
+            )}
           </div>
           {bank.meta.tokenSymbol}
         </CardTitle>
