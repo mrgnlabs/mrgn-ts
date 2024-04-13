@@ -19,7 +19,7 @@ import { Announcements, AnnouncementCustomItem, AnnouncementBankItem } from "~/c
 
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
-import { IconAlertTriangle, IconBackpackWallet, IconCheck, IconYBX } from "~/components/ui/icons";
+import { IconAlertTriangle, IconBackpackWallet, IconCheck, IconTrophy, IconYBX } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
@@ -29,7 +29,7 @@ const AssetsList = dynamic(async () => (await import("~/components/desktop/Asset
 export default function HomePage() {
   const router = useRouter();
   const { walletAddress, isOverride } = useWalletContext();
-  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
+  const [previousTxn, setIsWalletOpen] = useUiStore((state) => [state.previousTxn, state.setIsWalletOpen]);
   const [
     fetchMrgnlendState,
     isStoreInitialized,
@@ -53,12 +53,22 @@ export default function HomePage() {
     return [
       {
         image: (
+          <div className="text-chartreuse">
+            <IconTrophy size={22} />
+          </div>
+        ),
+        text: "Points now located in wallet.",
+        onClick: () => {
+          setIsWalletOpen(true);
+        },
+      },
+      {
+        image: (
           <div className="text-success">
             <IconCheck size={22} />
           </div>
         ),
         text: "Oracle efficiency improved, all systems operational.",
-        onClick: () => {},
       },
       {
         image: <IconBackpackWallet size={22} />,
