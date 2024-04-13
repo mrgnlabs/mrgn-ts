@@ -88,12 +88,12 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
             delay: 5000,
             pauseOnMouseEnter: true,
           }}
-          modules={[Autoplay]}
+          // modules={[Autoplay]}
         >
           {items.map((item, index) => (
             <SwiperSlide key={index}>
               <div
-                className="bg-background-gray border border-background-gray rounded-lg w-full p-4 cursor-pointer transition hover:border-background-gray-hover"
+                className="bg-background-gray border border-background-gray rounded-lg w-full py-2.5 px-2 md:p-3 cursor-pointer transition hover:border-background-gray-hover"
                 onClick={() => {
                   if (!isBankItem(item) && item.onClick) {
                     item.onClick();
@@ -117,21 +117,23 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                         height={24}
                         className="rounded-full"
                       />
-                      <p>
+                      <p className="text-xs md:text-sm translate-y-[2px] md:translate-y-[1px]">
                         <strong className="font-medium mr-1.5">{item.bank.meta.tokenSymbol}</strong>
                         {item.text || "now available on marginfi"}
                       </p>
-                      <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
+                      <IconArrowRight size={20} className="ml-auto text-muted-foreground md:translate-y-[1px]" />
                     </div>
                   </ActionBoxDialog>
                 ) : (
-                  <div className="flex items-start gap-3 w-full font-normal">
+                  <div className="flex items-start gap-2.5 md:gap-3 w-full font-normal">
                     {typeof item.image === "string" ? (
                       <Image src={item.image} alt={item.text} width={24} height={24} className="rounded-full" />
                     ) : (
                       item.image
                     )}
-                    <h2 className="text-center">{item.text}</h2>
+                    <h2 className="text-center text-xs md:text-sm translate-y-[2px] md:translate-y-0 relative">
+                      {item.text}
+                    </h2>
                     <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
                   </div>
                 )}
