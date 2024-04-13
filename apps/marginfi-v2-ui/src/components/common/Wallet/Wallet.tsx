@@ -40,6 +40,7 @@ import {
   IconTrophy,
   IconKey,
   IconMoonPay,
+  IconX,
 } from "~/components/ui/icons";
 import { WalletSend } from "./components/WalletSend";
 
@@ -239,7 +240,7 @@ export const Wallet = () => {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <div className={cn("absolute right-2 flex items-center gap-1", web3AuthConncected && "gap-0.5")}>
+                <div className={cn("absolute right-2 flex items-center md:gap-1", web3AuthConncected && "gap-0.5")}>
                   {web3AuthConncected && (
                     <TooltipProvider>
                       <Tooltip>
@@ -288,18 +289,7 @@ export const Wallet = () => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (isMobile) {
-                              setIsWalletOpen(false);
-                            } else {
-                              logout();
-                            }
-                          }}
-                          className="shrink-0"
-                        >
+                        <Button variant="ghost" size="icon" onClick={logout} className="shrink-0">
                           <IconLogout size={18} className="translate-x-0.5" />
                         </Button>
                       </TooltipTrigger>
@@ -308,6 +298,19 @@ export const Wallet = () => {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+
+                  {isMobile && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setIsWalletOpen(false);
+                      }}
+                      className="shrink-0"
+                    >
+                      <IconX size={18} className="translate-x-0.5" />
+                    </Button>
+                  )}
                 </div>
               </header>
               {walletTokenState === WalletState.NOTIS && (
