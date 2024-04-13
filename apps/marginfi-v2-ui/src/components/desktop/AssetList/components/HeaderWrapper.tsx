@@ -28,9 +28,9 @@ export const HeaderWrapper = ({ header, infoTooltip, align = "right", children }
 
       {header.column.getCanSort() ? (
         header.column.getNextSortingOrder() === "asc" ? (
-          <IconSortAscending size={18} />
-        ) : header.column.getNextSortingOrder() === "desc" ? undefined : (
           <IconSortDescending size={18} />
+        ) : header.column.getNextSortingOrder() === "desc" ? undefined : (
+          <IconSortAscending size={18} />
         )
       ) : undefined}
 
