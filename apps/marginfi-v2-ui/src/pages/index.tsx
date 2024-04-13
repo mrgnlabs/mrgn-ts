@@ -57,7 +57,7 @@ export default function HomePage() {
             <IconTrophy size={22} />
           </div>
         ),
-        text: "Points now located in wallet.",
+        text: "New experience live! Points are in mrgnwallet.",
         onClick: () => {
           setIsWalletOpen(true);
         },
