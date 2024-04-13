@@ -143,7 +143,7 @@ export const LstPreview = ({
                 </div>
               </Stat>
             )}
-            <Stat label={"TVL"}>
+            <Stat label={"Supply"}>
               {lstData && solUsdValue ? (
                 `$${numeralFormatter(lstData.tvl * solUsdValue)}`
               ) : (
