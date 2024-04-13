@@ -208,38 +208,29 @@ export const Wallet = () => {
               <header className="flex items-center gap-2">
                 <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="mx-auto">
-                        <CopyToClipboard
-                          text={walletData.address}
-                          onCopy={() => {
-                            setisWalletAddressCopied(true);
-                            setTimeout(() => {
-                              setisWalletAddressCopied(false);
-                            }, 2000);
-                          }}
-                        >
-                          <Button variant="secondary" size="sm" className="text-sm">
-                            {!isWalletAddressCopied ? (
-                              <>
-                                {walletData.shortAddress} <IconCopy size={16} />
-                              </>
-                            ) : (
-                              <>
-                                Copied! <IconCheck size={16} />
-                              </>
-                            )}
-                          </Button>
-                        </CopyToClipboard>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Copy wallet address</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <div className="mx-auto">
+                  <CopyToClipboard
+                    text={walletData.address}
+                    onCopy={() => {
+                      setisWalletAddressCopied(true);
+                      setTimeout(() => {
+                        setisWalletAddressCopied(false);
+                      }, 2000);
+                    }}
+                  >
+                    <Button variant="secondary" size="sm" className="text-sm">
+                      {!isWalletAddressCopied ? (
+                        <>
+                          {walletData.shortAddress} <IconCopy size={16} />
+                        </>
+                      ) : (
+                        <>
+                          Copied! <IconCheck size={16} />
+                        </>
+                      )}
+                    </Button>
+                  </CopyToClipboard>
+                </div>
                 <div className={cn("absolute right-2 flex items-center md:gap-1", web3AuthConncected && "gap-0.5")}>
                   {web3AuthConncected && (
                     <TooltipProvider>
