@@ -179,9 +179,6 @@ export const Wallet = () => {
 
   // fetch wallet data on mount and every 20 seconds
   React.useEffect(() => {
-    if (isMounted) return;
-    setIsMounted(true);
-
     getWalletData();
     const intervalId = setInterval(() => {
       getWalletData();
@@ -190,7 +187,7 @@ export const Wallet = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [getWalletData, isMounted]);
+  }, [getWalletData]);
 
   return (
     <>
