@@ -50,7 +50,7 @@ export const YbxDialogNotifications: React.FC<YbxDialogProps> = ({
         <DialogHeader>
           <IconYBX size={48} />
           <DialogTitle className="text-2xl">YBX Early Access</DialogTitle>
-          <DialogDescription>Sign up to get notified for early access to YBX</DialogDescription>
+          <DialogDescription>Get on the list for Solana&apos;s new decentralized stable-asset, YBX</DialogDescription>
         </DialogHeader>
 
         {mintPageState === MintPageState.SUCCESS && (
