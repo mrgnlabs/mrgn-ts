@@ -12,7 +12,7 @@ interface PageHeadingProps {
 
 export const PageHeading = ({ heading, body, links }: PageHeadingProps) => {
   return (
-    <div className="text-muted-foreground text-xl text-center mb-12 space-y-4">
+    <div className="text-muted-foreground text-base md:text-lg text-center px-2 pt-4 pb-12 md:pt-0 md:px-0 space-y-3">
       <h1 className="text-4xl font-medium text-primary">{heading}</h1>
       <div className="max-w-2xl w-full mx-auto">{body}</div>
 
