@@ -20,6 +20,7 @@ import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
 import { Bank } from "../bank";
 import { Balance } from "../balance";
+import debug from "debug";
 
 export interface SimulationResult {
   banks: Map<string, Bank>;
@@ -138,11 +139,14 @@ class MarginfiAccountWrapper {
   }
 
   public canBeLiquidated(): boolean {
+    const debugLogger = require("debug")(`mfi:margin-account:${this.address.toString()}:canBeLiquidated`);
     const { assets, liabilities } = this._marginfiAccount.computeHealthComponents(
       this.client.banks,
       this.client.oraclePrices,
       MarginRequirementType.Maintenance
     );
+
+    debugLogger("Account %s, maint assets: %s, maint liabilities: %s, maint healt: %s", this.address, assets, liabilities)
 
     return assets.lt(liabilities);
   }

@@ -85,8 +85,8 @@ class MarginfiClient {
     preloadedBankAddresses?: PublicKey[],
     readonly bankMetadataMap?: BankMetadataMap,
     sendEndpoint?: string,
-    spamSendTx: boolean = false,
-    skipPreflightInSpam: boolean = false
+    spamSendTx: boolean = true,
+    skipPreflightInSpam: boolean = true
   ) {
     this.group = group;
     this.banks = banks;

@@ -81,7 +81,7 @@ class Liquidator {
     console.log("Start with DEBUG=mfi:* to see more logs");
 
     try {
-      while (await this.rebalanceIfNeeded()) {}
+      while (await this.rebalanceIfNeeded()) { }
     } catch (e) {
       console.error("Error during initial rebalance: ", e);
     }
@@ -196,11 +196,8 @@ class Liquidator {
     transaction.sign([this.wallet.payer]);
 
     const rawTransaction = transaction.serialize();
-    const txid = await this.connection.sendRawTransaction(rawTransaction, {
-      maxRetries: 2,
-    });
 
-    await this.connection.confirmTransaction(txid, "confirmed");
+    let txid = await this.client.processTransaction(transaction);
 
     debug("Swap transaction sent: %s", txid);
   }

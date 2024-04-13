@@ -979,8 +979,7 @@ class MarginfiAccount {
           const targetBalance = projectedBalances.find((b) => b.bankPk.equals(targetBank));
           if (!targetBalance) {
             throw Error(
-              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${
-                decoded.name
+              `Balance for bank ${targetBank.toBase58()} should be projected active at this point (ix ${index}: ${decoded.name
               }))`
             );
           }
