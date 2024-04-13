@@ -71,7 +71,7 @@ export const WalletButton = () => {
   return (
     <>
       {!isLoading && !connected && (
-        <Button className={`gap-1.5 py-0 ${walletInfo ? "pr-2" : "pr-4"}`}>
+        <Button variant="secondary" className={`gap-1.5 py-0 ${walletInfo ? "pr-2" : "pr-4"}`}>
           <div className="flex flex-row relative h-full gap-4">
             <div onClick={() => handleWalletConnect()} className="inline-flex items-center gap-2">
               Sign in
