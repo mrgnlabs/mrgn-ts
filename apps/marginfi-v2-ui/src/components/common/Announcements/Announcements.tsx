@@ -93,7 +93,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
           {items.map((item, index) => (
             <SwiperSlide key={index}>
               <div
-                className="bg-background-gray border border-background-gray rounded-lg w-full py-2.5 px-2 md:p-3 cursor-pointer transition hover:border-background-gray-hover"
+                className="bg-background-gray border border-background-gray rounded-lg w-full p-2.5 px-2 md:p-3 cursor-pointer transition hover:border-background-gray-hover"
                 onClick={() => {
                   if (!isBankItem(item) && item.onClick) {
                     item.onClick();
@@ -103,7 +103,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                 {isBankItem(item) ? (
                   <ActionBoxDialog requestedAction={requestedAction} requestedToken={requestedToken}>
                     <div
-                      className="flex items-start gap-2 w-full"
+                      className="flex items-center gap-2 w-full"
                       onClick={() => {
                         setLendingMode(item.lendingMode || LendingModes.LEND);
                         setRequestedAction(item.actionType || ActionType.Deposit);
@@ -117,23 +117,21 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                         height={24}
                         className="rounded-full"
                       />
-                      <p className="text-xs md:text-sm translate-y-[2px] md:translate-y-[2px]">
+                      <p className="text-xs md:text-sm">
                         <strong className="font-medium mr-1.5">{item.bank.meta.tokenSymbol}</strong>
                         {item.text || "now available on marginfi"}
                       </p>
-                      <IconArrowRight size={20} className="ml-auto text-muted-foreground md:translate-y-[1px]" />
+                      <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
                     </div>
                   </ActionBoxDialog>
                 ) : (
-                  <div className="flex items-start gap-2.5 md:gap-3 w-full font-normal">
+                  <div className="flex items-center gap-2.5 md:gap-3 w-full font-normal">
                     {typeof item.image === "string" ? (
                       <Image src={item.image} alt={item.text} width={24} height={24} className="rounded-full" />
                     ) : (
                       item.image
                     )}
-                    <h2 className="text-center text-xs md:text-sm translate-y-[2px] md:translate-y-[1px] relative">
-                      {item.text}
-                    </h2>
+                    <h2 className="text-center text-xs md:text-sm">{item.text}</h2>
                     <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
                   </div>
                 )}
