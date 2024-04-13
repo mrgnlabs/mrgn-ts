@@ -88,7 +88,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
             delay: 5000,
             pauseOnMouseEnter: true,
           }}
-          // modules={[Autoplay]}
+          modules={[Autoplay]}
         >
           {items.map((item, index) => (
             <SwiperSlide key={index}>
