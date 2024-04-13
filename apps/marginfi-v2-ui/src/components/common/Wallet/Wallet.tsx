@@ -1,6 +1,7 @@
 import React from "react";
 
 import Image from "next/image";
+import Link from "next/link";
 
 import { useRouter } from "next/router";
 
@@ -41,6 +42,7 @@ import {
   IconKey,
   IconMoonPay,
   IconX,
+  IconArrowsExchange,
 } from "~/components/ui/icons";
 import { WalletSend } from "./components/WalletSend";
 
@@ -519,6 +521,7 @@ export const Wallet = () => {
           ) : (
             <p>Loading...</p>
           )}
+          <WalletOnramp />
         </SheetContent>
       </Sheet>
 
@@ -526,7 +529,6 @@ export const Wallet = () => {
         <>
           <WalletPkDialog pk={web3AuthPk} />
           <WalletIntroDialog />
-          <WalletOnramp />
         </>
       )}
     </>
@@ -541,7 +543,8 @@ type TokenOptionsProps = {
 };
 
 function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = false }: TokenOptionsProps) {
-  const [setIsOnrampActive] = useUiStore((state) => [state.setIsOnrampActive]);
+  const router = useRouter();
+  const [setIsOnrampActive, setIsWalletOpen] = useUiStore((state) => [state.setIsOnrampActive, state.setIsWalletOpen]);
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   return (
     <div className="flex items-center justify-center gap-4">
@@ -599,6 +602,18 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
           <IconRefresh size={20} />
         </div>
         Swap
+      </button>
+      <button
+        className="flex flex-col gap-1 text-sm font-medium items-center"
+        onClick={() => {
+          setIsWalletOpen(false);
+          router.push("/bridge");
+        }}
+      >
+        <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
+          <IconArrowsExchange size={20} />
+        </div>
+        Bridge
       </button>
       {web3AuthConnected && (
         <button
