@@ -117,7 +117,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                         height={24}
                         className="rounded-full"
                       />
-                      <p className="text-xs md:text-sm translate-y-[2px] md:translate-y-[1px]">
+                      <p className="text-xs md:text-sm translate-y-[2px] md:translate-y-[2px]">
                         <strong className="font-medium mr-1.5">{item.bank.meta.tokenSymbol}</strong>
                         {item.text || "now available on marginfi"}
                       </p>
@@ -131,7 +131,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                     ) : (
                       item.image
                     )}
-                    <h2 className="text-center text-xs md:text-sm translate-y-[2px] md:translate-y-0 relative">
+                    <h2 className="text-center text-xs md:text-sm translate-y-[2px] md:translate-y-[1px] relative">
                       {item.text}
                     </h2>
                     <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
