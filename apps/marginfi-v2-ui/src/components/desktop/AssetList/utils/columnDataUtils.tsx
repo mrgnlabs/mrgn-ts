@@ -179,10 +179,11 @@ export const getDepositsData = (
 
   const isReduceOnly = bank?.meta?.tokenSymbol ? REDUCE_ONLY_BANKS.includes(bank.meta.tokenSymbol) : false;
 
-  const bankDeposits = isInLendingMode
-    ? bank.info.state.totalDeposits
-    : Math.min(bank.info.state.availableLiquidity, bank.info.state.borrowCap - bank.info.state.totalBorrows) *
-      (denominationUSD ? bank.info.state.price : 1);
+  const bankDeposits =
+    (isInLendingMode
+      ? bank.info.state.totalDeposits
+      : Math.min(bank.info.state.availableLiquidity, bank.info.state.borrowCap - bank.info.state.totalBorrows)) *
+    (denominationUSD ? bank.info.state.price : 1);
 
   const capacity = (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap;
 
