@@ -375,7 +375,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
           slippageBps: slippageBps,
           swapMode: "ExactIn" as any,
           maxAccounts: 20,
-          // onlyDirectRoutes: true,
         } as QuoteGetRequest;
 
         try {
@@ -392,7 +391,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
               outputMint: bank.info.state.mint.toBase58(), // JITO
               slippageBps: slippageBps,
               swapMode: "ExactOut",
-              // onlyDirectRoutes: true,
             } as QuoteGetRequest;
 
             const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams);
@@ -406,7 +404,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
           }
         } catch {
           setMaxAmountCollat(0);
-          showErrorToast("Failed to fetch max amount, please refresh.");
+          showErrorToast(`Unable to repay using ${repayBank.meta.tokenSymbol}, please select another collateral.`);
         } finally {
           setIsLoading(false);
         }
@@ -495,6 +493,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
       const isSlippageChanged = slippageBpsPrev !== slippageBps;
 
       if (
+        maxAmountCollat &&
         debouncedRepayAmount !== null &&
         repayMode === RepayType.RepayCollat &&
         (isAmountChanged || isBankChanged || isRepayBankChanged || isSlippageChanged)
@@ -513,6 +512,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     slippageBps,
     slippageBpsPrev,
     calculateRepayCollateral,
+    maxAmountCollat,
   ]);
 
   const executeLendingActionCb = React.useCallback(
