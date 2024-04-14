@@ -16,6 +16,14 @@ let config = withBundleAnalyzer({
   publicRuntimeConfig: {
     NODE_ENV: process.env.NODE_ENV,
   },
+  rewrites: async () => {
+    return [
+      {
+        source: "/rpc",
+        destination: process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || "https://mrgn.rpcpool.com/",
+      },
+    ];
+  },
   transpilePackages: ["@mrgnlabs/marginfi-client-v2", "@mrgnlabs/mrgn-common", "@mrgnlabs/lip-client"],
   reactStrictMode: true,
   webpack: (config) => {
