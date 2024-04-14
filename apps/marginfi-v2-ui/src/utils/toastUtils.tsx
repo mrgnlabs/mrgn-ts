@@ -76,7 +76,7 @@ export function showErrorToast(msgOrOptions: string | { message: string }) {
 
   toast(() => <ErrorToast title={"Error"} message={msg} />, {
     hideProgressBar: true,
-    autoClose: 2000,
+    autoClose: 3000,
     style: {
       width: "100%",
       height: "100%",
