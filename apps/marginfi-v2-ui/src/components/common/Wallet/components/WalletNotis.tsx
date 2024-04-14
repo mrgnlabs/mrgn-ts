@@ -52,12 +52,17 @@ export const WalletNotis = () => {
     >
       <p className="flex flex-col gap-2 mb-6 pb-4 border-b border-background-gray-hover">
         <span className="text-sm font-medium">Set up Telegram notifications with</span>{" "}
-        <Link href="#">
-          <Button variant="ghost" className="px-2 py-2.5 gap-1.5">
-            <Image src="/heimdall.jpg" alt="HeimdallWatchBot Logo" width={28} height={28} className="rounded-full" />{" "}
-            HiemdallWatchBot
-          </Button>
-        </Link>
+        <Button
+          variant="outline"
+          className="px-2 pr-3.5 py-2.5 gap-1.5 max-w-max"
+          onClick={(e) => {
+            e.preventDefault();
+            window.open("https://t.me/HeimdallWatchBot");
+          }}
+        >
+          <Image src="/heimdall.jpg" alt="HeimdallWatchBot Logo" width={28} height={28} className="rounded-full" />{" "}
+          HiemdallWatchBot
+        </Button>
       </p>
       <div className="space-y-2">
         <Label htmlFor="email" className="flex items-center gap-1.5 text-sm font-medium">
