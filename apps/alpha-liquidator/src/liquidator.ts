@@ -9,7 +9,6 @@ import {
 import { nativeToUi, NodeWallet, shortenAddress, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
-import { NATIVE_MINT } from "@solana/spl-token";
 import { captureException, captureMessage, env_config } from "./config";
 import BN from "bn.js";
 import { BankMetadataMap, loadBankMetadatas } from "./utils/bankMetadata";
@@ -20,6 +19,7 @@ const DUST_THRESHOLD = new BigNumber(10).pow(USDC_DECIMALS - 2);
 const DUST_THRESHOLD_UI = new BigNumber(0.01);
 const MIN_LIQUIDATION_AMOUNT_USD_UI = env_config.MIN_LIQUIDATION_AMOUNT_USD_UI;
 
+const NATIVE_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
 const MIN_SOL_BALANCE = env_config.MIN_SOL_BALANCE * LAMPORTS_PER_SOL;
@@ -748,7 +748,7 @@ class Liquidator {
 
     // MAX collateral amount to liquidate given liquidators current margin account
     const liquidatorMaxLiquidationCapacityLiabAmount = liquidatorAccount.computeMaxBorrowForBank(liabBank.address);
-    const liquidatorMaxLiquidationCapacityUsd = liabBank.computeUsdValue(
+    let liquidatorMaxLiquidationCapacityUsd = liabBank.computeUsdValue(
       liabPriceInfo,
       liquidatorMaxLiquidationCapacityLiabAmount,
       PriceBias.None,
@@ -756,6 +756,10 @@ class Liquidator {
       undefined,
       false
     );
+
+
+    liquidatorMaxLiquidationCapacityUsd = BigNumber.min(env_config.MAX_LIQUIDATION_AMOUNT_USD, liquidatorMaxLiquidationCapacityUsd);
+
     const liquidatorMaxLiqCapacityAssetAmount = collateralBank.computeQuantityFromUsdValue(
       collateralPriceInfo,
       liquidatorMaxLiquidationCapacityUsd,
