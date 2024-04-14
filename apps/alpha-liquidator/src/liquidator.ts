@@ -9,7 +9,7 @@ import {
 import { nativeToUi, NodeWallet, shortenAddress, sleep, uiToNative } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
-import { NATIVE_MINT } from "@solana/spl-token";
+const NATIVE_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 import { captureException, captureMessage, env_config } from "./config";
 import BN from "bn.js";
 import { BankMetadataMap, loadBankMetadatas } from "./utils/bankMetadata";
@@ -81,7 +81,7 @@ class Liquidator {
     console.log("Start with DEBUG=mfi:* to see more logs");
 
     try {
-      while (await this.rebalanceIfNeeded()) {}
+      while (await this.rebalanceIfNeeded()) { }
     } catch (e) {
       console.error("Error during initial rebalance: ", e);
     }
