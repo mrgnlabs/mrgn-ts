@@ -2,7 +2,7 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { RepayWithCollatOptions, StakeData } from "~/utils";
+import { ActionMethod, RepayWithCollatOptions, StakeData } from "~/utils";
 
 import { LendingPreview, LstPreview, YbxPreview } from "./Components";
 
@@ -14,6 +14,7 @@ interface ActionBoxPreviewProps {
   slippageBps: number;
   isEnabled: boolean;
   repayWithCollatOptions?: RepayWithCollatOptions;
+  addAdditionalsPopup: (actions: ActionMethod[]) => void;
   children: React.ReactNode;
 }
 
@@ -24,8 +25,9 @@ export const ActionBoxPreview = ({
   amount,
   slippageBps,
   isEnabled,
-  children,
   repayWithCollatOptions,
+  addAdditionalsPopup,
+  children,
 }: ActionBoxPreviewProps) => {
   const isInLendingMode = React.useMemo(
     () =>
@@ -45,6 +47,7 @@ export const ActionBoxPreview = ({
           isEnabled={isEnabled}
           amount={amount}
           repayWithCollatOptions={repayWithCollatOptions}
+          addAdditionalsPopup={addAdditionalsPopup}
         >
           {children}
         </LendingPreview>

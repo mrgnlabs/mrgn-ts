@@ -28,6 +28,7 @@ import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
 import {
+  ActionMethod,
   checkActionAvailable,
   getSwapQuoteWithRetry,
   LstType,
@@ -123,6 +124,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [blacklistRoutesMap, setBlacklistRoutesMap] = React.useState<BlackListRoutesMap>();
+  const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
   const [hasPreviewShown, setHasPreviewShown] = React.useState<boolean>(false);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
@@ -819,7 +821,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                 }}
               />
 
-              {actionMethods.map(
+              {additionalActionMethods.concat(actionMethods).map(
                 (actionMethod, idx) =>
                   actionMethod.description && (
                     <div className="pb-6" key={idx}>
@@ -873,6 +875,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                       }
                     : undefined
                 }
+                addAdditionalsPopup={(actions) => setAdditionalActionMethods(actions)}
               >
                 <ActionBoxActions
                   handleAction={() => {
@@ -880,7 +883,9 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
                   }}
                   isLoading={isLoading}
                   showCloseBalance={showCloseBalance ?? false}
-                  isEnabled={!actionMethods.filter((value) => value.isEnabled === false).length}
+                  isEnabled={
+                    !additionalActionMethods.concat(actionMethods).filter((value) => value.isEnabled === false).length
+                  }
                   actionMode={actionMode}
                 />
                 <div className="flex justify-between mt-3">

@@ -11,8 +11,9 @@ import {
   generateStats,
   simulateAction,
 } from "./LendingPreview.utils";
-import { RepayWithCollatOptions } from "~/utils";
+import { ActionMethod, RepayWithCollatOptions, usePrevious } from "~/utils";
 import { useDebounce } from "~/hooks/useDebounce";
+import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 
 interface UseLendingPreviewProps {
   accountSummary: AccountSummary;
@@ -35,20 +36,26 @@ export function useLendingPreview({
   const [preview, setPreview] = React.useState<ActionPreview | null>(null);
   const [previewStats, setPreviewStats] = React.useState<PreviewStat[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const debouncedAmount = useDebounce<number | null>(amount, 500);
+  const [actionMethod, setActionMethod] = React.useState<ActionMethod>();
+
+  const bankPrev = usePrevious(bank);
+  const debouncedAmount = useAmountDebounce<number | null>(amount, 500);
 
   React.useEffect(() => {
     setIsLoading(true);
   }, [amount]);
 
   React.useEffect(() => {
-    if (account && bank && debouncedAmount) {
+    const isBankChanged = bank ? !bankPrev?.address.equals(bank.address) : false;
+
+    if (account && bank && debouncedAmount && !isBankChanged) {
       getSimulationResult({ actionMode, account, bank, amount: debouncedAmount, repayWithCollatOptions });
     } else {
       setSimulationResult(undefined);
       setIsLoading(false);
     }
-  }, [actionMode, account, bank, debouncedAmount, repayWithCollatOptions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actionMode, account, bankPrev, bank, debouncedAmount, repayWithCollatOptions?.repayCollatQuote]);
 
   React.useEffect(() => {
     if (bank) {
@@ -66,11 +73,32 @@ export function useLendingPreview({
   const getSimulationResult = async (props: SimulateActionProps) => {
     try {
       setSimulationResult(await simulateAction(props));
-    } catch (error) {
+      setActionMethod(undefined);
+    } catch (error: any) {
+      console.log("zaz");
+      if (typeof error === "string") {
+        setActionMethod({
+          isEnabled: true,
+          actionMethod: "WARNING",
+          description: "Simulating health/liquidation impact failed.",
+        } as ActionMethod);
+      } else if (error?.message && (error?.message.includes("RangeError") || error?.message.includes("too large"))) {
+        setActionMethod({
+          isEnabled: false,
+          actionMethod: "WARNING",
+          description: "The txn required for this swap is too large, please try another token.", //Click here to learn more.
+        } as ActionMethod);
+      } else {
+        setActionMethod({
+          isEnabled: true,
+          actionMethod: "WARNING",
+          description: "Simulating health/liquidation impact failed.",
+        } as ActionMethod);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  return { preview, previewStats, isLoading };
+  return { preview, previewStats, isLoading, actionMethod };
 }

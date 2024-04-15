@@ -3,7 +3,7 @@ import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore } from "~/store";
-import { cn, RepayWithCollatOptions } from "~/utils";
+import { ActionMethod, cn, RepayWithCollatOptions } from "~/utils";
 
 import { AvailableCollateral } from "./AvailableCollateral";
 import { useLendingPreview } from "./useLendingPreview";
@@ -14,6 +14,7 @@ interface ActionBoxPreviewProps {
   isEnabled: boolean;
   amount: number;
   repayWithCollatOptions?: RepayWithCollatOptions;
+  addAdditionalsPopup: (actions: ActionMethod[]) => void;
   children: React.ReactNode;
 }
 
@@ -23,11 +24,12 @@ export const LendingPreview = ({
   isEnabled,
   amount,
   repayWithCollatOptions,
+  addAdditionalsPopup,
   children,
 }: ActionBoxPreviewProps) => {
   const [selectedAccount, accountSummary] = useMrgnlendStore((state) => [state.selectedAccount, state.accountSummary]);
 
-  const { preview, previewStats, isLoading } = useLendingPreview({
+  const { preview, previewStats, isLoading, actionMethod } = useLendingPreview({
     accountSummary,
     actionMode,
     account: selectedAccount,
@@ -35,6 +37,10 @@ export const LendingPreview = ({
     amount,
     repayWithCollatOptions,
   });
+
+  React.useEffect(() => {
+    addAdditionalsPopup(actionMethod ? [actionMethod] : []);
+  }, [actionMethod]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -52,7 +58,18 @@ export const LendingPreview = ({
         {isEnabled && selectedBank && (
           <dl className={cn("grid grid-cols-2 gap-y-2 pt-6 text-xs text-white")}>
             {previewStats.map((stat, idx) => (
-              <Stat key={idx} label={stat.label} classNames={cn(stat.color)}>
+              <Stat
+                key={idx}
+                label={stat.label}
+                classNames={cn(
+                  stat.color &&
+                    (stat.color === "SUCCESS"
+                      ? "text-success"
+                      : stat.color === "ALERT"
+                      ? "text-alert-foreground"
+                      : "text-destructive-foreground")
+                )}
+              >
                 <stat.value />
               </Stat>
             ))}
