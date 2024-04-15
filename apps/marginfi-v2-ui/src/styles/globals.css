@@ -294,11 +294,6 @@ input::-webkit-inner-spin-button {
   }
 }
 
-#MAYAN_SWAP_PV_ROOT {
-  padding-left: 0px;
-  padding-right: 0px;
-}
-
 .swiper-pagination-bullet {
   background: #fff;
   opacity: 0.25;
@@ -319,8 +314,25 @@ input::-webkit-inner-spin-button {
   }
 }
 
+/* Mayan Bridge Overrides */
 #MAYAN_SWAP_PV_ROOT {
+  padding-left: 0px;
+  padding-right: 0px;
   height: auto;
+  width: auto !important;
+  font-family: "Aeonik Pro";
+}
+
+#MAYAN_SWAP_PV_ROOT .MuiButtonBase-root.MuiButton-fullWidth {
+  font-family: "Aeonik Pro";
+  background: #ffffff;
+  color: #101212;
+  border-radius: 6px;
+  height: 43px;
+}
+
+#MAAYAN_SWAP_PV_ROOT .MuiBox-root .MuiLink-underlineAlways {
+  opacity: 0;
 }
 
 /* Jupiter Terminal Overrides */
