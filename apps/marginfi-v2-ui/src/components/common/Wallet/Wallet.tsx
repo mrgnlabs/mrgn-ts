@@ -1,7 +1,6 @@
 import React from "react";
 
 import Image from "next/image";
-import Link from "next/link";
 
 import { useRouter } from "next/router";
 
@@ -497,27 +496,45 @@ export const Wallet = () => {
                             if (!value || value === bridgeType) return;
                             setBridgeType(value as "mayan" | "debridge");
                           }}
-                          className="w-full md:w-4/5 mx-auto gap-2 mb-4 bg-background-gray-light/50"
+                          className="w-full md:w-4/5 mx-auto gap-1.5 mb-4 bg-background-gray-light/50"
                         >
                           <ToggleGroupItem
                             value="mayan"
                             aria-label="lend"
                             className={cn(
                               "w-1/2 text-xs gap-1.5 capitalize",
-                              bridgeType === "mayan" && "data-[state=on]:bg-primary"
+                              bridgeType === "mayan" && "data-[state=on]:bg-background-gray-light"
                             )}
                           >
-                            <span className={cn(bridgeType === "mayan" && "text-primary-foreground")}>Mayan</span>
+                            <span className="flex items-center gap-2">
+                              <Image
+                                src="/bridges/mayan.png"
+                                width={53}
+                                height={46}
+                                alt="Mayan logo"
+                                className="h-3 w-auto"
+                              />
+                              Mayan
+                            </span>
                           </ToggleGroupItem>
                           <ToggleGroupItem
                             value="debridge"
                             aria-label="borrow"
                             className={cn(
                               "w-1/2 text-xs gap-1.5 capitalize",
-                              bridgeType === "debridge" && "data-[state=on]:bg-primary"
+                              bridgeType === "debridge" && "data-[state=on]:bg-background-gray-light"
                             )}
                           >
-                            <span className={cn(bridgeType === "debridge" && "text-primary-foreground")}>deBridge</span>
+                            <span className="flex items-center gap-2">
+                              <Image
+                                src="/bridges/debridge.png"
+                                width={83}
+                                height={46}
+                                alt="deBridge logo"
+                                className="h-3 w-auto"
+                              />
+                              deBridge
+                            </span>
                           </ToggleGroupItem>
                         </ToggleGroup>
                         <div
