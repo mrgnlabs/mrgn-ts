@@ -7,9 +7,9 @@ import {
   RiskTier,
 } from "@mrgnlabs/marginfi-client-v2";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
-import { PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
-import { StakeData, isBankOracleStale } from "~/utils";
+import { StakeData, deserializeInstruction, getAdressLookupTableAccounts, isBankOracleStale } from "~/utils";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
 
 export enum RepayType {
@@ -536,4 +536,40 @@ export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRet
       await new Promise((resolve) => setTimeout(resolve, timeout));
     }
   }
+}
+
+export async function verifyJupTxSize(quoteResponse: QuoteResponse, connection: Connection) {
+  const jupiterQuoteApi = createJupiterApiClient();
+
+  const {
+    setupInstructions,
+    swapInstruction,
+    addressLookupTableAddresses,
+    cleanupInstruction,
+    tokenLedgerInstruction,
+  } = await jupiterQuoteApi.swapInstructionsPost({
+    swapRequest: {
+      quoteResponse,
+      userPublicKey: PublicKey.default.toBase58(),
+    },
+  });
+
+  const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : [];
+  const swapIx = deserializeInstruction(swapInstruction);
+
+  const adressLookupTableAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
+
+  const { blockhash } = await connection.getLatestBlockhash();
+
+  const message = new TransactionMessage({
+    payerKey: PublicKey.default,
+    recentBlockhash: blockhash,
+    instructions: [...setupIxs, swapIx],
+  }).compileToV0Message(adressLookupTableAccounts);
+
+  const tx = new VersionedTransaction(message);
+
+  const txLength = tx.serialize().length;
+
+  console.log({ txLength });
 }

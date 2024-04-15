@@ -380,17 +380,23 @@ export async function repayWithCollat({
   multiStepToast.start();
 
   try {
-    const { setupInstructions, swapInstruction, addressLookupTableAddresses, cleanupInstruction } =
-      await jupiterQuoteApi.swapInstructionsPost({
-        swapRequest: {
-          quoteResponse: options.repayCollatQuote,
-          userPublicKey: options.wallet.publicKey.toBase58(),
-        },
-      });
+    const {
+      setupInstructions,
+      swapInstruction,
+      addressLookupTableAddresses,
+      cleanupInstruction,
+      tokenLedgerInstruction,
+    } = await jupiterQuoteApi.swapInstructionsPost({
+      swapRequest: {
+        quoteResponse: options.repayCollatQuote,
+        userPublicKey: options.wallet.publicKey.toBase58(),
+      },
+    });
 
     const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : [];
     const swapIx = deserializeInstruction(swapInstruction);
-    const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : [];
+    // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
+    // tokenLedgerInstruction **also optional**
 
     const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
     addressLookupTableAccounts.push(
@@ -404,7 +410,7 @@ export async function repayWithCollat({
       options.repayBank.address,
       options.repayBank.isActive && isWholePosition(options.repayBank, options.repayAmount),
       bank.isActive && isWholePosition(bank, amount),
-      [...setupIxs, swapIx, ...swapcleanupIx],
+      [...setupIxs, swapIx],
       addressLookupTableAccounts,
       priorityFee
     );
