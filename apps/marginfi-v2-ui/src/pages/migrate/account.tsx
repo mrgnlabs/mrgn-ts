@@ -59,7 +59,7 @@ export default function MigrateAccountPage() {
       console.error(errMsg);
       multiStepToast.setFailed(errMsg);
     }
-  }, [selectedAccount, walletAddressInputRef]);
+  }, [selectedAccount, walletAddressInputRef, wallet.publicKey]);
 
   React.useEffect(() => {
     if (marginfiAccounts.length === 1 && !chosenAccount) {
