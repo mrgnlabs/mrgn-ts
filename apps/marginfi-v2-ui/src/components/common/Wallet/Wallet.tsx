@@ -24,10 +24,12 @@ import {
   WalletNotis,
 } from "~/components/common/Wallet";
 import { Swap } from "~/components/common/Swap";
+import { Bridge } from "~/components/common/Bridge";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import {
   IconCheck,
   IconChevronDown,
@@ -52,6 +54,7 @@ enum WalletState {
   SEND = "send",
   SELECT = "select",
   SWAP = "swap",
+  BRIDGE = "bridge",
   POINTS = "points",
   NOTIS = "notis",
 }
@@ -87,6 +90,8 @@ export const Wallet = () => {
   const [activeToken, setActiveToken] = React.useState<TokenType | null>(null);
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
+  const [isBridgeLoaded, setIsBridgeLoaded] = React.useState(false);
+  const [bridgeType, setBridgeType] = React.useState<"mayan" | "debridge">("mayan");
 
   const isMobile = useIsMobile();
 
@@ -482,6 +487,60 @@ export const Wallet = () => {
                         )}
                       </div>
                     )}
+                    {walletTokenState === WalletState.BRIDGE && (
+                      <div className="relative py-4">
+                        <ToggleGroup
+                          type="single"
+                          size="sm"
+                          value={bridgeType}
+                          onValueChange={(value) => {
+                            if (!value || value === bridgeType) return;
+                            setBridgeType(value as "mayan" | "debridge");
+                          }}
+                          className="w-full md:w-4/5 mx-auto gap-2 mb-4 bg-background-gray-light/50"
+                        >
+                          <ToggleGroupItem
+                            value="mayan"
+                            aria-label="lend"
+                            className={cn(
+                              "w-1/2 text-xs gap-1.5 capitalize",
+                              bridgeType === "mayan" && "data-[state=on]:bg-primary"
+                            )}
+                          >
+                            <span className={cn(bridgeType === "mayan" && "text-primary-foreground")}>Mayan</span>
+                          </ToggleGroupItem>
+                          <ToggleGroupItem
+                            value="debridge"
+                            aria-label="borrow"
+                            className={cn(
+                              "w-1/2 text-xs gap-1.5 capitalize",
+                              bridgeType === "debridge" && "data-[state=on]:bg-primary"
+                            )}
+                          >
+                            <span className={cn(bridgeType === "debridge" && "text-primary-foreground")}>deBridge</span>
+                          </ToggleGroupItem>
+                        </ToggleGroup>
+                        <div
+                          className={cn(
+                            "max-w-[420px] w-full px-[1.35rem] max-h-[500px] transition-opacity hidden font-aeonik",
+                            bridgeType === "mayan" && "block"
+                          )}
+                          id="swap_widget"
+                        />
+                        <div
+                          id="debridgeWidget"
+                          className={cn(
+                            "max-w-[420px] w-full px-[1.35rem] max-h-[500px] transition-opacity hidden  font-aeonik",
+                            bridgeType === "debridge" && "block"
+                          )}
+                        />
+                        <Bridge
+                          onLoad={() => {
+                            setIsBridgeLoaded(true);
+                          }}
+                        />
+                      </div>
+                    )}
                   </TabsContent>
                   <TabsContent value="points">
                     <div className="flex flex-col items-center pt-8">
@@ -623,8 +682,7 @@ function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = f
       <button
         className="flex flex-col gap-1 text-sm font-medium items-center"
         onClick={() => {
-          setIsWalletOpen(false);
-          router.push("/bridge");
+          setState(WalletState.BRIDGE);
         }}
       >
         <div className="rounded-full flex items-center justify-center h-12 w-12 bg-background-gray transition-colors hover:bg-background-gray-hover">
