@@ -334,7 +334,6 @@ class MarginfiAccountWrapper {
       addressLookupTableAccounts: [...lookupTables, ...addressLookupTableAccounts],
     });
 
-    console.log({ flashloanTx });
     const sig = await this.client.processTransaction(flashloanTx, []);
     debug("Repay with collateral successful %s", sig);
 

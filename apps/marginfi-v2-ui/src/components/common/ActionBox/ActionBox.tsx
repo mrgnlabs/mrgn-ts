@@ -27,7 +27,13 @@ import { useDebounce } from "~/hooks/useDebounce";
 import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-import { checkActionAvailable, getSwapQuoteWithRetry, LstType, RepayType } from "~/utils/actionBoxUtils";
+import {
+  checkActionAvailable,
+  getSwapQuoteWithRetry,
+  LstType,
+  RepayType,
+  verifyJupTxSize,
+} from "~/utils/actionBoxUtils";
 import { IconAlertTriangle, IconChevronDown, IconSettings, IconEye, IconEyeClosed } from "~/components/ui/icons";
 import { showErrorToast } from "~/utils/toastUtils";
 
@@ -437,6 +443,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
         const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
         if (swapQuote) {
+          await verifyJupTxSize(swapQuote, connection);
           const outAmount = nativeToUi(swapQuote.outAmount, bank.info.state.mintDecimals);
           const outAmountThreshold = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
 
@@ -452,7 +459,7 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
         setIsLoading(false);
       }
     },
-    [slippageBps, setAmountRaw, setRepayCollatQuote]
+    [slippageBps, connection, setAmountRaw, setRepayCollatQuote]
   );
 
   // Calculate repay w/ collat max value

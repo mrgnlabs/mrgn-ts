@@ -8,21 +8,26 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { IconInfoCircle } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 
-import { ActionPreview } from "./LendingPreview";
-
 type ActionBoxAvailableCollateralProps = {
   isLoading: boolean;
   marginfiAccount: MarginfiAccountWrapper;
-  preview: ActionPreview | null;
+  availableCollateral?: {
+    ratio: number;
+    amount: number;
+  };
 };
 
-export const AvailableCollateral = ({ isLoading, marginfiAccount, preview }: ActionBoxAvailableCollateralProps) => {
+export const AvailableCollateral = ({
+  isLoading,
+  marginfiAccount,
+  availableCollateral,
+}: ActionBoxAvailableCollateralProps) => {
   const [availableRatio, setAvailableRatio] = React.useState<number>(0);
   const [availableAmount, setAvailableAmount] = React.useState<number>(0);
 
   const healthColor = React.useMemo(
-    () => getMaintHealthColor(preview?.availableCollateral.ratio ?? availableRatio),
-    [availableRatio, preview?.availableCollateral.ratio]
+    () => getMaintHealthColor(availableCollateral?.ratio ?? availableRatio),
+    [availableRatio, availableCollateral?.ratio]
   );
 
   React.useEffect(() => {
@@ -57,7 +62,7 @@ export const AvailableCollateral = ({ isLoading, marginfiAccount, preview }: Act
           {isLoading ? (
             <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
           ) : (
-            usdFormatterDyn.format(preview?.availableCollateral.amount ?? availableAmount)
+            usdFormatterDyn.format(availableCollateral?.amount ?? availableAmount)
           )}
         </dd>
       </dl>
@@ -66,7 +71,7 @@ export const AvailableCollateral = ({ isLoading, marginfiAccount, preview }: Act
           className="h-1.5 rounded-full"
           style={{
             backgroundColor: `${healthColor}`,
-            width: `${(preview?.availableCollateral.ratio ?? availableRatio) * 100}%`,
+            width: `${(availableCollateral?.ratio ?? availableRatio) * 100}%`,
           }}
         />
       </div>
