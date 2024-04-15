@@ -13,7 +13,7 @@ export const PortfolioHeader = ({ netValue, points }: PortfolioHeaderProps) => {
   const { connected } = useWalletContext();
   return (
     <PageHeading
-      heading={<h1 className="text-4xl font-medium text-primary">Portfolio</h1>}
+      heading={<>Portfolio</>}
       body={
         <div className="space-y-6">
           <p>Manage your marginfi positions.</p> {!connected && <WalletButton />}
