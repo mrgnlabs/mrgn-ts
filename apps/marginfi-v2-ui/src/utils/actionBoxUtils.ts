@@ -570,6 +570,4 @@ export async function verifyJupTxSize(quoteResponse: QuoteResponse, connection: 
   const tx = new VersionedTransaction(message);
 
   const txLength = tx.serialize().length;
-
-  console.log({ txLength });
 }

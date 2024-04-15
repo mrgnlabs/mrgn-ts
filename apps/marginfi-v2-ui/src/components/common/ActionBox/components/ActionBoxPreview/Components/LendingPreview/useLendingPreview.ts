@@ -75,7 +75,6 @@ export function useLendingPreview({
       setSimulationResult(await simulateAction(props));
       setActionMethod(undefined);
     } catch (error: any) {
-      console.log("zaz");
       if (typeof error === "string") {
         setActionMethod({
           isEnabled: true,
