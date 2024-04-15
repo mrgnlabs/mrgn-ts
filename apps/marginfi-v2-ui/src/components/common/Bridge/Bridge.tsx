@@ -171,7 +171,7 @@ export const Bridge = ({ onLoad }: BridgeProps) => {
             description: "",
             width: "328",
             height: "",
-            r: null,
+            r: 16890,
             supportedChains:
               '{"inputChains":{"1":"all","10":"all","56":"all","137":"all","8453":"all","42161":"all","43114":"all","59144":"all","7565164":"all","245022934":"all"},"outputChains":{"1":"all","10":"all","56":"all","137":"all","8453":"all","42161":"all","43114":"all","59144":"all","7565164":"all","245022934":"all"}}',
             inputChain: 1,
