@@ -72,7 +72,6 @@ export const Wallet = () => {
     useWalletContext();
 
   const [isFetchingWalletData, setIsFetchingWalletData] = React.useState(false);
-  const [isMounted, setIsMounted] = React.useState(false);
   const [isWalletAddressCopied, setisWalletAddressCopied] = React.useState(false);
   const [walletData, setWalletData] = React.useState<{
     address: string;
@@ -89,7 +88,6 @@ export const Wallet = () => {
   const [activeToken, setActiveToken] = React.useState<TokenType | null>(null);
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
-  const [isBridgeLoaded, setIsBridgeLoaded] = React.useState(false);
   const [bridgeType, setBridgeType] = React.useState<"mayan" | "debridge">("mayan");
 
   const isMobile = useIsMobile();
@@ -551,11 +549,7 @@ export const Wallet = () => {
                             bridgeType === "debridge" && "block"
                           )}
                         />
-                        <Bridge
-                          onLoad={() => {
-                            setIsBridgeLoaded(true);
-                          }}
-                        />
+                        <Bridge />
                       </div>
                     )}
                   </TabsContent>
