@@ -54,7 +54,7 @@ export default function MigratePointsPage() {
     } catch (loginError: any) {
       multiStepToast.setFailed(loginError.message || "Error migrating points");
     }
-  }, [wallet, walletAddressInputRef, useAuthTxn]);
+  }, [wallet, walletAddressInputRef, useAuthTxn, connection]);
 
   return (
     <>

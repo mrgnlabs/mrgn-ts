@@ -82,7 +82,7 @@ export default function HomePage() {
       },
       { bank: jup },
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
-  }, [extendedBankInfos, router]);
+  }, [extendedBankInfos, router, setIsWalletOpen]);
 
   return (
     <>
