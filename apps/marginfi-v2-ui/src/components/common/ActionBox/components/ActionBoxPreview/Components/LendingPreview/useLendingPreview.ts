@@ -88,6 +88,12 @@ export function useLendingPreview({
           actionMethod: "WARNING",
           description: "The txn required for this swap is too large, please try another token.", //Click here to learn more.
         } as ActionMethod);
+      } else if (error?.message && error?.message.includes("6017")) {
+        setActionMethod({
+          isEnabled: true,
+          actionMethod: "WARNING",
+          description: "Stale oracle data.",
+        } as ActionMethod);
       } else {
         setActionMethod({
           isEnabled: true,
