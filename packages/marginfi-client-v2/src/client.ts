@@ -726,6 +726,7 @@ class MarginfiClient {
       return response.value.accounts?.map((a) => (a ? Buffer.from(a.data[0], "base64") : null)) ?? [];
     } catch (error: any) {
       console.log(error);
+      throw new Error(error);
       throw new Error("Failed to simulate transaction");
     }
   }

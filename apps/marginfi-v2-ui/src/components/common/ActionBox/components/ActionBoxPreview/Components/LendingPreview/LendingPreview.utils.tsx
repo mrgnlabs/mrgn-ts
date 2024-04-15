@@ -216,7 +216,7 @@ export async function simulateAction({
 
 export interface PreviewStat {
   label: string;
-  color?: string;
+  color?: "SUCCESS" | "ALERT" | "DESTRUCTIVE";
   value: () => React.JSX.Element;
 }
 
@@ -231,7 +231,7 @@ export function generateStats(preview: ActionPreview, bank: ExtendedBankInfo, is
     stats.push(getSlippageStat(preview.slippageBps));
   }
   stats.push(getHealthStat(preview.healthFactor, isLoading, preview.simulationPreview?.health));
-  if (bank.isActive || preview.simulationPreview?.liquidationPrice) {
+  if (preview.simulationPreview?.liquidationPrice) {
     stats.push(getLiquidationStat(bank, isLoading, preview.simulationPreview?.liquidationPrice));
   }
 
@@ -258,7 +258,7 @@ function getAmountStat(currentAmount: number, bank: ExtendedBankInfo, simulatedA
 function getPriceImpactStat(priceImpactPct: number): PreviewStat {
   return {
     label: "Price impact",
-    color: priceImpactPct > 0.01 && priceImpactPct > 0.05 ? "text-destructive-foreground" : "text-alert-foreground",
+    color: priceImpactPct > 0.01 && priceImpactPct > 0.05 ? "DESTRUCTIVE" : "ALERT",
     value: () => <>{percentFormatter.format(priceImpactPct)}</>,
   };
 }
@@ -266,15 +266,18 @@ function getPriceImpactStat(priceImpactPct: number): PreviewStat {
 function getSlippageStat(slippageBps: number): PreviewStat {
   return {
     label: "Slippage",
-    color: slippageBps > 500 ? "text-alert-foreground" : "",
+    color: slippageBps > 500 ? "ALERT" : undefined,
     value: () => <> {percentFormatter.format(slippageBps / 10000)}</>,
   };
 }
 
 function getHealthStat(health: number, isLoading: boolean, simulationHealth?: number): PreviewStat {
+  let computeHealth = simulationHealth ? (isNaN(simulationHealth) ? health : simulationHealth) : health;
+  const healthColor = computeHealth >= 0.5 ? "SUCCESS" : computeHealth >= 0.25 ? "ALERT" : "DESTRUCTIVE";
+
   return {
     label: "Health",
-    color: `text-[${getMaintHealthColor(simulationHealth ?? health)}]`,
+    color: healthColor,
     value: () => (
       <>
         {health && percentFormatter.format(health)}
@@ -294,9 +297,24 @@ function getHealthStat(health: number, isLoading: boolean, simulationHealth?: nu
 function getLiquidationStat(bank: ExtendedBankInfo, isLoading: boolean, simulationLiq: number | null): PreviewStat {
   const price = bank ? getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber() : 0;
 
+  const computeLiquidation = simulationLiq
+    ? isNaN(simulationLiq)
+      ? bank.isActive && bank.position.liquidationPrice
+      : simulationLiq
+    : bank.isActive && bank.position.liquidationPrice;
+  // const healthColor = computeHealth >= 0.5 ? "SUCCESS" : computeHealth >= 0.25 ? "ALERT" : "DESTRUCTIVE";
+
+  const healthColor = computeLiquidation
+    ? computeLiquidation / price >= 0.5
+      ? "SUCCESS"
+      : computeLiquidation / price >= 0.25
+      ? "ALERT"
+      : "DESTRUCTIVE"
+    : undefined;
+
   return {
     label: "Liquidation price",
-    color: `text-[${simulationLiq && simulationLiq ? getMaintHealthColor(simulationLiq / price) : ""}]`,
+    color: healthColor,
     value: () => (
       <>
         {bank.isActive &&
