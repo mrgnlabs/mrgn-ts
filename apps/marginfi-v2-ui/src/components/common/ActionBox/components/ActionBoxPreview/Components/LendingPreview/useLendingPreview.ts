@@ -84,8 +84,9 @@ export function useLendingPreview({
       } else if (error?.message && (error?.message.includes("RangeError") || error?.message.includes("too large"))) {
         setActionMethod({
           isEnabled: false,
-          actionMethod: "WARNING",
-          description: "The txn required for this swap is too large, please try another token.", //Click here to learn more.
+          description:
+            "This swap causes the transaction to fail due to size restrictions. Please try again or pick another token.",
+          link: "https://forum.marginfi.community/t/work-were-doing-to-improve-collateral-repay/333",
         } as ActionMethod);
       } else if (error?.message && error?.message.includes("6017")) {
         setActionMethod({

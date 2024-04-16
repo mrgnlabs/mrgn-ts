@@ -26,7 +26,7 @@ export type ActionMethodType = "WARNING" | "ERROR" | "INFO";
 export interface ActionMethod {
   isEnabled: boolean;
   actionMethod?: ActionMethodType;
-  description?: string;
+  description?: string | JSX.Element;
   link?: string;
 }
 
