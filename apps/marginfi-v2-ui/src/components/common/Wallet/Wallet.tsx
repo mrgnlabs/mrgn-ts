@@ -213,7 +213,7 @@ export const Wallet = () => {
               <header className="flex items-center gap-2">
                 <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
 
-                <div className="mx-auto">
+                <div className="mx-auto hidden md:block">
                   <CopyToClipboard
                     text={walletData.address}
                     onCopy={() => {
@@ -236,7 +236,7 @@ export const Wallet = () => {
                     </Button>
                   </CopyToClipboard>
                 </div>
-                <div className={cn("absolute right-2 flex items-center md:gap-1", web3AuthConncected && "gap-0.5")}>
+                <div className="absolute right-2 flex items-center md:gap-1">
                   {web3AuthConncected && (
                     <TooltipProvider>
                       <Tooltip>

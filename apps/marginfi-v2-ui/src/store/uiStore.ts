@@ -72,8 +72,15 @@ function createUiStore() {
     persist(stateCreator, {
       name: "uiStore",
       onRehydrateStorage: () => (state) => {
+        // overwrite priority fee
         if (process.env.NEXT_PUBLIC_INIT_PRIO_FEE && process.env.NEXT_PUBLIC_INIT_PRIO_FEE !== "0") {
           state?.setPriorityFee(Number(process.env.NEXT_PUBLIC_INIT_PRIO_FEE));
+        }
+
+        // overwrite wallet on mobile
+        // covers private key export modal when open
+        if (window.innerWidth < 768) {
+          state?.setIsWalletOpen(false);
         }
       },
     })
