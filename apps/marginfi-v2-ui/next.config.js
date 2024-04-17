@@ -20,11 +20,11 @@ let config = withBundleAnalyzer({
     return [
       {
         source: "/rpc",
-        destination: process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || "https://mrgn.rpcpool.com/",
+        destination: process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE_REROUTE || "https://mrgn.rpcpool.com/",
       },
       {
         source: "/rpc-send",
-        destination: process.env.NEXT_PUBLIC_MARGINFI_SEND_RPC_ENDPOINT_OVERRIDE || "https://mrgn.rpcpool.com/",
+        destination: process.env.NEXT_PUBLIC_MARGINFI_SEND_RPC_ENDPOINT_OVERRIDE_REROUTE || "https://mrgn.rpcpool.com/",
       },
     ];
   },
