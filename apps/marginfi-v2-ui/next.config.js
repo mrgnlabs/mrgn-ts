@@ -22,6 +22,10 @@ let config = withBundleAnalyzer({
         source: "/rpc",
         destination: process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE || "https://mrgn.rpcpool.com/",
       },
+      {
+        source: "/rpc-send",
+        destination: process.env.NEXT_PUBLIC_MARGINFI_SEND_RPC_ENDPOINT_OVERRIDE || "https://mrgn.rpcpool.com/",
+      },
     ];
   },
   transpilePackages: ["@mrgnlabs/marginfi-client-v2", "@mrgnlabs/mrgn-common", "@mrgnlabs/lip-client"],
