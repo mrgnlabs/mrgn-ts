@@ -95,16 +95,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   const { walletContextState, connected, wallet } = useWalletContext();
   const { connection } = useConnection();
 
-  const lendingMode = React.useMemo(
-    () =>
-      (requestedAction === ActionType.Repay
-        ? LendingModes.BORROW
-        : requestedAction === ActionType.Withdraw
-        ? LendingModes.LEND
-        : undefined) ?? lendingModeFromStore,
-    [lendingModeFromStore, requestedAction]
-  );
-
   const [slippageBps, setSlippageBps] = React.useState<number>(100);
 
   const [amountRaw, setAmountRaw] = React.useState<string>("");
@@ -169,15 +159,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
     [extendedBankInfos, selectedRepayTokenBank]
   );
 
-  // Amount related useMemo's
-  const amount = React.useMemo(() => {
-    const strippedAmount = amountRaw.replace(/,/g, "");
-
-    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-  }, [amountRaw]);
-
-  const debouncedAmount = useDebounce<number | null>(amount, 500);
-
   const walletAmount = React.useMemo(
     () =>
       selectedBank?.info.state.mint?.equals && selectedBank?.info.state.mint?.equals(WSOL_MINT)
@@ -185,11 +166,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
         : selectedBank?.userInfo.tokenAccount.balance,
     [nativeSolBalance, selectedBank]
   );
-
-  const repayAmount = React.useMemo(() => {
-    const strippedAmount = repayAmountRaw.replace(/,/g, "");
-    return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
-  }, [repayAmountRaw]);
 
   const debouncedRepayAmount = useDebounce<number | null>(repayAmount, 500);
 
@@ -282,13 +258,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   const debouncedRepayAmountPrev = usePrevious(debouncedRepayAmount);
   const slippageBpsPrev = usePrevious(slippageBps);
 
-  React.useEffect(() => {
-    if (actionModePrev !== null && actionModePrev !== actionMode) {
-      setAmountRaw("");
-      setRepayAmountRaw("");
-    }
-  }, [actionModePrev, actionMode, selectedTokenBank, setAmountRaw, setRepayAmountRaw]);
-
   // React.useEffect(() => {
   //   setAmountRaw("");
   // }, [lendingMode, selectedTokenBank, setAmountRaw]);
@@ -306,68 +275,10 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   }, [lendingModeFromStore, isDialog, setSelectedTokenBank]);
 
   React.useEffect(() => {
-    if (!requestedAction) {
-      if (lendingMode === LendingModes.LEND) {
-        setActionMode(ActionType.Deposit);
-      } else {
-        setActionMode(ActionType.Borrow);
-      }
-    } else {
-      setActionMode(requestedAction);
-    }
-  }, [lendingMode, setActionMode, requestedAction]);
-
-  React.useEffect(() => {
-    if (actionMode !== ActionType.Repay) {
-      setRepayMode(RepayType.RepayRaw);
-    }
-    if (actionMode === ActionType.MintLST) {
-      setHasPreviewShown(true);
-    }
-  }, [actionMode, setRepayMode, setHasPreviewShown]);
-
-  React.useEffect(() => {
-    if (amount && amount > maxAmount) {
-      if (repayMode !== RepayType.RepayCollat) {
-        setAmountRaw(numberFormater.format(maxAmount));
-      }
-    }
-  }, [maxAmount, repayMode, amount, numberFormater, setAmountRaw]);
-
-  React.useEffect(() => {
     if (selectedStakingAccount) {
       setAmountRaw(numberFormater.format(maxAmount));
     }
   }, [selectedStakingAccount, numberFormater, maxAmount, setAmountRaw]);
-
-  React.useEffect(() => {
-    fetchDirectRoutes();
-  }, []);
-
-  React.useEffect(() => {
-    if (actionMode === ActionType.Repay) {
-      setSlippageBps(100);
-    } else {
-      setSlippageBps(20);
-    }
-  }, [actionMode, setSlippageBps]);
-
-  const fetchDirectRoutes = async () => {
-    try {
-      const response = await fetch(`/api/jupiter`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const responseBody = await response.json();
-
-      if (responseBody) {
-        setBlacklistRoutesMap(responseBody);
-      }
-    } catch (error) {}
-  };
 
   const calculateMaxCollat = React.useCallback(
     async (bank: ExtendedBankInfo, repayBank: ExtendedBankInfo) => {
