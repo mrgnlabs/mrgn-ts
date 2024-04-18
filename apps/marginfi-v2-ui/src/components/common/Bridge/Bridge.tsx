@@ -53,21 +53,24 @@ const rpcs = {
   optimism: process.env.NEXT_PUBLIC_OPTIMISM_ENDPOINT,
   base: process.env.NEXT_PUBLIC_BASE_ENDPOINT,
 };
-const referrerAddress = "GhQ3NxahWcddaMa71rkDp1FdTfs2jBpjzCq3kzkv1mNZ";
+const solanaReferrerAddress = "GhQ3NxahWcddaMa71rkDp1FdTfs2jBpjzCq3kzkv1mNZ";
+// Todo: please add the evm referrer address
+const evmReferrerAddress = undefined;
 
 const configs: MayanWidgetConfigType[] = [
   {
     appIdentity,
     colors,
     rpcs,
-    referrerAddress,
+    solanaReferrerAddress,
+    evmReferrerAddress,
     tokens: {
       to: {
         solana: tokens,
       },
     },
-    sourceChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "optimism"],
-    destinationChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "optimism"],
+    sourceChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "optimism", "base"],
+    destinationChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "optimism", "base"],
     solanaExtraRpcs: [process.env.NEXT_PUBLIC_SOLANA2_RPC_ENDPOINT!],
   },
 ];
@@ -157,8 +160,8 @@ export const Bridge = ({ onLoad }: BridgeProps) => {
   return (
     <div>
       <Script
-        src="https://cdn.mayan.finance/mayan_widget_v_1_0_6.js"
-        integrity="sha256-buhc9wKIHrtd5pQJtJdeNCqZq8KPAsqz5VPdg8G58ig="
+        src="https://cdn.mayan.finance/mayan_widget_v_1_0_7.js"
+        integrity="sha256-oJnJHMja6en9Z+acBUQ9tYWXVVwdw6H3MhfWbGg3ST0="
         crossOrigin="anonymous"
         onReady={handleLoadMayanWidget}
       />
