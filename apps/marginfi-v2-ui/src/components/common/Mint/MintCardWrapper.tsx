@@ -23,10 +23,10 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
 
   const transformedActionGate = React.useMemo(() => getBlockedActions(), []);
 
-  const requestedToken = React.useMemo(
+  const requestedBank = React.useMemo(
     () =>
-      extendedBankInfos.find((bank) => bank?.info?.state?.mint.equals && bank?.info?.state?.mint.equals(LST_MINT))
-        ?.address,
+      extendedBankInfos.find((bank) => bank?.info?.state?.mint.equals && bank?.info?.state?.mint.equals(LST_MINT)) ??
+      null,
     [extendedBankInfos]
   );
   return (
@@ -76,7 +76,7 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
         {mintCard.title === "LST" ? (
           <ActionBoxDialog
             requestedAction={requestedAction}
-            requestedToken={requestedAction === ActionType.UnstakeLST ? requestedToken : undefined}
+            requestedBank={requestedAction === ActionType.UnstakeLST ? requestedBank : null}
           >
             <div className="flex items-center gap-2">
               <Button
@@ -119,7 +119,8 @@ export const MintCardWrapper: React.FC<MintCardWrapperProps> = ({ mintCard, ...p
         ) : (
           <ActionBoxDialog
             requestedAction={ActionType.MintYBX}
-            requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
+            requestedBank={null}
+            //requestedToken={new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB")}
           >
             <div className="flex items-center gap-2">
               <Button variant="secondary" size="lg" className="mt-4">

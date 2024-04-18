@@ -59,7 +59,7 @@ export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardPr
 
         <ActionBoxDialog
           requestedAction={isInLendingMode ? ActionType.Deposit : ActionType.Borrow}
-          requestedToken={bank.address}
+          requestedBank={bank}
         >
           <Button variant="default" size="lg" className="mt-4 w-full">
             {isInLendingMode ? "Deposit" : "Borrow"}
