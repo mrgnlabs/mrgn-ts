@@ -263,18 +263,6 @@ export const ActionBox = ({ requestedAction, requestedToken, isDialog, handleClo
   // }, [lendingMode, selectedTokenBank, setAmountRaw]);
 
   React.useEffect(() => {
-    if (requestedToken) {
-      setSelectedTokenBank(requestedToken);
-    }
-  }, [requestedToken, setSelectedTokenBank]);
-
-  React.useEffect(() => {
-    if (lendingModeFromStore && !isDialog) {
-      setSelectedTokenBank(null);
-    }
-  }, [lendingModeFromStore, isDialog, setSelectedTokenBank]);
-
-  React.useEffect(() => {
     if (selectedStakingAccount) {
       setAmountRaw(numberFormater.format(maxAmount));
     }
