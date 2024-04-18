@@ -7,7 +7,7 @@ import { useMrgnlendStore } from "~/store";
 import { cn } from "~/utils/themeUtils";
 
 import { Button } from "~/components/ui/button";
-import { IconChevronDown, IconUserPlus } from "~/components/ui/icons";
+import { IconChevronDown, IconUserPlus, IconPencil, IconCheck } from "~/components/ui/icons";
 import { Label } from "~/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
@@ -83,18 +83,28 @@ export const WalletAuthAccounts = () => {
               </div>
               <div className="grid gap-2">
                 {marginfiAccounts.map((account, index) => (
-                  <Button
-                    key={index}
-                    variant="ghost"
-                    className="justify-start gap-4 px-2"
-                    onClick={() => {
-                      localStorage.setItem("mfiAccount", account.address.toBase58());
-                      fetchMrgnlendState();
-                    }}
-                  >
+                  <Button key={index} variant="ghost" className="justify-start gap-4 px-1 hover:bg-transparent">
                     <Label htmlFor="width">Account {index + 1}</Label>
-                    <span className="text-muted-foreground">{shortenAddress(account.address.toBase58())}</span>
-                    {selectedAccount && selectedAccount.address.equals(account.address) && <Badge>active</Badge>}
+                    <span className="text-muted-foreground text-xs">{shortenAddress(account.address.toBase58())}</span>
+                    {selectedAccount && selectedAccount.address.equals(account.address) && (
+                      <Badge className="text-xs p-1 h-5">active</Badge>
+                    )}
+                    <div className="flex items-center ml-auto">
+                      <button className="p-2 transition-colors rounded-lg hover:bg-accent">
+                        <IconPencil size={16} />
+                      </button>
+                      <button
+                        className="p-2 transition-colors rounded-lg hover:bg-accent disabled:cursor-default di"
+                        disabled={Boolean(selectedAccount && selectedAccount.address.equals(account.address))}
+                        onClick={() => {
+                          if (selectedAccount && selectedAccount.address.equals(account.address)) return;
+                          localStorage.setItem("mfiAccount", account.address.toBase58());
+                          fetchMrgnlendState();
+                        }}
+                      >
+                        <IconCheck size={16} />
+                      </button>
+                    </div>
                   </Button>
                 ))}
               </div>
