@@ -21,6 +21,8 @@ import {
   WalletPkDialog,
   WalletIntroDialog,
   WalletNotis,
+  WalletSend,
+  WalletAuthAccounts,
 } from "~/components/common/Wallet";
 import { Swap } from "~/components/common/Swap";
 import { Bridge } from "~/components/common/Bridge";
@@ -45,7 +47,6 @@ import {
   IconX,
   IconArrowsExchange,
 } from "~/components/ui/icons";
-import { WalletSend } from "./components/WalletSend";
 
 enum WalletState {
   DEFAULT = "default",
@@ -60,7 +61,8 @@ enum WalletState {
 
 export const Wallet = () => {
   const router = useRouter();
-  const [extendedBankInfos, nativeSolBalance, initialized] = useMrgnlendStore((state) => [
+  const [marginfiAccounts, extendedBankInfos, nativeSolBalance, initialized] = useMrgnlendStore((state) => [
+    state.marginfiAccounts,
     state.extendedBankInfos,
     state.nativeSolBalance,
     state.initialized,
@@ -214,27 +216,31 @@ export const Wallet = () => {
                 <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
 
                 <div className="mx-auto hidden md:block">
-                  <CopyToClipboard
-                    text={walletData.address}
-                    onCopy={() => {
-                      setisWalletAddressCopied(true);
-                      setTimeout(() => {
-                        setisWalletAddressCopied(false);
-                      }, 2000);
-                    }}
-                  >
-                    <Button variant="secondary" size="sm" className="text-sm">
-                      {!isWalletAddressCopied ? (
-                        <>
-                          {walletData.shortAddress} <IconCopy size={16} />
-                        </>
-                      ) : (
-                        <>
-                          Copied! <IconCheck size={16} />
-                        </>
-                      )}
-                    </Button>
-                  </CopyToClipboard>
+                  {marginfiAccounts.length > 1 ? (
+                    <WalletAuthAccounts />
+                  ) : (
+                    <CopyToClipboard
+                      text={walletData.address}
+                      onCopy={() => {
+                        setisWalletAddressCopied(true);
+                        setTimeout(() => {
+                          setisWalletAddressCopied(false);
+                        }, 2000);
+                      }}
+                    >
+                      <Button variant="secondary" size="sm" className="text-sm">
+                        {!isWalletAddressCopied ? (
+                          <>
+                            {walletData.shortAddress} <IconCopy size={16} />
+                          </>
+                        ) : (
+                          <>
+                            Copied! <IconCheck size={16} />
+                          </>
+                        )}
+                      </Button>
+                    </CopyToClipboard>
+                  )}
                 </div>
                 <div className="absolute right-2 flex items-center md:gap-1">
                   {web3AuthConncected && (

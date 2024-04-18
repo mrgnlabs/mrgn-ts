@@ -99,15 +99,6 @@ export default function HomePage() {
                   backgroundColor="#DCE85D"
                 />
               )}
-              {walletAddress && selectedAccount && marginfiAccounts.length > 1 && (
-                <MultipleAccountsBanner
-                  selectedAccount={selectedAccount}
-                  marginfiAccounts={marginfiAccounts}
-                  fetchMrgnlendState={fetchMrgnlendState}
-                  isRefreshing={isRefreshingStore}
-                  setIsRefreshing={setIsRefreshingStore}
-                />
-              )}
               <Announcements items={annoucements} />
               <ActionBoxLendWrapper />
             </div>
@@ -123,15 +114,6 @@ export default function HomePage() {
         {!isStoreInitialized && <Loader label="Loading mrgnlend..." className="mt-16" />}
         {isStoreInitialized && (
           <>
-            {walletAddress && selectedAccount && marginfiAccounts.length > 1 && (
-              <MultipleAccountsBanner
-                selectedAccount={selectedAccount}
-                marginfiAccounts={marginfiAccounts}
-                fetchMrgnlendState={fetchMrgnlendState}
-                isRefreshing={isRefreshingStore}
-                setIsRefreshing={setIsRefreshingStore}
-              />
-            )}
             <Announcements items={annoucements} />
             <ActionBoxLendWrapper />
             <div className="mb-24" />
@@ -142,59 +124,3 @@ export default function HomePage() {
     </>
   );
 }
-
-const MultipleAccountsBanner = ({
-  selectedAccount,
-  marginfiAccounts,
-  fetchMrgnlendState,
-  isRefreshing,
-  setIsRefreshing,
-}: {
-  selectedAccount: MarginfiAccountWrapper;
-  marginfiAccounts: MarginfiAccountWrapper[];
-  fetchMrgnlendState: any;
-  isRefreshing: boolean;
-  setIsRefreshing: (isRefreshingStore: boolean) => void;
-}) => {
-  const shortAddress = React.useMemo(
-    () => shortenAddress(selectedAccount.address.toBase58()),
-    [selectedAccount.address]
-  );
-
-  return (
-    <div className="bg-muted text-white/80 py-4 px-5 rounded-sm w-full flex">
-      <div className="w-full flex flex-col gap-2">
-        <div className="w-full flex gap-2 items-center">
-          <IconAlertTriangle className="text-[#FF0]/80" size={16} />
-          <h2 className="font-medium">
-            Multiple accounts found <span className="font-light text-sm ml-1">(support coming soon)</span>
-          </h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-normal">Select account:</p>
-          <Select
-            value={selectedAccount.address.toBase58()}
-            disabled={isRefreshing}
-            onValueChange={(value) => {
-              setIsRefreshing(true);
-              localStorage.setItem("mfiAccount", value);
-              fetchMrgnlendState();
-            }}
-          >
-            <SelectTrigger className="w-[180px]">{isRefreshing ? "Loading..." : shortAddress}</SelectTrigger>
-            <SelectContent className="w-full">
-              <SelectGroup>
-                <SelectLabel>Accounts</SelectLabel>
-                {marginfiAccounts.map((account, index) => (
-                  <SelectItem key={index} value={account.address.toBase58()} className="!text-xs">
-                    {account.address.toBase58()}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    </div>
-  );
-};
