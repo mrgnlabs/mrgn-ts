@@ -79,7 +79,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
   const { connected } = useWalletContext();
   const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
   const [requestedAction, setRequestedAction] = React.useState<ActionType>();
-  const [requestedToken, setRequestedToken] = React.useState<PublicKey>();
+  const [requestedBank, setRequestedBank] = React.useState<ExtendedBankInfo | null>(null);
 
   return (
     <div className="px-4 w-full">
@@ -109,13 +109,13 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                 }}
               >
                 {isBankItem(item) ? (
-                  <ActionBoxDialog requestedAction={requestedAction} requestedToken={requestedToken}>
+                  <ActionBoxDialog requestedAction={requestedAction} requestedBank={requestedBank}>
                     <div
                       className="flex items-center gap-2 w-full"
                       onClick={() => {
                         setLendingMode(item.lendingMode || LendingModes.LEND);
                         setRequestedAction(item.actionType || ActionType.Deposit);
-                        setRequestedToken(item.bank.address);
+                        setRequestedBank(item.bank);
                       }}
                     >
                       <Image

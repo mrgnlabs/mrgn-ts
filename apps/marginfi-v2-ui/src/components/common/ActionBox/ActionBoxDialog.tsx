@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PublicKey } from "@solana/web3.js";
 
 import { useIsMobile } from "~/hooks/useIsMobile";
@@ -12,32 +12,23 @@ import { useMrgnlendStore } from "~/store";
 
 type ActionBoxDialogProps = {
   requestedAction?: ActionType;
-  requestedToken?: PublicKey;
+  requestedBank: ExtendedBankInfo | null;
   children: React.ReactNode;
   isActionBoxTriggered?: boolean;
 };
 
 export const ActionBoxDialog = ({
   requestedAction,
-  requestedToken,
+  requestedBank,
   children,
   isActionBoxTriggered = false,
 }: ActionBoxDialogProps) => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const isMobile = useIsMobile();
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
 
   React.useEffect(() => {
     setIsDialogOpen(isActionBoxTriggered);
   }, [setIsDialogOpen, isActionBoxTriggered]);
-
-  const selectedBank = React.useMemo(
-    () =>
-      requestedToken
-        ? extendedBankInfos.find((bank) => bank?.address?.equals && bank?.address?.equals(requestedToken)) ?? null
-        : null,
-    [extendedBankInfos, requestedToken]
-  );
 
   const titleText = React.useMemo(() => {
     if (
@@ -48,8 +39,8 @@ export const ActionBoxDialog = ({
       return `${requestedAction}`;
     }
 
-    return `${requestedAction} ${selectedBank?.meta.tokenSymbol}`;
-  }, [requestedAction, selectedBank]);
+    return `${requestedAction} ${requestedBank?.meta.tokenSymbol}`;
+  }, [requestedAction, requestedBank?.meta.tokenSymbol]);
 
   return (
     <Dialog open={isDialogOpen} modal={!isMobile} onOpenChange={(open) => setIsDialogOpen(open)}>
@@ -72,7 +63,7 @@ export const ActionBoxDialog = ({
                 isDialog={true}
                 handleCloseDialog={() => setIsDialogOpen(false)}
                 requestedAction={requestedAction}
-                requestedToken={requestedToken}
+                requestedBank={requestedBank ?? undefined}
               />
             </div>
           </div>
@@ -90,7 +81,7 @@ export const ActionBoxDialog = ({
               isDialog={true}
               handleCloseDialog={() => setIsDialogOpen(false)}
               requestedAction={requestedAction}
-              requestedToken={requestedToken}
+              requestedBank={requestedBank ?? undefined}
             />
           </div>
         </DialogContent>
