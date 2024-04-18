@@ -54,8 +54,10 @@ export const WalletAuthAccounts = () => {
                   }}
                 >
                   <Label htmlFor="width">Account {index + 1}</Label>
-                  <span className="text-muted-foreground">{shortenAddress(account.address.toBase58())}</span>
-                  {selectedAccount && selectedAccount.address.equals(account.address) && <Badge>active</Badge>}
+                  <span className="text-muted-foreground text-xs">{shortenAddress(account.address.toBase58())}</span>
+                  {selectedAccount && selectedAccount.address.equals(account.address) && (
+                    <Badge className="text-xs p-1 h-5">active</Badge>
+                  )}
                 </Button>
               ))}
             </div>
