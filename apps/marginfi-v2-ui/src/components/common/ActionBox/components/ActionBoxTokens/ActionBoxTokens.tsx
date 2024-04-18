@@ -6,6 +6,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LstType, RepayType } from "~/utils";
 
 import { LendingTokens, YbxTokens, LstTokens } from "./Components";
+import { useActionBoxStore } from "~/store";
 
 interface ActionBoxPreviewProps {
   actionMode: ActionType;
@@ -32,6 +33,8 @@ export const ActionBoxTokens = ({
   setRepayTokenBank,
   setCurrentTokenBank,
 }: ActionBoxPreviewProps) => {
+  const [] = useActionBoxStore((state) => (state.actionMode, state.selectedBank, state.selectedRepayBank));
+
   const isInLendingMode = React.useMemo(
     () =>
       actionMode === ActionType.Borrow ||
