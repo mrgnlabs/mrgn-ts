@@ -215,7 +215,7 @@ export const Wallet = () => {
               <header className="flex items-center gap-2">
                 <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
 
-                <div className="mx-auto hidden md:block">
+                <div className="mx-auto">
                   {marginfiAccounts.length > 1 ? (
                     <WalletAuthAccounts />
                   ) : (
@@ -272,7 +272,7 @@ export const Wallet = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className={cn(walletTokenState === WalletState.NOTIS && "text-chartreuse")}
+                          className={cn("hidden md:block", walletTokenState === WalletState.NOTIS && "text-chartreuse")}
                           onClick={() => {
                             setWalletTokenState(
                               walletTokenState === WalletState.NOTIS ? WalletState.DEFAULT : WalletState.NOTIS
