@@ -6,7 +6,7 @@ import { QuoteResponseMeta } from "@jup-ag/react-hook";
 // Mayan types
 // ----------------------------------------------------------------------------
 
-export type MayanWidgetChainName = "solana" | "ethereum" | "bsc" | "polygon" | "avalanche" | "arbitrum" | "optimism";
+export type MayanWidgetChainName = "solana" | "ethereum" | "bsc" | "polygon" | "avalanche" | "arbitrum" | "optimism" | "base";
 
 // visit the Figma link below to see the color palette
 // https://www.figma.com/community/file/1236300242311853150/Mayan-Widget
@@ -64,7 +64,8 @@ export type MayanWidgetConfigType = {
     to?: { [index in MayanWidgetChainName]?: string[] };
     featured?: { [index in MayanWidgetChainName]?: string[] };
   };
-  referrerAddress?: string;
+  solanaReferrerAddress?: string;
+  evmReferrerAddress?: string;
   referrerBps?: number;
 
   // Theme
