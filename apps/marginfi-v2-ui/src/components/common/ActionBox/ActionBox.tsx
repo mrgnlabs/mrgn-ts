@@ -3,10 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
-import { PublicKey } from "@solana/web3.js";
-import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
-
-import { WSOL_MINT, nativeToUi, numeralFormatter, uiToNative } from "@mrgnlabs/mrgn-common";
+import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useActionBoxStore, useLstStore, useMrgnlendStore, useUiStore } from "~/store";
@@ -14,28 +11,18 @@ import {
   MarginfiActionParams,
   closeBalance,
   executeLendingAction,
-  usePrevious,
   cn,
   capture,
   executeLstAction,
   getBlockedActions,
 } from "~/utils";
-import { LendingModes } from "~/types";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
-import { useDebounce } from "~/hooks/useDebounce";
 import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
-import {
-  ActionMethod,
-  checkActionAvailable,
-  getSwapQuoteWithRetry,
-  LstType,
-  RepayType,
-  verifyJupTxSize,
-} from "~/utils/actionBoxUtils";
-import { IconAlertTriangle, IconChevronDown, IconSettings, IconEye, IconEyeClosed } from "~/components/ui/icons";
+import { ActionMethod, checkActionAvailable, RepayType } from "~/utils/actionBoxUtils";
+import { IconAlertTriangle, IconSettings } from "~/components/ui/icons";
 import { showErrorToast } from "~/utils/toastUtils";
 
 import {
@@ -84,7 +71,6 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     maxAmountCollat,
     actionMode,
     repayMode,
-    lstMode,
     selectedBank,
     selectedRepayBank,
     selectedStakingAccount,
@@ -104,7 +90,6 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     state.maxAmountCollat,
     state.actionMode,
     state.repayMode,
-    state.lstMode,
     state.selectedBank,
     state.selectedRepayBank,
     state.selectedStakingAccount,
@@ -156,8 +141,6 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       showErrorToast(errorMessage);
     }
   }, [errorMessage]);
-
-  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   // Either a staking account is selected or a bank
   const isActionDisabled = React.useMemo(() => {

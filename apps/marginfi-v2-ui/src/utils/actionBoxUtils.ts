@@ -11,6 +11,7 @@ import { Connection, PublicKey, TransactionMessage, VersionedTransaction } from 
 
 import { StakeData, deserializeInstruction, getAdressLookupTableAccounts, isBankOracleStale } from "~/utils";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
+import { cp } from "fs";
 
 export enum RepayType {
   RepayRaw = "Repay",
@@ -291,17 +292,6 @@ function canBeRepaidCollat(
         isEnabled: true,
       });
     }
-  }
-
-  if (repayBankInfo && blacklistRoutes) {
-    if (blacklistRoutes.find((key) => key.equals(repayBankInfo.info.state.mint))) {
-      checks.push({
-        description: "Repayment not possible with current collateral, choose another.",
-        isEnabled: true,
-      });
-    }
-  } else {
-    checks.push({ isEnabled: false });
   }
 
   if (!swapQuote) {
