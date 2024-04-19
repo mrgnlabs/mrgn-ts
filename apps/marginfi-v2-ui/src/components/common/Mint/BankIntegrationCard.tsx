@@ -67,7 +67,7 @@ export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardPr
         </ActionBoxDialog>
 
         <div className="flex items-center gap-2 mt-4 justify-center">
-          <IconMrgn size={24} />
+          <IconMrgn size={22} />
           <p className="text-muted-foreground text-sm">marginfi</p>
         </div>
       </CardContent>
