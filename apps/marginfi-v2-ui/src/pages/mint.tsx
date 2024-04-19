@@ -39,6 +39,7 @@ import {
   MintPageState,
   clampedNumeralFormatter,
   fetchMintOverview,
+  getTokenImageURL,
 } from "~/utils";
 import { Skeleton } from "~/components/ui/skeleton";
 import { PageHeading } from "~/components/common/PageHeading";
@@ -47,8 +48,7 @@ const integrationsData: IntegrationsData[] = [
   {
     title: "SOL-LST",
     quoteIcon: IconLST,
-    baseIcon:
-      "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+    baseIcon: getTokenImageURL("SOL"),
     poolInfo: {
       dex: "meteora",
       poolId: "J9DoMJRFGiyVcQaL5uPgKBonEEj4aU2TASvW5GKFoByg",
@@ -63,8 +63,7 @@ const integrationsData: IntegrationsData[] = [
   {
     title: "LST-SOL",
     baseIcon: IconLST,
-    quoteIcon:
-      "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+    quoteIcon: getTokenImageURL("SOL"),
     poolInfo: {
       dex: "orca",
       poolId: "HJVNnnRj1xz25P9215AHQUvGXoS6MKtJASjgrrwD7GnP",
@@ -79,8 +78,7 @@ const integrationsData: IntegrationsData[] = [
   {
     title: "SOL-LST",
     quoteIcon: IconLST,
-    baseIcon:
-      "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+    baseIcon: getTokenImageURL("SOL"),
     poolInfo: {
       dex: "raydium",
       poolId: "mrWgqCV3i1YhiG3VENnJ8qQUEGEqeBvunrp647pCb7R",

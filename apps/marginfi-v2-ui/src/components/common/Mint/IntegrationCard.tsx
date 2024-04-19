@@ -22,6 +22,8 @@ export const IntegrationCard = ({ integrationsData }: IntegrationCardProps) => {
               <Image
                 alt={integrationsData.baseIcon}
                 src={integrationsData.baseIcon}
+                width={40}
+                height={40}
                 className="w-10 h-10 rounded-full"
               />
             ) : (
@@ -31,6 +33,8 @@ export const IntegrationCard = ({ integrationsData }: IntegrationCardProps) => {
               <Image
                 alt={integrationsData.quoteIcon}
                 src={integrationsData.quoteIcon}
+                width={40}
+                height={40}
                 className="z-10 w-10 h-10 rounded-full -translate-x-3"
               />
             ) : (
