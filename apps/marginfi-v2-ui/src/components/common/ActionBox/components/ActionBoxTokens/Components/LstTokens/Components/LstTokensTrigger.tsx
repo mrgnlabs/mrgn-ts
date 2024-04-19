@@ -1,34 +1,24 @@
 import React from "react";
 
-import { percentFormatter, aprToApy } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendingModes } from "~/types";
-import { useLstStore, useUiStore } from "~/store";
-import { RepayType, cn } from "~/utils";
+import { useLstStore } from "~/store";
+import { StakeData, cn } from "~/utils";
 
 import { Button } from "~/components/ui/button";
 import { IconChevronDown } from "~/components/ui/icons";
 
 import { SelectedBankItem } from "../../SharedComponents";
 import { SelectedNativeItem } from "./SelectedNativeItem";
-import { PublicKey } from "@solana/web3.js";
 
 type LstTokensTriggerProps = {
-  selectedTokenBank: PublicKey | null;
+  selectedStakingAccount: StakeData | null;
   selectedBank: ExtendedBankInfo | null;
   isOpen?: boolean;
 };
 
 export const LstTokensTrigger = React.forwardRef<HTMLButtonElement, LstTokensTriggerProps>(
-  ({ selectedTokenBank, selectedBank, isOpen }, ref) => {
-    const [stakeAccounts] = useLstStore((state) => [state.stakeAccounts]);
-
-    const selectedStakeAccount = React.useMemo(
-      () => (selectedTokenBank && stakeAccounts.find((value) => value.address.equals(selectedTokenBank))) ?? null,
-      [selectedTokenBank, stakeAccounts]
-    );
-
+  ({ selectedStakingAccount, selectedBank, isOpen }, ref) => {
     return (
       <Button
         ref={ref}
@@ -38,8 +28,8 @@ export const LstTokensTrigger = React.forwardRef<HTMLButtonElement, LstTokensTri
           isOpen && "bg-background-gray"
         )}
       >
-        {selectedStakeAccount ? (
-          <SelectedNativeItem stakeData={selectedStakeAccount} />
+        {selectedStakingAccount ? (
+          <SelectedNativeItem stakeData={selectedStakingAccount} />
         ) : (
           <>{selectedBank ? <SelectedBankItem bank={selectedBank} /> : <>Select token</>}</>
         )}

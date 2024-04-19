@@ -1,13 +1,11 @@
 import React from "react";
 
-import { PublicKey } from "@solana/web3.js";
-
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { SOL_MINT } from "~/store/lstStore";
-import { LstType } from "~/utils";
+import { LstType, StakeData } from "~/utils";
 import { useLstStore, useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -15,18 +13,27 @@ import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command
 
 import { ActionBoxItem, BuyWithMoonpay, TokenListCommand } from "../../SharedComponents";
 import { ActionBoxNativeItem } from "./ActionBoxNativeItem";
-import { CommandList } from "cmdk";
 
 type LstTokenListProps = {
   selectedBank: ExtendedBankInfo | null;
-  onSetCurrentTokenBank: (selectedTokenBank: PublicKey | null) => void;
+
   isDialog?: boolean;
   isOpen: boolean;
   lstType: LstType;
+
+  onSetStakingAccount: (account: StakeData) => void;
+  onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: () => void;
 };
 
-export const LstTokenList = ({ selectedBank, onSetCurrentTokenBank, isOpen, lstType, onClose }: LstTokenListProps) => {
+export const LstTokenList = ({
+  selectedBank,
+  onSetSelectedBank,
+  onSetStakingAccount,
+  isOpen,
+  lstType,
+  onClose,
+}: LstTokenListProps) => {
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
@@ -103,7 +110,7 @@ export const LstTokenList = ({ selectedBank, onSetCurrentTokenBank, isOpen, lstT
   }, [isOpen]);
 
   return (
-    <TokenListCommand selectedBank={selectedBank ?? undefined} onClose={onClose} onSetSearchQuery={setSearchQuery}>
+    <TokenListCommand selectedBank={selectedBank} onClose={onClose} onSetSearchQuery={setSearchQuery}>
       {!hasTokens && <BuyWithMoonpay />}
       <CommandEmpty>{lstType === LstType.Token ? "No tokens found." : "No native stakes."}</CommandEmpty>
       {/* Active staking positions*/}
@@ -114,8 +121,8 @@ export const LstTokenList = ({ selectedBank, onSetCurrentTokenBank, isOpen, lstT
               <CommandItem
                 key={index}
                 value={stakeAcc?.address?.toBase58().toLowerCase()}
-                onSelect={(currentValue) => {
-                  onSetCurrentTokenBank(stakeAcc.address);
+                onSelect={() => {
+                  onSetStakingAccount(stakeAcc);
                   onClose();
                 }}
                 className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
@@ -138,9 +145,10 @@ export const LstTokenList = ({ selectedBank, onSetCurrentTokenBank, isOpen, lstT
                   key={index}
                   value={bank?.address?.toString().toLowerCase()}
                   onSelect={(currentValue) => {
-                    onSetCurrentTokenBank(
-                      extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
-                        ?.address ?? null
+                    onSetSelectedBank(
+                      extendedBankInfos.find(
+                        (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                      ) ?? null
                     );
                     onClose();
                   }}

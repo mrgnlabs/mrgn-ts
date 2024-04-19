@@ -1,39 +1,34 @@
 import React from "react";
-import { PublicKey } from "@solana/web3.js";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { LstType, RepayType } from "~/utils";
+import { useActionBoxStore } from "~/store";
+import { StakeData } from "~/utils";
 
 import { LendingTokens, YbxTokens, LstTokens } from "./Components";
-import { useActionBoxStore } from "~/store";
 
 interface ActionBoxPreviewProps {
-  actionMode: ActionType;
-  lstType: LstType;
-  repayType?: RepayType;
   isDialog?: boolean;
-
-  currentTokenBank?: PublicKey | null;
-  repayTokenBank?: PublicKey | null;
-  blacklistRepayTokens?: PublicKey[];
-
-  setCurrentTokenBank?: (selectedTokenBank: PublicKey | null) => void;
-  setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
+  setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
+  setRepayTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
+  setStakingAccount: (account: StakeData) => void;
 }
 
 export const ActionBoxTokens = ({
-  currentTokenBank,
-  repayTokenBank,
-  actionMode,
-  lstType,
-  repayType,
   isDialog,
-  blacklistRepayTokens,
   setRepayTokenBank,
-  setCurrentTokenBank,
+  setTokenBank,
+  setStakingAccount,
 }: ActionBoxPreviewProps) => {
-  const [] = useActionBoxStore((state) => (state.actionMode, state.selectedBank, state.selectedRepayBank));
+  const [actionMode, selectedBank, selectedRepayBank, selectedStakingAccount, lstMode, repayMode] = useActionBoxStore(
+    (state) => [
+      state.actionMode,
+      state.selectedBank,
+      state.selectedRepayBank,
+      state.selectedStakingAccount,
+      state.lstMode,
+      state.repayMode,
+    ]
+  );
 
   const isInLendingMode = React.useMemo(
     () =>
@@ -53,27 +48,28 @@ export const ActionBoxTokens = ({
     <>
       {isInLendingMode && (
         <LendingTokens
-          currentTokenBank={currentTokenBank}
-          setCurrentTokenBank={setCurrentTokenBank}
+          selectedBank={selectedBank}
+          selectedRepayBank={selectedRepayBank}
+          setSelectedBank={setTokenBank}
+          setSelectedRepayBank={setRepayTokenBank}
+          repayType={repayMode}
           isDialog={isDialog}
-          repayTokenBank={repayTokenBank}
-          setRepayTokenBank={setRepayTokenBank}
-          blacklistRepayTokens={blacklistRepayTokens}
-          repayType={repayType}
         />
       )}
 
-      {isLstMode && setCurrentTokenBank && (
+      {isLstMode && (
         <LstTokens
-          lstType={lstType}
+          lstType={lstMode}
           isDialog={isDialog}
           actionMode={actionMode}
-          currentTokenBank={currentTokenBank ?? null}
-          setCurrentTokenBank={setCurrentTokenBank}
+          selectedStakingAccount={selectedStakingAccount}
+          selectedBank={selectedBank}
+          setSelectedBank={setTokenBank}
+          setStakingAccount={setStakingAccount}
         />
       )}
 
-      {actionMode === ActionType.MintYBX && currentTokenBank && <YbxTokens currentTokenBank={currentTokenBank} />}
+      {actionMode === ActionType.MintYBX && selectedBank && <YbxTokens selectedBank={selectedBank} />}
     </>
   );
 };

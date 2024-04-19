@@ -3,71 +3,64 @@ import { PublicKey } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LstType, RepayType, StakeData } from "~/utils";
-import { useUiStore } from "~/store";
+import { LstType, RepayType, StakeData, debounceFn } from "~/utils";
+import { useActionBoxStore, useUiStore } from "~/store";
 
 import { Input } from "~/components/ui/input";
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 
 import { InputHeader } from "./Components";
 import { InputAction } from "./Components/InputAction";
+import { Account } from "@mrgnlabs/marginfi-client-v2/dist/vendor/switchboard/account";
+import { useConnection } from "~/hooks/useConnection";
 
 type ActionBoxInputProps = {
-  actionMode: ActionType;
-  repayMode: RepayType;
-  lstType: LstType;
-
-  selectedBank: ExtendedBankInfo | null;
-  selectedRepayBank: ExtendedBankInfo | null;
-
-  selectedTokenBank: PublicKey | null;
-  selectedRepayTokenBank: PublicKey | null;
-  selectedStakingAccount: StakeData | null;
-
-  blacklistRepayTokens: PublicKey[] | undefined;
   walletAmount: number | undefined;
   amountRaw: string;
-  repayAmountRaw: string;
   maxAmount: number;
-
   showCloseBalance?: boolean;
   isDialog?: boolean;
-
-  onSetTokenBank: (bank: PublicKey | null) => void;
-  onSetTokenRepayBank: (bank: PublicKey | null) => void;
-  onSetAmountRaw: (amount: string) => void;
-  onSetRepayAmountRaw: (amount: string) => void;
-  changeRepayType: (repayType: RepayType) => void;
-  changeLstType: (lstType: LstType) => void;
 };
 
-export const ActionBoxInput = ({
-  actionMode,
-  repayMode,
-  lstType,
-  selectedBank,
-  selectedRepayBank,
-  selectedTokenBank,
-  selectedRepayTokenBank,
-  selectedStakingAccount,
-  walletAmount,
-  amountRaw,
-  maxAmount,
-  repayAmountRaw,
-  showCloseBalance,
-  isDialog,
-  blacklistRepayTokens,
-  onSetTokenBank,
-  onSetTokenRepayBank,
-  onSetAmountRaw,
-  onSetRepayAmountRaw,
-  changeRepayType,
-  changeLstType,
-}: ActionBoxInputProps) => {
+export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDialog }: ActionBoxInputProps) => {
   const [isActionBoxInputFocussed, setIsActionBoxInputFocussed] = useUiStore((state) => [
     state.isActionBoxInputFocussed,
     state.setIsActionBoxInputFocussed,
   ]);
+  const [
+    actionMode,
+    repayMode,
+    selectedBank,
+    selectedRepayBank,
+    amountRaw,
+    repayAmountRaw,
+    selectedStakingAccount,
+    setAmountRaw,
+    setRepayAmountRaw,
+    setSelectedBank,
+    setRepayBank,
+    setSelectedStakingAccount,
+    setRepayMode,
+    setLstMode,
+  ] = useActionBoxStore((state) => [
+    state.actionMode,
+    state.repayMode,
+    state.selectedBank,
+    state.selectedRepayBank,
+    state.amountRaw,
+    state.repayAmountRaw,
+    state.selectedStakingAccount,
+
+    state.setAmountRaw,
+    state.setRepayAmountRaw,
+    state.setSelectedBank,
+    state.setRepayBank,
+    state.setSelectedStakingAccount,
+    state.setRepayMode,
+    state.setLstMode,
+  ]);
+  const { connection } = useConnection();
+
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
@@ -126,50 +119,39 @@ export const ActionBoxInput = ({
   const handleInputChange = React.useCallback(
     (newAmount: string) => {
       if (isRepayWithCollat) {
-        onSetRepayAmountRaw(formatAmount(newAmount, selectedRepayBank));
+        setRepayAmountRaw(formatAmount(newAmount, selectedRepayBank), connection);
       } else {
-        onSetAmountRaw(formatAmount(newAmount, selectedBank));
+        setAmountRaw(formatAmount(newAmount, selectedBank));
       }
     },
-    [formatAmount, onSetAmountRaw, onSetRepayAmountRaw, selectedBank, selectedRepayBank, isRepayWithCollat]
+    [isRepayWithCollat, selectedRepayBank, connection, selectedBank, setAmountRaw, setRepayAmountRaw, formatAmount]
   );
 
   return (
     <>
       {/* Contains 'max' button and input title */}
       <InputHeader
-        actionMode={actionMode}
         isDialog={isDialog}
-        selectedBank={selectedBank}
-        repayMode={repayMode}
-        lstType={lstType}
-        selectedStakingAccount={selectedStakingAccount}
         walletAmount={walletAmount}
         maxAmount={maxAmount}
-        amountRaw={amountRaw}
         onSetAmountRaw={(amount) => handleInputChange(amount)}
-        changeRepayType={(type) => changeRepayType(type)}
-        changeLstType={(type) => changeLstType(type)}
+        changeRepayType={(type) => setRepayMode(type)}
+        changeLstType={(type) => setLstMode(type)}
       />
       <div className="bg-background rounded-lg p-2.5 mb-6">
         <div className="flex justify-center gap-1 items-center font-medium text-3xl">
           <div className="w-full flex-auto max-w-[162px]">
             <ActionBoxTokens
               isDialog={isDialog}
-              repayType={repayMode}
-              lstType={lstType}
-              repayTokenBank={selectedRepayTokenBank}
-              currentTokenBank={selectedTokenBank}
               setRepayTokenBank={(tokenBank) => {
-                onSetTokenRepayBank(tokenBank);
-                onSetRepayAmountRaw("");
+                setRepayBank(tokenBank);
               }}
-              setCurrentTokenBank={(tokenBank) => {
-                onSetTokenBank(tokenBank);
-                onSetAmountRaw("");
+              setTokenBank={(tokenBank) => {
+                setSelectedBank(tokenBank);
               }}
-              blacklistRepayTokens={blacklistRepayTokens}
-              actionMode={actionMode}
+              setStakingAccount={(account) => {
+                setSelectedStakingAccount(account);
+              }}
             />
           </div>
           <div className="flex-auto">
@@ -188,13 +170,6 @@ export const ActionBoxInput = ({
           </div>
         </div>
         <InputAction
-          actionMode={actionMode}
-          selectedBank={selectedBank}
-          selectedRepayBank={selectedRepayBank}
-          repayMode={repayMode}
-          selectedStakingAccount={selectedStakingAccount}
-          amountRaw={amountRaw}
-          repayAmountRaw={repayAmountRaw}
           walletAmount={walletAmount}
           maxAmount={maxAmount}
           onSetAmountRaw={(amount) => handleInputChange(amount)}
