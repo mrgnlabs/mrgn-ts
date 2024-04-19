@@ -13,6 +13,10 @@ interface IntegrationCardProps {
 }
 
 export const IntegrationCard = ({ integrationsData }: IntegrationCardProps) => {
+  if (!integrationsData.info?.tvl && !integrationsData.info?.vol) {
+    return null;
+  }
+
   return (
     <Card variant="default" className="min-w-[300px]">
       <CardHeader>
