@@ -26,7 +26,13 @@ export const BankIntegrationCard = ({ bank, isInLendingMode }: IntegrationCardPr
         <CardTitle className="flex items-center justify-center gap-3 text-xl">
           <div className="flex items-center">
             {bank.meta.tokenLogoUri ? (
-              <Image alt={bank.meta.tokenLogoUri} src={bank.meta.tokenLogoUri} className="w-10 h-10 rounded-full" />
+              <Image
+                alt={bank.meta.tokenLogoUri}
+                src={bank.meta.tokenLogoUri}
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full"
+              />
             ) : (
               <Skeleton className="w-10 h-10 rounded-full" />
             )}
