@@ -272,7 +272,10 @@ export const Wallet = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className={cn("hidden md:block", walletTokenState === WalletState.NOTIS && "text-chartreuse")}
+                          className={cn(
+                            web3AuthConncected && "hidden md:block",
+                            walletTokenState === WalletState.NOTIS && "text-chartreuse"
+                          )}
                           onClick={() => {
                             setWalletTokenState(
                               walletTokenState === WalletState.NOTIS ? WalletState.DEFAULT : WalletState.NOTIS
