@@ -11,7 +11,6 @@ import { Connection, PublicKey, TransactionMessage, VersionedTransaction } from 
 
 import { StakeData, deserializeInstruction, getAdressLookupTableAccounts, isBankOracleStale } from "~/utils";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
-import { cp } from "fs";
 
 export enum RepayType {
   RepayRaw = "Repay",
@@ -21,6 +20,13 @@ export enum RepayType {
 export enum LstType {
   Token = "Token",
   Native = "Native Stake",
+}
+
+export enum YbxType {
+  MintYbx = "Mint YBX",
+  WithdrawCollat = "Withdraw Collateral",
+  AddCollat = "Add Collateral",
+  RepayYbx = "Repay",
 }
 
 export type ActionMethodType = "WARNING" | "ERROR" | "INFO";

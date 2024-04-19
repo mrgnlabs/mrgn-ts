@@ -75,21 +75,21 @@ const integrationsData: IntegrationsData[] = [
       icon: IconOrca,
     },
   },
-  {
-    title: "SOL-LST",
-    quoteIcon: IconLST,
-    baseIcon: getTokenImageURL("SOL"),
-    poolInfo: {
-      dex: "raydium",
-      poolId: "mrWgqCV3i1YhiG3VENnJ8qQUEGEqeBvunrp647pCb7R",
-    },
-    link: "https://raydium.io/",
-    action: "Deposit",
-    platform: {
-      title: "Raydium",
-      icon: IconRaydium,
-    },
-  },
+  // {
+  //   title: "SOL-LST",
+  //   quoteIcon: IconLST,
+  //   baseIcon: getTokenImageURL("SOL"),
+  //   poolInfo: {
+  //     dex: "raydium",
+  //     poolId: "mrWgqCV3i1YhiG3VENnJ8qQUEGEqeBvunrp647pCb7R",
+  //   },
+  //   link: "https://raydium.io/",
+  //   action: "Deposit",
+  //   platform: {
+  //     title: "Raydium",
+  //     icon: IconRaydium,
+  //   },
+  // },
   // {
   //   title: "LST-bSOL",
   //   baseIcon: IconLST,
