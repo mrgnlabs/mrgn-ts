@@ -54,8 +54,7 @@ const rpcs = {
   base: process.env.NEXT_PUBLIC_BASE_ENDPOINT,
 };
 const solanaReferrerAddress = "GhQ3NxahWcddaMa71rkDp1FdTfs2jBpjzCq3kzkv1mNZ";
-// Todo: please add the evm referrer address
-const evmReferrerAddress = undefined;
+const evmReferrerAddress = "0x0bb342B595Dc30638524cab81138cDa9CAa2636D";
 
 const configs: MayanWidgetConfigType[] = [
   {
