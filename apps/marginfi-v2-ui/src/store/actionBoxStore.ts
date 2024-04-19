@@ -207,6 +207,8 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     const selectedRepayBank = get().selectedRepayBank;
     const slippageBps = get().slippageBps;
 
+    set({ repayAmountRaw: amountRaw });
+
     if (selectedBank && selectedRepayBank) {
       const setCollat = debounceFn(get().setRepayCollateral, 500);
       setCollat(selectedBank, selectedRepayBank, amount, slippageBps, connection);
@@ -214,6 +216,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   },
 
   async setRepayCollateral(selectedBank, selectedRepayBank, amount, slippageBps, connection) {
+    set({ isLoading: true });
     const repayCollat = await calculateRepayCollateral(
       selectedBank,
       selectedRepayBank,
@@ -229,6 +232,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
         errorMessage: "Unable to retrieve data. Please choose a different collateral option or refresh the page.",
       });
     }
+    set({ isLoading: false });
   },
 
   async setSelectedBank(tokenBank) {
