@@ -15,6 +15,7 @@ import { Badge } from "~/components/ui/badge";
 
 export const WalletAuthAccounts = () => {
   const [isActivatingAccount, setIsActivatingAccount] = React.useState<number | null>(null);
+  const [isActivatingAccountDelay, setIsActivatingAccountDelay] = React.useState<number | null>(null);
   const [initialized, marginfiAccounts, selectedAccount, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
     state.marginfiAccounts,
@@ -32,11 +33,13 @@ export const WalletAuthAccounts = () => {
     async (account: MarginfiAccountWrapper, index: number) => {
       if (selectedAccount && selectedAccount.address.equals(account.address)) return;
 
-      const switchingLabelTimer = setTimeout(() => setIsActivatingAccount(index), 500);
+      setIsActivatingAccount(index);
+      const switchingLabelTimer = setTimeout(() => setIsActivatingAccountDelay(index), 500);
       localStorage.setItem("mfiAccount", account.address.toBase58());
       await fetchMrgnlendState();
       clearTimeout(switchingLabelTimer);
       setIsActivatingAccount(null);
+      setIsActivatingAccountDelay(null);
 
       return () => clearTimeout(switchingLabelTimer);
     },
@@ -62,12 +65,7 @@ export const WalletAuthAccounts = () => {
               <h4 className="font-medium leading-none">Your accounts</h4>
               <p className="text-sm text-muted-foreground">Select your marginfi account below.</p>
             </div>
-            <div
-              className={cn(
-                "grid gap-2 transition-opacity",
-                isActivatingAccount !== null && "pointer-events-none animate-pulsate"
-              )}
-            >
+            <div className={cn("grid gap-2", isActivatingAccount !== null && "pointer-events-none animate-pulsate")}>
               {marginfiAccounts.map((account, index) => (
                 <Button
                   key={index}
@@ -82,7 +80,7 @@ export const WalletAuthAccounts = () => {
                     selectedAccount.address.equals(account.address) && (
                       <Badge className="text-xs p-1 h-5">active</Badge>
                     )}
-                  {isActivatingAccount === index && (
+                  {isActivatingAccountDelay === index && (
                     <span className="text-xs text-muted-foreground/50">switching...</span>
                   )}
                 </Button>
