@@ -81,26 +81,28 @@ export const WalletAuthAccounts = () => {
                 <h4 className="font-medium leading-none">Your accounts</h4>
                 <p className="text-sm text-muted-foreground">Select your marginfi account below.</p>
               </div>
-              <div className="grid gap-2">
+              <div
+                className={cn("grid gap-2", isActivatingAccount && "pointer-events-none opacity-75 animate-pulsate")}
+              >
                 {marginfiAccounts.map((account, index) => (
                   <Button key={index} variant="ghost" className="justify-start gap-4 px-1 hover:bg-transparent">
                     <Label htmlFor="width">Account {index + 1}</Label>
-                    <span className="text-muted-foreground text-xs">{shortenAddress(account.address.toBase58())}</span>
-                    {selectedAccount && selectedAccount.address.equals(account.address) && (
-                      <Badge className="text-xs p-1 h-5">active</Badge>
-                    )}
+                    <span className="text-muted-foreground text-xs">
+                      {isActivatingAccountDelay === index ? "Switching..." : shortenAddress(account.address.toBase58())}
+                    </span>
+                    {isActivatingAccount === null &&
+                      selectedAccount &&
+                      selectedAccount.address.equals(account.address) && (
+                        <Badge className="text-xs p-1 h-5">active</Badge>
+                      )}
                     <div className="flex items-center ml-auto">
                       <button className="p-2 transition-colors rounded-lg hover:bg-accent">
                         <IconPencil size={16} />
                       </button>
                       <button
-                        className="p-2 transition-colors rounded-lg hover:bg-accent disabled:cursor-default di"
+                        className="p-2 transition-colors rounded-lg hover:bg-accent disabled:cursor-default"
                         disabled={Boolean(selectedAccount && selectedAccount.address.equals(account.address))}
-                        onClick={() => {
-                          if (selectedAccount && selectedAccount.address.equals(account.address)) return;
-                          localStorage.setItem("mfiAccount", account.address.toBase58());
-                          fetchMrgnlendState();
-                        }}
+                        onClick={() => activateAccount(account, index)}
                       >
                         <IconCheck size={16} />
                       </button>
