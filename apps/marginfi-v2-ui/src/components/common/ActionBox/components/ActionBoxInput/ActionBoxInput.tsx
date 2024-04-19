@@ -1,9 +1,8 @@
 import React from "react";
-import { PublicKey } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LstType, RepayType, StakeData, debounceFn } from "~/utils";
+import { RepayType } from "~/utils";
 import { useActionBoxStore, useUiStore } from "~/store";
 
 import { Input } from "~/components/ui/input";
@@ -11,7 +10,6 @@ import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 
 import { InputHeader } from "./Components";
 import { InputAction } from "./Components/InputAction";
-import { Account } from "@mrgnlabs/marginfi-client-v2/dist/vendor/switchboard/account";
 import { useConnection } from "~/hooks/useConnection";
 
 type ActionBoxInputProps = {
