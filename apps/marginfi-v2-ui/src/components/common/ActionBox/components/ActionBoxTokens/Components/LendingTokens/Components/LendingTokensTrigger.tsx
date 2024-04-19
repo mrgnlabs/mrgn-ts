@@ -13,8 +13,8 @@ import { IconChevronDown } from "~/components/ui/icons";
 import { SelectedBankItem } from "../../SharedComponents";
 
 type LendingTokensTriggerProps = {
-  selectedBank?: ExtendedBankInfo;
-  selectedRepayBank?: ExtendedBankInfo;
+  selectedBank: ExtendedBankInfo | null;
+  selectedRepayBank: ExtendedBankInfo | null;
   isOpen?: boolean;
   repayType?: RepayType;
 };

@@ -1,21 +1,15 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { nativeToUi, numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { nativeToUi } from "@mrgnlabs/mrgn-common";
 
-import { StakeData, clampedNumeralFormatter, RepayType, LstType } from "~/utils";
+import { clampedNumeralFormatter, RepayType, LstType } from "~/utils";
 
 import { IconWallet } from "~/components/ui/icons";
 import { InputHeaderAction } from "./InputHeaderAction";
+import { useActionBoxStore, useLstStore } from "~/store";
 
 type props = {
-  actionMode: ActionType;
-  selectedBank: ExtendedBankInfo | null;
-  repayMode: RepayType;
-  lstType: LstType;
-  selectedStakingAccount: StakeData | null;
-
-  amountRaw: string;
   walletAmount: number | undefined;
   maxAmount: number;
 
@@ -28,19 +22,21 @@ type props = {
 };
 
 export const InputHeader = ({
-  actionMode,
   isDialog,
   maxAmount,
-  amountRaw,
-  selectedBank,
-  selectedStakingAccount,
   walletAmount,
-  repayMode,
-  lstType,
   changeRepayType,
   changeLstType,
   onSetAmountRaw,
 }: props) => {
+  const [actionMode, selectedBank, selectedStakingAccount, lstMode, repayMode] = useActionBoxStore((state) => [
+    state.actionMode,
+    state.selectedBank,
+    state.selectedStakingAccount,
+    state.lstMode,
+    state.repayMode,
+  ]);
+
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   const maxLabel = React.useMemo((): {
@@ -95,7 +91,7 @@ export const InputHeader = ({
       default:
         return { amount: "-" };
     }
-  }, [selectedBank, selectedStakingAccount, actionMode, walletAmount]);
+  }, [selectedBank, actionMode, walletAmount, selectedStakingAccount]);
 
   // Section above the input
   return (
@@ -107,7 +103,7 @@ export const InputHeader = ({
           actionType={actionMode}
           bank={selectedBank}
           repayType={repayMode}
-          lstType={lstType}
+          lstType={lstMode}
           isDialog={isDialog}
           changeRepayType={(value) => changeRepayType(value)}
           changeLstType={(value) => changeLstType(value)}

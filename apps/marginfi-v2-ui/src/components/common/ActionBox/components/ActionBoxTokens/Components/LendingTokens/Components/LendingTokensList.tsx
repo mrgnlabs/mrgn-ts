@@ -15,14 +15,15 @@ import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command
 import { ActionBoxItem, BuyWithMoonpay, TokenListCommand } from "../../SharedComponents";
 
 type LendingTokensListProps = {
-  selectedBank?: ExtendedBankInfo;
-  onSetCurrentTokenBank?: (selectedTokenBank: PublicKey | null) => void;
-  isDialog?: boolean;
+  selectedBank: ExtendedBankInfo | null;
   isOpen: boolean;
+  isDialog?: boolean;
+
+  onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: () => void;
 };
 
-export const LendingTokensList = ({ selectedBank, onSetCurrentTokenBank, isOpen, onClose }: LendingTokensListProps) => {
+export const LendingTokensList = ({ selectedBank, onSetSelectedBank, isOpen, onClose }: LendingTokensListProps) => {
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
@@ -145,41 +146,38 @@ export const LendingTokensList = ({ selectedBank, onSetCurrentTokenBank, isOpen,
         <CommandEmpty>No tokens found.</CommandEmpty>
 
         {/* LENDING */}
-        {lendingMode === LendingModes.LEND &&
-          connected &&
-          filteredBanksUserOwns.length > 0 &&
-          onSetCurrentTokenBank && (
-            <CommandGroup heading="Available in your wallet">
-              {filteredBanksUserOwns
-                .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
-                .map((bank, index) => {
-                  return (
-                    <CommandItem
-                      key={index}
-                      value={bank?.address?.toString().toLowerCase()}
-                      onSelect={(currentValue) => {
-                        onSetCurrentTokenBank(
-                          extendedBankInfos.find(
-                            (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                          )?.address ?? null
-                        );
-                        onClose();
-                      }}
-                      className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
-                    >
-                      <ActionBoxItem
-                        rate={calculateRate(bank)}
-                        lendingMode={lendingMode}
-                        bank={bank}
-                        showBalanceOverride={true}
-                        nativeSolBalance={nativeSolBalance}
-                      />
-                    </CommandItem>
-                  );
-                })}
-            </CommandGroup>
-          )}
-        {lendingMode === LendingModes.LEND && filteredBanksActive.length > 0 && onSetCurrentTokenBank && (
+        {lendingMode === LendingModes.LEND && connected && filteredBanksUserOwns.length > 0 && onSetSelectedBank && (
+          <CommandGroup heading="Available in your wallet">
+            {filteredBanksUserOwns
+              .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
+              .map((bank, index) => {
+                return (
+                  <CommandItem
+                    key={index}
+                    value={bank?.address?.toString().toLowerCase()}
+                    onSelect={(currentValue) => {
+                      onSetSelectedBank(
+                        extendedBankInfos.find(
+                          (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                        ) ?? null
+                      );
+                      onClose();
+                    }}
+                    className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                  >
+                    <ActionBoxItem
+                      rate={calculateRate(bank)}
+                      lendingMode={lendingMode}
+                      bank={bank}
+                      showBalanceOverride={true}
+                      nativeSolBalance={nativeSolBalance}
+                    />
+                  </CommandItem>
+                );
+              })}
+          </CommandGroup>
+        )}
+        {lendingMode === LendingModes.LEND && filteredBanksActive.length > 0 && onSetSelectedBank && (
           <CommandGroup heading="Currently supplying">
             {filteredBanksActive.map((bank, index) => (
               <CommandItem
@@ -187,9 +185,9 @@ export const LendingTokensList = ({ selectedBank, onSetCurrentTokenBank, isOpen,
                 value={bank.address?.toString().toLowerCase()}
                 // disabled={!ownedBanksPk.includes(bank.address)}
                 onSelect={(currentValue) => {
-                  onSetCurrentTokenBank(
-                    extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
-                      ?.address ?? null
+                  onSetSelectedBank(
+                    extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ??
+                      null
                   );
                   onClose();
                 }}
@@ -210,16 +208,16 @@ export const LendingTokensList = ({ selectedBank, onSetCurrentTokenBank, isOpen,
         )}
 
         {/* BORROWING */}
-        {lendingMode === LendingModes.BORROW && filteredBanksActive.length > 0 && onSetCurrentTokenBank && (
+        {lendingMode === LendingModes.BORROW && filteredBanksActive.length > 0 && onSetSelectedBank && (
           <CommandGroup heading="Currently borrowing">
             {filteredBanksActive.map((bank, index) => (
               <CommandItem
                 key={index}
                 value={bank.address?.toString().toLowerCase()}
                 onSelect={(currentValue) => {
-                  onSetCurrentTokenBank(
-                    extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
-                      ?.address ?? null
+                  onSetSelectedBank(
+                    extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ??
+                      null
                   );
                   onClose();
                 }}
@@ -240,7 +238,7 @@ export const LendingTokensList = ({ selectedBank, onSetCurrentTokenBank, isOpen,
         )}
 
         {/* GLOBAL & ISOLATED */}
-        {globalBanks.length > 0 && onSetCurrentTokenBank && (
+        {globalBanks.length > 0 && onSetSelectedBank && (
           <CommandGroup heading="Global pools">
             {globalBanks.map((bank, index) => {
               return (
@@ -248,9 +246,10 @@ export const LendingTokensList = ({ selectedBank, onSetCurrentTokenBank, isOpen,
                   key={index}
                   value={bank.address?.toString().toLowerCase()}
                   onSelect={(currentValue) => {
-                    onSetCurrentTokenBank(
-                      extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
-                        ?.address ?? null
+                    onSetSelectedBank(
+                      extendedBankInfos.find(
+                        (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                      ) ?? null
                     );
                     onClose();
                   }}
@@ -272,7 +271,7 @@ export const LendingTokensList = ({ selectedBank, onSetCurrentTokenBank, isOpen,
             })}
           </CommandGroup>
         )}
-        {isolatedBanks.length > 0 && onSetCurrentTokenBank && (
+        {isolatedBanks.length > 0 && onSetSelectedBank && (
           <CommandGroup heading="Isolated pools">
             {isolatedBanks.map((bank, index) => {
               return (
@@ -280,9 +279,10 @@ export const LendingTokensList = ({ selectedBank, onSetCurrentTokenBank, isOpen,
                   key={index}
                   value={bank.address?.toString().toLowerCase()}
                   onSelect={(currentValue) => {
-                    onSetCurrentTokenBank(
-                      extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
-                        ?.address ?? null
+                    onSetSelectedBank(
+                      extendedBankInfos.find(
+                        (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                      ) ?? null
                     );
                     onClose();
                   }}

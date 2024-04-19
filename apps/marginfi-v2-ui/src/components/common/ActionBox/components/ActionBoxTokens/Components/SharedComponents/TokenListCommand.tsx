@@ -8,7 +8,7 @@ import { useIsMobile } from "~/hooks/useIsMobile";
 import { cn } from "~/utils";
 
 type TokenListCommandProps = {
-  selectedBank?: ExtendedBankInfo;
+  selectedBank: ExtendedBankInfo | null;
   onSetSearchQuery: (search: string) => void;
   onClose: () => void;
   children: React.ReactNode;

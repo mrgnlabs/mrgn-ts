@@ -14,8 +14,8 @@ import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command
 import { ActionBoxItem, BuyWithMoonpay, TokenListCommand } from "../../SharedComponents";
 
 type RepayCollatTokensListProps = {
-  selectedRepayBank?: ExtendedBankInfo;
-  onSetRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
+  selectedRepayBank: ExtendedBankInfo | null;
+  onSetSelectedRepayBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   blacklistRepayTokens?: PublicKey[];
   isOpen: boolean;
   onClose: () => void;
@@ -23,7 +23,7 @@ type RepayCollatTokensListProps = {
 
 export const RepayCollatTokensList = ({
   selectedRepayBank,
-  onSetRepayTokenBank,
+  onSetSelectedRepayBank,
   blacklistRepayTokens = [],
   isOpen,
   onClose,
@@ -104,7 +104,7 @@ export const RepayCollatTokensList = ({
         {!hasTokens && <BuyWithMoonpay />}
         <CommandEmpty>No tokens found.</CommandEmpty>
         {/* REPAYING */}
-        {filteredBanksActive.length > 0 && onSetRepayTokenBank && (
+        {filteredBanksActive.length > 0 && onSetSelectedRepayBank && (
           <CommandGroup heading="Currently supplying">
             {filteredBanksActive.map((bank, index) => {
               const isRouteEnabled = blacklistRepayTokens.find((v) => v.equals(bank.info.state.mint)) ? false : true;
@@ -114,9 +114,10 @@ export const RepayCollatTokensList = ({
                   value={bank.address?.toString().toLowerCase()}
                   disabled={!isRouteEnabled}
                   onSelect={(currentValue) => {
-                    onSetRepayTokenBank(
-                      extendedBankInfos.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue)
-                        ?.address ?? null
+                    onSetSelectedRepayBank(
+                      extendedBankInfos.find(
+                        (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                      ) ?? null
                     );
                     onClose();
                   }}
