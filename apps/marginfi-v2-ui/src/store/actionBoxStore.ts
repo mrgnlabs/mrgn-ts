@@ -8,6 +8,7 @@ import {
   PERIOD,
   RepayType,
   StakeData,
+  YbxType,
   calcYield,
   debounceFn,
   fetchAndParsePricesCsv,
@@ -69,6 +70,7 @@ interface ActionBoxState {
   actionMode: ActionType;
   repayMode: RepayType;
   lstMode: LstType;
+  ybxMode: YbxType;
 
   selectedBank: ExtendedBankInfo | null;
   selectedRepayBank: ExtendedBankInfo | null;
@@ -88,6 +90,7 @@ interface ActionBoxState {
   setActionMode: (actionMode: ActionType) => void;
   setRepayMode: (repayMode: RepayType) => void;
   setLstMode: (LstMode: LstType) => void;
+  setYbxMode: (ybxMode: YbxType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setRepayAmountRaw: (repayAmountRaw: string, connection: Connection) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
@@ -136,6 +139,7 @@ const initialState = {
   actionMode: ActionType.Deposit,
   repayMode: RepayType.RepayRaw,
   lstMode: LstType.Token,
+  ybxMode: YbxType.MintYbx,
 
   selectedBank: null,
   selectedRepayBank: null,
@@ -278,6 +282,10 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
         set({ isLoading: false });
       }
     }
+  },
+
+  setYbxMode(ybxMode) {
+    set({ ybxMode });
   },
 
   setSelectedStakingAccount(account) {
