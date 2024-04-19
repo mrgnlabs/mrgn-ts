@@ -13,44 +13,27 @@ import { SelectedBankItem, TokenListWrapper } from "../SharedComponents";
 import { LendingTokensList, RepayCollatTokensList, LendingTokensTrigger } from "./Components";
 
 type LendingTokensProps = {
-  currentTokenBank?: PublicKey | null;
-  repayTokenBank?: PublicKey | null;
+  selectedBank: ExtendedBankInfo | null;
+  selectedRepayBank: ExtendedBankInfo | null;
   isDialog?: boolean;
   repayType?: RepayType;
   blacklistRepayTokens?: PublicKey[];
 
-  setRepayTokenBank?: (selectedTokenBank: PublicKey | null) => void;
-  setCurrentTokenBank?: (selectedTokenBank: PublicKey | null) => void;
+  setSelectedRepayBank: (selectedBank: ExtendedBankInfo | null) => void;
+  setSelectedBank: (selectedBank: ExtendedBankInfo | null) => void;
 };
 
 export const LendingTokens = ({
-  currentTokenBank,
+  selectedBank,
+  selectedRepayBank,
   isDialog,
-  setCurrentTokenBank,
-  repayTokenBank,
-  setRepayTokenBank,
   repayType,
   blacklistRepayTokens = [],
+  setSelectedRepayBank,
+  setSelectedBank,
 }: LendingTokensProps) => {
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
   const [isOpen, setIsOpen] = React.useState(false);
-
-  const selectedBank = React.useMemo(
-    () =>
-      currentTokenBank
-        ? extendedBankInfos.find((bank) => bank?.address?.equals && bank?.address?.equals(currentTokenBank))
-        : undefined,
-    [extendedBankInfos, currentTokenBank]
-  );
-
-  const selectedRepayBank = React.useMemo(
-    () =>
-      repayTokenBank
-        ? extendedBankInfos.find((bank) => bank?.address?.equals && bank?.address?.equals(repayTokenBank))
-        : undefined,
-    [extendedBankInfos, repayTokenBank]
-  );
 
   const isSelectable = React.useMemo(() => !isDialog || repayType === RepayType.RepayCollat, [isDialog, repayType]);
 
@@ -102,15 +85,16 @@ export const LendingTokens = ({
               <RepayCollatTokensList
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
-                onSetRepayTokenBank={setRepayTokenBank}
+                onSetSelectedRepayBank={setSelectedRepayBank}
                 blacklistRepayTokens={blacklistRepayTokens}
+                selectedRepayBank={null}
               />
             ) : (
               <LendingTokensList
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
                 selectedBank={selectedBank}
-                onSetCurrentTokenBank={setCurrentTokenBank}
+                onSetSelectedBank={setSelectedBank}
                 isDialog={isDialog}
               />
             )

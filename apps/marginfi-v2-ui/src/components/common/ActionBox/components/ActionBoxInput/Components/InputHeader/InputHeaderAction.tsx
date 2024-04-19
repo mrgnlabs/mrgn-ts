@@ -12,8 +12,8 @@ interface InputHeaderActionProps {
   actionType: ActionType;
   bank: ExtendedBankInfo | null;
   isDialog?: boolean;
-  repayType?: RepayType;
-  lstType?: LstType;
+  repayType: RepayType;
+  lstType: LstType;
   changeRepayType: (repayType: RepayType) => void;
   changeLstType: (lstType: LstType) => void;
 }
@@ -27,9 +27,9 @@ interface ToggleObject {
 export const InputHeaderAction = ({
   actionType,
   bank,
-  lstType = LstType.Token,
+  lstType,
   isDialog,
-  repayType = RepayType.RepayRaw,
+  repayType,
   changeRepayType,
   changeLstType,
 }: InputHeaderActionProps) => {

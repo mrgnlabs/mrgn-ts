@@ -1,40 +1,32 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { nativeToUi, numeralFormatter, sleep } from "@mrgnlabs/mrgn-common";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { nativeToUi, numeralFormatter } from "@mrgnlabs/mrgn-common";
 
-import { StakeData, clampedNumeralFormatter, RepayType, LstType } from "~/utils";
+import { clampedNumeralFormatter, RepayType } from "~/utils";
 import { IconArrowRight } from "~/components/ui/icons";
+import { useActionBoxStore } from "~/store";
 
 type props = {
-  actionMode: ActionType;
-  selectedBank: ExtendedBankInfo | null;
-  selectedRepayBank: ExtendedBankInfo | null;
-  repayMode: RepayType;
-  selectedStakingAccount: StakeData | null;
-
-  amountRaw: string;
-  repayAmountRaw: string;
   walletAmount: number | undefined;
   maxAmount: number;
-
   showLendingHeader?: boolean;
 
   onSetAmountRaw: (amount: string) => void;
 };
 
-export const InputAction = ({
-  actionMode,
-  maxAmount,
-  amountRaw,
-  repayAmountRaw,
-  selectedBank,
-  selectedRepayBank,
-  selectedStakingAccount,
-  walletAmount,
-  repayMode,
-  onSetAmountRaw,
-}: props) => {
+export const InputAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) => {
+  const [amountRaw, repayAmountRaw, actionMode, selectedBank, selectedRepayBank, selectedStakingAccount, repayMode] =
+    useActionBoxStore((state) => [
+      state.amountRaw,
+      state.repayAmountRaw,
+      state.actionMode,
+      state.selectedBank,
+      state.selectedRepayBank,
+      state.selectedStakingAccount,
+      state.repayMode,
+    ]);
+
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   const repayAmount = React.useMemo(() => {
@@ -109,7 +101,7 @@ export const InputAction = ({
       default:
         return { amount: "-" };
     }
-  }, [selectedBank, selectedStakingAccount, actionMode, walletAmount, amountRaw, repayMode]);
+  }, [selectedBank, actionMode, walletAmount, repayMode, selectedStakingAccount, amountRaw]);
 
   const isUnchanged = React.useMemo(() => repayAmount === 0, [repayAmount]);
 

@@ -90,6 +90,8 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     selectedStakingAccount,
     repayCollatQuote,
     isLoading,
+    errorMessage,
+
     fetchActionBoxState,
     setSlippageBps,
     setActionMode,
@@ -108,6 +110,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     state.selectedStakingAccount,
     state.repayCollatQuote,
     state.isLoading,
+    state.errorMessage,
 
     state.fetchActionBoxState,
     state.setSlippageBps,
@@ -147,6 +150,12 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   React.useEffect(() => {
     fetchActionBoxState({ lendingMode: lendingModeFromStore, requestedAction, requestedBank });
   }, [requestedAction, requestedBank, lendingModeFromStore, fetchActionBoxState]);
+
+  React.useEffect(() => {
+    if (errorMessage !== "") {
+      showErrorToast(errorMessage);
+    }
+  }, [errorMessage]);
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -235,7 +244,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
         marginfiAccount: selectedAccount,
         nativeSolBalance,
         actionMode,
-        blacklistRoutes: blacklistRoutes ?? null,
+        blacklistRoutes: null,
         repayMode,
         repayCollatQuote: repayCollatQuote ?? null,
         lstQuoteMeta: lstQuoteMeta,
@@ -252,7 +261,6 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       selectedAccount,
       nativeSolBalance,
       actionMode,
-      blacklistRoutes,
       repayMode,
       repayCollatQuote,
       lstQuoteMeta,
@@ -364,7 +372,15 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       console.log("Error while reloading state");
       console.log(error);
     }
-  }, [selectedBank, selectedAccount, fetchMrgnlendState, setIsRefreshingStore, priorityFee, handleCloseDialog]);
+  }, [
+    setAmountRaw,
+    handleCloseDialog,
+    selectedBank,
+    selectedAccount,
+    priorityFee,
+    setIsRefreshingStore,
+    fetchMrgnlendState,
+  ]);
 
   const handleAction = async () => {
     if (actionMode === ActionType.MintLST || actionMode === ActionType.UnstakeLST) {
@@ -422,18 +438,20 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       console.log(error);
     }
   }, [
-    actionMode,
     selectedBank,
     selectedStakingAccount,
     mfiClient,
     lstData,
     lstQuoteMeta,
+    setIsLoading,
+    actionMode,
     amount,
     connection,
     wallet,
     nativeSolBalance,
     priorityFee,
     handleCloseDialog,
+    setAmountRaw,
     setIsActionComplete,
     setPreviousTxn,
     setIsRefreshingStore,
@@ -549,30 +567,11 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
           ) : (
             <>
               <ActionBoxInput
-                actionMode={actionMode}
-                repayMode={repayMode}
-                lstType={lstMode}
-                selectedBank={selectedBank}
-                selectedRepayBank={selectedRepayBank}
-                selectedTokenBank={selectedTokenBank}
-                selectedRepayTokenBank={selectedRepayTokenBank}
-                selectedStakingAccount={selectedStakingAccount}
-                blacklistRepayTokens={blacklistRoutes}
                 walletAmount={walletAmount}
                 amountRaw={amountRaw}
-                repayAmountRaw={repayAmountRaw}
                 maxAmount={maxAmount}
                 showCloseBalance={showCloseBalance}
                 isDialog={isDialog}
-                onSetTokenBank={(bank) => setSelectedTokenBank(bank)}
-                onSetTokenRepayBank={(bank) => setSelectedRepayTokenBank(bank)}
-                onSetAmountRaw={(amount) => setAmountRaw(amount)}
-                onSetRepayAmountRaw={(amount) => setRepayAmountRaw(amount)}
-                changeRepayType={(repayType) => setRepayMode(repayType)}
-                changeLstType={(lstType) => {
-                  setSelectedTokenBank(null);
-                  setLstMode(lstType);
-                }}
               />
 
               {additionalActionMethods.concat(actionMethods).map(
