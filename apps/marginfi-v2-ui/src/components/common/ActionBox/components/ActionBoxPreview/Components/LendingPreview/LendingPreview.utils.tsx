@@ -1,24 +1,26 @@
-import { ExtendedBankInfo, Emissions, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import React from "react";
 import Image from "next/image";
-import React, { ReactNode, useMemo } from "react";
-import { aprToApy, nativeToUi, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { createJupiterApiClient } from "@jup-ag/api";
+import { AddressLookupTableAccount } from "@solana/web3.js";
+
+import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { nativeToUi, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import {
   MarginRequirementType,
   MarginfiAccountWrapper,
   SimulationResult,
   getPriceWithConfidence,
 } from "@mrgnlabs/marginfi-client-v2";
+
 import {
   RepayWithCollatOptions,
   clampedNumeralFormatter,
   cn,
   deserializeInstruction,
   getAdressLookupTableAccounts,
-  getMaintHealthColor,
   isWholePosition,
 } from "~/utils";
-import { createJupiterApiClient } from "@jup-ag/api";
-import { AddressLookupTableAccount } from "@solana/web3.js";
+
 import { IconAlertTriangle, IconArrowRight, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -248,8 +250,8 @@ function getAmountStat(currentAmount: number, bank: ExtendedBankInfo, simulatedA
     value: () => (
       <>
         {clampedNumeralFormatter(currentAmount)} {bank.meta.tokenSymbol}
-        {simulatedAmount && <IconArrowRight width={12} height={12} />}
-        {simulatedAmount && clampedNumeralFormatter(simulatedAmount) + " " + bank.meta.tokenSymbol}
+        {simulatedAmount !== undefined ? <IconArrowRight width={12} height={12} /> : <></>}
+        {simulatedAmount !== undefined ? clampedNumeralFormatter(simulatedAmount) + " " + bank.meta.tokenSymbol : <></>}
       </>
     ),
   };
