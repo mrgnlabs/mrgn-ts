@@ -238,7 +238,6 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   async setSelectedBank(tokenBank) {
     const selectedBank = get().selectedBank;
     const hasBankChanged = !tokenBank || !selectedBank || !tokenBank.address.equals(selectedBank.address);
-    console.log({ hasBankChanged, tokenBank, selectedBank });
 
     if (hasBankChanged) {
       set({ selectedBank: tokenBank, amountRaw: "", repayAmountRaw: "" });
@@ -258,8 +257,6 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     const selectedRepayBank = get().selectedRepayBank;
     const hasBankChanged =
       !repayTokenBank || !selectedRepayBank || !repayTokenBank.address.equals(selectedRepayBank.address);
-
-    console.log({ hasBankChanged, selectedRepayBank, repayTokenBank });
 
     if (hasBankChanged) {
       set({ selectedRepayBank: repayTokenBank, amountRaw: "", repayAmountRaw: "" });
