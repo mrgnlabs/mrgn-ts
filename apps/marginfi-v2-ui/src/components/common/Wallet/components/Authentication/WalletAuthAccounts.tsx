@@ -30,15 +30,17 @@ export const WalletAuthAccounts = () => {
 
   const activateAccount = React.useCallback(
     async (account: MarginfiAccountWrapper, index: number) => {
-      const timer = setTimeout(() => setIsActivatingAccount(index), 500);
+      if (selectedAccount && selectedAccount.address.equals(account.address)) return;
+
+      const switchingLabelTimer = setTimeout(() => setIsActivatingAccount(index), 500);
       localStorage.setItem("mfiAccount", account.address.toBase58());
       await fetchMrgnlendState();
-      clearTimeout(timer);
+      clearTimeout(switchingLabelTimer);
       setIsActivatingAccount(null);
 
-      return () => clearTimeout(timer);
+      return () => clearTimeout(switchingLabelTimer);
     },
-    [fetchMrgnlendState]
+    [fetchMrgnlendState, selectedAccount]
   );
 
   if (!initialized || !marginfiAccounts.length) return null;
