@@ -10,8 +10,8 @@ import { cn, getTokenImageURL } from "~/utils";
 
 type ActionBoxItemProps = {
   bank: ExtendedBankInfo;
-  nativeSolBalance: number;
   showBalanceOverride: boolean;
+  nativeSolBalance?: number;
   rate?: string;
   lendingMode?: LendingModes;
   isRepay?: boolean;
@@ -20,7 +20,7 @@ type ActionBoxItemProps = {
 
 export const ActionBoxItem = ({
   bank,
-  nativeSolBalance,
+  nativeSolBalance = 0,
   showBalanceOverride,
   rate,
   lendingMode,

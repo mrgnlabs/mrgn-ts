@@ -8,7 +8,7 @@ import { cn } from "~/utils";
 import { Skeleton } from "~/components/ui/skeleton";
 import { IconArrowRight } from "~/components/ui/icons";
 
-import { AvailableCollateral } from "./AvailableCollateral";
+import { AvailableCollateral } from "./Components/AvailableCollateral";
 
 interface ActionBoxPreviewProps {
   selectedBank: ExtendedBankInfo | null;

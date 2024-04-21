@@ -10,8 +10,9 @@ import { useLstStore, useMrgnlendStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
+import { BuyWithMoonpay, ActionBoxItem } from "~/components/common/ActionBox/components";
 
-import { ActionBoxItem, BuyWithMoonpay, TokenListCommand } from "../../SharedComponents";
+import { TokenListCommand } from "../../SharedComponents";
 import { ActionBoxNativeItem } from "./ActionBoxNativeItem";
 
 type LstTokenListProps = {

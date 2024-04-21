@@ -11,8 +11,9 @@ import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
+import { BuyWithMoonpay, ActionBoxItem } from "~/components/common/ActionBox/components";
 
-import { ActionBoxItem, BuyWithMoonpay, TokenListCommand } from "../../SharedComponents";
+import { TokenListCommand } from "../../SharedComponents";
 
 type LendingTokensListProps = {
   selectedBank: ExtendedBankInfo | null;
