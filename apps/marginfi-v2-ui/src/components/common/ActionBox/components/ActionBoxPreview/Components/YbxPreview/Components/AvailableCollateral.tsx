@@ -6,6 +6,7 @@ import { IconInfoCircle } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
+import { YbxTokensList } from "./YbxTokenList";
 
 type ActionBoxAvailableCollateralProps = {
   isLoading: boolean;
@@ -19,7 +20,7 @@ export const AvailableCollateral = ({ isLoading }: ActionBoxAvailableCollateralP
   const healthColor = React.useMemo(() => 1, []); //availableRatio
 
   return (
-    <div className="pb-6">
+    <div className="mb-6 bg-background-gray-light rounded-lg">
       <Collapsible className="bg-background-gray-light rounded-lg p-2">
         <CollapsibleTrigger className="flex w-full gap-2.5 ">
           <div className="flex-1 space-y-2">
@@ -58,7 +59,9 @@ export const AvailableCollateral = ({ isLoading }: ActionBoxAvailableCollateralP
             <ChevronDownIcon width={20} height={20} />
           </div>
         </CollapsibleTrigger>
-        <CollapsibleContent>hi</CollapsibleContent>
+        <CollapsibleContent className="bg-background-gray-light">
+          <YbxTokensList />
+        </CollapsibleContent>
       </Collapsible>
     </div>
   );
