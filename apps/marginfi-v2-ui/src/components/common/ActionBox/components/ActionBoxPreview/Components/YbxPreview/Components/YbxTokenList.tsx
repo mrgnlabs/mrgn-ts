@@ -54,25 +54,28 @@ export const YbxTokensList = ({}: YbxTokensListListProps) => {
   /////// BANKS
   // active position banks
   const filteredBanksActive = React.useMemo(() => {
-    return (
-      extendedBankInfos
-        .filter(lstFilter)
-        // .filter(positionFilter)
-        .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0))
-    );
-  }, [extendedBankInfos, lstFilter, positionFilter]);
-
-  const filteredBanksWallet = React.useMemo(() => {
     return extendedBankInfos
       .filter(lstFilter)
       .filter(positionFilter)
       .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
   }, [extendedBankInfos, lstFilter, positionFilter]);
+
+  const filteredBanksWallet = React.useMemo(
+    () =>
+      extendedBankInfos
+        .filter(lstFilter)
+        .filter(walletFilter)
+        .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0)),
+    [extendedBankInfos, lstFilter, walletFilter]
+  );
+
   return (
-    <div>
+    <div className="text-muted-foreground pt-4">
       {!hasTokens && <BuyWithMoonpay />}
+
+      {filteredBanksWallet.length === 0 && filteredBanksActive.length === 0 ? <p>No available tokens found.</p> : <></>}
       {/* REPAYING */}
-      {filteredBanksActive.length > 0 && (
+      {filteredBanksWallet.length > 0 && (
         <div>
           <p className="text-sm">{`Available (in wallet)`}</p>
           {filteredBanksWallet.map((bank, index) => {
@@ -80,7 +83,7 @@ export const YbxTokensList = ({}: YbxTokensListListProps) => {
               <div
                 key={index}
                 className={cn(
-                  "cursor-pointer font-medium flex items-center justify-between gap-2 py-2 cursor-default",
+                  "cursor-pointer font-medium flex items-center justify-between gap-2 py-1 cursor-default",
                   "opacity-100",
                   "aria-selected:bg-inherit aria-selected:text-inherit"
                 )}
@@ -88,9 +91,9 @@ export const YbxTokensList = ({}: YbxTokensListListProps) => {
                 <ActionBoxItem
                   lendingMode={lendingMode}
                   bank={bank}
-                  showBalanceOverride={false}
+                  showBalanceOverride={true}
                   nativeSolBalance={nativeSolBalance}
-                  isRepay={true}
+                  isRepay={false}
                 />
               </div>
             );
@@ -99,7 +102,7 @@ export const YbxTokensList = ({}: YbxTokensListListProps) => {
       )}
       {filteredBanksActive.length > 0 && (
         <div>
-          <p className="text-sm">Currently supplying</p>
+          <p className="text-sm">Already deposited in mrgnlend</p>
           {filteredBanksActive.map((bank, index) => {
             return (
               <div
