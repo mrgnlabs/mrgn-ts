@@ -37,62 +37,6 @@ export const InputHeader = ({
     state.repayMode,
   ]);
 
-  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
-
-  const maxLabel = React.useMemo((): {
-    amount: string;
-    showWalletIcon?: boolean;
-    label?: string;
-  } => {
-    if (!selectedBank) {
-      return {
-        amount: "-",
-        showWalletIcon: false,
-      };
-    }
-
-    const formatAmount = (amount?: number, symbol?: string) =>
-      amount !== undefined ? `${clampedNumeralFormatter(amount)} ${symbol}` : "-";
-
-    switch (actionMode) {
-      case ActionType.Deposit:
-      case ActionType.Borrow:
-        return {
-          showWalletIcon: true,
-          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
-        };
-
-      case ActionType.Withdraw:
-        return {
-          amount: formatAmount(
-            selectedBank?.isActive ? selectedBank.position.amount : undefined,
-            selectedBank?.meta.tokenSymbol
-          ),
-          label: "Supplied: ",
-        };
-
-      case ActionType.MintLST:
-        if (selectedStakingAccount) {
-          return {
-            amount: formatAmount(nativeToUi(selectedStakingAccount.lamports, 9), "SOL"),
-          };
-        }
-        return {
-          showWalletIcon: true,
-          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
-        };
-
-      case ActionType.UnstakeLST:
-        return {
-          showWalletIcon: true,
-          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
-        };
-
-      default:
-        return { amount: "-" };
-    }
-  }, [selectedBank, actionMode, walletAmount, selectedStakingAccount]);
-
   // Section above the input
   return (
     <div className="flex flex-row items-center justify-between mb-2">

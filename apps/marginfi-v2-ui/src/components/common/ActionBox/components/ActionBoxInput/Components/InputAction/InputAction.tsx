@@ -108,7 +108,7 @@ export const InputAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) 
   // Section above the input
   return (
     <>
-      {actionMode === ActionType.Repay && (
+      {actionMode == ActionType.Repay && (
         <ul className="flex flex-col gap-0.5 mt-4 text-xs w-full text-muted-foreground">
           <li className="flex justify-between items-center gap-1.5">
             <strong className="mr-auto">{maxLabel.label}</strong>
