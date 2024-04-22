@@ -1,15 +1,21 @@
+import { NextApiRequest, NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
 
-const allowedOrigins = ["https://www.mfi.gg", "https://app.marginfi.com"];
+const allowedOrigins = [
+  "https://www.mfi.gg",
+  "https://app.marginfi.com",
+  "https://marginfi-v2-ui-git-staging-mrgn.vercel.app",
+  "http://localhost:3004",
+];
 
 const corsOptions = {
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "*",
 };
 
-export async function middleware(request: NextRequest) {
+export default async function handler(request: NextApiRequest, res: NextApiResponse) {
   // Check the origin from the request
-  const origin = request.headers.get("origin") ?? "";
+  const origin = request.headers["origin"] ?? "";
   const isAllowedOrigin = allowedOrigins.includes(origin);
 
   // Handle preflighted requests
@@ -23,13 +29,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.json({}, { headers: preflightHeaders });
   }
 
-  const upgradeHeader = request.headers.get("Upgrade");
+  const upgradeHeader = request.headers["Upgrade"];
 
   if (upgradeHeader || upgradeHeader === "websocket") {
     //return TODO
   }
 
-  const payload = await request.text();
+  const payload = await request.body;
+
   const proxyRequest = new NextRequest(`${process.env.NEXT_PUBLIC_MARGINFI_RPC_ENDPOINT_OVERRIDE_REROUTE}`, {
     method: request.method,
     body: payload || null,
