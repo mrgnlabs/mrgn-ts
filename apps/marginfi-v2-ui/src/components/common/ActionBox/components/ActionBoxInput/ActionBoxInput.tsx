@@ -2,7 +2,7 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { RepayType } from "~/utils";
+import { RepayType, YbxType } from "~/utils";
 import { useActionBoxStore, useUiStore } from "~/store";
 
 import { Input } from "~/components/ui/input";
@@ -11,6 +11,7 @@ import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 import { InputHeader } from "./Components";
 import { InputAction } from "./Components/InputAction";
 import { useConnection } from "~/hooks/useConnection";
+import { YbxInput } from "./Components/YbxInput";
 
 type ActionBoxInputProps = {
   walletAmount: number | undefined;
@@ -28,6 +29,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
   const [
     actionMode,
     repayMode,
+    ybxMode,
     selectedBank,
     selectedRepayBank,
     amountRaw,
@@ -40,15 +42,16 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
     setSelectedStakingAccount,
     setRepayMode,
     setLstMode,
+    setYbxMode,
   ] = useActionBoxStore((state) => [
     state.actionMode,
     state.repayMode,
+    state.ybxMode,
     state.selectedBank,
     state.selectedRepayBank,
     state.amountRaw,
     state.repayAmountRaw,
     state.selectedStakingAccount,
-
     state.setAmountRaw,
     state.setRepayAmountRaw,
     state.setSelectedBank,
@@ -56,10 +59,16 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
     state.setSelectedStakingAccount,
     state.setRepayMode,
     state.setLstMode,
+    state.setYbxMode,
   ]);
   const { connection } = useConnection();
 
   const amountInputRef = React.useRef<HTMLInputElement>(null);
+
+  const showYbxInput = React.useMemo(
+    () => actionMode === ActionType.MintYBX && (ybxMode === YbxType.AddCollat || ybxMode == YbxType.WithdrawCollat),
+    [actionMode, ybxMode]
+  );
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -130,49 +139,55 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
       {/* Contains 'max' button and input title */}
       <InputHeader
         isDialog={isDialog}
-        walletAmount={walletAmount}
-        maxAmount={maxAmount}
-        onSetAmountRaw={(amount) => handleInputChange(amount)}
         changeRepayType={(type) => setRepayMode(type)}
         changeLstType={(type) => setLstMode(type)}
+        changeYbxType={(type) => setYbxMode(type)}
       />
-      <div className="bg-background rounded-lg p-2.5 mb-6">
-        <div className="flex justify-center gap-1 items-center font-medium text-3xl">
-          <div className="w-full flex-auto max-w-[162px]">
-            <ActionBoxTokens
-              isDialog={isDialog}
-              setRepayTokenBank={(tokenBank) => {
-                setRepayBank(tokenBank);
-              }}
-              setTokenBank={(tokenBank) => {
-                setSelectedBank(tokenBank);
-              }}
-              setStakingAccount={(account) => {
-                setSelectedStakingAccount(account);
-              }}
-            />
-          </div>
-          <div className="flex-auto">
-            <Input
-              type="text"
-              ref={amountInputRef}
-              inputMode="decimal"
-              value={inputAmount}
-              disabled={isInputDisabled}
-              onChange={(e) => handleInputChange(e.target.value)}
-              onFocus={() => setIsActionBoxInputFocussed(true)}
-              onBlur={() => setIsActionBoxInputFocussed(false)}
-              placeholder="0"
-              className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
-            />
-          </div>
-        </div>
-        <InputAction
-          walletAmount={walletAmount}
+      {showYbxInput ? (
+        <YbxInput
+          amountRaw={amountRaw}
           maxAmount={maxAmount}
-          onSetAmountRaw={(amount) => handleInputChange(amount)}
+          setAmountRaw={(amount) => setAmountRaw(formatAmount(amount, selectedBank))}
         />
-      </div>
+      ) : (
+        <div className="bg-background rounded-lg p-2.5 mb-6">
+          <div className="flex justify-center gap-1 items-center font-medium text-3xl">
+            <div className="w-full flex-auto max-w-[162px]">
+              <ActionBoxTokens
+                isDialog={isDialog}
+                setRepayTokenBank={(tokenBank) => {
+                  setRepayBank(tokenBank);
+                }}
+                setTokenBank={(tokenBank) => {
+                  setSelectedBank(tokenBank);
+                }}
+                setStakingAccount={(account) => {
+                  setSelectedStakingAccount(account);
+                }}
+              />
+            </div>
+            <div className="flex-auto">
+              <Input
+                type="text"
+                ref={amountInputRef}
+                inputMode="decimal"
+                value={inputAmount}
+                disabled={isInputDisabled}
+                onChange={(e) => handleInputChange(e.target.value)}
+                onFocus={() => setIsActionBoxInputFocussed(true)}
+                onBlur={() => setIsActionBoxInputFocussed(false)}
+                placeholder="0"
+                className="bg-transparent min-w-[130px] text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
+              />
+            </div>
+          </div>
+          <InputAction
+            walletAmount={walletAmount}
+            maxAmount={maxAmount}
+            onSetAmountRaw={(amount) => handleInputChange(amount)}
+          />
+        </div>
+      )}
     </>
   );
 };

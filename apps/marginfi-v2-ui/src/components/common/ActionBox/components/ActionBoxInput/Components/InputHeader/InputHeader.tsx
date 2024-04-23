@@ -1,34 +1,29 @@
 import React from "react";
 
-import { RepayType, LstType } from "~/utils";
+import { RepayType, LstType, YbxType } from "~/utils";
 import { useActionBoxStore } from "~/store";
 
 import { InputHeaderActionLeft, InputHeaderActionRight } from "./Components";
 
 type props = {
-  walletAmount: number | undefined;
-  maxAmount: number;
-
   isDialog?: boolean;
-  showLendingHeader?: boolean;
 
   changeLstType: (lstType: LstType) => void;
+  changeYbxType: (lstType: YbxType) => void;
   changeRepayType: (repayType: RepayType) => void;
-  onSetAmountRaw: (amount: string) => void;
 };
 
 export const InputHeader = ({
   isDialog,
-  maxAmount,
-  walletAmount,
+
   changeRepayType,
   changeLstType,
-  onSetAmountRaw,
+  changeYbxType,
 }: props) => {
-  const [actionMode, selectedBank, selectedStakingAccount, lstMode, repayMode] = useActionBoxStore((state) => [
+  const [actionMode, selectedBank, ybxMode, lstMode, repayMode] = useActionBoxStore((state) => [
     state.actionMode,
     state.selectedBank,
-    state.selectedStakingAccount,
+    state.ybxMode,
     state.lstMode,
     state.repayMode,
   ]);
@@ -43,8 +38,10 @@ export const InputHeader = ({
           actionType={actionMode}
           bank={selectedBank}
           repayType={repayMode}
+          ybxType={ybxMode}
           lstType={lstMode}
           isDialog={isDialog}
+          changeYbxType={(value) => changeYbxType(value)}
           changeRepayType={(value) => changeRepayType(value)}
           changeLstType={(value) => changeLstType(value)}
         />

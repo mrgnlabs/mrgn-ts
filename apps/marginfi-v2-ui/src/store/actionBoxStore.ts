@@ -41,7 +41,7 @@ interface ActionBoxState {
   setSlippageBps: (slippageBps: number) => void;
   setActionMode: (actionMode: ActionType) => void;
   setRepayMode: (repayMode: RepayType) => void;
-  setLstMode: (LstMode: LstType) => void;
+  setLstMode: (lstMode: LstType) => void;
   setYbxMode: (ybxMode: YbxType) => void;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setRepayAmountRaw: (repayAmountRaw: string, connection: Connection) => void;

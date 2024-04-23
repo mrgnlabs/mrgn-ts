@@ -1,13 +1,10 @@
 import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LstType, RepayType, StakeData, clampedNumeralFormatter } from "~/utils";
-import { useLstStore, useUiStore } from "~/store";
-import { LendingModes } from "~/types";
+import { StakeData, clampedNumeralFormatter } from "~/utils";
 
-import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconSparkles, IconWallet } from "~/components/ui/icons";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { IconWallet } from "~/components/ui/icons";
 
 interface InputHeaderActionProps {
   actionMode: ActionType;
@@ -16,12 +13,6 @@ interface InputHeaderActionProps {
   walletAmount: number | undefined;
   selectedStakingAccount: StakeData | null;
   onSetAmountRaw: (amount: string) => void;
-}
-
-interface ToggleObject {
-  toggles: { value: string; text: string }[];
-  action: (value: any) => void;
-  value: string;
 }
 
 export const InputHeaderActionRight = ({
