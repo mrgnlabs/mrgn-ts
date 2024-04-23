@@ -51,10 +51,18 @@ export const InputAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) 
 
     switch (actionMode) {
       case ActionType.Deposit:
+        return {
+          label: "Wallet: ",
+          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
+        };
+
       case ActionType.Borrow:
         return {
-          showWalletIcon: true,
-          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
+          label: "Max Borrow: ",
+          amount: formatAmount(
+            selectedBank?.isActive ? selectedBank.userInfo.maxBorrow : undefined,
+            selectedBank?.meta.tokenSymbol
+          ),
         };
 
       case ActionType.Withdraw:
@@ -87,14 +95,21 @@ export const InputAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) 
           };
         }
 
+      case ActionType.UnstakeLST:
+        return {
+          label: "Wallet: ",
+          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
+        };
+
       case ActionType.MintLST:
         if (selectedStakingAccount) {
           return {
+            label: "Staked: ",
             amount: formatAmount(nativeToUi(selectedStakingAccount.lamports, 9), "SOL"),
           };
         }
         return {
-          showWalletIcon: true,
+          label: "Wallet: ",
           amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
         };
 
@@ -108,14 +123,16 @@ export const InputAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) 
   // Section above the input
   return (
     <>
-      {actionMode == ActionType.Repay && (
+      {selectedBank && (
         <ul className="flex flex-col gap-0.5 mt-4 text-xs w-full text-muted-foreground">
           <li className="flex justify-between items-center gap-1.5">
             <strong className="mr-auto">{maxLabel.label}</strong>
-            <div className="flex gap-1.5 items-center">
-              {selectedBank?.isActive && !isUnchanged && clampedNumeralFormatter(selectedBank.position.amount)}
+            <div className="flex space-x-1">
+              {selectedBank?.isActive && !isUnchanged && (
+                <div>{clampedNumeralFormatter(selectedBank.position.amount)}</div>
+              )}
               {selectedBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
-              {maxLabel.amount}
+              <div>{maxLabel.amount}</div>
               {(repayMode === RepayType.RepayRaw || (repayMode === RepayType.RepayCollat && selectedRepayBank)) && (
                 <button
                   className="text-chartreuse border-b border-transparent transition hover:border-chartreuse"
@@ -131,7 +148,7 @@ export const InputAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) 
             <li className="flex justify-between items-center gap-1.5">
               <strong>Deposited:</strong>
 
-              <div className="flex gap-1.5 items-center">
+              <div className="flex space-x-1.5 items-center">
                 {selectedRepayBank?.isActive ? selectedRepayBank.position.amount : 0}
                 {selectedRepayBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
                 {selectedRepayBank?.isActive && !isUnchanged && selectedRepayBank.position.amount - repayAmount}{" "}

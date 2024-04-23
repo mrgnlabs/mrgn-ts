@@ -1,64 +1,15 @@
-import { vendor } from "@mrgnlabs/marginfi-client-v2";
-import { ACCOUNT_SIZE, TOKEN_PROGRAM_ID, Wallet, aprToApy, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
-import { Connection, PublicKey } from "@solana/web3.js";
 import { create, StateCreator } from "zustand";
-import * as solanaStakePool from "@solana/spl-stake-pool";
-import {
-  LstType,
-  PERIOD,
-  RepayType,
-  StakeData,
-  YbxType,
-  calcYield,
-  debounceFn,
-  fetchAndParsePricesCsv,
-  fetchStakeAccounts,
-  getPriceRangeFromPeriod,
-  getSwapQuoteWithRetry,
-  verifyJupTxSize,
-} from "~/utils";
-import {
-  ActionType,
-  ExtendedBankInfo,
-  TokenAccount,
-  TokenAccountMap,
-  fetchBirdeyePrices,
-} from "@mrgnlabs/marginfi-v2-ui-state";
 import { persist } from "zustand/middleware";
-import BN from "bn.js";
 
-import type { TokenInfo, TokenInfoMap } from "@solana/spl-token-registry";
-import { QuoteResponseMeta } from "@jup-ag/react-hook";
-import { LendingModes } from "~/types";
 import { QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
-import { cp } from "fs";
+import { Connection, PublicKey } from "@solana/web3.js";
+import * as solanaStakePool from "@solana/spl-stake-pool";
 
-const STAKEVIEW_APP_URL = "https://stakeview.app/apy/prev3.json";
-const BASELINE_VALIDATOR_ID = "mrgn28BhocwdAUEenen3Sw2MR9cPKDpLkDvzDdR7DBD";
-const SOLANA_COMPASS_PRICES_URL =
-  "https://raw.githubusercontent.com/glitchful-dev/sol-stake-pool-apy/master/db/lst.csv";
+import { nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-export const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
-export const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
-const NETWORK_FEE_LAMPORTS = 15000; // network fee + some for potential account creation
-const SOL_USD_PYTH_ORACLE = new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG");
-const STAKE_POOL_ID = new PublicKey("DqhH94PjkZsjAqEze2BEkWhFQJ6EyU6MdtMphMgnXqeK");
-
-const SUPPORTED_TOKENS = [
-  "7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT",
-  "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-  "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-  "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-  "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
-  "So11111111111111111111111111111111111111112",
-  "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj",
-  "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-];
-
-export type TokenData = Omit<TokenInfo, "logoUri"> & { price: number; balance: BN; iconUrl: string };
-export type TokenDataMap = Map<string, TokenData>;
-
-export type SupportedSlippagePercent = 0.1 | 0.5 | 1.0 | 5.0;
+import { LstType, RepayType, StakeData, YbxType, debounceFn, getSwapQuoteWithRetry, verifyJupTxSize } from "~/utils";
+import { LendingModes } from "~/types";
 
 interface ActionBoxState {
   // State
@@ -81,6 +32,7 @@ interface ActionBoxState {
   isLoading: boolean;
 
   // Actions
+  refreshState: () => void;
   fetchActionBoxState: (args: {
     lendingMode: LendingModes;
     requestedAction?: ActionType;
@@ -154,9 +106,14 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   // State
   ...initialState,
 
+  refreshState() {
+    set({ ...initialState, slippageBps: get().slippageBps });
+  },
+
   fetchActionBoxState(args) {
     let requestedAction: ActionType | null = null;
     let requestedBank: ExtendedBankInfo | null = null;
+    let slippageBps = get().slippageBps;
 
     if (args.requestedAction) {
       requestedAction = args.requestedAction;
@@ -166,6 +123,12 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       } else {
         requestedAction = ActionType.Borrow;
       }
+    }
+
+    if (requestedBank === ActionType.Repay) {
+      slippageBps = 100;
+    } else {
+      slippageBps = 30;
     }
 
     if (args.requestedBank) {
@@ -182,7 +145,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       actionMode !== requestedAction ||
       (requestedBank && !requestedBank.address.equals(selectedBank.address));
 
-    if (needRefresh) set({ ...initialState, actionMode: requestedAction, selectedBank: requestedBank });
+    if (needRefresh) set({ ...initialState, actionMode: requestedAction, selectedBank: requestedBank, slippageBps });
   },
 
   setAmountRaw(amountRaw, maxAmount) {
@@ -358,7 +321,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     if (actionMode === ActionType.Repay) {
       set({ slippageBps: 100 });
     } else {
-      set({ slippageBps: 20 });
+      set({ slippageBps: 30 });
     }
     set({ actionMode });
   },
@@ -388,10 +351,6 @@ async function calculateRepayCollateral(
   } as QuoteGetRequest;
 
   try {
-    // if (amount == 0) {
-    //   //   setAmountRaw("0");
-    //   return null;
-    // }
     const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
     if (swapQuote) {
@@ -401,15 +360,12 @@ async function calculateRepayCollateral(
 
       const amountToRepay = outAmount > maxRepayAmount ? maxRepayAmount : outAmountThreshold;
 
-      //   setAmountRaw(amountToRepay.toString());
       return { quote: swapQuote, amount: amountToRepay };
-      //   setRepayCollatQuote(swapQuote);
     } else {
       return null;
     }
   } catch (error) {
     return null;
-    // showErrorToast("Unable to retrieve data. Please choose a different collateral option or refresh the page.");
   }
 }
 
@@ -456,102 +412,6 @@ async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBan
       return 0;
     }
   }
-}
-
-async function fetchLstData(connection: Connection): Promise<LstData> {
-  const [stakePoolInfo, stakePoolAccount, apyData, solanaCompassPrices] = await Promise.all([
-    solanaStakePool.stakePoolInfo(connection, STAKE_POOL_ID),
-    solanaStakePool.getStakePoolAccount(connection, STAKE_POOL_ID),
-    fetch(STAKEVIEW_APP_URL).then((res) => res.json()),
-    fetchAndParsePricesCsv(SOLANA_COMPASS_PRICES_URL),
-  ]);
-  const stakePool = stakePoolAccount.account.data;
-
-  const poolTokenSupply = Number(stakePoolInfo.poolTokenSupply);
-  const totalLamports = Number(stakePoolInfo.totalLamports);
-  const lastPoolTokenSupply = Number(stakePoolInfo.lastEpochPoolTokenSupply);
-  const lastTotalLamports = Number(stakePoolInfo.lastEpochTotalLamports);
-
-  const solDepositFee = stakePoolInfo.solDepositFee.denominator.eqn(0)
-    ? 0
-    : stakePoolInfo.solDepositFee.numerator.toNumber() / stakePoolInfo.solDepositFee.denominator.toNumber();
-
-  const lstSolValue = poolTokenSupply > 0 ? totalLamports / poolTokenSupply : 1;
-
-  let projectedApy: number;
-  if (lastTotalLamports === 0 || lastPoolTokenSupply === 0) {
-    projectedApy = 0.08;
-  } else {
-    const priceRange = getPriceRangeFromPeriod(solanaCompassPrices, PERIOD.DAYS_7);
-    if (!priceRange) {
-      throw new Error("No price data found for the specified period!");
-    }
-    projectedApy = calcYield(priceRange).apy;
-  }
-
-  if (projectedApy < 0.08) {
-    // temporarily use baseline validator APY waiting for a few epochs to pass
-    const baselineValidatorData = apyData.validators.find((validator: any) => validator.id === BASELINE_VALIDATOR_ID);
-    if (baselineValidatorData) projectedApy = baselineValidatorData.apy;
-  }
-
-  return {
-    poolAddress: new PublicKey(stakePoolInfo.address),
-    tvl: totalLamports / 1e9,
-    projectedApy,
-    lstSolValue,
-    solDepositFee,
-    accountData: stakePool,
-    validatorList: stakePoolInfo.validatorList.map((v) => new PublicKey(v.voteAccountAddress)),
-  };
-}
-
-async function fetchJupiterTokenInfo(): Promise<TokenInfoMap> {
-  const preferredTokenListMode: any = "strict";
-  const tokens = await (preferredTokenListMode === "strict"
-    ? await fetch("https://token.jup.ag/strict")
-    : await fetch("https://token.jup.ag/all")
-  ).json();
-
-  // Dynamically import TokenListContainer when needed
-  const { TokenListContainer } = await import("@solana/spl-token-registry");
-
-  const res = new TokenListContainer(tokens);
-  const list = res.filterByChainId(101).getList();
-  const tokenMap = list
-    .filter((tokenInfo) => SUPPORTED_TOKENS.includes(tokenInfo.address))
-    .reduce((acc, item) => {
-      acc.set(item.address, item);
-      return acc;
-    }, new Map());
-
-  return tokenMap;
-}
-
-async function fetchUserTokenAccounts(connection: Connection, walletAddress: PublicKey): Promise<TokenAccountMap> {
-  const response = await connection.getParsedTokenAccountsByOwner(
-    walletAddress,
-    { programId: TOKEN_PROGRAM_ID },
-    "confirmed"
-  );
-
-  const reducedResult = response.value.map((item: any) => {
-    return {
-      created: true,
-      mint: new PublicKey(item.account.data.parsed.info.mint),
-      balance: item.account.data.parsed.info.tokenAmount.uiAmount,
-    } as TokenAccount;
-  });
-
-  const userTokenAccounts = new Map(
-    reducedResult.map((tokenAccount: any) => [tokenAccount.mint.toString(), tokenAccount])
-  );
-  return userTokenAccounts;
-}
-
-async function fetchTokenPrices(mints: PublicKey[]): Promise<Map<string, number>> {
-  const prices = await fetchBirdeyePrices(mints);
-  return new Map(prices.map((price, index) => [mints[index].toString(), price.toNumber()]));
 }
 
 export { createActionBoxStore };
