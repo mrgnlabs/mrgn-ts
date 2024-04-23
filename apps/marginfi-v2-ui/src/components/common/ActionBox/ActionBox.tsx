@@ -6,7 +6,14 @@ import { v4 as uuidv4 } from "uuid";
 import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useActionBoxStore, useLstStore, useMrgnlendStore, useUiStore } from "~/store";
+import {
+  ActionBoxState,
+  createActionBoxStore,
+  useActionBoxStore,
+  useLstStore,
+  useMrgnlendStore,
+  useUiStore,
+} from "~/store";
 import {
   MarginfiActionParams,
   closeBalance,
@@ -31,6 +38,7 @@ import {
   ActionBoxActions,
   ActionBoxInput,
 } from "~/components/common/ActionBox/components";
+import { StoreApi, UseBoundStore } from "zustand";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -78,6 +86,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     isLoading,
     errorMessage,
 
+    refreshState,
     fetchActionBoxState,
     setSlippageBps,
     setActionMode,
@@ -97,12 +106,18 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     state.isLoading,
     state.errorMessage,
 
+    state.refreshState,
     state.fetchActionBoxState,
     state.setSlippageBps,
     state.setActionMode,
     state.setIsLoading,
     state.setAmountRaw,
   ]);
+
+  // Cleanup the store when the component unmounts
+  React.useEffect(() => {
+    return () => refreshState();
+  }, [refreshState]);
 
   const [lendingModeFromStore, priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore(
     (state) => [

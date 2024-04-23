@@ -1,22 +1,21 @@
 import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LstType, RepayType, clampedNumeralFormatter } from "~/utils";
+import { LstType, RepayType, StakeData, clampedNumeralFormatter } from "~/utils";
 import { useLstStore, useUiStore } from "~/store";
 import { LendingModes } from "~/types";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconSparkles } from "~/components/ui/icons";
+import { IconSparkles, IconWallet } from "~/components/ui/icons";
+import { nativeToUi } from "@mrgnlabs/mrgn-common";
 
 interface InputHeaderActionProps {
   actionMode: ActionType;
   bank: ExtendedBankInfo | null;
+  maxAmount: number;
   walletAmount: number | undefined;
-  isDialog?: boolean;
-  repayType: RepayType;
-  lstType: LstType;
-  changeRepayType: (repayType: RepayType) => void;
-  changeLstType: (lstType: LstType) => void;
+  selectedStakingAccount: StakeData | null;
+  onSetAmountRaw: (amount: string) => void;
 }
 
 interface ToggleObject {
@@ -25,19 +24,14 @@ interface ToggleObject {
   value: string;
 }
 
-export const InputHeaderActionLeft = ({
+export const InputHeaderActionRight = ({
   actionMode,
   bank,
+  maxAmount,
   walletAmount,
-  lstType,
-  isDialog,
-  repayType,
-  changeRepayType,
-  changeLstType,
+  selectedStakingAccount,
+  onSetAmountRaw,
 }: InputHeaderActionProps) => {
-  const [lendingModeFromStore, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
-  const [stakeAccounts] = useLstStore((state) => [state.stakeAccounts]);
-
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
   const maxLabel = React.useMemo((): {
@@ -77,23 +71,23 @@ export const InputHeaderActionLeft = ({
         }
         return {
           showWalletIcon: true,
-          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
+          amount: formatAmount(walletAmount, bank?.meta.tokenSymbol),
         };
 
       case ActionType.UnstakeLST:
         return {
           showWalletIcon: true,
-          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
+          amount: formatAmount(walletAmount, bank?.meta.tokenSymbol),
         };
 
       default:
         return { amount: "-" };
     }
-  }, [selectedBank, actionMode, walletAmount, selectedStakingAccount]);
+  }, [bank, actionMode, walletAmount, selectedStakingAccount]);
 
   return (
     <>
-      {bank && actionType !== ActionType.Repay && (
+      {bank && actionMode !== ActionType.Repay && (
         <div className="inline-flex gap-1.5 items-center">
           {maxLabel.showWalletIcon && <IconWallet size={16} />}
           {maxLabel.label && <span className="text-xs font-normal text-muted-foreground">{maxLabel.label}</span>}

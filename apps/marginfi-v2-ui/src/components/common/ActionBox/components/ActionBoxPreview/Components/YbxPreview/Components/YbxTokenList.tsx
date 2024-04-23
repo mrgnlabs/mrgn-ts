@@ -1,16 +1,10 @@
 import React from "react";
-
-import { PublicKey } from "@solana/web3.js";
-
-import { percentFormatter, aprToApy } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendingModes } from "~/types";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { cn } from "~/utils";
 
 import { BuyWithMoonpay, ActionBoxItem } from "~/components/common/ActionBox/components";
-import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "~/components/ui/command";
 
 const SUPPORTED_LST = ["lst", "jitosol", "msol", "bsol"];
 

@@ -10,8 +10,9 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { cn } from "~/utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
+import { BuyWithMoonpay, ActionBoxItem } from "~/components/common/ActionBox/components";
 
-import { ActionBoxItem, BuyWithMoonpay, TokenListCommand } from "../../SharedComponents";
+import { TokenListCommand } from "../../SharedComponents";
 
 type RepayCollatTokensListProps = {
   selectedRepayBank: ExtendedBankInfo | null;

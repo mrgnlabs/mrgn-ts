@@ -1,13 +1,9 @@
 import React from "react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { RepayType, LstType } from "~/utils";
+import { useActionBoxStore } from "~/store";
 
-import { clampedNumeralFormatter, RepayType, LstType } from "~/utils";
-
-import { IconWallet } from "~/components/ui/icons";
-import { InputHeaderAction } from "./InputHeaderAction";
-import { useActionBoxStore, useLstStore } from "~/store";
+import { InputHeaderActionLeft, InputHeaderActionRight } from "./Components";
 
 type props = {
   walletAmount: number | undefined;
@@ -43,7 +39,7 @@ export const InputHeader = ({
       {/* Title text */}
 
       <div className="text-lg font-normal flex items-center">
-        <InputHeaderAction
+        <InputHeaderActionLeft
           actionType={actionMode}
           bank={selectedBank}
           repayType={repayMode}
@@ -55,22 +51,14 @@ export const InputHeader = ({
       </div>
 
       {/* Amount action */}
-      {selectedBank && actionMode !== ActionType.Repay && (
-        <div className="inline-flex gap-1.5 items-center">
-          {maxLabel.showWalletIcon && <IconWallet size={16} />}
-          {maxLabel.label && <span className="text-xs font-normal text-muted-foreground">{maxLabel.label}</span>}
-          <span className="text-sm font-normal">{maxLabel.amount}</span>
-          <button
-            className={`text-xs ml-1 py-1.5 px-3 rounded-full border border-background-gray-light bg-transparent text-muted-foreground ${
-              maxAmount === 0 ? "" : "cursor-pointer hover:bg-background-gray-light"
-            } transition-colors`}
-            onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
-            disabled={maxAmount === 0}
-          >
-            {"MAX"}
-          </button>
-        </div>
-      )}
+      {/* <InputHeaderActionRight
+        actionMode={actionMode}
+        bank={selectedBank}
+        maxAmount={maxAmount}
+        walletAmount={walletAmount}
+        selectedStakingAccount={selectedStakingAccount}
+        onSetAmountRaw={onSetAmountRaw}
+      /> */}
     </div>
   );
 };
