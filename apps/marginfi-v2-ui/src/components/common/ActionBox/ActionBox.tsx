@@ -6,14 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import {
-  ActionBoxState,
-  createActionBoxStore,
-  useActionBoxStore,
-  useLstStore,
-  useMrgnlendStore,
-  useUiStore,
-} from "~/store";
+import { useActionBoxStore, useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import {
   MarginfiActionParams,
   closeBalance,
@@ -38,7 +31,6 @@ import {
   ActionBoxActions,
   ActionBoxInput,
 } from "~/components/common/ActionBox/components";
-import { StoreApi, UseBoundStore } from "zustand";
 
 type ActionBoxProps = {
   requestedAction?: ActionType;
@@ -128,9 +120,8 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       state.setPreviousTxn,
     ]
   );
-  const [lstData, stakeAccounts, lstQuoteMeta, feesAndRent] = useLstStore((state) => [
+  const [lstData, lstQuoteMeta, feesAndRent] = useLstStore((state) => [
     state.lstData,
-    state.stakeAccounts,
     state.quoteResponseMeta,
     state.feesAndRent,
   ]);

@@ -1,7 +1,7 @@
 import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LstType, RepayType } from "~/utils";
+import { LstType, RepayType, YbxType } from "~/utils";
 import { useLstStore, useUiStore } from "~/store";
 import { LendingModes } from "~/types";
 
@@ -14,6 +14,8 @@ interface InputHeaderActionProps {
   isDialog?: boolean;
   repayType: RepayType;
   lstType: LstType;
+  ybxType: YbxType;
+  changeYbxType: (ybxType: YbxType) => void;
   changeRepayType: (repayType: RepayType) => void;
   changeLstType: (lstType: LstType) => void;
 }
@@ -30,6 +32,8 @@ export const InputHeaderActionLeft = ({
   lstType,
   isDialog,
   repayType,
+  ybxType,
+  changeYbxType,
   changeRepayType,
   changeLstType,
 }: InputHeaderActionProps) => {
@@ -98,6 +102,19 @@ export const InputHeaderActionLeft = ({
       } as ToggleObject;
     }
 
+    if (actionType === ActionType.MintYBX && (ybxType === YbxType.AddCollat || ybxType === YbxType.WithdrawCollat)) {
+      return {
+        toggles: [
+          { value: YbxType.AddCollat, text: "Add" },
+          { value: YbxType.WithdrawCollat, text: "Withdraw" },
+        ],
+        action: (value: YbxType) => {
+          if (value) changeYbxType(value);
+        },
+        value: ybxType,
+      } as ToggleObject;
+    }
+
     return titleText;
   }, [
     isDialog,
@@ -110,6 +127,8 @@ export const InputHeaderActionLeft = ({
     changeRepayType,
     lstType,
     changeLstType,
+    ybxType,
+    changeYbxType,
   ]);
 
   return (
