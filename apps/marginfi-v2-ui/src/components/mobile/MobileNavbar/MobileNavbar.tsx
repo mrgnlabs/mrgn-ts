@@ -57,7 +57,7 @@ const MobileNavbar = () => {
     state.isActionBoxInputFocussed,
   ]);
 
-  const { isIOS } = useOs();
+  const { isIOS, isPWA } = useOs();
 
   const activeLink = React.useMemo(() => {
     const activeLinkIndex = mobileLinks.findIndex((link) => link.href === router.pathname);
@@ -79,7 +79,7 @@ const MobileNavbar = () => {
                 href={linkInfo.href}
                 className={cn(
                   "w-1/4 py-2.5 flex flex-col gap-1 items-center border-t border-border",
-                  isIOS && "pb-4",
+                  isIOS && isPWA && "pb-8",
                   isActive ? "text-chartreuse" : "text-[#999]"
                 )}
               >
