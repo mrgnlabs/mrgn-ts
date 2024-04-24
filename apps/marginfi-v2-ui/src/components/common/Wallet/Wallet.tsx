@@ -47,8 +47,6 @@ import {
   IconX,
   IconArrowsExchange,
 } from "~/components/ui/icons";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
-import { IconCheck, IconChevronDown, IconCopy, IconStarFilled } from "~/components/ui/icons";
 
 enum WalletState {
   DEFAULT = "default",
