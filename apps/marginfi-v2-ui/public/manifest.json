@@ -1,6 +1,6 @@
 {
-  "theme_color": "#0F1111",
-  "background_color": "#0F1111",
+  "theme_color": "#090A0A",
+  "background_color": "#090A0A",
   "icons": [
     { "purpose": "maskable", "sizes": "512x512", "src": "icon512_maskable.png", "type": "image/png" },
     { "purpose": "any", "sizes": "512x512", "src": "icon512_rounded.png", "type": "image/png" }
@@ -10,7 +10,7 @@
   "dir": "left",
   "lang": "en-US",
   "name": "marginfi",
-  "short_name": "mrgn",
+  "short_name": "marginfi",
   "description": "Earn yield, permissionlessly.",
   "id": "https://app.marginfi.com"
 }
