@@ -13,6 +13,8 @@
   "dependencies": {
     "@bonfida/spl-name-service": "^1.1.1",
     "@coral-xyz/borsh": "^0.28.0",
+    "@dialectlabs/react-sdk-blockchain-solana": "^2.0.3",
+    "@dialectlabs/react-ui": "^2.0.6",
     "@jup-ag/api": "^6.0.11",
     "@jup-ag/react-hook": "^6.0.0-beta.8",
     "@moongate/moongate-adapter": "^0.1.2",

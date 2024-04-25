@@ -12,6 +12,7 @@ import { IconMrgn } from "~/components/ui/icons";
 import { WalletButton } from "~/components/common/Wallet";
 import LipAccount from "@mrgnlabs/lip-client/src/account";
 import { EMISSION_MINT_INFO_MAP } from "~/components/desktop/AssetList/components";
+import { DialectNotification } from "../Notifications";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
@@ -137,6 +138,8 @@ export const Navbar: FC = () => {
                   </span>
                 )}
               </div>
+
+              <DialectNotification />
 
               <WalletButton />
             </div>
