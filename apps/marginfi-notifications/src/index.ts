@@ -9,8 +9,23 @@ import { sleep, getDebugLogger, shortAddress } from "./utils";
 import { getUserSettings, updateLastNotification } from "./lib/api";
 import { sendEmailNotification } from "./lib/resend";
 
+import { Dialect, DialectCloudEnvironment, DialectSdk } from "@dialectlabs/sdk";
+
+import { NodeDialectSolanaWalletAdapter, Solana, SolanaSdkFactory } from "@dialectlabs/blockchain-sdk-solana";
+
 let client: MarginfiClient;
 let accountInfos: Map<PublicKey, MarginfiAccountWrapper> = new Map();
+const environment: DialectCloudEnvironment = "development";
+const dialectSolanaSdk: DialectSdk<Solana> = Dialect.sdk(
+  {
+    environment,
+  },
+  SolanaSdkFactory.create({
+    // IMPORTANT: must set environment variable DIALECT_SDK_CREDENTIALS
+    // to your dapp's Solana messaging wallet keypair e.g. [170,23, . . . ,300]
+    wallet: NodeDialectSolanaWalletAdapter.create(),
+  })
+);
 
 async function start() {
   console.log("Initializing");
