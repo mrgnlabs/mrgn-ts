@@ -3,23 +3,24 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Desktop, Mobile } from "~/mediaQueries";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
-import { LendingModes } from "~/types";
 
 import { Banner } from "~/components/desktop/Banner";
 import { ActionBoxLendWrapper } from "~/components/common/ActionBox";
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { Announcements, AnnouncementCustomItem, AnnouncementBankItem } from "~/components/common/Announcements";
+import {
+  Announcements,
+  AnnouncementCustomItem,
+  AnnouncementBankItem,
+  AnnouncementsDialog,
+} from "~/components/common/Announcements";
 
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
-import { IconAlertTriangle, IconBackpackWallet, IconCheck, IconTrophy, IconYBX } from "~/components/ui/icons";
+import { IconBackpackWallet, IconTrophy, IconYBX } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
@@ -30,20 +31,9 @@ export default function HomePage() {
   const router = useRouter();
   const { walletAddress, isOverride } = useWalletContext();
   const [previousTxn, setIsWalletOpen] = useUiStore((state) => [state.previousTxn, state.setIsWalletOpen]);
-  const [
-    fetchMrgnlendState,
-    isStoreInitialized,
-    isRefreshingStore,
-    setIsRefreshingStore,
-    marginfiAccounts,
-    selectedAccount,
-    extendedBankInfos,
-  ] = useMrgnlendStore((state) => [
-    state.fetchMrgnlendState,
+  const [isStoreInitialized, isRefreshingStore, selectedAccount, extendedBankInfos] = useMrgnlendStore((state) => [
     state.initialized,
     state.isRefreshingStore,
-    state.setIsRefreshingStore,
-    state.marginfiAccounts,
     state.selectedAccount,
     state.extendedBankInfos,
   ]);
@@ -92,6 +82,7 @@ export default function HomePage() {
                 />
               )}
               <Announcements items={annoucements} />
+              <AnnouncementsDialog />
               <ActionBoxLendWrapper />
             </div>
             <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl mt-8 gap-4">
@@ -107,6 +98,7 @@ export default function HomePage() {
         {isStoreInitialized && (
           <>
             <Announcements items={annoucements} />
+            <AnnouncementsDialog />
             <ActionBoxLendWrapper />
             <div className="mb-24" />
           </>
