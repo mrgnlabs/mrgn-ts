@@ -289,7 +289,7 @@ export const getAction = (
               <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
                 <ActionBoxDialog requestedToken={bank.address} requestedAction={currentAction}>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground"
                   >
                     {showCloseBalance ? "Close" : currentAction}
