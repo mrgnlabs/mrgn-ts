@@ -49,7 +49,7 @@ export default function HomePage() {
   ]);
 
   const annoucements = React.useMemo(() => {
-    const jup = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "JUP");
+    const tnsr = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "TNSR");
     return [
       {
         image: (
@@ -63,14 +63,6 @@ export default function HomePage() {
         },
       },
       {
-        image: (
-          <div className="text-success">
-            <IconCheck size={22} />
-          </div>
-        ),
-        text: "Oracle efficiency improved, all systems operational.",
-      },
-      {
         image: <IconBackpackWallet size={22} />,
         text: "5% points boost for Backpack users!",
         onClick: () => router.push("/points"),
@@ -80,7 +72,7 @@ export default function HomePage() {
         text: "Read the YBX announcement!",
         onClick: () => window.open("https://twitter.com/marginfi/status/1762865889035317679"),
       },
-      { bank: jup },
+      { bank: tnsr },
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
   }, [extendedBankInfos, router, setIsWalletOpen]);
 
