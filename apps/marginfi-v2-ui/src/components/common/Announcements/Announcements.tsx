@@ -11,6 +11,7 @@ import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "~/types";
 import { cn, getTokenImageURL } from "~/utils";
 import { useUiStore } from "~/store";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { IconArrowRight } from "~/components/ui/icons";
@@ -22,6 +23,7 @@ export type AnnouncementCustomItem = {
   text: string;
   image: React.ReactNode | string;
   onClick?: () => void;
+  requireAuth?: boolean;
 };
 
 export type AnnouncementBankItem = {
@@ -74,6 +76,7 @@ const Pagination = ({ itemsLength }: PaginationProps) => {
 };
 
 export const Announcements = ({ items }: AnnouncementsProps) => {
+  const { connected } = useWalletContext();
   const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
   const [requestedAction, setRequestedAction] = React.useState<ActionType>();
   const [requestedToken, setRequestedToken] = React.useState<PublicKey>();
@@ -93,9 +96,14 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
           {items.map((item, index) => (
             <SwiperSlide key={index}>
               <div
-                className="bg-background-gray border border-background-gray rounded-lg w-full p-2.5 px-2 md:p-3 cursor-pointer transition hover:border-background-gray-hover"
+                className={cn(
+                  "bg-background-gray border border-background-gray rounded-lg w-full p-2.5 px-2 md:p-3 transition",
+                  isBankItem(item) || (item.onClick && !item.requireAuth)
+                    ? "hover:border-background-gray-hover cursor-pointer"
+                    : "cursor-default"
+                )}
                 onClick={() => {
-                  if (!isBankItem(item) && item.onClick) {
+                  if (!isBankItem(item) && item.onClick && (item.requireAuth || connected)) {
                     item.onClick();
                   }
                 }}
