@@ -350,7 +350,7 @@ export const Wallet = () => {
                         Points
                       </span>
                     </TabsTrigger>
-                    <div className="cursor-help inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow">
+                    <div className="cursor-help w-1/3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -472,7 +472,7 @@ export const Wallet = () => {
                     )}
                     {walletTokenState === WalletState.SWAP && (
                       <div className="relative py-4">
-                        <div className="max-w-[420px] px-3 transition-opacity" id="integrated-terminal"></div>
+                        <div className="max-w-[590px] mx-auto px-3 transition-opacity" id="integrated-terminal"></div>
                         <Swap
                           onLoad={() => {
                             setIsSwapLoaded(true);
@@ -546,7 +546,7 @@ export const Wallet = () => {
                         </ToggleGroup>
                         <div
                           className={cn(
-                            "max-w-[420px] w-full px-[1.35rem] max-h-[500px] transition-opacity hidden font-aeonik",
+                            "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden font-aeonik",
                             bridgeType === "mayan" && "block"
                           )}
                           id="swap_widget"
@@ -554,7 +554,7 @@ export const Wallet = () => {
                         <div
                           id="debridgeWidget"
                           className={cn(
-                            "max-w-[420px] w-full px-[1.35rem] max-h-[500px] transition-opacity hidden  font-aeonik",
+                            "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden  font-aeonik",
                             bridgeType === "debridge" && "block"
                           )}
                         />
@@ -564,7 +564,7 @@ export const Wallet = () => {
                   </TabsContent>
                   <TabsContent value="points">
                     <div className="flex flex-col items-center pt-8">
-                      <p className="font-medium text-4xl flex flex-col justify-center">
+                      <p className="font-medium text-4xl flex flex-col justify-center items-center text-center">
                         <span className="text-sm font-normal text-chartreuse text-center">Your points</span>
                         {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
                       </p>
