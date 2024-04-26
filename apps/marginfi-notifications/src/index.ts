@@ -6,7 +6,6 @@ import { connection } from "./utils/connection";
 import { loadBankMetadatas } from "./utils/bankMetadata";
 import { chunkedGetRawMultipleAccountInfos } from "./utils/chunks";
 import { sleep, getDebugLogger, shortAddress } from "./utils";
-import { getUserSettings, updateLastNotification } from "./lib/api";
 import { sendEmailNotification } from "./lib/resend";
 
 import { Dialect, DialectCloudEnvironment, DialectSdk } from "@dialectlabs/sdk";
@@ -43,7 +42,6 @@ async function start() {
   setInterval(async () => {
     try {
       bankMetadataMap = await loadBankMetadatas();
-      console.log(bankMetadataMap);
     } catch (e) {
       console.error("Failed to refresh bank metadata", e);
     }
@@ -106,37 +104,37 @@ async function checkAndSendNotifications(account: MarginfiAccountWrapper) {
 
   if (healthFactor > env_config.HEALTH_FACTOR_THRESHOLD) return;
 
-  const userData = await getUserSettings(account.authority.toBase58());
-  if (!userData || !userData.account_health) {
-    notiDebug("Wallet %s: User not found or notifications are turned off", shortAddress(account.authority.toBase58()));
-    return;
-  }
+  //const userData = await getUserSettings(account.authority.toBase58());
+  // if (!userData || !userData.account_health) {
+  //   notiDebug("Wallet %s: User not found or notifications are turned off", shortAddress(account.authority.toBase58()));
+  //   return;
+  // }
 
-  // Adjusting to handle `null` last_notification correctly
-  const now = new Date();
-  let shouldSendNotification = false;
+  // // Adjusting to handle `null` last_notification correctly
+  // const now = new Date();
+  // let shouldSendNotification = false;
 
-  if (userData.last_notification) {
-    const lastNotificationTime = new Date(userData.last_notification);
-    const diffTime = now.getTime() - lastNotificationTime.getTime();
-    shouldSendNotification = diffTime >= 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-  } else {
-    // If last_notification is null, proceed to send notification
-    shouldSendNotification = true;
-  }
+  // if (userData.last_notification) {
+  //   const lastNotificationTime = new Date(userData.last_notification);
+  //   const diffTime = now.getTime() - lastNotificationTime.getTime();
+  //   shouldSendNotification = diffTime >= 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  // } else {
+  //   // If last_notification is null, proceed to send notification
+  //   shouldSendNotification = true;
+  // }
 
-  if (shouldSendNotification) {
-    const { error } = await sendEmailNotification(userData.email, healthFactorPercentage);
-    if (error) {
-      notiDebug("Wallet %s: Error sending notification", shortAddress(account.authority.toBase58()));
-      return;
-    }
+  // if (shouldSendNotification) {
+  //   const { error } = await sendEmailNotification(userData.email, healthFactorPercentage);
+  //   if (error) {
+  //     notiDebug("Wallet %s: Error sending notification", shortAddress(account.authority.toBase58()));
+  //     return;
+  //   }
 
-    await updateLastNotification(account.authority.toString(), now.toISOString());
-    notiDebug("Wallet %s: Notification sent successfully", shortAddress(account.authority.toBase58()));
-  } else {
-    notiDebug("Wallet %s: It’s too soon to send another notification", shortAddress(account.authority.toBase58()));
-  }
+  //   //await updateLastNotification(account.authority.toString(), now.toISOString());
+  //   notiDebug("Wallet %s: Notification sent successfully", shortAddress(account.authority.toBase58()));
+  // } else {
+  //   notiDebug("Wallet %s: It’s too soon to send another notification", shortAddress(account.authority.toBase58()));
+  // }
 }
 
 async function loadAllMarginfiAccounts() {
