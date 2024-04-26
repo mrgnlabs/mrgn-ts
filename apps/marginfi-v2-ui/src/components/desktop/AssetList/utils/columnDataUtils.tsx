@@ -21,7 +21,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { ActionBoxDialog } from "~/components/common/ActionBox";
 import { Button } from "~/components/ui/button";
 
-export const REDUCE_ONLY_BANKS = ["stSOL"];
+export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
 export interface AssetData {
   symbol: string;

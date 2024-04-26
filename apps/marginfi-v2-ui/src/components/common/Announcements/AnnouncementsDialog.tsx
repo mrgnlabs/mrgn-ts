@@ -1,24 +1,21 @@
 import React from "react";
 
 import Image from "next/image";
+import Link from "next/link";
+
+import { useUiStore } from "~/store";
+import { getTokenImageURL } from "~/utils";
+import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { Button } from "~/components/ui/button";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
-import { getTokenImageURL } from "~/utils";
-import Link from "next/link";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 
 const announcementLabel = "rlb-notice" as const;
 
 export const AnnouncementsDialog = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const { connected } = useWalletContext();
+  const [isWalletOpen] = useUiStore((state) => [state.isWalletOpen]);
 
   const closeDialog = React.useCallback(() => {
     localStorage.setItem("mrgnAnnouncementPopup", announcementLabel);
@@ -26,6 +23,8 @@ export const AnnouncementsDialog = () => {
   }, []);
 
   React.useEffect(() => {
+    // dont show popup for non-connected or when wallet is open
+    if (isOpen || !connected || isWalletOpen) return;
     // only show announcement popup if tutorial has been acknowledged
     // and announcement has not been acknowledged
     if (
@@ -36,7 +35,7 @@ export const AnnouncementsDialog = () => {
       setIsOpen(true);
       return;
     }
-  }, []);
+  }, [connected, isOpen, isWalletOpen]);
 
   return (
     <Dialog

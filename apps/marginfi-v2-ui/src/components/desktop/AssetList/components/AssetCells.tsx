@@ -203,59 +203,61 @@ export const getAssetWeightCell = ({ assetWeight }: AssetWeightData) => (
   <div className="flex justify-end">{!assetWeight ? <>-</> : <>{(assetWeight * 100).toFixed(0) + "%"}</>}</div>
 );
 
-export const getDepositsCell = (depositsData: DepositsData) => (
-  <TooltipProvider>
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span
-          className={cn(
-            "flex items-center justify-end gap-1.5 text-white",
-            (depositsData.isReduceOnly || depositsData.isBankHigh) && "text-warning",
-            depositsData.isBankFilled && "text-destructive-foreground"
-          )}
-        >
-          {depositsData.denominationUSD
-            ? usdFormatter.format(depositsData.bankDeposits)
-            : numeralFormatter(depositsData.bankDeposits)}
-
-          {(depositsData.isReduceOnly || depositsData.isBankHigh || depositsData.isBankFilled) && (
-            <IconAlertTriangle size={14} />
-          )}
-        </span>
-      </TooltipTrigger>
-      <TooltipContent className="text-left">
-        <div>
-          {depositsData.isReduceOnly
-            ? "Reduce Only"
-            : depositsData.isBankHigh && (depositsData.isBankFilled ? "Limit Reached" : "Approaching Limit")}
-        </div>
-
-        {depositsData.isReduceOnly ? (
-          <span>{depositsData.symbol} is being discontinued.</span>
-        ) : (
-          <>
-            <span>
-              {depositsData.symbol} {depositsData.isInLendingMode ? "deposits" : "borrows"} are at{" "}
-              {percentFormatter.format(depositsData.capacity)} capacity.
-            </span>
-            {!depositsData.isBankFilled && (
-              <>
-                <br />
-                <br />
-                <span>Available: {numeralFormatter(depositsData.available)}</span>
-              </>
+export const getDepositsCell = (depositsData: DepositsData) => {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            className={cn(
+              "flex items-center justify-end gap-1.5 text-white",
+              (depositsData.isReduceOnly || depositsData.isBankHigh) && "text-warning",
+              depositsData.isBankFilled && "text-destructive-foreground"
             )}
-          </>
-        )}
-        <br />
-        <br />
-        <a href="https://docs.marginfi.com">
-          <u>Learn more.</u>
-        </a>
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
-);
+          >
+            {depositsData.denominationUSD
+              ? usdFormatter.format(depositsData.bankDeposits)
+              : numeralFormatter(depositsData.bankDeposits)}
+
+            {(depositsData.isReduceOnly || depositsData.isBankHigh || depositsData.isBankFilled) && (
+              <IconAlertTriangle size={14} />
+            )}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="text-left">
+          <div>
+            {depositsData.isReduceOnly
+              ? "Reduce Only"
+              : depositsData.isBankHigh && (depositsData.isBankFilled ? "Limit Reached" : "Approaching Limit")}
+          </div>
+
+          {depositsData.isReduceOnly ? (
+            <span>{depositsData.symbol} is being discontinued.</span>
+          ) : (
+            <>
+              <span>
+                {depositsData.symbol} {depositsData.isInLendingMode ? "deposits" : "borrows"} are at{" "}
+                {percentFormatter.format(depositsData.capacity)} capacity.
+              </span>
+              {!depositsData.isBankFilled && (
+                <>
+                  <br />
+                  <br />
+                  <span>Available: {numeralFormatter(depositsData.available)}</span>
+                </>
+              )}
+            </>
+          )}
+          <br />
+          <br />
+          <a href="https://docs.marginfi.com">
+            <u>Learn more.</u>
+          </a>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
 
 export const getBankCapCell = ({ bankCap, denominationUSD }: BankCapData) => (
   <div className="flex justify-end">{denominationUSD ? usdFormatter.format(bankCap) : numeralFormatter(bankCap)}</div>
