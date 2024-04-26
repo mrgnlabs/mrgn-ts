@@ -17,25 +17,16 @@ let envSchema = z.object({
     .optional()
     .default("0.95")
     .transform((s) => parseFloat(s)),
-  MARGINFI_ACCOUNT_BLACKLIST: z
-    .string()
-    .transform((pkArrayStr) => {
-      return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
-    })
-    .optional(),
   MARGINFI_ACCOUNT_WHITELIST: z
     .string()
     .transform((pkArrayStr) => {
       return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
     })
     .optional(),
-  MARGINFI_API_KEY: z.string(),
-  MARGINFI_API_URL: z.string().url(),
   MRGN_ENV: z
     .enum(["production", "alpha", "staging", "dev", "mainnet-test-1", "dev.1"])
     .default("production")
     .transform((s) => s as Environment),
-  RESEND_API_KEY: z.string(),
   RPC_ENDPOINT: z.string().url(),
   SENTRY: z
     .string()
