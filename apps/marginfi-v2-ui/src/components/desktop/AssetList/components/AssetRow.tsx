@@ -1,6 +1,8 @@
 import React from "react";
 import { Row, flexRender } from "@tanstack/react-table";
 
+import { useUiStore } from "~/store";
+
 import { TableCell, TableRow } from "~/components/ui/table";
 
 import { getPositionCell } from "./AssetCells";
@@ -13,6 +15,15 @@ export const AssetRow = (row: Row<AssetListModel>) => {
     () => row.original.position.walletAmount || row.original.position.positionAmount,
     [row.original.position]
   );
+  const [assetListSearch] = useUiStore((state) => [state.assetListSearch]);
+
+  if (
+    assetListSearch.length > 1 &&
+    !row.original.asset.name.toLowerCase().includes(assetListSearch.toLowerCase()) &&
+    !row.original.asset.symbol.toLowerCase().includes(assetListSearch.toLowerCase())
+  ) {
+    return null;
+  }
 
   return (
     <React.Fragment key={row.id}>

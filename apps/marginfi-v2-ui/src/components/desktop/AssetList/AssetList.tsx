@@ -212,9 +212,9 @@ export const AssetsList = () => {
                 ))}
               </TableHeader>
               <TableBody>
-                {globalTable.getRowModel().rows.map((row) => (
-                  <AssetRow key={row.id} {...row} />
-                ))}
+                {globalTable.getRowModel().rows.map((row) => {
+                  return <AssetRow key={row.id} {...row} />;
+                })}
               </TableBody>
             </Table>
           </>

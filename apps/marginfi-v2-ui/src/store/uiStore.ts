@@ -50,6 +50,7 @@ interface UiState {
   isActionComplete: boolean;
   previousTxn: PreviousTxn | null;
   isActionBoxInputFocussed: boolean;
+  assetListSearch: string;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -65,6 +66,7 @@ interface UiState {
   setIsActionComplete: (isActionSuccess: boolean) => void;
   setPreviousTxn: (previousTxn: PreviousTxn) => void;
   setIsActionBoxInputFocussed: (isFocussed: boolean) => void;
+  setAssetListSearch: (search: string) => void;
 }
 
 function createUiStore() {
@@ -104,6 +106,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   isActionComplete: false,
   previousTxn: null,
   isActionBoxInputFocussed: false,
+  assetListSearch: "",
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -123,6 +126,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setIsActionComplete: (isActionComplete: boolean) => set({ isActionComplete: isActionComplete }),
   setPreviousTxn: (previousTxn: PreviousTxn) => set({ previousTxn: previousTxn }),
   setIsActionBoxInputFocussed: (isFocussed: boolean) => set({ isActionBoxInputFocussed: isFocussed }),
+  setAssetListSearch: (search: string) => set({ assetListSearch: search }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };
