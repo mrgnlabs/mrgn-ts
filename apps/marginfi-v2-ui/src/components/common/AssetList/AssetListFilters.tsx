@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useUiStore, useUserProfileStore, SORT_OPTIONS_MAP } from "~/store";
+import { useUiStore, useUserProfileStore } from "~/store";
 import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
@@ -8,9 +8,10 @@ import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import { IconFilter, IconSortAscending, IconSortDescending } from "~/components/ui/icons";
+import { IconFilter, IconSearch, IconX } from "~/components/ui/icons";
 
-import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption } from "~/types";
+import { LendingModes, PoolTypes } from "~/types";
+import { Input } from "~/components/ui/input";
 
 export const AssetListFilters = () => {
   const { connected } = useWalletContext();
@@ -22,8 +23,8 @@ export const AssetListFilters = () => {
     isFilteredUserPositions,
     setIsFilteredUserPositions,
     setIsWalletAuthDialogOpen,
-    sortOption,
-    setSortOption,
+    assetListSearch,
+    setAssetListSearch,
   ] = useUiStore((state) => [
     state.lendingMode,
     state.setLendingMode,
@@ -32,14 +33,16 @@ export const AssetListFilters = () => {
     state.isFilteredUserPositions,
     state.setIsFilteredUserPositions,
     state.setIsWalletAuthDialogOpen,
-    state.sortOption,
-    state.setSortOption,
+    state.assetListSearch,
+    state.setAssetListSearch,
   ]);
 
   const [denominationUSD, setDenominationUSD] = useUserProfileStore((state) => [
     state.denominationUSD,
     state.setDenominationUSD,
   ]);
+
+  const searchRef = React.useRef<HTMLInputElement>(null);
 
   return (
     <div className="col-span-full w-full space-y-5">
@@ -62,8 +65,28 @@ export const AssetListFilters = () => {
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
+        <div className="relative w-full text-muted-foreground">
+          <IconSearch size={18} className="absolute top-3 left-3.5" />
+          <Input
+            ref={searchRef}
+            placeholder="Search assets"
+            className="py-5 px-10 w-full rounded-full border-background-gray-hover transition-colors focus:text-primary/70"
+            value={assetListSearch}
+            onChange={(e) => {
+              setAssetListSearch(e.target.value);
+            }}
+          />
+          <IconX
+            size={18}
+            className={cn(
+              "absolute top-3 right-3.5 cursor-pointer opacity-0 transition-opacity",
+              assetListSearch.length && "opacity-100"
+            )}
+            onClick={() => setAssetListSearch("")}
+          />
+        </div>
         <div
-          className={cn("flex items-center gap-2 text-sm", !connected && "opacity-50")}
+          className={cn("flex shrink-0 items-center gap-2 text-sm", !connected && "opacity-50")}
           onClick={(e) => {
             e.stopPropagation();
             if (connected) return;
@@ -89,7 +112,7 @@ export const AssetListFilters = () => {
           </Label>
         </div>
         <div
-          className={cn("flex items-center gap-2 text-sm", !connected && "opacity-50")}
+          className={cn("flex shrink-0 items-center gap-2 text-sm", !connected && "opacity-50")}
           onClick={(e) => {
             e.stopPropagation();
             if (connected) return;
@@ -138,36 +161,6 @@ export const AssetListFilters = () => {
               </SelectContent>
             </Select>
           </div>
-          {/* <div className="space-y-2 w-full md:w-auto">
-            <Select
-              value={sortOption.value}
-              disabled={isFilteredUserPositions}
-              onValueChange={(value) => setSortOption(SORT_OPTIONS_MAP[value as SortType])}
-            >
-              <SelectTrigger className="md:w-[220px]">
-                <div className="flex items-center gap-2">
-                  {sortOption.direction === sortDirection.ASC ? (
-                    <IconSortAscending size={18} />
-                  ) : (
-                    <IconSortDescending size={18} />
-                  )}
-                  <SelectValue placeholder="Order by" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(SORT_OPTIONS_MAP).map((option) => {
-                  const opt = option as SortAssetOption;
-                  return (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      <div className="flex items-center gap-2">
-                        {lendingMode === LendingModes.LEND || !opt.borrowLabel ? opt.label : opt.borrowLabel}
-                      </div>
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div> */}
         </div>
       </div>
     </div>
