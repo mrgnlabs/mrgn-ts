@@ -51,6 +51,7 @@ export default function HomePage() {
         onClick: () => {
           setIsWalletOpen(true);
         },
+        requireAuth: true,
       },
       {
         image: <IconBackpackWallet size={22} />,
