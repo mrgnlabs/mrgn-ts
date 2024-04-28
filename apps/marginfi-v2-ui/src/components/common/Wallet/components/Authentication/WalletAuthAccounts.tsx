@@ -27,6 +27,8 @@ export const WalletAuthAccounts = () => {
     WalletAuthAccountsState.DEFAULT
   );
   const [newAccountName, setNewAccountName] = React.useState<string>("");
+  const [editingAccount, setEditingAccount] = React.useState<MarginfiAccountWrapper | null>(null);
+  const [editingAccountName, setEditingAccountName] = React.useState<string>("");
   const [initialized, marginfiAccounts, selectedAccount, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
     state.marginfiAccounts,
@@ -57,6 +59,7 @@ export const WalletAuthAccounts = () => {
     },
     [fetchMrgnlendState, selectedAccount]
   );
+
   React.useEffect(() => {
     if (!marginfiAccounts.length) return;
     setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
@@ -112,7 +115,9 @@ export const WalletAuthAccounts = () => {
                           className="p-1.5 transition-colors rounded-lg hover:bg-background-gray-light"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setWalletAuthAccountsState(WalletAuthAccountsState.ADD_ACCOUNT);
+                            setEditingAccount(account);
+                            setEditingAccountName(`Account ${index + 1}`);
+                            setWalletAuthAccountsState(WalletAuthAccountsState.EDIT_ACCOUNT);
                           }}
                         >
                           <IconPencil size={16} />
@@ -153,6 +158,40 @@ export const WalletAuthAccounts = () => {
               </div>
               <Button className="w-full" onClick={() => {}}>
                 Create account
+              </Button>
+              <Button
+                variant="link"
+                size="sm"
+                className="text-destructive-foreground h-5"
+                onClick={() => {
+                  setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+
+          {walletAuthAccountsState === WalletAuthAccountsState.EDIT_ACCOUNT && (
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <h4 className="font-medium leading-none">Edit account</h4>
+                <p className="text-sm text-muted-foreground">Edit your marginfi account.</p>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="accountName" className="font-medium">
+                  Account name
+                </Label>
+                <Input
+                  type="text"
+                  name="accountName"
+                  value={editingAccountName}
+                  autoFocus
+                  onChange={(e) => setEditingAccountName(e.target.value)}
+                />
+              </div>
+              <Button className="w-full" onClick={() => {}}>
+                Update account
               </Button>
               <Button
                 variant="link"
