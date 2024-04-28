@@ -28,6 +28,7 @@ export const WalletAuthAccounts = () => {
   );
   const [newAccountName, setNewAccountName] = React.useState<string>("");
   const [editingAccount, setEditingAccount] = React.useState<MarginfiAccountWrapper | null>(null);
+  const [accountLabels, setAccountLabels] = React.useState<Record<string, string>>({});
   const [editingAccountName, setEditingAccountName] = React.useState<string>("");
   const [initialized, marginfiAccounts, selectedAccount, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
@@ -35,12 +36,6 @@ export const WalletAuthAccounts = () => {
     state.selectedAccount,
     state.fetchMrgnlendState,
   ]);
-
-  const activeAccountLabel = React.useMemo(() => {
-    if (!selectedAccount) return null;
-    const index = marginfiAccounts.findIndex((account) => account.address.equals(selectedAccount.address));
-    return `Account ${index + 1}`;
-  }, [selectedAccount, marginfiAccounts]);
 
   const activateAccount = React.useCallback(
     async (account: MarginfiAccountWrapper, index: number) => {
@@ -60,20 +55,52 @@ export const WalletAuthAccounts = () => {
     [fetchMrgnlendState, selectedAccount]
   );
 
+  // TODO: Function to handle fetching account labels
+  // if none exists then use Account {index + 1}
+  const fetchAccountLabels = React.useCallback(async () => {
+    const fetchAccountLabel = async (account: MarginfiAccountWrapper) => {
+      const accountLabelReq = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
+
+      if (!accountLabelReq.ok) {
+        console.error("Error fetching account labels");
+        return;
+      }
+
+      const accountLabelData = await accountLabelReq.json();
+      let accountLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
+
+      setAccountLabels((prev) => ({
+        ...prev,
+        [account.address.toBase58()]: accountLabelData.data.label || accountLabel,
+      }));
+
+      console.log(account.address.toBase58(), accountLabelData.data.label || accountLabel);
+    };
+
+    marginfiAccounts.forEach(fetchAccountLabel);
+  }, [marginfiAccounts, setAccountLabels]);
+
+  // TODO: Function to handle creating new account
+  const createNewAccount = React.useCallback(() => {}, []);
+
+  // TODO: Function to handle editing account
+  const editAccount = React.useCallback(() => {}, []);
+
+  // TODO: Update this to call fetchAccounLabels
   React.useEffect(() => {
-    if (!marginfiAccounts.length) return;
-    setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
-  }, [marginfiAccounts.length]);
+    if (!initialized) return;
+    fetchAccountLabels();
+  }, [initialized, fetchAccountLabels]);
 
   if (!initialized) return null;
 
   return (
     <div>
       <Popover>
-        {activeAccountLabel && (
+        {selectedAccount && accountLabels[selectedAccount.address.toBase58()] && (
           <PopoverTrigger asChild>
             <Button variant="secondary" size="sm" className="text-sm">
-              {activeAccountLabel} <IconChevronDown size={16} />
+              {accountLabels[selectedAccount.address.toBase58()]} <IconChevronDown size={16} />
             </Button>
           </PopoverTrigger>
         )}
@@ -101,7 +128,7 @@ export const WalletAuthAccounts = () => {
                         activateAccount(account, index);
                       }}
                     >
-                      <Label htmlFor="width">Account {index + 1}</Label>
+                      <Label htmlFor="width">{accountLabels[account.address.toBase58()]}</Label>
                       <span className="text-muted-foreground text-xs">
                         {isActivatingAccountDelay === index
                           ? "Switching..."
@@ -116,7 +143,7 @@ export const WalletAuthAccounts = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             setEditingAccount(account);
-                            setEditingAccountName(`Account ${index + 1}`);
+                            setEditingAccountName(accountLabels[account.address.toBase58()]);
                             setWalletAuthAccountsState(WalletAuthAccountsState.EDIT_ACCOUNT);
                           }}
                         >
@@ -139,7 +166,13 @@ export const WalletAuthAccounts = () => {
           )}
 
           {walletAuthAccountsState === WalletAuthAccountsState.ADD_ACCOUNT && (
-            <div className="grid gap-4">
+            <form
+              className="grid gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                createNewAccount();
+              }}
+            >
               <div className="space-y-2">
                 <h4 className="font-medium leading-none">Your accounts</h4>
                 <p className="text-sm text-muted-foreground">Create a new marginfi account.</p>
@@ -156,24 +189,31 @@ export const WalletAuthAccounts = () => {
                   onChange={(e) => setNewAccountName(e.target.value)}
                 />
               </div>
-              <Button className="w-full" onClick={() => {}}>
+              <Button type="submit" className="w-full" onClick={() => {}}>
                 Create account
               </Button>
               <Button
                 variant="link"
                 size="sm"
                 className="text-destructive-foreground h-5"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
                 }}
               >
                 Cancel
               </Button>
-            </div>
+            </form>
           )}
 
           {walletAuthAccountsState === WalletAuthAccountsState.EDIT_ACCOUNT && (
-            <div className="grid gap-4">
+            <form
+              className="grid gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                editAccount();
+              }}
+            >
               <div className="space-y-2">
                 <h4 className="font-medium leading-none">Edit account</h4>
                 <p className="text-sm text-muted-foreground">Edit your marginfi account.</p>
@@ -190,20 +230,21 @@ export const WalletAuthAccounts = () => {
                   onChange={(e) => setEditingAccountName(e.target.value)}
                 />
               </div>
-              <Button className="w-full" onClick={() => {}}>
+              <Button type="submit" className="w-full" onClick={() => {}}>
                 Update account
               </Button>
               <Button
                 variant="link"
                 size="sm"
                 className="text-destructive-foreground h-5"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
                 }}
               >
                 Cancel
               </Button>
-            </div>
+            </form>
           )}
         </PopoverContent>
       </Popover>

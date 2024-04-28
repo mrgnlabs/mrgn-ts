@@ -28,8 +28,7 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: Ne
       const docRef = accountLabelsCollection.doc(account);
       await docRef.set(
         {
-          account_id: account,
-          account_label: label,
+          label: account,
           last_updated: admin.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
@@ -52,7 +51,7 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: Ne
       const doc = await docRef.get();
 
       if (!doc.exists) {
-        return res.status(STATUS_BAD_REQUEST).json({ success: false, message: "Account not found" });
+        return res.status(STATUS_OK).json({ success: true, data: {} });
       }
 
       return res.status(STATUS_OK).json({ success: true, data: doc.data() });
