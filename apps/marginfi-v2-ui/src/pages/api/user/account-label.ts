@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest<LoginRequest>, res: Ne
       const docRef = accountLabelsCollection.doc(account);
       await docRef.set(
         {
-          label: account,
+          label: label,
           last_updated: admin.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }

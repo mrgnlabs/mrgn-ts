@@ -7,7 +7,7 @@ import { useMrgnlendStore } from "~/store";
 import { cn } from "~/utils/themeUtils";
 
 import { Button } from "~/components/ui/button";
-import { IconChevronDown, IconUserPlus, IconPencil, IconCheck } from "~/components/ui/icons";
+import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle } from "~/components/ui/icons";
 import { Label } from "~/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
@@ -30,6 +30,7 @@ export const WalletAuthAccounts = () => {
   const [editingAccount, setEditingAccount] = React.useState<MarginfiAccountWrapper | null>(null);
   const [accountLabels, setAccountLabels] = React.useState<Record<string, string>>({});
   const [editingAccountName, setEditingAccountName] = React.useState<string>("");
+  const [editAccountError, setEditAccountError] = React.useState<string>("");
   const [initialized, marginfiAccounts, selectedAccount, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
     state.marginfiAccounts,
@@ -80,11 +81,41 @@ export const WalletAuthAccounts = () => {
     marginfiAccounts.forEach(fetchAccountLabel);
   }, [marginfiAccounts, setAccountLabels]);
 
+  // TODO: Function to handle editing account
+  const editAccount = React.useCallback(async () => {
+    if (
+      !editingAccount ||
+      !editingAccountName ||
+      editingAccountName === accountLabels[editingAccount.address.toBase58()]
+    )
+      return;
+    const updateAccountLabelReq = await fetch(`/api/user/account-label`, {
+      method: "POST",
+      body: JSON.stringify({
+        account: editingAccount?.address.toBase58(),
+        label: editingAccountName,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!updateAccountLabelReq.ok) {
+      console.error("Error updating account label");
+      setEditAccountError("Error updating account label");
+      return;
+    }
+
+    setEditingAccount(null);
+    setEditingAccountName("");
+    setEditAccountError("");
+    fetchAccountLabels();
+
+    setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
+  }, [editingAccount, editingAccountName, fetchAccountLabels, accountLabels]);
+
   // TODO: Function to handle creating new account
   const createNewAccount = React.useCallback(() => {}, []);
-
-  // TODO: Function to handle editing account
-  const editAccount = React.useCallback(() => {}, []);
 
   // TODO: Update this to call fetchAccounLabels
   React.useEffect(() => {
@@ -215,9 +246,14 @@ export const WalletAuthAccounts = () => {
               }}
             >
               <div className="space-y-2">
-                <h4 className="font-medium leading-none">Edit account</h4>
+                <h4 className="font-medium leading-none">Your accounts</h4>
                 <p className="text-sm text-muted-foreground">Edit your marginfi account.</p>
               </div>
+              {editAccountError && (
+                <p className="flex items-center gap-2 bg-destructive p-2 text-destructive-foreground text-xs rounded-lg">
+                  <IconAlertTriangle size={16} /> {editAccountError}
+                </p>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="accountName" className="font-medium">
                   Account name
