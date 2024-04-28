@@ -216,7 +216,7 @@ export const Wallet = () => {
                 <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
 
                 <div className="mx-auto">
-                  {marginfiAccounts.length > 1 ? (
+                  {/* {marginfiAccounts.length > 1 ? (
                     <WalletAuthAccounts />
                   ) : (
                     <CopyToClipboard
@@ -240,7 +240,8 @@ export const Wallet = () => {
                         )}
                       </Button>
                     </CopyToClipboard>
-                  )}
+                  )} */}
+                  <WalletAuthAccounts />
                 </div>
                 <div className="absolute right-2 flex items-center md:gap-1">
                   {web3AuthConncected && (

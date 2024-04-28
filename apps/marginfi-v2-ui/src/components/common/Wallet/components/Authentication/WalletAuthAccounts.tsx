@@ -65,7 +65,7 @@ export const WalletAuthAccounts = () => {
     setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
   }, [marginfiAccounts.length]);
 
-  if (!initialized || !marginfiAccounts.length) return null;
+  if (!initialized) return null;
 
   return (
     <div>
