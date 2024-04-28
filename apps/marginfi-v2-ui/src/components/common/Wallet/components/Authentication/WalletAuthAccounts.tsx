@@ -26,7 +26,7 @@ export const WalletAuthAccounts = () => {
   const [walletAuthAccountsState, setWalletAuthAccountsState] = React.useState<WalletAuthAccountsState>(
     WalletAuthAccountsState.DEFAULT
   );
-  const [newAccountName, setNewAccountName] = React.useState<string>("");
+  const [newAccountName, setNewAccountName] = React.useState<string>();
   const [editingAccount, setEditingAccount] = React.useState<MarginfiAccountWrapper | null>(null);
   const [accountLabels, setAccountLabels] = React.useState<Record<string, string>>({});
   const [editingAccountName, setEditingAccountName] = React.useState<string>("");
@@ -79,6 +79,7 @@ export const WalletAuthAccounts = () => {
     };
 
     marginfiAccounts.forEach(fetchAccountLabel);
+    setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
   }, [marginfiAccounts, setAccountLabels]);
 
   // TODO: Function to handle editing account
@@ -115,7 +116,9 @@ export const WalletAuthAccounts = () => {
   }, [editingAccount, editingAccountName, fetchAccountLabels, accountLabels]);
 
   // TODO: Function to handle creating new account
-  const createNewAccount = React.useCallback(() => {}, []);
+  // - Step 1 create new marginfi account owned by current user
+  // - Step 2 add new account label in firestore with new account address
+  const createNewAccount = React.useCallback(async () => {}, []);
 
   // TODO: Update this to call fetchAccounLabels
   React.useEffect(() => {
