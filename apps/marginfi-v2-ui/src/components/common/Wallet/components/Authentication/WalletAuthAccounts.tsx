@@ -82,7 +82,6 @@ export const WalletAuthAccounts = () => {
     setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
   }, [marginfiAccounts, setAccountLabels]);
 
-  // TODO: Function to handle editing account
   const editAccount = React.useCallback(async () => {
     if (
       !editingAccount ||
@@ -118,9 +117,40 @@ export const WalletAuthAccounts = () => {
   // TODO: Function to handle creating new account
   // - Step 1 create new marginfi account owned by current user
   // - Step 2 add new account label in firestore with new account address
-  const createNewAccount = React.useCallback(async () => {}, []);
+  const createNewAccount = React.useCallback(async () => {
+    if (!newAccountName) return;
 
-  // TODO: Update this to call fetchAccounLabels
+    const multiStepToast = new MultiStepToastHandle("Create new account", [{ label: "Creating account" }]);
+    multiStepToast.start();
+
+    let marginfiAccount: MarginfiAccountWrapper;
+    try {
+      const squadsOptions = await getMaybeSquadsOptions(walletContextState);
+      marginfiAccount = await mfiClient.createMarginfiAccount(undefined, squadsOptions);
+
+      clearAccountCache(mfiClient.provider.publicKey);
+
+      multiStepToast.setSuccessAndNext();
+    } catch (error: any) {
+      multiStepToast.setFailed("Error creating account");
+      console.log(`Error creating account`, error);
+      return;
+    }
+
+    const account = "";
+
+    const createAccountReq = await fetch(`/api/user/account`, {
+      method: "POST",
+      body: JSON.stringify({
+        account: marginfiAccount.address.toBase58(),
+        label: newAccountName,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }, [newAccountName]);
+
   React.useEffect(() => {
     if (!initialized) return;
     fetchAccountLabels();
