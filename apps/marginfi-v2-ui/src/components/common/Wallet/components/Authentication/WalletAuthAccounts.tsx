@@ -83,31 +83,44 @@ export const WalletAuthAccounts = () => {
                 <p className="text-sm text-muted-foreground">Select your marginfi account below.</p>
               </div>
               <div className={cn("grid gap-2", isActivatingAccount !== null && "pointer-events-none animate-pulsate")}>
-                {marginfiAccounts.map((account, index) => (
-                  <Button key={index} variant="ghost" className="justify-start gap-4 px-1 hover:bg-transparent">
-                    <Label htmlFor="width">Account {index + 1}</Label>
-                    <span className="text-muted-foreground text-xs">
-                      {isActivatingAccountDelay === index ? "Switching..." : shortenAddress(account.address.toBase58())}
-                    </span>
-                    {isActivatingAccount === null &&
-                      selectedAccount &&
-                      selectedAccount.address.equals(account.address) && (
+                {marginfiAccounts.map((account, index) => {
+                  const isActiveAccount = selectedAccount && selectedAccount.address.equals(account.address);
+                  return (
+                    <Button
+                      key={index}
+                      variant="ghost"
+                      className={cn(
+                        "justify-start gap-4 pr-1 pl-2",
+                        isActiveAccount && "cursor-default hover:bg-transparent"
+                      )}
+                      onClick={() => {
+                        if (isActiveAccount) return;
+                        activateAccount(account, index);
+                      }}
+                    >
+                      <Label htmlFor="width">Account {index + 1}</Label>
+                      <span className="text-muted-foreground text-xs">
+                        {isActivatingAccountDelay === index
+                          ? "Switching..."
+                          : shortenAddress(account.address.toBase58())}
+                      </span>
+                      {isActivatingAccount === null && isActiveAccount && (
                         <Badge className="text-xs p-1 h-5">active</Badge>
                       )}
-                    <div className="flex items-center ml-auto">
-                      <button className="p-2 transition-colors rounded-lg hover:bg-accent">
-                        <IconPencil size={16} />
-                      </button>
-                      <button
-                        className="p-2 transition-colors rounded-lg hover:bg-accent disabled:cursor-default"
-                        disabled={Boolean(selectedAccount && selectedAccount.address.equals(account.address))}
-                        onClick={() => activateAccount(account, index)}
-                      >
-                        <IconCheck size={16} />
-                      </button>
-                    </div>
-                  </Button>
-                ))}
+                      <div className="flex items-center ml-auto">
+                        <button
+                          className="p-1.5 transition-colors rounded-lg hover:bg-background-gray-light"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setWalletAuthAccountsState(WalletAuthAccountsState.ADD_ACCOUNT);
+                          }}
+                        >
+                          <IconPencil size={16} />
+                        </button>
+                      </div>
+                    </Button>
+                  );
+                })}
               </div>
               <Button
                 variant="outline"
