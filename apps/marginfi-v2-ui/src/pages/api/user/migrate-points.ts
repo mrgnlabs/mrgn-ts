@@ -30,9 +30,9 @@ export default async function handler(req: NextApiRequest<MigrationRequest>, res
   let signer;
   let payload;
   try {
-    const loginData = validateAndUnpackMigrateData(signedDataRaw, method);
-    signer = loginData.signer.toBase58();
-    payload = loginData.payload;
+    const migrateData = validateAndUnpackMigrateData(signedDataRaw, method);
+    signer = migrateData.signer.toBase58();
+    payload = migrateData.payload;
   } catch (error: any) {
     console.log(error);
     Sentry.captureException(error);

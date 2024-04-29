@@ -32,28 +32,6 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
     walletAddress,
   });
 
-  /* signing logic
-   try {
-    const signupData = validateAndUnpackSignupData(signedAuthDataRaw, method);
-    signer = signupData.signer.toBase58();
-    payload = signupData.payload;
-  } catch (error: any) {
-    Sentry.captureException(error);
-    let status;
-    switch (error.message) {
-      case "Invalid signup tx":
-      case "Invalid signup payload":
-        status = STATUS_BAD_REQUEST;
-        break;
-      case "Invalid signature":
-        status = STATUS_UNAUTHORIZED;
-        break;
-      default:
-        status = STATUS_INTERNAL_ERROR;
-    }
-    return res.status(status).json({ error: error.message });
-  }*/
-
   try {
     const user = await getFirebaseUserByWallet(walletAddress);
     if (user) {
