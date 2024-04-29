@@ -1,13 +1,17 @@
 import React from "react";
 
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore } from "~/store";
 
 import { cn } from "~/utils/themeUtils";
+import { MultiStepToastHandle } from "~/utils/toastUtils";
+import { useWalletContext } from "~/hooks/useWalletContext";
+import { getMaybeSquadsOptions } from "~/utils/mrgnActions";
 
 import { Button } from "~/components/ui/button";
-import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle } from "~/components/ui/icons";
+import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle, IconLoader } from "~/components/ui/icons";
 import { Label } from "~/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
@@ -21,6 +25,7 @@ enum WalletAuthAccountsState {
 }
 
 export const WalletAuthAccounts = () => {
+  const { walletContextState } = useWalletContext();
   const [isActivatingAccount, setIsActivatingAccount] = React.useState<number | null>(null);
   const [isActivatingAccountDelay, setIsActivatingAccountDelay] = React.useState<number | null>(null);
   const [walletAuthAccountsState, setWalletAuthAccountsState] = React.useState<WalletAuthAccountsState>(
@@ -31,8 +36,11 @@ export const WalletAuthAccounts = () => {
   const [accountLabels, setAccountLabels] = React.useState<Record<string, string>>({});
   const [editingAccountName, setEditingAccountName] = React.useState<string>("");
   const [editAccountError, setEditAccountError] = React.useState<string>("");
-  const [initialized, marginfiAccounts, selectedAccount, fetchMrgnlendState] = useMrgnlendStore((state) => [
+  const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
+  const newAccountNameRef = React.useRef<HTMLInputElement>(null);
+  const [initialized, mfiClient, marginfiAccounts, selectedAccount, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
+    state.marginfiClient,
     state.marginfiAccounts,
     state.selectedAccount,
     state.fetchMrgnlendState,
@@ -58,29 +66,35 @@ export const WalletAuthAccounts = () => {
 
   // TODO: Function to handle fetching account labels
   // if none exists then use Account {index + 1}
-  const fetchAccountLabels = React.useCallback(async () => {
-    const fetchAccountLabel = async (account: MarginfiAccountWrapper) => {
-      const accountLabelReq = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
+  const fetchAccountLabels = React.useCallback(
+    async (resetNewAccountName = true) => {
+      const fetchAccountLabel = async (account: MarginfiAccountWrapper) => {
+        const accountLabelReq = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
 
-      if (!accountLabelReq.ok) {
-        console.error("Error fetching account labels");
-        return;
+        if (!accountLabelReq.ok) {
+          console.error("Error fetching account labels");
+          return;
+        }
+
+        const accountLabelData = await accountLabelReq.json();
+        let accountLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
+
+        setAccountLabels((prev) => ({
+          ...prev,
+          [account.address.toBase58()]: accountLabelData.data.label || accountLabel,
+        }));
+
+        console.log(account.address.toBase58(), accountLabelData.data.label || accountLabel);
+      };
+      console.log("fetchAccountLabels", marginfiAccounts.length);
+      marginfiAccounts.forEach(fetchAccountLabel);
+
+      if (resetNewAccountName) {
+        setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
       }
-
-      const accountLabelData = await accountLabelReq.json();
-      let accountLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
-
-      setAccountLabels((prev) => ({
-        ...prev,
-        [account.address.toBase58()]: accountLabelData.data.label || accountLabel,
-      }));
-
-      console.log(account.address.toBase58(), accountLabelData.data.label || accountLabel);
-    };
-
-    marginfiAccounts.forEach(fetchAccountLabel);
-    setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
-  }, [marginfiAccounts, setAccountLabels]);
+    },
+    [marginfiAccounts, setAccountLabels]
+  );
 
   const editAccount = React.useCallback(async () => {
     if (
@@ -118,38 +132,53 @@ export const WalletAuthAccounts = () => {
   // - Step 1 create new marginfi account owned by current user
   // - Step 2 add new account label in firestore with new account address
   const createNewAccount = React.useCallback(async () => {
-    if (!newAccountName) return;
+    if (!newAccountName || !mfiClient) return;
 
-    const multiStepToast = new MultiStepToastHandle("Create new account", [{ label: "Creating account" }]);
+    newAccountNameRef.current?.blur();
+
+    const multiStepToast = new MultiStepToastHandle("Create account", [
+      { label: "Creating account" },
+      { label: "Creating label" },
+    ]);
     multiStepToast.start();
+    setIsSubmitting(true);
 
-    let marginfiAccount: MarginfiAccountWrapper;
-    try {
-      const squadsOptions = await getMaybeSquadsOptions(walletContextState);
-      marginfiAccount = await mfiClient.createMarginfiAccount(undefined, squadsOptions);
+    const squadsOptions = await getMaybeSquadsOptions(walletContextState);
+    const mfiAccount = await mfiClient.createMarginfiAccount(undefined, squadsOptions);
 
-      clearAccountCache(mfiClient.provider.publicKey);
-
-      multiStepToast.setSuccessAndNext();
-    } catch (error: any) {
-      multiStepToast.setFailed("Error creating account");
-      console.log(`Error creating account`, error);
+    if (!mfiAccount) {
+      multiStepToast.setFailed("Error creating new account");
+      setIsSubmitting(false);
       return;
     }
 
-    const account = "";
+    clearAccountCache(mfiClient.provider.publicKey);
+    multiStepToast.setSuccessAndNext();
 
-    const createAccountReq = await fetch(`/api/user/account`, {
+    const createAccountReq = await fetch(`/api/user/account-label`, {
       method: "POST",
       body: JSON.stringify({
-        account: marginfiAccount.address.toBase58(),
+        account: mfiAccount.address.toBase58(),
         label: newAccountName,
       }),
       headers: {
         "Content-Type": "application/json",
       },
     });
-  }, [newAccountName]);
+
+    if (!createAccountReq.ok) {
+      multiStepToast.setFailed("Error creating account label");
+      setIsSubmitting(false);
+      return;
+    }
+
+    multiStepToast.setSuccessAndNext();
+    setIsSubmitting(false);
+    setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
+    await fetchAccountLabels(false);
+    activateAccount(mfiAccount, marginfiAccounts.length - 1);
+    setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
+  }, [newAccountName, mfiClient, walletContextState, fetchAccountLabels, marginfiAccounts, activateAccount]);
 
   React.useEffect(() => {
     if (!initialized) return;
@@ -231,7 +260,7 @@ export const WalletAuthAccounts = () => {
 
           {walletAuthAccountsState === WalletAuthAccountsState.ADD_ACCOUNT && (
             <form
-              className="grid gap-4"
+              className={cn("grid gap-4", isSubmitting && "pointer-events-none animate-pulsate")}
               onSubmit={(e) => {
                 e.preventDefault();
                 createNewAccount();
@@ -246,6 +275,7 @@ export const WalletAuthAccounts = () => {
                   Account name
                 </Label>
                 <Input
+                  ref={newAccountNameRef}
                   type="text"
                   name="accountName"
                   value={newAccountName}
@@ -253,8 +283,14 @@ export const WalletAuthAccounts = () => {
                   onChange={(e) => setNewAccountName(e.target.value)}
                 />
               </div>
-              <Button type="submit" className="w-full" onClick={() => {}}>
-                Create account
+              <Button type="submit" className="w-full" onClick={() => {}} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <IconLoader size={16} /> Creating account...
+                  </>
+                ) : (
+                  <>Create account</>
+                )}
               </Button>
               <Button
                 variant="link"

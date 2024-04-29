@@ -182,7 +182,6 @@ export async function executeLstAction({
 // ------------------------------------------------------------------//
 // Individual action flows - non-throwing - for use in UI components //
 // ------------------------------------------------------------------//
-
 async function createAccountAndDeposit({
   mfiClient,
   bank,
@@ -693,7 +692,7 @@ export async function mintLstToken({
 // Helpers //
 // ------------------------------------------------------------------//
 
-async function getMaybeSquadsOptions(walletContextState?: WalletContextState | WalletContextStateOverride) {
+export async function getMaybeSquadsOptions(walletContextState?: WalletContextState | WalletContextStateOverride) {
   // If the connected wallet is SquadsX, use the ephemeral signer address provided by the wallet to create the marginfi account.
   const adapter = walletContextState?.wallet?.adapter;
   const ephemeralSignerAddress =
