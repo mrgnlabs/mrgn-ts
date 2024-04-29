@@ -32,6 +32,11 @@ interface UserData {
   id: string;
 }
 
+const LoginPayloadStruct = object({
+  uuid: string(),
+});
+type LoginPayload = Infer<typeof LoginPayloadStruct>;
+
 const SignupPayloadStruct = object({
   uuid: string(),
   referralCode: optional(string()),
@@ -158,11 +163,12 @@ export {
   login,
   migratePoints,
   setAccountLabel,
+  LoginPayloadStruct,
   SignupPayloadStruct,
   MigratePayloadStruct,
   AccountLabelPayloadStruct,
 };
-export type { UserData, SignupPayload, MigratePayload, AccountLabelPayload };
+export type { UserData, LoginPayload, SignupPayload, MigratePayload, AccountLabelPayload };
 
 async function signupWithAddress(walletAddress: string, payload: SignupPayload, walletId?: string) {
   const response = await fetch("/api/user/signup", {
