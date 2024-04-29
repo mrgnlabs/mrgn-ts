@@ -1,13 +1,14 @@
 import React from "react";
 
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
+import { clearAccountCache, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore } from "~/store";
 
 import { cn } from "~/utils/themeUtils";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useConnection } from "~/hooks/useConnection";
 import { getMaybeSquadsOptions } from "~/utils/mrgnActions";
 
 import { Button } from "~/components/ui/button";
@@ -17,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
+import { Checkbox } from "~/components/ui/checkbox";
 
 enum WalletAuthAccountsState {
   DEFAULT = "DEFAULT",
@@ -25,7 +27,8 @@ enum WalletAuthAccountsState {
 }
 
 export const WalletAuthAccounts = () => {
-  const { walletContextState } = useWalletContext();
+  const { wallet, walletContextState } = useWalletContext();
+  const { connection } = useConnection();
   const [isActivatingAccount, setIsActivatingAccount] = React.useState<number | null>(null);
   const [isActivatingAccountDelay, setIsActivatingAccountDelay] = React.useState<number | null>(null);
   const [walletAuthAccountsState, setWalletAuthAccountsState] = React.useState<WalletAuthAccountsState>(
@@ -37,7 +40,10 @@ export const WalletAuthAccounts = () => {
   const [editingAccountName, setEditingAccountName] = React.useState<string>("");
   const [editAccountError, setEditAccountError] = React.useState<string>("");
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
+  const [useAuthTxn, setUseAuthTxn] = React.useState(false);
   const newAccountNameRef = React.useRef<HTMLInputElement>(null);
+  const editAccountNameRef = React.useRef<HTMLInputElement>(null);
+
   const [initialized, mfiClient, marginfiAccounts, selectedAccount, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.initialized,
     state.marginfiClient,
@@ -92,44 +98,53 @@ export const WalletAuthAccounts = () => {
       !editingAccount ||
       !editingAccountName ||
       editingAccountName === accountLabels[editingAccount.address.toBase58()]
-    )
-      return;
-    const updateAccountLabelReq = await fetch(`/api/user/account-label`, {
-      method: "POST",
-      body: JSON.stringify({
-        account: editingAccount?.address.toBase58(),
-        label: editingAccountName,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!updateAccountLabelReq.ok) {
-      console.error("Error updating account label");
-      setEditAccountError("Error updating account label");
+    ) {
       return;
     }
 
+    setIsSubmitting(true);
+
+    editAccountNameRef.current?.blur();
+
+    const multiStepToast = new MultiStepToastHandle("Edit account", [{ label: "Updating account label" }]);
+    multiStepToast.start();
+
+    const blockhashInfo = await connection.getLatestBlockhash();
+
+    const res = await firebaseApi.setAccountLabel(
+      useAuthTxn ? "tx" : "memo",
+      blockhashInfo,
+      wallet,
+      editingAccount.address.toBase58(),
+      editingAccountName
+    );
+
+    if (!res) {
+      multiStepToast.setFailed("Error updating account label");
+      setIsSubmitting(false);
+      return;
+    }
+
+    multiStepToast.setSuccessAndNext();
+    setIsSubmitting(false);
     setEditingAccount(null);
     setEditingAccountName("");
     setEditAccountError("");
     fetchAccountLabels();
 
     setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
-  }, [editingAccount, editingAccountName, fetchAccountLabels, accountLabels]);
+  }, [editingAccount, editingAccountName, fetchAccountLabels, accountLabels, connection, wallet, useAuthTxn]);
 
-  // TODO: Function to handle creating new account
-  // - Step 1 create new marginfi account owned by current user
-  // - Step 2 add new account label in firestore with new account address
   const createNewAccount = React.useCallback(async () => {
-    if (!newAccountName || !mfiClient) return;
+    if (!newAccountName || !mfiClient || !wallet.publicKey || newAccountName.length > 20) {
+      return;
+    }
 
     newAccountNameRef.current?.blur();
 
-    const multiStepToast = new MultiStepToastHandle("Create account", [
+    const multiStepToast = new MultiStepToastHandle("Create new account", [
       { label: "Creating account" },
-      { label: "Creating label" },
+      { label: "Updating account label" },
     ]);
     multiStepToast.start();
     setIsSubmitting(true);
@@ -146,18 +161,17 @@ export const WalletAuthAccounts = () => {
     clearAccountCache(mfiClient.provider.publicKey);
     multiStepToast.setSuccessAndNext();
 
-    const createAccountReq = await fetch(`/api/user/account-label`, {
-      method: "POST",
-      body: JSON.stringify({
-        account: mfiAccount.address.toBase58(),
-        label: newAccountName,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const blockhashInfo = await connection.getLatestBlockhash();
 
-    if (!createAccountReq.ok) {
+    const res = await firebaseApi.setAccountLabel(
+      useAuthTxn ? "tx" : "memo",
+      blockhashInfo,
+      wallet,
+      mfiAccount.address.toBase58(),
+      newAccountName
+    );
+
+    if (!res) {
       multiStepToast.setFailed("Error creating account label");
       setIsSubmitting(false);
       return;
@@ -169,7 +183,17 @@ export const WalletAuthAccounts = () => {
     await fetchAccountLabels();
     activateAccount(mfiAccount, marginfiAccounts.length - 1);
     setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
-  }, [newAccountName, mfiClient, walletContextState, fetchAccountLabels, marginfiAccounts, activateAccount]);
+  }, [
+    newAccountName,
+    mfiClient,
+    walletContextState,
+    fetchAccountLabels,
+    marginfiAccounts,
+    activateAccount,
+    connection,
+    wallet,
+    useAuthTxn,
+  ]);
 
   React.useEffect(() => {
     if (!initialized) return;
@@ -276,9 +300,17 @@ export const WalletAuthAccounts = () => {
                   name="accountName"
                   value={newAccountName}
                   autoFocus
-                  onChange={(e) => setNewAccountName(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value.length > 20) return;
+                    setNewAccountName(e.target.value);
+                  }}
+                  maxLength={20}
                 />
               </div>
+              <Label className="flex items-center gap-2 text-sm">
+                <Checkbox checked={useAuthTxn} onCheckedChange={(checked) => setUseAuthTxn(checked as boolean)} />
+                Using Ledger?
+              </Label>
               <Button type="submit" className="w-full" onClick={() => {}} disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
@@ -288,23 +320,25 @@ export const WalletAuthAccounts = () => {
                   <>Create account</>
                 )}
               </Button>
-              <Button
-                variant="link"
-                size="sm"
-                className="text-destructive-foreground h-5"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
-                }}
-              >
-                Cancel
-              </Button>
+              {!isSubmitting && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-destructive-foreground h-5"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
+                  }}
+                >
+                  Cancel
+                </Button>
+              )}
             </form>
           )}
 
           {walletAuthAccountsState === WalletAuthAccountsState.EDIT_ACCOUNT && (
             <form
-              className="grid gap-4"
+              className={cn("grid gap-4", isSubmitting && "pointer-events-none animate-pulsate")}
               onSubmit={(e) => {
                 e.preventDefault();
                 editAccount();
@@ -324,27 +358,42 @@ export const WalletAuthAccounts = () => {
                   Account name
                 </Label>
                 <Input
+                  ref={editAccountNameRef}
                   type="text"
                   name="accountName"
                   value={editingAccountName}
-                  autoFocus
                   onChange={(e) => setEditingAccountName(e.target.value)}
+                  autoFocus
+                  maxLength={20}
                 />
               </div>
-              <Button type="submit" className="w-full" onClick={() => {}}>
-                Update account
+              <Label className="flex items-center gap-2 text-sm">
+                <Checkbox checked={useAuthTxn} onCheckedChange={(checked) => setUseAuthTxn(checked as boolean)} />
+                Using Ledger?
+              </Label>
+              <Button type="submit" className="w-full">
+                {isSubmitting ? (
+                  <>
+                    <IconLoader size={16} /> Updating account...
+                  </>
+                ) : (
+                  <>Update account</>
+                )}
               </Button>
-              <Button
-                variant="link"
-                size="sm"
-                className="text-destructive-foreground h-5"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
-                }}
-              >
-                Cancel
-              </Button>
+
+              {!isSubmitting && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-destructive-foreground h-5"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
+                  }}
+                >
+                  Cancel
+                </Button>
+              )}
             </form>
           )}
         </PopoverContent>
