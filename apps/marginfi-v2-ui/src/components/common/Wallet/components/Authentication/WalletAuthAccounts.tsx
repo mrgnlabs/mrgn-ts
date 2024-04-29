@@ -89,7 +89,7 @@ export const WalletAuthAccounts = () => {
 
       console.log(account.address.toBase58(), accountLabelData.data.label || accountLabel);
     };
-    console.log("fetchAccountLabels", marginfiAccounts.length);
+
     marginfiAccounts.forEach(fetchAccountLabel);
   }, [marginfiAccounts, setAccountLabels]);
 
