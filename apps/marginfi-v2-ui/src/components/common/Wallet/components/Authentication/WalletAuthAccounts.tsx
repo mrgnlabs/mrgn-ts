@@ -64,37 +64,28 @@ export const WalletAuthAccounts = () => {
     [fetchMrgnlendState, selectedAccount]
   );
 
-  // TODO: Function to handle fetching account labels
-  // if none exists then use Account {index + 1}
-  const fetchAccountLabels = React.useCallback(
-    async (resetNewAccountName = true) => {
-      const fetchAccountLabel = async (account: MarginfiAccountWrapper) => {
-        const accountLabelReq = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
+  const fetchAccountLabels = React.useCallback(async () => {
+    const fetchAccountLabel = async (account: MarginfiAccountWrapper) => {
+      const accountLabelReq = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
 
-        if (!accountLabelReq.ok) {
-          console.error("Error fetching account labels");
-          return;
-        }
-
-        const accountLabelData = await accountLabelReq.json();
-        let accountLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
-
-        setAccountLabels((prev) => ({
-          ...prev,
-          [account.address.toBase58()]: accountLabelData.data.label || accountLabel,
-        }));
-
-        console.log(account.address.toBase58(), accountLabelData.data.label || accountLabel);
-      };
-      console.log("fetchAccountLabels", marginfiAccounts.length);
-      marginfiAccounts.forEach(fetchAccountLabel);
-
-      if (resetNewAccountName) {
-        setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
+      if (!accountLabelReq.ok) {
+        console.error("Error fetching account labels");
+        return;
       }
-    },
-    [marginfiAccounts, setAccountLabels]
-  );
+
+      const accountLabelData = await accountLabelReq.json();
+      let accountLabel = `Account ${marginfiAccounts.findIndex((acc) => acc.address.equals(account.address)) + 1}`;
+
+      setAccountLabels((prev) => ({
+        ...prev,
+        [account.address.toBase58()]: accountLabelData.data.label || accountLabel,
+      }));
+
+      console.log(account.address.toBase58(), accountLabelData.data.label || accountLabel);
+    };
+    console.log("fetchAccountLabels", marginfiAccounts.length);
+    marginfiAccounts.forEach(fetchAccountLabel);
+  }, [marginfiAccounts, setAccountLabels]);
 
   const editAccount = React.useCallback(async () => {
     if (
@@ -175,7 +166,7 @@ export const WalletAuthAccounts = () => {
     multiStepToast.setSuccessAndNext();
     setIsSubmitting(false);
     setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
-    await fetchAccountLabels(false);
+    await fetchAccountLabels();
     activateAccount(mfiAccount, marginfiAccounts.length - 1);
     setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
   }, [newAccountName, mfiClient, walletContextState, fetchAccountLabels, marginfiAccounts, activateAccount]);
@@ -250,7 +241,12 @@ export const WalletAuthAccounts = () => {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => setWalletAuthAccountsState(WalletAuthAccountsState.ADD_ACCOUNT)}
+                onClick={() => {
+                  if (!newAccountName) {
+                    setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
+                  }
+                  setWalletAuthAccountsState(WalletAuthAccountsState.ADD_ACCOUNT);
+                }}
               >
                 <IconUserPlus size={16} className="mr-2" />
                 Add account
