@@ -19,7 +19,7 @@ import {
 import { initFirebaseIfNeeded } from "./utils";
 import { NextApiRequest } from "../utils";
 
-export type LoginRequest = {
+export type AccountLabelRequest = {
   method: SigningMethod;
   signedDataRaw: string;
   account: string;
@@ -28,7 +28,7 @@ export type LoginRequest = {
 
 initFirebaseIfNeeded();
 
-export default async function handler(req: NextApiRequest<LoginRequest>, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest<AccountLabelRequest>, res: NextApiResponse) {
   if (req.method === "POST") {
     const { method, signedDataRaw, account, label } = req.body;
 
