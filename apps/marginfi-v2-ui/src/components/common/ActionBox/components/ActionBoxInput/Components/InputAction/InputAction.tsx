@@ -49,6 +49,8 @@ export const InputAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) 
     const formatAmount = (amount?: number, symbol?: string) =>
       amount !== undefined ? `${clampedNumeralFormatter(amount)} ${symbol}` : "-";
 
+    console.log({ actionMode, selectedBank });
+
     switch (actionMode) {
       case ActionType.Deposit:
         return {
@@ -59,10 +61,7 @@ export const InputAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) 
       case ActionType.Borrow:
         return {
           label: "Max Borrow: ",
-          amount: formatAmount(
-            selectedBank?.isActive ? selectedBank.userInfo.maxBorrow : undefined,
-            selectedBank?.meta.tokenSymbol
-          ),
+          amount: formatAmount(selectedBank.userInfo.maxBorrow, selectedBank?.meta.tokenSymbol),
         };
 
       case ActionType.Withdraw:
@@ -135,7 +134,7 @@ export const InputAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) 
               <div>{maxLabel.amount}</div>
               {(repayMode === RepayType.RepayRaw || (repayMode === RepayType.RepayCollat && selectedRepayBank)) && (
                 <button
-                  className="text-chartreuse border-b border-transparent transition hover:border-chartreuse"
+                  className="cursor-pointer text-chartreuse border-b border-transparent transition hover:border-chartreuse"
                   disabled={maxAmount === 0}
                   onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
                 >

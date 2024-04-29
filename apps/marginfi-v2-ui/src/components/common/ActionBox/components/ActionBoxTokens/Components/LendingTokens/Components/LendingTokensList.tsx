@@ -3,7 +3,7 @@ import React from "react";
 import { PublicKey } from "@solana/web3.js";
 
 import { percentFormatter, WSOL_MINT, aprToApy } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, Emissions, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -18,18 +18,30 @@ import { TokenListCommand } from "../../SharedComponents";
 type LendingTokensListProps = {
   selectedBank: ExtendedBankInfo | null;
   isOpen: boolean;
+  actionMode: ActionType;
   isDialog?: boolean;
 
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: () => void;
 };
 
-export const LendingTokensList = ({ selectedBank, onSetSelectedBank, isOpen, onClose }: LendingTokensListProps) => {
+export const LendingTokensList = ({
+  selectedBank,
+  actionMode,
+  onSetSelectedBank,
+  isOpen,
+  onClose,
+}: LendingTokensListProps) => {
   const [extendedBankInfos, nativeSolBalance] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.nativeSolBalance,
   ]);
-  const [lendingMode] = useUiStore((state) => [state.lendingMode, state.setIsWalletOpen]);
+
+  const lendingMode = React.useMemo(
+    () => (actionMode === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),
+    [actionMode]
+  );
+
   const [searchQuery, setSearchQuery] = React.useState("");
   const { connected } = useWalletContext();
 

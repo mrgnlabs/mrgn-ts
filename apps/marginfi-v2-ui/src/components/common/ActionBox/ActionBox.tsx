@@ -111,15 +111,12 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     return () => refreshState();
   }, [refreshState]);
 
-  const [lendingModeFromStore, priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore(
-    (state) => [
-      state.lendingMode,
-      state.priorityFee,
-      state.setPriorityFee,
-      state.setIsActionComplete,
-      state.setPreviousTxn,
-    ]
-  );
+  const [priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
+    state.priorityFee,
+    state.setPriorityFee,
+    state.setIsActionComplete,
+    state.setPreviousTxn,
+  ]);
   const [lstData, lstQuoteMeta, feesAndRent] = useLstStore((state) => [
     state.lstData,
     state.quoteResponseMeta,
@@ -134,13 +131,13 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
   const [hasLSTDialogShown, setHasLSTDialogShown] = React.useState<LSTDialogVariants[]>([]);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
-  const [blacklistRoutesMap, setBlacklistRoutesMap] = React.useState<BlackListRoutesMap>();
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
-  const [hasPreviewShown, setHasPreviewShown] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    fetchActionBoxState({ lendingMode: lendingModeFromStore, requestedAction, requestedBank });
-  }, [requestedAction, requestedBank, lendingModeFromStore, fetchActionBoxState]);
+    fetchActionBoxState({ requestedAction, requestedBank });
+  }, [requestedAction, requestedBank, fetchActionBoxState]);
+
+  React.useEffect(() => {});
 
   React.useEffect(() => {
     if (errorMessage !== "") {

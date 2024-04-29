@@ -33,11 +33,7 @@ interface ActionBoxState {
 
   // Actions
   refreshState: () => void;
-  fetchActionBoxState: (args: {
-    lendingMode: LendingModes;
-    requestedAction?: ActionType;
-    requestedBank?: ExtendedBankInfo;
-  }) => void;
+  fetchActionBoxState: (args: { requestedAction?: ActionType; requestedBank?: ExtendedBankInfo }) => void;
   setSlippageBps: (slippageBps: number) => void;
   setActionMode: (actionMode: ActionType) => void;
   setRepayMode: (repayMode: RepayType) => void;
@@ -111,18 +107,15 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
   },
 
   fetchActionBoxState(args) {
-    let requestedAction: ActionType | null = null;
+    let requestedAction: ActionType;
     let requestedBank: ExtendedBankInfo | null = null;
     let slippageBps = get().slippageBps;
+    const actionMode = get().actionMode;
 
     if (args.requestedAction) {
       requestedAction = args.requestedAction;
     } else {
-      if (args.lendingMode === LendingModes.LEND) {
-        requestedAction = ActionType.Deposit;
-      } else {
-        requestedAction = ActionType.Borrow;
-      }
+      requestedAction = actionMode;
     }
 
     if (requestedBank === ActionType.Repay) {
@@ -137,11 +130,11 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
       requestedBank = null;
     }
 
-    const actionMode = get().actionMode;
     const selectedBank = get().selectedBank;
 
     const needRefresh =
       !selectedBank ||
+      requestedAction ||
       actionMode !== requestedAction ||
       (requestedBank && !requestedBank.address.equals(selectedBank.address));
 
