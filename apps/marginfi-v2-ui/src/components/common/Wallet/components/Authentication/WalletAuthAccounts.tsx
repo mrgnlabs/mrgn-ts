@@ -209,7 +209,9 @@ export const WalletAuthAccounts = () => {
         {selectedAccount && accountLabels[selectedAccount.address.toBase58()] && (
           <PopoverTrigger asChild>
             <Button variant="secondary" size="sm" className="text-sm">
-              <span className="max-w-[120px] truncate">{accountLabels[selectedAccount.address.toBase58()]}</span>{" "}
+              <span className="max-w-[80px] lg:max-w-[120px] truncate">
+                {accountLabels[selectedAccount.address.toBase58()]}
+              </span>{" "}
               <IconChevronDown size={16} />
             </Button>
           </PopoverTrigger>
@@ -242,7 +244,7 @@ export const WalletAuthAccounts = () => {
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Label htmlFor="width" className="w-[97px] truncate overflow-hidden text-left">
+                            <Label htmlFor="width" className="md:w-[97px] truncate overflow-hidden text-left">
                               {accountLabel}
                             </Label>
                           </TooltipTrigger>

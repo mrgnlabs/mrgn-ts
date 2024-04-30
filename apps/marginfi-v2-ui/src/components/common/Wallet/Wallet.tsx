@@ -274,7 +274,7 @@ export const Wallet = () => {
                           variant="ghost"
                           size="icon"
                           className={cn(
-                            web3AuthConncected && "hidden md:block",
+                            web3AuthConncected && "hidden lg:flex",
                             walletTokenState === WalletState.NOTIS && "text-chartreuse"
                           )}
                           onClick={() => {
