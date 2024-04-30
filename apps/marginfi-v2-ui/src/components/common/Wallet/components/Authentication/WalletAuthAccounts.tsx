@@ -10,6 +10,7 @@ import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
 import { getMaybeSquadsOptions } from "~/utils/mrgnActions";
+import { capture } from "~/utils";
 
 import { Button } from "~/components/ui/button";
 import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle, IconLoader } from "~/components/ui/icons";
@@ -65,6 +66,7 @@ export const WalletAuthAccounts = () => {
       clearTimeout(switchingLabelTimer);
       setIsActivatingAccount(null);
       setIsActivatingAccountDelay(null);
+      capture("account_switched", { wallet: account.authority.toBase58(), account: account.address.toBase58() });
 
       return () => clearTimeout(switchingLabelTimer);
     },
@@ -145,6 +147,12 @@ export const WalletAuthAccounts = () => {
     fetchAccountLabels();
 
     setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
+
+    capture("account_label_updated", {
+      wallet: editingAccount.authority.toBase58(),
+      account: editingAccount.address.toBase58(),
+      label: editingAccountName,
+    });
   }, [editingAccount, editingAccountName, fetchAccountLabels, accountLabels, connection, wallet, useAuthTxn]);
 
   const createNewAccount = React.useCallback(async () => {
@@ -195,6 +203,12 @@ export const WalletAuthAccounts = () => {
     await fetchAccountLabels();
     activateAccount(mfiAccount, marginfiAccounts.length - 1);
     setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
+
+    capture("account_created", {
+      wallet: mfiAccount.authority.toBase58(),
+      account: mfiAccount.address.toBase58(),
+      label: newAccountName,
+    });
   }, [
     newAccountName,
     mfiClient,
