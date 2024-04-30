@@ -5,7 +5,8 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 import { ExtendedBankInfo, ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useMrgnlendStore, useUserProfileStore, useUiStore, useActionBoxStore } from "~/store";
+import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import {
   LSTDialog,
@@ -17,11 +18,12 @@ import {
   LSTS,
 } from "~/components/common/AssetList";
 import { LendingModes } from "~/types";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { AssetListModel, generateColumns, makeData } from "./utils";
-import { AssetRow } from "./components";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconAlertTriangle } from "~/components/ui/icons";
+
+import { AssetListModel, generateColumns, makeData } from "./utils";
+import { AssetRow } from "./components";
 
 export const AssetsList = () => {
   const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount] = useMrgnlendStore((state) => [
@@ -36,7 +38,7 @@ export const AssetsList = () => {
     state.isFilteredUserPositions,
     state.sortOption,
   ]);
-  const [actionMode, setActionMode] = useActionBoxStore((state) => [state.actionMode, state.setActionMode]);
+  const [actionMode, setActionMode] = useActionBoxStore()((state) => [state.actionMode, state.setActionMode]);
 
   const lendingMode = React.useMemo(
     () => (actionMode === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),

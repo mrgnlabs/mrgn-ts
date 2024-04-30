@@ -13,13 +13,15 @@ const useUiStore: UseBoundStore<StoreApi<UiState>> = createUiStore();
 const useMrgnlendStore: UseBoundStore<StoreApi<MrgnlendState>> = createPersistentMrgnlendStore();
 const useUserProfileStore: UseBoundStore<StoreApi<UserProfileState>> = createUserProfileStore();
 const useLstStore: UseBoundStore<StoreApi<LstState>> = createLstStore();
-const useActionBoxStore: UseBoundStore<StoreApi<ActionBoxState>> = createActionBoxStore();
+const useActionBoxGeneralStore: UseBoundStore<StoreApi<ActionBoxState>> = createActionBoxStore();
+const useActionBoxDialogStore: UseBoundStore<StoreApi<ActionBoxState>> = createActionBoxStore();
 
 export {
   useUiStore,
   useMrgnlendStore,
   useLstStore,
-  useActionBoxStore,
+  useActionBoxGeneralStore,
+  useActionBoxDialogStore,
   useUserProfileStore,
   SORT_OPTIONS_MAP,
   createActionBoxStore,

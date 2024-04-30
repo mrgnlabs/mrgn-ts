@@ -1,7 +1,7 @@
 import React from "react";
 
 import { RepayType, LstType, YbxType } from "~/utils";
-import { useActionBoxStore } from "~/store";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { InputHeaderActionLeft, InputHeaderActionRight } from "./Components";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -15,7 +15,7 @@ type props = {
 };
 
 export const InputHeader = ({ isDialog, changeRepayType, changeLstType, changeYbxType, changeActionType }: props) => {
-  const [actionMode, selectedBank, ybxMode, lstMode, repayMode] = useActionBoxStore((state) => [
+  const [actionMode, selectedBank, ybxMode, lstMode, repayMode] = useActionBoxStore(isDialog)((state) => [
     state.actionMode,
     state.selectedBank,
     state.ybxMode,

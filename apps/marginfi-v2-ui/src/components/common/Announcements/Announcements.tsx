@@ -1,8 +1,6 @@
 import React from "react";
 
 import Image from "next/image";
-
-import { PublicKey } from "@solana/web3.js";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 
@@ -10,7 +8,6 @@ import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
 import { cn, getTokenImageURL } from "~/utils";
-import { useActionBoxStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
