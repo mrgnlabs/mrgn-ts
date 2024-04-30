@@ -209,7 +209,7 @@ export const Wallet = () => {
             </button>
           )}
         </SheetTrigger>
-        <SheetContent className="outline-none z-[1000001] px-4 bg-background border-0">
+        <SheetContent className="outline-none z-[50] px-4 bg-background border-0">
           {walletData.address ? (
             <div className="max-h-full">
               <header className="flex items-center gap-2">

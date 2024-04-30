@@ -217,7 +217,7 @@ export const WalletAuthAccounts = () => {
           </PopoverTrigger>
         )}
         {/* TODO: fix this z-index mess */}
-        <PopoverContent className="w-80 z-[9999999]">
+        <PopoverContent className="w-80 z-50">
           {walletAuthAccountsState === WalletAuthAccountsState.DEFAULT && (
             <div className="grid gap-4 w-[80]">
               <div className="space-y-2">
