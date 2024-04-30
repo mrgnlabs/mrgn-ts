@@ -87,12 +87,23 @@ export const WalletAuthAccounts = () => {
         ...prev,
         [account.address.toBase58()]: accountLabelData.data.label || accountLabel,
       }));
-
-      console.log(account.address.toBase58(), accountLabelData.data.label || accountLabel);
     };
 
     marginfiAccounts.forEach(fetchAccountLabel);
   }, [marginfiAccounts, setAccountLabels]);
+
+  const checkAndClearAccountCache = React.useCallback(() => {
+    const cacheTimestamp = localStorage.getItem("mrgnClearedAccountCache");
+    const now = Date.now();
+    const FIFTEEN_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+    if (!cacheTimestamp || now - parseInt(cacheTimestamp, 10) > FIFTEEN_MINUTES) {
+      console.log("Clearing account cache and refetching accounts");
+      clearAccountCache(wallet.publicKey);
+      fetchAccountLabels();
+      localStorage.setItem("mrgnClearedAccountCache", now.toString());
+    }
+  }, [wallet.publicKey, fetchAccountLabels]);
 
   const editAccount = React.useCallback(async () => {
     if (
@@ -205,7 +216,13 @@ export const WalletAuthAccounts = () => {
 
   return (
     <div>
-      <Popover>
+      <Popover
+        onOpenChange={(open) => {
+          if (open) {
+            checkAndClearAccountCache();
+          }
+        }}
+      >
         {selectedAccount && accountLabels[selectedAccount.address.toBase58()] && (
           <PopoverTrigger asChild>
             <Button variant="secondary" size="sm" className="text-sm">
@@ -265,7 +282,7 @@ export const WalletAuthAccounts = () => {
                       )}
 
                       <div className="flex items-center ml-auto">
-                        <button
+                        <div
                           className="p-1.5 transition-colors rounded-lg hover:bg-background-gray-light"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -275,7 +292,7 @@ export const WalletAuthAccounts = () => {
                           }}
                         >
                           <IconPencil size={16} />
-                        </button>
+                        </div>
                       </div>
                     </Button>
                   );
