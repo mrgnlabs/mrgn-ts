@@ -14,6 +14,7 @@ import { NodeDialectSolanaWalletAdapter, Solana, SolanaSdkFactory } from "@diale
 import { Monitor, Monitors, Pipelines, ResourceId, SourceData } from "@dialectlabs/monitor";
 import { Duration } from "luxon";
 import { getMarginfiAccounts } from "./lib/api";
+import { transformAccountMap } from "./lib/marginfiAcc";
 
 let client: MarginfiClient;
 let accountInfos: Map<PublicKey, MarginfiAccountWrapper> = new Map();
@@ -92,21 +93,18 @@ async function dialectMonitor() {
         },
       }));
 
-      const accounts = getMarginfiAccounts(subscribers.map((v) => v.toBase58()));
+      const accounts = await getMarginfiAccounts(subscribers.map((v) => v.toBase58()));
+      if (!accounts) return [];
 
-      const marginfiAccounts = await client.program.account.marginfiAccount.all([
-        {
-          memcmp: {
-            bytes: client.groupAddress.toBase58(),
-            offset: 8,
-          },
-        },
-        ...memcmpParams, // Spread the memcmp parameters for each authority
-      ]);
+      const wrappedAccounts = transformAccountMap(accounts, client);
 
-      console.log({ test });
+      MarginfiAccountWrapper.fromAccountParsed;
 
-      console.log(marginfiAccounts.length);
+      const ah = Object.values(accounts)[0][0];
+
+      const account = ah.account;
+
+      client.banks;
 
       const sourceData: SourceData<YourDataType>[] = subscribers.map((resourceId) => ({
         data: {
