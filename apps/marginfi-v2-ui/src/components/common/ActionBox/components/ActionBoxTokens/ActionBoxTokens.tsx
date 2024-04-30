@@ -1,7 +1,7 @@
 import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useActionBoxStore } from "~/store";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { StakeData } from "~/utils";
 
 import { LendingTokens, YbxTokens, LstTokens } from "./Components";
@@ -20,15 +20,15 @@ export const ActionBoxTokens = ({
   setStakingAccount,
 }: ActionBoxPreviewProps) => {
   const [actionMode, selectedBank, selectedRepayBank, selectedStakingAccount, lstMode, repayMode] = useActionBoxStore(
-    (state) => [
-      state.actionMode,
-      state.selectedBank,
-      state.selectedRepayBank,
-      state.selectedStakingAccount,
-      state.lstMode,
-      state.repayMode,
-    ]
-  );
+    isDialog
+  )((state) => [
+    state.actionMode,
+    state.selectedBank,
+    state.selectedRepayBank,
+    state.selectedStakingAccount,
+    state.lstMode,
+    state.repayMode,
+  ]);
 
   const isInLendingMode = React.useMemo(
     () =>
@@ -54,6 +54,7 @@ export const ActionBoxTokens = ({
           setSelectedRepayBank={setRepayTokenBank}
           repayType={repayMode}
           isDialog={isDialog}
+          actionType={actionMode}
         />
       )}
 

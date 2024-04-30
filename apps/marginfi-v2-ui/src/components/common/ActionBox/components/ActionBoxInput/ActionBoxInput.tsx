@@ -3,7 +3,8 @@ import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { RepayType, YbxType } from "~/utils";
-import { useActionBoxStore, useUiStore } from "~/store";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
+import { useUiStore } from "~/store";
 
 import { Input } from "~/components/ui/input";
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
@@ -44,7 +45,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
     setLstMode,
     setYbxMode,
     setActionMode,
-  ] = useActionBoxStore((state) => [
+  ] = useActionBoxStore(isDialog)((state) => [
     state.actionMode,
     state.repayMode,
     state.ybxMode,
@@ -148,7 +149,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
       />
       {showYbxInput ? (
         <YbxInput
-          amountRaw={amountRaw}
+          isDialog={isDialog}
           maxAmount={maxAmount}
           setAmountRaw={(amount) => setAmountRaw(formatAmount(amount, selectedBank))}
         />
@@ -187,6 +188,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
           <InputAction
             walletAmount={walletAmount}
             maxAmount={maxAmount}
+            isDialog={isDialog}
             onSetAmountRaw={(amount) => handleInputChange(amount)}
           />
         </div>

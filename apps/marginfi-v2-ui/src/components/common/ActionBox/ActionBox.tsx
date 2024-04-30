@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { WSOL_MINT, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useActionBoxStore, useLstStore, useMrgnlendStore, useUiStore } from "~/store";
+import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import {
   MarginfiActionParams,
   closeBalance,
@@ -18,6 +18,7 @@ import {
 } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { SOL_MINT } from "~/store/lstStore";
 
 import { LSTDialog, LSTDialogVariants } from "~/components/common/AssetList";
@@ -84,7 +85,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     setActionMode,
     setIsLoading,
     setAmountRaw,
-  ] = useActionBoxStore((state) => [
+  ] = useActionBoxStore(isDialog)((state) => [
     state.slippageBps,
     state.amountRaw,
     state.repayAmountRaw,
@@ -134,7 +135,6 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
 
   React.useEffect(() => {
-    console.log("hi");
     fetchActionBoxState({ requestedAction, requestedBank });
   }, [requestedAction, requestedBank, fetchActionBoxState]);
 

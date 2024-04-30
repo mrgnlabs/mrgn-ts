@@ -5,19 +5,20 @@ import { nativeToUi, numeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { clampedNumeralFormatter, RepayType } from "~/utils";
 import { IconArrowRight } from "~/components/ui/icons";
-import { useActionBoxStore } from "~/store";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 type props = {
   walletAmount: number | undefined;
   maxAmount: number;
   showLendingHeader?: boolean;
+  isDialog?: boolean;
 
   onSetAmountRaw: (amount: string) => void;
 };
 
-export const InputAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) => {
+export const InputAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRaw }: props) => {
   const [amountRaw, repayAmountRaw, actionMode, selectedBank, selectedRepayBank, selectedStakingAccount, repayMode] =
-    useActionBoxStore((state) => [
+    useActionBoxStore(isDialog)((state) => [
       state.amountRaw,
       state.repayAmountRaw,
       state.actionMode,

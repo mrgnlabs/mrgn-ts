@@ -1,20 +1,19 @@
 import React from "react";
 
 import { YbxType, cn } from "~/utils";
-import { useActionBoxStore } from "~/store";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { Input } from "~/components/ui/input";
-
 import { Button } from "~/components/ui/button";
 
 type YbxInputProps = {
-  amountRaw: string;
   maxAmount: number;
+  isDialog?: boolean;
   setAmountRaw: (amount: string) => void;
 };
 
-export const YbxInput = ({ maxAmount, setAmountRaw }: YbxInputProps) => {
-  const [ybxMode, amountRaw] = useActionBoxStore((state) => [state.ybxMode, state.amountRaw]);
+export const YbxInput = ({ maxAmount, isDialog, setAmountRaw }: YbxInputProps) => {
+  const [ybxMode, amountRaw] = useActionBoxStore(isDialog)((state) => [state.ybxMode, state.amountRaw]);
   const [isCustomMode, setIsCustomMode] = React.useState<boolean>(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 

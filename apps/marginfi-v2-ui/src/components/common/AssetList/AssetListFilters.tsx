@@ -2,9 +2,10 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useActionBoxStore, useUiStore, useUserProfileStore } from "~/store";
+import { useUiStore, useUserProfileStore } from "~/store";
 import { cn } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { LendingModes, PoolTypes } from "~/types";
 
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
@@ -34,7 +35,7 @@ export const AssetListFilters = () => {
     state.setAssetListSearch,
   ]);
 
-  const [actionMode, setActionMode] = useActionBoxStore((state) => [state.actionMode, state.setActionMode]);
+  const [actionMode, setActionMode] = useActionBoxStore()((state) => [state.actionMode, state.setActionMode]);
 
   const [denominationUSD, setDenominationUSD] = useUserProfileStore((state) => [
     state.denominationUSD,
