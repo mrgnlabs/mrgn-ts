@@ -134,7 +134,7 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
     const needRefresh =
       !selectedBank ||
-      requestedAction ||
+      !requestedAction ||
       actionMode !== requestedAction ||
       (requestedBank && !requestedBank.address.equals(selectedBank.address));
 

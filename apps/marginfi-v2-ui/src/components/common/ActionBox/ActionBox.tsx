@@ -138,8 +138,6 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     fetchActionBoxState({ requestedAction, requestedBank });
   }, [requestedAction, requestedBank, fetchActionBoxState]);
 
-  React.useEffect(() => {});
-
   React.useEffect(() => {
     if (errorMessage !== "") {
       showErrorToast(errorMessage);
