@@ -107,11 +107,6 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     state.setAmountRaw,
   ]);
 
-  // Cleanup the store when the component unmounts
-  React.useEffect(() => {
-    return () => refreshState();
-  }, [refreshState]);
-
   const [priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
     state.priorityFee,
     state.setPriorityFee,
@@ -126,6 +121,11 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
 
   const { walletContextState, connected, wallet } = useWalletContext();
   const { connection } = useConnection();
+
+  // Cleanup the store when the component unmounts or wallet disconnects
+  React.useEffect(() => {
+    return () => refreshState();
+  }, [refreshState, connected]);
 
   const [isSettingsMode, setIsSettingsMode] = React.useState<boolean>(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
