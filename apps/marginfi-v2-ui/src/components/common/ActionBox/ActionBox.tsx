@@ -254,16 +254,6 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     ]
   );
 
-  // React.useEffect(() => {
-  //   setAmountRaw("");
-  // }, [lendingMode, selectedTokenBank, setAmountRaw]);
-
-  // React.useEffect(() => {
-  //   if (selectedStakingAccount) {
-  //     setAmountRaw(numberFormater.format(maxAmount));
-  //   }
-  // }, [selectedStakingAccount, numberFormater, maxAmount, setAmountRaw]);
-
   const executeLendingActionCb = React.useCallback(
     async ({
       mfiClient,
@@ -340,13 +330,36 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   );
 
   const handleCloseBalance = React.useCallback(async () => {
-    try {
-      if (!selectedBank || !selectedAccount) {
-        throw new Error();
-      }
-      await closeBalance({ marginfiAccount: selectedAccount, bank: selectedBank, priorityFee });
-    } catch (error) {
+    if (!selectedBank || !selectedAccount) {
       return;
+    }
+    setIsLoading(true);
+    const attemptUuid = uuidv4();
+    capture(`user_close_balance_initiate`, {
+      uuid: attemptUuid,
+      tokenSymbol: selectedBank.meta.tokenSymbol,
+      tokenName: selectedBank.meta.tokenName,
+      amount: 0,
+      priorityFee,
+    });
+
+    const txnSig = await closeBalance({ marginfiAccount: selectedAccount, bank: selectedBank, priorityFee });
+    setIsLoading(false);
+    if (txnSig) {
+      setPreviousTxn({
+        type: ActionType.Withdraw,
+        bank: selectedBank as ActiveBankInfo,
+        amount: 0,
+        txn: txnSig!,
+      });
+      capture(`user_close_balance`, {
+        uuid: attemptUuid,
+        tokenSymbol: selectedBank.meta.tokenSymbol,
+        tokenName: selectedBank.meta.tokenName,
+        amount: 0,
+        txn: txnSig!,
+        priorityFee,
+      });
     }
 
     setAmountRaw("");
@@ -360,11 +373,13 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       console.log(error);
     }
   }, [
-    setAmountRaw,
-    handleCloseDialog,
     selectedBank,
     selectedAccount,
     priorityFee,
+    setIsLoading,
+    setAmountRaw,
+    handleCloseDialog,
+    setPreviousTxn,
     setIsRefreshingStore,
     fetchMrgnlendState,
   ]);
@@ -386,6 +401,25 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       return;
     }
     setIsLoading(true);
+    const attemptUuid = uuidv4();
+
+    if (selectedBank) {
+      capture(`user_${actionMode.toLowerCase()}_initiate`, {
+        uuid: attemptUuid,
+        tokenSymbol: selectedBank.meta.tokenSymbol,
+        tokenName: selectedBank.meta.tokenName,
+        amount,
+        priorityFee,
+      });
+    } else {
+      capture(`user_${actionMode.toLowerCase()}_initiate`, {
+        uuid: attemptUuid,
+        tokenSymbol: "SOL",
+        tokenName: "Solana",
+        amount,
+        priorityFee,
+      });
+    }
 
     const txnSig = await executeLstAction({
       actionMode,
@@ -414,6 +448,25 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
         lstQuote: lstQuoteMeta || undefined,
         txn: txnSig!,
       });
+      if (selectedBank) {
+        capture(`user_${actionMode.toLowerCase()}`, {
+          uuid: attemptUuid,
+          tokenSymbol: selectedBank.meta.tokenSymbol,
+          tokenName: selectedBank.meta.tokenName,
+          amount,
+          txn: txnSig!,
+          priorityFee,
+        });
+      } else {
+        capture(`user_${actionMode.toLowerCase()}`, {
+          uuid: attemptUuid,
+          tokenSymbol: "SOL",
+          tokenName: "Solana",
+          amount,
+          txn: txnSig!,
+          priorityFee,
+        });
+      }
     }
 
     // -------- Refresh state
