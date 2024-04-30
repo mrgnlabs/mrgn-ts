@@ -12,6 +12,7 @@
   "license": "MIT",
   "dependencies": {
     "@dialectlabs/blockchain-sdk-solana": "^1.2.0",
+    "@dialectlabs/monitor": "^3.5.1",
     "@dialectlabs/sdk": "^1.9.0",
     "@jup-ag/core": "^4.0.0-beta.20",
     "@mongodb-js/zstd": "^1.1.0",
@@ -38,6 +39,7 @@
     "got": "~11.8.6",
     "ioredis": "5.2.4",
     "jsbi": "4.3.0",
+    "luxon": "^3.4.4",
     "redis": "^4.6.13",
     "resend": "^3.2.0",
     "superstruct": "^1.0.3",
