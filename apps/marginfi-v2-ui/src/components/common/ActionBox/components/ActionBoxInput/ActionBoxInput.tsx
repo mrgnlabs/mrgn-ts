@@ -43,6 +43,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
     setRepayMode,
     setLstMode,
     setYbxMode,
+    setActionMode,
   ] = useActionBoxStore((state) => [
     state.actionMode,
     state.repayMode,
@@ -60,6 +61,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
     state.setRepayMode,
     state.setLstMode,
     state.setYbxMode,
+    state.setActionMode,
   ]);
   const { connection } = useConnection();
 
@@ -142,6 +144,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
         changeRepayType={(type) => setRepayMode(type)}
         changeLstType={(type) => setLstMode(type)}
         changeYbxType={(type) => setYbxMode(type)}
+        changeActionType={(type) => setActionMode(type)}
       />
       {showYbxInput ? (
         <YbxInput

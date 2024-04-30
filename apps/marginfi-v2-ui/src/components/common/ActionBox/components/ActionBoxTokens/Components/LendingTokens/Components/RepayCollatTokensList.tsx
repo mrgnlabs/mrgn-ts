@@ -2,10 +2,8 @@ import React from "react";
 
 import { PublicKey } from "@solana/web3.js";
 
-import { percentFormatter, aprToApy } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendingModes } from "~/types";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { cn } from "~/utils";
 
@@ -33,35 +31,13 @@ export const RepayCollatTokensList = ({
     state.extendedBankInfos,
     state.nativeSolBalance,
   ]);
-  const [lendingMode] = useUiStore((state) => [state.lendingMode, state.setIsWalletOpen]);
+  //const [lendingMode] = useUiStore((state) => [state.lendingMode, state.setIsWalletOpen]);
   const [searchQuery, setSearchQuery] = React.useState("");
-
-  const calculateRate = React.useCallback(
-    (bank: ExtendedBankInfo) => {
-      const isInLendingMode = lendingMode === LendingModes.LEND;
-
-      const interestRate = isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate;
-      const emissionRate = isInLendingMode
-        ? bank.info.state.emissions == Emissions.Lending
-          ? bank.info.state.emissionsRate
-          : 0
-        : bank.info.state.emissions == Emissions.Borrowing
-        ? bank.info.state.emissionsRate
-        : 0;
-
-      const aprRate = interestRate + emissionRate;
-      const apyRate = aprToApy(aprRate);
-
-      return percentFormatter.format(apyRate);
-    },
-    [lendingMode]
-  );
 
   const hasTokens = React.useMemo(() => {
     const hasBankTokens = !!extendedBankInfos.filter(
       (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
     );
-
     return hasBankTokens;
   }, [extendedBankInfos]);
 
@@ -76,20 +52,16 @@ export const RepayCollatTokensList = ({
   );
 
   // filter on positions
-  const positionFilter = React.useCallback(
-    (bankInfo: ExtendedBankInfo, filterActive?: boolean) => {
-      return bankInfo.isActive && bankInfo.position.isLending;
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [lendingMode]
-  );
+  const positionFilter = React.useCallback((bankInfo: ExtendedBankInfo) => {
+    return bankInfo.isActive && bankInfo.position.isLending;
+  }, []);
 
   /////// BANKS
   // active position banks
   const filteredBanksActive = React.useMemo(() => {
     return extendedBankInfos
       .filter(searchFilter)
-      .filter((bankInfo) => positionFilter(bankInfo, false))
+      .filter((bankInfo) => positionFilter(bankInfo))
       .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
   }, [extendedBankInfos, searchFilter, positionFilter]);
 
@@ -128,7 +100,7 @@ export const RepayCollatTokensList = ({
                   )}
                 >
                   <ActionBoxItem
-                    lendingMode={lendingMode}
+                    //lendingMode={lendingMode}
                     bank={bank}
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}

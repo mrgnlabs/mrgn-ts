@@ -1,13 +1,11 @@
 import React from "react";
 
-import { PublicKey } from "@solana/web3.js";
-
-import { percentFormatter, WSOL_MINT, aprToApy } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, Emissions, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
-import { useMrgnlendStore, useUiStore } from "~/store";
-import { cn } from "~/utils";
+import { useMrgnlendStore } from "~/store";
+import { cn, computeBankRate } from "~/utils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
@@ -47,21 +45,7 @@ export const LendingTokensList = ({
 
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) => {
-      const isInLendingMode = lendingMode === LendingModes.LEND;
-
-      const interestRate = isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate;
-      const emissionRate = isInLendingMode
-        ? bank.info.state.emissions == Emissions.Lending
-          ? bank.info.state.emissionsRate
-          : 0
-        : bank.info.state.emissions == Emissions.Borrowing
-        ? bank.info.state.emissionsRate
-        : 0;
-
-      const aprRate = interestRate + emissionRate;
-      const apyRate = aprToApy(aprRate);
-
-      return percentFormatter.format(apyRate);
+      return computeBankRate(bank, lendingMode);
     },
     [lendingMode]
   );

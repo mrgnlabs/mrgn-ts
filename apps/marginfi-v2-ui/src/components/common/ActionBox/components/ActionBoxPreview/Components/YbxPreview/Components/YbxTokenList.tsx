@@ -15,7 +15,6 @@ export const YbxTokensList = ({}: YbxTokensListListProps) => {
     state.extendedBankInfos,
     state.nativeSolBalance,
   ]);
-  const [lendingMode] = useUiStore((state) => [state.lendingMode, state.setIsWalletOpen]);
   const [searchQuery, setSearchQuery] = React.useState("");
 
   const hasTokens = React.useMemo(() => {
@@ -83,7 +82,6 @@ export const YbxTokensList = ({}: YbxTokensListListProps) => {
                 )}
               >
                 <ActionBoxItem
-                  lendingMode={lendingMode}
                   bank={bank}
                   showBalanceOverride={true}
                   nativeSolBalance={nativeSolBalance}
@@ -108,7 +106,6 @@ export const YbxTokensList = ({}: YbxTokensListListProps) => {
                 )}
               >
                 <ActionBoxItem
-                  lendingMode={lendingMode}
                   bank={bank}
                   showBalanceOverride={false}
                   nativeSolBalance={nativeSolBalance}

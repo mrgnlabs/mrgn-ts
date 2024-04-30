@@ -2,14 +2,10 @@ import React from "react";
 
 import Image from "next/image";
 
-import { PublicKey } from "@solana/web3.js";
-
 import { usdFormatter, numeralFormatter } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendingModes } from "~/types";
 import { cn, getTokenImageURL } from "~/utils";
-import { useUiStore } from "~/store";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -25,7 +21,6 @@ interface PortfolioAssetCardProps {
 }
 
 export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }: PortfolioAssetCardProps) => {
-  const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
 
   const [requestedAction, setRequestedAction] = React.useState<ActionType>();
@@ -152,7 +147,6 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
             <div className="flex w-full gap-3">
               <Button
                 onClick={() => {
-                  setLendingMode(isInLendingMode ? LendingModes.LEND : LendingModes.BORROW);
                   setRequestedAction(isInLendingMode ? ActionType.Withdraw : ActionType.Repay);
                   setRequestedBank(bank);
                 }}
@@ -163,7 +157,6 @@ export const PortfolioAssetCard = ({ bank, isInLendingMode, isBorrower = true }:
               </Button>
               <Button
                 onClick={() => {
-                  setLendingMode(isInLendingMode ? LendingModes.LEND : LendingModes.BORROW);
                   setRequestedAction(isInLendingMode ? ActionType.Deposit : ActionType.Borrow);
                   setRequestedBank(bank);
                 }}

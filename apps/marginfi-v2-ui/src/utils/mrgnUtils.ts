@@ -1,10 +1,13 @@
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import BN from "bn.js";
-import { TOKEN_PROGRAM_ID, ceil, floor } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useEffect, useRef } from "react";
 import numeral from "numeral";
+import { PublicKey, TransactionInstruction } from "@solana/web3.js";
+import BN from "bn.js";
+
+import { TOKEN_PROGRAM_ID, aprToApy, ceil, floor, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { ActiveBankInfo, Emissions, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
+
+import { LendingModes } from "~/types";
 
 // ================ development utils ================
 
@@ -31,6 +34,24 @@ export function makeAirdropCollateralIx(
     data: Buffer.from([1, ...new BN(amount).toArray("le", 8)]),
     keys,
   });
+}
+
+export function computeBankRate(bank: ExtendedBankInfo, lendingMode: LendingModes) {
+  const isInLendingMode = lendingMode === LendingModes.LEND;
+
+  const interestRate = isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate;
+  const emissionRate = isInLendingMode
+    ? bank.info.state.emissions == Emissions.Lending
+      ? bank.info.state.emissionsRate
+      : 0
+    : bank.info.state.emissions == Emissions.Borrowing
+    ? bank.info.state.emissionsRate
+    : 0;
+
+  const aprRate = interestRate + emissionRate;
+  const apyRate = aprToApy(aprRate);
+
+  return percentFormatter.format(apyRate);
 }
 
 export function computeClosePositionTokenAmount(activeBankInfo: ActiveBankInfo): number {

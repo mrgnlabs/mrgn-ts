@@ -49,8 +49,6 @@ export const InputAction = ({ maxAmount, walletAmount, onSetAmountRaw }: props) 
     const formatAmount = (amount?: number, symbol?: string) =>
       amount !== undefined ? `${clampedNumeralFormatter(amount)} ${symbol}` : "-";
 
-    console.log({ actionMode, selectedBank });
-
     switch (actionMode) {
       case ActionType.Deposit:
         return {

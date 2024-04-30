@@ -134,6 +134,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   const [additionalActionMethods, setAdditionalActionMethods] = React.useState<ActionMethod[]>([]);
 
   React.useEffect(() => {
+    console.log("hi");
     fetchActionBoxState({ requestedAction, requestedBank });
   }, [requestedAction, requestedBank, fetchActionBoxState]);
 
