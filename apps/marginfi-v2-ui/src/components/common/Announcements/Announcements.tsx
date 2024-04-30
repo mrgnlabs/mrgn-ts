@@ -10,7 +10,7 @@ import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
 import { cn, getTokenImageURL } from "~/utils";
-import { useUiStore } from "~/store";
+import { useActionBoxStore, useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 
 import { ActionBoxDialog } from "~/components/common/ActionBox";
@@ -77,7 +77,6 @@ const Pagination = ({ itemsLength }: PaginationProps) => {
 
 export const Announcements = ({ items }: AnnouncementsProps) => {
   const { connected } = useWalletContext();
-  const [setLendingMode] = useUiStore((state) => [state.setLendingMode]);
   const [requestedAction, setRequestedAction] = React.useState<ActionType>();
   const [requestedBank, setRequestedBank] = React.useState<ExtendedBankInfo | null>(null);
 
@@ -113,7 +112,6 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                     <div
                       className="flex items-center gap-2 w-full"
                       onClick={() => {
-                        setLendingMode(item.lendingMode || LendingModes.LEND);
                         setRequestedAction(item.actionType || ActionType.Deposit);
                         setRequestedBank(item.bank);
                       }}

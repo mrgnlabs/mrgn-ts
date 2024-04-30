@@ -18,6 +18,7 @@ interface InputHeaderActionProps {
   changeYbxType: (ybxType: YbxType) => void;
   changeRepayType: (repayType: RepayType) => void;
   changeLstType: (lstType: LstType) => void;
+  changeActionType: (actionType: ActionType) => void;
 }
 
 interface ToggleObject {
@@ -36,8 +37,8 @@ export const InputHeaderActionLeft = ({
   changeYbxType,
   changeRepayType,
   changeLstType,
+  changeActionType,
 }: InputHeaderActionProps) => {
-  const [lendingModeFromStore, setLendingMode] = useUiStore((state) => [state.lendingMode, state.setLendingMode]);
   const [stakeAccounts] = useLstStore((state) => [state.stakeAccounts]);
 
   const isSolBank = React.useMemo(() => bank?.meta.tokenSymbol === "SOL", [bank]);
@@ -59,13 +60,13 @@ export const InputHeaderActionLeft = ({
     if (!isDialog && (actionType === ActionType.Borrow || actionType === ActionType.Deposit)) {
       return {
         toggles: [
-          { value: LendingModes.LEND, text: LendingModes.LEND },
-          { value: LendingModes.BORROW, text: LendingModes.BORROW },
+          { value: ActionType.Deposit, text: LendingModes.LEND },
+          { value: ActionType.Borrow, text: LendingModes.BORROW },
         ],
         action: (value: any) => {
-          if (value) setLendingMode(value);
+          if (value) changeActionType(value);
         },
-        value: lendingModeFromStore,
+        value: actionType,
       } as ToggleObject;
     }
 
@@ -120,14 +121,13 @@ export const InputHeaderActionLeft = ({
     isDialog,
     actionType,
     stakeAccounts.length,
+    ybxType,
     titleText,
-    lendingModeFromStore,
-    setLendingMode,
+    changeActionType,
     repayType,
     changeRepayType,
     lstType,
     changeLstType,
-    ybxType,
     changeYbxType,
   ]);
 

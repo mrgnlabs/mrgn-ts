@@ -2,12 +2,10 @@ import React from "react";
 
 import { PublicKey } from "@solana/web3.js";
 
-import { percentFormatter, aprToApy } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
-import { useMrgnlendStore, useUiStore } from "~/store";
-import { RepayType } from "~/utils";
+import { RepayType, computeBankRate } from "~/utils";
 
 import { SelectedBankItem, TokenListWrapper } from "../SharedComponents";
 import { LendingTokensList, RepayCollatTokensList, LendingTokensTrigger } from "./Components";
@@ -15,6 +13,7 @@ import { LendingTokensList, RepayCollatTokensList, LendingTokensTrigger } from "
 type LendingTokensProps = {
   selectedBank: ExtendedBankInfo | null;
   selectedRepayBank: ExtendedBankInfo | null;
+  actionType: ActionType;
   isDialog?: boolean;
   repayType?: RepayType;
   blacklistRepayTokens?: PublicKey[];
@@ -26,34 +25,26 @@ type LendingTokensProps = {
 export const LendingTokens = ({
   selectedBank,
   selectedRepayBank,
+  actionType,
   isDialog,
   repayType,
   blacklistRepayTokens = [],
+
   setSelectedRepayBank,
   setSelectedBank,
 }: LendingTokensProps) => {
-  const [lendingMode] = useUiStore((state) => [state.lendingMode]);
   const [isOpen, setIsOpen] = React.useState(false);
 
   const isSelectable = React.useMemo(() => !isDialog || repayType === RepayType.RepayCollat, [isDialog, repayType]);
 
+  const lendingMode = React.useMemo(
+    () => (actionType === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),
+    [actionType]
+  );
+
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) => {
-      const isInLendingMode = lendingMode === LendingModes.LEND;
-
-      const interestRate = isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate;
-      const emissionRate = isInLendingMode
-        ? bank.info.state.emissions == Emissions.Lending
-          ? bank.info.state.emissionsRate
-          : 0
-        : bank.info.state.emissions == Emissions.Borrowing
-        ? bank.info.state.emissionsRate
-        : 0;
-
-      const aprRate = interestRate + emissionRate;
-      const apyRate = aprToApy(aprRate);
-
-      return percentFormatter.format(apyRate);
+      return computeBankRate(bank, lendingMode);
     },
     [lendingMode]
   );
@@ -76,6 +67,7 @@ export const LendingTokens = ({
             <LendingTokensTrigger
               selectedBank={selectedBank}
               selectedRepayBank={selectedRepayBank}
+              lendingMode={lendingMode}
               isOpen={isOpen}
               repayType={repayType}
             />
@@ -96,6 +88,7 @@ export const LendingTokens = ({
                 selectedBank={selectedBank}
                 onSetSelectedBank={setSelectedBank}
                 isDialog={isDialog}
+                actionMode={actionType}
               />
             )
           }

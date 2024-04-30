@@ -5,7 +5,7 @@ import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "~/types";
 import { useUiStore } from "~/store";
-import { RepayType, cn } from "~/utils";
+import { RepayType, cn, computeBankRate } from "~/utils";
 
 import { Button } from "~/components/ui/button";
 import { IconChevronDown } from "~/components/ui/icons";
@@ -15,34 +15,17 @@ import { SelectedBankItem } from "../../SharedComponents";
 type LendingTokensTriggerProps = {
   selectedBank: ExtendedBankInfo | null;
   selectedRepayBank: ExtendedBankInfo | null;
+  lendingMode: LendingModes;
   isOpen?: boolean;
   repayType?: RepayType;
 };
 
 export const LendingTokensTrigger = React.forwardRef<HTMLButtonElement, LendingTokensTriggerProps>(
-  ({ selectedBank, selectedRepayBank, isOpen, repayType }, ref) => {
-    const [lendingMode] = useUiStore((state) => [state.lendingMode]);
-
+  ({ selectedBank, selectedRepayBank, lendingMode, isOpen, repayType }, ref) => {
     const isRepayWithCollat = React.useMemo(() => repayType === RepayType.RepayCollat, [repayType]);
 
     const calculateRate = React.useCallback(
-      (bank: ExtendedBankInfo) => {
-        const isInLendingMode = lendingMode === LendingModes.LEND;
-
-        const interestRate = isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate;
-        const emissionRate = isInLendingMode
-          ? bank.info.state.emissions == Emissions.Lending
-            ? bank.info.state.emissionsRate
-            : 0
-          : bank.info.state.emissions == Emissions.Borrowing
-          ? bank.info.state.emissionsRate
-          : 0;
-
-        const aprRate = interestRate + emissionRate;
-        const apyRate = aprToApy(aprRate);
-
-        return percentFormatter.format(apyRate);
-      },
+      (bank: ExtendedBankInfo) => computeBankRate(bank, lendingMode),
       [lendingMode]
     );
 

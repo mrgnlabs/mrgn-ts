@@ -3,9 +3,9 @@ import Image from "next/image";
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { ExtendedBankInfo, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
+import { useMrgnlendStore, useUserProfileStore, useUiStore, useActionBoxStore } from "~/store";
 
 import {
   LSTDialog,
@@ -31,13 +31,17 @@ export const AssetsList = () => {
     state.selectedAccount,
   ]);
   const [denominationUSD, setShowBadges] = useUserProfileStore((state) => [state.denominationUSD, state.setShowBadges]);
-  const [lendingMode, setLendingMode, poolFilter, isFilteredUserPositions, sortOption] = useUiStore((state) => [
-    state.lendingMode,
-    state.setLendingMode,
+  const [poolFilter, isFilteredUserPositions, sortOption] = useUiStore((state) => [
     state.poolFilter,
     state.isFilteredUserPositions,
     state.sortOption,
   ]);
+  const [actionMode, setActionMode] = useActionBoxStore((state) => [state.actionMode, state.setActionMode]);
+
+  const lendingMode = React.useMemo(
+    () => (actionMode === ActionType.Deposit ? LendingModes.LEND : LendingModes.BORROW),
+    [actionMode]
+  );
 
   const inputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
   const [isHotkeyMode, setIsHotkeyMode] = React.useState(false);
@@ -143,7 +147,7 @@ export const AssetsList = () => {
     "q",
     () => {
       if (isHotkeyMode) {
-        setLendingMode(lendingMode === LendingModes.LEND ? LendingModes.BORROW : LendingModes.LEND);
+        setActionMode(lendingMode === LendingModes.LEND ? ActionType.Borrow : ActionType.Deposit);
         setIsHotkeyMode(false);
         setShowBadges(false);
       }
