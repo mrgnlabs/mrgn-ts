@@ -28,6 +28,7 @@ import { getTokenImageURL, cn } from "~/utils";
 import { MultiStepToastHandle } from "~/utils/toastUtils";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { useConnection } from "~/hooks/useConnection";
+import { capture } from "~/utils";
 
 import { IconCheck, IconX, IconWallet } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
@@ -131,11 +132,6 @@ export const WalletSend = ({ activeToken, onSendMore, onBack, onRetry, onCancel 
         return;
       }
 
-      console.log("Recipient Address:", recipientAddress);
-      console.log("Token:", token.meta.tokenSymbol);
-      console.log("Amount:", amount);
-      console.log(Token);
-
       const multiStepToast = new MultiStepToastHandle(`Transfer ${token.meta.tokenSymbol}`, [
         { label: `Sending ${amount} ${token.meta.tokenSymbol} to ${shortenAddress(recipientAddress)}` },
       ]);
@@ -218,7 +214,12 @@ export const WalletSend = ({ activeToken, onSendMore, onBack, onRetry, onCancel 
         multiStepToast.setSuccessAndNext();
         setSendingState(SendingState.SUCCESS);
         setSendSig(signature);
-        console.log("Transaction successful with signature:", signature);
+        capture("send_token", {
+          token: token.meta.tokenSymbol,
+          amount,
+          recipient: recipientAddress,
+          wallet: wallet.publicKey,
+        });
       } catch (error: any) {
         multiStepToast.setFailed(error.message || "Transaction failed, please try again");
         setSendingState(SendingState.FAILED);
