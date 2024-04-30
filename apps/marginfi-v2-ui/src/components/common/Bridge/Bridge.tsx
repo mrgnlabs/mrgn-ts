@@ -98,6 +98,25 @@ export const Bridge = ({ onLoad }: BridgeProps) => {
     }
   }, [walletContextState, setIsWalletAuthDialogOpen]);
 
+  const handleUpdateConfig = React.useCallback(() => {
+    const newConfigIndex = isBridgeIn ? 1 : 0;
+    const config = {
+      ...configs[newConfigIndex],
+      solanaWallet: {
+        publicKey: walletAddress ? walletAddress.toString() : null,
+        signTransaction: walletContextState.signTransaction,
+        onClickOnConnect: handleConnect,
+        onClickOnDisconnect: walletContextState.disconnect,
+      },
+    };
+    if (window.MayanSwap) {
+      window.MayanSwap.updateConfig(config);
+    } else {
+      return;
+    }
+    setIsBridgeIn((prevState) => !prevState);
+  }, [handleConnect, isBridgeIn, walletAddress, walletContextState]);
+
   const handleLoadMayanWidget = React.useCallback(() => {
     const multiStepToast = new MultiStepToastHandle("Bridge", [{ label: `Cross-chain swap/bridge in progress` }]);
     const configIndex = isBridgeIn ? 0 : 1;
@@ -135,26 +154,7 @@ export const Bridge = ({ onLoad }: BridgeProps) => {
         onLoad();
       }
     }, delay);
-  }, [isBridgeIn, loadTimestamp]);
-
-  const handleUpdateConfig = React.useCallback(() => {
-    const newConfigIndex = isBridgeIn ? 1 : 0;
-    const config = {
-      ...configs[newConfigIndex],
-      solanaWallet: {
-        publicKey: walletAddress ? walletAddress.toString() : null,
-        signTransaction: walletContextState.signTransaction,
-        onClickOnConnect: handleConnect,
-        onClickOnDisconnect: walletContextState.disconnect,
-      },
-    };
-    if (window.MayanSwap) {
-      window.MayanSwap.updateConfig(config);
-    } else {
-      return;
-    }
-    setIsBridgeIn((prevState) => !prevState);
-  }, [handleConnect, isBridgeIn, walletAddress, walletContextState]);
+  }, [isBridgeIn, loadTimestamp, handleUpdateConfig, onLoad]);
 
   return (
     <div>
