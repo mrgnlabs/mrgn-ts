@@ -1,25 +1,30 @@
 import { NextResponse } from "next/server";
-
-import db from "~/lib/pg";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import NodeCache from "node-cache";
+import { Connection } from "@solana/web3.js";
+import { getConfig, MARGINFI_IDL, MarginfiAccountRaw, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountObject, MarginfiAccountObjectMap, fetchMarginfiAccounts } from "~/lib/marginfiAcc";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const wallet = searchParams.get("wallet_address");
-  const apiKey = request.headers.get("X-API-KEY");
+const marginfiCache = new NodeCache({ stdTTL: 1200 }); // 20 minutes
 
-  if (!apiKey || apiKey !== process.env.MARGINFI_API_KEY) {
-    console.error("Invalid or missing API key");
+export async function GET(request: Request) {
+  const data = await request.json();
+  const walletKeys = data.walletkeys;
+  const rpc = process.env.MARGINFI_RPC_ENDPOINT;
+
+  if (!rpc) {
+    console.error("Missing rpc url");
     return NextResponse.json(
-      { error: "Invalid or missing API key" },
+      { error: "Missing rpc url" },
       {
         status: 401,
       }
     );
   }
 
-  if (!wallet) {
+  if (!walletKeys) {
     console.error("Missing wallet address parameter");
     return NextResponse.json(
       { error: "Missing wallet address parameter" },
@@ -29,101 +34,38 @@ export async function GET(request: Request) {
     );
   }
 
-  try {
-    const queryText = "SELECT * FROM notification_settings WHERE wallet_address = $1";
-    const { rows } = await db.query(queryText, [wallet]);
-
-    if (rows.length === 0) {
-      console.error("Notification settings not found");
-      return NextResponse.json(
-        { error: "Notification settings not found" },
-        {
-          status: 404,
-        }
-      );
-    }
-
-    return NextResponse.json(rows[0], {
-      status: 200,
-    });
-  } catch (error) {
-    console.error("Database error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      {
-        status: 500,
-      }
-    );
-  }
-}
-
-export async function POST(request: Request) {
-  const data = await request.json();
-  const apiKey = request.headers.get("X-API-KEY");
-
-  if (!apiKey || apiKey !== process.env.MARGINFI_API_KEY) {
-    return NextResponse.json({ error: "Invalid or missing API key" }, { status: 401 });
-  }
-
-  if (!data.wallet_address) {
-    return NextResponse.json({ error: "Missing wallet address parameter" }, { status: 400 });
-  }
-
-  // Start constructing the query dynamically
-  let fields: string[] = ["wallet_address"];
-  let values: string[] = [data.wallet_address];
-  let params: string[] = ["$1"];
-  let updateSets: string[] = [];
-  let counter: number = 2;
-
-  // Dynamically add fields that are present
-  ["email", "account_health", "ybx_updates", "last_notification"].forEach((field) => {
-    if (data.hasOwnProperty(field)) {
-      fields.push(field);
-      values.push(data[field]);
-      params.push(`$${counter}`);
-      updateSets.push(`${field} = EXCLUDED.${field}`);
-      counter++;
-    }
+  const config = getConfig("production");
+  const connection = new Connection("https://mrgn.rpcpool.com/c293bade994b3864b52c6bbbba4b", "confirmed");
+  const provider = new AnchorProvider(connection, {} as any, {
+    ...AnchorProvider.defaultOptions(),
+    commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
   });
+  const program = new Program(MARGINFI_IDL, config.programId, provider) as any as MarginfiProgram;
 
-  const queryText = `
-    INSERT INTO notification_settings (${fields.join(", ")})
-    VALUES (${params.join(", ")})
-    ON CONFLICT (wallet_address)
-    DO UPDATE SET ${updateSets.join(", ")};
-  `;
+  // Fetch data for each wallet key
+  const fetchAcc = async () => {
+    const fetchedAccMap: MarginfiAccountObjectMap = {};
 
-  try {
-    await db.query(queryText, values);
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
-    console.error("Database error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
+    await Promise.all(
+      walletKeys.map(async (key: string) => {
+        const cacheKey = `key_${key}`;
+        const cachedData = marginfiCache.get(cacheKey) as MarginfiAccountObject[] | undefined;
+        let fetchedData: MarginfiAccountObject[] = [];
+        if (cachedData) {
+          fetchedData = cachedData;
+        } else {
+          fetchedData = await fetchMarginfiAccounts(program, config, key);
+        }
+        fetchedAccMap[key] = fetchedData;
+      })
+    );
 
-export async function DELETE(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const wallet = searchParams.get("wallet_address");
-  const apiKey = request.headers.get("X-API-KEY");
+    return fetchedAccMap;
+  };
 
-  if (!apiKey || apiKey !== process.env.MARGINFI_API_KEY) {
-    return NextResponse.json({ error: "Invalid or missing API key" }, { status: 401 });
-  }
+  const fetchedDataMap = await fetchAcc();
 
-  if (!wallet) {
-    return NextResponse.json({ error: "Missing wallet address parameter" }, { status: 400 });
-  }
-
-  const queryText = `DELETE FROM notification_settings WHERE wallet_address = '${wallet}'`;
-
-  try {
-    const res = await db.query(queryText);
-    console.log(res);
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
-    console.error("Database error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
+  return NextResponse.json(fetchedDataMap, {
+    status: 200,
+  });
 }
