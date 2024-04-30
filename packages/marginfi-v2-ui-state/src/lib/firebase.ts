@@ -128,8 +128,6 @@ async function migratePoints(
   });
   const data = await response.json();
 
-  console.log(response.status, data);
-
   return data;
 }
 
@@ -144,6 +142,8 @@ async function setAccountLabel(
     signingMethod === "tx"
       ? await signAccountLabelTx(wallet, account, label, blockhash)
       : await signAccountLabelMemo(wallet, account, label);
+
+  if (!signedDataRaw) return false;
 
   const response = await fetch("/api/user/account-label", {
     method: "POST",
@@ -249,23 +249,26 @@ async function signMigrateTx(
   return signedData;
 }
 
-async function signAccountLabelMemo(wallet: Wallet, account: string, label: string): Promise<string> {
-  if (!wallet.publicKey) {
-    throw new Error("Wallet not connected!");
-  }
-  if (!wallet.signMessage) {
-    throw new Error("Current wallet does not support required action: `signMessage`");
-  }
+async function signAccountLabelMemo(wallet: Wallet, account: string, label: string): Promise<string | boolean> {
+  if (!wallet.publicKey || !wallet.signMessage) return false;
 
-  const encodedMessage = new TextEncoder().encode(JSON.stringify({ account, label }));
-  const signature = await wallet.signMessage(encodedMessage);
-  const signedData = JSON.stringify({
-    data: { account, label },
-    signature: base58.encode(signature as Uint8Array),
-    signer: wallet.publicKey.toBase58(),
-  });
+  try {
+    const encodedMessage = new TextEncoder().encode(JSON.stringify({ account, label }));
+    const signature = await wallet.signMessage(encodedMessage);
 
-  return signedData;
+    if (!signature) return false;
+
+    const signedData = JSON.stringify({
+      data: { account, label },
+      signature: base58.encode(signature as Uint8Array),
+      signer: wallet.publicKey.toBase58(),
+    });
+
+    return signedData;
+  } catch (error) {
+    console.error("Error signing account label memo: ", error);
+    return false;
+  }
 }
 
 async function signAccountLabelTx(
@@ -273,22 +276,32 @@ async function signAccountLabelTx(
   account: string,
   label: string,
   blockhash: BlockhashWithExpiryBlockHeight
-): Promise<string> {
-  const walletAddress = wallet.publicKey!;
-  const authDummyTx = new Transaction().add(createMemoInstruction(JSON.stringify({ account, label }), [walletAddress]));
+): Promise<string | boolean> {
+  try {
+    const walletAddress = wallet.publicKey!;
+    const authDummyTx = new Transaction().add(
+      createMemoInstruction(JSON.stringify({ account, label }), [walletAddress])
+    );
 
-  authDummyTx.feePayer = walletAddress;
-  authDummyTx.recentBlockhash = blockhash.blockhash;
-  authDummyTx.lastValidBlockHeight = blockhash.lastValidBlockHeight;
+    authDummyTx.feePayer = walletAddress;
+    authDummyTx.recentBlockhash = blockhash.blockhash;
+    authDummyTx.lastValidBlockHeight = blockhash.lastValidBlockHeight;
 
-  if (!wallet.signTransaction) {
-    throw new Error("Current wallet does not support required action: `signTransaction`");
+    if (!wallet.signTransaction) {
+      return false;
+    }
+
+    const signedAuthDummyTx = await wallet.signTransaction(authDummyTx);
+
+    if (!signedAuthDummyTx) return false;
+
+    let signedData = signedAuthDummyTx.serialize().toString("base64");
+
+    return signedData;
+  } catch (error) {
+    console.error("Error signing account label tx: ", error);
+    return false;
   }
-
-  const signedAuthDummyTx = await wallet.signTransaction(authDummyTx);
-  let signedData = signedAuthDummyTx.serialize().toString("base64");
-
-  return signedData;
 }
 
 async function signinFirebaseAuth(token: string) {
