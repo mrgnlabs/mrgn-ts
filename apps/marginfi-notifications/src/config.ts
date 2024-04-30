@@ -23,6 +23,7 @@ let envSchema = z.object({
       return pkArrayStr.split(",").map((pkStr) => new PublicKey(pkStr));
     })
     .optional(),
+  MARGINFI_API_URL: z.string().url(),
   MRGN_ENV: z
     .enum(["production", "alpha", "staging", "dev", "mainnet-test-1", "dev.1"])
     .default("production")
