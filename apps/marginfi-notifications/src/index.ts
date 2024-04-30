@@ -11,10 +11,13 @@ import { sendEmailNotification } from "./lib/resend";
 import { Dialect, DialectCloudEnvironment, DialectSdk } from "@dialectlabs/sdk";
 
 import { NodeDialectSolanaWalletAdapter, Solana, SolanaSdkFactory } from "@dialectlabs/blockchain-sdk-solana";
+import { Monitor, Monitors, Pipelines, ResourceId, SourceData } from "@dialectlabs/monitor";
+import { Duration } from "luxon";
+import { getMarginfiAccounts } from "./lib/api";
 
 let client: MarginfiClient;
 let accountInfos: Map<PublicKey, MarginfiAccountWrapper> = new Map();
-const environment: DialectCloudEnvironment = "development";
+const environment: DialectCloudEnvironment = "production";
 const dialectSolanaSdk: DialectSdk<Solana> = Dialect.sdk(
   {
     environment,
@@ -25,6 +28,12 @@ const dialectSolanaSdk: DialectSdk<Solana> = Dialect.sdk(
     wallet: NodeDialectSolanaWalletAdapter.create(),
   })
 );
+
+type YourDataType = {
+  cratio: number;
+  healthRatio: number;
+  resourceId: ResourceId;
+};
 
 async function start() {
   console.log("Initializing");
@@ -47,9 +56,125 @@ async function start() {
     }
   }, 10 * 60 * 1000); // refresh cache every 10 minutes
 
-  await loadAllMarginfiAccounts();
-  await startWebsocketAccountUpdater();
-  await mainLoop();
+  // await loadAllMarginfiAccounts();
+  // await startWebsocketAccountUpdater();
+  // await mainLoop();
+
+  await dialectMonitor();
+}
+
+async function dialectMonitor() {
+  // 5. Build a Monitor to detect and deliver notifications
+  const dataSourceMonitor: Monitor<YourDataType> = Monitors.builder({
+    sdk: dialectSolanaSdk as any,
+    subscribersCacheTTL: Duration.fromObject({ seconds: 5 }),
+  })
+    // (5a) Define data source type
+    .defineDataSource<YourDataType>()
+    // (5b) Supply data to monitor, in this case by polling
+    //      Do on- or off-chain data extraction here to monitor changing datasets
+    //      .push also available, see example/007-pushy-data-source-monitor.ts
+    .poll(async (subscribers: ResourceId[]) => {
+      //const accountsRaw = await client.getMarginfiAccountsForAuthority(pk)
+
+      const test = [
+        "DyFxabH3y8WQCmMKsMMDCi4kLfpxVwCvQ2jiZSUCdtxx",
+        "3KzJW5CykCPErTnv9VonWbrE47K6a1QpokMVfa8cBSVH",
+        "9j53Z6bejUaAxJCEC64BbxozLPuvsuAFsr6iqWKKDvaw",
+        "6riLcXhKqdyVqVpdNerXMcHfEfWhfHXw45H6rpC4m9ie",
+        "3HCF9okJmwXoBoBR8BLRqShqxtHznZkdtnBQWsSX5kY8",
+      ];
+
+      const memcmpParams = test.map((authority, index) => ({
+        memcmp: {
+          bytes: authority,
+          offset: 8 + 32 * (index + 1), // Calculate offset based on authority index
+        },
+      }));
+
+      const accounts = getMarginfiAccounts(subscribers.map((v) => v.toBase58()));
+
+      const marginfiAccounts = await client.program.account.marginfiAccount.all([
+        {
+          memcmp: {
+            bytes: client.groupAddress.toBase58(),
+            offset: 8,
+          },
+        },
+        ...memcmpParams, // Spread the memcmp parameters for each authority
+      ]);
+
+      console.log({ test });
+
+      console.log(marginfiAccounts.length);
+
+      const sourceData: SourceData<YourDataType>[] = subscribers.map((resourceId) => ({
+        data: {
+          cratio: Math.random(),
+          healthRatio: Math.random(),
+          resourceId,
+        },
+        groupingKey: resourceId.toString(),
+      }));
+      return Promise.resolve(sourceData);
+    }, Duration.fromObject({ seconds: 3 }))
+    // (5c) Transform data source to detect events
+    .transform<number, number>({
+      keys: ["cratio"],
+      pipelines: [
+        Pipelines.threshold({
+          type: "falling-edge",
+          threshold: 0.5,
+        }),
+      ],
+    })
+    // (5d) Add notification sinks for message delivery strategy
+    //     Monitor has several sink types available out-of-the-box.
+    //     You can also define your own sinks to deliver over custom channels
+    //     (see examples/004-custom-notification-sink)
+    //     Below, the dialectSdk sync is used, which handles logic to send
+    //     notifications to all all (and only) the channels which has subscribers have enabled
+    .notify()
+    .dialectSdk(
+      ({ value }) => {
+        return {
+          title: "dApp cratio warning",
+          message: `Your cratio = ${value} below warning threshold`,
+        };
+      },
+      {
+        dispatch: "unicast",
+        to: ({ origin: { resourceId } }) => resourceId,
+      }
+    )
+    .also()
+    .transform<number, number>({
+      keys: ["cratio"],
+      pipelines: [
+        Pipelines.threshold({
+          type: "rising-edge",
+          threshold: 0.9,
+        }),
+      ],
+    })
+    .notify()
+    .dialectSdk(
+      ({ value }) => {
+        return {
+          title: "dApp cratio warning",
+          message: `Your cratio = ${value} above warning threshold`,
+        };
+      },
+      {
+        dispatch: "unicast",
+        to: ({ origin: { resourceId } }) => resourceId,
+      }
+    )
+    // (5e) Build the Monitor
+    .and()
+    .build();
+
+  await dataSourceMonitor.start();
 }
 
 async function mainLoop() {
@@ -103,6 +228,8 @@ async function checkAndSendNotifications(account: MarginfiAccountWrapper) {
   debug("Trigger notification: %s", healthFactor < env_config.HEALTH_FACTOR_THRESHOLD ? "Yes" : "No");
 
   if (healthFactor > env_config.HEALTH_FACTOR_THRESHOLD) return;
+
+  console.log("notify");
 
   //const userData = await getUserSettings(account.authority.toBase58());
   // if (!userData || !userData.account_health) {
