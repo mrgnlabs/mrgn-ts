@@ -19,6 +19,7 @@ import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
 import { Checkbox } from "~/components/ui/checkbox";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
 
 enum WalletAuthAccountsState {
   DEFAULT = "DEFAULT",
@@ -208,14 +209,15 @@ export const WalletAuthAccounts = () => {
         {selectedAccount && accountLabels[selectedAccount.address.toBase58()] && (
           <PopoverTrigger asChild>
             <Button variant="secondary" size="sm" className="text-sm">
-              {accountLabels[selectedAccount.address.toBase58()]} <IconChevronDown size={16} />
+              <span className="max-w-[120px] truncate">{accountLabels[selectedAccount.address.toBase58()]}</span>{" "}
+              <IconChevronDown size={16} />
             </Button>
           </PopoverTrigger>
         )}
         {/* TODO: fix this z-index mess */}
         <PopoverContent className="w-80 z-[9999999]">
           {walletAuthAccountsState === WalletAuthAccountsState.DEFAULT && (
-            <div className="grid gap-4">
+            <div className="grid gap-4 w-[80]">
               <div className="space-y-2">
                 <h4 className="font-medium leading-none">Your accounts</h4>
                 <p className="text-sm text-muted-foreground">Select your marginfi account below.</p>
@@ -223,12 +225,13 @@ export const WalletAuthAccounts = () => {
               <div className={cn("grid gap-2", isActivatingAccount !== null && "pointer-events-none animate-pulsate")}>
                 {marginfiAccounts.map((account, index) => {
                   const isActiveAccount = selectedAccount && selectedAccount.address.equals(account.address);
+                  const accountLabel = accountLabels[account.address.toBase58()] || `Account ${index + 1}`;
                   return (
                     <Button
                       key={index}
                       variant="ghost"
                       className={cn(
-                        "justify-start gap-4 pr-1 pl-2",
+                        "w-full justify-start gap-4 pr-1 pl-2",
                         isActiveAccount && "cursor-default hover:bg-transparent"
                       )}
                       onClick={() => {
@@ -236,15 +239,29 @@ export const WalletAuthAccounts = () => {
                         activateAccount(account, index);
                       }}
                     >
-                      <Label htmlFor="width">{accountLabels[account.address.toBase58()]}</Label>
-                      <span className="text-muted-foreground text-xs">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Label htmlFor="width" className="w-[97px] truncate overflow-hidden text-left">
+                              {accountLabel}
+                            </Label>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{accountLabel}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      <span className="text-muted-foreground text-[10px]">
                         {isActivatingAccountDelay === index
                           ? "Switching..."
                           : shortenAddress(account.address.toBase58())}
                       </span>
+
                       {isActivatingAccount === null && isActiveAccount && (
                         <Badge className="text-xs p-1 h-5">active</Badge>
                       )}
+
                       <div className="flex items-center ml-auto">
                         <button
                           className="p-1.5 transition-colors rounded-lg hover:bg-background-gray-light"
