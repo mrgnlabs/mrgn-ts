@@ -1,0 +1,20 @@
+Dockerfile
+.dockerignore
+node_modules
+dist
+deployment
+.git
+
+npm-debug.log
+env-dev-fb-admin-key.json
+# env files
+/.env.dev
+/.env.local-dev
+/.env.sbx
+/.env.prd
+/.env.service
+/.env.client
+# keypair
+/dev-keypair.passphrase
+/dev-keypair.private
+/dev-keypair.public
