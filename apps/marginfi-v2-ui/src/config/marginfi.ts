@@ -81,7 +81,7 @@ export default config;
 export const WALLET_BALANCE_MARGIN_SOL = 0.1;
 
 // FEES
-const INITIAL_PRIO_FEE = Number(process.env.NEXT_PUBLIC_INIT_PRIO_FEE) ?? 0;
+const INITIAL_PRIO_FEE = process.env.NEXT_PUBLIC_INIT_PRIO_FEE ? Number(process.env.NEXT_PUBLIC_INIT_PRIO_FEE) : 0;
 const HIGH_PRIO_FEE = 0.00005;
 const MAMA_PRIO_FEE = 0.005;
 
