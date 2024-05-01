@@ -303,17 +303,15 @@ export default function MintPage() {
                   </button>
                 </p>
                 <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
-                  {integrations?.length > 0 ? (
-                    integrations.map((item, i) => <IntegrationCard integrationsData={item} key={i} />)
-                  ) : (
-                    <IntegrationCardSkeleton />
-                  )}
-
                   {lstBank?.length > 0 ? (
                     <>
                       <BankIntegrationCard bank={lstBank[0]} isInLendingMode={true} />
-                      <BankIntegrationCard bank={lstBank[0]} isInLendingMode={false} />
                     </>
+                  ) : (
+                    <IntegrationCardSkeleton />
+                  )}
+                  {integrations?.length > 0 ? (
+                    integrations.map((item, i) => <IntegrationCard integrationsData={item} key={i} />)
                   ) : (
                     <IntegrationCardSkeleton />
                   )}
