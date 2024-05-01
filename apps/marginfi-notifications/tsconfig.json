@@ -1,15 +1,23 @@
 {
-  "extends": "@mrgnlabs/tsconfig/base.json",
   "compilerOptions": {
-    "resolveJsonModule": true,
-    "outDir": "dist"
-  },
-  "include": [
-    "."
-  ],
-  "exclude": [
-    "dist",
-    "node_modules",
-    "examples"
-  ]
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
+    "strictBindCallApply": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true
+  }
 }
