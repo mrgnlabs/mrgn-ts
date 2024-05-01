@@ -4,7 +4,6 @@ import { persist } from "zustand/middleware";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes, PoolTypes, SortType, sortDirection, SortAssetOption, PreviousTxn } from "~/types";
-import { INITIAL_PRIO_FEE } from "~/config/marginfi";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {
@@ -102,7 +101,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   poolFilter: PoolTypes.ALL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
   selectedTokenBank: null,
-  priorityFee: INITIAL_PRIO_FEE,
+  priorityFee: 0,
   isActionComplete: false,
   previousTxn: null,
   isActionBoxInputFocussed: false,
