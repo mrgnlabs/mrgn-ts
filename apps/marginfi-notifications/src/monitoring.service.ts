@@ -42,7 +42,7 @@ export class MonitoringService implements OnApplicationBootstrap {
         pipelines: [
           Pipelines.threshold({
             type: 'falling-edge',
-            threshold: 0.75,
+            threshold: Number(process.env.HEALTH_FACTOR_THRESHOLD) ?? 0,
           }),
         ],
       })

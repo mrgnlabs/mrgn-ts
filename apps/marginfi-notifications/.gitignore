@@ -38,7 +38,10 @@ lerna-debug.log*
 # env files
 /.env.service
 /.env.client
-/.env
+/.env.dev
+/.env.local-dev
+/.env.prod
+
 # keypair
 /dev-keypair.passphrase
 /dev-keypair.private
