@@ -22,7 +22,9 @@ import { AccountDataSource } from './marginfi-data-source';
     ScheduleModule.forRoot(),
     TerminusModule,
     HttpModule,
-    CacheModule.register(),
+    CacheModule.register({
+      ttl: Number(process.env.CACHE_TTL_MS) ?? 50_000, // milliseconds (50 seconds)
+    }),
     ConfigModule.forRoot(),
     LoggerModule.forRoot({
       pinoHttp: {
