@@ -1,4 +1,5 @@
 import { QuoteResponse, SwapRequest, createJupiterApiClient } from "@jup-ag/api";
+import * as Sentry from "@sentry/nextjs";
 import {
   AddressLookupTableAccount,
   Connection,
@@ -176,6 +177,7 @@ export async function executeLstAction({
     }
   } else {
     throw new Error("Action not implemented");
+    Sentry.captureException({ message: "Action not implemented" });
   }
 }
 
@@ -216,6 +218,7 @@ async function createAccountAndDeposit({
     multiStepToast.setSuccessAndNext();
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
@@ -228,6 +231,7 @@ async function createAccountAndDeposit({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
@@ -257,6 +261,7 @@ export async function deposit({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while depositing: ${msg}`);
     console.log(error);
@@ -286,6 +291,7 @@ export async function borrow({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while borrowing: ${msg}`);
     console.log(error);
@@ -320,6 +326,7 @@ export async function withdraw({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while withdrawing: ${msg}`);
     console.log(error);
@@ -354,6 +361,7 @@ export async function repay({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while repaying: ${msg}`);
     console.log(error);
@@ -418,6 +426,7 @@ export async function repayWithCollat({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while repaying: ${msg}`);
     console.log(error);
@@ -449,6 +458,7 @@ export async function collectRewardsBatch(
     multiStepToast.setSuccessAndNext();
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while collecting rewards: ${msg}`);
     console.log(error);
@@ -490,6 +500,7 @@ export const closeBalance = async ({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while closing balance`);
     console.log(error);
@@ -547,6 +558,7 @@ export async function mintLstStakeToStake({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while minting lst: ${msg}`);
     console.log(error);
@@ -608,6 +620,7 @@ export async function mintLstNative({
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while minting lst: ${msg}`);
     console.log(error);
@@ -681,6 +694,7 @@ export async function mintLstToken({
     return swapSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
+    Sentry.captureException({ message: error });
     multiStepToast.setFailed(msg);
     console.log(`Error while minting lst: ${msg}`);
     console.log(error);
