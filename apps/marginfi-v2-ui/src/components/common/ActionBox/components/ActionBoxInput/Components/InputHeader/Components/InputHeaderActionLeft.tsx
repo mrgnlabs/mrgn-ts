@@ -47,7 +47,7 @@ export const InputHeaderActionLeft = ({
     const actionTitles: { [key in ActionType]?: string } = {
       [ActionType.Borrow]: "You borrow",
       [ActionType.Deposit]: "You supply",
-      [ActionType.Withdraw]: "",
+      [ActionType.Withdraw]: "You withdraw",
       [ActionType.Repay]: "",
       [ActionType.MintLST]: isSolBank ? "You stake" : "You swap",
       [ActionType.UnstakeLST]: "You unstake",
