@@ -378,3 +378,41 @@ input::-webkit-inner-spin-button {
 #jupiter-terminal > div > div > div > div > div.mt-auto.px-5.pb-4.flex.space-x-2 {
   padding: 0 !important;
 }
+
+.dialect[data-theme="dark"] {
+  font-family: "Aeonik Pro" !important;
+  --dt-accent-brand: #dce85d !important;
+  --dt-accent-error: #ff4747;
+  --dt-accent-success: #09cbbf;
+  --dt-accent-warning: #ff9900;
+  --dt-bg-brand: #656564;
+  --dt-bg-primary: #111416 !important;
+  --dt-bg-secondary: #0c0f11 !important;
+  --dt-bg-tertiary: #2a2a2b;
+  --dt-brand-transparent: #b3b3b31a;
+  --dt-button-primary: #ffffff;
+  --dt-button-primary-disabled: #dee1e7;
+  --dt-button-primary-hover: #f9f9f9;
+  --dt-button-secondary: #323335;
+  --dt-button-secondary-disabled: #434445;
+  --dt-button-secondary-hover: #383a3c;
+  --dt-error-transparent: #f62d2d1a;
+  --dt-icon-inverse: #1b1b1c;
+  --dt-icon-primary: #ffffff;
+  --dt-icon-secondary: #888989;
+  --dt-icon-tertiary: #737373;
+  --dt-input-checked: #dce85d !important;
+  --dt-input-disabled: #434445;
+  --dt-input-primary: #434445;
+  --dt-input-secondary: #1b1b1c;
+  --dt-input-unchecked: #656564;
+  --dt-stroke-primary: #1b2022 !important;
+  --dt-success-transparent: #09cbbf1a;
+  --dt-text-accent: #dce85d !important;
+  --dt-text-inverse: #1b1b1c;
+  --dt-text-primary: #ffffff;
+  --dt-text-quaternary: #888989;
+  --dt-text-secondary: #c4c6c8;
+  --dt-text-tertiary: #888989;
+  --dt-warning-transparent: #ff99001a;
+}
