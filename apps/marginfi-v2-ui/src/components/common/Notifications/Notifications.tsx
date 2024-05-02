@@ -12,7 +12,7 @@ export const DialectNotification = () => {
 
   return (
     <DialectSolanaSdk dappAddress={DAPP_ADDRESS} customWalletAdapter={wallet}>
-      <NotificationsButton />
+      <NotificationsButton theme="dark" />
     </DialectSolanaSdk>
   );
 };
