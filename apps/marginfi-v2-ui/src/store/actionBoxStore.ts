@@ -33,6 +33,7 @@ interface ActionBoxState {
 
   // Actions
   refreshState: () => void;
+  refreshSelectedBanks: (banks: ExtendedBankInfo[]) => void;
   fetchActionBoxState: (args: { requestedAction?: ActionType; requestedBank?: ExtendedBankInfo }) => void;
   setSlippageBps: (slippageBps: number) => void;
   setActionMode: (actionMode: ActionType) => void;
@@ -195,6 +196,25 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
     set({ isLoading: false });
   },
 
+  refreshSelectedBanks(banks: ExtendedBankInfo[]) {
+    const selectedBank = get().selectedBank;
+    const selectedRepayBank = get().selectedRepayBank;
+
+    if (selectedBank) {
+      const updatedBank = banks.find((v) => v.address.equals(selectedBank.address));
+      if (updatedBank) {
+        set({ selectedBank: updatedBank });
+      }
+    }
+
+    if (selectedRepayBank) {
+      const updatedRepayBank = banks.find((v) => v.address.equals(selectedRepayBank.address));
+      if (updatedRepayBank) {
+        set({ selectedRepayBank: updatedRepayBank });
+      }
+    }
+  },
+
   async setSelectedBank(tokenBank) {
     const selectedBank = get().selectedBank;
     const hasBankChanged = !tokenBank || !selectedBank || !tokenBank.address.equals(selectedBank.address);
@@ -237,6 +257,8 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
         }
         set({ isLoading: false });
       }
+    } else {
+      set({ selectedRepayBank: repayTokenBank });
     }
   },
 

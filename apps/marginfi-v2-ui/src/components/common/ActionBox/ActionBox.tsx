@@ -85,6 +85,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     setActionMode,
     setIsLoading,
     setAmountRaw,
+    refreshSelectedBanks,
   ] = useActionBoxStore(isDialog)((state) => [
     state.slippageBps,
     state.amountRaw,
@@ -105,6 +106,7 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
     state.setActionMode,
     state.setIsLoading,
     state.setAmountRaw,
+    state.refreshSelectedBanks,
   ]);
 
   const [priorityFee, setPriorityFee, setIsActionComplete, setPreviousTxn] = useUiStore((state) => [
@@ -137,6 +139,10 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   React.useEffect(() => {
     fetchActionBoxState({ requestedAction, requestedBank });
   }, [requestedAction, requestedBank, fetchActionBoxState]);
+
+  React.useEffect(() => {
+    refreshSelectedBanks(extendedBankInfos);
+  }, [extendedBankInfos, refreshSelectedBanks]);
 
   React.useEffect(() => {
     if (errorMessage !== "") {
