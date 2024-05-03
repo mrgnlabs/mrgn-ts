@@ -55,14 +55,14 @@ export class MonitoringService implements OnApplicationBootstrap {
       .dialectSdk(
         ({ context: { origin } }) => {
           const notification: DialectSdkNotification = {
-            title: `Your health factor fell below 0.25`,
-            message: `The value of your health factor just dropped under 0.25. It is now ${origin.healthFactor}.`,
+            title: `Your health factor fell below ${process.env.HEALTH_FACTOR_THRESHOLD}`,
+            message: `The value of your health factor just dropped under ${process.env.HEALTH_FACTOR_THRESHOLD}. It is now ${origin.healthFactor}.`,
             actions: {
               type: DappMessageActionType.LINK,
               links: [
                 {
                   label: 'View',
-                  url: `https://www.google.com/search?q=0.25&oq=0.25`,
+                  url: `https://app.marginfi.com/portfolio`,
                 },
               ],
             },
