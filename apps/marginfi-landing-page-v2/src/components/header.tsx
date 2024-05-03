@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { IconChevronDown } from "@tabler/icons-react";
+
 import { Logo } from "~/components/ui/logo";
 import { Button } from "~/components/ui/button";
 
@@ -18,7 +20,9 @@ export const Header = () => {
             <Link href="">Ecosystem</Link>
           </li>
           <li>
-            <Button>Launch App</Button>
+            <Button variant="chartreuse">
+              Launch App <IconChevronDown size={18} className="ml-1 -mr-1" />
+            </Button>
           </li>
         </ul>
       </nav>
