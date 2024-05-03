@@ -236,10 +236,12 @@ class MarginfiClient {
       debug("Using preloaded bank addresses, skipping gpa call", bankAddresses.length, "banks");
       let bankAccountsData = await program.account.bank.fetchMultiple(bankAddresses);
       for (let i = 0; i < bankAccountsData.length; i++) {
-        bankDatasKeyed.push({
-          address: bankAddresses[i],
-          data: bankAccountsData[i] as any as BankRaw,
-        });
+        if (bankAccountsData[i] !== null) {
+          bankDatasKeyed.push({
+            address: bankAddresses[i],
+            data: bankAccountsData[i] as any as BankRaw,
+          });
+        }
       }
     } else {
       let bankAccountsData = await program.account.bank.all([
