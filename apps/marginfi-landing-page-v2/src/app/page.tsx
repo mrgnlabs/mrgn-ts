@@ -1,10 +1,9 @@
-import { Button } from "~/components/ui/button";
+import { Hero } from "~/components/hero";
 
 export default function Home() {
   return (
     <main>
-      <h1>Marginfi</h1>
-      <Button variant="secondary">Get Started</Button>
+      <Hero />
     </main>
   );
 }
