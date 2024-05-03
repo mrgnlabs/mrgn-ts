@@ -35,7 +35,7 @@ export class MonitoringService implements OnApplicationBootstrap {
       .defineDataSource<AccountData>()
       .poll(
         (subscribers) => this.dataSource.pollData(subscribers),
-        Duration.fromObject({ seconds: 5 }),
+        Duration.fromObject({ seconds: Number(process.env.POLLING_DURATION) }),
       )
       .transform<number, number>({
         keys: ['healthFactor'],
