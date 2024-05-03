@@ -252,7 +252,6 @@ class MarginfiClient {
         data: account.account as any as BankRaw,
       }));
     }
-    console.log(bankDatasKeyed);
 
     // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
     const [groupAi, ...priceFeedAis] = await program.provider.connection.getMultipleAccountsInfo(
