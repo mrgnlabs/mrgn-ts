@@ -4,7 +4,7 @@ import { Header } from "~/components/header";
 
 import type { Metadata } from "next";
 
-import "./globals.css";
+import "../styles/globals.css";
 
 const fontSans = FontSans({
   subsets: ["latin"],

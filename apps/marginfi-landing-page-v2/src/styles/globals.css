@@ -33,6 +33,10 @@
     --ring: 0 0% 83.1%;
 
     --radius: 0.5rem;
+
+    /* brand vars */
+    --mrgn-chartreuse: 65 100% 61%;
+    --mrgn-gold: 33 16% 67%;
   }
 }
 
