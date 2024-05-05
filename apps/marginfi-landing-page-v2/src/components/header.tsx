@@ -7,11 +7,8 @@ import { Button } from "~/components/ui/button";
 
 export const Header = () => {
   return (
-    <header className="fixed top-0 left-0 z-20 w-screen flex items-center gap-8 pr-28">
-      <div className="flex items-center gap-4 text-3xl p-4 xl:px-6">
-        <Logo size={36} />
-        marginfi
-      </div>
+    <header className="fixed top-0 left-0 z-20 w-screen flex items-center gap-8 p-4 pr-28">
+      <Logo size={36} wordmark={true} />
 
       <nav className="ml-auto">
         <ul className="flex items-center gap-12">
