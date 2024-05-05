@@ -23,26 +23,30 @@ export const Stats = () => {
   return (
     <div className="text-center space-y-24 py-24">
       <h2 className="text-5xl max-w-5xl mx-auto w-full">{CONTENT.heading}</h2>
-      <ul className="w-full grid grid-cols-3">
-        {CONTENT.stats.map((stat, index) => (
-          <li
-            key={index}
-            className={cn(
-              "border border-muted-foreground",
-              index < CONTENT.stats.length && "border-l-0",
-              index === CONTENT.stats.length - 1 && "border-r-0"
-            )}
-          >
-            <dl className="py-20 space-y-8">
-              <dt className="text-muted-foreground">{stat.kpi}</dt>
-              <dd className="flex items-center justify-center gap-1 text-6xl font-medium">
-                <span className="text-4xl">$</span>
-                <span>{stat.value}</span>m
-              </dd>
-            </dl>
-          </li>
-        ))}
-      </ul>
+      <div className="w-full">
+        <div className="h-[1px] bg-muted-foreground/50" />
+        <ul className="max-w-7xl mx-auto w-full grid grid-cols-3">
+          {CONTENT.stats.map((stat, index) => (
+            <li
+              key={index}
+              className={cn(
+                "border border-t-0 border-b-0 border-muted-foreground/50",
+                index < CONTENT.stats.length && "border-l-0",
+                index === CONTENT.stats.length - 1 && "border-r-0"
+              )}
+            >
+              <dl className="py-20 space-y-8">
+                <dt className="text-muted-foreground">{stat.kpi}</dt>
+                <dd className="flex items-center justify-center gap-1 text-6xl font-medium">
+                  <span className="text-4xl">$</span>
+                  <span>{stat.value}</span>m
+                </dd>
+              </dl>
+            </li>
+          ))}
+        </ul>
+        <div className="h-[1px] bg-muted-foreground/50" />
+      </div>
     </div>
   );
 };
