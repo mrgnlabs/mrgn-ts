@@ -5,6 +5,7 @@ import { Features } from "~/components/features";
 import { Highlights } from "~/components/highlights";
 import { Ecosystem } from "~/components/ecosystem";
 import { Callout } from "~/components/callout";
+import { Contact } from "~/components/contact";
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
       <Highlights />
       <Ecosystem />
       <Callout />
+      <Contact />
     </main>
   );
 }
