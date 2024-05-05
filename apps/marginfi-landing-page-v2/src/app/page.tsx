@@ -6,6 +6,7 @@ import { Highlights } from "~/components/highlights";
 import { Ecosystem } from "~/components/ecosystem";
 import { Callout } from "~/components/callout";
 import { Contact } from "~/components/contact";
+import { Investors } from "~/components/investors";
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
       <Ecosystem />
       <Callout />
       <Contact />
+      <Investors />
     </main>
   );
 }
