@@ -6,7 +6,7 @@ const CONTENT = {
 export const Highlights = () => {
   return (
     <div className="relative">
-      <div className="relative container max-w-7xl flex justify-between items-center py-40 z-20">
+      <div className="relative h-[75vh] container max-w-7xl flex justify-between items-center py-24 z-20">
         <h2 className="text-8xl font-medium w-1/2">
           If you&apos;re a developer,{" "}
           <span className="bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse text-transparent bg-clip-text">
