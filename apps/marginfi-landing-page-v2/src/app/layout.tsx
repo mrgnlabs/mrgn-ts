@@ -4,6 +4,7 @@ import { Header } from "~/components/header";
 
 import type { Metadata } from "next";
 
+import "../styles/fonts.css";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {

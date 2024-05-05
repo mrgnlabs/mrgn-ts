@@ -7,7 +7,7 @@ import { Button } from "~/components/ui/button";
 
 export const Header = () => {
   return (
-    <header className="flex items-center gap-8 pr-28">
+    <header className="fixed top-0 left-0 z-20 w-screen flex items-center gap-8 pr-28">
       <div className="flex items-center gap-4 text-3xl p-4 xl:px-6">
         <Logo size={36} />
         marginfi
