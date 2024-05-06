@@ -310,7 +310,7 @@ export const getPositionCell = (positionData: PositionData) => {
         <dl className="flex gap-2 items-center">
           <dt
             className={cn(
-              "text-accent-foreground text-xs font-light",
+              "text-accent-foreground text-xs font-light flex gap-1",
               positionData.isUserPositionPoorHealth && "text-destructive-foreground"
             )}
           >

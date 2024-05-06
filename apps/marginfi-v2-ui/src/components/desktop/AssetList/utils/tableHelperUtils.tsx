@@ -53,6 +53,8 @@ export const generateColumns = (isInLendingMode: boolean) => {
   const columns = [
     columnHelper.accessor("asset", {
       id: "asset",
+      enableResizing: false,
+      size: 170,
       cell: (props) => getAssetCell(props.getValue()),
       header: (header) => (
         <HeaderWrapper header={header} align="left">
@@ -64,6 +66,8 @@ export const generateColumns = (isInLendingMode: boolean) => {
     }),
     columnHelper.accessor("price", {
       id: "price",
+      enableResizing: false,
+      size: 170,
       cell: (props) => getAssetPriceCell(props.getValue()),
       header: (header) => (
         <HeaderWrapper
@@ -85,6 +89,8 @@ export const generateColumns = (isInLendingMode: boolean) => {
     }),
     columnHelper.accessor("rate", {
       id: "rate",
+      enableResizing: true,
+      maxSize: 120,
       cell: (props) => getRateCell(props.getValue()),
       header: (header) => (
         <HeaderWrapper
