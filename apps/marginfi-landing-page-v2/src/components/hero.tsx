@@ -2,10 +2,8 @@
 
 import React from "react";
 
-import { useScroll, useMotionValueEvent } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { IconArrowRight } from "@tabler/icons-react";
-
-import { getVideoUrl } from "~/lib/utils";
 
 import { Button } from "~/components/ui/button";
 
@@ -53,17 +51,14 @@ const CONTENT = {
 
 export const Hero = () => {
   const targetRef = React.useRef(null);
-  const [heroAnimationOpacity, setheroAnimationOpacity] = React.useState(0);
-  const [scrollIconAnimationOpacity, setscrollIconAnimationOpacity] = React.useState(0);
   const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ["end end", "start start"],
   });
 
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    setheroAnimationOpacity(1 - latest);
-    setscrollIconAnimationOpacity(0.75 - latest);
-  });
+  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const scrollIconOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+
   return (
     <div className="h-[150vh]">
       <div className="w-screen h-screen relative flex flex-col items-center justify-center">
@@ -94,19 +89,16 @@ export const Hero = () => {
             ))}
           </div>
         </div>
-        <button
+        <motion.button
           ref={targetRef}
           className="fixed bottom-10 left-1/2 w-16 z-10 -translate-x-1/2"
-          style={{ opacity: scrollIconAnimationOpacity }}
+          style={{ opacity: scrollIconOpacity }}
         >
           <Lottie animationData={scrollIconAnimation} />
-        </button>
-        <Lottie
-          animationData={heroAnimation}
-          className="fixed top-0 left-0 z-0 w-screen h-screen object-cover"
-          loop={false}
-          style={{ opacity: heroAnimationOpacity }}
-        />
+        </motion.button>
+        <motion.div className="fixed top-0 left-0 z-0 w-screen h-screen object-cover" style={{ opacity: heroOpacity }}>
+          <Lottie animationData={heroAnimation} loop={false} />
+        </motion.div>
       </div>
     </div>
   );
