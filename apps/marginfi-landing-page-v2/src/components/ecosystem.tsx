@@ -2,13 +2,15 @@ import Link from "next/link";
 
 import { IconArrowRight } from "@tabler/icons-react";
 
+import { getVideoUrl } from "~/lib/utils";
+
 import { Button } from "~/components/ui/button";
 
 export const Ecosystem = () => {
   return (
     <div className="container max-w-7xl flex items-center justify-between gap-4">
       <video autoPlay muted>
-        <source src="/videos/ecosystem.mp4" type="video/mp4" />
+        <source src={getVideoUrl("ecosystem")} type="video/mp4" />
       </video>
       <div className="space-y-6 max-w-sm">
         <h3 className="text-4xl font-medium">A full ecosystem powered by marginfi SDK</h3>

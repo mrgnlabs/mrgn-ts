@@ -1,3 +1,5 @@
+import { getVideoUrl } from "~/lib/utils";
+
 const CONTENT = {
   subHeading: "Plug directly into...",
   highlights: ["$500M of liquidity", "Access over 200,000 users", "A host of supporting on and off-chain systems"],
@@ -23,7 +25,7 @@ export const Highlights = () => {
         </div>
       </div>
       <video className="absolute top-0 left-0 -translate-y-1/2 z-0 w-screen h-screen object-cover" autoPlay muted>
-        <source src="/videos/highlights.mp4" type="video/mp4" />
+        <source src={getVideoUrl("highlights")} type="video/mp4" />
       </video>
     </div>
   );
