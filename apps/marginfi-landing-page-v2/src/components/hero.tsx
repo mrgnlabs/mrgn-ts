@@ -1,4 +1,7 @@
 import { IconArrowRight } from "@tabler/icons-react";
+
+import { getVideoUrl } from "~/lib/utils";
+
 import { Button } from "~/components/ui/button";
 
 const CONTENT = {
@@ -71,11 +74,11 @@ export const Hero = () => {
       </div>
       <button className="absolute bottom-10 left-1/2 w-16 z-20 -translate-x-1/2">
         <video autoPlay loop muted>
-          <source src="/videos/scroll.mp4" type="video/mp4" />
+          <source src={getVideoUrl("scroll")} type="video/mp4" />
         </video>
       </button>
       <video className="absolute top-0 left-0 z-10 w-screen h-screen object-cover" autoPlay muted>
-        <source src="/videos/hero.mp4" type="video/mp4" />
+        <source src={getVideoUrl("hero")} type="video/mp4" />
       </video>
     </div>
   );
