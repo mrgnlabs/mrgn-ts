@@ -44,7 +44,7 @@ const CONTENT = {
 
 export const Features = () => {
   return (
-    <div className="relative container space-y-24 py-24 z-20">
+    <div className="relative container space-y-24 py-24 z-20" id="features">
       <h2 className="text-5xl max-w-5xl mx-auto w-full font-medium text-center">{CONTENT.heading}</h2>
       <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full">
         {CONTENT.features.map((feature, index) => (

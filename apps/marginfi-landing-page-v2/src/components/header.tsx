@@ -10,6 +10,7 @@ import { useWindowSize } from "@uidotdev/usehooks";
 
 import { Logo } from "~/components/ui/logo";
 import { Button } from "~/components/ui/button";
+import { ScrollTo } from "~/components/ui/scroll-to";
 
 export const Header = () => {
   const { scrollY } = useScroll();
@@ -33,10 +34,10 @@ export const Header = () => {
       <nav className="ml-auto">
         <ul className="flex items-center gap-12">
           <li>
-            <Link href="">Products</Link>
+            <ScrollTo to="products">Products</ScrollTo>
           </li>
           <li>
-            <Link href="">Ecosystem</Link>
+            <ScrollTo to="ecosystem">Ecosystem</ScrollTo>
           </li>
           <li>
             <Button variant="chartreuse">
