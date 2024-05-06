@@ -1,13 +1,33 @@
+"use client";
+
+import React from "react";
+
 import Link from "next/link";
 
 import { IconChevronDown } from "@tabler/icons-react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useWindowSize } from "@uidotdev/usehooks";
 
 import { Logo } from "~/components/ui/logo";
 import { Button } from "~/components/ui/button";
 
 export const Header = () => {
+  const { scrollY } = useScroll();
+  const { height } = useWindowSize();
+
+  const headerBackgroundColor = useTransform(
+    scrollY,
+    [0, height || 400],
+    ["rgba(12, 14, 13, 0)", "rgba(12, 14, 13, 0.85)"]
+  );
+
+  const headerBackgroundBlur = useTransform(scrollY, [0, height ? height * 0.5 : 400], ["blur(0px)", "blur(4px)"]);
+
   return (
-    <header className="fixed top-0 left-0 z-20 w-screen flex items-center gap-8 p-4 pr-28">
+    <motion.header
+      className="fixed top-0 left-0 z-30 w-screen flex items-center gap-8 p-4 pr-28"
+      style={{ background: headerBackgroundColor, backdropFilter: headerBackgroundBlur }}
+    >
       <Logo size={36} wordmark={true} />
 
       <nav className="ml-auto">
@@ -35,6 +55,6 @@ export const Header = () => {
           />
         </svg>
       </button>
-    </header>
+    </motion.header>
   );
 };
