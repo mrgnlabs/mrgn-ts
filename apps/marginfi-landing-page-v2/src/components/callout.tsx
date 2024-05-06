@@ -21,7 +21,7 @@ const CONTENT = {
 
 export const Callout = () => {
   return (
-    <div className="container py-24 max-w-7xl mx-auto">
+    <div className="relative z-10 container py-24 max-w-7xl mx-auto">
       <div className="flex items-center justify-between bg-secondary p-8">
         <div className="space-y-4 w-2/3">
           <h2 className="text-4xl font-medium">{CONTENT.heading}</h2>

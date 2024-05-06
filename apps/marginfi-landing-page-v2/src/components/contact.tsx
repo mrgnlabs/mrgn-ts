@@ -2,7 +2,7 @@ import { getVideoUrl } from "~/lib/utils";
 
 export const Contact = () => {
   return (
-    <div className="container flex items-center gap-20 py-24">
+    <div className="relative z-10 container flex items-center gap-20 py-24">
       <video autoPlay muted>
         <source src={getVideoUrl("contact")} type="video/mp4" />
       </video>
