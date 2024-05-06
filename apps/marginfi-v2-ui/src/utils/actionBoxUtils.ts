@@ -84,15 +84,11 @@ export function checkActionAvailable({
 }: CheckActionAvailableProps): ActionMethod[] {
   let checks: ActionMethod[] = [];
 
-  const check = generalChecks(
-    connected,
-    selectedBank,
-    selectedStakingAccount,
-    amount ?? 0,
-    repayAmount ?? 0,
-    showCloseBalance
-  );
-  if (check) return [check];
+  const requiredCheck = getRequiredCheck(connected, selectedBank, selectedStakingAccount);
+  if (requiredCheck) return [requiredCheck];
+
+  const generalChecks = getGeneralChecks(amount ?? 0, repayAmount ?? 0, showCloseBalance);
+  if (generalChecks) checks.push(...generalChecks);
 
   // allert checks
   if (selectedBank) {
@@ -141,13 +137,10 @@ export function checkActionAvailable({
   return checks;
 }
 
-function generalChecks(
+function getRequiredCheck(
   connected: boolean,
   selectedBank: ExtendedBankInfo | null,
-  selectedStakingAccount: StakeData | null,
-  amount: number = 0,
-  repayAmount: number = 0,
-  showCloseBalance?: boolean
+  selectedStakingAccount: StakeData | null
 ): ActionMethod | null {
   if (!connected) {
     return { isEnabled: false };
@@ -155,15 +148,21 @@ function generalChecks(
   if (!selectedBank && !selectedStakingAccount) {
     return { isEnabled: false };
   }
+
+  return null;
+}
+
+function getGeneralChecks(amount: number = 0, repayAmount: number = 0, showCloseBalance?: boolean): ActionMethod[] {
+  let checks: ActionMethod[] = [];
   if (showCloseBalance) {
-    return { actionMethod: "INFO", description: "Close lending balance.", isEnabled: true };
+    checks.push({ actionMethod: "INFO", description: "Close lending balance.", isEnabled: true });
   }
 
   if (amount === 0 && repayAmount === 0) {
-    return { isEnabled: false };
+    checks.push({ isEnabled: false });
   }
 
-  return null;
+  return checks;
 }
 
 function canBeWithdrawn(
