@@ -48,10 +48,11 @@ export function useLendingPreview({
   React.useEffect(() => {
     const isBankChanged = bank ? !bankPrev?.address.equals(bank.address) : false;
 
-    if (account && bank && debouncedAmount && !isBankChanged) {
+    if (account && bank && debouncedAmount && !isBankChanged && amount !== 0) {
       getSimulationResult({ actionMode, account, bank, amount: debouncedAmount, repayWithCollatOptions });
     } else {
       setSimulationResult(undefined);
+      setActionMethod(undefined);
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
