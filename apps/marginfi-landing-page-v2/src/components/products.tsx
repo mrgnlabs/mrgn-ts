@@ -21,7 +21,7 @@ const CONTENT = {
 
 export const Products = () => {
   return (
-    <div className="relative">
+    <div className="relative" id="products">
       <div className="container space-y-24 py-24">
         <h2 className="text-5xl max-w-5xl mx-auto w-full font-medium text-center">{CONTENT.heading}</h2>
         <ul className="max-w-7xl mx-auto w-full grid grid-cols-3 gap-32">

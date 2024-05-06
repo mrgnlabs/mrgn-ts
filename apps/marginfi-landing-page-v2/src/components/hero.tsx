@@ -2,14 +2,15 @@
 
 import React from "react";
 
+import Lottie from "lottie-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { IconArrowRight } from "@tabler/icons-react";
 
-import { Button } from "~/components/ui/button";
-
-import Lottie from "lottie-react";
 import scrollIconAnimation from "~/lottie/scrollIconAnimation.json";
 import heroAnimation from "~/lottie/heroAnimation.json";
+
+import { Button } from "~/components/ui/button";
+import { ScrollTo } from "~/components/ui/scroll-to";
 
 const CONTENT = {
   heading: "A new liquidity layer for performant DeFi",
@@ -26,7 +27,7 @@ const CONTENT = {
       ),
       body: "I'm here to maximize my potential in DeFi",
       cta: {
-        target: "",
+        target: "products",
         label: "Start earning",
       },
     },
@@ -42,7 +43,7 @@ const CONTENT = {
       ),
       body: "I'm a developer and I want to power my dApp with marginfi",
       cta: {
-        target: "",
+        target: "features",
         label: "Start building",
       },
     },
@@ -80,22 +81,26 @@ export const Hero = () => {
                 >
                   {feature.icon}
                   {feature.body}
-                  <Button>
-                    {feature.cta.label}
-                    <IconArrowRight size={18} className="ml-1.5" />
-                  </Button>
+                  <ScrollTo to={feature.cta.target}>
+                    <Button>
+                      {feature.cta.label}
+                      <IconArrowRight size={18} className="ml-1.5" />
+                    </Button>
+                  </ScrollTo>
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <motion.button
-          ref={targetRef}
-          className="fixed bottom-10 left-1/2 w-16 z-10 -translate-x-1/2"
-          style={{ opacity: scrollIconOpacity }}
-        >
-          <Lottie animationData={scrollIconAnimation} />
-        </motion.button>
+        <ScrollTo to="stats">
+          <motion.button
+            ref={targetRef}
+            className="fixed bottom-10 left-1/2 w-16 z-10 -translate-x-1/2"
+            style={{ opacity: scrollIconOpacity }}
+          >
+            <Lottie animationData={scrollIconAnimation} />
+          </motion.button>
+        </ScrollTo>
         <motion.div className="fixed top-0 left-0 z-0 w-screen h-screen object-cover" style={{ opacity: heroOpacity }}>
           <Lottie animationData={heroAnimation} loop={false} />
         </motion.div>

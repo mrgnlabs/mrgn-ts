@@ -23,7 +23,7 @@ const CONTENT = {
 
 export const Stats = () => {
   return (
-    <div className="text-center space-y-24 py-24">
+    <div className="text-center space-y-24 py-24" id="stats">
       <h2 className="text-5xl max-w-5xl mx-auto w-full">{CONTENT.heading}</h2>
       <div className="w-full">
         <div className="h-[1px] bg-muted-foreground/50" />

@@ -8,8 +8,8 @@ import { Button } from "~/components/ui/button";
 
 export const Ecosystem = () => {
   return (
-    <div className="relative z-10 container max-w-7xl flex items-center justify-between gap-4">
-      <div />
+    <div className="relative z-10 container max-w-7xl flex items-center justify-between gap-8 py-24" id="ecosystem">
+      <div className="h-[400px] w-3/5 bg-secondary" />
       <div className="space-y-6 max-w-sm">
         <h3 className="text-4xl font-medium">A full ecosystem powered by marginfi SDK</h3>
         <p className="text-muted-foreground">
