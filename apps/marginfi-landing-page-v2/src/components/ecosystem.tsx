@@ -9,9 +9,7 @@ import { Button } from "~/components/ui/button";
 export const Ecosystem = () => {
   return (
     <div className="relative z-10 container max-w-7xl flex items-center justify-between gap-4">
-      <video autoPlay muted>
-        <source src={getVideoUrl("ecosystem")} type="video/mp4" />
-      </video>
+      <div />
       <div className="space-y-6 max-w-sm">
         <h3 className="text-4xl font-medium">A full ecosystem powered by marginfi SDK</h3>
         <p className="text-muted-foreground">

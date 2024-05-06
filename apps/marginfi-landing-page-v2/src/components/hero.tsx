@@ -70,7 +70,7 @@ export const Hero = () => {
             {CONTENT.features.map((feature, index) => (
               <div
                 key={index}
-                className="w-full max-w-[18rem] bg-gradient-to-r from-[#2BADA5] via-[#97E6C5] to-[#F1FF67] p-[1px] rounded-xl"
+                className="w-full max-w-[18rem] bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse p-[1px] rounded-xl"
               >
                 <div
                   className="flex flex-col gap-4 items-center justify-between rounded-xl p-9 text-center h-full"
