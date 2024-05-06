@@ -1,5 +1,7 @@
 import { cn } from "~/lib/utils";
 
+import { Counter } from "~/components/ui/counter";
+
 const CONTENT = {
   heading:
     "marginfi is the first integrated liquidity layer with native yield, embedded risk systems, and off-chain data plug-ins",
@@ -39,7 +41,7 @@ export const Stats = () => {
                 <dt className="text-muted-foreground">{stat.kpi}</dt>
                 <dd className="flex items-center justify-center gap-1 text-6xl font-medium">
                   <span className="text-4xl">$</span>
-                  <span>{stat.value}</span>m
+                  <Counter value={stat.value} />m
                 </dd>
               </dl>
             </li>
