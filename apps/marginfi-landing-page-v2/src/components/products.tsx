@@ -42,44 +42,44 @@ export const Products = () => {
         </ul>
       </div>
       <svg
-        className="absolute -top-1/2 left-1/2  -translate-y-16 -translate-x-1/2"
+        className="absolute -top-1/2 left-1/2 -translate-y-16 -translate-x-1/2"
         width="1251"
         height="785"
         viewBox="0 0 1251 785"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <g filter="url(#filter0_f_132_1337)">
+        <g filter="url(#filter0_f_48_3597)">
           <path
             d="M992 526.5C992 455.555 953.387 387.515 884.655 337.349C815.923 287.183 722.702 259 625.5 259C528.298 259 435.077 287.183 366.345 337.349C297.613 387.515 259 455.555 259 526.5L625.5 526.5H992Z"
-            fill="url(#paint0_linear_132_1337)"
+            fill="url(#paint0_linear_48_3597)"
           />
         </g>
         <defs>
           <filter
-            id="filter0_f_132_1337"
+            id="filter0_f_48_3597"
             x="0.899994"
             y="0.899994"
             width="1249.2"
             height="783.7"
             filterUnits="userSpaceOnUse"
-            colorInterpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
-            <feGaussianBlur stdDeviation="129.05" result="effect1_foregroundBlur_132_1337" />
+            <feGaussianBlur stdDeviation="129.05" result="effect1_foregroundBlur_48_3597" />
           </filter>
           <linearGradient
-            id="paint0_linear_132_1337"
+            id="paint0_linear_48_3597"
             x1="410.949"
             y1="513"
             x2="821.811"
             y2="515.955"
             gradientUnits="userSpaceOnUse"
           >
-            <stop stop-color="#50EAFF" />
-            <stop offset="0.5" stopColor="#97E6C5" />
-            <stop offset="1" stopColor="#DBE85F" />
+            <stop stopColor="#B8AC9D" />
+            <stop offset="0.5" stopColor="#52534E" />
+            <stop offset="1" stopColor="#DEE873" />
           </linearGradient>
         </defs>
       </svg>

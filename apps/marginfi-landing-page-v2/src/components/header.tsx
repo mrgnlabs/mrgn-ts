@@ -32,7 +32,9 @@ export const Header = () => {
 
       <nav className="ml-auto">
         <ul className="flex items-center gap-12">
-          <li>Products</li>
+          <li>
+            <Link href="">Products</Link>
+          </li>
           <li>
             <Link href="">Ecosystem</Link>
           </li>
