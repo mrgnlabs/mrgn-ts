@@ -8,7 +8,7 @@ import { Button } from "~/components/ui/button";
 
 export const Ecosystem = () => {
   return (
-    <div className="container max-w-7xl flex items-center justify-between gap-4">
+    <div className="relative z-10 container max-w-7xl flex items-center justify-between gap-4">
       <video autoPlay muted>
         <source src={getVideoUrl("ecosystem")} type="video/mp4" />
       </video>

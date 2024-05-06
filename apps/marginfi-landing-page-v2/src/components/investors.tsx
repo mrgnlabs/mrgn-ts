@@ -1,6 +1,6 @@
 export const Investors = () => {
   return (
-    <div className="container max-w-7xl flex flex-col gap-16 justify-center items-center text-center py-24">
+    <div className="relative z-10 container max-w-7xl flex flex-col gap-16 justify-center items-center text-center py-24">
       <header className="space-y-8">
         <h2 className="text-5xl font-medium">
           marginfi is built by a world-class team united by deep convictions on the evolution of finance

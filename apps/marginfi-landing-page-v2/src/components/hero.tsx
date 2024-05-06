@@ -1,8 +1,17 @@
+"use client";
+
+import React from "react";
+
+import { useScroll, useMotionValueEvent } from "framer-motion";
 import { IconArrowRight } from "@tabler/icons-react";
 
 import { getVideoUrl } from "~/lib/utils";
 
 import { Button } from "~/components/ui/button";
+
+import Lottie from "lottie-react";
+import scrollIconAnimation from "~/lottie/scrollIconAnimation.json";
+import heroAnimation from "~/lottie/heroAnimation.json";
 
 const CONTENT = {
   heading: "A new liquidity layer for performant DeFi",
@@ -43,43 +52,62 @@ const CONTENT = {
 };
 
 export const Hero = () => {
+  const targetRef = React.useRef(null);
+  const [heroAnimationOpacity, setheroAnimationOpacity] = React.useState(0);
+  const [scrollIconAnimationOpacity, setscrollIconAnimationOpacity] = React.useState(0);
+  const { scrollYProgress } = useScroll({
+    target: targetRef,
+    offset: ["end end", "start start"],
+  });
+
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    setheroAnimationOpacity(1 - latest);
+    setscrollIconAnimationOpacity(0.75 - latest);
+  });
   return (
-    <div className="w-screen h-screen relative flex flex-col items-center justify-center">
-      <div className="container relative py-16 px-4 space-y-16 z-20 -translate-y-4">
-        <h1 className="text-6xl font-medium bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse leading-none inline-block text-transparent bg-clip-text md:text-7xl lg:leading-[1.15] lg:w-2/3">
-          {CONTENT.heading}
-        </h1>
-        <div className="flex gap-8 w-full">
-          {CONTENT.features.map((feature, index) => (
-            <div
-              key={index}
-              className="w-full max-w-[18rem] bg-gradient-to-r from-[#2BADA5] via-[#97E6C5] to-[#F1FF67] p-[1px] rounded-xl"
-            >
+    <div className="h-[150vh]">
+      <div className="w-screen h-screen relative flex flex-col items-center justify-center">
+        <div className="container relative py-16 px-4 space-y-16 z-20 -translate-y-4">
+          <h1 className="text-6xl font-medium bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse leading-none inline-block text-transparent bg-clip-text md:text-7xl lg:leading-[1.15] lg:w-2/3">
+            {CONTENT.heading}
+          </h1>
+          <div className="flex gap-8 w-full">
+            {CONTENT.features.map((feature, index) => (
               <div
-                className="flex flex-col gap-4 items-center justify-between rounded-xl p-9 text-center h-full"
-                style={{
-                  background: "radial-gradient(100% 100% at 50% 100%, #42535A 0%, #2B3539 19.73%, #0F1111 100%)",
-                }}
+                key={index}
+                className="w-full max-w-[18rem] bg-gradient-to-r from-[#2BADA5] via-[#97E6C5] to-[#F1FF67] p-[1px] rounded-xl"
               >
-                {feature.icon}
-                {feature.body}
-                <Button>
-                  {feature.cta.label}
-                  <IconArrowRight size={18} className="ml-1.5" />
-                </Button>
+                <div
+                  className="flex flex-col gap-4 items-center justify-between rounded-xl p-9 text-center h-full"
+                  style={{
+                    background: "radial-gradient(100% 100% at 50% 100%, #42535A 0%, #2B3539 19.73%, #0F1111 100%)",
+                  }}
+                >
+                  {feature.icon}
+                  {feature.body}
+                  <Button>
+                    {feature.cta.label}
+                    <IconArrowRight size={18} className="ml-1.5" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+        <button
+          ref={targetRef}
+          className="fixed bottom-10 left-1/2 w-16 z-10 -translate-x-1/2"
+          style={{ opacity: scrollIconAnimationOpacity }}
+        >
+          <Lottie animationData={scrollIconAnimation} />
+        </button>
+        <Lottie
+          animationData={heroAnimation}
+          className="fixed top-0 left-0 z-0 w-screen h-screen object-cover"
+          loop={false}
+          style={{ opacity: heroAnimationOpacity }}
+        />
       </div>
-      <button className="absolute bottom-10 left-1/2 w-16 z-20 -translate-x-1/2">
-        <video autoPlay loop muted>
-          <source src={getVideoUrl("scroll")} type="video/mp4" />
-        </video>
-      </button>
-      <video className="absolute top-0 left-0 z-10 w-screen h-screen object-cover" autoPlay muted>
-        <source src={getVideoUrl("hero")} type="video/mp4" />
-      </video>
     </div>
   );
 };
