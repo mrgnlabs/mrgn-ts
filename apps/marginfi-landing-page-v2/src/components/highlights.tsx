@@ -1,4 +1,10 @@
-import { getVideoUrl } from "~/lib/utils";
+"use client";
+
+import React from "react";
+
+import Lottie from "lottie-react";
+import { useInView } from "framer-motion";
+import wavesAnimation from "~/lottie/wavesAnimation.json";
 
 const CONTENT = {
   subHeading: "Plug directly into...",
@@ -6,9 +12,13 @@ const CONTENT = {
 };
 
 export const Highlights = () => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const lottieRef = React.useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { once: true });
+
   return (
-    <div className="relative" id="highlights">
-      <div className="relative h-[75vh] container max-w-7xl flex justify-between items-center pt-24 z-20">
+    <div ref={containerRef} className="relative">
+      <div className="relative h-[75vh] container max-w-7xl flex justify-between items-center py-24 z-20">
         <h2 className="text-8xl font-medium w-1/2">
           If you&apos;re a developer,{" "}
           <span className="bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse text-transparent bg-clip-text">
@@ -24,9 +34,11 @@ export const Highlights = () => {
           </ul>
         </div>
       </div>
-      <video className="absolute top-0 left-0 -translate-y-1/2 z-0 w-screen h-screen object-cover" autoPlay muted>
-        <source src={getVideoUrl("highlights")} type="video/mp4" />
-      </video>
+      <Lottie
+        ref={lottieRef}
+        animationData={wavesAnimation}
+        className="absolute bottom-0 left-0 z-0 w-screen h-screen object-cover"
+      />
     </div>
   );
 };
