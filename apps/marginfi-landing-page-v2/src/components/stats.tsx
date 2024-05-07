@@ -70,7 +70,7 @@ export const Stats = () => {
       </div>
       <motion.div style={{ opacity: blobOpacityFadeOut }}>
         <motion.svg
-          className="fixed bottom-0 left-1/2 -translate-x-1/2"
+          className="fixed z-0 bottom-0 left-1/2 -translate-x-1/2"
           width="1251"
           viewBox="0 0 1251 785"
           fill="none"
