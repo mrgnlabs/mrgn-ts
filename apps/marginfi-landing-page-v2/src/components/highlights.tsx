@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import Lottie from "lottie-react";
+import { useLottie } from "lottie-react";
 import { useInView } from "framer-motion";
 import wavesAnimation from "~/lottie/wavesAnimation.json";
 
@@ -11,13 +11,34 @@ const CONTENT = {
   highlights: ["$500M of liquidity", "Access over 200,000 users", "A host of supporting on and off-chain systems"],
 };
 
+type WavesProps = {
+  inView: boolean;
+};
+
+const Waves = ({ inView }: WavesProps) => {
+  const options = {
+    animationData: wavesAnimation,
+    loop: false,
+    autoplay: false,
+  };
+
+  const { View, play } = useLottie(options);
+
+  React.useEffect(() => {
+    if (inView) {
+      play();
+    }
+  }, [inView]);
+
+  return View;
+};
+
 export const Highlights = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const lottieRef = React.useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true });
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative w-full">
       <div className="relative h-[75vh] container max-w-7xl flex justify-between items-center py-24 z-20">
         <h2 className="text-8xl font-medium w-1/2">
           If you&apos;re a developer,{" "}
@@ -34,11 +55,9 @@ export const Highlights = () => {
           </ul>
         </div>
       </div>
-      <Lottie
-        ref={lottieRef}
-        animationData={wavesAnimation}
-        className="absolute bottom-0 left-0 z-0 w-screen h-screen object-cover"
-      />
+      <div className="absolute bottom-0 left-0 w-full h-full">
+        <Waves inView={isInView} />
+      </div>
     </div>
   );
 };
