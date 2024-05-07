@@ -73,7 +73,7 @@ const CONTENT: {
 
 export const Footer = () => {
   return (
-    <footer className="relative z-10 border-t border-muted-foreground/70 py-12">
+    <footer className="bg-background/60 relative z-10 border-t border-border py-12">
       <div className="flex justify-between gap-4 container max-w-7xl">
         <div className="flex flex-col gap-4 mr-40 shrink-0">
           <Logo size={36} wordmark={true} />
