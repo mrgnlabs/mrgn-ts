@@ -43,7 +43,7 @@ export const Hero = () => {
   });
 
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
-  const scrollIconOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const scrollIconOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
   return (
     <div className="h-[150vh]">
@@ -80,7 +80,7 @@ export const Hero = () => {
         <ScrollTo to="stats">
           <motion.button
             ref={targetRef}
-            className="fixed bottom-10 left-1/2 w-16 z-10 -translate-x-1/2"
+            className="fixed bottom-10 left-1/2 w-16 z-20 -translate-x-1/2"
             style={{ opacity: scrollIconOpacity }}
           >
             <Lottie animationData={scrollIconAnimation} />
