@@ -34,79 +34,13 @@ import {
 } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { OnboardHeader } from "../sharedComponents";
-import { OnboardScreenProps } from "../../Onboard";
-
 import * as onboardScreens from "./screens";
 
-enum WalletAuthDialogState {
-  DEFAULT,
-  SOCIAL,
-  WALLET,
+interface props {
+  update: (value: string) => void;
 }
 
-// social login options
-const socialProviders: {
-  name: Web3AuthSocialProvider;
-  image: React.ReactNode;
-}[] = [
-  {
-    name: "google",
-    image: <IconBrandGoogle />,
-  },
-  {
-    name: "twitter",
-    image: <IconBrandX />,
-  },
-  {
-    name: "apple",
-    image: <IconBrandApple className="fill-white" />,
-  },
-];
-
-// wallet login options
-const walletIcons: { [key: string]: React.ReactNode } = {
-  "Brave Wallet": <IconBraveWallet size={28} />,
-  "Coinbase Wallet": <IconCoinbaseWallet size={28} />,
-  Phantom: <IconPhantomWallet size={28} />,
-  Solflare: <IconSolflareWallet size={28} />,
-  Backpack: <IconBackpackWallet size={28} />,
-  WalletConnect: <IconWalletConnectWallet size={28} />,
-  Glow: <IconGlowWallet size={28} />,
-  Trust: <IconTrustWallet size={28} />,
-  "Ethereum Wallet": <IconEthereum size={28} />,
-};
-
-interface props extends OnboardScreenProps {}
-
-export const NewUserFlow: React.FC<any> = () => {
-  //
-  const isMobile = useIsMobile();
-  const { select, wallets } = useWallet();
-  const { connected, loginWeb3Auth } = useWalletContext();
-
-  const [state, setState] = React.useState<WalletAuthDialogState>(
-    isMobile ? WalletAuthDialogState.SOCIAL : WalletAuthDialogState.DEFAULT
-  );
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
-
-  // check if phantom is loadable, we will overwrite with a deep link on iOS
-  // this improves the PWA UX on iOS by allowing users to open the app directly
-  const isPhantomInstalled = React.useMemo(() => {
-    return wallets.some((wallet) => {
-      return (
-        wallet.adapter.name === "Phantom" && (wallet.readyState === "Loadable" || wallet.readyState === "Installed")
-      );
-    });
-  }, [wallets]);
-
-  React.useEffect(() => {
-    if (connected) {
-      setIsLoading(false);
-      setIsActiveLoading("");
-    }
-  }, [connected]);
-
+export const NewUserFlow = ({ update }: props) => {
   return (
     <DialogContent className={cn("md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl")}>
       <OnboardHeader
@@ -128,16 +62,16 @@ export const NewUserFlow: React.FC<any> = () => {
           </div>
 
           <div className="mt-4">
-            {/* <Button variant="default" onClick={() => updateScreen(onboardScreens.OnboardingSocial)}>
+            <Button variant="default" onClick={() => update("onboardScreens.OnboardingSocial")}>
               Get started
-            </Button> */}
+            </Button>
           </div>
         </div>
         <div
           className={cn(
             "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden "
           )}
-          // onClick={() => updateScreen(onboardScreens.OnboardingSol)}
+          onClick={() => update("onboardScreens.OnboardingSol")}
         >
           <div>
             <h2 className="font-semibold text-2xl text-white">I&apos;m a Solana user</h2>
@@ -150,7 +84,7 @@ export const NewUserFlow: React.FC<any> = () => {
           className={cn(
             "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden "
           )}
-          // onClick={() => updateScreen(onboardScreens.OnboardingEth)}
+          onClick={() => update("onboardScreens.OnboardingEth")}
         >
           <div>
             <h2 className="font-semibold text-2xl text-white">I&apos;m an Ethereum user</h2>
