@@ -38,7 +38,7 @@ export const Highlights = () => {
   const isInView = useInView(containerRef);
 
   return (
-    <div ref={containerRef} className="relative w-full" id="highlights">
+    <div ref={containerRef} className="relative z-10 w-full" id="highlights">
       <div className="relative h-[75vh] container max-w-7xl flex justify-between items-center py-24 z-20">
         <h2 className="text-8xl font-medium w-1/2">
           If you&apos;re a developer,{" "}
