@@ -371,11 +371,11 @@ export const Ecosystem = () => {
   return (
     <div
       ref={targetRef}
-      className="relative z-10 container max-w-8xl flex items-center gap-16 justify-between py-24"
+      className="relative z-10 container max-w-8xl flex flex-col-reverse gap-16 justify-between py-24 lg:flex-row lg:items-center"
       id="ecosystem"
     >
       <motion.div
-        className="relative z-10 grid grid-cols-3 gap-8 w-full"
+        className="relative z-10 grid grid-cols-2 gap-8 w-full lg:grid-cols-3"
         initial="hidden"
         animate={isLooping ? "visible" : "hidden"}
         variants={containerVariants}

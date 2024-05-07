@@ -70,13 +70,13 @@ export const Hero = () => {
   const isInView = useInView(containerRef);
 
   return (
-    <div ref={containerRef} className="h-[150vh]">
+    <div ref={containerRef} className="lg:h-[150vh]">
       <div className="w-screen h-screen relative flex flex-col items-center justify-center">
-        <div className="container relative py-16 px-8 space-y-16 z-20 -translate-y-4">
-          <h1 className="text-6xl font-medium bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse leading-none inline-block text-transparent bg-clip-text md:text-7xl lg:leading-[1.15] lg:w-2/3">
+        <div className="container relative py-16 px-4 space-y-16 z-20 -translate-y-4 lg:px-8">
+          <h1 className="text-5xl font-medium bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse leading-none inline-block text-transparent bg-clip-text md:text-7xl lg:leading-[1.15] lg:w-2/3 lg:text-6xl">
             {CONTENT.heading}
           </h1>
-          <div className="flex gap-8 w-full">
+          <div className="flex gap-4 w-full lg:gap-8">
             {CONTENT.features.map((feature, index) => (
               <div
                 key={index}

@@ -41,11 +41,11 @@ export const Investors = () => {
       className="relative z-10 container max-w-7xl flex flex-col gap-16 justify-center items-center text-center py-24"
     >
       <header className="space-y-8">
-        <h2 className="text-5xl font-medium">{CONTENT.heading}</h2>
-        <h3 className="text-3xl font-medium">{CONTENT.body}</h3>
+        <h2 className="text-3xl font-medium lg:text-5xl">{CONTENT.heading}</h2>
+        <h3 className="text-xl font-medium lg:text-3xl">{CONTENT.body}</h3>
       </header>
       <motion.ul
-        className="grid grid-cols-4 gap-1.5 w-full"
+        className="grid grid-cols-2 gap-1.5 w-full lg:grid-cols-4"
         initial="hidden"
         animate={isInView ? "visible" : "hidden"}
         variants={containerVariants}

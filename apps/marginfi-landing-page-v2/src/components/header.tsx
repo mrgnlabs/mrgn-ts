@@ -61,7 +61,7 @@ export const Header = () => {
 
   return (
     <motion.header
-      className="fixed top-0 left-0 z-30 w-screen flex items-center gap-8 py-4 pl-8 pr-28"
+      className="fixed top-0 left-0 z-30 w-screen flex items-center gap-8 py-4 pl-4 pr-28 lg:pl-8"
       style={{ background: headerBackgroundColor, backdropFilter: headerBackgroundBlur }}
     >
       <Link
@@ -79,7 +79,7 @@ export const Header = () => {
         </motion.span>
       </Link>
 
-      <nav className="ml-auto">
+      <nav className="ml-auto hidden md:block">
         <ul className="flex items-center gap-12">
           {CONTENT.navLinks.map((link) => (
             <li key={link.label}>

@@ -87,7 +87,7 @@ export const Footer = () => {
           </small>
         </div>
 
-        <div className="flex justify-between w-full pt-4">
+        <div className="hidden justify-between w-full pt-4 lg:flex">
           {CONTENT.links.map((category, index) => (
             <ul key={index} className="space-y-2">
               <li className="text-muted-foreground">{category.heading}</li>
