@@ -14,6 +14,7 @@ import { Logo } from "~/components/ui/logo";
 import { Button } from "~/components/ui/button";
 import { ScrollTo } from "~/components/ui/scroll-to";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "~/components/ui/sheet";
 
 const CONTENT = {
   navLinks: [
@@ -28,9 +29,31 @@ const CONTENT = {
   ],
 };
 
+type HamburgerNavProps = {
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+const HamburgerNav = ({ open, setOpen }: HamburgerNavProps) => {
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetContent side="top">
+        <SheetHeader>
+          <SheetTitle>Edit profile</SheetTitle>
+          <SheetDescription>Make changes to your profile here. Click save when you're done.</SheetDescription>
+        </SheetHeader>
+        <div>
+          <h2>Hello!</h2>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+};
+
 export const Header = () => {
   const [launchPopoverOpen, setLaunchPopoverOpen] = React.useState(false);
   const [logoHoverState, setLogoHoverState] = React.useState(false);
+  const [hamburgerOpen, setHamburgerOpen] = React.useState(false);
   const debouncedLaunchPopoverOpen = useDebounce(launchPopoverOpen, 200);
   const { scrollY } = useScroll();
   const { height } = useWindowSize();
@@ -60,104 +83,110 @@ export const Header = () => {
   const headerBackgroundBlur = useTransform(scrollY, [0, height ? height * 0.5 : 400], ["blur(0px)", "blur(4px)"]);
 
   return (
-    <motion.header
-      className="fixed top-0 left-0 z-30 w-screen flex items-center gap-8 py-4 pl-8 pr-28"
-      style={{ background: headerBackgroundColor, backdropFilter: headerBackgroundBlur }}
-    >
-      <Link
-        href="/"
-        className="flex items-center gap-4 text-3xl"
-        onMouseOver={handleLogoMouseEnter}
-        onMouseLeave={handleLogoMouseLeave}
+    <>
+      <motion.header
+        className="fixed top-0 left-0 z-30 w-screen flex items-center gap-8 py-4 pl-8 pr-28"
+        style={{ background: headerBackgroundColor, backdropFilter: headerBackgroundBlur }}
       >
-        <Logo size={36} wordmark={false} />
-        <motion.span
-          className={cn(logoHoverState && "transition-opacity delay-200")}
-          style={{ opacity: logoHoverState ? 1 : wordmarkOpacity }}
+        <Link
+          href="/"
+          className="flex items-center gap-4 text-3xl"
+          onMouseOver={handleLogoMouseEnter}
+          onMouseLeave={handleLogoMouseLeave}
         >
-          marginfi
-        </motion.span>
-      </Link>
+          <Logo size={36} wordmark={false} />
+          <motion.span
+            className={cn(logoHoverState && "transition-opacity delay-200")}
+            style={{ opacity: logoHoverState ? 1 : wordmarkOpacity }}
+          >
+            marginfi
+          </motion.span>
+        </Link>
 
-      <nav className="ml-auto">
-        <ul className="flex items-center gap-12">
-          {CONTENT.navLinks.map((link) => (
-            <li key={link.label}>
-              <ScrollTo to={link.to}>
-                <Button variant="ghost">{link.label}</Button>
-              </ScrollTo>
-            </li>
-          ))}
-          <li>
-            <Popover open={debouncedLaunchPopoverOpen} onOpenChange={setLaunchPopoverOpen}>
-              <PopoverTrigger
-                asChild
-                onMouseEnter={handleLaunchButtonMouseEnter}
-                onMouseLeave={handleLaunchButtonMouseLeave}
-              >
-                <div className="bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse rounded-md p-[1px]">
-                  <Button
-                    variant="chartreuse"
-                    className={cn(debouncedLaunchPopoverOpen && "bg-background text-mrgn-chartreuse")}
-                  >
-                    <span
-                      className={cn(
-                        debouncedLaunchPopoverOpen &&
-                          "bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse text-transparent bg-clip-text"
-                      )}
+        <nav className="ml-auto">
+          <ul className="flex items-center gap-12">
+            {CONTENT.navLinks.map((link) => (
+              <li key={link.label}>
+                <ScrollTo to={link.to}>
+                  <Button variant="ghost">{link.label}</Button>
+                </ScrollTo>
+              </li>
+            ))}
+            <li>
+              <Popover open={debouncedLaunchPopoverOpen} onOpenChange={setLaunchPopoverOpen}>
+                <PopoverTrigger
+                  asChild
+                  onMouseEnter={handleLaunchButtonMouseEnter}
+                  onMouseLeave={handleLaunchButtonMouseLeave}
+                >
+                  <div className="bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse rounded-md p-[1px]">
+                    <Button
+                      variant="chartreuse"
+                      className={cn(debouncedLaunchPopoverOpen && "bg-background text-mrgn-chartreuse")}
                     >
-                      Launch App
-                    </span>{" "}
-                    <IconChevronDown
-                      size={18}
-                      className={cn(
-                        "ml-1 -mr-1 origin-center transition-transform",
-                        debouncedLaunchPopoverOpen && "rotate-180"
-                      )}
-                    />
-                  </Button>
-                </div>
-              </PopoverTrigger>
-              <PopoverContent
-                onMouseEnter={handleLaunchButtonMouseEnter}
-                onMouseLeave={handleLaunchButtonMouseLeave}
-                className="rounded-lg px-0 py-3 bg-secondary"
-                style={{
-                  width: "var(--popover-width)",
-                }}
-                sideOffset={10}
-              >
-                <nav className="w-full">
-                  <ul>
-                    {CONTENT.launchLinks.map((link) => (
-                      <li key={link.label}>
-                        <Link
-                          className="flex items-center gap-2 py-2 px-6 transition-colors hover:text-mrgn-chartreuse"
-                          href={link.href}
-                        >
-                          <link.icon size={18} /> {link.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </nav>
-              </PopoverContent>
-            </Popover>
-          </li>
-        </ul>
-      </nav>
+                      <span
+                        className={cn(
+                          debouncedLaunchPopoverOpen &&
+                            "bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse text-transparent bg-clip-text"
+                        )}
+                      >
+                        Launch App
+                      </span>{" "}
+                      <IconChevronDown
+                        size={18}
+                        className={cn(
+                          "ml-1 -mr-1 origin-center transition-transform",
+                          debouncedLaunchPopoverOpen && "rotate-180"
+                        )}
+                      />
+                    </Button>
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent
+                  onMouseEnter={handleLaunchButtonMouseEnter}
+                  onMouseLeave={handleLaunchButtonMouseLeave}
+                  className="rounded-lg px-0 py-3 bg-secondary"
+                  style={{
+                    width: "var(--popover-width)",
+                  }}
+                  sideOffset={10}
+                >
+                  <nav className="w-full">
+                    <ul>
+                      {CONTENT.launchLinks.map((link) => (
+                        <li key={link.label}>
+                          <Link
+                            className="flex items-center gap-2 py-2 px-6 transition-colors hover:text-mrgn-chartreuse"
+                            href={link.href}
+                          >
+                            <link.icon size={18} /> {link.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                </PopoverContent>
+              </Popover>
+            </li>
+          </ul>
+        </nav>
 
-      <button className="w-[72px] h-[72px] flex items-center justify-center absolute top-0 right-0 bg-secondary">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M4.79999 7.60001H27.2M4.79999 16H27.2M17.4 24.4H27.2"
-            stroke="white"
-            strokeWidth="1.67"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
-    </motion.header>
+        <button
+          className="w-[72px] h-[72px] flex items-center justify-center absolute top-0 right-0 bg-secondary"
+          onClick={() => setHamburgerOpen(true)}
+        >
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M4.79999 7.60001H27.2M4.79999 16H27.2M17.4 24.4H27.2"
+              stroke="white"
+              strokeWidth="1.67"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </motion.header>
+      <HamburgerNav open={hamburgerOpen} setOpen={setHamburgerOpen} />
+    </>
   );
 };
