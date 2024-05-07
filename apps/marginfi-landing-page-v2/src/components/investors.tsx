@@ -1,6 +1,36 @@
+"use client";
+
+import React from "react";
+import { motion, useInView } from "framer-motion";
+
 export const Investors = () => {
+  const targetRef = React.useRef(null);
+  const isInView = useInView(targetRef);
+
+  const containerVariants = {
+    hidden: {
+      transition: {
+        staggerChildren: 0.15,
+        staggerDirection: -1,
+      },
+    },
+    visible: {
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
+  const fadeVariants = {
+    hidden: { opacity: 0, y: 10, transition: { duration: 0.5 } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
   return (
-    <div className="relative z-10 container max-w-7xl flex flex-col gap-16 justify-center items-center text-center py-24">
+    <div
+      ref={targetRef}
+      className="relative z-10 container max-w-7xl flex flex-col gap-16 justify-center items-center text-center py-24"
+    >
       <header className="space-y-8">
         <h2 className="text-5xl font-medium">
           marginfi is built by a world-class team united by deep convictions on the evolution of finance
@@ -9,11 +39,16 @@ export const Investors = () => {
           and we&apos;ve raised <strong className="text-mrgn-chartreuse">$8M lifetime</strong> to make this happen.
         </h3>
       </header>
-      <ul className="grid grid-cols-4 gap-1.5 w-full">
-        {[...new Array(8)].map((index) => (
-          <li className="bg-secondary h-[120px] rounded-md"></li>
+      <motion.ul
+        className="grid grid-cols-4 gap-1.5 w-full"
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+        variants={containerVariants}
+      >
+        {[...new Array(8)].map((_, index) => (
+          <motion.li key={index} className="bg-secondary h-[120px] rounded-md" variants={fadeVariants} />
         ))}
-      </ul>
+      </motion.ul>
     </div>
   );
 };
