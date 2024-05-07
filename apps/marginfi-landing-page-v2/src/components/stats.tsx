@@ -58,7 +58,7 @@ export const Stats = () => {
             >
               <dl className="py-6 space-y-4 lg:space-y-8 lg:py-20">
                 <dt className="text-muted-foreground">{stat.kpi}</dt>
-                <dd className="flex items-center justify-center gap-1 text-6xl font-medium">
+                <dd className="flex items-center justify-center gap-1 text-5xl font-medium lg:text-6xl">
                   <span className="text-4xl">$</span>
                   <Counter value={stat.value} />m
                 </dd>

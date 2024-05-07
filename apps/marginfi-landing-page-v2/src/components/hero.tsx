@@ -83,7 +83,7 @@ export const Hero = () => {
                 className="w-full max-w-[18rem] bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse p-[1px] rounded-xl"
               >
                 <div
-                  className="flex flex-col gap-4 items-center justify-between rounded-xl p-9 text-center h-full"
+                  className="flex flex-col gap-4 items-center justify-between rounded-xl py-6 px-4 text-center h-full lg:p-9"
                   style={{
                     background: "radial-gradient(100% 100% at 50% 100%, #42535A 0%, #2B3539 19.73%, #0F1111 100%)",
                   }}

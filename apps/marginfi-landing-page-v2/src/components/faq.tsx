@@ -29,15 +29,15 @@ const CONTENT = {
 export const FAQ = () => {
   return (
     <div className="relative z-10 container max-w-4xl w-full flex flex-col gap-8 py-24">
-      <h2 className="text-3xl font-medium">{CONTENT.heading}</h2>
+      <h2 className="text-2xl font-medium lg:text-3xl">{CONTENT.heading}</h2>
       <Accordion type="single" collapsible className="w-full">
         {CONTENT.faqs.map((faq, index) => (
           <AccordionItem key={index} value={index.toString()} className="py-1">
-            <AccordionTrigger className="font-normal text-lg transition-colors hover:no-underline">
+            <AccordionTrigger className="font-normal transition-colors hover:no-underline lg:text-lg">
               {faq.question}
             </AccordionTrigger>
             <AccordionContent>
-              <p className="leading-loose text-muted-foreground">{faq.answer}</p>
+              <p className="leading-loose text-muted-foreground text-sm lg:text-base">{faq.answer}</p>
             </AccordionContent>
           </AccordionItem>
         ))}
