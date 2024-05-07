@@ -7,6 +7,7 @@ import { Ecosystem } from "~/components/ecosystem";
 import { Callout } from "~/components/callout";
 import { Investors } from "~/components/investors";
 import { GettingStarted } from "~/components/getting-started";
+import { FAQ } from "~/components/faq";
 import { Footer } from "~/components/footer";
 
 export default function Home() {
@@ -21,6 +22,7 @@ export default function Home() {
       <Callout />
       <Investors />
       <GettingStarted />
+      <FAQ />
       <Footer />
     </main>
   );
