@@ -79,8 +79,8 @@ const CONTENT: {
 export const Footer = () => {
   return (
     <footer className="bg-background/60 relative z-10 border-t border-border py-12">
-      <div className="flex justify-between gap-4 container max-w-7xl">
-        <div className="flex flex-col gap-4 mr-40 shrink-0">
+      <div className="flex justify-between gap-4 w-full pl-4 pr-16">
+        <div className="flex flex-col gap-4 w-3/5 shrink-0">
           <Logo size={36} wordmark={true} />
           <small className="text-muted-foreground">
             {new Date().getFullYear()} &copy; Margin INC. All rights reserved.
