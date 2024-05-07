@@ -118,7 +118,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                     </Mobile>
                     <Analytics />
                     <Tutorial />
-                    <Onboard />
+
                     <WalletAuthDialog />
                     <ToastContainer position="bottom-left" theme="dark" />
                   </LipClientProvider>

@@ -22,6 +22,7 @@ import {
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { IconBackpackWallet, IconTrophy, IconYBX } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
+import { Onboard } from "~/components/common/Wallet/components/Onboard/Onboard";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
   ssr: false,
@@ -69,6 +70,7 @@ export default function HomePage() {
 
   return (
     <>
+      <Onboard />
       <Desktop>
         {!isStoreInitialized && <Loader label="Loading mrgnlend..." className="mt-16" />}
         {isStoreInitialized && (

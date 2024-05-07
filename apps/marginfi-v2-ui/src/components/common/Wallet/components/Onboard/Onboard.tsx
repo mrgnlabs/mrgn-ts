@@ -4,23 +4,42 @@ import { useUiStore } from "~/store";
 import { useWalletContext } from "~/hooks/useWalletContext";
 import { Dialog } from "~/components/ui/dialog";
 
-export interface OnboardScreenProps {
-  updateScreen: (screen: React.FC<OnboardScreenProps>) => void;
+interface OnboardScreenProps {
+  update: (screen: React.FC<OnboardScreenProps>) => void;
 }
 
+export type AuthFlowType = "ONBOARD" | "RETURNING";
+
+export type AuthFlowMap = {
+  [key in AuthFlowType]: {
+    comp: React.FC<any>;
+  };
+};
+
+export const AUTO_FLOW_MAP: AuthFlowMap = {
+  ONBOARD: {
+    comp: NewUserFlow,
+  },
+  RETURNING: {
+    comp: NewUserFlow,
+  },
+};
+
 export const Onboard = () => {
-  const [screen, setScreen] = React.useState<React.FC<OnboardScreenProps>>();
+  const [flow, setFlow] = React.useState<AuthFlowType>();
 
   React.useEffect(() => {
     // check if user is new
-    setScreen(NewUserFlow);
-  }, [screen]);
+    setFlow("ONBOARD");
+  }, [flow]);
 
   return (
     <Dialog open={true} onOpenChange={(open) => {}}>
-      <NewUserFlow updateScreen={(test) => console.log("hi")} />
-      {/* {screen &&
-        React.createElement(screen, { updateScreen: (newScreen) => setScreen(newScreen) } as OnboardScreenProps)} */}
+      {/* <NewUserFlow updateScreen={(test) => console.log("hi")} /> */}
+      {flow &&
+        React.createElement(AUTO_FLOW_MAP[flow].comp, {
+          update: (newScreen) => console.log("hi"),
+        } as OnboardScreenProps)}
     </Dialog>
   );
 };
