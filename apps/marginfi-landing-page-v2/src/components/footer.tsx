@@ -2,9 +2,10 @@ import React from "react";
 
 import Link from "next/link";
 
-import { IconBrandDiscordFilled, IconBrandGithub, IconBrandX, IconBrandLinkedin } from "@tabler/icons-react";
+import { IconBrandDiscordFilled, IconBrandGithub, IconBrandX } from "@tabler/icons-react";
 
 import { Logo } from "~/components/ui/logo";
+import { IconBrandSubstack } from "~/components/ui/icons";
 
 const CONTENT: {
   links: {
@@ -35,6 +36,10 @@ const CONTENT: {
       list: [
         {
           href: "#",
+          label: "Analytics",
+        },
+        {
+          href: "#",
           label: "Terms of use",
         },
         {
@@ -62,9 +67,9 @@ const CONTENT: {
           label: "X",
         },
         {
-          icon: <IconBrandLinkedin />,
+          icon: <IconBrandSubstack />,
           href: "#",
-          label: "LinkedIn",
+          label: "Substack",
         },
       ],
     },

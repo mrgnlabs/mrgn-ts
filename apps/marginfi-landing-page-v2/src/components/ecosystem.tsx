@@ -25,7 +25,7 @@ export const Ecosystem = () => {
       id="ecosystem"
     >
       <div className="h-[400px] w-3/5 bg-secondary" />
-      <div className="space-y-6 max-w-sm">
+      <div className="space-y-6 max-w-sm relative z-10">
         <h3 className="text-4xl font-medium">A full ecosystem powered by marginfi SDK</h3>
         <p className="text-muted-foreground">
           We&apos;re always working to push new products on top of our protocol, and so is our community.
@@ -38,7 +38,7 @@ export const Ecosystem = () => {
       </div>
 
       <motion.svg
-        className="fixed bottom-0 left-1/2 -translate-x-1/2"
+        className="fixed z-0 bottom-0 left-1/2 -translate-x-1/2"
         width="1251"
         height="785"
         viewBox="0 0 1251 785"
