@@ -31,7 +31,7 @@ export const Stats = () => {
   const targetRef = React.useRef(null);
   const { scrollYProgress: fadeInAnimationProgress } = useScroll({
     target: targetRef,
-    offset: ["-10% end", "50% start"],
+    offset: ["-25% end", "50% start"],
   });
   const { scrollYProgress: fadeOutAnimationProgress } = useScroll({
     target: targetRef,

@@ -309,7 +309,7 @@ export const Ecosystem = () => {
   });
   const { scrollYProgress: fadeOutAnimationProgress } = useScroll({
     target: targetRef,
-    offset: ["50% start", "300% start"],
+    offset: ["50% start", "250% start"],
   });
 
   const isInView = useInView(targetRef);
