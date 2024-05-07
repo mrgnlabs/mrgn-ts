@@ -21,7 +21,7 @@ export const Logo = ({ size, wordmark = true }: LogoProps) => {
           </clipPath>
         </defs>
       </svg>
-      {wordmark && "Marginfi"}
+      {wordmark && "marginfi"}
     </div>
   );
 };
