@@ -16,17 +16,17 @@ type WavesProps = {
 };
 
 const Waves = ({ inView }: WavesProps) => {
-  const options = {
+  const { View, goToAndPlay, goToAndStop } = useLottie({
     animationData: wavesAnimation,
     loop: false,
     autoplay: false,
-  };
-
-  const { View, play } = useLottie(options);
+  });
 
   React.useEffect(() => {
     if (inView) {
-      play();
+      goToAndPlay(0);
+    } else {
+      goToAndStop(0);
     }
   }, [inView]);
 
@@ -35,10 +35,10 @@ const Waves = ({ inView }: WavesProps) => {
 
 export const Highlights = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true });
+  const isInView = useInView(containerRef);
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} className="relative w-full" id="highlights">
       <div className="relative h-[75vh] container max-w-7xl flex justify-between items-center py-24 z-20">
         <h2 className="text-8xl font-medium w-1/2">
           If you&apos;re a developer,{" "}
