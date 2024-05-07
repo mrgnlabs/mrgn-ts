@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { IconArrowRight, IconBrandGithubFilled, IconExternalLink } from "@tabler/icons-react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import shuffle from "lodash/shuffle";
 
 import { cn } from "~/lib/utils";
@@ -14,235 +14,233 @@ import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 
-const CONTENT = {
-  ecosystemCards: shuffle([
-    {
-      title: "marginfi v2",
-      description: "V2 of the marginfi protocol",
-      url: "https://app.marginfi.com",
-      github: "https://github.com/mrgnlabs/marginfi-v2",
-      repo: "mrgnlabs/marginfi-v2",
-      author: {
-        name: "marginfi",
-        avatar: "/images/mrgn_logo_192.png",
-        url: "https://marginfi.com",
-      },
+const ALL_CARDS = [
+  {
+    title: "marginfi v2",
+    description: "V2 of the marginfi protocol",
+    url: "https://app.marginfi.com",
+    github: "https://github.com/mrgnlabs/marginfi-v2",
+    repo: "mrgnlabs/marginfi-v2",
+    author: {
+      name: "marginfi",
+      avatar: "/images/mrgn_logo_192.png",
+      url: "https://marginfi.com",
     },
-    {
-      title: "marginfi ui",
-      description: "The official marginfi UI",
-      url: "https://app.marginfi.com",
-      github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-ui",
-      repo: "mrgnlabs/mrgn-ts",
-      author: {
-        name: "marginfi",
-        avatar: "/images/mrgn_logo_192.png",
-        url: "https://marginfi.com",
-      },
+  },
+  {
+    title: "marginfi ui",
+    description: "The official marginfi UI",
+    url: "https://app.marginfi.com",
+    github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-ui",
+    repo: "mrgnlabs/mrgn-ts",
+    author: {
+      name: "marginfi",
+      avatar: "/images/mrgn_logo_192.png",
+      url: "https://marginfi.com",
     },
-    {
-      title: "marginfi xnft",
-      description: "The official marginfi xNFT",
-      url: "https://www.xnft.gg/app/DoXjr5LKZp9uxiwEUhffBwCQrf2xdkiDYeitGGvfcyXm",
-      github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-xnft",
-      repo: "mrgnlabs/mrgn-ts",
-      author: {
-        name: "marginfi",
-        avatar: "/images/mrgn_logo_192.png",
-        url: "https://marginfi.com",
-      },
+  },
+  {
+    title: "marginfi xnft",
+    description: "The official marginfi xNFT",
+    url: "https://www.xnft.gg/app/DoXjr5LKZp9uxiwEUhffBwCQrf2xdkiDYeitGGvfcyXm",
+    github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-xnft",
+    repo: "mrgnlabs/mrgn-ts",
+    author: {
+      name: "marginfi",
+      avatar: "/images/mrgn_logo_192.png",
+      url: "https://marginfi.com",
     },
-    {
-      title: "marginfi liquidator",
-      description: "Example liquidator",
-      github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/alpha-liquidator",
-      repo: "mrgnlabs/mrgn-ts",
-      author: {
-        name: "marginfi",
-        avatar: "/images/mrgn_logo_192.png",
-        url: "https://marginfi.com",
-      },
+  },
+  {
+    title: "marginfi liquidator",
+    description: "Example liquidator",
+    github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/alpha-liquidator",
+    repo: "mrgnlabs/mrgn-ts",
+    author: {
+      name: "marginfi",
+      avatar: "/images/mrgn_logo_192.png",
+      url: "https://marginfi.com",
     },
-    {
-      title: "omni",
-      description: "Autonomous agent interacting with crypto protocols",
-      github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/omni",
-      url: "https://omni.marginfi.com/",
-      repo: "mrgnlabs/mrgn-ts",
-      author: {
-        name: "marginfi",
-        avatar: "/images/mrgn_logo_192.png",
-        url: "https://marginfi.com",
-      },
+  },
+  {
+    title: "omni",
+    description: "Autonomous agent interacting with crypto protocols",
+    github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/omni",
+    url: "https://omni.marginfi.com/",
+    repo: "mrgnlabs/mrgn-ts",
+    author: {
+      name: "marginfi",
+      avatar: "/images/mrgn_logo_192.png",
+      url: "https://marginfi.com",
     },
-    {
-      title: "dune analytics",
-      description: "MarginFi Dune Analytics dashboard",
-      url: "https://dune.com/man0s/marginfi/",
-      author: {
-        name: "man0s",
-        avatar: "https://pbs.twimg.com/profile_images/1597050177084325889/YRXpZdxn_400x400.jpg",
-        url: "https://twitter.com/losman0s",
-      },
+  },
+  {
+    title: "dune analytics",
+    description: "MarginFi Dune Analytics dashboard",
+    url: "https://dune.com/man0s/marginfi/",
+    author: {
+      name: "man0s",
+      avatar: "https://pbs.twimg.com/profile_images/1597050177084325889/YRXpZdxn_400x400.jpg",
+      url: "https://twitter.com/losman0s",
     },
-    {
-      title: "account search",
-      description: "Search accounts by wallet or .sol domain",
-      url: "https://mrgn-account-search.vercel.app/",
-      github: "https://github.com/mrgnlabs/mrgn-account-search",
-      repo: "mrgnlabs/mrgn-account-search",
-      author: {
-        name: "chambaz",
-        avatar: "https://pbs.twimg.com/profile_images/1744698619947528192/7uW-BVAn_400x400.jpg",
-        url: "https://twitter.com/chambaz",
-      },
+  },
+  {
+    title: "account search",
+    description: "Search accounts by wallet or .sol domain",
+    url: "https://mrgn-account-search.vercel.app/",
+    github: "https://github.com/mrgnlabs/mrgn-account-search",
+    repo: "mrgnlabs/mrgn-account-search",
+    author: {
+      name: "chambaz",
+      avatar: "https://pbs.twimg.com/profile_images/1744698619947528192/7uW-BVAn_400x400.jpg",
+      url: "https://twitter.com/chambaz",
     },
-    {
-      title: "borrow caps",
-      description: "Borrow availability for major assets",
-      url: "https://marginfi-borrow-caps.vercel.app/",
-      github: "https://github.com/gohyun14/marginfi-borrow-caps",
-      repo: "gohyun14/marginfi-borrow-caps",
-      author: {
-        name: "0xCosmic",
-        avatar: "https://pbs.twimg.com/profile_images/1720548857904291840/TSUNn3BC_400x400.jpg",
-        url: "https://twitter.com/0xCosmic_",
-      },
+  },
+  {
+    title: "borrow caps",
+    description: "Borrow availability for major assets",
+    url: "https://marginfi-borrow-caps.vercel.app/",
+    github: "https://github.com/gohyun14/marginfi-borrow-caps",
+    repo: "gohyun14/marginfi-borrow-caps",
+    author: {
+      name: "0xCosmic",
+      avatar: "https://pbs.twimg.com/profile_images/1720548857904291840/TSUNn3BC_400x400.jpg",
+      url: "https://twitter.com/0xCosmic_",
     },
-    {
-      title: "health check",
-      description: "Account health tracker / simulator",
-      url: "https://marginfi-borrow-caps.vercel.app/health",
-      github: "https://github.com/gohyun14/marginfi-borrow-caps",
-      repo: "gohyun14/marginfi-borrow-caps",
-      author: {
-        name: "0xCosmic",
-        avatar: "https://pbs.twimg.com/profile_images/1720548857904291840/TSUNn3BC_400x400.jpg",
-        url: "https://twitter.com/0xCosmic_",
-      },
+  },
+  {
+    title: "health check",
+    description: "Account health tracker / simulator",
+    url: "https://marginfi-borrow-caps.vercel.app/health",
+    github: "https://github.com/gohyun14/marginfi-borrow-caps",
+    repo: "gohyun14/marginfi-borrow-caps",
+    author: {
+      name: "0xCosmic",
+      avatar: "https://pbs.twimg.com/profile_images/1720548857904291840/TSUNn3BC_400x400.jpg",
+      url: "https://twitter.com/0xCosmic_",
     },
-    {
-      title: "Juicer",
-      description: "Discover yield opportunities on Solana",
-      url: "https://beta.juicer.fi/borrow-lend",
-      author: {
-        name: "juicerfi",
-        avatar: "https://pbs.twimg.com/profile_images/1767957333668192256/LGEetjVV_400x400.jpg",
-        url: "https://twitter.com/juicerfi",
-      },
+  },
+  {
+    title: "Juicer",
+    description: "Discover yield opportunities on Solana",
+    url: "https://beta.juicer.fi/borrow-lend",
+    author: {
+      name: "juicerfi",
+      avatar: "https://pbs.twimg.com/profile_images/1767957333668192256/LGEetjVV_400x400.jpg",
+      url: "https://twitter.com/juicerfi",
     },
-    {
-      title: "DreamOS",
-      description: "The operating system for web3",
-      url: "https://www.dreamos.app/",
-      author: {
-        name: "DreamOS",
-        avatar: "https://pbs.twimg.com/profile_images/1769861055541329920/3pVxclYQ_400x400.jpg",
-        url: "https://twitter.com/theDreamOS",
-      },
+  },
+  {
+    title: "DreamOS",
+    description: "The operating system for web3",
+    url: "https://www.dreamos.app/",
+    author: {
+      name: "DreamOS",
+      avatar: "https://pbs.twimg.com/profile_images/1769861055541329920/3pVxclYQ_400x400.jpg",
+      url: "https://twitter.com/theDreamOS",
     },
-    {
-      title: "Fluxbot",
-      description: "Solana's #1 Telegram Trading Bot",
-      url: "https://fluxbot.xyz/",
-      author: {
-        name: "FluxBeam",
-        avatar: "https://pbs.twimg.com/profile_images/1659266532898218005/dAQyCgCC_400x400.jpg",
-        url: "https://twitter.com/FluxBeamDEX",
-      },
+  },
+  {
+    title: "Fluxbot",
+    description: "Solana's #1 Telegram Trading Bot",
+    url: "https://fluxbot.xyz/",
+    author: {
+      name: "FluxBeam",
+      avatar: "https://pbs.twimg.com/profile_images/1659266532898218005/dAQyCgCC_400x400.jpg",
+      url: "https://twitter.com/FluxBeamDEX",
     },
-    {
-      title: "Heimdall",
-      description: "Account monitoring bot for Telegram",
-      url: "https://t.me/HeimdallWatchBot",
-      author: {
-        name: "Heimdall",
-        avatar: "/heimdall.jpg",
-      },
+  },
+  {
+    title: "Heimdall",
+    description: "Account monitoring bot for Telegram",
+    url: "https://t.me/HeimdallWatchBot",
+    author: {
+      name: "Heimdall",
+      avatar: "/heimdall.jpg",
     },
-    {
-      title: "Bags",
-      description: "Coming soon...",
-      url: "https://bags.fm",
-      author: {
-        name: "Bags",
-        avatar: "https://pbs.twimg.com/profile_images/1751442866453520384/SsDbz1cU_400x400.jpg",
-      },
+  },
+  {
+    title: "Bags",
+    description: "Coming soon...",
+    url: "https://bags.fm",
+    author: {
+      name: "Bags",
+      avatar: "https://pbs.twimg.com/profile_images/1751442866453520384/SsDbz1cU_400x400.jpg",
     },
-    {
-      title: "Hampter",
-      description: "Squeeze me, im fluff $HMTR on $SOL",
-      url: "https://www.hampterfi.com/",
-      author: {
-        name: "Hampter",
-        avatar: "https://pbs.twimg.com/profile_images/1737818252657451008/ClXs-B7y_400x400.jpg",
-      },
+  },
+  {
+    title: "Hampter",
+    description: "Squeeze me, im fluff $HMTR on $SOL",
+    url: "https://www.hampterfi.com/",
+    author: {
+      name: "Hampter",
+      avatar: "https://pbs.twimg.com/profile_images/1737818252657451008/ClXs-B7y_400x400.jpg",
     },
-    {
-      title: "Splitwave",
-      description: "Your all things money on Solana!",
-      url: "https://splitwave.app/",
-      author: {
-        name: "Splitwave",
-        avatar: "https://pbs.twimg.com/profile_images/1733236904118628352/Zxvz7b9A_400x400.jpg",
-      },
+  },
+  {
+    title: "Splitwave",
+    description: "Your all things money on Solana!",
+    url: "https://splitwave.app/",
+    author: {
+      name: "Splitwave",
+      avatar: "https://pbs.twimg.com/profile_images/1733236904118628352/Zxvz7b9A_400x400.jpg",
     },
-    {
-      title: "Meteora",
-      description: "Building the most dynamic liquidity protocols in DeFi. Powered by Solana!",
-      url: "https://www.meteora.ag/",
-      author: {
-        name: "Meteora",
-        avatar: "https://pbs.twimg.com/profile_images/1623689233813864450/XDk-DpAP_400x400.jpg",
-      },
+  },
+  {
+    title: "Meteora",
+    description: "Building the most dynamic liquidity protocols in DeFi. Powered by Solana!",
+    url: "https://www.meteora.ag/",
+    author: {
+      name: "Meteora",
+      avatar: "https://pbs.twimg.com/profile_images/1623689233813864450/XDk-DpAP_400x400.jpg",
     },
-    {
-      title: "Step Finance",
-      description: "Portfolio Dashboard & Analytics for Solana",
-      url: "https://www.step.finance/",
-      author: {
-        name: "Step Finance",
-        avatar: "https://pbs.twimg.com/profile_images/1475429797694218242/ThXbtC9p_400x400.jpg",
-      },
+  },
+  {
+    title: "Step Finance",
+    description: "Portfolio Dashboard & Analytics for Solana",
+    url: "https://www.step.finance/",
+    author: {
+      name: "Step Finance",
+      avatar: "https://pbs.twimg.com/profile_images/1475429797694218242/ThXbtC9p_400x400.jpg",
     },
-    {
-      title: "SonarWatch",
-      description: "Empowering your journey on web3 with a powerful tracking tool, multichain and open-source",
-      url: "https://sonar.watch/",
-      author: {
-        name: "SonarWatch",
-        avatar: "https://pbs.twimg.com/profile_images/1709587389339811841/C9hOTnMV_400x400.jpg",
-      },
+  },
+  {
+    title: "SonarWatch",
+    description: "Empowering your journey on web3 with a powerful tracking tool, multichain and open-source",
+    url: "https://sonar.watch/",
+    author: {
+      name: "SonarWatch",
+      avatar: "https://pbs.twimg.com/profile_images/1709587389339811841/C9hOTnMV_400x400.jpg",
     },
-    {
-      title: "AssetDash",
-      description: "The best portfolio tracker and rewards program in crypto",
-      url: "https://www.assetdash.com/",
-      author: {
-        name: "AssetDash",
-        avatar: "https://pbs.twimg.com/profile_images/1523849014881525761/eKB3fD5c_400x400.jpg",
-      },
+  },
+  {
+    title: "AssetDash",
+    description: "The best portfolio tracker and rewards program in crypto",
+    url: "https://www.assetdash.com/",
+    author: {
+      name: "AssetDash",
+      avatar: "https://pbs.twimg.com/profile_images/1523849014881525761/eKB3fD5c_400x400.jpg",
     },
-    {
-      title: "Pulsar Finance",
-      description: "The Most Complete Portfolio Manager In Crypto",
-      url: "https://app.pulsar.finance/",
-      author: {
-        name: "Pulsar Finance",
-        avatar: "https://pbs.twimg.com/profile_images/1610654730778296335/yaq9r3FW_400x400.jpg",
-      },
+  },
+  {
+    title: "Pulsar Finance",
+    description: "The Most Complete Portfolio Manager In Crypto",
+    url: "https://app.pulsar.finance/",
+    author: {
+      name: "Pulsar Finance",
+      avatar: "https://pbs.twimg.com/profile_images/1610654730778296335/yaq9r3FW_400x400.jpg",
     },
-    {
-      title: "Squads",
-      description: "Smart account standard for SVM. Multisig, account abstraction and beyond",
-      url: "https://squads.so/",
-      author: {
-        name: "Squads",
-        avatar: "https://pbs.twimg.com/profile_images/1707747492014473216/0ABIvUee_400x400.jpg",
-      },
+  },
+  {
+    title: "Squads",
+    description: "Smart account standard for SVM. Multisig, account abstraction and beyond",
+    url: "https://squads.so/",
+    author: {
+      name: "Squads",
+      avatar: "https://pbs.twimg.com/profile_images/1707747492014473216/0ABIvUee_400x400.jpg",
     },
-  ]).slice(0, 6),
-};
+  },
+];
 
 type EcoCardProps = {
   title: string;
@@ -258,7 +256,7 @@ type EcoCardProps = {
 
 const EcoCard = ({ title, description, url, github, author }: EcoCardProps) => {
   return (
-    <Card className="relative z-10 w-full bg-secondary h-full flex flex-col justify-start transition-transform duration-300 hover:scale-105">
+    <Card className="relative z-10 w-full bg-secondary h-full flex flex-col justify-start">
       <CardHeader>
         <CardTitle className="font-medium text-base">{title}</CardTitle>
         {description && <CardDescription className="text-sm">{description}</CardDescription>}
@@ -299,13 +297,66 @@ const EcoCard = ({ title, description, url, github, author }: EcoCardProps) => {
 };
 
 export const Ecosystem = () => {
+  const [cards, setCards] = React.useState(shuffle(ALL_CARDS).slice(0, 6));
   const targetRef = React.useRef(null);
   const { scrollYProgress: fadeInAnimationProgress } = useScroll({
     target: targetRef,
     offset: ["50% end", "end start"],
   });
-
+  const isInView = useInView(targetRef);
   const blobOpacityFadeIn = useTransform(fadeInAnimationProgress, [0, 1], [0, 0.8]);
+
+  const [isLooping, setIsLooping] = React.useState(false);
+
+  const loopDuration = 3500; // Duration of each loop
+  const fadeOutDuration = 1000; // Duration of the fade-out animation
+
+  const containerVariants = {
+    hidden: {
+      transition: {
+        staggerChildren: 0.15,
+        staggerDirection: -1, // Stagger in reverse for hiding
+      },
+    },
+    visible: {
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
+  const fadeVariants = {
+    hidden: { opacity: 0, y: 10, transition: { duration: 0.5 } },
+    visible: { opacity: 0.75, y: 0, transition: { duration: 0.5 } },
+  };
+
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
+    let timeout: NodeJS.Timeout | undefined;
+
+    if (isInView) {
+      setIsLooping(true);
+      interval = setInterval(() => {
+        // Start fade-out animation
+        setIsLooping(false);
+
+        // Wait for fade-out to complete before changing cards
+        timeout = setTimeout(() => {
+          setCards(shuffle(ALL_CARDS).slice(0, 6));
+          setIsLooping(true);
+        }, fadeOutDuration * 1.5);
+      }, loopDuration + fadeOutDuration);
+    } else {
+      if (interval) clearInterval(interval);
+      if (timeout) clearTimeout(timeout);
+      setIsLooping(false);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [isInView]);
 
   return (
     <div
@@ -313,12 +364,19 @@ export const Ecosystem = () => {
       className="relative z-10 container max-w-8xl flex items-center gap-16 justify-between py-24"
       id="ecosystem"
     >
-      <div className="grid grid-cols-3 gap-8">
-        {CONTENT.ecosystemCards.map((card, index) => (
-          <EcoCard {...card} />
+      <motion.div
+        className="relative z-10 grid grid-cols-3 gap-8 w-full"
+        initial="hidden"
+        animate={isLooping ? "visible" : "hidden"}
+        variants={containerVariants}
+      >
+        {cards.map((card, index) => (
+          <motion.div key={index} variants={fadeVariants}>
+            <EcoCard {...card} />
+          </motion.div>
         ))}
-      </div>
-      <div className="space-y-6 max-w-sm relative z-10">
+      </motion.div>
+      <div className="space-y-6 max-w-sm relative z-10 shrink-0">
         <h3 className="text-4xl font-medium">A full ecosystem powered by marginfi SDK</h3>
         <p className="text-muted-foreground">
           We&apos;re always working to push new products on top of our protocol, and so is our community.
