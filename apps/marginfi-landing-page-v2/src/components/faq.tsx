@@ -28,7 +28,7 @@ const CONTENT = {
 
 export const FAQ = () => {
   return (
-    <div className="relative z-10 container max-w-4xl w-full flex flex-col gap-8 py-24">
+    <div className="relative z-10 container max-w-4xl w-full flex flex-col gap-8 py-24 px-4 lg:px-8">
       <h2 className="text-2xl font-medium lg:text-3xl">{CONTENT.heading}</h2>
       <Accordion type="single" collapsible className="w-full">
         {CONTENT.faqs.map((faq, index) => (

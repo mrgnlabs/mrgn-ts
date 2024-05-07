@@ -38,7 +38,7 @@ export const Investors = () => {
   return (
     <div
       ref={targetRef}
-      className="relative z-10 container max-w-7xl flex flex-col gap-16 justify-center items-center text-center py-24"
+      className="relative z-10 container max-w-7xl flex flex-col gap-16 justify-center items-center text-center py-24 px-4 lg:px-8"
     >
       <header className="space-y-8">
         <h2 className="text-3xl font-medium lg:text-5xl">{CONTENT.heading}</h2>
