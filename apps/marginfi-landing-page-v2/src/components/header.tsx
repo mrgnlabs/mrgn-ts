@@ -5,7 +5,7 @@ import React from "react";
 import Link from "next/link";
 
 import { IconChevronDown, IconBuildingBank, IconBox, IconExternalLink, IconArrowsLeftRight } from "@tabler/icons-react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 import { useWindowSize, useDebounce } from "@uidotdev/usehooks";
 
 import { cn } from "~/lib/utils";
@@ -29,17 +29,26 @@ const CONTENT = {
 };
 
 export const Header = () => {
-  const [launchPopoverOpen, setLaunchPopoverOpen] = React.useState(true);
+  const [launchPopoverOpen, setLaunchPopoverOpen] = React.useState(false);
+  const [logoHoverState, setLogoHoverState] = React.useState(false);
   const debouncedLaunchPopoverOpen = useDebounce(launchPopoverOpen, 200);
   const { scrollY } = useScroll();
   const { height } = useWindowSize();
 
-  const handleMouseEnter = () => {
+  const handleLaunchButtonMouseEnter = () => {
     setLaunchPopoverOpen(true);
   };
 
-  const handleMouseLeave = () => {
+  const handleLaunchButtonMouseLeave = () => {
     setLaunchPopoverOpen(false);
+  };
+
+  const handleLogoMouseEnter = () => {
+    setLogoHoverState(true);
+  };
+
+  const handleLogoMouseLeave = () => {
+    setLogoHoverState(false);
   };
 
   const headerBackgroundColor = useTransform(
@@ -47,7 +56,7 @@ export const Header = () => {
     [0, height || 400],
     ["rgba(12, 14, 13, 0)", "rgba(12, 14, 13, 0.85)"]
   );
-
+  const wordmarkOpacity = useTransform(scrollY, [0, height ? height * 0.27 : 200], [1, 0]);
   const headerBackgroundBlur = useTransform(scrollY, [0, height ? height * 0.5 : 400], ["blur(0px)", "blur(4px)"]);
 
   return (
@@ -55,7 +64,20 @@ export const Header = () => {
       className="fixed top-0 left-0 z-30 w-screen flex items-center gap-8 p-4 pr-28"
       style={{ background: headerBackgroundColor, backdropFilter: headerBackgroundBlur }}
     >
-      <Logo size={36} wordmark={true} />
+      <Link
+        href="/"
+        className="flex items-center gap-4 text-3xl"
+        onMouseOver={handleLogoMouseEnter}
+        onMouseLeave={handleLogoMouseLeave}
+      >
+        <Logo size={36} wordmark={false} />
+        <motion.span
+          className={cn(logoHoverState && "transition-opacity delay-200")}
+          style={{ opacity: logoHoverState ? 1 : wordmarkOpacity }}
+        >
+          marginfi
+        </motion.span>
+      </Link>
 
       <nav className="ml-auto">
         <ul className="flex items-center gap-12">
@@ -68,7 +90,11 @@ export const Header = () => {
           ))}
           <li>
             <Popover open={debouncedLaunchPopoverOpen} onOpenChange={setLaunchPopoverOpen}>
-              <PopoverTrigger asChild onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+              <PopoverTrigger
+                asChild
+                onMouseEnter={handleLaunchButtonMouseEnter}
+                onMouseLeave={handleLaunchButtonMouseLeave}
+              >
                 <div className="bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse rounded-md p-[1px]">
                   <Button
                     variant="chartreuse"
@@ -93,8 +119,8 @@ export const Header = () => {
                 </div>
               </PopoverTrigger>
               <PopoverContent
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
+                onMouseEnter={handleLaunchButtonMouseEnter}
+                onMouseLeave={handleLaunchButtonMouseLeave}
                 className="rounded-lg px-0 py-3 bg-secondary"
                 style={{
                   width: "var(--popover-width)",
