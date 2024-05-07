@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-popover": "^1.0.7",
     "@tabler/icons-react": "^3.3.0",
     "@uidotdev/usehooks": "^2.4.1",
     "framer-motion": "^11.1.8",
