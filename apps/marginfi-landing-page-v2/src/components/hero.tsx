@@ -18,7 +18,7 @@ const CONTENT = {
   features: [
     {
       icon: <IconMoneyBill />,
-      body: "I'm here to maximize my potential in DeFi",
+      body: "Earn transparent yield & mint inflation protected assets",
       cta: {
         target: "products",
         label: "Start earning",
@@ -26,7 +26,7 @@ const CONTENT = {
     },
     {
       icon: <IconCode />,
-      body: "I'm a developer and I want to power my dApp with marginfi",
+      body: "Build something iconic with marginfi's liquidity, tooling, and users",
       cta: {
         target: "highlights",
         label: "Start building",

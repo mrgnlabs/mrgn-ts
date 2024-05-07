@@ -10,18 +10,18 @@ import { Counter } from "~/components/ui/counter";
 
 const CONTENT = {
   heading:
-    "marginfi is the first integrated liquidity layer with native yield, embedded risk systems, and off-chain data plug-ins",
+    "A liquidity layer built for finance. Access native yield, embedded risk systems, and off-chain data plug-ins",
   stats: [
     {
-      kpi: "Total rewards for users",
+      kpi: "Total Yield Generated",
       value: 37.02,
     },
     {
-      kpi: "Total Deposited",
+      kpi: "Total Liquidity",
       value: 450,
     },
     {
-      kpi: "Total Value Locked",
+      kpi: "Total Volume",
       value: 300,
     },
   ],
@@ -42,8 +42,8 @@ export const Stats = () => {
   const blobOpacityFadeOut = useTransform(fadeOutAnimationProgress, [0, 1], [1, 0]);
 
   return (
-    <div ref={targetRef} className="text-center space-y-24 py-24" id="stats">
-      <h2 className="text-5xl max-w-5xl mx-auto w-full">{CONTENT.heading}</h2>
+    <div ref={targetRef} className="relative z-20 text-center space-y-24 py-24" id="stats">
+      <h2 className="text-5xl font-medium max-w-4xl mx-auto w-full">{CONTENT.heading}</h2>
       <div className="w-full">
         <div className="h-[1px] bg-muted-foreground/50" />
         <ul className="max-w-7xl mx-auto w-full grid grid-cols-3">
