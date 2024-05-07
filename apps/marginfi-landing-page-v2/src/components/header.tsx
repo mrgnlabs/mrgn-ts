@@ -54,7 +54,7 @@ export const Header = () => {
   const headerBackgroundColor = useTransform(
     scrollY,
     [0, height || 400],
-    ["rgba(12, 14, 13, 0)", "rgba(12, 14, 13, 0.85)"]
+    ["rgba(15, 17, 17, 0)", "rgba(15, 17, 17, 0.85)"]
   );
   const wordmarkOpacity = useTransform(scrollY, [0, height ? height * 0.27 : 200], [1, 0]);
   const headerBackgroundBlur = useTransform(scrollY, [0, height ? height * 0.5 : 400], ["blur(0px)", "blur(4px)"]);
