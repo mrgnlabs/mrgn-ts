@@ -61,7 +61,7 @@ export const Header = () => {
 
   return (
     <motion.header
-      className="fixed top-0 left-0 z-30 w-screen flex items-center gap-8 p-4 pr-28"
+      className="fixed top-0 left-0 z-30 w-screen flex items-center gap-8 py-4 pl-8 pr-28"
       style={{ background: headerBackgroundColor, backdropFilter: headerBackgroundBlur }}
     >
       <Link
