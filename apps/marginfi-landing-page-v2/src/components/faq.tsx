@@ -4,32 +4,22 @@ const CONTENT = {
   heading: "Frequency Asked Questions",
   faqs: [
     {
-      question: "Sint id anim veniam magna pariatur duis aliquip duis eiusmod deserunt?",
+      question: "Is there a “How to start on marginfi” quick guide?",
       answer:
         "Incididunt magna non velit enim occaecat laboris officia esse mollit velit magna laborum minim. Nostrud ipsum ea fugiat commodo incididunt id Lorem veniam aliqua dolor aliquip consequat. Consectetur do tempor nisi aliqua cupidatat exercitation eiusmod laborum do. Labore sit mollit incididunt eiusmod ad amet sit irure deserunt anim qui. Cillum sunt laboris enim quis sunt excepteur. Veniam adipisicing mollit consequat velit tempor minim ad eiusmod excepteur nostrud proident sit.",
     },
     {
-      question: "Sint id anim veniam magna pariatur duis aliquip duis eiusmod deserunt?",
+      question: "How does landing work?",
       answer:
         "Incididunt magna non velit enim occaecat laboris officia esse mollit velit magna laborum minim. Nostrud ipsum ea fugiat commodo incididunt id Lorem veniam aliqua dolor aliquip consequat. Consectetur do tempor nisi aliqua cupidatat exercitation eiusmod laborum do. Labore sit mollit incididunt eiusmod ad amet sit irure deserunt anim qui. Cillum sunt laboris enim quis sunt excepteur. Veniam adipisicing mollit consequat velit tempor minim ad eiusmod excepteur nostrud proident sit.",
     },
     {
-      question: "Sint id anim veniam magna pariatur duis aliquip duis eiusmod deserunt?",
+      question: "Are there lockup periods with staking?",
       answer:
         "Incididunt magna non velit enim occaecat laboris officia esse mollit velit magna laborum minim. Nostrud ipsum ea fugiat commodo incididunt id Lorem veniam aliqua dolor aliquip consequat. Consectetur do tempor nisi aliqua cupidatat exercitation eiusmod laborum do. Labore sit mollit incididunt eiusmod ad amet sit irure deserunt anim qui. Cillum sunt laboris enim quis sunt excepteur. Veniam adipisicing mollit consequat velit tempor minim ad eiusmod excepteur nostrud proident sit.",
     },
     {
-      question: "Sint id anim veniam magna pariatur duis aliquip duis eiusmod deserunt?",
-      answer:
-        "Incididunt magna non velit enim occaecat laboris officia esse mollit velit magna laborum minim. Nostrud ipsum ea fugiat commodo incididunt id Lorem veniam aliqua dolor aliquip consequat. Consectetur do tempor nisi aliqua cupidatat exercitation eiusmod laborum do. Labore sit mollit incididunt eiusmod ad amet sit irure deserunt anim qui. Cillum sunt laboris enim quis sunt excepteur. Veniam adipisicing mollit consequat velit tempor minim ad eiusmod excepteur nostrud proident sit.",
-    },
-    {
-      question: "Sint id anim veniam magna pariatur duis aliquip duis eiusmod deserunt?",
-      answer:
-        "Incididunt magna non velit enim occaecat laboris officia esse mollit velit magna laborum minim. Nostrud ipsum ea fugiat commodo incididunt id Lorem veniam aliqua dolor aliquip consequat. Consectetur do tempor nisi aliqua cupidatat exercitation eiusmod laborum do. Labore sit mollit incididunt eiusmod ad amet sit irure deserunt anim qui. Cillum sunt laboris enim quis sunt excepteur. Veniam adipisicing mollit consequat velit tempor minim ad eiusmod excepteur nostrud proident sit.",
-    },
-    {
-      question: "Sint id anim veniam magna pariatur duis aliquip duis eiusmod deserunt?",
+      question: "What are the fees?",
       answer:
         "Incididunt magna non velit enim occaecat laboris officia esse mollit velit magna laborum minim. Nostrud ipsum ea fugiat commodo incididunt id Lorem veniam aliqua dolor aliquip consequat. Consectetur do tempor nisi aliqua cupidatat exercitation eiusmod laborum do. Labore sit mollit incididunt eiusmod ad amet sit irure deserunt anim qui. Cillum sunt laboris enim quis sunt excepteur. Veniam adipisicing mollit consequat velit tempor minim ad eiusmod excepteur nostrud proident sit.",
     },

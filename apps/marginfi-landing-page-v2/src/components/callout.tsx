@@ -5,12 +5,12 @@ import { IconArrowRight } from "@tabler/icons-react";
 import { Button } from "~/components/ui/button";
 
 const CONTENT = {
-  heading: "Grant Gateway: Fueling Finance Applications",
+  heading: "Grant Gateway: Fueling the mrgn. ecosystem",
   body: (
     <p>
-      We are about to roll out a grants process for developers looking to benefit from our financial infrastructure.
+      Create a grant proposal to build something iconic with marginfi's liquidity, userbase, and tooling.
       <br className="hidden lg:block" />
-      We invite teams from everywhere to get in touch. We have a lot to offer you!
+      There's support waiting for you!
     </p>
   ),
   cta: {

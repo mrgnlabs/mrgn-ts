@@ -1,17 +1,17 @@
 import Image from "next/image";
 
 const CONTENT = {
-  heading: "Here’s what we bring to the table",
+  heading: "Here's more of what we're building",
   features: [
     {
       heading: "The first Liquidity Layer with MEV-optimized settlement",
       body: (
         <>
           <p>
-            Expanding liquidation, stableswap, and flashloan capabilities, marginfi will use Jito bundles for user
-            protection.
+            marginfi is building MEV-optimized bundling across liquidations, swaps, and flashloans to protect users &
+            secure value.
           </p>
-          <p className="text-primary">Join us as we advance our MEV capture initiatives!</p>
+          <p className="text-primary">Join us as we advance our MEV initiatives!</p>
         </>
       ),
     },
@@ -21,20 +21,20 @@ const CONTENT = {
         <>
           <p className="text-primary">All developers can build on:</p>
           <ul className="list-disc space-y-2 ml-4">
-            <li>mrgnlend, Solana largest DeFi dApp</li>
-            <li>YBX, marginfi's integrated SOL-backed stablecoin (coming Q1)</li>
-            <li>mrgnswap, marginfi's integrated stableswap (coming Q2)</li>
+            <li>mrgnlend: one of crypto's most used lend/borrow venues</li>
+            <li>YBX: marginfi's decentralized, yield accruing stable asset</li>
+            <li>mrgnswap: crypto's exciting new integrated stableswap</li>
           </ul>
         </>
       ),
     },
     {
-      heading: "Enhancing Solana's liquidity without draining resources",
+      heading: "The first Liquidity Layer without fragmentation",
       body: (
         <>
           <p>
-            Marginfi enhances Solana by providing integrated liquidity directly, avoiding the resource drain often seen
-            with ETH L2's on Ethereum, and eliminates the need for bridging.
+            marginfi is directly integrated with the Solana blockchain. Developers and users have atomic composability
+            with any other Solana-based application.
           </p>
         </>
       ),

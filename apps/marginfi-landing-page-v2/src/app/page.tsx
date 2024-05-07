@@ -18,8 +18,8 @@ export default function Home() {
       <Products />
       <Features />
       <Highlights />
-      <Ecosystem />
       <Callout />
+      <Ecosystem />
       <Investors />
       <GettingStarted />
       <FAQ />
