@@ -4,8 +4,17 @@ import React from "react";
 
 import Link from "next/link";
 
-import { IconChevronDown, IconBuildingBank, IconBox, IconExternalLink, IconArrowsLeftRight } from "@tabler/icons-react";
-import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
+import {
+  IconChevronDown,
+  IconBuildingBank,
+  IconBox,
+  IconExternalLink,
+  IconArrowsLeftRight,
+  IconBrandDiscordFilled,
+  IconBrandGithub,
+  IconBrandX,
+} from "@tabler/icons-react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { useWindowSize, useDebounce } from "@uidotdev/usehooks";
 
 import { cn } from "~/lib/utils";
@@ -15,6 +24,7 @@ import { Button } from "~/components/ui/button";
 import { ScrollTo } from "~/components/ui/scroll-to";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "~/components/ui/sheet";
+import { IconBrandSubstack } from "~/components/ui/icons";
 
 const CONTENT = {
   navLinks: [
@@ -27,32 +37,56 @@ const CONTENT = {
     { label: "Swap", icon: IconArrowsLeftRight, href: "https://app.marginfi.com/swap" },
     { label: "Launch", icon: IconExternalLink, href: "https://app.marginfi.com/" },
   ],
-  hamburgerLinks: [
-    {
-      heading: "Heading 1",
-      links: [
-        { label: "Link 1", href: "#" },
-        { label: "Link 2", href: "#" },
-        { label: "Link 3", href: "#" },
-      ],
-    },
-    {
-      heading: "Heading 2",
-      links: [
-        { label: "Link 1", href: "#" },
-        { label: "Link 2", href: "#" },
-        { label: "Link 3", href: "#" },
-      ],
-    },
-    {
-      heading: "Heading 3",
-      links: [
-        { label: "Link 1", href: "#" },
-        { label: "Link 2", href: "#" },
-        { label: "Link 3", href: "#" },
-      ],
-    },
-  ],
+  hamburger: {
+    links: [
+      {
+        heading: "Products",
+        links: [
+          { label: "mrgnlend", href: "#products" },
+          { label: "LST", href: "#products" },
+          { label: "YBX", href: "#products" },
+        ],
+      },
+      {
+        heading: "Learn More",
+        links: [
+          { label: "Documentation", href: "#" },
+          { label: "Blog", href: "#" },
+          { label: "GitHub", href: "#" },
+          { label: "Analytics", href: "#" },
+        ],
+      },
+      {
+        heading: "Audits",
+        links: [
+          { label: "Link 1", href: "#" },
+          { label: "Link 2", href: "#" },
+        ],
+      },
+    ],
+    social: [
+      {
+        icon: <IconBrandDiscordFilled />,
+        href: "#",
+        label: "Discord",
+      },
+      {
+        icon: <IconBrandGithub />,
+        href: "#",
+        label: "GitHub",
+      },
+      {
+        icon: <IconBrandX />,
+        href: "#",
+        label: "X",
+      },
+      {
+        icon: <IconBrandSubstack />,
+        href: "#",
+        label: "Substack",
+      },
+    ],
+  },
 };
 
 type HamburgerNavProps = {
@@ -64,12 +98,53 @@ const HamburgerNav = ({ open, setOpen }: HamburgerNavProps) => {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent side="top">
-        <div>
-          <ul>
-            {CONTENT.hamburgerLinks.map((section) => (
-              <li>{section.heading}</li>
-            ))}
-          </ul>
+        <div className="flex flex-col gap-16 w-full pb-8 items-start lg:flex-row lg:gap-0 lg:pb-0">
+          <Logo size={36} wordmark={false} />
+          <nav className="flex justify-between gap-8 w-full pr-32 lg:pl-16 lg:pb-8 xl:py-8 xl:pl-40">
+            <ul className="flex flex-col justify-between gap-8 w-full lg:flex-row">
+              {CONTENT.hamburger.links.map((section) => (
+                <li className="space-y-2">
+                  <span className="text-muted-foreground">{section.heading}</span>
+                  <ul className="space-y-1.5">
+                    {section.links.map((link) => (
+                      <li key={link.label}>
+                        {link.href === "#products" ? (
+                          <button
+                            className="text-2xl transition-colors hover:text-mrgn-chartreuse"
+                            onClick={() => setOpen(false)}
+                          >
+                            <ScrollTo to="products">{link.label}</ScrollTo>
+                          </button>
+                        ) : (
+                          <Link
+                            href={link.href}
+                            className="text-2xl transition-colors hover:text-mrgn-chartreuse"
+                            onClick={() => setOpen(false)}
+                          >
+                            {link.label}
+                          </Link>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+              <li className="space-y-2.5 max-w-[200px]">
+                <span className="text-muted-foreground">Follow us</span>
+                <ul className="flex items-center gap-6">
+                  {CONTENT.hamburger.social.map((link) => (
+                    <li key={link.label}>
+                      <Link href={link.href} className="transition-colors hover:text-mrgn-chartreuse">
+                        {React.cloneElement(link.icon, {
+                          size: 24,
+                        })}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            </ul>
+          </nav>
         </div>
       </SheetContent>
     </Sheet>
