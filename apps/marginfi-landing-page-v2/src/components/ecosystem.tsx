@@ -369,33 +369,34 @@ export const Ecosystem = () => {
   }, [isInView]);
 
   return (
-    <div
-      ref={targetRef}
-      className="relative z-10 container max-w-8xl flex flex-col-reverse items-center gap-16 justify-between py-16 lg:py-24 lg:flex-row"
-      id="ecosystem"
-    >
-      <motion.div
-        className="relative z-10 grid grid-cols-2 gap-4 w-full lg:grid-cols-3 lg:gap-8"
-        initial="hidden"
-        animate={isLooping ? "visible" : "hidden"}
-        variants={containerVariants}
+    <>
+      <div
+        ref={targetRef}
+        className="relative z-10 container max-w-8xl flex flex-col-reverse items-center gap-16 justify-between py-16 lg:py-24 lg:flex-row"
+        id="ecosystem"
       >
-        {cards.map((card, index) => (
-          <motion.div key={index} variants={fadeVariants}>
-            <EcoCard {...card} />
-          </motion.div>
-        ))}
-      </motion.div>
-      <div className="space-y-6 max-w-sm relative z-10 shrink-0">
-        <h3 className="text-4xl font-medium">{CONTENT.heading}</h3>
-        <p className="text-muted-foreground">{CONTENT.body}</p>
-        <Link className="inline-block" href="https://app.marginfi.com/ecosystem">
-          <Button>
-            View Ecosystem <IconArrowRight size={18} className="ml-1.5" />
-          </Button>
-        </Link>
+        <motion.div
+          className="relative z-10 grid grid-cols-2 gap-4 w-full lg:grid-cols-3 lg:gap-8"
+          initial="hidden"
+          animate={isLooping ? "visible" : "hidden"}
+          variants={containerVariants}
+        >
+          {cards.map((card, index) => (
+            <motion.div key={index} variants={fadeVariants}>
+              <EcoCard {...card} />
+            </motion.div>
+          ))}
+        </motion.div>
+        <div className="space-y-6 max-w-sm relative z-10 shrink-0">
+          <h3 className="text-4xl font-medium">{CONTENT.heading}</h3>
+          <p className="text-muted-foreground">{CONTENT.body}</p>
+          <Link className="inline-block" href="https://app.marginfi.com/ecosystem">
+            <Button>
+              View Ecosystem <IconArrowRight size={18} className="ml-1.5" />
+            </Button>
+          </Link>
+        </div>
       </div>
-
       <motion.div className="fixed z-0 bottom-0 left-1/2 -translate-x-1/2" style={{ opacity: blobOpacityFadeOut }}>
         <motion.svg
           width="1251"
@@ -440,6 +441,6 @@ export const Ecosystem = () => {
           </defs>
         </motion.svg>
       </motion.div>
-    </div>
+    </>
   );
 };
