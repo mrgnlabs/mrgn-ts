@@ -9,7 +9,12 @@ const CONTENT = {
   products: [
     {
       heading: "mrgnlend",
-      subHeading: "marginfi's integrated leverage hub",
+      subHeading: (
+        <span>
+          marginfi's integrated
+          <br className="hidden lg:block" /> leverage hub
+        </span>
+      ),
       cta: {
         href: "https://app.marginfi.com/",
         label: "Start earning",
