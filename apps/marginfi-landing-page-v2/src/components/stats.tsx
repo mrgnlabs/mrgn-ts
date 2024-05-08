@@ -42,31 +42,33 @@ export const Stats = () => {
   const blobOpacityFadeOut = useTransform(fadeOutAnimationProgress, [0, 1], [1, 0]);
 
   return (
-    <div ref={targetRef} className="relative z-20 text-center space-y-24 py-16 lg:py-24" id="stats">
-      <h2 className="text-4xl font-medium max-w-4xl mx-auto w-full lg:text-5xl">{CONTENT.heading}</h2>
-      <div className="w-full">
-        <div className="h-[1px] bg-muted-foreground/50" />
-        <ul className="max-w-7xl mx-auto w-full lg:grid lg:grid-cols-3">
-          {CONTENT.stats.map((stat, index) => (
-            <li
-              key={index}
-              className={cn(
-                "border border-muted-foreground/50 border-l-0 border-r-0 lg:border lg:border-t-0 lg:border-b-0",
-                index < CONTENT.stats.length && "border-l-0",
-                index === CONTENT.stats.length - 1 && "border-r-0"
-              )}
-            >
-              <dl className="py-20 space-y-8">
-                <dt className="text-muted-foreground">{stat.kpi}</dt>
-                <dd className="flex items-center justify-center gap-1 text-6xl font-medium">
-                  <span className="text-4xl">$</span>
-                  <Counter value={stat.value} />m
-                </dd>
-              </dl>
-            </li>
-          ))}
-        </ul>
-        <div className="h-[1px] bg-muted-foreground/50" />
+    <>
+      <div ref={targetRef} className="relative z-20 text-center space-y-24 py-16 lg:py-24" id="stats">
+        <h2 className="text-4xl font-medium max-w-4xl mx-auto w-full lg:text-5xl">{CONTENT.heading}</h2>
+        <div className="w-full">
+          <div className="h-[1px] bg-muted-foreground/50" />
+          <ul className="max-w-7xl mx-auto w-full lg:grid lg:grid-cols-3">
+            {CONTENT.stats.map((stat, index) => (
+              <li
+                key={index}
+                className={cn(
+                  "border border-muted-foreground/50 border-l-0 border-r-0 lg:border lg:border-t-0 lg:border-b-0",
+                  index < CONTENT.stats.length && "border-l-0",
+                  index === CONTENT.stats.length - 1 && "border-r-0"
+                )}
+              >
+                <dl className="py-20 space-y-8">
+                  <dt className="text-muted-foreground">{stat.kpi}</dt>
+                  <dd className="flex items-center justify-center gap-1 text-6xl font-medium">
+                    <span className="text-4xl">$</span>
+                    <Counter value={stat.value} />m
+                  </dd>
+                </dl>
+              </li>
+            ))}
+          </ul>
+          <div className="h-[1px] bg-muted-foreground/50" />
+        </div>
       </div>
       <motion.div className="fixed z-0 bottom-0 left-1/2 -translate-x-1/2" style={{ opacity: blobOpacityFadeOut }}>
         <motion.svg
@@ -111,6 +113,6 @@ export const Stats = () => {
           </defs>
         </motion.svg>
       </motion.div>
-    </div>
+    </>
   );
 };
