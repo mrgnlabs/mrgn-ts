@@ -53,11 +53,11 @@ export const Stats = () => {
                 key={index}
                 className={cn(
                   "border border-muted-foreground/50 border-l-0 border-r-0 lg:border lg:border-t-0 lg:border-b-0",
-                  index < CONTENT.stats.length && "border-l-0",
-                  index === CONTENT.stats.length - 1 && "border-r-0"
+                  index < CONTENT.stats.length && "lg:border-l-0",
+                  index === CONTENT.stats.length - 1 && "lg:border-r-0"
                 )}
               >
-                <dl className="py-20 space-y-8">
+                <dl className="py-8 space-y-4 lg:space-y-8 lg:py-20">
                   <dt className="text-muted-foreground">{stat.kpi}</dt>
                   <dd className="flex items-center justify-center gap-1 text-6xl font-medium">
                     <span className="text-4xl">$</span>
