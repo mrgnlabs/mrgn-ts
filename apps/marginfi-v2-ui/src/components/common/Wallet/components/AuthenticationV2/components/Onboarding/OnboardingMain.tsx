@@ -1,46 +1,16 @@
 import React from "react";
 
-import Image from "next/image";
-import Link from "next/link";
-
-import { useWallet } from "@solana/wallet-adapter-react";
-
-import { useUiStore } from "~/store";
-import { useOs } from "~/hooks/useOs";
-import { useIsMobile } from "~/hooks/useIsMobile";
-import { useWalletContext } from "~/hooks/useWalletContext";
-import { Web3AuthSocialProvider } from "~/hooks/useWalletContext";
 import { cn } from "~/utils";
 
-import { WalletAuthButton, WalletAuthEmailForm } from "~/components/common/Wallet";
-
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import {
-  IconMrgn,
-  IconBrandX,
-  IconBrandApple,
-  IconBrandGoogle,
-  IconBraveWallet,
-  IconCoinbaseWallet,
-  IconPhantomWallet,
-  IconBackpackWallet,
-  IconSolflareWallet,
-  IconWalletConnectWallet,
-  IconGlowWallet,
-  IconTrustWallet,
-  IconEthereum,
-  IconChevronDown,
-  IconStarFilled,
-} from "~/components/ui/icons";
+import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { OnboardHeader } from "../sharedComponents";
-import * as onboardScreens from "./screens";
 
-interface props {
-  update: (value: string) => void;
-}
+import { AuthScreenProps } from "../../authDialogUitls";
 
-export const NewUserFlow = ({ update }: props) => {
+interface props extends AuthScreenProps {}
+
+export const OnboardingMain = ({ update }: props) => {
   return (
     <DialogContent className={cn("md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl")}>
       <OnboardHeader
@@ -62,16 +32,16 @@ export const NewUserFlow = ({ update }: props) => {
           </div>
 
           <div className="mt-4">
-            <Button variant="default" onClick={() => update("onboardScreens.OnboardingSocial")}>
+            <Button variant="default" onClick={() => update("ONBOARD_SOCIAL")}>
               Get started
             </Button>
           </div>
         </div>
         <div
           className={cn(
-            "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden "
+            "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden cursor-pointer"
           )}
-          onClick={() => update("onboardScreens.OnboardingSol")}
+          onClick={() => update("ONBOARD_SOL")}
         >
           <div>
             <h2 className="font-semibold text-2xl text-white">I&apos;m a Solana user</h2>
@@ -82,9 +52,9 @@ export const NewUserFlow = ({ update }: props) => {
         </div>
         <div
           className={cn(
-            "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden "
+            "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden cursor-pointer"
           )}
-          onClick={() => update("onboardScreens.OnboardingEth")}
+          onClick={() => update("ONBOARD_ETH")}
         >
           <div>
             <h2 className="font-semibold text-2xl text-white">I&apos;m an Ethereum user</h2>
