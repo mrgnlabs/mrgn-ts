@@ -5,6 +5,7 @@ import React from "react";
 import Lottie, { useLottie } from "lottie-react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { IconArrowRight } from "@tabler/icons-react";
+import { useMediaQuery } from "@uidotdev/usehooks";
 
 import scrollIconAnimation from "~/lottie/scrollIconAnimation.json";
 import heroAnimation from "~/lottie/heroAnimation.json";
@@ -60,9 +61,10 @@ const HeroAnimation = ({ inView }: HeroAnimationProps) => {
 export const Hero = () => {
   const containerRef = React.useRef(null);
   const targetRef = React.useRef(null);
+  const isLargeDevice = useMediaQuery("only screen and (min-width : 768px)");
   const { scrollYProgress } = useScroll({
     target: targetRef,
-    offset: ["end end", "start start"],
+    offset: ["end end", `start ${isLargeDevice ? "20%" : "40%"}`],
   });
 
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
@@ -113,7 +115,10 @@ export const Hero = () => {
           </ScrollTo>
         </div>
       </div>
-      <motion.div className="fixed top-0 left-0 z-0 w-screen h-screen object-cover" style={{ opacity: heroOpacity }}>
+      <motion.div
+        className="fixed top-0 -left-[125vw] z-0 w-[250vw] lg:left-0 lg:w-screen h-screen object-cover"
+        style={{ opacity: heroOpacity }}
+      >
         <HeroAnimation inView={isInView} />
       </motion.div>
     </>
