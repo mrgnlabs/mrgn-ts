@@ -15,6 +15,7 @@
     "@coral-xyz/borsh": "^0.28.0",
     "@jup-ag/api": "^6.0.11",
     "@jup-ag/react-hook": "^6.0.0-beta.8",
+    "@metamask/sdk": "^0.19.0",
     "@moongate/moongate-adapter": "^0.1.2",
     "@moonpay/moonpay-js": "^0.1.0",
     "@mrgnlabs/lip-client": "*",

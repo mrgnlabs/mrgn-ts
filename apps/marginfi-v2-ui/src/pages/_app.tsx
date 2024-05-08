@@ -30,7 +30,7 @@ import { WalletAuthDialog } from "~/components/common/Wallet";
 import "swiper/css";
 import "swiper/css/pagination";
 import "react-toastify/dist/ReactToastify.min.css";
-import { Onboard } from "~/components/common/Wallet/components/Onboard/Onboard";
+import { AuthDialog } from "~/components/common/Wallet/components/AuthenticationV2";
 
 // Use require instead of import since order matters
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -118,7 +118,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                     </Mobile>
                     <Analytics />
                     <Tutorial />
-
+                    <AuthDialog />
                     <WalletAuthDialog />
                     <ToastContainer position="bottom-left" theme="dark" />
                   </LipClientProvider>
