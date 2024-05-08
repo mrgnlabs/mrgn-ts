@@ -27,6 +27,32 @@ const CONTENT = {
     { label: "Swap", icon: IconArrowsLeftRight, href: "https://app.marginfi.com/swap" },
     { label: "Launch", icon: IconExternalLink, href: "https://app.marginfi.com/" },
   ],
+  hamburgerLinks: [
+    {
+      heading: "Heading 1",
+      links: [
+        { label: "Link 1", href: "#" },
+        { label: "Link 2", href: "#" },
+        { label: "Link 3", href: "#" },
+      ],
+    },
+    {
+      heading: "Heading 2",
+      links: [
+        { label: "Link 1", href: "#" },
+        { label: "Link 2", href: "#" },
+        { label: "Link 3", href: "#" },
+      ],
+    },
+    {
+      heading: "Heading 3",
+      links: [
+        { label: "Link 1", href: "#" },
+        { label: "Link 2", href: "#" },
+        { label: "Link 3", href: "#" },
+      ],
+    },
+  ],
 };
 
 type HamburgerNavProps = {
@@ -38,12 +64,12 @@ const HamburgerNav = ({ open, setOpen }: HamburgerNavProps) => {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent side="top">
-        <SheetHeader>
-          <SheetTitle>Edit profile</SheetTitle>
-          <SheetDescription>Make changes to your profile here. Click save when you&apos;re done.</SheetDescription>
-        </SheetHeader>
         <div>
-          <h2>Hello!</h2>
+          <ul>
+            {CONTENT.hamburgerLinks.map((section) => (
+              <li>{section.heading}</li>
+            ))}
+          </ul>
         </div>
       </SheetContent>
     </Sheet>
@@ -85,7 +111,7 @@ export const Header = () => {
   return (
     <>
       <motion.header
-        className="fixed top-0 left-0 z-30 w-screen flex items-center gap-8 py-4 pl-8 pr-28"
+        className="fixed top-0 left-0 z-30 w-screen flex items-center gap-8 py-4 pl-4 pr-28 lg:pl-8"
         style={{ background: headerBackgroundColor, backdropFilter: headerBackgroundBlur }}
       >
         <Link
@@ -103,7 +129,7 @@ export const Header = () => {
           </motion.span>
         </Link>
 
-        <nav className="ml-auto">
+        <nav className="ml-auto hidden lg:block">
           <ul className="flex items-center gap-12">
             {CONTENT.navLinks.map((link) => (
               <li key={link.label}>

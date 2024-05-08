@@ -37,9 +37,9 @@ const CONTENT = {
 export const Products = () => {
   return (
     <div className="relative z-20" id="products">
-      <div className="container space-y-24 py-24">
-        <h2 className="text-5xl max-w-4xl mx-auto w-full font-medium text-center">{CONTENT.heading}</h2>
-        <ul className="max-w-7xl mx-auto w-full grid grid-cols-3 gap-28 translate-x-12">
+      <div className="container space-y-24 py-16 lg:py-24">
+        <h2 className="text-4xl max-w-4xl mx-auto w-full font-medium text-center lg:text-5xl">{CONTENT.heading}</h2>
+        <ul className="max-w-7xl mx-auto w-full grid gap-16 lg:translate-x-12 lg:grid-cols-3 lg:gap-28">
           {CONTENT.products.map((product, index) => (
             <li key={index} className="relaative space-y-6">
               <header className="space-y-1">

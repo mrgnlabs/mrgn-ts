@@ -44,20 +44,20 @@ const CONTENT = {
 
 export const Features = () => {
   return (
-    <div className="relative container space-y-24 py-24 z-20" id="features">
-      <h2 className="text-5xl max-w-5xl mx-auto w-full font-medium text-center">{CONTENT.heading}</h2>
-      <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full">
+    <div className="relative container space-y-24 py-16 z-20 lg:py-24" id="features">
+      <h2 className="text-4xl max-w-5xl mx-auto w-full font-medium text-center lg:text-5xl">{CONTENT.heading}</h2>
+      <div className="flex flex-col gap-12 max-w-3xl mx-auto w-full lg:gap-6">
         {CONTENT.features.map((feature, index) => (
-          <div className="flex w-full bg-secondary rounded-lg" key={index}>
+          <div className="flex flex-col w-full bg-secondary rounded-lg lg:flex-row" key={index}>
             <Image
               src={`/illustrations/${index + 1}.svg`}
               alt={feature.heading}
               width={200}
               height={200}
-              className="rounded-tl-lg rounded-bl-lg"
+              className="w-full object-cover lg:w-auto rounded-t-lg lg:rounded-tr-none lg:rounded-bl-lg"
             />
-            <div className="flex flex-col justify-center p-6 space-y-3 text-sm">
-              <h3 className="text-secondary-foreground">{feature.heading}</h3>
+            <div className="flex flex-col justify-center p-6 space-y-3 lg:text-sm">
+              <h3 className="text-lg text-secondary-foreground lg:text-base">{feature.heading}</h3>
               <div className="text-muted-foreground space-y-4">{feature.body}</div>
             </div>
           </div>
