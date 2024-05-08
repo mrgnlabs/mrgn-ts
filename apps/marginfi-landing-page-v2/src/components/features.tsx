@@ -49,13 +49,14 @@ export const Features = () => {
       <div className="flex flex-col gap-12 max-w-3xl mx-auto w-full lg:gap-6">
         {CONTENT.features.map((feature, index) => (
           <div className="flex flex-col w-full bg-secondary rounded-lg lg:flex-row" key={index}>
-            <Image
-              src={`/illustrations/${index + 1}.svg`}
-              alt={feature.heading}
-              width={200}
-              height={200}
-              className="w-full object-cover lg:w-auto rounded-t-lg lg:rounded-tr-none lg:rounded-bl-lg"
-            />
+            <div
+              className="h-[200px] w-full p-8 flex items-center justify-center rounded-t-lg shrink-0 lg:w-[200px] lg:rounded-tr-none lg:rounded-bl-lg"
+              style={{ background: "radial-gradient(100% 100% at 0% 100%, #42535A 0%, #2B3539 19.73%, #0F1111 100%)" }}
+            >
+              <div className="relative h-full w-[160px]">
+                <Image src={`/illustrations/${index + 1}.svg`} alt={feature.heading} fill={true} />
+              </div>
+            </div>
             <div className="flex flex-col justify-center p-6 space-y-3 lg:text-sm">
               <h3 className="text-lg text-secondary-foreground lg:text-base">{feature.heading}</h3>
               <div className="text-muted-foreground space-y-4">{feature.body}</div>
