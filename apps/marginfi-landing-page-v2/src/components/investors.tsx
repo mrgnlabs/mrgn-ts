@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import { motion, useInView } from "framer-motion";
 import { IconBrandX } from "@tabler/icons-react";
+import { useMediaQuery } from "@uidotdev/usehooks";
 
 const CONTENT = {
   heading: "mrgn is a team focused on democratizing essential financial infrastructure for the betterment of mankind.",
@@ -37,11 +38,35 @@ const CONTENT = {
       image: "/images/investors/tarunchitra.jpg",
     },
   ],
+  investors: [
+    {
+      link: "https://panteracapital.com/firm/",
+      name: "Pantera Capital",
+      image: "/images/investors/pantera.jpg",
+    },
+    {
+      link: "https://multicoin.capital/",
+      name: "Multicoin Capital",
+      image: "/images/investors/multicoin.jpg",
+    },
+    {
+      link: "https://www.anagram.xyz/",
+      name: "Anagram",
+      image: "/images/investors/anagram.jpg",
+    },
+    {
+      link: "https://solana.ventures/",
+      name: "Solana Ventures",
+      image: "/images/investors/solanaventures.png",
+    },
+  ],
 };
 
 export const Investors = () => {
   const targetRef = React.useRef(null);
   const isInView = useInView(targetRef);
+
+  const isLargeDevice = useMediaQuery("only screen and (min-width : 768px)");
 
   const containerVariants = {
     hidden: {
@@ -65,42 +90,76 @@ export const Investors = () => {
   return (
     <div
       ref={targetRef}
-      className="relative z-10 container max-w-7xl flex flex-col gap-16 justify-center items-center text-center py-16 lg:py-24"
+      className="relative z-10 container max-w-8xl flex flex-col gap-16 justify-center items-center text-center py-16 lg:py-24"
     >
-      <header className="space-y-8">
+      <header className="space-y-12">
         <h2 className="text-4xl font-medium lg:text-5xl">{CONTENT.heading}</h2>
         <h3 className="text-2xl font-medium lg:text-3xl">{CONTENT.body}</h3>
       </header>
-      <motion.ul
-        className="grid grid-cols-2 gap-1.5 w-full lg:grid-cols-4"
-        initial="hidden"
-        animate={isInView ? "visible" : "hidden"}
-        variants={containerVariants}
-      >
-        {CONTENT.angels.map((angel, index) => {
-          const twitter = `https://twitter.com/${angel.twitter}`;
-          return (
-            <motion.li
-              key={index}
-              className="bg-secondary h-[120px] rounded-md py-4 px-6 flex items-center justify-center"
-              variants={fadeVariants}
-            >
-              <div className="flex gap-2 justify-between items-center w-full">
-                <Link href={twitter} target="_blank" rel="noreferrer">
+      <div className="space-y-4 w-full">
+        <p className="font-medium text-xl">From our angels</p>
+        <motion.ul
+          className="grid grid-cols-2 gap-1.5 w-full xl:grid-cols-4"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={containerVariants}
+        >
+          {CONTENT.angels.map((angel, index) => {
+            const twitter = `https://twitter.com/${angel.twitter}`;
+            return (
+              <motion.li
+                key={index}
+                className="bg-secondary rounded-md flex items-center justify-center"
+                variants={fadeVariants}
+              >
+                <Link href={twitter} className="flex gap-4 h-[120px] py-4 px-6 justify-between items-center w-full">
                   <Image src={angel.image} alt={angel.name} width={48} height={48} className="rounded-full" />
+                  <div className="text-left leading-none space-y-0.5">
+                    <h4 className="font-medium">{angel.name}</h4>
+                    <h5 className="text-sm text-muted-foreground">@{angel.twitter}</h5>
+                  </div>
+                  <IconBrandX size={24} className="ml-auto" />
                 </Link>
-                <div className="text-left leading-none -translate-y-0.5">
-                  <h4 className="text-lg font-medium">{angel.name}</h4>
-                  <h5 className="text-muted-foreground">@{angel.twitter}</h5>
-                </div>
-                <Link href={twitter} target="_blank" rel="noreferrer" className="ml-auto">
-                  <IconBrandX size={24} />
+              </motion.li>
+            );
+          })}
+        </motion.ul>
+      </div>
+      <div className="space-y-4 w-full">
+        <p className="font-medium text-xl">and investors</p>
+        <motion.ul
+          className="grid grid-cols-2 gap-1.5 w-full xl:grid-cols-4"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={containerVariants}
+        >
+          {CONTENT.investors.map((investor, index) => {
+            return (
+              <motion.li
+                key={index}
+                className="bg-secondary rounded-md flex items-center justify-start"
+                variants={fadeVariants}
+              >
+                <Link
+                  href={investor.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center h-[120px] py-4 px-6 gap-4 w-full text-left"
+                >
+                  <Image
+                    src={investor.image}
+                    alt={investor.name}
+                    width={isLargeDevice ? 64 : 48}
+                    height={isLargeDevice ? 64 : 48}
+                    className="rounded-full"
+                  />
+                  <h4 className="lg:text-lg font-medium">{investor.name}</h4>
                 </Link>
-              </div>
-            </motion.li>
-          );
-        })}
-      </motion.ul>
+              </motion.li>
+            );
+          })}
+        </motion.ul>
+      </div>
     </div>
   );
 };
