@@ -1,7 +1,12 @@
 "use client";
 
 import React from "react";
+
+import Image from "next/image";
+import Link from "next/link";
+
 import { motion, useInView } from "framer-motion";
+import { IconBrandX } from "@tabler/icons-react";
 
 const CONTENT = {
   heading: "mrgn is a team focused on democratizing essential financial infrastructure for the betterment of mankind.",
@@ -10,6 +15,28 @@ const CONTENT = {
       and we&apos;ve raised <strong className="text-mrgn-chartreuse">$8M lifetime</strong> to make this happen.
     </>
   ),
+  angels: [
+    {
+      twitter: "santiagoroel",
+      name: "Santiago R Santos",
+      image: "/images/investors/santiagoroel.jpg",
+    },
+    {
+      twitter: "Evan_ss6",
+      name: "Evanss6",
+      image: "/images/investors/evan_ss6.jpg",
+    },
+    {
+      twitter: "SplitCapital",
+      name: "Zaheer",
+      image: "/images/investors/splitcapital.jpg",
+    },
+    {
+      twitter: "tarunchitra",
+      name: "Tarun Chitra",
+      image: "/images/investors/tarunchitra.jpg",
+    },
+  ],
 };
 
 export const Investors = () => {
@@ -50,9 +77,29 @@ export const Investors = () => {
         animate={isInView ? "visible" : "hidden"}
         variants={containerVariants}
       >
-        {[...new Array(8)].map((_, index) => (
-          <motion.li key={index} className="bg-secondary h-[120px] rounded-md" variants={fadeVariants} />
-        ))}
+        {CONTENT.angels.map((angel, index) => {
+          const twitter = `https://twitter.com/${angel.twitter}`;
+          return (
+            <motion.li
+              key={index}
+              className="bg-secondary h-[120px] rounded-md py-4 px-6 flex items-center justify-center"
+              variants={fadeVariants}
+            >
+              <div className="flex gap-2 justify-between items-center w-full">
+                <Link href={twitter} target="_blank" rel="noreferrer">
+                  <Image src={angel.image} alt={angel.name} width={48} height={48} className="rounded-full" />
+                </Link>
+                <div className="text-left leading-none -translate-y-0.5">
+                  <h4 className="text-lg font-medium">{angel.name}</h4>
+                  <h5 className="text-muted-foreground">@{angel.twitter}</h5>
+                </div>
+                <Link href={twitter} target="_blank" rel="noreferrer" className="ml-auto">
+                  <IconBrandX size={24} />
+                </Link>
+              </div>
+            </motion.li>
+          );
+        })}
       </motion.ul>
     </div>
   );
