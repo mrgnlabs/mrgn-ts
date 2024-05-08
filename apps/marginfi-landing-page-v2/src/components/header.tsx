@@ -100,7 +100,7 @@ const HamburgerNav = ({ open, setOpen }: HamburgerNavProps) => {
       <SheetContent side="top">
         <div className="flex flex-col gap-16 w-full pb-8 items-start lg:flex-row lg:gap-0 lg:pb-0">
           <Logo size={36} wordmark={false} />
-          <nav className="flex justify-between gap-8 w-full pr-32 lg:pl-16 lg:pb-8 xl:py-8 xl:pl-40">
+          <nav className="flex justify-between gap-8 w-full pr-32 max-h-[calc(100vh-140px)] overflow-auto lg:pl-16 lg:pb-8 xl:py-8 xl:pl-40">
             <ul className="flex flex-col justify-between gap-8 w-full lg:flex-row">
               {CONTENT.hamburger.links.map((section) => (
                 <li className="space-y-2">
