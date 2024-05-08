@@ -7,7 +7,8 @@ import Link from "next/link";
 
 import { motion, useInView } from "framer-motion";
 import { IconBrandX } from "@tabler/icons-react";
-import { useMediaQuery } from "@uidotdev/usehooks";
+
+import { useIsMobile } from "~/lib/useIsMobile";
 
 const CONTENT = {
   heading: "mrgn is a team focused on democratizing essential financial infrastructure for the betterment of mankind.",
@@ -66,7 +67,7 @@ export const Investors = () => {
   const targetRef = React.useRef(null);
   const isInView = useInView(targetRef);
 
-  const isLargeDevice = useMediaQuery("only screen and (min-width : 768px)");
+  const isMobile = useIsMobile();
 
   const containerVariants = {
     hidden: {
@@ -149,8 +150,8 @@ export const Investors = () => {
                   <Image
                     src={investor.image}
                     alt={investor.name}
-                    width={isLargeDevice ? 64 : 48}
-                    height={isLargeDevice ? 64 : 48}
+                    width={isMobile ? 48 : 64}
+                    height={isMobile ? 48 : 64}
                     className="rounded-full"
                   />
                   <h4 className="lg:text-lg font-medium">{investor.name}</h4>
