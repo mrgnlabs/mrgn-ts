@@ -57,7 +57,7 @@ export const Highlights = () => {
           </ul>
         </div>
       </div>
-      <div className="absolute bottom-0 left-0 w-full h-full">
+      <div className="absolute top-0 left-0 w-full h-full -translate-y-1/2">
         <Waves inView={isInView} />
       </div>
     </div>
