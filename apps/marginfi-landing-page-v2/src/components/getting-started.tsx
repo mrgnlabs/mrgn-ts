@@ -61,10 +61,10 @@ export const GettingStarted = () => {
   };
 
   return (
-    <div ref={targetRef} className="relative z-10 container max-w-7xl py-24 flex flex-col items-center gap-12">
+    <div ref={targetRef} className="relative z-10 container max-w-7xl py-16 flex flex-col items-center gap-12 lg:py-24">
       <h2 className="text-5xl font-medium">{CONTENT.heading}</h2>
       <motion.section
-        className="grid grid-cols-3 gap-6"
+        className="grid gap-6 lg:grid-cols-3"
         animate={debouncedIsInView ? "visible" : "hidden"}
         variants={containerVariants}
       >

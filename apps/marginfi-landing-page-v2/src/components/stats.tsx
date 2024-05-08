@@ -42,16 +42,16 @@ export const Stats = () => {
   const blobOpacityFadeOut = useTransform(fadeOutAnimationProgress, [0, 1], [1, 0]);
 
   return (
-    <div ref={targetRef} className="relative z-20 text-center space-y-24 py-24" id="stats">
-      <h2 className="text-5xl font-medium max-w-4xl mx-auto w-full">{CONTENT.heading}</h2>
+    <div ref={targetRef} className="relative z-20 text-center space-y-24 py-16 lg:py-24" id="stats">
+      <h2 className="text-4xl font-medium max-w-4xl mx-auto w-full lg:text-5xl">{CONTENT.heading}</h2>
       <div className="w-full">
         <div className="h-[1px] bg-muted-foreground/50" />
-        <ul className="max-w-7xl mx-auto w-full grid grid-cols-3">
+        <ul className="max-w-7xl mx-auto w-full lg:grid lg:grid-cols-3">
           {CONTENT.stats.map((stat, index) => (
             <li
               key={index}
               className={cn(
-                "border border-t-0 border-b-0 border-muted-foreground/50",
+                "border border-muted-foreground/50 border-l-0 border-r-0 lg:border lg:border-t-0 lg:border-b-0",
                 index < CONTENT.stats.length && "border-l-0",
                 index === CONTENT.stats.length - 1 && "border-r-0"
               )}
