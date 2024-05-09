@@ -114,9 +114,6 @@ export const LoopInput = ({ handleInputChange, handleInputFocus }: LoopInputProp
               {leveragedAmount > 1 && (
                 <span className="text-muted-foreground text-sm">{leveragedAmount}x leverage</span>
               )}
-              {leveragedAmount > 5 && "🔥"}
-              {leveragedAmount >= 8 && "🔥"}
-              {leveragedAmount >= 10 && "🔥"}
             </span>
           </div>
           <Slider

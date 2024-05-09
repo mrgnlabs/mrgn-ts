@@ -115,11 +115,6 @@ export const LoopingTokens = ({ selectedBank, setSelectedBank, actionType }: Loo
     }
   }, [isOpen]);
 
-  console.log("shouldRenderStableBanks", shouldRenderStableBanks);
-  console.log("shouldRenderLstBanks", shouldRenderLstBanks);
-  console.log("selectedBankIsStable", selectedBankIsStable);
-  console.log("selectedBankIsLst", selectedBankIsLst);
-
   return (
     <div>
       <TokenListWrapper
