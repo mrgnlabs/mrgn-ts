@@ -40,8 +40,8 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
 
       const pythPriceRealtime = new BigNumber(priceData!);
       const pythConfidenceRealtime = new BigNumber(confidenceData!).times(PYTH_PRICE_CONF_INTERVALS);
-      const maxPythConfidence = pythPriceRealtime.times(MAX_CONFIDENCE_INTERVAL_RATIO);
-      const pythConfidenceRealtimeCapped = BigNumber.min(pythConfidenceRealtime, maxPythConfidence);
+      const maxPythConfidenceRealtime = pythPriceRealtime.times(MAX_CONFIDENCE_INTERVAL_RATIO);
+      const pythConfidenceRealtimeCapped = BigNumber.min(pythConfidenceRealtime, maxPythConfidenceRealtime);
       const pythLowestPriceRealtime = pythPriceRealtime.minus(pythConfidenceRealtimeCapped);
       const pythHighestPriceRealtime = pythPriceRealtime.plus(pythConfidenceRealtimeCapped);
 
