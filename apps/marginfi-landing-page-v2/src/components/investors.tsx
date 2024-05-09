@@ -90,6 +90,11 @@ export const Investors = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
+  const fadeVariantsDelay = {
+    hidden: { opacity: 0, y: 10, transition: { duration: 0.5, delay: 0.5 } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.5 } },
+  };
+
   return (
     <div
       ref={targetRef}
@@ -145,7 +150,7 @@ export const Investors = () => {
           className="font-medium text-xl"
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          variants={fadeVariants}
+          variants={fadeVariantsDelay}
         >
           and investors
         </motion.p>
@@ -160,7 +165,7 @@ export const Investors = () => {
               <motion.li
                 key={index}
                 className="bg-secondary rounded-md flex items-center justify-start"
-                variants={fadeVariants}
+                variants={fadeVariantsDelay}
               >
                 <Link
                   href={investor.link}

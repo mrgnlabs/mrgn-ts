@@ -387,9 +387,7 @@ export const Ecosystem = () => {
         >
           {cards.map((card, index) => (
             <motion.div key={index} variants={fadeVariants}>
-              <div>
-                <EcoCard {...card} />
-              </div>
+              <EcoCard {...card} />
             </motion.div>
           ))}
         </motion.div>
