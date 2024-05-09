@@ -18,12 +18,15 @@ type LoopInputProps = {
 
 export const LoopInput = ({ handleInputChange, handleInputFocus }: LoopInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
-  const [setSelectedBank, setRepayBank, setSelectedStakingAccount, amountRaw] = useActionBoxStore()((state) => [
-    state.setSelectedBank,
-    state.setRepayBank,
-    state.setSelectedStakingAccount,
-    state.amountRaw,
-  ]);
+  const [setSelectedBank, setRepayBank, setSelectedStakingAccount, setSelectedLoopBank, selectedLoopBank, amountRaw] =
+    useActionBoxStore()((state) => [
+      state.setSelectedBank,
+      state.setRepayBank,
+      state.setSelectedStakingAccount,
+      state.setSelectedLoopBank,
+      state.selectedLoopBank,
+      state.amountRaw,
+    ]);
 
   const [leveragedAmount, setLeveragedAmount] = React.useState(0);
 
@@ -38,10 +41,16 @@ export const LoopInput = ({ handleInputChange, handleInputFocus }: LoopInputProp
                 setRepayBank(tokenBank);
               }}
               setTokenBank={(tokenBank) => {
+                if (selectedLoopBank) {
+                  setSelectedLoopBank(null);
+                }
                 setSelectedBank(tokenBank);
               }}
               setStakingAccount={(account) => {
                 setSelectedStakingAccount(account);
+              }}
+              setLoopBank={(account) => {
+                setSelectedLoopBank(account);
               }}
             />
           </div>
@@ -75,6 +84,9 @@ export const LoopInput = ({ handleInputChange, handleInputFocus }: LoopInputProp
                 }}
                 setStakingAccount={(account) => {
                   setSelectedStakingAccount(account);
+                }}
+                setLoopBank={(account) => {
+                  setSelectedLoopBank(account);
                 }}
               />
             </div>
