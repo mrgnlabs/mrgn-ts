@@ -51,7 +51,7 @@ export const LendingPreview = ({
 
   return (
     <div className="flex flex-col gap-4">
-      {selectedAccount && (
+      {selectedAccount && actionMode !== ActionType.Loop && (
         <AvailableCollateral
           isLoading={isLoading}
           marginfiAccount={selectedAccount}
