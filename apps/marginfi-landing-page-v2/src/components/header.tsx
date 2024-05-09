@@ -112,12 +112,12 @@ const HamburgerNav = ({ open, setOpen }: HamburgerNavProps) => {
           <Logo size={36} wordmark={false} />
           <nav className="flex justify-between gap-8 w-full pr-32 max-h-[calc(100vh-140px)] overflow-auto lg:pl-16 lg:pb-8 xl:py-8 xl:pl-40">
             <ul className="flex flex-col justify-between gap-8 w-full lg:flex-row">
-              {CONTENT.hamburger.links.map((section) => (
-                <li className="space-y-2">
+              {CONTENT.hamburger.links.map((section, index) => (
+                <li className="space-y-2" key={index}>
                   <span className="text-muted-foreground">{section.heading}</span>
                   <ul className="space-y-1.5">
-                    {section.links.map((link) => (
-                      <li key={link.label}>
+                    {section.links.map((link, index) => (
+                      <li key={index}>
                         {link.href === "#products" ? (
                           <button
                             className="text-2xl transition-colors hover:text-mrgn-chartreuse"
@@ -144,8 +144,8 @@ const HamburgerNav = ({ open, setOpen }: HamburgerNavProps) => {
               <li className="space-y-2.5 max-w-[200px]">
                 <span className="text-muted-foreground">Follow us</span>
                 <ul className="flex items-center gap-6">
-                  {CONTENT.hamburger.social.map((link) => (
-                    <li key={link.label}>
+                  {CONTENT.hamburger.social.map((link, index) => (
+                    <li key={index}>
                       <Link
                         href={link.href}
                         className="transition-colors hover:text-mrgn-chartreuse"
@@ -223,8 +223,8 @@ export const Header = () => {
 
         <nav className="ml-auto hidden lg:block">
           <ul className="flex items-center gap-12">
-            {CONTENT.navLinks.map((link) => (
-              <li key={link.label}>
+            {CONTENT.navLinks.map((link, index) => (
+              <li key={index}>
                 <ScrollTo to={link.to}>
                   <Button variant="ghost">{link.label}</Button>
                 </ScrollTo>
@@ -271,8 +271,8 @@ export const Header = () => {
                 >
                   <nav className="w-full">
                     <ul>
-                      {CONTENT.launchLinks.map((link) => (
-                        <li key={link.label}>
+                      {CONTENT.launchLinks.map((link, index) => (
+                        <li key={index}>
                           <Link
                             className="flex items-center gap-2 py-2 px-6 transition-colors hover:text-mrgn-chartreuse"
                             href={link.href}
