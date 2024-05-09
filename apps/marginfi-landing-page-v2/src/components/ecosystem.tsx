@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 const CONTENT = {
   heading: "A full ecosystem powered by the marginfi SDK",
   body: "Build something the world hasn't seen yet. The mrgn. community is waiting for you.",
-  cards: [
+  cards: shuffle([
     {
       title: "marginfi v2",
       description: "V2 of the marginfi protocol",
@@ -243,7 +243,7 @@ const CONTENT = {
         avatar: "https://pbs.twimg.com/profile_images/1707747492014473216/0ABIvUee_400x400.jpg",
       },
     },
-  ],
+  ]).slice(0, 6),
 };
 
 type EcoCardProps = {
@@ -259,6 +259,8 @@ type EcoCardProps = {
 };
 
 const EcoCard = ({ title, description, url, github, author }: EcoCardProps) => {
+  if (!title || !description) return null;
+
   return (
     <Card className="relative z-10 w-full bg-secondary h-full flex flex-col justify-start">
       <CardHeader>
@@ -301,7 +303,7 @@ const EcoCard = ({ title, description, url, github, author }: EcoCardProps) => {
 };
 
 export const Ecosystem = () => {
-  const [cards, setCards] = React.useState(shuffle(CONTENT.cards).slice(0, 6));
+  const [cards, setCards] = React.useState<EcoCardProps[]>([]);
   const targetRef = React.useRef(null);
   const { scrollYProgress: fadeInAnimationProgress } = useScroll({
     target: targetRef,
@@ -385,7 +387,9 @@ export const Ecosystem = () => {
         >
           {cards.map((card, index) => (
             <motion.div key={index} variants={fadeVariants}>
-              <EcoCard {...card} />
+              <div>
+                <EcoCard {...card} />
+              </div>
             </motion.div>
           ))}
         </motion.div>
