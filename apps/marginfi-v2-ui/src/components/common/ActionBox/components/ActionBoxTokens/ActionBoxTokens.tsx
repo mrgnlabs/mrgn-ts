@@ -4,7 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 import { StakeData } from "~/utils";
 
-import { LendingTokens, YbxTokens, LstTokens } from "./Components";
+import { LendingTokens, YbxTokens, LstTokens, LoopingTokens } from "./Components";
 
 interface ActionBoxPreviewProps {
   isDialog?: boolean;
@@ -44,6 +44,8 @@ export const ActionBoxTokens = ({
     [actionMode]
   );
 
+  const isLoopMode = React.useMemo(() => actionMode === ActionType.Loop, [actionMode]);
+
   return (
     <>
       {isInLendingMode && (
@@ -68,6 +70,10 @@ export const ActionBoxTokens = ({
           setSelectedBank={setTokenBank}
           setStakingAccount={setStakingAccount}
         />
+      )}
+
+      {isLoopMode && (
+        <LoopingTokens selectedBank={selectedBank} actionType={actionMode} setSelectedBank={setTokenBank} />
       )}
 
       {actionMode === ActionType.MintYBX && selectedBank && <YbxTokens selectedBank={selectedBank} />}

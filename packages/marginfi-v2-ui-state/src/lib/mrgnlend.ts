@@ -625,6 +625,7 @@ enum ActionType {
   MintLST = "Mint LST",
   UnstakeLST = "Unstake LST",
   MintYBX = "Mint YBX",
+  Loop = "Loop",
 }
 
 export { Emissions, ActionType };

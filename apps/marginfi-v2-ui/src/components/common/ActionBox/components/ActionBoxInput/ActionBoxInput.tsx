@@ -11,6 +11,7 @@ import { Input } from "~/components/ui/input";
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 
 import { InputHeader, YbxInput, InputAction } from "./Components";
+import { LoopInput } from "./Components/LoopInput";
 
 type ActionBoxInputProps = {
   walletAmount: number | undefined;
@@ -91,6 +92,8 @@ export const ActionBoxInput = ({
     [actionMode, repayMode]
   );
 
+  const isLoopMode = React.useMemo(() => actionMode === ActionType.Loop, [actionMode]);
+
   const inputAmount = React.useMemo(() => {
     if (isRepayWithCollat) {
       return repayAmountRaw;
@@ -169,6 +172,8 @@ export const ActionBoxInput = ({
           maxAmount={maxAmount}
           setAmountRaw={(amount) => setAmountRaw(formatAmount(amount, selectedBank))}
         />
+      ) : isLoopMode ? (
+        <LoopInput handleInputChange={handleInputChange} handleInputFocus={setIsActionBoxInputFocussed} />
       ) : (
         <div className="bg-background rounded-lg p-2.5 mb-6">
           <div className="flex justify-center gap-1 items-center font-medium text-3xl">
