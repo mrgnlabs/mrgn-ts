@@ -12,6 +12,7 @@ interface ActionBoxPreviewProps {
   setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   setRepayTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   setStakingAccount: (account: StakeData) => void;
+  setLoopBank: (selectedLoopBank: ExtendedBankInfo | null) => void;
 }
 
 export const ActionBoxTokens = ({
@@ -20,17 +21,18 @@ export const ActionBoxTokens = ({
   setRepayTokenBank,
   setTokenBank,
   setStakingAccount,
+  setLoopBank,
 }: ActionBoxPreviewProps) => {
-  const [actionMode, selectedBank, selectedRepayBank, selectedStakingAccount, lstMode, repayMode] = useActionBoxStore(
-    isDialog
-  )((state) => [
-    state.actionMode,
-    state.selectedBank,
-    state.selectedRepayBank,
-    state.selectedStakingAccount,
-    state.lstMode,
-    state.repayMode,
-  ]);
+  const [actionMode, selectedBank, selectedRepayBank, selectedStakingAccount, selectedLoopBank, lstMode, repayMode] =
+    useActionBoxStore(isDialog)((state) => [
+      state.actionMode,
+      state.selectedBank,
+      state.selectedRepayBank,
+      state.selectedStakingAccount,
+      state.selectedLoopBank,
+      state.lstMode,
+      state.repayMode,
+    ]);
 
   const isInLendingMode = React.useMemo(
     () =>
@@ -76,9 +78,9 @@ export const ActionBoxTokens = ({
 
       {isLoopMode && (
         <LoopingTokens
-          selectedBank={selectedBank}
+          selectedBank={actionModeOverride === ActionType.Borrow ? selectedLoopBank : selectedBank}
           actionType={actionModeOverride || actionMode}
-          setSelectedBank={setTokenBank}
+          setSelectedBank={actionModeOverride === ActionType.Borrow ? setLoopBank : setTokenBank}
         />
       )}
 
