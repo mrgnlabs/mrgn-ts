@@ -68,8 +68,8 @@ export const GettingStarted = () => {
         animate={debouncedIsInView ? "visible" : "hidden"}
         variants={containerVariants}
       >
-        {CONTENT.articles.map((article) => (
-          <motion.article variants={fadeVariants}>
+        {CONTENT.articles.map((article, index) => (
+          <motion.article variants={fadeVariants} key={index}>
             <Link href={article.url} className="group">
               <Card className="relative z-10 w-full bg-secondary h-full flex flex-col justify-start rounded-lg p-0 transition-transform duration-300 group-hover:scale-[1.025]">
                 <CardContent className="p-0 pb-4 space-y-4">

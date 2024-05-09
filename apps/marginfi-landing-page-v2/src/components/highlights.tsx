@@ -28,7 +28,7 @@ const Waves = ({ inView }: WavesProps) => {
     } else {
       goToAndStop(0);
     }
-  }, [inView]);
+  }, [inView, goToAndPlay, goToAndStop]);
 
   return View;
 };
@@ -36,6 +36,8 @@ const Waves = ({ inView }: WavesProps) => {
 export const Highlights = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef);
+
+  return null;
 
   return (
     <div ref={containerRef} className="relative z-10 w-full" id="highlights">
@@ -49,8 +51,8 @@ export const Highlights = () => {
         <div className="space-y-2">
           <p className="text-muted-foreground">{CONTENT.subHeading}</p>
           <ul className="text-primary text-lg space-y-1">
-            {CONTENT.highlights.map((highlight) => (
-              <li>{highlight}</li>
+            {CONTENT.highlights.map((highlight, index) => (
+              <li key={index}>{highlight}</li>
             ))}
           </ul>
         </div>

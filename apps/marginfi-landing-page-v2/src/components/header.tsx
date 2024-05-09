@@ -40,7 +40,7 @@ const HamburgerNav = ({ open, setOpen }: HamburgerNavProps) => {
       <SheetContent side="top">
         <SheetHeader>
           <SheetTitle>Edit profile</SheetTitle>
-          <SheetDescription>Make changes to your profile here. Click save when you're done.</SheetDescription>
+          <SheetDescription>Make changes to your profile here. Click save when you&apos;re done.</SheetDescription>
         </SheetHeader>
         <div>
           <h2>Hello!</h2>

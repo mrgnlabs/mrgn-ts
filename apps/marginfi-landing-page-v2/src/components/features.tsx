@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 const CONTENT = {
-  heading: "Here's more of what we're building",
+  heading: <>Here&apos;s more of what we&apos;re building</>,
   features: [
     {
       heading: "The first Liquidity Layer with MEV-optimized settlement",
@@ -21,9 +21,9 @@ const CONTENT = {
         <>
           <p className="text-primary">All developers can build on:</p>
           <ul className="list-disc space-y-2 ml-4">
-            <li>mrgnlend: one of crypto's most used lend/borrow venues</li>
-            <li>YBX: marginfi's decentralized, yield accruing stable asset</li>
-            <li>mrgnswap: crypto's exciting new integrated stableswap</li>
+            <li>mrgnlend: one of crypto&apos;s most used lend/borrow venues</li>
+            <li>YBX: marginfi&apos;s decentralized, yield accruing stable asset</li>
+            <li>mrgnswap: crypto&apos;s exciting new integrated stableswap</li>
           </ul>
         </>
       ),

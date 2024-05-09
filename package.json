@@ -6,6 +6,7 @@
     "packages": [
       "apps/*",
       "!apps/marginfi-v2-xnft",
+      "!apps/alpha-liquidator",
       "packages/*"
     ],
     "nohoist": [

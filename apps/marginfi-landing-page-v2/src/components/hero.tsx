@@ -52,7 +52,7 @@ const HeroAnimation = ({ inView }: HeroAnimationProps) => {
     } else {
       goToAndStop(0);
     }
-  }, [inView]);
+  }, [inView, goToAndPlay, goToAndStop]);
 
   return View;
 };
