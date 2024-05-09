@@ -33,12 +33,41 @@ export const LoopingTokens = ({ selectedBank, setSelectedBank, actionType }: Loo
     [actionType]
   );
 
-  const filteredBanks = React.useMemo(() => {
-    const ALLOWED_LOOP_BANKS = ["USDC", "USDT", "SOL", "LST"];
-    return extendedBankInfos.filter((bank) => {
-      return ALLOWED_LOOP_BANKS.includes(bank.meta.tokenSymbol);
-    });
-  }, [extendedBankInfos]);
+  const stableBanks = React.useMemo(() => {
+    const ALLOWED_LOOP_BANKS = ["USDC", "USDT", "USDY", "UXD"];
+    return extendedBankInfos
+      .filter((bank) => {
+        return ALLOWED_LOOP_BANKS.includes(bank.meta.tokenSymbol);
+      })
+      .filter((bank) => {
+        if (!searchQuery) return true;
+        return bank.meta.tokenSymbol.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+  }, [extendedBankInfos, searchQuery]);
+
+  const lstBanks = React.useMemo(() => {
+    const ALLOWED_LOOP_BANKS = [
+      "SOL",
+      "LST",
+      "JitoSOL",
+      "mSOL",
+      "bSOL",
+      "bonkSOL",
+      "jucySOL",
+      "compassSOL",
+      "laineSOL",
+      "jupSOL",
+      "picoSOL",
+    ];
+    return extendedBankInfos
+      .filter((bank) => {
+        return ALLOWED_LOOP_BANKS.includes(bank.meta.tokenSymbol);
+      })
+      .filter((bank) => {
+        if (!searchQuery) return true;
+        return bank.meta.tokenSymbol.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+  }, [extendedBankInfos, searchQuery]);
 
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) => {
@@ -82,33 +111,65 @@ export const LoopingTokens = ({ selectedBank, setSelectedBank, actionType }: Loo
           >
             <CommandEmpty>No tokens found.</CommandEmpty>
 
-            <CommandGroup heading="Looping pool">
-              {filteredBanks.slice(0, searchQuery.length === 0 ? filteredBanks.length : 3).map((bank, index) => {
-                return (
-                  <CommandItem
-                    key={index}
-                    value={bank?.address?.toString().toLowerCase()}
-                    onSelect={(currentValue) => {
-                      setSelectedBank(
-                        extendedBankInfos.find(
-                          (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
-                        ) ?? null
-                      );
-                      setIsOpen(false);
-                    }}
-                    className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
-                  >
-                    <ActionBoxItem
-                      rate={calculateRate(bank)}
-                      lendingMode={lendingMode}
-                      bank={bank}
-                      showBalanceOverride={true}
-                      nativeSolBalance={nativeSolBalance}
-                    />
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
+            {stableBanks.length > 0 && (
+              <CommandGroup heading="Stablecoins">
+                {stableBanks.map((bank, index) => {
+                  return (
+                    <CommandItem
+                      key={index}
+                      value={bank?.address?.toString().toLowerCase()}
+                      onSelect={(currentValue) => {
+                        setSelectedBank(
+                          extendedBankInfos.find(
+                            (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                          ) ?? null
+                        );
+                        setIsOpen(false);
+                      }}
+                      className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                    >
+                      <ActionBoxItem
+                        rate={calculateRate(bank)}
+                        lendingMode={lendingMode}
+                        bank={bank}
+                        showBalanceOverride={true}
+                        nativeSolBalance={nativeSolBalance}
+                      />
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+
+            {lstBanks.length > 0 && (
+              <CommandGroup heading="Liquid staking tokens">
+                {lstBanks.map((bank, index) => {
+                  return (
+                    <CommandItem
+                      key={index}
+                      value={bank?.address?.toString().toLowerCase()}
+                      onSelect={(currentValue) => {
+                        setSelectedBank(
+                          extendedBankInfos.find(
+                            (bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue
+                          ) ?? null
+                        );
+                        setIsOpen(false);
+                      }}
+                      className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                    >
+                      <ActionBoxItem
+                        rate={calculateRate(bank)}
+                        lendingMode={lendingMode}
+                        bank={bank}
+                        showBalanceOverride={true}
+                        nativeSolBalance={nativeSolBalance}
+                      />
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
           </TokenListCommand>
         }
       />
