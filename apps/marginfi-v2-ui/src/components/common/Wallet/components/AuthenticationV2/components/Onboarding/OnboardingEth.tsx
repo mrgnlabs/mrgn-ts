@@ -6,8 +6,23 @@ import { Button } from "~/components/ui/button";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React from "react";
 import { WalletSeperator } from "../sharedComponents/WalletSeperator";
+import { ethers } from "ethers";
 
 interface props extends AuthScreenProps {}
+
+async function connectMetaMask() {
+  if (typeof window.ethereum !== "undefined") {
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      console.log("MetaMask is connected");
+    } catch (error) {
+      console.error(error);
+    }
+  } else {
+    alert("MetaMask is not installed!");
+  }
+}
 
 export const OnboardingEth = ({
   isLoading,
@@ -32,6 +47,7 @@ export const OnboardingEth = ({
               Sign in with email or socials and bridge your funds to marginfi. Or connect your wallet below.
             </p>
           </header>
+          <Button onClick={() => connectMetaMask()}>WHHOW</Button>
           <div className="mt-4">
             <WalletAuthEmailForm
               loading={isLoading && isActiveLoading === "email"}
