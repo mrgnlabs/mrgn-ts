@@ -1,7 +1,7 @@
 import { parsePriceData } from "../vendor/pyth";
 import BigNumber from "bignumber.js";
 import { AggregatorAccountData, AggregatorAccount } from "../vendor/switchboard";
-import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS } from "..";
+import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS, MAX_CONFIDENCE_INTERVAL_RATIO } from "..";
 import { OracleSetup } from "./bank";
 
 interface PriceWithConfidence {
@@ -39,27 +39,31 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
       }
 
       const pythPriceRealtime = new BigNumber(priceData!);
-      const pythConfidenceRealtime = new BigNumber(confidenceData!);
-      const pythLowestPriceRealtime = pythPriceRealtime.minus(pythConfidenceRealtime.times(PYTH_PRICE_CONF_INTERVALS));
-      const pythHighestPriceRealtime = pythPriceRealtime.plus(pythConfidenceRealtime.times(PYTH_PRICE_CONF_INTERVALS));
+      const pythConfidenceRealtime = new BigNumber(confidenceData!).times(PYTH_PRICE_CONF_INTERVALS);
+      const maxPythConfidence = pythPriceRealtime.times(MAX_CONFIDENCE_INTERVAL_RATIO);
+      const pythConfidenceRealtimeCapped = BigNumber.min(pythConfidenceRealtime, maxPythConfidence);
+      const pythLowestPriceRealtime = pythPriceRealtime.minus(pythConfidenceRealtimeCapped);
+      const pythHighestPriceRealtime = pythPriceRealtime.plus(pythConfidenceRealtimeCapped);
 
-      const pythPrice = new BigNumber(pythPriceData.emaPrice.value);
-      const pythConfInterval = new BigNumber(pythPriceData.emaConfidence.value);
-      const pythLowestPrice = pythPrice.minus(pythConfInterval.times(PYTH_PRICE_CONF_INTERVALS));
-      const pythHighestPrice = pythPrice.plus(pythConfInterval.times(PYTH_PRICE_CONF_INTERVALS));
+      const pythPriceWeighted = new BigNumber(pythPriceData.emaPrice.value);
+      const pythConfIntervalWeighted = new BigNumber(pythPriceData.emaConfidence.value).times(PYTH_PRICE_CONF_INTERVALS);
+      const maxPythConfidenceWeighted = pythPriceWeighted.times(MAX_CONFIDENCE_INTERVAL_RATIO);
+      const pythConfIntervalWeightedCapped = BigNumber.min(pythConfIntervalWeighted, maxPythConfidenceWeighted);
+      const pythLowestPrice = pythPriceWeighted.minus(pythConfIntervalWeightedCapped);
+      const pythHighestPrice = pythPriceWeighted.plus(pythConfIntervalWeightedCapped);
 
-      debug("Loaded pyth price rt=%s, w=%s", pythPriceRealtime.toString(), pythPrice.toString());
+      debug("Loaded pyth price rt=%s (+/- %s), w=%s (+/- %s)", pythPriceRealtime.toString(), pythConfidenceRealtimeCapped.toString(), pythPriceWeighted.toString(), pythConfIntervalWeightedCapped.toString());
 
       return {
         priceRealtime: {
           price: pythPriceRealtime,
-          confidence: pythConfidenceRealtime,
+          confidence: pythConfidenceRealtimeCapped,
           lowestPrice: pythLowestPriceRealtime,
           highestPrice: pythHighestPriceRealtime,
         },
         priceWeighted: {
-          price: pythPrice,
-          confidence: pythConfInterval,
+          price: pythPriceWeighted,
+          confidence: pythConfIntervalWeightedCapped,
           lowestPrice: pythLowestPrice,
           highestPrice: pythHighestPrice,
         },
@@ -69,22 +73,24 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
       const aggData = AggregatorAccountData.decode(rawData);
 
       const swbPrice = new BigNumber(AggregatorAccount.decodeLatestValue(aggData)!.toString());
-      const swbConfidence = new BigNumber(aggData.latestConfirmedRound.stdDeviation.toBig().toString());
-      const swbLowestPrice = swbPrice.minus(swbConfidence.times(SWB_PRICE_CONF_INTERVALS));
-      const swbHighestPrice = swbPrice.plus(swbConfidence.times(SWB_PRICE_CONF_INTERVALS));
+      const swbConfidence = new BigNumber(aggData.latestConfirmedRound.stdDeviation.toBig().toString()).times(SWB_PRICE_CONF_INTERVALS);
+      const maxSwbConfidence = swbPrice.times(MAX_CONFIDENCE_INTERVAL_RATIO);
+      const swbConfidenceCapped = BigNumber.min(swbConfidence, maxSwbConfidence);
+      const swbLowestPrice = swbPrice.minus(swbConfidenceCapped);
+      const swbHighestPrice = swbPrice.plus(swbConfidenceCapped);
 
-      debug("Loaded pyth price rt=%s", swbPrice.toString());
+      debug("Loaded swb price rt=%s (+/- %s), w=%s (+/- %s)", swbPrice.toString(), swbConfidenceCapped.toString(), swbPrice.toString(), swbConfidenceCapped.toString());
 
       return {
         priceRealtime: {
           price: swbPrice,
-          confidence: swbConfidence,
+          confidence: swbConfidenceCapped,
           lowestPrice: swbLowestPrice,
           highestPrice: swbHighestPrice,
         },
         priceWeighted: {
           price: swbPrice,
-          confidence: swbConfidence,
+          confidence: swbConfidenceCapped,
           lowestPrice: swbLowestPrice,
           highestPrice: swbHighestPrice,
         },

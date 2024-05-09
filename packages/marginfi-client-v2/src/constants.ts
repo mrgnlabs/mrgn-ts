@@ -10,7 +10,8 @@ export const PDA_BANK_INSURANCE_VAULT_SEED = Buffer.from("insurance_vault");
 export const PDA_BANK_FEE_VAULT_SEED = Buffer.from("fee_vault");
 
 export const PYTH_PRICE_CONF_INTERVALS = new BigNumber(2.12);
-export const SWB_PRICE_CONF_INTERVALS = new BigNumber(2.12);
+export const SWB_PRICE_CONF_INTERVALS = new BigNumber(1.96);
+export const MAX_CONFIDENCE_INTERVAL_RATIO = new BigNumber(0.05);
 export const USDC_DECIMALS = 6;
 
 export const ADDRESS_LOOKUP_TABLE_FOR_GROUP: { [key: string]: [PublicKey] } = {

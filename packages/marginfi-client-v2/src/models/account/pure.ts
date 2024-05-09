@@ -1005,13 +1005,14 @@ class MarginfiAccount {
 
   public describe(banks: BankMap, oraclePrices: OraclePriceMap): string {
     const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Equity);
+    const { assets: assetsMaint, liabilities: liabilitiesMaint } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Maintenance);
     let description = `
 - Marginfi account: ${this.address}
 - Authority: ${this.authority}
 - Total deposits: $${assets.toFixed(6)}
 - Total liabilities: $${liabilities.toFixed(6)}
 - Equity: $${assets.minus(liabilities).toFixed(6)}
-- Health: ${assets.minus(liabilities).div(assets).times(100).toFixed(2)}%
+- Health: ${assetsMaint.minus(liabilitiesMaint).div(assetsMaint).times(100).toFixed(2)}%
 - Balances:\n`;
 
     for (const balance of this.activeBalances) {
