@@ -53,6 +53,7 @@ export const InputHeaderActionLeft = ({
       [ActionType.Repay]: "",
       [ActionType.MintLST]: isSolBank ? "You stake" : "You swap",
       [ActionType.UnstakeLST]: "You unstake",
+      [ActionType.Loop]: "You deposit",
     };
 
     return actionTitles[actionType] || "";
