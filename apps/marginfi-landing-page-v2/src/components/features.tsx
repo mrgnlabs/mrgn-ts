@@ -50,7 +50,7 @@ export const Features = () => {
         {CONTENT.features.map((feature, index) => (
           <div className="flex flex-col w-full bg-secondary rounded-lg lg:flex-row" key={index}>
             <div
-              className="h-[200px] w-full p-8 flex items-center justify-center rounded-t-lg shrink-0 lg:w-[200px] lg:rounded-tr-none lg:rounded-bl-lg"
+              className="h-[200px] w-full p-8 flex items-center justify-center rounded-t-lg shrink-0 lg:w-[200px] lg:h-[240px] lg:rounded-tr-none lg:rounded-bl-lg"
               style={{ background: "radial-gradient(100% 100% at 0% 100%, #42535A 0%, #2B3539 19.73%, #0F1111 100%)" }}
             >
               <div className="relative h-full w-[160px]">

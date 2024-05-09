@@ -42,9 +42,9 @@ const CONTENT = {
       {
         heading: "Products",
         links: [
+          { label: "LST & YBX", href: "#products" },
           { label: "mrgnlend", href: "#products" },
-          { label: "LST", href: "#products" },
-          { label: "YBX", href: "#products" },
+          { label: "mrgnswap", href: "#products" },
         ],
       },
       {

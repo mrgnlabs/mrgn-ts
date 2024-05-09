@@ -83,7 +83,7 @@ export const Footer = () => {
         <div className="flex flex-col gap-4 w-3/5 shrink-0">
           <Logo size={36} wordmark={true} />
           <small className="text-muted-foreground">
-            {new Date().getFullYear()} &copy; Margin INC. All rights reserved.
+            {new Date().getFullYear()} &copy; MRGN, INC. All rights reserved.
           </small>
         </div>
 
