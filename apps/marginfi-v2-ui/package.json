@@ -71,6 +71,7 @@
     "clsx": "^2.0.0",
     "cmdk": "^0.2.0",
     "csv-parse": "^5.5.5",
+    "ethers": "^6.12.1",
     "firebase": "^10.6.0",
     "firebase-admin": "^11.9.0",
     "lodash.debounce": "^4.0.8",
