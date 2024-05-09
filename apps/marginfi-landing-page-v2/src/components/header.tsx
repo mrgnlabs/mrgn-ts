@@ -50,39 +50,49 @@ const CONTENT = {
       {
         heading: "Learn More",
         links: [
-          { label: "Documentation", href: "#" },
-          { label: "Blog", href: "#" },
-          { label: "GitHub", href: "#" },
-          { label: "Analytics", href: "#" },
+          {
+            href: "https://docs.marginfi.com",
+            label: "Documentation",
+          },
+          {
+            href: "https://github.com/mrgnlabs/",
+            label: "GitHub",
+          },
         ],
       },
       {
-        heading: "Audits",
+        heading: "Resources",
         links: [
-          { label: "Link 1", href: "#" },
-          { label: "Link 2", href: "#" },
+          {
+            href: "https://mrgn.grafana.net/public-dashboards/a2700f1bbca64aeaa5582a90dbaeb276?orgId=1&refresh=1m",
+            label: "Analytics",
+          },
+          {
+            href: "https://github.com/mrgnlabs/marginfi-v2/tree/main/audits",
+            label: "Audits",
+          },
         ],
       },
     ],
     social: [
       {
+        icon: <IconBrandX />,
+        href: "https://twitter.com/marginfi",
+        label: "X",
+      },
+      {
         icon: <IconBrandDiscordFilled />,
-        href: "#",
+        href: "https://discord.gg/mrgn",
         label: "Discord",
       },
       {
         icon: <IconBrandGithub />,
-        href: "#",
+        href: "https://github.com/mrgnlabs/",
         label: "GitHub",
       },
       {
-        icon: <IconBrandX />,
-        href: "#",
-        label: "X",
-      },
-      {
         icon: <IconBrandSubstack />,
-        href: "#",
+        href: "https://mrgn.substack.com/",
         label: "Substack",
       },
     ],
@@ -120,6 +130,8 @@ const HamburgerNav = ({ open, setOpen }: HamburgerNavProps) => {
                             href={link.href}
                             className="text-2xl transition-colors hover:text-mrgn-chartreuse"
                             onClick={() => setOpen(false)}
+                            target="_blank"
+                            rel="noreferrer"
                           >
                             {link.label}
                           </Link>
@@ -134,7 +146,12 @@ const HamburgerNav = ({ open, setOpen }: HamburgerNavProps) => {
                 <ul className="flex items-center gap-6">
                   {CONTENT.hamburger.social.map((link) => (
                     <li key={link.label}>
-                      <Link href={link.href} className="transition-colors hover:text-mrgn-chartreuse">
+                      <Link
+                        href={link.href}
+                        className="transition-colors hover:text-mrgn-chartreuse"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
                         {React.cloneElement(link.icon, {
                           size: 24,
                         })}

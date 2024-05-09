@@ -113,7 +113,12 @@ export const Investors = () => {
                 className="bg-secondary rounded-md flex items-center justify-center"
                 variants={fadeVariants}
               >
-                <Link href={twitter} className="flex gap-4 h-[120px] py-4 px-6 justify-between items-center w-full">
+                <Link
+                  href={twitter}
+                  className="flex gap-4 h-[120px] py-4 px-6 justify-between items-center w-full"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <Image src={angel.image} alt={angel.name} width={48} height={48} className="rounded-full" />
                   <div className="text-left leading-none space-y-0.5">
                     <h4 className="font-medium">{angel.name}</h4>
