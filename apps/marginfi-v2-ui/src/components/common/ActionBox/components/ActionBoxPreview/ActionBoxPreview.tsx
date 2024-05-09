@@ -34,7 +34,8 @@ export const ActionBoxPreview = ({
       actionMode === ActionType.Borrow ||
       actionMode === ActionType.Deposit ||
       actionMode === ActionType.Repay ||
-      actionMode === ActionType.Withdraw,
+      actionMode === ActionType.Withdraw ||
+      actionMode === ActionType.Loop,
     [actionMode]
   );
 
