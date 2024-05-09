@@ -1,6 +1,11 @@
+"use client";
+
+import React from "react";
+
 import Link from "next/link";
 
 import { IconArrowRight } from "@tabler/icons-react";
+import { motion, useInView } from "framer-motion";
 
 import { cn } from "~/lib/utils";
 
@@ -42,15 +47,44 @@ const CONTENT = {
 };
 
 export const Products = () => {
+  const targetRef = React.useRef(null);
+  const isInView = useInView(targetRef, {
+    amount: 0.8,
+  });
+
+  const fadeVariants = {
+    hidden: { opacity: 0, y: 10, transition: { duration: 1 } },
+    visible: { opacity: 1, y: 0, transition: { duration: 1 } },
+  };
+
+  const containerVariants = {
+    hidden: {
+      transition: {
+        staggerChildren: 0.15,
+        staggerDirection: -1, // Stagger in reverse for hiding
+      },
+    },
+    visible: {
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
   return (
-    <div className="relative z-20" id="products">
+    <div ref={targetRef} className="relative z-20" id="products">
       <div className="container space-y-24 py-16 lg:py-24">
         <h2 className="text-4xl max-w-4xl mx-auto w-full font-medium text-center lg:text-5xl">{CONTENT.heading}</h2>
-        <ul className="max-w-7xl mx-auto w-full grid gap-16 lg:translate-x-12 lg:grid-cols-3 lg:gap-28">
+        <motion.ul
+          className="max-w-7xl mx-auto w-full grid gap-16 lg:translate-x-12 lg:grid-cols-3 lg:gap-28"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={containerVariants}
+        >
           {CONTENT.products.map((product, index) => {
             const isDisabled = product.cta.href === "#";
             return (
-              <li key={index} className="relaative space-y-6">
+              <motion.li key={index} className="relaative space-y-6" variants={fadeVariants}>
                 <header className="space-y-1">
                   <h2
                     className="text-7xl font-medium text-transparent bg-clip-text py-1.5 max-w-fit"
@@ -67,10 +101,10 @@ export const Products = () => {
                     {product.cta.label} <IconArrowRight size={18} className="ml-2" />
                   </Button>
                 </Link>
-              </li>
+              </motion.li>
             );
           })}
-        </ul>
+        </motion.ul>
       </div>
     </div>
   );

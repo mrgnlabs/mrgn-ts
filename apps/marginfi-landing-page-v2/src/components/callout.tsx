@@ -1,6 +1,11 @@
+"use client";
+
+import React from "react";
+
 import Link from "next/link";
 
 import { IconArrowRight } from "@tabler/icons-react";
+import { motion, useInView } from "framer-motion";
 
 import { Button } from "~/components/ui/button";
 
@@ -20,8 +25,23 @@ const CONTENT = {
 };
 
 export const Callout = () => {
+  const targetRef = React.useRef(null);
+  const isInView = useInView(targetRef, {
+    amount: 0.9,
+  });
+
+  const fadeVariants = {
+    hidden: { opacity: 0, y: 10, transition: { duration: 0.5 } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
   return (
-    <div className="relative z-10 container py-16 max-w-7xl mx-auto lg:py-24">
+    <motion.div
+      ref={targetRef}
+      className="relative z-10 container py-16 max-w-7xl mx-auto lg:py-24"
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      variants={fadeVariants}
+    >
       <div className="flex flex-col gap-8 bg-secondary rounded-lg p-8 lg:flex-row lg:gap-0 lg:items-center lg:justify-between">
         <div className="space-y-4 lg:w-2/3">
           <h2 className="text-4xl font-medium">{CONTENT.heading}</h2>
@@ -33,6 +53,6 @@ export const Callout = () => {
           </Button>
         </Link>
       </div>
-    </div>
+    </motion.div>
   );
 };
