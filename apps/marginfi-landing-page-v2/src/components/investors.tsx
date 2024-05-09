@@ -65,7 +65,9 @@ const CONTENT = {
 
 export const Investors = () => {
   const targetRef = React.useRef(null);
-  const isInView = useInView(targetRef);
+  const isInView = useInView(targetRef, {
+    amount: 0.7,
+  });
 
   const isMobile = useIsMobile();
 
@@ -98,12 +100,19 @@ export const Investors = () => {
         <h3 className="text-2xl font-medium lg:text-3xl">{CONTENT.body}</h3>
       </header>
       <div className="space-y-4 w-full">
-        <p className="font-medium text-xl">From our angels</p>
+        <motion.p
+          className="font-medium text-xl"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={fadeVariants}
+        >
+          From our angels
+        </motion.p>
         <motion.ul
           className="grid grid-cols-2 gap-1.5 w-full xl:grid-cols-4"
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          variants={containerVariants}
+          variants={{ ...containerVariants }}
         >
           {CONTENT.angels.map((angel, index) => {
             const twitter = `https://twitter.com/${angel.twitter}`;
@@ -132,7 +141,14 @@ export const Investors = () => {
         </motion.ul>
       </div>
       <div className="space-y-4 w-full">
-        <p className="font-medium text-xl">and investors</p>
+        <motion.p
+          className="font-medium text-xl"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={fadeVariants}
+        >
+          and investors
+        </motion.p>
         <motion.ul
           className="grid grid-cols-2 gap-1.5 w-full xl:grid-cols-4"
           initial="hidden"

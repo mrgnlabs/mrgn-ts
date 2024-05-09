@@ -312,7 +312,9 @@ export const Ecosystem = () => {
     offset: ["50% start", "250% start"],
   });
 
-  const isInView = useInView(targetRef);
+  const isInView = useInView(targetRef, {
+    amount: 0.7,
+  });
   const blobOpacityFadeIn = useTransform(fadeInAnimationProgress, [0, 1], [0, 0.8]);
   const blobOpacityFadeOut = useTransform(fadeOutAnimationProgress, [0, 1], [1, 0]);
 

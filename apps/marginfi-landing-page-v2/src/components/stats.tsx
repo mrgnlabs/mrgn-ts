@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useInView } from "framer-motion";
 
 import { cn } from "~/lib/utils";
 
@@ -41,21 +41,50 @@ export const Stats = () => {
   const blobOpacityFadeIn = useTransform(fadeInAnimationProgress, [0, 1], [0, 0.8]);
   const blobOpacityFadeOut = useTransform(fadeOutAnimationProgress, [0, 1], [1, 0]);
 
+  const isInView = useInView(targetRef, {
+    amount: 0.9,
+  });
+
+  const fadeVariants = {
+    hidden: { opacity: 0, y: 10, transition: { duration: 1 } },
+    visible: { opacity: 1, y: 0, transition: { duration: 1 } },
+  };
+
+  const containerVariants = {
+    hidden: {
+      transition: {
+        staggerChildren: 0.15,
+        staggerDirection: -1, // Stagger in reverse for hiding
+      },
+    },
+    visible: {
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
   return (
     <>
       <div ref={targetRef} className="relative z-20 text-center space-y-24 py-16 lg:py-24" id="stats">
         <h2 className="text-4xl font-medium max-w-4xl mx-auto w-full lg:text-5xl">{CONTENT.heading}</h2>
         <div className="w-full">
           <div className="h-[1px] bg-muted-foreground/50" />
-          <ul className="max-w-7xl mx-auto w-full lg:grid lg:grid-cols-3">
+          <motion.ul
+            className="max-w-7xl mx-auto w-full lg:grid lg:grid-cols-3"
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            variants={containerVariants}
+          >
             {CONTENT.stats.map((stat, index) => (
-              <li
+              <motion.li
                 key={index}
                 className={cn(
                   "border border-muted-foreground/50 border-l-0 border-r-0 lg:border lg:border-t-0 lg:border-b-0",
                   index < CONTENT.stats.length && "lg:border-l-0",
                   index === CONTENT.stats.length - 1 && "lg:border-r-0"
                 )}
+                variants={fadeVariants}
               >
                 <dl className="py-8 space-y-4 lg:space-y-8 lg:py-20">
                   <dt className="text-muted-foreground">{stat.kpi}</dt>
@@ -64,9 +93,9 @@ export const Stats = () => {
                     <Counter value={stat.value} />m
                   </dd>
                 </dl>
-              </li>
+              </motion.li>
             ))}
-          </ul>
+          </motion.ul>
           <div className="h-[1px] bg-muted-foreground/50" />
         </div>
       </div>
