@@ -35,6 +35,7 @@ interface ActionBoxState {
   selectedBank: ExtendedBankInfo | null;
   selectedRepayBank: ExtendedBankInfo | null;
   selectedStakingAccount: StakeData | null;
+  selectedLoopBank: ExtendedBankInfo | null;
   repayCollatQuote: QuoteResponse | null;
   repayCollatTxn: VersionedTransaction | null;
 
@@ -55,6 +56,7 @@ interface ActionBoxState {
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setRepayBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedStakingAccount: (account: StakeData) => void;
+  setSelectedLoopBank: (account: ExtendedBankInfo | null) => void;
   setRepayCollateral: (
     marginfiAccount: MarginfiAccountWrapper,
     selectedBank: ExtendedBankInfo,
@@ -104,6 +106,7 @@ const initialState = {
   selectedBank: null,
   selectedRepayBank: null,
   selectedStakingAccount: null,
+  selectedLoopBank: null,
 
   repayCollatQuote: null,
   repayCollatTxn: null,
@@ -285,6 +288,10 @@ const stateCreator: StateCreator<ActionBoxState, [], []> = (set, get) => ({
 
   setSelectedStakingAccount(account) {
     set({ selectedStakingAccount: account });
+  },
+
+  async setSelectedLoopBank(account) {
+    set({ selectedLoopBank: account });
   },
 
   async setSlippageBps(slippageBps) {
