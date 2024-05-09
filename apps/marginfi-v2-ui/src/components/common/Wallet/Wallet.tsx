@@ -47,7 +47,6 @@ import {
   IconX,
   IconArrowsExchange,
 } from "~/components/ui/icons";
-import { ethers } from "ethers";
 
 enum WalletState {
   DEFAULT = "default",
@@ -58,29 +57,6 @@ enum WalletState {
   BRIDGE = "bridge",
   POINTS = "points",
   NOTIS = "notis",
-}
-
-async function connectMetaMask() {
-  if (typeof window.ethereum !== "undefined") {
-    try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      if (window.ethereum) {
-        const accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        console.log(accounts);
-        const test = await provider.send("eth_requestAccounts", []);
-        console.log(test);
-      } else {
-        console.error("Please Install Metamask!!!");
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  } else {
-    alert("MetaMask is not installed!");
-  }
-  <Button onClick={() => connectMetaMask()}>test</Button>;
 }
 
 export const Wallet = () => {
@@ -583,8 +559,6 @@ export const Wallet = () => {
                             bridgeType === "debridge" && "block"
                           )}
                         />
-                        <Button onClick={() => connectMetaMask()}>test</Button>
-
                         <Bridge />
                       </div>
                     )}
