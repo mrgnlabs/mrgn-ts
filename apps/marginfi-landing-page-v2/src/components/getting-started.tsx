@@ -16,16 +16,16 @@ const CONTENT = {
   heading: "Getting started with marginfi",
   articles: [
     {
-      url: "https://app.marginfi.com/",
-      image: `https://picsum.photos/1920/1080?random=${random(1, 10000)}`,
-      title: "Sit consectetur tempor fugiat duis",
-      description: "Esse ea labore officia commodo do pariatur ex adipisicing sint et veniam exercitation",
+      url: "https://mrgn.substack.com/p/introducing-ybx",
+      image: `/images/articles/ybx-introducing.jpg`,
+      title: "Introducing $YBX",
+      description: "Solana's inflation protected, decentralized stable asset",
     },
     {
       url: "https://app.marginfi.com/",
-      image: `https://picsum.photos/1920/1080?random=${random(1, 10000)}`,
-      title: "Velit culpa qui sint aute aliqua mollit",
-      description: "Esse ea labore officia commodo do pariatur ex adipisicing sint et veniam exercitation",
+      image: `/images/articles/ybx-whitepaper.jpg`,
+      title: "$YBX v1 - Whitepaper",
+      description: "A stable asset to capture blockchain monetary policy",
     },
     {
       url: "https://app.marginfi.com/",
