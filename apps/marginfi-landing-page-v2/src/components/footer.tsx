@@ -22,11 +22,11 @@ const CONTENT: {
       heading: "Learn More",
       list: [
         {
-          href: "#",
+          href: "https://docs.marginfi.com",
           label: "Documentation",
         },
         {
-          href: "#",
+          href: "https://github.com/mrgnlabs/",
           label: "GitHub",
         },
       ],
@@ -35,8 +35,12 @@ const CONTENT: {
       heading: "Resources",
       list: [
         {
-          href: "#",
+          href: "https://mrgn.grafana.net/public-dashboards/a2700f1bbca64aeaa5582a90dbaeb276?orgId=1&refresh=1m",
           label: "Analytics",
+        },
+        {
+          href: "https://github.com/mrgnlabs/marginfi-v2/tree/main/audits",
+          label: "Audits",
         },
         {
           href: "#",
@@ -52,23 +56,23 @@ const CONTENT: {
       heading: "Community",
       list: [
         {
+          icon: <IconBrandX />,
+          href: "https://twitter.com/marginfi",
+          label: "X",
+        },
+        {
           icon: <IconBrandDiscordFilled />,
-          href: "#",
+          href: "https://discord.gg/mrgn",
           label: "Discord",
         },
         {
           icon: <IconBrandGithub />,
-          href: "#",
+          href: "https://github.com/mrgnlabs/",
           label: "GitHub",
         },
         {
-          icon: <IconBrandX />,
-          href: "#",
-          label: "X",
-        },
-        {
           icon: <IconBrandSubstack />,
-          href: "#",
+          href: "https://mrgn.substack.com/",
           label: "Substack",
         },
       ],
@@ -94,7 +98,7 @@ export const Footer = () => {
               <ul className="space-y-2">
                 {category.list.map((item, index) => (
                   <li key={index}>
-                    <Link className="flex items-center gap-1" href={item.href}>
+                    <Link className="flex items-center gap-1" href={item.href} target="_blank" rel="noreferrer">
                       {item.icon && React.cloneElement(item.icon, { size: 18 })}
                       {item.label}
                     </Link>

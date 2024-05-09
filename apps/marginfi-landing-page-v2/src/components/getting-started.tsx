@@ -70,7 +70,7 @@ export const GettingStarted = () => {
       >
         {CONTENT.articles.map((article, index) => (
           <motion.article variants={fadeVariants} key={index}>
-            <Link href={article.url} className="group">
+            <Link href={article.url} className="group" target="_blank" rel="noreferrer">
               <Card className="relative z-10 w-full bg-secondary h-full flex flex-col justify-start rounded-lg p-0 transition-transform duration-300 group-hover:scale-[1.025]">
                 <CardContent className="p-0 pb-4 space-y-4">
                   <div className="w-full h-40 bg-mrgn-gold relative rounded-t-lg">
