@@ -49,7 +49,7 @@ export class MonitoringService implements OnApplicationBootstrap {
       .notify({
         // optional, must be set if your dapp has at least one custom notification type
         type: {
-          id: 'content_updates',
+          id: 'health_update',
         },
       })
       .dialectSdk(
@@ -80,6 +80,47 @@ export class MonitoringService implements OnApplicationBootstrap {
       //
       // FINISH
       //
+      .also()
+      .transform<number, number>({
+        keys: ['healthFactor'],
+        pipelines: [
+          Pipelines.threshold({
+            type: 'falling-edge',
+            threshold: 0,
+          }),
+        ],
+      })
+      .notify({
+        // optional, must be set if your dapp has at least one custom notification type
+        type: {
+          id: 'liquidation_update',
+        },
+      })
+      .dialectSdk(
+        ({ context: { origin } }) => {
+          const notification: DialectSdkNotification = {
+            title: `Your health factor fell below 0`,
+            message: `The value of your health factor just dropped under 0. You've been exposed to liquidation.`,
+            actions: {
+              type: DappMessageActionType.LINK,
+              links: [
+                {
+                  label: 'View',
+                  url: `https://app.marginfi.com/portfolio`,
+                },
+              ],
+            },
+          };
+          this.logger.log(
+            `Sending notification to ${origin.subscriber}: ${JSON.stringify(
+              notification,
+            )}`,
+          );
+          return notification;
+        },
+        // this.stdoutNotificationSink,
+        { dispatch: 'unicast', to: ({ origin }) => origin.subscriber },
+      )
       .and()
       .build();
     return monitor;
