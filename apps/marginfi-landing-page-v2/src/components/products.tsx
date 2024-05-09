@@ -8,6 +8,14 @@ const CONTENT = {
   heading: "Developers and users are capturing native yield in 3 ways:",
   products: [
     {
+      heading: "LST / YBX",
+      subHeading: "Solana's highest yielding liquid staking SOL token and capital-efficient, decentralized stablecoin",
+      cta: {
+        href: "https://app.marginfi.com/",
+        label: "Mint LST",
+      },
+    },
+    {
       heading: "mrgnlend",
       subHeading: (
         <span>
@@ -21,19 +29,11 @@ const CONTENT = {
       },
     },
     {
-      heading: "LST",
-      subHeading: "Solana's highest yielding liquid staking SOL token",
+      heading: "mrgnswap",
+      subHeading: "Elit et exercitation ea voluptate duis ad laboris consequat dolor labore dolore incididunt.",
       cta: {
-        href: "https://app.marginfi.com/",
-        label: "Mint LST",
-      },
-    },
-    {
-      heading: "YBX",
-      subHeading: "marginfi's capital-efficient, decentralized stablecoin",
-      cta: {
-        href: "https://app.marginfi.com/",
-        label: "Mint YBX",
+        href: "#",
+        label: "coming soon...",
       },
     },
   ],
