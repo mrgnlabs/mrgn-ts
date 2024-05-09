@@ -93,8 +93,15 @@ export const LoopInput = ({ handleInputChange, handleInputFocus }: LoopInputProp
       <div className="space-y-6 py-4 px-1">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p>Leverage</p>
-            <span>{leveragedAmount > 1 && `${leveragedAmount} X`}</span>
+            <p>Loop ➰</p>
+            <span className="flex items-center gap-1">
+              {leveragedAmount > 1 && (
+                <span className="text-muted-foreground text-sm">{leveragedAmount}x leverage</span>
+              )}
+              {leveragedAmount > 5 && "🔥"}
+              {leveragedAmount >= 8 && "🔥"}
+              {leveragedAmount >= 10 && "🔥"}
+            </span>
           </div>
           <Slider
             defaultValue={[1]}
