@@ -19,7 +19,7 @@ const Counter = ({ value, direction = "up" }: { value: number; direction?: "up" 
     } else {
       motionValue.set(0);
     }
-  }, [motionValue, isInView]);
+  }, [motionValue, isInView, value, direction]);
 
   React.useEffect(
     () =>

@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 
 import Link from "next/link";
@@ -13,12 +15,13 @@ export const ScrollTo = ({ to, children }: ScrollToProps) => {
   const handleClick = React.useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>) => {
       e.preventDefault();
+      if (!document) return;
       const target = document.querySelector(id);
       if (target) {
         target.scrollIntoView({ behavior: "smooth" });
       }
     },
-    [to]
+    [to, id]
   );
 
   return (

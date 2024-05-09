@@ -8,9 +8,9 @@ const CONTENT = {
   heading: "Grant Gateway: Fueling the mrgn. ecosystem",
   body: (
     <p>
-      Create a grant proposal to build something iconic with marginfi's liquidity, userbase, and tooling.
+      Create a grant proposal to build something iconic with marginfi&apos;s liquidity, userbase, and tooling.
       <br className="hidden lg:block" />
-      There's support waiting for you!
+      There&apos;s support waiting for you!
     </p>
   ),
   cta: {
