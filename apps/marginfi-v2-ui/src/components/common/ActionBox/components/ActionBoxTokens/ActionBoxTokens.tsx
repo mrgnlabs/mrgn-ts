@@ -8,6 +8,7 @@ import { LendingTokens, YbxTokens, LstTokens, LoopingTokens } from "./Components
 
 interface ActionBoxPreviewProps {
   isDialog?: boolean;
+  actionModeOverride?: ActionType;
   setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   setRepayTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   setStakingAccount: (account: StakeData) => void;
@@ -15,6 +16,7 @@ interface ActionBoxPreviewProps {
 
 export const ActionBoxTokens = ({
   isDialog,
+  actionModeOverride,
   setRepayTokenBank,
   setTokenBank,
   setStakingAccount,
@@ -73,7 +75,11 @@ export const ActionBoxTokens = ({
       )}
 
       {isLoopMode && (
-        <LoopingTokens selectedBank={selectedBank} actionType={actionMode} setSelectedBank={setTokenBank} />
+        <LoopingTokens
+          selectedBank={selectedBank}
+          actionType={actionModeOverride || actionMode}
+          setSelectedBank={setTokenBank}
+        />
       )}
 
       {actionMode === ActionType.MintYBX && selectedBank && <YbxTokens selectedBank={selectedBank} />}

@@ -1,5 +1,7 @@
 import React from "react";
 
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+
 import { useActionBoxStore } from "~/hooks/useActionBoxStore";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
@@ -31,6 +33,7 @@ export const LoopInput = ({ handleInputChange, handleInputFocus }: LoopInputProp
         <div className="flex justify-center gap-1 items-center font-medium text-3xl">
           <div className="w-full flex-auto max-w-[162px]">
             <ActionBoxTokens
+              actionModeOverride={ActionType.Deposit}
               setRepayTokenBank={(tokenBank) => {
                 setRepayBank(tokenBank);
               }}
@@ -63,6 +66,7 @@ export const LoopInput = ({ handleInputChange, handleInputFocus }: LoopInputProp
           <div className="flex justify-center gap-1 items-center font-medium text-3xl">
             <div className="w-full flex-auto max-w-[162px]">
               <ActionBoxTokens
+                actionModeOverride={ActionType.Borrow}
                 setRepayTokenBank={(tokenBank) => {
                   setRepayBank(tokenBank);
                 }}
