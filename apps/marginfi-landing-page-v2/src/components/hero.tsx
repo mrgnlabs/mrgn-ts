@@ -67,6 +67,32 @@ export const Hero = () => {
     offset: ["end end", `start ${isMobile ? "40%" : "20%"}`],
   });
 
+  const containerVariants = {
+    hidden: {
+      transition: {
+        staggerChildren: 0.25,
+        staggerDirection: -1,
+        delayChildren: 0.5,
+      },
+    },
+    visible: {
+      transition: {
+        staggerChildren: 0.25,
+        delayChildren: 0.5,
+      },
+    },
+  };
+
+  const fadeVariants = {
+    hidden: { opacity: 0, y: 10, transition: { duration: 0.5 } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
+
+  const fadeVariantsDelay = {
+    hidden: { opacity: 0, y: 10, transition: { duration: 0.5 } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 1 } },
+  };
+
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const scrollIconOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
   const isInView = useInView(containerRef);
@@ -76,14 +102,25 @@ export const Hero = () => {
       <div ref={containerRef} className="min-h-[110vh] lg:min-h-[150vh]">
         <div className="w-screen min-h-screen relative flex flex-col items-center justify-center">
           <div className="container relative pt-28 pb-16 px-4 space-y-16 z-20 lg:-translate-y-4 lg:pt-16 lg:px-8">
-            <h1 className="text-[3.5rem] font-medium bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse leading-none inline-block text-transparent bg-clip-text md:text-7xl lg:leading-[1.15] lg:w-2/3">
+            <motion.h1
+              initial="hidden"
+              animate={isInView ? "visible" : "hidden"}
+              variants={fadeVariants}
+              className="text-[3.5rem] font-medium bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse leading-none inline-block text-transparent bg-clip-text md:text-7xl lg:leading-[1.15] lg:w-2/3"
+            >
               {CONTENT.heading}
-            </h1>
-            <div className="flex flex-col gap-8 w-full lg:flex-row">
+            </motion.h1>
+            <motion.div
+              className="flex flex-col gap-8 w-full lg:flex-row"
+              initial="hidden"
+              animate={isInView ? "visible" : "hidden"}
+              variants={{ ...containerVariants }}
+            >
               {CONTENT.features.map((feature, index) => (
-                <div
+                <motion.div
                   key={index}
                   className="w-full bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse p-[1px] rounded-xl lg:max-w-[18rem]"
+                  variants={fadeVariants}
                 >
                   <div
                     className="flex flex-col gap-4 items-center justify-between rounded-xl p-9 text-center h-full"
@@ -100,9 +137,9 @@ export const Hero = () => {
                       </Button>
                     </ScrollTo>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
           <ScrollTo to="stats">
             <motion.button
