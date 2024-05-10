@@ -160,12 +160,15 @@ export const LoopingTokens = ({ selectedBank, setSelectedBank, actionType }: Loo
                         setIsOpen(false);
                       }}
                       className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                      disabled={
+                        bank.userInfo.tokenAccount.balance === 0 || selectedBankStore?.address.equals(bank.address)
+                      }
                     >
                       <ActionBoxItem
                         rate={calculateRate(bank)}
                         lendingMode={lendingMode}
                         bank={bank}
-                        showBalanceOverride={true}
+                        showBalanceOverride={bank.userInfo.tokenAccount.balance > 0}
                         nativeSolBalance={nativeSolBalance}
                       />
                     </CommandItem>
@@ -190,12 +193,15 @@ export const LoopingTokens = ({ selectedBank, setSelectedBank, actionType }: Loo
                         setIsOpen(false);
                       }}
                       className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-background-gray-light data-[selected=true]:text-white"
+                      disabled={
+                        bank.userInfo.tokenAccount.balance === 0 || selectedBankStore?.address.equals(bank.address)
+                      }
                     >
                       <ActionBoxItem
                         rate={calculateRate(bank)}
                         lendingMode={lendingMode}
                         bank={bank}
-                        showBalanceOverride={true}
+                        showBalanceOverride={bank.userInfo.tokenAccount.balance > 0}
                         nativeSolBalance={nativeSolBalance}
                       />
                     </CommandItem>
