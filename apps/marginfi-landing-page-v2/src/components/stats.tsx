@@ -53,13 +53,13 @@ export const Stats = () => {
   const containerVariants = {
     hidden: {
       transition: {
-        staggerChildren: 0.15,
-        staggerDirection: -1, // Stagger in reverse for hiding
+        staggerChildren: 0.25,
+        staggerDirection: -1,
       },
     },
     visible: {
       transition: {
-        staggerChildren: 0.15,
+        staggerChildren: 0.25,
       },
     },
   };
@@ -67,7 +67,7 @@ export const Stats = () => {
   return (
     <>
       <div ref={targetRef} className="relative z-20 text-center space-y-24 py-16 lg:py-24" id="stats">
-        <h2 className="text-4xl font-medium max-w-4xl mx-auto w-full lg:text-5xl">{CONTENT.heading}</h2>
+        <h2 className="text-4xl font-medium max-w-4xl mx-auto w-full px-4 lg:text-5xl">{CONTENT.heading}</h2>
         <div className="w-full">
           <div className="h-[1px] bg-muted-foreground/50" />
           <motion.ul

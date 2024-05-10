@@ -44,13 +44,13 @@ export const GettingStarted = () => {
   const containerVariants = {
     hidden: {
       transition: {
-        staggerChildren: 0.15,
+        staggerChildren: 0.25,
         staggerDirection: -1,
       },
     },
     visible: {
       transition: {
-        staggerChildren: 0.15,
+        staggerChildren: 0.25,
       },
     },
   };

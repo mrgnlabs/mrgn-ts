@@ -26,7 +26,7 @@ const CONTENT = {
       heading: "mrgnlend",
       subHeading: (
         <span>
-          marginfi's integrated
+          marginfi&apos;s integrated
           <br className="hidden lg:block" /> leverage hub
         </span>
       ),
@@ -49,7 +49,7 @@ const CONTENT = {
 export const Products = () => {
   const targetRef = React.useRef(null);
   const isInView = useInView(targetRef, {
-    amount: 0.8,
+    amount: 0.5,
   });
 
   const fadeVariants = {
@@ -60,13 +60,13 @@ export const Products = () => {
   const containerVariants = {
     hidden: {
       transition: {
-        staggerChildren: 0.15,
-        staggerDirection: -1, // Stagger in reverse for hiding
+        staggerChildren: 0.25,
+        staggerDirection: -1,
       },
     },
     visible: {
       transition: {
-        staggerChildren: 0.15,
+        staggerChildren: 0.25,
       },
     },
   };

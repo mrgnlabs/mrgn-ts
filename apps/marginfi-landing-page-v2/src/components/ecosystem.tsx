@@ -315,21 +315,21 @@ export const Ecosystem = () => {
   });
 
   const isInView = useInView(targetRef, {
-    amount: 0.7,
+    amount: 0.5,
   });
   const blobOpacityFadeIn = useTransform(fadeInAnimationProgress, [0, 1], [0, 0.8]);
   const blobOpacityFadeOut = useTransform(fadeOutAnimationProgress, [0, 1], [1, 0]);
 
   const [isLooping, setIsLooping] = React.useState(false);
 
-  const loopDuration = 3500; // Duration of each loop
-  const fadeOutDuration = 1000; // Duration of the fade-out animation
+  const loopDuration = 3500;
+  const fadeOutDuration = 1000;
 
   const containerVariants = {
     hidden: {
       transition: {
         staggerChildren: 0.15,
-        staggerDirection: -1, // Stagger in reverse for hiding
+        staggerDirection: -1,
       },
     },
     visible: {
@@ -349,6 +349,7 @@ export const Ecosystem = () => {
     let timeout: NodeJS.Timeout | undefined;
 
     if (isInView) {
+      if (cards.length === 0) setCards(shuffle(CONTENT.cards).slice(0, 6));
       setIsLooping(true);
       interval = setInterval(() => {
         // Start fade-out animation
@@ -370,7 +371,7 @@ export const Ecosystem = () => {
       if (interval) clearInterval(interval);
       if (timeout) clearTimeout(timeout);
     };
-  }, [isInView]);
+  }, [isInView, cards]);
 
   return (
     <>
