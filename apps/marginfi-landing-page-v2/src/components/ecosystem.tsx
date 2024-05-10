@@ -95,7 +95,7 @@ const CONTENT = {
       repo: "mrgnlabs/mrgn-account-search",
       author: {
         name: "chambaz",
-        avatar: "https://pbs.twimg.com/profile_images/1744698619947528192/7uW-BVAn_400x400.jpg",
+        avatar: "https://pbs.twimg.com/profile_images/1785355556166795264/LUwJsL89_400x400.jpg",
         url: "https://twitter.com/chambaz",
       },
     },
@@ -159,7 +159,7 @@ const CONTENT = {
       url: "https://t.me/HeimdallWatchBot",
       author: {
         name: "Heimdall",
-        avatar: "/heimdall.jpg",
+        avatar: "/ecosystem/heimdall.jpg",
       },
     },
     {
