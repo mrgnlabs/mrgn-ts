@@ -8,6 +8,7 @@ import { IconArrowRight } from "@tabler/icons-react";
 import { motion, useInView } from "framer-motion";
 
 import { cn } from "~/lib/utils";
+import { useIsMobile } from "~/lib/useIsMobile";
 
 import { Button } from "~/components/ui/button";
 
@@ -48,8 +49,9 @@ const CONTENT = {
 
 export const Products = () => {
   const targetRef = React.useRef(null);
+  const isMobile = useIsMobile();
   const isInView = useInView(targetRef, {
-    amount: 0.5,
+    amount: isMobile ? 0.5 : 0.9,
   });
 
   const fadeVariants = {
