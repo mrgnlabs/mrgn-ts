@@ -92,11 +92,11 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
           onSetAmountRaw={(amount) => handleInputChange(amount)}
         />
       </div>
-      <div className="space-y-2">
+      <div className={cn("space-y-2", !selectedBank && "pointer-events-none opacity-75")}>
         <p className="text-sm font-normal text-muted-foreground">You borrow</p>
         <div className="bg-background rounded-lg p-2.5 mb-6">
           <div className="flex gap-1 items-center font-medium text-3xl">
-            <div className="w-full flex-auto max-w-[162px]">
+            <div className={cn("w-full flex-auto max-w-[162px]", !selectedBank && "opacity-60")}>
               <ActionBoxTokens
                 actionModeOverride={ActionType.Borrow}
                 setRepayTokenBank={(tokenBank) => {
@@ -119,7 +119,7 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
       <div className={cn("space-y-6 py-4 px-1", !bothBanksSelected && "pointer-events-none cursor-default opacity-50")}>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p>Loop ➰</p>
+            <p className="text-sm font-normal text-muted-foreground">Loop ➰</p>
             <span className="flex items-center gap-1">
               {leveragedAmount > 1 && (
                 <span className="text-muted-foreground text-sm">{leveragedAmount}x leverage</span>
@@ -138,7 +138,7 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
         </div>
         <div className="flex items-center justify-between">
           <Popover>
-            <PopoverTrigger className="flex items-center gap-2">
+            <PopoverTrigger className="flex items-center gap-2 text-sm font-normal text-muted-foreground">
               Net APY <IconChevronDown size={16} />
             </PopoverTrigger>
             <PopoverContent>APY Breakdown goes here</PopoverContent>
