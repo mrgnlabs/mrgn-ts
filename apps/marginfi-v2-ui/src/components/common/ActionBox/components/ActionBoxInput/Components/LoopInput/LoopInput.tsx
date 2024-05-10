@@ -10,6 +10,7 @@ import { Input } from "~/components/ui/input";
 import { Slider } from "~/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { IconChevronDown } from "~/components/ui/icons";
+import { cn } from "~/utils";
 
 type LoopInputProps = {
   handleInputChange: (value: string) => void;
@@ -18,17 +19,31 @@ type LoopInputProps = {
 
 export const LoopInput = ({ handleInputChange, handleInputFocus }: LoopInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
-  const [setSelectedBank, setRepayBank, setSelectedStakingAccount, setSelectedLoopBank, selectedLoopBank, amountRaw] =
-    useActionBoxStore()((state) => [
-      state.setSelectedBank,
-      state.setRepayBank,
-      state.setSelectedStakingAccount,
-      state.setSelectedLoopBank,
-      state.selectedLoopBank,
-      state.amountRaw,
-    ]);
+  const [
+    setSelectedBank,
+    setRepayBank,
+    setSelectedStakingAccount,
+    setSelectedLoopBank,
+    selectedBank,
+    selectedLoopBank,
+    amountRaw,
+  ] = useActionBoxStore()((state) => [
+    state.setSelectedBank,
+    state.setRepayBank,
+    state.setSelectedStakingAccount,
+    state.setSelectedLoopBank,
+    state.selectedBank,
+    state.selectedLoopBank,
+    state.amountRaw,
+  ]);
 
   const [leveragedAmount, setLeveragedAmount] = React.useState(0);
+
+  const netApy = React.useMemo(() => {
+    return selectedBank && selectedLoopBank ? 9 : 0;
+  }, [selectedBank, selectedLoopBank]);
+
+  const bothBanksSelected = selectedBank && selectedLoopBank;
 
   return (
     <div>
@@ -43,6 +58,7 @@ export const LoopInput = ({ handleInputChange, handleInputFocus }: LoopInputProp
               setTokenBank={(tokenBank) => {
                 if (selectedLoopBank) {
                   setSelectedLoopBank(null);
+                  setLeveragedAmount(0);
                 }
                 setSelectedBank(tokenBank);
               }}
@@ -106,7 +122,7 @@ export const LoopInput = ({ handleInputChange, handleInputFocus }: LoopInputProp
           </div>
         </div>
       </div>
-      <div className="space-y-6 py-4 px-1">
+      <div className={cn("space-y-6 py-4 px-1", !bothBanksSelected && "pointer-events-none cursor-default opacity-50")}>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p>Loop ➰</p>
@@ -123,7 +139,7 @@ export const LoopInput = ({ handleInputChange, handleInputFocus }: LoopInputProp
             step={1}
             value={[leveragedAmount]}
             onValueChange={(value) => setLeveragedAmount(value[0])}
-            className="w-full"
+            disabled={!bothBanksSelected}
           />
         </div>
         <div className="flex items-center justify-between">
@@ -133,7 +149,7 @@ export const LoopInput = ({ handleInputChange, handleInputFocus }: LoopInputProp
             </PopoverTrigger>
             <PopoverContent>APY Breakdown goes here</PopoverContent>
           </Popover>
-          <span>9%</span>
+          {netApy > 0 && <span>9%</span>}
         </div>
       </div>
     </div>
