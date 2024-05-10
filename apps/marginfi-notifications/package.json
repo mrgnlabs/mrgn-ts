@@ -35,12 +35,14 @@
     "cache-manager": "^5.5.2",
     "lodash": "^4.17.21",
     "luxon": "^3.4.4",
+    "nest-winston": "^1.9.4",
     "nestjs-pino": "^4.0.0",
     "pino-http": "^9.0.0",
     "pino-pretty": "^11.0.0",
     "reflect-metadata": "^0.2.0",
     "rimraf": "^5.0.5",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "winston": "^3.13.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
