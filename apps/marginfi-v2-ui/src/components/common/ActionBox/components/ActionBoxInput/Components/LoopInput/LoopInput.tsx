@@ -60,6 +60,11 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
 
   const bothBanksSelected = selectedBank && selectedLoopBank;
 
+  const maxLeverage = React.useMemo(() => {
+    if (!selectedBank || !selectedLoopBank) return 10;
+    return Math.floor(Math.random() * 10) + 1;
+  }, [selectedBank, selectedLoopBank]);
+
   return (
     <div>
       <div className="bg-background rounded-lg p-2.5 mb-6">
@@ -135,7 +140,9 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
             <p className="text-sm font-normal text-muted-foreground">Loop ➰</p>
             <span className="flex items-center gap-1">
               {leveragedAmount > 1 && (
-                <span className="text-muted-foreground text-sm">{leveragedAmount}x leverage</span>
+                <span className="text-muted-foreground text-sm">
+                  {leveragedAmount}x leverage{leveragedAmount === maxLeverage && " (max)"}
+                </span>
               )}
             </span>
           </div>
@@ -145,7 +152,10 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
             min={1}
             step={1}
             value={[leveragedAmount]}
-            onValueChange={(value) => setLeveragedAmount(value[0])}
+            onValueChange={(value) => {
+              if (value[0] > maxLeverage) return;
+              setLeveragedAmount(value[0]);
+            }}
             disabled={!bothBanksSelected}
           />
         </div>
