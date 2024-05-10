@@ -96,7 +96,7 @@ export const Hero = () => {
     <>
       <div ref={containerRef} className="min-h-[110vh] lg:min-h-[150vh]">
         <div className="w-screen min-h-screen relative flex flex-col items-center justify-center">
-          <div className="container relative pt-28 pb-16 px-4 space-y-16 z-20 -translate-y-[10vh]  md:-translate-y-4 lg:pt-16 lg:px-8">
+          <div className="container relative pt-28 pb-16 px-4 space-y-16 z-20  md:-translate-y-4 lg:pt-16 lg:px-8">
             <motion.h1
               initial="hidden"
               animate={isInView ? "visible" : "hidden"}
@@ -106,7 +106,7 @@ export const Hero = () => {
               {CONTENT.heading}
             </motion.h1>
             <motion.div
-              className="flex gap-4 w-full md:gap-8"
+              className="flex flex-col xs:flex-row gap-4 w-full md:gap-8"
               initial="hidden"
               animate={isInView ? "visible" : "hidden"}
               variants={{ ...containerVariants }}
@@ -114,7 +114,7 @@ export const Hero = () => {
               {CONTENT.features.map((feature, index) => (
                 <motion.div
                   key={index}
-                  className="bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse p-[1px] rounded-xl w-1/2 lg:w-full lg:max-w-[18rem]"
+                  className="bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse p-[1px] rounded-xl xs:w-1/2 lg:w-full lg:max-w-[18rem]"
                   variants={fadeVariants}
                 >
                   <div
@@ -139,7 +139,7 @@ export const Hero = () => {
           <ScrollTo to="stats">
             <motion.button
               ref={targetRef}
-              className="fixed bottom-10 left-1/2 w-16 z-20 -translate-x-1/2"
+              className="fixed bottom-10 left-1/2 w-16 z-20 -translate-x-1/2 md:block"
               style={{ opacity: scrollIconOpacity }}
             >
               <Lottie animationData={scrollIconAnimation} />
