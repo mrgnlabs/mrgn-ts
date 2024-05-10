@@ -1,8 +1,12 @@
 import React from "react";
 
+import Image from "next/image";
+
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useActionBoxGeneralStore } from "~/store";
+import { computeBankRateRaw, getMaintHealthColor, getTokenImageURL } from "~/utils";
 
 import { ActionBoxTokens } from "~/components/common/ActionBox/components";
 import { InputAction } from "~/components/common/ActionBox/components/ActionBoxInput/Components/InputAction";
@@ -11,6 +15,8 @@ import { Slider } from "~/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { IconChevronDown } from "~/components/ui/icons";
 import { cn } from "~/utils";
+
+import { LendingModes } from "~/types";
 
 type LoopInputProps = {
   walletAmount: number | undefined;
@@ -40,9 +46,16 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
   ]);
 
   const [leveragedAmount, setLeveragedAmount] = React.useState(0);
+  const [netApyRaw, setNetApyRaw] = React.useState(0);
 
   const netApy = React.useMemo(() => {
-    return selectedBank && selectedLoopBank ? 9 : 0;
+    if (!selectedBank || !selectedLoopBank) return 0;
+    const depositTokenApy = computeBankRateRaw(selectedBank, LendingModes.LEND);
+    const borrowTokenApy = computeBankRateRaw(selectedLoopBank, LendingModes.BORROW);
+    const netApy = depositTokenApy - borrowTokenApy;
+
+    setNetApyRaw(netApy);
+    return percentFormatter.format(netApy);
   }, [selectedBank, selectedLoopBank]);
 
   const bothBanksSelected = selectedBank && selectedLoopBank;
@@ -138,12 +151,41 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
         </div>
         <div className="flex items-center justify-between">
           <Popover>
-            <PopoverTrigger className="flex items-center gap-2 text-sm font-normal text-muted-foreground">
+            <PopoverTrigger className="flex items-center gap-1 text-sm font-normal text-muted-foreground">
               Net APY <IconChevronDown size={16} />
             </PopoverTrigger>
-            <PopoverContent>APY Breakdown goes here</PopoverContent>
+            <PopoverContent align="center" className="w-auto">
+              {bothBanksSelected && (
+                <ul className="space-y-2.5">
+                  {[selectedBank, selectedLoopBank].map((bank, index) => {
+                    const isDepositBank = index === 0;
+                    return (
+                      <li key={bank.meta.tokenSymbol} className="flex items-center gap-8 justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src={getTokenImageURL(bank.meta.tokenSymbol)}
+                            width={20}
+                            height={20}
+                            alt={bank.meta.tokenName}
+                            className="rounded-full"
+                          />
+                          <strong className="font-medium">{bank.meta.tokenSymbol}</strong>
+                        </div>
+                        <span className={cn("ml-auto", isDepositBank ? "text-success" : "text-warning")}>
+                          {percentFormatter.format(
+                            computeBankRateRaw(bank, isDepositBank ? LendingModes.LEND : LendingModes.BORROW)
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </PopoverContent>
           </Popover>
-          {netApy > 0 && <span>9%</span>}
+          {bothBanksSelected && (
+            <span className={cn("text-sm", netApyRaw < 0 ? "text-warning" : "text-success")}>{netApy}</span>
+          )}
         </div>
       </div>
     </div>

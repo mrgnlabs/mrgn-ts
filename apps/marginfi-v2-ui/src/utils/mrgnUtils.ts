@@ -36,7 +36,7 @@ export function makeAirdropCollateralIx(
   });
 }
 
-export function computeBankRate(bank: ExtendedBankInfo, lendingMode: LendingModes) {
+export function computeBankRateRaw(bank: ExtendedBankInfo, lendingMode: LendingModes) {
   const isInLendingMode = lendingMode === LendingModes.LEND;
 
   const interestRate = isInLendingMode ? bank.info.state.lendingRate : bank.info.state.borrowingRate;
@@ -51,6 +51,11 @@ export function computeBankRate(bank: ExtendedBankInfo, lendingMode: LendingMode
   const aprRate = interestRate + emissionRate;
   const apyRate = aprToApy(aprRate);
 
+  return apyRate;
+}
+
+export function computeBankRate(bank: ExtendedBankInfo, lendingMode: LendingModes) {
+  const apyRate = computeBankRateRaw(bank, lendingMode);
   return percentFormatter.format(apyRate);
 }
 
