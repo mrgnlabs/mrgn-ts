@@ -55,7 +55,7 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
     const netApy = depositTokenApy - borrowTokenApy;
 
     setNetApyRaw(netApy);
-    return percentFormatter.format(netApy);
+    return percentFormatter.format(Math.abs(netApy));
   }, [selectedBank, selectedLoopBank]);
 
   const bothBanksSelected = selectedBank && selectedLoopBank;
@@ -184,7 +184,7 @@ export const LoopInput = ({ walletAmount, maxAmount, handleInputChange, handleIn
             </PopoverContent>
           </Popover>
           {bothBanksSelected && (
-            <span className={cn("text-sm", netApyRaw < 0 ? "text-warning" : "text-success")}>{netApy}</span>
+            <span className={cn("text-xs", netApyRaw < 0 ? "text-warning" : "text-success")}>{netApy} APY</span>
           )}
         </div>
       </div>
