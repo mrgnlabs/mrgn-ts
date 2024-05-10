@@ -28,15 +28,16 @@
     "@jup-ag/api": "^6.0.10",
     "@mrgnlabs/eslint-config-custom": "*",
     "@mrgnlabs/tsconfig": "*",
+    "@types/big.js": "^6.2.2",
     "@types/bn.js": "^5.1.1",
     "@types/inquirer": "^9.0.7",
+    "big.js": "^6.2.1",
     "eslint": "^7.32.0",
     "inquirer": "^8.0.0",
     "ts-node": "^10.9.1",
     "typedoc": "^0.23.26",
     "typescript": "^4.5.2",
-    "zod": "^3.22.4",
-    "big.js": "^6.2.1"
+    "zod": "^3.22.4"
   },
   "publishConfig": {
     "access": "public"

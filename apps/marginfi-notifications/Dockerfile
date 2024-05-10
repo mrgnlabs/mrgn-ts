@@ -1,15 +1,20 @@
 FROM node:20-alpine3.18
 
-WORKDIR /app
+WORKDIR /workspace
 
 RUN apk add --update curl
 RUN npm i -g rimraf pino-pretty
 
-COPY package.json yarn.lock ./
-RUN yarn
+COPY package.json yarn.lock turbo.json ./
 
-COPY . ./
+COPY apps/marginfi-notifications ./apps/marginfi-notifications
+COPY packages/marginfi-client-v2 ./packages/marginfi-client-v2
+COPY packages/mrgn-common ./packages/mrgn-common
+
+RUN yarn
 RUN yarn build
+
+WORKDIR /workspace/apps/marginfi-notifications
 
 EXPOSE 8080
 CMD [ "npm", "run", "start:docker" ]

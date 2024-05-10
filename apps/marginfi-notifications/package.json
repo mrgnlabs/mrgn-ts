@@ -22,6 +22,7 @@
     "@dialectlabs/blockchain-sdk-solana": "^1.2.0",
     "@dialectlabs/monitor": "^3.4.2",
     "@dialectlabs/sdk": "^1.9.1",
+    "@mrgnlabs/marginfi-client-v2": "*",
     "@nestjs/axios": "^3.0.2",
     "@nestjs/cache-manager": "^2.2.2",
     "@nestjs/common": "^10.0.0",
