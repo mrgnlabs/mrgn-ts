@@ -1,8 +1,9 @@
 import { INestApplication, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger } from 'nestjs-pino';
 import { Server } from 'http';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+
 import 'source-map-support/register';
 
 // void is added to ignore floating promise eslint rule
@@ -11,6 +12,7 @@ void bootstrap();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'warn', 'error'],
+    bufferLogs: true,
   });
   configureHttpServer(app);
   configureLogger(app);
@@ -29,7 +31,7 @@ function configureHttpServer(app: INestApplication) {
 }
 
 function configureLogger(app: INestApplication) {
-  const logger = app.get(Logger);
+  const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
   app.useLogger(logger);
   console.trace = (message, ...context) => logger.verbose(message, context);
   console.debug = (message, ...context) => logger.debug(message, context);
