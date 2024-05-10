@@ -96,7 +96,7 @@ export const Hero = () => {
     <>
       <div ref={containerRef} className="min-h-[110vh] lg:min-h-[150vh]">
         <div className="w-screen min-h-screen relative flex flex-col items-center justify-center">
-          <div className="container relative pt-28 pb-16 px-4 space-y-16 z-20 lg:-translate-y-4 lg:pt-16 lg:px-8">
+          <div className="container relative pt-28 pb-16 px-4 space-y-16 z-20 -translate-y-[10vh]  md:-translate-y-4 lg:pt-16 lg:px-8">
             <motion.h1
               initial="hidden"
               animate={isInView ? "visible" : "hidden"}
