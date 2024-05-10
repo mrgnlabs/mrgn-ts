@@ -55,7 +55,7 @@ export const Features = () => {
   const isMobile = useIsMobile();
   const targetRef = React.useRef(null);
   const isInView = useInView(targetRef, {
-    amount: isMobile ? 0.2 : 0.5,
+    amount: !isMobile ? 0.5 : undefined,
   });
 
   const fadeVariants = {
