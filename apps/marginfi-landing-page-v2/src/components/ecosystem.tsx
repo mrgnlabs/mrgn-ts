@@ -383,7 +383,7 @@ export const Ecosystem = () => {
         id="ecosystem"
       >
         <motion.div
-          className="relative z-10 grid grid-cols-2 gap-4 w-full lg:grid-cols-3 lg:gap-8"
+          className="relative z-10 grid gap-4 w-full xs:grid-cols-2 lg:grid-cols-3 lg:gap-8"
           initial="hidden"
           animate={isLooping ? "visible" : "hidden"}
           variants={containerVariants}
