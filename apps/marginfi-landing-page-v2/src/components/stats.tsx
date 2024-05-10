@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { cn } from "~/lib/utils";
 
 import { Counter } from "~/components/ui/counter";
+import { useIsMobile } from "~/lib/useIsMobile";
 
 const CONTENT = {
   heading:
@@ -28,6 +29,7 @@ const CONTENT = {
 };
 
 export const Stats = () => {
+  const isMobile = useIsMobile();
   const targetRef = React.useRef(null);
   const { scrollYProgress: fadeInAnimationProgress } = useScroll({
     target: targetRef,
@@ -42,7 +44,7 @@ export const Stats = () => {
   const blobOpacityFadeOut = useTransform(fadeOutAnimationProgress, [0, 1], [1, 0]);
 
   const isInView = useInView(targetRef, {
-    amount: 0.9,
+    amount: isMobile ? 0.5 : 0.9,
   });
 
   const fadeVariants = {

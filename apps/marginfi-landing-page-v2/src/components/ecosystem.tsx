@@ -10,6 +10,7 @@ import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import shuffle from "lodash/shuffle";
 
 import { cn } from "~/lib/utils";
+import { useIsMobile } from "~/lib/useIsMobile";
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
@@ -303,6 +304,7 @@ const EcoCard = ({ title, description, url, github, author }: EcoCardProps) => {
 };
 
 export const Ecosystem = () => {
+  const isMobile = useIsMobile();
   const [cards, setCards] = React.useState<EcoCardProps[]>([]);
   const targetRef = React.useRef(null);
   const { scrollYProgress: fadeInAnimationProgress } = useScroll({
@@ -315,7 +317,7 @@ export const Ecosystem = () => {
   });
 
   const isInView = useInView(targetRef, {
-    amount: 0.5,
+    amount: isMobile ? 0.2 : 0.5,
   });
   const blobOpacityFadeIn = useTransform(fadeInAnimationProgress, [0, 1], [0, 0.8]);
   const blobOpacityFadeOut = useTransform(fadeOutAnimationProgress, [0, 1], [1, 0]);
