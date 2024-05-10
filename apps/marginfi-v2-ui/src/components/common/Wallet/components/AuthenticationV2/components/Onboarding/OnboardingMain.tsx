@@ -1,12 +1,10 @@
 import React from "react";
 
-import { cn } from "~/utils";
+import { AuthScreenProps, cn } from "~/utils";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { OnboardHeader } from "../sharedComponents";
-
-import { AuthScreenProps } from "../../authDialogUitls";
 
 interface props extends AuthScreenProps {}
 
