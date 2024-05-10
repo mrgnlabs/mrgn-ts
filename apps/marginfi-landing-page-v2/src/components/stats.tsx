@@ -80,8 +80,8 @@ export const Stats = () => {
                 <dl className="py-8 space-y-4 lg:space-y-8 lg:py-20">
                   <dt className="text-muted-foreground">{stat.label}</dt>
                   <dd className="flex items-center justify-center gap-1 text-6xl font-medium">
-                    <span className="text-4xl">$</span>
-                    <Counter value={stat.value} />
+                    {stat.value && <span className="text-4xl">$</span>}
+                    {stat.value && <Counter value={stat.value} />}
                   </dd>
                 </dl>
               </motion.li>

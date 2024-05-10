@@ -3,6 +3,7 @@
 import React from "react";
 
 import { Connection, PublicKey } from "@solana/web3.js";
+import * as solanaStakePool from "@solana/spl-stake-pool";
 import { MarginfiClient, getConfig, Bank, OraclePrice, getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { loadBankMetadatas, nativeToUi } from "@mrgnlabs/mrgn-common";
 
@@ -12,6 +13,9 @@ type Stat = {
 };
 
 type Stats = [Stat, Stat, Stat] | [];
+
+const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
+const STAKE_POOL_ID = new PublicKey("DqhH94PjkZsjAqEze2BEkWhFQJ6EyU6MdtMphMgnXqeK");
 
 export const useProtocolStats = (): Stats => {
   const [stats, setStats] = React.useState<Stats>([]);
@@ -60,10 +64,16 @@ export const useProtocolStats = (): Stats => {
         { deposits: 0, borrows: 0 }
       );
 
+      const [stakePoolInfo] = await Promise.all([solanaStakePool.stakePoolInfo(connection, STAKE_POOL_ID)]);
+      const solBank = banksWithPrice.find((bank) => bank.info.mint.equals(SOL_MINT));
+      const totalStaked = Number(stakePoolInfo.totalLamports) / 1e9;
+      const solPrice = solBank ? getPriceWithConfidence(solBank.oraclePrice, false).price.toNumber() : 0;
+      const stakedValue = totalStaked * solPrice;
+
       const stats: Stats = [
-        { label: "Total Deposits", value: deposits },
+        { label: "Total Liquidity", value: deposits - borrows + stakedValue },
+        { label: "Total Staked", value: stakedValue },
         { label: "Total Borrows", value: borrows },
-        { label: "Total Value Locked", value: deposits - borrows },
       ];
 
       setStats(stats);
