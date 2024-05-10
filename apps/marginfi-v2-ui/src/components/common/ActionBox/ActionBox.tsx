@@ -185,8 +185,12 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       return 0;
     }
 
+    console.log("updating max amoutn", actionMode, actionMode === ActionType.Loop);
+
     switch (actionMode) {
       case ActionType.Deposit:
+        return selectedBank?.userInfo.maxDeposit ?? 0;
+      case ActionType.Loop:
         return selectedBank?.userInfo.maxDeposit ?? 0;
       case ActionType.Withdraw:
         return selectedBank?.userInfo.maxWithdraw ?? 0;

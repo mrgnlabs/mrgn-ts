@@ -40,6 +40,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
     setAmountRaw,
     setRepayAmountRaw,
     setSelectedBank,
+    setSelectedLoopBank,
     setRepayBank,
     setSelectedStakingAccount,
     setRepayMode,
@@ -58,6 +59,7 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
     state.setAmountRaw,
     state.setRepayAmountRaw,
     state.setSelectedBank,
+    state.setSelectedLoopBank,
     state.setRepayBank,
     state.setSelectedStakingAccount,
     state.setRepayMode,
@@ -167,7 +169,12 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
           setAmountRaw={(amount) => setAmountRaw(formatAmount(amount, selectedBank))}
         />
       ) : isLoopMode ? (
-        <LoopInput handleInputChange={handleInputChange} handleInputFocus={setIsActionBoxInputFocussed} />
+        <LoopInput
+          walletAmount={walletAmount}
+          maxAmount={maxAmount}
+          handleInputChange={handleInputChange}
+          handleInputFocus={setIsActionBoxInputFocussed}
+        />
       ) : (
         <div className="bg-background rounded-lg p-2.5 mb-6">
           <div className="flex justify-center gap-1 items-center font-medium text-3xl">
@@ -182,6 +189,9 @@ export const ActionBoxInput = ({ walletAmount, maxAmount, showCloseBalance, isDi
                 }}
                 setStakingAccount={(account) => {
                   setSelectedStakingAccount(account);
+                }}
+                setLoopBank={(account) => {
+                  setSelectedLoopBank(account);
                 }}
               />
             </div>
