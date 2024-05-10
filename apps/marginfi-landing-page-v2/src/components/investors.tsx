@@ -113,7 +113,7 @@ export const Investors = () => {
           From our angels
         </motion.p>
         <motion.ul
-          className="grid grid-cols-2 gap-1.5 w-full xl:grid-cols-4"
+          className="grid gap-1.5 w-full xs:grid-cols-2 xl:grid-cols-4"
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={{ ...containerVariants }}
@@ -154,7 +154,7 @@ export const Investors = () => {
           and investors
         </motion.p>
         <motion.ul
-          className="grid grid-cols-2 gap-1.5 w-full xl:grid-cols-4"
+          className="grid gap-1.5 w-full xs:grid-cols-2 xl:grid-cols-4"
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={containerVariants}
@@ -163,7 +163,7 @@ export const Investors = () => {
             return (
               <motion.li
                 key={index}
-                className="bg-secondary rounded-md flex items-center justify-start"
+                className="bg-secondary rounded-md flex items-center justify-center"
                 variants={fadeVariantsDelay}
               >
                 <Link
