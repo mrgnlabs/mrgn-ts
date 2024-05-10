@@ -17,4 +17,4 @@ RUN yarn build
 WORKDIR /workspace/apps/marginfi-notifications
 
 EXPOSE 8080
-CMD [ "npm", "run", "start:docker" ]
+CMD [ "npm", "run", "start:prod" ]

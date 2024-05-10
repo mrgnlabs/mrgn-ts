@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
-import { LoggerModule } from 'nestjs-pino';
+import {
+  utilities as nestWinstonModuleUtilities,
+  WinstonModule,
+} from 'nest-winston';
 import { HttpModule } from '@nestjs/axios';
 import { Dialect, DialectSdk, Environment } from '@dialectlabs/sdk';
 
@@ -16,6 +19,31 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { HealthController } from './health.controller';
 import { MonitoringService } from './monitoring.service';
 import { AccountDataSource } from './marginfi-data-source';
+import * as winston from 'winston';
+
+// Define a custom log format
+const stackdriverFormat = winston.format.combine(
+  winston.format.timestamp(),
+  winston.format.metadata({ fillExcept: ['timestamp', 'level', 'message'] }),
+  winston.format.printf(({ level, message, timestamp, metadata }) => {
+    const stackdriverPayload = {
+      severity: level,
+      message: message,
+      timestamp: timestamp,
+      ...metadata,
+    };
+    return JSON.stringify(stackdriverPayload);
+  }),
+);
+
+const prettyFormat = winston.format.combine(
+  winston.format.timestamp(),
+  winston.format.ms(),
+  nestWinstonModuleUtilities.format.nestLike('health-notifier', {
+    colors: true,
+    prettyPrint: true,
+  }),
+);
 
 @Module({
   imports: [
@@ -26,20 +54,15 @@ import { AccountDataSource } from './marginfi-data-source';
       ttl: Number(process.env.CACHE_TTL_MS) ?? 50_000, // milliseconds (50 seconds)
     }),
     ConfigModule.forRoot(),
-    LoggerModule.forRoot({
-      pinoHttp: {
-        autoLogging: process.env.ENVIRONMENT !== 'production',
-        redact: ['req.headers'],
-        transport: {
-          target: 'pino-pretty',
-          options: {
-            colorize: process.env.ENVIRONMENT === 'local-development',
-            translateTime: true,
-            singleLine: true,
-            ignore: 'pid,hostname',
-          },
-        },
-      },
+    WinstonModule.forRoot({
+      transports: [
+        new winston.transports.Console({
+          format:
+            process.env.ENVIRONMENT === 'local-development'
+              ? prettyFormat
+              : stackdriverFormat,
+        }),
+      ],
     }),
   ],
   controllers: [HealthController],
