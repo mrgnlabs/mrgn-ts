@@ -185,8 +185,6 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
       return 0;
     }
 
-    console.log("updating max amoutn", actionMode, actionMode === ActionType.Loop);
-
     switch (actionMode) {
       case ActionType.Deposit:
         return selectedBank?.userInfo.maxDeposit ?? 0;
@@ -397,6 +395,8 @@ export const ActionBox = ({ requestedAction, requestedBank, isDialog, handleClos
   const handleAction = async () => {
     if (actionMode === ActionType.MintLST || actionMode === ActionType.UnstakeLST) {
       await handleLstAction();
+    } else if (actionMode === ActionType.Loop) {
+      alert("Handle loop action");
     } else {
       await handleLendingAction();
     }
