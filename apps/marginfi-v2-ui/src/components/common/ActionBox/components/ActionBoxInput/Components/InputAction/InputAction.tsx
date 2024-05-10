@@ -57,6 +57,12 @@ export const InputAction = ({ maxAmount, walletAmount, isDialog, onSetAmountRaw 
           amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
         };
 
+      case ActionType.Loop:
+        return {
+          label: "Wallet: ",
+          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
+        };
+
       case ActionType.Borrow:
         return {
           label: "Max Borrow: ",
