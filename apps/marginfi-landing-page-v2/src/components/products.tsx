@@ -51,7 +51,7 @@ export const Products = () => {
   const targetRef = React.useRef(null);
   const isMobile = useIsMobile();
   const isInView = useInView(targetRef, {
-    amount: isMobile ? 0.5 : 0.9,
+    amount: !isMobile ? 0.9 : undefined,
   });
 
   const fadeVariants = {

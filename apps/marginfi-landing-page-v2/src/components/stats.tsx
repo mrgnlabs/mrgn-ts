@@ -44,7 +44,7 @@ export const Stats = () => {
   const blobOpacityFadeOut = useTransform(fadeOutAnimationProgress, [0, 1], [1, 0]);
 
   const isInView = useInView(targetRef, {
-    amount: isMobile ? 0.5 : 0.9,
+    amount: !isMobile ? 0.9 : undefined,
   });
 
   const fadeVariants = {

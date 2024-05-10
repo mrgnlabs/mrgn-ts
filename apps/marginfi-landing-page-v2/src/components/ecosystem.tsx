@@ -317,7 +317,7 @@ export const Ecosystem = () => {
   });
 
   const isInView = useInView(targetRef, {
-    amount: isMobile ? 0.2 : 0.5,
+    amount: !isMobile ? 0.5 : undefined,
   });
   const blobOpacityFadeIn = useTransform(fadeInAnimationProgress, [0, 1], [0, 0.8]);
   const blobOpacityFadeOut = useTransform(fadeOutAnimationProgress, [0, 1], [1, 0]);
