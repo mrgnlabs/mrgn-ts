@@ -160,6 +160,9 @@ export async function simulateAction({
     case ActionType.Deposit:
       simulationResult = await account.simulateDeposit(amount, bank.address);
       break;
+    case ActionType.Loop:
+      simulationResult = await account.simulateDeposit(amount, bank.address);
+      break;
     case ActionType.Withdraw:
       simulationResult = await account.simulateWithdraw(
         amount,
