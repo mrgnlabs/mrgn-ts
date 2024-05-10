@@ -1,8 +1,7 @@
 import Image from "next/image";
 
 import { DialogContent } from "~/components/ui/dialog";
-import { AuthScreenProps, socialProviders, walletIcons } from "../../authDialogUitls";
-import { cn } from "~/utils";
+import { AuthScreenProps, cn, socialProviders, walletIcons } from "~/utils";
 import { OnboardHeader, WalletAuthButton, WalletAuthEmailForm } from "../sharedComponents";
 import { Button } from "~/components/ui/button";
 import { useWallet } from "@solana/wallet-adapter-react";

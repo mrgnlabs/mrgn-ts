@@ -1,5 +1,4 @@
 import { Web3AuthSocialProvider } from "~/hooks/useWalletContext";
-import { OnboardingMain, OnboardingEth, OnboardingSocial, OnboardingSol } from "./components";
 import {
   IconMrgn,
   IconBrandX,
@@ -14,10 +13,18 @@ import {
   IconGlowWallet,
   IconTrustWallet,
   IconEthereum,
-  IconChevronDown,
-  IconStarFilled,
 } from "~/components/ui/icons";
 import { WalletName } from "@solana/wallet-adapter-base";
+import {
+  OnboardingEth,
+  OnboardingMain,
+  OnboardingSocial,
+  OnboardingSol,
+} from "~/components/common/Wallet/components/AuthenticationV2/components";
+
+export interface OnrampScreenProps extends AuthScreenProps {
+  onNext: () => void;
+}
 
 export interface AuthScreenProps {
   update: (screen: AuthFlowType) => void;
