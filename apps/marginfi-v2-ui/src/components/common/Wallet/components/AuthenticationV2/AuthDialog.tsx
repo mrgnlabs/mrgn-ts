@@ -1,7 +1,7 @@
 import React from "react";
 import { Dialog } from "~/components/ui/dialog";
-import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps } from "./authDialogUitls";
 import { useWalletContext } from "~/hooks/useWalletContext";
+import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps } from "~/utils";
 
 export const AuthDialog = () => {
   const [flow, setFlow] = React.useState<AuthFlowType>();

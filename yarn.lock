@@ -4873,6 +4873,11 @@
     decimal.js "10.3.1"
     jsbi "4.3.0"
 
+"@meso-network/meso-js@^0.0.86":
+  version "0.0.86"
+  resolved "https://registry.yarnpkg.com/@meso-network/meso-js/-/meso-js-0.0.86.tgz#94b388328e5e1784abf61553d270a5424ed01d79"
+  integrity sha512-Z+vN+2Mt5ywNNlzABjKP1oLQzZB1o1AaXymPRwqPYCRQe+ZmcFVz4GmQVIvXwcawlNBKUjBYeySPnDsRNnPbCQ==
+
 "@metamask/eth-json-rpc-provider@^1.0.0":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-1.0.1.tgz#3fd5316c767847f4ca107518b611b15396a5a32c"
