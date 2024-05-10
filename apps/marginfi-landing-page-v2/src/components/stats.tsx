@@ -8,27 +8,10 @@ import { cn } from "~/lib/utils";
 
 import { Counter } from "~/components/ui/counter";
 import { useIsMobile } from "~/lib/useIsMobile";
-
-const CONTENT = {
-  heading:
-    "A liquidity layer built for finance. Access native yield, embedded risk systems, and off-chain data plug-ins",
-  stats: [
-    {
-      kpi: "Total Yield Generated",
-      value: 37.02,
-    },
-    {
-      kpi: "Total Liquidity",
-      value: 450,
-    },
-    {
-      kpi: "Total Volume",
-      value: 300,
-    },
-  ],
-};
+import { useProtocolStats } from "~/lib/useProtocolStats";
 
 export const Stats = () => {
+  const stats = useProtocolStats();
   const isMobile = useIsMobile();
   const targetRef = React.useRef(null);
   const { scrollYProgress: fadeInAnimationProgress } = useScroll({
@@ -66,6 +49,12 @@ export const Stats = () => {
     },
   };
 
+  const CONTENT = {
+    heading:
+      "A liquidity layer built for finance. Access native yield, embedded risk systems, and off-chain data plug-ins",
+    stats,
+  };
+
   return (
     <>
       <div ref={targetRef} className="relative z-20 text-center space-y-24 py-16 lg:py-24" id="stats">
@@ -89,10 +78,10 @@ export const Stats = () => {
                 variants={fadeVariants}
               >
                 <dl className="py-8 space-y-4 lg:space-y-8 lg:py-20">
-                  <dt className="text-muted-foreground">{stat.kpi}</dt>
+                  <dt className="text-muted-foreground">{stat.label}</dt>
                   <dd className="flex items-center justify-center gap-1 text-6xl font-medium">
                     <span className="text-4xl">$</span>
-                    <Counter value={stat.value} />m
+                    <Counter value={stat.value} />
                   </dd>
                 </dl>
               </motion.li>
