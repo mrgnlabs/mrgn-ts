@@ -3,6 +3,7 @@
 import React from "react";
 
 import { useInView, useMotionValue, useSpring } from "framer-motion";
+import millify from "millify";
 
 const Counter = ({ value, direction = "up" }: { value: number; direction?: "up" | "down" }) => {
   const ref = React.useRef<HTMLSpanElement>(null);
@@ -25,7 +26,9 @@ const Counter = ({ value, direction = "up" }: { value: number; direction?: "up" 
     () =>
       springValue.on("change", (latest) => {
         if (ref.current) {
-          ref.current.textContent = Intl.NumberFormat("en-US").format(latest.toFixed(0));
+          ref.current.textContent = millify(latest, {
+            precision: 0,
+          });
         }
       }),
     [springValue]
