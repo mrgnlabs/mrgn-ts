@@ -1,4 +1,10 @@
+"use client";
+
+import React from "react";
+
 import Image from "next/image";
+
+import { motion, useInView } from "framer-motion";
 
 const CONTENT = {
   heading: <>Here&apos;s more of what we&apos;re building</>,
@@ -22,7 +28,8 @@ const CONTENT = {
           <p className="text-primary">All developers can build on:</p>
           <ul className="list-disc space-y-2 ml-4">
             <li>mrgnlend: one of crypto&apos;s most used lend/borrow venues</li>
-            <li>YBX: marginfi&apos;s decentralized, yield accruing stable asset</li>
+            <li>LST: solana&apos;s highest yielding liquid staking SOL token</li>
+            <li>YBX: solana&apos;s decentralized, yield accruing stable asset</li>
             <li>mrgnswap: crypto&apos;s exciting new integrated stableswap</li>
           </ul>
         </>
@@ -43,12 +50,44 @@ const CONTENT = {
 };
 
 export const Features = () => {
+  const targetRef = React.useRef(null);
+  const isInView = useInView(targetRef, {
+    amount: 0.5,
+  });
+
+  const fadeVariants = {
+    hidden: { opacity: 0, y: 10, transition: { duration: 1 } },
+    visible: { opacity: 1, y: 0, transition: { duration: 1 } },
+  };
+
+  const containerVariants = {
+    hidden: {
+      transition: {
+        staggerChildren: 0.25,
+        staggerDirection: -1,
+      },
+    },
+    visible: {
+      transition: {
+        staggerChildren: 0.25,
+      },
+    },
+  };
   return (
-    <div className="relative container space-y-24 py-16 z-20 lg:py-24" id="features">
+    <div ref={targetRef} className="relative container space-y-24 py-16 z-20 lg:py-24" id="features">
       <h2 className="text-4xl max-w-5xl mx-auto w-full font-medium text-center lg:text-5xl">{CONTENT.heading}</h2>
-      <div className="flex flex-col gap-12 max-w-3xl mx-auto w-full lg:gap-6">
+      <motion.div
+        className="flex flex-col gap-12 max-w-3xl mx-auto w-full lg:gap-6"
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+        variants={containerVariants}
+      >
         {CONTENT.features.map((feature, index) => (
-          <div className="flex flex-col w-full bg-secondary rounded-lg lg:flex-row" key={index}>
+          <motion.div
+            className="flex flex-col w-full bg-secondary rounded-lg lg:flex-row"
+            key={index}
+            variants={fadeVariants}
+          >
             <div
               className="h-[200px] w-full p-8 flex items-center justify-center rounded-t-lg shrink-0 lg:w-[200px] lg:h-[240px] lg:rounded-tr-none lg:rounded-bl-lg"
               style={{ background: "radial-gradient(100% 100% at 0% 100%, #42535A 0%, #2B3539 19.73%, #0F1111 100%)" }}
@@ -61,9 +100,9 @@ export const Features = () => {
               <h3 className="text-lg text-secondary-foreground lg:text-base">{feature.heading}</h3>
               <div className="text-muted-foreground space-y-4">{feature.body}</div>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };

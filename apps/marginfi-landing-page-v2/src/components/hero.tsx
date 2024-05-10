@@ -88,11 +88,6 @@ export const Hero = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
-  const fadeVariantsDelay = {
-    hidden: { opacity: 0, y: 10, transition: { duration: 0.5 } },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 1 } },
-  };
-
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const scrollIconOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
   const isInView = useInView(containerRef);
@@ -106,12 +101,12 @@ export const Hero = () => {
               initial="hidden"
               animate={isInView ? "visible" : "hidden"}
               variants={fadeVariants}
-              className="text-[3.5rem] font-medium bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse leading-none inline-block text-transparent bg-clip-text md:text-7xl lg:leading-[1.15] lg:w-2/3"
+              className="text-5xl font-medium bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse leading-none inline-block text-transparent bg-clip-text sm:text-[3.5rem] md:text-7xl lg:leading-[1.15] lg:w-2/3"
             >
               {CONTENT.heading}
             </motion.h1>
             <motion.div
-              className="flex flex-col gap-8 w-full lg:flex-row"
+              className="flex gap-4 w-full md:gap-8"
               initial="hidden"
               animate={isInView ? "visible" : "hidden"}
               variants={{ ...containerVariants }}
@@ -119,11 +114,11 @@ export const Hero = () => {
               {CONTENT.features.map((feature, index) => (
                 <motion.div
                   key={index}
-                  className="w-full bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse p-[1px] rounded-xl lg:max-w-[18rem]"
+                  className="bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse p-[1px] rounded-xl w-1/2 lg:w-full lg:max-w-[18rem]"
                   variants={fadeVariants}
                 >
                   <div
-                    className="flex flex-col gap-4 items-center justify-between rounded-xl p-9 text-center h-full"
+                    className="flex flex-col gap-4 items-center justify-between rounded-xl p-4 py-8 text-center h-full md:p-9"
                     style={{
                       background: "radial-gradient(100% 100% at 50% 100%, #42535A 0%, #2B3539 19.73%, #0F1111 100%)",
                     }}
