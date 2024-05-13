@@ -7,8 +7,6 @@ import Link from "next/link";
 import { IconArrowRight } from "@tabler/icons-react";
 import { motion, useInView } from "framer-motion";
 
-import { useIsMobile } from "~/lib/useIsMobile";
-
 import { Button } from "~/components/ui/button";
 
 const CONTENT = {
@@ -27,11 +25,8 @@ const CONTENT = {
 };
 
 export const Callout = () => {
-  const isMobile = useIsMobile();
   const targetRef = React.useRef(null);
-  const isInView = useInView(targetRef, {
-    amount: !isMobile ? 0.9 : undefined,
-  });
+  const isInView = useInView(targetRef);
 
   const fadeVariants = {
     hidden: { opacity: 0, y: 10, transition: { duration: 0.5 } },

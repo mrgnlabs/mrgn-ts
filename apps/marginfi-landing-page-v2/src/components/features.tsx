@@ -6,8 +6,6 @@ import Image from "next/image";
 
 import { motion, useInView } from "framer-motion";
 
-import { useIsMobile } from "~/lib/useIsMobile";
-
 const CONTENT = {
   heading: <>Here&apos;s more of what we&apos;re building</>,
   features: [
@@ -52,11 +50,8 @@ const CONTENT = {
 };
 
 export const Features = () => {
-  const isMobile = useIsMobile();
   const targetRef = React.useRef(null);
-  const isInView = useInView(targetRef, {
-    amount: !isMobile ? 0.5 : undefined,
-  });
+  const isInView = useInView(targetRef);
 
   const fadeVariants = {
     hidden: { opacity: 0, y: 10, transition: { duration: 1 } },
