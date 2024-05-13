@@ -99,7 +99,7 @@ export const Hero = () => {
 
   return (
     <>
-      <div ref={containerRef} className="min-h-[110vh] lg:min-h-[150vh]">
+      <div ref={containerRef} className="min-h-[110vh] lg:min-h-[125vh]">
         <div className="w-screen min-h-screen relative flex flex-col items-center justify-center">
           <div className="container relative pt-28 pb-16 px-4 space-y-16 z-20  md:-translate-y-4 lg:pt-16 md:px-8">
             <motion.h1
