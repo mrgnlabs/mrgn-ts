@@ -35,7 +35,7 @@ export const Callout = () => {
   return (
     <motion.div
       ref={targetRef}
-      className="relative z-10 container py-16 max-w-7xl mx-auto lg:py-24 xl:py-32"
+      className="relative z-10 container py-16 max-w-7xl mx-auto lg:py-24"
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
       variants={fadeVariants}
