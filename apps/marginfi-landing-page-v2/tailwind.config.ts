@@ -64,6 +64,7 @@ const config = {
         mrgn: {
           chartreuse: "hsl(var(--mrgn-chartreuse))",
           gold: "hsl(var(--mrgn-gold))",
+          slate: "hsl(var(--mrgn-slate))",
         },
       },
       borderRadius: {
