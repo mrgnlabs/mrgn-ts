@@ -15,7 +15,7 @@ export const AuthDialog = () => {
   }, []);
 
   return (
-    <Dialog open={false} onOpenChange={(open) => {}}>
+    <Dialog open={true} onOpenChange={(open) => {}}>
       {/* <NewUserFlow updateScreen={(test) => console.log("hi")} /> */}
       {flow &&
         React.createElement(AUTO_FLOW_MAP[flow].comp, {
