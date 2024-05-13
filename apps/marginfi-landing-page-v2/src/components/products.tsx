@@ -20,14 +20,6 @@ const CONTENT = {
   ),
   products: [
     {
-      heading: "LST / YBX",
-      subHeading: "Solana's highest yielding liquid staking SOL token and capital-efficient, decentralized stablecoin",
-      cta: {
-        href: "https://app.marginfi.com/mint",
-        label: "Mint LST",
-      },
-    },
-    {
       heading: "mrgnlend",
       subHeading: (
         <span>
@@ -41,11 +33,19 @@ const CONTENT = {
       },
     },
     {
+      heading: "LST / YBX",
+      subHeading: "Solana's highest yielding liquid staking token and decentralized stablecoin",
+      cta: {
+        href: "https://app.marginfi.com/mint",
+        label: "Mint LST",
+      },
+    },
+    {
       heading: "mrgnswap",
-      subHeading: "Elit et exercitation ea voluptate duis ad laboris consequat dolor labore dolore incididunt.",
+      subHeading: "Crypto's exciting new integrated stableswap.",
       cta: {
         href: "#",
-        label: "coming soon...",
+        label: "Coming soon...",
       },
     },
   ],
@@ -79,7 +79,7 @@ export const Products = () => {
       <div className="container space-y-24 py-16 lg:py-24 xl:py-32">
         <h2 className="text-4xl max-w-4xl mx-auto w-full font-medium text-center lg:text-5xl">{CONTENT.heading}</h2>
         <motion.ul
-          className="max-w-2xl w-full flex flex-col justify-center mx-auto gap-12 lg:max-w-7xl lg:grid lg:gap-16 2xl:translate-x-12 xl:grid-cols-3 xl:gap-28"
+          className="max-w-2xl w-full flex flex-col justify-center mx-auto gap-12 lg:max-w-7xl lg:grid lg:gap-16 xl:grid-cols-3 xl:gap-28"
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={containerVariants}
@@ -97,7 +97,7 @@ export const Products = () => {
                   >
                     {product.heading}
                   </h2>
-                  <h3 className="text-lg lg:text-[22px]">{product.subHeading}</h3>
+                  <h3 className="text-xl">{product.subHeading}</h3>
                 </header>
                 <Link className={cn("inline-block", isDisabled && "cursor-default")} href={product.cta.href}>
                   <Button disabled={isDisabled}>
