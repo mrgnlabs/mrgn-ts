@@ -9044,7 +9044,7 @@
   resolved "https://registry.yarnpkg.com/@tanstack/table-core/-/table-core-8.16.0.tgz#7b58018dd3cec8e0015fe22d6bb24d18d33c891f"
   integrity sha512-dCG8vQGk4js5v88/k83tTedWOwjGnIyONrKpHpfmSJB8jwFHl8GSu1sBBxbtACVAPtAQgwNxl0rw1d3RqRM1Tg==
 
-"@tiplink/wallet-adapter-react-ui@^0.1.9":
+"@tiplink/wallet-adapter-react-ui@^0.1.11":
   version "0.1.11"
   resolved "https://registry.yarnpkg.com/@tiplink/wallet-adapter-react-ui/-/wallet-adapter-react-ui-0.1.11.tgz#5a785f8e422b05a950bda9f6a9ce3949781c47df"
   integrity sha512-Y7xePvKrJiJ22Iz+09T7qtQFPbViPdOKulhGGNgtgY1C8u3KbQ/24cLz0zsflGDfpx/Rewiqg1y37xUmfg7cpQ==
@@ -9053,7 +9053,7 @@
     "@solana/wallet-adapter-base-ui" "^0.1.2"
     "@solana/wallet-adapter-react" "^0.15.35"
 
-"@tiplink/wallet-adapter@^2.1.2":
+"@tiplink/wallet-adapter@^2.1.13":
   version "2.1.13"
   resolved "https://registry.yarnpkg.com/@tiplink/wallet-adapter/-/wallet-adapter-2.1.13.tgz#cde600475ae254cfcca61093f8dccf9fe5bdc2bd"
   integrity sha512-KuFfopquEreuhmk/mrNIVPLAIwZZWnngPUVHKrHDR+OJ6vVqOpmOmDCtXnckW5j0cpYhRgUkqNxp7s0NIXQ4Ww==
