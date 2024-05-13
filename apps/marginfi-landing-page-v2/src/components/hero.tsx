@@ -19,7 +19,12 @@ const CONTENT = {
   features: [
     {
       icon: <IconMoneyBill />,
-      body: "Earn transparent yield & mint inflation protected assets",
+      body: (
+        <>
+          Earn transparent yield & mint
+          <br className="hidden lg:block" /> inflation protected assets
+        </>
+      ),
       cta: {
         target: "products",
         label: "Start earning",
@@ -114,11 +119,11 @@ export const Hero = () => {
               {CONTENT.features.map((feature, index) => (
                 <motion.div
                   key={index}
-                  className="bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse p-[1px] rounded-xl xs:w-1/2 lg:w-full lg:max-w-[18rem]"
+                  className="bg-gradient-to-r from-mrgn-gold/50 to-mrgn-slate/50 p-[1px] rounded-xl xs:w-1/2 md:w-full md:max-w-[20rem]"
                   variants={fadeVariants}
                 >
                   <div
-                    className="flex flex-col gap-4 items-center justify-between rounded-xl p-4 py-8 text-center h-full md:p-9"
+                    className="flex flex-col gap-4 items-center justify-between rounded-xl p-4 py-8 text-center h-full md:py-9 md:px-4"
                     style={{
                       background: "radial-gradient(100% 100% at 50% 100%, #42535A 0%, #2B3539 19.73%, #0F1111 100%)",
                     }}
@@ -126,7 +131,7 @@ export const Hero = () => {
                     {feature.icon}
                     {feature.body}
                     <ScrollTo to={feature.cta.target}>
-                      <Button>
+                      <Button className="mt-2">
                         {feature.cta.label}
                         <IconArrowRight size={18} className="ml-1.5" />
                       </Button>
@@ -148,7 +153,7 @@ export const Hero = () => {
         </div>
       </div>
       <motion.div
-        className="fixed top-0 -left-[125vw] z-0 w-[250vw] lg:left-0 lg:w-screen h-screen object-cover"
+        className="fixed top-0 -left-[125vw] z-0 w-[250vw] md:-left-[100vw] md:w-[200vw] lg:left-0 lg:w-screen h-screen object-cover"
         style={{ opacity: heroOpacity }}
       >
         <HeroAnimation inView={isInView} />
