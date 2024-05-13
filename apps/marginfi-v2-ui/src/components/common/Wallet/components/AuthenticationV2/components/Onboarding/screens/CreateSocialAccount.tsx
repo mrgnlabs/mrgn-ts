@@ -1,5 +1,10 @@
-import { OnrampScreenProps, cn, socialProviders } from "~/utils";
+import Image from "next/image";
+import { WalletReadyState } from "@solana/wallet-adapter-base";
+
+import { OnrampScreenProps, cn, socialProviders, walletIcons } from "~/utils";
+
 import { WalletAuthButton, WalletAuthEmailForm, WalletSeperator } from "../../sharedComponents";
+import { useAvailableWallets, walletInstallMap } from "~/hooks/useAvailableWallets";
 
 interface props extends OnrampScreenProps {}
 
@@ -9,15 +14,17 @@ export const CreateSocialAccount: React.FC<props> = ({
   setIsLoading,
   setIsActiveLoading,
   loginWeb3Auth,
+  select,
 }: props) => {
+  const wallets = useAvailableWallets("social");
   return (
-    <div className="w-full space-y-6 mt-8">
+    <div className="w-full space-y-6 ">
       <div
         className={cn(
-          "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden max-h-none"
+          "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-4 rounded-lg overflow-hidden max-h-none"
         )}
       >
-        <div className="mt-4">
+        <div>
           <WalletAuthEmailForm
             loading={isLoading && isActiveLoading === "email"}
             active={!isLoading || (isLoading && isActiveLoading === "email")}
@@ -45,6 +52,37 @@ export const CreateSocialAccount: React.FC<props> = ({
             ))}
           </ul>
           <WalletSeperator description="or connect with" />
+          <ul
+            className={cn(
+              "flex flex-wrap items-start justify-center gap-4 mt-6 mb-2 overflow-auto",
+              wallets.length > 6 && "pb-1"
+            )}
+          >
+            {wallets.map((wallet, i) => {
+              const img = walletIcons[wallet.adapter.name] || (
+                <Image src={wallet.adapter.icon} width={28} height={28} alt={wallet.adapter.name} />
+              );
+
+              return (
+                <li key={i} className="space-y-2">
+                  <WalletAuthButton
+                    name={wallet.adapter.name}
+                    image={img}
+                    loading={isLoading && isActiveLoading === wallet.adapter.name}
+                    active={!isLoading || (isLoading && isActiveLoading === wallet.adapter.name)}
+                    onClick={() => {
+                      setIsLoading(true);
+                      setIsActiveLoading(wallet.adapter.name);
+                      console.log({ wallet });
+                      if (wallet.readyState !== WalletReadyState.Installed)
+                        window.open(walletInstallMap[wallet.adapter.name], "_blank");
+                      else select(wallet.adapter.name);
+                    }}
+                  />
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </div>
     </div>

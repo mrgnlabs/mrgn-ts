@@ -24,7 +24,7 @@ export const WALLET_ADAPTERS = [
       uri: "https://mfi.gg",
     },
     authorizationResultCache: createDefaultAuthorizationResultCache(),
-    cluster: "mainnet-beta",
+    chain: "mainnet-beta",
     onWalletNotFound: createDefaultWalletNotFoundHandler(),
   }),
   new PhantomWalletAdapter(),
