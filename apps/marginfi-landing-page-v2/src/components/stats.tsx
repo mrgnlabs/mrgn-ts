@@ -5,14 +5,12 @@ import React from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 
 import { cn } from "~/lib/utils";
+import { useProtocolStats } from "~/lib/useProtocolStats";
 
 import { Counter } from "~/components/ui/counter";
-import { useIsMobile } from "~/lib/useIsMobile";
-import { useProtocolStats } from "~/lib/useProtocolStats";
 
 export const Stats = () => {
   const stats = useProtocolStats();
-  const isMobile = useIsMobile();
   const targetRef = React.useRef(null);
   const { scrollYProgress: fadeInAnimationProgress } = useScroll({
     target: targetRef,
@@ -26,9 +24,7 @@ export const Stats = () => {
   const blobOpacityFadeIn = useTransform(fadeInAnimationProgress, [0, 1], [0, 0.8]);
   const blobOpacityFadeOut = useTransform(fadeOutAnimationProgress, [0, 1], [1, 0]);
 
-  const isInView = useInView(targetRef, {
-    amount: !isMobile ? 0.9 : undefined,
-  });
+  const isInView = useInView(targetRef);
 
   const fadeVariants = {
     hidden: { opacity: 0, y: 10, transition: { duration: 1 } },

@@ -8,12 +8,16 @@ import { IconArrowRight } from "@tabler/icons-react";
 import { motion, useInView } from "framer-motion";
 
 import { cn } from "~/lib/utils";
-import { useIsMobile } from "~/lib/useIsMobile";
 
 import { Button } from "~/components/ui/button";
 
 const CONTENT = {
-  heading: "Developers and users are capturing native yield in 3 ways:",
+  heading: (
+    <>
+      Developers and users are
+      <br className="hidden md:block" /> capturing native yield in 3 ways:
+    </>
+  ),
   products: [
     {
       heading: "LST / YBX",
@@ -49,10 +53,7 @@ const CONTENT = {
 
 export const Products = () => {
   const targetRef = React.useRef(null);
-  const isMobile = useIsMobile();
-  const isInView = useInView(targetRef, {
-    amount: !isMobile ? 0.9 : undefined,
-  });
+  const isInView = useInView(targetRef);
 
   const fadeVariants = {
     hidden: { opacity: 0, y: 10, transition: { duration: 1 } },
@@ -78,7 +79,7 @@ export const Products = () => {
       <div className="container space-y-24 py-16 lg:py-24">
         <h2 className="text-4xl max-w-4xl mx-auto w-full font-medium text-center lg:text-5xl">{CONTENT.heading}</h2>
         <motion.ul
-          className="max-w-7xl mx-auto w-full grid gap-16 lg:translate-x-12 lg:grid-cols-3 lg:gap-28"
+          className="max-w-2xl w-full flex flex-col justify-center mx-auto gap-12 lg:max-w-7xl lg:grid lg:gap-16 2xl:translate-x-12 xl:grid-cols-3 xl:gap-28"
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={containerVariants}
@@ -89,14 +90,14 @@ export const Products = () => {
               <motion.li key={index} className="relaative space-y-6" variants={fadeVariants}>
                 <header className="space-y-1">
                   <h2
-                    className="text-7xl font-medium text-transparent bg-clip-text py-1.5 max-w-fit"
+                    className="text-5xl font-medium text-transparent bg-clip-text py-1.5 max-w-fit lg:text-7xl"
                     style={{
                       backgroundImage: "linear-gradient(90.08deg, #97AFB9 54.29%, #42535A 88.18%, #2B3539 115.29%)",
                     }}
                   >
                     {product.heading}
                   </h2>
-                  <h3 className="text-[22px]">{product.subHeading}</h3>
+                  <h3 className="text-lg lg:text-[22px]">{product.subHeading}</h3>
                 </header>
                 <Link className={cn("inline-block", isDisabled && "cursor-default")} href={product.cta.href}>
                   <Button disabled={isDisabled}>

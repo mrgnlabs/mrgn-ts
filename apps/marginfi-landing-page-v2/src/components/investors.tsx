@@ -66,9 +66,7 @@ const CONTENT = {
 export const Investors = () => {
   const isMobile = useIsMobile();
   const targetRef = React.useRef(null);
-  const isInView = useInView(targetRef, {
-    amount: !isMobile ? 0.7 : undefined,
-  });
+  const isInView = useInView(targetRef);
 
   const containerVariants = {
     hidden: {

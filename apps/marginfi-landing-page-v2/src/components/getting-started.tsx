@@ -10,7 +10,7 @@ import Image from "next/image";
 
 import random from "lodash/random";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardFooter } from "~/components/ui/card";
 
 const CONTENT = {
   heading: "Getting started with marginfi",
