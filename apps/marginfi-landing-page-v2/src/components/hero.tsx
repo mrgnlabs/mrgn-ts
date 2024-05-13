@@ -129,7 +129,7 @@ export const Hero = () => {
                     }}
                   >
                     {feature.icon}
-                    {feature.body}
+                    <div className="text-primary/80">{feature.body}</div>
                     <ScrollTo to={feature.cta.target}>
                       <Button className="mt-2">
                         {feature.cta.label}
