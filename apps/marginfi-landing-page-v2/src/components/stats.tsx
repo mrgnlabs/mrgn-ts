@@ -53,7 +53,7 @@ export const Stats = () => {
 
   return (
     <>
-      <div ref={targetRef} className="relative z-20 text-center space-y-24 py-16 lg:py-24" id="stats">
+      <div ref={targetRef} className="relative z-20 text-center space-y-24 py-16 lg:py-24 xl:py-32" id="stats">
         <h2 className="text-4xl font-medium max-w-4xl mx-auto w-full px-4 lg:text-5xl">{CONTENT.heading}</h2>
         <div className="w-full">
           <div className="h-[1px] bg-muted-foreground/50" />

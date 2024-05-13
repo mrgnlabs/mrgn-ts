@@ -76,7 +76,7 @@ export const Products = () => {
 
   return (
     <div ref={targetRef} className="relative z-20" id="products">
-      <div className="container space-y-24 py-16 lg:py-24">
+      <div className="container space-y-24 py-16 lg:py-24 xl:py-32">
         <h2 className="text-4xl max-w-4xl mx-auto w-full font-medium text-center lg:text-5xl">{CONTENT.heading}</h2>
         <motion.ul
           className="max-w-2xl w-full flex flex-col justify-center mx-auto gap-12 lg:max-w-7xl lg:grid lg:gap-16 2xl:translate-x-12 xl:grid-cols-3 xl:gap-28"

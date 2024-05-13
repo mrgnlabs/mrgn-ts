@@ -72,7 +72,7 @@ export const Features = () => {
     },
   };
   return (
-    <div ref={targetRef} className="relative container space-y-24 py-16 z-20 lg:py-24" id="features">
+    <div ref={targetRef} className="relative container space-y-24 py-16 z-20 lg:py-24 xl:py-32" id="features">
       <h2 className="text-4xl max-w-5xl mx-auto w-full font-medium text-center lg:text-5xl">{CONTENT.heading}</h2>
       <motion.div
         className="flex flex-col gap-12 max-w-3xl mx-auto w-full lg:gap-6"

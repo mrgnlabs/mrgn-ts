@@ -375,7 +375,7 @@ export const Ecosystem = () => {
     <>
       <div
         ref={targetRef}
-        className="relative z-10 container max-w-8xl flex flex-col-reverse items-center gap-16 justify-between py-16 lg:py-24 lg:flex-row"
+        className="relative z-10 container max-w-8xl flex flex-col-reverse items-center gap-16 justify-between py-16 lg:py-24 xl:py-32 lg:flex-row"
         id="ecosystem"
       >
         <motion.div
