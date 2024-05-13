@@ -123,9 +123,9 @@ export const Hero = () => {
                   variants={fadeVariants}
                 >
                   <div
-                    className="flex flex-col gap-4 items-center justify-between rounded-xl p-4 py-8 text-center h-full md:py-9 md:px-4"
+                    className="flex flex-col gap-4 items-center justify-between rounded-xl px-4 py-6 text-center h-full"
                     style={{
-                      background: "radial-gradient(100% 100% at 50% 100%, #42535A 0%, #2B3539 19.73%, #0F1111 100%)",
+                      background: "radial-gradient(100% 100% at 50% 100%, #29363C 0%, #202628 19.73%, #0F1111 100%)",
                     }}
                   >
                     {feature.icon}
