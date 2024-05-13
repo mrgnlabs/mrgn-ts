@@ -37,8 +37,6 @@ export const Highlights = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef);
 
-  return null;
-
   return (
     <div ref={containerRef} className="relative z-10 w-full" id="highlights">
       <div className="relative container max-w-7xl flex flex-col gap-16 pt-40 pb-16 z-20 lg:pt-32 lg:gap-4 lg:flex-row lg:justify-between lg:items-center lg:h-[75vh]">
