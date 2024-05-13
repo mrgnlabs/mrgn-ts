@@ -23,7 +23,10 @@ import {
 } from "~/components/common/Wallet/components/AuthenticationV2/components";
 
 export interface OnrampScreenProps extends AuthScreenProps {
+  installingWallet?: string;
+  onPrev: () => void;
   onNext: () => void;
+  setInstallingWallet: () => void;
 }
 
 export interface AuthScreenProps {
