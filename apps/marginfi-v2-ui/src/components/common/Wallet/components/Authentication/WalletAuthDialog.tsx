@@ -122,7 +122,7 @@ export const WalletAuthDialog = () => {
     }
   }, [isMobile, state, isMounted, setIsMounted]);
 
-  React.useEffect(() => {
+  /*React.useEffect(() => {
     if (!isWalletAuthDialogOpen) {
       setIsLoading(false);
       setIsActiveLoading("");
@@ -135,7 +135,7 @@ export const WalletAuthDialog = () => {
       setIsLoading(false);
       setIsActiveLoading("");
     }
-  }, [connected, setIsWalletAuthDialogOpen]);
+  }, [connected, setIsWalletAuthDialogOpen]);*/
 
   React.useEffect(() => {
     setIsMounted(true);
@@ -143,7 +143,7 @@ export const WalletAuthDialog = () => {
 
   return (
     <div>
-      <Dialog open={isWalletAuthDialogOpen} onOpenChange={(open) => setIsWalletAuthDialogOpen(open)}>
+      <Dialog open={false} onOpenChange={(open) => setIsWalletAuthDialogOpen(open)}>
         <DialogContent
           className={cn(
             "md:block overflow-hidden p-4 pt-8 md:pt-4 justify-start md:max-w-xl",
