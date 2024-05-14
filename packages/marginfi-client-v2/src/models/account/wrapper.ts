@@ -336,7 +336,7 @@ class MarginfiAccountWrapper {
     const cuRequestIxs = this.makeComputeBudgetIx();
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress, withdrawAll, {
-      createAtas: false,
+      createAtas: true,
       wrapAndUnwrapSol: false,
     });
     const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll, {

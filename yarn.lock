@@ -4004,7 +4004,12 @@
     "@solana/web3.js" "^1.87.6"
     bs58 "^5.0.0"
 
-"@jup-ag/api@^6.0.10", "@jup-ag/api@^6.0.11", "@jup-ag/api@^6.0.6":
+"@jup-ag/api@^6.0.22":
+  version "6.0.22"
+  resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.22.tgz#48762bdb49c93831d3f49d5ac5bc3114c98f19c5"
+  integrity sha512-15r5vmY6CZ1VreDao+Y7lQ3gugAuXNH+QfQ76PcMsx+GfqgWLgzINzBZVJFN9Y9B+dwo2EVHlsWNqSH7HaC3jw==
+
+"@jup-ag/api@^6.0.6":
   version "6.0.20"
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.20.tgz#5ea6ec0961719b14fd46fb5395d386cc7ffff6c3"
   integrity sha512-HaPWYpbcQiCkoq1fTKspFIismFI8Rw9ZzgC47PMNY+ZLN0IEDtSYcm3rVEyxO+E3StRxj9uKrNbok32SRCXWvQ==

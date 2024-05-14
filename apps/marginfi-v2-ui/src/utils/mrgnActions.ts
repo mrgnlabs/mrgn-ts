@@ -401,7 +401,7 @@ export async function repayWithCollat({
       },
     });
 
-    const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : [];
+    // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; **not optional but man0s smart**
     const swapIx = deserializeInstruction(swapInstruction);
     // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
     // tokenLedgerInstruction **also optional**
@@ -418,7 +418,7 @@ export async function repayWithCollat({
       options.repayBank.address,
       options.repayBank.isActive && isWholePosition(options.repayBank, options.repayAmount),
       bank.isActive && isWholePosition(bank, amount),
-      [...setupIxs, swapIx],
+      [swapIx],
       addressLookupTableAccounts,
       priorityFee
     );
