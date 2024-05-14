@@ -26,7 +26,7 @@ export interface OnrampScreenProps extends AuthScreenProps {
   installingWallet?: string;
   onPrev: () => void;
   onNext: () => void;
-  setInstallingWallet: () => void;
+  setInstallingWallet: (wallet: string) => void;
 }
 
 export interface AuthScreenProps {

@@ -342,6 +342,12 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     [web3Auth, checkPrivateKeyRequested, setWeb3AuthLoginType, setWeb3AuthEmail]
   );
 
+  React.useEffect(() => {
+    if (query.onramp) {
+      setIsWalletAuthDialogOpen(true);
+    }
+  }, [query, setIsWalletAuthDialogOpen]);
+
   // if web3auth is connected, fetch wallet data
   React.useEffect(() => {
     if (!web3Auth?.connected || !web3Auth?.provider || web3AuthWalletData) return;

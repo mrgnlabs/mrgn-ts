@@ -5,6 +5,8 @@ import { OnrampScreenProps, cn, socialProviders, walletIcons } from "~/utils";
 
 import { WalletAuthButton, WalletAuthEmailForm, WalletSeperator } from "../../sharedComponents";
 import { useAvailableWallets, walletInstallMap } from "~/hooks/useAvailableWallets";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useUiStore } from "~/store";
 
 interface props extends OnrampScreenProps {}
 
@@ -13,6 +15,7 @@ export const CreateSocialAccount: React.FC<props> = ({
   isActiveLoading,
   setIsLoading,
   setIsActiveLoading,
+  setInstallingWallet,
   loginWeb3Auth,
   select,
 }: props) => {
@@ -71,12 +74,12 @@ export const CreateSocialAccount: React.FC<props> = ({
                     loading={isLoading && isActiveLoading === wallet.adapter.name}
                     active={!isLoading || (isLoading && isActiveLoading === wallet.adapter.name)}
                     onClick={() => {
-                      setIsLoading(true);
-                      setIsActiveLoading(wallet.adapter.name);
-                      console.log({ wallet });
-                      if (wallet.readyState !== WalletReadyState.Installed)
+                      if (wallet.readyState !== WalletReadyState.Installed) {
+                        setInstallingWallet(wallet.adapter.name);
                         window.open(walletInstallMap[wallet.adapter.name], "_blank");
-                      else select(wallet.adapter.name);
+                      } else {
+                        select(wallet.adapter.name);
+                      }
                     }}
                   />
                 </li>
