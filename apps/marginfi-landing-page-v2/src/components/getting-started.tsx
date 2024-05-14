@@ -22,16 +22,16 @@ const CONTENT = {
       description: "Solana's inflation protected, decentralized stable asset",
     },
     {
-      url: "https://app.marginfi.com/",
+      url: "https://docs.marginfi.com/contracts/usdybx",
       image: `/images/articles/ybx-whitepaper.jpg`,
       title: "$YBX v1 - Whitepaper",
       description: "A stable asset to capture blockchain monetary policy",
     },
     {
-      url: "https://app.marginfi.com/",
-      image: `https://picsum.photos/1920/1080?random=${random(1, 10000)}`,
-      title: "Laborum deserunt excepteur sint ut ex ut",
-      description: "Esse ea labore officia commodo do pariatur ex adipisicing sint et veniam exercitation",
+      url: "https://medium.com/marginfi/exploring-mrgnlend-a-guide-to-decentralized-lending-and-borrowing-1e05a422a505",
+      image: "/images/articles/mrgnlend-explore.jpg",
+      title: "Exploring mrgnlend",
+      description: "A guide to decentralized lending and borrowing on marginfi",
     },
   ],
 };

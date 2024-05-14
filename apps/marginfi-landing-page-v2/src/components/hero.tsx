@@ -119,7 +119,7 @@ export const Hero = () => {
               {CONTENT.features.map((feature, index) => (
                 <motion.div
                   key={index}
-                  className="bg-gradient-to-r from-mrgn-gold/50 to-mrgn-slate/50 p-[1px] rounded-xl xs:w-1/2 md:w-full md:max-w-[20rem]"
+                  className="bg-gradient-to-r from-mrgn-gold/40 to-mrgn-slate/40 p-[1px] rounded-xl xs:w-1/2 md:w-full md:max-w-[20rem]"
                   variants={fadeVariants}
                 >
                   <div
