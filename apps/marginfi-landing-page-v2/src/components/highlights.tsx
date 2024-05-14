@@ -47,8 +47,8 @@ export const Highlights = () => {
           </span>
         </h2>
         <div className="space-y-2">
-          <p className="text-muted-foreground">{CONTENT.subHeading}</p>
-          <ul className="text-primary text-lg space-y-1">
+          <p className="text-muted-foreground text-lg">{CONTENT.subHeading}</p>
+          <ul className="text-primary text-xl space-y-1.5">
             {CONTENT.highlights.map((highlight, index) => (
               <li key={index}>{highlight}</li>
             ))}

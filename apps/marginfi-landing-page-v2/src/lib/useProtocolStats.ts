@@ -71,7 +71,7 @@ export const useProtocolStats = (): Stats => {
       const stakedValue = totalStaked * solPrice;
 
       const stats: Stats = [
-        { label: "Total Liquidity", value: deposits - borrows + stakedValue },
+        { label: "Total Liquidity", value: deposits + stakedValue },
         { label: "Total Staked", value: stakedValue },
         { label: "Total Borrows", value: borrows },
       ];

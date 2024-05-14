@@ -19,8 +19,8 @@ const CONTENT = {
     </p>
   ),
   cta: {
-    href: "#",
-    label: "CTA Link Out",
+    href: "mailto:team@mrgn.group",
+    label: "Get in touch",
   },
 };
 

@@ -23,8 +23,8 @@ const CONTENT = {
       heading: "mrgnlend",
       subHeading: (
         <span>
-          marginfi&apos;s integrated
-          <br className="hidden lg:block" /> leverage hub
+          marginfi&apos;s borrowing and
+          <br className="hidden xl:block" /> lending venue
         </span>
       ),
       cta: {
@@ -34,7 +34,7 @@ const CONTENT = {
     },
     {
       heading: "LST / YBX",
-      subHeading: "Solana's highest yielding liquid staking token and decentralized stablecoin",
+      subHeading: "Solana's highest yield accruing SOL token and stable asset",
       cta: {
         href: "https://app.marginfi.com/mint",
         label: "Mint LST",
@@ -42,7 +42,7 @@ const CONTENT = {
     },
     {
       heading: "mrgnswap",
-      subHeading: "Crypto's exciting new integrated stableswap.",
+      subHeading: "Crypto's first ever integrated stableswap",
       cta: {
         href: "#",
         label: "Coming soon...",
@@ -79,7 +79,7 @@ export const Products = () => {
       <div className="container space-y-24 py-16 lg:py-24 xl:py-32">
         <h2 className="text-4xl max-w-4xl mx-auto w-full font-medium text-center lg:text-5xl">{CONTENT.heading}</h2>
         <motion.ul
-          className="max-w-2xl w-full flex flex-col justify-center mx-auto gap-12 lg:max-w-7xl lg:grid lg:gap-16 xl:grid-cols-3 xl:gap-28"
+          className="max-w-2xl w-full flex flex-col justify-between mx-auto gap-12 lg:max-w-7xl lg:grid lg:gap-16 xl:grid-cols-3 xl:gap-28"
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={containerVariants}
