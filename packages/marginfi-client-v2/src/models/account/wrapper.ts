@@ -146,7 +146,12 @@ class MarginfiAccountWrapper {
       MarginRequirementType.Maintenance
     );
 
-    debugLogger("Account %s, maint assets: %s, maint liabilities: %s, maint healt: %s", this.address, assets, liabilities)
+    debugLogger(
+      "Account %s, maint assets: %s, maint liabilities: %s, maint healt: %s",
+      this.address,
+      assets,
+      liabilities
+    );
 
     return assets.lt(liabilities);
   }
@@ -330,8 +335,14 @@ class MarginfiAccountWrapper {
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
-    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress, withdrawAll);
-    const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll);
+    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress, withdrawAll, {
+      createAtas: false,
+      wrapAndUnwrapSol: false,
+    });
+    const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll, {
+      createAtas: false,
+      wrapAndUnwrapSol: false,
+    });
     const lookupTables = this.client.addressLookupTables;
     const flashloanTx = await this.buildFlashLoanTx({
       ixs: [...priorityFeeIx, ...cuRequestIxs, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
@@ -385,8 +396,13 @@ class MarginfiAccountWrapper {
     };
   }
 
-  async makeRepayIx(amount: Amount, bankAddress: PublicKey, repayAll: boolean = false): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeRepayIx(this._program, this.client.banks, amount, bankAddress, repayAll);
+  async makeRepayIx(
+    amount: Amount,
+    bankAddress: PublicKey,
+    repayAll: boolean = false,
+    opt: { wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
+  ): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeRepayIx(this._program, this.client.banks, amount, bankAddress, repayAll, opt);
   }
 
   async repay(
@@ -437,7 +453,7 @@ class MarginfiAccountWrapper {
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    opt?: { observationBanksOverride?: PublicKey[] } | undefined
+    opt: { observationBanksOverride?: PublicKey[]; wrapAndUnwrapSol?: boolean; createAtas?: boolean } = {}
   ): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeWithdrawIx(
       this._program,

@@ -14,7 +14,7 @@ import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
+import { LUT_PROGRAM_AUTHORITY_INDEX, Wallet, processTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, FEE_MARGIN, ActionType, clearAccountCache } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "~/hooks/useWalletContext";
@@ -397,6 +397,7 @@ export async function repayWithCollat({
       swapRequest: {
         quoteResponse: options.repayCollatQuote,
         userPublicKey: options.wallet.publicKey.toBase58(),
+        programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
       },
     });
 
