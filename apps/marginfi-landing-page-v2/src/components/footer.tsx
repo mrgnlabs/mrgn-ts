@@ -42,14 +42,6 @@ const CONTENT: {
           href: "https://github.com/mrgnlabs/marginfi-v2/tree/main/audits",
           label: "Audits",
         },
-        {
-          href: "#",
-          label: "Terms of use",
-        },
-        {
-          href: "#",
-          label: "Privacy policy",
-        },
       ],
     },
     {
