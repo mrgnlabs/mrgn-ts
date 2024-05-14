@@ -50,3 +50,9 @@
     overflow-x: hidden;
   }
 }
+
+@layer components {
+  .mrgn-link {
+    @apply text-mrgn-chartreuse border-b border-transparent transition-colors hover:border-mrgn-chartreuse;
+  }
+}
