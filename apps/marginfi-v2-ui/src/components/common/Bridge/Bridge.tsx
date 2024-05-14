@@ -117,7 +117,7 @@ export const Bridge = ({ onLoad }: BridgeProps) => {
     setIsBridgeIn((prevState) => !prevState);
   }, [handleConnect, isBridgeIn, walletAddress, walletContextState]);
 
-  const handleLoadMayanWidget = React.useCallback(() => {
+  /*const handleLoadMayanWidget = React.useCallback(() => {
     const multiStepToast = new MultiStepToastHandle("Bridge", [{ label: `Cross-chain swap/bridge in progress` }]);
     const configIndex = isBridgeIn ? 0 : 1;
     const config: MayanWidgetConfigType = {
@@ -154,16 +154,16 @@ export const Bridge = ({ onLoad }: BridgeProps) => {
         onLoad();
       }
     }, delay);
-  }, [isBridgeIn, loadTimestamp, handleUpdateConfig, onLoad]);
+  }, [isBridgeIn, loadTimestamp, handleUpdateConfig, onLoad]);*/
 
   return (
     <div>
-      <Script
+      {/* <Script
         src="https://cdn.mayan.finance/mayan_widget_v_1_0_7.js"
         integrity="sha256-oJnJHMja6en9Z+acBUQ9tYWXVVwdw6H3MhfWbGg3ST0="
         crossOrigin="anonymous"
         onReady={handleLoadMayanWidget}
-      />
+      /> */}
       <Script
         onLoad={() => {
           window.deBridge.widget({

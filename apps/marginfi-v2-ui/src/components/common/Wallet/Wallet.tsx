@@ -90,7 +90,7 @@ export const Wallet = () => {
   const [activeToken, setActiveToken] = React.useState<TokenType | null>(null);
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
-  const [bridgeType, setBridgeType] = React.useState<"mayan" | "debridge">("mayan");
+  const [bridgeType, setBridgeType] = React.useState<"mayan" | "debridge">("debridge");
 
   const isMobile = useIsMobile();
 
@@ -509,6 +509,7 @@ export const Wallet = () => {
                           <ToggleGroupItem
                             value="mayan"
                             aria-label="lend"
+                            disabled={true}
                             className={cn(
                               "w-1/2 text-xs gap-1.5 capitalize",
                               bridgeType === "mayan" && "data-[state=on]:bg-background-gray-light"
@@ -545,18 +546,18 @@ export const Wallet = () => {
                             </span>
                           </ToggleGroupItem>
                         </ToggleGroup>
-                        <div
+                        {/* <div
                           className={cn(
                             "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden font-aeonik",
                             bridgeType === "mayan" && "block"
                           )}
                           id="swap_widget"
-                        />
+                        /> */}
                         <div
                           id="debridgeWidget"
                           className={cn(
-                            "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden  font-aeonik",
-                            bridgeType === "debridge" && "block"
+                            "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden  font-aeonik"
+                            //bridgeType === "debridge" && "block"
                           )}
                         />
                         <Bridge />
