@@ -10,7 +10,12 @@ const CONTENT = {
       answer: (
         <>
           Yes, you can find a guide on{" "}
-          <Link href="" className="mrgn-link" target="_blank" rel="noreferrer">
+          <Link
+            href="https://medium.com/marginfi/exploring-mrgnlend-a-guide-to-decentralized-lending-and-borrowing-1e05a422a505"
+            className="mrgn-link"
+            target="_blank"
+            rel="noreferrer"
+          >
             how to get started here
           </Link>
           . We are currently working on overhauling our documentation so expect this to be improved soon. Any further
@@ -28,7 +33,12 @@ const CONTENT = {
         <>
           Fees include borrowing interest, liquidation penalties (5%), and insurance fund fees (2.5%). For detailed fee
           structures,{" "}
-          <Link href="https://docs.marginfi.com" className="mrgn-link" target="_blank" rel="noreferrer">
+          <Link
+            href="https://docs.marginfi.com/concepts/the-basics/fees-+-yield"
+            className="mrgn-link"
+            target="_blank"
+            rel="noreferrer"
+          >
             please refer to our documentation
           </Link>
           .
@@ -60,7 +70,12 @@ const CONTENT = {
         <>
           Health factors indicate how well-collateralized your account is. A value below 0% exposes you to liquidation.
           To learn more{" "}
-          <Link href="https://docs.marginfi.com" className="mrgn-link" target="_blank" rel="noreferrer">
+          <Link
+            href="https://docs.marginfi.com/concepts/the-basics/account-health"
+            className="mrgn-link"
+            target="_blank"
+            rel="noreferrer"
+          >
             please refer to our documentation
           </Link>
           .
