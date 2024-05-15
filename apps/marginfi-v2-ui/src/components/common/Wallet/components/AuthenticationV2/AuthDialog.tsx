@@ -13,7 +13,7 @@ export const AuthDialog = () => {
     state.setIsWalletAuthDialogOpen,
   ]);
 
-  const [flow, setFlow] = React.useState<AuthFlowType>();
+  const [flow, setFlow] = React.useState<AuthFlowType>("ONBOARD_MAIN");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
   const { select } = useWallet();
@@ -28,10 +28,12 @@ export const AuthDialog = () => {
       setIsLoading(true);
       setIsActiveLoading(selectedWallet);
       select(selectedWallet as any);
-    } else {
-      setFlow("ONBOARD_MAIN");
     }
   }, [query.onramp, select]);
+
+  React.useEffect(() => {
+    setFlow("ONBOARD_MAIN");
+  }, []);
 
   React.useEffect(() => {
     if (!isWalletAuthDialogOpen) {

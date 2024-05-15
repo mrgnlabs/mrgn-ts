@@ -14,7 +14,7 @@ import Swap from "~/pages/swap";
 
 interface props extends OnrampScreenProps {}
 
-export const Onramp = ({
+export const JupiterSwap = ({
   isLoading,
   installingWallet,
   isActiveLoading,
@@ -31,8 +31,9 @@ export const Onramp = ({
           "relative bg-muted flex flex-col gap-4 justify-center text-muted-foreground transition-all duration-300 w-full p-4 rounded-lg"
         )}
       >
-        {/* <Swap /> */}
-        <div className="mx-auto">Mesa onramp coming soon!</div>
+        <div className="flex justify-center">
+          <Swap />
+        </div>
 
         <WalletSeperator description="skip for now" onClick={() => onNext()} />
       </div>
