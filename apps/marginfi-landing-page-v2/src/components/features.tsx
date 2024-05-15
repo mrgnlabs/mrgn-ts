@@ -34,7 +34,7 @@ const CONTENT = {
               <strong className="font-medium">LST</strong>: solana&apos;s highest yielding liquid staking SOL token
             </li>
             <li>
-              <strong className="font-medium">YBX</strong>: solana&apos;s decentralized, yield accruing stable asset
+              <strong className="font-medium">YBX</strong>: solana&apos;s decentralized, yield accruing stable-asset
             </li>
             <li>
               <strong className="font-medium">mrgnswap</strong>: crypto&apos;s exciting new integrated stableswap

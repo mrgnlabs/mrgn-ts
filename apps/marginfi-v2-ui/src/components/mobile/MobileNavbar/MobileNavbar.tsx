@@ -10,7 +10,7 @@ import { useWalletContext } from "~/hooks/useWalletContext";
 import { useOs } from "~/hooks/useOs";
 import { cn } from "~/utils/themeUtils";
 
-import { IconBuildingBank, IconCoinOff, IconMoneybag, IconWorld } from "~/components/ui/icons";
+import { IconBuildingBank, IconBox, IconMoneybag, IconWorld } from "~/components/ui/icons";
 
 export interface NavLinkInfo {
   href: string;
@@ -30,7 +30,7 @@ export const mobileLinks: NavLinkInfo[] = [
     href: "/mint",
     alt: "mint icon",
     label: "mint",
-    Icon: IconCoinOff,
+    Icon: IconBox,
   },
 
   {

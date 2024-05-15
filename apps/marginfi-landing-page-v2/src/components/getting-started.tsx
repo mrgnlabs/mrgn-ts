@@ -19,13 +19,13 @@ const CONTENT = {
       url: "https://mrgn.substack.com/p/introducing-ybx",
       image: `/images/articles/ybx-introducing.jpg`,
       title: "Introducing $YBX",
-      description: "Solana's inflation protected, decentralized stable asset",
+      description: "Solana's inflation protected, decentralized stable-asset",
     },
     {
       url: "https://docs.marginfi.com/contracts/usdybx",
       image: `/images/articles/ybx-whitepaper.jpg`,
       title: "$YBX v1 - Whitepaper",
-      description: "A stable asset to capture blockchain monetary policy",
+      description: "A stable-asset to capture blockchain monetary policy",
     },
     {
       url: "https://medium.com/marginfi/exploring-mrgnlend-a-guide-to-decentralized-lending-and-borrowing-1e05a422a505",

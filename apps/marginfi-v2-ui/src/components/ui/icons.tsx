@@ -59,6 +59,7 @@ import {
   IconArrowsExchange,
   IconUsersPlus,
   IconPencil,
+  IconBox,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -898,6 +899,7 @@ export {
   IconArrowsExchange,
   IconUsersPlus,
   IconPencil,
+  IconBox,
 
   // customed icons
   IconBrandGoogle,
