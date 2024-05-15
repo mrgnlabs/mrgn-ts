@@ -4,12 +4,10 @@ import React from "react";
 
 import { useLottie } from "lottie-react";
 import { useInView } from "framer-motion";
-import wavesAnimation from "~/lottie/wavesAnimation.json";
+import { millify } from "millify";
 
-const CONTENT = {
-  subHeading: "Plug directly into...",
-  highlights: ["$500M of liquidity", "Access over 200,000 users", "A host of supporting on and off-chain systems"],
-};
+import { useProtocolStats } from "~/lib/useProtocolStats";
+import wavesAnimation from "~/lottie/wavesAnimation.json";
 
 type WavesProps = {
   inView: boolean;
@@ -36,6 +34,25 @@ const Waves = ({ inView }: WavesProps) => {
 export const Highlights = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef);
+  const stats = useProtocolStats();
+
+  const CONTENT = React.useMemo(() => {
+    const content: {
+      subHeading: string;
+      highlights: string[];
+    } = {
+      subHeading: "Plug directly into...",
+      highlights: [],
+    };
+    if (!stats || stats.length === 0) return content;
+    content.highlights = [
+      `$${millify(stats[0]?.value)} of liquidity`,
+      "Access over 450,000 users",
+      "A host of supporting off-chain tooling",
+    ];
+
+    return content;
+  }, [stats]);
 
   return (
     <div ref={containerRef} className="relative z-10 w-full" id="highlights">
