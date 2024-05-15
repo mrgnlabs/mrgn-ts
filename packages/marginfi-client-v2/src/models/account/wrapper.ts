@@ -1,4 +1,12 @@
-import { Amount, DEFAULT_COMMITMENT, InstructionsWrapper, Wallet, shortenAddress } from "@mrgnlabs/mrgn-common";
+import {
+  Amount,
+  DEFAULT_COMMITMENT,
+  InstructionsWrapper,
+  Wallet,
+  createAssociatedTokenAccountIdempotentInstruction,
+  getAssociatedTokenAddressSync,
+  shortenAddress,
+} from "@mrgnlabs/mrgn-common";
 import { Address, BorshCoder, translateAddress } from "@coral-xyz/anchor";
 import {
   AccountMeta,
@@ -21,6 +29,7 @@ import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pu
 import { Bank } from "../bank";
 import { Balance } from "../balance";
 import debug from "debug";
+import bs58 from "bs58";
 
 export interface SimulationResult {
   banks: Map<string, Bank>;
@@ -320,6 +329,30 @@ class MarginfiAccountWrapper {
     };
   }
 
+  async makeSetupIx(banks: PublicKey[]) {
+    this._marginfiAccount.authority;
+
+    const ixs: TransactionInstruction[] = [];
+    if (this.client.bankMetadataMap) {
+      for (const bankAddress of banks) {
+        const bank = this.client.bankMetadataMap[bankAddress.toBase58()];
+        const userAta = getAssociatedTokenAddressSync(new PublicKey(bank.tokenAddress), this.authority, true); // We allow off curve addresses here to support Fuse.
+        const userAtaInfo = await this._program.provider.connection.getAccountInfo(userAta);
+
+        if (!userAtaInfo) {
+          const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
+            this.authority,
+            userAta,
+            this.authority,
+            new PublicKey(bank.tokenAddress)
+          );
+          ixs.push(createAtaIdempotentIx);
+        }
+      }
+    }
+    return ixs;
+  }
+
   async repayWithCollat(
     amount: Amount,
     repayAmount: Amount,
@@ -333,10 +366,11 @@ class MarginfiAccountWrapper {
   ): Promise<string> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
+    const setupIxs = await this.makeSetupIx([bankAddress, repayBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
     const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
     const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress, withdrawAll, {
-      createAtas: true,
+      createAtas: false,
       wrapAndUnwrapSol: false,
     });
     const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll, {
@@ -345,11 +379,26 @@ class MarginfiAccountWrapper {
     });
     const lookupTables = this.client.addressLookupTables;
     const flashloanTx = await this.buildFlashLoanTx({
-      ixs: [...priorityFeeIx, ...cuRequestIxs, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+      ixs: [
+        ...priorityFeeIx,
+        ...cuRequestIxs,
+        ...setupIxs,
+        ...withdrawIxs.instructions,
+        ...swapIxs,
+        ...depositIxs.instructions,
+      ],
       addressLookupTableAccounts: [...lookupTables, ...addressLookupTableAccounts],
     });
 
-    const sig = await this.client.processTransaction(flashloanTx, []);
+    // add to debug
+    // const signaturesEncoded = encodeURIComponent(JSON.stringify(flashloanTx.signatures.map((s) => bs58.encode(s))));
+    // const messageEncoded = encodeURIComponent(Buffer.from(flashloanTx.message.serialize()).toString("base64"));
+    // const urlEscaped = `https://explorer.solana.com/tx/inspector?cluster=mainnet-beta&signatures=${signaturesEncoded}&message=${messageEncoded}`;
+
+    // console.log("------ Inspect :point_down: ------");
+    // console.log(urlEscaped);
+
+    const sig = "sig"; //await this.client.processTransaction(flashloanTx, []);
     debug("Repay with collateral successful %s", sig);
 
     return sig;

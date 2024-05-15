@@ -360,6 +360,7 @@ async function calculateRepayCollateral(
     inputMint: repayBank.info.state.mint.toBase58(),
     outputMint: bank.info.state.mint.toBase58(),
     slippageBps: slippageBps,
+    maxAccounts: 40,
     swapMode: "ExactIn",
   } as QuoteGetRequest;
 
@@ -392,6 +393,7 @@ async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBan
       inputMint: repayBank.info.state.mint.toBase58(),
       outputMint: bank.info.state.mint.toBase58(),
       slippageBps: slippageBps,
+      maxAccounts: 40,
       swapMode: "ExactIn",
     } as QuoteGetRequest;
 

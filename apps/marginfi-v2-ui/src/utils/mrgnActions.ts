@@ -401,10 +401,12 @@ export async function repayWithCollat({
       },
     });
 
-    // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; **not optional but man0s smart**
+    // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; //**not optional but man0s smart**
     const swapIx = deserializeInstruction(swapInstruction);
     // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
     // tokenLedgerInstruction **also optional**
+
+    //console.log({setupInstructions})
 
     const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
     addressLookupTableAccounts.push(
