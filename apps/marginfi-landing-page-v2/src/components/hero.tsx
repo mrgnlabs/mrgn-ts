@@ -41,31 +41,10 @@ const CONTENT = {
   ],
 };
 
-type HeroAnimationProps = {
-  inView: boolean;
-};
-
-const HeroAnimation = ({ inView }: HeroAnimationProps) => {
-  const { View, goToAndPlay, goToAndStop } = useLottie({
-    animationData: heroAnimation,
-    loop: false,
-    autoplay: false,
-  });
-
-  React.useEffect(() => {
-    if (inView) {
-      goToAndPlay(0);
-    } else {
-      goToAndStop(0);
-    }
-  }, [inView, goToAndPlay, goToAndStop]);
-
-  return View;
-};
-
 export const Hero = () => {
   const containerRef = React.useRef(null);
   const targetRef = React.useRef(null);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
   const isMobile = useIsMobile();
   const { scrollYProgress } = useScroll({
     target: targetRef,
@@ -75,15 +54,13 @@ export const Hero = () => {
   const containerVariants = {
     hidden: {
       transition: {
-        staggerChildren: 0.25,
+        staggerChildren: 0.3,
         staggerDirection: -1,
-        delayChildren: 0.5,
       },
     },
     visible: {
       transition: {
-        staggerChildren: 0.25,
-        delayChildren: 0.5,
+        staggerChildren: 0.3,
       },
     },
   };
@@ -96,6 +73,16 @@ export const Hero = () => {
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const scrollIconOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
   const isInView = useInView(containerRef);
+
+  React.useEffect(() => {
+    if (!videoRef.current) return;
+
+    if (isInView) {
+      videoRef.current.play();
+    } else {
+      videoRef.current.pause();
+    }
+  }, [isInView, videoRef]);
 
   return (
     <>
@@ -152,12 +139,17 @@ export const Hero = () => {
           </ScrollTo>
         </div>
       </div>
-      <motion.div
+      <motion.video
+        ref={videoRef}
         className="fixed top-0 -left-[125vw] z-0 w-[250vw] md:-left-[100vw] md:w-[200vw] lg:left-0 lg:w-screen h-screen object-cover"
+        autoPlay={false}
+        loop={false}
+        muted
+        playsInline
         style={{ opacity: heroOpacity }}
       >
-        <HeroAnimation inView={isInView} />
-      </motion.div>
+        <source src="https://storage.googleapis.com/mrgn-public/videos/hero.mp4" type="video/mp4" />
+      </motion.video>
     </>
   );
 };
