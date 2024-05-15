@@ -13,9 +13,9 @@ const CONTENT = {
   heading: "Grant Gateway: Fueling the mrgn. ecosystem",
   body: (
     <p>
-      Create a grant proposal to build something iconic with marginfi&apos;s liquidity, userbase, and tooling.
+      Create a grant proposal to build something iconic with marginfi&apos;s liquidity,
       <br className="hidden lg:block" />
-      There&apos;s support waiting for you!
+      userbase, and tooling. <strong className="text-primary">There&apos;s support waiting for you!</strong>
     </p>
   ),
   cta: {
@@ -43,7 +43,7 @@ export const Callout = () => {
       <div className="flex flex-col gap-8 bg-secondary rounded-lg p-8 lg:flex-row lg:gap-0 lg:items-center lg:justify-between">
         <div className="space-y-4 lg:w-2/3">
           <h2 className="text-4xl font-medium">{CONTENT.heading}</h2>
-          <div className="text-muted-foreground">{CONTENT.body}</div>
+          <div className="text-muted-foreground text-lg">{CONTENT.body}</div>
         </div>
         <Link href={CONTENT.cta.href} target="_blank" rel="noreferrer">
           <Button>
