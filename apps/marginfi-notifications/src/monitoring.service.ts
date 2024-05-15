@@ -9,6 +9,7 @@ import { Solana } from '@dialectlabs/blockchain-sdk-solana';
 import { Duration } from 'luxon';
 import { StdoutNotificationSink } from './utils/StdoutNotificationSink';
 import { AccountDataSource, AccountData } from './marginfi-data-source';
+import { percentFormatter, percentFormatterDyn } from '@mrgnlabs/mrgn-common';
 
 @Injectable()
 export class MonitoringService implements OnApplicationBootstrap {
@@ -55,8 +56,8 @@ export class MonitoringService implements OnApplicationBootstrap {
       .dialectSdk(
         ({ context: { origin } }) => {
           const notification: DialectSdkNotification = {
-            title: `Your health factor fell below ${process.env.HEALTH_FACTOR_THRESHOLD}`,
-            message: `The value of your health factor just dropped under ${process.env.HEALTH_FACTOR_THRESHOLD}. It is now ${origin.healthFactor}.`,
+            title: `Your health factor fell below  ${percentFormatterDyn.format(Number(process.env.HEALTH_FACTOR_THRESHOLD))}`,
+            message: `The value of your health factor just dropped under ${percentFormatterDyn.format(Number(process.env.HEALTH_FACTOR_THRESHOLD))}. It is now ${percentFormatterDyn.format(origin.healthFactor)}.`,
             actions: {
               type: DappMessageActionType.LINK,
               links: [

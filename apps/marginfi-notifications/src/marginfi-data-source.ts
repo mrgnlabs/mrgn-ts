@@ -69,7 +69,6 @@ export class AccountDataSource {
         'seconds',
       )} to poll data for ${subscribers.length} subscribers`,
     );
-    console.log(sourceData);
     return sourceData;
   }
 
@@ -96,7 +95,7 @@ export class AccountDataSource {
           healthFactor: getMinimumValue(
             parsedAccounts[subscriber.toBase58()]?.map(
               (v) => v.healthFactor,
-            ) ?? [100],
+            ) ?? [1],
           ),
         } as AccountData,
 
