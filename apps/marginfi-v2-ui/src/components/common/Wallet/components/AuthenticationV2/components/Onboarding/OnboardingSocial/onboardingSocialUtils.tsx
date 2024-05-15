@@ -17,17 +17,17 @@ export const socialOnrampFlow: SocialOnrampScreen[] = [
   {
     comp: screens.Onramp,
     title: "Step 1. Buy some crypto",
-    description: "and here's what we bring:",
+    description: "Buy SOL with cash, you'll need this to transact on the Solana blockchain",
     titleSize: "sm",
   },
   {
-    comp: screens.SwapToken,
+    comp: screens.JupiterSwap,
     title: "Step 2. Swap some tokens",
-    description: "and here's what we bring:",
+    description: "Swap your SOL for some USDC, LST, or another token you're interested in.",
     titleSize: "sm",
   },
   {
-    comp: screens.Deposit,
+    comp: screens.DepositToken,
     title: "Step 3. Make a deposit!",
     description: "Make your first deposit and start earning interest in marginfi.",
     titleSize: "sm",

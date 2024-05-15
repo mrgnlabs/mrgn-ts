@@ -14,7 +14,7 @@ import Swap from "~/pages/swap";
 
 interface props extends OnrampScreenProps {}
 
-export const Onramp = ({
+export const DepositToken = ({
   isLoading,
   installingWallet,
   isActiveLoading,

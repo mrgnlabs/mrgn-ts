@@ -640,7 +640,6 @@ type TokenOptionsProps = {
 };
 
 function TokenOptions({ walletAddress, setState, setToken, web3AuthConnected = false }: TokenOptionsProps) {
-  const router = useRouter();
   const [setIsOnrampActive, setIsWalletOpen] = useUiStore((state) => [state.setIsOnrampActive, state.setIsWalletOpen]);
   const [isWalletAddressCopied, setIsWalletAddressCopied] = React.useState(false);
   return (
