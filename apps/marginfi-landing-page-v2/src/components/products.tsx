@@ -34,7 +34,7 @@ const CONTENT = {
     },
     {
       heading: "LST / YBX",
-      subHeading: "Solana's highest yield accruing SOL token and stable asset",
+      subHeading: "Solana's highest yield accruing SOL token and stable-asset",
       cta: {
         href: "https://app.marginfi.com/mint",
         label: "Mint LST",
