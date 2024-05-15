@@ -26,11 +26,19 @@ const CONTENT = {
       body: (
         <>
           <p className="text-primary">All developers can build on:</p>
-          <ul className="list-disc space-y-2 ml-4">
-            <li>mrgnlend: one of crypto&apos;s most used lend/borrow venues</li>
-            <li>LST: solana&apos;s highest yielding liquid staking SOL token</li>
-            <li>YBX: solana&apos;s decentralized, yield accruing stable asset</li>
-            <li>mrgnswap: crypto&apos;s exciting new integrated stableswap</li>
+          <ul className="list-disc space-y-2 ml-4 text-sm">
+            <li>
+              <strong className="font-medium">mrgnlend</strong>: one of crypto&apos;s most used lend/borrow venues
+            </li>
+            <li>
+              <strong className="font-medium">LST</strong>: solana&apos;s highest yielding liquid staking SOL token
+            </li>
+            <li>
+              <strong className="font-medium">YBX</strong>: solana&apos;s decentralized, yield accruing stable asset
+            </li>
+            <li>
+              <strong className="font-medium">mrgnswap</strong>: crypto&apos;s exciting new integrated stableswap
+            </li>
           </ul>
         </>
       ),
@@ -87,15 +95,15 @@ export const Features = () => {
             variants={fadeVariants}
           >
             <div
-              className="h-[200px] w-full p-8 flex items-center justify-center rounded-t-lg shrink-0 lg:w-[200px] lg:h-[240px] lg:rounded-tr-none lg:rounded-bl-lg"
+              className="h-[200px] w-full p-8 flex items-center justify-center rounded-t-lg shrink-0 lg:w-[240px] lg:h-[240px] lg:rounded-tr-none lg:rounded-bl-lg"
               style={{ background: "radial-gradient(100% 100% at 0% 100%, #42535A 0%, #2B3539 19.73%, #0F1111 100%)" }}
             >
               <div className="relative h-full w-[160px]">
                 <Image src={`/illustrations/${index + 1}.svg`} alt={feature.heading} fill={true} />
               </div>
             </div>
-            <div className="flex flex-col justify-center p-6 space-y-3 lg:text-sm">
-              <h3 className="text-lg text-secondary-foreground lg:text-base">{feature.heading}</h3>
+            <div className="flex flex-col justify-center p-6 space-y-3">
+              <h3 className="text-lg text-secondary-foreground font-medium">{feature.heading}</h3>
               <div className="text-muted-foreground space-y-4">{feature.body}</div>
             </div>
           </motion.div>
