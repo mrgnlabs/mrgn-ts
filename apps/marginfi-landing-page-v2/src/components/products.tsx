@@ -99,7 +99,10 @@ export const Products = () => {
                   </h2>
                   <h3 className="text-xl">{product.subHeading}</h3>
                 </header>
-                <Link className={cn("inline-block", isDisabled && "cursor-default")} href={product.cta.href}>
+                <Link
+                  className={cn("inline-block", isDisabled && "pointer-events-none cursor-default")}
+                  href={product.cta.href}
+                >
                   <Button disabled={isDisabled}>
                     {product.cta.label} <IconArrowRight size={18} className="ml-2" />
                   </Button>
