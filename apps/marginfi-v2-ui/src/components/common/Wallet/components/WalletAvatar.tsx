@@ -15,9 +15,9 @@ type WalletAvatarProps = {
 
 export const WalletAvatar = ({ pfp, address, size = "md", className }: WalletAvatarProps) => {
   const sizeInPx = React.useMemo(() => {
-    if (size === "sm") return pfp ? 30 : 32;
-    if (size === "md") return pfp ? 34 : 40;
-    if (size === "lg") return pfp ? 62 : 64;
+    if (size === "sm") return pfp ? 32 : 34;
+    if (size === "md") return pfp ? 36 : 42;
+    if (size === "lg") return pfp ? 64 : 66;
   }, [size, pfp]);
 
   const containerSizeInPx = React.useMemo(() => {
