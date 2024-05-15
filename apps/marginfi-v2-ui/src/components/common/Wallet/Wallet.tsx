@@ -90,7 +90,7 @@ export const Wallet = () => {
   const [activeToken, setActiveToken] = React.useState<TokenType | null>(null);
   const [isSwapLoaded, setIsSwapLoaded] = React.useState(false);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
-  const [bridgeType, setBridgeType] = React.useState<"mayan" | "debridge">("mayan");
+  const [bridgeType, setBridgeType] = React.useState<"mayan" | "debridge">("debridge");
 
   const isMobile = useIsMobile();
 
@@ -496,7 +496,7 @@ export const Wallet = () => {
                     )}
                     {walletTokenState === WalletState.BRIDGE && (
                       <div className="relative py-4">
-                        <ToggleGroup
+                        {/* <ToggleGroup
                           type="single"
                           size="sm"
                           value={bridgeType}
@@ -544,7 +544,7 @@ export const Wallet = () => {
                               deBridge
                             </span>
                           </ToggleGroupItem>
-                        </ToggleGroup>
+                        </ToggleGroup> */}
                         <div
                           className={cn(
                             "max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity hidden font-aeonik",
