@@ -10,7 +10,7 @@ import { useProtocolStats } from "~/lib/useProtocolStats";
 import { Counter } from "~/components/ui/counter";
 
 export const Stats = () => {
-  const stats = useProtocolStats();
+  const { stats } = useProtocolStats();
   const targetRef = React.useRef(null);
   const { scrollYProgress: fadeInAnimationProgress } = useScroll({
     target: targetRef,

@@ -7,6 +7,13 @@ import * as solanaStakePool from "@solana/spl-stake-pool";
 import { MarginfiClient, getConfig, Bank, OraclePrice, getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { loadBankMetadatas, nativeToUi } from "@mrgnlabs/mrgn-common";
 
+type UseProtocolStats = {
+  stats: Stats;
+  liquidity: number;
+  deposits: number;
+  borrows: number;
+};
+
 type Stat = {
   label: string;
   value: number;
@@ -17,8 +24,12 @@ type Stats = [Stat, Stat, Stat] | [];
 const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 const STAKE_POOL_ID = new PublicKey("DqhH94PjkZsjAqEze2BEkWhFQJ6EyU6MdtMphMgnXqeK");
 
-export const useProtocolStats = (): Stats => {
+export const useProtocolStats = (): UseProtocolStats => {
   const [stats, setStats] = React.useState<Stats>([]);
+  const [liquidity, setLiquidity] = React.useState<number>(0);
+  const [deposits, setDeposits] = React.useState<number>(0);
+  const [borrows, setBorrows] = React.useState<number>(0);
+  const [staked, setStaked] = React.useState<number>(0);
 
   React.useEffect(() => {
     const init = async () => {
@@ -69,18 +80,23 @@ export const useProtocolStats = (): Stats => {
       const totalStaked = Number(stakePoolInfo.totalLamports) / 1e9;
       const solPrice = solBank ? getPriceWithConfidence(solBank.oraclePrice, false).price.toNumber() : 0;
       const stakedValue = totalStaked * solPrice;
+      const liquidity = deposits + stakedValue;
 
       const stats: Stats = [
-        { label: "Total Liquidity", value: deposits + stakedValue },
+        { label: "Total Liquidity", value: liquidity },
         { label: "Total Staked", value: stakedValue },
         { label: "Total Borrows", value: borrows },
       ];
 
       setStats(stats);
+      setLiquidity(liquidity);
+      setDeposits(deposits);
+      setBorrows(borrows);
+      setStaked(stakedValue);
     };
 
     init();
   }, []);
 
-  return stats;
+  return { stats, liquidity, deposits, borrows };
 };

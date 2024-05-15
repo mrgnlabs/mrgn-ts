@@ -34,7 +34,7 @@ const Waves = ({ inView }: WavesProps) => {
 export const Highlights = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef);
-  const stats = useProtocolStats();
+  const { liquidity } = useProtocolStats();
 
   const CONTENT = React.useMemo(() => {
     const content: {
@@ -44,15 +44,15 @@ export const Highlights = () => {
       subHeading: "Plug directly into...",
       highlights: [],
     };
-    if (!stats || stats.length === 0) return content;
+    if (!liquidity) return content;
     content.highlights = [
-      `$${millify(stats[0]?.value)} of liquidity`,
+      `$${millify(liquidity)} of liquidity`,
       "Access over 450,000 users",
       "A host of supporting off-chain tooling",
     ];
 
     return content;
-  }, [stats]);
+  }, [liquidity]);
 
   return (
     <div ref={containerRef} className="relative z-10 w-full" id="highlights">
