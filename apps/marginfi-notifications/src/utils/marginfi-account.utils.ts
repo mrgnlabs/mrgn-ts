@@ -59,12 +59,14 @@ export function transformAccountMap(
 
 export function getMinimumValue(numbers: number[]): number {
   if (numbers.length === 0) {
-    return 100;
+    return 1;
   }
-  let min = numbers[0] ?? 100;
-  for (let i = 1; i < numbers.length; i++) {
-    if (numbers[i] ?? 0 < min) {
-      min = numbers[i] ?? 100;
+  let min = numbers[0] ?? 1;
+  for (let i = 0; i < numbers.length; i++) {
+    const a = numbers[i] ?? 1;
+    const b = min;
+    if (a < b) {
+      min = numbers[i] ?? 1;
     }
   }
   return min;
