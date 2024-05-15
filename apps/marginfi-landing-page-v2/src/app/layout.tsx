@@ -1,5 +1,3 @@
-import { Inter as FontSans } from "next/font/google";
-
 import { Header } from "~/components/header";
 
 import type { Metadata } from "next";
