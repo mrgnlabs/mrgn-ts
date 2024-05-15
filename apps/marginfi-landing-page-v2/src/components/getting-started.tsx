@@ -65,7 +65,7 @@ export const GettingStarted = () => {
       ref={targetRef}
       className="relative z-10 container max-w-7xl py-16 flex flex-col items-center gap-12 lg:py-24 xl:py-32"
     >
-      <h2 className="text-5xl font-medium">{CONTENT.heading}</h2>
+      <h2 className="text-4xl max-w-5xl mx-auto w-full font-medium text-center lg:text-5xl">{CONTENT.heading}</h2>
       <motion.section
         className="grid gap-6 lg:grid-cols-3"
         animate={debouncedIsInView ? "visible" : "hidden"}
@@ -74,7 +74,7 @@ export const GettingStarted = () => {
         {CONTENT.articles.map((article, index) => (
           <motion.article variants={fadeVariants} key={index}>
             <Link href={article.url} className="group" target="_blank" rel="noreferrer">
-              <Card className="relative z-10 w-full bg-secondary h-full flex flex-col justify-start rounded-lg p-0 transition-transform duration-300 group-hover:scale-[1.025]">
+              <Card className="relative z-10 w-full max-w-sm mx-auto bg-secondary h-full flex flex-col justify-start rounded-lg p-0 transition-transform duration-300 group-hover:scale-[1.025] lg:max-w-none">
                 <CardContent className="p-0 pb-4 space-y-4">
                   <div className="w-full h-40 bg-mrgn-gold relative rounded-t-lg">
                     <Image src={article.image} alt={article.title} fill={true} className="object-cover rounded-t-lg" />

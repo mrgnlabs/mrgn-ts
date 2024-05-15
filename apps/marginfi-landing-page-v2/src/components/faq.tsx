@@ -88,8 +88,8 @@ const CONTENT = {
 export const FAQ = () => {
   return (
     <div className="relative z-10 container max-w-4xl w-full flex flex-col gap-8 py-16 lg:py-24 xl:py-32">
-      <header className="flex flex-col items-center gap-4">
-        <h2 className="text-5xl font-medium">{CONTENT.heading}</h2>
+      <header className="flex flex-col gap-4 text-left md:text-center md:items-center">
+        <h2 className="text-4xl font-medium lg:text-5xl">{CONTENT.heading}</h2>
         <p className="text-muted-foreground">
           Below are some some common questions, please{" "}
           <Link href="https://discord.gg/mrgn" target="_blank" rel="noreferrer">
