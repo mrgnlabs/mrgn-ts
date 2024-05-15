@@ -82,7 +82,7 @@ export const Features = () => {
       >
         {CONTENT.features.map((feature, index) => (
           <motion.div
-            className="flex flex-col w-full bg-secondary rounded-lg lg:flex-row"
+            className="flex flex-col w-full max-w-sm mx-auto bg-secondary rounded-lg lg:flex-row lg:max-w-none"
             key={index}
             variants={fadeVariants}
           >

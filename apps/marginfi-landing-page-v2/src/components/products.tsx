@@ -79,7 +79,7 @@ export const Products = () => {
       <div className="container space-y-24 py-16 lg:py-24 xl:py-32">
         <h2 className="text-4xl max-w-4xl mx-auto w-full font-medium text-center lg:text-5xl">{CONTENT.heading}</h2>
         <motion.ul
-          className="max-w-2xl w-full flex flex-col justify-between mx-auto gap-12 lg:max-w-7xl lg:grid lg:gap-16 xl:grid-cols-3 xl:gap-28"
+          className="max-w-2xl px-4 w-full flex flex-col justify-between mx-auto gap-16 sm:px-8 md:text-center md:items-center xl:px-0 lg:text-left lg:items-start lg:max-w-7xl lg:grid lg:gap-16 lg:grid-cols-3 xl:gap-28"
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={containerVariants}
@@ -88,16 +88,16 @@ export const Products = () => {
             const isDisabled = product.cta.href === "#";
             return (
               <motion.li key={index} className="relaative space-y-6" variants={fadeVariants}>
-                <header className="space-y-1">
+                <header className="lg:space-y-1">
                   <h2
-                    className="text-5xl font-medium text-transparent bg-clip-text py-1.5 max-w-fit lg:text-7xl"
+                    className="text-5xl font-medium text-transparent bg-clip-text py-1.5 lg:max-w-fit lg:text-6xl xl:text-7xl"
                     style={{
                       backgroundImage: "linear-gradient(90.08deg, #97AFB9 54.29%, #42535A 88.18%, #2B3539 115.29%)",
                     }}
                   >
                     {product.heading}
                   </h2>
-                  <h3 className="text-xl">{product.subHeading}</h3>
+                  <h3 className="lg:text-lg xl:text-xl">{product.subHeading}</h3>
                 </header>
                 <Link
                   className={cn("inline-block", isDisabled && "pointer-events-none cursor-default")}
