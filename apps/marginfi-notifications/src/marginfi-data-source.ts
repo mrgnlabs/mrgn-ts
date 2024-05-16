@@ -89,18 +89,21 @@ export class AccountDataSource {
     const parsedAccounts = transformAccountMap(accounts, client);
 
     const sourceData: SourceData<AccountData>[] = subscribers.map(
-      (subscriber) => ({
-        data: {
-          subscriber,
-          healthFactor: getMinimumValue(
-            parsedAccounts[subscriber.toBase58()]?.map(
-              (v) => v.healthFactor,
-            ) ?? [1],
-          ),
-        } as AccountData,
+      (subscriber) => {
+        const healthFactor = (parsedAccounts[subscriber.toBase58()]?.map(
+          (v) => v.healthFactor,
+        ) ?? [1])[0];
+        const test = {
+          data: {
+            subscriber,
+            healthFactor: healthFactor,
+          } as AccountData,
 
-        groupingKey: subscriber.toBase58(),
-      }),
+          groupingKey: subscriber.toBase58(),
+        };
+
+        return test;
+      },
     );
 
     return sourceData;
