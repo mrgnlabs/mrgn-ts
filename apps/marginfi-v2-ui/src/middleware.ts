@@ -4,6 +4,8 @@ export const config = {
   matcher: ["/", "/index", "/stake", "/swap", "/bridge", "/earn", "/points"],
 };
 
+const restrictedCountries = ["VE", "CU", "IR", "KP", "SY"];
+
 export function middleware(req: NextRequest) {
   const basicAuth = req.headers.get("authorization");
   const url = req.nextUrl;
@@ -12,10 +14,8 @@ export function middleware(req: NextRequest) {
   // response.headers.set('CDN-Cache-Control', 'private, max-age=10');
   // response.headers.set('Cache-Control', 'private, max-age=10');
 
-  console.log(req.geo);
-
-  if (req.geo?.country === "VE") {
-    return NextResponse.redirect("https://www.marinfi.com");
+  if (req.geo && req.geo.country && restrictedCountries.includes(req.geo.country)) {
+    return NextResponse.redirect("https://www.marginfi.com");
   }
 
   if (process.env.AUTHENTICATION_DISABLED === "true") {
