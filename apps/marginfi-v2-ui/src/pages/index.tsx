@@ -39,20 +39,10 @@ export default function HomePage() {
   ]);
 
   const annoucements = React.useMemo(() => {
-    const tnsr = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "TNSR");
+    const drift = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "DRIFT");
     return [
-      {
-        image: (
-          <div className="text-chartreuse">
-            <IconTrophy size={22} />
-          </div>
-        ),
-        text: "New experience live! Points are in mrgnwallet.",
-        onClick: () => {
-          setIsWalletOpen(true);
-        },
-        requireAuth: true,
-      },
+      { bank: drift },
+
       {
         image: <IconBackpackWallet size={22} />,
         text: "5% points boost for Backpack users!",
@@ -63,9 +53,8 @@ export default function HomePage() {
         text: "Read the YBX announcement!",
         onClick: () => window.open("https://twitter.com/marginfi/status/1762865889035317679"),
       },
-      { bank: tnsr },
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
-  }, [extendedBankInfos, router, setIsWalletOpen]);
+  }, [extendedBankInfos, router]);
 
   return (
     <>
