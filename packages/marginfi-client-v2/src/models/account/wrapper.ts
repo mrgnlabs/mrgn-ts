@@ -28,8 +28,6 @@ import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
 import { Bank } from "../bank";
 import { Balance } from "../balance";
-import debug from "debug";
-import bs58 from "bs58";
 
 export interface SimulationResult {
   banks: Map<string, Bank>;
@@ -361,9 +359,10 @@ class MarginfiAccountWrapper {
     withdrawAll: boolean = false,
     repayAll: boolean = false,
     swapIxs: TransactionInstruction[],
-    addressLookupTableAccounts: AddressLookupTableAccount[],
-    priorityFeeUi?: number
-  ): Promise<string> {
+    swapLookupTables: AddressLookupTableAccount[],
+    priorityFeeUi?: number,
+    executeTx: boolean = false
+  ): Promise<string | { flashloanTx: VersionedTransaction; addressLookupTableAccounts: AddressLookupTableAccount[] }> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug("Repaying %s into marginfi account (bank: %s), repay all: %s", amount, bankAddress, repayAll);
     const setupIxs = await this.makeSetupIx([bankAddress, repayBankAddress]);
@@ -378,6 +377,7 @@ class MarginfiAccountWrapper {
       wrapAndUnwrapSol: false,
     });
     const lookupTables = this.client.addressLookupTables;
+    const addressLookupTableAccounts = [...lookupTables, ...swapLookupTables];
     const flashloanTx = await this.buildFlashLoanTx({
       ixs: [
         ...priorityFeeIx,
@@ -387,7 +387,7 @@ class MarginfiAccountWrapper {
         ...swapIxs,
         ...depositIxs.instructions,
       ],
-      addressLookupTableAccounts: [...lookupTables, ...addressLookupTableAccounts],
+      addressLookupTableAccounts,
     });
 
     // add to debug
@@ -398,10 +398,14 @@ class MarginfiAccountWrapper {
     // console.log("------ Inspect :point_down: ------");
     // console.log(urlEscaped);
 
-    const sig = "sig"; //await this.client.processTransaction(flashloanTx, []);
-    debug("Repay with collateral successful %s", sig);
+    if (executeTx) {
+      return { flashloanTx, addressLookupTableAccounts };
+    } else {
+      const sig = await this.client.processTransaction(flashloanTx, []);
+      debug("Repay with collateral successful %s", sig);
 
-    return sig;
+      return sig;
+    }
   }
 
   async simulateRepayWithCollat(
@@ -413,15 +417,30 @@ class MarginfiAccountWrapper {
     swapIxs: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[]
   ): Promise<SimulationResult> {
+    const setupIxs = await this.makeSetupIx([bankAddress, repayBankAddress]);
     const cuRequestIxs = this.makeComputeBudgetIx();
-    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress);
-    const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll);
+    //const priorityFeeIx = this.makePriorityFeeIx(priorityFeeUi);
+    const withdrawIxs = await this.makeWithdrawIx(repayAmount, repayBankAddress, false, {
+      createAtas: false,
+      wrapAndUnwrapSol: false,
+    });
+    const depositIxs = await this.makeRepayIx(amount, bankAddress, repayAll, {
+      createAtas: false,
+      wrapAndUnwrapSol: false,
+    });
     const lookupTables = this.client.addressLookupTables;
-    const tx = await this.buildFlashLoanTx({
-      ixs: [...cuRequestIxs, ...withdrawIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+    const flashloanTx = await this.buildFlashLoanTx({
+      ixs: [
+        //...priorityFeeIx,
+        ...cuRequestIxs,
+        ...setupIxs,
+        ...withdrawIxs.instructions,
+        ...swapIxs,
+        ...depositIxs.instructions,
+      ],
       addressLookupTableAccounts: [...lookupTables, ...addressLookupTableAccounts],
     });
-    const [mfiAccountData, bankData] = await this.client.simulateTransaction(tx, [this.address, bankAddress]);
+    const [mfiAccountData, bankData] = await this.client.simulateTransaction(flashloanTx, [this.address, bankAddress]);
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate repay w/ collat");
     const previewBanks = this.client.banks;
     previewBanks.set(bankAddress.toBase58(), Bank.fromBuffer(bankAddress, bankData));

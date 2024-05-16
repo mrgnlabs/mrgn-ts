@@ -27,9 +27,14 @@ export const LendingPreview = ({
   addAdditionalsPopup,
   children,
 }: ActionBoxPreviewProps) => {
-  const [selectedAccount, accountSummary] = useMrgnlendStore((state) => [state.selectedAccount, state.accountSummary]);
+  const [marginfiClient, selectedAccount, accountSummary] = useMrgnlendStore((state) => [
+    state.marginfiClient,
+    state.selectedAccount,
+    state.accountSummary,
+  ]);
 
   const { preview, previewStats, isLoading, actionMethod } = useLendingPreview({
+    marginfiClient,
     accountSummary,
     actionMode,
     account: selectedAccount,
@@ -40,7 +45,7 @@ export const LendingPreview = ({
 
   React.useEffect(() => {
     addAdditionalsPopup(actionMethod ? [actionMethod] : []);
-  }, [actionMethod]);
+  }, [actionMethod, addAdditionalsPopup]);
 
   return (
     <div className="flex flex-col gap-4">

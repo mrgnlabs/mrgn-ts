@@ -26,10 +26,10 @@ import { StakeData, makeDepositSolToStakePoolIx, makeDepositStakeToStakePoolIx }
 
 export type RepayWithCollatOptions = {
   repayCollatQuote: QuoteResponse;
+  repayCollatTxn: VersionedTransaction | null;
   repayAmount: number;
   repayBank: ExtendedBankInfo;
   connection: Connection;
-  wallet: Wallet;
 };
 
 export type MarginfiActionParams = {
@@ -100,7 +100,15 @@ export async function executeLendingAction({
 
   if (actionType === ActionType.Repay) {
     if (repayWithCollatOptions) {
-      txnSig = await repayWithCollat({ marginfiAccount, bank, amount, priorityFee, options: repayWithCollatOptions });
+      console.log({ amount, repay: repayWithCollatOptions.repayAmount });
+      txnSig = await repayWithCollat({
+        marginfiClient: mfiClient,
+        marginfiAccount,
+        bank,
+        amount,
+        priorityFee,
+        options: repayWithCollatOptions,
+      });
     } else {
       txnSig = await repay({ marginfiAccount, bank, amount, priorityFee });
     }
@@ -369,7 +377,7 @@ export async function repay({
   }
 }
 
-export async function repayWithCollat({
+export async function repayWithCollatBuilder({
   marginfiAccount,
   bank,
   amount,
@@ -383,50 +391,83 @@ export async function repayWithCollat({
   priorityFee?: number;
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
+
+  const {
+    setupInstructions,
+    swapInstruction,
+    addressLookupTableAddresses,
+    cleanupInstruction,
+    tokenLedgerInstruction,
+  } = await jupiterQuoteApi.swapInstructionsPost({
+    swapRequest: {
+      quoteResponse: options.repayCollatQuote,
+      userPublicKey: marginfiAccount.authority.toBase58(),
+      programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+    },
+  });
+
+  // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; //**not optional but man0s smart**
+  const swapIx = deserializeInstruction(swapInstruction);
+  // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
+  // tokenLedgerInstruction **also optional**
+
+  const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
+  addressLookupTableAccounts.push(
+    ...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses))
+  );
+
+  const repayWithCollat = (await marginfiAccount.repayWithCollat(
+    amount,
+    options.repayAmount,
+    bank.address,
+    options.repayBank.address,
+    options.repayBank.isActive && isWholePosition(options.repayBank, options.repayAmount),
+    bank.isActive && isWholePosition(bank, amount),
+    [swapIx],
+    addressLookupTableAccounts,
+    priorityFee,
+    true
+  )) as {
+    flashloanTx: VersionedTransaction;
+    addressLookupTableAccounts: AddressLookupTableAccount[];
+  };
+
+  return { txn: repayWithCollat.flashloanTx, addressLookupTableAccounts: repayWithCollat.addressLookupTableAccounts };
+}
+
+export async function repayWithCollat({
+  marginfiClient,
+  marginfiAccount,
+  bank,
+  amount,
+  options,
+  priorityFee,
+}: {
+  marginfiClient: MarginfiClient | null;
+  marginfiAccount: MarginfiAccountWrapper;
+  bank: ExtendedBankInfo;
+  amount: number;
+  options: RepayWithCollatOptions;
+  priorityFee?: number;
+}) {
+  if (marginfiClient === null) {
+    showErrorToast("Marginfi client not ready");
+    return;
+  }
+
   const multiStepToast = new MultiStepToastHandle("Repayment", [{ label: `Executing flashloan repayment` }]);
   multiStepToast.start();
 
   try {
-    const {
-      setupInstructions,
-      swapInstruction,
-      addressLookupTableAddresses,
-      cleanupInstruction,
-      tokenLedgerInstruction,
-    } = await jupiterQuoteApi.swapInstructionsPost({
-      swapRequest: {
-        quoteResponse: options.repayCollatQuote,
-        userPublicKey: options.wallet.publicKey.toBase58(),
-        programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
-      },
-    });
-
-    // const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : []; //**not optional but man0s smart**
-    const swapIx = deserializeInstruction(swapInstruction);
-    // const swapcleanupIx = cleanupInstruction ? [deserializeInstruction(cleanupInstruction)] : []; **optional**
-    // tokenLedgerInstruction **also optional**
-
-    //console.log({setupInstructions})
-
-    const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
-    addressLookupTableAccounts.push(
-      ...(await getAdressLookupTableAccounts(options.connection, addressLookupTableAddresses))
-    );
-
-    const txnSig = await marginfiAccount.repayWithCollat(
-      amount,
-      options.repayAmount,
-      bank.address,
-      options.repayBank.address,
-      options.repayBank.isActive && isWholePosition(options.repayBank, options.repayAmount),
-      bank.isActive && isWholePosition(bank, amount),
-      [swapIx],
-      addressLookupTableAccounts,
-      priorityFee
-    );
+    let txn;
+    if (options.repayCollatTxn) {
+      txn = options.repayCollatTxn;
+    } else {
+      txn = (await repayWithCollatBuilder({ marginfiAccount, bank, amount, options, priorityFee })).txn;
+    }
+    const sig = await marginfiClient.processTransaction(txn);
     multiStepToast.setSuccessAndNext();
-
-    return txnSig;
+    return sig;
   } catch (error: any) {
     const msg = extractErrorString(error);
     Sentry.captureException({ message: error });

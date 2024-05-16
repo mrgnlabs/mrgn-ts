@@ -1,6 +1,6 @@
 import React from "react";
 import { ActionType, AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import {
   ActionPreview,
@@ -12,10 +12,10 @@ import {
   simulateAction,
 } from "./LendingPreview.utils";
 import { ActionMethod, RepayWithCollatOptions, usePrevious } from "~/utils";
-import { useDebounce } from "~/hooks/useDebounce";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 
 interface UseLendingPreviewProps {
+  marginfiClient: MarginfiClient | null;
   accountSummary: AccountSummary;
   actionMode: ActionType;
   account: MarginfiAccountWrapper | null;
@@ -25,6 +25,7 @@ interface UseLendingPreviewProps {
 }
 
 export function useLendingPreview({
+  marginfiClient,
   accountSummary,
   actionMode,
   account,
@@ -48,8 +49,15 @@ export function useLendingPreview({
   React.useEffect(() => {
     const isBankChanged = bank ? !bankPrev?.address.equals(bank.address) : false;
 
-    if (account && bank && debouncedAmount && !isBankChanged && amount !== 0) {
-      getSimulationResult({ actionMode, account, bank, amount: debouncedAmount, repayWithCollatOptions });
+    if (account && marginfiClient && bank && debouncedAmount && !isBankChanged && amount !== 0) {
+      getSimulationResult({
+        marginfiClient,
+        actionMode,
+        account,
+        bank,
+        amount: debouncedAmount,
+        repayWithCollatOptions,
+      });
     } else {
       setSimulationResult(undefined);
       setActionMethod(undefined);

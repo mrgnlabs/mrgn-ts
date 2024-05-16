@@ -6,11 +6,11 @@ import {
   OperationalState,
   RiskTier,
 } from "@mrgnlabs/marginfi-client-v2";
-import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
-import { Connection, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-
-import { StakeData, deserializeInstruction, getAdressLookupTableAccounts, isBankOracleStale } from "~/utils";
 import { QuoteResponseMeta } from "@jup-ag/react-hook";
+import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
+import { Connection, PublicKey } from "@solana/web3.js";
+
+import { StakeData, isBankOracleStale, repayWithCollatBuilder } from "~/utils";
 
 export enum RepayType {
   RepayRaw = "Repay",
@@ -533,38 +533,42 @@ export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRet
   }
 }
 
-export async function verifyJupTxSize(quoteResponse: QuoteResponse, connection: Connection) {
-  const jupiterQuoteApi = createJupiterApiClient();
+export async function verifyJupTxSize(
+  marginfiAccount: MarginfiAccountWrapper,
+  bank: ExtendedBankInfo,
+  repayBank: ExtendedBankInfo,
+  amount: number,
+  repayAmount: number,
+  quoteResponse: QuoteResponse,
+  connection: Connection
+) {
+  try {
+    const builder = await repayWithCollatBuilder({
+      marginfiAccount,
+      bank,
+      amount,
+      options: {
+        repayCollatQuote: quoteResponse,
+        repayAmount,
+        repayBank: repayBank,
+        connection,
+        repayCollatTxn: null,
+      },
+    });
 
-  const {
-    setupInstructions,
-    swapInstruction,
-    addressLookupTableAddresses,
-    cleanupInstruction,
-    tokenLedgerInstruction,
-  } = await jupiterQuoteApi.swapInstructionsPost({
-    swapRequest: {
-      quoteResponse,
-      userPublicKey: PublicKey.default.toBase58(),
-    },
-  });
+    const totalSize = builder.txn.message.serialize().length;
+    const totalKeys = builder.txn.message.getAccountKeys({
+      addressLookupTableAccounts: builder.addressLookupTableAccounts,
+    }).length;
 
-  const setupIxs = setupInstructions.length > 0 ? setupInstructions.map(deserializeInstruction) : [];
-  const swapIx = deserializeInstruction(swapInstruction);
-
-  const adressLookupTableAccounts = await getAdressLookupTableAccounts(connection, addressLookupTableAddresses);
-
-  const { blockhash } = await connection.getLatestBlockhash();
-
-  const message = new TransactionMessage({
-    payerKey: PublicKey.default,
-    recentBlockhash: blockhash,
-    instructions: [...setupIxs, swapIx],
-  }).compileToV0Message(adressLookupTableAccounts);
-
-  const tx = new VersionedTransaction(message);
-
-  const txLength = tx.serialize().length;
+    if (totalSize > 1232 || totalKeys >= 64) {
+      // too big
+    } else {
+      return builder.txn;
+    }
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 export const debounceFn = (fn: Function, ms = 300) => {
