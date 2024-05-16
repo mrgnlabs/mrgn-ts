@@ -12,6 +12,12 @@ export function middleware(req: NextRequest) {
   // response.headers.set('CDN-Cache-Control', 'private, max-age=10');
   // response.headers.set('Cache-Control', 'private, max-age=10');
 
+  console.log(req.geo);
+
+  if (req.geo?.country === "VE") {
+    return NextResponse.redirect("https://www.marinfi.com");
+  }
+
   if (process.env.AUTHENTICATION_DISABLED === "true") {
     return response;
   }
