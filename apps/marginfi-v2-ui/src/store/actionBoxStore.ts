@@ -423,7 +423,6 @@ async function calculateRepayCollateral(
       }
     } catch (error) {
       console.error(error);
-    } finally {
       capture("repay_with_collat", {
         amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
         firstQuote,
@@ -433,6 +432,7 @@ async function calculateRepayCollateral(
       return null;
     }
   }
+  return null;
 }
 
 async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, slippageBps: number) {

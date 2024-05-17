@@ -562,11 +562,7 @@ export async function verifyJupTxSize(
     }).length;
 
     if (totalSize > 1232 || totalKeys >= 64) {
-      /* too big     capture("account_created", {
-      wallet: mfiAccount.authority.toBase58(),
-      account: mfiAccount.address.toBase58(),
-      label: newAccountName,
-    }); */
+      // too big
     } else {
       return builder.txn;
     }
