@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       headers: {
         Accept: "application/json",
         "x-chain": "solana",
-        "X-Api-Key": process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || "",
+        "X-Api-Key": process.env.BIRDEYE_API_KEY || "",
       },
       signal: controller.signal,
     });

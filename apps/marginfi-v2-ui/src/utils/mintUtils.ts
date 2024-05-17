@@ -21,21 +21,22 @@ export interface MintCardProps {
 
 export interface IntegrationsData {
   title: string;
-  quoteIcon: (({ size, className }: IconProps) => React.JSX.Element) | string;
-  baseIcon: (({ size, className }: IconProps) => React.JSX.Element) | string;
   poolInfo: {
     dex: string;
     poolId: string;
   };
   info?: {
-    tvl: string;
-    vol: string;
+    tvl: number;
+    vol: number;
   };
   link: string;
-  action: string;
-  platform: {
-    title: string;
-    icon: ({ size, className }: IconProps) => React.JSX.Element;
+  base: {
+    address: string;
+    symbol: string;
+  };
+  quote: {
+    address: string;
+    symbol: string;
   };
 }
 
