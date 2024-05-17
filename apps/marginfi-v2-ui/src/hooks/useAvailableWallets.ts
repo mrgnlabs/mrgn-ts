@@ -7,13 +7,12 @@ import { IconBackpackWallet } from "~/components/ui/icons";
 
 type WalletPreset = "eth" | "sol" | "social";
 
-const ETH_PRESET = ["Backpack", "Phantom", "Solflare"];
+const ETH_PRESET = ["Backpack", "Phantom", "WalletConnect", "MetaMask"];
 const SOL_PRESET = ["Backpack", "Phantom", "Solflare"];
 const SOCIAL_PRESET = ["Backpack", "Phantom", "Solflare"];
 
 export function useAvailableWallets(preset?: WalletPreset) {
   const { wallets } = useWallet();
-  console.log({ wallets });
   const { isAndroid, isIOS } = useOs();
 
   const selectedPreset = React.useMemo(() => {

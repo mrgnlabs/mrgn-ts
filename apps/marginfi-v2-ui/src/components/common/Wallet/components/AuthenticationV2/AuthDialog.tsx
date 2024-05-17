@@ -42,11 +42,25 @@ export const AuthDialog = () => {
     }
   }, [isWalletAuthDialogOpen]);
 
+  const handleClose = () => {
+    setIsLoading(false);
+    setIsActiveLoading("");
+    setFlow("ONBOARD_MAIN");
+    setIsWalletAuthDialogOpen(false);
+  };
+
   return (
-    <Dialog open={isWalletAuthDialogOpen} onOpenChange={(open) => setIsWalletAuthDialogOpen(open)}>
+    <Dialog
+      open={isWalletAuthDialogOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+        else setIsWalletAuthDialogOpen(open);
+      }}
+    >
       {flow &&
         React.createElement(AUTO_FLOW_MAP[flow].comp, {
           update: (newScreen) => setFlow(newScreen),
+          onClose: () => handleClose(),
           isLoading: isLoading,
           isActiveLoading: isActiveLoading,
           setIsLoading: setIsLoading,

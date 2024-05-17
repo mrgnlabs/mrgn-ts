@@ -9,18 +9,38 @@ import React from "react";
 import { WalletSeperator } from "../sharedComponents/WalletSeperator";
 import { useOs } from "~/hooks/useOs";
 import { IconBackpackWallet, IconPhantomWallet, IconStarFilled } from "~/components/ui/icons";
+import { useUiStore } from "~/store";
 
 interface props extends AuthScreenProps {}
 
 export const OnboardingSol = ({
   isLoading,
   isActiveLoading,
+  update,
   setIsLoading,
   setIsActiveLoading,
   loginWeb3Auth,
-  select,
 }: props) => {
+  const { select, connected } = useWallet();
+  const [isWalletAuthDialogOpen, setIsWalletAuthDialogOpen] = useUiStore((state) => [
+    state.isWalletAuthDialogOpen,
+    state.setIsWalletAuthDialogOpen,
+  ]);
   const { wallets } = useWallet();
+
+  const onSelectWallet = (selectedWallet: string | null) => {
+    if (!selectedWallet) return;
+    setIsLoading(true);
+    setIsActiveLoading(selectedWallet);
+    select(selectedWallet as any);
+  };
+
+  React.useEffect(() => {
+    if (connected) {
+      update("ONBOARD_MAIN");
+      setIsWalletAuthDialogOpen(false);
+    }
+  }, [connected, setIsWalletAuthDialogOpen]);
 
   const { isAndroid, isIOS } = useOs();
 
@@ -114,7 +134,7 @@ export const OnboardingSol = ({
                         onClick={() => {
                           setIsLoading(true);
                           setIsActiveLoading(wallet.adapter.name);
-                          select(wallet.adapter.name);
+                          onSelectWallet(wallet.adapter.name);
                           //setIsWalletAuthDialogOpen(false);
                         }}
                       />
