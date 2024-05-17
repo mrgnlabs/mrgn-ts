@@ -15,6 +15,7 @@ export const OnboardingSocial: React.FC<props> = ({
   setIsLoading,
   setIsActiveLoading,
   loginWeb3Auth,
+  onClose,
 }: props) => {
   const { select, connected } = useWallet();
   const [screenIndex, setScreenIndex] = React.useState<number>(0);
@@ -46,6 +47,7 @@ export const OnboardingSocial: React.FC<props> = ({
         isActiveLoading: isActiveLoading,
         installingWallet: installingWallet,
         onNext: () => setScreenIndex(screenIndex + 1),
+        onClose: onClose,
         setIsLoading: setIsLoading,
         select: (walletName) => onSelectWallet(walletName),
         setIsActiveLoading: setIsActiveLoading,

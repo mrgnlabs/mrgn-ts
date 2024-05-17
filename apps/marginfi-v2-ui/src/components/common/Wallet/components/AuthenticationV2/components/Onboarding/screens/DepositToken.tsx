@@ -11,6 +11,8 @@ import { Button } from "~/components/ui/button";
 import { useUiStore } from "~/store";
 import { useRouter } from "next/router";
 import Swap from "~/pages/swap";
+import { ActionBox } from "~/components/common/ActionBox";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 interface props extends OnrampScreenProps {}
 
@@ -23,6 +25,7 @@ export const DepositToken = ({
   loginWeb3Auth,
   select,
   onNext,
+  onClose,
 }: props) => {
   return (
     <div className="w-full space-y-6 ">
@@ -32,9 +35,9 @@ export const DepositToken = ({
         )}
       >
         {/* <Swap /> */}
-        <div className="mx-auto">Mesa onramp coming soon!</div>
+        <ActionBox requestedAction={ActionType.Deposit} isDialog={true} />
 
-        <WalletSeperator description="skip for now" onClick={() => onNext()} />
+        <WalletSeperator description="skip for now" onClick={() => onClose()} />
       </div>
     </div>
   );

@@ -4,21 +4,19 @@ import { Bridge } from "~/components/common/Bridge";
 
 interface props extends OnrampScreenProps {}
 
-export const BridgeToken: React.FC<props> = ({
-  isLoading,
-  isActiveLoading,
-  setIsLoading,
-  setIsActiveLoading,
-  loginWeb3Auth,
-}: props) => {
+export const BridgeToken: React.FC<props> = ({ onNext }: props) => {
   return (
-    <div className="w-full space-y-6 mt-8">
+    <div className="w-full space-y-6 ">
       <div
         className={cn(
-          "relative bg-muted text-muted-foreground transition-all duration-300 w-full p-6 pt-5 rounded-lg overflow-hidden max-h-none"
+          "relative bg-muted flex flex-col gap-4 justify-center text-muted-foreground transition-all duration-300 w-full p-4 rounded-lg"
         )}
       >
-        <Bridge />
+        <div className="flex justify-center">
+          <Bridge />
+        </div>
+
+        <WalletSeperator description="skip for now" onClick={() => onNext()} />
       </div>
     </div>
   );

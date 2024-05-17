@@ -42,6 +42,7 @@ export interface AuthScreenProps {
     }>,
     cb?: () => void
   ) => void;
+  onClose: () => void;
   select(walletName: WalletName | null): void;
 }
 

@@ -4,3 +4,4 @@ export * from "./DepositToken";
 export * from "./CreateSocialAccount";
 export * from "./CreateEthAccount";
 export * from "./InstallWallet";
+export * from "./BridgeToken";
