@@ -11,18 +11,7 @@ import { useLstStore, useMrgnlendStore, useUiStore } from "~/store";
 import { LST_MINT } from "~/store/lstStore";
 
 import { ActionComplete } from "~/components/common/ActionComplete";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import {
-  IconYBX,
-  IconLST,
-  IconExternalLink,
-  IconMeteora,
-  IconRaydium,
-  IconOrca,
-  IconSol,
-  IconUsd,
-} from "~/components/ui/icons";
+import { IconYBX, IconLST, IconSol, IconUsd } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 import { YbxDialogNotifications } from "~/components/common/Mint/YbxDialogNotifications";
 import {
@@ -39,74 +28,8 @@ import {
   MintPageState,
   clampedNumeralFormatter,
   fetchMintOverview,
-  getTokenImageURL,
 } from "~/utils";
-import { Skeleton } from "~/components/ui/skeleton";
 import { PageHeading } from "~/components/common/PageHeading";
-
-const integrationsData: IntegrationsData[] = [
-  {
-    title: "SOL-LST",
-    quoteIcon: IconLST,
-    baseIcon: getTokenImageURL("SOL"),
-    poolInfo: {
-      dex: "meteora",
-      poolId: "J9DoMJRFGiyVcQaL5uPgKBonEEj4aU2TASvW5GKFoByg",
-    },
-    link: "https://app.meteora.ag/pools/J9DoMJRFGiyVcQaL5uPgKBonEEj4aU2TASvW5GKFoByg",
-    action: "Deposit",
-    platform: {
-      title: "Meteora",
-      icon: IconMeteora,
-    },
-  },
-  {
-    title: "LST-SOL",
-    baseIcon: IconLST,
-    quoteIcon: getTokenImageURL("SOL"),
-    poolInfo: {
-      dex: "orca",
-      poolId: "HJVNnnRj1xz25P9215AHQUvGXoS6MKtJASjgrrwD7GnP",
-    },
-    link: "https://v1.orca.so/liquidity/browse?tokenMint=LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp",
-    action: "Deposit",
-    platform: {
-      title: "Orca",
-      icon: IconOrca,
-    },
-  },
-  // {
-  //   title: "SOL-LST",
-  //   quoteIcon: IconLST,
-  //   baseIcon: getTokenImageURL("SOL"),
-  //   poolInfo: {
-  //     dex: "raydium",
-  //     poolId: "mrWgqCV3i1YhiG3VENnJ8qQUEGEqeBvunrp647pCb7R",
-  //   },
-  //   link: "https://raydium.io/",
-  //   action: "Deposit",
-  //   platform: {
-  //     title: "Raydium",
-  //     icon: IconRaydium,
-  //   },
-  // },
-  // {
-  //   title: "LST-bSOL",
-  //   baseIcon: IconLST,
-  //   quoteIcon:
-  //     "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1/logo.png",
-  //   poolInfo: {
-  //     dex: "orca",
-  //     poolId: "GAbU1sCPSnxQDE3ywBxq9nrBo66J9yAxwNGTyu9Kg1mr",
-  //   },
-  //   link: "https://v1.orca.so/liquidity/browse?tokenMint=LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp",
-  //   action: "Deposit",
-  //   platform: {
-  //     title: "Orca",
-  //     icon: IconOrca,
-  //   },
-  // },
-];
 
 export default function MintPage() {
   const { connection } = useConnection();
@@ -122,11 +45,10 @@ export default function MintPage() {
 
   const [previousTxn] = useUiStore((state) => [state.previousTxn]);
 
-  const [fetchLstState, initialized, setIsRefreshingStore, lstData] = useLstStore((state) => [
+  const [fetchLstState, initialized, setIsRefreshingStore] = useLstStore((state) => [
     state.fetchLstState,
     state.initialized,
     state.setIsRefreshingStore,
-    state.lstData,
   ]);
 
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
@@ -214,37 +136,14 @@ export default function MintPage() {
 
   React.useEffect(() => {
     const fetchIntegrations = async () => {
-      const dexPoolIdInfo = integrationsData.map((item) => item.poolInfo);
-
-      // Create search params from the array
-      const searchParams = new URLSearchParams();
-      dexPoolIdInfo.forEach((item) => {
-        searchParams.append("dex", item.dex);
-        searchParams.append("poolId", item.poolId);
-      });
-
       try {
-        const res = await fetch(`/api/markets?${searchParams.toString()}`);
+        const res = await fetch(`/api/birdeye/markets?token=` + LST_MINT);
         if (!res.ok) {
           // throw new Error("Failed to fetch integrations");
           return;
         }
         const data = await res.json();
-
-        const updatedIntegrations = integrationsData
-          .map((item, i) => {
-            if (!data[i] || !data[i].data) return item;
-            return {
-              ...item,
-              info: {
-                tvl: `$${numeralFormatter(data[i].data.tvl)}`,
-                vol: `$${numeralFormatter(data[i].data.vol)}`,
-              },
-            };
-          })
-          .filter((item) => item.info?.tvl !== "$0");
-
-        setIntegrations(updatedIntegrations);
+        setIntegrations(data);
       } catch (error) {
         console.error("Failed to fetch integrations data:", error);
         // Handle error or set some error state here
@@ -310,11 +209,9 @@ export default function MintPage() {
                   ) : (
                     <IntegrationCardSkeleton />
                   )}
-                  {integrations?.length > 0 ? (
-                    integrations.map((item, i) => <IntegrationCard integrationsData={item} key={i} />)
-                  ) : (
-                    <IntegrationCardSkeleton />
-                  )}
+                  {integrations?.length > 0
+                    ? integrations.map((item, i) => <IntegrationCard integrationsData={item} key={i} />)
+                    : [...new Array(5)].map((_, index) => <IntegrationCardSkeleton key={index} />)}
                 </div>
               </div>
             </>

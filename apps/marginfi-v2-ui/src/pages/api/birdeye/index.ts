@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const response = await fetch(`${BIRDEYE_API}/defi/multi_price?list_address=${mintList}`, {
       headers: {
         Accept: "application/json",
-        "X-Api-Key": process.env.NEXT_PUBLIC_BIRDEYE_API_KEY || "",
+        "X-Api-Key": process.env.BIRDEYE_API_KEY || "",
       },
       signal: controller.signal,
     });
