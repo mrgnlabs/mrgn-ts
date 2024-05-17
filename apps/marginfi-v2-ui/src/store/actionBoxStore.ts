@@ -9,7 +9,16 @@ import { nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 
-import { LstType, RepayType, StakeData, YbxType, debounceFn, getSwapQuoteWithRetry, verifyJupTxSize } from "~/utils";
+import {
+  LstType,
+  RepayType,
+  StakeData,
+  YbxType,
+  capture,
+  debounceFn,
+  getSwapQuoteWithRetry,
+  verifyJupTxSize,
+} from "~/utils";
 
 interface ActionBoxState {
   // State
@@ -366,6 +375,8 @@ async function calculateRepayCollateral(
 
   const maxAccountsArr = [undefined, 50, 40, 30];
 
+  let firstQuote;
+
   for (const maxAccounts of maxAccountsArr) {
     const quoteParams = {
       amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
@@ -377,6 +388,10 @@ async function calculateRepayCollateral(
     } as QuoteGetRequest;
     try {
       const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+
+      if (!maxAccounts) {
+        firstQuote = swapQuote;
+      }
 
       if (swapQuote) {
         const outAmount = nativeToUi(swapQuote.outAmount, bank.info.state.mintDecimals);
@@ -394,16 +409,30 @@ async function calculateRepayCollateral(
           connection
         );
         if (txn) {
+          capture("repay_with_collat", {
+            amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+            firstQuote,
+            bestQuote: swapQuote,
+            inputMint: repayBank.info.state.mint.toBase58(),
+            outputMint: bank.info.state.mint.toBase58(),
+          });
           return { repayTxn: txn, quote: swapQuote, amount: amountToRepay };
         }
       } else {
-        return null;
+        throw new Error("Swap quote failed");
       }
     } catch (error) {
+      console.error(error);
+    } finally {
+      capture("repay_with_collat", {
+        amountIn: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+        firstQuote,
+        inputMint: repayBank.info.state.mint.toBase58(),
+        outputMint: bank.info.state.mint.toBase58(),
+      });
       return null;
     }
   }
-  return null;
 }
 
 async function calculateMaxCollat(bank: ExtendedBankInfo, repayBank: ExtendedBankInfo, slippageBps: number) {
