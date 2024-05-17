@@ -29,6 +29,10 @@ const tokens = [
   "hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux", // HNT
   "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3", // PYTH
   "SHDWyBxihqiCj6YekG2GUr7wqKLeLAMK1gHZck9pL6y", // SHDW
+  "DriFtupJYLTosbwoN8koMbEYSx54aFAVLddWsbksjwg7", // DRIFT
+  "85VBFQZC9TZkfaptBWjvUw7YbZjy52A6mjtPGjstQAmQ", // W
+  "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN", // JUP
+  "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL", // JITO
 ];
 
 const appIdentity = {
@@ -45,41 +49,28 @@ const colors: MayanWidgetColors = {
 
 const rpcs = {
   solana: config.rpcEndpoint,
-  ethereum: process.env.NEXT_PUBLIC_ETHEREUM_RPC_ENDPOINT,
-  bsc: process.env.NEXT_PUBLIC_BSC_ENDPOINT,
-  polygon: process.env.NEXT_PUBLIC_POLYGON_ENDPOINT,
-  avalanche: process.env.NEXT_PUBLIC_AVALANCE_ENDPOINT,
-  arbitrum: process.env.NEXT_PUBLIC_ARBITRUM_ENDPOINT,
-  optimism: process.env.NEXT_PUBLIC_OPTIMISM_ENDPOINT,
-  base: process.env.NEXT_PUBLIC_BASE_ENDPOINT,
 };
 const solanaReferrerAddress = "GhQ3NxahWcddaMa71rkDp1FdTfs2jBpjzCq3kzkv1mNZ";
 const evmReferrerAddress = "0x0bb342B595Dc30638524cab81138cDa9CAa2636D";
 
-const configs: MayanWidgetConfigType[] = [
-  {
-    appIdentity,
-    colors,
-    rpcs,
-    solanaReferrerAddress,
-    evmReferrerAddress,
-    tokens: {
-      to: {
-        solana: tokens,
-      },
+const mayanWidgetConfig: MayanWidgetConfigType = {
+  appIdentity,
+  colors,
+  rpcs,
+  solanaReferrerAddress,
+  evmReferrerAddress,
+  tokens: {
+    to: {
+      solana: tokens,
     },
-    sourceChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "optimism", "base"],
-    destinationChains: ["solana", "polygon", "ethereum", "arbitrum", "bsc", "avalanche", "optimism", "base"],
-    solanaExtraRpcs: [process.env.NEXT_PUBLIC_SOLANA2_RPC_ENDPOINT!],
   },
-];
+  solanaExtraRpcs: [process.env.NEXT_PUBLIC_SOLANA2_RPC_ENDPOINT!],
+};
 
 export const Bridge = ({ onLoad }: BridgeProps) => {
   const { walletAddress, walletContextState } = useWalletContext();
   const setShowBadges = useUserProfileStore((state) => state.setShowBadges);
   const [setIsWalletAuthDialogOpen] = useUiStore((state) => [state.setIsWalletAuthDialogOpen]);
-  const [isBridgeIn, setIsBridgeIn] = React.useState<boolean>(true);
-  const [isLoaded, setIsLoaded] = React.useState(false);
   const [loadTimestamp, setLoadTimestamp] = React.useState(0);
 
   if (loadTimestamp === 0) {
@@ -98,30 +89,10 @@ export const Bridge = ({ onLoad }: BridgeProps) => {
     }
   }, [walletContextState, setIsWalletAuthDialogOpen]);
 
-  const handleUpdateConfig = React.useCallback(() => {
-    const newConfigIndex = isBridgeIn ? 1 : 0;
-    const config = {
-      ...configs[newConfigIndex],
-      solanaWallet: {
-        publicKey: walletAddress ? walletAddress.toString() : null,
-        signTransaction: walletContextState.signTransaction,
-        onClickOnConnect: handleConnect,
-        onClickOnDisconnect: walletContextState.disconnect,
-      },
-    };
-    if (window.MayanSwap) {
-      window.MayanSwap.updateConfig(config);
-    } else {
-      return;
-    }
-    setIsBridgeIn((prevState) => !prevState);
-  }, [handleConnect, isBridgeIn, walletAddress, walletContextState]);
-
   const handleLoadMayanWidget = React.useCallback(() => {
     const multiStepToast = new MultiStepToastHandle("Bridge", [{ label: `Cross-chain swap/bridge in progress` }]);
-    const configIndex = isBridgeIn ? 0 : 1;
     const config: MayanWidgetConfigType = {
-      ...configs[configIndex],
+      ...mayanWidgetConfig,
       // With current useWalletContext it's impossible to make pass through work
       enableSolanaPassThrough: false,
     };
@@ -148,19 +119,17 @@ export const Bridge = ({ onLoad }: BridgeProps) => {
     const timeElapsed = currentTime - loadTimestamp;
     const delay = Math.max(0, 1000 - timeElapsed);
     setTimeout(() => {
-      setIsLoaded(true);
-      handleUpdateConfig();
       if (onLoad) {
         onLoad();
       }
     }, delay);
-  }, [isBridgeIn, loadTimestamp, handleUpdateConfig, onLoad]);
+  }, [loadTimestamp, onLoad]);
 
   return (
     <div>
       <Script
-        src="https://cdn.mayan.finance/mayan_widget_v_1_0_7.js"
-        integrity="sha256-oJnJHMja6en9Z+acBUQ9tYWXVVwdw6H3MhfWbGg3ST0="
+        src="https://cdn.mayan.finance/mayan_widget_v_1_1_0_nowc.js"
+        integrity="sha256-/hZkPxchnwtjN6dCbg9acL9cDLd1SHLVn0KZ5p1kneQ="
         crossOrigin="anonymous"
         onReady={handleLoadMayanWidget}
       />
