@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.4.0",
     "@mrgnlabs/marginfi-client-v2": "*",
     "@mrgnlabs/marginfi-v2-ui-state": "*",
     "@mrgnlabs/mrgn-common": "*",
