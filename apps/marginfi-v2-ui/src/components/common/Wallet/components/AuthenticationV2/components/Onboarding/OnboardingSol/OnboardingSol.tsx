@@ -5,11 +5,11 @@ import { Button } from "~/components/ui/button";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React from "react";
 import { WalletSeperator } from "../../sharedComponents/WalletSeperator";
-import { ethOnrampFlow } from "./onboardingEthUtils";
+import { ethOnrampFlow } from "./onboardingSolUtils";
 
 interface props extends AuthScreenProps {}
 
-export const OnboardingEth = ({
+export const OnboardingSol = ({
   isLoading,
   isActiveLoading,
   setIsLoading,

@@ -35,7 +35,7 @@ export const InstallWallet: React.FC<props> = ({
   }
 
   const onPageRefresh = () => {
-    push(`/?onboard=${installingWallet}`).then(() => {
+    push(`/?onramp=${installingWallet}`).then(() => {
       reload();
     });
   };
@@ -50,7 +50,7 @@ export const InstallWallet: React.FC<props> = ({
         <div className="mx-auto">
           <Image src={selectedWallet.adapter.icon} width={32} height={32} alt={selectedWallet.adapter.name} />
         </div>
-        <p className="flex justify-center gap-2">
+        <p className="flex justify-center gap-2 text-center">
           Installing {installingWallet} wallet. <br />
           Press refresh when you&apos;ve completed the installation setup.
         </p>
