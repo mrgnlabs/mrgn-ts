@@ -16,9 +16,16 @@ export const AuthDialog = () => {
   const [flow, setFlow] = React.useState<AuthFlowType>("ONBOARD_MAIN");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isActiveLoading, setIsActiveLoading] = React.useState<string>("");
-  const { select } = useWallet();
+  const { select, connecting } = useWallet();
   const { loginWeb3Auth } = useWalletContext();
-  const { query } = useRouter();
+  const { query, replace, pathname } = useRouter();
+
+  React.useEffect(() => {
+    if (!connecting) {
+      setIsLoading(false);
+      setIsActiveLoading("");
+    }
+  }, [connecting]);
 
   React.useEffect(() => {
     // check if user is new
@@ -28,17 +35,29 @@ export const AuthDialog = () => {
       setIsLoading(true);
       setIsActiveLoading(selectedWallet);
       select(selectedWallet as any);
-    }
-  }, [query.onramp, select]);
 
-  React.useEffect(() => {
-    setFlow("ONBOARD_MAIN");
-  }, []);
+      const newQuery = { ...query };
+      delete newQuery.onramp;
+      replace(
+        {
+          pathname: pathname,
+          query: newQuery,
+        },
+        undefined,
+        { shallow: true }
+      );
+    }
+  }, [pathname, query, query.onramp, replace, select]);
+
+  // React.useEffect(() => {
+  //   setFlow("ONBOARD_MAIN");
+  // }, []);
 
   React.useEffect(() => {
     if (!isWalletAuthDialogOpen) {
       setIsLoading(false);
       setIsActiveLoading("");
+      setFlow("ONBOARD_MAIN");
     }
   }, [isWalletAuthDialogOpen]);
 
