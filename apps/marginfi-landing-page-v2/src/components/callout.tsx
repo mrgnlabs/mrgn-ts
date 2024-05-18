@@ -61,54 +61,57 @@ export const Callout = () => {
               {CONTENT.cta.label} <IconArrowRight size={18} className="ml-1.5" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl px-8 outline-none">
-            <DialogHeader className="sm:text-center gap-3 items-center">
+          <DialogContent className="max-w-3xl py-10 px-16 outline-none">
+            <DialogHeader className="sm:text-center gap-2 items-center">
               <Logo size={44} wordmark={false} />
-              <DialogTitle className="text-3xl leading-none tracking-normal">
+              <DialogTitle className="text-3xl leading-7 tracking-normal">
                 Grant Gateway
                 <br /> <span className="text-xl">Fueling the mrgn. ecosystem</span>
               </DialogTitle>
-              <DialogDescription className="w-[60%] mx-auto">
-                Create a grant proposal to build something iconic with marginfi&apos;s liquidity, userbase, and tooling.
-              </DialogDescription>
+              <DialogDescription>Create a grant proposal and build something iconic with marginfi.</DialogDescription>
             </DialogHeader>
-            <div className="space-y-2">
-              <div className="grid gap-4 py-4">
-                <h3 className="font-medium text-lg">Your info</h3>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" className="col-span-3" placeholder="Your name" />
+            <div className="space-y-2 mt-4">
+              <div className="grid grid-cols-2 gap-8">
+                <div className="space-y-4 py-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="name">Your Name</Label>
+                    <Input id="name" className="col-span-3" placeholder="Your name" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="projectName">Project Name</Label>
+                    <Input id="projectName" className="col-span-3" placeholder="Project name" />
+                  </div>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" className="col-span-3" placeholder="example@example.com" />
+                <div className="space-y-4 py-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="email">Your Email</Label>
+                    <Input id="email" type="email" className="col-span-3" placeholder="example@example.com" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="projectUrl">Project Link</Label>
+                    <Input
+                      id="projectUrl"
+                      type="url"
+                      className="col-span-3"
+                      placeholder="https://www.yourwebsite.com/"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="grid gap-4 py-4">
-                <h3 className="font-medium text-lg">Project info</h3>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="projectName">Name</Label>
-                  <Input id="projectName" className="col-span-3" placeholder="Project name" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="projectUrl">URL</Label>
-                  <Input id="projectUrl" type="url" className="col-span-3" placeholder="https://www.yourwebsite.com/" />
-                </div>
-                <div className="grid grid-cols-4 gap-4 items-start">
-                  <Label htmlFor="projectDesc" className="mt-2">
-                    Description
-                  </Label>
-                  <Textarea
-                    id="projectDesc"
-                    className="col-span-3"
-                    rows={4}
-                    placeholder="Tell us about your project..."
-                  />
-                </div>
+              <div className="space-y-1">
+                <Label htmlFor="projectDesc" className="mt-2">
+                  Project Description
+                </Label>
+                <Textarea
+                  id="projectDesc"
+                  className="col-span-3"
+                  rows={4}
+                  placeholder="Tell us about your project..."
+                />
               </div>
             </div>
-            <DialogFooter>
-              <Button type="submit">Save changes</Button>
+            <DialogFooter className="sm:justify-center mt-4">
+              <Button type="submit">Submit Project</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
