@@ -61,7 +61,7 @@ export const Callout = () => {
               {CONTENT.cta.label} <IconArrowRight size={18} className="ml-1.5" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl py-10 px-16 outline-none">
+          <DialogContent className="max-w-none lg:max-w-3xl lg:py-10 lg:px-16 outline-none">
             <DialogHeader className="sm:text-center gap-2 items-center">
               <Logo size={44} wordmark={false} />
               <DialogTitle className="text-3xl leading-7 tracking-normal">
@@ -71,7 +71,7 @@ export const Callout = () => {
               <DialogDescription>Create a grant proposal and build something iconic with marginfi.</DialogDescription>
             </DialogHeader>
             <div className="space-y-2 mt-4">
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid md:grid-cols-2 md:gap-8">
                 <div className="space-y-4 py-4">
                   <div className="space-y-1">
                     <Label htmlFor="name">Your Name</Label>
