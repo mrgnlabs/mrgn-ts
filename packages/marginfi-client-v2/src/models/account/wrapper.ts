@@ -115,6 +115,10 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount;
   }
 
+  get pureAccount(): MarginfiAccount {
+    return this._marginfiAccount;
+  }
+
   /** @internal */
   private get _program() {
     return this.client.program;
