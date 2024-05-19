@@ -5,9 +5,6 @@ export default function HomePage() {
         Launch and trade permissionless pools
         <br className="hidden xl:block" /> on marginfi
       </h1>
-      <div className="mt-20">
-        <h2>Trending grid here...</h2>
-      </div>
     </div>
   );
 }
