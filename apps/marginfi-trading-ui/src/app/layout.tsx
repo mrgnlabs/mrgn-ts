@@ -18,7 +18,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body>
         <Header />
-        <main className="py-8 px-4 lg:px-8">{children}</main>
+        <main>{children}</main>
       </body>
     </html>
   );
