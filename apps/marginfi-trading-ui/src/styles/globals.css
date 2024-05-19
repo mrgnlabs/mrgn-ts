@@ -33,6 +33,11 @@
     --ring: 0 0% 3.9%;
 
     --radius: 0.5rem;
+
+    /* brand vars */
+    --mrgn-chartreuse: 66 75% 64%;
+    --mrgn-gold: 33 16% 67%;
+    --mrgn-slate: 72 3% 32%;
   }
 
   .dark {
