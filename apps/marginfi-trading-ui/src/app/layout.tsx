@@ -1,3 +1,5 @@
+import { Header } from "~/components/header";
+
 import type { Metadata } from "next";
 
 import "../styles/fonts.css";
@@ -14,7 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body>{children}</body>
+      <body>
+        <Header />
+        <main className="py-8 px-4 lg:px-8">{children}</main>
+      </body>
     </html>
   );
 }
