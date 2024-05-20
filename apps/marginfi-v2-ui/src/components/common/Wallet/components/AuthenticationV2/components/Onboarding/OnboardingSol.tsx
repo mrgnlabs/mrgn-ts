@@ -1,15 +1,14 @@
-import Image from "next/image";
-
-import { DialogContent } from "~/components/ui/dialog";
-import { AuthScreenProps, cn, socialProviders, walletIcons } from "~/utils";
-import { OnboardHeader, WalletAuthButton, WalletAuthEmailForm } from "../sharedComponents";
-import { Button } from "~/components/ui/button";
-import { useWallet } from "@solana/wallet-adapter-react";
 import React from "react";
-import { WalletSeperator } from "../sharedComponents/WalletSeperator";
+import Image from "next/image";
+import { useWallet } from "@solana/wallet-adapter-react";
+
 import { useOs } from "~/hooks/useOs";
 import { IconBackpackWallet, IconPhantomWallet, IconStarFilled } from "~/components/ui/icons";
 import { useUiStore } from "~/store";
+import { DialogContent } from "~/components/ui/dialog";
+import { AuthScreenProps, cn, socialProviders, walletIcons } from "~/utils";
+
+import { OnboardHeader, WalletAuthButton, WalletAuthEmailForm, WalletSeperator } from "../sharedComponents";
 
 interface props extends AuthScreenProps {}
 
