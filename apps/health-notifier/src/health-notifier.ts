@@ -9,7 +9,7 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { BorshAccountsCoder } from "@coral-xyz/anchor";
-import { percentFormatterDyn, sleep } from "@mrgnlabs/mrgn-common";
+import { percentFormatterDyn, shortenAddress, sleep } from "@mrgnlabs/mrgn-common";
 import { AccountState, AccountStore } from "./account-store";
 import { GroupMonitor } from "./group-monitor";
 import { reduceSubscribers } from "./helpers";
@@ -126,20 +126,18 @@ export class HealthNotifier {
       let message: string;
       switch (notification.type) {
         case "dangerous_health":
-          title = `Your health factor fell below ${percentFormatterDyn.format(
-            envConfig.NOTIFICATION_DANGEROUS_HEALTH_THRESHOLD_ACTIVATE
-          )}`;
-          message = `The value of your health factor just dropped under ${percentFormatterDyn.format(
-            envConfig.NOTIFICATION_DANGEROUS_HEALTH_THRESHOLD_ACTIVATE
-          )}. It is now ${percentFormatterDyn.format(notification.health)}.`;
+          title = `Health alert 🚨`;
+          message = `your marginfi account ${shortenAddress(notification.account)} health factor is now ${percentFormatterDyn.format(notification.health)}.`;
           break;
         case "liquidatable":
-          title = `Your health factor fell below ${percentFormatterDyn.format(0)}`;
-          message = `Your health factor fell below ${percentFormatterDyn.format(0)}`;
+          title = `Health alert 🚨`;
+          message = `your marginfi account ${shortenAddress(notification.account)} health factor is now 0% - you are open to partial liquidations`;
           break;
         default:
           throw new Error(`This should not be possible!`);
       }
+
+      logger.info(`Sending notification to ${notification.wallet}: ${notification.type}`);
 
       await this.dapp.messages.send({
         recipient: notification.wallet,
