@@ -60,6 +60,7 @@ import {
   IconBox,
   IconBell,
   IconLink,
+  IconPlus,
 } from "@tabler/icons-react";
 import { cn } from "~/utils/themeUtils";
 
@@ -876,6 +877,7 @@ export {
   IconConfetti,
   IconTrophyFilled,
   IconStar,
+  IconPlus,
   IconStarFilled,
   IconTransfer,
   IconBolt,
