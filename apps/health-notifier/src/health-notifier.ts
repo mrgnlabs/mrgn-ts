@@ -1,12 +1,7 @@
 import { AddressType, Dapp, DappMessageActionType, Dialect } from "@dialectlabs/sdk";
 import { envConfig } from "./env-config";
 import { Connection, Context, KeyedAccountInfo, PublicKey } from "@solana/web3.js";
-import {
-  AccountType,
-  MarginRequirementType,
-  MarginfiAccount,
-  MarginfiConfig,
-} from "@mrgnlabs/marginfi-client-v2";
+import { AccountType, MarginRequirementType, MarginfiAccount, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { BorshAccountsCoder } from "@coral-xyz/anchor";
 import { percentFormatterDyn, shortenAddress, sleep } from "@mrgnlabs/mrgn-common";
@@ -95,12 +90,20 @@ export class HealthNotifier {
 
     logger.info(`Subscribed to account updates`);
 
-    while (true) {
-      const accounts = this.accountStore.getAll();
-      let notifications: Notification[] = this.checkForNotifications(accounts);
-      await this.notify(notifications);
+    const accounts = this.accountStore.getAll();
+    let notifications = this.checkForNotifications(accounts);
+    if (notifications.length > 0) {
+      logger.info(`Ignoring ${notifications.length} initial notifications for accounts:`);
+      for (const notification of notifications) {
+        logger.info(`- ${notification.account}`);
+      }
+    }
 
+    while (true) {
       await sleep(20_000);
+      const accounts = this.accountStore.getAll();
+      let notifications = this.checkForNotifications(accounts);
+      await this.notify(notifications);
     }
   }
 
@@ -127,11 +130,15 @@ export class HealthNotifier {
       switch (notification.type) {
         case "dangerous_health":
           title = `health alert 🚨`;
-          message = `your marginfi account (${shortenAddress(notification.account)}) health factor is now ${percentFormatterDyn.format(notification.health)}.`;
+          message = `your marginfi account (${shortenAddress(
+            notification.account
+          )}) health factor is now ${percentFormatterDyn.format(notification.health)}.`;
           break;
         case "liquidatable":
           title = `health alert 🚨`;
-          message = `your marginfi account (${shortenAddress(notification.account)}) health factor is now 0% - you are open to partial liquidations`;
+          message = `your marginfi account (${shortenAddress(
+            notification.account
+          )}) health factor is now 0% - you are open to partial liquidations`;
           break;
         default:
           throw new Error(`This should not be possible!`);
@@ -175,10 +182,7 @@ export class HealthNotifier {
     return notifications;
   }
 
-  checkForDangerousHealth(
-    accountPk: string,
-    accountState: AccountState
-  ): DangerousHealthNotification | undefined {
+  checkForDangerousHealth(accountPk: string, accountState: AccountState): DangerousHealthNotification | undefined {
     const mfiAccount = accountState.account;
     const wallet = mfiAccount.authority.toBase58();
     const { assets, liabilities } = mfiAccount.computeHealthComponents(
@@ -208,10 +212,7 @@ export class HealthNotifier {
     }
   }
 
-  checkForLiquidatable(
-    accountPk: string,
-    accountState: AccountState
-  ): LiquidatableNotification | undefined {
+  checkForLiquidatable(accountPk: string, accountState: AccountState): LiquidatableNotification | undefined {
     const mfiAccount = accountState.account;
     const wallet = mfiAccount.authority.toBase58();
     const { assets, liabilities } = mfiAccount.computeHealthComponents(
