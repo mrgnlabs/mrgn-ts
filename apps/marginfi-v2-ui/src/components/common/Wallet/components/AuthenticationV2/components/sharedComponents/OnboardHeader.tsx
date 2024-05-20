@@ -12,7 +12,7 @@ export const OnboardHeader = ({ title, description, size = "lg" }: props) => {
   return (
     <DialogHeader>
       <IconMrgn size={48} />
-      <DialogTitle className={cn(size === "lg" ? "text-3xl" : "text-2xl", "pt-6")}>{title}</DialogTitle>
+      <DialogTitle className={cn(size === "lg" ? "text-3xl" : "text-2xl", "pt-4")}>{title}</DialogTitle>
       <DialogDescription>{description}</DialogDescription>
     </DialogHeader>
   );
