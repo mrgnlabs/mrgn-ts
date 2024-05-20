@@ -5,15 +5,15 @@ import {
   AccountType,
   MarginRequirementType,
   MarginfiAccount,
-  MarginfiClient,
   MarginfiConfig,
 } from "@mrgnlabs/marginfi-client-v2";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { BorshAccountsCoder } from "@coral-xyz/anchor";
-import { Wallet, percentFormatterDyn, sleep } from "@mrgnlabs/mrgn-common";
+import { percentFormatterDyn, sleep } from "@mrgnlabs/mrgn-common";
 import { AccountState, AccountStore } from "./account-store";
 import { GroupMonitor } from "./group-monitor";
 import { reduceSubscribers } from "./helpers";
+import { logger } from "./logger";
 
 export interface Subscriber {
   wallet: string;
@@ -28,20 +28,20 @@ interface NotificationBase {
   wallet: string;
 }
 
-interface MaintenanceHealthNotification extends NotificationBase {
+interface DangerousHealthNotification extends NotificationBase {
   type: "dangerous_health";
   account: string;
   wallet: string;
   health: number;
 }
 
-interface LiquidationHealthNotification {
+interface LiquidatableNotification {
   type: "liquidatable";
   account: string;
   wallet: string;
 }
 
-type Notification = MaintenanceHealthNotification | LiquidationHealthNotification;
+type Notification = DangerousHealthNotification | LiquidatableNotification;
 
 export type NotificationStatus = "active" | "inactive";
 
@@ -57,22 +57,14 @@ export class HealthNotifier {
     readonly mfiConfig: MarginfiConfig,
     readonly groupMonitor: GroupMonitor
   ) {
-    console.log(`Dapp:\n- Address: ${this.dapp.address}\n- Description: ${this.dapp.description}`);
+    logger.info(`Dapp:\n- Address: ${this.dapp.address}\n- Description: ${this.dapp.description}`);
   }
 
   async init(): Promise<void> {
     const subscriberRaw = await this.dapp.dappAddresses.findAll();
-
     this.subscribers = reduceSubscribers(subscriberRaw);
-    console.log(`Subscribers: ${this.subscribers.length} addresses`);
-
-    for (const wallet in this.subscribers) {
-      const subscriber = this.subscribers[wallet];
-      console.log(`Subscribed wallet: ${wallet}`);
-      this.subscribers[wallet] = subscriber;
-    }
-
-    this.loadAllMarginfiAccounts(Object.keys(this.subscribers));
+    logger.info(`Subscribers: ${this.subscribers.length} wallets`);
+    await this.accountStore.init(Object.keys(this.subscribers), this.mfiConfig, this.rpcClient);
   }
 
   async run(): Promise<void> {
@@ -102,9 +94,7 @@ export class HealthNotifier {
 
     while (true) {
       const accounts = this.accountStore.getAll();
-
       let notifications: Notification[] = this.checkForNotifications(accounts);
-
       await this.notify(notifications);
 
       await sleep(20_000);
@@ -117,7 +107,7 @@ export class HealthNotifier {
     if (this.subscribers[accountAuthority] === undefined) {
       return;
     }
-    console.log(`Subbed account updated: ${keyedAccountInfo.accountId.toBase58()} on slot ${context.slot}`);
+    logger.info(`Subbed account updated: ${keyedAccountInfo.accountId.toBase58()} on slot ${context.slot}`);
 
     const mfiAccount = MarginfiAccount.fromAccountDataRaw(
       keyedAccountInfo.accountId,
@@ -125,23 +115,6 @@ export class HealthNotifier {
     );
 
     this.accountStore.upsert(keyedAccountInfo.accountId.toBase58(), mfiAccount);
-  }
-
-  private async loadAllMarginfiAccounts(subscribers: string[]) {
-    const mfiClient = await MarginfiClient.fetch(this.mfiConfig, {} as Wallet, this.rpcClient, { readOnly: true });
-
-    console.log(`Loading initial accounts for ${subscribers.length} subscribers`);
-    const mfiAccounts = (
-      await Promise.all(subscribers.map((sub) => mfiClient.getMarginfiAccountsForAuthority(new PublicKey(sub))))
-    )
-      .flat()
-      .map((a) => a.pureAccount);
-
-    for (const account of mfiAccounts) {
-      this.accountStore.upsert(account.address.toBase58(), account);
-    }
-
-    console.log("Finished loading all Marginfi accounts");
   }
 
   async notify(notifications: Notification[]): Promise<void> {
@@ -204,7 +177,7 @@ export class HealthNotifier {
   checkForDangerousHealth(
     accountPk: string,
     accountState: AccountState
-  ): MaintenanceHealthNotification | undefined {
+  ): DangerousHealthNotification | undefined {
     const mfiAccount = accountState.account;
     const wallet = mfiAccount.authority.toBase58();
     const { assets, liabilities } = mfiAccount.computeHealthComponents(
@@ -213,11 +186,6 @@ export class HealthNotifier {
       MarginRequirementType.Maintenance
     );
     const maintenanceHealth = assets.isZero() ? 1 : assets.minus(liabilities).div(assets).toNumber();
-    // console.log(
-    //   `Account: ${accountPk}: ${percentFormatterDyn.format(maintenanceHealth)} [${
-    //     accountState.notificationStatuses["dangerous_health"]
-    //   }]`
-    // );
 
     if (
       accountState.notificationStatuses["dangerous_health"] === "inactive" &&
@@ -242,7 +210,7 @@ export class HealthNotifier {
   checkForLiquidatable(
     accountPk: string,
     accountState: AccountState
-  ): LiquidationHealthNotification | undefined {
+  ): LiquidatableNotification | undefined {
     const mfiAccount = accountState.account;
     const wallet = mfiAccount.authority.toBase58();
     const { assets, liabilities } = mfiAccount.computeHealthComponents(
@@ -250,16 +218,11 @@ export class HealthNotifier {
       this.groupMonitor.oraclePrices,
       MarginRequirementType.Maintenance
     );
-    const liquidationHealth = assets.isZero() ? 1 : assets.minus(liabilities).div(assets).toNumber();
-    // console.log(
-    //   `Account: ${accountPk}: ${percentFormatterDyn.format(liquidationHealth)} [${
-    //     accountState.notificationStatuses["liquidatable"]
-    //   }]`
-    // );
+    const maintenanceHealth = assets.isZero() ? 1 : assets.minus(liabilities).div(assets).toNumber();
 
     if (
       accountState.notificationStatuses["liquidatable"] === "inactive" &&
-      liquidationHealth < envConfig.NOTIFICATION_LIQUIDATABLE_THRESHOLD_ACTIVATE
+      maintenanceHealth < envConfig.NOTIFICATION_LIQUIDATABLE_THRESHOLD_ACTIVATE
     ) {
       // NOTE: Toggling those here assumes that the notification are successfully sent out
       this.accountStore.setNotificationStatus(accountPk, "liquidatable", "active");
@@ -270,7 +233,7 @@ export class HealthNotifier {
       };
     } else if (
       accountState.notificationStatuses["liquidatable"] === "active" &&
-      liquidationHealth >= envConfig.NOTIFICATION_LIQUIDATABLE_THRESHOLD_DEACTIVATE
+      maintenanceHealth >= envConfig.NOTIFICATION_LIQUIDATABLE_THRESHOLD_DEACTIVATE
     ) {
       this.accountStore.setNotificationStatus(accountPk, "liquidatable", "inactive");
     }

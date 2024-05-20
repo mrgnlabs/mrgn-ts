@@ -19,7 +19,6 @@ async function main() {
       wallet: NodeDialectSolanaWalletAdapter.create(envConfig.DIALECT_SDK_KEYPAIR),
     })
   );
-
   const dapp = await sdk.dapps.find();
   if (!dapp) {
     throw new IllegalStateError("Dapp doesn't exist, please create dapp before using it");
