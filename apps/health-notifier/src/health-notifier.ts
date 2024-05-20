@@ -63,8 +63,9 @@ export class HealthNotifier {
   async init(): Promise<void> {
     const subscriberRaw = await this.dapp.dappAddresses.findAll();
     this.subscribers = reduceSubscribers(subscriberRaw);
-    logger.info(`Subscribers: ${this.subscribers.length} wallets`);
-    await this.accountStore.init(Object.keys(this.subscribers), this.mfiConfig, this.rpcClient);
+    const subscriberWallets = Object.keys(this.subscribers);
+    logger.info(`Subscribers: ${subscriberWallets.length} wallets`);
+    await this.accountStore.init(subscriberWallets, this.mfiConfig, this.rpcClient);
   }
 
   async run(): Promise<void> {
@@ -91,6 +92,8 @@ export class HealthNotifier {
       "confirmed",
       accountFilters
     );
+
+    logger.info(`Subscribed to account updates`);
 
     while (true) {
       const accounts = this.accountStore.getAll();
