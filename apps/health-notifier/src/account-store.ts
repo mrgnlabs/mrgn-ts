@@ -5,8 +5,7 @@ export interface AccountState {
   accountPk: string;
   account: MarginfiAccount;
   notificationStatuses: {
-    ["maintenance_health"]: NotificationStatus;
-    ["liquidation_health"]: NotificationStatus;
+    [notificationType in NotificationTypes]: NotificationStatus;
   };
 }
 
@@ -21,8 +20,8 @@ export class AccountStore {
         accountPk,
         account,
         notificationStatuses: {
-          ["maintenance_health"]: "inactive",
-          ["liquidation_health"]: "inactive",
+          dangerous_health: "inactive",
+          liquidatable: "inactive",
         },
       };
     }

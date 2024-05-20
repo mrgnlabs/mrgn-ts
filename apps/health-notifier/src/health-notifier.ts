@@ -20,17 +20,23 @@ export interface Subscriber {
   sinks: AddressType[];
 }
 
-export type NotificationTypes = "maintenance_health" | "liquidation_health";
+export type NotificationTypes = "dangerous_health" | "liquidatable";
 
-interface MaintenanceHealthNotification {
-  type: "maintenance_health";
+interface NotificationBase {
+  type: NotificationTypes;
+  account: string;
+  wallet: string;
+}
+
+interface MaintenanceHealthNotification extends NotificationBase {
+  type: "dangerous_health";
   account: string;
   wallet: string;
   health: number;
 }
 
 interface LiquidationHealthNotification {
-  type: "liquidation_health";
+  type: "liquidatable";
   account: string;
   wallet: string;
 }
@@ -143,15 +149,15 @@ export class HealthNotifier {
       let title: string;
       let message: string;
       switch (notification.type) {
-        case "maintenance_health":
+        case "dangerous_health":
           title = `Your health factor fell below ${percentFormatterDyn.format(
-            envConfig.NOTIFICATION_MAINTENANCE_HEALTH_THRESHOLD_ACTIVATE
+            envConfig.NOTIFICATION_DANGEROUS_HEALTH_THRESHOLD_ACTIVATE
           )}`;
           message = `The value of your health factor just dropped under ${percentFormatterDyn.format(
-            envConfig.NOTIFICATION_MAINTENANCE_HEALTH_THRESHOLD_DEACTIVATE
+            envConfig.NOTIFICATION_DANGEROUS_HEALTH_THRESHOLD_ACTIVATE
           )}. It is now ${percentFormatterDyn.format(notification.health)}.`;
           break;
-        case "liquidation_health":
+        case "liquidatable":
           title = `Your health factor fell below ${percentFormatterDyn.format(0)}`;
           message = `Your health factor fell below ${percentFormatterDyn.format(0)}`;
           break;
@@ -181,12 +187,12 @@ export class HealthNotifier {
     let notifications: Notification[] = [];
 
     for (const [accountPk, accountState] of accounts) {
-      const maintenanceHealthNotification = this.checkForMaintenanceHealthNotifications(accountPk, accountState);
+      const maintenanceHealthNotification = this.checkForDangerousHealth(accountPk, accountState);
       if (maintenanceHealthNotification) {
         notifications.push(maintenanceHealthNotification);
       }
 
-      const liquidationHealthNotification = this.checkForLiquidationHealthNotifications(accountPk, accountState);
+      const liquidationHealthNotification = this.checkForLiquidatable(accountPk, accountState);
       if (liquidationHealthNotification) {
         notifications.push(liquidationHealthNotification);
       }
@@ -195,7 +201,7 @@ export class HealthNotifier {
     return notifications;
   }
 
-  checkForMaintenanceHealthNotifications(
+  checkForDangerousHealth(
     accountPk: string,
     accountState: AccountState
   ): MaintenanceHealthNotification | undefined {
@@ -209,31 +215,31 @@ export class HealthNotifier {
     const maintenanceHealth = assets.isZero() ? 1 : assets.minus(liabilities).div(assets).toNumber();
     // console.log(
     //   `Account: ${accountPk}: ${percentFormatterDyn.format(maintenanceHealth)} [${
-    //     accountState.notificationStatuses["maintenance_health"]
+    //     accountState.notificationStatuses["dangerous_health"]
     //   }]`
     // );
 
     if (
-      accountState.notificationStatuses["maintenance_health"] === "inactive" &&
-      maintenanceHealth < envConfig.NOTIFICATION_MAINTENANCE_HEALTH_THRESHOLD_ACTIVATE
+      accountState.notificationStatuses["dangerous_health"] === "inactive" &&
+      maintenanceHealth < envConfig.NOTIFICATION_DANGEROUS_HEALTH_THRESHOLD_ACTIVATE
     ) {
       // NOTE: Toggling those here assumes that the notification are successfully sent out
-      this.accountStore.setNotificationStatus(accountPk, "maintenance_health", "active");
+      this.accountStore.setNotificationStatus(accountPk, "dangerous_health", "active");
       return {
-        type: "maintenance_health",
+        type: "dangerous_health",
         account: accountPk,
         wallet,
         health: maintenanceHealth,
       };
     } else if (
-      accountState.notificationStatuses["maintenance_health"] === "active" &&
-      maintenanceHealth >= envConfig.NOTIFICATION_MAINTENANCE_HEALTH_THRESHOLD_DEACTIVATE
+      accountState.notificationStatuses["dangerous_health"] === "active" &&
+      maintenanceHealth >= envConfig.NOTIFICATION_DANGEROUS_HEALTH_THRESHOLD_DEACTIVATE
     ) {
-      this.accountStore.setNotificationStatus(accountPk, "maintenance_health", "inactive");
+      this.accountStore.setNotificationStatus(accountPk, "dangerous_health", "inactive");
     }
   }
 
-  checkForLiquidationHealthNotifications(
+  checkForLiquidatable(
     accountPk: string,
     accountState: AccountState
   ): LiquidationHealthNotification | undefined {
@@ -247,26 +253,26 @@ export class HealthNotifier {
     const liquidationHealth = assets.isZero() ? 1 : assets.minus(liabilities).div(assets).toNumber();
     // console.log(
     //   `Account: ${accountPk}: ${percentFormatterDyn.format(liquidationHealth)} [${
-    //     accountState.notificationStatuses["liquidation_health"]
+    //     accountState.notificationStatuses["liquidatable"]
     //   }]`
     // );
 
     if (
-      accountState.notificationStatuses["liquidation_health"] === "inactive" &&
-      liquidationHealth < envConfig.NOTIFICATION_LIQUIDATION_HEALTH_THRESHOLD_ACTIVATE
+      accountState.notificationStatuses["liquidatable"] === "inactive" &&
+      liquidationHealth < envConfig.NOTIFICATION_LIQUIDATABLE_THRESHOLD_ACTIVATE
     ) {
       // NOTE: Toggling those here assumes that the notification are successfully sent out
-      this.accountStore.setNotificationStatus(accountPk, "liquidation_health", "active");
+      this.accountStore.setNotificationStatus(accountPk, "liquidatable", "active");
       return {
-        type: "liquidation_health",
+        type: "liquidatable",
         account: accountPk,
         wallet,
       };
     } else if (
-      accountState.notificationStatuses["liquidation_health"] === "active" &&
-      liquidationHealth >= envConfig.NOTIFICATION_LIQUIDATION_HEALTH_THRESHOLD_DEACTIVATE
+      accountState.notificationStatuses["liquidatable"] === "active" &&
+      liquidationHealth >= envConfig.NOTIFICATION_LIQUIDATABLE_THRESHOLD_DEACTIVATE
     ) {
-      this.accountStore.setNotificationStatus(accountPk, "liquidation_health", "inactive");
+      this.accountStore.setNotificationStatus(accountPk, "liquidatable", "inactive");
     }
   }
 }
