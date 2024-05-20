@@ -10,9 +10,8 @@ let envSchema = z.object({
   DIALECT_SDK_KEYPAIR: z
     .string()
     .transform((keypairStr) => Keypair.fromSecretKey(new Uint8Array(JSON.parse(keypairStr)))),
-  DIALECT_SDK_ENVIRONMENT: z
-    .enum(["production", "staging", "local-development"])
-    .transform((s) => s as Environment),
+  DIALECT_SDK_ENVIRONMENT: z.enum(["production", "staging", "local-development"]).transform((s) => s as Environment),
+  LOG_LEVEL: z.enum(["error", "warn", "info", "debug"]).default("info"),
   NOTIFICATION_DANGEROUS_HEALTH_THRESHOLD_ACTIVATE: z.string().transform((s) => Number.parseFloat(s)),
   NOTIFICATION_DANGEROUS_HEALTH_THRESHOLD_DEACTIVATE: z.string().transform((s) => Number.parseFloat(s)),
   NOTIFICATION_LIQUIDATABLE_THRESHOLD_ACTIVATE: z.string().transform((s) => Number.parseFloat(s)),
