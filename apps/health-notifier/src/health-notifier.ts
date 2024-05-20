@@ -126,12 +126,12 @@ export class HealthNotifier {
       let message: string;
       switch (notification.type) {
         case "dangerous_health":
-          title = `Health alert 🚨`;
-          message = `your marginfi account ${shortenAddress(notification.account)} health factor is now ${percentFormatterDyn.format(notification.health)}.`;
+          title = `health alert 🚨`;
+          message = `your marginfi account (${shortenAddress(notification.account)}) health factor is now ${percentFormatterDyn.format(notification.health)}.`;
           break;
         case "liquidatable":
-          title = `Health alert 🚨`;
-          message = `your marginfi account ${shortenAddress(notification.account)} health factor is now 0% - you are open to partial liquidations`;
+          title = `health alert 🚨`;
+          message = `your marginfi account (${shortenAddress(notification.account)}) health factor is now 0% - you are open to partial liquidations`;
           break;
         default:
           throw new Error(`This should not be possible!`);
