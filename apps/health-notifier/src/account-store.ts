@@ -59,6 +59,12 @@ export class AccountStore {
   }
 
   setNotificationStatus(accountPk: string, notificationType: NotificationTypes, status: NotificationStatus): void {
+    const currentStatus = this.accounts[accountPk].notificationStatuses[notificationType];
+    if (currentStatus === "active" && status === "inactive") {
+      logger.info(`Notification ${notificationType} for account ${accountPk} is now inactive`);
+    } else if (currentStatus === "inactive" && status === "active") {
+      logger.info(`Notification ${notificationType} for account ${accountPk} is now active`);
+    }
     this.accounts[accountPk].notificationStatuses[notificationType] = status;
   }
 
