@@ -74,9 +74,10 @@ export function useLendingPreview({
 
   const getPreviewStats = (props: CalculatePreviewProps) => {
     const isLending = props.actionMode === ActionType.Deposit || props.actionMode === ActionType.Withdraw;
+    const isRepayWithCollat = !!props.repayWithCollatOptions;
     const preview = calculatePreview(props);
     setPreview(preview);
-    setPreviewStats(generateStats(preview, props.bank, isLending, props.isLoading));
+    setPreviewStats(generateStats(preview, props.bank, isLending, props.isLoading, isRepayWithCollat));
   };
 
   const getSimulationResult = async (props: SimulateActionProps) => {

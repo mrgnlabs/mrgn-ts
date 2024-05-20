@@ -377,6 +377,17 @@ export async function repay({
   }
 }
 
+const getFeeAccount = async (mint: PublicKey) => {
+  const referralProgramPubkey = new PublicKey("REFER4ZgmyYx9c6He5XfaTMiGfdLwRnkV4RPp9t9iF3");
+  const referralAccountPubkey = new PublicKey("Mm7HcujSK2JzPW4eX7g4oqTXbWYDuFxapNMHXe8yp1B");
+
+  const [feeAccount] = await PublicKey.findProgramAddressSync(
+    [Buffer.from("referral_ata"), referralAccountPubkey.toBuffer(), mint.toBuffer()],
+    referralProgramPubkey
+  );
+  return feeAccount.toBase58();
+};
+
 export async function repayWithCollatBuilder({
   marginfiAccount,
   bank,
@@ -392,6 +403,9 @@ export async function repayWithCollatBuilder({
 }) {
   const jupiterQuoteApi = createJupiterApiClient();
 
+  // get fee account for original borrow mint
+  const feeAccount = await getFeeAccount(bank.info.state.mint);
+
   const {
     setupInstructions,
     swapInstruction,
@@ -403,6 +417,7 @@ export async function repayWithCollatBuilder({
       quoteResponse: options.repayCollatQuote,
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+      feeAccount,
     },
   });
 

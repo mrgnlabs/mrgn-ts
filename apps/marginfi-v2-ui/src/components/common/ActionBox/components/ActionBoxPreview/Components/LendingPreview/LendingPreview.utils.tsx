@@ -255,26 +255,36 @@ export interface PreviewStat {
   value: () => React.JSX.Element;
 }
 
-export function generateStats(preview: ActionPreview, bank: ExtendedBankInfo, isLending: boolean, isLoading: boolean) {
+export function generateStats(
+  preview: ActionPreview,
+  bank: ExtendedBankInfo,
+  isLending: boolean,
+  isLoading: boolean,
+  isRepayWithCollat: boolean
+) {
   const stats = [];
 
-  stats.push(getAmountStat(preview.currentPositionAmount, bank, preview.simulationPreview?.positionAmount));
-  if (preview.priceImpactPct) {
-    stats.push(getPriceImpactStat(preview.priceImpactPct));
-  }
-  if (preview.slippageBps) {
-    stats.push(getSlippageStat(preview.slippageBps));
-  }
+  if (isRepayWithCollat) stats.push(getJupFeeStat());
+  if (preview.priceImpactPct) stats.push(getPriceImpactStat(preview.priceImpactPct));
+  if (preview.slippageBps) stats.push(getSlippageStat(preview.slippageBps));
+
   stats.push(getHealthStat(preview.healthFactor, isLoading, preview.simulationPreview?.health));
-  if (preview.simulationPreview?.liquidationPrice) {
+
+  if (preview.simulationPreview?.liquidationPrice)
     stats.push(getLiquidationStat(bank, isLoading, preview.simulationPreview?.liquidationPrice));
-  }
 
   stats.push(getPoolSizeStat(preview.bankCap, bank, isLending));
   stats.push(getBankTypeStat(bank));
   stats.push(getOracleStat(bank));
 
   return stats;
+}
+
+function getJupFeeStat(): PreviewStat {
+  return {
+    label: "Platform fee",
+    value: () => <>0.25%</>,
+  };
 }
 
 function getAmountStat(currentAmount: number, bank: ExtendedBankInfo, simulatedAmount?: number): PreviewStat {
