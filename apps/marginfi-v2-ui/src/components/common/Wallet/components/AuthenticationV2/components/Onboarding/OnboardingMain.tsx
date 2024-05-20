@@ -2,7 +2,7 @@ import React from "react";
 
 import { AuthScreenProps, cn } from "~/utils";
 
-import { Dialog, DialogContent } from "~/components/ui/dialog";
+import { DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { OnboardHeader } from "../sharedComponents";
 
