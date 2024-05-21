@@ -65,18 +65,6 @@ const projects = shuffle([
     },
   },
   {
-    title: "omni",
-    description: "Autonomous agent interacting with crypto protocols",
-    github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/omni",
-    url: "https://omni.marginfi.com/",
-    repo: "mrgnlabs/mrgn-ts",
-    author: {
-      name: "marginfi",
-      avatar: "/mrgn_logo_192.png",
-      url: "https://marginfi.com",
-    },
-  },
-  {
     title: "dune analytics",
     description: "MarginFi Dune Analytics dashboard",
     url: "https://dune.com/man0s/marginfi/",
